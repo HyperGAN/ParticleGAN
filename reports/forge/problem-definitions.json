@@ -327,25 +327,28 @@
       ]
     },
     {
-      "task": "ring16_acquisition",
+      "task": "ring16_acquisition_6400",
       "title": "Learn sixteen distinct clusters from scratch",
-      "intent": "Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points.",
-      "problem": "The selected K3P, KA2, R1/R2 and GAN v3 measurements fail this Tier 1 gate, preventing later qualification. Their results on other questions do not erase this acquisition failure.",
-      "pass_summary": "Yes: selected BCAP and BISPF recipes.",
+      "intent": "Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. Since view revision 12 the counted question runs 6,400 updates with each recipe's schedule declared over the full 6,400; gates are unchanged from the 1,600-update ring16_acquisition.",
+      "problem": "The recorded selected cohorts predate the 6,400-update question and are not measured on it; at 1,600 updates the selected K3P, KA2, R1/R2 and GAN v3 recipes failed. Separate adopt measurements (source 1e02f185, seed 0, not qualification) pass it for every selected recipe, but they are not registered ordinary evidence yet.",
+      "pass_summary": "Yes, in separate adopt diagnostics: BCAP, BISPF, K3P v2, KA2 v2, GAN v3 and R1/R2 (R1/R2 by a thin margin).",
       "passers": [
-        "The selected BCAP DualNorm and `bispf-v1` records pass. Their recorded results remain bound to their original budgets and sources.",
-        "Some research recipes pass ring16 but lose mode hold; per-test winners do not establish a single winner for the entire suite."
+        "Adopt measurements on source 1e02f185, seed 0: BCAP DualNorm and `bispf-v1` pass robustly (314/384 and 287/384 checks), GAN v3 passes with spread ratio 0.44, K3P v2 and KA2 v2 (no LR horizon cap) pass, and R1/R2 passes with spread ratio 0.157 against 0.15 on exactly the final five checks.",
+        "The 1,600-update ring16_acquisition records keep their original verdicts and identities."
       ],
-      "next_step": "Retain the passing ring baseline while repairing the held tests. Longer-budget or changed-schedule results must remain explicitly separate until adopted and measured.",
+      "next_step": "Register ordinary evidence for the selected recipes under revision 12 so the qualification subset can use this question; recheck R1/R2's thin margin before relying on it.",
       "evidence": [
         {
-          "label": "Test-by-test evidence",
-          "path": "reports/forge/test-dispositions-20261015/README.md",
-          "anchor": "gaussian1d_stability"
+          "label": "Adopt measurements",
+          "path": "reports/forge/adopt-20261016/README.md"
+        },
+        {
+          "label": "6,400-update study",
+          "path": "reports/forge/dig2-20261016/ring16-cap.md"
         },
         {
           "label": "Task declaration",
-          "path": "configs/forge/tasks/ring16_acquisition.json"
+          "path": "configs/forge/tasks/ring16_acquisition_6400.json"
         }
       ]
     },

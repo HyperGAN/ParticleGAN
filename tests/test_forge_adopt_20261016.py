@@ -204,3 +204,40 @@ def test_adopt_studies_cover_the_operational_view_budget():
         if group in revisions:
             assert study["candidate"] == revisions[group]["candidate_id"]
             assert study["control"]["candidate_id"] == revisions[group]["supersedes"]
+
+
+# --- Published adopt measurements (reports/forge/adopt-20261016) ---------------------------------------
+
+ADOPT_RESULTS = ROOT / "reports/forge/adopt-20261016/results.json"
+VERIFIED_TOTALS = {  # verifier-checked totals over the 29 measured draft-10 tests: pass, fail, blocked, not run
+    "k3p": (16, 11, 2, 0), "ka2": (15, 12, 2, 0), "r1r2": (16, 11, 2, 0), "gan-v3": (15, 12, 2, 0),
+    "bcap": (7, 1, 0, 21), "bispf": (7, 1, 0, 21)}
+
+
+def test_adopt_results_hold_only_verified_seed0_source_bound_cells():
+    value = read_json(ADOPT_RESULTS)
+    assert value["qualification_input"] is False and value["qualification_reuse"] is False and value["seed"] == 0
+    assert len(value["records"]) == 130
+    for record in value["records"]:
+        assert record["source_commit"] == "1e02f18537b89be13c511515f2716de2de0dc800"
+        assert record["source_digest"] == value["source"]["digest"] and record["seed"] == 0
+        assert record["status"] in {"PASS", "FAIL"} and record["wallclock"]["decision"] is None
+        assert record["view"]["revision"] == 10
+    for row in value["diagnostic_rows"]:
+        statuses = list(row["tasks"].values())
+        assert len(statuses) == 29
+        assert tuple(statuses.count(s) for s in ("PASS", "FAIL", "BLOCKED", "NOT_RUN")) == VERIFIED_TOTALS[row["group"]]
+        assert all(row["tasks"][t] != "FAIL" for t in ("ring_hold", "ring_extension"))
+        assert "clockfree_audit_measurement_v1" not in row["tasks"]
+
+
+def test_adopt_rows_render_on_the_leaderboard_without_touching_selected_rows():
+    from experiments.forge.research_tiers import adopt_rows
+    page = ROOT / "reports/forge/technique-inventory.md"
+    rows = adopt_rows(ROOT, page)
+    assert set(rows) == {"k3p", "ka2", "r1r2", "release07-gan-v3", "bcap-pure", "bispf"}
+    text = page.read_text()
+    assert "[16/29 (2 blocked)]" in rows["k3p"][0] and "[15/29 (2 blocked)]" in rows["ka2"][0]
+    assert "[7/29 (21 not run)]" in rows["bispf"][0]
+    for additions in rows.values():
+        assert additions[0] in text
