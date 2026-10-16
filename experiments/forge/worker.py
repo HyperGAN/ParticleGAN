@@ -79,6 +79,24 @@ def execute(path: Path) -> int:
         atomic_json(directory / "child.json", {"pid": child.pid, "process_identity": process_identity(child.pid),
                     "supervisor_pid": os.getpid(), "token": worker["token"]})
         deadline = started + job["budget_seconds"]
+        # Operational wall-clock limit (experiments/forge/wallclock.py DEFAULT_POLICY):
+        # a listed task runs to its raised minimum limit, then gets one
+        # contention-aware extension. FORGE_WALLCLOCK_POLICY=declared, or a resolved
+        # request with wallclock_policy "declared", keeps the declared budget.
+        from .wallclock import decide_extension, logged_progress, resolve_policy, task_policy
+        policy = resolve_policy(resolved.get("wallclock_policy", "default"))
+        entry = task_policy(policy, job["task_id"]) if policy else None
+        if entry:
+            from .wallclock import base_limit
+            wallclock = {"declared_limit": job["budget_seconds"], "base_limit": base_limit(job["budget_seconds"], entry),
+                         "effective_limit": None, "slowdown_factor": None, "decision": None,
+                         "progress_at_base_limit": None, "solo_seconds_per_update": entry.get("solo_seconds_per_update"),
+                         "ceiling_factor": entry["ceiling_factor"]}
+            wallclock["effective_limit"] = wallclock["base_limit"]
+            terminal["wallclock"] = wallclock
+            deadline = started + wallclock["base_limit"]
+        else:
+            wallclock = None
         while child.poll() is None:
             atomic_json(directory / "heartbeat.json", {"timestamp": utc_now(), "pid": os.getpid(),
                 "child_pid": child.pid, "token": worker["token"], "elapsed_seconds": time.monotonic() - started})
@@ -87,8 +105,23 @@ def execute(path: Path) -> int:
                 terminal.update(attempt_status="cancelled", reason="request cancelled")
                 break
             if time.monotonic() >= deadline:
+                if wallclock and wallclock["decision"] is None:
+                    elapsed = time.monotonic() - started
+                    progressed = logged_progress(directory / "run.log")
+                    decided = decide_extension(job["budget_seconds"], elapsed, progressed, entry)
+                    wallclock.update(effective_limit=decided["effective_limit"], slowdown_factor=decided["slowdown_factor"],
+                                     decision=decided["decision"], projected_seconds=decided["projected_seconds"],
+                                     progress_at_base_limit=progressed)
+                    deadline = started + decided["effective_limit"]
+                    if time.monotonic() < deadline:
+                        continue
                 stop_group(child)
-                terminal.update(attempt_status="timeout", reason="task wall-time budget exhausted")
+                if wallclock:
+                    terminal.update(attempt_status="timeout", outcome="NOT_MEASURED_WALLCLOCK",
+                                    reason="wall-clock limit exhausted; not measured (wall-clock); operational limit "
+                                           f"{wallclock['effective_limit']:.0f} s ({wallclock['decision']})")
+                else:
+                    terminal.update(attempt_status="timeout", reason="task wall-time budget exhausted")
                 break
             time.sleep(.1)
         else:

@@ -33,7 +33,10 @@ def _link(root, page, label, target):
 
 @lru_cache(maxsize=4)
 def _attempt_registry(path, modified):
-    return read_json(path)["records"]
+    # Same-key solo reruns replace wall-clock hits only when they produced a real
+    # PASS/FAIL verdict; without reports/forge/wallclock-reruns.json this is a no-op.
+    from .wallclock import apply_reruns, load_reruns
+    return apply_reruns(read_json(path)["records"], load_reruns(Path(path).parents[2]))
 
 
 def attempt_count(tasks, attempts, required, *, fill):
@@ -47,6 +50,11 @@ def attempt_count(tasks, attempts, required, *, fill):
     if fill:
         for task in required:
             if outcomes[task] in {None, "UNKNOWN", "NOT_RUN"} and attempts.get(task, {}).get("status") in {"PASS", "FAIL"}:
+                outcomes[task] = attempts[task]["status"]
+            # An archived wall-clock hit was never graded; a same-key solo rerun's
+            # real verdict (wallclock_rerun) is its first measurement.
+            elif (outcomes[task] in {"INCOMPLETE", "TIMEOUT", "BLOCKED"} and attempts.get(task, {}).get("wallclock_rerun")
+                  and attempts[task]["status"] in {"PASS", "FAIL"}):
                 outcomes[task] = attempts[task]["status"]
     value = {"passed": sum(outcomes[task] == "PASS" for task in required), "total": len(required),
              "not_run": sum(tasks.get(task) in {None, "UNKNOWN", "NOT_RUN"} for task in required),

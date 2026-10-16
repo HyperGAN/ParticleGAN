@@ -15,6 +15,16 @@ import time
 import traceback
 
 
+def _wallclock_module():
+    """Load the orchestration-only wall-clock policy by path (no package imports)."""
+    import importlib.util
+    module_spec = importlib.util.spec_from_file_location(
+        "experiments.forge.attempt_wallclock", Path(__file__).with_name("wallclock.py"))
+    module = importlib.util.module_from_spec(module_spec)
+    module_spec.loader.exec_module(module)
+    return module
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("mode", choices=("prepare", "prepare_policy", "supervise", "execute", "reuse_group"))
@@ -78,15 +88,53 @@ def main():
             child = subprocess.Popen([sys.executable, "-u", str(Path(__file__).resolve()), "execute", str(args.path)],
                                      env=env, start_new_session=True, pass_fds=(lease.fileno(),))
             started = time.monotonic()
+            # Operational wall-clock limit (spec["wallclock_policy"], set to "default" by
+            # the selected-intake runner): the task's raised minimum limit, then one
+            # contention-aware extension. Absent or "declared", the declared limit is
+            # enforced exactly as before.
+            wallclock = None
+            entry = None
+            if spec.get("wallclock_policy"):
+                wallclock_module = _wallclock_module()
+                entry = wallclock_module.task_policy(spec["wallclock_policy"], spec["task"])
+            if entry:
+                base = wallclock_module.base_limit(spec["timeout_seconds"], entry)
+                wallclock = {"declared_limit": spec["timeout_seconds"], "base_limit": base, "effective_limit": base,
+                             "slowdown_factor": None, "progress_at_declared_limit": None, "decision": None,
+                             "solo_seconds_per_update": entry.get("solo_seconds_per_update"),
+                             "ceiling_factor": entry["ceiling_factor"]}
             try:
-                child.wait(timeout=spec["timeout_seconds"])
+                try:
+                    child.wait(timeout=wallclock["base_limit"] if wallclock else spec["timeout_seconds"])
+                except subprocess.TimeoutExpired:
+                    if not wallclock:
+                        raise
+                    elapsed = time.monotonic() - started
+                    progressed = wallclock_module.logged_progress(directory / "run.log")
+                    decided = wallclock_module.decide_extension(spec["timeout_seconds"], elapsed, progressed, entry)
+                    wallclock.update(effective_limit=decided["effective_limit"], slowdown_factor=decided["slowdown_factor"],
+                                     decision=decided["decision"], projected_seconds=decided["projected_seconds"],
+                                     progress_at_declared_limit=progressed)
+                    remaining = decided["effective_limit"] - (time.monotonic() - started)
+                    if remaining <= 0:
+                        raise
+                    child.wait(timeout=remaining)
             except subprocess.TimeoutExpired:
                 stop_group(child)
-                atomic_json(directory / "result.json", {"status": "TIMEOUT", "attempted": True,
+                value = {"status": "TIMEOUT", "attempted": True,
                     "reason": "original task wall-time limit exhausted", "updates": None,
-                    "seconds": time.monotonic() - started})
+                    "seconds": time.monotonic() - started}
+                if wallclock:
+                    value.update(reason="wall-clock limit exhausted; not measured (wall-clock); operational limit "
+                                 f"{wallclock['effective_limit']:.0f} s ({wallclock['decision']})",
+                                 wallclock=wallclock, outcome="NOT_MEASURED_WALLCLOCK")
+                atomic_json(directory / "result.json", value)
             finally:
                 stop_group(child, grace=0)
+            if wallclock and (directory / "result.json").exists():
+                value = json.loads((directory / "result.json").read_text())
+                if "wallclock" not in value:
+                    atomic_json(directory / "result.json", {**value, "wallclock": wallclock})
             if not (directory / "result.json").exists():
                 atomic_json(directory / "result.json", {"status": "ERROR", "attempted": True,
                     "reason": f"worker exited {child.returncode}; see run.log", "updates": None,
@@ -114,6 +162,17 @@ def main():
             torch.backends.cudnn.allow_tf32 = False
             torch.backends.cuda.matmul.allow_tf32 = False
             task = request["tasks"][spec["task"]]
+            if spec.get("wallclock_policy"):
+                # Adapters also stop themselves at resources.timeout_seconds, which
+                # would pre-empt the supervisor's operational limit. Raise only that
+                # in-process deadline to the hard ceiling; the supervisor enforces the
+                # operational limit. resources are outside the execution/evaluation
+                # fingerprints, and the frozen request file is not modified.
+                entry = _wallclock_module().task_policy(spec["wallclock_policy"], spec["task"])
+                if entry:
+                    ceiling = _wallclock_module().adapter_allowance(spec["timeout_seconds"], entry)
+                    task = request["tasks"][spec["task"]] = {**task, "resources": {**task["resources"], "timeout_seconds": ceiling}}
+                    result["adapter_allowance_seconds"] = ceiling
             from experiments.forge.contracts import file_hash
             mismatched = [relative for relative, digest in task["evaluation"].get("sources", {}).items()
                           if not (Path(spec["source_root"]) / relative).is_file()

@@ -1,0 +1,8 @@
+{
+  "schema_version": 1,
+  "id": "adopt-20261016-ka2-v1",
+  "budget_seconds": 120000,
+  "candidate_budget_seconds": 120000,
+  "accept_shared_cost_transfer": false,
+  "purpose": "Measure recipe-prior-refactor-ka2-v2 on discriminator_stability revision 10 (ring16_acquisition_6400, default operational wall-clock limits) through Tier 3, seed 0, one family per campaign/state root (/ml2/hypergan/adopt-20261016/ka2/). Declared per-family reservation 47,520 s; operational limits (experiments/forge/wallclock.py DEFAULT_POLICY) 59,520 s; the remainder covers contention-aware extensions. Historical campaigns and receipts remain immutable."
+}

@@ -1,0 +1,411 @@
+{
+  "schema_version": 1,
+  "id": "ring16_acquisition_6400",
+  "adapter": "transfer_vector",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "ring16_acquisition",
+    "steps": 6400,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.1,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": false,
+    "host_source": "benchmarks/transfer_suite/vector_tasks.py",
+    "host_definition": {
+      "hidden": 64,
+      "layers": 2,
+      "fourier": 2,
+      "z_dim": 4,
+      "particles": 256,
+      "batch": 128,
+      "steps": 6400,
+      "lr": 0.00425,
+      "d_lr_mult": 1.0,
+      "prior_lr_mult": 2.0,
+      "prior_reg": 0.0,
+      "betas": [
+        0.0,
+        0.999
+      ],
+      "ema_decay": 0.995,
+      "reg_arm": "k3p",
+      "reg_coeff": 1.0,
+      "reg_kappa": 1.0,
+      "d_every": 1,
+      "g_every": 1,
+      "family": "ring16_acquisition",
+      "split": "development",
+      "kind": "gaussian_mixture",
+      "means": [
+        [
+          3.0,
+          0.0
+        ],
+        [
+          2.77163859753386,
+          1.1480502970952693
+        ],
+        [
+          2.121320343559643,
+          2.1213203435596424
+        ],
+        [
+          1.1480502970952695,
+          2.77163859753386
+        ],
+        [
+          1.8369701987210297e-16,
+          3.0
+        ],
+        [
+          -1.1480502970952693,
+          2.77163859753386
+        ],
+        [
+          -2.1213203435596424,
+          2.121320343559643
+        ],
+        [
+          -2.77163859753386,
+          1.1480502970952697
+        ],
+        [
+          -3.0,
+          3.6739403974420594e-16
+        ],
+        [
+          -2.7716385975338604,
+          -1.148050297095269
+        ],
+        [
+          -2.121320343559643,
+          -2.1213203435596424
+        ],
+        [
+          -1.148050297095271,
+          -2.7716385975338595
+        ],
+        [
+          -5.51091059616309e-16,
+          -3.0
+        ],
+        [
+          1.14805029709527,
+          -2.77163859753386
+        ],
+        [
+          2.121320343559642,
+          -2.121320343559643
+        ],
+        [
+          2.7716385975338595,
+          -1.148050297095271
+        ]
+      ],
+      "covariances": [
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ],
+        [
+          [
+            0.01,
+            0.0
+          ],
+          [
+            0.0,
+            0.01
+          ]
+        ]
+      ],
+      "masses": [
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625,
+        0.0625
+      ],
+      "identifiable": true
+    },
+    "original_schedule_horizon": 6400,
+    "prior_contract": "recipe_owned_v1"
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "eval_output_noise": "clean",
+    "kind": "transfer_sustained",
+    "evaluator": "experiments.forge.transfer_cadence:test_verdict",
+    "gate_policy": {
+      "id": "ring16-acquisition-smoke-v2",
+      "finite_atom_exemptions": false,
+      "rationale": "Provisional broad acquisition bounds: every cluster receives at least one quarter of its target mass; balance, 3-sigma precision and all-component spread reject collapsed surrogates. Thresholds are validated by independent target/destructive samples, not tuned to training."
+    },
+    "sampling_law": "public_prior_without_output_noise",
+    "thresholds": [
+      [
+        "sample_count",
+        ">=",
+        4096
+      ],
+      [
+        "modes",
+        ">=",
+        16
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.15
+      ],
+      [
+        "hq",
+        ">=",
+        0.85
+      ],
+      [
+        "component_covariance_error",
+        "<=",
+        0.85
+      ],
+      [
+        "component_min_eigen_ratio",
+        ">=",
+        0.15
+      ]
+    ],
+    "observations": 384,
+    "minimum_stable_checks": 5,
+    "scoring_weights": "live",
+    "sources": {
+      "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
+      "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+      "benchmarks/transfer_suite/vector_tasks.py": "3ee4eb27759f61a430029c80b7772cac3dca2fb2ac84919ace0db94efca1e0b0",
+      "benchmarks/toy_audit/ring16_quality.py": "c666909ee8ed22ecb7a72f4185556f82b0b6d4ebd8aac871d58ed75b7ebf9db6",
+      "experiments/forge/transfer_cadence.py": "7b4f61062ead145603e08182ab8ca1d6f8739f6570ebf6387171d1f8319f537a"
+    },
+    "sample_evaluator": "benchmarks.toy_audit.ring16_quality:score_samples",
+    "evaluator_revision": {
+      "id": "explicit-equality-and-word-prior-betas-v3",
+      "previous_source_sha256": {
+        "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97",
+        "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8"
+      },
+      "previous_revision": null,
+      "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged."
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 1200
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "description": "Acquire all 16 equally weighted two-dimensional Gaussian clusters from scratch: radius 3, sigma 0.1; require meaningful occupancy in every cluster, roughly balanced mass and noncollapsed local spread, sustained over the final 5 checks (one check every 16.67 updates) of 6400 updates. Each recipe's own step schedule is declared over the full 6400 updates. No extended hold phase. Revision 2 of ring16_acquisition (1600 updates, schedule horizon 400), which is preserved unchanged.",
+  "research_artifacts": {
+    "api_publication": "reports/toy_audit/api_contract/ring16/publication.json",
+    "current_api_case": "api-ring16-acquisition-v2",
+    "parameter_evidence": "reports/forge/tier1-prior-duration/results.json",
+    "previous_task": "reports/forge/tier1-prior-smoke/frozen-tasks/ring16_acquisition.json",
+    "previous_revision": "configs/forge/tasks/ring16_acquisition.json",
+    "cap_evidence": "reports/forge/dig2-20261016/ring16-cap.md"
+  },
+  "task_revision": {
+    "schema_version": 1,
+    "revision": 2,
+    "revision_of": "ring16_acquisition",
+    "previous_task": "configs/forge/tasks/ring16_acquisition.json",
+    "previous_task_sha256": "83ae3f6e1ff2bc2230882db72afbb0a2e075e271147382e69ee236b4a8df35f0",
+    "changed_fields": {
+      "execution.steps": [
+        1600,
+        6400
+      ],
+      "execution.host_definition.steps": [
+        1600,
+        6400
+      ],
+      "execution.original_schedule_horizon": [
+        400,
+        6400
+      ],
+      "evaluation.observations": [
+        96,
+        384
+      ],
+      "resources.timeout_seconds": [
+        300,
+        1200
+      ]
+    },
+    "unchanged": "prior, host architecture, initializer, target, sampling law, scorer, thresholds, minimum_stable_checks=5 terminal suffix, observation cadence (16.67 updates)",
+    "reason": "User-authorised ring16 cap change (dig2 ring16-cap, 2026-10-16). ring16-schedule-20261011 showed K3P, KA2 and R1/R2 pass the unchanged gate at 6400 updates with full-budget schedules and fail at the 1600/3200/4800 cuts; the 1600-update cap was set around BCAP's passing run (#316).",
+    "history": "The original ring16_acquisition identity, its receipts and every published verdict are unchanged."
+  }
+}

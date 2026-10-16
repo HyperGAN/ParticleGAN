@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 17,
+  "revision": 18,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -32,7 +32,7 @@
       "importance": "required",
       "order": 4,
       "qualification_tier": 1,
-      "task": "ring16_acquisition"
+      "task": "ring16_acquisition_6400"
     },
     {
       "importance": "required",
@@ -601,10 +601,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-16 policy, preserving all required, held, diagnostic, and stretch assignments. Add three zero-sigma ParticlePrior latent-interpolation stretch toys (interp_sparse_arc at Tier 1; interp_img_patch_shift and interp_saddle_barycentric at Tier 2); required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Preserve the exact revision-17 policy, including all interpolation stretch tasks. Replace only ring16_acquisition with the separately identified 6,400-update task. Archived sources and numerical results retain their original identity; new measurements require a declared study and budget.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v16.json",
-    "policy_fingerprint": "827b86fe077caf18c6b6a1e0b8dd70076ab5ddcd53f26d424f18bb063118cd23",
-    "revision": 16
+    "archive": "configs/forge/view-history/discriminator_stability-v17.json",
+    "policy_fingerprint": "94d6190d18d1773f6e30cc4e3cb3fc26ee2bbd68bf86ff76ff83fe12fa6de026",
+    "revision": 17
   }
 }

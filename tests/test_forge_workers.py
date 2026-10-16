@@ -21,7 +21,8 @@ def worker_request(tmp_path, program, *, budget=3):
     target = checkout / "experiments/forge"
     target.mkdir(parents=True)
     module_root = Path(__file__).resolve().parents[1] / "experiments/forge"
-    for name in ("__init__.py", "contracts.py", "sources.py", "execution_policy.py", "queue.py", "worker.py", "telemetry.py"):
+    for name in ("__init__.py", "contracts.py", "sources.py", "execution_policy.py", "queue.py", "worker.py", "telemetry.py",
+                 "wallclock.py"):
         shutil.copyfile(module_root / name, target / name)
     # The real Forge initializer enforces serial autograd through this public
     # dependency. Keep the process fixture source-complete without importing
@@ -171,3 +172,50 @@ time.sleep(20)
         time.sleep(.01)
     assert process_identity(descendant["pid"]) is None
     assert not lease_held(lease_path)
+
+
+OBSERVING_PROGRAM = '''
+from pathlib import Path
+import json, sys, time
+from .contracts import atomic_json
+for step in range(1, {steps} + 1):
+    time.sleep(0.2)
+    print(json.dumps({{"event": "observation", "step": step}}), flush=True)
+atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {{"measured": 1}})
+'''
+
+
+def _launch_with_policy(tmp_path, steps, policy, budget):
+    req = worker_request(tmp_path, OBSERVING_PROGRAM.format(steps=steps), budget=budget)
+    q = Queue(tmp_path / "queue", grader=grade)
+    q.submit(req, campaign())
+    claim = q.claim(SLOTS)
+    path = Path(claim["worker"]["directory"]) / "request.json"
+    atomic_json(path, {**read_json(path), "wallclock_policy": policy})
+    process = q.launch(claim)
+    return q, claim, process
+
+
+def test_queue_worker_extends_a_contended_run_to_its_update_budget(tmp_path):
+    # About 5 updates/s against a 1,000 updates/s solo reference: one extension to the 4x ceiling.
+    q, claim, process = _launch_with_policy(
+        tmp_path, 40, {"solo_seconds_per_update": {"t1": 0.001}, "ceiling_factor": 4}, budget=4)
+    assert process.wait(timeout=40) == 0
+    q.collect()
+    result = q.inspect()["jobs"][claim["job"]["compatibility_key"]]["result"]
+    assert result["raw"]["attempt_status"] == "completed"
+    assert result["raw"]["wallclock"]["decision"] == "extended"
+    assert result["raw"]["wallclock"]["effective_limit"] == 16
+    assert result["task_results"][0]["gate_status"] == "PASS"
+
+
+def test_queue_worker_reports_a_wallclock_hit_as_not_measured(tmp_path):
+    q, claim, process = _launch_with_policy(
+        tmp_path, 400, {"solo_seconds_per_update": {"t1": 0.001}, "ceiling_factor": 1.5}, budget=4)
+    assert process.wait(timeout=30) == 1
+    q.collect()
+    result = q.inspect()["jobs"][claim["job"]["compatibility_key"]]["result"]
+    assert result["raw"]["attempt_status"] == "timeout" and result["raw"]["outcome"] == "NOT_MEASURED_WALLCLOCK"
+    row = result["task_results"][0]
+    assert row["gate_status"] == "INCOMPLETE" and row["wallclock_outcome"] == "NOT_MEASURED_WALLCLOCK"
+    assert row["wallclock"]["effective_limit"] == 6 and "not measured" in row["reason"]

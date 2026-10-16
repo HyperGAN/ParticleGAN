@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "id": "family-revisions-20261016",
+  "scope": "declared_selected_recipe_revisions",
+  "default_adoption": false,
+  "view": "discriminator_stability",
+  "view_revision": 10,
+  "decision": "User decision 2026-10-16 after dig2 round 2: drop network_lr_horizon_cap from the selected K3P and KA2 recipes. With the cap their G/D LR reached its 0.01 floor at update 1,600 and was the only reason they failed ring16_acquisition_6400; with it removed and nothing else changed both passed (diagnostic D1, reports/forge/dig2-20261016/ring16-cap.md).",
+  "pin_rule": "configs/forge/selections/family-current-v1.json keeps its exact measured pins until a revision below is measured on the current view; the publication then replaces that family's pin with the measured row of the declared candidate (never with the superseded one) and archives the old pin. Superseded recipes stay declared.",
+  "revisions": [
+    {
+      "trainer_family": "k3p",
+      "supersedes": "recipe-prior-refactor-k3p-v1",
+      "candidate_id": "recipe-prior-refactor-k3p-v2",
+      "changed_recipe_fields": {
+        "network_lr_horizon_cap": [
+          1600,
+          null
+        ]
+      },
+      "status": "awaiting_measurement",
+      "campaign": "configs/forge/campaigns/adopt-20261016-k3p-v1.json"
+    },
+    {
+      "trainer_family": "ka2",
+      "supersedes": "recipe-prior-refactor-ka2-v1",
+      "candidate_id": "recipe-prior-refactor-ka2-v2",
+      "changed_recipe_fields": {
+        "network_lr_horizon_cap": [
+          1600,
+          null
+        ]
+      },
+      "status": "awaiting_measurement",
+      "campaign": "configs/forge/campaigns/adopt-20261016-ka2-v1.json"
+    }
+  ]
+}

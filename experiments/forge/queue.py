@@ -732,6 +732,11 @@ class Queue:
                                "reason": raw.get("reason", raw["attempt_status"])}
                     row.setdefault("reason", "; ".join(row.get("reasons", [])))
                     row.update(task_id=member, compatibility_key=key, raw_status=raw["attempt_status"])
+                    if raw["attempt_status"] == "timeout":
+                        # Never graded: reported as NOT MEASURED (wall-clock), not FAIL.
+                        row["wallclock_outcome"] = "NOT_MEASURED_WALLCLOCK"
+                    if raw.get("wallclock"):
+                        row["wallclock"] = raw["wallclock"]
                     row["cost"] = {**row.get("cost", {}), "wall_seconds": elapsed if member == task_id else 0,
                                    "execution_seconds": elapsed, "charged_task": task_id,
                                    "device": worker["device"], "flops": {"kind": "unavailable", "value": None}}

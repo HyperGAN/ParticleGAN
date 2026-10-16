@@ -12,6 +12,7 @@ from .contracts import identifier, read_json, stable_hash
 
 REGISTRY = Path("configs/forge/trainer-families.json")
 CURRENT_SELECTION = Path("configs/forge/selections/family-current-v1.json")
+DECLARED_REVISIONS = Path("configs/forge/selections/family-revisions-20261016.json")
 
 # Editorial labels and publication receipts do not change a measured row. Bind
 # every scientific field, including the complete denominator and UNKNOWN cells.
@@ -81,6 +82,57 @@ def load_current_selection(root: Path | str, *, view_id: str, policy_fingerprint
                 identifier(task, "measurement task")
         pins[family] = pin
     return pins
+
+
+def load_declared_revisions(root: Path | str, *, card: dict | None = None) -> dict:
+    """Declared next selected recipe per family (user decision), awaiting measurement.
+
+    The measured pins in ``family-current-v1.json`` are never rewritten here: a
+    declared revision names the recipe the family is measured with next, and must
+    supersede exactly that family's currently pinned candidate with a recipe that
+    differs only in the declared recipe fields. Returns ``{family: revision}``.
+    """
+    from .planning import load_idea
+    root = Path(root)
+    path = root / DECLARED_REVISIONS
+    if card is None:
+        if not path.is_file():
+            return {}
+        card = read_json(path)
+    if (card.get("schema_version") != 1 or card.get("scope") != "declared_selected_recipe_revisions"
+            or card.get("default_adoption") is not False or not isinstance(card.get("revisions"), list)):
+        raise ValueError("unsupported declared family revision card")
+    current = read_json(root / CURRENT_SELECTION)
+    if card.get("view") != current.get("view"):
+        raise ValueError("declared family revisions must target the current selection view")
+    pins = {pin["trainer_family"]: pin for pin in current["selections"]}
+    result = {}
+    for revision in card["revisions"]:
+        family = identifier(revision.get("trainer_family"), "declared revision family")
+        if family in result:
+            raise ValueError("one declared revision per family")
+        if family not in pins or pins[family]["candidate_id"] != revision.get("supersedes"):
+            raise ValueError(f"{family}: a declared revision must supersede the family's pinned candidate")
+        if revision.get("status") not in {"awaiting_measurement", "measured"}:
+            raise ValueError(f"{family}: declared revision status must be awaiting_measurement or measured")
+        old, new = load_idea(root, revision["supersedes"]), load_idea(root, revision["candidate_id"])
+        if new.get("trainer_family") != family or new.get("parent") != old["id"]:
+            raise ValueError(f"{family}: declared revision must be a same-family child of the superseded recipe")
+        changes = revision.get("changed_recipe_fields")
+        if not isinstance(changes, dict) or not changes:
+            raise ValueError(f"{family}: declared revision must name its changed recipe fields")
+        before, after = old["recipe_overrides"], new["recipe_overrides"]
+        if set(before) != set(after):
+            raise ValueError(f"{family}: declared revision changed the recipe field set")
+        differing = {key for key in before if before[key] != after[key]}
+        if differing != set(changes) or any([before[key], after[key]] != list(changes[key]) for key in changes):
+            raise ValueError(f"{family}: recipe differs from its superseded selection beyond the declared fields")
+        scientific = ("claim_contract", "execution_path", "host_adaptation", "recipe_preset", "requires_capabilities",
+                      "schema_version", "api_version", "api_changes")
+        if any(old.get(key) != new.get(key) for key in scientific):
+            raise ValueError(f"{family}: declared revision changed a non-recipe scientific field")
+        result[family] = deepcopy(revision)
+    return result
 
 
 def _current_pin(root, family_id, rows, pin, *, view_id, catalogs):
