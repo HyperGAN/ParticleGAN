@@ -182,7 +182,7 @@ def test_queue_drain_can_skip_the_board_compile_hook():
     assert '"--no-publish"' in text and 'getattr(args, "no_publish", False)' in text
 
 
-def test_adopt_campaigns_cover_the_operational_view_budget():
+def test_adopt_studies_cover_the_operational_view_budget():
     tasks = load_tasks(ROOT)
     view = load_view(ROOT, "discriminator_stability")
     declared, operational = {}, {}
@@ -193,7 +193,14 @@ def test_adopt_campaigns_cover_the_operational_view_budget():
         entry = wc.task_policy("default", assignment["task"])
         operational[group] = max(operational.get(group, 0), wc.base_limit(task["resources"]["timeout_seconds"], entry))
     assert sum(declared.values()) == 47520 and sum(operational.values()) == 59520
+    from experiments.forge.studies import load_study
+    revisions = load_declared_revisions(ROOT)
     for group in ("k3p", "ka2", "bcap", "bispf", "r1r2", "gan-v3"):
-        campaign = read_json(ROOT / f"configs/forge/campaigns/adopt-20261016-{group}-v1.json")
-        assert campaign["id"] == f"adopt-20261016-{group}-v1"
-        assert campaign["candidate_budget_seconds"] >= sum(operational.values())
+        study = load_study(ROOT, f"adopt-20261016-{group}-study")
+        assert study["campaign"]["id"] == f"adopt-20261016-{group}-v1"
+        assert study["campaign"]["candidate_budget_seconds"] >= sum(operational.values())
+        assert study["scope"] == {"cuda_model": "NVIDIA RTX A6000", "execution_backend": "cuda", "through_tier": 3,
+                                  "view": "discriminator_stability"}
+        if group in revisions:
+            assert study["candidate"] == revisions[group]["candidate_id"]
+            assert study["control"]["candidate_id"] == revisions[group]["supersedes"]

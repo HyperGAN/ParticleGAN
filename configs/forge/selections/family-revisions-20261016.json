@@ -19,7 +19,7 @@
         ]
       },
       "status": "awaiting_measurement",
-      "campaign": "configs/forge/campaigns/adopt-20261016-k3p-v1.json"
+      "study": "configs/forge/studies/adopt-20261016-k3p-study.json"
     },
     {
       "trainer_family": "ka2",
@@ -32,7 +32,7 @@
         ]
       },
       "status": "awaiting_measurement",
-      "campaign": "configs/forge/campaigns/adopt-20261016-ka2-v1.json"
+      "study": "configs/forge/studies/adopt-20261016-ka2-study.json"
     }
   ]
 }
