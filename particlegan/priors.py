@@ -854,8 +854,15 @@ from .wavefront import (  # noqa: E402
     SobolevWavefrontManipulator,
     SplatCarrierManipulator,
 )
+from .tomographic import (  # noqa: E402
+    CosineRepulsionManipulator,
+    MarginalEntropyManipulator,
+)
 
 __all__ = [
+    "unwrap_prior",
+    "NormalNoiseManipulator",
+    "AdditiveNormalManipulator",
     "PriorManipulator",
     "ManipulatedPrior",
     "StratifiedSamplingManipulator",
@@ -863,5 +870,7 @@ __all__ = [
     "GhostFreeDeMixingManipulator",
     "SobolevWavefrontManipulator",
     "SplatCarrierManipulator",
+    "CosineRepulsionManipulator",
+    "MarginalEntropyManipulator",
 ]
 
