@@ -847,3 +847,21 @@ def _register_initialization() -> None:
 
 
 _register_initialization()
+
+
+from .wavefront import (  # noqa: E402
+    GhostFreeDeMixingManipulator,
+    SobolevWavefrontManipulator,
+    SplatCarrierManipulator,
+)
+
+__all__ = [
+    "PriorManipulator",
+    "ManipulatedPrior",
+    "StratifiedSamplingManipulator",
+    "SimplexRoutingManipulator",
+    "GhostFreeDeMixingManipulator",
+    "SobolevWavefrontManipulator",
+    "SplatCarrierManipulator",
+]
+
