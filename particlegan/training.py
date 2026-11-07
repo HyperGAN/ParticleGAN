@@ -466,6 +466,11 @@ class GANTrainer:
         """The fixed project execution policy, retained for compatibility."""
         return True
 
+    @property
+    def interrupted(self):
+        """Whether a failed update requires a completed-checkpoint restore."""
+        return self.policy.interrupted
+
     def _execute_step(self, real, *, generator_real=None, collect_stats=False):
         self._in_training_step = True
         try:
@@ -473,7 +478,7 @@ class GANTrainer:
             # accumulation order too. Restore the caller's setting on exit.
             with torch.autograd.set_multithreading_enabled(False):
                 return self._step(real, generator_real=generator_real, collect_stats=collect_stats)
-        except Exception:
+        except BaseException:
             self.policy.abort_step()
             raise
         finally:
@@ -791,13 +796,15 @@ class GANTrainer:
                if self._gradient_response is not None else {}),
         })
 
-    def _check_checkpoint_boundary(self):
-        if self._in_training_step or self.policy._phase != "ready":
+    def _check_checkpoint_boundary(self, *, restoring=False):
+        if self._in_training_step or self.policy._phase not in ("ready", "interrupted"):
             raise RuntimeError("trainer checkpoints require a completed update boundary")
+        if self.interrupted and not restoring:
+            raise RuntimeError("trainer update was interrupted; restore a completed-update checkpoint before saving")
 
     def load_state_dict(self, state):
         """Restore a compatible checkpoint, including global PyTorch RNG state (a rejected checkpoint leaves the served model served)."""
-        self._check_checkpoint_boundary()
+        self._check_checkpoint_boundary(restoring=True)
         served = self._fast is not None
         try:
             return self._load_state_dict(state)
@@ -821,7 +828,8 @@ class GANTrainer:
                 f"schema-{state['schema']} GANTrainer checkpoints come from an older formulation "
                 "and cannot resume under KA2; pin the release that wrote the checkpoint "
                 "(0.8.0 for K3P), or start a new run")
-        expected = (self.state_dict() if self.policy._feature_selection is None and self.policy.reopen_guard is None
+        expected = (self.state_dict() if not self.interrupted and self.policy._feature_selection is None
+                    and self.policy.reopen_guard is None
                     else self._state_dict())
         if isinstance(state, dict) and (
                 type(state.get("serial_backward", False)) is not bool
@@ -1005,6 +1013,7 @@ class GANTrainer:
         torch.set_rng_state(state["cpu_rng"].cpu())
         if self.device.type == "cuda":
             torch.cuda.set_rng_state(state["cuda_rng"].cpu(), self.device)
+        self.policy._phase = "ready"
         if self.serve_after_step:
             self._serve_apply()
 

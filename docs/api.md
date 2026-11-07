@@ -509,8 +509,15 @@ past that horizon; this preserves the original prefix and leaves schedules at
 their terminal values. It does not stretch or restart a schedule. Save and
 resume with the same explicit bound (included in the checkpoint when different
 from `total_steps`). Further steps after the execution bound raise an error. A failed user
-callback can occur after D has updated, so restore a checkpoint before retrying
-that interrupted update. AMP, distributed training and custom update ratios
+callback can occur after D has updated. When a started update raises, including
+`KeyboardInterrupt`, `trainer.interrupted` and `trainer.policy.interrupted` become
+`True`. Pending bookkeeping is cleared, but weights, optimizer history, controller
+observations and consumed random draws are retained. Further updates and checkpoint
+saves raise until `load_state_dict` successfully restores a compatible completed-update
+checkpoint. A checkpoint rejected during validation leaves the interruption set.
+Preflight input or exhausted-budget errors before the update starts do not interrupt
+an idle trainer. Restore the caller's data cursor or data RNG separately, and do not
+export the failed live state as a completed model. AMP, distributed training and custom update ratios
 require a caller-owned loop.
 Schedule-free E22 and Atlas retain `total_steps=None`; pass `max_steps` to bound
 their execution without inserting a schedule. Their policy hooks use that
