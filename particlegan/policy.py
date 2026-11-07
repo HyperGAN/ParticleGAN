@@ -1158,7 +1158,7 @@ class UpdatePolicy:
         return 1.0 - self.recipe.ema_decay
 
     def served_snapshot(self):
-        """Return independent currently served state, without altering fast weights.
+        """Return independent served state at a completed update boundary.
 
         ``models`` contains module state dictionaries; ``table`` is the same
         selected table independently copied.  ``source`` reports ``fast`` or
@@ -1167,7 +1167,11 @@ class UpdatePolicy:
         Buffers follow the native serving path: current generator buffers and
         selected parameters (averaged buffers are copied at each update).
         Routed row buffers follow the selected table and its represented mass.
+        Capture before beginning an update or after ``finish_step``; inference
+        during an update can use a previously captured ``ServedModel``.
         """
+        if self._phase != "ready":
+            raise RuntimeError("serving snapshots require a completed update boundary")
         swapped = self._fast is not None
         self._serve_release()
         try:
