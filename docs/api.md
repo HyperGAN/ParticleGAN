@@ -515,6 +515,9 @@ callback can occur after D has updated. When a started update raises, including
 observations and consumed random draws are retained. Further updates and checkpoint
 saves raise until `load_state_dict` successfully restores a compatible completed-update
 checkpoint. A checkpoint rejected during validation leaves the interruption set.
+If a failed cycle already froze a lazy backend or output shape, an earlier
+pre-selection checkpoint may require recreating the owner before restore;
+loading does not implicitly reset or adopt a different frozen selection.
 Preflight input or exhausted-budget errors before the update starts do not interrupt
 an idle trainer. Restore the caller's data cursor or data RNG separately, and do not
 export the failed live state as a completed model. AMP, distributed training and custom update ratios
