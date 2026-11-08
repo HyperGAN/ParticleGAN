@@ -65,7 +65,7 @@ and output-noisy samples are distinct evaluation cohorts.
 ## Forge source identity
 
 The current model and word task cards bind this policy through an additive
-[evaluator revision receipt](../reports/software-audits/pr520-update-boundary-source-binding.json).
+[evaluator revision receipt](../reports/forge/software-audits/pr520-update-boundary-source-binding.json).
 The receipt retains each exact previous task commit, blob and source hash.
 These are new execution identities; previous training measurements retain their
 original bindings and receive no automatic cross-source credit. This change
