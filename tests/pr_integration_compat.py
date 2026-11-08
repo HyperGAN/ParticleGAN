@@ -7,7 +7,7 @@ import re
 import subprocess
 
 
-INTEGRATION = re.compile(r"pr-\d+-(?:develop-integration-20261108|audit-develop-integration-20261109)$")
+INTEGRATION = re.compile(r"pr-\d+-(?:develop-integration-20261108|audit-develop-integration-202611(?:09|14))$")
 COMBINED_INTEGRATION = "reviewed-model-prs-integration-20261109"
 
 
@@ -71,12 +71,12 @@ def before_pr_integration(root, current, relative):
             # revision metadata remains exact and both ancestral fields survive.
             assert ("evaluator_revision" in current["evaluation"]) == ("evaluator_revision" in previous["evaluation"])
             assert current["evaluation"].get("evaluator_revision") == previous["evaluation"].get("evaluator_revision")
-            if "integration_source_binding" in previous["evaluation"]:
-                restored["evaluation"]["integration_source_binding"] = previous["evaluation"]["integration_source_binding"]
             if "execution_before" in row or "execution_after" in row:
                 assert row["execution_before"] == previous["execution"]
                 assert row["execution_after"] == current["execution"]
                 restored["execution"] = deepcopy(row["execution_before"])
+        if field == "integration_source_binding" and "integration_source_binding" in previous["evaluation"]:
+            restored["evaluation"]["integration_source_binding"] = previous["evaluation"]["integration_source_binding"]
         if "evaluator_revision" in previous["evaluation"]:
             restored["evaluation"]["evaluator_revision"] = previous["evaluation"]["evaluator_revision"]
         restored["evaluation"]["sources"] = previous["evaluation"]["sources"]

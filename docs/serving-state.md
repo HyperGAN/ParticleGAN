@@ -61,3 +61,12 @@ provides no deployment registry, request lifecycle or cross-process serving leas
 Use the snapshot's `source` and `completed_steps` as provenance for that capture,
 and retain the recipe and sampling options alongside exported artifacts. Clean
 and output-noisy samples are distinct evaluation cohorts.
+
+## Forge source identity
+
+The current model and word task cards bind this policy through an additive
+[evaluator revision receipt](../reports/software-audits/pr520-update-boundary-source-binding.json).
+The receipt retains each exact previous task commit, blob and source hash.
+These are new execution identities; previous training measurements retain their
+original bindings and receive no automatic cross-source credit. This change
+launches no research training and changes no published qualification result.
