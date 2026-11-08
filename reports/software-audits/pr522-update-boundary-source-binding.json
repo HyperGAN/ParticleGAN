@@ -1,0 +1,93 @@
+{
+  "schema": "update_boundary_source_binding_v1",
+  "revision_id": "pr522-update-boundary-source-binding-v1",
+  "pull_request": 522,
+  "source_member": "particlegan/policy.py",
+  "current_source_sha256": "9ea0bb9a6084df35780d5429bf38424d17a5fc04789391d4d726b77e9c572b82",
+  "reason": "Interrupted-update recovery and pure optional-observation preflight",
+  "qualification_results_changed": false,
+  "scientific_training_launched": false,
+  "automatic_cross_source_reuse": false,
+  "tasks": [
+    {
+      "path": "configs/forge/tasks/five_word_joint_hold.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "32461ad5849abbe7f313c3a9084b6049039431a7636de5906b11687468a164af",
+      "previous_task_blob": "8849acc57d433e2ebda2c898be2c7913b0ec2c67",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "a1f7fd57358fa95be9dae0fedb3c0c3fa082469444d039767716484cd89a546b"
+    },
+    {
+      "path": "configs/forge/tasks/five_word_joint_smoke.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "eca4dc3afc81bd75ff7606e584fced1293614a8992cbf76c0868b5be25864a6e",
+      "previous_task_blob": "9d16317abe6c0a3b73c05f6bc2dd91be1fd05e6e",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "7c6bacc9eb3bae3aa6bc8961819ba4791659540cf672e6db0a7b1c1e09e8d0f0"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "840adf027b4b73e5e2f67112eed2755f65585bdb177ac61f749e9e5d11b58939",
+      "previous_task_blob": "9f77771684480486b883690ce23b944ecb922e3b",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "0babdf4624efcfa6fbe2e49d255ef5fcd3c93f75546f7d1b68d6788957927efd"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "8946cce6c276d333cc56d19053c8582711a029452337f8787c1a0253308ac26e",
+      "previous_task_blob": "45f7c6ae6bc18b2941b2ab5263a81d48e1882615",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "78f66daa02e246159312c239db06150936ce017d9ac0f1abaa03b0ec23e48016"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "ccb2fa0cbe9eada5f6a12e94a92a93335a91f166ad309a925efae2af0a6f1515",
+      "previous_task_blob": "2b4872bc9f26a400ec5c2e850acc6b8b8a15467a",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "edbc9aaa92c42ff68341dace1de82266bc88118d75dd71d5fb539a88768024a0"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_reconstruction.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "99d10d8f3fcbadff3bf2a1a1c62a8e211c7d4790fb607b8fe1b4fcea976f6b20",
+      "previous_task_blob": "6b05ce5cb0dc0d49e3f5f085c0fc0cddee1104f6",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "9c2aac42018a9026488f91826e503877472e76a2967f07a5925876f3128ed6fa"
+    },
+    {
+      "path": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "9832a4e39d652e2fdfb2fe80d0804da3cc864245487fac792471cb3bf915a506",
+      "previous_task_blob": "dc64a4e5bf40d6d4b213d454651b4310c38c85fc",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "51d4e880c88bcfe2c44a5552abae5653c25287d6de5d9e0c6edb7358918dc5c9"
+    },
+    {
+      "path": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "6846eaf197367eafef409b1953f9c9f0e35627aa07c95985693465065098fd02",
+      "previous_task_blob": "0d37360a7a3fca9cdedee9866475143253ec7ebb",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "fc43b221f24bd869eb40c900c5ba7e6ffd993e1a7f5baf1ceed820de42545583"
+    },
+    {
+      "path": "configs/forge/tasks/model_vae_categorical.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "b56b8f2fa767934b51c71b733bd3bfce805150c23ff1170923c1b46a6c750a04",
+      "previous_task_blob": "e805c35270819a42096ac650c8fe3a55db599268",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "f2cab11d749c47c20e59bae35fbd4a7b78820de2a4d3b4d5abb704cff12176e0"
+    },
+    {
+      "path": "configs/forge/tasks/model_vae_hard.json",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_sha256": "da062e85378f0750eb9218356f0a6330de1875e162abe13c7de4244d80ca195f",
+      "previous_task_blob": "047acc1b4a3b79a601552fe30b41d5dae20cc389",
+      "previous_policy_sha256": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+      "current_task_sha256": "c4af039856e16e3cc2525e63e59ff79fe49b8a85c52f5445a893c71b20a6d688"
+    }
+  ]
+}

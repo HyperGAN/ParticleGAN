@@ -652,13 +652,15 @@ class UpdatePolicy:
                 or real.device != self.device or real.dtype != self.dtype):
             raise ValueError("real must be a nonempty batch on the model device and dtype")
         real = real.detach()
+        # Optional observations are pure preflight when row controls are off.
+        # Reject them before a started update can require checkpoint recovery.
+        if self.routed_control is not None and not self._routed_controls_enabled and routed is not None:
+            self.routed_control.check_batch(routed)
         self._phase = "starting"
         if self._feature_selection is not None:
             self._feature_selection.observe_shape(real)
         if self.routed_control is not None and self._routed_controls_enabled:
             self.routed_control.begin(routed)
-        elif self.routed_control is not None and routed is not None:
-            self.routed_control.check_batch(routed)
         if self.controller is not None:
             self.controller.observe_prior(self._prior_view())
             record = getattr(self.opt_d, "record", None) if game_record is None else game_record
