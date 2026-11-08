@@ -1,7 +1,7 @@
-"""Law 3 Tomographic Multi-Query Log-Odds and Anti-Collapse Regularizers.
+"""Multi-query log-odds transforms and optional diversity regularizers.
 
-This module implements the third fundamental mathematical law for under-determined,
-non-injective critics:
+These helpers provide scoped transforms and penalties for experiments with frozen,
+non-injective observation operators; they do not guarantee inverse recovery:
 1. symmetric_log_odds: Vectorized, numerically stable one-vs-rest log-odds
    satisfying constant shift invariance, binary anti-symmetry, and soft-cap boundedness.
 2. TomographicConstraintTarget: Stateless, deterministic Cartesian-product multi-query
@@ -17,23 +17,24 @@ non-injective critics:
    metrics: mean_target_prob, primary_accuracy, entropy_ratio, feature_diversity,
    patch_seam_ratio, and shift_sensitivity.
 """
-from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence, Tuple, Union
 import copy
 import math
+from collections.abc import Callable, Mapping, Sequence
+from typing import Any
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from .priors import PriorManipulator
 from .wavefront import WavefrontManifoldPrior
 
 
 def symmetric_log_odds(
-    logits: Union[torch.Tensor, Sequence[torch.Tensor]],
+    logits: torch.Tensor | Sequence[torch.Tensor],
     *,
-    tau: Optional[float] = None,
-) -> Union[torch.Tensor, List[torch.Tensor], Tuple[torch.Tensor, ...]]:
+    tau: float | None = None,
+) -> torch.Tensor | list[torch.Tensor] | tuple[torch.Tensor, ...]:
     r"""Computes one-vs-rest symmetric log-odds with constant shift invariance.
 
     For logits :math:`y \in \mathbb{R}^K` (:math:`K \ge 2`), option :math:`k` has log-odds:
@@ -109,10 +110,10 @@ class TomographicConstraintTarget:
 
     def __init__(
         self,
-        queries: Optional[Sequence[Mapping[str, Any]]] = None,
+        queries: Sequence[Mapping[str, Any]] | None = None,
         *,
-        num_classes: Optional[Union[int, Sequence[int]]] = None,
-        num_modes: Optional[Union[int, Sequence[int]]] = None,
+        num_classes: int | Sequence[int] | None = None,
+        num_modes: int | Sequence[int] | None = None,
         tau: float = 3.0,
         temperature: float = 1.0,
         jitter_std: float = 0.0,
@@ -137,10 +138,10 @@ class TomographicConstraintTarget:
         if queries is not None:
             if not isinstance(queries, (list, tuple)) or len(queries) == 0:
                 raise ValueError("queries must be a non-empty sequence of query mappings")
-            normalized_queries: List[Dict[str, Any]] = []
-            num_classes_list: List[int] = []
-            num_modes_list: List[int] = []
-            mode_probs_list: List[torch.Tensor] = []
+            normalized_queries: list[dict[str, Any]] = []
+            num_classes_list: list[int] = []
+            num_modes_list: list[int] = []
+            mode_probs_list: list[torch.Tensor] = []
 
             for idx, q in enumerate(queries):
                 if not isinstance(q, Mapping):
@@ -189,7 +190,7 @@ class TomographicConstraintTarget:
                 num_modes_list.append(num_modes)
                 mode_probs_list.append(probs_tensor)
 
-                entry: Dict[str, Any] = {
+                entry: dict[str, Any] = {
                     "target_modes": target_modes,
                     "num_classes": K_q,
                     "num_modes": num_modes,
@@ -249,8 +250,8 @@ class TomographicConstraintTarget:
         self.k_max = max(self._num_classes)
 
         # Precompute target soft-capped log-odds for each query mode
-        self._centered_logits: List[torch.Tensor] = []
-        self._mode_targets: List[torch.Tensor] = []
+        self._centered_logits: list[torch.Tensor] = []
+        self._mode_targets: list[torch.Tensor] = []
 
         for q_idx in range(self.num_queries):
             probs = mode_probs_list[q_idx]
@@ -270,9 +271,9 @@ class TomographicConstraintTarget:
         self,
         batch_size: int,
         *,
-        generator: Optional[torch.Generator] = None,
-        device: Optional[torch.device] = None,
-    ) -> Dict[str, torch.Tensor]:
+        generator: torch.Generator | None = None,
+        device: torch.device | None = None,
+    ) -> dict[str, torch.Tensor]:
         """Draws batch_size independent target vectors across the Cartesian product.
 
         Returns:
@@ -287,8 +288,8 @@ class TomographicConstraintTarget:
 
         dev = device if device is not None else (generator.device if generator is not None else torch.device("cpu"))
 
-        sampled_modes: List[torch.Tensor] = []
-        sampled_u: List[torch.Tensor] = []
+        sampled_modes: list[torch.Tensor] = []
+        sampled_u: list[torch.Tensor] = []
 
         for q_idx in range(self.num_queries):
             M_q = self._num_modes[q_idx]
@@ -321,16 +322,15 @@ class TomographicConstraintTarget:
     def sample_cartesian_product(
         self,
         *,
-        device: Optional[torch.device] = None,
-    ) -> Dict[str, torch.Tensor]:
+        device: torch.device | None = None,
+    ) -> dict[str, torch.Tensor]:
         """Enumerates all prod(M_q) combinations in the Cartesian product mode space."""
         dev = device if device is not None else torch.device("cpu")
         grids = [torch.arange(M_q, device=dev) for M_q in self._num_modes]
         mesh = torch.meshgrid(*grids, indexing="ij")
         stacked_modes = torch.stack([m.reshape(-1) for m in mesh], dim=-1)  # (N_prod, Q)
-        N_prod = stacked_modes.shape[0]
 
-        sampled_u: List[torch.Tensor] = []
+        sampled_u: list[torch.Tensor] = []
         for q_idx in range(self.num_queries):
             m_indices = stacked_modes[:, q_idx]
             targets = self._mode_targets[q_idx].to(device=dev)
@@ -339,7 +339,7 @@ class TomographicConstraintTarget:
         U_target = torch.cat(sampled_u, dim=-1)
         return {"real": U_target, "modes": stacked_modes}
 
-    def resume_identity(self) -> Dict[str, Any]:
+    def resume_identity(self) -> dict[str, Any]:
         """Returns serializable configuration for exact run resumption."""
         return {
             "queries": copy.deepcopy(self.queries),
@@ -364,20 +364,20 @@ class MarginalEntropyRegularizer(nn.Module):
 
     def __init__(
         self,
-        query_indices: Optional[Sequence[int]] = None,
-        query_index: Optional[int] = None,
+        query_indices: Sequence[int] | None = None,
+        query_index: int | None = None,
         *,
         num_classes: int = 2,
-        num_modes: Union[int, Sequence[int], Dict[int, int]] = 2,
+        num_modes: int | Sequence[int] | dict[int, int] = 2,
         min_entropy_ratio: float = 0.85,
-        target_entropy_ratio: Optional[float] = None,
+        target_entropy_ratio: float | None = None,
         hinge: bool = True,
         input_mode: str = "logits",
         eps: float = 1e-8,
         target_attraction_weight: float = 0.0,
         target_log_odds: float = 2.85,
-        query_slices: Optional[Sequence[Tuple[int, int]]] = None,
-        single_mode_queries: Optional[Sequence[int]] = None,
+        query_slices: Sequence[tuple[int, int]] | None = None,
+        single_mode_queries: Sequence[int] | None = None,
     ) -> None:
         super().__init__()
         if query_indices is not None:
@@ -426,7 +426,7 @@ class MarginalEntropyRegularizer(nn.Module):
 
     def forward(
         self,
-        logits: Optional[torch.Tensor] = None,
+        logits: torch.Tensor | None = None,
         **kwargs: Any,
     ) -> torch.Tensor:
         """Evaluates batch-marginal entropy deficit and optional mode attraction."""
@@ -448,8 +448,8 @@ class MarginalEntropyRegularizer(nn.Module):
             logits = logits.unsqueeze(0)
 
         B = logits.shape[0]
-        losses: List[torch.Tensor] = []
-        attr_losses: List[torch.Tensor] = []
+        losses: list[torch.Tensor] = []
+        attr_losses: list[torch.Tensor] = []
 
         for q_idx, q in enumerate(self.query_indices):
             M_q = self.num_modes[q]
@@ -534,7 +534,7 @@ class MarginalEntropyRegularizer(nn.Module):
             return entropy_loss + self.target_attraction_weight * torch.stack(attr_losses).mean()
         return entropy_loss
 
-    def resume_identity(self) -> Dict[str, Any]:
+    def resume_identity(self) -> dict[str, Any]:
         """Returns serializable configuration for exact run resumption."""
         return {
             "query_indices": list(self.query_indices),
@@ -562,13 +562,13 @@ class MarginalEntropyManipulator(PriorManipulator):
 
     def __init__(
         self,
-        query_indices: Optional[Sequence[int]] = None,
-        query_index: Optional[int] = None,
+        query_indices: Sequence[int] | None = None,
+        query_index: int | None = None,
         *,
         num_classes: int = 2,
-        num_modes: Union[int, Sequence[int], Dict[int, int]] = 2,
+        num_modes: int | Sequence[int] | dict[int, int] = 2,
         min_entropy_ratio: float = 0.85,
-        target_entropy_ratio: Optional[float] = None,
+        target_entropy_ratio: float | None = None,
         weight: float = 1.0,
         hinge: bool = True,
         input_mode: str = "logits",
@@ -576,10 +576,14 @@ class MarginalEntropyManipulator(PriorManipulator):
         eps: float = 1e-8,
         target_attraction_weight: float = 0.0,
         target_log_odds: float = 2.85,
-        query_slices: Optional[Sequence[Tuple[int, int]]] = None,
-        single_mode_queries: Optional[Sequence[int]] = None,
+        query_slices: Sequence[tuple[int, int]] | None = None,
+        single_mode_queries: Sequence[int] | None = None,
     ) -> None:
         super().__init__()
+        if not math.isfinite(weight) or weight < 0:
+            raise ValueError("weight must be finite and nonnegative")
+        if source not in {"auto", "codes", "logits"}:
+            raise ValueError("source must be auto, codes or logits")
         self.weight = float(weight)
         self.source = source
         self.regularizer = MarginalEntropyRegularizer(
@@ -597,14 +601,21 @@ class MarginalEntropyManipulator(PriorManipulator):
             single_mode_queries=single_mode_queries,
         )
 
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "weight": self.weight, "source": self.source,
+                "regularizer": {name: getattr(self.regularizer, name) for name in (
+                    "query_indices", "num_classes", "num_modes", "min_entropy_ratio",
+                    "hinge", "input_mode", "eps", "target_attraction_weight",
+                    "target_log_odds", "query_slices", "single_mode_queries")}}
+
     def regularize(
         self,
         raw_rows: torch.Tensor,
         *,
-        sampled_codes: Optional[torch.Tensor] = None,
-        indices: Optional[torch.Tensor] = None,
-        generated: Optional[torch.Tensor] = None,
-        logits: Optional[torch.Tensor] = None,
+        sampled_codes: torch.Tensor | None = None,
+        indices: torch.Tensor | None = None,
+        generated: torch.Tensor | None = None,
+        logits: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if self.weight <= 0.0:
             return torch.zeros((), device=raw_rows.device, dtype=raw_rows.dtype)
@@ -669,8 +680,8 @@ class NormalizedFeatureCosineRepulsion(nn.Module):
 
     def forward(
         self,
-        features: Optional[torch.Tensor] = None,
-        margin: Optional[float] = None,
+        features: torch.Tensor | None = None,
+        margin: float | None = None,
         **kwargs: Any,
     ) -> torch.Tensor:
         if features is None:
@@ -727,7 +738,7 @@ class NormalizedFeatureCosineRepulsion(nn.Module):
         mask = ~torch.eye(B, dtype=torch.bool, device=features.device)
         return (1.0 - sim[mask].mean()).to(dtype=features.dtype)
 
-    def resume_identity(self) -> Dict[str, Any]:
+    def resume_identity(self) -> dict[str, Any]:
         """Returns serializable configuration for exact run resumption."""
         return {
             "margin": self.margin,
@@ -753,12 +764,16 @@ class CosineRepulsionManipulator(PriorManipulator):
         margin: float = 0.88,
         weight: float = 1.0,
         source: str = "auto",
-        feature_extractor: Optional[nn.Module] = None,
+        feature_extractor: nn.Module | None = None,
         squared: bool = False,
         eps: float = 1e-8,
         reduction: str = "mean",
     ) -> None:
         super().__init__()
+        if not math.isfinite(weight) or weight < 0:
+            raise ValueError("weight must be finite and nonnegative")
+        if source not in {"auto", "codes", "generated"}:
+            raise ValueError("source must be auto, codes or generated")
         self.weight = float(weight)
         self.source = source
         self.feature_extractor = feature_extractor
@@ -770,14 +785,23 @@ class CosineRepulsionManipulator(PriorManipulator):
             reduction=reduction,
         )
 
+    def config(self) -> dict[str, Any]:
+        extractor = self.feature_extractor
+        return {**super().config(), "weight": self.weight, "source": self.source,
+                "feature_extractor": None if extractor is None else [
+                    (name, f"{type(module).__module__}.{type(module).__qualname__}", module.extra_repr())
+                    for name, module in extractor.named_modules()],
+                "repulsion": {name: getattr(self.repulsion, name) for name in (
+                    "margin", "squared", "eps", "reduction")}}
+
     def regularize(
         self,
         raw_rows: torch.Tensor,
         *,
-        sampled_codes: Optional[torch.Tensor] = None,
-        indices: Optional[torch.Tensor] = None,
-        generated: Optional[torch.Tensor] = None,
-        logits: Optional[torch.Tensor] = None,
+        sampled_codes: torch.Tensor | None = None,
+        indices: torch.Tensor | None = None,
+        generated: torch.Tensor | None = None,
+        logits: torch.Tensor | None = None,
     ) -> torch.Tensor:
         if self.weight <= 0.0:
             return torch.zeros((), device=raw_rows.device, dtype=raw_rows.dtype)
@@ -803,17 +827,17 @@ class CosineRepulsionManipulator(PriorManipulator):
 def evaluate_tomographic_constraints(
     images: torch.Tensor,
     *,
-    operator: Optional[Callable[[torch.Tensor], Any]] = None,
-    target_modes: Optional[torch.Tensor] = None,
-    features: Optional[torch.Tensor] = None,
-    logits: Optional[torch.Tensor] = None,
-    shift: Tuple[int, int] = (2, 2),
+    operator: Callable[[torch.Tensor], Any] | None = None,
+    target_modes: torch.Tensor | None = None,
+    features: torch.Tensor | None = None,
+    logits: torch.Tensor | None = None,
+    shift: tuple[int, int] = (2, 2),
     patch_size: int = 8,
-    secondary_patch_size: Optional[int] = 4,
+    secondary_patch_size: int | None = 4,
     primary_query_index: int = 0,
-    num_classes: Optional[Sequence[int]] = None,
+    num_classes: Sequence[int] | None = None,
     tau: float = 3.0,
-) -> Dict[str, float]:
+) -> dict[str, float]:
     """Evaluates the 6 quantitative tomographic constraint metrics defined in §AC3.
 
     Returns:

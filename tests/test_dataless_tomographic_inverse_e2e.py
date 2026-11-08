@@ -1,4 +1,9 @@
-"""End-to-End Data-Less Multi-Modal Tomographic Inverse Benchmark.
+"""Historical custom-Adam inverse fixture and separate public-API software controls.
+
+The six image-quality gates below describe the seed-42, identity-prior custom
+optimization fixture. They do not certify GANTrainer image quality. The public
+seed-0 integration example in examples/inverse_imaging_smoke.py separately checks
+finite updates, parameter movement, exact replay and actual training frames.
 
 Verifies AC3 quantitative acceptance gates on N=64 generated samples:
 1. mean_target_prob >= 0.80
@@ -18,16 +23,14 @@ Also verifies:
 - GANTrainer integration, DualNorm role segregation, and checkpoint continuation parity
 - Zero Recipe bloat (strictly 112 fields preserved)
 """
-import copy
 import dataclasses
-import math
 import os
 import time
 
 import pytest
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from particlegan import (
     GANTrainer,
@@ -43,7 +46,6 @@ from particlegan.priors import (
     SplatCarrierManipulator,
 )
 from particlegan.tomographic import (
-    NormalizedFeatureCosineRepulsion,
     TomographicConstraintTarget,
     evaluate_tomographic_constraints,
     symmetric_log_odds,
@@ -51,7 +53,6 @@ from particlegan.tomographic import (
 from particlegan.wavefront import (
     SimplexWavefrontGenerator,
     SobolevGradFilter,
-    WavefrontManifoldPrior,
 )
 
 # Enforce project autograd serial scheduling invariant

@@ -1,40 +1,39 @@
-"""Wavefront Laws: Sobolev H^s gradient filtering, manifold priors, and ghost-free splat carrier.
+"""Sobolev gradient filtering, spatial priors, and Gaussian-splat image carriers.
 
 This module implements:
-- Law 1:
+- Gradient filtering and spatial penalties:
   - sobolev_filter_2d: Real 2D FFT Bessel-potential smoothing operator.
   - SobolevGradFilter: Straight-through autograd filter applying Sobolev smoothing to backward gradients.
   - WavefrontManifoldPrior: Patch-seam ratio, biharmonic curvature, and radial PSD excess regularizers.
-  - SobolevWavefrontManipulator: Composable PriorManipulator integrating Law 1 into GANTrainer.
-- Law 2:
+  - SobolevWavefrontManipulator: Composable PriorManipulator integrating filtering into GANTrainer.
+- Carrier construction:
   - GhostFreeSimplexMixer: Base+detail de-mixing operator with exact zero negative ghost leakage.
   - GhostFreeDeMixingManipulator: PriorManipulator applying GhostFreeSimplexMixer to mode representations.
   - DifferentiableSplatCarrierBasis: Domain-agnostic 2D Gaussian splat spatial carrier basis (2D parameters).
   - SplatCarrierManipulator: Composable PriorManipulator mapping latent codes to rendered splat carrier.
   - SimplexWavefrontGenerator: Multi-scale conv residual pyramid generator built on spatial carriers.
 """
-from typing import Any, Dict, Optional, Sequence, Tuple, Union
 import math
+from collections.abc import Sequence
+from typing import Any
 
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import torch.fft as fft
+from torch import fft, nn
 
 from .priors import PriorManipulator
 
-
 __all__ = [
-    "sobolev_filter_2d",
-    "SobolevGradFilter",
-    "WavefrontManifoldPrior",
-    "SobolevWavefrontManipulator",
-    "GhostFreeSimplexMixer",
-    "GhostFreeDeMixingManipulator",
     "DifferentiableSplatCarrierBasis",
-    "SplatCarrierManipulator",
+    "GhostFreeDeMixingManipulator",
+    "GhostFreeSimplexMixer",
     "ResidualConvBlock",
     "SimplexWavefrontGenerator",
+    "SobolevGradFilter",
+    "SobolevWavefrontManipulator",
+    "SplatCarrierManipulator",
+    "WavefrontManifoldPrior",
+    "sobolev_filter_2d",
 ]
 
 
@@ -66,6 +65,10 @@ def sobolev_filter_2d(
         raise TypeError(f"sobolev_filter_2d requires a floating-point tensor, got {grad.dtype}")
     if grad.ndim < 2:
         raise ValueError(f"sobolev_filter_2d requires tensor with ndim >= 2, got {grad.ndim}")
+    if any(not math.isfinite(value) or value < 0 for value in (lam, order)):
+        raise ValueError("lam and order must be finite and nonnegative")
+    if not math.isfinite(nyquist) or nyquist <= 0:
+        raise ValueError("nyquist must be finite and positive")
     if lam <= 0.0 or order <= 0.0:
         return grad
 
@@ -99,7 +102,7 @@ class _SobolevGradFilterFunction(torch.autograd.Function):
         return x.view_as(x)
 
     @staticmethod
-    def backward(ctx: Any, grad_output: Optional[torch.Tensor]) -> Tuple[Optional[torch.Tensor], None, None, None]:
+    def backward(ctx: Any, grad_output: torch.Tensor | None) -> tuple[torch.Tensor | None, None, None, None]:
         if grad_output is None or ctx.lam <= 0.0 or ctx.order <= 0.0:
             return grad_output, None, None, None
         filtered_grad = sobolev_filter_2d(
@@ -177,7 +180,7 @@ class WavefrontManifoldPrior(nn.Module):
         weight_biharmonic: float = 0.1,
         weight_psd: float = 0.01,
         patch_size: int = 4,
-        secondary_patch_size: Optional[int] = None,
+        secondary_patch_size: int | None = None,
         seam_threshold: float = 1.05,
         laplacian_kernel: str = "5point",
         alpha: float = 2.0,
@@ -271,7 +274,7 @@ class WavefrontManifoldPrior(nn.Module):
         img: torch.Tensor,
         *,
         return_dict: bool = False,
-    ) -> Union[torch.Tensor, Dict[str, torch.Tensor]]:
+    ) -> torch.Tensor | dict[str, torch.Tensor]:
         if not isinstance(img, torch.Tensor):
             raise TypeError(f"img must be a torch.Tensor, got {type(img)}")
         if img.ndim != 4:
@@ -282,7 +285,7 @@ class WavefrontManifoldPrior(nn.Module):
         B, C, H, W = img.shape
         device = img.device
         dtype = img.dtype
-        losses: Dict[str, torch.Tensor] = {}
+        losses: dict[str, torch.Tensor] = {}
 
         # 1. Patch-seam gradient penalty
         if self.weight_seam > 0.0:
@@ -395,7 +398,7 @@ class SobolevWavefrontManipulator(PriorManipulator):
         weight_biharmonic: float = 0.1,
         weight_psd: float = 0.01,
         patch_size: int = 4,
-        secondary_patch_size: Optional[int] = None,
+        secondary_patch_size: int | None = None,
         seam_threshold: float = 1.05,
         laplacian_kernel: str = "5point",
         alpha: float = 2.0,
@@ -404,6 +407,10 @@ class SobolevWavefrontManipulator(PriorManipulator):
         delta: float = 0.01,
     ) -> None:
         super().__init__()
+        if any(not math.isfinite(value) or value < 0 for value in (grad_lambda, grad_order, weight)):
+            raise ValueError("gradient scales and weight must be finite and nonnegative")
+        if not math.isfinite(grad_nyquist) or grad_nyquist <= 0:
+            raise ValueError("grad_nyquist must be finite and positive")
         self.grad_lambda = float(grad_lambda)
         self.grad_order = float(grad_order)
         self.grad_nyquist = float(grad_nyquist)
@@ -432,6 +439,15 @@ class SobolevWavefrontManipulator(PriorManipulator):
             delta=delta,
         )
 
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "grad_lambda": self.grad_lambda,
+                "grad_order": self.grad_order, "grad_nyquist": self.grad_nyquist,
+                "weight": self.weight,
+                "wavefront": {name: getattr(self.wavefront_prior, name) for name in (
+                    "weight_seam", "weight_biharmonic", "weight_psd", "patch_size",
+                    "secondary_patch_size", "seam_threshold", "laplacian_kernel", "alpha",
+                    "margin_db", "padding_mode", "delta", "eps")}}
+
     def postprocess_generated(self, generated: torch.Tensor) -> torch.Tensor:
         """Applies SobolevGradFilter to fake_g during the G-step."""
         if self.grad_lambda > 0.0 and self.grad_filter is not None:
@@ -442,10 +458,10 @@ class SobolevWavefrontManipulator(PriorManipulator):
         self,
         raw_rows: torch.Tensor,
         *,
-        sampled_codes: Optional[torch.Tensor] = None,
-        indices: Optional[torch.Tensor] = None,
-        generated: Optional[torch.Tensor] = None,
-        logits: Optional[torch.Tensor] = None,
+        sampled_codes: torch.Tensor | None = None,
+        indices: torch.Tensor | None = None,
+        generated: torch.Tensor | None = None,
+        logits: torch.Tensor | None = None,
     ) -> torch.Tensor:
         """Evaluates WavefrontManifoldPrior on fake_g and scales by self.weight."""
         if generated is None or self.weight <= 0.0 or not self.wavefront_prior.has_active_penalties:
@@ -535,13 +551,19 @@ class GhostFreeDeMixingManipulator(PriorManipulator):
             self.register_buffer("base_repr", torch.zeros(num_modes, prod_dim))
             self.register_buffer("detail_repr", torch.zeros(num_modes, prod_dim))
 
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "num_modes": self.num_modes,
+                "representation_shape": list(self.representation_shape),
+                "gamma_base": self.mixer.gamma_base, "gamma_detail": self.mixer.gamma_detail,
+                "learnable": isinstance(self.base_repr, nn.Parameter)}
+
     def transform(
         self,
         codes: torch.Tensor,
-        idx: Optional[torch.Tensor] = None,
+        idx: torch.Tensor | None = None,
         *,
         base_prior: nn.Module,
-        generator: Optional[torch.Generator] = None,
+        generator: torch.Generator | None = None,
         training: bool = True,
     ) -> torch.Tensor:
         if codes.shape[-1] < self.num_modes:
@@ -684,7 +706,7 @@ class DifferentiableSplatCarrierBasis(nn.Module):
         dist_sq = (y_rot / sy) ** 2 + (x_rot / sx) ** 2
         return torch.exp(-0.5 * dist_sq)
 
-    def render(self) -> Tuple[torch.Tensor, torch.Tensor]:
+    def render(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Renders U^base and U^full across all K modes."""
         # 1. Base shared spatial envelopes: (M_base, H, W)
         E_base = self._render_gaussians(
@@ -744,7 +766,7 @@ class SplatCarrierManipulator(PriorManipulator):
         num_base_splats: int = 6,
         num_detail_splats: int = 4,
         *,
-        basis: Optional[DifferentiableSplatCarrierBasis] = None,
+        basis: DifferentiableSplatCarrierBasis | None = None,
         gamma_base: float = 1.0,
         gamma_detail: float = 1.0,
         concat_residuals: bool = False,
@@ -775,13 +797,21 @@ class SplatCarrierManipulator(PriorManipulator):
             gamma_detail=gamma_detail,
         )
 
+    def config(self) -> dict[str, Any]:
+        return {**super().config(), "num_modes": self.num_modes, "channels": self.channels,
+                "height": self.height, "width": self.width,
+                "num_base_splats": self.basis.num_base_splats,
+                "num_detail_splats": self.basis.num_detail_splats,
+                "gamma_base": self.mixer.gamma_base, "gamma_detail": self.mixer.gamma_detail,
+                "concat_residuals": self.concat_residuals}
+
     def transform(
         self,
         codes: torch.Tensor,
-        idx: Optional[torch.Tensor] = None,
+        idx: torch.Tensor | None = None,
         *,
         base_prior: nn.Module,
-        generator: Optional[torch.Generator] = None,
+        generator: torch.Generator | None = None,
         training: bool = True,
     ) -> torch.Tensor:
         if codes.shape[-1] < self.num_modes:
@@ -856,8 +886,8 @@ class SimplexWavefrontGenerator(nn.Module):
         num_blocks: int = 2,
         residual_gain: float = 0.5,
         num_groups: int = 4,
-        in_channels: Optional[int] = None,
-        carrier_basis: Optional[nn.Module] = None,
+        in_channels: int | None = None,
+        carrier_basis: nn.Module | None = None,
     ) -> None:
         super().__init__()
         self.carrier_basis = carrier_basis
@@ -927,3 +957,32 @@ class SimplexWavefrontGenerator(nn.Module):
         base_carrier = carrier[:, : self.channels]
         out = torch.tanh(base_carrier + bounded_res)
         return out
+
+
+def _initialize_splat_layout(module: DifferentiableSplatCarrierBasis) -> None:
+    """Restore deliberate geometric coordinates after initializing the color matrix."""
+    if not module.detail_params.requires_grad:
+        return
+    detail = module.detail_params.view(
+        module.num_modes, module.num_detail_splats, 5 + module.channels)
+    for k in range(module.num_modes):
+        for m in range(module.num_detail_splats):
+            angle = 2.0 * math.pi * (m + k * 0.3) / max(1, module.num_detail_splats)
+            detail[k, m, :5] = detail.new_tensor([
+                0.4 * math.sin(angle), 0.4 * math.cos(angle),
+                math.log(0.15), math.log(0.15), 0.0])
+
+
+def _register_initialization() -> None:
+    from .init import KEEP, Normal, register
+    register(DifferentiableSplatCarrierBasis, lambda module: {
+        "base_geometry": KEEP, "base_background": KEEP,
+        "base_appearance": Normal(0.0, 0.2 / math.sqrt(module.num_base_splats)),
+        "detail_params": Normal(0.0, 0.02),
+    }, finalize=_initialize_splat_layout)
+    register(GhostFreeDeMixingManipulator, lambda module: {} if not isinstance(
+        module.base_repr, nn.Parameter) else {
+            "base_repr": Normal(0.0, 0.1), "detail_repr": Normal(0.0, 0.1)})
+
+
+_register_initialization()

@@ -9,14 +9,13 @@ Verifies AC2:
 - SimplexWavefrontGenerator bounded range in (-1, 1), step-0 carrier equivalence, and full gradient flow.
 - Wavefront manipulator training integration, EMA buffer contiguity, and bit-exact checkpoint parity.
 """
-from copy import deepcopy
 import math
 import time
 
 import pytest
 import torch
-import torch.nn as nn
 import torch.nn.functional as F
+from torch import nn
 
 from particlegan import (
     GANTrainer,
@@ -24,8 +23,6 @@ from particlegan import (
     get_recipe,
 )
 from particlegan.priors import (
-    GhostFreeDeMixingManipulator,
-    ManipulatedPrior,
     SimplexRoutingManipulator,
     SobolevWavefrontManipulator,
     SplatCarrierManipulator,

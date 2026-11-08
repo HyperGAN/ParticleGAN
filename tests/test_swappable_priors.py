@@ -1,16 +1,14 @@
 import dataclasses
-from copy import deepcopy
-import json
-from pathlib import Path
 import subprocess
 import sys
+from copy import deepcopy
+from pathlib import Path
 
 import pytest
 import torch
-import torch.nn as nn
+from torch import nn
 
 from particlegan import (
-    DEFAULT_RECIPE,
     GANTrainer,
     MoGParticlePrior,
     ParticlePrior,
@@ -668,7 +666,7 @@ def test_scale_learning_rates_router_schedule_agreement():
         f"Prior group LR was {prior_group['lr']}, expected {expected_prior_lr}"
     )
     assert abs(prior_group["lr"] - (recipe.lr * recipe.prior_lr_mult * net_scale)) > 1e-4, (
-        f"Prior group LR was scaled by net_scale instead of prior_scale"
+        "Prior group LR was scaled by net_scale instead of prior_scale"
     )
 
     # Generator parameter group must match recipe.lr * net_scale
@@ -751,7 +749,7 @@ def test_make_prior_regularizer_initial_mmd_unwraps_base_prior():
     m_train = MockTrainableManipulator(in_features=4, out_features=4)
     prior = recipe.make_prior(manipulators=[m_train])
 
-    reg = recipe.make_prior_regularizer(prior=prior)
+    recipe.make_prior_regularizer(prior=prior)
     assert hasattr(prior.base, "_initial_mmd_reference")
     assert hasattr(prior.base, "_initial_mmd_scale")
     assert hasattr(prior.base, "_initial_mmd_reference_kernel")

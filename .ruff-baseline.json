@@ -761,12 +761,6 @@
         "`torch.nn` imported but unused": 1
       }
     },
-    "tests/test_swappable_priors.py": {
-      "F401": {
-        "`json` imported but unused": 1,
-        "`particlegan.DEFAULT_RECIPE` imported but unused": 1
-      }
-    },
     "tests/test_toy_api_conditionals.py": {
       "F401": {
         "`copy.deepcopy` imported but unused": 1
