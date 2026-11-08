@@ -103,6 +103,7 @@ def test_prepare_resolves_real_ready_all16_with_no_queue_or_workers(prepared):
                for plan in result["arms"].values() for row in plan["active_tasks"])
     requests = module.resolved(root, result)
     for request in requests.values():
+        assert request["wallclock_policy"] == "declared"
         assert request["tasks"]["gaussian1d_stability"]["dependencies"] == [{"task": "gaussian1d_smoke", "kind": "checkpoint"}]
         assert request["tasks"]["five_word_joint_hold"]["dependencies"] == [{"task": "five_word_joint_smoke", "kind": "checkpoint"}]
         assert request["view"]["evidence_scope"] == "research_diagnostic"
