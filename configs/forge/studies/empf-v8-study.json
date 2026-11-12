@@ -1,0 +1,100 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v8-study"
+  },
+  "candidate": "empf-v8",
+  "competing_explanation": "If five_word_joint_hold's transient continuation dip in empf-v7 stemmed from 128x128 Newton-Schulz approximation error or encoder drift independent of critic DualNorm thermal step amplitude, then extending newton_schulz_hybrid_v1 to max_dim >= 128 and cooling discrete-simplex DualNorm across [0.064, 0.084] to 0.0004 will either degrade 128-wide continuous gates (ring16_acquisition) or still drop below 0.9995 minimum reconstruction token probability on five_word_joint_hold.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": "<",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9995
+  },
+  "hypothesis": "Including 128x128 hidden matrices in DualNorm's guarded cubic Newton-Schulz hybrid profile (min_dim >= 64 and max_dim >= 128) while cooling unconditioned discrete-simplex DualNorm steps (ema_decay = 0.96, band [0.064, 0.084] -> 0.0004 < optimizer_smoothing) halves five_word_joint_smoke wall time, preserves all 13/13 counted Tier 1 gates and gaussian1d_stability, and eliminates post-acquisition discrete logit jitter so five_word_joint_hold passes all scheduled continuation checks with final minimum_reconstruction_token_probability >= 0.9995.",
+  "id": "empf-v8-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9995
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v2",
+        "candidate_revision": "fc09c6b1f8ae77167ca31db0a4d9ef252dc9d6b92aed98e3d4b53a168ff0ac15"
+      },
+      "path": "reports/forge/records/readout-05eaed46ab0e45214ae8e7b4.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v3",
+        "candidate_revision": "baae191aa8fc7e2d0563cd8a3b52e8ef53ece846d63213cadf159a2e2c47018e"
+      },
+      "path": "reports/forge/records/readout-0c549ac1c635a42dc43cf6dc.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v4",
+        "candidate_revision": "b44c5b2df075ea9eb81d850ce3dba4c04f3b6b8f3aff87963708d729ce03f2c8"
+      },
+      "path": "reports/forge/records/readout-75cdbfb23dff3c1136ae7422.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v5",
+        "candidate_revision": "a457aa4e6487d00f5630eeebf70830674145a1dae9f64dc38d6643f6eff3508b"
+      },
+      "path": "reports/forge/records/readout-aef7cbc33a8a6b3326b86bb8.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v6",
+        "candidate_revision": "2929a9ef553dde2092e0769ebdeaa03d0f6ded4ae74c07482ab71a77c601abe7"
+      },
+      "path": "reports/forge/records/readout-4aa764495c669b9247ca874b.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v7",
+        "candidate_revision": "e9cb4e9e9d26179d1fa70cf52b42cee045c9c8e67238b78e5c0c28ac0d8fda8e"
+      },
+      "path": "reports/forge/records/readout-4901963885d977da23e139ba.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

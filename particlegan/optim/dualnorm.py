@@ -834,7 +834,7 @@ class NormalizedOptimizer(Optimizer):
                         elif (self.dense_profile == NEWTON_SCHULZ_DENSE_PROFILE
                               or (self.dense_profile == NEWTON_SCHULZ_HYBRID_DENSE_PROFILE
                                   and min(parameter.shape) >= 64
-                                  and max(parameter.shape) > 128)):
+                                  and max(parameter.shape) >= 128)):
                             if parameter.device.type == "cuda":
                                 if not hasattr(self, "_newton_graphs"):
                                     self._newton_graphs = _PolarGraphCache()
