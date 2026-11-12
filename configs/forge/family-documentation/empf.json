@@ -15,11 +15,11 @@
   ],
   "training_details": {
     "loss": "Selectable non-saturating logistic (selected DualNorm configuration, with conditioned-fiber relativistic pairing once conditional energy settles), paired relativistic logistic, EMPF Sinkhorn relativistic logistic, hinge, Wasserstein or least squares. Joint encoder/generator hosts train both critic streams.",
-    "optimizer": "Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset quintic convolution, size-gated newton_schulz_hybrid_v1 dense polar profile using exact SVD on min_dim < 64 or max_dim <= 128 and guarded 32-step cubic Newton-Schulz on min_dim >= 64 and max_dim > 128, batched SVD backend, BF16 channels-last conv training, direction-blend constraint geometry) as well as native Adam and formulation-owned EMPFCriticAdam without an EMA critic network copy.",
+    "optimizer": "Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset quintic convolution, size-gated newton_schulz_hybrid_v1 dense polar profile using exact SVD on min_dim < 64 or max_dim < 128 and guarded 32-step cubic Newton-Schulz on min_dim >= 64 and max_dim >= 128, batched SVD backend, BF16 channels-last conv training, direction-blend constraint geometry) as well as native Adam and formulation-owned EMPFCriticAdam without an EMA critic network copy.",
     "learning_rates": "Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.012$, critic multiplier $1.5$ and DualNorm sampled-row prior multiplier $2.5$ (`prior_reg=0.01`), matching `bispf-throughput-v1` / `presets[bispf_optimized]`.",
     "gradient_clipping": "None. Critic spike guard is disabled; gradient bounding acts smoothly through the Elastic Born-Infeld critic potential.",
     "critic_penalty": "Prototype-chord Elastic Born-Infeld regularizer evaluated on real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords ($\\kappa=1$, base sharpness $\\beta_0=6$ tightening quadratically via cool-gated state-driven settling sharpness $\\beta_{\\mathrm{eff}}(r_{\\mathrm{ema}}, B_r)$ once $r_{\\mathrm{ema}}<0.16$, harmonic floor $\\lambda_{\\mathrm{floor}}=0.01$, chord blend $0.05$) plus a settling zero-mean logit gauge ($\\gamma_{\\mathrm{gauge}}=0.05$). Conditioned critics preserve fiber alignment automatically; no EMA critic anchor.",
-    "damping_and_guards": "Instance-bound shock-filtered transport EMA, trimmed central-$[0.04, 0.96]$ 1D quantile-$W_2$ floor-subtracted $1/\\sqrt{B}$ smoothstep thermal cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic basin capture lock, and discrete-simplex post-acquisition Chamfer thermal cooling ($r_{\\mathrm{ema}}<0.070$) damp post-convergence mini-batch fluctuations below DualNorm's smoothing floor while instant-reheating on abrupt distribution shifts using zero global state and zero step counters.",
+    "damping_and_guards": "Instance-bound shock-filtered transport EMA, trimmed central-$[0.04, 0.96]$ 1D quantile-$W_2$ floor-subtracted $1/\\sqrt{B}$ smoothstep thermal cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic basin capture lock, and discrete-simplex post-acquisition Chamfer thermal cooling ($\\mathrm{ema\\_decay}=0.96$, smoothstep band $[0.064, 0.084]\\to 0.0004$) damp post-convergence mini-batch fluctuations below DualNorm's smoothing floor while instant-reheating on abrupt distribution shifts using zero global state and zero step counters.",
     "noise": "No scheduled additive critic-input or generator-output training noise in the selected benchmark configuration ($0.0$). Task-declared MoG intrinsic sigma is preserved.",
     "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
   },
@@ -70,6 +70,8 @@
     "configs/forge/studies/empf-v6-study.json",
     "configs/forge/ideas/empf-v7.json",
     "configs/forge/studies/empf-v7-study.json",
+    "configs/forge/ideas/empf-v8.json",
+    "configs/forge/studies/empf-v8-study.json",
     "reports/forge/empf/README.md"
   ],
   "equations": [
