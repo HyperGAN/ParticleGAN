@@ -1252,13 +1252,14 @@ examples, gradient caveats, DDGAN integration and measured evidence.
 ## Recipes and defaults
 
 ```python
-get_recipe(**overrides)        # Current default: optimized BISPF.
+get_recipe(**overrides)        # Current default: EMPF (DEFAULT_RECIPE = "empf").
 get_recipe("gan", **overrides) # Named components, current shared hyperparameters.
+get_recipe("empf", **overrides) # Selected EMPF/DualNorm/quintic recipe.
 get_recipe("ka2", **overrides) # Previous public trainer, explicitly pinned.
 get_recipe("ae_gan", trainer="ka2", **overrides) # Model with a pinned trainer.
 get_recipe("bcap", **overrides) # Fixed BCAP, direction blend, constant DualNorm rates.
 get_recipe("bcap_adam", **overrides) # Earlier fixed BCAP/native Adam control.
-get_recipe("bispf_optimized", **overrides) # Selected BISPF/DualNorm/quintic recipe.
+get_recipe("bispf_optimized", **overrides) # Explicit BISPF/DualNorm/quintic recipe.
 get_recipe("bispf", **overrides) # Original BISPF/formulation optimizer preset.
 get_recipe("halloween", **overrides) # Explicit historical optimizer/loss transfer.
 get_recipe("e22", **overrides) # Schedule-free E22 policy, explicit task settings.
@@ -1276,21 +1277,28 @@ To promote a future registered trainer preset, change this single line in
 [`particlegan/recipes.py`](../particlegan/recipes.py):
 
 ```python
-DEFAULT_RECIPE = "bispf_optimized"
+DEFAULT_RECIPE = "empf"
 ```
 
 The selector affects `get_recipe()`, `get_recipe("gan")` and all model-family
 recipes. Explicit presets and `Recipe.from_dict(saved_fields)` remain independent of
 it. Save resolved recipes, rather than resolving the current default when
 resuming. The selected recipe matches the complete
-[`bispf-throughput-v1` candidate](../configs/forge/ideas/bispf-throughput-v1.json),
-apart from its public preset label. This owner-directed release choice retains
-the [19 passes and 11 failures](../reports/forge/bispf-throughput/README.md) in the
-30-task ordinary readout; it adds no calibration, universal architecture or
-natural-image quality claim. Observed matched DCGAN speedups are 1.02–2.15×
-over the 0.9.0 quintic default across six tasks, with unknown GPU contention.
+[`empf-v2` candidate](../configs/forge/ideas/empf-v2.json)
+(`82/115` counted view requirements and `22/61` fixed-suite passes in the
+[technique inventory](../reports/forge/technique-inventory.md)); it is an
+owner-directed research selection and adds no accepted calibration, Tier 3
+confirmation, universal architecture or natural-image quality claim. Explicit
+`get_recipe("bispf_optimized")` retains the complete
+[`bispf-throughput-v1` candidate](../configs/forge/ideas/bispf-throughput-v1.json)
+([19 passes and 11 failures](../reports/forge/bispf-throughput/README.md) in its
+30-task readout; 1.02–2.15× observed matched DCGAN speedups over the 0.9.0 quintic
+default across six tasks).
 
-`bispf_optimized` uses the Born-Infeld chord penalty and zero-mean logit gauge,
+`empf` uses the online *e-means* prototype-chord Born-Infeld penalty (`ebi_beta=6.0`
+with state-driven settling sharpness) and zero-mean logit gauge, non-saturating loss,
+zero-momentum DualNorm, smoothing `.001`, direction blending, learned sampled-prior row
+updates and DoF-aware EMPF prior regularization at `.01` (`ucd_weight=.02`). `bispf_optimized` uses the Born-Infeld chord penalty and zero-mean logit gauge,
 non-saturating loss, zero-momentum DualNorm, smoothing `.001`, direction blending,
 learned sampled-prior row updates and SBNP regularization at `.01`. Generator,
 critic and prior step sizes are `.012`, `.018` and `.03`. Both schedule floors
@@ -1335,8 +1343,9 @@ and fields are rejected. Restore a complete saved configuration with
 
 | Name | Components and dimensions |
 | --- | --- |
-| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise |
-| `bispf_optimized` | Selected BISPF recipe; DualNorm, optimized convolution filter, direction blending, SBNP `.01` and constant rates |
+| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise (inherits `DEFAULT_RECIPE = "empf"`) |
+| `empf` | Selected EMPF research default; online *e-means* prototype bank, settling Born-Infeld penalty, DualNorm, optimized convolution filter, direction blending, EMPF prior `.01` and constant rates |
+| `bispf_optimized` | Explicit optimized BISPF recipe; DualNorm, optimized convolution filter, direction blending, SBNP `.01` and constant rates |
 | `bispf` | Original BISPF recipe with relativistic Sinkhorn loss and formulation optimizer |
 | `bcap` | Scalar GAN, 20,000 particles, latent dimension 2; fixed BCAP, direction blending and DualNorm at constant rates |
 | `bcap_adam` | Earlier pure fixed BCAP preset with native Adam and constant rates |
@@ -1473,7 +1482,7 @@ The previous K3P critic replays through
 `benchmarks.legacy.recipe` ([K3P](k3p.md#replaying-k3p)).
 
 The following loop and Adam controller descriptions use the explicit KA2 recipe.
-The default optimized BISPF recipe also uses the protected-backward contract below.
+The default EMPF recipe (`"empf"`) and explicit `"bispf_optimized"` recipe use the protected-backward contract below.
 
 When binding G and E to `UpdatePolicy`, pass `separate_encoder_groups=True`.
 Native Adam then uses distinct homogeneous generator and encoder groups with
@@ -1683,7 +1692,7 @@ preserved; float16/bfloat16 inputs compute in float32 and cast the result back.
 This replaces the former Newton--Schulz fast path for matrices larger than 1024,
 so large full-rank matrices can cost more per update. Conv2d/ConvTranspose2d
 weights require module bindings and `optimizer_convolution="per_offset"`,
-enabled by the `bcap` and `bispf_optimized` presets; unlabelled high-rank tensors
+enabled by the `bcap`, `bispf_optimized` and `empf` presets; unlabelled high-rank tensors
 remain unsupported. The [convolution contract](dualnorm-convolution.md) specifies
 channel-group layout, kernel scaling, smoothing and checkpoint compatibility.
 Older checkpoints load their stored state, but continue

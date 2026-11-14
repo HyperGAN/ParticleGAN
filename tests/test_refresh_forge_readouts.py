@@ -740,7 +740,7 @@ def test_live_repository_forge_readouts_are_current_and_source_clean():
     assert report["status"] == "CURRENT", json.dumps(report, indent=2, sort_keys=True)
     assert report["stale_stages"] == []
     measured = _assert_current_source_scope(report, ROOT)
-    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 48
+    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 60
     assert report["stages"]["published_scaling_performance"]["missing_cells"] == 0
     assert report["stages"]["published_scaling_performance"]["unavailable_cells"] == 0
     assert report["stages"]["published_scaling_performance"]["table_cohorts"] == 1
@@ -1515,7 +1515,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     _assert_current_source_scope(status, ROOT)
 
     perf = status["stages"]["published_scaling_performance"]
-    assert perf["complete_cells"] == 48
+    assert perf["complete_cells"] == 60
     assert perf["contended_cells"] == 0
     assert perf["unpaired_tasks"] == []
     assert perf["table_cohorts"] == 1
@@ -1529,7 +1529,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     perf_block = inv_md.split("<!-- Forge scaling performance: start -->", 1)[1].split(
         "<!-- Forge scaling performance: end -->", 1
     )[0]
-    assert perf_block.count("| clear |") == 48
+    assert perf_block.count("| clear |") == 60
     assert "| contended |" not in perf_block
 
     from experiments.forge.family_reports import _selected_cohorts, _selected_row
@@ -1544,6 +1544,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         ("atlas", "Atlas", "atlas-particle-normal-v4"),
         ("bispf", "BISPF", "bispf-optimized-quintic-v1"),
         ("bcap-pure", "BCAP", "recipe-prior-refactor-bcap-pure-v1"),
+        ("empf", "EMPF", "empf-v7"),
+        ("rhbi", "RHBI", "rhbi-v11"),
         ("e22", "E22", "e22"),
     )
     assert set(selected) == {family for family, _, _ in expected_families}
@@ -1568,6 +1570,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         "| [Atlas](families/atlas.md) | [`atlas-particle-normal-v4`]",
         "| [BISPF](families/bispf.md) | [`bispf-optimized-quintic-v1`]",
         "| [BCAP](families/bcap-pure.md) | [`recipe-prior-refactor-bcap-pure-v1`]",
+        "| [EMPF](families/empf.md) | [`empf-v7`]",
+        "| [RHBI](families/rhbi.md) | [`rhbi-v11`]",
         "| [E22](families/e22.md) | [`e22`]",
     )
 
@@ -1644,8 +1648,15 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         # diagnostic grades to satisfy an all-binary/no-unknown display rule.
         assert required_tasks <= seen, (family_id, sorted(required_tasks - seen))
         for task_id in ("precision_gaussian_mxfp8", "precision_gaussian_nvfp4"):
-            assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+            if family_id not in {"empf", "rhbi"}:
+                assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+            else:
+                assert original_cohort["tasks"][task_id]["status"] in {"PASS", "FAIL"}
             assert task_id in seen
+        if family_id == "empf":
+            for task_id in ("model_ddgan_bimodal_chain", "model_ae_ddgan_bimodal_chain"):
+                assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+                assert task_id in seen
 
 
 
@@ -1874,7 +1885,8 @@ def test_republish_registered_inventory_end_to_end_recovers_missing_and_unverifi
         assert rfr.check_compiled_reports(wt)["current_source_tier1_synced"] is False
         rfr._republish_registered_inventory(wt, json_mode=True)
         assert rfr.check_compiled_reports(wt)["current_source_tier1_synced"] is True
-        assert "(7 not run)" not in md_path.read_text()
+        assert "tier-1)** (7 not run)" not in md_path.read_text()
+        assert md_path.read_text() == orig_md
         assert "Stale claim: archived scores" not in md_path.read_text()
         if expected_tier1:
             assert expected_tier1 in md_path.read_text()
@@ -1959,6 +1971,7 @@ def _restore_recorded_source_cohort(root: Path) -> str:
 
     assert root.resolve() != ROOT.resolve()
     revision = "6261a5458c1f3e14c7c9faf1fc6966e03b2acfb1"
+    cohort_revision = "292582579ce8608067491d1c33c316d3dabe7695"
     current = set(rfr.catalog_source_manifest(root)["files"])
     names = subprocess.check_output(
         ["git", "ls-tree", "-r", "--name-only", revision], cwd=ROOT, text=True).splitlines()
@@ -1970,6 +1983,20 @@ def _restore_recorded_source_cohort(root: Path) -> str:
         (root / name).unlink()
     data = subprocess.check_output(["git", "archive", revision, "--", *sorted(desired)], cwd=ROOT)
     with tarfile.open(fileobj=io.BytesIO(data)) as archive:
+        archive.extractall(root, filter="data")
+    cohort_data = subprocess.check_output(
+        [
+            "git",
+            "archive",
+            cohort_revision,
+            "--",
+            "configs/forge/trainer-families.json",
+            "configs/forge/selections/family-current-v1.json",
+            "reports/forge/technique-inventory.json",
+        ],
+        cwd=ROOT,
+    )
+    with tarfile.open(fileobj=io.BytesIO(cohort_data)) as archive:
         archive.extractall(root, filter="data")
     (root / "configs/forge/views/discriminator_stability.json").write_bytes(
         (ROOT / "configs/forge/view-history/discriminator_stability-v14.json").read_bytes())
@@ -2298,6 +2325,7 @@ def test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidat
         # The following task/runtime tamper controls use their exact recorded
         # source cohort, independently of the latest checkout tested above.
         recorded_digest = _restore_recorded_source_cohort(wt)
+        wt_inv = read_json(wt / "reports/forge/technique-inventory.json")
         # The complete old view remains incomplete: Atlas has no compatible
         # ordinary Tier 2 observations. Diagnostic coverage must not fill those
         # gaps. Scope the software controls below to the retained Tier 1 rows,
@@ -2352,7 +2380,7 @@ def test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidat
         assert rfr.catalog_source_manifest(wt)["digest"] == recorded_digest
         sfr_after_edit = rfr.check_selected_family_readouts(wt)
         assert sfr_after_edit["current"] is False
-        assert len(sfr_after_edit["missing_families"]) == 7
+        assert len(sfr_after_edit["missing_families"]) == 8
         for item in sfr_after_edit["missing_families"]:
             assert item["unmeasured_tier1"] == ["zero_tanh_smoke"]
 

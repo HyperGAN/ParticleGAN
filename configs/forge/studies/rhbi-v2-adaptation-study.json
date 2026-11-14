@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rhbi-v2-adaptation-study"
+  },
+  "candidate": "rhbi-v2",
+  "competing_explanation": "Linear Born-Infeld horizon screening at rho=3.0 and increased DualNorm polar smoothing (0.0061) could slow outer-tail capture on 100-mode grids, over-damp multi-step DDGAN chains, or degrade long-horizon ring_extension hold despite fixing Tier 1 ring16_acquisition and AE/VAE settling. Complete seed-0 measurement through Tier 3 on discriminator_stability tests whether Tier 1 gains transfer cleanly to Tier 2 and Tier 3.",
+  "control": {
+    "candidate_id": "rhbi-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "The same unchanged global clock-free rhbi-v2 recipe qualifies through Tier 2 on adaptation and measures non-stationary target_shift_recovery in Tier 3 without schedule resets or task-specific tuning.",
+  "id": "rhbi-v2-adaptation-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v1",
+        "candidate_revision": "3e717461929e3760dcb3d4b87b6452a001c37d644e642179fda7bd2fa3752a8c"
+      },
+      "path": "reports/forge/records/readout-a94316e3e91606df03a346de.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "adaptation"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

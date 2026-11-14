@@ -124,22 +124,22 @@ Every cell is one run; timings are never pooled across devices or contention sta
 
 [Compact performance evidence index](../scaling-performance.json) · [Protocol and bounded reproduction](../../../docs/forge-scaling-performance.md)
 
-This registration covers 8 complete recipes. Historical alternatives outside its registered family roster add no missing benchmark cells. A changed selected recipe within a registered family remains unknown until measured.
+This registration covers 10 complete recipes. Historical alternatives outside its registered family roster add no missing benchmark cells. A changed selected recipe within a registered family remains unknown until measured.
 
 ### NVIDIA RTX A6000 · GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce
 
-Performance source `52126b7e2ed1` (commit `6c895b5924d02e54b0f34d22486aea411a31572f`); runtime `537b082bf1e4`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
+Performance source `28267be05193` (commit `5a6af38465597761d0b6a00a6243910565850d35`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
 
 Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-table performance exception retains each recipe's prior update policy and regularizer. Exact prior and resource specifications remain part of every task key.
 
 | Family / recipe | Task (RGB size, batch, width) | Execution | Median / p95 update ms | Images/s | GPU peak allocated / reserved MiB | Contention | Matched key / evidence |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 12.52 / 14.49 | 1,253.13 | 93.65 / 108.00 | clear | `ea012f5e02a9` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_r32-2fb12d1010464fbd.json) |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 26.09 / 26.56 | 612.36 | 271.67 / 300.00 | clear | `7c4628d7df0a` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_r64-87d1fcd758f3a80e.json) |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 55.93 / 56.93 | 285.31 | 748.06 / 782.00 | clear | `96b5088a380d` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_w128-c2b764bba4a6b694.json) |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 62.20 / 62.67 | 1,030.91 | 618.16 / 662.00 | clear | `f8c34c01051d` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_b64-6db7a3cbaf0ff1a8.json) |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 72.45 / 73.78 | 220.20 | 771.21 / 822.00 | clear | `48fa5b69bf4b` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_r128-94cd7caf824d1f62.json) |
-| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 252.21 / 253.97 | 63.34 | 2,339.28 / 2,494.00 | clear | `ba062e982a81` · [receipt](../scaling-receipts/dcgan-performance-cloud-2e8a97a0aa84/k3p-dcgan_performance_r256-a6147fba26bd71a2.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 11.82 / 14.49 | 1,300.69 | 93.65 / 108.00 | clear | `d56240d15558` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_r32-2dccae90a14534d7.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 26.29 / 26.60 | 610.28 | 271.67 / 300.00 | clear | `524c07acf3db` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_r64-d56f6861c67387d9.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 56.63 / 57.37 | 282.22 | 748.06 / 782.00 | clear | `7ca95dbe0fca` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_w128-da7a4e840921bfd5.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 62.80 / 63.31 | 1,018.98 | 618.16 / 662.00 | clear | `0c19272217b1` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_b64-2fd54792aa894c43.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 72.91 / 73.69 | 219.23 | 771.21 / 822.00 | clear | `1b8df8094599` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_r128-f6833a837e6ae542.json) |
+| K3P · `recipe-prior-refactor-k3p-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 254.21 / 255.79 | 62.91 | 2,339.28 / 2,494.00 | clear | `c4765c66fb33` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/k3p-dcgan_performance_r256-7fc2c79235455f26.json) |
 
 <a name="cohort-cuda-1bf9d7d34422"></a>
 
@@ -147,7 +147,7 @@ Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-
 
 Runtime: **cuda**. Selected configuration: [recipe-prior-refactor-k3p-v1](../../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 16, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -164,7 +164,7 @@ Selection: recorded_source_measurement. Recorded source-bound original measureme
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2) | [0/6 (3 not run, 3 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-4) | [3/22 (3 not run, 15 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [5/11 (4 not run, 1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | [0/18 (4 not run, 14 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-4) | [5/30 (8 not run, 16 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [0/25 (4 not run, 21 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [5/11 (4 not run, 1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | [0/18 (4 not run, 14 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-4) | [5/30 (8 not run, 16 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [0/28 (7 not run, 21 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-4) | [3/15 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
@@ -203,6 +203,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_nvfp4) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 
@@ -240,6 +241,8 @@ Held at this tier (measured and shown, not counted):
 | [img_bars4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_bars4) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_blobs4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_blobs4) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_intensity2](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_intensity2) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [vector_anisotropic](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_anisotropic) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [vector_overlap](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_overlap) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [vector_unequal_mass](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
@@ -309,11 +312,14 @@ These tests keep running and keep this recipe's recorded result, but they do not
 
 | Experiment | Held in | Recorded result | Reason | Summary | Re-entry rule |
 | --- | --- | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping? | Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass. |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_nvfp4) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [img_bars4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_bars4) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_bars4) | Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_blobs4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_blobs4) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_blobs4) | Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_intensity2](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_intensity2) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts? | Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass. |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface? | Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass. |
 | [vector_anisotropic](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_anisotropic) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_overlap](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_overlap) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_unequal_mass](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) | [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together. |
@@ -842,9 +848,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 16**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **2 / 7 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -869,6 +875,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2"></a>
 
@@ -901,6 +908,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [staggered100](k3p.md#cohort-cuda-1bf9d7d34422-experiment-staggered100) | required | UNKNOWN | changed since run |
 | [model_ae_ddgan_bimodal_chain](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
 | [model_ddgan_bimodal_chain](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-1bf9d7d34422-discriminator_stability-tier-3"></a>
 
@@ -1219,6 +1228,44 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-1bf9d7d34422-misgan-bispf-research-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-particle_interpolation_stretch"></a>
+
+## particle_interpolation_stretch
+
+**particle_interpolation_stretch — revision 1**. [View declaration](../../../configs/forge/views/particle_interpolation_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Three zero-sigma particle interpolation stretch toys do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-4"></a>
 
 ### Tier 4
 
@@ -3188,6 +3235,101 @@ Declared budget: 3500 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
 
+<a name="cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift"></a>
+
+### interp_img_patch_shift
+
+**interp_img_patch_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_rmse | <= 0.09 |
+| interp_rmse | <= 0.1 |
+| interp_peak | >= 0.78 |
+| quadrant_coverage | == 4 |
+| midpoint_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric"></a>
+
+### interp_saddle_barycentric
+
+**interp_saddle_barycentric: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_surface_mae | <= 0.08 |
+| barycenter_surface_mae | <= 0.09 |
+| barycenter_hq | >= 0.78 |
+| xy_bins_covered | >= 12 |
+| barycenter_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc"></a>
+
+### interp_sparse_arc
+
+**interp_sparse_arc: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_hq | >= 0.85 |
+| interp_hq | >= 0.8 |
+| interp_arc_bins | >= 22 |
+| midpoint_novelty | >= 0.2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 600 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
 <a name="cohort-cuda-1bf9d7d34422-experiment-mid_scale_identity"></a>
 
 ### mid_scale_identity
@@ -5126,7 +5268,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 Runtime: **cuda**. Selected configuration: [k3p · 0b37e98a01e3](../../../configs/forge/configurations/k3p--0b37e98a01e3cc7c0f4b3325b43f9e6d569de81e4f890f20942f0fc33221305c.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 16, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -5143,7 +5285,7 @@ Selection: historical_incumbent. Preserve the exact archived revision-7 measurem
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation) | [3/3](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) | [0/6 (6 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-4) | [3/22 (18 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [4/11 (6 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [4/30 (25 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/25 (25 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [4/11 (6 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [4/30 (25 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison) | [3/3](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage) | [3/3](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-4) | [3/15 (12 not run)](k3p.md#cohort-cuda-c195899a64af-quality_coverage) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
@@ -5182,6 +5324,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_mxfp8) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_nvfp4) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 
@@ -5219,6 +5362,8 @@ Held at this tier (measured and shown, not counted):
 | [img_bars4](k3p.md#cohort-cuda-c195899a64af-experiment-img_bars4) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_blobs4](k3p.md#cohort-cuda-c195899a64af-experiment-img_blobs4) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_intensity2](k3p.md#cohort-cuda-c195899a64af-experiment-img_intensity2) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [vector_anisotropic](k3p.md#cohort-cuda-c195899a64af-experiment-vector_anisotropic) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [vector_overlap](k3p.md#cohort-cuda-c195899a64af-experiment-vector_overlap) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [vector_unequal_mass](k3p.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
@@ -5288,11 +5433,14 @@ These tests keep running and keep this recipe's recorded result, but they do not
 
 | Experiment | Held in | Recorded result | Reason | Summary | Re-entry rule |
 | --- | --- | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping? | Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass. |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_mxfp8) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_nvfp4) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [img_bars4](k3p.md#cohort-cuda-c195899a64af-experiment-img_bars4) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_bars4) | Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_blobs4](k3p.md#cohort-cuda-c195899a64af-experiment-img_blobs4) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_blobs4) | Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_intensity2](k3p.md#cohort-cuda-c195899a64af-experiment-img_intensity2) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts? | Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass. |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface? | Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass. |
 | [vector_anisotropic](k3p.md#cohort-cuda-c195899a64af-experiment-vector_anisotropic) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_overlap](k3p.md#cohort-cuda-c195899a64af-experiment-vector_overlap) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_unequal_mass](k3p.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together. |
@@ -5821,9 +5969,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 16**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **2 / 7 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -5848,6 +5996,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-c195899a64af-discriminator_stability-tier-2"></a>
 
@@ -5880,6 +6029,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [staggered100](k3p.md#cohort-cuda-c195899a64af-experiment-staggered100) | required | UNKNOWN | changed since run |
 | [model_ae_ddgan_bimodal_chain](k3p.md#cohort-cuda-c195899a64af-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
 | [model_ddgan_bimodal_chain](k3p.md#cohort-cuda-c195899a64af-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-c195899a64af-discriminator_stability-tier-3"></a>
 
@@ -6198,6 +6349,44 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-c195899a64af-misgan-bispf-research-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-particle_interpolation_stretch"></a>
+
+## particle_interpolation_stretch
+
+**particle_interpolation_stretch — revision 1**. [View declaration](../../../configs/forge/views/particle_interpolation_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Three zero-sigma particle interpolation stretch toys do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-4"></a>
 
 ### Tier 4
 
@@ -8119,6 +8308,101 @@ Declared budget: 3500 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
 
+<a name="cohort-cuda-c195899a64af-experiment-interp_img_patch_shift"></a>
+
+### interp_img_patch_shift
+
+**interp_img_patch_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_rmse | <= 0.09 |
+| interp_rmse | <= 0.1 |
+| interp_peak | >= 0.78 |
+| quadrant_coverage | == 4 |
+| midpoint_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric"></a>
+
+### interp_saddle_barycentric
+
+**interp_saddle_barycentric: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_surface_mae | <= 0.08 |
+| barycenter_surface_mae | <= 0.09 |
+| barycenter_hq | >= 0.78 |
+| xy_bins_covered | >= 12 |
+| barycenter_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-c195899a64af-experiment-interp_sparse_arc"></a>
+
+### interp_sparse_arc
+
+**interp_sparse_arc: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_hq | >= 0.85 |
+| interp_hq | >= 0.8 |
+| interp_arc_bins | >= 22 |
+| midpoint_novelty | >= 0.2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 600 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
 <a name="cohort-cuda-c195899a64af-experiment-mid_scale_identity"></a>
 
 ### mid_scale_identity
@@ -10037,7 +10321,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 Runtime: **cuda**. Selected configuration: [k3p · 0b37e98a01e3](../../../configs/forge/configurations/k3p--0b37e98a01e3cc7c0f4b3325b43f9e6d569de81e4f890f20942f0fc33221305c.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 16, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -10054,7 +10338,7 @@ Selection: historical_incumbent. Retain the exact complete measurement under its
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) | [0/6 (6 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-4) | [3/22 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [4/11 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-4) | [4/30 (26 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [0/25 (25 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [4/11 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-4) | [4/30 (26 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-4) | [3/15 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
@@ -10093,6 +10377,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_mxfp8) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_nvfp4) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 
@@ -10130,6 +10415,8 @@ Held at this tier (measured and shown, not counted):
 | [img_bars4](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_bars4) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_blobs4](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_blobs4) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_intensity2](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_intensity2) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [vector_anisotropic](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_anisotropic) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [vector_overlap](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_overlap) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [vector_unequal_mass](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | changed since run |
@@ -10199,11 +10486,14 @@ These tests keep running and keep this recipe's recorded result, but they do not
 
 | Experiment | Held in | Recorded result | Reason | Summary | Re-entry rule |
 | --- | --- | --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping? | Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass. |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_mxfp8) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_nvfp4) | [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [img_bars4](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_bars4) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_bars4) | Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_blobs4](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_blobs4) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_blobs4) | Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_intensity2](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_intensity2) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts? | Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass. |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface? | Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass. |
 | [vector_anisotropic](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_anisotropic) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_overlap](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_overlap) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_unequal_mass](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2), [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2), [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2), [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together. |
@@ -10732,9 +11022,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 16**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **2 / 7 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -10759,6 +11049,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_nvfp4](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-0d83d78027c5-discriminator_stability-tier-2"></a>
 
@@ -10791,6 +11082,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [staggered100](k3p.md#cohort-cuda-0d83d78027c5-experiment-staggered100) | required | UNKNOWN | changed since run |
 | [model_ae_ddgan_bimodal_chain](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
 | [model_ddgan_bimodal_chain](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-0d83d78027c5-discriminator_stability-tier-3"></a>
 
@@ -11109,6 +11402,44 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-0d83d78027c5-misgan-bispf-research-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-particle_interpolation_stretch"></a>
+
+## particle_interpolation_stretch
+
+**particle_interpolation_stretch — revision 1**. [View declaration](../../../configs/forge/views/particle_interpolation_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Three zero-sigma particle interpolation stretch toys do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-4"></a>
 
 ### Tier 4
 
@@ -13032,6 +13363,101 @@ At least 5 consecutive passing terminal observations.
 Declared budget: 3500 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
+
+<a name="cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift"></a>
+
+### interp_img_patch_shift
+
+**interp_img_patch_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_rmse | <= 0.09 |
+| interp_rmse | <= 0.1 |
+| interp_peak | >= 0.78 |
+| quadrant_coverage | == 4 |
+| midpoint_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric"></a>
+
+### interp_saddle_barycentric
+
+**interp_saddle_barycentric: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_surface_mae | <= 0.08 |
+| barycenter_surface_mae | <= 0.09 |
+| barycenter_hq | >= 0.78 |
+| xy_bins_covered | >= 12 |
+| barycenter_novelty | >= 0.18 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
+
+<a name="cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc"></a>
+
+### interp_sparse_arc
+
+**interp_sparse_arc: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| endpoint_hq | >= 0.85 |
+| interp_hq | >= 0.8 |
+| interp_arc_bins | >= 22 |
+| midpoint_novelty | >= 0.2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 600 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
 
 <a name="cohort-cuda-0d83d78027c5-experiment-mid_scale_identity"></a>
 

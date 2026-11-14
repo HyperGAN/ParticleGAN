@@ -104,7 +104,7 @@ def test_task_policy_preserves_old_sustained_definition_and_checked_budgets():
     assert campaign["candidate_budget_seconds"] == 46620
     # The original campaign keeps its old allowance. New model-mode tasks add
     # an explicit reservation; they cannot silently fit the historical cap.
-    assert sum(groups.values()) == 74220
+    assert sum(groups.values()) == 75120
     assert sum(value for key, value in groups.items() if key.startswith("precision_gaussian_")) == 900
     initial = read_json(ROOT / "reports/forge/precision-stretch/initial-view-v14.json")
     initial_keys = {tasks[a["task"]]["execution"].get("execution_group", a["task"]) for a in initial["assignments"]}

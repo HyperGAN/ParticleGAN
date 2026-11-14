@@ -67,10 +67,13 @@ for _ in range(recipe.total_steps):
 samples = trainer.sample(1024)
 ```
 
-`get_recipe()` returns the default recipe, **optimized BISPF** (`DEFAULT_RECIPE =
-"bispf_optimized"` in [particlegan/recipes.py](particlegan/recipes.py)). It uses a
-non-saturating loss, a Born-Infeld critic penalty, an SBNP prior regularizer,
-zero-momentum DualNorm and constant rates. The acronyms are expanded in the
+`get_recipe()` returns the default recipe, **EMPF** (*Exponential Moving Prototype Flow*,
+`DEFAULT_RECIPE = "empf"` in [particlegan/recipes.py](particlegan/recipes.py)). It uses a
+clock-free online *e-means* sufficient-statistics prototype bank, mass-weighted
+prototype-to-fake Sinkhorn OT, a state-driven settling Born-Infeld critic penalty, a
+DoF-aware EMPF prior regularizer, zero-momentum DualNorm and constant rates. Explicit
+`get_recipe("bispf_optimized")` retains the previous 0.9.1 optimized BISPF preset. The
+acronyms are expanded in the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names), and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) explain the configuration.
 
@@ -103,10 +106,13 @@ metrics, receipts and training GIFs. Other report pages are historical records.
 
 What the evidence does and does not show today:
 
-- **The default is a research selection, not a qualified winner.** In the inventory's
-  full-suite table on 2026-10-25, the default BISPF recipe records 18 PASS,
-  11 FAIL and 20 unmeasured out of 49 distinct tests. Forge's screening calibration
-  is still provisional.
+- **The default is a research selection, not a qualified winner.** In the
+  [technique inventory](reports/forge/technique-inventory.md), the selected EMPF recipe
+  (`empf-v2`, `DEFAULT_RECIPE = "empf"`) leads screening at **82/115** counted view
+  requirements (`27/27` Tier 1 PASS, `55/78` Tier 2, `0/10` Tier 3) and **22 PASS**,
+  **15 FAIL**, 8 not measured and 16 blocked across the 61-test fixed suite (ahead of
+  `bispf_optimized` at `81/115` and `18/61`). Forge's screening calibration, Tier 2/3
+  full-tier gates and untouched holdout confirmation remain open.
 - **Controlled prior comparison** ([matched prior ablation, 2026-10-25](reports/prior-ablation-2026-10-25/README.md)).
   Each arm changes only the prior policy. Architecture, data, budget, seed 0 and
   the initial table are the same. These are one-seed diagnostics with no
@@ -176,10 +182,10 @@ qualification and review of the winner. The
 acquisition, settling, endurance and recovery required again.
 
 **Changing the default.** A promotion changes one line in
-[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "bispf_optimized"`.
+[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "empf"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
-`get_recipe("ka2")` remain available. This is the owner-selected research default;
-Forge calibration remains provisional.
+`get_recipe("bispf_optimized")` and `get_recipe("ka2")` remain available. This is the
+owner-selected research default; Forge calibration remains provisional.
 
 **0.9.1 throughput.** Version 0.9.1 made the faster BISPF execution policy the
 default, and kept explicit historical settings and saved-recipe restoration (see the

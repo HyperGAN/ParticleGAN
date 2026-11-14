@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v2-study"
+  },
+  "candidate": "empf-v2",
+  "competing_explanation": "If raising base ebi_beta to 6.0 with prototype-resolution-scaled settling Born-Infeld sharpness or discrete-simplex post-acquisition thermal cooling over-constrains early mode spreading or small-batch VAE/conditional boundaries, empf-v2 will regress ring16_acquisition, model_vae_categorical, model_vae_hard, or five_word_joint_smoke relative to empf-v1.",
+  "control": {
+    "candidate_id": "empf-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "mode_hold",
+    "threshold": 0.9
+  },
+  "hypothesis": "Adding clock-free prototype-resolution-scaled settling Born-Infeld sharpness (ebi_beta=6.0 tightening as ema_residual settles below 0.16) and discrete-simplex post-acquisition Sinkhorn thermal cooling enables empf-v2 to retain 100% Tier 1 qualification (11/11 required + clockfree_audit_measurement_v1) with zero regressions over empf-v1 while passing both Tier 2 mode_hold (hq >= 0.90) and five_word_joint_hold under one global constant-LR DualNorm recipe.",
+  "id": "empf-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "mode_hold",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v1",
+        "candidate_revision": "45a5684f2961affd93bfb3cdd35b79928763c60cfe6a3e913492dc1bc77007e4"
+      },
+      "path": "reports/forge/records/readout-d46a41a1da2da54d67d154f4.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

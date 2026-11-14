@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v3-study"
+  },
+  "candidate": "empf-v3",
+  "competing_explanation": "If 1D quantile-W2 floor-subtracted thermal cooling and DualNorm step-scale damping, shock-filtered transport EMA, Poisson empty-cell shift acceleration, or prototype-referenced deep harmonic-capture lock hysteresis over-cools early spreading or destabilizes converged multimodal/autoencoder boundaries, empf-v3 will regress Tier 1 or Tier 2 passes (ring16_acquisition, model_ae_gan_multimodal, mode_hold, or five_word_joint_hold) relative to empf-v2.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "cdf_ks",
+    "op": ">",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "hypothesis": "Adding shock-filtered transport residual EMA, trimmed central-[0.04, 0.96] 1D quantile-W2 floor-subtracted 1/sqrt(B) thermal cooling with DualNorm step-scale damping, Poisson empty-cell prototype shift acceleration, and prototype-referenced deep harmonic-capture lock hysteresis enables empf-v3 to retain every Tier 1 and Tier 2 pass of empf-v2 while newly passing Tier 2 gaussian1d_stability (all 72 stationary checks, deadline reacquisition, and 24 shifted hold checks) as well as continuous-learning shift/endurance tasks (target_shift_recovery, ring_hold, ring_extension) under one global clock-free constant-LR DualNorm recipe.",
+  "id": "empf-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "cdf_ks",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v2",
+        "candidate_revision": "fc09c6b1f8ae77167ca31db0a4d9ef252dc9d6b92aed98e3d4b53a168ff0ac15"
+      },
+      "path": "reports/forge/records/readout-05eaed46ab0e45214ae8e7b4.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

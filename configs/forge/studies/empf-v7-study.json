@@ -1,0 +1,91 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v7-study"
+  },
+  "candidate": "empf-v7",
+  "competing_explanation": "If replacing only the 4 largest dense matrices (min_dim >= 64 and max_dim > 128) in five_word_joint_smoke leaves excessive cuSOLVER serialization on the remaining 5 small matrices under multi-agent GPU load, five_word_joint_smoke will still exceed its 900s wall-time budget.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "cdf_ks",
+    "op": ">",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "hypothesis": "Size-gating DualNorm's guarded cubic Newton-Schulz dense polar profile to min_dim >= 64 and max_dim > 128 (optimizer_dense_profile = 'newton_schulz_hybrid_v1') preserves exact polar_factor SVD trajectories across all hidden <= 128 tasks (including model_ae_gan_multimodal and precision_gaussian_fp32) while eliminating 78.8% of cuSOLVER SVD latency on five_word_joint_smoke so empf-v7 clears all 13/13 counted Tier 1 gates and advances through Tier 2/3.",
+  "id": "empf-v7-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "cdf_ks",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v2",
+        "candidate_revision": "fc09c6b1f8ae77167ca31db0a4d9ef252dc9d6b92aed98e3d4b53a168ff0ac15"
+      },
+      "path": "reports/forge/records/readout-05eaed46ab0e45214ae8e7b4.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v3",
+        "candidate_revision": "baae191aa8fc7e2d0563cd8a3b52e8ef53ece846d63213cadf159a2e2c47018e"
+      },
+      "path": "reports/forge/records/readout-0c549ac1c635a42dc43cf6dc.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v4",
+        "candidate_revision": "b44c5b2df075ea9eb81d850ce3dba4c04f3b6b8f3aff87963708d729ce03f2c8"
+      },
+      "path": "reports/forge/records/readout-75cdbfb23dff3c1136ae7422.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v5",
+        "candidate_revision": "a457aa4e6487d00f5630eeebf70830674145a1dae9f64dc38d6643f6eff3508b"
+      },
+      "path": "reports/forge/records/readout-aef7cbc33a8a6b3326b86bb8.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v6",
+        "candidate_revision": "2929a9ef553dde2092e0769ebdeaa03d0f6ded4ae74c07482ab71a77c601abe7"
+      },
+      "path": "reports/forge/records/readout-4aa764495c669b9247ca874b.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

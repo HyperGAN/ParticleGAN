@@ -8,6 +8,7 @@ Every record identifies an attempt to run an unchanged selected or archived rese
 | bcap-pure | 60/60 | 0 | 34 FAIL, 26 PASS |
 | bispf | 60/60 | 0 | 30 FAIL, 30 PASS |
 | e22 | 60/60 | 0 | 34 FAIL, 26 PASS |
+| empf | 62/62 | 0 | 4 BLOCKED, 15 ERROR, 16 FAIL, 27 PASS |
 | k3p | 60/60 | 0 | 30 FAIL, 30 PASS |
 | ka2 | 60/60 | 0 | 32 FAIL, 28 PASS |
 | atlas selected-cloud after investigation | 3/3 | 0 | 2 ERROR, 1 FAIL |
@@ -79,16 +80,24 @@ The checkpoint hasher now preserves diagnostic NaN/Inf values while retaining ev
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | grid100 | FAIL | 7000 | coverage, sustained live accuracy, or independent holdout failed |
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | rotated100 | FAIL | 7000 | coverage, sustained live accuracy, or independent holdout failed |
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | staggered100 | FAIL | 7000 | coverage, sustained live accuracy, or independent holdout failed |
-| bispf | BISPF continuation attempts before prior-metadata fix | grid100_14k | ERROR | — | ValueError: invalid context checkpoint schema |
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | grid100_14k | FAIL | 14000 | coverage, sustained live accuracy, or independent holdout failed |
-| bispf | BISPF continuation attempts before prior-metadata fix | rotated100_14k | ERROR | — | ValueError: invalid context checkpoint schema |
+| bispf | BISPF continuation attempts before prior-metadata fix | grid100_14k | ERROR | — | ValueError: invalid context checkpoint schema |
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | rotated100_14k | FAIL | 14000 | coverage, sustained live accuracy, or independent holdout failed |
-| bispf | BISPF continuation attempts before prior-metadata fix | staggered100_14k | BLOCKED | 0 | checkpoint parent staggered100: unavailable |
+| bispf | BISPF continuation attempts before prior-metadata fix | rotated100_14k | ERROR | — | ValueError: invalid context checkpoint schema |
 | bispf | BISPF rebuilt checkpoints + matched-prior 14k diagnostics | staggered100_14k | FAIL | 14000 | coverage, sustained live accuracy, or independent holdout failed |
+| bispf | BISPF continuation attempts before prior-metadata fix | staggered100_14k | BLOCKED | 0 | checkpoint parent staggered100: unavailable |
 | e22 | E22 checkpoint-export repair (same recipe) | gaussian1d_acquisition_tier1_policy_selected_cloud_v1 | FAIL | 1000 | recomputed complete live curve and terminal suffix |
 | e22 | E22 checkpoint-export repair (same recipe) | ring16_acquisition_tier1_policy_selected_cloud_v1 | FAIL | 1600 | recomputed complete live curve and terminal suffix |
 
 Continuation checks still require a complete own checkpoint, matching recipe and RNG identity, unchanged 7k scheduling horizon, exact prefix restoration and the full 14k update count. Ordinary qualification rejects the explicitly marked diagnostic continuation receipts.
+
+## Results recovered from existing uninterrupted runs
+
+These task results reuse their producer's already measured observations. No new training or sampling was performed. Original refused-start receipts remain linked in each certificate; ordinary qualification is unchanged.
+
+| Family | Test | Result | Passing extension checks | Evidence |
+| --- | --- | --- | ---: | --- |
+| empf | ring_extension | PASS | 300/300 | [Verified saved run](grouped-evidence/fb39a9510f02d01ecb7e3b5c08dfaa6d47ec34737e1c7ceecc9af3b52224490d.json) |
 
 ## Attempted blockers and incomplete runs
 
@@ -200,6 +209,25 @@ These are recorded start attempts, not missing runs. A source or formulation cha
 | confidence-lr-finite-cap-gaussian-v1 | five_word_joint_smoke | TIMEOUT | original task wall-time limit exhausted |
 | confidence-lr-finite-cap-gaussian-v1 | gaussian1d_stability | BLOCKED | checkpoint parent gaussian1d_smoke: FAIL |
 | confidence-lr-finite-cap-gaussian-v1 | ring_extension | BLOCKED | checkpoint parent ring_hold: FAIL |
+| empf | alice_spiral_bigan | ERROR | ValueError: unsupported vector target declaration |
+| empf | cgan_overlapping_classes | ERROR | ValueError: unsupported vector target declaration |
+| empf | cramer_energy_overlap | ERROR | ValueError: unsupported vector target declaration |
+| empf | cyclegan_unpaired_constellation | ERROR | ValueError: unsupported vector target declaration |
+| empf | grid100_14k | BLOCKED | checkpoint parent grid100: FAIL |
+| empf | grid100_mlp16 | ERROR | ValueError: native model variants require an explicit profile |
+| empf | grid100_res16_scaled_tanh | ERROR | ValueError: native model variants require an explicit profile |
+| empf | grid100_res16_tanh | ERROR | ValueError: native model variants require an explicit profile |
+| empf | infogan_anisotropic_modes | ERROR | ValueError: unsupported vector target declaration |
+| empf | misgan_block_neural_imputer | ERROR | ValueError: unsupported vector target declaration |
+| empf | misgan_block_recovery | ERROR | ValueError: unsupported vector target declaration |
+| empf | misgan_mcar_p50_recovery | ERROR | ValueError: unsupported vector target declaration |
+| empf | misgan_mcar_p80_anchored | ERROR | ValueError: unsupported vector target declaration |
+| empf | pacgan8_grid100 | ERROR | ValueError: unsupported vector target declaration |
+| empf | pacgan_unequal_mass | ERROR | ValueError: unsupported vector target declaration |
+| empf | ring16_bigan_continuous | ERROR | ValueError: unsupported vector target declaration |
+| empf | rotated100_14k | BLOCKED | checkpoint parent rotated100: FAIL |
+| empf | staggered100_14k | BLOCKED | checkpoint parent staggered100: FAIL |
+| empf | zero_tanh_rail_escape | BLOCKED | zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; only zero_tanh_smoke is routed |
 | generator-confidence-lr-bcap-direction-v1 | ring_extension | BLOCKED | checkpoint parent ring_hold: FAIL |
 | generator-idle-ema-bcap-direction-v1 | five_word_joint_hold | BLOCKED | checkpoint parent five_word_joint_smoke: INCOMPLETE |
 | generator-idle-ema-bcap-direction-v1 | gaussian1d_stability | BLOCKED | checkpoint parent gaussian1d_smoke: INCOMPLETE |

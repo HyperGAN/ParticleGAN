@@ -60,7 +60,7 @@ def test_altering_mask_history_cannot_change_other_games_gradient_scale():
 def test_same_intact_schedule_reaches_all_critic_owners():
     f = fixture(lr_anneal_start=0., lr_floor=.05, network_lr_floor=.05,
                 beta2_end=.9, optimizer_family="adam", optimizer_convolution="none", optimizer_convolution_rule="polar",
-                optimizer_smoothing=0., constraint_geometry_mode="none")
+                optimizer_dense_profile="default", optimizer_smoothing=0., constraint_geometry_mode="none")
     f.step(); f.step()
     network, _ = learning_rate_scales(1, f.recipe)
     for role, optimizer in f.critic_optimizers.items():

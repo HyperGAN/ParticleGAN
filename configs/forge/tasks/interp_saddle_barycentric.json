@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "id": "interp_saddle_barycentric",
+  "description": "Learn 24 zero-sigma ParticlePrior locations on a non-harmonic curved 3D saddle sheet without MoG smoothing so unseen 2D latent k-NN triangle barycenters remain on the curved surface (mae<=0.09, hq>=0.78) without Voronoi snapping.",
+  "adapter": "particle_interpolation",
+  "retained_question_ids": [
+    "stretch-interp-saddle-barycentric"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/particle-interpolation-stretch/README.md",
+    "api_publication": "reports/toy_audit/api_contract/interpolation/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "interp_saddle_barycentric",
+    "steps": 800,
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Zero-sigma discrete ParticlePrior required to test whether unseen latent space between finite learned particles forms a valid, non-snapping manifold without MoG kernel smoothing."
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-interp-saddle-barycentric",
+      "kind": "interp_saddle_barycentric",
+      "target": "Non-harmonic 3D saddle sheet w = 0.8*(x^2 - y^2) + 0.9*cos(0.75*pi*x)*cos(0.75*pi*y) on [-1, 1]^2 (sigma=0.03)",
+      "resources": {
+        "num_particles": 24,
+        "z_dim": 2,
+        "batch_size": 128
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 64,
+        "layers": 2,
+        "out_dim": 3,
+        "fourier": 2
+      },
+      "interpolation": {
+        "graph": "latent_knn_barycenters",
+        "k_neighbors": 4,
+        "min_interior_ratio": 0.15
+      },
+      "steps": 800
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "enumerated_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "interp_saddle_barycentric",
+    "eval_samples": 512,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "endpoint_surface_mae",
+        "<=",
+        0.08
+      ],
+      [
+        "barycenter_surface_mae",
+        "<=",
+        0.09
+      ],
+      [
+        "barycenter_hq",
+        ">=",
+        0.78
+      ],
+      [
+        "xy_bins_covered",
+        ">=",
+        12
+      ],
+      [
+        "barycenter_novelty",
+        ">=",
+        0.18
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_interpolation.py": "6e617abd2d293609c65742771f0d6e7d0bafff75b7d2c812e62a55ae72945e31",
+      "experiments/forge/interpolation.py": "bba72f3a9fa59bc5bcaad558f8d5248475913322bf380c05b0ca7179f4af2fa2"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": []
+}

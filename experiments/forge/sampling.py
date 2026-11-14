@@ -51,6 +51,7 @@ POLICIES.update({prefix + law: SERVED_LEARNED_NOISE
 
 ADAPTER_POLICIES = {
     "public_api_model_toy": MODEL_TOY_CLEAN,
+    "particle_interpolation": ENUMERATED_PRIOR_CLEAN,
     "dcgan_performance_v1": TRAINING_UPDATE_MEASUREMENT,
     "word_joint": JOINT_WORDS_CLEAN,
     "transfer_vector": PUBLIC_PRIOR_CLEAN,

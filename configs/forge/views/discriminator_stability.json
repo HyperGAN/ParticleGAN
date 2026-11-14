@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 16,
+  "revision": 17,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -550,6 +550,45 @@
         "explanation": "reports/forge/precision-stretch/README.md#precision-stretch",
         "graduation": "Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass."
       }
+    },
+    {
+      "task": "interp_sparse_arc",
+      "qualification_tier": 1,
+      "order": 104,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_sparse_arc",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "interp_img_patch_shift",
+      "qualification_tier": 2,
+      "order": 101,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_img_patch_shift",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "interp_saddle_barycentric",
+      "qualification_tier": 2,
+      "order": 102,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_saddle_barycentric",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass."
+      }
     }
   ],
   "eligibility": {},
@@ -562,10 +601,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-15 policy, preserving all required, held, and stretch assignments. Add paired Tier 4 stretch task grid100_res16_scaled_tanh alongside unnormalized grid100_mlp16 and grid100_res16_tanh; required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Archive the exact develop revision-16 policy, preserving all required, held, diagnostic, and stretch assignments. Add three zero-sigma ParticlePrior latent-interpolation stretch toys (interp_sparse_arc at Tier 1; interp_img_patch_shift and interp_saddle_barycentric at Tier 2); required qualification and historical numerical results are unchanged.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v15.json",
-    "policy_fingerprint": "ad156a02a8d44077d707f1324959b0b865824411ca08d9b5d5098ae7d1a69497",
-    "revision": 15
+    "archive": "configs/forge/view-history/discriminator_stability-v16.json",
+    "policy_fingerprint": "827b86fe077caf18c6b6a1e0b8dd70076ab5ddcd53f26d424f18bb063118cd23",
+    "revision": 16
   }
 }

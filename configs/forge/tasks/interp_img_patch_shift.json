@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "id": "interp_img_patch_shift",
+  "description": "Learn 16 zero-sigma ParticlePrior codes on continuous 1x8x8 single-patch images without MoG smoothing so unseen latent k-NN chords translate one sharp unit-peak patch (peak>=0.78, rmse<=0.10) instead of double-exposed 0.5 ghosts.",
+  "adapter": "particle_interpolation",
+  "retained_question_ids": [
+    "stretch-interp-img-patch-shift"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/particle-interpolation-stretch/README.md",
+    "api_publication": "reports/toy_audit/api_contract/interpolation/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "interp_img_patch_shift",
+    "steps": 800,
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Zero-sigma discrete ParticlePrior required to test whether unseen latent space between finite learned particles forms a valid, non-snapping manifold without MoG kernel smoothing."
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-interp-img-patch-shift",
+      "kind": "interp_img_patch_shift",
+      "target": "Continuous 1x8x8 single 2x2 unit-peak patch at (u, v) in [1.5, 6.5]^2 with clipped sigma=0.01 noise",
+      "resources": {
+        "num_particles": 16,
+        "z_dim": 4,
+        "batch_size": 64
+      },
+      "model": {
+        "family": "image_conv_residual_upsample",
+        "architecture": "residual_upsample",
+        "width": 16
+      },
+      "interpolation": {
+        "graph": "latent_knn_chords",
+        "k_neighbors": 2,
+        "t_grid": [
+          0.25,
+          0.5,
+          0.75
+        ]
+      },
+      "steps": 800
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "enumerated_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "interp_img_patch_shift",
+    "eval_samples": 512,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "endpoint_rmse",
+        "<=",
+        0.09
+      ],
+      [
+        "interp_rmse",
+        "<=",
+        0.1
+      ],
+      [
+        "interp_peak",
+        ">=",
+        0.78
+      ],
+      [
+        "quadrant_coverage",
+        "==",
+        4
+      ],
+      [
+        "midpoint_novelty",
+        ">=",
+        0.18
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_interpolation.py": "6e617abd2d293609c65742771f0d6e7d0bafff75b7d2c812e62a55ae72945e31",
+      "experiments/forge/interpolation.py": "bba72f3a9fa59bc5bcaad558f8d5248475913322bf380c05b0ca7179f4af2fa2"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": []
+}

@@ -112,7 +112,7 @@ def test_current_inventory_has_complete_quality_and_distinct_claim_views():
     assert len(smoke) == 11 and all(tasks[name]["adapter"] == "public_api_model_toy" for name in smoke[7:])
     assert sum(tasks[n]["execution"]["steps"] for n in smoke[1:4]) == 530
     # 0.10 restores four accuracy/settling tasks; the former hold policy is archived.
-    assert stability["revision"] == 16 and stability["previous_revision"]["revision"] == 15
+    assert stability["revision"] == 17 and stability["previous_revision"]["revision"] == 16
     assert [a["task"] for a in stability["assignments"] if a["importance"] == "diagnostic"] == [
         "ring_hold", "clockfree_audit_measurement_v1", "precision_gaussian_fp32"]
     assert next(a for a in stability["assignments"] if a["task"] == "ring_hold")["removal"]["counted_by"] == "ring_extension"
@@ -154,7 +154,7 @@ def test_default_plan_and_report_include_acquisition_smoke_without_new_views():
     assert not {"ring16_acquisition", "five_word_joint"} & {row["id"] for row in report["views"]}
     view = next(row for row in report["views"] if row["id"] == "discriminator_stability")
     smoke = next(row for row in view["tiers"] if row["qualification_tier"] == 1)
-    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 2}
+    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 3}
     reported = {row["id"]: row for row in smoke["tasks"]}
     for name, updates, timeout in (("gaussian1d_smoke", 1000, 120),
                                    ("ring16_acquisition", 1600, 300),

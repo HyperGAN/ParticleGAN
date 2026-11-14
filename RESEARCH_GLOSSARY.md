@@ -45,7 +45,8 @@ so the row gives a functional description instead.
 
 | Name | Expansion | What it is | Source |
 |---|---|---|---|
-| **BISPF** | Born-Infeld Sinkhorn Particle Flow | The current default family (`DEFAULT_RECIPE = "bispf_optimized"`): Sinkhorn relativistic pairing, a Born-Infeld critic penalty, the SBNP prior and residual-driven noise. | `particlegan/bispf.py` module docstring; `particlegan/recipes.py` |
+| **EMPF** | Exponential Moving Prototype Flow | The current default family (`DEFAULT_RECIPE = "empf"`): clock-free online *e-means* sufficient-statistics prototype bank, mass-weighted prototype-to-fake Sinkhorn OT, state-driven settling Born-Infeld critic penalty, and DoF-aware EMPF prior regularizer. | `particlegan/empf.py` module docstring; `particlegan/recipes.py`; [`reports/forge/empf/README.md`](reports/forge/empf/README.md) |
+| **BISPF** | Born-Infeld Sinkhorn Particle Flow | The previous 0.9.x default family (`get_recipe("bispf_optimized")` / `get_recipe("bispf")`): Sinkhorn relativistic pairing, a Born-Infeld critic penalty, the SBNP prior and residual-driven noise. | `particlegan/bispf.py` module docstring; `particlegan/recipes.py` |
 | **SBNP** | Stratified Blue-Noise Particle Prior | BISPF's prior regularizer / particle table (`StratifiedBlueNoisePrior`). | `particlegan/bispf.py` module docstring |
 | **SRpGAN** | Scale-Free Sinkhorn Relativistic Pairing | BISPF's pairing of real and fake samples in the relativistic loss. | `particlegan/bispf.py` module docstring |
 | **EBI-TCR** | Elastic Born-Infeld Transport-Chord Regularization | BISPF's critic penalty, with a zero-mean logit gauge. | `particlegan/bispf.py` module docstring |

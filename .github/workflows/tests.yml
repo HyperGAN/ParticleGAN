@@ -134,7 +134,7 @@ jobs:
           assert MoGParticlePrior(sigma=0.1).sample(2)[0].shape == (2, 4)
           assert DDGAN().steps == 4
           default = get_recipe()
-          assert DEFAULT_RECIPE == "bispf_optimized"
+          assert DEFAULT_RECIPE == "empf"
           assert default.optimizer_svd_backend == "batched"
           assert default.training_precision == "bf16_channels_last"
           assert default == get_recipe(DEFAULT_RECIPE)

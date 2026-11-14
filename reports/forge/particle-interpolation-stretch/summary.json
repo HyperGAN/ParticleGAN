@@ -1,0 +1,233 @@
+{
+  "campaign_id": "particle-interp-stretch-v1",
+  "cuda_model": "NVIDIA RTX A6000",
+  "families": [
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "atlas-particle-normal-v4",
+      "family": "atlas",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
+      "family": "bcap-pure",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "family": "bispf",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "interp_sparse_arc: interp_sparse_arc: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation",
+        "interp_img_patch_shift: interp_img_patch_shift: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation",
+        "interp_saddle_barycentric: interp_saddle_barycentric: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation"
+      ],
+      "candidate_id": "e22",
+      "family": "e22",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "interp_img_patch_shift: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "interp_saddle_barycentric: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "interp_sparse_arc: clean/live scoring has no declared policy-control evidence and served-sampling contract; freeze a policy-aware task before reservation",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "empf-v7",
+      "family": "empf",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "recipe-prior-refactor-k3p-v1",
+      "family": "k3p",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "recipe-prior-refactor-ka2-v1",
+      "family": "ka2",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "recipe-prior-refactor-r1r2-v1",
+      "family": "r1r2",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    },
+    {
+      "blockers": [
+        "v3 candidate requires an explicit study or registered configuration search before enqueue"
+      ],
+      "candidate_id": "recipe-prior-refactor-release07-gan-v3-v1",
+      "family": "release07-gan-v3",
+      "readout_record": null,
+      "status": "BLOCKED",
+      "sustained_passes": 0,
+      "tasks": {
+        "interp_img_patch_shift": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_saddle_barycentric": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        },
+        "interp_sparse_arc": {
+          "reason": "v3 candidate requires an explicit study or registered configuration search before enqueue",
+          "status": "BLOCKED"
+        }
+      }
+    }
+  ],
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "schema": "forge_particle_interpolation_summary_v1",
+  "seed": 0,
+  "tasks": [
+    "interp_sparse_arc",
+    "interp_img_patch_shift",
+    "interp_saddle_barycentric"
+  ]
+}

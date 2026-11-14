@@ -90,7 +90,7 @@ managed through the existing PyPI account associated with 255labs.xyz.
    python -m venv /tmp/particlegan-release-smoke
    /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.9.0
    cd /tmp
-   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "bispf_optimized"; assert Recipe.from_dict(r.to_dict()) == r'
+   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "empf"; assert Recipe.from_dict(r.to_dict()) == r'
    ```
 
    Also run the prepared HyperGAN training/resume smoke using the released

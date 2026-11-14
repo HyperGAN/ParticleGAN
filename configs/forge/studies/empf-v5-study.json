@@ -1,0 +1,73 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v5-study"
+  },
+  "candidate": "empf-v5",
+  "competing_explanation": "If cool-gated Born-Infeld batch_gain = 2.0 at B=64 under thermal_decay = 0.92 leaves B=64 VAEs under-regularized even with fixed K=64 prototype banks, or if Sinkhorn-free discrete-simplex Chamfer residuals alter post-acquisition cooling, empf-v5 will fail model_vae_categorical, model_vae_hard, or five_word_joint_hold.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "cdf_ks",
+    "op": ">",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "hypothesis": "Combining empf-v4's fixed K = min(max_prototypes, B) small-batch prototype banks, stationary zero-shock normalization, and fused autograd syncs with empf-v3's thermal_decay = 0.92 transport smoothing, cool-gated Born-Infeld batch_gain, and exact Sinkhorn-free discrete-simplex Chamfer residuals clears all Tier 1 gates (including model_vae_categorical, model_vae_hard, ring16_acquisition, model_ae_gan_multimodal, and precision_gaussian_fp32/mxfp8) and advances through Tier 2/3 to realize gaussian1d_stability, target_shift_recovery, ring_hold, and ring_extension gains.",
+  "id": "empf-v5-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "cdf_ks",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "gaussian1d_stability",
+    "threshold": 0.05
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v2",
+        "candidate_revision": "fc09c6b1f8ae77167ca31db0a4d9ef252dc9d6b92aed98e3d4b53a168ff0ac15"
+      },
+      "path": "reports/forge/records/readout-05eaed46ab0e45214ae8e7b4.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v3",
+        "candidate_revision": "baae191aa8fc7e2d0563cd8a3b52e8ef53ece846d63213cadf159a2e2c47018e"
+      },
+      "path": "reports/forge/records/readout-0c549ac1c635a42dc43cf6dc.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v4",
+        "candidate_revision": "b44c5b2df075ea9eb81d850ce3dba4c04f3b6b8f3aff87963708d729ce03f2c8"
+      },
+      "path": "reports/forge/records/readout-75cdbfb23dff3c1136ae7422.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

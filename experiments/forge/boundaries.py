@@ -29,6 +29,11 @@ TUNABLE_FIELDS = frozenset({
     "prior_reg_target_std", "prior_reg_eps", "prior_l2", "prior_proximal_strength",
     "prior_coulomb_softening", "prior_coulomb_confinement", "prior_coulomb_neighbors",
     "kinetic_transport_weight", "kinetic_transport_local_weight",
+    "rhbi_weight", "rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_critic_weight",
+    "rhbi_relativistic_weight", "rhbi_lambda_floor", "rhbi_gamma_gauge", "rhbi_slack_gain", "rhbi_chord_weight", "rhbi_thermal_tau",
+    "rhbi_thermal_shock_mu", "rhbi_settle_beta", "rhbi_fibre_rel_blend",
+    "rhbi_step_damp", "rhbi_cond_ot_weight", "rhbi_simplex_weight",
+    "rhbi_cvx_mu_gain", "rhbi_simplex_chart_weight", "rhbi_tail_spill_gain",
     "lr_anneal_start", "lr_floor", "network_lr_floor", "beta2_end", "beta2_anneal_end",
 })
 TASK_RECIPE_FIELDS = RESOURCE_FIELDS | {"prior_kind", "sigma_rel", "standardize"}
@@ -47,11 +52,12 @@ TECHNIQUE_RECIPE_FIELDS = frozenset({
     "birth_death_feature_scale", "birth_death_backend", "birth_death_parent_policy",
     "constraint_geometry_mode", "row_policy", "optimizer_family", "optimizer_convolution", "loss_labels", "adam_variant", "lr_schedule", "lr_decay_staircase",
     "critic_step_mode", "bispf_shape_gates", "bispf_gate_overrides", "prior_code_law", "generator_gradient_response",
+    "rhbi_self_coupling", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre", "rhbi_akt_horizon", "rhbi_akt_mode", "rhbi_settle_mode", "rhbi_cond_ot_mode", "rhbi_simplex_macro_settle",
 })
 HYPERPARAMETER_RECIPE_FIELDS = TUNABLE_FIELDS | {
     "conditional_energy_weight", "conditional_energy_samples",
     "prior_sigreg_projections", "prior_sigreg_knots",
-    "kinetic_transport_projections",
+    "kinetic_transport_projections", "rhbi_iters",
     "ucd_weight", "alpha_bar", "ema_decay", "network_lr_horizon_cap",
     "reg_anchor_min_decay", "reg_anchor_weight", "d_guard_ratio", "d_guard_min_steps",
     "latent_damping_max_rate", "direct_particle_betas", "input_noise_std",

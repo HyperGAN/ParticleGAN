@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rhbi-v2-study"
+  },
+  "candidate": "rhbi-v2",
+  "competing_explanation": "Linear Born-Infeld horizon screening at rho=3.0 and increased DualNorm polar smoothing (0.0061) could slow outer-tail capture on 100-mode grids, over-damp multi-step DDGAN chains, or degrade long-horizon ring_extension hold despite fixing Tier 1 ring16_acquisition and AE/VAE settling. Complete seed-0 measurement through Tier 3 on discriminator_stability tests whether Tier 1 gains transfer cleanly to Tier 2 and Tier 3.",
+  "control": {
+    "candidate_id": "rhbi-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Replacing logarithmic rapidity screening and hollow self-coupling in rhbi-v1 with linear Born-Infeld screening (rho=3.0), Feydy diagonal self-coupling, endpoint slope floor damping (0.005), SBNP prior regularization (0.02, prior_lr_mult=2.9), lr=0.014, and polar smoothing 0.0061 passes all 11 required Tier 1 discriminator_stability gates on protocol seed 0 and unlocks Tier 2 and Tier 3 measurement.",
+  "id": "rhbi-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v1",
+        "candidate_revision": "3e717461929e3760dcb3d4b87b6452a001c37d644e642179fda7bd2fa3752a8c"
+      },
+      "path": "reports/forge/records/readout-a94316e3e91606df03a346de.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

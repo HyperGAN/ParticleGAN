@@ -1283,6 +1283,102 @@
       "json_sha256": "5446cd789c9c0d8ac4a5ddba0b1c7ce8effaadcc2d27a342447405be69f20b5c",
       "snapshot": "reports/forge/technique-evidence/4eaeb2e733970936d752120f26b8987bbb676615ef791ef415d1740480eae5cf.json",
       "source_commit": "6261a5458c1f3e14c7c9faf1fc6966e03b2acfb1"
+    },
+    {
+      "candidates": {
+        "empf-v1": "2026-11-11T08:55:58.539+00:00"
+      },
+      "json_sha256": "b652613e1715184ebf2b30387f8cc022284d3be97375aa038ae210e3c6aca977",
+      "snapshot": "reports/forge/technique-evidence/a90a3a12cbce7cda67a62002af58aa0a00e248ed6d6fb30f8dd6798a3719bd55.json",
+      "source_commit": "cb5e484b059d3474f7259c40beb7acb4b5bb8704"
+    },
+    {
+      "candidates": {
+        "empf-v2": "2026-11-11T19:46:19.421+00:00"
+      },
+      "json_sha256": "607ed22cd08e85a19687dcd53c4d692e2f0ec30b7e110bc256d72e314c15e101",
+      "snapshot": "reports/forge/technique-evidence/d3ce3f952efeaba1f275f36ac0366656432c348889f39cac3254f1654a50e280.json",
+      "source_commit": "49537dfe0349daec307607f340d6379537d874b9"
+    },
+    {
+      "candidates": {
+        "empf-v7": "2026-11-12T06:00:41.074+00:00"
+      },
+      "json_sha256": "a88ec20aa7b0c07df8fb1d10e0d9b2f9786215eff221ac5730a141c6ab1fde7e",
+      "snapshot": "reports/forge/technique-evidence/c1145d18490e4a5b9c6083a83e085f02195479b4e1ea094bd1eeaf55681d3b06.json",
+      "source_commit": "3347cd63c16c2f959f40c2efc6e707cf729e8fa3"
+    },
+    {
+      "candidates": {
+        "rhbi-v1": "2026-11-11T07:20:57.717+00:00"
+      },
+      "json_sha256": "7f4b2c2df6461f480b449d4e791a34d503c29e77614a7bb90591a4c95721791a",
+      "snapshot": "reports/forge/technique-evidence/34425b3d75a568f16573f088c8272eed6b248b85ff7b0f4bbea0cd5c654660df.json",
+      "source_commit": "d2abe7afb5d1f6501d0e3f14b71c56ad369d2102"
+    },
+    {
+      "candidates": {
+        "rhbi-v3": "2026-11-11T19:17:12.402+00:00"
+      },
+      "json_sha256": "a1243d608d8602c63c03bd1fd8d766a154b45c322725e8cc08b532afb7a1bb1c",
+      "snapshot": "reports/forge/technique-evidence/af3aaf2c6321e6a27c169e475809459c6772be9486edc74bb15dd89d07132b86.json",
+      "source_commit": "eeb698a7b056f47f3183bdc4debadb7a5746ff89"
+    },
+    {
+      "candidates": {
+        "rhbi-v4": "2026-11-12T06:20:30.381+00:00"
+      },
+      "json_sha256": "6ef1a8007c428ebeb573d9a6e0c545c2b736cf436288909f6f78302b7cbc085a",
+      "snapshot": "reports/forge/technique-evidence/aa2ff3e18eb43bf1f06e4fa0ca45bec155d94255e730672fb3be10071ec18acf.json",
+      "source_commit": "0f5d39016c98486b2bbca3be585bf46f44394297"
+    },
+    {
+      "candidates": {
+        "rhbi-v6": "2026-11-12T20:12:41.541+00:00"
+      },
+      "json_sha256": "59643d4d269a7cf6735c3a2d175d2f2067008ea9fb7e7a2eb207c16a6ca03d7d",
+      "snapshot": "reports/forge/technique-evidence/7292978d6f0e77dccbfcb3dd2fbe3a6a55542eea1499702c68ee31cfc8a87432.json",
+      "source_commit": "79269429a7765bde5ca69654e04668bab9fdfd9c"
+    },
+    {
+      "candidates": {
+        "rhbi-v8": "2026-11-13T10:35:46.554+00:00"
+      },
+      "json_sha256": "7723027f188e1be6f889f3e27e7a4801f03bfa471c03a571b818f6d42e2196eb",
+      "snapshot": "reports/forge/technique-evidence/e7168ac1d2dd06709caed2f522ca3171c2ec7848bed6cc81142a6acb95ed5bea.json",
+      "source_commit": "5ef63a56014f0c25cb16db3d983a6745deaef925"
+    },
+    {
+      "candidates": {
+        "rhbi-v7": "2026-11-13T09:44:19.335+00:00"
+      },
+      "json_sha256": "5c950b41d5e875cb91b8d95c1820c0bf88574ad3db9c1612bd8f3631b6d977e3",
+      "snapshot": "reports/forge/technique-evidence/2621d88274884f6afcac293b09d1dca70913f062339a5cdb95514b7354a751fa.json",
+      "source_commit": "9a71fa319b9fcdc6e6722e06d05c204d1975804c"
+    },
+    {
+      "candidates": {
+        "rhbi-v9": "2026-11-13T20:00:51.294+00:00"
+      },
+      "json_sha256": "b5a45ac1fca66c2ca7621484db535a1f6a3df011135ff288acde91882fd2b6b0",
+      "snapshot": "reports/forge/technique-evidence/239e1062a3d4ca3fc17cadaa8c1c3e69f9cd1d01b1fd894f1b9adcf2f0a72a7b.json",
+      "source_commit": "eb9d06f77b0bf4d7aa8948cb6899def81d96d2d3"
+    },
+    {
+      "candidates": {
+        "rhbi-v10": "2026-11-14T04:15:41.263+00:00"
+      },
+      "json_sha256": "6ae0f5d8403609abb6dc50bd21432b4ac8bf18efbb1dc84e73dd417d381be898",
+      "snapshot": "reports/forge/technique-evidence/01d1879fd4e1f544851f75eb0c9e8b88e88670218dcea47a77dbc3a842350cf1.json",
+      "source_commit": "9bd563deb360840695c5a4152121f9cc5c839e16"
+    },
+    {
+      "candidates": {
+        "rhbi-v11": "2026-11-14T05:06:01.202+00:00"
+      },
+      "json_sha256": "1abad4d12cd502c73118935c757ed8f37bd07ce37f559c707caed432fd9f315b",
+      "snapshot": "reports/forge/technique-evidence/5addc6ae0c348a468fa76db9ffc295d2753f964b706112dba668979437f0f4ee.json",
+      "source_commit": "5a6af38465597761d0b6a00a6243910565850d35"
     }
   ],
   "note": "Numerical evidence/provenance only. The sole current technique leaderboard is reports/forge/technique-inventory.md; snapshots cannot qualify the latest checkout.",

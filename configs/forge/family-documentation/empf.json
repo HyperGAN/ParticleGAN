@@ -1,0 +1,87 @@
+{
+  "overview": "Exponential Moving Prototype Flow (EMPF) is a clock-free, constant-learning-rate ParticleGAN formulation inspired by e-means (Bessa et al., arXiv:2611.09501) with no EMA critic network copy. Instead of computing transport chords solely against noisy raw mini-batches, EMPF maintains a checkpointed online sufficient-statistics prototype bank (S, N) updated with clock-free (K, B) hit-rate EMA scaling and deterministic mass-conserving proportional-split dead-prototype revival, couples non-uniform prototype masses to generated samples via scale-free entropic Optimal Transport, bounds critic gradients along endpoints and prototype chords with an Elastic Born-Infeld potential and zero-mean logit gauge, and regularizes trainable particle priors with a degree-of-freedom-aware EMPF tether/repulsion/revival law.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\\sim P$ a latent batch and $y=G(z)$ the generated batch of size $B_f$. $(S, N)$ is the online prototype bank of size $K=\\min(K_{\\max}, B_r)$ with centroids $C_k=S_k/N_k$ and normalized row masses $w_k=N_k/\\sum_j N_j$. $\\Pi$ is the entropic Optimal Transport coupling matching row marginals $w$ to uniform column marginals $1/B_f$, $x_{\\mathrm{chord}}=(1-u)y+u C_{\\pi}$ is a stratified prototype transport chord, and $g_r, g_f, g_c$ are critic input gradients.",
+  "pseudocode": [
+    "Choose an adversarial loss, optimizer and constant learning rates.",
+    "For each task-owned training update:",
+    "  Sample real x and latent z from the task prior P; compute y=G(z).",
+    "  On unconditioned continuous vector domains, assign x to nearest centroids C_prev = S / N, update (S, N) with hit-rate EMA rate alpha_eff(K, B_r), and revive any starved prototype (N_k < tau_rev * mean(N)) via deterministic half-mass donor splitting.",
+    "  Compute mass-weighted scale-free Sinkhorn coupling Pi between (C, w) and stop_gradient(y); on conditioned critics, bypass the marginal bank and align chords per conditioning fiber.",
+    "  Sample stratified transport chords x_chord = (1 - u) stop_gradient(y) + u C_pi.",
+    "  Evaluate Elastic Born-Infeld potential on input-gradient norms at x, stop_gradient(y) and x_chord plus zero-mean logit gauge, and update instance-bound state-driven thermal scale.",
+    "  Backpropagate critic adversarial loss + EMPF penalty and step D.",
+    "  With D fixed, recompute differentiable fake samples y=G(z) and evaluate generator adversarial loss + EMPF prior regularizer.",
+    "  Step G, trainable prior P and encoder E when present using constant learning rates."
+  ],
+  "training_details": {
+    "loss": "Selectable non-saturating logistic (selected DualNorm configuration, with conditioned-fiber relativistic pairing once conditional energy settles), paired relativistic logistic, EMPF Sinkhorn relativistic logistic, hinge, Wasserstein or least squares. Joint encoder/generator hosts train both critic streams.",
+    "optimizer": "Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset quintic convolution, size-gated newton_schulz_hybrid_v1 dense polar profile using exact SVD on min_dim < 64 or max_dim <= 128 and guarded 32-step cubic Newton-Schulz on min_dim >= 64 and max_dim > 128, batched SVD backend, BF16 channels-last conv training, direction-blend constraint geometry) as well as native Adam and formulation-owned EMPFCriticAdam without an EMA critic network copy.",
+    "learning_rates": "Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.012$, critic multiplier $1.5$ and DualNorm sampled-row prior multiplier $2.5$ (`prior_reg=0.01`), matching `bispf-throughput-v1` / `presets[bispf_optimized]`.",
+    "gradient_clipping": "None. Critic spike guard is disabled; gradient bounding acts smoothly through the Elastic Born-Infeld critic potential.",
+    "critic_penalty": "Prototype-chord Elastic Born-Infeld regularizer evaluated on real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords ($\\kappa=1$, base sharpness $\\beta_0=6$ tightening quadratically via cool-gated state-driven settling sharpness $\\beta_{\\mathrm{eff}}(r_{\\mathrm{ema}}, B_r)$ once $r_{\\mathrm{ema}}<0.16$, harmonic floor $\\lambda_{\\mathrm{floor}}=0.01$, chord blend $0.05$) plus a settling zero-mean logit gauge ($\\gamma_{\\mathrm{gauge}}=0.05$). Conditioned critics preserve fiber alignment automatically; no EMA critic anchor.",
+    "damping_and_guards": "Instance-bound shock-filtered transport EMA, trimmed central-$[0.04, 0.96]$ 1D quantile-$W_2$ floor-subtracted $1/\\sqrt{B}$ smoothstep thermal cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic basin capture lock, and discrete-simplex post-acquisition Chamfer thermal cooling ($r_{\\mathrm{ema}}<0.070$) damp post-convergence mini-batch fluctuations below DualNorm's smoothing floor while instant-reheating on abrupt distribution shifts using zero global state and zero step counters.",
+    "noise": "No scheduled additive critic-input or generator-output training noise in the selected benchmark configuration ($0.0$). Task-declared MoG intrinsic sigma is preserved.",
+    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+  },
+  "configuration_notes": [
+    "EMPF translates the online sufficient-statistics EMA and proportional-split dead-unit revival of e-means into a clock-free adversarial transport formulation without dataset-size or epoch-horizon dependencies.",
+    "All prototype bank tensors (proto_sum, proto_count), low-discrepancy phases and thermal scalars live exclusively on the critic optimizer's instance-bound step record and travel bit-for-bit through state_dict() and load_state_dict() with strict corruption rejection.",
+    "The EMPF prior regularizer skips global moment/covariance distortion when prior row capacity is at or below the degree-of-freedom threshold (returning exact zero on unanchored small codebooks and applying only a short-range one-sided prototype non-collision hinge on reference-anchored small discrete codebooks) while applying initial-moment tethering, scale-free k-NN log-repulsion, local scatter circularization, and a local median-normalized 1-NN revival tether on continuous particle clouds.",
+    "One global trainer configuration supplies every displayed result across Tier 1, Tier 2 and Tier 3; task-owned architectures, priors, initializations, budgets and gates remain fixed."
+  ],
+  "references": [
+    {
+      "title": "e-means: outperforming k-means (in one-tenth the epochs)",
+      "url": "https://arxiv.org/abs/2611.09501",
+      "component": "Online sufficient-statistics EMA prototype updates, hit-rate step-size scaling, and proportional-split dead-unit revival inspiring the EMPF prototype bank and outlier tether."
+    },
+    {
+      "title": "Sinkhorn Distances: Lightspeed Computation of Optimal Transport",
+      "url": "https://arxiv.org/abs/1306.0895",
+      "component": "Entropic Optimal Transport Sinkhorn-Knopp coupling generalized here to non-uniform prototype row masses."
+    },
+    {
+      "title": "Adam: A Method for Stochastic Optimization",
+      "url": "https://arxiv.org/abs/1412.6980",
+      "component": "Base first-order optimizer family supported alongside DualNorm."
+    }
+  ],
+  "sources": [
+    "particlegan/empf.py",
+    "particlegan/_empf/prototypes.py",
+    "particlegan/_empf/transport.py",
+    "particlegan/_empf/critic.py",
+    "particlegan/_empf/penalty.py",
+    "particlegan/_empf/prior.py",
+    "particlegan/_empf/loss.py",
+    "particlegan/optim/dualnorm.py",
+    "particlegan/recipes.py",
+    "configs/forge/ideas/empf-v1.json",
+    "configs/forge/studies/empf-v1-study.json",
+    "configs/forge/ideas/empf-v2.json",
+    "configs/forge/studies/empf-v2-study.json",
+    "configs/forge/ideas/empf-v3.json",
+    "configs/forge/studies/empf-v3-study.json",
+    "configs/forge/ideas/empf-v4.json",
+    "configs/forge/studies/empf-v4-study.json",
+    "configs/forge/ideas/empf-v5.json",
+    "configs/forge/studies/empf-v5-study.json",
+    "configs/forge/ideas/empf-v6.json",
+    "configs/forge/studies/empf-v6-study.json",
+    "configs/forge/ideas/empf-v7.json",
+    "configs/forge/studies/empf-v7-study.json",
+    "reports/forge/empf/README.md"
+  ],
+  "equations": [
+    {
+      "label": "Clock-Free Online e-means Sufficient-Statistics Prototype Update",
+      "latex": "S_k^{(t)}=(1-\\alpha_{\\mathrm{eff}})S_k^{(t-1)}+\\alpha_{\\mathrm{eff}}\\sum_{i:a_i=k}x_i,\\quad N_k^{(t)}=(1-\\alpha_{\\mathrm{eff}})N_k^{(t-1)}+\\alpha_{\\mathrm{eff}}\\,|\\{i:a_i=k\\}|,\\quad \\alpha_{\\mathrm{eff}}=\\operatorname{clip}\\!\\left(\\alpha_0(B_r/K)^\\eta,\\alpha_{\\min},\\alpha_{\\max}\\right)",
+      "explanation": "Maintains denoised online centroids $C_k=S_k/N_k$ and normalized mode-mass shares $w_k=N_k/\\sum_j N_j$ without dataset-size or epoch-horizon clocks; prototypes with $N_k<\\tau_{\\mathrm{rev}}\\bar N$ split the heaviest donor deterministically."
+    },
+    {
+      "label": "Prototype-Chord Elastic Born-Infeld Penalty and Zero-Mean Gauge",
+      "latex": "R_{\\mathrm{EMPF}}=\\frac{\\lambda_{\\mathrm{floor}}}{6d}\\mathbb E\\!\\left[\\lVert g_r\\rVert_2^2+\\lVert g_f\\rVert_2^2+\\lVert g_c\\rVert_2^2\\right]+\\frac{\\lambda_{\\mathrm{cap}}}{2}\\mathbb E\\!\\left[\\phi_\\beta(\\lVert g_r\\rVert_2-\\kappa)^2+(1-\\alpha_c)\\phi_\\beta(\\lVert g_f\\rVert_2-\\kappa)^2+\\alpha_c\\phi_\\beta(\\lVert g_c\\rVert_2-\\kappa)^2\\right]+\\frac{\\gamma_{\\mathrm{gauge}}}{2}\\bar D^2",
+      "explanation": "Bounds critic input-gradient norms along real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords $x_{\\mathrm{chord}}=(1-u)y+u C_\\pi$ while pinning translational logit drift via $\\bar D=\\frac{1}{2}(\\mathbb E[D(x)]+\\mathbb E[D(y)])$."
+    }
+  ]
+}

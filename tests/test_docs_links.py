@@ -64,7 +64,7 @@ def test_root_doc_relative_links_and_anchors_resolve(name):
 
 def test_glossary_expands_or_marks_every_heavily_used_acronym():
     glossary = (ROOT / "RESEARCH_GLOSSARY.md").read_text()
-    for name in ("BISPF", "SBNP", "BCAP", "K3P", "KA2", "E22", "UCD", "DV12", "hq"):
+    for name in ("EMPF", "BISPF", "SBNP", "BCAP", "K3P", "KA2", "E22", "UCD", "DV12", "hq"):
         assert re.search(rf"^\| \*\*{name}\*\*", glossary, re.M), name
 
 

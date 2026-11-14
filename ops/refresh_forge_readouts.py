@@ -560,6 +560,17 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
             available,
         )
 
+    retained_families = {
+        record.get("family")
+        for record in coverage.get("records", [])
+        if not _is_scoped_attempt(record) and isinstance(record.get("family"), str)
+    }
+    unmeasured_new_families = (
+        sorted(set(expected_selected) - retained_families)
+        if retained_families
+        else []
+    )
+
     superseded_records = []
     covered_by_family: dict[str, set[str]] = {family: set() for family in expected_selected}
     for record in coverage.get("records", []):
@@ -593,12 +604,22 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
 
     missing_by_family = {}
     for family, (cid, _, _, available) in sorted(expected_selected.items()):
+        if family in unmeasured_new_families:
+            continue
         missing = sorted(set(available) - covered_by_family.get(family, set()))
         if missing:
             missing_by_family[family] = {"candidate_id": cid, "missing_tasks": missing}
     if scope is not None:
-        unmeasured_current_tasks = sorted(name for name in current_scope_names
-            if any(name not in covered for covered in covered_by_family.values()))
+        retained_covered = [
+            covered
+            for fam, covered in covered_by_family.items()
+            if fam not in unmeasured_new_families
+        ]
+        unmeasured_current_tasks = sorted(
+            name
+            for name in current_scope_names
+            if any(name not in covered for covered in retained_covered)
+        )
 
     current = pending == 0 and running == 0 and not superseded_records and not missing_by_family
     return {
@@ -611,6 +632,7 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
         "superseded_record_count": len(superseded_records),
         "missing_by_family": missing_by_family,
         "unmeasured_current_tasks": unmeasured_current_tasks,
+        "unmeasured_new_families": unmeasured_new_families,
     }
 
 

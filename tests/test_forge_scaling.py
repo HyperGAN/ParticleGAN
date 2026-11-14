@@ -42,7 +42,7 @@ def test_cloud_matrix_preserves_selected_recipes_and_clears_all_family_preflight
             assert context.prior_config["sigma"] == 0
             assert task["dependencies"] == []
             assert assignment["importance"] == "diagnostic"
-    assert len(global_bindings) == 8
+    assert len(global_bindings) == len(selected) == 10
 
 
 def test_policy_exception_requires_explicit_performance_contract():

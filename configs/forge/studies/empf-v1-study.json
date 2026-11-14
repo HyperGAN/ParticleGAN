@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000.0,
+    "candidate_budget_seconds": 60000.0,
+    "id": "empf-v1-study"
+  },
+  "candidate": "empf-v1",
+  "competing_explanation": "If online e-means prototype smoothing or proportional-split revival lags rapid mode transitions, blurs fine conditional/categorical boundaries, or prematurely locks thermal cooling, EMPF will regress Tier 1 model-family gates, five_word_joint_hold, mode_hold, or Tier 3 ring endurance relative to bispf-optimized-quintic-v1.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "mode_hold",
+    "threshold": 0.9
+  },
+  "hypothesis": "Exponential Moving Prototype Flow (critic_formulation=empf, prior_regularizer=empf) passes Tier 1 (including clockfree_audit_measurement_v1 and all model-family gates), preserves or improves Tier 2 multi-modal and uneven-mass transport under one global constant-LR DualNorm recipe, and passes Tier 3 ring_hold and ring_extension.",
+  "id": "empf-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "mode_hold",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "bispf-v2",
+        "candidate_revision": "96f0f8a2aee0663f0fe92e49641deb107b81201ae0efea33d9a54e24aaba8967"
+      },
+      "path": "reports/forge/records/readout-c2d279f7d47ac009ee80d771.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

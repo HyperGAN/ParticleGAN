@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rhbi-v6-study"
+  },
+  "candidate": "rhbi-v6",
+  "competing_explanation": "Restricting Born-Infeld Lipschitz softplus stiffening strictly to the thermal cooling band (s_thermal < 1.0, residual < rhbi_thermal_tau=0.084) with rhbi_settle_beta=16.0 could either leave insufficient pre-lock slope sharpness to hold quantized 4-bit precision_gaussian_nvfp4 below cdf_ks <= 0.05 or over-stiffen late-stage covariance on ring16_acquisition after mode capture.",
+  "control": {
+    "candidate_id": "rhbi-v4",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Coupling Born-Infeld Lipschitz softplus sharpness settling directly to the 5-channel thermal equilibrium scale via rhbi_settle_mode='thermal' (eff_beta = 12.0 + 16.0 * (1 - s_thermal)^2, strictly inactive while s_thermal=1.0 during pre-equilibrium mode acquisition) alongside Poisson-Weibull 1D AKT horizon normalization (rhbi_akt_mode='weibull') and false-shock-proof thermal reopening (rhbi_thermal_shock_mu=0.35, rhbi_fibre_rel_blend=0.0) eliminates all four rhbi-v5 pre-equilibrium regressions, preserves 27/27 Tier-1 and 82/115 counted ordinary view passes, and unlocks stretch precision_gaussian_nvfp4 (cdf_ks <= 0.05) alongside precision_gaussian_mxfp8 under one global clock-free, shape-gate-free recipe on protocol seed 0.",
+  "id": "rhbi-v6-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "cdf_ks",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "precision_gaussian_nvfp4",
+    "threshold": 0.05
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v4",
+        "candidate_revision": "a555da62030ea9cce3aa3d9a76e1f2e8ab3ffe86f4347f9b865cf52fafc7c459"
+      },
+      "path": "reports/forge/records/readout-78930a17ca5f4c4926f626a0.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "rhbi-v5",
+        "candidate_revision": "9d01bd567cb5aade5f0968102173a4f1d15002619f8afdc59a751591ad5c13ee"
+      },
+      "path": "reports/forge/records/readout-8d88061b544c2ad1873e7160.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

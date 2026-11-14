@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "rhbi-v10-study"
+  },
+  "candidate": "rhbi-v10",
+  "competing_explanation": "Tracking a 96th-quantile inter-mode valley precision EMA channel (rhbi_tail_spill_gain=1.8) could elevate stationary null fluctuations above the cooling floor tau_lo=0.042 on ring16_acquisition or mode_hold and prevent post-acquisition thermal settling, while wide-span macro-simplicial settling (rhbi_simplex_macro_settle=true) could spill onto narrow-span patch-shift manifolds (interp_img_patch_shift) or still fail to hold barycenter_hq >= 0.78 across at least 5 consecutive terminal checkpoints on interp_saddle_barycentric.",
+  "control": {
+    "candidate_id": "rhbi-v9",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Pairing a dedicated schema-3 inter-mode valley 96th-quantile precision thermal residual channel on continuous priors (rhbi_tail_spill_gain=1.8) with wide-span H_0-connected macro-simplicial manifold settling on discrete particle codebooks (rhbi_simplex_macro_settle=true) under one global clock-free, schedule-free, shape-gate-free recipe converts both counted vector_anisotropic (component_covariance_error <= 0.85, sw1_normalized <= 0.18, mass_tv <= 0.15, hq >= 0.85) and stretch interp_saddle_barycentric (all 5 terminal checks PASS) while preserving ring16_acquisition, mode_hold, gaussian1d_stability, precision_gaussian_fp32/mxfp8/nvfp4, interp_img_patch_shift, discrete image tasks img_blobs4/img_intensity2/img_stripes2, and all prior RHBI view passes on protocol seed 0.",
+  "id": "rhbi-v10-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v9",
+        "candidate_revision": "9e81b5afc9298a9cea9a90952637fc73b11ca93f518c0777145ec19ce1c6efd8"
+      },
+      "path": "reports/forge/records/readout-264443fda23520da74a1fe0a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_gaussian_animation_preserves_the_explicit_090_recipe():
     receipt = json.loads((ROOT / 'reports/readme-100gaussians/summary-current.json').read_text())
     expected = json.loads(json.dumps(get_recipe(
-        optimizer_svd_backend='native', training_precision='float32').to_dict()))
+        'bispf_optimized', optimizer_svd_backend='native', training_precision='float32').to_dict()))
     assert receipt['recipe'] == expected, 'Preserve the archived 0.9.0 illustration identity'
     assert receipt['completed_steps'] == receipt.get('execution_budget', expected['total_steps'])
     assert receipt['completed_steps'] >= expected['total_steps']

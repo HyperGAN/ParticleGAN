@@ -17,24 +17,29 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_public_default_matches_every_selected_candidate_field_except_label():
-    candidate = json.loads((ROOT / "configs/forge/ideas/bispf-throughput-v1.json").read_text())
+    empf_candidate = json.loads((ROOT / "configs/forge/ideas/empf-v7.json").read_text())
     actual = json.loads(json.dumps(asdict(get_recipe())))
-    assert DEFAULT_RECIPE == actual["name"] == "bispf_optimized"
-    for field, value in candidate["recipe_overrides"].items():
+    assert DEFAULT_RECIPE == actual["name"] == "empf"
+    for field, value in empf_candidate["recipe_overrides"].items():
         if field != "name":
             assert actual[field] == value, field
-    assert get_recipe() == get_recipe("bispf_optimized")
+    assert get_recipe() == get_recipe("empf")
     assert Recipe.from_dict(get_recipe().to_dict()) == get_recipe()
     assert actual["optimizer_svd_backend"] == "batched"
     assert actual["training_precision"] == "bf16_channels_last"
-    # Explicit historical snapshot restoration and presets keep their meaning.
+    # Explicit bispf_optimized, historical snapshot restoration, and presets keep their meaning.
+    bispf_candidate = json.loads((ROOT / "configs/forge/ideas/bispf-throughput-v1.json").read_text())
+    bispf_actual = json.loads(json.dumps(asdict(get_recipe("bispf_optimized"))))
+    for field, value in bispf_candidate["recipe_overrides"].items():
+        if field != "name":
+            assert bispf_actual[field] == value, field
     assert Recipe.from_dict({}) == get_recipe("ka2")
     assert get_recipe("bispf").optimizer_family == "formulation"
     assert get_recipe("bispf").loss == "relativistic"
     assert get_recipe("bispf").prior_reg == .05
 
 
-@pytest.mark.parametrize("name", ["gan", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
+@pytest.mark.parametrize("name", ["gan", "empf", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
 def test_plain_fields_match_validated_recipe(name):
     assert get_recipe_fields(name) == asdict(get_recipe(name))
 
@@ -56,6 +61,7 @@ values = module.get_recipe_fields('ae_gan', z_dim=3)
 assert values['name'] == 'ae_gan'
 assert values['z_dim'] == 3 and values['optimizer_family'] == 'dualnorm'
 assert values['optimizer_convolution_rule'] == 'quintic'
+assert values['optimizer_dense_profile'] == 'newton_schulz_hybrid_v1'
 assert values['optimizer_svd_backend'] == 'batched'
 assert values['training_precision'] == 'bf16_channels_last'
 assert 'torch' not in sys.modules and 'particlegan' not in sys.modules

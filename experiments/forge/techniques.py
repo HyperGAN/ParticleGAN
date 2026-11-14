@@ -80,6 +80,47 @@ def technique_signature(value):
         mechanisms["kinetic_transport"] = True
     if recipe.kinetic_transport_local_weight > 0:
         mechanisms["kinetic_transport_local"] = True
+    if recipe.rhbi_weight > 0:
+        mechanisms["rhbi_transport"] = True
+    if recipe.rhbi_critic_weight > 0:
+        mechanisms["rhbi_critic_slack"] = True
+    if recipe.rhbi_weight > 0 and recipe.rhbi_relativistic_weight > 0:
+        mechanisms["rhbi_relativistic"] = True
+    if recipe.effective_critic_formulation == "rhbi" and recipe.rhbi_lambda_floor > 0:
+        mechanisms["rhbi_lambda_floor"] = True
+    if recipe.effective_critic_formulation == "rhbi" and recipe.rhbi_gamma_gauge > 0:
+        mechanisms["rhbi_gamma_gauge"] = True
+    if recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_settle_beta > 0:
+        mechanisms["rhbi_settle_beta"] = True
+    if (
+        (recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0)
+        and recipe.rhbi_conditional_fibre == "slack"
+        and recipe.rhbi_fibre_rel_blend > 0
+    ):
+        mechanisms["rhbi_fibre_rel_blend"] = True
+    if (
+        (recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0)
+        and recipe.optimizer_family != "formulation"
+        and recipe.optimizer_family != "adam"
+        and recipe.rhbi_step_damp > 0
+    ):
+        mechanisms["rhbi_step_damp"] = True
+    if (
+        recipe.rhbi_weight > 0
+        and recipe.rhbi_conditional_fibre == "slack"
+        and recipe.rhbi_cond_ot_weight > 0
+    ):
+        mechanisms["rhbi_cond_ot"] = True
+    if recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0:
+        mechanisms["rhbi_simplex"] = True
+        if recipe.rhbi_simplex_chart_weight > 0:
+            mechanisms["rhbi_simplex_chart"] = True
+            if recipe.rhbi_simplex_macro_settle:
+                mechanisms["rhbi_simplex_macro_settle"] = True
+    if recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0 and recipe.rhbi_cvx_mu_gain != 0.40:
+        mechanisms["rhbi_cvx_mu"] = True
+    if recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0 and recipe.rhbi_tail_spill_gain > 0:
+        mechanisms["rhbi_tail_spill"] = True
     if recipe.optimizer_smoothing:
         mechanisms["smoothed_dualnorm"] = True
     if recipe.optimizer_family in {"dualnorm_D_only", "particle_rownorm_only"}:
@@ -183,9 +224,9 @@ def recipe_field_active(name, value, *, task=None):
         return prior_active and recipe.prior_regularizer == "coulomb" and recipe.prior_reg > 0
     if name in {"prior_reg_target_std", "prior_reg_eps"} and recipe.prior_reg == 0:
         return False
-    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp"}:
+    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf"}:
         return False
-    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp"}:
+    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf"}:
         return False
     if name in {"prior_sigreg_projections", "prior_sigreg_knots"}:
         return prior_active and recipe.prior_regularizer == "sigreg" and recipe.prior_reg > 0
@@ -195,4 +236,52 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.kinetic_transport_local_weight > 0
     if name == "kinetic_transport_projections":
         return recipe.kinetic_transport_weight > 0 or recipe.kinetic_transport_local_weight > 0
+    if name == "rhbi_weight":
+        return recipe.rhbi_weight > 0
+    if name == "rhbi_critic_weight":
+        return recipe.rhbi_critic_weight > 0
+    if name in {"rhbi_self_coupling", "rhbi_relativistic_weight", "rhbi_slack_gain", "rhbi_thermal_tau"}:
+        return recipe.rhbi_weight > 0
+    if name == "rhbi_thermal_shock_mu":
+        return recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0
+    if name in {"rhbi_lambda_floor", "rhbi_gamma_gauge", "rhbi_chord_weight", "rhbi_settle_beta"}:
+        return recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0
+    if name == "rhbi_settle_mode":
+        return recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_settle_beta > 0
+    if name == "rhbi_akt_horizon":
+        return recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0 or (
+            recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0
+        )
+    if name == "rhbi_akt_mode":
+        return recipe.rhbi_akt_horizon and (
+            recipe.rhbi_weight > 0
+            or recipe.rhbi_critic_weight > 0
+            or (recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0)
+        )
+    if name == "rhbi_fibre_rel_blend":
+        return (
+            recipe.effective_critic_formulation == "rhbi"
+            or recipe.rhbi_weight > 0
+            or recipe.rhbi_critic_weight > 0
+        ) and recipe.rhbi_conditional_fibre == "slack"
+    if name == "rhbi_step_damp":
+        return (
+            (recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0)
+            and recipe.optimizer_family not in {"formulation", "adam"}
+            and recipe.rhbi_thermal_tau > 0
+        )
+    if name == "rhbi_cond_ot_weight":
+        return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack"
+    if name == "rhbi_cond_ot_mode":
+        return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0
+    if name == "rhbi_simplex_weight":
+        return recipe.rhbi_weight > 0
+    if name == "rhbi_simplex_chart_weight":
+        return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0
+    if name == "rhbi_simplex_macro_settle":
+        return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0 and recipe.rhbi_simplex_chart_weight > 0
+    if name in {"rhbi_cvx_mu_gain", "rhbi_tail_spill_gain"}:
+        return recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0
+    if name in {"rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_iters", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre"}:
+        return recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0
     return True

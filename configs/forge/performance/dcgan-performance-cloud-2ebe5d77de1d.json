@@ -1,0 +1,116 @@
+{
+  "campaign": {
+    "budget_seconds": 12000,
+    "candidate_budget_seconds": 1200,
+    "id": "dcgan-performance-cloud-2ebe5d77de1d"
+  },
+  "comparison_scope": "same task, runtime and hardware; exact selected global recipes; synthetic data; no image quality claim",
+  "cuda_model": "NVIDIA RTX A6000",
+  "execution_backend": "cuda",
+  "family_selections": [
+    {
+      "candidate_declaration_sha256": "d39d59bda65febd439f48333b7c87d398ed85c40fbc8da18c07e6fd63cb15579",
+      "candidate_id": "atlas-particle-normal-v4",
+      "family": "atlas",
+      "label": "Atlas",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-atlas"
+    },
+    {
+      "candidate_declaration_sha256": "b59551e744d082dfd7bb016a9408dffe26bdf93889d85780fa49fb05096fabbb",
+      "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
+      "family": "bcap-pure",
+      "label": "BCAP",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-bcap-pure"
+    },
+    {
+      "candidate_declaration_sha256": "3ad87a68c7cff8d49016548aecb51b54215545e065efdcadb5d540d27a707458",
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "family": "bispf",
+      "label": "BISPF",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-bispf"
+    },
+    {
+      "candidate_declaration_sha256": "434aac4241443ad51ccac2e3e6d620eba9e8131336ca66d1e157b9b1937aaad0",
+      "candidate_id": "e22",
+      "family": "e22",
+      "label": "E22",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-e22"
+    },
+    {
+      "candidate_declaration_sha256": "577d76fb55e80654ab2a0461fef6efd03c5f6210014dbceefd79a9c191b39a54",
+      "candidate_id": "empf-v7",
+      "family": "empf",
+      "label": "EMPF",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-empf"
+    },
+    {
+      "candidate_declaration_sha256": "debf168d57b695c7ea49762478a0714336ca7e41a305e88d77e423661a16a04d",
+      "candidate_id": "recipe-prior-refactor-k3p-v1",
+      "family": "k3p",
+      "label": "K3P",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-k3p"
+    },
+    {
+      "candidate_declaration_sha256": "28b214b7bcf69f209a293788fcdc0cd5c68d82db040b64d178f2cad3ced555b8",
+      "candidate_id": "recipe-prior-refactor-ka2-v1",
+      "family": "ka2",
+      "label": "KA2",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-ka2"
+    },
+    {
+      "candidate_declaration_sha256": "f93f64d4872fc8965ecde70d006f640a3d3c0e2a00aa44a03f4c1ec5c6283b67",
+      "candidate_id": "recipe-prior-refactor-r1r2-v1",
+      "family": "r1r2",
+      "label": "R1/R2",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-r1r2"
+    },
+    {
+      "candidate_declaration_sha256": "394f9dfbbcd350f5fc6dae7f21aa6b83ebb57e8a3a37391c192ebb15616d48b4",
+      "candidate_id": "recipe-prior-refactor-release07-gan-v3-v1",
+      "family": "release07-gan-v3",
+      "label": "GAN v3 release 0.7",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-release07-gan-v3"
+    },
+    {
+      "candidate_declaration_sha256": "963271772ca2fe8c460ca216746f98b499a187fd6d9f795c1f22875e7324b888",
+      "candidate_id": "rhbi-v9",
+      "family": "rhbi",
+      "label": "RHBI",
+      "study": "dcgan-performance-cloud-2ebe5d77de1d-rhbi"
+    }
+  ],
+  "id": "dcgan-performance-cloud-2ebe5d77de1d",
+  "protocol_seed": 0,
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "schema": "forge_image_performance_campaign_v1",
+  "studies": [
+    "dcgan-performance-cloud-2ebe5d77de1d-atlas",
+    "dcgan-performance-cloud-2ebe5d77de1d-bcap-pure",
+    "dcgan-performance-cloud-2ebe5d77de1d-bispf",
+    "dcgan-performance-cloud-2ebe5d77de1d-e22",
+    "dcgan-performance-cloud-2ebe5d77de1d-empf",
+    "dcgan-performance-cloud-2ebe5d77de1d-k3p",
+    "dcgan-performance-cloud-2ebe5d77de1d-ka2",
+    "dcgan-performance-cloud-2ebe5d77de1d-r1r2",
+    "dcgan-performance-cloud-2ebe5d77de1d-release07-gan-v3",
+    "dcgan-performance-cloud-2ebe5d77de1d-rhbi"
+  ],
+  "task_contract_sha256": {
+    "dcgan_performance_b64": "9e69ba0b9a12a76932de3643fa87aabf5e8c51edb872d3b3a5f384f99ab9e049",
+    "dcgan_performance_r128": "e35f31e1405f6377ce79eb266efa4e2e213b0608573650dea664a3f1095806a9",
+    "dcgan_performance_r256": "72395affdf0be7d0088e345bc64ccf1aae8042cbd7391a0e8632bf11cd0d68d0",
+    "dcgan_performance_r32": "e34d9bb3a410f4aa9170df4bb77be4bd1b0837da3c617ceb1d69547fdf19f48d",
+    "dcgan_performance_r64": "7fd1bc3fca3e6af87fbb57d4c861993e51dda82e6cd149398c5c75fa3a402be8",
+    "dcgan_performance_w128": "9f2580a40560f3b388d2bbe44778497efe1c20af4d108e73a38ee4432b0262b1"
+  },
+  "task_ids": [
+    "dcgan_performance_r32",
+    "dcgan_performance_r64",
+    "dcgan_performance_r128",
+    "dcgan_performance_r256",
+    "dcgan_performance_b64",
+    "dcgan_performance_w128"
+  ],
+  "view": "dcgan_performance"
+}

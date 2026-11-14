@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 1200.0,
+    "id": "particle-interp-stretch-v1"
+  },
+  "candidate": "recipe-prior-refactor-release07-gan-v3-v1",
+  "competing_explanation": "Without MoG Gaussian kernel overlap or explicit latent topological sorting, zero-sigma discrete particles may map neighbor latent chords across unrelated output branches, cut Euclidean chords off the manifold, blend double-exposed pixel ghosts, or snap piecewise-constantly to memorized endpoints.",
+  "control": {
+    "candidate_id": "empf-v7",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "interp_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.8
+  },
+  "hypothesis": "Evaluate whether unchanged selected release07-gan-v3 recipe (recipe-prior-refactor-release07-gan-v3-v1) with zero-sigma discrete ParticlePrior (no MoG smoothing) learns smooth, non-snapping latent interpolants across unseen 1D latent k-NN chords (interp_sparse_arc, interp_img_patch_shift) and 2D simplex barycenters (interp_saddle_barycentric).",
+  "id": "particle-interp-stretch-release07-gan-v3",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "interp_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.8
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v6",
+        "candidate_revision": "2929a9ef553dde2092e0769ebdeaa03d0f6ded4ae74c07482ab71a77c601abe7"
+      },
+      "path": "reports/forge/records/readout-4aa764495c669b9247ca874b.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "particle_interpolation_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

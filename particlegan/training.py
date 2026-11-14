@@ -30,6 +30,19 @@ def _float_output(value):
         result = value.float() if value.dtype == torch.bfloat16 else value
         if hasattr(value, "_bispf_input"):
             result._bispf_input = value._bispf_input
+        if hasattr(value, "_empf_input"):
+            result._empf_input = value._empf_input
+        if hasattr(value, "_empf_record"):
+            result._empf_record = value._empf_record
+        if hasattr(value, "_empf_conditioned"):
+            result._empf_conditioned = value._empf_conditioned
+        if hasattr(value, "_rhbi_input"):
+            result._rhbi_input = value._rhbi_input
+            result._rhbi_cond = getattr(value, "_rhbi_cond", None)
+            result._rhbi_cont_cond = bool(getattr(value, "_rhbi_cont_cond", False))
+            result._rhbi_parts = getattr(value, "_rhbi_parts", None)
+        if hasattr(value, "_rhbi_record"):
+            result._rhbi_record = value._rhbi_record
         return result
     if isinstance(value, tuple):
         return tuple(_float_output(item) for item in value)
@@ -66,6 +79,23 @@ class InputNoise(nn.Module):
         target = out[0] if isinstance(out, (tuple, list)) and out else out
         if isinstance(target, torch.Tensor):
             target._bispf_input = x
+            target._empf_input = x
+            if hasattr(target, "_rhbi_input") or hasattr(self.critic, "_rhbi_record"):
+                from .rhbi import _extract_critic_inputs_parts, _record_rhbi_capture
+                rec = getattr(target, "_rhbi_record", getattr(self.critic, "_rhbi_record", None))
+                if rec is None or not getattr(rec, "_in_penalty", False):
+                    x_clean, cond_disc, has_cont_cond, float_parts = _extract_critic_inputs_parts(
+                        (x, *args), kwargs, int(target.shape[0])
+                    )
+                    _record_rhbi_capture(
+                        out,
+                        x_clean,
+                        cond_disc,
+                        rec,
+                        has_cont_cond=has_cont_cond,
+                        float_parts=float_parts,
+                        overwrite=True,
+                    )
         return out
 
 
@@ -109,7 +139,23 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "optimizer_momentum": 0.0, "optimizer_adam_lr": None,
                         "beta2_end": None, "beta2_anneal_end": 0.2,
                         "reg_coeff_end": None, "reg_coeff_anneal_end": 0.2,
-                        "generator_gradient_response": "none"}
+                        "generator_gradient_response": "none",
+                        "rhbi_weight": 0.0, "rhbi_rho": 2.0, "rhbi_tau": 2.0,
+                        "rhbi_eps": 0.1, "rhbi_iters": 8, "rhbi_c_max": 20.0,
+                        "rhbi_beta_ell": 0.1, "rhbi_nn_quantile": 0.25,
+                        "rhbi_critic_weight": 0.0, "rhbi_self_coupling": "hollow",
+                        "rhbi_relativistic_weight": 0.0, "rhbi_lambda_floor": 0.0,
+                        "rhbi_gamma_gauge": 0.0, "rhbi_rapidity_screening": True,
+                        "rhbi_scale_log_odds": False, "rhbi_conditional_fibre": "joint",
+                        "rhbi_akt_horizon": False, "rhbi_akt_mode": "sqrt",
+                        "rhbi_slack_gain": 0.0, "rhbi_chord_weight": 0.0,
+                        "rhbi_thermal_tau": 0.0, "rhbi_thermal_shock_mu": 0.15,
+                        "rhbi_settle_beta": 0.0, "rhbi_settle_mode": "residual",
+                        "rhbi_fibre_rel_blend": 0.0, "rhbi_step_damp": 0.0,
+                        "rhbi_cond_ot_weight": 0.0, "rhbi_cond_ot_mode": "kernel_ed",
+                        "rhbi_simplex_weight": 0.0, "rhbi_cvx_mu_gain": 0.40,
+                        "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
+                        "rhbi_simplex_macro_settle": False}
 
 
 class GANTrainer:
@@ -260,7 +306,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation == "bispf" else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -279,6 +325,12 @@ class GANTrainer:
             # critic record, never another trainer's state.
             from .bispf import bind_thermal_source
             bind_thermal_source(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "empf":
+            from .empf import bind_empf_record
+            bind_empf_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+            from .rhbi import bind_rhbi_record
+            bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -503,6 +555,19 @@ class GANTrainer:
             fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
             if hasattr(self.opt_g, "bind_origin_sample"):
                 self.opt_g.bind_origin_sample(fake_g)
+            if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
+                simplicial_active = (
+                    recipe.rhbi_simplex_weight > 0.0
+                    and recipe.rhbi_simplex_chart_weight > 0.0
+                    and recipe.rhbi_simplex_macro_settle
+                    and self.prior_noise_generator is None
+                    and self.prior.z.requires_grad
+                    and len(self.prior.z) >= 2
+                )
+                self.loss.rhbi.bind_discrete_prior_step(
+                    self.prior_noise_generator is None,
+                    simplicial_active=simplicial_active,
+                )
             fake_logits = critic(fake_g)
             real_g = generator_real() if callable(generator_real) else generator_real
             real_g = real if real_g is None else self._batch(real_g, "generator_real")
@@ -540,6 +605,24 @@ class GANTrainer:
                 loss_g = loss_g + transport
             if recipe.kinetic_transport_local_weight:
                 loss_g = loss_g + transport_local
+            simplex_loss = None
+            if (
+                recipe.rhbi_simplex_weight > 0.0
+                and self.prior_noise_generator is None
+                and self.prior.z.requires_grad
+                and len(self.prior.z) >= 2
+                and hasattr(self.loss, "rhbi")
+            ):
+                base_table = unwrap_prior(self.prior).z
+                simplex_loss = recipe.rhbi_simplex_weight * self.loss.rhbi.simplicial_manifold_loss(
+                    base_table,
+                    lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
+                    real_g,
+                    record=getattr(self.opt_d, "record", None),
+                    chart_weight=recipe.rhbi_simplex_chart_weight,
+                    macro_settle=recipe.rhbi_simplex_macro_settle,
+                )
+                loss_g = loss_g + simplex_loss
             self.opt_g.zero_grad()
             protected_evaluator = None
             if recipe.constraint_geometry_mode == "strict_progress":
@@ -548,11 +631,19 @@ class GANTrainer:
                 locations = self.prior.z.detach().clone()
                 sampled_latent = latent.detach().clone()
                 def protected_evaluator():
-                    replay = sampled_latent + (self.prior.z[indices] - locations[indices])
-                    generated = self._postprocess(
-                        self.prior, self._generate(self.G, replay, sigma_out, noise, rows=indices))
-                    logits = critic(generated)
-                    return (self.loss.g_loss(logits, real_logits),)
+                    rec = getattr(self.opt_d, "record", None)
+                    prev_probe = getattr(rec, "_in_protected_probe", False) if rec is not None else False
+                    if rec is not None:
+                        rec._in_protected_probe = True
+                    try:
+                        replay = sampled_latent + (self.prior.z[indices] - locations[indices])
+                        generated = self._postprocess(
+                            self.prior, self._generate(self.G, replay, sigma_out, noise, rows=indices))
+                        logits = critic(generated)
+                        return (self.loss.g_loss(logits, real_logits),)
+                    finally:
+                        if rec is not None:
+                            rec._in_protected_probe = prev_probe
             constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
                                          protected_evaluator=protected_evaluator)
             self.policy.after_generator_backward(
@@ -580,6 +671,8 @@ class GANTrainer:
                 self.opt_g.step()
             self.policy.after_generator_step()
         finally:
+            if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
+                self.loss.rhbi.bind_discrete_prior_step(False)
             for parameter, flag in zip(self.D.parameters(), flags):
                 parameter.requires_grad_(flag)
         self.policy.finish_step()
@@ -596,6 +689,8 @@ class GANTrainer:
             result["kinetic_transport"] = transport.detach()
         if recipe.kinetic_transport_local_weight:
             result["kinetic_transport_local"] = transport_local.detach()
+        if simplex_loss is not None:
+            result["rhbi_simplex"] = simplex_loss.detach()
         if collect_stats:
             result["penalty_stats"] = penalty_stats
         return result
