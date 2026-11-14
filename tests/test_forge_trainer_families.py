@@ -539,7 +539,7 @@ def test_registry_groups_gan_v3_task_priors_and_keeps_original_historical_identi
                               "repairs-cap-margin", "repairs-finite-cap", "transport"))
     assert set(registry) == retained | {"bcap-pure", "halloween", "bispf", "empf", "rhbi"} | optimizer_families | editorial_variants
     assert registry["bispf"]["canonical_candidate"] == "bispf-v2"
-    assert registry["empf"]["canonical_candidate"] == "empf-v7"
+    assert registry["empf"]["canonical_candidate"] == "empf-v8"
     assert registry["rhbi"]["canonical_candidate"] == "rhbi-v11"
     assert registry["halloween"]["canonical_candidate"] == "halloween-optimizer-loss-v1"
     assert registry["bcap-pure"]["canonical_candidate"] == "bcap-pure-adam-v2"

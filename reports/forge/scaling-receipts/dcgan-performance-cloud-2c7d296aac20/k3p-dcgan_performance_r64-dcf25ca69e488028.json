@@ -1,0 +1,953 @@
+{
+  "api": {
+    "api_changes": [],
+    "api_version": "forge-api-v1",
+    "capabilities": {
+      "a2": true,
+      "checkpoint": true,
+      "fixed_prior_width": true,
+      "learned_locations": true,
+      "live_sampling": true,
+      "mog_prior": false,
+      "named_rng": true,
+      "particle_cloud": true,
+      "policy_controls": false,
+      "policy_serving": false,
+      "public_components": true,
+      "public_trainer": true,
+      "scalar_gan": true,
+      "served_sampling": false,
+      "uniform_masses": true
+    },
+    "execution_path": "public_trainer",
+    "extensions": {},
+    "initial_prior": {
+      "exception_reason": "Performance-only finite-table workload supports all selected policy recipes under one common initial prior. No stochastic distribution-quality claim or qualification credit.",
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false
+    },
+    "initialization": {
+      "discriminator": {
+        "initial_state_sha256": "34cc592e893637132a3aff07b042a0dca497bdd6ee981f282183511006da425a",
+        "initializer": "deterministic_orthogonal_named_parameters_v1",
+        "parameter_seeds": {
+          "main.0.weight": 1731607605525118662,
+          "main.12.weight": 4717615102540424029,
+          "main.2.weight": 8063922333917240632,
+          "main.3.bias": 8814954416423289597,
+          "main.3.weight": 1271596035722194007,
+          "main.5.weight": 7531824052337552395,
+          "main.6.bias": 7861830585327352891,
+          "main.6.weight": 4640121395258313363,
+          "main.8.weight": 5551177098354579199,
+          "main.9.bias": 9168505938914425256,
+          "main.9.weight": 7952933403072247100
+        }
+      },
+      "generator": {
+        "initial_state_sha256": "863bf6a4c32866b17b3357c08c08b448fabe5d90a20102981b3e392dcd3353d3",
+        "initializer": "deterministic_orthogonal_named_parameters_v1",
+        "parameter_seeds": {
+          "main.0.weight": 5213689932803815493,
+          "main.1.bias": 3418969748121585776,
+          "main.1.weight": 8976576003932055467,
+          "main.10.bias": 5071341977361173323,
+          "main.10.weight": 7734520425339727040,
+          "main.12.weight": 8031326976499475713,
+          "main.3.weight": 4746871806144796964,
+          "main.4.bias": 4812393413437879580,
+          "main.4.weight": 3708777587028489738,
+          "main.6.weight": 3382110656425007719,
+          "main.7.bias": 2320133082848489631,
+          "main.7.weight": 2100451431266503099,
+          "main.9.weight": 6903038116289548010
+        }
+      },
+      "prior": {
+        "initial_state_sha256": "53e4cb307c075a7136357b106b6782ed47cbdbde33392f6a448521070177fdb4",
+        "initializer": "deterministic_orthogonal_named_parameters_v1",
+        "parameter_seeds": {
+          "z": 6640234621280078221
+        }
+      }
+    },
+    "initializer": "deterministic_orthogonal",
+    "policy_lifecycle": null,
+    "prior": {
+      "exception_reason": "Performance-only finite-table workload supports all selected policy recipes under one common initial prior. No stochastic distribution-quality claim or qualification credit.",
+      "kind": "particle_cloud",
+      "learnable": true,
+      "sigma": 0.0,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "prior_mechanisms": {
+      "a2": {
+        "enabled": true,
+        "reason": "row-local learned locations with prior beta1=0",
+        "requested": true,
+        "supported": true
+      },
+      "prior": {
+        "a2_eligible": true,
+        "kind": "particle_cloud",
+        "learned_locations": true,
+        "learned_width": false,
+        "mixture_weights": "uniform",
+        "row_local_gradients": true,
+        "sigma": 0.0,
+        "standardize": false
+      }
+    },
+    "recipe": {
+      "alpha_bar": [
+        1.0,
+        0.9,
+        0.5,
+        0.05,
+        0.0001
+      ],
+      "amsgrad": false,
+      "batch_size": 16,
+      "betas": [
+        0.0,
+        0.999
+      ],
+      "birth_death_feature_scale": "none",
+      "birth_death_isolation": false,
+      "birth_death_space": "data",
+      "conditioning": "scalar",
+      "continuous_policy": null,
+      "critic_formulation": "k3p",
+      "critic_payoff_damping": true,
+      "critic_r1_real": true,
+      "d_guard_min_steps": 200,
+      "d_guard_ratio": 5.0,
+      "d_lr_mult": 1.0,
+      "direct_particle_betas": [
+        0.0,
+        0.9
+      ],
+      "direct_particle_gain": true,
+      "distance_reduction": "sum",
+      "ema_decay": 0.995,
+      "encoder_mode": "none",
+      "input_noise_anneal_end": 0.1,
+      "input_noise_std": 0.5,
+      "latent_damping_max_rate": 0.5,
+      "lr": 0.006375,
+      "lr_anneal_start": 0.6,
+      "lr_control": "mobility",
+      "lr_floor": 0.05,
+      "model": "gan",
+      "name": "k3p",
+      "network_lr_floor": 0.01,
+      "network_lr_horizon_cap": 1600,
+      "num_classes": null,
+      "num_particles": 256,
+      "observation_sigma": 0.03,
+      "output_noise_mode": "fixed",
+      "output_noise_std": 0.029,
+      "output_noise_warmup": 0.2,
+      "particle_birth_death": false,
+      "prior_betas": null,
+      "prior_kind": "particles",
+      "prior_lr_mult": 1.0,
+      "prior_reg": 0.0,
+      "reconstruction_weight": 1.0,
+      "reg_anchor_min_decay": 0.9,
+      "reg_anchor_weight": 1.0,
+      "reg_coeff": 1.0,
+      "reg_every": 1,
+      "reg_kappa": 1.0,
+      "reopen_anchor": "hold",
+      "reopen_signal": "data",
+      "routing_temperature": 0.25,
+      "row_evidence_exclude": true,
+      "row_evidence_gate": false,
+      "row_evidence_hold": true,
+      "row_evidence_hot": true,
+      "row_evidence_null": "theory",
+      "row_policy": "independent",
+      "serve_average": 0.0,
+      "sigma_rel": 0.0,
+      "standardize": false,
+      "table_release_rule": "any",
+      "total_steps": 13,
+      "ucd_target": "class",
+      "ucd_weight": 0.02,
+      "z_dim": 128
+    },
+    "recipe_preset": null,
+    "requires_capabilities": [],
+    "rng": {
+      "bindings": {
+        "[\"data\",\"critic\",\"training\",\"cuda:0\"]": {
+          "component": "critic",
+          "device": "cuda:0",
+          "family": "data",
+          "initial_state_sha256": "06e987968d3e1e6098eaa9672bf0895b7cc8293838bd93915e44d90c481a2e01",
+          "purpose": "training",
+          "seed": 4277391295314730155
+        },
+        "[\"data\",\"generator\",\"training\",\"cuda:0\"]": {
+          "component": "generator",
+          "device": "cuda:0",
+          "family": "data",
+          "initial_state_sha256": "c27a672c7186ff56108d40753e474030245c69edefc375c0a38e4db500bdf09a",
+          "purpose": "training",
+          "seed": 412570267228304451
+        },
+        "[\"data\",\"target\",\"training\",\"cuda:0\"]": {
+          "component": "target",
+          "device": "cuda:0",
+          "family": "data",
+          "initial_state_sha256": "c4ceca2b27438e7e0048f31859e36d4e1af88acb14f4ae4a28477bf697a60c46",
+          "purpose": "training",
+          "seed": 2842969976240124311
+        },
+        "[\"eval\",\"sampler\",\"performance_panel\",\"cuda:0\"]": {
+          "component": "sampler",
+          "device": "cuda:0",
+          "family": "eval",
+          "initial_state_sha256": "a28c9cd08bebe50feb58dd50e68758c4fb9406fd714dd1f7cee03aabcece2a85",
+          "purpose": "performance_panel",
+          "seed": 5211510801955642300
+        },
+        "[\"eval\",\"sampler\",\"samples\",\"cuda:0\"]": {
+          "component": "sampler",
+          "device": "cuda:0",
+          "family": "eval",
+          "initial_state_sha256": "1696aa08e2307f28df002755027ee2e7b1999300dac2855f214caa1842a2b301",
+          "purpose": "samples",
+          "seed": 212130830619035767
+        },
+        "[\"eval\",\"target\",\"performance_panel\",\"cuda:0\"]": {
+          "component": "target",
+          "device": "cuda:0",
+          "family": "eval",
+          "initial_state_sha256": "8aa1c6075b4b08c87133d0e21bd4b05b381926e8ebe68afe8a0ea3f428454d7b",
+          "purpose": "performance_panel",
+          "seed": 125540644314839605
+        },
+        "[\"eval\",\"target\",\"reference\",\"cuda:0\"]": {
+          "component": "target",
+          "device": "cuda:0",
+          "family": "eval",
+          "initial_state_sha256": "62256bb6bacf4c865ddac69f1b9fa4bdb15a596e8ab2d706e9a56dfb136d52ef",
+          "purpose": "reference",
+          "seed": 7189743471773393273
+        },
+        "[\"init\",\"discriminator\",\"construction\",\"cpu\"]": {
+          "component": "discriminator",
+          "device": "cpu",
+          "family": "init",
+          "initial_state_sha256": "8ed75e93293198624274eafa0c49cc43078dd4eee8571413a8bb487d1296d2db",
+          "purpose": "construction",
+          "seed": 3363721576689578451
+        },
+        "[\"init\",\"generator\",\"construction\",\"cpu\"]": {
+          "component": "generator",
+          "device": "cpu",
+          "family": "init",
+          "initial_state_sha256": "8a66406641fee82839e7b9d37e827e53b87f573b2aaeb3045200574f34e98a33",
+          "purpose": "construction",
+          "seed": 6942576180060350273
+        },
+        "[\"init\",\"prior\",\"locations\",\"cuda:0\"]": {
+          "component": "prior",
+          "device": "cuda:0",
+          "family": "init",
+          "initial_state_sha256": "be549c3d68d477f9d11434e663fdbefe2526571de4de86123a84ae9dc23e86a2",
+          "purpose": "locations",
+          "seed": 2562565386842645502
+        },
+        "[\"noise\",\"critic\",\"input\",\"cuda:0\"]": {
+          "component": "critic",
+          "device": "cuda:0",
+          "family": "noise",
+          "initial_state_sha256": "2d5d779ef1c19f73abf72075c1cfeb70b935201245568680a1edc2c37cab0465",
+          "purpose": "input",
+          "seed": 5961379833291764029
+        },
+        "[\"noise\",\"generator\",\"output\",\"cuda:0\"]": {
+          "component": "generator",
+          "device": "cuda:0",
+          "family": "noise",
+          "initial_state_sha256": "9b325c7520a99d3d27a37b6ef50971e3bfa9f1b12caf5e7a8819ae7e692cfcc1",
+          "purpose": "output",
+          "seed": 9214932872906931917
+        },
+        "[\"noise\",\"models\",\"stochastic_layers\",\"cuda:0\"]": {
+          "component": "models",
+          "device": "cuda:0",
+          "family": "noise",
+          "initial_state_sha256": "4c3a40416441f175f5294136bd6bc4582ecd9e17ff5b5ee0292338e228afeaee",
+          "purpose": "stochastic_layers",
+          "seed": 4481608677977550636
+        },
+        "[\"noise\",\"penalty\",\"training\",\"cuda:0\"]": {
+          "component": "penalty",
+          "device": "cuda:0",
+          "family": "noise",
+          "initial_state_sha256": "7e3e442dbb5124abf6e6e1e6e81000ab789c8aa11578d6a6b88a72beadfa3c83",
+          "purpose": "training",
+          "seed": 7930995805460461310
+        },
+        "[\"noise\",\"prior\",\"gaussian\",\"cuda:0\"]": {
+          "component": "prior",
+          "device": "cuda:0",
+          "family": "noise",
+          "initial_state_sha256": "46a0fb6a2510c83ebfa98bc289a73c096cc0fa24f40136bb998b0edecd8871e5",
+          "purpose": "gaussian",
+          "seed": 939191808430552031
+        },
+        "[\"prior\",\"latent\",\"indices\",\"cuda:0\"]": {
+          "component": "latent",
+          "device": "cuda:0",
+          "family": "prior",
+          "initial_state_sha256": "aa2f89742ac1d2c95ef3379ad9ba7a080c557c66258f9dff0dabf5d85a6db3cc",
+          "purpose": "indices",
+          "seed": 5876435880110660064
+        }
+      },
+      "runtime": {
+        "rng": "torch.Generator",
+        "torch": "2.14.1+cu130"
+      },
+      "seed": 0,
+      "version": "forge-rng-v1"
+    }
+  },
+  "artifact_sha256": {
+    "checkpoint": "44d33f034a179efcf8fe414782d4f19ce3aecaf14d604eafe2641d6bbac45927",
+    "gif": "c988dd482af50aed433614923f912cccf23e0be4fbd4eff2f57e305cd411f0d9",
+    "trace": "5479050c4be495ae5427d52dce9c90d2a47fbfb9c2f5b12eb6837a10f538b1b8"
+  },
+  "artifacts": {
+    "checkpoint": "state.pt",
+    "gif": "training.gif",
+    "trace": "updates.jsonl"
+  },
+  "autograd_multithreading_enabled": false,
+  "benchmark": "dcgan_performance_v1",
+  "benchmark_status": "COMPLETED",
+  "candidate_id": "recipe-prior-refactor-k3p-v1",
+  "export_provenance": {
+    "actual_request_id": "6964b79df1802217ae502380",
+    "attempt_id": "0f5b8b3fd4ce4cda97be073e5fcbfec8",
+    "bulk_artifacts": {
+      "checkpoint": {
+        "available_locally": true,
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/state.pt",
+        "sha256": "44d33f034a179efcf8fe414782d4f19ce3aecaf14d604eafe2641d6bbac45927",
+        "verification": "exact bytes"
+      },
+      "gif": {
+        "available_locally": true,
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/training.gif",
+        "sha256": "c988dd482af50aed433614923f912cccf23e0be4fbd4eff2f57e305cd411f0d9",
+        "verification": "exact bytes"
+      },
+      "trace": {
+        "available_locally": true,
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/updates.jsonl",
+        "sha256": "5479050c4be495ae5427d52dce9c90d2a47fbfb9c2f5b12eb6837a10f538b1b8",
+        "verification": "exact bytes"
+      }
+    },
+    "candidate_id": "recipe-prior-refactor-k3p-v1",
+    "candidate_revision": "ef397b70b690ec1c6cf72ab249d7ce911c1ece063b5483a70472e28950048859",
+    "canonical_result_sha256": "d94d3c1d540d2ce0a4c2297f09ddf529201c339d3513429637017525ebcb12c5",
+    "compatibility_key": "913f8abcf5e196792751b0ec7e1a419e31daff9d385eb1272a892111b1d5ea83",
+    "display_family": "k3p",
+    "exporter_sha256": "41b1d0262d17e6aaf08463888dbdb734f4288e725e84abc76f2e61c1a2f47838",
+    "frozen_job": {
+      "budget_seconds": 180,
+      "compatibility_key": "913f8abcf5e196792751b0ec7e1a419e31daff9d385eb1272a892111b1d5ea83",
+      "execution_group": "dcgan_performance_r64",
+      "resources": {
+        "allow_cpu": false,
+        "backend": "cuda",
+        "cpu_threads": 1,
+        "gpu_model": "NVIDIA RTX A6000",
+        "gpus": 1,
+        "memory_mb": 24576
+      },
+      "science": {
+        "candidate_revision": "ef397b70b690ec1c6cf72ab249d7ce911c1ece063b5483a70472e28950048859",
+        "compute": {
+          "autograd_multithreading_enabled": false,
+          "backend": "cuda",
+          "compute_capability": "8.6",
+          "deterministic": true,
+          "driver": "615.78.08",
+          "model": "NVIDIA RTX A6000",
+          "tf32": false,
+          "threads": 1
+        },
+        "evaluation": {
+          "dcgan_performance_r64": "d0a13ef04ac62210138e1896d5fb3681de4b6508e2134d34ceb7fbccbbe2202c"
+        },
+        "evidence_use": "research_diagnostic",
+        "execution": {
+          "dcgan_performance_r64": "4deaac41701884111c363929015c64651dea222e3ed57fa48ad36e0e5031ce39"
+        },
+        "initializer": "deterministic_orthogonal",
+        "protocol": {
+          "budgets": {
+            "candidate_and_campaign": "required before enqueue; reserve full execution-group cost",
+            "default_through_tier": 1,
+            "per_task": "TaskSpec.execution and resources.timeout_seconds"
+          },
+          "calibration_status": "provisional",
+          "id": "screening",
+          "prior": {
+            "kind": "mog",
+            "learnable": true,
+            "sigma": 0.025,
+            "standardize": false
+          },
+          "revision": 1,
+          "rng": {
+            "candidate_identity_in_seed": false,
+            "component_scoped": true,
+            "derivation": "forge-rng-v1",
+            "streams": [
+              "init",
+              "data",
+              "prior",
+              "noise",
+              "eval"
+            ],
+            "unintended_deviations": 0
+          },
+          "robustness": {
+            "cross_seed_reuse": false,
+            "enabled_for_screening": false,
+            "requires_frozen_candidate": true,
+            "requires_preregistered_seed_set": true
+          },
+          "schema_version": 1,
+          "scoring": {
+            "best_checkpoint": "diagnostic_only",
+            "ema": "separate_view_required",
+            "weights": "live"
+          },
+          "seed": 0
+        },
+        "rng": {
+          "bindings": {
+            "[\"data\",\"target\",\"training\",\"cpu\"]": {
+              "component": "target",
+              "device": "cpu",
+              "family": "data",
+              "initial_state_sha256": "5f6b6f690d2c5963f4945c7af5e1cd2653b1929e9d7b971fdd2222ad648f78f6",
+              "purpose": "training",
+              "seed": 2842969976240124311
+            },
+            "[\"eval\",\"sampler\",\"samples\",\"cpu\"]": {
+              "component": "sampler",
+              "device": "cpu",
+              "family": "eval",
+              "initial_state_sha256": "9488d65f11be2e232c210ae5b27c29426ac74687551e6bc1597afc56159f8726",
+              "purpose": "samples",
+              "seed": 212130830619035767
+            },
+            "[\"eval\",\"target\",\"reference\",\"cpu\"]": {
+              "component": "target",
+              "device": "cpu",
+              "family": "eval",
+              "initial_state_sha256": "905a51801f69a4375927533ecf1199816a077aea8b3164d15b2811fae33abf02",
+              "purpose": "reference",
+              "seed": 7189743471773393273
+            },
+            "[\"init\",\"discriminator\",\"construction\",\"cpu\"]": {
+              "component": "discriminator",
+              "device": "cpu",
+              "family": "init",
+              "initial_state_sha256": "8ed75e93293198624274eafa0c49cc43078dd4eee8571413a8bb487d1296d2db",
+              "purpose": "construction",
+              "seed": 3363721576689578451
+            },
+            "[\"init\",\"generator\",\"construction\",\"cpu\"]": {
+              "component": "generator",
+              "device": "cpu",
+              "family": "init",
+              "initial_state_sha256": "8a66406641fee82839e7b9d37e827e53b87f573b2aaeb3045200574f34e98a33",
+              "purpose": "construction",
+              "seed": 6942576180060350273
+            },
+            "[\"init\",\"prior\",\"locations\",\"cpu\"]": {
+              "component": "prior",
+              "device": "cpu",
+              "family": "init",
+              "initial_state_sha256": "ab1fa62c08db5e35d0b5c6be2418a849814f3490f8448c5b0e671be86de398ca",
+              "purpose": "locations",
+              "seed": 2562565386842645502
+            },
+            "[\"noise\",\"critic\",\"input\",\"cpu\"]": {
+              "component": "critic",
+              "device": "cpu",
+              "family": "noise",
+              "initial_state_sha256": "d45c4d304b060206d27bed2cfb50b4e02d8d3a2a3ebc2bd23198f3119b34be6d",
+              "purpose": "input",
+              "seed": 5961379833291764029
+            },
+            "[\"noise\",\"generator\",\"output\",\"cpu\"]": {
+              "component": "generator",
+              "device": "cpu",
+              "family": "noise",
+              "initial_state_sha256": "e6120399f1ed61ffb0c4cf6a35a6364a96c902b66a479e7e7e29c43e9dd67a0c",
+              "purpose": "output",
+              "seed": 9214932872906931917
+            },
+            "[\"noise\",\"models\",\"stochastic_layers\",\"cpu\"]": {
+              "component": "models",
+              "device": "cpu",
+              "family": "noise",
+              "initial_state_sha256": "c2f7ba3cac65f7a2c9f1da18c52f973980852aaa4a916683301b0efdbb50edf9",
+              "purpose": "stochastic_layers",
+              "seed": 4481608677977550636
+            },
+            "[\"noise\",\"penalty\",\"training\",\"cpu\"]": {
+              "component": "penalty",
+              "device": "cpu",
+              "family": "noise",
+              "initial_state_sha256": "e170727612c771e1a5db3740ca655a777d92c20f99fb8497de95c6cfdb6fdd84",
+              "purpose": "training",
+              "seed": 7930995805460461310
+            },
+            "[\"noise\",\"prior\",\"gaussian\",\"cpu\"]": {
+              "component": "prior",
+              "device": "cpu",
+              "family": "noise",
+              "initial_state_sha256": "d6261b40f0efc71cdced90af99c43969a0675e1827f184a56c8790fee5a820d8",
+              "purpose": "gaussian",
+              "seed": 939191808430552031
+            },
+            "[\"prior\",\"latent\",\"indices\",\"cpu\"]": {
+              "component": "latent",
+              "device": "cpu",
+              "family": "prior",
+              "initial_state_sha256": "c20d03989eda9e8650239603a2db8efb7df1bab81c5257cce0283964a570c14a",
+              "purpose": "indices",
+              "seed": 5876435880110660064
+            }
+          },
+          "runtime": {
+            "rng": "torch.Generator",
+            "torch": "2.14.1+cu130"
+          },
+          "seed": 0,
+          "version": "forge-rng-v1"
+        },
+        "runtime": {
+          "implementation": "CPython",
+          "machine": "x86_64",
+          "packages": {
+            "numpy": "2.5.4",
+            "scipy": "1.18.1",
+            "torch": "2.14.1"
+          },
+          "python": "3.14.7",
+          "system": "Linux"
+        },
+        "seed": 0,
+        "task_initializers": {
+          "dcgan_performance_r64": "deterministic_orthogonal"
+        }
+      },
+      "task_id": "dcgan_performance_r64",
+      "task_ids": [
+        "dcgan_performance_r64"
+      ]
+    },
+    "frozen_job_sha256": "031788ba6d175cb5b1d70b807a6131ba230113fe4e4c1fa1541b5667607291f0",
+    "frozen_request_sha256": "ba78b25d6a7ee26458c98d57dfc90733abd22f6abbd62d752748ac36b9676257",
+    "frozen_task_sha256": "7fd1bc3fca3e6af87fbb57d4c861993e51dda82e6cd149398c5c75fa3a402be8",
+    "local_artifact_root": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8",
+    "observed_queue_cell_sha256": "b838e56566c1092811e1716ff6bb420b9be671d605a0b7d0106669095e7a4aad",
+    "original_files": {
+      "adapter_receipt": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/adapter-receipt.json",
+        "sha256": "15e91c38a6169e23150ce3d19adb4db1314c3d12c2ebbeff3bbe63d77544e245"
+      },
+      "canonical_result": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/result.json",
+        "sha256": "6e214c957e62cf0c6c07f4203bf58b3c1050336c484c4e73e9f098bdecf13474"
+      },
+      "frozen_request": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/request.json",
+        "sha256": "9c27a3b8f0233b5460da4cfa1fe071a6c1a2c00eee1529000e1f0957d00fee88"
+      },
+      "graded_result": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/graded-result.json",
+        "sha256": "b5f66439cf445f5b4d5ab43c57db358abfd7fbfdea24404f1b52fb93bcd9ccd0"
+      },
+      "raw_result": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/raw-result.json",
+        "sha256": "82456554da5541ed9c811fe001df395e06f6daa3414d58ae266f439ed2cda36d"
+      },
+      "terminal": {
+        "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/runs/forge/dcgan-performance-cloud-2c7d296aac20/0f5b8b3fd4ce4cda97be073e5fcbfec8/terminal.json",
+        "sha256": "b889a07d50f0f1d8c43e07b98b0a4371e10eb94a6d2b0dca76a1040ffffe3a33"
+      }
+    },
+    "registration": "dcgan-performance-cloud-2c7d296aac20",
+    "registration_family": "k3p",
+    "registration_file": {
+      "path": "/nvme/dev/hypergan/ParticleGAN/artifacts/worktrees/empf-v8/configs/forge/performance/dcgan-performance-cloud-2c7d296aac20.json",
+      "sha256": "08f526b86f00dccaececcd15fe69b2c4f7d892f73958d8add359ddf678bdebef"
+    },
+    "request_id": "6964b79df1802217ae502380",
+    "schema": "forge_scaling_export_v1",
+    "source_digest": "2c7d296aac20de72b0a6f752bb14af503d9d34858347b4b686f03d9b23038584",
+    "summary_origin": "Core field projection from the canonical queue raw result; the collector supersedes the runner's result.json filename.",
+    "task_id": "dcgan_performance_r64"
+  },
+  "forge_binding": {
+    "candidate_revision": "ef397b70b690ec1c6cf72ab249d7ce911c1ece063b5483a70472e28950048859",
+    "candidate_sha256": "8c605da92957b283d0c9667452c322675b7f4bdb268b0bdbd9087abd6f21fda3",
+    "request_id": "6964b79df1802217ae502380",
+    "source_digest": "2c7d296aac20de72b0a6f752bb14af503d9d34858347b4b686f03d9b23038584",
+    "task_sha256": "6ac0da427d86ff223be06d41f0855a54230bffabe83b9c94169f71e06611421e"
+  },
+  "hardware": {
+    "contention_after": {
+      "available": true,
+      "benchmark_pid": 2970570,
+      "compute_process_rows": [
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1609216, 110",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1656308, 214",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 19367, 35",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1868979, 61",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2083903, 27",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2881431, 556",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2970488, 420",
+        "GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce, 2970570, 648"
+      ],
+      "gpu_rows": [
+        "0, GPU-ed080e41-3193-3755-6756-f3d46c433331, 00000000:2F:00.0, 2293, 99",
+        "1, GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce, 00000000:30:00.0, 672, 89"
+      ],
+      "scope": "point-in-time before/after; does not prove exclusive occupancy"
+    },
+    "contention_before": {
+      "available": true,
+      "benchmark_pid": 2970570,
+      "compute_process_rows": [
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1609216, 110",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1656308, 214",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 19367, 35",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 1868979, 61",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2083903, 27",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2881431, 556",
+        "GPU-ed080e41-3193-3755-6756-f3d46c433331, 2970488, 420"
+      ],
+      "gpu_rows": [
+        "0, GPU-ed080e41-3193-3755-6756-f3d46c433331, 00000000:2F:00.0, 2293, 99",
+        "1, GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce, 00000000:30:00.0, 18, 0"
+      ],
+      "scope": "point-in-time before/after; does not prove exclusive occupancy"
+    },
+    "contention_status": "clear",
+    "cpu": "x86_64",
+    "cuda_visible_devices": "1",
+    "device": "cuda:0",
+    "name": "NVIDIA RTX A6000",
+    "pci_bus_id": "00000000:30:00.0",
+    "physical_uuid": "GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce",
+    "platform": "Linux-7.2.15-300.fc45.x86_64-x86_64-with-glibc2.44",
+    "total_memory_mib": 48592.125,
+    "type": "cuda"
+  },
+  "identity": {
+    "batch_sequence_sha256": {
+      "critic": "0b1fe389bfb0a010c4b411a6e3e2e769046eb15a7683b269bb70c2ee44ea968b",
+      "generator": "05b6ddf0cbed8244d6e7e8b2d8257fd926c81ef0a1522bacfa7e5461e394ea42"
+    },
+    "final_parameter_sha256": {
+      "discriminator": "abfac0c1053d3222ea7fa3b893bbe36352cde3eb678019063d304452cbd79f37",
+      "generator": "41827c3d5e394f18d56449aec103d5cf9d6f07ca464b4939a9fb5c29bf0bee27"
+    },
+    "global_recipe_sha256": "965bcade0eb2d23d70da844396f62d964a461ec6b9af27307b5bfc721993035d",
+    "initial_model_sha256": {
+      "discriminator": "34cc592e893637132a3aff07b042a0dca497bdd6ee981f282183511006da425a",
+      "generator": "863bf6a4c32866b17b3357c08c08b448fabe5d90a20102981b3e392dcd3353d3",
+      "prior": "53e4cb307c075a7136357b106b6782ed47cbdbde33392f6a448521070177fdb4"
+    },
+    "initial_parameter_sha256": {
+      "discriminator": "79c0d464f0b4f11a13cbb5356f1d192f14306eb60b91c6bcf280e0b343d5a8a7",
+      "generator": "e306bf249abd9c512e69d8cd26ff7dfb1a30300776fef1ff75a68b1a203eaf78"
+    },
+    "initialization_sha256": "6715789c4ee9dffa9db7e4e4ee5d0ac7504817e767252af71f5895c7a1d7e04a",
+    "recipe_sha256": "15b776c2b25cbbb813811fbdf957435f319a6452d1f4bd02e0bb6cb0c8f7fb62",
+    "runtime_sha256": "fddddb1b314d050a3eeeba738173e378d9931859ddc8fc9039e849960809174e",
+    "source": {
+      "commit": "c0d970f5aa34108279222349671290cffd6ae17b",
+      "files_sha256": {
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/api.py": "8d2d5411c856fbb1bd5cc9e789ecd27d9c2ca14b1e002fd1e5a800cc995f6696",
+        "experiments/forge/contracts.py": "a5166993ae079d9e35e93b727640413e48c4a91ae7848ceefb4377448db3c916",
+        "experiments/forge/priors.py": "99f2e11e2425dc406673ff3f63973f062b2feea113231f3775fad1ad3f5ed595",
+        "experiments/forge/rng.py": "ae7b9a8d61da42136d970188a6f168e03e2d7c5b90cf6fdbd93ad929aba2f293",
+        "experiments/forge/scaling_benchmark.py": "b7d45100804e6084db51c0f26c63dd7bb026bb554894866abdc7ee9d60c5587a",
+        "experiments/forge/state.py": "62f8a6d20e2fa8123c9b6553743b82c1f67eafb4364b11d4aebacdbd5a13cc94",
+        "particlegan/__init__.py": "2a6ad4bfa434f03079c593c3e7ff9a7cb0b73cab93f85276ef4c713e8f12f58c",
+        "particlegan/_bispf/__init__.py": "30901eab7006010aaf29fc695b38461d8429e581e863dfabedce1f6ff413f0a7",
+        "particlegan/_bispf/critic.py": "a843636662f973a700438288afe3470acf98dd4ded7f900501a27c5bc9cc97f1",
+        "particlegan/_bispf/engine.py": "2fa6574a93e20088e6d63e638eb2d53a1e362fcf156b0253161ba8fe572e0e93",
+        "particlegan/_bispf/gates.py": "f44080ad04488187618d675e5e57d44c9483e9ebef8a9bfd31b23a110a1b2abf",
+        "particlegan/_bispf/loss.py": "5b2c60c1aec6098890d34c8332baa61818e50c87cc60dbf829e0bf24c019235c",
+        "particlegan/_bispf/penalty.py": "ff9b9d3a984795e8c2b010e4d63b3300fd94f892648ee5ab9b87f85f48a498e3",
+        "particlegan/_bispf/prior.py": "9b8a45128667a4ed6b2f866e4c7fd7c8dc3520e43a33d0ab9cc6ca256786f86d",
+        "particlegan/_bispf/thermal.py": "05efe23ef6f11d32f5b0744e41f940c2f1f6c9606ec31c1ae6d168881dd0689e",
+        "particlegan/_bispf/transport.py": "561f6a5b1dd587c641c5ef6ca807456ba22c55723e23dd1d035749fbcc2acaf6",
+        "particlegan/_empf/__init__.py": "99152e85d0d255ec137c3b3a26aa40120db30f1c22b0ffc0132b155df54b8017",
+        "particlegan/_empf/critic.py": "7c3993907c522ec1170c5621c1ea4a639ce20b6a21e1e204b7d9a50a97d8a472",
+        "particlegan/_empf/loss.py": "94dbc11bced3402c377373acc5abceed749546f15f45a4fb3fa5af0f84272af2",
+        "particlegan/_empf/penalty.py": "e4221e4fe45af389dcc480ff3567ef8019e8737805faa0c8cd953d73b98b8c3c",
+        "particlegan/_empf/prior.py": "617bf9eaa1201d2c5100a9c624b7e8d59b0435ebe6b7f6371528a48286f4f244",
+        "particlegan/_empf/prototypes.py": "2b91b5b9eabb83e1547e2b06db7db402596914fac2a0616e642ca94655a00430",
+        "particlegan/_empf/transport.py": "ba0035d38aaea8022175bb5c074e9b044a019769ff391a5e38188cd4a5133b31",
+        "particlegan/_qr.py": "b59cd62cc27ed557b41b2d17ed86ed578c762a3a8a392d63731a5a3b2b018916",
+        "particlegan/_stats.py": "93a29457ef13c7ce16073ea2fc19c107e748c6dbeb36aa3053477b53703ec944",
+        "particlegan/anchor_birth.py": "aa50983d8b61304acf4e1138f16fd4784798983df91e931863bcacd3b511f76f",
+        "particlegan/autoencoder.py": "6bdcd4674a7272f17bf50c0ff887a89e9c65c044496b2454ff68ba5be5076d0c",
+        "particlegan/birth_death.py": "aa050b9ff4e9f530929bbaf75112857a164622a2c320b620db3e225a4d54e127",
+        "particlegan/birth_phase.py": "4af5a0915f927ca3d8e753195227d59c97f07304e9927ca1383bda9acd0ccb8f",
+        "particlegan/bispf.py": "e91a10850082f450492ffee7a89c4054b68257bfea4de9ffaf85c394f21b844a",
+        "particlegan/capabilities.py": "d3c0eaf9629954a0eacab4744a3622e6ce312b327e5d9ebb204641382c26c304",
+        "particlegan/cell_snapshot.py": "1db76ec7bbffd682521b951d2e2c4696c1b3484a31412b81b7399282c0da030f",
+        "particlegan/cell_statistics.py": "520313f97b50c382f279659e56b7e939bf369c0e275d0b370247074f4d11edd4",
+        "particlegan/cell_transport.py": "1baf1bf4dff8f2f20538f9ca7921ce3ccdb0e0c385f73a581907c4eb418accc4",
+        "particlegan/conditional_score.py": "322182379f46871c525a17a99fa5b16f6201374409c4fa454906c4de1698178a",
+        "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
+        "particlegan/conditioning.py": "8734fe338868ace4b5851a8fdb1f071e46d47396f66a3765e6b1ef37f0481486",
+        "particlegan/continuous.py": "f70acf369d5b620cc657cb9b48c00925481e4080778b40a885e6342f0aecbf9d",
+        "particlegan/coulomb_prior.py": "cd4fed5a3b22510911bc098e7b48bfb794366ef5a9c8c983d1672172f15b10a3",
+        "particlegan/diffusion.py": "19c3aa8772703891551b9122fde8e74c07996f779892b7cb6be09553691efa61",
+        "particlegan/discriminators.py": "0e2efb125ffb314577612ab7a2eba66b0a1a2d28ad25f403f42c18b6f6ee333f",
+        "particlegan/drift_variants.py": "96a11715806bcc0599839deb6f54f6ac6baa0acefd551a4b5eb163cfa479d973",
+        "particlegan/empf.py": "ba30bae2415441bf26b152ea7f29d6d7f1ed00cc74351ddd45c10190bd22b990",
+        "particlegan/execution.py": "015151489dd0b6c9933b9a9dc3f02edc721907770b82ab72d7e7ee2739d03c9d",
+        "particlegan/feature_cells.py": "1e59afbd4e4665c1ffad75aef75fb9eec0f55233eb25302a3d421cc8a41628ba",
+        "particlegan/feature_policy.py": "ce0723d594986a1993389ed1a9dced8eee2290ab107324eb5e534d2bb73f9595",
+        "particlegan/feature_reference.py": "e0c3a6d600d136f02f8bf3df4aab6bad4816506ef94519f7800153aded18fd0b",
+        "particlegan/gan_loss.py": "f73cc593aef5d7507dc1a468ee261cc186c8dbfbee3a0aad769b6e252c2c143f",
+        "particlegan/grad_regularizers.py": "b5a30170a2f739985c8298c10978afab5445cf69600926f3f04ed04ffcb1720d",
+        "particlegan/gradient_response.py": "2417e7154ade03dc91fc692fbd53ea0d154fa4f4a5db2fac8e8f3c956e5e1f56",
+        "particlegan/init.py": "3534ff23efa413cdf8b4125b91e0d30671d873b3e2958547d4e744b750454b9b",
+        "particlegan/initial_mmd.py": "4c3f949cc2ec307b5860f03721114a504b8634e35620d20c7d3431eb7539968a",
+        "particlegan/joint_reconstruction.py": "ea3c18c5678d045bd83a333a01d781c434d51fc397d8e83ceb39a5f443e5649e",
+        "particlegan/k3p.py": "0cbb09526d22a14e6df35c5a3dc94e21158d93d3fec882a41f82445668952564",
+        "particlegan/ka2.py": "e020df595a4d102313cd056f6e12cf2f4ee574ac0a5e58026e6e369692aedb7d",
+        "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
+        "particlegan/latent_geometry.py": "ff23493141f2352ad858a5f410c842653101936e3de81bc94110a8a165b2fe8f",
+        "particlegan/latent_lineage.py": "ddfa6d7e94040179d8183e3dd3f48ef523c41223f2a8a45221c34fd8b9fd05f6",
+        "particlegan/low_precision.py": "8f9f4e5040e984feec6434cfb227eca2851aa47ef40d8b3b6dbce1c66360e7dd",
+        "particlegan/masked_mixture.py": "acb3f1f882c2cf2ceddc733e1da3ab970232dfc2c5e02a44b2ce49e8fe33697e",
+        "particlegan/mean_transport.py": "9a3cce37435c32186838e47c8e3f5b1c1ddc0a9aeb7e6c5c380972ef9a3e0208",
+        "particlegan/moment_tether.py": "b2ae60a4322e788e6eeb0113eff9dd0260c91285680715f9b7f835e1561af587",
+        "particlegan/optim/__init__.py": "34d32360b434685d6b88e346ffc68445759c889bac3fbe30c0d30d65eec5bc19",
+        "particlegan/optim/constraint_geometry.py": "e51a90df05857bd986ff097a6d266bd22cefa93a0d545a6fb25d58b42775ce4c",
+        "particlegan/optim/convolution_frobenius.py": "0916f94d13c7213856faf5d40f5896891fb102f8995caa17e255ba8237bb9e3a",
+        "particlegan/optim/convolution_quintic.py": "55441cfca6e5136ea3810a6f6d5dfb284be4629c373e2b9a5bdaf16218608f14",
+        "particlegan/optim/critic_cap.py": "0b4f95cd884a2ab1f17e87176327388cce8bc9f7d5d2a0a40706d727b198a1f5",
+        "particlegan/optim/direction_blend.py": "84982277f0559e68aceea6d1c5ee60129c1e1972bebf61ca47dfa38b8611a1fb",
+        "particlegan/optim/dualnorm.py": "f2cbc7018b76900cb2489b110a4514a8b5d7c14ecd47a0ede6244db9cefe5a35",
+        "particlegan/optim/gram_polar.py": "6359f9069d5bd174351d1c05b1dc4084272d8574aa523ccde634179f1d6877c9",
+        "particlegan/optim/gram_svd_fallback.py": "a7081a7b85d1afc91caeafc08a2248d46404fe18720bc819a6aa31719812342f",
+        "particlegan/optim/prior_proximal.py": "35017568a9821c2cd1cbca0162bbdd3e42aa090347904b583b7032f5390eef9f",
+        "particlegan/optim/strict_progress.py": "8149a811d3dab0fbd2e6d2489d5b6c855e0e516a8741fca72e31a3d0e1cdc8f7",
+        "particlegan/output_moments.py": "8089a3021a834aa8e71ebd805788ce085a27d4728c50c73af76960a2504aa6d0",
+        "particlegan/particle_prior.py": "6b9c705d76b1483dcbae1f77b5f321069967c208343c8c64248dc5e14dca9b6a",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "particlegan/population_continuity.py": "e13da3fda91b07d5d560bc44749ebd72a80a2df3c31d8cecf1900ecbd93d8939",
+        "particlegan/priors.py": "514e91baf15255c99c1941bc2fa74d6a6061c4170c4a3a9a8ffec8c16ce3ff23",
+        "particlegan/recipe_compat.py": "5095a3f60a3928eccb20c945fcbd06a75ddec4151520a3cc837c8857cef41b78",
+        "particlegan/recipe_schedules.py": "ae51709d72c4a79f7bdc2319a992a1d1dc0dc94c03f3cbdfa29db2aa3964ebe9",
+        "particlegan/recipes.py": "7a5efe54a8f7e77552d78da1e24c0845bc1cb4a708e86af526cc04bbe6959e1c",
+        "particlegan/routing.py": "6f13c070446ce8a963f115d8aaeea85fb37491aebd8ad564c8155f7c775aa2c8",
+        "particlegan/row_evidence.py": "f5814ed469089c74c9d9cbc21ffd1f72c102a409b9fe1591e8230e42427b04c2",
+        "particlegan/sigreg.py": "96bac4b2344f9d505a7d767ecfbb58ab06442e2a1de1a48ea479baa2288e048b",
+        "particlegan/tensorflow_adam.py": "37f1192e48b84907446d8f676c62631bf87ff450b2a2e6b63e7489adc33e24e9",
+        "particlegan/training.py": "9b93285ce4e74f40130c8d17ddd5ac4837d73ab851528c71bc22fedd937442e8",
+        "particlegan/vicreg_loss.py": "177a68b98036e4725cacf6bc0d95277111184c0dcb9566d3f7fc1527046cefda"
+      },
+      "sha256": "d9367ac9d4c7dc084c91081d429e1ba749c2dce0fb7e0769ce94394497b1c96d"
+    },
+    "task_sha256": "5c385d34f5780cd8420fc5505e895aef0bdd3a9714626c10086fff8dedb1751e"
+  },
+  "independent_evaluation": {
+    "gate_status": "PASS",
+    "raw_status": "completed",
+    "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only"
+  },
+  "measurement": {
+    "architecture": "DCGAN ConvTranspose G / Conv D, RGB, capped stage width, G Tanh; equivalent flattened4x4 Linear scalar D head without Sigmoid",
+    "data_law": "independent RGB pixels Uniform[-1,1]; fresh critic and generator batches per update",
+    "excluded": "mock generation, hashing, finite checks, evaluation, media, checkpoints",
+    "head_layout": "shared dense Linear head; equivalent forward class/count to final4x4Conv, but dense optimizer geometry",
+    "normalization": "standard BatchNorm G and D; critic penalties have batch-coupled training-mode derivatives",
+    "percentile_note": "linear empirical percentile of the declared measured updates; ten updates give a short-window estimate",
+    "phase_profile": null,
+    "phase_profile_note": "unavailable in v1; end-to-end update timing is uninstrumented",
+    "sampling": "clean public API samples, recipe-selected serving, untimed; no quality claim",
+    "throughput_units": "batch_size per public D+G/prior update divided by mean measured update duration",
+    "timed_region": "synchronized GANTrainer.step only; one current critic and generator batch resident on device",
+    "wall_limit": "soft check between updates; external Forge worker enforces hard reservation timeout"
+  },
+  "metrics": {
+    "completed_updates": 13,
+    "finite_update_fraction": 1.0,
+    "first_update_ms": 512.6602279487997,
+    "images_per_second": 590.9500619549041,
+    "measured_updates": 10,
+    "parameter_count_discriminator": 2765568,
+    "parameter_count_generator": 3806080,
+    "peak_allocated_mib": 271.66748046875,
+    "peak_reserved_mib": 300.0,
+    "total_wall_seconds": 2.4534790130564943,
+    "update_ms_median": 27.105170011054724,
+    "update_ms_p95": 27.42415356915444,
+    "warmup_ms_median": 45.082753989845514
+  },
+  "observed_contract_gaps": [
+    "sampling_or_weights_mismatch_or_missing"
+  ],
+  "prior_policy": {
+    "applicability": "latent_prior",
+    "contract": "recipe_owned_v1",
+    "eps": 0.0001,
+    "l2": 0.0,
+    "regularizer": "vicreg",
+    "target_std": 1.0,
+    "trainable_locations": true,
+    "update": "learned",
+    "weight": 0.0
+  },
+  "recipe": {
+    "alpha_bar": [
+      1.0,
+      0.9,
+      0.5,
+      0.05,
+      0.0001
+    ],
+    "amsgrad": false,
+    "batch_size": 16,
+    "betas": [
+      0.0,
+      0.999
+    ],
+    "birth_death_feature_scale": "none",
+    "birth_death_isolation": false,
+    "birth_death_space": "data",
+    "conditioning": "scalar",
+    "continuous_policy": null,
+    "critic_formulation": "k3p",
+    "critic_payoff_damping": true,
+    "critic_r1_real": true,
+    "d_guard_min_steps": 200,
+    "d_guard_ratio": 5.0,
+    "d_lr_mult": 1.0,
+    "direct_particle_betas": [
+      0.0,
+      0.9
+    ],
+    "direct_particle_gain": true,
+    "distance_reduction": "sum",
+    "ema_decay": 0.995,
+    "encoder_mode": "none",
+    "input_noise_anneal_end": 0.1,
+    "input_noise_std": 0.5,
+    "latent_damping_max_rate": 0.5,
+    "lr": 0.006375,
+    "lr_anneal_start": 0.6,
+    "lr_control": "mobility",
+    "lr_floor": 0.05,
+    "model": "gan",
+    "name": "k3p",
+    "network_lr_floor": 0.01,
+    "network_lr_horizon_cap": 1600,
+    "num_classes": null,
+    "num_particles": 256,
+    "observation_sigma": 0.03,
+    "output_noise_mode": "fixed",
+    "output_noise_std": 0.029,
+    "output_noise_warmup": 0.2,
+    "particle_birth_death": false,
+    "prior_betas": null,
+    "prior_kind": "particles",
+    "prior_lr_mult": 1.0,
+    "prior_reg": 0.0,
+    "reconstruction_weight": 1.0,
+    "reg_anchor_min_decay": 0.9,
+    "reg_anchor_weight": 1.0,
+    "reg_coeff": 1.0,
+    "reg_every": 1,
+    "reg_kappa": 1.0,
+    "reopen_anchor": "hold",
+    "reopen_signal": "data",
+    "routing_temperature": 0.25,
+    "row_evidence_exclude": true,
+    "row_evidence_gate": false,
+    "row_evidence_hold": true,
+    "row_evidence_hot": true,
+    "row_evidence_null": "theory",
+    "row_policy": "independent",
+    "serve_average": 0.0,
+    "sigma_rel": 0.0,
+    "standardize": false,
+    "table_release_rule": "any",
+    "total_steps": 13,
+    "ucd_target": "class",
+    "ucd_weight": 0.02,
+    "z_dim": 128
+  },
+  "runtime": {
+    "cuda": "13.0",
+    "cudnn": 92400,
+    "cudnn_benchmark": false,
+    "deterministic_algorithms": true,
+    "dtype": "torch.float32",
+    "python": "3.14.7",
+    "tf32": false,
+    "threads": 1,
+    "torch": "2.14.1+cu130"
+  },
+  "schema_version": 1,
+  "spec": {
+    "base_channels": 64,
+    "batch_size": 16,
+    "image_size": 64,
+    "latent_dim": 128,
+    "max_channels": 512,
+    "max_seconds": 150.0,
+    "measured_updates": 10,
+    "n_particles": 256,
+    "prior": {
+      "exception_reason": "Performance-only finite-table workload supports all selected policy recipes under one common initial prior. No stochastic distribution-quality claim or qualification credit.",
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false
+    },
+    "profile_updates": 0,
+    "seed": 0,
+    "warmup_updates": 3
+  },
+  "status": "PASS",
+  "task_id": "dcgan_performance_r64",
+  "validity": {
+    "changed_discriminator": true,
+    "changed_generator": true,
+    "finite_model_state": true,
+    "finite_update_fraction": 1.0,
+    "full_budget": true,
+    "passed": true,
+    "scope": "finite update execution only; no distribution-quality or promotion claim"
+  }
+}

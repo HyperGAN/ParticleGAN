@@ -130,18 +130,18 @@ This registration covers 10 complete recipes. Historical alternatives outside it
 
 ### NVIDIA RTX A6000 · GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce
 
-Performance source `28267be05193` (commit `5a6af38465597761d0b6a00a6243910565850d35`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
+Performance source `d9367ac9d4c7` (commit `c0d970f5aa34108279222349671290cffd6ae17b`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
 
 Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-table performance exception retains each recipe's prior update policy and regularizer. Exact prior and resource specifications remain part of every task key.
 
 | Family / recipe | Task (RGB size, batch, width) | Execution | Median / p95 update ms | Images/s | GPU peak allocated / reserved MiB | Contention | Matched key / evidence |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 12.54 / 13.32 | 1,262.05 | 93.64 / 108.00 | clear | `d56240d15558` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_r32-328e6267fe5a081d.json) |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 26.39 / 27.02 | 603.38 | 271.67 / 300.00 | clear | `524c07acf3db` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_r64-8e04f2b32ff4f4a1.json) |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 57.09 / 57.56 | 280.14 | 748.06 / 782.00 | clear | `7ca95dbe0fca` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_w128-89820e39c4c644f1.json) |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 63.70 / 64.26 | 1,005.21 | 618.16 / 662.00 | clear | `0c19272217b1` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_b64-83bcd212dc8d9ef2.json) |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 73.54 / 73.85 | 217.59 | 771.21 / 822.00 | clear | `1b8df8094599` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_r128-70cd34595a34e83d.json) |
-| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 255.11 / 255.61 | 62.74 | 2,339.27 / 2,494.00 | clear | `c4765c66fb33` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/ka2-dcgan_performance_r256-989b69bfe5f09d72.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 12.91 / 13.83 | 1,227.38 | 93.64 / 108.00 | clear | `87d697db7bb4` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_r32-572c6f0a0ad6d329.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 26.81 / 27.50 | 594.05 | 271.67 / 300.00 | clear | `60d8d1b40784` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_r64-1ea7c9c01738b8fb.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 57.91 / 58.41 | 276.56 | 748.06 / 782.00 | clear | `6f234946d3b4` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_w128-d2d4b8a9714caf1d.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 63.95 / 64.77 | 999.18 | 618.16 / 662.00 | clear | `beb39e8e703a` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_b64-54df7ec21a0e13f9.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 74.15 / 74.73 | 215.77 | 771.21 / 822.00 | clear | `f8c327845b4d` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_r128-f32bd2257e722263.json) |
+| KA2 · `recipe-prior-refactor-ka2-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 255.78 / 256.62 | 62.58 | 2,339.27 / 2,494.00 | clear | `8887f8d89321` · [receipt](../scaling-receipts/dcgan-performance-cloud-2c7d296aac20/ka2-dcgan_performance_r256-1572514a13728062.json) |
 
 <a name="cohort-cuda-1bf9d7d34422"></a>
 

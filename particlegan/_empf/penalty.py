@@ -129,9 +129,10 @@ class _EMPFPenaltyKernel:
         self.input_domain = input_domain
         self.record = EMPFStepRecord() if record is None else record
 
-    def _observe(self, res: float, data_scale: float) -> None:
+    def _observe(self, res: float, data_scale: float, *, ema_decay: float | None = None) -> None:
+        decay = self.thermal_decay if ema_decay is None else float(ema_decay)
         if hasattr(self.record, "observe_transport"):
-            self.record.observe_transport(res, data_scale, ema_decay=self.thermal_decay)
+            self.record.observe_transport(res, data_scale, ema_decay=decay)
         elif not getattr(self.record, "initialized", False):
             self.record.ema_residual = float(res)
             self.record.ema_data_scale = float(data_scale)
@@ -140,12 +141,8 @@ class _EMPFPenaltyKernel:
             self.record.ema_residual = float(res)
             self.record.ema_data_scale = float(data_scale)
         else:
-            self.record.ema_residual = (
-                self.thermal_decay * float(self.record.ema_residual) + (1.0 - self.thermal_decay) * float(res)
-            )
-            self.record.ema_data_scale = (
-                self.thermal_decay * float(self.record.ema_data_scale) + (1.0 - self.thermal_decay) * float(data_scale)
-            )
+            self.record.ema_residual = decay * float(self.record.ema_residual) + (1.0 - decay) * float(res)
+            self.record.ema_data_scale = decay * float(self.record.ema_data_scale) + (1.0 - decay) * float(data_scale)
 
     def penalty(
         self,
@@ -346,18 +343,19 @@ class _EMPFPenaltyKernel:
                 use_chords = False
         elif is_discrete_simplex:
             # Post-acquisition Sinkhorn thermal cooling on unconditioned discrete
-            # simplex couplings (e.g. joint BiGAN word tables): preserves full
-            # step scale (t_scale == 1.0) whenever ema_residual >= 0.070 during
-            # mode acquisition, then smoothly cools DualNorm down toward 0.35 as
-            # discrete transport residual settles so converged logit boundaries
-            # cannot bounce over multi-thousand-step holds.
+            # simplex couplings (e.g. joint BiGAN word tables): preserves exact full
+            # step scale (t_scale == 1.0) whenever ema_residual >= 0.084 during
+            # mode acquisition (4-word residual >= 0.115), then smoothly cools
+            # DualNorm below its smoothing floor (0.0004 == 0.4 * optimizer_smoothing)
+            # as discrete transport residual settles (< 0.064) so converged logit
+            # boundaries cannot bounce over multi-thousand-step holds.
             if not is_conditioned and b_r >= 64 and b_f >= 64 and dim >= 170:
                 res, data_scale = unconditioned_chamfer_residual(x_real.detach(), x_fake.detach())
                 obs_res, obs_ds = torch.stack((res.detach(), data_scale.detach())).tolist()
-                self._observe(float(obs_res), float(obs_ds))
-                u_w = max(0.0, min(1.0, float(self.record.ema_residual) / 0.070))
+                self._observe(float(obs_res), float(obs_ds), ema_decay=0.96)
+                u_w = max(0.0, min(1.0, (float(self.record.ema_residual) - 0.064) / (0.084 - 0.064)))
                 smooth_w = u_w * u_w * (3.0 - 2.0 * u_w)
-                t_scale = float(0.35 + 0.65 * smooth_w)
+                t_scale = float(0.0004 + 0.9996 * smooth_w)
             else:
                 t_scale = 1.0
         else:
