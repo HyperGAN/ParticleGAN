@@ -290,6 +290,67 @@ def test_freeze_restored_when_generator_callback_raises():
     assert [p.requires_grad for p in trainer.D.parameters()] == flags
 
 
+@pytest.mark.parametrize("error", [RuntimeError, KeyboardInterrupt])
+@pytest.mark.parametrize("response", ["none", "coherent_G_mean_v1"])
+def test_interrupted_update_requires_checkpoint_recovery(error, response):
+    trainer = make_trainer(preset="bcap", generator_gradient_response=response)
+    real = torch.arange(12, dtype=torch.float32).reshape(6, 2) / 12
+    saved = trainer.state_dict()
+    trainer.step(real)
+    expected = trainer.state_dict()
+    trainer.load_state_dict(saved)
+
+    def fail():
+        raise error("caller failure")
+
+    with pytest.raises(error, match="caller failure"):
+        trainer.step(real, generator_real=fail)
+    assert trainer.interrupted and trainer.policy.interrupted
+    assert not trainer._in_training_step
+    assert trainer.completed_steps == saved["completed_steps"]
+    assert any(not torch.equal(value, trainer.D.state_dict()[name])
+               for name, value in saved["models"]["D"].items())
+    partial = trainer._state_dict()
+    with pytest.raises(RuntimeError, match="interrupted"):
+        trainer.state_dict()
+    with pytest.raises(RuntimeError, match="boundary"):
+        trainer.policy.state_dict()
+    with pytest.raises(RuntimeError, match="interrupted"):
+        trainer.step(real)
+    trainer.policy.abort_step()  # Repeated cleanup cannot certify a boundary.
+    bad = deepcopy(saved)
+    bad["completed_steps"] = -1
+    with pytest.raises(ValueError, match="step count"):
+        trainer.load_state_dict(bad)
+    assert trainer.interrupted
+    assert_checkpoint_equal(partial, trainer._state_dict())
+
+    trainer.load_state_dict(saved)
+    assert not trainer.interrupted
+    assert_checkpoint_equal(saved, trainer.state_dict())
+    trainer.step(real)
+    assert_checkpoint_equal(expected, trainer.state_dict())
+
+
+def test_preflight_rejection_and_idle_abort_remain_at_checkpoint_boundary():
+    trainer = make_trainer(steps=1)
+    saved = trainer.state_dict()
+    with pytest.raises(ValueError, match="nonempty"):
+        trainer.step(torch.zeros(0, 2))
+    with pytest.raises(ValueError, match="nonempty"):
+        trainer.policy.begin_step(torch.zeros(0, 2))
+    trainer.policy.abort_step()
+    assert not trainer.interrupted
+    assert_checkpoint_equal(saved, trainer.state_dict())
+    trainer.step(torch.zeros(6, 2))
+    complete = trainer.state_dict()
+    assert not trainer.interrupted
+    with pytest.raises(RuntimeError, match="budget"):
+        trainer.step(torch.zeros(6, 2))
+    assert not trainer.interrupted
+    assert_checkpoint_equal(complete, trainer.state_dict())
+
+
 @pytest.mark.parametrize("schema", [2, 3, 4])
 def test_historical_k3p_alias_cannot_resume_as_ka2(schema):
     trainer = make_trainer(preset="ka2")
