@@ -53,7 +53,18 @@ def test_misgan_v2_keeps_coupled_evidence_separate_and_unmeasured():
         originals[member] = data
     original_task = json.loads(originals["task"])
     task = json.loads((ROOT / archived["task_path"]).read_text())
-    assert task["evaluation"]["integration_source_binding"]["id"] == COMBINED_INTEGRATION
+    binding = task["evaluation"]["integration_source_binding"]
+    if binding["id"] != COMBINED_INTEGRATION:
+        # A later completed-boundary guard retains the exact combined parent.
+        assert binding["id"] in {"pr-520-audit-develop-integration-20261114",
+                                  "pr-522-audit-develop-integration-20261114"}
+        assert binding["qualification_input"] is False
+        parent_raw = subprocess.check_output([
+            "git", "show", binding["previous_task_commit"] + ":" + archived["task_path"]], cwd=ROOT)
+        assert hashlib.sha256(parent_raw).hexdigest() == binding["previous_task_sha256"]
+        assert hashlib.sha1(f"blob {len(parent_raw)}\0".encode() + parent_raw).hexdigest() == binding["previous_task_blob"]
+        binding = json.loads(parent_raw)["evaluation"]["integration_source_binding"]
+    assert binding["id"] == COMBINED_INTEGRATION
     assert before_pr_integration(ROOT, task, archived["task_path"]) != task
     assert task["execution"] == original_task["execution"]
     assert {k: v for k, v in task["evaluation"].items()

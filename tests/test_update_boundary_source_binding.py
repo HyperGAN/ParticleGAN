@@ -15,7 +15,7 @@ def test_update_boundary_source_bindings_preserve_all_questions_and_original_rec
         assert receipt["schema"] == "pr_develop_integration_source_binding_v1"
         assert all(receipt[key] is False for key in ("qualification_results_changed",
             "scientific_training_launched", "automatic_cross_source_reuse", "qualification_input"))
-        assert len(receipt["tasks"]) == 10
+        assert len(receipt["tasks"]) == 14
         assert hashlib.sha256((ROOT / receipt["source_member"]).read_bytes()).hexdigest() == receipt["current_source_sha256"]
         for row in receipt["tasks"]:
             relative = row["previous_task_path"]
