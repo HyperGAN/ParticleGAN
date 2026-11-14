@@ -155,7 +155,9 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "rhbi_cond_ot_weight": 0.0, "rhbi_cond_ot_mode": "kernel_ed",
                         "rhbi_simplex_weight": 0.0, "rhbi_cvx_mu_gain": 0.40,
                         "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
-                        "rhbi_simplex_macro_settle": False}
+                        "rhbi_simplex_macro_settle": False, "rhbi_simplex_curve_settle": False,
+                        "rhbi_cond_step_damp": 0.0, "rhbi_ae_coord_whiten": False,
+                        "rhbi_support_completion": False}
 
 
 class GANTrainer:
@@ -621,6 +623,7 @@ class GANTrainer:
                     record=getattr(self.opt_d, "record", None),
                     chart_weight=recipe.rhbi_simplex_chart_weight,
                     macro_settle=recipe.rhbi_simplex_macro_settle,
+                    curve_settle=recipe.rhbi_simplex_curve_settle,
                 )
                 loss_g = loss_g + simplex_loss
             self.opt_g.zero_grad()

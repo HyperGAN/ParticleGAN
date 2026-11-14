@@ -736,6 +736,14 @@ class NormalizedOptimizer(Optimizer):
             rhbi_step_scale = 1.0 - rhbi_damp * (u_log2 * u_log2)
         else:
             rhbi_step_scale = 1.0
+        rhbi_cond_damp = float(getattr(self, "_rhbi_cond_step_damp", 0.0))
+        if rhbi_cond_damp > 0.0 and getattr(self, "critic", None) is None:
+            rhbi_rec = getattr(self, "_rhbi_record", None)
+            if rhbi_rec is not None and getattr(rhbi_rec, "rhbi_cond_initialized", False):
+                r_cond_ema = max(0.0, float(getattr(rhbi_rec, "rhbi_cond_ema", 1.0)))
+                u_cond = min(1.0, max(0.0, (0.028 - r_cond_ema) / 0.016))
+                s_cond = u_cond * u_cond * (3.0 - 2.0 * u_cond)
+                rhbi_step_scale *= 1.0 - rhbi_cond_damp * s_cond
         for group_index, group in enumerate(self.param_groups):
             algorithm, base_rate, eps = group["algorithm"], group["lr"], group["eps"]
             is_generator = group.get("role") == "generator"
@@ -1115,6 +1123,7 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
                                     svd_backend=recipe.optimizer_svd_backend,
                                     dense_profile=recipe.optimizer_dense_profile, **options)
     optimizer._rhbi_step_damp = float(getattr(recipe, "rhbi_step_damp", 0.0))
+    optimizer._rhbi_cond_step_damp = float(getattr(recipe, "rhbi_cond_step_damp", 0.0))
     if critic is not None:
         optimizer.critic = critic
         optimizer.ema_critic = optimizer.anchor = optimizer.guard = None
