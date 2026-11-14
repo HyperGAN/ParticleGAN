@@ -121,7 +121,8 @@ def run(output: Path):
             checkpoint = deepcopy(trainer.state_dict()), data_rng.get_state().clone()
         observe(step + 1)
     movement = max(float((value - initial[name]).abs().max())
-                   for name, value in trainer.G.state_dict().items() if value.is_floating_point())
+                   for name, value in trainer.G.state_dict().items()
+                   if isinstance(value, torch.Tensor) and value.is_floating_point())
     expected_state = deepcopy(trainer.state_dict())
     saved, data_state = checkpoint
     resumed = _build()

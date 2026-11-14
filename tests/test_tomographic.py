@@ -15,21 +15,17 @@ Verifies AC2 & AC3 requirements:
 - GANTrainer integration: unchanged public recipe fields, seamless ManipulatedPrior step
   execution, and bit-exact checkpoint continuation parity.
 """
-import dataclasses
 import math
 import time
 
 import pytest
 import torch
 import torch.nn.functional as F
-from test_swappable_priors import FROZEN_RECIPE_FIELDS
 from torch import nn
 
 from particlegan import (
     GANTrainer,
-    Recipe,
     get_recipe,
-    get_recipe_fields,
 )
 from particlegan.priors import (
     CosineRepulsionManipulator,
@@ -426,12 +422,10 @@ def test_tomographic_manipulators_training_step_across_recipes(preset):
 
 
 def test_zero_recipe_bloat_tomographic():
-    """Verify Recipe dataclass fields remain at the current declared schema."""
-    fields_dict = get_recipe_fields()
-    assert len(fields_dict) == len(FROZEN_RECIPE_FIELDS)
-    recipe_fields = tuple(f.name for f in dataclasses.fields(Recipe))
-    assert len(recipe_fields) == len(FROZEN_RECIPE_FIELDS)
-    assert recipe_fields == FROZEN_RECIPE_FIELDS
+    """Inverse-imaging helpers add no fields to the current public schema."""
+    from test_swappable_priors import assert_current_recipe_schema
+
+    assert_current_recipe_schema()
 
 
 def test_tomographic_checkpoint_continuation_parity():

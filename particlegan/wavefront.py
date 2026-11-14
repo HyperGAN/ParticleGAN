@@ -144,6 +144,15 @@ class SobolevGradFilter(nn.Module):
             return x
         return _SobolevGradFilterFunction.apply(x, self.lam, self.order, self.nyquist)
 
+    def get_extra_state(self) -> dict[str, Any]:
+        """Bind the backward law even when this filter is a bare submodule."""
+        return {"schema_version": 1, "lam": self.lam, "order": self.order,
+                "nyquist": self.nyquist}
+
+    def set_extra_state(self, state: Any) -> None:
+        if state != self.get_extra_state():
+            raise ValueError("Sobolev gradient filter configuration mismatch")
+
     def extra_repr(self) -> str:
         return f"lam={self.lam}, order={self.order}, nyquist={self.nyquist}"
 

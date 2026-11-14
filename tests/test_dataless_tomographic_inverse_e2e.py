@@ -21,9 +21,8 @@ Also verifies:
     - Law 3: Symmetric log-odds, marginal entropy, and cosine repulsion
 - Destructive negative controls confirming gate validity (anti-goodharting)
 - GANTrainer integration, DualNorm role segregation, and checkpoint continuation parity
-- Zero Recipe bloat (strictly 112 fields preserved)
+- Zero Recipe bloat (current declared fields preserved)
 """
-import dataclasses
 import os
 import time
 
@@ -34,9 +33,7 @@ from torch import nn
 
 from particlegan import (
     GANTrainer,
-    Recipe,
     get_recipe,
-    get_recipe_fields,
 )
 from particlegan.execution import disable_autograd_multithreading
 from particlegan.priors import (
@@ -96,120 +93,6 @@ def _isolate_cpu_thread_configuration():
         torch.set_num_threads(prev_threads)
 
 
-FROZEN_112_RECIPE_FIELDS = (
-    "name",
-    "critic_formulation",
-    "model",
-    "training_precision",
-    "z_dim",
-    "num_particles",
-    "prior_kind",
-    "sigma_rel",
-    "standardize",
-    "num_classes",
-    "conditioning",
-    "ucd_target",
-    "ucd_weight",
-    "alpha_bar",
-    "batch_size",
-    "total_steps",
-    "continuous_policy",
-    "lr",
-    "d_lr_mult",
-    "prior_lr_mult",
-    "betas",
-    "prior_betas",
-    "reg_arm",
-    "reg_coeff",
-    "reg_kappa",
-    "reg_every",
-    "critic_step_mode",
-    "prior_reg",
-    "prior_update",
-    "prior_regularizer",
-    "prior_reg_target_std",
-    "prior_reg_eps",
-    "prior_l2",
-    "prior_proximal_strength",
-    "prior_coulomb_softening",
-    "prior_coulomb_confinement",
-    "prior_coulomb_neighbors",
-    "prior_sigreg_projections",
-    "prior_sigreg_knots",
-    "ema_decay",
-    "lr_anneal_start",
-    "lr_floor",
-    "network_lr_floor",
-    "network_lr_horizon_cap",
-    "reg_anchor_min_decay",
-    "reg_anchor_weight",
-    "direct_particle_gain",
-    "d_guard_ratio",
-    "d_guard_min_steps",
-    "latent_damping_max_rate",
-    "direct_particle_betas",
-    "input_noise_std",
-    "input_noise_anneal_end",
-    "output_noise_std",
-    "output_noise_warmup",
-    "encoder_mode",
-    "routing_temperature",
-    "distance_reduction",
-    "observation_sigma",
-    "reconstruction_weight",
-    "kinetic_transport_weight",
-    "kinetic_transport_local_weight",
-    "kinetic_transport_projections",
-    "amsgrad",
-    "critic_r1_real",
-    "critic_payoff_damping",
-    "output_noise_mode",
-    "lr_control",
-    "particle_birth_death",
-    "row_evidence_gate",
-    "table_release_rule",
-    "row_evidence_hot",
-    "row_evidence_exclude",
-    "row_evidence_hold",
-    "birth_death_space",
-    "serve_average",
-    "reopen_signal",
-    "reopen_anchor",
-    "reopen_guard",
-    "row_evidence_null",
-    "birth_death_isolation",
-    "birth_death_feature_scale",
-    "birth_death_backend",
-    "birth_death_cells",
-    "birth_death_metric_rank",
-    "birth_death_chunk",
-    "birth_death_parent_policy",
-    "row_policy",
-    "optimizer_family",
-    "optimizer_momentum",
-    "optimizer_smoothing",
-    "optimizer_convolution",
-    "optimizer_convolution_rule",
-    "optimizer_svd_backend",
-    "optimizer_dense_profile",
-    "constraint_geometry_mode",
-    "optimizer_adam_lr",
-    "eps",
-    "beta2_end",
-    "beta2_anneal_end",
-    "reg_coeff_end",
-    "reg_coeff_anneal_end",
-    "loss",
-    "d_betas",
-    "d_eps",
-    "prior_eps",
-    "loss_labels",
-    "adam_variant",
-    "lr_schedule",
-    "lr_decay_rate",
-    "lr_decay_steps",
-    "lr_decay_staircase",
-)
 
 
 class StridedPatchViTTomographicOperator(nn.Module):
@@ -975,18 +858,8 @@ def test_gantrainer_dataless_checkpoint_roundtrip_parity():
 # =====================================================================
 
 
-def test_recipe_112_fields_schema_preserved():
-    """Verify Recipe dataclass fields remain strictly preserved at exactly 112 fields."""
-    recipe_fields_dict = get_recipe_fields()
-    field_names = tuple(recipe_fields_dict.keys())
-    assert len(field_names) == 112, (
-        f"Recipe schema was modified: expected 112 fields, found {len(field_names)}"
-    )
-    assert field_names == FROZEN_112_RECIPE_FIELDS, (
-        f"Recipe field names diverged from frozen baseline:\n"
-        f"Diff: {set(field_names) ^ set(FROZEN_112_RECIPE_FIELDS)}"
-    )
+def test_current_recipe_schema_preserved():
+    """Inverse-imaging helpers add no fields to the current public schema."""
+    from test_swappable_priors import assert_current_recipe_schema
 
-    recipe_fields = tuple(f.name for f in dataclasses.fields(Recipe))
-    assert len(recipe_fields) == 112
-    assert recipe_fields == FROZEN_112_RECIPE_FIELDS
+    assert_current_recipe_schema()

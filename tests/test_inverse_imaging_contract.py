@@ -83,6 +83,25 @@ def test_public_api_example_records_real_frames_and_exact_replay(tmp_path):
         assert media.n_frames == 4
 
 
+@pytest.mark.parametrize("field,value", [("lam", 25.0), ("order", 2.0), ("nyquist", 1.0)])
+def test_public_trainer_rejects_a_changed_bare_sobolev_backward_law_atomically(field, value):
+    from examples import inverse_imaging_smoke as example
+
+    source = example._build()
+    source.step(example._batch(torch.Generator().manual_seed(100)))
+    saved = deepcopy(source.state_dict())
+    assert saved["models"]["G"]["backward_filter._extra_state"][field] == getattr(source.G.backward_filter, field)
+
+    restored = example._build()
+    setattr(restored.G.backward_filter, field, value)
+    before = deepcopy(restored.state_dict())
+    rng_before = torch.get_rng_state().clone()
+    with pytest.raises(ValueError, match="incompatible state|extra state|configuration"):
+        restored.load_state_dict(saved)
+    assert example._same_state(before, restored.state_dict())
+    assert torch.equal(rng_before, torch.get_rng_state())
+
+
 def test_public_api_replay_gate_rejects_changed_prior_even_with_identical_losses(tmp_path, monkeypatch):
     import json
     from examples import inverse_imaging_smoke as example

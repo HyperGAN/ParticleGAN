@@ -207,7 +207,7 @@ def assert_nested_allclose(left, right, atol: float = 1e-6, rtol: float = 1e-5):
 # Group 1: Zero Recipe Bloat & Schema Invariance
 # -----------------------------------------------------------------------------
 
-def test_recipe_fields_exact_tuple_invariance():
+def assert_current_recipe_schema():
     """Prior manipulators retain the frozen base schema plus explicit controls."""
     additions = ('reg_real_weight', 'reg_fake_weight', 'joint_reconstruction_weight', 'conditional_energy_weight', 'conditional_energy_samples', 'masked_mixture_weight', 'masked_transport_weight', 'imputer_component_weight', 'rhbi_weight', 'rhbi_rho', 'rhbi_tau', 'rhbi_eps', 'rhbi_iters', 'rhbi_c_max', 'rhbi_beta_ell', 'rhbi_nn_quantile', 'rhbi_critic_weight', 'rhbi_self_coupling', 'rhbi_relativistic_weight', 'rhbi_lambda_floor', 'rhbi_gamma_gauge', 'rhbi_rapidity_screening', 'rhbi_scale_log_odds', 'rhbi_conditional_fibre', 'rhbi_akt_horizon', 'rhbi_akt_mode', 'rhbi_slack_gain', 'rhbi_chord_weight', 'rhbi_thermal_tau', 'rhbi_thermal_shock_mu', 'rhbi_settle_beta', 'rhbi_settle_mode', 'rhbi_fibre_rel_blend', 'rhbi_step_damp', 'rhbi_cond_ot_weight', 'rhbi_cond_ot_mode', 'rhbi_simplex_weight', 'rhbi_cvx_mu_gain', 'rhbi_simplex_chart_weight', 'rhbi_tail_spill_gain', 'rhbi_simplex_macro_settle')
     fields_dict = get_recipe_fields()
@@ -217,6 +217,10 @@ def test_recipe_fields_exact_tuple_invariance():
     assert tuple(field.name for field in dataclasses.fields(Recipe)) == field_names
     from particlegan.recipe_compat import SEARCH_RECIPE_DEFAULTS
     assert all(fields_dict[name] == SEARCH_RECIPE_DEFAULTS[name] for name in additions)
+
+
+def test_recipe_fields_exact_tuple_invariance():
+    assert_current_recipe_schema()
 
 
 def test_recipe_no_toplevel_torch_import():
