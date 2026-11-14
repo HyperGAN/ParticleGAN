@@ -43,7 +43,7 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 | [Pair particle AE reconstruction with four-step DDGAN reverse transitions and ancestral generation](problems.md#model_ae_ddgan_gaussian_chain) | Reconstruct held-out inputs through a learned particle autoencoder and four public DDGAN reverse steps (`paired_nmse <= 0.10`, `paired_worst_axis_nrmse <= 0.25`, `paired_shuffled_gain >= 3.0`) while simultaneously passing all conditional reverse-transition and independent ancestral-chain bounds. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Learn a Gaussian with 8-bit MXFP8 training arithmetic](problems.md#precision_gaussian_mxfp8) | Train from the shared deterministic initialization using Blackwell-format MXFP8 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: RHBI. |
 | [Learn a Gaussian with 4-bit NVFP4 training arithmetic](problems.md#precision_gaussian_nvfp4) | Train from the shared deterministic initialization using Blackwell-format NVFP4 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: RHBI. |
-| [Hold all five discrete words and exact BiGAN inversion across 4,000 continuation updates](problems.md#five_word_joint_hold) | Restore the candidate's own confirmed five-word acquisition checkpoint in a fresh process and pass every generation and exact encoder-inversion bound across all 24 scheduled checks over 4,000 additional updates. | Selected recorded PASS: BCAP, BISPF, RHBI. |
+| [Hold all five discrete words and exact BiGAN inversion across 4,000 continuation updates](problems.md#five_word_joint_hold) | Restore the candidate's own confirmed five-word acquisition checkpoint in a fresh process and pass every generation and exact encoder-inversion bound across all 24 scheduled checks over 4,000 additional updates. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI. |
 | [Interpolate unseen latent k-NN chords along a 270-degree circular arc from 12 zero-sigma particles without MoG](problems.md#interp_sparse_arc) | Train 12 discrete zero-sigma `ParticlePrior` locations and an MLP generator on a 2D circular arc (`R = 2.0`, `sigma = 0.03`) under protocol seed 0 so both endpoints (`endpoint_hq >= 0.85`) and unseen latent k-NN chords (`interp_hq >= 0.80`, `interp_arc_bins >= 22`, `midpoint_novelty >= 0.20`) stay on the curved manifold across five final live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Translate a sharp 2x2 patch smoothly across unseen latent chords in 8x8 images from 16 zero-sigma particles](problems.md#interp_img_patch_shift) | Train 16 zero-sigma `ParticlePrior` codes (`z_dim = 4`) and a `residual_upsample` convolutional generator on continuous single-patch 8x8 images so unseen latent k-NN chords render single sharp shifted patches (`interp_rmse <= 0.10`, `interp_peak >= 0.78`, `midpoint_novelty >= 0.18`, `quadrant_coverage == 4`) rather than 0.5-peak pixel double exposures. | Selected recorded PASS: RHBI. |
 | [Interpolate unseen 2D latent triangle barycenters across a curved 3D saddle sheet from 24 zero-sigma particles](problems.md#interp_saddle_barycentric) | Train 24 zero-sigma `ParticlePrior` locations (`z_dim = 2`) and a 3D-output MLP generator on $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y)$ so unseen 2D latent k-NN triangle barycenters stay on the curved surface (`barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78`, `xy_bins_covered >= 12`, `barycenter_novelty >= 0.18`) across five final live checks. | Selected recorded PASS: RHBI. |
@@ -1196,10 +1196,11 @@ Test: `five_word_joint_hold` · Required for qualification and included in full-
 
 **What it tests.** Restore the candidate's own confirmed five-word acquisition checkpoint in a fresh process and pass every generation and exact encoder-inversion bound across all 24 scheduled checks over 4,000 additional updates.
 
-**Historical diagnosis (2026-10-15).** Selected `empf-v7` finishes the 4,000-step continuation inside every terminal bound (`modes = 5`, `quality_fraction = 1.0`, `mass_tv = 0.0346 <= 0.10`, `reconstruction_exact = 1`, `minimum_reconstruction_token_probability = 0.9993 >= 0.90`), but dips on an intermediate scheduled check during post-acquisition settling under the size-gated `newton_schulz_hybrid_v1` dense DualNorm profile.
+**Historical diagnosis (2026-10-15).** Historical `empf-v7` finished the 4,000-step continuation inside every terminal bound (`modes = 5`, `quality_fraction = 1.0`, `mass_tv = 0.0346 <= 0.10`, `reconstruction_exact = 1`, `minimum_reconstruction_token_probability = 0.9993 >= 0.90`), but dipped on an intermediate scheduled check during post-acquisition settling before `empf-v8` extended hybrid Newton-Schulz to `128x128` hidden matrices and smoothed discrete-simplex Chamfer cooling.
 
-**Historical passer evidence.** Yes: selected BISPF (`bispf-optimized-quintic-v1`) and historical `empf-v2` pass all 24 continuation checks.
+**Historical passer evidence.** Yes: selected EMPF (`empf-v8`), selected BCAP, selected BISPF (`bispf-optimized-quintic-v1`), and historical `empf-v2` pass all scheduled continuation checks.
 
+- Selected `empf-v8` (`readout-9c68ae0b3e8d7966f76d6f5d.json`) passes all 25 scheduled continuation checks (`modes = 5`, `quality_fraction = 1.0`, `mass_tv = 0.0203 <= 0.10`, `minimum_reconstruction_token_probability = 0.99999 >= 0.90`) while retaining `gaussian1d_stability` and `precision_gaussian_fp32`.
 - Selected `bispf-optimized-quintic-v1` passes all 24 scheduled continuation checks from its own smoke checkpoint, while failing `gaussian1d_stability`.
 - Historical `empf-v2` (`readout-05eaed46ab0e45214ae8e7b4.json`) also passes all 24 continuation checks under exact `polar_factor` SVD, trading `gaussian1d_stability` and `precision_gaussian_fp32`.
 
@@ -1211,7 +1212,7 @@ Test: `five_word_joint_hold` · Required for qualification and included in full-
 | --- | --- |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
-| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-five_word_joint_hold) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-five_word_joint_hold) |
 | [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [PASS](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-five_word_joint_hold) |
 | [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [NOT MEASURED](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-five_word_joint_hold) |
 | [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [BLOCKED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
@@ -1220,9 +1221,9 @@ Test: `five_word_joint_hold` · Required for qualification and included in full-
 | [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
 | [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
 
-**Recommendation from the dated diagnosis.** Damp transient post-acquisition joint-critic excursions on the discrete 5-particle codebook without losing `empf-v7`'s `gaussian1d_stability`, `precision_gaussian_fp32`, and `five_word_joint_smoke` wall-time budget.
+**Recommendation from the dated diagnosis.** Retain discrete-simplex post-acquisition hold stability while measuring the remaining unmeasured historical families under their own confirmed five-word acquisition checkpoints.
 
-Evidence: [EMPF-v7 ordinary readout receipt](records/readout-4901963885d977da23e139ba.json) · [Task declaration](../../configs/forge/tasks/five_word_joint_hold.json).
+Evidence: [EMPF-v8 ordinary readout receipt](records/readout-9c68ae0b3e8d7966f76d6f5d.json) · [EMPF-v7 ordinary readout receipt](records/readout-4901963885d977da23e139ba.json) · [Task declaration](../../configs/forge/tasks/five_word_joint_hold.json).
 
 
 <a name="interp_sparse_arc"></a>
