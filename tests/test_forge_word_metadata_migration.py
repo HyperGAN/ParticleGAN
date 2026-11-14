@@ -69,7 +69,7 @@ def _before_review_policy_source_refresh(current, relative):
     assert revision["previous_revision"] == previous["evaluation"]["evaluator_revision"]
     assert revision["previous_source_sha256"] == {POLICY_SOURCE_MEMBER: sources[POLICY_SOURCE_MEMBER]}
     assert current["evaluation"]["sources"] == {
-        **sources, POLICY_SOURCE_MEMBER: file_hash(ROOT / POLICY_SOURCE_MEMBER)}
+        **sources, POLICY_SOURCE_MEMBER: source_before_pr_integration(ROOT, relative, POLICY_SOURCE_MEMBER)}
     restored = deepcopy(current)
     restored["evaluation"]["sources"] = sources
     restored["evaluation"]["evaluator_revision"] = revision["previous_revision"]

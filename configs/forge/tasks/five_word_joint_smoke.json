@@ -136,7 +136,7 @@
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      "particlegan/policy.py": "cf26b093eaa5ed871b9afb1569a8105b4d339ceefa0f396573214fa2313fd571"
     },
     "evaluator_revision": {
       "id": "pr-474-develop-integration-20261108",
@@ -278,14 +278,14 @@
       "rationale": "Can public joint BiGAN training acquire all five words and confidently reconstruct every paired input at one independently confirmed scheduled state? Complete all 20,001 updates."
     },
     "integration_source_binding": {
-      "id": "reviewed-model-prs-integration-20261109",
-      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
-      "qualification_input": false,
-      "previous_task_commit": "4a5ff6d4db831a23a7c95b5d14ce84ff73dfee06",
+      "id": "pr-520-audit-develop-integration-20261114",
+      "previous_task_commit": "45e481d35f0c56ca4aae992713d55b4a1295e44d",
       "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-      "previous_task_sha256": "8a07fce73063693f6724a0cde97bfa91054e0036721c42a98e9a6cd6f5cce674",
-      "previous_task_blob": "289ff3cfe7fc5bef663459c192bee7fd8c80971d",
-      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
+      "previous_task_sha256": "ec1c7af0accdee873a77a7839fff8a6792218c08ec165f001b41b0722d7e2f17",
+      "previous_task_blob": "ed895a1b25e7379836cf1bba5ceacbbd2f4d1509",
+      "integration_receipt": "reports/forge/software-audits/pr520-update-boundary-source-binding.json",
+      "qualification_input": false,
+      "change": "Completed-update serving boundary; source-only future execution binding. Preserve all original questions, gates, source receipts and verdicts."
     }
   },
   "resources": {
