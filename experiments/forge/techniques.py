@@ -111,12 +111,24 @@ def technique_signature(value):
         and recipe.rhbi_cond_ot_weight > 0
     ):
         mechanisms["rhbi_cond_ot"] = True
+        if (
+            recipe.rhbi_cond_ot_mode == "diag_imq_cmmd"
+            and recipe.optimizer_family not in {"formulation", "adam"}
+            and recipe.rhbi_cond_step_damp > 0
+        ):
+            mechanisms["rhbi_cond_step_damp"] = True
     if recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0:
         mechanisms["rhbi_simplex"] = True
         if recipe.rhbi_simplex_chart_weight > 0:
             mechanisms["rhbi_simplex_chart"] = True
             if recipe.rhbi_simplex_macro_settle:
                 mechanisms["rhbi_simplex_macro_settle"] = True
+            if recipe.rhbi_simplex_curve_settle:
+                mechanisms["rhbi_simplex_curve_settle"] = True
+    if recipe.rhbi_weight > 0 and recipe.rhbi_support_completion:
+        mechanisms["rhbi_support_completion"] = True
+    if recipe.rhbi_ae_coord_whiten:
+        mechanisms["rhbi_ae_coord_whiten"] = True
     if recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0 and recipe.rhbi_cvx_mu_gain != 0.40:
         mechanisms["rhbi_cvx_mu"] = True
     if recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0 and recipe.rhbi_tail_spill_gain > 0:
@@ -274,12 +286,29 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack"
     if name == "rhbi_cond_ot_mode":
         return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0
+    if name == "rhbi_cond_step_damp":
+        return (
+            recipe.rhbi_weight > 0
+            and recipe.rhbi_conditional_fibre == "slack"
+            and recipe.rhbi_cond_ot_weight > 0
+            and recipe.rhbi_cond_ot_mode == "diag_imq_cmmd"
+            and recipe.optimizer_family not in {"formulation", "adam"}
+        )
     if name == "rhbi_simplex_weight":
         return recipe.rhbi_weight > 0
     if name == "rhbi_simplex_chart_weight":
         return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0
-    if name == "rhbi_simplex_macro_settle":
+    if name in {"rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle"}:
         return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0 and recipe.rhbi_simplex_chart_weight > 0
+    if name == "rhbi_support_completion":
+        return recipe.rhbi_weight > 0
+    if name == "rhbi_ae_coord_whiten":
+        if recipe.encoder_mode == "ae":
+            return True
+        if task is None:
+            return False
+        host_def = execution.get("host_definition", {})
+        return execution.get("host") == "ae_gan_hold" or host_def.get("encoder_mode") == "ae"
     if name in {"rhbi_cvx_mu_gain", "rhbi_tail_spill_gain"}:
         return recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0
     if name in {"rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_iters", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre"}:

@@ -27,13 +27,24 @@ class ParticleEncoding:
     mode: str
     soft_log_probs: torch.Tensor | None = None
     uniformity_weight: float = 0.0
+    coord_whiten: bool = False
 
     def _cost(self, prediction, target):
         if (target.ndim < 2 or target.numel() == 0
                 or prediction.shape != (target.shape[0], self.codes.shape[1], *target.shape[1:])
                 or target.shape[0] != self.codes.shape[0]):
             raise ValueError("prediction must be [B,S,...] and target [B,...], matching codes")
-        cost = (prediction - target[:, None]).square().flatten(2).mean(2)
+        sq_err = (prediction - target[:, None]).square().flatten(2)
+        if self.coord_whiten and target.shape[0] >= 8 and sq_err.shape[2] >= 2:
+            with torch.no_grad():
+                var_t = target.detach().float().flatten(1).var(dim=0, unbiased=False)
+                var_mean = var_t.mean().clamp_min(1e-6)
+                inv_std = torch.rsqrt((var_t + 0.08 * var_mean).clamp_min(1e-8))
+                scale_lift = (0.55 / var_mean).clamp(1.0, 4.0)
+                w_coord = (scale_lift * (inv_std / inv_std.mean().clamp_min(1e-8))).to(sq_err.dtype)
+            cost = (sq_err * w_coord[None, None, :]).mean(2)
+        else:
+            cost = sq_err.mean(2)
         score_surrogate = cost.new_zeros(())
         if self.mode == "categorical":
             draws = cost.shape[1]
@@ -98,12 +109,15 @@ def _hard_center(means, log_probs):
     return means[indices] + (proxy - proxy.detach()), indices
 
 
-def particle_ae(query, offset, prior, *, temperature=0.25, distance_reduction="sum", offset_bound=3.0, uniformity_weight=0.0):
+def particle_ae(query, offset, prior, *, temperature=0.25, distance_reduction="sum", offset_bound=3.0,
+                uniformity_weight=0.0, coord_whiten=False):
     """Hard selected center + sigma * bounded offset; no sampling or KL.
 
     Query uses a biased soft straight-through derivative; table gradients pass
     through selected centers only (and through prior read standardization).
     """
+    if type(coord_whiten) is not bool:
+        raise ValueError("coord_whiten must be a boolean")
     _positive(offset_bound, "offset_bound")
     means, log_probs = _routing(query, prior, temperature, distance_reduction, True)
     if offset.shape != query.shape or offset.device != query.device or offset.dtype != query.dtype:
@@ -111,7 +125,8 @@ def particle_ae(query, offset, prior, *, temperature=0.25, distance_reduction="s
     center, indices = _hard_center(means, log_probs)
     codes = center + prior.sigma * offset_bound * torch.tanh(offset / offset_bound)
     return ParticleEncoding(codes[:, None], indices[:, None], query.new_zeros(len(query)), None, "ae",
-                            soft_log_probs=log_probs, uniformity_weight=uniformity_weight)
+                            soft_log_probs=log_probs, uniformity_weight=uniformity_weight,
+                            coord_whiten=coord_whiten)
 
 
 def particle_vae(query, prior, *, temperature=0.25, distance_reduction="sum", draws=2,

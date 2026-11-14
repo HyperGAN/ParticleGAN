@@ -79,6 +79,8 @@ class RHBIGANLoss(GANLoss):
         cvx_mu_gain: float = 0.40,
         tail_spill_gain: float = 0.0,
         simplex_macro_settle: bool = False,
+        simplex_curve_settle: bool = False,
+        support_completion: bool = False,
         record: Any = None,
     ) -> None:
         super().__init__(loss, labels=labels)
@@ -104,8 +106,15 @@ class RHBIGANLoss(GANLoss):
             or cond_ot_weight < 0.0
         ):
             raise ValueError("cond_ot_weight must be finite and nonnegative")
-        if type(cond_ot_mode) is not str or cond_ot_mode not in ("kernel_ed", "hollow_sinkhorn", "imq_cmmd"):
-            raise ValueError("cond_ot_mode must be 'kernel_ed', 'hollow_sinkhorn' or 'imq_cmmd'")
+        if type(cond_ot_mode) is not str or cond_ot_mode not in (
+            "kernel_ed",
+            "hollow_sinkhorn",
+            "imq_cmmd",
+            "diag_imq_cmmd",
+        ):
+            raise ValueError(
+                "cond_ot_mode must be 'kernel_ed', 'hollow_sinkhorn', 'imq_cmmd', or 'diag_imq_cmmd'"
+            )
         if type(conditional_fibre) is not str or conditional_fibre not in ("joint", "slack", "calibrated"):
             raise ValueError("conditional_fibre must be 'joint', 'slack', or 'calibrated'")
         self.critic_weight = float(critic_weight)
@@ -135,6 +144,8 @@ class RHBIGANLoss(GANLoss):
             cvx_mu_gain=cvx_mu_gain,
             tail_spill_gain=tail_spill_gain,
             simplex_macro_settle=simplex_macro_settle,
+            simplex_curve_settle=simplex_curve_settle,
+            support_completion=support_completion,
         )
         self.last_metrics: Dict[str, float] = {}
 
@@ -262,6 +273,7 @@ class RHBIGANLoss(GANLoss):
                                 c_cont,
                                 cond_disc=cond_f,
                                 mode=self.cond_ot_mode,
+                                record=rec,
                             )
                             s_th = float(getattr(rec, "_thermal_scale", 1.0)) if rec is not None else 1.0
                             total_cond = rel_term + self.cond_ot_weight * cond_ot
