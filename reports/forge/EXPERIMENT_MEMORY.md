@@ -8102,4 +8102,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `fd56e2bab9d2f16539850aa615700d1cbfa5d923d5dec3dc1d32ad240e5cb39d`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `367b54c05cc60e6c8ecabf546d8e3fb824fa301657858d88b5671fe086fd2184`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

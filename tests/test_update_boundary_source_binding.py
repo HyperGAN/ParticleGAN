@@ -3,7 +3,8 @@ import hashlib
 import json
 from pathlib import Path
 
-from pr_integration_compat import before_pr_integration
+from copy import deepcopy
+import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -22,5 +23,14 @@ def test_update_boundary_source_bindings_preserve_all_questions_and_original_rec
             assert hashlib.sha256(data).hexdigest() == row["current_task_sha256"]
             current = json.loads(data)
             assert current["evaluation"]["integration_source_binding"]["qualification_input"] is False
-            previous = before_pr_integration(ROOT, current, relative)
-            assert previous["evaluation"]["sources"] != current["evaluation"]["sources"]
+            binding = current["evaluation"]["integration_source_binding"]
+            previous_raw = subprocess.check_output(["git", "show", binding["previous_task_commit"] + ":" + relative], cwd=ROOT)
+            assert hashlib.sha256(previous_raw).hexdigest() == binding["previous_task_sha256"]
+            assert hashlib.sha1(f"blob {len(previous_raw)}\0".encode() + previous_raw).hexdigest() == binding["previous_task_blob"]
+            previous = json.loads(previous_raw)
+            restored = deepcopy(current)
+            restored["evaluation"]["sources"] = previous["evaluation"]["sources"]
+            restored["evaluation"]["integration_source_binding"] = previous["evaluation"]["integration_source_binding"]
+            assert restored == previous
+            assert current["evaluation"]["sources"] == {**previous["evaluation"]["sources"],
+                receipt["source_member"]: receipt["current_source_sha256"]}
