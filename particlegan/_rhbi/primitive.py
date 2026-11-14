@@ -41,6 +41,8 @@ class RHBILoss(nn.Module):
         thermal_tau: float = 0.0,
         thermal_shock_mu: float = 0.15,
         cvx_mu_gain: float = 0.40,
+        tail_spill_gain: float = 0.0,
+        simplex_macro_settle: bool = False,
     ) -> None:
         super().__init__()
         for name, val, positive in (
@@ -55,6 +57,7 @@ class RHBILoss(nn.Module):
             ("thermal_tau", thermal_tau, False),
             ("thermal_shock_mu", thermal_shock_mu, False),
             ("cvx_mu_gain", cvx_mu_gain, True),
+            ("tail_spill_gain", tail_spill_gain, False),
         ):
             if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val) or (
                 val <= 0.0 if positive else val < 0.0
@@ -72,6 +75,8 @@ class RHBILoss(nn.Module):
             raise ValueError("scale_log_odds must be a boolean")
         if type(akt_horizon) is not bool:
             raise ValueError("akt_horizon must be a boolean")
+        if type(simplex_macro_settle) is not bool:
+            raise ValueError("simplex_macro_settle must be a boolean")
         if type(akt_mode) is not str or akt_mode not in ("sqrt", "weibull"):
             raise ValueError("akt_mode must be 'sqrt' or 'weibull'")
         if type(self_coupling) is not str or self_coupling not in (
@@ -100,15 +105,76 @@ class RHBILoss(nn.Module):
         self.thermal_tau = float(thermal_tau)
         self.thermal_shock_mu = float(thermal_shock_mu)
         self.cvx_mu_gain = float(cvx_mu_gain)
+        self.tail_spill_gain = float(tail_spill_gain)
+        self.simplex_macro_settle = simplex_macro_settle
         self.register_buffer("ell_ema", torch.tensor(0.0, dtype=torch.float32))
         self.register_buffer("ell_initialized", torch.tensor(False, dtype=torch.bool))
         self._ell_init_py: bool = False
         self.last_p_xy_slack: Optional[torch.Tensor] = None
         self._discrete_prior_step: bool = False
+        self._simplicial_active_step: bool = False
 
-    def bind_discrete_prior_step(self, active: bool) -> None:
+    def bind_discrete_prior_step(self, active: bool, *, simplicial_active: bool = False) -> None:
         """Mark whether the current generator step samples from a zero-noise discrete ParticlePrior."""
+        if type(simplicial_active) is not bool:
+            raise ValueError("simplicial_active must be a boolean")
         self._discrete_prior_step = bool(active)
+        self._simplicial_active_step = bool(active and simplicial_active)
+
+    @staticmethod
+    @torch.no_grad()
+    def _compute_manifold_gates(y_flat: torch.Tensor) -> Tuple[float, float, float, torch.Tensor]:
+        """Return ``(g_conn, g_macro, q90_y_u, y_scale)`` via 8-step minimax persistence closure."""
+        b_r = y_flat.shape[0]
+        y_scale = y_flat.float().abs().amax().clamp_min(1.0)
+        if b_r < 4:
+            return 0.0, 0.0, 0.1, y_scale
+        y_u = y_flat.float() / y_scale
+        d_yy = torch.cdist(y_u, y_u, p=2.0)
+        off_y = ~torch.eye(b_r, dtype=torch.bool, device=y_u.device)
+        d_yy_nn = d_yy.masked_fill(~off_y, float("inf"))
+        nn_y = d_yy_nn.amin(dim=-1)
+        q90_t = torch.quantile(nn_y, 0.90).clamp_min(1e-8)
+        q90_y_u = float(q90_t.clamp_min(1e-4).item())
+        span_y = torch.quantile(d_yy[off_y], 0.90) / q90_t
+        m_path = d_yy.clone()
+        for _ in range(8):
+            m_path = torch.minimum(
+                m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
+            )
+        kappa_h0 = m_path.amax() / q90_t
+        u_conn = ((10.0 - kappa_h0) / 3.0).clamp(0.0, 1.0)
+        u_span = ((span_y - 1.15) / 0.25).clamp(0.0, 1.0)
+        u_macro = ((span_y - 3.80) / 1.00).clamp(0.0, 1.0)
+        s_conn = u_conn * u_conn * (3.0 - 2.0 * u_conn)
+        s_span = u_span * u_span * (3.0 - 2.0 * u_span)
+        s_macro = u_macro * u_macro * (3.0 - 2.0 * u_macro)
+        g_conn = float((s_conn * s_span).item())
+        g_macro = float((s_conn * s_span * s_macro).item())
+        return g_conn, g_macro, q90_y_u, y_scale
+
+    @staticmethod
+    @torch.no_grad()
+    def _compute_valley_gate(y_real: torch.Tensor, ell: torch.Tensor, rho: float) -> float:
+        """Horizon-normalized cyclic-midpoint inter-mode valley indicator ``w_valley`` in ``[0, 1]``."""
+        b_r = y_real.shape[0]
+        if b_r < 8:
+            return 0.0
+        yr = y_real.detach().reshape(b_r, -1).double()
+        off = ~torch.eye(b_r, dtype=torch.bool, device=yr.device)
+        d_yy = torch.cdist(yr, yr, p=2.0)
+        yy_q75 = torch.quantile(d_yy.masked_fill(~off, float("inf")).amin(dim=1), 0.75)
+        yr_roll = torch.roll(yr, shifts=1, dims=0)
+        y_mid = 0.5 * (yr + yr_roll)
+        d_my = torch.cdist(y_mid, yr, p=2.0)
+        idx = torch.arange(b_r, device=yr.device)
+        d_my[idx, idx] = float("inf")
+        d_my[idx, (idx - 1) % b_r] = float("inf")
+        mid_q75 = torch.quantile(d_my.amin(dim=1), 0.75)
+        denom_h = torch.maximum(yy_q75, ell.detach().double()).clamp_min(1e-8)
+        nu_val = mid_q75 / denom_h
+        u_val = ((nu_val - float(rho)) / 2.0).clamp(0.0, 1.0)
+        return float((u_val * u_val * (3.0 - 2.0 * u_val)).item())
 
     @staticmethod
     def _sq_euclidean_f64(x_flat: torch.Tensor, y_flat: torch.Tensor) -> torch.Tensor:
@@ -540,6 +606,11 @@ class RHBILoss(nn.Module):
         cond_real: Optional[torch.Tensor] = None,
         return_metrics: bool = True,
     ) -> Tuple[torch.Tensor, Dict[str, float]]:
+        discrete_step = bool(self._discrete_prior_step)
+        simplicial_step = bool(self._simplicial_active_step)
+        self._discrete_prior_step = False
+        self._simplicial_active_step = False
+
         # Protocol Invariant 1: Exact zero-strength bypass (no buffer mutation or RNG draw)
         if self.weight == 0.0:
             zero = torch.zeros((), device=x_fake.device, dtype=x_fake.dtype)
@@ -555,6 +626,19 @@ class RHBILoss(nn.Module):
         b_f = x_fake.shape[0]
         b_r = y_real.shape[0]
         ell = self._update_ell(y_real, record=record, allow_update=allow_ell_update)
+
+        defer_thermal = False
+        if (
+            simplicial_step
+            and self.simplex_macro_settle
+            and allow_ell_update
+            and cond_fake is None
+            and cond_real is None
+            and b_r >= 4
+        ):
+            _, g_macro_fwd, _, _ = self._compute_manifold_gates(y_real.detach().reshape(b_r, -1))
+            if g_macro_fwd > 1e-4:
+                defer_thermal = True
 
         y_target = y_real if symmetric else y_real.detach()
         if feat_fake is not None and feat_real is not None:
@@ -578,8 +662,6 @@ class RHBILoss(nn.Module):
             c_hat_xy, d_fake_tilde.detach(), d_real_tilde.detach(), hollow=False, pair_mask=mask_xy
         )
         use_hollow = self.self_coupling == "hollow"
-        discrete_step = self._discrete_prior_step
-        self._discrete_prior_step = False
         dedup_xx = self.self_coupling == "feydy_unique" or (
             self.self_coupling == "feydy_discrete" and discrete_step
         )
@@ -660,6 +742,7 @@ class RHBILoss(nn.Module):
         if self.thermal_tau > 0.0 and record is not None:
             if (
                 allow_ell_update
+                and not defer_thermal
                 and cond_fake is None
                 and cond_real is None
                 and b_r >= 4
@@ -669,6 +752,27 @@ class RHBILoss(nn.Module):
                 r_ed, r_mu_sq, r_spread, r_q90, r_hmax = self._split_two_sample_residuals(
                     x_fake, y_real, ell=ell, cvx_mu_gain=self.cvx_mu_gain
                 )
+                r_tail = 0.0
+                if (
+                    not discrete_step
+                    and not symmetric
+                    and self.tail_spill_gain > 0.0
+                    and b_f >= 8
+                    and b_r >= 8
+                ):
+                    w_valley = self._compute_valley_gate(y_real, ell, self.rho)
+                    if w_valley > 0.0:
+                        with torch.no_grad():
+                            xf = x_fake.detach().reshape(b_f, -1).double()
+                            yr = y_real.detach().reshape(b_r, -1).double()
+                            d_xy = torch.cdist(xf, yr, p=2.0)
+                            d_yy = torch.cdist(yr, yr, p=2.0)
+                            off_yy = ~torch.eye(b_r, dtype=torch.bool, device=yr.device)
+                            denom_ed = d_yy[off_yy].mean().clamp_min(1e-6)
+                            xy_row_nn = d_xy.amin(dim=1)
+                            yy_loo_nn = d_yy.masked_fill(~off_yy, float("inf")).amin(dim=1)
+                            prec_tail = torch.quantile(xy_row_nn, 0.96) - torch.quantile(yy_loo_nn, 0.96)
+                            r_tail = float((w_valley * float(self.tail_spill_gain) * prec_tail / denom_ed).item())
                 s_obs = record.observe_rhbi_thermal(
                     r_ed,
                     r_mu_sq,
@@ -677,6 +781,7 @@ class RHBILoss(nn.Module):
                     r_hmax,
                     self.thermal_tau,
                     shock_mu_ratio=self.thermal_shock_mu,
+                    r_tail=r_tail,
                 )
                 _publish_thermal(record, x_fake.device, s_obs)
             s_therm = float(getattr(record, "_thermal_scale", 1.0))
@@ -946,6 +1051,7 @@ class RHBILoss(nn.Module):
         record: Any = None,
         iso_weight: float = 0.45,
         chart_weight: float = 0.0,
+        macro_settle: Optional[bool] = None,
     ) -> torch.Tensor:
         """Local k-NN 1-simplex and 2-simplex manifold chart regularizer.
 
@@ -964,12 +1070,19 @@ class RHBILoss(nn.Module):
             or chart_weight < 0.0
         ):
             raise ValueError("chart_weight must be finite and nonnegative")
+        use_macro = self.simplex_macro_settle if macro_settle is None else macro_settle
+        if type(use_macro) is not bool:
+            raise ValueError("macro_settle must be a boolean or None")
         m_p = z_table.shape[0]
         b_r = y_real.shape[0]
         if self.weight == 0.0 or m_p < 2 or b_r < 1:
             return y_real[:0].sum()
 
         y_flat = y_real.detach().reshape(b_r, -1)
+        g_macro = 0.0
+        if use_macro and chart_weight > 0.0 and b_r >= 4:
+            g_conn_m, g_macro, q90_m, y_scale_m = self._compute_manifold_gates(y_flat)
+
         with torch.no_grad():
             z_det = z_table.detach()
             ell = self._update_ell(y_real, record=record, allow_update=False)
@@ -979,29 +1092,35 @@ class RHBILoss(nn.Module):
             k_nn = min(4, m_p - 1)
             nbrs = d_zz.topk(k_nn, dim=-1, largest=False).indices
 
-            g_conn = 0.0
-            q90_y_u = 0.1
-            y_scale = y_flat.float().abs().amax().clamp_min(1.0)
-            y_u = y_flat.float() / y_scale
-            if chart_weight > 0.0 and b_r >= 4:
-                d_yy = torch.cdist(y_u, y_u, p=2.0)
-                off_y = ~torch.eye(b_r, dtype=torch.bool, device=y_u.device)
-                d_yy_nn = d_yy.masked_fill(~off_y, float("inf"))
-                nn_y = d_yy_nn.amin(dim=-1)
-                q90_t = torch.quantile(nn_y, 0.90).clamp_min(1e-8)
-                q90_y_u = float(q90_t.clamp_min(1e-4).item())
-                span_y = torch.quantile(d_yy[off_y], 0.90) / q90_t
-                m_path = d_yy.clone()
-                for _ in range(7):
-                    m_path = torch.minimum(
-                        m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
-                    )
-                kappa_h0 = m_path.amax() / q90_t
-                u_conn = ((10.0 - kappa_h0) / 3.0).clamp(0.0, 1.0)
-                u_span = ((span_y - 1.15) / 0.25).clamp(0.0, 1.0)
-                s_conn = u_conn * u_conn * (3.0 - 2.0 * u_conn)
-                s_span = u_span * u_span * (3.0 - 2.0 * u_span)
-                g_conn = float((s_conn * s_span).item())
+            if g_macro > 1e-4:
+                g_conn = g_conn_m
+                q90_y_u = q90_m
+                y_scale = y_scale_m
+                y_u = y_flat.float() / y_scale
+            else:
+                g_conn = 0.0
+                q90_y_u = 0.1
+                y_scale = y_flat.float().abs().amax().clamp_min(1.0)
+                y_u = y_flat.float() / y_scale
+                if chart_weight > 0.0 and b_r >= 4:
+                    d_yy = torch.cdist(y_u, y_u, p=2.0)
+                    off_y = ~torch.eye(b_r, dtype=torch.bool, device=y_u.device)
+                    d_yy_nn = d_yy.masked_fill(~off_y, float("inf"))
+                    nn_y = d_yy_nn.amin(dim=-1)
+                    q90_t = torch.quantile(nn_y, 0.90).clamp_min(1e-8)
+                    q90_y_u = float(q90_t.clamp_min(1e-4).item())
+                    span_y = torch.quantile(d_yy[off_y], 0.90) / q90_t
+                    m_path = d_yy.clone()
+                    for _ in range(7):
+                        m_path = torch.minimum(
+                            m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
+                        )
+                    kappa_h0 = m_path.amax() / q90_t
+                    u_conn = ((10.0 - kappa_h0) / 3.0).clamp(0.0, 1.0)
+                    u_span = ((span_y - 1.15) / 0.25).clamp(0.0, 1.0)
+                    s_conn = u_conn * u_conn * (3.0 - 2.0 * u_conn)
+                    s_span = u_span * u_span * (3.0 - 2.0 * u_span)
+                    g_conn = float((s_conn * s_span).item())
 
             phi = float(getattr(record, "rhbi_chord_phase", 0.0)) if record is not None else 0.0
             n_q = max(4, b_r)
@@ -1046,12 +1165,40 @@ class RHBILoss(nn.Module):
                 x_verts = gen_fn(z_det).detach().reshape(m_p, -1)
 
         x_simp = gen_fn(z_simp).reshape(n_q, -1)
+
+        if (
+            g_macro > 1e-4
+            and self.thermal_tau > 0.0
+            and record is not None
+            and torch.is_grad_enabled()
+            and not getattr(record, "_in_protected_probe", False)
+            and b_r >= 4
+            and hasattr(record, "observe_rhbi_thermal")
+        ):
+            with torch.no_grad():
+                x_man = torch.cat([x_verts, x_simp.detach()], dim=0)
+                r_ed, r_mu_sq, r_spread, r_q90, r_hmax = self._split_two_sample_residuals(
+                    x_man, y_flat, ell=ell, cvx_mu_gain=self.cvx_mu_gain
+                )
+                s_obs = record.observe_rhbi_thermal(
+                    r_ed,
+                    r_mu_sq,
+                    r_spread,
+                    r_q90,
+                    r_hmax,
+                    self.thermal_tau * (1.0 + 0.25 * g_macro),
+                    shock_mu_ratio=self.thermal_shock_mu,
+                    r_tail=0.0,
+                )
+                _publish_thermal(record, y_real.device, s_obs)
+
         c_phys_sr, c_hat_sr = self._born_infeld_pair(x_simp, y_flat, ell)
         w_sr = torch.softmax(-c_hat_sr.float() / self.eps, dim=1).to(c_phys_sr.dtype)
         proj_loss = (w_sr * c_phys_sr).sum(dim=1).mean()
 
+        eff_iso = ((1.0 - g_macro) * float(iso_weight) + g_macro * 0.25) if g_macro > 1e-4 else float(iso_weight)
         iso_loss = proj_loss.new_zeros(())
-        if iso_weight > 0.0:
+        if eff_iso > 0.0:
             x_e = x_simp[:n_edge]
             d0_e = self._born_infeld_aligned(x_e, x_verts[v0_e], ell)
             d1_e = self._born_infeld_aligned(x_e, x_verts[v1_e], ell)
@@ -1078,7 +1225,31 @@ class RHBILoss(nn.Module):
                         ).clamp_min(0.0)
                         r_in = torch.sqrt(area_sq) / s_p.clamp_min(1e-8)
                         ell64 = ell.detach().clamp_min(1e-6).double()
-                        margin = (0.70 * (torch.sqrt(ell64.square() + r_in.square()) - ell64)).to(d0_t.dtype)
+                        margin_raw = 0.70 * (torch.sqrt(ell64.square() + r_in.square()) - ell64)
+                        if g_macro > 1e-4:
+                            zv0 = z_det[v0_t].double()
+                            zv1 = z_det[v1_t].double()
+                            zv2 = z_det[v2_t].double()
+                            zt64 = z_tri.detach().double()
+                            z_diam = torch.maximum(
+                                torch.maximum(
+                                    torch.linalg.vector_norm(zv0 - zv1, ord=2, dim=-1),
+                                    torch.linalg.vector_norm(zv1 - zv2, ord=2, dim=-1),
+                                ),
+                                torch.linalg.vector_norm(zv2 - zv0, ord=2, dim=-1),
+                            ).clamp_min(1e-8)
+                            z_min_d = torch.minimum(
+                                torch.minimum(
+                                    torch.linalg.vector_norm(zt64 - zv0, ord=2, dim=-1),
+                                    torch.linalg.vector_norm(zt64 - zv1, ord=2, dim=-1),
+                                ),
+                                torch.linalg.vector_norm(zt64 - zv2, ord=2, dim=-1),
+                            )
+                            u_fat = ((z_min_d / z_diam - 0.12) / 0.10).clamp(0.0, 1.0)
+                            eta_fat = u_fat * u_fat * (3.0 - 2.0 * u_fat)
+                            margin = ((1.0 - g_macro + g_macro * eta_fat) * margin_raw).to(d0_t.dtype)
+                        else:
+                            margin = margin_raw.to(d0_t.dtype)
                     else:
                         e01 = self._born_infeld_aligned(x_verts[v0_t], x_verts[v1_t], ell)
                         e12 = self._born_infeld_aligned(x_verts[v1_t], x_verts[v2_t], ell)
@@ -1092,7 +1263,7 @@ class RHBILoss(nn.Module):
             else:
                 iso_loss = iso_edge
 
-        total = proj_loss + float(iso_weight) * iso_loss
+        total = proj_loss + eff_iso * iso_loss
 
         if g_conn > 1e-4 and chart_weight > 0.0:
             if x_verts_live is not None:

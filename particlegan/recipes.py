@@ -37,6 +37,8 @@ try:
         rhbi_simplex_weight=0.0,
         rhbi_cvx_mu_gain=0.40,
         rhbi_simplex_chart_weight=0.0,
+        rhbi_tail_spill_gain=0.0,
+        rhbi_simplex_macro_settle=False,
     )
 except (ImportError, ValueError):
     pass
@@ -352,6 +354,8 @@ class Recipe:
     rhbi_simplex_weight: float = 0.0
     rhbi_cvx_mu_gain: float = 0.40
     rhbi_simplex_chart_weight: float = 0.0
+    rhbi_tail_spill_gain: float = 0.0
+    rhbi_simplex_macro_settle: bool = False
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -603,6 +607,7 @@ class Recipe:
             ("rhbi_simplex_weight", False),
             ("rhbi_cvx_mu_gain", True),
             ("rhbi_simplex_chart_weight", False),
+            ("rhbi_tail_spill_gain", False),
         ):
             rhbi_val = getattr(self, rhbi_name)
             if type(rhbi_val) not in (int, float) or not math.isfinite(rhbi_val) or (
@@ -634,6 +639,8 @@ class Recipe:
             raise ValueError("rhbi_scale_log_odds must be a boolean")
         if type(self.rhbi_akt_horizon) is not bool:
             raise ValueError("rhbi_akt_horizon must be a boolean")
+        if type(self.rhbi_simplex_macro_settle) is not bool:
+            raise ValueError("rhbi_simplex_macro_settle must be a boolean")
         if self.rhbi_beta_ell > 1.0:
             raise ValueError("rhbi_beta_ell must be in (0, 1]")
         if type(self.rhbi_nn_quantile) not in (int, float) or not (0.0 < self.rhbi_nn_quantile < 1.0):
@@ -1002,6 +1009,8 @@ class Recipe:
                 cond_ot_weight=self.rhbi_cond_ot_weight,
                 cond_ot_mode=self.rhbi_cond_ot_mode,
                 cvx_mu_gain=self.rhbi_cvx_mu_gain,
+                tail_spill_gain=self.rhbi_tail_spill_gain,
+                simplex_macro_settle=self.rhbi_simplex_macro_settle,
             )
         if self.effective_critic_formulation == "bispf" and self.loss == "relativistic":
             from .bispf import SinkhornRelativisticLoss

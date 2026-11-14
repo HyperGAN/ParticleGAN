@@ -77,6 +77,8 @@ class RHBIGANLoss(GANLoss):
         cond_ot_weight: float = 0.0,
         cond_ot_mode: str = "kernel_ed",
         cvx_mu_gain: float = 0.40,
+        tail_spill_gain: float = 0.0,
+        simplex_macro_settle: bool = False,
         record: Any = None,
     ) -> None:
         super().__init__(loss, labels=labels)
@@ -131,6 +133,8 @@ class RHBIGANLoss(GANLoss):
             thermal_tau=thermal_tau,
             thermal_shock_mu=thermal_shock_mu,
             cvx_mu_gain=cvx_mu_gain,
+            tail_spill_gain=tail_spill_gain,
+            simplex_macro_settle=simplex_macro_settle,
         )
         self.last_metrics: Dict[str, float] = {}
 

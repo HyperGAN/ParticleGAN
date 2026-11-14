@@ -1441,3 +1441,208 @@ def test_rhbi_v9_cvx_mu_gain_and_connected_chart_simplex():
     for pa, pb in zip(Da.parameters(), Db.parameters()):
         assert torch.equal(pa, pb)
     assert torch.equal(Pa.z, Pb.z)
+
+
+def test_rhbi_v10_tail_spill_and_macro_simplicial_settle():
+    """Verify 6th-channel inter-mode valley tail-spill EMA, schema-3 checkpointing, frozen-prior control, and macro-simplicial settling."""
+    from particlegan.particle_prior import MoGParticlePrior
+    from particlegan.rhbi import _RHBIObserverStepRecord
+
+    with pytest.raises(ValueError, match="rhbi_tail_spill_gain"):
+        get_recipe("rhbi", rhbi_tail_spill_gain=-0.1)
+    with pytest.raises(ValueError, match="rhbi_tail_spill_gain"):
+        get_recipe("rhbi", rhbi_tail_spill_gain=True)
+    with pytest.raises(ValueError, match="rhbi_simplex_macro_settle"):
+        get_recipe("rhbi", rhbi_simplex_macro_settle=1)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="tail_spill_gain"):
+        RHBILoss(tail_spill_gain=-0.05)
+    with pytest.raises(ValueError, match="simplex_macro_settle"):
+        RHBILoss(simplex_macro_settle="yes")  # type: ignore[arg-type]
+
+    op_val = RHBILoss(weight=1.0)
+    with pytest.raises(ValueError, match="simplicial_active"):
+        op_val.bind_discrete_prior_step(True, simplicial_active=1)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="macro_settle"):
+        op_val.simplicial_manifold_loss(
+            torch.randn(4, 2),
+            lambda z: z,
+            torch.randn(4, 2),
+            macro_settle="yes",  # type: ignore[arg-type]
+        )
+
+    # 1. Schema-3 observer checkpointing + RHBIStepRecord ema_tail validation + rejection of schema-2 checkpoints
+    obs_rec = _RHBIObserverStepRecord()
+    obs_rec.observe_rhbi_thermal(0.01, 0.001, 0.0, 0.01, 0.01, 0.084, r_tail=0.12)
+    obs_sd = deepcopy(obs_rec.state_dict())
+    assert obs_sd["rhbi"]["schema"] == 3
+    assert obs_sd["rhbi"]["ema_tail"] == pytest.approx(0.12)
+    obs_restored = _RHBIObserverStepRecord()
+    obs_restored.load_state_dict(obs_sd)
+    assert obs_restored.rhbi_ema_tail == pytest.approx(0.12)
+    assert deepcopy(obs_restored).rhbi_ema_tail == pytest.approx(0.12)
+
+    bad_schema2 = deepcopy(obs_sd)
+    bad_schema2["rhbi"]["schema"] = 2
+    with pytest.raises(ValueError, match="invalid RHBI observer metadata"):
+        _RHBIObserverStepRecord().load_state_dict(bad_schema2)
+    bad_missing_tail = deepcopy(obs_sd)
+    del bad_missing_tail["rhbi"]["ema_tail"]
+    with pytest.raises(ValueError, match="invalid RHBI observer metadata"):
+        _RHBIObserverStepRecord().load_state_dict(bad_missing_tail)
+
+    step_rec = RHBIStepRecord()
+    step_rec.observe_rhbi_thermal(0.01, 0.001, 0.0, -0.02, 0.01, 0.084, r_tail=-0.03)
+    step_sd = deepcopy(step_rec.state_dict())
+    assert step_sd["ema_tail"] == pytest.approx(-0.03)
+    step_restored = RHBIStepRecord()
+    step_restored.load_state_dict(step_sd)
+    assert step_restored.rhbi_ema_tail == pytest.approx(-0.03)
+    assert deepcopy(step_restored).rhbi_ema_tail == pytest.approx(-0.03)
+    bad_step = deepcopy(step_sd)
+    del bad_step["ema_tail"]
+    with pytest.raises(ValueError, match="invalid RHBI controller state keys"):
+        RHBIStepRecord().load_state_dict(bad_step)
+
+    # 2. Zero-strength bypass resets both step flags cleanly
+    op_zero = RHBILoss(weight=0.0, tail_spill_gain=1.8, simplex_macro_settle=True)
+    op_zero.bind_discrete_prior_step(True, simplicial_active=True)
+    _ = op_zero(torch.randn(8, 2, requires_grad=True), torch.randn(8, 2), torch.zeros(8, requires_grad=True), torch.zeros(8))
+    assert op_zero._discrete_prior_step is False
+    assert op_zero._simplicial_active_step is False
+
+    # 3. Valley gate & 6th-channel tail-spill EMA: exact 0.0 on convex unimodal Gaussian, >0 on separated modes
+    g_rng = torch.Generator().manual_seed(920)
+    y_gauss = torch.randn(64, 2, generator=g_rng)
+    assert RHBILoss._compute_valley_gate(y_gauss, torch.tensor(0.35), 3.0) == 0.0
+
+    centers = (torch.arange(64) % 2).float().unsqueeze(1) * 12.0 - 6.0
+    y_sep = torch.cat([centers, torch.zeros_like(centers)], dim=-1) + 0.15 * torch.randn(64, 2, generator=g_rng)
+    w_val = RHBILoss._compute_valley_gate(y_sep, torch.tensor(0.20), 3.0)
+    assert w_val > 0.9
+
+    # 93% inside modes (prec_q75 <= 0) + 7% inter-mode valley bridges (prec_q96 >> 0):
+    # tail_spill_gain=0.0 cools prematurely while tail_spill_gain=1.8 holds s_therm == 1.0, with zero RNG consumption
+    x_bridged = y_sep.clone()
+    x_bridged[:4] = torch.tensor([0.0, 0.0])  # 4/64 = 6.25% bridge points in deep inter-mode valley
+    op_v9_th = RHBILoss(weight=1.0, rho=3.0, rapidity_screening=False, thermal_tau=0.084, tail_spill_gain=0.0)
+    op_v10_th = RHBILoss(weight=1.0, rho=3.0, rapidity_screening=False, thermal_tau=0.084, tail_spill_gain=1.8)
+    rec_v9 = RHBIStepRecord()
+    rec_v10 = RHBIStepRecord()
+    rng_before = torch.get_rng_state()
+    for _ in range(15):
+        xb9 = x_bridged.detach().clone().requires_grad_(True)
+        xb10 = x_bridged.detach().clone().requires_grad_(True)
+        op_v9_th(xb9, y_sep, torch.zeros(64, requires_grad=True), torch.zeros(64), record=rec_v9)[0].backward()
+        op_v10_th(xb10, y_sep, torch.zeros(64, requires_grad=True), torch.zeros(64), record=rec_v10)[0].backward()
+    assert torch.equal(torch.get_rng_state(), rng_before)
+    assert rec_v9.rhbi_thermal_scale < 0.05
+    assert rec_v10.rhbi_thermal_scale == pytest.approx(1.0)
+    assert rec_v10.rhbi_ema_tail > 0.084
+
+    # 4. Semantic control: frozen discrete ParticlePrior (z.requires_grad == False) never defers thermal observation
+    u_grid = torch.linspace(-1.0, 1.0, 8)
+    uu, vv = torch.meshgrid(u_grid, u_grid, indexing="ij")
+    y_saddle = torch.stack([uu.reshape(-1), vv.reshape(-1), (uu * vv).reshape(-1)], dim=-1)
+    _, g_macro_saddle, _, _ = RHBILoss._compute_manifold_gates(y_saddle)
+    assert g_macro_saddle > 0.5
+    _, g_macro_sep, _, _ = RHBILoss._compute_manifold_gates(y_sep)
+    assert g_macro_sep == 0.0
+
+    r_frozen = get_recipe(
+        "rhbi",
+        prior_update="frozen",
+        constraint_geometry_mode="none",
+        rhbi_thermal_tau=0.084,
+        rhbi_simplex_weight=0.35,
+        rhbi_simplex_chart_weight=4.0,
+        rhbi_simplex_macro_settle=True,
+        total_steps=4,
+        batch_size=64,
+        num_particles=16,
+        z_dim=2,
+    )
+    Gf, Df, _ = _make_mlp_pair(x_dim=3, seed=921)
+    Pf = ParticlePrior(num_particles=16, z_dim=2)
+    tf = GANTrainer(r_frozen, Gf, Df, prior=Pf, seed=0)
+    tf.step(y_saddle)
+    assert tf.opt_d.record.rhbi_thermal_initialized is True
+
+    # 5. Exact GANTrainer checkpoint continuation parity across active rhbi-v10 mechanisms (MoG + macro saddle sheet)
+    r_mog_v10 = get_recipe(
+        "rhbi",
+        prior_kind="mog",
+        sigma_rel=0.05,
+        standardize=True,
+        constraint_geometry_mode="none",
+        rhbi_rho=3.0,
+        rhbi_rapidity_screening=False,
+        rhbi_thermal_tau=0.084,
+        rhbi_tail_spill_gain=1.8,
+        total_steps=6,
+        batch_size=16,
+        num_particles=16,
+        z_dim=2,
+    )
+    mog_batches = [
+        torch.cat(
+            [
+                ((torch.arange(16) % 2).float().unsqueeze(1) * 10.0 - 5.0),
+                torch.zeros(16, 1),
+            ],
+            dim=-1,
+        )
+        + 0.1 * torch.randn(16, 2, generator=torch.Generator().manual_seed(930 + k))
+        for k in range(4)
+    ]
+    Gm1, Dm1, _ = _make_mlp_pair(seed=935)
+    Pm1 = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=True)
+    with torch.no_grad():
+        Pm1.z.normal_(0.0, 1.0, generator=torch.Generator().manual_seed(936))
+    Gm2, Dm2, _ = _make_mlp_pair(seed=935)
+    Pm2 = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=True)
+    tm1 = GANTrainer(r_mog_v10, Gm1, Dm1, prior=Pm1, seed=0)
+    for b in mog_batches[:2]:
+        tm1.step(b)
+    assert tm1.opt_d.record.rhbi_ema_tail != 0.0
+    ckpt_mog = deepcopy(tm1.state_dict())
+    for b in mog_batches[2:]:
+        tm1.step(b)
+    tm2 = GANTrainer(r_mog_v10, Gm2, Dm2, prior=Pm2, seed=11)
+    tm2.load_state_dict(ckpt_mog)
+    for b in mog_batches[2:]:
+        tm2.step(b)
+    for p1, p2 in zip(Gm1.parameters(), Gm2.parameters()):
+        assert torch.equal(p1, p2)
+    assert torch.equal(Pm1.z, Pm2.z)
+
+    r_sad_v10 = get_recipe(
+        "rhbi",
+        constraint_geometry_mode="none",
+        rhbi_thermal_tau=0.084,
+        rhbi_simplex_weight=0.35,
+        rhbi_simplex_chart_weight=4.0,
+        rhbi_simplex_macro_settle=True,
+        total_steps=6,
+        batch_size=64,
+        num_particles=16,
+        z_dim=2,
+    )
+    Gs1, Ds1, _ = _make_mlp_pair(x_dim=3, seed=940)
+    Ps1 = ParticlePrior(num_particles=16, z_dim=2)
+    with torch.no_grad():
+        Ps1.z.normal_(0.0, 1.0, generator=torch.Generator().manual_seed(941))
+    Gs2, Ds2, _ = _make_mlp_pair(x_dim=3, seed=940)
+    Ps2 = ParticlePrior(num_particles=16, z_dim=2)
+    ts1 = GANTrainer(r_sad_v10, Gs1, Ds1, prior=Ps1, seed=0)
+    for k in range(2):
+        ts1.step(y_saddle + 0.01 * float(k))
+    ckpt_sad = deepcopy(ts1.state_dict())
+    for k in range(2, 4):
+        ts1.step(y_saddle + 0.01 * float(k))
+    ts2 = GANTrainer(r_sad_v10, Gs2, Ds2, prior=Ps2, seed=13)
+    ts2.load_state_dict(ckpt_sad)
+    for k in range(2, 4):
+        ts2.step(y_saddle + 0.01 * float(k))
+    for p1, p2 in zip(Gs1.parameters(), Gs2.parameters()):
+        assert torch.equal(p1, p2)
+    assert torch.equal(Ps1.z, Ps2.z)

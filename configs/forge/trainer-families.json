@@ -683,12 +683,14 @@
         "rhbi-v6",
         "rhbi-v7",
         "rhbi-v8",
-        "rhbi-v9"
+        "rhbi-v9",
+        "rhbi-v10",
+        "rhbi-v11"
       ],
-      "canonical_candidate": "rhbi-v9",
+      "canonical_candidate": "rhbi-v11",
       "id": "rhbi",
       "label": "RHBI",
-      "rationale": "Relativistic Hellinger-Born-Infeld Transport: clock-free slack-screened unbalanced Sinkhorn variational operator with Poisson-Weibull Ajtai-Komlos-Tusnady empirical OT horizon scaling, overflow-safe float64 Born-Infeld costs, linear horizon screening (rho=3.0) with slack-gain critic boost, S=2 Kantorovich-Hellinger slack Sinkhorn, discrete-codebook clone-deduplicated Feydy self-coupling debiasing (feydy_discrete), Pareto-protected Weyl-stratified k-NN 1-simplex/2-simplex Born-Infeld manifold regularization with H_0-persistence connected-manifold geodesic chart alignment, Weyl-phased balanced Born-Infeld geodesic chord and thermally coupled settling endpoint Lipschitz cap with zero-mean critic gauge, shock-safe convex-unimodal 5-channel Kantorovich-Hellinger thermal equilibrium controller, SBNP particle prior regularization (0.02), joint relativistic BiGAN coupling, fibre-centered paired relativistic + hollow multi-scale IMQ conditional MMD fibre transport, and batched-PCIe polar_cpu_v1 DualNorm under constant learning rates.",
+      "rationale": "Relativistic Hellinger-Born-Infeld Transport: clock-free slack-screened unbalanced Sinkhorn variational operator with Poisson-Weibull Ajtai-Komlos-Tusnady empirical OT horizon scaling, overflow-safe float64 Born-Infeld costs, linear horizon screening (rho=3.0) with slack-gain critic boost, S=2 Kantorovich-Hellinger slack Sinkhorn, discrete-codebook clone-deduplicated Feydy self-coupling debiasing (feydy_discrete), Pareto-protected Weyl-stratified k-NN 1-simplex/2-simplex Born-Infeld manifold regularization with H_0-persistence connected-manifold geodesic chart alignment and wide-span macro-simplicial settling, Weyl-phased balanced Born-Infeld geodesic chord and thermally coupled settling endpoint Lipschitz cap with zero-mean critic gauge, shock-safe convex-unimodal + inter-mode valley tail-spill 6-channel Kantorovich-Hellinger thermal equilibrium controller, SBNP particle prior regularization (0.02), joint relativistic BiGAN coupling, fibre-centered paired relativistic + hollow multi-scale IMQ conditional MMD fibre transport, and batched-PCIe polar_cpu_v1 DualNorm under constant learning rates.",
       "tags": [
         "adversarial-training",
         "capped-input-gradients",

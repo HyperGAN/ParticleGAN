@@ -153,7 +153,9 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "rhbi_settle_beta": 0.0, "rhbi_settle_mode": "residual",
                         "rhbi_fibre_rel_blend": 0.0, "rhbi_step_damp": 0.0,
                         "rhbi_cond_ot_weight": 0.0, "rhbi_cond_ot_mode": "kernel_ed",
-                        "rhbi_simplex_weight": 0.0}
+                        "rhbi_simplex_weight": 0.0, "rhbi_cvx_mu_gain": 0.40,
+                        "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
+                        "rhbi_simplex_macro_settle": False}
 
 
 class GANTrainer:
@@ -554,7 +556,18 @@ class GANTrainer:
             if hasattr(self.opt_g, "bind_origin_sample"):
                 self.opt_g.bind_origin_sample(fake_g)
             if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
-                self.loss.rhbi.bind_discrete_prior_step(self.prior_noise_generator is None)
+                simplicial_active = (
+                    recipe.rhbi_simplex_weight > 0.0
+                    and recipe.rhbi_simplex_chart_weight > 0.0
+                    and recipe.rhbi_simplex_macro_settle
+                    and self.prior_noise_generator is None
+                    and self.prior.z.requires_grad
+                    and len(self.prior.z) >= 2
+                )
+                self.loss.rhbi.bind_discrete_prior_step(
+                    self.prior_noise_generator is None,
+                    simplicial_active=simplicial_active,
+                )
             fake_logits = critic(fake_g)
             real_g = generator_real() if callable(generator_real) else generator_real
             real_g = real if real_g is None else self._batch(real_g, "generator_real")
@@ -607,6 +620,7 @@ class GANTrainer:
                     real_g,
                     record=getattr(self.opt_d, "record", None),
                     chart_weight=recipe.rhbi_simplex_chart_weight,
+                    macro_settle=recipe.rhbi_simplex_macro_settle,
                 )
                 loss_g = loss_g + simplex_loss
             self.opt_g.zero_grad()

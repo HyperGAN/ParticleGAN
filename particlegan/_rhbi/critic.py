@@ -206,6 +206,7 @@ class _RHBIRecordThermalMixin:
         self.rhbi_ema_spread: float = 0.0
         self.rhbi_ema_q90: float = 1.0
         self.rhbi_ema_hmax: float = 1.0
+        self.rhbi_ema_tail: float = 0.0
         self._thermal_scale: float = 1.0
         self.legacy_thermal_channel: bool = True
 
@@ -217,6 +218,7 @@ class _RHBIRecordThermalMixin:
             0.60 * abs(float(self.rhbi_ema_spread)),
             max(0.0, float(self.rhbi_ema_q90)),
             max(0.0, float(self.rhbi_ema_hmax)),
+            max(0.0, float(self.rhbi_ema_tail)),
         )
 
     @property
@@ -242,12 +244,14 @@ class _RHBIRecordThermalMixin:
         ema_decay: float = 0.96,
         s_min: float = 1e-6,
         shock_mu_ratio: float = 0.15,
+        r_tail: float = 0.0,
     ) -> float:
         ed_f = float(r_ed)
         mu_sq_f = float(r_mu_sq)
         spread_f = float(r_spread)
         q90_f = float(r_q90)
         hmax_f = float(r_hmax)
+        tail_f = float(r_tail)
         tau_f = float(tau)
         tau_pos = max(0.0, tau_f)
         cap_lin = max(0.20, 2.0 * tau_pos)
@@ -258,6 +262,7 @@ class _RHBIRecordThermalMixin:
         spread_c = max(-cap_lin, min(spread_f, cap_lin))
         q90_c = max(-cap_lin, min(q90_f, cap_lin))
         hmax_c = max(-cap_lin, min(hmax_f, cap_lin))
+        tail_c = max(-cap_lin, min(tail_f, cap_lin))
         shock_ed_thresh = max(0.30, 4.0 * tau_pos * tau_pos)
         shock_mu_thresh = float(shock_mu_ratio) * shock_ed_thresh
         if not self.rhbi_thermal_initialized or (
@@ -268,6 +273,7 @@ class _RHBIRecordThermalMixin:
             self.rhbi_ema_spread = spread_c
             self.rhbi_ema_q90 = q90_c
             self.rhbi_ema_hmax = hmax_c
+            self.rhbi_ema_tail = tail_c
             self.rhbi_thermal_initialized = True
         else:
             self.rhbi_ema_ed = ema_decay * self.rhbi_ema_ed + (1.0 - ema_decay) * ed_c
@@ -275,6 +281,7 @@ class _RHBIRecordThermalMixin:
             self.rhbi_ema_spread = ema_decay * self.rhbi_ema_spread + (1.0 - ema_decay) * spread_c
             self.rhbi_ema_q90 = ema_decay * self.rhbi_ema_q90 + (1.0 - ema_decay) * q90_c
             self.rhbi_ema_hmax = ema_decay * self.rhbi_ema_hmax + (1.0 - ema_decay) * hmax_c
+            self.rhbi_ema_tail = ema_decay * self.rhbi_ema_tail + (1.0 - ema_decay) * tail_c
         if tau_f <= 0.0:
             self._thermal_scale = 1.0
             return 1.0
@@ -306,6 +313,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         "ema_spread",
         "ema_q90",
         "ema_hmax",
+        "ema_tail",
         "thermal_scale",
     })
 
@@ -338,7 +346,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         return {
             **super().state_dict(),
             "rhbi": {
-                "schema": 2,
+                "schema": 3,
                 "ell_ema": float(self.rhbi_ell_ema),
                 "ell_initialized": bool(self.rhbi_ell_initialized),
                 "chord_phase": float(self.rhbi_chord_phase),
@@ -348,6 +356,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
                 "ema_spread": float(self.rhbi_ema_spread),
                 "ema_q90": float(self.rhbi_ema_q90),
                 "ema_hmax": float(self.rhbi_ema_hmax),
+                "ema_tail": float(self.rhbi_ema_tail),
                 "thermal_scale": float(self._thermal_scale),
             },
         }
@@ -363,7 +372,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             not isinstance(observer, dict)
             or set(observer) != _RHBIObserverStepRecord._RHBI_PACKET_KEYS
             or type(observer["schema"]) is not int
-            or observer["schema"] != 2
+            or observer["schema"] != 3
             or type(observer["ell_initialized"]) is not bool
             or type(observer["thermal_initialized"]) is not bool
         ):
@@ -372,7 +381,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             fval = observer[key]
             if isinstance(fval, bool) or not isinstance(fval, (int, float)) or not math.isfinite(fval) or fval < 0.0:
                 raise ValueError(f"invalid RHBI observer {key}")
-        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax"):
+        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail"):
             sval = observer[key]
             if isinstance(sval, bool) or not isinstance(sval, (int, float)) or not math.isfinite(sval):
                 raise ValueError(f"invalid RHBI observer {key}")
@@ -395,6 +404,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         self.rhbi_ema_spread = float(observer["ema_spread"])
         self.rhbi_ema_q90 = float(observer["ema_q90"])
         self.rhbi_ema_hmax = float(observer["ema_hmax"])
+        self.rhbi_ema_tail = float(observer["ema_tail"])
         self._thermal_scale = float(observer["thermal_scale"])
         self._capture_ring = OrderedDict()
 
@@ -416,6 +426,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         dup.rhbi_ema_spread = self.rhbi_ema_spread
         dup.rhbi_ema_q90 = self.rhbi_ema_q90
         dup.rhbi_ema_hmax = self.rhbi_ema_hmax
+        dup.rhbi_ema_tail = self.rhbi_ema_tail
         dup._thermal_scale = self._thermal_scale
         dup.legacy_thermal_channel = self.legacy_thermal_channel
         dup._in_penalty = self._in_penalty
@@ -444,6 +455,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         "ema_spread",
         "ema_q90",
         "ema_hmax",
+        "ema_tail",
         "thermal_scale",
     )
 
@@ -492,6 +504,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             "ema_spread": float(self.rhbi_ema_spread),
             "ema_q90": float(self.rhbi_ema_q90),
             "ema_hmax": float(self.rhbi_ema_hmax),
+            "ema_tail": float(self.rhbi_ema_tail),
             "thermal_scale": float(self._thermal_scale),
         }
 
@@ -509,7 +522,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
                 continue
             if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or value < 0.0:
                 raise ValueError(f"invalid RHBI controller {key}")
-        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax"):
+        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail"):
             sval = state[key]
             if isinstance(sval, bool) or not isinstance(sval, (float, int)) or not math.isfinite(sval):
                 raise ValueError(f"invalid RHBI controller {key}")
@@ -538,6 +551,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         self.rhbi_ema_spread = float(state["ema_spread"])
         self.rhbi_ema_q90 = float(state["ema_q90"])
         self.rhbi_ema_hmax = float(state["ema_hmax"])
+        self.rhbi_ema_tail = float(state["ema_tail"])
         self._thermal_scale = float(state["thermal_scale"])
         self._capture_ring = OrderedDict()
 
@@ -559,6 +573,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         dup.rhbi_ema_spread = self.rhbi_ema_spread
         dup.rhbi_ema_q90 = self.rhbi_ema_q90
         dup.rhbi_ema_hmax = self.rhbi_ema_hmax
+        dup.rhbi_ema_tail = self.rhbi_ema_tail
         dup._thermal_scale = self._thermal_scale
         dup.legacy_thermal_channel = self.legacy_thermal_channel
         dup._in_penalty = self._in_penalty
@@ -624,8 +639,11 @@ def _attach_rhbi_critic_hook(critic: nn.Module, record: CriticStepRecord) -> Non
         record.rhbi_ema_spread = 0.0
         record.rhbi_ema_q90 = 1.0
         record.rhbi_ema_hmax = 1.0
+        record.rhbi_ema_tail = 0.0
         record._thermal_scale = 1.0
         record.legacy_thermal_channel = True
+    if not hasattr(record, "rhbi_ema_tail"):
+        record.rhbi_ema_tail = 0.0
     if getattr(record, "legacy_thermal_channel", True):
         _LEGACY_THERMAL_CHANNEL.clear()
     if not hasattr(record, "_in_penalty"):

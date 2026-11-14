@@ -82,6 +82,8 @@ def _archived_inactive_comparison_scope(module, directory):
         "rhbi_simplex_weight": 0.0,
         "rhbi_cvx_mu_gain": 0.40,
         "rhbi_simplex_chart_weight": 0.0,
+        "rhbi_tail_spill_gain": 0.0,
+        "rhbi_simplex_macro_settle": False,
     }
     tail = '    "training_precision": "float32",\n}\n'
     assert adapted.decode().count(tail) == 1

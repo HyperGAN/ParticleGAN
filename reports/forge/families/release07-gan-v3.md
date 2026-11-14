@@ -116,20 +116,20 @@ Every cell is one run; timings are never pooled across devices or contention sta
 
 This registration covers 10 complete recipes. Historical alternatives outside its registered family roster add no missing benchmark cells. A changed selected recipe within a registered family remains unknown until measured.
 
-### NVIDIA RTX A6000 · GPU-ed080e41-3193-3755-6756-f3d46c433331
+### NVIDIA RTX A6000 · GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce
 
-Performance source `6746cc085bff` (commit `eb9d06f77b0bf4d7aa8948cb6899def81d96d2d3`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48589.125 MiB device memory.
+Performance source `28267be05193` (commit `5a6af38465597761d0b6a00a6243910565850d35`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
 
 Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-table performance exception retains each recipe's prior update policy and regularizer. Exact prior and resource specifications remain part of every task key.
 
 | Family / recipe | Task (RGB size, batch, width) | Execution | Median / p95 update ms | Images/s | GPU peak allocated / reserved MiB | Contention | Matched key / evidence |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 9.75 / 10.37 | 1,626.20 | 93.52 / 106.00 | clear | `9643cd6ed6f3` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_r32-9aeb0d3b847123a7.json) |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 24.77 / 25.57 | 639.87 | 271.54 / 296.00 | clear | `5bda3f73df42` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_r64-ce68750ae8cb18a6.json) |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 54.74 / 55.05 | 292.34 | 747.93 / 778.00 | clear | `a757270344ca` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_w128-b4191b7454a5cccb.json) |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 61.14 / 61.84 | 1,048.21 | 622.04 / 666.00 | clear | `57d8c1536ee1` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_b64-fba5e2c5ac1ef62a.json) |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 70.76 / 71.25 | 226.08 | 773.08 / 814.00 | clear | `337cf979766e` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_r128-a2bbabd03a036e33.json) |
-| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 249.08 / 250.14 | 64.22 | 2,339.15 / 2,450.00 | clear | `5d63ddb9b65c` · [receipt](../scaling-receipts/dcgan-performance-cloud-2ebe5d77de1d/release07-gan-v3-dcgan_performance_r256-ac5f6315d785cc20.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 9.64 / 9.71 | 1,659.00 | 93.52 / 106.00 | clear | `d56240d15558` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_r32-77225cfd705550b8.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 25.66 / 25.85 | 630.46 | 271.54 / 296.00 | clear | `524c07acf3db` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_r64-e80218dfae06406a.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 55.25 / 55.59 | 289.46 | 747.93 / 778.00 | clear | `7ca95dbe0fca` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_w128-177c0c4f08834ec1.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 61.33 / 62.41 | 1,041.70 | 622.04 / 666.00 | clear | `0c19272217b1` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_b64-f6b799919c56e853.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 71.41 / 72.41 | 223.68 | 773.08 / 814.00 | clear | `1b8df8094599` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_r128-e68530c436248bb1.json) |
+| GAN v3 release 0.7 · `recipe-prior-refactor-release07-gan-v3-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 251.37 / 252.53 | 63.60 | 2,339.15 / 2,450.00 | clear | `c4765c66fb33` · [receipt](../scaling-receipts/dcgan-performance-cloud-759e40be701e/release07-gan-v3-dcgan_performance_r256-b39dd1ed17a1b365.json) |
 
 <a name="cohort-cuda-1bf9d7d34422"></a>
 

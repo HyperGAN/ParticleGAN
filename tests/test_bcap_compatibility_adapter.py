@@ -57,8 +57,8 @@ def test_scoped_adapter_reaches_subprocess_program_and_restores_on_failure(tmp_p
             assert {name: defaults[name] for name in module.INACTIVE_DEFAULTS} == module.INACTIVE_DEFAULTS
             receipt = json.loads((tmp_path / "adapter-receipt.json").read_text())
             checked = receipt["checked_inactive_defaults"]
-            # 19 archived/review defaults, two later scalar defaults, plus 31 inactive RHBI defaults.
-            assert len(checked) == 52
+            # 19 archived/review defaults, two later scalar defaults, plus 33 inactive RHBI defaults.
+            assert len(checked) == 54
             assert checked["ebi_beta"] == 30.0 and checked["kappa_radial"] == 1.0
             assert checked["training_precision"] == "float32"
             assert checked["bispf_gate_overrides"] == [] and defaults["bispf_gate_overrides"] == ()
