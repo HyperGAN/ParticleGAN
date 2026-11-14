@@ -1,5 +1,13 @@
 # What actually worked: Forge leaderboard work, 2026-10-02 to 2026-10-15
 
+<!-- superseded-banner: generated -->
+> Historical review with follow-ups through 2026-10-16. Counts and recommendations below describe those dates.
+> See the [current technique inventory](technique-inventory.md) for current status.
+> Concluded negative studies retain their evidence in the immutable readouts linked below; their trainer patches
+> are not adopted. The longer-budget adoption is tracked separately in [PR #440](https://github.com/255BITS/ParticleGAN/pull/440).
+
+*Follow-up experiments: round 1 in §6, round 2 (2026-10-16) in §7, decisions needed in §7.6.*
+
 A read-only review of the work since the Forge leaderboard was centralised (#232, 2026-10-02): about 190 PRs (#219 to #423) and the local experiment directories under `/ml2/hypergan`. Five independent reviewers each covered one area: the BCAP selected recipe, BCAP research recipes, Atlas/E22, the other families plus test and harness changes, and a test-by-test pass matrix built from `attempt-coverage.json`. The key claims were then re-checked against the PRs and the code. No experiments were run for this review.
 
 **Summary.** A handful of trainer changes produced real, matched gains. A large share of the Tier 1 movement came from redefining tests rather than from trainer changes. Most research directions after 10-09 repaired one test and broke another. Every result is a single seed (seed 0), and several margins are thin.
@@ -48,6 +56,7 @@ BISPF (#415) scores 77/152 against BCAP's 71/152. That gap is a single test, `mo
 - BISPF uses the same strength (`prior_reg=0.01`, `prior_regularizer=sbnp`). Its SBNP regularizer returns zero when the prior has at most `2*k_nn + d` rows (`particlegan/bispf.py:172-176`), which exempts the 5-row word table.
 - The likely cause of the gain is therefore the tether plus the exemption, not the Born-Infeld chord regularizer, the Sinkhorn chords or harmonic capture. **No ablation has been run.**
   - *Update 2026-10-16: the ablation has now been run and this guess did not hold up (§6.1). On seed 0, the tether alone does not reproduce BISPF's mode_hold pass.*
+  - *Update 2026-10-16, round 2: the harmonic/thermal capture factor is not the link either (§7.5). On BCAP + tether, adding BISPF's small Sinkhorn chord term alone gives the pass, but other single parts also do, which looks like trajectory sensitivity rather than one mechanism. On current source, BISPF still passes mode_hold and BCAP still fails it, by two checks, not one (§7.1).*
 - #415's headline omits that rotated100 precision drops (0.290 → 0.266); grid100 (0.258 → 0.370) and staggered100 (0.300 → 0.342) improve.
 - #393 explains the mode_hold-versus-word trade-off. The fixed tether's force relative to the adversarial force grows from 0.011 to 0.075 to 0.341 as the word adversarial signal shrinks. The proposed relative-force limit has not been run.
 
@@ -126,24 +135,24 @@ The binding conflict: **no recipe that passes ring16 passes any held test that s
 
 ## 5. Where to dig next
 
-*Updated 2026-10-16 after the follow-up experiments in §6. All five original leads have been run once (seed 0). Four came back REFUTED and the hygiene pass was completed. None of the four trainer leads produced a new pass.*
+*Updated 2026-10-16 after round 2 (§7). Round 1 (§6) ran the five original leads; round 2 ran five more. Every result is seed 0 only.*
 
 What is now answered:
 
-1. **BISPF ablation: answered, guess refuted.** The tether alone on BCAP does not pass mode_hold, and BISPF without its tether fails too (§6.1).
-2. **Relative-force tether: refuted at rho=0.03.** It lost both mode_hold and ring16. The #393 word-hold question was never reached (§6.2).
-3. **Progress-driven schedule for K3P: refuted.** Every K3P schedule fails ring16 inside 1,600 updates, including one that never anneals. The horizon cap is the binding constraint, not the clock rule (§6.3).
-4. **cell-quota-min-change: refuted as a Tier 1 re-entry.** It fails ring16 on covariance and cannot run two_pole or five_word at all (§6.4).
-5. **Hygiene: done.** Stale-label fix in PR #428. Most TIMEOUT/INCOMPLETE results are wall-clock hits, and three recipes would reach 6/6 Tier 1 if their word-smoke runs had finished. The thin Gaussian margin is general (§6.5).
+1. **BISPF ablation: guess refuted (§6.1), and the harmonic/thermal link refuted too (§7.5).** BISPF's mode_hold lead reproduces on current source (§7.1). On BCAP + tether, BISPF's chord term gives the pass, but so does another single part; read it as sensitivity, not a mechanism.
+2. **Relative-force tether: refuted at rho=0.03 (§6.2).** The #393 word-hold question is still untested.
+3. **Horizon and clock for K3P/KA2: mostly answered (§6.3, §7.2, §7.4).** At a 6,400 cap, K3P and KA2 fail only because their own `network_lr_horizon_cap=1600` floors the learning rate; without it they pass. A fixed internal counter is just the step clock relabelled. K3P at constant rate passes the 6,400 cap and the unchanged audit.
+4. **cell-quota-min-change: refuted as a Tier 1 re-entry (§6.4).**
+5. **Wall-clock hits: partly answered (§7.3).** Signed Confidence LR and the BCAP baseline reach 6/6 Tier 1 on rerun (with a runtime-mix caveat); Positive-evidence LR and two kinetic recipes are still NOT MEASURED; Confidence LR's lead over the baseline shrinks from +2 to +1, the remaining point being an unmeasured hold.
 
 Next steps, in priority order:
 
-1. **Fix the Forge drain crash first.** Every follow-up drain crashed after grading in `experiments/forge/knowledge.py` (the `compile_memory` caching wrapper): a missing `deepcopy` import, then `_attempts() takes 1 positional argument but 2 were given`. Verdicts were read from each attempt's `graded-result.json`, so they stand, but queue status and leaderboards were never updated. PR #429 carries a fix and an opt-in `FORGE_SKIP_COMPLETION_COMPILE=1` switch, because the repaired compile took about 20 CPU-minutes after a 41 s job.
-2. **Re-run the timed-out word-smoke cells under the GPU lease** (a lease gives one job a GPU to itself, so shared-GPU contention cannot slow it). Five runs had already confirmed a pass before the 900 s kill. Report wall-clock hits as NOT MEASURED rather than FAIL. This could move signed Confidence LR, Positive-evidence LR and the matched BCAP baseline to 6/6 Tier 1 without any trainer change.
-3. **Add seeds to the thin results before building on them.** Single-seed margins now decide several conclusions: the BCAP control misses mode_hold by one check, the BCAP control's ring16 pass only stabilises from step 1184, and 28% of 180 Gaussian-smoke passes rest on 2 or fewer of 24 checks. Per the standing rule, add seeds only where a verdict depends on a thin margin.
-4. **Find what links BISPF's tether to its critic.** The untested candidate is BISPF's harmonic thermal factor, which scales the tether down when d<=4 (mode_hold has d=4) and cannot exist under the BCAP critic. Test: BCAP plus the tether with that same scaling, or BISPF with the scaling switched off.
-5. **Make an explicit horizon and audit decision for ring16.** This is a policy choice, not a technique one. The options from §6.3: keep both rules; add a declared 6,400-update ring16 variant (about 72 s per run); or extend the clock-free audit's declaration table to accept schedules driven only by saved internal state. The last option changes a gate and needs reviewer sign-off.
-6. **Lower priority.** Export the relative cap's in-training scale before trying any other rho value. Run the DualNorm plus cell objective arm on mode_hold and gaussian1d_stability, to see whether the cell objective alone keeps the held passes.
+1. **Make the policy decisions in §7.6** (ring16 cap, clock audit, wall-clock reporting). Nothing below changes a counted score until they are made.
+2. **Make GPU measurements trustworthy.** Pause jobs outside the lease during reruns (or run at a quiet time), fix the starving `gpu-lease.sh`, and land a coordinator opt-out for the post-completion compile. Contention cost about 75 minutes of waiting per lead and left five cells unresolved.
+3. **Finish the remaining wall-clock cells** (about 1.3 GPU-hours): Positive-evidence LR with the fixed contention-aware limit, the two kinetic word cells, the BCAP baseline's word hold, and the C / Z + chord word smoke from §7.5. Rerun on the declared runtime, or record the runtime mix.
+4. **If the 6,400 cap is adopted,** measure K3P-const on the rest of Tier 1 and Tier 2 as a dual-pass candidate, and decide whether K3P/KA2 drop `network_lr_horizon_cap`.
+5. **Add seeds only where a verdict hangs on a thin margin:** BCAP mode_hold (misses by 2), BCAP unused_token_hold (exactly 5), R1/R2 ring16 @ 6,400 (exactly 5), and the Z + chord mode_hold pass.
+6. **Lower priority.** Signed Confidence LR's checkpoint-resume error; export the relative cap's in-training scale before trying another rho; the DualNorm plus cell objective arm on mode_hold and gaussian1d_stability.
 
 ## 6. Follow-up experiments (2026-10-15/16)
 
@@ -247,12 +256,163 @@ two_pole and five_word_joint_smoke are **BLOCKED**. The cell objective needs the
 
 Caveats: the would-PASS calls are inferred from the earliest-confirmation rule, not graded, so a late guard failure is still possible. The timing comparison mixes recipe cost with contention. Recommended but not applied: report wall-clock hits as NOT MEASURED, use a contention-aware cap, and re-run under the GPU lease before counting.
 
+*Round 2 update (§7.3): under the GPU lease, signed Confidence LR and the BCAP baseline did pass word smoke, but Positive-evidence LR timed out again, so two recipes reached 6/6, not three.*
+
 **GPU time:** 0 s. **Links:** branch `task/dig-hygiene-20261015`, draft [PR #428](https://github.com/255BITS/ParticleGAN/pull/428) (stacked on #424), readout `reports/forge/dig-20261015/hygiene.md` on that branch (local: `/ml2/hypergan/dig-20261015/hygiene/READOUT.md`).
 
 ### 6.6 Notes common to all leads
 
 - Every follow-up branch is based on this review's commit, so PRs #425 to #429 also show this document in their diffs.
 - `tests/test_forge_dualnorm_smoothing_search.py::test_other_families_do_not_claim_an_active_smoothing_axis` failed in the relative-tether checkout. It touches none of that branch's code and was not re-run on clean develop.
+
+## 7. Round 2 follow-ups (2026-10-16)
+
+A second workflow ran five leads drawn from §5 and §6, each in its own worktree from develop + #430 (the `compile_memory` crash fix), each with a decision rule committed before training. An independent verifier then rechecked every lead against the receipts (`graded-result.json`, `result.json`, request files, queue events) and reran the unit tests on CPU. It did not rerun GPU jobs. All five leads held up. Verdicts below are **as corrected by the verifier**.
+
+Shared conditions as in §6: seed 0, one attempt per arm, RTX A6000 cards, deterministic CUDA, sustained Forge gates. Every task was marked `research_diagnostic`, so these receipts do not fill ordinary leaderboard cells, and no published score was regenerated. **All results are single-seed.** Several deciding margins are one or two checks.
+
+Terms used below:
+
+- **Suffix / terminal streak**: consecutive passing checks at the end of a run. Most gates need at least 5.
+- **Cap**: the number of training updates a task allows. ring16's current cap is 1,600.
+- **NOT MEASURED (wall-clock)**: a run killed by its wall-clock limit before the gate could decide. It is neither PASS nor FAIL.
+- **GPU lease**: a lock that lets only one of this workflow's jobs use a GPU at a time. It does not stop jobs outside the workflow from sharing the card.
+- **Clock-free audit**: the Tier 1 test that restarts a recipe from saved state and checks that its behaviour does not depend on the global step count or declared run length (the "horizon").
+- **Internal counter**: a counter the recipe keeps in its own saved state, for example "updates done so far".
+
+Total GPU time for round 2: 13,326 s (3.7 GPU-hours), of which the wall-clock reruns used 6,366 s.
+
+### 7.1 BISPF and BCAP refresh on current source: SUPPORTED (holds up)
+
+**Question.** On current source (develop + #430), do all recorded verdicts of BISPF (`bispf-v1`) and the selected BCAP recipe (`recipe-prior-refactor-bcap-pure-v1`) on the 17 still-counted Tier 1 and Tier 2 tests reproduce? In particular, does BISPF still pass mode_hold while BCAP fails it?
+
+**Arms.** BISPF and BCAP, one frozen source digest (6681974e), Tier 2 drained only after Tier 1 passed.
+
+| Arm | Tier 1 (7 tests + word hold) | Tier 2 (9 tests) | mode_hold | Notes |
+| --- | --- | --- | --- | --- |
+| BISPF | all PASS | all PASS | PASS, 13/24, suffix 12 | ring16 9/96 suffix 9 |
+| BCAP | all PASS | 8 PASS, mode_hold FAIL | FAIL, 10/24, suffix 3 (needs 5) | endpoint looks fine (8 modes, hq 0.989); a late quality dip fails the sustained gate; unused_token_hold passes with exactly 5 |
+
+**Verdict.** SUPPORTED: 34 of 34 cells reproduce, and every sustained margin matches the older receipts exactly, so the newer runtime changed nothing on these tests. BCAP's mode_hold curve equals the 2026-10-15 ablation control to the last digit. Implied counted scores stay at BISPF 77 and BCAP 71 (not regenerated). Verifier corrections:
+
+- BCAP's Tier 2 request was *enqueued* (not drained) before its Tier 1 finished, a small departure from the rule as written. Enqueuing trains nothing, so no verdict is affected.
+- "Word smoke confirmed after 20,001 updates" is loose: the first confirmed steps were 2,501 (BISPF) and 834 (BCAP); 20,001 is the completed run length.
+- The preregistration called BCAP's mode_hold miss "one check short". A suffix of 3 against 5 is two short. (§1.3 and §6.1 said "one check"; that is corrected here.)
+- Both Tier 1 coordinators were stopped after every attempt was graded, so queue lifecycle and compiled memory for those two requests were never finalised.
+
+**GPU time:** 2,732.6 s. **Links:** branch `task/dig2-bispf-refresh-20261016`, draft [PR #431](https://github.com/255BITS/ParticleGAN/pull/431), readout `reports/forge/dig2-20261016/bispf-refresh.md` on that branch (local: `/ml2/hypergan/dig2-20261016/bispf-refresh/READOUT.md`).
+
+### 7.2 ring16 cap 1,600 → 6,400: REFUTED as stated, but it found the real blocker (holds up)
+
+**Question.** If ring16's cap rises to 6,400 updates, with each family's step schedule spread over the full cap and the gate unchanged, do K3P, KA2 and R1/R2 pass while BCAP and BISPF still pass with no late collapse? The new cap is a separate task, `ring16_acquisition_6400` (384 checks, same cadence), which pins the original task's sha256. The original task and its receipts are untouched.
+
+| Recipe | ring16 @ 6,400 | Terminal streak | ring16 @ 1,600 control |
+| --- | --- | --- | --- |
+| BCAP | PASS (robust) | 314 | PASS |
+| BISPF | PASS (robust), one covariance dip at 3,584-3,884 | 151 | PASS |
+| K3P selected | FAIL, 0/384; local spread decays after 1,600 | 0 | FAIL |
+| KA2 selected | FAIL, 0/384 | 0 | FAIL |
+| R1/R2 selected | PASS (thin, fragile); fails on a 96-check reading | 5 (the minimum) | FAIL |
+| GAN v3 release 0.7 | PASS (robust) | 43 | FAIL |
+| D1: K3P with `network_lr_horizon_cap=None` (diagnostic) | PASS | 66 | — |
+| D1: KA2 with `network_lr_horizon_cap=None` (diagnostic) | PASS | 47 | — |
+
+**Verdict.** REFUTED under the rule: it needed at least 2 of K3P, KA2 and R1/R2, and only R1/R2 passed. The longer cap is safe for BCAP and BISPF. The preregistered diagnostic D1 found why K3P and KA2 fail: their own `network_lr_horizon_cap=1600` drops the generator/critic learning rate to its 0.01 floor at update 1,600. With only that field removed, both pass and exactly reproduce the 2026-10-11 6,400-update study. So the earlier "full schedule" passes needed the anneal to span the whole run. D1 is diagnostic and not counted.
+
+Recount (CPU only, reproduces the published 71/77/20/20/20/20 first): with the new task, R1/R2 and GAN v3 go to 21/152; K3P and KA2 stay at 20. All four are still blocked from Tier 2 by the clock-free audit. With diagnostic Tier 2 credit, R1/R2 and GAN v3 would reach 75/152. A proposed revision 10 of the `discriminator_stability` view is in the PR but not activated. Verifier notes: the learning-rate-floor mechanism is inferred from the card config plus D1, not from a logged learning rate. D1 reused the main runs as its controls (same digest), which is valid.
+
+**GPU time:** 953 s. **Links:** branch `task/dig2-ring16-cap-20261016`, draft [PR #433](https://github.com/255BITS/ParticleGAN/pull/433), readout `reports/forge/dig2-20261016/ring16-cap.md` on that branch (local: `/ml2/hypergan/dig2-20261016/ring16-cap/READOUT.md`).
+
+### 7.3 Wall-clock reruns: SUPPORTED, with corrections (holds up mostly)
+
+**Question.** Are most 900 s word-smoke TIMEOUT/INCOMPLETE results (and one ring16 timeout) wall-clock hits caused by shared-GPU contention rather than recipe failures? Do solo reruns under the unchanged limit give real verdicts?
+
+| Recipe | Test | Before | Rerun | Key numbers |
+| --- | --- | --- | --- | --- |
+| BCAP baseline (`bcap-default-baseline-direction-v1`) | five_word_joint_smoke | INCOMPLETE | **PASS** | 795.6 s, 23/24 confirmed |
+| Signed Confidence LR | five_word_joint_smoke | TIMEOUT | **PASS** | 789.3 s, 23/24; earlier run was 1.8-2.0x slower per update |
+| Confidence LR (control) | five_word_joint_smoke | PASS | PASS | 819.4 s; paired smoke delta vs baseline = 0 |
+| kinetic-local-dualnorm-g-history-reference8-u-v1 | ring16_acquisition | TIMEOUT | **FAIL** | 0/96 in 33 s (earlier 300 s, about 10x contention) |
+| Positive-evidence LR | five_word_joint_smoke | TIMEOUT | NOT MEASURED | 900 s at step 16,668/20,001, GPU shared with non-lease jobs |
+| kinetic_transport_local_v2 | five_word_joint_smoke | TIMEOUT | NOT MEASURED | 900 s at 17,501; would need about 1,020 s |
+| kinetic-local-dualnorm-g-history-v1 | five_word_joint_smoke | TIMEOUT | NOT MEASURED | 900 s at 12,501; would need about 1,370 s |
+| BCAP baseline (A1) | five_word_joint_hold | — | NOT MEASURED | 300 s at step 4,501/4,834, all 23 checks so far confirmed |
+| Signed Confidence LR (A1) | five_word_joint_hold | — | ERROR | "word continuation changed named RNG bindings" when resuming its own smoke checkpoint |
+| Positive-evidence LR + contention-aware limit (A2) | five_word_joint_smoke | — | ERROR | supervisor extended to 1,350 s, but the adapter's own deadline fired at 901 s; fixed and unit-tested, not rerun on GPU |
+
+**Verdict.** SUPPORTED for the three cells that became real verdicts. Signed Confidence LR and the BCAP baseline go from 5/6 to 6/6 Tier 1; the ring16 row loses its timeout marker and stays 0/6. Positive-evidence LR did **not** reach 6/6, so §6.5's "three recipes would reach 6/6" was one too many. New opt-in code (`experiments/forge/wallclock.py`): a NOT MEASURED outcome kept out of fail totals and paired deltas, a contention-aware limit, and a rerun overlay that changes a cell only on a real PASS/FAIL. Verifier corrections:
+
+- The reruns ran on Python 3.12 / torch 2.13, while the requests and original cells declare Python 3.11 / torch 2.11. The baseline's new 6/6 therefore mixes one torch 2.13 PASS with five torch 2.11 cells. The readout did not disclose this.
+- The baseline and Confidence LR reruns used fill-state requests, not "the same request bytes". The science fingerprints (revision, execution/evaluation hashes, seed, RNG bindings) are identical.
+- Confidence LR's "+2" did not fully disappear. The smoke point was a timeout artifact; the remaining +1 (15/29 against 14/29) is the baseline's hold, which is still NOT MEASURED.
+- The "slow at the declared limit" label on the two kinetic cells rests on contended reruns, against the rule's solo-throughput condition.
+- The lease is not solo: Atlas/E22 fill workers, llama-server and a desktop game shared the GPUs in several cells. The shared `gpu-lease.sh` also starves waiters (holders re-take within 2-3 s, waiters poll every 20 s); lanes waited 60-75 minutes.
+
+**GPU time:** 6,365.6 s. **Links:** branch `task/dig2-wallclock-reruns-20261016`, draft [PR #434](https://github.com/255BITS/ParticleGAN/pull/434), readout `reports/forge/dig2-20261016/wallclock-reruns.md` on that branch (local: `/ml2/hypergan/dig2-20261016/wallclock-reruns/READOUT.md`).
+
+### 7.4 Measured clock-free audit (proposed v2): SUPPORTED by the letter, empty in substance (holds up)
+
+**Question.** Can K3P or KA2 annealing pass both ring16 at a 6,400 cap and the clock-free audit, if the audit decides from measured parity (a proposed `measured_parity_v2` rule) rather than from v1's declaration table? Under v2, any measured difference fails; a declared step-schedule entry is overridden only when a power witness shows the probe could have caught it; fixed internal counters are overridden only under `internal_counter_policy='measured'`.
+
+**Arms.** K3P and KA2 × {step = shipped schedule; const = constant rates; count6400 = anneal driven by an internal counter at rate 1/6400; gated = anneal advanced only while the critic is winning}, on a scoped research copy of the 6,400-update ring16 task.
+
+| Arm | ring16 @ 6,400 (streak) | v1 audit | v2 measured | v2 strict |
+| --- | --- | --- | --- | --- |
+| K3P step | PASS (104) | FAIL | FAIL | FAIL |
+| K3P const | PASS (47) | **PASS** | PASS | PASS |
+| K3P count6400 | PASS (104), bit-identical to step | FAIL | PASS | FAIL |
+| K3P gated | FAIL (0), covariance 1.99 | FAIL | PASS | PASS |
+| KA2 step | PASS (54) | FAIL | FAIL | FAIL |
+| KA2 const | FAIL (3), destabilises near 4,800 | FAIL | PASS | FAIL |
+| KA2 count6400 | PASS (54), bit-identical to step | FAIL | PASS | FAIL |
+| KA2 gated | FAIL (0), covariance 1.92 | FAIL (restart) | FAIL (restart) | FAIL |
+
+**Verdict.** Technically SUPPORTED under the rule (count6400 passes ring16 and v2 with measured counters, for both families), but **the support adds nothing**: count6400 is bit-identical to the step schedule in all 384 observations. A fixed internal counter is the horizon clock written as a recipe constant, so v2-measured would simply accept a relabelled clock. Under strict counters no annealing arm passes both; the horizon-free critic-gated anneal fails ring16. The useful finding is **K3P at constant rate passes ring16 @ 6,400 and the unchanged v1 audit**, so if the 6,400 cap is adopted, K3P-const is a dual-pass candidate with no audit change. KA2-const does not hold. Verifier corrections: the guard-counter witness is hardcoded to true rather than inspecting state; the step controls fail v2 on both step_label and horizon; KA2 gated fails v1 on restart, not on a declaration; 704 s is the sum of graded seconds, not measured lease time. Also, `FORGE_SKIP_COMPLETION_COMPILE`, used by other leads, exists only on their branches (#429, #431), not in develop.
+
+**GPU time:** 704 s. **Links:** branch `task/dig2-clock-audit-measured-20261016`, draft [PR #432](https://github.com/255BITS/ParticleGAN/pull/432), readout `reports/forge/dig2-20261016/clock-audit-measured.md` on that branch (local: `/ml2/hypergan/dig2-20261016/clock-audit-measured/READOUT.md`).
+
+### 7.5 BISPF harmonic/thermal link: REFUTED (holds up)
+
+**Question.** §5 lead 4: does BISPF's mode_hold pass come from its harmonic/thermal capture factor, which scales the SBNP tether? What is the smallest set of BISPF parts that gives mode_hold on BCAP + tether?
+
+**Arms.** Knock-outs from full BISPF (B), and knock-ins onto the reduced arm Z (BISPF with all six parts off, which reproduces BCAP + tether bit for bit).
+
+| Arm | mode_hold | Checks passing | Suffix | Notes |
+| --- | --- | --- | --- | --- |
+| C BCAP control | FAIL | 10/24 | 3 | |
+| T BCAP + tether | FAIL | 0/24 | 0 | 7 modes |
+| B full BISPF | PASS | 13/24 | 12 | |
+| H0 no capture | PASS | 13/24 | 12 | identical to B through step 1,050 |
+| S0 no tether thermal scaling | PASS | 13/24 | 12 | identical to B through step 1,050 |
+| K0 no chord | PASS | 5/24 | 5 | thin |
+| P0 hinge cap (softplus off) | FAIL | 7/24 | 4 | |
+| F0 no floor/gauge | PASS | 10/24 | 10 | |
+| Z reduced (= T bitwise) | FAIL | 0/24 | 0 | |
+| Z + capture | FAIL | 0/24 | 0 | identical to Z; capture never fires |
+| Z + softplus | FAIL | 0/24 | 0 | |
+| Z + chord | PASS | 12/24 | 11 | minimal set |
+| Z + floor/gauge | PASS | 10/24 | 6 | |
+
+Stage 2, C vs Z + chord: gaussian1d_smoke, two_pole and ring16 pass in both (ring16 suffix 26 vs 31). five_word_joint_smoke hit the 900 s limit at step 7,501 in **both** arms on busy GPUs, so word hold is unresolved.
+
+**Verdict.** REFUTED: capture first fires at critic call 1,075, after BISPF already holds 8 modes, and the passing window is set before it can act. By the rule the minimal set is BISPF's 2%-weight Sinkhorn chord term on BCAP + tether. The attribution is fragile: chord alone and floor/gauge alone each suffice on BCAP + tether, softplus alone does not, yet inside BISPF only softplus is necessary. That looks like trajectory sensitivity to small critic-penalty changes once the tether is on, not a single mechanism. New opt-in field `Recipe.bispf_ablation` (default "none"). Verifier corrections: the claimed 1,105-call bit-identity test against the old `bispf.py` is not in the committed tests (the committed test checks only step 1 on the new code); default behaviour is still confirmed because B and T reproduce the round-1 #426 runs byte for byte. Stage 1 and stage 2 used different frozen digests, each matched internally.
+
+**GPU time:** 2,570.9 s. **Links:** branch `task/dig2-harmonic-link-20261016`, draft [PR #435](https://github.com/255BITS/ParticleGAN/pull/435), readout `reports/forge/dig2-20261016/harmonic-link.md` on that branch (local: `/ml2/hypergan/dig2-20261016/harmonic-link/READOUT.md`).
+
+### 7.6 Decisions for Mikkel
+
+1. **ring16 cap value.** Adopt the 6,400-update cap as revision 10 of `discriminator_stability` (proposal in PR #433, not active)? Effect today: BCAP and BISPF unchanged; R1/R2 and GAN v3 +1/152 each; Tier 1 time per candidate rises by about 900 s. Sub-choices: (a) accept R1/R2's 5-check pass, or require a longer sustained window (for example 20 of 384), which R1/R2 would fail and everyone else would still pass; (b) whether K3P and KA2 should drop `network_lr_horizon_cap=1600`, which is a new selected revision needing its long-horizon Tier 2 tasks re-measured.
+2. **Clock-audit revision.** Choose among (a) v2 with measured counters, which in effect abolishes the clock rule for any recipe that writes its run length as a constant (not recommended); (b) v2 strict, under which no annealing family passes both; (c) keep v1, under which K3P-const already dual-passes if the 6,400 cap is adopted. The lead recommends (b) or (c); this review agrees, and leans (c) because it needs no gate change.
+3. **Wall-clock reporting.** (a) Adopt NOT MEASURED (wall-clock) as an outcome and the contention-aware limit (suggested: 3x ceiling with a per-task solo reference) by default, or keep them opt-in; (b) for truly solo reruns, pause GPU jobs outside the lease (Atlas/E22 fill, llama-server, games), or accept the lease as workflow-only; (c) replace `gpu-lease.sh` with a first-come-first-served ticket queue; (d) approve about 1.3 more GPU-hours to check the fixed contention-aware limit on GPU and rerun the two kinetic word cells; (e) decide whether runtime-mixed cells (torch 2.13 rerun beside torch 2.11 cells) may count toward 6/6.
+4. **Publication.** Refresh the published leaderboard from these diagnostic receipts (needs ordinary-view runs or a publication refresh)? Scores would not change for BISPF/BCAP; signed Confidence LR and the BCAP baseline would show 6/6 Tier 1.
+5. **Harness.** Land a coordinator opt-out for the post-completion compile (`FORGE_SKIP_COMPLETION_COMPILE` exists only on #429/#431; it held GPU leases idle for over 20 minutes in three leads), or fix the compile cost.
+6. **Smaller.** Rerun word smoke/hold for C and Z + chord on a quieter GPU? Keep `Recipe.bispf_ablation` in develop or on PR #435 only? Signed Confidence LR's snapshot refuses to resume its own smoke checkpoint (RNG bindings); its owner should look.
+
+### 7.7 Notes common to round 2
+
+- Round 2 branches start from develop + #430, not from this document's branch, so their diffs do not include this file.
+- Pre-existing test failures were seen in several checkouts (`test_forge_current_technique_inventory.py` missing a fixture; 110-118 failures in the board test files; `test_forge_views.py::test_frozen_thresholds...` after #425). Each was confirmed or claimed identical on the base commit; none touches changed code.
+- Three leads stopped a drain whose post-completion compile held the GPU lease idle, after grading was complete, and reverted the leaderboard files the partial compile rewrote.
 
 ## Sources
 
@@ -269,3 +429,16 @@ Not verified for this review:
 - Leaderboard-row gains and losses are protocol-matched, not causally matched.
 - The PR399 history rows' Tier 1 gaps are largely constructor refusals.
 - The K3P "about 81/152 if its Tier 2 counted" figure is an estimate.
+
+
+## Preserved follow-up evidence (integration, 2026-11-08)
+
+- [PR #425: Try a learning schedule driven by training progress rather than step labels.](https://github.com/255BITS/ParticleGAN/blob/1399d3c6c255a8ea72dc392b37b8c3b9d9c7187e/reports/forge/dig-20261015/horizon-clock.md)
+- [PR #426: Test whether the prior tether alone explains BISPF mode retention.](https://github.com/255BITS/ParticleGAN/blob/1ded1c70b4a4c945f1f1352afd42281955c373fb/reports/forge/dig-20261015/bispf-ablation.md)
+- [PR #427: Test a cell-based objective that trades mode retention against ring density.](https://github.com/255BITS/ParticleGAN/blob/7595f0ae219e7dba09270abc6d75ff49d8d8008c/reports/forge/dig-20261015/cell-quota-probe.md)
+- [PR #429: Test whether limiting the prior tether improves the BCAP trade-off.](https://github.com/255BITS/ParticleGAN/blob/474ee2a9729f3a2120a270b60a0e948466880807/reports/forge/dig-20261015/relative-tether.md)
+- [PR #431: Check that the BISPF and BCAP baseline results reproduce on a common source.](https://github.com/255BITS/ParticleGAN/blob/62711fe540c44e83da8a6ed3e7a5c64fe9c9bc93/reports/forge/dig2-20261016/bispf-refresh.md)
+- [PR #432: Expose a loophole in a proposed clock-free training audit.](https://github.com/255BITS/ParticleGAN/blob/92e4eeff00f4f166e043db6fc9386a0cebc29d0a/reports/forge/dig2-20261016/clock-audit-measured.md)
+- [PR #433: Test whether a longer ring-training budget is enough.](https://github.com/255BITS/ParticleGAN/blob/c8b732f87e24e61414dacbaaf42493ffb44a9f03/reports/forge/dig2-20261016/ring16-cap.md)
+- [PR #434: Check whether apparent training failures are actually runtime-limit hits.](https://github.com/255BITS/ParticleGAN/blob/ea51ecf0b4f9eb2dc256b68c973b1ac23d57cc32/reports/forge/dig2-20261016/wallclock-reruns.md)
+- [PR #435: Find which critic changes help BISPF keep learned modes.](https://github.com/255BITS/ParticleGAN/blob/febb161a15c34901fe3962c6b5068bde4c8934e8/reports/forge/dig2-20261016/harmonic-link.md)
