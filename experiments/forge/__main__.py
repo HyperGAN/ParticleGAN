@@ -133,6 +133,8 @@ def parser():
     d.add_argument("--workers-per-gpu", type=int, default=1)
     d.add_argument("--allow-sharing", action="store_true")
     d.add_argument("--watch", action="store_true")
+    d.add_argument("--no-publish", action="store_true",
+                   help="skip the post-completion compile_memory hook (it rewrites reports/forge boards)")
     d.add_argument("--campaign")
     d.add_argument("--goal", "--view", dest="goal")
     d.add_argument("--request", help="drain only this exact submitted request ID")
@@ -414,7 +416,7 @@ def main(argv=None):
     batch_inventory = (args.command in {"run", "drain"}
                        or (args.command in {"inventory", "search", "cadence"} and args.stage == "run"))
     queue = Queue(queue_root, report_root=root / "reports/forge",
-                  on_completion=None if batch_inventory else publish)
+                  on_completion=None if batch_inventory or getattr(args, "no_publish", False) else publish)
     command = args.command
     if command == "new":
         from .planning import new_idea
@@ -464,8 +466,9 @@ def main(argv=None):
         drain(queue, args.gpus.split(","), workers_per_gpu=args.workers_per_gpu,
               allow_sharing=args.allow_sharing, watch=args.watch, campaign=args.campaign, goal=args.goal,
               request_filter=args.request, shared_fleet_fds=tuple(args.shared_fleet_fd))
-        from .knowledge import compile_memory
-        compile_memory(root, summaries_only=True)
+        if not args.no_publish:
+            from .knowledge import compile_memory
+            compile_memory(root, summaries_only=True)
         emit({"status": "drained", "logs": str(queue_root / "events.jsonl")})
     elif command == "queue":
         state = queue.inspect()

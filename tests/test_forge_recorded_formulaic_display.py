@@ -29,6 +29,9 @@ def test_projection_preserves_exact_selected_cohort_and_archived_coverage(record
     original = deepcopy(publication)
     projected = inventory._project_publication_for_family_pages(root, publication)
     assert projected == original
+    for _, cohort in _selected_cohorts(projected["family_progress"]):
+        # The new task cannot borrow any archived ring1600 result.
+        assert cohort["tasks"]["ring16_acquisition_6400"]["status"] == "UNKNOWN"
     proof = inventory._recorded_source_binary_projection(publication, root)
     assert proof["qualification_input"] is False
     assert proof["qualification_reuse"] is False

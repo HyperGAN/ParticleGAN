@@ -104,11 +104,15 @@ def test_task_policy_preserves_old_sustained_definition_and_checked_budgets():
     assert campaign["candidate_budget_seconds"] == 46620
     # The original campaign keeps its old allowance. New model-mode tasks add
     # an explicit reservation; they cannot silently fit the historical cap.
-    assert sum(groups.values()) == 75120
+    assert sum(groups.values()) == 75120 - 300 + 1200
     assert sum(value for key, value in groups.items() if key.startswith("precision_gaussian_")) == 900
     initial = read_json(ROOT / "reports/forge/precision-stretch/initial-view-v14.json")
     initial_keys = {tasks[a["task"]]["execution"].get("execution_group", a["task"]) for a in initial["assignments"]}
-    original_groups = {key: value for key, value in groups.items() if key in initial_keys and not key.startswith("model_")}
+    historical_groups = dict(groups)
+    historical_groups["ring16_acquisition"] = historical_groups.pop("ring16_acquisition_6400") - 900
+    original_groups = {key: value for key, value in historical_groups.items() if key in initial_keys and not key.startswith("model_")}
+    # The historical fixture still owns the 300-second, 1,600-update ring.
+    original_groups["ring16_acquisition"] = tasks["ring16_acquisition"]["resources"]["timeout_seconds"]
     assert sum(original_groups.values()) == 58440
 
 

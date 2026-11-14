@@ -107,12 +107,12 @@ def test_current_inventory_has_complete_quality_and_distinct_claim_views():
     assert all(a["task"] != variant["task"] for a in stability["assignments"] + quality["assignments"])
     smoke = [a["task"] for a in stability["assignments"]
              if a["qualification_tier"] == 1 and a["importance"] == "required"]
-    assert smoke[:7] == ["gaussian1d_smoke", "two_pole", "unused_token_hold", "ae_gan_hold", "ring16_acquisition",
+    assert smoke[:7] == ["gaussian1d_smoke", "two_pole", "unused_token_hold", "ae_gan_hold", "ring16_acquisition_6400",
                      "five_word_joint_smoke", "zero_tanh_smoke"]
     assert len(smoke) == 11 and all(tasks[name]["adapter"] == "public_api_model_toy" for name in smoke[7:])
     assert sum(tasks[n]["execution"]["steps"] for n in smoke[1:4]) == 530
     # 0.10 restores four accuracy/settling tasks; the former hold policy is archived.
-    assert stability["revision"] == 17 and stability["previous_revision"]["revision"] == 16
+    assert stability["revision"] == 18 and stability["previous_revision"]["revision"] == 17
     assert [a["task"] for a in stability["assignments"] if a["importance"] == "diagnostic"] == [
         "ring_hold", "clockfree_audit_measurement_v1", "precision_gaussian_fp32"]
     assert next(a for a in stability["assignments"] if a["task"] == "ring_hold")["removal"]["counted_by"] == "ring_extension"
@@ -157,7 +157,7 @@ def test_default_plan_and_report_include_acquisition_smoke_without_new_views():
     assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 3}
     reported = {row["id"]: row for row in smoke["tasks"]}
     for name, updates, timeout in (("gaussian1d_smoke", 1000, 120),
-                                   ("ring16_acquisition", 1600, 300),
+                                   ("ring16_acquisition_6400", 6400, 1200),
                                    ("five_word_joint_smoke", 20001, 900)):
         assert planned[name]["qualification_tier"] == 1
         assert planned[name]["importance"] == "required" and planned[name]["permitted_by_tier_cap"]

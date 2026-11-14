@@ -124,6 +124,13 @@ def study_for(arm, prefix, campaign_budget):
     return study
 
 
+def resolve_request(*args, **kwargs):
+    """Bind this separate historical cohort to its original wall-clock limits."""
+    request = resolve_idea(*args, **kwargs)
+    request["wallclock_policy"] = "declared"
+    return request
+
+
 def request_summary(request):
     summary = plan_summary(request)
     active = [row for row in summary["tasks"] if row["permitted_by_tier_cap"]]
@@ -165,7 +172,7 @@ def prepare(options):
     ordinary_contract(root)
     plans = {}
     for arm, study in zip(arms, studies):
-        request = resolve_idea(root, arm["candidate_id"], study=study)
+        request = resolve_request(root, arm["candidate_id"], study=study)
         plans[arm["role"]] = request_summary(request)
     require(len({plan["source_digest"] for plan in plans.values()}) == 1, "All arms need identical source")
     registration = dict(schema_version=1, scope="phase2_fresh_ordinary_tier1", qualification_input=False,
@@ -185,7 +192,7 @@ def resolved(root, registration):
             "Registration must bind the original ordinary Tier 1 view")
     requests = {}
     for role, plan in registration["arms"].items():
-        request = resolve_idea(root, plan["candidate_id"], study=plan["study_id"])
+        request = resolve_request(root, plan["candidate_id"], study=plan["study_id"])
         require(request_summary(request) == plan, f"{role}: source/runtime/task/study binding changed; prepare a fresh round")
         requests[role] = request
     return requests
@@ -226,7 +233,7 @@ def run(options):
             registration_sha256=file_hash(options.registration), source=registration["source_digest"],
             log=str(artifacts / "logs/phase2-driver.log"))
         for role, plan in registration["arms"].items():
-            request = resolve_idea(root, plan["candidate_id"], study=plan["study_id"],
+            request = resolve_request(root, plan["candidate_id"], study=plan["study_id"],
                                    queue_root=artifacts / "phase2-queue", freeze_source=True)
             require(request_summary(request) == plan, f"{role}: bindings changed while freezing")
             receipt = queue.submit(request, request["study"]["campaign"])

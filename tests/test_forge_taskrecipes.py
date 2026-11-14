@@ -36,7 +36,7 @@ def test_original_24_task_adaptations_stay_ready_and_original_reference_stays_bl
     assert not adapted["preflight_blockers"]
     # The recorded integration covered these 24 hosts. New required smoke hosts
     # retain their own compatibility checks; they do not inherit that readiness.
-    additions = {"gaussian1d_smoke", "gaussian1d_stability", "ring16_acquisition", "five_word_joint_smoke",
+    additions = {"gaussian1d_smoke", "gaussian1d_stability", "ring16_acquisition_6400", "five_word_joint_smoke",
                  "five_word_joint_hold", "clockfree_audit_measurement_v1", "zero_tanh_smoke",
                  "zero_tanh_rail_escape", "grid100_mlp16", "grid100_res16_tanh", "misgan_block_recovery",
                  "misgan_block_neural_imputer", "ring16_bigan_continuous"}

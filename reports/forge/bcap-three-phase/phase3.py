@@ -95,6 +95,13 @@ def study_for(arm, spec):
     return study
 
 
+def resolve_request(*args, **kwargs):
+    """Preserve this separate study's declared original runtime allowances."""
+    request = resolve_idea(*args, **kwargs)
+    request["wallclock_policy"] = "declared"
+    return request
+
+
 def request_summary(request, task_ids):
     summary = plan_summary(request)
     active = [row for row in summary["tasks"] if row["permitted_by_tier_cap"]]
@@ -149,7 +156,7 @@ def prepare(options):
         atomic_json(root / f'configs/forge/studies/{study["id"]}.json', study)
     changes = phase2.rebind_sources(root, tasks, prefix)
     original_contract(root, spec["task_ids"])
-    plans = {arm["role"]: request_summary(resolve_idea(root, arm["candidate_id"], study=study), spec["task_ids"])
+    plans = {arm["role"]: request_summary(resolve_request(root, arm["candidate_id"], study=study), spec["task_ids"])
              for arm, study in zip(arms, studies)}
     require(len({p["source_digest"] for p in plans.values()}) == 1, "Both arms require identical source")
     registration = dict(schema_version=1, scope="phase3_paired_research_diagnostic", qualification_input=False,
@@ -202,7 +209,7 @@ def resolved(root, registration):
     requests = {}
     for role in ROLES:
         plan = registration["arms"][role]
-        request = resolve_idea(root, plan["candidate_id"], study=plan["study_id"])
+        request = resolve_request(root, plan["candidate_id"], study=plan["study_id"])
         require(request_summary(request, registration["task_ids"]) == plan,
                 f"{role}: source/runtime/task/study binding changed; prepare a fresh track")
         requests[role] = request
@@ -245,7 +252,7 @@ def run(options):
             log=str(artifacts / "logs/phase3-driver.log"), qualification_input=False)
         for role in ROLES:
             plan = registration["arms"][role]
-            request = resolve_idea(root, plan["candidate_id"], study=plan["study_id"],
+            request = resolve_request(root, plan["candidate_id"], study=plan["study_id"],
                                    queue_root=queue_root, freeze_source=True)
             require(request_summary(request, registration["task_ids"]) == plan, f"{role}: bindings changed while freezing")
             receipt = queue.submit(request, request["study"]["campaign"])

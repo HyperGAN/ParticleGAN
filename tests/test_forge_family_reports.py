@@ -1097,7 +1097,11 @@ def test_real_selected_bispf_headline_keeps_all_eleven_failures_after_restoring_
     from experiments.forge.family_reports import _selected_cohorts
     progress = publication["family_progress"]
     cohort = next(cohort for family, cohort in _selected_cohorts(progress) if family["id"] == "bispf")
-    counts = full_suite_outcomes(cohort, full_suite_tasks(progress))
+    from experiments.forge.leaderboard_contract import load_fixed_test_list
+    fixed_tests = load_fixed_test_list(root)["tests"]
+    counts = full_suite_outcomes(cohort, fixed_tests)
+    assert cohort["tasks"]["ring16_acquisition"]["status"] == "PASS"
+    assert cohort["tasks"]["ring16_acquisition_6400"]["status"] == "UNKNOWN"
     # New model-mode research keeps its own source; it cannot fill eight new
     # cells in the previously selected whole recipe's ordinary evidence.
     assert counts == {"passed": 18, "failed": 11, "other": {"UNKNOWN": 35}, "total": 64}

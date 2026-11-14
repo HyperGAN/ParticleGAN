@@ -33,7 +33,10 @@ def _load_task(name: str) -> dict:
 
 
 def test_interpolation_stretch_preserves_view_chain_and_required_assignments():
-    view = load_view(ROOT, "discriminator_stability")
+    current = load_view(ROOT, "discriminator_stability")
+    view = json.loads((ROOT / "configs/forge/view-history/discriminator_stability-v17.json").read_text())
+    assert [a for a in current["assignments"] if a["task"] in INTERP_TASKS] == [
+        a for a in view["assignments"] if a["task"] in INTERP_TASKS]
     v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     assert view["revision"] == 17 and view["previous_revision"]["revision"] == 16

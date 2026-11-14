@@ -110,7 +110,7 @@ def test_categorical_space_explicitly_compares_unsmoothed_and_smoothed_bases(che
 
 def test_committed_opt_in_example_plans_all_current_tier1_bindings_without_spend(tmp_path):
     root = Path(__file__).resolve().parents[1]
-    example_spec = search._load_spec(root, "bcap-dualnorm-smoothing-tier1-v2")
+    example_spec = search._load_spec(root, "bcap-dualnorm-smoothing-tier1-v3")
     selected = (root / "configs/forge/selections/family-current-v1.json").read_bytes()
     plan = search.plan_search(root, tmp_path / "queue", example_spec)
     assert len(plan["trials"]) == 3

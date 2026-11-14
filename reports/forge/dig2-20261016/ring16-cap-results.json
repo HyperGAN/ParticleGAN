@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "note": "Measured ring16_acquisition_6400 verdicts (unchanged gate, 384 checks, 5-check terminal suffix), seed 0, frozen source snapshot 6681974e, campaign dig2-ring16-cap-v1. grid96 = the verdict a 96-check grid (every 4th checkpoint) would give on the same runs.",
+  "ring16_acquisition_6400": {
+    "recipe-prior-refactor-bcap-pure-v1": "PASS",
+    "bispf-v1": "PASS",
+    "recipe-prior-refactor-release07-gan-v3-v1": "PASS",
+    "recipe-prior-refactor-k3p-v1": "FAIL",
+    "recipe-prior-refactor-ka2-v1": "FAIL",
+    "recipe-prior-refactor-r1r2-v1": "PASS"
+  },
+  "grid96": {
+    "recipe-prior-refactor-bcap-pure-v1": "PASS",
+    "bispf-v1": "PASS",
+    "recipe-prior-refactor-release07-gan-v3-v1": "PASS",
+    "recipe-prior-refactor-k3p-v1": "FAIL",
+    "recipe-prior-refactor-ka2-v1": "FAIL",
+    "recipe-prior-refactor-r1r2-v1": "FAIL"
+  }
+}

@@ -67,18 +67,35 @@ def test_actual_adapter_witness_changes_neither_grade_nor_any_rng(actual_receipt
     assert request["tasks"][job["task_id"]]["execution"]["steps"] == 2
 
 
-def test_runtime_automatically_emits_observation_using_actual_environment(actual_receipt, tmp_path, monkeypatch):
+@pytest.mark.parametrize("operational_limit", [False, True])
+def test_runtime_automatically_emits_observation_using_actual_environment(
+    actual_receipt, tmp_path, monkeypatch, operational_limit
+):
     from experiments.forge import runtime
     request, job, raw, _ = actual_receipt
     request = {**request, "campaign_id": "software-fixture"}
     path = tmp_path / "request.json"
-    atomic_json(path, {"request": request, "job": job, "worker": {"attempt": "producer", "device": "cpu"}})
-    monkeypatch.setattr(adapters, "run_task", lambda *args: deepcopy(raw))
+    task_id = job["task_id"]
+    declared_limit = request["tasks"][task_id]["resources"]["timeout_seconds"]
+    policy = {"ceiling_factor": 3, "tasks": {task_id: {"minimum_limit_seconds": declared_limit * 2}}}
+    atomic_json(path, {"request": request, "job": job, "worker": {"attempt": "producer", "device": "cpu"},
+                       "wallclock_policy": policy if operational_limit else "declared"})
+    frozen = path.read_bytes()
+    def adapter(executing_request, *args):
+        expected = declared_limit * 6 if operational_limit else declared_limit
+        assert executing_request["tasks"][task_id]["resources"]["timeout_seconds"] == expected
+        assert task_execution_fingerprint(executing_request["tasks"][task_id]) == job["science"]["execution"][task_id]
+        return deepcopy(raw)
+    monkeypatch.setattr(adapters, "run_task", adapter)
+    # A claim freezes its document; later default changes cannot alter it.
+    monkeypatch.setenv("FORGE_WALLCLOCK_POLICY", "declared")
     rng = torch.get_rng_state().clone()
     assert runtime.execute(path) == 0
     recorded = read_json(tmp_path / "raw-result.json")
     assert recorded["observed_contract"]["compute"] == observations.execution_environment(torch, "cpu")["compute"]
     assert recorded["evidence"] == raw["evidence"]
+    assert recorded["observed_contract"]["execution"] == request["tasks"][task_id]["execution"]
+    assert path.read_bytes() == frozen
     assert torch.equal(rng, torch.get_rng_state())
 
 

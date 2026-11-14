@@ -1,0 +1,80 @@
+[
+  {
+    "attempt": "aa26c41e97aa412cafe521774380700f",
+    "candidate": "ka2-r16cap-net-horizon-full-v1",
+    "task": "ring16_acquisition_6400",
+    "status": "PASS",
+    "source_digest": "6681974eea685623b777f77aeaba98b16836b16ee68a845f57a386d49f0f4900",
+    "observations": 384,
+    "steps": 6400,
+    "passing_observations": 66,
+    "terminal_streak": 47,
+    "longest_streak": 47,
+    "first_sustained_step": 3184,
+    "late_collapse": false,
+    "last_failure": {
+      "step": 5617,
+      "failed": [
+        "component_min_eigen_ratio"
+      ]
+    },
+    "grid96": {
+      "terminal_streak": 13,
+      "longest_streak": 13,
+      "would_pass": true
+    },
+    "cov_final": 0.5630272764246911,
+    "cov_min": 0.46039314614608884,
+    "cov_min_step": 6017,
+    "cov_max_last_quarter": 0.6860589273273945,
+    "eig_min_last_quarter": 0.04695960879325867,
+    "final": {
+      "modes": 16,
+      "mass_tv": 0.0546875,
+      "hq": 0.974853515625,
+      "component_covariance_error": 0.5630272764246911,
+      "component_min_eigen_ratio": 0.21277795732021332
+    },
+    "elapsed_seconds": 79.05483472801279,
+    "completed_steps": 6400
+  },
+  {
+    "attempt": "dcb7658c864d4873b5f45a036505e53d",
+    "candidate": "k3p-r16cap-net-horizon-full-v1",
+    "task": "ring16_acquisition_6400",
+    "status": "PASS",
+    "source_digest": "6681974eea685623b777f77aeaba98b16836b16ee68a845f57a386d49f0f4900",
+    "observations": 384,
+    "steps": 6400,
+    "passing_observations": 86,
+    "terminal_streak": 66,
+    "longest_streak": 66,
+    "first_sustained_step": 5134,
+    "late_collapse": false,
+    "last_failure": {
+      "step": 5300,
+      "failed": [
+        "component_covariance_error"
+      ]
+    },
+    "grid96": {
+      "terminal_streak": 21,
+      "longest_streak": 21,
+      "would_pass": true
+    },
+    "cov_final": 0.5672717513516545,
+    "cov_min": 0.5672717513516545,
+    "cov_min_step": 6400,
+    "cov_max_last_quarter": 0.919146541506052,
+    "eig_min_last_quarter": 0.2515431046485901,
+    "final": {
+      "modes": 16,
+      "mass_tv": 0.040771484375,
+      "hq": 0.96337890625,
+      "component_covariance_error": 0.5672717513516545,
+      "component_min_eigen_ratio": 0.41301393508911133
+    },
+    "elapsed_seconds": 69.93268728401745,
+    "completed_steps": 6400
+  }
+]

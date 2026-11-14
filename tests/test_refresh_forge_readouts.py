@@ -1867,7 +1867,7 @@ def test_republish_registered_inventory_end_to_end_recovers_missing_and_unverifi
         # detected and repaired without inventing a new-source measurement.
         orig_md = md_path.read_text()
         stale_md, mutations = re.subn(
-            r"(\*\*\[)(\d+)(/\d+\]\(families/atlas\.md#[^)]+-tier-1\)\*\*)",
+            r"(\*\*\[)(\d+)(/\d+(?: \([^)\n]+\))?\]\(families/atlas\.md#[^)]+-tier-1\)\*\*)",
             lambda match: f"{match[1]}{int(match[2]) + 1}{match[3]} (7 not run)",
             orig_md,
             count=1,
