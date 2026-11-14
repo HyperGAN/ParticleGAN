@@ -195,6 +195,24 @@ def fence_orphan_group(child: dict, directory: Path) -> bool:
     return owned
 
 
+def _submission_projection(*, lifecycle, eligible, reason, running, paused):
+    """Project scheduling observations, without changing jobs or their owners.
+
+    Blockers outrank running work; running work outranks exhaustion; exhaustion
+    outranks pause. Pause only prevents future claims. Queued/paused retain the
+    lifecycle already established by admission, execution or explicit retry.
+    Cancelled/concluded submissions are excluded by the refresh caller.
+    """
+    if reason:
+        return {"status": "blocked", "reason": reason, "lifecycle": "awaiting_readout"}
+    if running:
+        return {"status": "running", "reason": None, "lifecycle": "running"}
+    if not eligible:
+        return {"status": "completed", "reason": None, "lifecycle": "awaiting_readout"}
+    return {"status": "paused" if paused else "queued",
+            "reason": "campaign paused" if paused else None, "lifecycle": lifecycle}
+
+
 class Queue:
     def __init__(self, root: Path, *, report_root: Path | None = None, grader=None, on_completion=None):
         self.root = Path(root).resolve()
@@ -455,16 +473,8 @@ class Queue:
                 continue
             eligible, reason, running = self._eligible(state, entry)
             campaign = state["campaigns"][entry["request"]["campaign_id"]]
-            if reason:
-                entry.update(status="blocked", reason=reason, lifecycle="awaiting_readout")
-            elif running:
-                entry.update(status="running", reason=None, lifecycle="running")
-            elif not eligible:
-                entry.update(status="completed", reason=None, lifecycle="awaiting_readout")
-            elif campaign["paused"]:
-                entry.update(status="paused", reason="campaign paused")
-            else:
-                entry.update(status="queued", reason=None)
+            entry.update(_submission_projection(lifecycle=entry["lifecycle"],
+                eligible=bool(eligible), reason=reason, running=running, paused=campaign["paused"]))
 
     def _available_budget(self, state, request, seconds, *, job_key=None, new_round_reservation=True):
         campaign = state["campaigns"][request["campaign_id"]]

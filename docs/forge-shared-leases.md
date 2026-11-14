@@ -1,5 +1,8 @@
 # Request ownership and external fleet leases
 
+See [queue state and ownership](forge-queue-state.md) for the distinction between
+submission status, shared jobs, process leases, scientific grades and cost owners.
+
 Normal Forge admission, tier barriers, budgets, original evaluators and
 source-bound receipts remain authoritative. A bounded scheduler that already
 owns an external fleet can retain its open lease descriptors through ordinary
