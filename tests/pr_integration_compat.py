@@ -16,7 +16,10 @@ def _binding(task):
     combined = evaluation.get("integration_source_binding")
     if isinstance(combined, dict) and combined.get("id") == COMBINED_INTEGRATION:
         return "integration_source_binding", combined
-    for field in ("integration_source_binding", "evaluator_revision"):
+    if (isinstance(combined, dict) and INTEGRATION.fullmatch(combined.get("id", ""))
+            and combined["id"].endswith("-audit-develop-integration-20261114")):
+        return "integration_source_binding", combined
+    for field in ("evaluator_revision", "integration_source_binding"):
         value = evaluation.get(field)
         if isinstance(value, dict) and INTEGRATION.fullmatch(value.get("id", "")):
             return field, value
