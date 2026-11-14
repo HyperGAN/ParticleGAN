@@ -30,6 +30,7 @@ import torch
 
 from ._stats import bh_rejections
 from .drift_variants import drift_features
+from .row_transport import prepare_copy_history
 
 
 @dataclass
@@ -654,18 +655,14 @@ class ParticleBirthDeath:
     @torch.no_grad()
     def _move(self, child, parent):
         table, average = self.rows.table, self.rows.averaged_table
+        history = prepare_copy_history(table, self.rows.optimizer, child, parent)
         zp = table.detach()[parent]
         noise = torch.randn(zp.shape, device=zp.device, dtype=zp.dtype, generator=self.stream)
         delta = self._jitter(zp, noise)
         table[child] = zp + delta
         average[child] = average[parent] + delta
-        state = self.rows.optimizer.state.get(table, {})
-        for key, value in state.items():
-            if isinstance(value, torch.Tensor) and value.shape == table.shape:
-                value[child] = value[parent]
-        history = getattr(self.rows.optimizer, "latent_history", None)
-        if history is not None:
-            history[child] = history[parent]
+        for value, source in history:
+            value[child] = source
 
     # --------------------------------------------------------------- state
     _TENSORS = ("reservoir", "S", "W", "n", "anchor", "radius", "pending")
