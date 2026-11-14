@@ -28,7 +28,7 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 | [Recover quickly after the target moves](problems.md#target_shift_recovery) | Learn and hold a ring of blobs, then track a sudden sideways shift within 400 updates and stay correct; a frozen model must fail to show the change is real. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Keep every learned mode alive](problems.md#mode_hold) | Keep generating every target mode during continued training, rather than losing modes after initially finding them. | Selected recorded PASS: BISPF, EMPF, RHBI. |
 | [Keep a learned ring stable for a long run](problems.md#ring_extension) | Acquire all eight ring blobs, hold them for 1,200 consecutive checks, then survive 300 additional checks on the same uninterrupted run. | Selected recorded PASS: BISPF. |
-| [Learn sixteen distinct clusters from scratch](problems.md#ring16_acquisition) | Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI. |
+| [Learn sixteen distinct clusters from scratch](problems.md#ring16_acquisition_6400) | Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. Since view revision 17 the counted question runs 6,400 updates with each recipe's schedule declared over the full 6,400; gates are unchanged from the 1,600-update ring16_acquisition. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Learning must not depend on external clock labels](problems.md#clockfree_audit_measurement_v1) | Check that the same learning state and inputs produce the same update despite changed step labels, declared horizon, evaluation cadence or a save/restart. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI, Atlas. |
 | [Escape a tanh saturation rail after the target shifts to zero](problems.md#zero_tanh_rail_escape) | First converge near the tanh saturation rail at (+0.90, -0.90) where tanh' is attenuated (~0.19), then escape the rail within 400 updates when the target shifts to (0.0, 0.0) at update 1,001 and stay settled there. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Survive a 16-layer unnormalized MLP generator on the 100-cluster grid](problems.md#grid100_mlp16) | Learn all 100 equal-weight Gaussian modes on `grid100` using a 16-hidden-layer 128-wide LeakyReLU(0.2) MLP generator without residual skips or normalization layers. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
@@ -647,39 +647,39 @@ Test: `ring_extension` · Required for qualification and included in full-suite 
 Evidence: [Test-by-test evidence](test-dispositions-20261015/README.md#ring_extension).
 
 
-<a name="ring16_acquisition"></a>
+<a name="ring16_acquisition_6400"></a>
 
 ## Learn sixteen distinct clusters from scratch
 
-Test: `ring16_acquisition` · Required for qualification and included in full-suite results.
+Test: `ring16_acquisition_6400` · Required for qualification and included in full-suite results.
 
-**What it tests.** Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points.
+**What it tests.** Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. Since view revision 17 the counted question runs 6,400 updates with each recipe's schedule declared over the full 6,400; gates are unchanged from the 1,600-update ring16_acquisition.
 
-**Historical diagnosis (2026-10-15).** The selected K3P, KA2, R1/R2 and GAN v3 measurements fail this Tier 1 gate, preventing later qualification. Their results on other questions do not erase this acquisition failure.
+**Historical diagnosis (2026-10-15).** The recorded selected cohorts predate the 6,400-update question and are not measured on it; at 1,600 updates the selected K3P, KA2, R1/R2 and GAN v3 recipes failed. Separate adopt measurements (source 1e02f185, seed 0, not qualification) pass it for all six historical study recipes under that original declaration, but they are not registered ordinary evidence yet.
 
-**Historical passer evidence.** Yes: selected BCAP and BISPF recipes.
+**Historical passer evidence.** Yes, in separate adopt diagnostics: BCAP, BISPF, K3P v2, KA2 v2, GAN v3 and R1/R2 (R1/R2 by a thin margin).
 
-- The selected BCAP DualNorm and `bispf-v1` records pass. Their recorded results remain bound to their original budgets and sources.
-- Some research recipes pass ring16 but lose mode hold; per-test winners do not establish a single winner for the entire suite.
+- Adopt measurements on source 1e02f185, seed 0: BCAP DualNorm and `bispf-v1` pass robustly (314/384 and 287/384 checks), GAN v3 passes with spread ratio 0.44, K3P v2 and KA2 v2 (no LR horizon cap) pass, and R1/R2 passes with spread ratio 0.157 against 0.15 on exactly the final five checks.
+- The 1,600-update ring16_acquisition records keep their original verdicts and identities.
 
 **Selected recipes' recorded results:**
 
 | Selected recipe | Result |
 | --- | --- |
-| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-ring16_acquisition) |
-| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [PASS](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-ring16_acquisition) |
-| [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [FAIL](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-ring16_acquisition) |
-| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [BLOCKED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [K3P](families/k3p.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/k3p.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
-| [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-ring16_acquisition_6400) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-ring16_acquisition_6400) |
+| [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [NOT MEASURED](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-ring16_acquisition_6400) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [K3P](families/k3p.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/k3p.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
+| [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition_6400) |
 
-**Recommendation from the dated diagnosis.** Retain the passing ring baseline while repairing the held tests. Longer-budget or changed-schedule results must remain explicitly separate until adopted and measured.
+**Recommendation from the dated diagnosis.** A new study and complete reservation are required to measure current-source ordinary evidence under revision 17. The historical diagnostics grant no current qualification; preserve the thin R1/R2 margin and original identities.
 
-Evidence: [Test-by-test evidence](test-dispositions-20261015/README.md#gaussian1d_stability) · [Task declaration](../../configs/forge/tasks/ring16_acquisition.json).
+Evidence: [Adopt measurements](adopt-20261016/README.md) · [6,400-update study](dig2-20261016/ring16-cap.md) · [Task declaration](../../configs/forge/tasks/ring16_acquisition_6400.json).
 
 
 <a name="clockfree_audit_measurement_v1"></a>

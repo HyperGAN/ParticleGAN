@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2125 test/protocol rows**, **579 complete recipe/source/runtime identities**; below: **421 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2126 test/protocol rows**, **579 complete recipe/source/runtime identities**; below: **422 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 421 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 422 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -247,6 +247,7 @@ Indexed: **2125 test/protocol rows**, **579 complete recipe/source/runtime ident
 | ring16_acquisition<br>seed 0 · 1600 updates · source a5eafc73e4<br>`7095dc3905ca` | [matches](../../configs/forge/tasks/ring16_acquisition.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/29979e41c9c05e3304156cf4a43ed9c9dda6953bffd0fb47096fe47d6b8af13a.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | ring16_acquisition<br>seed 0 · 1600 updates · source 2e8a97a0aa<br>`c5c1455394aa` | [matches](../../configs/forge/tasks/ring16_acquisition.json) | 0/11 | NO INDEXED WITNESS | [FAIL](technique-receipts/b899acc300f64f288b59586f2dc34113.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | ring16_acquisition<br>seed 0 · 1600 updates · source cbb19c5e55<br>`d4d56e27c80d` | [CHANGED](../../configs/forge/tasks/ring16_acquisition.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | [NOT RUN](technique-evidence/2880110ed49454a452197b2e42adafed37447bb43d288340299599bc8edc1025.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| ring16_acquisition_6400<br>unmeasured declaration<br>`d5522b8ba3b2` | [matches](../../configs/forge/tasks/ring16_acquisition_6400.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | ring16_acquisition_policy_cloud_coverage_as_served_v1<br>unmeasured declaration<br>`d19b4e88a7c3` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/ring16_acquisition_policy_cloud_coverage_as_served_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | ring16_acquisition_policy_cloud_coverage_v1<br>unmeasured declaration<br>`30b16e48f41b` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_v1/ring16_acquisition_policy_cloud_coverage_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | ring16_acquisition_tier1_policy_selected_cloud_v1<br>unmeasured declaration<br>`f33ad24dc219` | [matches](../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/ring16_acquisition_tier1_policy_selected_cloud_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |

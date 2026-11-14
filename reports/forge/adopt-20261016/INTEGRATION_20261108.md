@@ -44,3 +44,22 @@ reservations for planning, resolution and freezing.
 No research training, sampling or unchanged experiment rerun was performed for
 this integration. The [single current inventory](../technique-inventory.md)
 continues to own current scores.
+
+## Scientific-contract integration, 2026-11-09
+
+The current scientific-contract repair from PR #535 is merged into this branch.
+Ordinary selected cells retain their exact recorded grades and operational statuses;
+assisted or recipe-adapted coverage stays separately labelled diagnostic evidence.
+The 158 source-bound correction records and their full original-record hashes are
+unchanged. Those exact corrections do not automatically apply to this separate
+October16 source cohort, and its original readouts remain unchanged.
+
+Current view17 keeps ring6400 UNKNOWN until matching new evidence exists. The fixed
+November6 full-suite list retains ring1600 and its original denominator. Fresh
+execution keeps the frozen operational policy and reserves its complete ceiling;
+observed recipe, sampler, initializer, runtime and compute witnesses retain the
+original scientific fingerprints. No old diagnostic result fills an ordinary cell.
+
+## Rebase integration, 2026-11-14
+
+Develop already uses revision 17 for interpolation stretch tasks. The ring6400 change now uses revision 18 and archives the exact revision-17 bytes. All interpolation assignments and original receipts remain unchanged. Historical references to the earlier proposed revision 17 above retain their original scope. No training or qualification regrading was performed.

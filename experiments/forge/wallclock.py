@@ -251,6 +251,17 @@ def adapter_allowance(declared, entry):
     return base_limit(declared, entry) * (entry["ceiling_factor"] if entry else 1.0)
 
 
+def reservation_seconds(job, policy="default"):
+    """Reserve the complete operational ceiling before admitting a paid job.
+
+    The task's declared budget and scientific identity stay unchanged. A larger
+    operational deadline must fit campaign, candidate and round budgets up front.
+    """
+    policy = resolve_policy(policy)
+    entry = task_policy(policy, job["task_id"]) if policy else None
+    return adapter_allowance(job["budget_seconds"], entry)
+
+
 def decide_extension(declared, elapsed, progressed_updates, entry):
     """Decide once, at the base limit, whether and how far to extend.
 

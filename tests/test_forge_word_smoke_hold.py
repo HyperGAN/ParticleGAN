@@ -99,20 +99,79 @@ def test_task_policy_preserves_old_sustained_definition_and_checked_budgets():
     assert smoke["evaluation"]["thresholds"] == hold["evaluation"]["thresholds"] == old["evaluation"]["thresholds"]
     assert hold["dependencies"] == [dict(task="five_word_joint_smoke", kind="checkpoint")]
     campaign = read_json(ROOT / "configs/forge/campaigns/technique-inventory-word-split-v1.json")
-    # The historical campaign was reserved for view revision 9 (1,600-update ring16, 300 s);
-    # revision 10 requires the 6,400-update ring16 (1,200 s) and its own adopt-20261016 campaigns.
-    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v9.json")
     groups = {tasks[a["task"]]["execution"].get("execution_group", a["task"]):
               tasks[a["task"]]["resources"]["timeout_seconds"] for a in view["assignments"]}
     assert campaign["candidate_budget_seconds"] == 46620
     # The original campaign keeps its old allowance. New model-mode tasks add
     # an explicit reservation; they cannot silently fit the historical cap.
-    assert sum(groups.values()) == 75120
+    assert sum(groups.values()) == 75120 - 300 + 1200
     assert sum(value for key, value in groups.items() if key.startswith("precision_gaussian_")) == 900
     initial = read_json(ROOT / "reports/forge/precision-stretch/initial-view-v14.json")
     initial_keys = {tasks[a["task"]]["execution"].get("execution_group", a["task"]) for a in initial["assignments"]}
-    original_groups = {key: value for key, value in groups.items() if key in initial_keys and not key.startswith("model_")}
+    historical_groups = dict(groups)
+    historical_groups["ring16_acquisition"] = historical_groups.pop("ring16_acquisition_6400") - 900
+    original_groups = {key: value for key, value in historical_groups.items() if key in initial_keys and not key.startswith("model_")}
+    # The historical fixture still owns the 300-second, 1,600-update ring.
+    original_groups["ring16_acquisition"] = tasks["ring16_acquisition"]["resources"]["timeout_seconds"]
     assert sum(original_groups.values()) == 58440
 
 
 @pytest.mark.cuda
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="word ladder execution requires CUDA")
+def test_cuda_bounded_public_word_draws_preserve_streams_and_save_complete_state(tmp_path):
+    from experiments.forge.word_adapter import run_word
+    candidate = read_json(next((ROOT / "configs/forge/configurations").glob("bcap-dualnorm--7beb*.json")))
+    request = dict(candidate=candidate, candidate_revision="cuda-software-fixture", protocol=dict(seed=0), tasks={task()["id"]: task()})
+    @reproducible_execution
+    def execute(*, device):
+        before_cpu, before_cuda = torch.get_rng_state().clone(), torch.cuda.get_rng_state(device).clone()
+        raw, records = run_word(request, task(), tmp_path, device, execution_limit=2, capture_media=True)
+        assert grade_result(task(), raw)["gate_status"] == "INCOMPLETE"
+        assert [row["step"] for row in raw["evidence"]["confirmations"]] == [1, 2]
+        assert all(row["training_state_unchanged"] for row in raw["evidence"]["confirmations"])
+        assert raw["evidence"]["guards"]["unintended_rng_deviations"] == 0
+        assert [record["step"] for record in records] == [0, 1, 2]
+        assert torch.equal(before_cpu, torch.get_rng_state())
+        assert torch.equal(before_cuda, torch.cuda.get_rng_state(device))
+        state = torch.load(tmp_path / "state.pt", weights_only=True, map_location=device)
+        assert state["fixture"]["api_state"]["completed_steps"] == 2
+        assert all(p.is_cuda for p in state["fixture"]["api_state"]["models"]["generator"].values())
+        purposes = {b["purpose"] for b in state["streams"]["manifest"]["bindings"].values()}
+        assert {"generated_words", "paired_reconstruction", "word_confirmation", "word_reconstruction_confirmation"} <= purposes
+    execute(device=DEVICE)
+
+
+@pytest.mark.cuda
+
+
+@pytest.mark.skipif(not torch.cuda.is_available(), reason="external-horizon restoration requires CUDA")
+def test_cuda_public_policy_restore_after_schedule_horizon_keeps_actual_cap_and_rates():
+    from particlegan import GANTrainer, get_recipe, init
+    recipe = get_recipe("bcap", z_dim=2, num_particles=8, batch_size=8, total_steps=1,
+                        optimizer_family="dualnorm", lr_floor=1., network_lr_floor=1.,
+                        prior_kind="mog", sigma_rel=.1, standardize=False)
+    @reproducible_execution
+    def execute(*, device):
+        def build():
+            with construction_rng(0, device):
+                G, D = nn.Linear(2, 2, device=device), nn.Linear(2, 1, device=device)
+                prior = recipe.make_prior(sigma=.1).to(device)
+                for index, model in enumerate((G, D, prior)): init.deterministic_orthogonal_(model, seed=index)
+                return GANTrainer(recipe, G, D, prior=prior, seed=0, max_steps=3)
+        owner = build()
+        real = torch.linspace(-1., 1., 16, device=device).reshape(8, 2)
+        owner.step(real); owner.step(real)
+        saved = deepcopy(owner.state_dict())
+        assert saved["completed_steps"] == 2 > recipe.total_steps
+        restored = build(); restored.load_state_dict(saved)
+        assert state_digest(restored.state_dict()) == state_digest(saved)
+        rates = [[group["lr"] for group in opt.param_groups] for opt in (restored.opt_g, restored.opt_d)]
+        restored.step(real)
+        assert restored.completed_steps == 3 and restored.recipe.total_steps == 1
+        assert rates == [[group["lr"] for group in opt.param_groups] for opt in (restored.opt_g, restored.opt_d)]
+        with pytest.raises(RuntimeError): restored.step(real)
+        tampered = deepcopy(saved); tampered["completed_steps"] = 4
+        with pytest.raises(ValueError): build().load_state_dict(tampered)
+    execute(device=DEVICE)

@@ -187,6 +187,7 @@ atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {{"measured": 1}})
 
 def _launch_with_policy(tmp_path, steps, policy, budget):
     req = worker_request(tmp_path, OBSERVING_PROGRAM.format(steps=steps), budget=budget)
+    req["wallclock_policy"] = policy
     q = Queue(tmp_path / "queue", grader=grade)
     q.submit(req, campaign())
     claim = q.claim(SLOTS)

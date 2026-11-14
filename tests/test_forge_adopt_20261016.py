@@ -17,7 +17,8 @@ ROOT = Path(__file__).resolve().parents[1]
 ORDINARY_VIEWS = ("adaptation", "clockfree_continuous", "discriminator_stability", "formulation_comparison",
                   "host_profile_transfer", "quality_coverage")
 TIER1 = ["gaussian1d_smoke", "two_pole", "unused_token_hold", "ae_gan_hold", "ring16_acquisition_6400",
-         "five_word_joint_smoke"]
+         "five_word_joint_smoke", "zero_tanh_smoke", "model_ae_gan_multimodal",
+         "model_ae_reconstruction", "model_vae_categorical", "model_vae_hard"]
 
 
 # --- ring16 at 6,400 updates -------------------------------------------------------------------------
@@ -25,7 +26,7 @@ TIER1 = ["gaussian1d_smoke", "two_pole", "unused_token_hold", "ae_gan_hold", "ri
 def test_counted_ring16_is_the_6400_update_revision_in_every_ordinary_view():
     tasks = load_tasks(ROOT)
     view = load_view(ROOT, "discriminator_stability")
-    assert view["revision"] == 10
+    assert view["revision"] == 18
     tier1 = [a["task"] for a in view["assignments"] if a["qualification_tier"] == 1 and a["importance"] == "required"]
     assert tier1 == TIER1
     validate_view(view, tasks)
@@ -35,12 +36,27 @@ def test_counted_ring16_is_the_6400_update_revision_in_every_ordinary_view():
     assert tasks["ring16_acquisition_6400"]["execution"]["steps"] == 6400
 
 
-def test_revision9_is_archived_and_revision10_changes_only_the_ring16_question():
-    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v9.json")
+def test_revision17_is_archived_and_revision18_changes_only_the_ring16_question():
+    # Develop revision 17 is the exact base; revision 18 swaps only the ring16 question.
+    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v17.json")
     current = load_view(ROOT, "discriminator_stability")
-    assert archived["revision"] == 9
+    assert archived["revision"] == 17
     assert "ring16_acquisition" in {a["task"] for a in archived["assignments"]}
     projected = deepcopy(current)
+    for key in ("revision", "policy_change_reason", "previous_revision"):
+        projected[key] = archived[key]
+    for assignment in projected["assignments"]:
+        if assignment["task"] == "ring16_acquisition_6400":
+            assignment["task"] = "ring16_acquisition"
+    assert projected == archived
+
+
+def test_measured_adopt_draft10_was_revision9_with_only_the_ring16_question_changed():
+    # The 2026-10-16 adopt measurements ran under this unmerged draft; it is kept as provenance only.
+    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v9.json")
+    draft = read_json(ROOT / "reports/forge/adopt-20261016/measured-view-draft10.json")
+    assert draft["revision"] == 10
+    projected = deepcopy(draft)
     projected["revision"] = 9
     projected["policy_change_reason"] = archived["policy_change_reason"]
     for assignment in projected["assignments"]:
@@ -184,7 +200,7 @@ def test_queue_drain_can_skip_the_board_compile_hook():
 
 def test_adopt_studies_cover_the_operational_view_budget():
     tasks = load_tasks(ROOT)
-    view = load_view(ROOT, "discriminator_stability")
+    view = read_json(ROOT / "reports/forge/adopt-20261016/measured-view-draft10.json")
     declared, operational = {}, {}
     for assignment in view["assignments"]:
         task = tasks[assignment["task"]]
@@ -193,10 +209,9 @@ def test_adopt_studies_cover_the_operational_view_budget():
         entry = wc.task_policy("default", assignment["task"])
         operational[group] = max(operational.get(group, 0), wc.base_limit(task["resources"]["timeout_seconds"], entry))
     assert sum(declared.values()) == 47520 and sum(operational.values()) == 59520
-    from experiments.forge.studies import load_study
     revisions = load_declared_revisions(ROOT)
     for group in ("k3p", "ka2", "bcap", "bispf", "r1r2", "gan-v3"):
-        study = load_study(ROOT, f"adopt-20261016-{group}-study")
+        study = read_json(ROOT / f"reports/forge/adopt-20261016/archived-studies/adopt-20261016-{group}-study.json")
         assert study["campaign"]["id"] == f"adopt-20261016-{group}-v1"
         assert study["campaign"]["candidate_budget_seconds"] >= sum(operational.values())
         assert study["scope"] == {"cuda_model": "NVIDIA RTX A6000", "execution_backend": "cuda", "through_tier": 3,
@@ -241,3 +256,42 @@ def test_adopt_rows_render_on_the_leaderboard_without_touching_selected_rows():
     assert "[7/29 (21 not run)]" in rows["bispf"][0]
     for additions in rows.values():
         assert additions[0] in text
+
+
+def test_queue_reserves_raised_ceiling_and_refuses_an_underfunded_campaign(tmp_path):
+    from test_forge_queue import SLOTS, campaign, grade, request
+    from experiments.forge.queue import Queue
+    req = request(tmp_path, cap=1, cost=10)
+    req["wallclock_policy"] = {"tasks": {"t1": {"minimum_limit_seconds": 20}}, "ceiling_factor": 3}
+    q = Queue(tmp_path / "queue", grader=grade)
+    q.submit(req, campaign(budget=59))
+    assert q.claim(SLOTS) is None
+    state = q.inspect()
+    assert state["campaigns"]["pilot"]["reserved_seconds"] == 0
+    assert "budget" in next(iter(state["submissions"].values()))["reason"]
+
+
+def test_queue_freezes_policy_and_reserves_full_ceiling_before_launch(tmp_path):
+    from test_forge_queue import SLOTS, campaign, grade, request
+    from experiments.forge.queue import Queue
+    req = request(tmp_path, cap=1, cost=10)
+    req["wallclock_policy"] = {"tasks": {"t1": {"minimum_limit_seconds": 20}}, "ceiling_factor": 3}
+    q = Queue(tmp_path / "queue", grader=grade)
+    q.submit(req, campaign(budget=60))
+    claim = q.claim(SLOTS)
+    assert claim["job"]["budget_seconds"] == 10
+    assert claim["wallclock_policy"] == req["wallclock_policy"]
+    assert claim["reservation_seconds"] == 60
+    assert q.inspect()["campaigns"]["pilot"]["reserved_seconds"] == 60
+
+
+@pytest.mark.parametrize("skip", [False, True])
+def test_drain_no_publish_controls_the_final_compile_hook(tmp_path, monkeypatch, skip):
+    from experiments.forge import __main__ as cli, knowledge, queue
+    drained, compiled = [], []
+    monkeypatch.setattr(queue, "drain", lambda *args, **kwargs: drained.append(True))
+    monkeypatch.setattr(knowledge, "compile_memory", lambda *args, **kwargs: compiled.append(True))
+    argv = ["--root", str(tmp_path), "--queue-root", str(tmp_path / "queue"), "drain", "--gpus", "cpu"]
+    assert cli.main(argv + (["--no-publish"] if skip else [])) == 0
+    assert drained == [True]
+    assert compiled == ([] if skip else [True])

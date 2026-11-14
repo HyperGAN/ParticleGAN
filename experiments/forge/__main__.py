@@ -466,8 +466,9 @@ def main(argv=None):
         drain(queue, args.gpus.split(","), workers_per_gpu=args.workers_per_gpu,
               allow_sharing=args.allow_sharing, watch=args.watch, campaign=args.campaign, goal=args.goal,
               request_filter=args.request, shared_fleet_fds=tuple(args.shared_fleet_fd))
-        from .knowledge import compile_memory
-        compile_memory(root, summaries_only=True)
+        if not args.no_publish:
+            from .knowledge import compile_memory
+            compile_memory(root, summaries_only=True)
         emit({"status": "drained", "logs": str(queue_root / "events.jsonl")})
     elif command == "queue":
         state = queue.inspect()

@@ -4,7 +4,7 @@
   "scope": "declared_selected_recipe_revisions",
   "default_adoption": false,
   "view": "discriminator_stability",
-  "view_revision": 10,
+  "view_revision": 18,
   "decision": "User decision 2026-10-16 after dig2 round 2: drop network_lr_horizon_cap from the selected K3P and KA2 recipes. With the cap their G/D LR reached its 0.01 floor at update 1,600 and was the only reason they failed ring16_acquisition_6400; with it removed and nothing else changed both passed (diagnostic D1, reports/forge/dig2-20261016/ring16-cap.md).",
   "pin_rule": "configs/forge/selections/family-current-v1.json keeps its exact measured pins until a revision below is measured on the current view; the publication then replaces that family's pin with the measured row of the declared candidate (never with the superseded one) and archives the old pin. Superseded recipes stay declared.",
   "revisions": [
@@ -19,7 +19,7 @@
         ]
       },
       "status": "awaiting_measurement",
-      "study": "configs/forge/studies/adopt-20261016-k3p-study.json"
+      "study": "reports/forge/adopt-20261016/archived-studies/adopt-20261016-k3p-study.json"
     },
     {
       "trainer_family": "ka2",
@@ -32,7 +32,8 @@
         ]
       },
       "status": "awaiting_measurement",
-      "study": "configs/forge/studies/adopt-20261016-ka2-study.json"
+      "study": "reports/forge/adopt-20261016/archived-studies/adopt-20261016-ka2-study.json"
     }
-  ]
+  ],
+  "measurement_scope": "The 2026-10-16 diagnostics retain their original source and measured draft10. No result qualifies this current revision18. New measurement requires a new study ID, source binding and full reservation."
 }

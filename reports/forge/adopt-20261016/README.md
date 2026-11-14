@@ -1,5 +1,13 @@
 # Adopt 2026-10-16: ring16 at 6,400 updates, K3P/KA2 without the LR horizon cap, longer wall-clock limits
 
+<!-- superseded-banner: generated -->
+> Historical measurements from source `1e02f18537b89be13c511515f2716de2de0dc800`, under the unmerged measured draft10.
+> [Current status](../technique-inventory.md) uses declared view17; these rows stay diagnostic and grant no new qualification.
+> The 2026-11-08 integration archives view16 exactly, preserves all its required/held/stretch assignments, and changes only the ring task.
+> Original studies are retained in [archived-studies](archived-studies) and must not be reused against view17.
+> A new measurement requires a new study ID and reservation. No training was rerun for integration.
+> See [the integration receipt](INTEGRATION_20261108.md) for the current change; revision12 below describes the superseded original proposal.
+
 The user decided this after dig2 round 2. This page records what changed and the measurements that are published
 here. It replaces drafts #433 (ring16 cap) and #434 (wall-clock reruns).
 
@@ -163,3 +171,11 @@ run of passing checks. Toy100 precision is the 100,000-sample holdout value.
 | `ring_hold` (T3) | not counted | blocked (tier veto) | blocked (tier veto) | blocked (tier veto) | blocked (tier veto) | not run | not run |
 | `ring_extension` (T3) | counted | blocked (tier veto) | blocked (tier veto) | blocked (tier veto) | blocked (tier veto) | not run | not run |
 | `clockfree_audit_measurement_v1` (T1, diagnostic) | not counted | **FAIL** · step_label changed the update or common-prefix state | **FAIL** · step_label changed the update or common-prefix state | **FAIL** · step_label changed the update or common-prefix state | **FAIL** · step_label changed the update or common-prefix state | **PASS** · declared state/horizon/cadence/restart comparisons agree; source audit bound | **PASS** · declared state/horizon/cadence/restart comparisons agree; source audit bound |
+
+
+## Actual-training illustration from saved ring6400 observations
+
+[Training GIF](ring6400-training.gif) · [Receipt](ring6400-training.json) · [Reproduction source](render_ring6400.py).
+The 53 frames use only the original K3P v2 saved public-prior samples, with the final five observations included.
+Rendering verifies the original receipt hashes and adds zero sampling draws or optimizer updates.
+Its recorded PASS illustrates the original draft10/source cohort; it grants no current-view17 qualification.

@@ -369,12 +369,14 @@
   "dependencies": [],
   "description": "Acquire all 16 equally weighted two-dimensional Gaussian clusters from scratch: radius 3, sigma 0.1; require meaningful occupancy in every cluster, roughly balanced mass and noncollapsed local spread, sustained over the final 5 checks (one check every 16.67 updates) of 6400 updates. Each recipe's own step schedule is declared over the full 6400 updates. No extended hold phase. Revision 2 of ring16_acquisition (1600 updates, schedule horizon 400), which is preserved unchanged.",
   "research_artifacts": {
-    "api_publication": "reports/toy_audit/api_contract/ring16/publication.json",
-    "current_api_case": "api-ring16-acquisition-v2",
     "parameter_evidence": "reports/forge/tier1-prior-duration/results.json",
     "previous_task": "reports/forge/tier1-prior-smoke/frozen-tasks/ring16_acquisition.json",
     "previous_revision": "configs/forge/tasks/ring16_acquisition.json",
-    "cap_evidence": "reports/forge/dig2-20261016/ring16-cap.md"
+    "cap_evidence": "reports/forge/dig2-20261016/ring16-cap.md",
+    "historical_api_case": "api-ring16-acquisition-v2",
+    "historical_api_publication": "reports/toy_audit/api_contract/ring16/publication.json",
+    "actual_training_gif": "reports/forge/adopt-20261016/ring6400-training.gif",
+    "actual_training_gif_receipt": "reports/forge/adopt-20261016/ring6400-training.json"
   },
   "task_revision": {
     "schema_version": 1,

@@ -58,8 +58,8 @@ def test_canonical_board_keeps_scored_research_and_existing_navigation():
 
 def test_research_tiers_preserve_partial_coverage_and_each_failed_retention():
     rows = tier_rows(ROOT, ROOT / "reports/forge/technique-inventory.md")
-    assert len(rows["bcap-pure"]) == 21  # Backfilled research, strict audit and actual deeper diagnostics.
-    assert "1/7 (4 diagnostic attempts)" in rows["bcap-pure"][-1]
+    assert len(rows["bcap-pure"]) == 22  # Backfilled research, strict audit and actual deeper diagnostics.
+    assert "1/7 (4 diagnostic attempts)" in rows["bcap-pure"][-2]
     # Seed-only studies are excluded from the backfill and listed separately, still unrun.
     assert not any("research seed" in row for row in rows["bcap-pure"])
     paired = [row for row in historical_seed_rows(ROOT, ROOT / "reports/forge/technique-inventory.md")["bcap-pure"]
