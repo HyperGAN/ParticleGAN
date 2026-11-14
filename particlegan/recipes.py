@@ -1940,7 +1940,9 @@ def scale_learning_rates(step, recipe, optimizers, base_rates, prior=None, *,
     optimizers = tuple(optimizers)
     from .recipe_schedules import apply_training_schedules
     apply_training_schedules(step, recipe, optimizers)
-    prior_ids = set() if prior is None else {id(p) for p in prior.parameters()}
+    from .priors import unwrap_prior
+    base_prior = unwrap_prior(prior)
+    prior_ids = set() if base_prior is None else {id(p) for p in base_prior.parameters()}
     from .drift_variants import drift_features
     if drift_features(recipe.continuous_policy).critic_balance:
         from torch import Tensor, nn

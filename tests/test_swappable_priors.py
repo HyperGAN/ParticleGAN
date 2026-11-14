@@ -1,16 +1,14 @@
 import dataclasses
-from copy import deepcopy
-import json
-from pathlib import Path
 import subprocess
 import sys
+from copy import deepcopy
+from pathlib import Path
 
 import pytest
 import torch
-import torch.nn as nn
+from torch import nn
 
 from particlegan import (
-    DEFAULT_RECIPE,
     GANTrainer,
     MoGParticlePrior,
     ParticlePrior,
@@ -18,6 +16,8 @@ from particlegan import (
     UpdatePolicy,
     get_recipe,
     get_recipe_fields,
+    learning_rate_scales,
+    scale_learning_rates,
 )
 from particlegan.capabilities import prior_capabilities, prior_mechanisms
 from particlegan.priors import (
@@ -207,7 +207,7 @@ def assert_nested_allclose(left, right, atol: float = 1e-6, rtol: float = 1e-5):
 # Group 1: Zero Recipe Bloat & Schema Invariance
 # -----------------------------------------------------------------------------
 
-def test_recipe_fields_exact_tuple_invariance():
+def assert_current_recipe_schema():
     """Prior manipulators retain the frozen base schema plus explicit controls."""
     additions = ('reg_real_weight', 'reg_fake_weight', 'joint_reconstruction_weight', 'conditional_energy_weight', 'conditional_energy_samples', 'masked_mixture_weight', 'masked_transport_weight', 'imputer_component_weight', 'rhbi_weight', 'rhbi_rho', 'rhbi_tau', 'rhbi_eps', 'rhbi_iters', 'rhbi_c_max', 'rhbi_beta_ell', 'rhbi_nn_quantile', 'rhbi_critic_weight', 'rhbi_self_coupling', 'rhbi_relativistic_weight', 'rhbi_lambda_floor', 'rhbi_gamma_gauge', 'rhbi_rapidity_screening', 'rhbi_scale_log_odds', 'rhbi_conditional_fibre', 'rhbi_akt_horizon', 'rhbi_akt_mode', 'rhbi_slack_gain', 'rhbi_chord_weight', 'rhbi_thermal_tau', 'rhbi_thermal_shock_mu', 'rhbi_settle_beta', 'rhbi_settle_mode', 'rhbi_fibre_rel_blend', 'rhbi_step_damp', 'rhbi_cond_ot_weight', 'rhbi_cond_ot_mode', 'rhbi_simplex_weight', 'rhbi_cvx_mu_gain', 'rhbi_simplex_chart_weight', 'rhbi_tail_spill_gain', 'rhbi_simplex_macro_settle')
     fields_dict = get_recipe_fields()
@@ -217,6 +217,10 @@ def test_recipe_fields_exact_tuple_invariance():
     assert tuple(field.name for field in dataclasses.fields(Recipe)) == field_names
     from particlegan.recipe_compat import SEARCH_RECIPE_DEFAULTS
     assert all(fields_dict[name] == SEARCH_RECIPE_DEFAULTS[name] for name in additions)
+
+
+def test_recipe_fields_exact_tuple_invariance():
+    assert_current_recipe_schema()
 
 
 def test_recipe_no_toplevel_torch_import():
@@ -596,3 +600,166 @@ def test_checkpoint_continuation_parity_3step():
 
     # Full checkpoint recursive numerical parity check
     assert_nested_allclose(final_uninterrupted, final_restored, atol=1e-6)
+
+
+def test_scale_learning_rates_router_schedule_agreement():
+    """Verify scale_learning_rates scales role='router' groups with network_scale and matches UpdatePolicy.begin_step()."""
+    # 1. Setup recipe where learning rate annealing produces net_scale != prior_scale
+    recipe = get_recipe("ka2", num_particles=32, z_dim=8)
+    step = 6000
+    net_scale, prior_scale = learning_rate_scales(step, recipe)
+    assert net_scale != prior_scale, (
+        f"Precondition failed: net_scale ({net_scale}) == prior_scale ({prior_scale})"
+    )
+
+    # 2. Construct ManipulatedPrior with a trainable manipulator
+    m_train = MockTrainableManipulator(in_features=8, out_features=8)
+    prior = recipe.make_prior(manipulators=[m_train])
+    assert isinstance(prior, ManipulatedPrior)
+    assert prior.base.z.requires_grad is True
+    assert m_train.matrix.requires_grad is True
+
+    # 3. Models and Optimizers
+    gen = nn.Sequential(nn.Linear(8, 16), nn.Tanh(), nn.Linear(16, 2))
+    disc = nn.Sequential(nn.Linear(2, 16), nn.Tanh(), nn.Linear(16, 1))
+    ema_critic = deepcopy(disc)
+    opt_g, opt_d = recipe.make_optimizers(gen, disc, prior, ema_critic=ema_critic)
+
+    # 4. UpdatePolicy and base rates
+    policy = UpdatePolicy(recipe, gen, disc, generator_optimizer=opt_g, critic_optimizer=opt_d, prior=prior)
+    base_rates = [[g["lr"] for g in opt.param_groups] for opt in policy.optimizers]
+
+    # Map parameter groups by parameter identity and cross-check with policy roles
+    gen_group = next(g for g in opt_g.param_groups if any(p in set(gen.parameters()) for p in g["params"]))
+    prior_group = next(g for g in opt_g.param_groups if any(p is prior.base.z for p in g["params"]))
+    router_group = next(g for g in opt_g.param_groups if any(p is m_train.matrix for p in g["params"]))
+    critic_group = opt_d.param_groups[0]
+
+    assert opt_g.param_groups[policy.roles[0].index("generator")] is gen_group
+    assert opt_g.param_groups[policy.roles[0].index("table")] is prior_group
+    assert opt_g.param_groups[policy.roles[0].index("router")] is router_group
+    assert opt_d.param_groups[policy.roles[1].index("critic")] is critic_group
+
+    # Verify unscaled base learning rates
+    assert gen_group["lr"] == pytest.approx(recipe.lr)
+    assert prior_group["lr"] == pytest.approx(recipe.lr * recipe.prior_lr_mult)
+    assert router_group["lr"] == pytest.approx(recipe.lr)
+    assert critic_group["lr"] == pytest.approx(recipe.lr * recipe.d_lr_mult)
+
+    # 5. Call scale_learning_rates
+    ret_net, ret_prior = scale_learning_rates(step, recipe, policy.optimizers, base_rates, prior=prior)
+    assert ret_net == pytest.approx(net_scale)
+    assert ret_prior == pytest.approx(prior_scale)
+
+    # 6. Assertions on scaled learning rates
+    expected_gen_lr = recipe.lr * net_scale
+    expected_prior_lr = recipe.lr * recipe.prior_lr_mult * prior_scale
+    expected_router_lr = recipe.lr * net_scale
+    expected_critic_lr = recipe.lr * recipe.d_lr_mult * net_scale
+
+    # Router parameter group must match recipe.lr * net_scale (NOT prior_scale)
+    assert router_group["lr"] == pytest.approx(expected_router_lr, rel=1e-5), (
+        f"Router group LR was {router_group['lr']}, expected {expected_router_lr}"
+    )
+    assert abs(router_group["lr"] - (recipe.lr * prior_scale)) > 1e-4, (
+        f"Router group LR incorrectly matches prior_scale ({recipe.lr * prior_scale})"
+    )
+
+    # Prior parameter group must match recipe.lr * recipe.prior_lr_mult * prior_scale
+    assert prior_group["lr"] == pytest.approx(expected_prior_lr, rel=1e-5), (
+        f"Prior group LR was {prior_group['lr']}, expected {expected_prior_lr}"
+    )
+    assert abs(prior_group["lr"] - (recipe.lr * recipe.prior_lr_mult * net_scale)) > 1e-4, (
+        "Prior group LR was scaled by net_scale instead of prior_scale"
+    )
+
+    # Generator parameter group must match recipe.lr * net_scale
+    assert gen_group["lr"] == pytest.approx(expected_gen_lr, rel=1e-5), (
+        f"Generator group LR was {gen_group['lr']}, expected {expected_gen_lr}"
+    )
+
+    # Critic parameter group must match recipe.lr * recipe.d_lr_mult * net_scale
+    assert critic_group["lr"] == pytest.approx(expected_critic_lr, rel=1e-5), (
+        f"Critic group LR was {critic_group['lr']}, expected {expected_critic_lr}"
+    )
+
+    # 7. Record scale_learning_rates rates across all optimizers and groups
+    scale_lrs = [[g["lr"] for g in opt.param_groups] for opt in policy.optimizers]
+
+    # 8. Assert complete agreement with UpdatePolicy.begin_step()
+    policy.completed_steps = step
+    real = torch.randn(recipe.batch_size, 2)
+    policy.begin_step(real)
+    policy_lrs = [[g["lr"] for g in opt.param_groups] for opt in policy.optimizers]
+
+    assert len(scale_lrs) == len(policy_lrs)
+    for opt_idx, (s_opt, p_opt) in enumerate(zip(scale_lrs, policy_lrs)):
+        assert len(s_opt) == len(p_opt)
+        for grp_idx, (s_lr, p_lr) in enumerate(zip(s_opt, p_opt)):
+            assert s_lr == pytest.approx(p_lr, rel=1e-6), (
+                f"Schedule disagreement at optimizer {opt_idx}, group {grp_idx}: "
+                f"scale_learning_rates gave {s_lr}, but UpdatePolicy.begin_step gave {p_lr}"
+            )
+
+
+def test_trainer_mog_stream_isolation_with_manipulated_prior():
+    """Verify GANTrainer initializes prior_noise_generator and maintains stream isolation for ManipulatedPrior wrapping MoGParticlePrior."""
+    recipe = get_recipe(num_particles=16, z_dim=4, prior_kind="mog", sigma_rel=0.05, standardize=False)
+    m_train = MockTrainableManipulator(in_features=4, out_features=4)
+    prior = recipe.make_prior(manipulators=[m_train])
+
+    assert isinstance(prior, ManipulatedPrior)
+    assert isinstance(prior.base, MoGParticlePrior)
+
+    gen = nn.Linear(4, 8)
+    disc = nn.Linear(8, 1)
+
+    # 1. Automatic stream initialization
+    trainer = GANTrainer(recipe, gen, disc, prior=prior)
+    assert trainer.prior_noise_generator is not None
+    assert "prior_noise_generator" in trainer._STREAMS
+
+    # Check that prior_noise_generator is distinct from other streams
+    assert trainer.prior_noise_generator is not trainer.latent_generator
+    assert trainer.prior_noise_generator is not trainer.penalty_generator
+    assert trainer.prior_noise_generator is not trainer.noise_generator
+    assert trainer.prior_noise_generator is not trainer.eval_generator
+
+    # 2. Checkpoint state dict includes prior_noise_generator
+    sd = trainer.state_dict()
+    assert "streams" in sd
+    assert "prior_noise_generator" in sd["streams"]
+
+    # 3. Explicit stream injection
+    custom_stream = torch.Generator().manual_seed(9999)
+    trainer_custom = GANTrainer(recipe, deepcopy(gen), deepcopy(disc), prior=prior, prior_noise_generator=custom_stream)
+    assert trainer_custom.prior_noise_generator is custom_stream
+    assert "prior_noise_generator" in trainer_custom._STREAMS
+
+    # 4. Stream advance during training step
+    initial_prior_state = trainer.prior_noise_generator.get_state().clone()
+    initial_latent_state = trainer.latent_generator.get_state().clone()
+    real = torch.randn(recipe.batch_size, 8)
+    trainer.step(real)
+
+    # Both latent generator and prior noise generator advance
+    assert not torch.equal(trainer.prior_noise_generator.get_state(), initial_prior_state)
+    assert not torch.equal(trainer.latent_generator.get_state(), initial_latent_state)
+
+
+def test_make_prior_regularizer_initial_mmd_unwraps_base_prior():
+    """Verify make_prior_regularizer with initial_mmd registers reference buffers on base prior."""
+    recipe = get_recipe(num_particles=16, z_dim=4, prior_regularizer="initial_mmd")
+    m_train = MockTrainableManipulator(in_features=4, out_features=4)
+    prior = recipe.make_prior(manipulators=[m_train])
+
+    recipe.make_prior_regularizer(prior=prior)
+    assert hasattr(prior.base, "_initial_mmd_reference")
+    assert hasattr(prior.base, "_initial_mmd_scale")
+    assert hasattr(prior.base, "_initial_mmd_reference_kernel")
+
+    # Verify fluent chaining preserves access to registered buffers on base
+    chained = prior.manipulate(StratifiedSamplingManipulator(num_particles=16))
+    reg2 = recipe.make_prior_regularizer(prior=chained)
+    assert reg2 is not None
+

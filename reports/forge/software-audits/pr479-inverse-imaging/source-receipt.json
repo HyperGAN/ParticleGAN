@@ -1,0 +1,18 @@
+{
+  "scope": "software_integration_only",
+  "original_custom_fixture_commit": "721747de9056907d357aaaf22ec749a56d2af141",
+  "develop_parent": "528807d4b26db979c8e77d0543d266514c8e14d9",
+  "qualification_input": false,
+  "original_research_regraded": false,
+  "sources": {
+    "examples/inverse_imaging_smoke.py": "4a40ec7a12e6c888bb5aa2144b48858e44a0cd1c4d3312d1ac53a2dc154a77a9",
+    "particlegan/wavefront.py": "ca5763c4dca006fa5755a2b5869f1acbb26ca616863852813891bc99eae4d380",
+    "particlegan/tomographic.py": "bdba04a1d874af4949aeb7d7b2bab1ee8b407ada63d03a34421cbe64ad5a71b8",
+    "particlegan/priors.py": "e1c02ce3deebd41c932752c08d84e107a893d5be72cd981a6233abd3d10e1a79",
+    "particlegan/recipes.py": "1b1cfb20d03026833ed7e55bcccf221c00b0d36a562841c19ccb50f14b6cb650",
+    "particlegan/training.py": "e8bc8cd5e24b40dea15c5ab699fc3d8bf50c1b71073bea2c1e15cb7300877085",
+    "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+    "particlegan/init.py": "3534ff23efa413cdf8b4125b91e0d30671d873b3e2958547d4e744b750454b9b",
+    "particlegan/__init__.py": "635c9a3fc9ee9db7431f97702bb9efc1cdd10f50f2afe527f4f6991c7ebeb831"
+  }
+}
