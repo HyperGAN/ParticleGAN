@@ -23,7 +23,7 @@ from pathlib import Path
 
 from .contracts import file_hash, read_json
 
-FIXED_TEST_LIST = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-06.json")
+FIXED_TEST_LIST = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-12.json")
 FIXED_TEST_LIST_SCHEMA = "forge_fixed_test_list_v1"
 NOT_MEASURED = frozenset({"UNKNOWN", "NOT_RUN"})
 # Only a recorded FAIL is a scientific failure, matching ``fixed_outcomes``

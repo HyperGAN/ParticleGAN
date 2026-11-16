@@ -1,0 +1,119 @@
+{
+  "schema_version": 1,
+  "id": "interp_sparse_arc",
+  "description": "Learn 12 zero-sigma ParticlePrior locations on a 270-degree 2D circular arc (R=2.0, sigma=0.03) without MoG smoothing so unseen latent k-NN chords remain on the curved manifold, cover >=22/32 arc bins, and progress smoothly without Voronoi snapping.",
+  "adapter": "particle_interpolation",
+  "retained_question_ids": [
+    "stretch-interp-sparse-arc"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/particle-interpolation-stretch/README.md",
+    "api_publication": "reports/toy_audit/api_contract/interpolation/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "interp_sparse_arc",
+    "steps": 600,
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Zero-sigma discrete ParticlePrior required to test whether unseen latent space between finite learned particles forms a valid, non-snapping manifold without MoG kernel smoothing."
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-interp-sparse-arc",
+      "kind": "interp_sparse_arc",
+      "target": "270-degree 2D circular arc (R=2.0, theta in [-pi/4, 5pi/4], sigma=0.03)",
+      "resources": {
+        "num_particles": 12,
+        "z_dim": 2,
+        "batch_size": 128
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 64,
+        "layers": 2,
+        "out_dim": 2,
+        "fourier": 2
+      },
+      "interpolation": {
+        "graph": "latent_knn_chords",
+        "k_neighbors": 3,
+        "t_grid": [
+          0.25,
+          0.5,
+          0.75
+        ]
+      },
+      "steps": 600
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "enumerated_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "interp_sparse_arc",
+    "eval_samples": 512,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "endpoint_hq",
+        ">=",
+        0.85
+      ],
+      [
+        "interp_hq",
+        ">=",
+        0.8
+      ],
+      [
+        "interp_arc_bins",
+        ">=",
+        22
+      ],
+      [
+        "midpoint_novelty",
+        ">=",
+        0.2
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_interpolation.py": "6e617abd2d293609c65742771f0d6e7d0bafff75b7d2c812e62a55ae72945e31",
+      "experiments/forge/interpolation.py": "bba72f3a9fa59bc5bcaad558f8d5248475913322bf380c05b0ca7179f4af2fa2"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": []
+}

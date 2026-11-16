@@ -17,7 +17,9 @@ PROFILE_ADAPTERS = {"image_profile": {"transfer_image"},
                     "vector_profile": {"transfer_vector"},
                     "native_profile": {"native100", "native100_continuation"}}
 SUPPORTED_ADAPTERS = frozenset().union(*PROFILE_ADAPTERS.values())
-BOUNDARY_ADAPTERS = SUPPORTED_ADAPTERS | {"transfer_behavior", "ring_endurance", "clockfree_audit", "paired_adaptation", "word_joint"}
+BOUNDARY_ADAPTERS = SUPPORTED_ADAPTERS | {
+    "transfer_behavior", "ring_endurance", "clockfree_audit", "paired_adaptation", "word_joint", "particle_interpolation",
+}
 
 
 
@@ -110,6 +112,9 @@ def _validate_task(task, candidate, root, *, explicit_initializer=True):
             if adapter == "word_joint":
                 from .word_adapter import word_context
                 word_context({"candidate": reference_candidate, "protocol": {"seed": 0}}, task, "cpu", root=root)
+            elif adapter == "particle_interpolation":
+                from .interpolation import interpolation_context
+                interpolation_context({"candidate": reference_candidate, "protocol": {"seed": 0}}, task, "cpu", root=root)
             else:
                 from .api import task_formulation_context
                 task_formulation_context(reference_candidate, task, device="cpu", root=root)

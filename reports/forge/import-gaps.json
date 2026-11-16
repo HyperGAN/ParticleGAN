@@ -2516,10 +2516,10 @@
   ],
   "historical_import_complete": true,
   "inventory_coverage": {
-    "declared_count": 11823,
+    "declared_count": 11841,
     "missing": [],
     "stale": [],
-    "tracked_count": 11823,
+    "tracked_count": 11841,
     "unclassified": [],
     "valid": true
   },

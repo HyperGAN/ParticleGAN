@@ -1,0 +1,37 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "interp_sparse_arc"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "interp_img_patch_shift"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "interp_saddle_barycentric"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Three zero-sigma particle interpolation stretch toys do not establish whole-suite screen calibration or default adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "particle_interpolation_stretch",
+  "policy_change_reason": "Matched CUDA research comparison of unchanged selected family recipes across the three zero-sigma ParticlePrior latent-interpolation stretch tasks; retains every frozen target, architecture, initialization, update budget, cadence, live sampling law, and numerical gate. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

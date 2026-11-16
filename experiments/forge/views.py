@@ -911,6 +911,9 @@ STRETCH_EVALUATOR_KINDS = frozenset({
     "cgan_overlapping_classes",
     "cramer_energy_overlap",
     "cyclegan_unpaired_constellation",
+    "interp_sparse_arc",
+    "interp_img_patch_shift",
+    "interp_saddle_barycentric",
 })
 
 
@@ -1020,6 +1023,11 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         precision = precision_grade(task, evidence)
         if precision is not None:
             return _verdict(*precision)
+    if task.get("adapter") == "particle_interpolation":
+        from .interpolation import grade as interpolation_grade
+        interp_check = interpolation_grade(task, evidence)
+        if interp_check is not None:
+            return _verdict(*interp_check)
     from .tier1_policy import is_policy_task
     if is_policy_task(task) and task["adapter"] != "clockfree_audit":
         from .tier1_policy import validate_evidence

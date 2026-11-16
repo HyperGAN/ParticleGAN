@@ -176,10 +176,10 @@ def test_recipe_rejects_invalid_prior_reg_eps(bad_eps):
 
 def test_recipe_rejects_unsupported_prior_regularizer():
     """Verify Recipe rejects unknown prior_regularizer strings."""
-    with pytest.raises(ValueError, match="prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd or sbnp"):
+    with pytest.raises(ValueError, match="prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp or empf"):
         Recipe.from_dict({"prior_regularizer": "unsupported_regularizer"})
 
-    with pytest.raises(ValueError, match="prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd or sbnp"):
+    with pytest.raises(ValueError, match="prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp or empf"):
         Recipe.from_dict({"prior_regularizer": ""})
 
 

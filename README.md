@@ -17,7 +17,7 @@ critic penalty and prior regularizer.
 Requires Python 3.11+. PyTorch and NumPy are installed as dependencies.
 
 ```bash
-python -m pip install particlegan           # the library (0.9.8)
+python -m pip install particlegan           # the library (0.10.0)
 ```
 
 To run the examples, experiments and tests, install from source with the extras you need:
@@ -67,10 +67,14 @@ for _ in range(recipe.total_steps):
 samples = trainer.sample(1024)
 ```
 
-`get_recipe()` returns the default recipe, **optimized BISPF** (`DEFAULT_RECIPE =
-"bispf_optimized"` in [particlegan/recipes.py](particlegan/recipes.py)). It uses a
-non-saturating loss, a Born-Infeld critic penalty, an SBNP prior regularizer,
-zero-momentum DualNorm and constant rates. The acronyms are expanded in the
+`get_recipe()` returns the default recipe, **RHBI** (*Relativistic Hellinger-Born-Infeld
+Transport*, `DEFAULT_RECIPE = "rhbi_optimized"` in [particlegan/recipes.py](particlegan/recipes.py)).
+It pairs debiased slack-screened Kantorovich-Hellinger Sinkhorn generator transport
+(`RHBIGANLoss`) with a Weyl-phased balanced Born-Infeld geodesic chord and thermal-settling
+critic penalty (`RHBICriticPenalty`), SBNP particle prior regularization (`prior_reg = 0.02`),
+and zero-momentum DualNorm (`polar_cpu_v1`, `native` SVD, `float32`) at constant rates.
+Explicit `get_recipe("empf")`, `get_recipe("rhbi")` and `get_recipe("bispf_optimized")`
+retain earlier named presets. The acronyms are expanded in the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names), and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) explain the configuration.
 
@@ -103,10 +107,15 @@ metrics, receipts and training GIFs. Other report pages are historical records.
 
 What the evidence does and does not show today:
 
-- **The default is a research selection, not a qualified winner.** In the inventory's
-  full-suite table on 2026-10-25, the default BISPF recipe records 18 PASS,
-  11 FAIL and 20 unmeasured out of 49 distinct tests. Forge's screening calibration
-  is still provisional.
+- **The default is a research selection, not a qualified winner.** In the
+  [technique inventory](reports/forge/technique-inventory.md), the selected RHBI recipe
+  (`rhbi-v12`, `DEFAULT_RECIPE = "rhbi_optimized"`) ties `empf` (`empf-v8`) at **83/115**
+  counted view requirements (`27/27` Tier 1 PASS, `56/78` Tier 2 with 2 not run, `0/10`
+  Tier 3 with 10 not run) while leading on the 64-test fixed suite at **33 PASS**, **7 FAIL**,
+  8 not measured and 16 blocked (vs `empf`'s `23/64` PASS, `17` FAIL, 8 not measured and
+  16 blocked) and on stretch view assignments at **35/63** (vs `empf`'s `0/63`), ahead of
+  `bispf_optimized` at `81/115` and `18/64`. Forge's screening calibration (`BLOCKED`), Tier 2/3
+  full-tier gates and untouched holdout confirmation remain open.
 - **Controlled prior comparison** ([matched prior ablation, 2026-10-25](reports/prior-ablation-2026-10-25/README.md)).
   Each arm changes only the prior policy. Architecture, data, budget, seed 0 and
   the initial table are the same. These are one-seed diagnostics with no
@@ -144,12 +153,12 @@ What the evidence does and does not show today:
 
 ### The 100-Gaussian animations
 
-These three animations use different recipes. Only the first two use the package default.
+These three animations use different historical or opt-in recipes rather than the current `rhbi_optimized` default.
 
 | Animation | Recipe | What it shows | Pass/fail metric | Result |
 | --- | --- | --- | --- | --- |
-| [`100gaussians.gif`](100gaussians.gif) | **Default** (`get_recipe()` in 0.9.0). This is the current default's training settings with its pre-0.9.1 execution policy (native SVD, FP32). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 20,000 updates. | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **FAIL**: 100/100 modes, but `hq` 42.1% ([receipt](reports/readme-100gaussians/README.md#current-default)) |
-| [stripes GIF](reports/forge/bispf-throughput/media/bispf-throughput-v1/img_stripes2.gif) | **Default** from 0.9.1 (batched SVD, BF16/channels-last) | Fixed 600-update `img_stripes2` image task | The task's declared Forge gate, including all required modes | **PASS** ([readout](reports/forge/bispf-throughput/README.md)) |
+| [`100gaussians.gif`](100gaussians.gif) | **Archived 0.9.0 default** (`get_recipe("bispf_optimized", optimizer_svd_backend="native", training_precision="float32")`). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 20,000 updates. | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **FAIL**: 100/100 modes, but `hq` 42.1% ([receipt](reports/readme-100gaussians/README.md#current-default)) |
+| [stripes GIF](reports/forge/bispf-throughput/media/bispf-throughput-v1/img_stripes2.gif) | **Archived 0.9.1 default** (`get_recipe("bispf_optimized")`, batched SVD, BF16/channels-last) | Fixed 600-update `img_stripes2` image task | The task's declared Forge gate, including all required modes | **PASS** ([readout](reports/forge/bispf-throughput/README.md)) |
 | [E22 GIF](reports/e22-animation/e22-100gaussians.gif) | **Not the default.** Opt-in preset `get_recipe("e22", ...)` with an identity `nn.Linear(2, 2)` generator, a 20,000-row table, batch 2,048 and seed 1234 | Grid, rotated and staggered 100-Gaussian layouts, 7,000 updates each | Native gates: worst live precision over the last 5 checks ≥ 0.97 and worst centre error ≤ 0.20σ | **PASS** on all three layouts (precision .9822–.9851); the animation draws reach `hq` 98.3–98.6% ([E22 results](docs/e22.md#results), [animation](reports/e22-animation/README.md)). In the Forge suite, E22 is 0/115: its policy cohort is blocked or incompatible with the current task definitions. |
 
 ![Archived 0.9.0 default on the 100-Gaussian grid: particle outputs, target modes and numerical learning curves (FAIL: hq 42.1% < 95%)](100gaussians.gif)
@@ -176,10 +185,12 @@ qualification and review of the winner. The
 acquisition, settling, endurance and recovery required again.
 
 **Changing the default.** A promotion changes one line in
-[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "bispf_optimized"`.
+[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "rhbi_optimized"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
+`get_recipe("empf")`, `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
 `get_recipe("ka2")` remain available. This is the owner-selected research default;
-Forge calibration remains provisional.
+Forge calibration remains provisional (`BLOCKED`), Tier 2/3 qualification is incomplete,
+and untouched holdout confirmation remains open.
 
 **0.9.1 throughput.** Version 0.9.1 made the faster BISPF execution policy the
 default, and kept explicit historical settings and saved-recipe restoration (see the

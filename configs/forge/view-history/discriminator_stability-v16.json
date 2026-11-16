@@ -1,0 +1,571 @@
+{
+  "schema_version": 1,
+  "id": "discriminator_stability",
+  "revision": 16,
+  "goal": "discriminator_stability",
+  "assignments": [
+    {
+      "importance": "required",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "gaussian1d_smoke"
+    },
+    {
+      "importance": "required",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "two_pole"
+    },
+    {
+      "importance": "required",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "unused_token_hold"
+    },
+    {
+      "importance": "required",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "ae_gan_hold"
+    },
+    {
+      "importance": "required",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "ring16_acquisition"
+    },
+    {
+      "importance": "required",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "importance": "required",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "zero_tanh_smoke"
+    },
+    {
+      "task": "gaussian1d_stability",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 0
+    },
+    {
+      "task": "five_word_joint_hold",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 1
+    },
+    {
+      "importance": "required",
+      "order": 2,
+      "qualification_tier": 2,
+      "task": "trajectory"
+    },
+    {
+      "importance": "required",
+      "order": 3,
+      "qualification_tier": 2,
+      "task": "residual_student"
+    },
+    {
+      "importance": "required",
+      "order": 4,
+      "qualification_tier": 2,
+      "task": "unipolar"
+    },
+    {
+      "importance": "required",
+      "order": 5,
+      "qualification_tier": 2,
+      "task": "cover_leftover"
+    },
+    {
+      "importance": "required",
+      "order": 6,
+      "qualification_tier": 2,
+      "task": "mid_scale_identity"
+    },
+    {
+      "importance": "required",
+      "order": 7,
+      "qualification_tier": 2,
+      "task": "mode_hold"
+    },
+    {
+      "importance": "required",
+      "order": 8,
+      "qualification_tier": 2,
+      "task": "vector_two_broad"
+    },
+    {
+      "importance": "held",
+      "order": 9,
+      "qualification_tier": 2,
+      "task": "vector_unequal_mass",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#vector_unequal_mass",
+        "reentry": "Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 10,
+      "qualification_tier": 2,
+      "task": "vector_unequal_width",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "Equal shares, very different widths: BCAP and BISPF get the shares wrong (mass TV 0.29 and 0.25; limit 0.15). Perfect samples pass 200/200 runs. Cell-moment passers fail counted tests; round-5 balanced assignment fails only held tests but never ran most of the counted suite.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#vector_unequal_width",
+        "reentry": "Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_mass, so the two will likely return together."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 11,
+      "qualification_tier": 2,
+      "task": "vector_anisotropic",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#vector_anisotropic",
+        "reentry": "Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 12,
+      "qualification_tier": 2,
+      "task": "vector_overlap",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#vector_overlap",
+        "reentry": "Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold."
+      }
+    },
+    {
+      "importance": "required",
+      "order": 13,
+      "qualification_tier": 2,
+      "task": "vector_spiral"
+    },
+    {
+      "importance": "required",
+      "order": 14,
+      "qualification_tier": 2,
+      "task": "img_stripes2"
+    },
+    {
+      "importance": "held",
+      "order": 15,
+      "qualification_tier": 2,
+      "task": "img_bars4",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#img_bars4",
+        "reentry": "Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 16,
+      "qualification_tier": 2,
+      "task": "img_blobs4",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#img_blobs4",
+        "reentry": "Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 17,
+      "qualification_tier": 2,
+      "task": "img_intensity2",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "no_global_recipe",
+        "blocked_by": [],
+        "summary": "Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#img_intensity2",
+        "reentry": "Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test."
+      }
+    },
+    {
+      "importance": "required",
+      "order": 18,
+      "qualification_tier": 2,
+      "task": "grid100"
+    },
+    {
+      "importance": "required",
+      "order": 19,
+      "qualification_tier": 2,
+      "task": "rotated100"
+    },
+    {
+      "importance": "required",
+      "order": 20,
+      "qualification_tier": 2,
+      "task": "staggered100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 3,
+      "task": "ring_hold",
+      "removal": {
+        "schema": "forge_count_removal_v1",
+        "previous_importance": "required",
+        "reason": "phase",
+        "counted_by": "ring_extension",
+        "summary": "Same uninterrupted ring run as ring_extension, whose counted verdict already replays this acquisition and 1,200-check hold. Kept as a visible phase and counted once, through ring_extension.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#ring_hold"
+      }
+    },
+    {
+      "importance": "required",
+      "order": 1,
+      "qualification_tier": 3,
+      "task": "ring_extension"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 100,
+      "qualification_tier": 1,
+      "task": "clockfree_audit_measurement_v1"
+    },
+    {
+      "importance": "held",
+      "order": 2,
+      "qualification_tier": 3,
+      "task": "zero_tanh_rail_escape",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "Dynamic target shift (+0.90, -0.90) -> (0.0, 0.0) rail escape with 400-update deadline held pending passing recipe.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes zero_tanh_rail_escape under its unchanged declaration and satisfies all Tier 1-3 requirements."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 0,
+      "qualification_tier": 4,
+      "task": "grid100_mlp16",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "16-hidden-layer 128-wide LeakyReLU MLP generator on grid100 target held pending passing recipe across all 100 modes.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes grid100_mlp16 under its unchanged declaration and satisfies all counted requirements."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 1,
+      "qualification_tier": 4,
+      "task": "grid100_res16_tanh",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "16-layer residual MLP with S=5.25 bounded tanh head on grid100 target held pending non-saturating passing recipe.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes grid100_res16_tanh under its unchanged declaration without saturation."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 2,
+      "qualification_tier": 4,
+      "task": "misgan_block_recovery",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "2-pair incomplete-data MisGAN on 8D block problem held pending passing recipe for manifold recovery and ppost imputation.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes misgan_block_recovery under its unchanged declaration."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 3,
+      "qualification_tier": 4,
+      "task": "misgan_block_neural_imputer",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "3-pair MisGAN neural imputer on ambiguous single-sensor queries held pending passing recipe without ppost fallback.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes misgan_block_neural_imputer under its unchanged declaration."
+      }
+    },
+    {
+      "importance": "held",
+      "order": 4,
+      "qualification_tier": 4,
+      "task": "ring16_bigan_continuous",
+      "hold": {
+        "schema": "forge_hold_v1",
+        "previous_importance": "required",
+        "reason": "unsolved",
+        "blocked_by": [],
+        "summary": "Continuous 2D multimodal joint BiGAN (G, E, D) on 16-Gaussian ring held pending passing generation and reconstruction recipe.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved",
+        "reentry": "Count again when one global recipe passes ring16_bigan_continuous under its unchanged declaration."
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 5,
+      "qualification_tier": 4,
+      "task": "misgan_mcar_p50_recovery",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Independent coordinatewise MCAR p=0.50 MisGAN on the 8-mode 8D block manifold with data/mask generator pair.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 6,
+      "qualification_tier": 4,
+      "task": "misgan_mcar_p80_anchored",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Extreme MCAR p=0.80 MisGAN on the 8-mode 8D block manifold with a 10% fully observed anchor subset.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 7,
+      "qualification_tier": 4,
+      "task": "pacgan_unequal_mass",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "PacGAN-4 packed critic on an unequal-mass 8-mode ring with 20:1 weight ratio between heavy and light modes.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 8,
+      "qualification_tier": 4,
+      "task": "pacgan8_grid100",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "PacGAN-8 packed critic on the 10x10 100-mode 2D Gaussian grid testing 100/100 mode coverage.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 9,
+      "qualification_tier": 4,
+      "task": "alice_spiral_bigan",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "ALICE cycle-consistent BiGAN (G, E, D_xz) on a 1D curved spiral manifold in 2D testing cycle reconstruction.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 10,
+      "qualification_tier": 4,
+      "task": "infogan_anisotropic_modes",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "InfoGAN mutual-information auxiliary head Q(c|x) on 8 anisotropic rotated Gaussian modes testing factor disentanglement.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 11,
+      "qualification_tier": 4,
+      "task": "cgan_overlapping_classes",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Mirza-Osindero concat vs Miyato-Koyama projection cGAN on 4 overlapping annular rings testing class separability.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 12,
+      "qualification_tier": 4,
+      "task": "cramer_energy_overlap",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Bellemare CramerGAN 16D critic embedding with surrogate energy potential on a tight 25-mode 5x5 Gaussian grid.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 13,
+      "qualification_tier": 4,
+      "task": "cyclegan_unpaired_constellation",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Unpaired CycleGAN/DiscoGAN dual generators and cycle-consistency on rotated and scaled 8-mode constellations.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "importance": "stretch",
+      "order": 14,
+      "qualification_tier": 4,
+      "task": "grid100_res16_scaled_tanh",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Paired 16-layer ScaledResidualMLPGenerator + TanhRailGuard on the 10x10 100-mode Gaussian grid isolating residual depth transport from unscaled initialization explosion.",
+        "explanation": "reports/forge/test-dispositions-20261015/README.md#unresolved"
+      }
+    },
+    {
+      "task": "model_ae_ddgan_bimodal_chain",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 21
+    },
+    {
+      "task": "model_ae_ddgan_gaussian_chain",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 7,
+      "calibration_note": "Reclassified from Tier 1 to Tier 2: tests a 4-step reverse diffusion chain demanding 42 simultaneous distribution matching bounds across 8 panels, ancestral marginal distributions, and AE reconstruction; generator prediction variance at step 1 (t=1, where reverse diffusion noise is 0%) requires multi-step distribution quality beyond the 2,500-step smoke scope of Tier 1, matching the complexity of model_ae_ddgan_bimodal_chain."
+    },
+    {
+      "task": "model_ae_gan_multimodal",
+      "qualification_tier": 1,
+      "importance": "required",
+      "order": 8
+    },
+    {
+      "task": "model_ae_reconstruction",
+      "qualification_tier": 1,
+      "importance": "required",
+      "order": 9
+    },
+    {
+      "task": "model_ddgan_bimodal_chain",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 22
+    },
+    {
+      "task": "model_ddgan_gaussian_chain",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 10,
+      "calibration_note": "Reclassified from Tier 1 to Tier 2: tests a 4-step reverse diffusion chain demanding 38 simultaneous distribution matching bounds across 8 panels and ancestral marginal distributions; generator prediction variance at step 1 (t=1, where reverse diffusion noise is 0%) requires multi-step distribution quality beyond the 2,500-step smoke scope of Tier 1, matching the complexity of model_ddgan_bimodal_chain."
+    },
+    {
+      "task": "model_vae_categorical",
+      "qualification_tier": 1,
+      "importance": "required",
+      "order": 11
+    },
+    {
+      "task": "model_vae_hard",
+      "qualification_tier": 1,
+      "importance": "required",
+      "order": 12
+    },
+    {
+      "task": "precision_gaussian_fp32",
+      "qualification_tier": 1,
+      "order": 101,
+      "importance": "diagnostic"
+    },
+    {
+      "task": "precision_gaussian_mxfp8",
+      "qualification_tier": 1,
+      "order": 102,
+      "importance": "stretch",
+      "stretch": {
+        "reason": "frontier",
+        "summary": "Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic?",
+        "explanation": "reports/forge/precision-stretch/README.md#precision-stretch",
+        "graduation": "Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass."
+      }
+    },
+    {
+      "task": "precision_gaussian_nvfp4",
+      "qualification_tier": 1,
+      "order": 103,
+      "importance": "stretch",
+      "stretch": {
+        "reason": "frontier",
+        "summary": "Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic?",
+        "explanation": "reports/forge/precision-stretch/README.md#precision-stretch",
+        "graduation": "Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass."
+      }
+    }
+  ],
+  "eligibility": {},
+  "calibration": {
+    "status": "provisional",
+    "adoption_blocker": "Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities."
+  },
+  "ranking": {
+    "policy": "qualified_tier_only_with_raw_metrics",
+    "compare_compatible_cohorts": true,
+    "cost_separate": true
+  },
+  "policy_change_reason": "Archive the exact develop revision-15 policy, preserving all required, held, and stretch assignments. Add paired Tier 4 stretch task grid100_res16_scaled_tanh alongside unnormalized grid100_mlp16 and grid100_res16_tanh; required qualification and historical numerical results are unchanged.",
+  "previous_revision": {
+    "archive": "configs/forge/view-history/discriminator_stability-v15.json",
+    "policy_fingerprint": "ad156a02a8d44077d707f1324959b0b865824411ca08d9b5d5098ae7d1a69497",
+    "revision": 15
+  }
+}
