@@ -48,7 +48,7 @@ except (ImportError, ValueError):
     pass
 
 # Promote a registered trainer preset here; model-family factories inherit it.
-DEFAULT_RECIPE = "empf"
+DEFAULT_RECIPE = "rhbi_optimized"
 
 
 def _reject_table_storage_owners(table, tensors):
@@ -1692,15 +1692,24 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"empf"`` is the selected EMPF research default (``DEFAULT_RECIPE``):
+    ``"rhbi_optimized"`` is the selected RHBI research default
+    (``DEFAULT_RECIPE``, matching ``rhbi-v12``): Relativistic Hellinger-Born-Infeld
+    transport with debiased Feydy discrete self-coupling, Weibull Adaptive
+    Kinetic Horizon, sparse-mode support completion, coordinate-whitened
+    conditional IMQ-CMMD fibre transport with residual step damping,
+    thermal-driven settling Born-Infeld critic regularization (``ebi_beta=12.0``),
+    SBNP prior regularization (``prior_reg=0.02``), discrete-simplex and 1D-curve
+    chart settling, and zero-momentum DualNorm with ``polar_cpu_v1`` / ``native``
+    SVD in ``float32``. ``"rhbi"`` retains the original ``rhbi-v1`` formulation.
+    ``"empf"`` retains the explicit EMPF preset:
     clock-free online ``e-means`` sufficient-statistics prototype bank,
     mass-weighted prototype-to-fake Sinkhorn OT, state-driven settling
     Born-Infeld critic penalty (``ebi_beta=6.0``), degree-of-freedom-aware EMPF
     prior regularization (``prior_reg=0.01``), zero-momentum DualNorm with
     quintic batched convolution updates, and BF16/channels-last training for
     supported CUDA convolutional networks. See
-    ``reports/forge/technique-inventory.md`` for its current ordinary CUDA
-    readout; selection does not add accepted calibration, Tier 3 confirmation,
+    ``reports/forge/technique-inventory.md`` for current ordinary CUDA
+    readouts; selection does not add accepted calibration, Tier 3 confirmation,
     or natural-image quality credit.
     ``"bispf_optimized"`` retains the explicit optimized BISPF preset:
     zero-momentum DualNorm, non-saturating loss, the Born-Infeld chord penalty,
@@ -1802,6 +1811,27 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "lr_schedule": "cosine", "ebi_beta": 20.0,
         "prior_regularizer": "moment_tether", "prior_reg": .01,
         "routing_temperature": 0.25, "rhbi_weight": 1.0,
+    }
+    presets["rhbi_optimized"] = {
+        **presets["rhbi"],
+        "lr": 0.014, "prior_lr_mult": 2.9, "optimizer_smoothing": 0.0061,
+        "optimizer_svd_backend": "native", "training_precision": "float32",
+        "ebi_beta": 12.0, "prior_regularizer": "sbnp", "prior_reg": 0.02,
+        "ucd_weight": 0.02, "rhbi_rho": 3.0,
+        "rhbi_self_coupling": "feydy_discrete",
+        "rhbi_rapidity_screening": False,
+        "rhbi_conditional_fibre": "slack",
+        "rhbi_cond_ot_mode": "diag_imq_cmmd",
+        "rhbi_cond_ot_weight": 1.5, "rhbi_cond_step_damp": 0.68,
+        "rhbi_ae_coord_whiten": True, "rhbi_support_completion": True,
+        "rhbi_akt_horizon": True, "rhbi_akt_mode": "weibull",
+        "rhbi_slack_gain": 0.35, "rhbi_chord_weight": 0.25,
+        "rhbi_lambda_floor": 0.005, "rhbi_gamma_gauge": 0.03,
+        "rhbi_thermal_tau": 0.084, "rhbi_thermal_shock_mu": 0.35,
+        "rhbi_settle_beta": 16.0, "rhbi_settle_mode": "thermal",
+        "rhbi_simplex_weight": 0.35, "rhbi_simplex_chart_weight": 4.0,
+        "rhbi_simplex_macro_settle": True, "rhbi_simplex_curve_settle": True,
+        "rhbi_cvx_mu_gain": 0.58, "rhbi_tail_spill_gain": 0.95,
     }
     presets["atlas"] = {**presets["e22"], "birth_death_backend": "auto",
                          "birth_death_cells": 128, "reopen_guard": "settled"}

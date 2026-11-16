@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.10.0 — 2026-11-16
+
+- **Default RHBI research selection (`DEFAULT_RECIPE = "rhbi_optimized"`).**
+  Promote `rhbi_optimized` (matching [`rhbi-v12`](configs/forge/ideas/rhbi-v12.json))
+  as the public default trainer preset while preserving explicit `get_recipe("rhbi")`
+  (`rhbi-v1`), `get_recipe("empf")`, `get_recipe("bispf_optimized")`, and
+  `Recipe.from_dict(saved_fields)` historical restoration. In the
+  [technique inventory](reports/forge/technique-inventory.md), `rhbi-v12` leads
+  screening at `83/115` counted view requirements (`27/27` Tier 1 PASS, `56/78`
+  Tier 2 with 2 not run, `0/10` Tier 3 with 10 not run), `33/64` fixed-suite
+  passes (`7` FAIL, `8` not measured, `16` blocked), and `35/63` stretch view
+  assignments. Screening calibration remains `BLOCKED`, Tier 2/3 full-tier
+  qualification is incomplete, and untouched holdout confirmation remains open.
+- **Public RHBI and EMPF families (`particlegan.rhbi`, `particlegan.empf`).**
+  Export `RHBILoss`, `RHBIGANLoss`, `RHBICriticPenalty`, `RHBICriticAdam`,
+  `RHBIStepRecord`, and `bind_rhbi_record` alongside `EMPFPriorRegularizer`,
+  `EMPFCriticPenalty`, `EMPFCriticAdam`, and `EMPFStepRecord`. `RHBIGANLoss`
+  pairs calibrated critic log-odds with debiased slack-screened Kantorovich-Hellinger
+  Sinkhorn generator transport (`g_loss(fake_logits, real_logits)` requires
+  `real_logits` when `rhbi_weight > 0`), conditional coordinate-whitened
+  IMQ-CMMD fibre transport with residual step damping, sparse-mode support
+  completion, and discrete-simplex / 1D-curve chart settling.
+- **DualNorm dense polar profiles (`polar_cpu_v1`, `newton_schulz_v1`, `newton_schulz_hybrid_v1`).**
+  Add CPU-offloaded small-matrix polar SVD (`polar_cpu_v1`) and guarded CUDA
+  Newton-Schulz polar profiles (`newton_schulz_v1` and `newton_schulz_hybrid_v1`
+  for dense matrices with `min(shape) >= 64` and `max(shape) >= 128`), plus
+  discrete-simplex Chamfer hold cooling in `EMPFCriticPenalty`.
+- **Zero-sigma particle interpolation stretch benchmarks and release workflow fix.**
+  Register the three zero-sigma `ParticlePrior` geometric interpolation stretch
+  benchmarks (`interp_sparse_arc`, `interp_saddle_barycentric`, `interp_img_patch_shift`)
+  in the 64-test full-suite leaderboard and allow `HyperGAN/ParticleGAN` alongside
+  `255BITS/ParticleGAN` in `.github/workflows/release.yml`.
+
 ## 0.9.8 — 2026-11-09
 
 - **Tiny PyPI source distribution (`sdist`) and strict distribution gates.**

@@ -615,7 +615,8 @@ class GANTrainer:
                 and len(self.prior.z) >= 2
                 and hasattr(self.loss, "rhbi")
             ):
-                base_table = unwrap_prior(self.prior).z
+                raw_base = unwrap_prior(self.prior).z
+                base_table = raw_base if recipe.num_particles <= 1024 else raw_base[torch.unique(indices)]
                 simplex_loss = recipe.rhbi_simplex_weight * self.loss.rhbi.simplicial_manifold_loss(
                     base_table,
                     lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),

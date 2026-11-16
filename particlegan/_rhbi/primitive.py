@@ -131,6 +131,36 @@ class RHBILoss(nn.Module):
 
     @staticmethod
     @torch.no_grad()
+    def _minimax_persistence_max(d_yy: torch.Tensor, steps: int = 8) -> torch.Tensor:
+        """Return ``m_path.amax()`` for ``steps`` minimax hops (Prim MST max-edge above 512)."""
+        n = d_yy.shape[0]
+        if n <= 512:
+            m_path = d_yy.clone()
+            for _ in range(steps):
+                m_path = torch.minimum(
+                    m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
+                )
+            return m_path.amax()
+        in_tree = torch.zeros(n, dtype=torch.bool, device=d_yy.device)
+        in_tree[0] = True
+        min_edge = d_yy[0].clone()
+        max_weight = d_yy.new_zeros(())
+        for _ in range(n - 1):
+            cand = min_edge.masked_fill(in_tree, float("inf"))
+            weight, nxt = cand.min(dim=0)
+            max_weight = torch.maximum(max_weight, weight)
+            in_tree[nxt] = True
+            min_edge = torch.minimum(min_edge, d_yy[nxt])
+        return max_weight
+
+    @staticmethod
+    def _weyl_strided_indices(n: int, cap: int, phi: float, device: torch.device) -> torch.Tensor:
+        """Select ``cap`` distinct evenly strided indices shifted by Weyl phase ``phi`` (zero RNG draws)."""
+        offset = int(float(phi) * float(n)) % n
+        return ((torch.arange(cap, device=device, dtype=torch.long) * n) // cap + offset) % n
+
+    @staticmethod
+    @torch.no_grad()
     def _compute_manifold_gates(y_flat: torch.Tensor) -> Tuple[float, float, float, torch.Tensor]:
         """Return ``(g_conn, g_macro, q90_y_u, y_scale)`` via 8-step minimax persistence closure."""
         b_r = y_flat.shape[0]
@@ -145,12 +175,7 @@ class RHBILoss(nn.Module):
         q90_t = torch.quantile(nn_y, 0.90).clamp_min(1e-8)
         q90_y_u = float(q90_t.clamp_min(1e-4).item())
         span_y = torch.quantile(d_yy[off_y], 0.90) / q90_t
-        m_path = d_yy.clone()
-        for _ in range(8):
-            m_path = torch.minimum(
-                m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
-            )
-        kappa_h0 = m_path.amax() / q90_t
+        kappa_h0 = RHBILoss._minimax_persistence_max(d_yy, steps=8) / q90_t
         u_conn = ((10.0 - kappa_h0) / 3.0).clamp(0.0, 1.0)
         u_span = ((span_y - 1.15) / 0.25).clamp(0.0, 1.0)
         u_macro = ((span_y - 3.80) / 1.00).clamp(0.0, 1.0)
@@ -1316,6 +1341,12 @@ class RHBILoss(nn.Module):
         if self.weight == 0.0 or m_p < 2 or b_r < 1:
             return y_real[:0].sum()
 
+        phi = float(getattr(record, "rhbi_chord_phase", 0.0)) if record is not None else 0.0
+        if m_p > 512:
+            idx_p = self._weyl_strided_indices(m_p, 128, phi, z_table.device)
+            z_table = z_table[idx_p]
+            m_p = 128
+
         y_flat = y_real.detach().reshape(b_r, -1)
         g_macro = 0.0
         if use_macro and chart_weight > 0.0 and b_r >= 4:
@@ -1348,12 +1379,7 @@ class RHBILoss(nn.Module):
                     q90_t = torch.quantile(nn_y, 0.90).clamp_min(1e-8)
                     q90_y_u = float(q90_t.clamp_min(1e-4).item())
                     span_y = torch.quantile(d_yy[off_y], 0.90) / q90_t
-                    m_path = d_yy.clone()
-                    for _ in range(7):
-                        m_path = torch.minimum(
-                            m_path, torch.maximum(m_path.unsqueeze(2), m_path.unsqueeze(0)).amin(dim=1)
-                        )
-                    kappa_h0 = m_path.amax() / q90_t
+                    kappa_h0 = self._minimax_persistence_max(d_yy, steps=7) / q90_t
                     u_conn = ((10.0 - kappa_h0) / 3.0).clamp(0.0, 1.0)
                     u_span = ((span_y - 1.15) / 0.25).clamp(0.0, 1.0)
                     s_conn = u_conn * u_conn * (3.0 - 2.0 * u_conn)
@@ -1365,8 +1391,7 @@ class RHBILoss(nn.Module):
                 if (use_curve and chart_weight > 0.0)
                 else 0.0
             )
-            phi = float(getattr(record, "rhbi_chord_phase", 0.0)) if record is not None else 0.0
-            n_q = max(4, b_r)
+            n_q = max(4, b_r if b_r <= 512 else 128)
             n_edge_base = (n_q // 2) if (m_p >= 3 and k_nn >= 2 and n_q >= 4) else n_q
             n_tri = int(round((1.0 - g_curve) * float(n_q - n_edge_base)))
             n_edge = n_q - n_tri
@@ -1553,7 +1578,12 @@ class RHBILoss(nn.Module):
 
             if z_table.requires_grad:
                 with torch.no_grad():
-                    v_cloud = torch.cat([x_verts.float() / y_scale, y_u], dim=0)
+                    y_chart = (
+                        y_u
+                        if (m_p + b_r) <= 512
+                        else y_u[self._weyl_strided_indices(b_r, min(b_r, 128), phi, y_u.device)]
+                    )
+                    v_cloud = torch.cat([x_verts.float() / y_scale, y_chart], dim=0)
                     d_v = torch.cdist(v_cloud, v_cloud, p=2.0)
                     h_step = max(1e-4, 1.35 * q90_y_u)
                     g_mat = d_v * (1.0 + (d_v / h_step).square())

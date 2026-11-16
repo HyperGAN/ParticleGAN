@@ -322,8 +322,9 @@ def test_recipe_schema_exact_118_fields():
     assert tuple(name for name in field_names if name not in additions) == FROZEN_RECIPE_FIELDS
     assert tuple(field.name for field in dataclasses.fields(Recipe)) == field_names
     from particlegan.recipe_compat import SEARCH_RECIPE_DEFAULTS
+    ka2_fields = get_recipe_fields("ka2")
     for name in additions:
-        assert fields_dict[name] == SEARCH_RECIPE_DEFAULTS[name]
+        assert ka2_fields[name] == SEARCH_RECIPE_DEFAULTS[name]
 
 
 def test_atlas_preset_default_values_and_swapped_prior():

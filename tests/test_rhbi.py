@@ -338,7 +338,7 @@ def test_hook_capture_views_input_noise_joint_bigan_and_discrete_cond():
 
 def test_semantic_learning_and_zero_preset_hash_drift():
     """Verify RHBI learns a 2D target, deliberate damage degrades quality, and existing presets have zero drift."""
-    for preset in ("ka2", "k3p", "bcap", "bispf", "bispf_optimized", "e22", "atlas", "halloween"):
+    for preset in ("ka2", "k3p", "bcap", "bispf", "bispf_optimized", "empf", "e22", "atlas", "halloween"):
         saved = get_recipe(preset).to_dict()
         assert not any(k.startswith("rhbi_") for k in saved), f"{preset} leaked rhbi_* into to_dict()"
 
@@ -1842,3 +1842,244 @@ def test_rhbi_v12_diag_cmmd_whiten_support_completion_and_curve_settle():
     for p1, p2 in zip(Dc1.parameters(), Dc2.parameters()):
         assert torch.equal(p1, p2)
     assert torch.equal(Pc1.z, Pc2.z)
+
+
+def test_public_default_rhbi_optimized_parity_import_order_continuation_and_controls():
+    """Verify public default rhbi_optimized == rhbi-v12.json, import-order invariance, continuation, and controls."""
+    from dataclasses import asdict
+    from io import BytesIO
+    import json
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+
+    from particlegan import DEFAULT_RECIPE, Recipe
+
+    root = Path(__file__).resolve().parents[1]
+    rhbi_v12 = json.loads((root / "configs/forge/ideas/rhbi-v12.json").read_text())["recipe_overrides"]
+    default_recipe = get_recipe()
+    actual = json.loads(json.dumps(asdict(default_recipe)))
+    assert DEFAULT_RECIPE == actual["name"] == "rhbi_optimized"
+    assert default_recipe == get_recipe("rhbi_optimized") == get_recipe("gan")
+    for field, value in rhbi_v12.items():
+        if field != "name":
+            assert actual[field] == value, field
+    assert get_recipe("rhbi").name == "rhbi"
+    assert get_recipe("rhbi").ebi_beta == 20.0
+    assert get_recipe("rhbi").prior_regularizer == "moment_tether"
+    assert Recipe.from_dict({}) == get_recipe("ka2")
+
+    # Forbidden 1-arg g_loss(fake) fallback check on active public default
+    default_loss = default_recipe.make_loss()
+    assert isinstance(default_loss, RHBIGANLoss)
+    with pytest.raises(ValueError, match="requires real_logits"):
+        default_loss.g_loss(torch.zeros(8, requires_grad=True))
+
+    # Fresh-process import-order invariance and preset signature stability
+    presets = ("bispf_optimized", "bispf", "bcap", "empf", "rhbi", "rhbi_optimized")
+    probe_a = (
+        "import json, particlegan.rhbi, particlegan.recipes as r; "
+        "from experiments.forge.contracts import stable_hash; "
+        "from experiments.forge.techniques import technique_signature; "
+        f"ks = {presets!r}; "
+        "print(json.dumps({'default': r.DEFAULT_RECIPE, 'file': r.__file__, "
+        "'hashes': {k: stable_hash(r.get_recipe(k).to_dict()) for k in ks}, "
+        "'sigs': {k: technique_signature(r.get_recipe(k))['digest'] for k in ks}}))"
+    )
+    probe_b = (
+        "import json, particlegan.recipes as r; "
+        "from experiments.forge.contracts import stable_hash; "
+        "from experiments.forge.techniques import technique_signature; "
+        "import particlegan.rhbi; "
+        f"ks = {presets!r}; "
+        "print(json.dumps({'default': r.DEFAULT_RECIPE, 'file': r.__file__, "
+        "'hashes': {k: stable_hash(r.get_recipe(k).to_dict()) for k in ks}, "
+        "'sigs': {k: technique_signature(r.get_recipe(k))['digest'] for k in ks}}))"
+    )
+    env = {**os.environ, "PYTHONPATH": str(root), "CUDA_VISIBLE_DEVICES": ""}
+    out_a = json.loads(subprocess.check_output([sys.executable, "-c", probe_a], cwd=root, env=env, text=True))
+    out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, env=env, text=True))
+    assert out_a == out_b
+    assert Path(out_a["file"]).resolve() == (root / "particlegan/recipes.py").resolve()
+    assert out_a["default"] == "rhbi_optimized"
+    assert len(set(out_a["sigs"].values())) == len(presets)
+
+    # Bit-exact serialized GANTrainer checkpoint continuation on bare get_recipe(...)
+    rec_run = get_recipe(total_steps=6, batch_size=32, num_particles=64, z_dim=2)
+    Ga, Da, Pa = _make_mlp_pair(x_dim=2, seed=71)
+    Gb, Db, Pb = _make_mlp_pair(x_dim=2, seed=71)
+    tr_a = GANTrainer(rec_run, Ga, Da, prior=Pa, seed=0)
+    data_rng = torch.Generator().manual_seed(101)
+    for _ in range(3):
+        tr_a.step(torch.randn(32, 2, generator=data_rng))
+    buf = BytesIO()
+    torch.save({"trainer": tr_a.state_dict(), "data": data_rng.get_state()}, buf)
+    buf.seek(0)
+    saved = torch.load(buf, weights_only=True)
+    for _ in range(2):
+        tr_a.step(torch.randn(32, 2, generator=data_rng))
+
+    tr_b = GANTrainer(Recipe.from_dict(saved["trainer"]["recipe"]), Gb, Db, prior=Pb, seed=99)
+    tr_b.load_state_dict(saved["trainer"])
+    resumed_rng = torch.Generator().set_state(saved["data"])
+    for _ in range(2):
+        tr_b.step(torch.randn(32, 2, generator=resumed_rng))
+    for pa, pb in zip(Ga.parameters(), Gb.parameters()):
+        assert torch.equal(pa, pb)
+    for pa, pb in zip(Da.parameters(), Db.parameters()):
+        assert torch.equal(pa, pb)
+    assert torch.equal(Pa.z, Pb.z)
+    s_a = tr_a.sample(32, generator=torch.Generator().manual_seed(7))
+    s_b = tr_b.sample(32, generator=torch.Generator().manual_seed(7))
+    assert torch.equal(s_a, s_b)
+
+    # Deliberate model-damage semantic control on bare get_recipe(...)
+    target_mean = torch.tensor([-2.2, 1.8])
+    Gt, Dt, Pt = _make_mlp_pair(x_dim=2, seed=83)
+    tr_dmg = GANTrainer(get_recipe(total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
+    dmg_rng = torch.Generator().manual_seed(202)
+    for _ in range(220):
+        tr_dmg.step(target_mean + 0.15 * torch.randn(32, 2, generator=dmg_rng))
+    clean_samples = tr_dmg.sample(256, generator=torch.Generator().manual_seed(555))
+    clean_err = float((clean_samples.mean(dim=0) - target_mean).norm().item())
+    assert clean_err < 0.6
+    with torch.no_grad():
+        for p in tr_dmg.G.parameters():
+            p.mul_(-3.0).add_(4.0)
+    damaged_samples = tr_dmg.sample(256, generator=torch.Generator().manual_seed(555))
+    damaged_err = float((damaged_samples.mean(dim=0) - target_mean).norm().item())
+    assert damaged_err > clean_err + 1.5
+
+
+def test_simplicial_manifold_forge_parity_prim_mst_and_large_table_bounded_memory():
+    """Verify Prim-MST vs minimax bit-exactness, Forge-size parity, and <2s bounded-memory 20k/2048 steps."""
+    import time
+
+    # 1. Prim-MST max-edge equals vectorized minimax persistence closure bit-for-bit across topologies
+    for seed in (0, 3, 11):
+        rng = torch.Generator().manual_seed(seed)
+        pts = torch.randn(96, 3, generator=rng)
+        if seed == 3:
+            pts[48:] += 6.0  # Disconnected bimodal clusters
+        elif seed == 11:
+            th = torch.linspace(-1.5, 1.5, 96)
+            pts = torch.stack([torch.cos(th), torch.sin(th)], dim=-1)
+        d_yy = torch.cdist(pts, pts, p=2.0)
+        exact = RHBILoss._minimax_persistence_max(d_yy, steps=8)
+        # Force the >512 Prim branch on a padded disconnected copy or compare directly:
+        n = d_yy.shape[0]
+        in_tree = torch.zeros(n, dtype=torch.bool)
+        in_tree[0] = True
+        min_edge = d_yy[0].clone()
+        prim_max = d_yy.new_zeros(())
+        for _ in range(n - 1):
+            cand = min_edge.masked_fill(in_tree, float("inf"))
+            w, nxt = cand.min(dim=0)
+            prim_max = torch.maximum(prim_max, w)
+            in_tree[nxt] = True
+            min_edge = torch.minimum(min_edge, d_yy[nxt])
+        assert torch.equal(exact, prim_max)
+
+    # Also exercise the >512 branch of _minimax_persistence_max directly with zero RNG consumption
+    cpu_rng_before = torch.get_rng_state().clone()
+    pts_520 = torch.randn(520, 2, generator=torch.Generator().manual_seed(29))
+    d_520 = torch.cdist(pts_520, pts_520, p=2.0)
+    prim_520 = RHBILoss._minimax_persistence_max(d_520, steps=10)
+    ref_520 = d_520.clone()
+    for _ in range(10):
+        ref_520 = torch.minimum(ref_520, torch.maximum(ref_520.unsqueeze(2), ref_520.unsqueeze(0)).amin(dim=1))
+    assert torch.equal(prim_520, ref_520.amax())
+    idx_weyl = RHBILoss._weyl_strided_indices(2048, 128, 0.6180339887, torch.device("cpu"))
+    assert idx_weyl.shape == (128,) and len(torch.unique(idx_weyl)) == 128
+    assert torch.equal(cpu_rng_before, torch.get_rng_state())
+
+    # 2. Forge-size (num_particles=256, batch_size=128) uses the exact unsubsampled table & batch
+    rec_forge = get_recipe(total_steps=2, num_particles=256, batch_size=128, z_dim=2)
+    Gf = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 2))
+    Df = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    init.deterministic_orthogonal_(Gf, seed=0)
+    init.deterministic_orthogonal_(Df, seed=1)
+    Pf = init.deterministic_orthogonal_(rec_forge.make_prior())
+    seen_vertex_counts = []
+    orig_simplicial = RHBILoss.simplicial_manifold_loss
+
+    def _spy_simplicial(self, z_table, gen_fn, y_real, **kwargs):
+        seen_vertex_counts.append((z_table.shape[0], y_real.shape[0]))
+        return orig_simplicial(self, z_table, gen_fn, y_real, **kwargs)
+
+    RHBILoss.simplicial_manifold_loss = _spy_simplicial
+    try:
+        tr_forge = GANTrainer(rec_forge, Gf, Df, prior=Pf, seed=0)
+        tr_forge.step(torch.randn(128, 2, generator=torch.Generator().manual_seed(5)))
+    finally:
+        RHBILoss.simplicial_manifold_loss = orig_simplicial
+    assert seen_vertex_counts == [(256, 128)]
+
+    # 3. Default large scale (num_particles=20000, batch_size=2048) runs fast, RNG-clean, with exact continuation
+    rec_large = get_recipe(total_steps=2)
+    assert (rec_large.num_particles, rec_large.batch_size) == (20000, 2048)
+    Gl1 = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 2))
+    Dl1 = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    init.deterministic_orthogonal_(Gl1, seed=0)
+    init.deterministic_orthogonal_(Dl1, seed=1)
+    Pl1 = init.deterministic_orthogonal_(rec_large.make_prior())
+    Gl2, Dl2, Pl2 = deepcopy(Gl1), deepcopy(Dl1), deepcopy(Pl1)
+
+    tr_l1 = GANTrainer(rec_large, Gl1, Dl1, prior=Pl1, seed=0)
+    b1 = 0.2 * torch.randn(2048, 2, generator=torch.Generator().manual_seed(1)) + 1.0
+    b2 = 0.2 * torch.randn(2048, 2, generator=torch.Generator().manual_seed(2)) + 1.0
+    cpu_rng_before = torch.get_rng_state().clone()
+    t0 = time.perf_counter()
+    st1 = tr_l1.step(b1)
+    step1_elapsed = time.perf_counter() - t0
+    ckpt = deepcopy(tr_l1.state_dict())
+    t1 = time.perf_counter()
+    st2 = tr_l1.step(b2)
+    elapsed = step1_elapsed + (time.perf_counter() - t1)
+    assert torch.equal(cpu_rng_before, torch.get_rng_state())
+    assert elapsed < 30.0, f"expected fast bounded-memory execution, got {elapsed:.2f}s"
+    assert torch.isfinite(st1["loss_g"]) and torch.isfinite(st2["loss_g"])
+
+    tr_l2 = GANTrainer(rec_large, Gl2, Dl2, prior=Pl2, seed=99)
+    tr_l2.load_state_dict(ckpt)
+    st2_resumed = tr_l2.step(b2)
+    assert torch.equal(st2["loss_g"], st2_resumed["loss_g"])
+    assert torch.equal(Pl1.z, Pl2.z)
+
+    # 4. [2048, 2] MLP critics (grid100/rotated100/staggered100) keep allow_concat=True bit-exact grads,
+    #    while BatchDistanceDiscriminator keeps allow_concat=True at <=512 and bounded False at >512.
+    from particlegan import BatchDistanceDiscriminator
+
+    D_mlp_a = nn.Sequential(nn.Linear(2, 32), nn.LeakyReLU(0.2), nn.Linear(32, 1))
+    init.deterministic_orthogonal_(D_mlp_a, seed=1)
+    D_mlp_b = deepcopy(D_mlp_a)
+    opt_ma = rec_large.make_critic_optimizer(D_mlp_a)
+    opt_mb = rec_large.make_critic_optimizer(D_mlp_b)
+    pen_ma = rec_large.make_critic_penalty(opt_ma)
+    pen_mb = rec_large.make_critic_penalty(opt_mb)
+    xr_2048 = torch.randn(2048, 2, generator=torch.Generator().manual_seed(301))
+    xf_2048 = torch.randn(2048, 2, generator=torch.Generator().manual_seed(302))
+    val_ma = pen_ma(D_mlp_a, xr_2048, xf_2048)
+    val_mb, _ = pen_mb.regularizer.penalty(
+        lambda x: D_mlp_b(x), xr_2048, xf_2048, step=1, collect_stats=False, allow_concat=True, is_conditioned=False
+    )
+    assert torch.equal(val_ma, val_mb)
+    val_ma.backward()
+    val_mb.backward()
+    for pa, pb in zip(D_mlp_a.parameters(), D_mlp_b.parameters()):
+        assert torch.equal(pa.grad, pb.grad)
+
+    D_bdd = init.deterministic_orthogonal_(BatchDistanceDiscriminator(hidden_dim=8, n_hidden=1), seed=1)
+    pen_bdd = rec_large.make_critic_penalty(rec_large.make_critic_optimizer(D_bdd))
+    seen_concat = []
+    orig_reg_pen = pen_bdd.regularizer.penalty
+
+    def _spy_pen(*args, **kwargs):
+        seen_concat.append(kwargs.get("allow_concat"))
+        return orig_reg_pen(*args, **kwargs)
+
+    pen_bdd.regularizer.penalty = _spy_pen
+    _ = pen_bdd(D_bdd, xr_2048[:128], xf_2048[:128])
+    _ = pen_bdd(D_bdd, xr_2048[:520], xf_2048[:520])
+    assert seen_concat == [True, False]

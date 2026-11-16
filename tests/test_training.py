@@ -276,7 +276,10 @@ def test_step_updates_prior_restores_frozen_parameters_and_detaches_results():
     assert result["step"] == 1 and "penalty_stats" in result
     for key in ("loss_d", "loss_g", "loss_gan", "prior_regularization", "penalty"):
         assert result[key].ndim == 0 and not result[key].requires_grad
-    assert torch.equal(result["loss_g"], result["loss_gan"] + trainer.recipe.prior_reg * result["prior_regularization"])
+    expected_loss_g = result["loss_gan"] + trainer.recipe.prior_reg * result["prior_regularization"]
+    if "rhbi_simplex" in result:
+        expected_loss_g = expected_loss_g + result["rhbi_simplex"]
+    assert torch.equal(result["loss_g"], expected_loss_g)
 
 
 def test_freeze_restored_when_generator_callback_raises():
@@ -351,7 +354,8 @@ def test_ema_updates_parameters_and_copies_float_and_integer_buffers():
         assert not averaged.requires_grad
     for averaged, live in zip(trainer.ema_G.buffers(), trainer.G.buffers()):
         assert torch.equal(averaged, live)
-    assert trainer.ema_G[1].num_batches_tracked.item() == 1
+    expected_batches = 3 if trainer.recipe.rhbi_simplex_weight > 0 else 1
+    assert trainer.ema_G[1].num_batches_tracked.item() == expected_batches
     assert not trainer.ema_G.training and not trainer.ema_prior.training
 
 

@@ -25,8 +25,8 @@ from particlegan.empf import (
 
 
 def test_default_recipe_and_incumbent_presets_unchanged():
-    assert DEFAULT_RECIPE == "empf"
-    assert get_recipe() == get_recipe("empf")
+    assert DEFAULT_RECIPE == "rhbi_optimized"
+    assert get_recipe() == get_recipe("rhbi_optimized")
     empf = get_recipe("empf")
     assert empf.effective_critic_formulation == "empf"
     assert empf.prior_regularizer == "empf"
@@ -366,7 +366,7 @@ def test_empf_fresh_process_import_order_and_incumbent_hashes():
     out_a = json.loads(subprocess.check_output([sys.executable, "-c", probe_a], cwd=root, text=True))
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, text=True))
     assert out_a == out_b
-    assert out_a["default"] == "empf"
+    assert out_a["default"] == "rhbi_optimized"
     assert out_a["hashes"]["bispf_optimized"].startswith("a59d78806e67")
     assert out_a["hashes"]["bispf"].startswith("6bb9c45dfbdb")
     assert out_a["hashes"]["bcap"].startswith("1c0aeefa46b0")
