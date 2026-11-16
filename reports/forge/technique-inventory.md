@@ -283,23 +283,6 @@ Research recipes use their recorded revision 9 assignments. Those assignments st
 | [R1/R2](families/r1r2.md) | [Selected recipe Tier 2 diagnostics; seed 0](tier-coverage-20261014/README.md) | — | [9/21](tier-coverage-20261014/README.md) | — | [9/21](tier-coverage-20261014/README.md) |
 | [R1/R2](families/r1r2.md) | [Unchanged selected recipe: deeper diagnostics (Torch 2.13)](actual-missing-diagnostics-20261014/README.md) | — | — | [0/7 (4 diagnostic attempts)](actual-missing-diagnostics-20261014/README.md) | [0/7 (4 diagnostic attempts)](actual-missing-diagnostics-20261014/README.md) |
 
-### Current-source selected-recipe Tier 1 readouts
-
-Matched current-source (`184aa7597be3`, `discriminator_stability` revision 17) ordinary Tier 1 readouts for each family's unchanged selected recipe under protocol seed 0 on `NVIDIA RTX A6000` (11 required + 5 stretch / diagnostic = 16 Tier 1 tests). `## Selected recipes` above retains historical recorded-source pins until a new family selection snapshot is registered; these concluded `reports/forge/records/readout-*.json` records show matched current-source Tier 1 performance side by side without regrading historical cohorts.
-
-| Family | Selected recipe | Source / revision | Required Tier 1 (11) | Stretch / diagnostic Tier 1 (5) | Total Tier 1 (16) | Evidence |
-| --- | --- | --- | ---: | ---: | ---: | --- |
-| [EMPF](families/empf.md) | [`empf-v8`](../../configs/forge/ideas/empf-v8.json) | `184aa7597be3` / `75d65ac41187` | 11/11 | 2/5 (3 fail) | **13/16** (3 fail) | [`readout-33f7628135472eef06f0d92a.json`](records/readout-33f7628135472eef06f0d92a.json) |
-| [Atlas](families/atlas.md) | [`atlas-particle-normal-v4`](../../configs/forge/ideas/atlas-particle-normal-v4.json) | `184aa7597be3` / `760dd842f688` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`atlas-particle-normal-v4.json`](../../configs/forge/ideas/atlas-particle-normal-v4.json) (not run) |
-| [BCAP](families/bcap-pure.md) | [`recipe-prior-refactor-bcap-pure-v1`](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | `184aa7597be3` / `cad14d503873` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`recipe-prior-refactor-bcap-pure-v1.json`](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) (not run) |
-| [BISPF](families/bispf.md) | [`bispf-optimized-quintic-v1`](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | `184aa7597be3` / `7feaf1c98bd8` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`bispf-optimized-quintic-v1.json`](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) (not run) |
-| [E22](families/e22.md) | [`e22`](../../configs/forge/ideas/e22.json) | `184aa7597be3` / `2a50367f321a` | 0/11 (11 preflight-blocked) | 0/5 (5 preflight-blocked) | **0/16** (16 preflight-blocked) | [`e22.json`](../../configs/forge/ideas/e22.json) (preflight-blocked) |
-| [GAN v3 release 0.7](families/release07-gan-v3.md) | [`recipe-prior-refactor-release07-gan-v3-v1`](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | `184aa7597be3` / `053a3857d41e` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`recipe-prior-refactor-release07-gan-v3-v1.json`](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) (not run) |
-| [K3P](families/k3p.md) | [`recipe-prior-refactor-k3p-v1`](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | `184aa7597be3` / `b612167109a1` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`recipe-prior-refactor-k3p-v1.json`](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) (not run) |
-| [KA2](families/ka2.md) | [`recipe-prior-refactor-ka2-v1`](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | `184aa7597be3` / `763efe00ca05` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`recipe-prior-refactor-ka2-v1.json`](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) (not run) |
-| [R1/R2](families/r1r2.md) | [`recipe-prior-refactor-r1r2-v1`](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | `184aa7597be3` / `0bcf9f40278f` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`recipe-prior-refactor-r1r2-v1.json`](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) (not run) |
-| [RHBI](families/rhbi.md) | [`rhbi-v12`](../../configs/forge/ideas/rhbi-v12.json) | `184aa7597be3` / `fd37d721d016` | 0/11 (11 not run) | 0/5 (5 not run) | **0/16** (16 not run) | [`rhbi-v12.json`](../../configs/forge/ideas/rhbi-v12.json) (not run) |
-
 <details>
 <summary>Historical seed-only studies (excluded from backfill)</summary>
 

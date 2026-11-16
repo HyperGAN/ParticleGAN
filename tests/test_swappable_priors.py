@@ -216,7 +216,8 @@ def test_recipe_fields_exact_tuple_invariance():
     assert tuple(name for name in field_names if name not in additions) == FROZEN_RECIPE_FIELDS
     assert tuple(field.name for field in dataclasses.fields(Recipe)) == field_names
     from particlegan.recipe_compat import SEARCH_RECIPE_DEFAULTS
-    assert all(fields_dict[name] == SEARCH_RECIPE_DEFAULTS[name] for name in additions)
+    ka2_fields = get_recipe_fields("ka2")
+    assert all(ka2_fields[name] == SEARCH_RECIPE_DEFAULTS[name] for name in additions)
 
 
 def test_recipe_no_toplevel_torch_import():
