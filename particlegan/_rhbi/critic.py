@@ -207,6 +207,10 @@ class _RHBIRecordThermalMixin:
         self.rhbi_ema_q90: float = 1.0
         self.rhbi_ema_hmax: float = 1.0
         self.rhbi_ema_tail: float = 0.0
+        self.rhbi_cond_initialized: bool = False
+        self.rhbi_cond_ema: float = 1.0
+        self.rhbi_het_initialized: bool = False
+        self.rhbi_het_ema: float = 1.0
         self._thermal_scale: float = 1.0
         self.legacy_thermal_channel: bool = True
 
@@ -244,6 +248,8 @@ class _RHBIRecordThermalMixin:
         ema_decay: float = 0.96,
         s_min: float = 1e-6,
         shock_mu_ratio: float = 0.15,
+        shock_ed_floor: float = 0.30,
+        lock_hysteresis: float = 0.0,
         r_tail: float = 0.0,
     ) -> float:
         ed_f = float(r_ed)
@@ -263,7 +269,7 @@ class _RHBIRecordThermalMixin:
         q90_c = max(-cap_lin, min(q90_f, cap_lin))
         hmax_c = max(-cap_lin, min(hmax_f, cap_lin))
         tail_c = max(-cap_lin, min(tail_f, cap_lin))
-        shock_ed_thresh = max(0.30, 4.0 * tau_pos * tau_pos)
+        shock_ed_thresh = max(float(shock_ed_floor), 4.0 * tau_pos * tau_pos)
         shock_mu_thresh = float(shock_mu_ratio) * shock_ed_thresh
         if not self.rhbi_thermal_initialized or (
             self._thermal_scale < 0.99 and (ed_f > shock_ed_thresh or mu_sq_f > shock_mu_thresh)
@@ -285,7 +291,8 @@ class _RHBIRecordThermalMixin:
         if tau_f <= 0.0:
             self._thermal_scale = 1.0
             return 1.0
-        tau_lo = 0.50 * tau_f
+        lo_frac = 0.50 + (float(lock_hysteresis) if self._thermal_scale <= 1e-4 else 0.0)
+        tau_lo = min(0.92, lo_frac) * tau_f
         span = max(1e-8, tau_f - tau_lo)
         u = min(1.0, max(0.0, (self.rhbi_ema_residual - tau_lo) / span))
         theta = u * u * (3.0 - 2.0 * u)
@@ -314,6 +321,10 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         "ema_q90",
         "ema_hmax",
         "ema_tail",
+        "cond_initialized",
+        "cond_ema",
+        "het_initialized",
+        "het_ema",
         "thermal_scale",
     })
 
@@ -346,7 +357,7 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         return {
             **super().state_dict(),
             "rhbi": {
-                "schema": 3,
+                "schema": 4,
                 "ell_ema": float(self.rhbi_ell_ema),
                 "ell_initialized": bool(self.rhbi_ell_initialized),
                 "chord_phase": float(self.rhbi_chord_phase),
@@ -357,6 +368,10 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
                 "ema_q90": float(self.rhbi_ema_q90),
                 "ema_hmax": float(self.rhbi_ema_hmax),
                 "ema_tail": float(self.rhbi_ema_tail),
+                "cond_initialized": bool(self.rhbi_cond_initialized),
+                "cond_ema": float(self.rhbi_cond_ema),
+                "het_initialized": bool(self.rhbi_het_initialized),
+                "het_ema": float(self.rhbi_het_ema),
                 "thermal_scale": float(self._thermal_scale),
             },
         }
@@ -372,16 +387,18 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             not isinstance(observer, dict)
             or set(observer) != _RHBIObserverStepRecord._RHBI_PACKET_KEYS
             or type(observer["schema"]) is not int
-            or observer["schema"] != 3
+            or observer["schema"] != 4
             or type(observer["ell_initialized"]) is not bool
             or type(observer["thermal_initialized"]) is not bool
+            or type(observer["cond_initialized"]) is not bool
+            or type(observer["het_initialized"]) is not bool
         ):
             raise ValueError("invalid RHBI observer metadata")
         for key in ("ell_ema", "chord_phase", "thermal_scale"):
             fval = observer[key]
             if isinstance(fval, bool) or not isinstance(fval, (int, float)) or not math.isfinite(fval) or fval < 0.0:
                 raise ValueError(f"invalid RHBI observer {key}")
-        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail"):
+        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail", "cond_ema", "het_ema"):
             sval = observer[key]
             if isinstance(sval, bool) or not isinstance(sval, (int, float)) or not math.isfinite(sval):
                 raise ValueError(f"invalid RHBI observer {key}")
@@ -405,6 +422,10 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         self.rhbi_ema_q90 = float(observer["ema_q90"])
         self.rhbi_ema_hmax = float(observer["ema_hmax"])
         self.rhbi_ema_tail = float(observer["ema_tail"])
+        self.rhbi_cond_initialized = bool(observer["cond_initialized"])
+        self.rhbi_cond_ema = float(observer["cond_ema"])
+        self.rhbi_het_initialized = bool(observer["het_initialized"])
+        self.rhbi_het_ema = float(observer["het_ema"])
         self._thermal_scale = float(observer["thermal_scale"])
         self._capture_ring = OrderedDict()
 
@@ -427,6 +448,10 @@ class _RHBIObserverStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         dup.rhbi_ema_q90 = self.rhbi_ema_q90
         dup.rhbi_ema_hmax = self.rhbi_ema_hmax
         dup.rhbi_ema_tail = self.rhbi_ema_tail
+        dup.rhbi_cond_initialized = self.rhbi_cond_initialized
+        dup.rhbi_cond_ema = self.rhbi_cond_ema
+        dup.rhbi_het_initialized = self.rhbi_het_initialized
+        dup.rhbi_het_ema = self.rhbi_het_ema
         dup._thermal_scale = self._thermal_scale
         dup.legacy_thermal_channel = self.legacy_thermal_channel
         dup._in_penalty = self._in_penalty
@@ -456,6 +481,10 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         "ema_q90",
         "ema_hmax",
         "ema_tail",
+        "cond_initialized",
+        "cond_ema",
+        "het_initialized",
+        "het_ema",
         "thermal_scale",
     )
 
@@ -505,6 +534,10 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             "ema_q90": float(self.rhbi_ema_q90),
             "ema_hmax": float(self.rhbi_ema_hmax),
             "ema_tail": float(self.rhbi_ema_tail),
+            "cond_initialized": bool(self.rhbi_cond_initialized),
+            "cond_ema": float(self.rhbi_cond_ema),
+            "het_initialized": bool(self.rhbi_het_initialized),
+            "het_ema": float(self.rhbi_het_ema),
             "thermal_scale": float(self._thermal_scale),
         }
 
@@ -522,7 +555,7 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
                 continue
             if isinstance(value, bool) or not isinstance(value, (float, int)) or not math.isfinite(value) or value < 0.0:
                 raise ValueError(f"invalid RHBI controller {key}")
-        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail"):
+        for key in ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail", "cond_ema", "het_ema"):
             sval = state[key]
             if isinstance(sval, bool) or not isinstance(sval, (float, int)) or not math.isfinite(sval):
                 raise ValueError(f"invalid RHBI controller {key}")
@@ -534,6 +567,8 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
             type(state["anchor_started"]) is not bool
             or type(state["ell_initialized"]) is not bool
             or type(state["thermal_initialized"]) is not bool
+            or type(state["cond_initialized"]) is not bool
+            or type(state["het_initialized"]) is not bool
         ):
             raise ValueError("invalid RHBI controller boolean flags")
         self.lr_max = float(state["lr_max"])
@@ -552,6 +587,10 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         self.rhbi_ema_q90 = float(state["ema_q90"])
         self.rhbi_ema_hmax = float(state["ema_hmax"])
         self.rhbi_ema_tail = float(state["ema_tail"])
+        self.rhbi_cond_initialized = bool(state["cond_initialized"])
+        self.rhbi_cond_ema = float(state["cond_ema"])
+        self.rhbi_het_initialized = bool(state["het_initialized"])
+        self.rhbi_het_ema = float(state["het_ema"])
         self._thermal_scale = float(state["thermal_scale"])
         self._capture_ring = OrderedDict()
 
@@ -574,6 +613,10 @@ class RHBIStepRecord(_RHBIRecordThermalMixin, CriticStepRecord):
         dup.rhbi_ema_q90 = self.rhbi_ema_q90
         dup.rhbi_ema_hmax = self.rhbi_ema_hmax
         dup.rhbi_ema_tail = self.rhbi_ema_tail
+        dup.rhbi_cond_initialized = self.rhbi_cond_initialized
+        dup.rhbi_cond_ema = self.rhbi_cond_ema
+        dup.rhbi_het_initialized = self.rhbi_het_initialized
+        dup.rhbi_het_ema = self.rhbi_het_ema
         dup._thermal_scale = self._thermal_scale
         dup.legacy_thermal_channel = self.legacy_thermal_channel
         dup._in_penalty = self._in_penalty

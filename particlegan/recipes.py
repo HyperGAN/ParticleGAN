@@ -39,6 +39,10 @@ try:
         rhbi_simplex_chart_weight=0.0,
         rhbi_tail_spill_gain=0.0,
         rhbi_simplex_macro_settle=False,
+        rhbi_simplex_curve_settle=False,
+        rhbi_cond_step_damp=0.0,
+        rhbi_ae_coord_whiten=False,
+        rhbi_support_completion=False,
     )
 except (ImportError, ValueError):
     pass
@@ -356,6 +360,10 @@ class Recipe:
     rhbi_simplex_chart_weight: float = 0.0
     rhbi_tail_spill_gain: float = 0.0
     rhbi_simplex_macro_settle: bool = False
+    rhbi_simplex_curve_settle: bool = False
+    rhbi_cond_step_damp: float = 0.0
+    rhbi_ae_coord_whiten: bool = False
+    rhbi_support_completion: bool = False
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -608,6 +616,7 @@ class Recipe:
             ("rhbi_cvx_mu_gain", True),
             ("rhbi_simplex_chart_weight", False),
             ("rhbi_tail_spill_gain", False),
+            ("rhbi_cond_step_damp", False),
         ):
             rhbi_val = getattr(self, rhbi_name)
             if type(rhbi_val) not in (int, float) or not math.isfinite(rhbi_val) or (
@@ -631,8 +640,11 @@ class Recipe:
             "kernel_ed",
             "hollow_sinkhorn",
             "imq_cmmd",
+            "diag_imq_cmmd",
         ):
-            raise ValueError("rhbi_cond_ot_mode must be 'kernel_ed', 'hollow_sinkhorn' or 'imq_cmmd'")
+            raise ValueError(
+                "rhbi_cond_ot_mode must be 'kernel_ed', 'hollow_sinkhorn', 'imq_cmmd', or 'diag_imq_cmmd'"
+            )
         if type(self.rhbi_rapidity_screening) is not bool:
             raise ValueError("rhbi_rapidity_screening must be a boolean")
         if type(self.rhbi_scale_log_odds) is not bool:
@@ -641,6 +653,12 @@ class Recipe:
             raise ValueError("rhbi_akt_horizon must be a boolean")
         if type(self.rhbi_simplex_macro_settle) is not bool:
             raise ValueError("rhbi_simplex_macro_settle must be a boolean")
+        if type(self.rhbi_simplex_curve_settle) is not bool:
+            raise ValueError("rhbi_simplex_curve_settle must be a boolean")
+        if type(self.rhbi_ae_coord_whiten) is not bool:
+            raise ValueError("rhbi_ae_coord_whiten must be a boolean")
+        if type(self.rhbi_support_completion) is not bool:
+            raise ValueError("rhbi_support_completion must be a boolean")
         if self.rhbi_beta_ell > 1.0:
             raise ValueError("rhbi_beta_ell must be in (0, 1]")
         if type(self.rhbi_nn_quantile) not in (int, float) or not (0.0 < self.rhbi_nn_quantile < 1.0):
@@ -651,6 +669,8 @@ class Recipe:
             raise ValueError("rhbi_fibre_rel_blend must be in [0, 1]")
         if self.rhbi_step_damp >= 1.0:
             raise ValueError("rhbi_step_damp must be in [0, 1)")
+        if self.rhbi_cond_step_damp >= 1.0:
+            raise ValueError("rhbi_cond_step_damp must be in [0, 1)")
         if type(self.rhbi_iters) is not int or self.rhbi_iters < 1:
             raise ValueError("rhbi_iters must be a positive integer")
         if type(self.ebi_beta) not in (int, float) or not math.isfinite(self.ebi_beta) or self.ebi_beta <= 0:
@@ -971,7 +991,8 @@ class Recipe:
         if self.encoder_mode == "ae":
             if offset is None:
                 raise ValueError("AE encoding requires offset")
-            return particle_ae(query, offset, base, uniformity_weight=self.ucd_weight, **options)
+            return particle_ae(query, offset, base, uniformity_weight=self.ucd_weight,
+                               coord_whiten=self.rhbi_ae_coord_whiten, **options)
         if self.encoder_mode in ("categorical", "hard"):
             if offset is not None:
                 raise ValueError("prior-matching VAE does not accept an offset")
@@ -1011,6 +1032,8 @@ class Recipe:
                 cvx_mu_gain=self.rhbi_cvx_mu_gain,
                 tail_spill_gain=self.rhbi_tail_spill_gain,
                 simplex_macro_settle=self.rhbi_simplex_macro_settle,
+                simplex_curve_settle=self.rhbi_simplex_curve_settle,
+                support_completion=self.rhbi_support_completion,
             )
         if self.effective_critic_formulation == "bispf" and self.loss == "relativistic":
             from .bispf import SinkhornRelativisticLoss

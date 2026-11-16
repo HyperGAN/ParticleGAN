@@ -867,8 +867,8 @@
   },
   "policy_fingerprint": "fcb7ac52465e555fc6d88a1d53d92c485ae340216eafaa6fe49b03981c8f175a",
   "previous_selection": {
-    "path": "configs/forge/selections/history/family-current-7a1a716a09704ede00b4d9b1134acbd4221aab3a0d84c8b4a9868b9933450439.json",
-    "sha256": "7a1a716a09704ede00b4d9b1134acbd4221aab3a0d84c8b4a9868b9933450439"
+    "path": "configs/forge/selections/history/family-current-d5fef26148d37ca645f3427041ed8475c625df309cdc8f9ed20f60b279308a64.json",
+    "sha256": "d5fef26148d37ca645f3427041ed8475c625df309cdc8f9ed20f60b279308a64"
   },
   "schema_version": 1,
   "scope": "whole_candidate_family_current",
@@ -1042,22 +1042,22 @@
       "trainer_family": "release07-gan-v3"
     },
     {
-      "candidate_id": "rhbi-v11",
-      "candidate_revision": "05f71faf03f06323d92bc7def373a5310d32c91bea38bf62b760725e29415f55",
-      "cohort": "5d64d3269823362b4f406b4d354672ad99f01603d9f6a43dd8f6735c3e7c7e7e",
+      "candidate_id": "rhbi-v12",
+      "candidate_revision": "2f133c575e3553b119ce8b3742a3d16dddb72c8cb07a4b33fbfe5ceff4e693eb",
+      "cohort": "6ac008841db0cdd993b6c71d60d377f87330609d1555d028ff24692c5e7edc19",
       "execution_backend": "cuda",
       "measurement_views": [
         "discriminator_stability"
       ],
       "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
-      "reason": "Promote rhbi-v11 (Relativistic Hellinger-Born-Infeld slack-screened transport with Poisson-Weibull 2e empirical OT 1D horizon scaling, mu-scaled intra-mode W2 convex-potential gradient correction rhbi_cvx_mu_gain=0.58, discrete-codebook clone-deduplicated Feydy self-coupling debiasing feydy_discrete, Pareto-protected Weyl-stratified detached-vertex k-NN 1-simplex/2-simplex Born-Infeld manifold projection 0.35 plus H0-connected non-isotropic chart simplex regularization rhbi_simplex_chart_weight=4.0 and wide-span macro-simplicial thermal settling rhbi_simplex_macro_settle=true, hollow multi-scale IMQ conditional MMD fibre geometry 1.5, mu=0.35 false-shock filter, thermally coupled (1 - s_t)^2 Lipschitz settling, Weyl-phased balanced-Sinkhorn Born-Infeld geodesic chord regularization 0.25 at ebi_beta=12.0 with zero-mean critic gauge 0.03, and impedance-matched valley-gated tail-precision 6-channel Kantorovich-Hellinger thermal equilibrium controller rhbi_thermal_tau=0.084, rhbi_tail_spill_gain=0.95) as the canonical RHBI candidate following ordinary discriminator_stability CUDA measurement on NVIDIA RTX A6000 (11/11 required + 2/2 diagnostic Tier 1 PASS = 27/27 Tier 1 view requirements across views, 11/18 required Tier 2 PASS = 56/78 Tier 2 view requirements, 83/115 total counted view requirements plus 28/63 stretch/held view assignments; 32/41 executed discriminator_stability PASS and 31/64 full-suite PASS including held vector_anisotropic across all 6 views, stretch interp_saddle_barycentric, gaussian1d_stability, interp_img_patch_shift, all three 1D precision benchmarks precision_gaussian_fp32, precision_gaussian_mxfp8, and precision_gaussian_nvfp4, held image benchmarks img_blobs4 and img_intensity2 alongside img_stripes2, plus mode_hold and vector_overlap, 0 BLOCKED). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; no public-default adoption claim.",
-      "recipe_sha256": "b80a7b458badbe7c3d6ef2edf469c048bf005587d6f608d7775bc0078b75e8ab",
+      "reason": "Promote rhbi-v12 (Relativistic Hellinger-Born-Infeld slack-screened transport with Poisson-Weibull 2e empirical OT 1D horizon scaling, valley-gated KDE density-ratio sparse-mode support completion rhbi_support_completion=true, mu-scaled intra-mode W2 convex-potential gradient correction rhbi_cvx_mu_gain=0.58, discrete-codebook clone-deduplicated Feydy self-coupling debiasing feydy_discrete, Pareto-protected Weyl-stratified detached-vertex k-NN 1-simplex/2-simplex Born-Infeld manifold projection 0.35 plus H0-connected geodesic chart regularization rhbi_simplex_chart_weight=4.0, wide-span macro-simplicial thermal settling rhbi_simplex_macro_settle=true, and intrinsic k-NN Gram PCA 1D curve chart settling with Schmitt-trigger SBNP thermal-lock hysteresis rhbi_simplex_curve_settle=true, coordinate-whitened multi-scale IMQ conditional MMD fibre geometry rhbi_cond_ot_mode='diag_imq_cmmd' 1.5 with conditional residual generator DualNorm step damping rhbi_cond_step_damp=0.68, coordinate-whitened particle AE reconstruction rhbi_ae_coord_whiten=true, mu=0.35 false-shock filter, thermally coupled (1 - s_t)^2 Lipschitz settling, Weyl-phased balanced-Sinkhorn Born-Infeld geodesic chord regularization 0.25 at ebi_beta=12.0 with zero-mean critic gauge 0.03, and impedance-matched valley-gated tail-precision 6-channel Kantorovich-Hellinger thermal equilibrium controller rhbi_thermal_tau=0.084, rhbi_tail_spill_gain=0.95) as the canonical RHBI candidate following ordinary discriminator_stability CUDA measurement on NVIDIA RTX A6000 (34/41 executed discriminator_stability PASS including newly converted counted Tier 2 vector_unequal_mass and stretch interp_sparse_arc alongside held vector_anisotropic, stretch interp_saddle_barycentric, gaussian1d_stability, interp_img_patch_shift, all three 1D precision benchmarks precision_gaussian_fp32, precision_gaussian_mxfp8, and precision_gaussian_nvfp4, held image benchmarks img_blobs4 and img_intensity2 alongside img_stripes2, plus mode_hold and vector_overlap, 0 BLOCKED, 0 regressions vs rhbi-v11). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; no public-default adoption claim.",
+      "recipe_sha256": "ab89c6a687101d3f9f1f5254151632a18ea9ab6c0a4c5567815c34ce55c0f249",
       "rng_sha256": "495400e2de1b9f9f94a86625a2132091646dcbb8357f48c3512ed24154b89b6d",
       "runtime_cohort_sha256": "23a94f16ca88faef2aa24ce757c89f1524bef5522c2b1b87cce88d9d94e883b1",
-      "scientific_row_sha256": "bf24280b73bb7b6dc7e132b6f9679ced04d1cdfd6bc2a2a800650a04792a5aa4",
+      "scientific_row_sha256": "6101fd9d682715d08d5c0b66611de516834c1764a2ab78a435f2fb4c9b809ef2",
       "selection_kind": "current_measurement",
-      "source_digest": "759e40be701e99e2de416754283c99228011a45dc7090ac9b52d8a8a8fda4776",
-      "task_keys_sha256": "50775bb4b492b397ccff596aee1584eefe37bfba28e03c100e60a6e263ea5813",
+      "source_digest": "ee2635996fe6c877962a51a60209352dabe43ecac95fa9408eedcd6df1e948de",
+      "task_keys_sha256": "0641f37bc9906579204fda6b869b8eda02b31d8472ae53a0e9089cb49a6905d4",
       "trainer_family": "rhbi"
     }
   ],

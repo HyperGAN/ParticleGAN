@@ -1,0 +1,438 @@
+{
+  "attempt_ids": [
+    "1674e5358e484b1d9300dfb532f78ac7",
+    "41ff76b389a54704b01404a8bf8849ae",
+    "b474ced414734ee8bb53a8e8af74d255",
+    "b8bbac7d6a1e4983b08de75f67d82a0e",
+    "e04eb6a5503d4d61a58c28957255dad4",
+    "ebc4b9f896774a8d930713fb0b1977bf"
+  ],
+  "candidate_id": "bispf-optimized-quintic-v1",
+  "candidate_revision": "4dc32322a56aea6ec52120de2b9a36fcbe703d7417f6c3a99f0a8225feb01d47",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Measured unchanged declaration bispf-optimized-quintic-v1 at source ee2635996fe6 under protocol seed 0.",
+  "conclusion": "Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1 (PASS 6). Diagnostic performance/research scope only; no qualification credit.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "1674e5358e484b1d9300dfb532f78ac7",
+        "41ff76b389a54704b01404a8bf8849ae",
+        "b474ced414734ee8bb53a8e8af74d255",
+        "b8bbac7d6a1e4983b08de75f67d82a0e",
+        "e04eb6a5503d4d61a58c28957255dad4",
+        "ebc4b9f896774a8d930713fb0b1977bf"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "04e35116694046c0f9c802e1a1aa8fe4427b2dddc47b56557d8a4ae060bab942",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 1.0
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 1.0
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "1674e5358e484b1d9300dfb532f78ac7",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "353b80ea4d1fb5638dc195715d5e931e2b09f3f60f9d2b0ce0a20f7f65b89e01",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "41ff76b389a54704b01404a8bf8849ae",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "e017e7f420a6683c36c6e03dfefb9e091e2bb2eb3a5695911be2f62c5df53cbe",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b474ced414734ee8bb53a8e8af74d255",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "04818589f33df9ed721b588ad62ec7fc62f06ff51d1febfa95865afb17bec370",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b8bbac7d6a1e4983b08de75f67d82a0e",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "8302e41eb8465033136396784d9f2982578d4297b34ca6fa6b46ea7b55a636c6",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "e04eb6a5503d4d61a58c28957255dad4",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "d1c83970d7772d1b77fea50c03d9f5a88551515de0e160c59f84c77bae2c3afc",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "ebc4b9f896774a8d930713fb0b1977bf",
+          "producer_request_id": "1485d5390b6551d29ce6fc2e",
+          "producer_study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+          "result_hash": "f606dc0b0313c4c7dd5823ee0703d17ee48554e566f259710725b36c1afc50f7",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "ea814cf927641805a5f0e86beb945772fd45aa0900fcad7e0f25f35c36b6327d",
+        "contract_sha256": "04e35116694046c0f9c802e1a1aa8fe4427b2dddc47b56557d8a4ae060bab942",
+        "control_binding_sha256": "b1618e37cc3384760e9f4cf7c73d87e1a4e2d42673a9342c62c64c91ab2902a3",
+        "policy_fingerprint": "2a43027d306d94e8a634697d7c67d9864b4a2e4ea31205d5aa86cc2cf0fa7a71",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "2f9d48c78e0a3c1919288d504c1db358ce524fcdd26386bb440726beeebea4c6"
+      },
+      "study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+      "study_sha256": "2f9d48c78e0a3c1919288d504c1db358ce524fcdd26386bb440726beeebea4c6"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "dcgan_performance",
+  "hypothesis": "Measure complete public GANTrainer update time and memory as image resolution, batch and width grow, preserving the exact selected global recipe.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain source-bound readout and compiled Forge reports.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "1674e5358e484b1d9300dfb532f78ac7",
+        "result_hash": "353b80ea4d1fb5638dc195715d5e931e2b09f3f60f9d2b0ce0a20f7f65b89e01",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "41ff76b389a54704b01404a8bf8849ae",
+        "result_hash": "e017e7f420a6683c36c6e03dfefb9e091e2bb2eb3a5695911be2f62c5df53cbe",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b474ced414734ee8bb53a8e8af74d255",
+        "result_hash": "04818589f33df9ed721b588ad62ec7fc62f06ff51d1febfa95865afb17bec370",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b8bbac7d6a1e4983b08de75f67d82a0e",
+        "result_hash": "8302e41eb8465033136396784d9f2982578d4297b34ca6fa6b46ea7b55a636c6",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "e04eb6a5503d4d61a58c28957255dad4",
+        "result_hash": "d1c83970d7772d1b77fea50c03d9f5a88551515de0e160c59f84c77bae2c3afc",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "ebc4b9f896774a8d930713fb0b1977bf",
+        "result_hash": "f606dc0b0313c4c7dd5823ee0703d17ee48554e566f259710725b36c1afc50f7",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-c803a788075501b6784967f2",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/1674e5358e484b1d9300dfb532f78ac7/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 12000,
+      "candidate_budget_seconds": 1200,
+      "id": "dcgan-performance-cloud-ee2635996fe6"
+    },
+    "candidate": "bispf-optimized-quintic-v1",
+    "competing_explanation": "Synthetic update throughput omits data loading and image quality. Initialization, policy phases, thermal state and shared hardware can affect timing. Warmup, isolated devices, explicit hardware receipts and completion checks constrain this diagnostic; no scientific promotion follows. The original image toy control establishes the declared host change only and is never a speed comparator.",
+    "control": {
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "task_map": {
+        "dcgan_performance_b64": "img_stripes2",
+        "dcgan_performance_r128": "img_stripes2",
+        "dcgan_performance_r256": "img_stripes2",
+        "dcgan_performance_r32": "img_stripes2",
+        "dcgan_performance_r64": "img_stripes2",
+        "dcgan_performance_w128": "img_stripes2"
+      }
+    },
+    "falsifier": {
+      "metric": "finite_update_fraction",
+      "op": "<",
+      "phase": "final",
+      "task_id": "dcgan_performance_r32",
+      "threshold": 1.0
+    },
+    "hypothesis": "Measure complete public GANTrainer update time and memory as image resolution, batch and width grow, preserving the exact selected global recipe.",
+    "id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "finite_update_fraction",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "dcgan_performance_r32",
+      "threshold": 1.0
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "default_adoption": false,
+          "scope": "whole_candidate_family_current"
+        },
+        "path": "configs/forge/selections/family-current-v1.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "dcgan_performance"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "dcgan-performance-cloud-ee2635996fe6-bispf",
+  "study_sha256": "2f9d48c78e0a3c1919288d504c1db358ce524fcdd26386bb440726beeebea4c6",
+  "task_results": [
+    {
+      "compatibility_key": "44d95c90ff352b305af6433b4caac54b6e22979db2635f4fa1555260c9988b76",
+      "cost": {
+        "adapter_seconds": 4.891145184985362,
+        "charged_task": "dcgan_performance_r128",
+        "device": "1",
+        "execution_seconds": 10.542059030965902,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 6.093250276055187,
+        "wall_seconds": 10.542059030965902
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 583.8689299998805,
+        "images_per_second": 132.78282702942815,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 6960896,
+        "parameter_count_generator": 8001408,
+        "peak_allocated_mib": 632.23876953125,
+        "peak_reserved_mib": 842.0,
+        "total_wall_seconds": 4.672972223022953,
+        "update_ms_median": 120.3511644853279,
+        "update_ms_p95": 121.72415989334695,
+        "warmup_ms_median": 122.0422200858593
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r128"
+    },
+    {
+      "compatibility_key": "61d958b27016db22cd29be726e6b8d8c25c1236dabee453c0f0a3076936572f7",
+      "cost": {
+        "adapter_seconds": 2.764416967984289,
+        "charged_task": "dcgan_performance_r64",
+        "device": "1",
+        "execution_seconds": 8.217382106930017,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.9066954819718376,
+        "wall_seconds": 8.217382106930017
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 530.0708890426904,
+        "images_per_second": 320.5421200368993,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 2765568,
+        "parameter_count_generator": 3806080,
+        "peak_allocated_mib": 221.77978515625,
+        "peak_reserved_mib": 316.0,
+        "total_wall_seconds": 2.5910156220197678,
+        "update_ms_median": 49.6801154804416,
+        "update_ms_p95": 50.99263523588888,
+        "warmup_ms_median": 51.712708082050085
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r64"
+    },
+    {
+      "compatibility_key": "ce72ee528129af3552ab0ec82482a5b761af899093321fb19b5d47b34dd1caeb",
+      "cost": {
+        "adapter_seconds": 6.859006654005498,
+        "charged_task": "dcgan_performance_w128",
+        "device": "1",
+        "execution_seconds": 12.518150971038267,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 7.9844659339869395,
+        "wall_seconds": 12.518150971038267
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 594.1886439686641,
+        "images_per_second": 146.89819454721368,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 11036160,
+        "parameter_count_generator": 13117184,
+        "peak_allocated_mib": 674.18359375,
+        "peak_reserved_mib": 940.0,
+        "total_wall_seconds": 6.585411871899851,
+        "update_ms_median": 108.88091946253553,
+        "update_ms_p95": 109.25736905192025,
+        "warmup_ms_median": 111.90297803841531
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_w128"
+    },
+    {
+      "compatibility_key": "0ac1428867e8c63b9d94af89b6e2825d550737e078f91a1233aba5db24338de0",
+      "cost": {
+        "adapter_seconds": 1.9151701760711148,
+        "charged_task": "dcgan_performance_r32",
+        "device": "1",
+        "execution_seconds": 7.581156805041246,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.0760393340606242,
+        "wall_seconds": 7.581156805041246
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 520.4827809939161,
+        "images_per_second": 557.7324686287291,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 663296,
+        "parameter_count_generator": 1183616,
+        "peak_allocated_mib": 90.40087890625,
+        "peak_reserved_mib": 124.0,
+        "total_wall_seconds": 1.7696175309829414,
+        "update_ms_median": 28.205823502503335,
+        "update_ms_p95": 30.91186370002106,
+        "warmup_ms_median": 29.355520964600146
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r32"
+    },
+    {
+      "compatibility_key": "275554830afe2a590aefed4ac7766c6d4f096c366e98411edf475dd028a75987",
+      "cost": {
+        "adapter_seconds": 3.3074360860046,
+        "charged_task": "dcgan_performance_b64",
+        "device": "1",
+        "execution_seconds": 8.9674866090063,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 4.440721024991944,
+        "wall_seconds": 8.9674866090063
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 547.7757879998535,
+        "images_per_second": 714.5791558709147,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 2765568,
+        "parameter_count_generator": 3806080,
+        "peak_allocated_mib": 558.2177734375,
+        "peak_reserved_mib": 632.0,
+        "total_wall_seconds": 3.132260008947924,
+        "update_ms_median": 89.5171754527837,
+        "update_ms_p95": 90.53638705518097,
+        "warmup_ms_median": 90.82180808763951
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_b64"
+    },
+    {
+      "compatibility_key": "1660f8beb80baf06fc7672aeca5259781f586658f2c32b82a75efba0c01040b0",
+      "cost": {
+        "adapter_seconds": 9.233709936030209,
+        "charged_task": "dcgan_performance_r256",
+        "device": "1",
+        "execution_seconds": 14.873657544958405,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 10.380977190099657,
+        "wall_seconds": 14.873657544958405
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 805.9734959388152,
+        "images_per_second": 47.215161609428975,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 11156224,
+        "parameter_count_generator": 12196736,
+        "peak_allocated_mib": 2119.283203125,
+        "peak_reserved_mib": 2310.0,
+        "total_wall_seconds": 8.958210451994091,
+        "update_ms_median": 338.2737900246866,
+        "update_ms_p95": 340.63037807354704,
+        "warmup_ms_median": 338.9878140296787
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r256"
+    }
+  ]
+}
