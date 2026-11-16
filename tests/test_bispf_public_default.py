@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_public_default_matches_every_selected_candidate_field_except_label():
-    empf_candidate = json.loads((ROOT / "configs/forge/ideas/empf-v7.json").read_text())
+    empf_candidate = json.loads((ROOT / "configs/forge/ideas/empf-v8.json").read_text())
     actual = json.loads(json.dumps(asdict(get_recipe())))
     assert DEFAULT_RECIPE == actual["name"] == "empf"
     for field, value in empf_candidate["recipe_overrides"].items():

@@ -132,18 +132,18 @@ This registration covers 10 complete recipes. Historical alternatives outside it
 
 ### NVIDIA RTX A6000 · GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce
 
-Performance source `a79405acf1ec` (commit `09f0f9d4c75d3148fe02100a7ca1c8b02b0854dc`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
+Performance source `e8e96705c141` (commit `bc0f0964c71023b9504a3bcdd958fe34d11757d1`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
 
 Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-table performance exception retains each recipe's prior update policy and regularizer. Exact prior and resource specifications remain part of every task key.
 
 | Family / recipe | Task (RGB size, batch, width) | Execution | Median / p95 update ms | Images/s | GPU peak allocated / reserved MiB | Contention | Matched key / evidence |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| RHBI · `rhbi-v12` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 47.05 / 48.11 | 339.23 | 98.55 / 150.00 | clear | `ea8a40bf9b19` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_r32-50faa541724ede90.json) |
-| RHBI · `rhbi-v12` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 84.33 / 86.37 | 189.21 | 692.73 / 848.00 | clear | `8671f94a398d` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_r64-aa1e222e1045aef9.json) |
-| RHBI · `rhbi-v12` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 177.87 / 178.59 | 89.98 | 685.94 / 1,146.00 | clear | `c8498629d0a9` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_w128-3a9c88eb0adcd78a.json) |
-| RHBI · `rhbi-v12` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 142.12 / 143.37 | 450.40 | 873.75 / 1,250.00 | clear | `c03eb823dddb` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_b64-da9f70f8b905b1a0.json) |
-| RHBI · `rhbi-v12` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 200.48 / 201.29 | 79.84 | 1,248.52 / 1,902.00 | clear | `6c60c580f41e` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_r128-72a30a526c2103aa.json) |
-| RHBI · `rhbi-v12` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 590.75 / 592.05 | 27.10 | 3,750.55 / 6,356.00 | clear | `87ed69ef6d1d` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/rhbi-dcgan_performance_r256-9a8dfab3f8e2a08a.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 47.60 / 52.77 | 328.06 | 98.55 / 150.00 | clear | `30cf16999468` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_r32-b70e69cbd7d18105.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 83.02 / 84.14 | 192.38 | 692.73 / 848.00 | clear | `0a6b4b2c81ef` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_r64-a414f9eaba39b64d.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 177.94 / 179.14 | 89.93 | 685.94 / 1,146.00 | clear | `a254d4cb3d72` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_w128-f97f2735600e6950.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 141.12 / 141.98 | 453.48 | 873.75 / 1,250.00 | clear | `8ce933add6c9` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_b64-9a84e6b502d54907.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 200.86 / 202.35 | 79.67 | 1,248.52 / 1,902.00 | clear | `575fba179e17` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_r128-eb84554c138e8fa4.json) |
+| RHBI · `rhbi-v12` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 588.75 / 592.73 | 27.18 | 3,750.55 / 6,356.00 | clear | `4a0590209613` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/rhbi-dcgan_performance_r256-1e649bdcc16ee83e.json) |
 
 <a name="cohort-cuda-23a94f16ca88"></a>
 

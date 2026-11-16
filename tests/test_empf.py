@@ -405,7 +405,7 @@ def test_empf_v2_settling_ebi_and_discrete_simplex_cooling():
     assert float(p_settled_128.detach()) < float(p_settled_64.detach())
 
     # 2. Discrete-simplex Sinkhorn thermal cooling stays at 1.0 during acquisition
-    # (large residual) and cools strictly below 1.0 (>= 0.35) when residual settles.
+    # (large residual) and cools down to 0.0004 (< optimizer_smoothing) when residual settles.
     disc_critic = nn.Linear(180, 1)
     init.deterministic_orthogonal_(disc_critic, seed=0)
     disc_opt = recipe.make_critic_optimizer(disc_critic)
@@ -419,7 +419,7 @@ def test_empf_v2_settling_ebi_and_discrete_simplex_cooling():
 
     for _ in range(80):
         _ = disc_pen(disc_critic, real_far, real_far)
-    assert 0.35 <= disc_pen.last_stats["s_thermal"] < 0.70
+    assert math.isclose(disc_pen.last_stats["s_thermal"], 0.0004, rel_tol=1e-6)
 
 
 def test_empf_v4_fixed_small_batch_bank_and_shift_revival():
@@ -578,8 +578,8 @@ def test_empf_v7_newton_schulz_hybrid_dense_profile_accuracy_and_checkpoint_roun
     assert _newton_schulz_polar(empty, smoothing=0.001).shape == (0, 4)
 
     rng = torch.Generator().manual_seed(23)
-    # Small/medium matrices (min < 64 or max <= 128) match default polar_factor bitwise.
-    for shape in ((64, 64), (128, 128), (1, 128), (64, 2)):
+    # Small/medium matrices (min < 64 or max < 128) match default polar_factor bitwise.
+    for shape in ((64, 64), (64, 127), (63, 128), (1, 128), (64, 2)):
         p_hyb = nn.Parameter(torch.zeros(shape))
         p_ref = nn.Parameter(torch.zeros(shape))
         opt_hyb = recipe_hyb.replace(constraint_geometry_mode="none").make_generator_optimizer([p_hyb])
@@ -591,8 +591,8 @@ def test_empf_v7_newton_schulz_hybrid_dense_profile_accuracy_and_checkpoint_roun
         opt_ref.step()
         assert torch.equal(p_hyb, p_ref), f"expected exact parity on {shape}"
 
-    # Large matrices (min >= 64 and max > 128) use guarded Newton-Schulz and match polar_factor to <1e-4.
-    for shape in ((168, 128), (256, 170)):
+    # Large matrices (min >= 64 and max >= 128) use guarded Newton-Schulz and match polar_factor to <1e-4.
+    for shape in ((128, 128), (64, 128), (168, 128), (256, 170)):
         p_hyb = nn.Parameter(torch.zeros(shape))
         p_ns = nn.Parameter(torch.zeros(shape))
         p_ref = nn.Parameter(torch.zeros(shape))
@@ -635,6 +635,83 @@ def test_empf_v7_newton_schulz_hybrid_dense_profile_accuracy_and_checkpoint_roun
     opt1.step()
     opt2.step()
     assert torch.equal(p1, p2)
+
+
+def test_empf_v8_discrete_simplex_cooling_and_continuation():
+    """Verify discrete-simplex post-acquisition cooling, shock reheat, and exact continuation across [0.064, 0.084]."""
+    recipe = get_recipe("empf")
+    rng = torch.Generator().manual_seed(17)
+    # Construct 5 distinct 5-character word modes in 175-D concatenated simplex + encoder latent space (167 + 8 = 175).
+    modes = torch.zeros(5, 175, dtype=torch.float32)
+    for m in range(5):
+        for pos in range(5):
+            modes[m, pos * 26 + ((m * 5 + pos) % 26)] = 1.0
+        modes[m, 167:] = (m - 2.0) * 0.5
+
+    def sample_batch(active_modes: int, noise_std: float = 0.0) -> torch.Tensor:
+        idx = torch.arange(64) % active_modes
+        out = modes[idx].clone()
+        if noise_std > 0.0:
+            out = out + noise_std * torch.randn(out.shape, generator=rng)
+        return out
+
+    critic = nn.Linear(175, 1)
+    init.deterministic_orthogonal_(critic, seed=0)
+    opt = recipe.make_critic_optimizer(critic)
+    pen = recipe.make_critic_penalty(opt, collect_stats=True)
+    rec = pen.regularizer.record
+
+    x_real = sample_batch(5)
+    # 4-word partial coverage keeps Chamfer residual > 0.084 -> exact full DualNorm step (s_thermal == 1.0).
+    x_fake_4 = sample_batch(4)
+    _ = pen(critic, x_real, x_fake_4)
+    assert rec.ema_residual > 0.084
+    assert math.isclose(pen.last_stats["s_thermal"], 1.0, rel_tol=1e-6)
+
+    # Transition to 5-word settled coverage: verify ema_decay=0.96 cools across (0.064, 0.084) into 0.0004
+    # and preserves exact fresh-object checkpoint continuation mid-transition (both penalty and DualNorm step).
+    x_fake_5 = sample_batch(5, noise_std=0.002)
+    restored_pen: EMPFCriticPenalty | None = None
+    restored_opt = None
+    restored_critic: nn.Linear | None = None
+    saw_mid_band = False
+    for _ in range(80):
+        opt.zero_grad()
+        loss_a = critic(x_fake_5).mean() - critic(x_real).mean() + pen(critic, x_real, x_fake_5)
+        loss_a.backward()
+        opt.step()
+        if restored_pen is not None and restored_opt is not None and restored_critic is not None:
+            restored_opt.zero_grad()
+            loss_b = (
+                restored_critic(x_fake_5).mean()
+                - restored_critic(x_real).mean()
+                + restored_pen(restored_critic, x_real, x_fake_5)
+            )
+            loss_b.backward()
+            restored_opt.step()
+            assert torch.equal(loss_a.detach(), loss_b.detach())
+            assert math.isclose(rec.ema_residual, restored_pen.regularizer.record.ema_residual, rel_tol=0.0, abs_tol=0.0)
+            assert math.isclose(pen.last_stats["s_thermal"], restored_pen.last_stats["s_thermal"], rel_tol=0.0, abs_tol=0.0)
+            for p_a, p_b in zip(critic.parameters(), restored_critic.parameters()):
+                assert torch.equal(p_a, p_b)
+        if not saw_mid_band and 0.064 < rec.ema_residual < 0.084:
+            saw_mid_band = True
+            assert 0.0004 < pen.last_stats["s_thermal"] < 1.0
+            restored_critic = deepcopy(critic)
+            restored_opt = recipe.make_critic_optimizer(restored_critic)
+            restored_pen = recipe.make_critic_penalty(restored_opt, collect_stats=True)
+            restored_opt.load_state_dict(deepcopy(opt.state_dict()))
+
+    assert saw_mid_band, "expected cooling trajectory to traverse (0.064, 0.084)"
+    assert rec.ema_residual < 0.064
+    assert math.isclose(pen.last_stats["s_thermal"], 0.0004, rel_tol=1e-6)
+
+    # Sudden distribution-shift shock (mode drop back to 2 words) instant-reheats s_thermal back to 1.0.
+    x_fake_shock = sample_batch(2)
+    _ = pen(critic, x_real, x_fake_shock)
+    assert rec.ema_residual > 0.084
+    assert math.isclose(pen.last_stats["s_thermal"], 1.0, rel_tol=1e-6)
+
 
 
 
