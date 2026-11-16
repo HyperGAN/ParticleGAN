@@ -1,0 +1,106 @@
+{
+  "artifact_manifest_sha256": "2e0ae216cb5b940e35aee6f3bf9e373bcb440de40c8e97d5830f39a70070f1f0",
+  "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455",
+  "compatibility_key": "a3dc173cbc550ab9e9adc3126495131e3bbad587a0bbcd13955e9c2c5b3a9f81",
+  "continuity": {
+    "max_total_steps": 7500,
+    "mode": "uninterrupted",
+    "original_schedule_horizon": 1200,
+    "resume_count": 0,
+    "run_id": "1128c496ca196c1dcd2ba1f00a3750cb659f48a3bac71162cf170dd200885ba2"
+  },
+  "execution_group": "ring_endurance",
+  "grade": {
+    "gate_status": "PASS",
+    "metrics": {
+      "confirmation_checks": 200,
+      "converged_step": 1400,
+      "convergence": "first consecutive qualifying window; operational quality criterion",
+      "extension_checks": 300,
+      "extension_passing": 300,
+      "first_hold_failure": null,
+      "frozen_toy_verdicts_unchanged": true,
+      "hold": "the next updates, disjoint from confirmation; no restart after failure",
+      "hold_budget": 1200,
+      "hold_budget_complete": true,
+      "hold_checks": 1200,
+      "longest_settling_streak": 200,
+      "min_hq": 0.9,
+      "modes": 8,
+      "name": "first_convergence_then_hold_v1",
+      "settling_budget": 4800,
+      "settling_checks": 200,
+      "settling_failures": 0,
+      "start_step": 1200,
+      "status": "PASS",
+      "training_feedback": false
+    },
+    "reasons": [
+      "recomputed every extension observation without selecting another window"
+    ],
+    "status": "PASS"
+  },
+  "grader_source_sha256": "5c077c6979d9080524336412bb59f436d10d9a6ebcd514628e8bea19ee07bded",
+  "optimizer_updates_added": 0,
+  "original_attempt": "/nvme/dev/hypergan/ParticleGAN/runs/forge-stage1/attempt-coverage-empf-v8/attempts/f9dbd1237c9644efaad4fe06d8b591ae/result.json",
+  "parent_grade": {
+    "gate_status": "PASS",
+    "metrics": {
+      "confirmation_checks": 200,
+      "converged_step": 1400,
+      "convergence": "first consecutive qualifying window; operational quality criterion",
+      "first_hold_failure": null,
+      "frozen_toy_verdicts_unchanged": true,
+      "hold": "the next updates, disjoint from confirmation; no restart after failure",
+      "hold_budget": 1200,
+      "hold_budget_complete": true,
+      "hold_checks": 1200,
+      "longest_settling_streak": 200,
+      "min_hq": 0.9,
+      "modes": 8,
+      "name": "first_convergence_then_hold_v1",
+      "settling_budget": 4800,
+      "settling_checks": 200,
+      "settling_failures": 0,
+      "start_step": 1200,
+      "status": "PASS",
+      "training_feedback": false
+    },
+    "reasons": [
+      "recomputed first-convergence hold"
+    ],
+    "status": "PASS"
+  },
+  "previous_attempt": {
+    "status": "PENDING"
+  },
+  "producer": {
+    "attempt_id": "f9dbd1237c9644efaad4fe06d8b591ae",
+    "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455",
+    "key": "c8d470450c61590d3a605a8f4582fe74dd73195b52be32f6af1bf9fa40c6d2f7",
+    "result_sha256": "8674da008b135c388edc1da8f32034a92a5e2c0970b5e9e1546ec1ee4599f679",
+    "source_digest": "184aa7597be385788fb04c37d32488ac9c0ba807cd280f974a59cf2261bc4c1b",
+    "task": "ring_hold"
+  },
+  "producer_updates": 2900,
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "raw_sha256": "7c1cb1b46894a7985c3a13d2b6d655c1fd2c6281c23cc2cf7ea5ee88bed96d64",
+  "request_sha256": "67aeebee11ec7148f8c2a91437a41b6de3efe23e826be28f674d7f203f3f2561",
+  "runtime": {
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.18.1",
+      "torch": "2.14.1"
+    },
+    "python": "3.14.7",
+    "system": "Linux"
+  },
+  "sampling_draws_added": 0,
+  "schema": "forge_grouped_evidence_v1",
+  "source_digest": "184aa7597be385788fb04c37d32488ac9c0ba807cd280f974a59cf2261bc4c1b",
+  "task": "ring_extension",
+  "task_key": "c3160634bb85e8bf4b8f537b3102ed50540dea3cb9359bb32dbdb387ff660e6b"
+}

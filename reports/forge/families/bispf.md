@@ -97,18 +97,18 @@ This registration covers 10 complete recipes. Historical alternatives outside it
 
 ### NVIDIA RTX A6000 · GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce
 
-Performance source `a79405acf1ec` (commit `09f0f9d4c75d3148fe02100a7ca1c8b02b0854dc`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
+Performance source `e8e96705c141` (commit `bc0f0964c71023b9504a3bcdd958fe34d11757d1`); runtime `fddddb1b314d`; torch.float32; PyTorch 2.14.1+cu130; 48592.125 MiB device memory.
 
 Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-table performance exception retains each recipe's prior update policy and regularizer. Exact prior and resource specifications remain part of every task key.
 
 | Family / recipe | Task (RGB size, batch, width) | Execution | Median / p95 update ms | Images/s | GPU peak allocated / reserved MiB | Contention | Matched key / evidence |
 | --- | --- | --- | ---: | ---: | ---: | --- | --- |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 28.21 / 30.91 | 557.73 | 90.40 / 124.00 | clear | `ea8a40bf9b19` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_r32-5fa5bf58a1e3de12.json) |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 49.68 / 50.99 | 320.54 | 221.78 / 316.00 | clear | `8671f94a398d` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_r64-72af8b9a9954bb30.json) |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 108.88 / 109.26 | 146.90 | 674.18 / 940.00 | clear | `c8498629d0a9` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_w128-e91cf46513107fc3.json) |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 89.52 / 90.54 | 714.58 | 558.22 / 632.00 | clear | `c03eb823dddb` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_b64-720507d4ccb027ff.json) |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 120.35 / 121.72 | 132.78 | 632.24 / 842.00 | clear | `6c60c580f41e` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_r128-3821a4a798d5e903.json) |
-| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 338.27 / 340.63 | 47.22 | 2,119.28 / 2,310.00 | clear | `87ed69ef6d1d` · [receipt](../scaling-receipts/dcgan-performance-cloud-ee2635996fe6/bispf-dcgan_performance_r256-4c253a514aa5456f.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r32: 32², B16, W64 | COMPLETE | 30.57 / 32.08 | 526.69 | 90.40 / 124.00 | clear | `30cf16999468` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_r32-f55d9258b2d15011.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r64: 64², B16, W64 | COMPLETE | 49.89 / 51.69 | 317.74 | 221.78 / 316.00 | clear | `0a6b4b2c81ef` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_r64-afdd01df06a04c14.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_w128: 64², B16, W128 | COMPLETE | 110.22 / 111.31 | 145.22 | 674.18 / 940.00 | clear | `a254d4cb3d72` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_w128-c1e30d2a0d8485fb.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_b64: 64², B64, W64 | COMPLETE | 89.29 / 89.74 | 716.70 | 558.22 / 632.00 | clear | `8ce933add6c9` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_b64-09b19c2fd0ad05d7.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r128: 128², B16, W64 | COMPLETE | 121.21 / 123.31 | 132.05 | 632.24 / 842.00 | clear | `575fba179e17` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_r128-019cf5c2838b3c2f.json) |
+| BISPF · `bispf-optimized-quintic-v1` | dcgan_performance_r256: 256², B16, W64 | COMPLETE | 339.64 / 340.60 | 47.09 | 2,119.28 / 2,310.00 | clear | `4a0590209613` · [receipt](../scaling-receipts/dcgan-performance-cloud-184aa7597be3/bispf-dcgan_performance_r256-43807a958d6d7f59.json) |
 
 <a name="cohort-cuda-1bf9d7d34422"></a>
 
