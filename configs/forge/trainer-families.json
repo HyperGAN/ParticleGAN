@@ -658,9 +658,10 @@
         "empf-v4",
         "empf-v5",
         "empf-v6",
-        "empf-v7"
+        "empf-v7",
+        "empf-v8"
       ],
-      "canonical_candidate": "empf-v7",
+      "canonical_candidate": "empf-v8",
       "id": "empf",
       "label": "EMPF",
       "rationale": "Exponential Moving Prototype Flow: e-means-inspired online sufficient-statistics prototype bank (S, N) with clock-free (K, B) hit-rate EMA scaling, normalized innovation/empty-cell shift shock turnover, mass-conserving proportional-split dead-prototype revival, mass-weighted prototype-to-fake entropic Optimal Transport chords, floor-subtracted 1D stability cooling with size-gated newton_schulz_hybrid_v1 DualNorm polar steps, Elastic Born-Infeld gradient bounding with zero-mean logit gauge, and degree-of-freedom-aware EMPF prior regularization.",
