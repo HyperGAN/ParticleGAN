@@ -194,6 +194,10 @@ def _validate_measurement_contract(task):
         # The implemented point-mass adapter draws 4,096 clean live samples.
         # This task has final bounds, without a sustained-suffix requirement.
         fixed.update(eval_samples=4096, minimum_stable_checks=1)
+    elif kind == "img_conv_texture32":
+        from .conv_texture32 import validate_task
+        validate_task(measured)
+        fixed.update(eval_samples=256, observations=24, minimum_stable_checks=5)
     else:
         return
     for key, expected in fixed.items():
@@ -1028,6 +1032,11 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         interp_check = interpolation_grade(task, evidence)
         if interp_check is not None:
             return _verdict(*interp_check)
+    if task.get("adapter") == "conv_texture32":
+        from .conv_texture32 import grade as conv_texture32_grade
+        ct_check = conv_texture32_grade(task, evidence)
+        if ct_check is not None:
+            return _verdict(*ct_check)
     from .tier1_policy import is_policy_task
     if is_policy_task(task) and task["adapter"] != "clockfree_audit":
         from .tier1_policy import validate_evidence
@@ -1050,6 +1059,7 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
                "paired_adaptation": _adaptation, "clockfree_parity": _clockfree,
                "image_training_performance": performance_grade,
                "zero_tanh_smoke": _zero_tanh_smoke,
+               "img_conv_texture32": _stretch_thresholds,
                **{kind: _stretch_thresholds for kind in STRETCH_EVALUATOR_KINDS}}
     grader = graders.get(task["evaluation"]["kind"])
     if grader is None:

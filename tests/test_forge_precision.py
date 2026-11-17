@@ -19,13 +19,15 @@ def task(format):
 
 def test_precision_is_optional_and_preserves_every_original_required_assignment():
     view = load_view(ROOT, "discriminator_stability")
-    v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     v14 = json.loads((ROOT / v15["previous_revision"]["archive"]).read_text())
-    assert [a for a in view["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
+    assert [a for a in view["assignments"] if a["task"] != "img_conv_texture32"] == v17["assignments"]
+    assert [a for a in v17["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
     assert [a for a in v16["assignments"] if a["task"] != "grid100_res16_scaled_tanh"] == v15["assignments"]
     assert [a for a in v15["assignments"] if not a["task"].startswith("precision_gaussian_")] == v14["assignments"]
-    assert [a for a in view["assignments"] if a["importance"] == "required"] == [
+    assert [a for a in v17["assignments"] if a["importance"] == "required"] == [
         a for a in v14["assignments"] if a["importance"] == "required"]
     assert {a["task"]: a["importance"] for a in view["assignments"] if a["task"].startswith("precision_")} == {
         "precision_gaussian_fp32": "diagnostic", "precision_gaussian_mxfp8": "stretch", "precision_gaussian_nvfp4": "stretch"}
@@ -61,6 +63,7 @@ def test_new_stretch_tasks_stay_visible_without_invalidating_archived_coverage()
     assert coverage["current"] is True
     assert coverage["missing_by_family"] == {}
     assert coverage["unmeasured_current_tasks"] == [
+        "img_conv_texture32",
         "interp_img_patch_shift",
         "interp_saddle_barycentric",
         "interp_sparse_arc",

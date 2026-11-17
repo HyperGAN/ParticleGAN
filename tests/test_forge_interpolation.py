@@ -34,11 +34,13 @@ def _load_task(name: str) -> dict:
 
 def test_interpolation_stretch_preserves_view_chain_and_required_assignments():
     view = load_view(ROOT, "discriminator_stability")
-    v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
-    assert view["revision"] == 17 and view["previous_revision"]["revision"] == 16
-    assert [a for a in view["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
-    assert [a for a in view["assignments"] if a["importance"] == "required"] == [
+    assert view["revision"] == 18 and view["previous_revision"]["revision"] == 17
+    assert v17["revision"] == 17 and v17["previous_revision"]["revision"] == 16
+    assert [a for a in v17["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
+    assert [a for a in v17["assignments"] if a["importance"] == "required"] == [
         a for a in v15["assignments"] if a["importance"] == "required"
     ]
     interp_roles = {a["task"]: (a["qualification_tier"], a["importance"]) for a in view["assignments"] if a["task"] in INTERP_TASKS}

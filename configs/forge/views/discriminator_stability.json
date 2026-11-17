@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 17,
+  "revision": 18,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -522,6 +522,12 @@
       "order": 12
     },
     {
+      "task": "img_conv_texture32",
+      "qualification_tier": 1,
+      "importance": "required",
+      "order": 13
+    },
+    {
       "task": "precision_gaussian_fp32",
       "qualification_tier": 1,
       "order": 101,
@@ -601,10 +607,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-16 policy, preserving all required, held, diagnostic, and stretch assignments. Add three zero-sigma ParticlePrior latent-interpolation stretch toys (interp_sparse_arc at Tier 1; interp_img_patch_shift and interp_saddle_barycentric at Tier 2); required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Archive the exact develop revision-17 policy, preserving all required, held, diagnostic, and stretch assignments. Register fast Tier 1 3x32x32 (d=3072) random-phase 12-mode RGB texture acquisition gate img_conv_texture32 (288 updates, 300s cap) as required Tier 1 to test high-dimensional shell concentration and feature-critic vs raw-pixel-OT alignment; historical receipts and executed-policy qualifications remain unchanged.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v16.json",
-    "policy_fingerprint": "827b86fe077caf18c6b6a1e0b8dd70076ab5ddcd53f26d424f18bb063118cd23",
-    "revision": 16
+    "archive": "configs/forge/view-history/discriminator_stability-v17.json",
+    "policy_fingerprint": "94d6190d18d1773f6e30cc4e3cb3fc26ee2bbd68bf86ff76ff83fe12fa6de026",
+    "revision": 17
   }
 }
