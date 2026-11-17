@@ -711,7 +711,8 @@
       "canonical_candidate": "smpf-v3",
       "id": "smpf",
       "label": "SMPF",
-      "rationale": "Scale- & Distortion-Aware Moving Prototype Flow: s-means-inspired clock-free online prototype bank (proto_centroids, proto_usage, proto_sse, feat_scale, fast_sum, fast_count) with 4-round deterministic D^1.5 coreset seeding, tiled addmm assignment, distortion x usage^0.35 anisotropic RMS dead-prototype revival across d >= 1, and Empirical-Bayes (tau=0.20) centroid shrinkage, paired with thermally coupled Danskin-debiased physical Born-Infeld prototype Sinkhorn + RMS distortion shell generator transport, affine-detrended coordinate-whitened multi-scale IMQ conditional fiber transport, H_0-connected simplicial manifold chord alignment, Elastic Born-Infeld prototype-chord critic bounding with zero-mean gauge, and coordinate-whitened SMPF prior regularization.",
+      "rationale": "Scale- & Distortion-Aware Moving Prototype Flow: s-means-inspired clock-free online prototype bank (proto_centroids, proto_usage, proto_sse, feat_scale, fast_sum, fast_count) with 4-round deterministic D^1.5 coreset seeding, tiled addmm assignment, distortion x usage^0.35 anisotropic RMS dead-prototype revival across d >= 1, and Empirical-Bayes (tau=0.20) centroid shrinkage, paired with thermally coupled Danskin-debiased physical Born-Infeld prototype Sinkhorn + RMS distortion shell generator transport, affine-detrended coordinate-whitened multi-scale IMQ conditional fiber transport, H_0-connected simplicial manifold chord alignment, Elastic Born-Infeld prototype-chord critic bounding with zero-mean gauge, and coordinate-whitened SMPF prior regularization. Grouped editorially under EMPF navigation while retaining its standalone trainer_family='smpf' formulation and evidence identity.",
+      "reporting_family": "empf",
       "tags": [
         "adversarial-training",
         "capped-input-gradients",

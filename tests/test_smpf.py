@@ -25,9 +25,7 @@ from particlegan import (
 from particlegan._stats import pairwise_sq_dist
 from particlegan.smpf import (
     d15_initial_prototypes,
-    smeans_debiased_generator_loss,
     smeans_effective_alpha,
-    smeans_prototype_sinkhorn,
     tiled_smeans_assign,
     update_smeans_prototypes,
 )

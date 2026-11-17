@@ -23,7 +23,7 @@
     "SMPF translates all four algorithmic pillars of s-means (D^1.5 seeding, tiled L2 assignment, sse_ema x usage^0.35 anisotropic RMS revival across d >= 1, and progressive Empirical-Bayes tau=0.20 shrinkage) into a clock-free, zero-RNG adversarial transport formulation.",
     "All six s-means sufficient-statistics tensors (proto_centroids, proto_usage, proto_sse, feat_scale, fast_sum, fast_count), low-discrepancy phases, and thermal scalars live exclusively on the critic optimizer's instance-bound step record and serialize bit-for-bit through state_dict() and load_state_dict() with strict corruption rejection.",
     "Physical Born-Infeld prototype costs sqrt(ell_k^2 + ||y - C_k^eb||^2) - ell_k match each prototype's quadratic basin curvature to its tracked s-means RMS quantization radius ell_k while bounding long-range sample gradients to unit slope across arbitrary coordinate scales.",
-    "One global trainer configuration supplies every displayed result across all tiers and model families without task-specific overrides."
+    "One global trainer configuration supplies every displayed result across all tiers and model families without task-specific overrides, clearing 13/13 Tier 1 gates and 29/41 discriminator_stability benchmarks (including vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, img_blobs4, img_intensity2, and five_word_joint_hold)."
   ],
   "references": [
     {

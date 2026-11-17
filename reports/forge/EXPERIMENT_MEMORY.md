@@ -1,8 +1,8 @@
 # ParticleGAN Forge experiment memory
 
-Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Current qualification is recomputed from compatible receipts. Compact publications enter recall as display-only summaries and grant no qualification.
+Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1023. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1024. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -20,7 +20,7 @@ Records: 1023. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Pending readouts
 
-empf-v8
+None recorded.
 
 ## Experiment and family records
 
@@ -5272,6 +5272,22 @@ Registered mode-hold diagnostic FAIL: 5/8 modes, HQ .992919921875, zero passing 
 
 [Record and receipt provenance](records/readout-5470a57cf1a74abc896c8a55.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### smpf-v3 · readout-55d96933c5fa226b6fb723ec
+
+**Scope:** current; scientific; revision `ca83937b8fc5443b1eb2cde8426dd8bbf89b3adb54367a726834c2c52252b467`.
+
+Combining smpf-v1's clock-free s-means Scale- & Distortion-Aware Moving Prototype Flow (4-round D^1.5 seeding, tiled addmm assignment, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes tau=0.20 centroid shrinkage, slack-screened Born-Infeld prototype Sinkhorn + Laguerre outlier pull + RMS distortion shell, Nadaraya-Watson detrended conditional fiber transport, H_0-connected simplicial manifold alignment, and 0.20 1D step-scale settling) with smpf-v2's __deepcopy__ capture-ring isolation and unwhitened ParticleEncoding AE reconstruction clears all 13/13 counted Tier 1 gates (27/27 Tier 1 view requirements) and converts Tier 2 skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks (including vector_anisotropic component_covariance_error <= 0.85 and vector_unequal_width PASS) under one global seed-0 recipe.
+
+**Observed:** {'FAIL': 10, 'INCOMPLETE': 5, 'PASS': 29}; wall seconds 6170.898; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0042791; vector_two_broad: hq=0.98926, mass_tv=0.030762
+
+smpf-v3 cleared 13/13 counted and diagnostic Tier 1 gates (100% Tier 1 pass) and achieved 29/41 total discriminator_stability PASSes (+5 over control empf-v8's 24/41), confirming the study prediction on vector_anisotropic (component_covariance_error=0.1272 <= 0.85, 73.2 oracle-stds inside gate) and converting five_word_joint_hold, vector_unequal_width (0/10 prior families passed), vector_unequal_mass, vector_overlap, img_blobs4, and img_intensity2 to PASS under one global seed-0 recipe (with 2 shared-GPU wall-timeout INCOMPLETE cells: stretch precision_gaussian_nvfp4 and model_ae_ddgan_gaussian_chain).
+
+**Next:** Register frozen smpf-v3 evidence snapshot and refresh Forge leaderboards; investigate 100-mode compressed-bank local horizon and 1D shift-reacquisition speed in smpf-v4.
+
+[Record and receipt provenance](records/readout-55d96933c5fa226b6fb723ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-560cdd3e8aa983df09f28d07
 
 **Scope:** research_diagnostic; scientific; revision `c2e27da4b3f1e995e557bf479b5b599db07a2367e462593154cf5033715001e8`.
@@ -8518,4 +8534,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `30b5d01a07ac432735fae0010b743a88686b0e5fbf5ace5c74aed8ff10239845`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `17db3ae1163d2b3c04d52297852a4c84c6d58dfa8bc790735402441bae5889e0`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

@@ -16,7 +16,7 @@ Passes / required-view instances for one selected recipe per family. Shared test
 | --- | ---: | ---: | ---: | ---: | ---: |
 | **[BCAP](families/bcap-pure.md)** · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md)<br>Recorded source measurement · **stale**; no current qualification | **[22/27 (4 not run, 1 diagnostic attempt)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-1)** | **[49/78 (4 not run)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-2)** | **[0/10 (3 not run, 7 diagnostic attempts)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-3)** | **[0/0](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-4)** | **[71/115 (11 not run, 8 diagnostic attempts)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422)** |
 | **[BISPF](families/bispf.md)**<br>Recorded source measurement · **stale**; no current qualification | **[22/27 (4 not run, 1 diagnostic attempt)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-1)** | **[55/78 (4 not run)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-2)** | **[4/10 (3 not run, 3 diagnostic attempts)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-3)** | **[0/0](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-4)** | **[81/115 (11 not run, 4 diagnostic attempts)](families/bispf.md#cohort-cuda-1bf9d7d34422)** |
-| **[EMPF](families/empf.md)** | **[27/27](families/empf.md#cohort-cuda-23a94f16ca88-tier-1)** | **[56/78 (2 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-2)** | **[0/10 (3 blocked, 7 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-3)** | **[0/0](families/empf.md#cohort-cuda-23a94f16ca88-tier-4)** | **[83/115 (3 blocked, 9 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88)** |
+| **[EMPF](families/empf.md)** · [EMPF](families/empf-configuration.md) | **[27/27](families/empf.md#cohort-cuda-23a94f16ca88-tier-1)** | **[56/78 (2 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-2)** | **[0/10 (3 blocked, 7 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-3)** | **[0/0](families/empf.md#cohort-cuda-23a94f16ca88-tier-4)** | **[83/115 (3 blocked, 9 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88)** |
 | **[RHBI](families/rhbi.md)** | **[27/27](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-1)** | **[56/78 (2 not run)](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-2)** | **[0/10 (10 not run)](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-3)** | **[0/0](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-4)** | **[83/115 (12 not run)](families/rhbi.md#cohort-cuda-23a94f16ca88)** |
 | **[Atlas](families/atlas.md)**<br>Recorded source measurement · **stale**; no current qualification | **[18/27](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-1)** | **[0/78 (76 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-2)** | **[0/10 (3 not run, 7 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-3)** | **[0/0](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-4)** | **[18/115 (3 not run, 83 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e)** |
 | **[E22](families/e22.md)** | **[0/27 (4 not run, 23 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-1)** | **[0/78 (4 not run, 74 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-2)** | **[0/10 (3 incompatible, 7 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-3)** | **[0/0](families/e22.md#cohort-cuda-1bf9d7d34422-tier-4)** | **[0/115 (8 not run, 3 incompatible, 104 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422)** |
@@ -30,6 +30,8 @@ Passes / required-view instances for one selected recipe per family. Shared test
 **EMPF:** comparison policy revision 9, tier 1; actual executed-policy qualification **tier 1**, revision 17 (FAIL). These are separate policy results; no qualification reuse.
 
 **RHBI:** comparison policy revision 9, tier 1; actual executed-policy qualification **tier 1**, revision 17 (FAIL). These are separate policy results; no qualification reuse.
+
+**SMPF:** comparison policy revision 9, tier 1; actual executed-policy qualification **tier 1**, revision 17 (FAIL). These are separate policy results; no qualification reuse.
 
 **Atlas:** comparison policy revision 9, tier 0; actual executed-policy qualification **tier 0**, revision 14 (FAIL). These are separate policy results; no qualification reuse.
 
@@ -47,7 +49,7 @@ Backfill coverage: **1109/1109 distinct recipe/test pairs attempted (selected an
 | --- | ---: | ---: | ---: | --- | --- | ---: | --- |
 | [BCAP](families/bcap-pure.md) · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md) | 16 | **12** | 36 | 0 | 28: 0 PASS, 7 FAIL, 21 not measured | 64 | 85 registered searches (175 grid configurations); 473 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [BISPF](families/bispf.md) | 18 | **11** | 35 | 0 | 28: 0 PASS, 7 FAIL, 21 not measured | 64 | no registered configuration search; 19 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
-| [EMPF](families/empf.md) | 23 | **17** | 8 | 16 blocked | 28: 0 PASS, 12 FAIL, 0 not measured, 16 other | 64 | no registered configuration search; 8 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
+| [EMPF](families/empf.md) · [EMPF](families/empf-configuration.md) | 23 | **17** | 8 | 16 blocked | 28: 0 PASS, 12 FAIL, 0 not measured, 16 other | 64 | no registered configuration search; 11 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [RHBI](families/rhbi.md) | 33 | **7** | 8 | 16 blocked | 28: 10 PASS, 2 FAIL, 0 not measured, 16 other | 64 | no registered configuration search; 12 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [Atlas](families/atlas.md) | 8 | **6** | 44 | 6 blocked | 28: 0 PASS, 0 FAIL, 22 not measured, 6 other | 64 | no registered configuration search; 5 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [E22](families/e22.md) | 0 | **0** | 35 | 29 blocked | 28: 0 PASS, 0 FAIL, 21 not measured, 7 other | 64 | untuned: no registered configuration search; 1 declared candidate card; selected recipe declared directly (no selecting search in its lineage) |
@@ -73,7 +75,7 @@ Stretch experiments (extra-credit, optional, frontier, and held benchmark tasks)
 | --- | ---: | ---: | ---: | ---: | ---: |
 | [BCAP](families/bcap-pure.md) · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md) | [0/3 (3 not run)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-1) | [0/44 (2 not run)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-2) | [0/1 (1 diagnostic attempt)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-3) | [0/15 (2 not run, 13 diagnostic attempts)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-tier-4) | [0/63 (7 not run, 14 diagnostic attempts)](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-held) |
 | [BISPF](families/bispf.md) | [0/3 (3 not run)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-1) | [0/44 (2 not run)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-2) | [0/1 (1 diagnostic attempt)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-3) | [0/15 (2 not run, 13 diagnostic attempts)](families/bispf.md#cohort-cuda-1bf9d7d34422-tier-4) | [0/63 (7 not run, 14 diagnostic attempts)](families/bispf.md#cohort-cuda-1bf9d7d34422-held) |
-| [EMPF](families/empf.md) | [0/3](families/empf.md#cohort-cuda-23a94f16ca88-tier-1) | [0/44](families/empf.md#cohort-cuda-23a94f16ca88-tier-2) | [0/1 (1 incompatible)](families/empf.md#cohort-cuda-23a94f16ca88-tier-3) | [0/15 (15 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-4) | [0/63 (1 incompatible, 15 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-held) |
+| [EMPF](families/empf.md) · [EMPF](families/empf-configuration.md) | [0/3](families/empf.md#cohort-cuda-23a94f16ca88-tier-1) | [0/44](families/empf.md#cohort-cuda-23a94f16ca88-tier-2) | [0/1 (1 incompatible)](families/empf.md#cohort-cuda-23a94f16ca88-tier-3) | [0/15 (15 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-tier-4) | [0/63 (1 incompatible, 15 diagnostic attempts)](families/empf.md#cohort-cuda-23a94f16ca88-held) |
 | [RHBI](families/rhbi.md) | [3/3](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-1) | [32/44](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-2) | [0/1 (1 incompatible)](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-3) | [0/15 (15 incompatible)](families/rhbi.md#cohort-cuda-23a94f16ca88-tier-4) | [35/63 (16 incompatible)](families/rhbi.md#cohort-cuda-23a94f16ca88-held) |
 | [Atlas](families/atlas.md) | [0/3 (3 not run)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-1) | [0/44 (2 not run, 42 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-2) | [0/1 (1 diagnostic attempt)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-3) | [0/15 (15 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e-tier-4) | [0/63 (5 not run, 58 diagnostic attempts)](families/atlas.md#cohort-cuda-bc3debd3fa5e-held) |
 | [E22](families/e22.md) | [0/3 (3 not run)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-1) | [0/44 (2 not run, 42 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-2) | [0/1 (1 diagnostic attempt)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-3) | [0/15 (2 not run, 13 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-tier-4) | [0/63 (7 not run, 56 diagnostic attempts)](families/e22.md#cohort-cuda-1bf9d7d34422-held) |
@@ -420,6 +422,7 @@ Trains a generator against a critic; task-owned auxiliary objectives may also ap
 - [BISPF](families/bispf.md)
 - [E22](families/e22.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [GAN v3 release 0.7](families/release07-gan-v3.md)
 - [GAN v3 release 0.7 (MoG)](families/release07-gan-v3-mog.md) (historical cohort)
 - [GAN v3 release 0.7 (cloud)](families/release07-gan-v3-cloud.md) (historical cohort)
@@ -432,6 +435,7 @@ Trains a generator against a critic; task-owned auxiliary objectives may also ap
 - [KA2](families/ka2.md)
 - [R1/R2](families/r1r2.md)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-capped-input-gradients"></a>
 
@@ -451,10 +455,12 @@ Penalizes critic input-gradient norms above a threshold on real and generated in
 - [BCAP with K3P](families/bcap.md) (historical cohort)
 - [BISPF](families/bispf.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [GAN v3 release 0.7](families/release07-gan-v3.md)
 - [GAN v3 release 0.7 (MoG)](families/release07-gan-v3-mog.md) (historical cohort)
 - [GAN v3 release 0.7 (cloud)](families/release07-gan-v3-cloud.md) (historical cohort)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-constant-learning-rate"></a>
 
@@ -464,8 +470,10 @@ Declared baseline uses constant learning rates; resolved per-role rates remain c
 
 - [BISPF](families/bispf.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [Halloween optimizer/loss transfer](families/halloween.md) (historical cohort)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-critic-gradient-penalty"></a>
 
@@ -487,6 +495,7 @@ Uses a penalty on critic input gradients; its formula and strength are configura
 - [BISPF](families/bispf.md)
 - [E22](families/e22.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [GAN v3 release 0.7](families/release07-gan-v3.md)
 - [GAN v3 release 0.7 (MoG)](families/release07-gan-v3-mog.md) (historical cohort)
 - [GAN v3 release 0.7 (cloud)](families/release07-gan-v3-cloud.md) (historical cohort)
@@ -497,6 +506,7 @@ Uses a penalty on critic input gradients; its formula and strength are configura
 - [KA2](families/ka2.md)
 - [R1/R2](families/r1r2.md)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-historical-cohort"></a>
 
@@ -535,6 +545,7 @@ Includes formulation-specific interventions around optimizer steps; availability
 - [BISPF](families/bispf.md)
 - [E22](families/e22.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [K3P](families/k3p.md)
 - [K3P without A2](families/k3p-no-a2.md) (historical cohort)
 - [K3P without critic anchor](families/k3p-no-anchor.md) (historical cohort)
@@ -542,6 +553,7 @@ Includes formulation-specific interventions around optimizer steps; availability
 - [K3P without training output noise](families/k3p-no-training-noise.md) (historical cohort)
 - [KA2](families/ka2.md)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-selectable-loss"></a>
 
@@ -553,7 +565,9 @@ The family explicitly supports multiple adversarial loss formulations.
 - [BCAP](families/bcap-pure-configuration.md)
 - [BISPF](families/bispf.md)
 - [EMPF](families/empf.md)
+- [EMPF](families/empf-configuration.md)
 - [RHBI](families/rhbi.md)
+- [SMPF](families/smpf.md)
 
 <a name="tag-structural-ablation"></a>
 
@@ -591,5 +605,5 @@ After any view revision (for example a held or removed test), always add `--refr
 
 [Experiments, criteria and tier assignments](EXPERIMENTS_BY_TIER.md) · [Complete numerical publication and provenance](technique-inventory.json)
 
-Publication input digest `28a5a248288a96195391583ae86c4b394a7ef909437bbe81606ec20276534fa4`.
+Publication input digest `8bd69f8968178147f781a8d71211644ea95aa377d7437e3182bf82981be902c5`.
 [Performance by test and complete recipe](test-performance.md): compatible passes, failures, execution errors and missing witnesses, with sortable evidence drill-down.

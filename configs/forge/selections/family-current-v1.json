@@ -1059,6 +1059,25 @@
       "source_digest": "ee2635996fe6c877962a51a60209352dabe43ecac95fa9408eedcd6df1e948de",
       "task_keys_sha256": "0641f37bc9906579204fda6b869b8eda02b31d8472ae53a0e9089cb49a6905d4",
       "trainer_family": "rhbi"
+    },
+    {
+      "candidate_id": "smpf-v3",
+      "candidate_revision": "ca83937b8fc5443b1eb2cde8426dd8bbf89b3adb54367a726834c2c52252b467",
+      "cohort": "c286315960a0f4757c22cd425d72c6512e49252cc7425d4b04dcee84324d4a1d",
+      "execution_backend": "cuda",
+      "measurement_views": [
+        "discriminator_stability"
+      ],
+      "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+      "reason": "Select smpf-v3 (Scale- & Distortion-Aware Moving Prototype Flow: s-means 4-round D^1.5 coreset seeding, tiled addmm assignment, distortion x usage^0.35 anisotropic RMS revival across d >= 1, Empirical-Bayes tau=0.20 centroid shrinkage, slack-screened physical Born-Infeld prototype Sinkhorn + Laguerre outlier pull + RMS distortion shell, Nadaraya-Watson detrended whitened conditional IMQ-CMMD, H0-connected simplicial chord alignment, unwhitened ParticleEncoding AE reconstruction, and coordinate-whitened SMPF prior regularization) as the canonical SMPF configuration following ordinary discriminator_stability revision-17 CUDA measurement on NVIDIA RTX A6000 (13/13 Tier 1 gates PASS including clockfree_audit_measurement_v1 and precision_gaussian_fp32, plus Tier 2 five_word_joint_hold, mode_hold, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, img_blobs4, and img_intensity2; 29/41 discriminator_stability PASS with 0 BLOCKED). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; no public-default adoption claim.",
+      "recipe_sha256": "d3e8c598880950487a6307ec70e97b111ef9be1c065d3ee827d19463154fb51d",
+      "rng_sha256": "ea1838dd2440d16754beb1e1d4f3066e9e4858a393fb6a7ae0e341e34a7a744a",
+      "runtime_cohort_sha256": "daa283c8a640abc2e6adc669f79de118ccb0c45d38dfc62bf75b0d831038c1a1",
+      "scientific_row_sha256": "eb944c8846a406f2ef4eee117e36ed2b31dd5959b805abc9dd2487ebf301c4b1",
+      "selection_kind": "current_measurement",
+      "source_digest": "7de3c52187e15029d7122bed110108e089d75c84b177512deb34d28501b05684",
+      "task_keys_sha256": "27d09c11eb79464125f310fdd4910588e1c6cb8e1c6e4914cd3b6867096d1510",
+      "trainer_family": "smpf"
     }
   ],
   "view": "discriminator_stability"

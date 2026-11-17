@@ -19,3 +19,10 @@
 
 4. **Impedance-Matched Thermal Settling & Coordinate-Anisotropic Prior Regularization ([`SMPFCriticPenalty`](../../../particlegan/_smpf/penalty.py), [`SMPFPriorRegularizer`](../../../particlegan/_smpf/prior.py))**:
    Matches state-driven thermal cooling across critic logits, EBI prototype-chord penalties, generator prototype/conditional/simplicial transport, and coordinate-whitened $k$-NN prior repulsion + RMS dead-particle revival tethers under one global constant-LR DualNorm recipe (`polar_cpu_v1`, batched quintic conv).
+
+## Canonical Benchmark Summary (`smpf-v3`, Seed 0, CUDA)
+
+Evaluated under one global seed-0 recipe across the `discriminator_stability` benchmark view (`configs/forge/ideas/smpf-v3.json`, `configs/forge/studies/smpf-v3-study.json`), `smpf-v3` achieves **13/13** Tier 1 gates (`11/11` required + `2/2` diagnostic, `100%` Tier 1 pass) and **29/41** total `discriminator_stability` `PASS`es (`+5` over `empf-v8`'s `24/41`), including:
+- **Tier 1 (13/13 `PASS`):** `gaussian1d_smoke`, `two_pole`, `unused_token_hold`, `ae_gan_hold`, `ring16_acquisition` (`component_covariance_error=0.8284`), `five_word_joint_smoke` (`min_recon_token_prob=0.999999`), `zero_tanh_smoke`, `model_ae_gan_multimodal`, `model_ae_reconstruction`, `model_vae_categorical`, `model_vae_hard`, `clockfree_audit_measurement_v1`, and `precision_gaussian_fp32`.
+- **Tier 2 Counted (`10 PASS`):** `five_word_joint_hold` (`min_recon_token_prob=0.9999988` across 8,167-step continuation), `trajectory`, `residual_student`, `unipolar`, `cover_leftover`, `mid_scale_identity`, `mode_hold` (`8/8` modes, `hq=1.0`), `vector_two_broad`, `vector_spiral`, and `img_stripes2`.
+- **Tier 2 Held (`6 PASS` — all 6 failed under `empf-v8`):** `vector_unequal_width` (`hq=0.9868, sw1=0.0628, component_covariance_error=0.1213` — 0/10 prior families passed), `vector_unequal_mass` (`hq=0.9946, min_mass_ratio=0.900` on 2% rare mode), `vector_anisotropic` (`component_covariance_error=0.1272 <= 0.85`), `vector_overlap` (`sw1=0.0570`), `img_blobs4` (`modes=4/4, hq=1.0`), and `img_intensity2` (`modes=2/2, distribution_tv=0.0`).

@@ -8,7 +8,6 @@ import torch
 import torch.nn.functional as F
 
 from .._stats import knn_excluding_self, pairwise_sq_dist
-from .prototypes import _PHI1
 
 
 def effective_sinkhorn_eps(ema_residual: float, sinkhorn_eps: float = 0.12) -> float:
