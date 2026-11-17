@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2247 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **424 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2248 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **425 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 424 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 425 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -150,6 +150,7 @@ Indexed: **2247 test/protocol rows**, **581 complete recipe/source/runtime ident
 | img_blobs4_policy_cloud_coverage_as_served_v1<br>unmeasured declaration<br>`fa2229d7a209` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/img_blobs4_policy_cloud_coverage_as_served_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | img_blobs4_policy_cloud_coverage_v1<br>unmeasured declaration<br>`4250c3e2618d` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_v1/img_blobs4_policy_cloud_coverage_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | img_blobs4_residual16<br>unmeasured declaration<br>`2807dd82026f` | [matches](../../configs/forge/tasks/img_blobs4_residual16.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| img_conv_texture32<br>unmeasured declaration<br>`396ec65e3298` | [matches](../../configs/forge/tasks/img_conv_texture32.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | img_intensity2<br>seed 0 · 600 updates · source c82ed2dc71<br>`10d7dc4e83b6` | [matches](../../configs/forge/tasks/img_intensity2.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | [FAIL](technique-receipts/81b4b1e0cd374e9e80a683e5e192b824.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | img_intensity2<br>seed 0 · 600 updates · source a5eafc73e4<br>`252487fc0389` | [matches](../../configs/forge/tasks/img_intensity2.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | [FAIL](technique-receipts/570232c3111e4e83b7c0ab9ab86a8de0.json) | NOT RUN | NOT RUN | NOT RUN | [NOT RUN](technique-evidence/29979e41c9c05e3304156cf4a43ed9c9dda6953bffd0fb47096fe47d6b8af13a.json) | [NOT RUN](technique-evidence/29979e41c9c05e3304156cf4a43ed9c9dda6953bffd0fb47096fe47d6b8af13a.json) | [NOT RUN](technique-evidence/29979e41c9c05e3304156cf4a43ed9c9dda6953bffd0fb47096fe47d6b8af13a.json) | [NOT RUN](technique-evidence/29979e41c9c05e3304156cf4a43ed9c9dda6953bffd0fb47096fe47d6b8af13a.json) | NOT RUN |
 | img_intensity2<br>seed 0 · 600 updates · source cbb19c5e55<br>`7039c828305a` | [CHANGED](../../configs/forge/tasks/img_intensity2.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | [NOT RUN](technique-evidence/2880110ed49454a452197b2e42adafed37447bb43d288340299599bc8edc1025.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |

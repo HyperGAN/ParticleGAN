@@ -1,0 +1,1078 @@
+{
+  "execution_scientific_sources_sha256": {
+    "benchmarks/toy_audit/api_conv_texture32.py": "00134c6895861035bd9be0f887ef34815d2d7946c1b8553f3ca0c02bf0798bdd",
+    "configs/forge/tasks/img_conv_texture32.json": "b6b8bbc1206d12d2cf0e34dbfc1fc29dbd2fec01151e207c5dce0c656802e753",
+    "experiments/forge/conv_texture32.py": "21ad76d69776acacb9f949dc2b24cd4a16a345a0e10182954d70cbc75f39f03f"
+  },
+  "qualification_input": false,
+  "results": [
+    {
+      "batch_sequence_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+      "candidate_id": "rhbi-v12",
+      "conv_texture32_contract": {
+        "eval_samples": 256,
+        "image_shape": [
+          3,
+          32,
+          32
+        ],
+        "kind": "img_conv_texture32",
+        "prior_code_path": "MoGParticlePrior",
+        "schema_version": 1,
+        "sigma": 0.1,
+        "standardize": false
+      },
+      "cost": {
+        "adapter_loop_seconds": 105.9887645340059,
+        "completed_steps": 288,
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 97.92194036405999,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.23313724563922733
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.047764736926183105
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 97.64103838149458
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        }
+      },
+      "failed_bounds": [
+        "hf_band_ratio >= 0.55",
+        "clean_texture_fraction >= 0.75",
+        "orientations == 2",
+        "pairwise_phase_diversity >= 0.4"
+      ],
+      "gif": "reports/forge/conv-texture32-tier1/media/rhbi-v12.gif",
+      "gif_frames": 24,
+      "gif_sha256": "f5c292187157b8a070ac07a71e5beb0291318255bad91d6240a2cf5b8b1fc051",
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 288,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 288,
+              "calls": 288,
+              "eligible": 288,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 288,
+            "observations": {
+              "applied": 288,
+              "calls": 288,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 288,
+              "applied_record_calls_in_window": 288,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 288,
+              "observed_steps_in_window": 288,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "rhbi": 288
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 288
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 288
+              },
+              "s_thermal": {
+                "count": 288,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 0.5976798455969025,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_parameters": {
+        "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+        "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+        "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+      },
+      "live": {
+        "band_purity_mean": 0.05297676020768141,
+        "clean_texture_fraction": 0.0,
+        "dc_mean_err": 0.30003324889913,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.008580603974225892,
+        "mass_tv": 0.00390625,
+        "orientations": 0,
+        "pairwise_phase_diversity": 0.0,
+        "sample_count": 256,
+        "step": 288
+      },
+      "minimum_stable_checks": 5,
+      "reason": "failed img_conv_texture32 thresholds: hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75, orientations == 2, pairwise_phase_diversity >= 0.4",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 64,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "rhbi",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ebi_beta": 12.0,
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.014,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "model": "gan",
+        "name": "rhbi",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.03,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_dense_profile": "polar_cpu_v1",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.0061,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.9,
+        "prior_reg": 0.02,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "rhbi_ae_coord_whiten": true,
+        "rhbi_akt_horizon": true,
+        "rhbi_akt_mode": "weibull",
+        "rhbi_chord_weight": 0.25,
+        "rhbi_cond_ot_mode": "diag_imq_cmmd",
+        "rhbi_cond_ot_weight": 1.5,
+        "rhbi_cond_step_damp": 0.68,
+        "rhbi_conditional_fibre": "slack",
+        "rhbi_cvx_mu_gain": 0.58,
+        "rhbi_gamma_gauge": 0.03,
+        "rhbi_lambda_floor": 0.005,
+        "rhbi_rapidity_screening": false,
+        "rhbi_rho": 3.0,
+        "rhbi_self_coupling": "feydy_discrete",
+        "rhbi_settle_beta": 16.0,
+        "rhbi_settle_mode": "thermal",
+        "rhbi_simplex_chart_weight": 4.0,
+        "rhbi_simplex_curve_settle": true,
+        "rhbi_simplex_macro_settle": true,
+        "rhbi_simplex_weight": 0.35,
+        "rhbi_slack_gain": 0.35,
+        "rhbi_support_completion": true,
+        "rhbi_tail_spill_gain": 0.95,
+        "rhbi_thermal_shock_mu": 0.35,
+        "rhbi_thermal_tau": 0.084,
+        "rhbi_weight": 1.0,
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 288,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 8
+      },
+      "recipe_preset": null,
+      "status": "FAIL",
+      "terminal_passed": 0,
+      "terminal_window": [
+        {
+          "band_purity_mean": 0.04887532564279474,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.3180586693974321,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.007361744570873533,
+          "mass_tv": 0.0546875,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.05002595535942149,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.32233612191636796,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008032441412147082,
+          "mass_tv": 0.06640625,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.05340698887132436,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.29437250294669165,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008673843789765401,
+          "mass_tv": 0.0,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.055403700061621035,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.298155157911118,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.009000123510751069,
+          "mass_tv": 0.03125,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.05297676020768141,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.30003324889913,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008580603974225892,
+          "mass_tv": 0.00390625,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "trainer_family": "rhbi",
+      "wall_seconds": 105.989
+    },
+    {
+      "batch_sequence_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+      "candidate_id": "empf-v8",
+      "conv_texture32_contract": {
+        "eval_samples": 256,
+        "image_shape": [
+          3,
+          32,
+          32
+        ],
+        "kind": "img_conv_texture32",
+        "prior_code_path": "MoGParticlePrior",
+        "schema_version": 1,
+        "sigma": 0.1,
+        "standardize": false
+      },
+      "cost": {
+        "adapter_loop_seconds": 45.42269508703612,
+        "completed_steps": 288,
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 37.69449392426759,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.3789599809097126
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.04255521879531443
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 37.27297872456256
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        }
+      },
+      "failed_bounds": [],
+      "gif": "reports/forge/conv-texture32-tier1/media/empf-v8.gif",
+      "gif_frames": 24,
+      "gif_sha256": "be7ac6519c3bee3045f753e157e0e2457a1e6d2bf33e782fb243f8b862200697",
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 288,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 288,
+              "calls": 288,
+              "eligible": 288,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 288,
+            "observations": {
+              "applied": 288,
+              "calls": 288,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 288,
+              "applied_record_calls_in_window": 288,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 288,
+              "observed_steps_in_window": 288,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "empf": 288
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 288,
+                "last": 27.115041694921903,
+                "max": 33.07819366455078,
+                "min": 19.53146558314246,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 288,
+                "last": 0.7021388544088888,
+                "max": 0.8487201286070737,
+                "min": 0.7021388544088888,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 288,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_parameters": {
+        "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+        "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+        "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+      },
+      "live": {
+        "band_purity_mean": 0.6824401688357549,
+        "clean_texture_fraction": 1.0,
+        "dc_mean_err": 0.07960447838802533,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.8177288776536016,
+        "mass_tv": 0.078125,
+        "orientations": 2,
+        "pairwise_phase_diversity": 0.7514697860679006,
+        "sample_count": 256,
+        "step": 288
+      },
+      "minimum_stable_checks": 5,
+      "reason": "recomputed img_conv_texture32 gates (5/5 terminal checks passed)",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 64,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "empf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ebi_beta": 6.0,
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "model": "gan",
+        "name": "empf",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.03,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_dense_profile": "newton_schulz_hybrid_v1",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "optimizer_svd_backend": "batched",
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "empf",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 288,
+        "training_precision": "bf16_channels_last",
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 8
+      },
+      "recipe_preset": null,
+      "status": "PASS",
+      "terminal_passed": 5,
+      "terminal_window": [
+        {
+          "band_purity_mean": 0.613966006035658,
+          "clean_texture_fraction": 0.9453125,
+          "dc_mean_err": 0.08978003533146034,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8533833493083134,
+          "mass_tv": 0.046875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8974641758123132,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.6319758175567819,
+          "clean_texture_fraction": 0.96484375,
+          "dc_mean_err": 0.08646723263453793,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8404230882888213,
+          "mass_tv": 0.07421875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.87882756472889,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.6628948388351603,
+          "clean_texture_fraction": 0.99609375,
+          "dc_mean_err": 0.07397217612058077,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8543191402449304,
+          "mass_tv": 0.02734375,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8701630081758948,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.6737569492950399,
+          "clean_texture_fraction": 0.99609375,
+          "dc_mean_err": 0.0859527506714978,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.848995297287434,
+          "mass_tv": 0.07421875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7960942411076273,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.6824401688357549,
+          "clean_texture_fraction": 1.0,
+          "dc_mean_err": 0.07960447838802533,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8177288776536016,
+          "mass_tv": 0.078125,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7514697860679006,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "trainer_family": "empf",
+      "wall_seconds": 45.423
+    },
+    {
+      "batch_sequence_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+      "candidate_id": "bispf-throughput-v1",
+      "conv_texture32_contract": {
+        "eval_samples": 256,
+        "image_shape": [
+          3,
+          32,
+          32
+        ],
+        "kind": "img_conv_texture32",
+        "prior_code_path": "MoGParticlePrior",
+        "schema_version": 1,
+        "sigma": 0.1,
+        "standardize": false
+      },
+      "cost": {
+        "adapter_loop_seconds": 46.379160761018284,
+        "completed_steps": 288,
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 38.429708770127036,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.2849028886994347
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.04730667301919311
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 38.09749920840841
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        }
+      },
+      "failed_bounds": [],
+      "gif": "reports/forge/conv-texture32-tier1/media/bispf-throughput-v1.gif",
+      "gif_frames": 24,
+      "gif_sha256": "b71bc78b492c732a4c1f581449a939a476d489f2ee8a8426a4ca57e9358767bf",
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 288,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 288,
+              "calls": 288,
+              "eligible": 288,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 288,
+            "observations": {
+              "applied": 288,
+              "calls": 288,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 288,
+              "applied_record_calls_in_window": 288,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 288,
+              "observed_steps_in_window": 288,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 288
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 288,
+                "last": 26.078508726590332,
+                "max": 33.07819366455078,
+                "min": 18.831159591674805,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 288,
+                "last": 0.7288379317402675,
+                "max": 0.8643657565116882,
+                "min": 0.7288379317402675,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 288,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_parameters": {
+        "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+        "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+        "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+      },
+      "live": {
+        "band_purity_mean": 0.7003407231610391,
+        "clean_texture_fraction": 0.9921875,
+        "dc_mean_err": 0.07737603731815727,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.8256133513360006,
+        "mass_tv": 0.125,
+        "orientations": 2,
+        "pairwise_phase_diversity": 0.6740781965623769,
+        "sample_count": 256,
+        "step": 288
+      },
+      "minimum_stable_checks": 5,
+      "reason": "recomputed img_conv_texture32 gates (5/5 terminal checks passed)",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 64,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.03,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "optimizer_svd_backend": "batched",
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 288,
+        "training_precision": "bf16_channels_last",
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 8
+      },
+      "recipe_preset": null,
+      "status": "PASS",
+      "terminal_passed": 5,
+      "terminal_window": [
+        {
+          "band_purity_mean": 0.6249591854921295,
+          "clean_texture_fraction": 0.94140625,
+          "dc_mean_err": 0.08559702779854103,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8338019614445711,
+          "mass_tv": 0.078125,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8623741403229934,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.6493349432092915,
+          "clean_texture_fraction": 0.98046875,
+          "dc_mean_err": 0.07760676959065617,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8559032467510181,
+          "mass_tv": 0.1171875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8624380812388798,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.6820320674323672,
+          "clean_texture_fraction": 0.9921875,
+          "dc_mean_err": 0.07415634812364257,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8740938327078303,
+          "mass_tv": 0.08984375,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.844833415493144,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.6891605908340104,
+          "clean_texture_fraction": 0.98828125,
+          "dc_mean_err": 0.0819064994769104,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8510273432774382,
+          "mass_tv": 0.1171875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7520846608159741,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.7003407231610391,
+          "clean_texture_fraction": 0.9921875,
+          "dc_mean_err": 0.07737603731815727,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8256133513360006,
+          "mass_tv": 0.125,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.6740781965623769,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "trainer_family": "bispf",
+      "wall_seconds": 46.379
+    }
+  ],
+  "runtime": {
+    "device": "cuda:1",
+    "gpu_name": "NVIDIA RTX A6000",
+    "implementation": "CPython",
+    "machine": "x86_64",
+    "packages": {
+      "numpy": "2.5.4",
+      "scipy": "1.17.1",
+      "torch": "2.15.0+cu132"
+    },
+    "python": "3.12.14",
+    "system": "Linux"
+  },
+  "schema": "forge_conv_texture32_tier1_readout_v1",
+  "schema_version": 1,
+  "seed": 0,
+  "source_commit": "6899f3834c1fa6f10bb0e25ce3f4e2bd745ffd84",
+  "task_id": "img_conv_texture32"
+}

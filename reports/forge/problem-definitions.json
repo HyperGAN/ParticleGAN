@@ -767,6 +767,37 @@
           "path": "configs/forge/tasks/interp_saddle_barycentric.json"
         }
       ]
+    },
+    {
+      "task": "img_conv_texture32",
+      "title": "Acquire 3x32x32 random-phase 12-mode RGB textures under high-dimensional shell concentration",
+      "intent": "Acquire two equiprobable 3x32x32 (d=3072) random-phase 12-mode oriented RGB texture classes from a recipe-owned 64-particle MoGParticlePrior (sigma=0.1) within 288 updates, sustaining high-frequency carrier energy (hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75), balanced class shares (orientations == 2, mass_tv <= 0.18), and within-class phase diversity (pairwise_phase_diversity >= 0.40) across the final five live checks.",
+      "problem": "In d=3072 at B=64, real multi-frequency random-phase textures concentrate on a shell whose 25th-percentile real-to-real nearest-neighbor distance (~16.1) exceeds the distance from zero-carrier interior DC mean blobs to the real shell (~15.6). Raw-pixel Born-Infeld transport with zero active-pair critic weight (`rhbi-v12` / `rhbi_optimized`) maps c_hat << rho=3.0 inside the pixel-OT ball and exponentially suppresses slack critic mass when d_tilde_fake < 0, collapsing onto the two flat interior DC color means (`hf_band_ratio = 0.0086`, `clean_texture_fraction = 0.0`, `orientations = 0`, `pairwise_phase_diversity = 0.0`, 0/5 terminal checks).",
+      "pass_summary": "Feature-critic formulations (`empf-v8` and `bispf-throughput-v1`) pass 5/5 terminal checks under protocol seed 0; `rhbi-v12` fails 0/5.",
+      "passers": [
+        "`empf-v8` (`empf`) and `bispf-throughput-v1` (`bispf_optimized`) pass all six gates across all five terminal checks in the matched CUDA readout (`reports/forge/conv-texture32-tier1/summary.json`), whereas `rhbi-v12` (`rhbi_optimized`) fails 0/5 with zero spatial carrier energy.",
+        "Previously selected family cohorts in `technique-inventory.json` remain unmeasured (`UNKNOWN`) under their archived pre-revision-18 sources until a fresh full-view cohort is registered."
+      ],
+      "next_step": "Evaluate generic modality-agnostic RHBI repairs (critic penultimate feature-space geometry vs ambient pixel distance, sign-faithful adversarial slack escape, and nonzero active-pair relativistic critic gradient) in a bounded Forge study while preserving every counted Tier 1-3 pass.",
+      "evidence": [
+        {
+          "label": "Tier 1 3x32x32 texture readout and root-cause verification",
+          "path": "reports/forge/conv-texture32-tier1/README.md",
+          "anchor": "img_conv_texture32"
+        },
+        {
+          "label": "Matched CUDA summary receipt",
+          "path": "reports/forge/conv-texture32-tier1/summary.json"
+        },
+        {
+          "label": "Supplemental public-API failure publication",
+          "path": "reports/toy_audit/api_contract/conv_texture32/publication.json"
+        },
+        {
+          "label": "Task declaration",
+          "path": "configs/forge/tasks/img_conv_texture32.json"
+        }
+      ]
     }
   ]
 }

@@ -225,3 +225,49 @@ def test_fresh_process_import_order_invariance():
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", code_b], cwd=ROOT, env=env, text=True))
     assert out_a == out_b
     assert out_a["default"] == "empf"
+
+
+def test_published_cuda_readout_shows_rhbi_failure_and_empf_bispf_pass_with_bound_media():
+    import hashlib
+
+    summary = json.loads((ROOT / "reports/forge/conv-texture32-tier1/summary.json").read_text())
+    pub = json.loads((ROOT / "reports/toy_audit/api_contract/conv_texture32/publication.json").read_text())
+
+    for path, expected in summary["execution_scientific_sources_sha256"].items():
+        original = subprocess.check_output(["git", "show", summary["source_commit"] + ":" + path], cwd=ROOT)
+        assert hashlib.sha256(original).hexdigest() == expected
+
+    by_id = {r["candidate_id"]: r for r in summary["results"]}
+    assert set(by_id) == {"rhbi-v12", "empf-v8", "bispf-throughput-v1"}
+
+    # Identical seen batch sequence and initial network/prior weights across all 3 candidates.
+    assert len({r["batch_sequence_sha256"] for r in by_id.values()}) == 1
+    assert len({json.dumps(r["initial_parameters"], sort_keys=True) for r in by_id.values()}) == 1
+
+    # rhbi-v12 deterministically FAILS with zero spatial carrier energy; empf-v8 & bispf PASS 5/5.
+    rhbi = by_id["rhbi-v12"]
+    assert rhbi["status"] == "FAIL" and rhbi["terminal_passed"] == 0
+    assert rhbi["live"]["hf_band_ratio"] < 0.02
+    assert rhbi["live"]["clean_texture_fraction"] == 0.0
+    assert rhbi["live"]["orientations"] == 0
+    assert rhbi["live"]["pairwise_phase_diversity"] == 0.0
+
+    for winner in ("empf-v8", "bispf-throughput-v1"):
+        row = by_id[winner]
+        assert row["status"] == "PASS" and row["terminal_passed"] == 5 and row["failed_bounds"] == []
+        assert row["live"]["hf_band_ratio"] >= 0.55
+        assert row["live"]["clean_texture_fraction"] >= 0.75
+        assert row["live"]["orientations"] == 2
+        assert row["live"]["mass_tv"] <= 0.18
+        assert row["live"]["pairwise_phase_diversity"] >= 0.40
+
+    # Verify all committed GIFs exist and match their recorded SHA-256 digests.
+    for row in by_id.values():
+        gif_bytes = (ROOT / row["gif"]).read_bytes()
+        assert hashlib.sha256(gif_bytes).hexdigest() == row["gif_sha256"]
+
+    api_run = pub["runs"][0]
+    assert api_run["candidate_id"] == "rhbi-v12" and api_run["verdict"] == "FAIL"
+    api_gif = ROOT / "reports/toy_audit/api_contract/conv_texture32" / api_run["gif"]
+    assert hashlib.sha256(api_gif.read_bytes()).hexdigest() == api_run["gif_sha256"]
+

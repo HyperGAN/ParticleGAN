@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+import json
 import platform
 import shutil
 import subprocess
 import time
-from dataclasses import asdict
 from pathlib import Path
 
 import numpy as np
@@ -50,7 +50,37 @@ def _runtime_info(device: str) -> dict:
     return info
 
 
-def run_candidate(candidate_id: str, task: dict, run_root: Path, device: str) -> dict:
+def _summarize_result(candidate_id: str, candidate: dict, task: dict, raw_result: dict, *, wall_s: float | None = None) -> dict:
+    verdict = grade_result(task, raw_result)
+    ev = raw_result["evidence"]
+    eval_res = verdict.get("evaluator_result", {})
+    cost = raw_result.get("cost", {})
+    effective_wall = wall_s if wall_s is not None else float(cost.get("adapter_loop_seconds", 0.0))
+    return {
+        "candidate_id": candidate_id,
+        "trainer_family": candidate.get("trainer_family"),
+        "recipe_preset": candidate.get("recipe_preset"),
+        "status": verdict["status"],
+        "reason": "; ".join(verdict.get("reasons", [])),
+        "terminal_passed": eval_res.get("terminal_passed", 0),
+        "minimum_stable_checks": eval_res.get("minimum_stable_checks", 5),
+        "failed_bounds": eval_res.get("failed_bounds", []),
+        "wall_seconds": round(effective_wall, 3),
+        "cost": cost,
+        "recipe": raw_result["recipe"],
+        "guards": ev.get("guards", {}),
+        "initial_parameters": ev.get("initial_parameters", {}),
+        "batch_sequence_sha256": ev.get("batch_sequence_sha256"),
+        "conv_texture32_contract": ev.get("conv_texture32_contract"),
+        "live": ev.get("live"),
+        "terminal_window": ev.get("observations", [])[-5:],
+        "gif_source_path": ev["actual_training_gif"]["path"],
+        "gif_sha256": ev["actual_training_gif"]["sha256"],
+        "gif_frames": ev["actual_training_gif"]["frames"],
+    }
+
+
+def run_candidate(candidate_id: str, task: dict, run_root: Path, device: str, *, from_saved: bool = False) -> dict:
     candidate = load_idea(ROOT, candidate_id)
     candidate_for_run = {
         **candidate,
@@ -69,6 +99,10 @@ def run_candidate(candidate_id: str, task: dict, run_root: Path, device: str) ->
         }
 
     out_dir = run_root / candidate_id
+    if from_saved:
+        raw_result = read_json(out_dir / "adapter-receipt.json")
+        return _summarize_result(candidate_id, candidate, task, raw_result)
+
     if out_dir.exists():
         shutil.rmtree(out_dir)
     out_dir.mkdir(parents=True, exist_ok=True)
@@ -83,37 +117,14 @@ def run_candidate(candidate_id: str, task: dict, run_root: Path, device: str) ->
     t0 = time.perf_counter()
     raw_result = run_task(request, job, out_dir, device)
     wall_s = time.perf_counter() - t0
-    verdict = grade_result(task, raw_result)
-    ev = raw_result["evidence"]
-    eval_res = verdict.get("evaluator_result", {})
+    row = _summarize_result(candidate_id, candidate, task, raw_result, wall_s=wall_s)
     print(
-        f"[conv_texture32] finished candidate={candidate_id} status={verdict['status']} "
-        f"terminal={eval_res.get('terminal_passed')}/{eval_res.get('minimum_stable_checks')} "
-        f"wall={wall_s:.2f}s live={ev['live']}",
+        f"[conv_texture32] finished candidate={candidate_id} status={row['status']} "
+        f"terminal={row['terminal_passed']}/{row['minimum_stable_checks']} "
+        f"wall={wall_s:.2f}s live={row['live']}",
         flush=True,
     )
-    return {
-        "candidate_id": candidate_id,
-        "trainer_family": candidate.get("trainer_family"),
-        "recipe_preset": candidate.get("recipe_preset"),
-        "status": verdict["status"],
-        "reason": "; ".join(verdict.get("reasons", [])),
-        "terminal_passed": eval_res.get("terminal_passed", 0),
-        "minimum_stable_checks": eval_res.get("minimum_stable_checks", 5),
-        "failed_bounds": eval_res.get("failed_bounds", []),
-        "wall_seconds": round(wall_s, 3),
-        "cost": raw_result.get("cost", {}),
-        "applied": raw_result.get("applied", {}),
-        "guards": ev.get("guards", {}),
-        "initial_parameters": ev.get("initial_parameters", {}),
-        "batch_sequence_sha256": ev.get("batch_sequence_sha256"),
-        "conv_texture32_contract": ev.get("conv_texture32_contract"),
-        "live": ev.get("live"),
-        "terminal_window": ev.get("observations", [])[-5:],
-        "gif_source_path": ev["actual_training_gif"]["path"],
-        "gif_sha256": ev["actual_training_gif"]["sha256"],
-        "gif_frames": ev["actual_training_gif"]["frames"],
-    }
+    return row
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -121,6 +132,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--device", default="cuda:0" if torch.cuda.is_available() else "cpu")
     parser.add_argument("--candidates", nargs="+", default=list(DEFAULT_CANDIDATES))
     parser.add_argument("--run-root", type=Path, default=ROOT / "runs/conv_texture32_tier1")
+    parser.add_argument("--from-saved", action="store_true", help="Build compact publications from saved adapter-receipt.json files")
     args = parser.parse_args(argv)
 
     task = read_json(ROOT / "configs/forge/tasks/img_conv_texture32.json")
@@ -130,7 +142,7 @@ def main(argv: list[str] | None = None) -> int:
 
     results = []
     for cid in args.candidates:
-        results.append(run_candidate(cid, task, args.run_root, args.device))
+        results.append(run_candidate(cid, task, args.run_root, args.device, from_saved=args.from_saved))
 
     report_dir = ROOT / "reports/forge/conv-texture32-tier1"
     report_media = report_dir / "media"
@@ -174,9 +186,9 @@ def main(argv: list[str] | None = None) -> int:
     case_def = {**list_cases()[0], "default_recipe": primary.get("recipe_preset", "rhbi_optimized")}
     api_gif_rel = "media/api-img-conv-texture32.gif"
     shutil.copyfile(primary["gif_source_path"], api_dir / api_gif_rel)
-    recipe_dict = primary["applied"]["recipe"]
+    recipe_dict = primary["recipe"]
     recipe_sha = hashlib.sha256(
-        (str(sorted(recipe_dict.items()))).encode("utf-8")
+        json.dumps(recipe_dict, sort_keys=True, separators=(",", ":")).encode("utf-8")
     ).hexdigest()
     publication = {
         "schema": "forge_conv_texture32_api_publication_v1",
@@ -218,7 +230,7 @@ def main(argv: list[str] | None = None) -> int:
                 "final_metrics": primary["live"],
                 "gif": api_gif_rel,
                 "gif_sha256": primary["gif_sha256"],
-                "recipe": asdict(recipe_dict) if hasattr(recipe_dict, "__dataclass_fields__") else recipe_dict,
+                "recipe": recipe_dict,
                 "recipe_sha256": recipe_sha,
                 "runtime": runtime,
                 "source_commit": commit,
