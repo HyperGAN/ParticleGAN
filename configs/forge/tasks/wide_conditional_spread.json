@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "id": "wide_conditional_spread",
+  "description": "Learn the conditional spread of two equally likely groups on wide continuous inputs.",
+  "adapter": "wide_conditional_spread",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "wide_conditional_spread",
+    "host_source": "benchmarks/toy_audit/conditional_spread.py",
+    "execution_path": "public_components",
+    "steps": 1200,
+    "resources": {
+      "num_particles": 128,
+      "z_dim": 4,
+      "batch_size": 64
+    },
+    "host_definition": {
+      "hidden": 64,
+      "width": 65,
+      "group_sds": [
+        [
+          0.5,
+          2.0
+        ],
+        [
+          2.0,
+          0.5
+        ]
+      ],
+      "bag_size": 32,
+      "bags_per_group": 2048
+    },
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "protocol": "screening",
+    "produces_state": false
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "kind": "transfer_sustained",
+    "evaluator": "benchmarks.transfer_suite.protocol:test_verdict",
+    "eval_samples": 131072,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "scoring_weights": "live",
+    "thresholds": [
+      [
+        "max_scaled_mean_error",
+        "<=",
+        0.15
+      ],
+      [
+        "max_relative_sd_error",
+        "<=",
+        0.2
+      ],
+      [
+        "max_coverage_error",
+        "<=",
+        0.12
+      ],
+      [
+        "worst_interval_score_ratio",
+        "<=",
+        1.5
+      ],
+      [
+        "max_group_padding_energy",
+        "<=",
+        0.1
+      ]
+    ],
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "mechanism_exercised": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true
+    },
+    "sources": {
+      "benchmarks/toy_audit/conditional_spread.py": "d8eb3ae671a14a02ac5cec1cf94c97cc32592c42ad60f3d3574e100fc010f7dd",
+      "experiments/forge/conditional_spread.py": "ded6dc57f9fc8b28c69c6d4895647ca683fd92aeb3eb0795938181e3e85e23c8"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

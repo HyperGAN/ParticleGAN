@@ -66,6 +66,7 @@ def test_new_stretch_tasks_stay_visible_without_invalidating_archived_coverage()
         "interp_sparse_arc",
         "precision_gaussian_mxfp8",
         "precision_gaussian_nvfp4",
+        "wide_conditional_spread",
     ]
 
 
