@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1024. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -20,7 +20,7 @@ Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Pending readouts
 
-bcap--148a58dc4036cfc2d71a10b427582aeea304b4ac70874ff2fe7ec02f31cee561, bcap--17c9d255a2f8e1adfc1e4ec686e3cee3c7e3fd40fc7979328d4e1955cc2d29a1, bcap--263d190ebb4c40ddb21337a16a598f5ffcca4639031b3b70aaa3036aec67b31e, bcap--655141ae1d99b0b08dcbac36abbb6f135473d47d389f2ec9d41d9aa6d1201fbe, bcap--6c72e4aaf8ffe22be663a6e041971cc22bbee9402bb0095c4935aa167b6ccb03, bcap--8a9884cad1e87d5d950d8dff3d4901a787e8f94fc99b00e83877fdf6e1a932c2, bcap--90dcc2c3039f9f4c7ed2b1de03dec0c75cec2e9d386de0bb302f90a5f923de23, bcap--a3675bf5a89a136bd4c64b5577021215c1e118aca2971e274b6d23ded6ac55a9, bcap--c89e202b7830cfc38743c25fc1b34ca8ceef3f113c4f091017cac7c843972da3, bcap--ccfa83125643932bdfc88a2178a94ec019a2687d7915dae1ed0d6852925f603d, bcap--e8c9fcd62a13b748b0a1c97543b828ee618833ea45789681323a37c9c300d773, bcap--f0163dead110803a0e982cacfa2589918cd7345eea1655c76a3e3f21b0037887, bcap-original-horizon-diagnostics-v1, bcap-tier2-round6-control-v1, bcap-tier2-round6-half-network-v1, bcap-tier2-round6-late-anneal-v1, bcap-tier2-round6-prior-smoothing-v1, bcap-tier2-round6-zero-damping-v1, constraint_geometry-control-v1, constraint_geometry-nonascent-v1, five-word-joint-ka2-v1, hydraulic-output-travel-v1, information_geometry_spectral_half_v1, kinetic_transport_sliced_v1, thermodynamic-bcap-optimism-v1
+None recorded.
 
 ## Experiment and family records
 
@@ -3816,6 +3816,38 @@ Administrative abandoned: Concluded preregistered full-native FAIL. Training out
 
 [Evidence](../../) · [Record](records/lifecycle-1fdc4834581ce2e17a87e8e7.json)
 
+### smpf-v1 · lifecycle-39f590b431e367827b2853f4
+
+**Scope:** administrative; administrative; revision `71ccc234abd10431375a5883c12a06946be33acf810d7f2c057f992597ce06f0`.
+
+None
+
+**Observed:** No normalized scientific verdict; wall seconds unknown; mechanism `structural`.
+
+
+
+Administrative superseded: Isolate ephemeral non-leaf autograd captures in SMPFStepRecord.__deepcopy__ and damp settled compact 2D-4D DualNorm steps in smpf-v2.
+
+**Next:** See successor smpf-v2@a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da.
+
+[Evidence](../../) · [Record](records/lifecycle-39f590b431e367827b2853f4.json)
+
+### smpf-v2 · lifecycle-61a05a1df818d869d94c175c
+
+**Scope:** administrative; administrative; revision `a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da`.
+
+None
+
+**Observed:** No normalized scientific verdict; wall seconds unknown; mechanism `structural`.
+
+
+
+Administrative superseded: Restore unwhitened ParticleEncoding AE reconstruction and smpf-v1's 1D-only 0.20 step-scale floor while retaining smpf-v2's __deepcopy__ capture-ring isolation.
+
+**Next:** See successor smpf-v3@ca83937b8fc5443b1eb2cde8426dd8bbf89b3adb54367a726834c2c52252b467.
+
+[Evidence](../../) · [Record](records/lifecycle-61a05a1df818d869d94c175c.json)
+
 ### atlas-particle-normal-v4 · lifecycle-6c54ed3e24538152abaee6dc
 
 **Scope:** administrative; administrative; revision `79e308b48506dccbf888516575643268a7499751b98b7d9802fbf7c56b2ad186`.
@@ -5240,6 +5272,22 @@ Registered mode-hold diagnostic FAIL: 5/8 modes, HQ .992919921875, zero passing 
 
 [Record and receipt provenance](records/readout-5470a57cf1a74abc896c8a55.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### smpf-v3 · readout-55d96933c5fa226b6fb723ec
+
+**Scope:** current; scientific; revision `ca83937b8fc5443b1eb2cde8426dd8bbf89b3adb54367a726834c2c52252b467`.
+
+Combining smpf-v1's clock-free s-means Scale- & Distortion-Aware Moving Prototype Flow (4-round D^1.5 seeding, tiled addmm assignment, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes tau=0.20 centroid shrinkage, slack-screened Born-Infeld prototype Sinkhorn + Laguerre outlier pull + RMS distortion shell, Nadaraya-Watson detrended conditional fiber transport, H_0-connected simplicial manifold alignment, and 0.20 1D step-scale settling) with smpf-v2's __deepcopy__ capture-ring isolation and unwhitened ParticleEncoding AE reconstruction clears all 13/13 counted Tier 1 gates (27/27 Tier 1 view requirements) and converts Tier 2 skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks (including vector_anisotropic component_covariance_error <= 0.85 and vector_unequal_width PASS) under one global seed-0 recipe.
+
+**Observed:** {'FAIL': 10, 'INCOMPLETE': 5, 'PASS': 29}; wall seconds 6170.898; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0042791; vector_two_broad: hq=0.98926, mass_tv=0.030762
+
+smpf-v3 cleared 13/13 counted and diagnostic Tier 1 gates (100% Tier 1 pass) and achieved 29/41 total discriminator_stability PASSes (+5 over control empf-v8's 24/41), confirming the study prediction on vector_anisotropic (component_covariance_error=0.1272 <= 0.85, 73.2 oracle-stds inside gate) and converting five_word_joint_hold, vector_unequal_width (0/10 prior families passed), vector_unequal_mass, vector_overlap, img_blobs4, and img_intensity2 to PASS under one global seed-0 recipe (with 2 shared-GPU wall-timeout INCOMPLETE cells: stretch precision_gaussian_nvfp4 and model_ae_ddgan_gaussian_chain).
+
+**Next:** Register frozen smpf-v3 evidence snapshot and refresh Forge leaderboards; investigate 100-mode compressed-bank local horizon and 1D shift-reacquisition speed in smpf-v4.
+
+[Record and receipt provenance](records/readout-55d96933c5fa226b6fb723ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-560cdd3e8aa983df09f28d07
 
 **Scope:** research_diagnostic; scientific; revision `c2e27da4b3f1e995e557bf479b5b599db07a2367e462593154cf5033715001e8`.
@@ -5431,6 +5479,22 @@ Ordinary global candidate failed two_pole movement: mean_abs=0.0363295227<0.3; q
 **Next:** Initial complete candidate rejected. Its subsequent separately bounded global coupled-rate search is concluded; no automatic paid continuation or default adoption.
 
 [Record and receipt provenance](records/readout-628b01d1adffd11312aff9b1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### smpf-v1 · readout-6407e0abdc6f42b388d67124
+
+**Scope:** current; scientific; revision `71ccc234abd10431375a5883c12a06946be33acf810d7f2c057f992597ce06f0`.
+
+Upgrading EMPF's online e-means bank to a clock-free s-means Scale- & Distortion-Aware Moving Prototype Flow (SMPF: 4-round deterministic D^1.5 seeding, tiled addmm assignment, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes tau=0.20 centroid shrinkage, thermally coupled Born-Infeld prototype Sinkhorn + RMS distortion shell generator transport, affine-detrended whitened conditional fiber transport, and H_0-connected simplicial chord alignment) preserves all 13/13 counted Tier 1 gates, gaussian1d_stability, five_word_joint_hold, and mode_hold while converting anisotropic, skewed, overlapping, image, conditional, and interpolation failures (including vector_anisotropic component_covariance_error <= 0.85 and mass_tv <= 0.15) under one global seed-0 recipe.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 2, 'PASS': 11}; wall seconds 1331.424; mechanism `structural`.
+
+model_ae_gan_multimodal: modes=4, precision=0.98071, mass_tv=0.042969
+
+Tier 1 halted with 11/16 PASS (including ring16_acquisition, two_pole, ae_gan_hold, unused_token_hold, zero_tanh_smoke, gaussian1d_smoke, model_ae_reconstruction, model_vae_categorical, model_vae_hard, precision_gaussian_fp32, and clockfree_audit_measurement_v1), 1 software deepcopy error on five_word_joint_smoke (non-leaf autograd tensors in SMPFStepRecord._capture_ring), 1 shared-GPU wall timeout on precision_gaussian_nvfp4, and 1 narrow 4/5 suffix miss on model_ae_gan_multimodal (step 1000 component_center_rms_sigma=1.044 vs <=1.0, final step 1200=0.731 PASS).
+
+**Next:** Implement __deepcopy__ on SMPFStepRecord and _SMPFObserverStepRecord, restore newton_schulz_hybrid_v1 GPU polar profile, and widen 2D post-acquisition thermal settling for B=64 corners in smpf-v2.
+
+[Record and receipt provenance](records/readout-6407e0abdc6f42b388d67124.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v1 · readout-65e4f5d253025443fdee7ee4
 
@@ -6407,6 +6471,22 @@ Ordinary discriminator_stability revision-14 re-qualification reproduces all 7 c
 **Next:** Retain revision-9 qualification in technique-inventory; address ring16_acquisition and clockfree_audit_measurement_v1 in family follow-up.
 
 [Record and receipt provenance](records/readout-a3ec7ffcdaaf0f88b4171cec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### smpf-v2 · readout-a59a95422ee14fd1fd70ad85
+
+**Scope:** current; scientific; revision `a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da`.
+
+Isolating ephemeral non-leaf autograd captures in SMPFStepRecord.__deepcopy__ and _SMPFObserverStepRecord.__deepcopy__ while damping settled compact-batch 2D-4D DualNorm steps ([0.045, 0.095] -> 0.62) and restoring the 0.32 1D step-scale floor clears all 13/13 counted Tier 1 gates (including five_word_joint_smoke and model_ae_gan_multimodal) and advances SMPF into Tier 2/3 to convert skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks under one global seed-0 recipe.
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 10}; wall seconds 1957.879; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+Isolating _capture_ring in __deepcopy__ resolved five_word_joint_smoke (PASS, minimum_reconstruction_token_probability=0.999999) and 2D-4D step damping resolved model_ae_gan_multimodal (PASS), but 38% step damping across [0.045, 0.095] for B<=256 over-damped ring16_acquisition (B=128) and model_vae_categorical (B=64, step 1150 mse=0.0543 vs <=0.05), while raising the 1D step floor from 0.20 to 0.32 regressed precision_gaussian_fp32.
+
+**Next:** Restore smpf-v1's verified 0.20 1D step floor and full step_scale=1.0 for B>=128 while restricting gentle post-acquisition 2D-4D step damping (0.86 across [0.035, 0.065]) to B<=64 in smpf-v3.
+
+[Record and receipt provenance](records/readout-a59a95422ee14fd1fd70ad85.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-a66096228357c6881cb90290
 
@@ -8454,4 +8534,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `01aa1e21fbeebfc49ba1f22e40b5ccdd7f6dad567dd73e16d4cd67e614f673ef`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `17db3ae1163d2b3c04d52297852a4c84c6d58dfa8bc790735402441bae5889e0`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

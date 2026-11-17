@@ -1,0 +1,71 @@
+{
+  "overview": "Scale- & Distortion-Aware Moving Prototype Flow (SMPF) is a clock-free, constant-learning-rate ParticleGAN formulation inspired by s-means (Kocabay, Yuksel & Yalcin, 2026; https://suayptalha.github.io/s-means-blog/) and building on ParticleGAN's e-means-inspired EMPF, with no EMA critic network copy. SMPF replaces EMPF's 1D rank initialization and count-only prototype splitting with a checkpointed s-means sufficient-statistics bank (proto_centroids, proto_usage, proto_sse, feat_scale, fast_sum, fast_count) featuring 4-round deterministic D^1.5 coreset seeding, tiled addmm nearest-prototype assignment, distortion x usage^0.35 anisotropic RMS dead-prototype revival across all dimensions d >= 1, and Empirical-Bayes count-shrunk centroids (tau=0.20), and couples those denoised prototypes directly to generator training via thermally matched physical Born-Infeld Sinkhorn divergence, per-prototype RMS distortion shells, affine-detrended whitened conditional fiber transport, and connected-manifold simplicial chord alignment.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\\sim P$ a latent batch and $y=G(z)$ the generated batch of size $B_f$. $(C, u, \\text{sse}, v, S^{\\text{fast}}, N^{\\text{fast}})$ is the online s-means bank of size $K=\\min(K_{\\max}, B_r)$ with Empirical-Bayes centroids $C_k^{\\mathrm{eb}}$, normalized masses $w_k=u_k/\\sum_j u_j$, and local RMS quantization radii $\\ell_k=\\sqrt{\\text{sse}_k/u_k}$. $\\Pi_{pf}, \\Pi_{ff}$ are detached Sinkhorn couplings for physical Born-Infeld costs $c_{\\ell_k}(C_k^{\\mathrm{eb}}, y_j)=\\sqrt{\\ell_k^2+\\lVert y_j-C_k^{\\mathrm{eb}}\\rVert_2^2}-\\ell_k$.",
+  "pseudocode": [
+    "Choose an adversarial loss, DualNorm/Adam optimizer and constant learning rates.",
+    "For each task-owned training update:",
+    "  Sample real x and latent z from the task prior P; compute y=G(z).",
+    "  On unconditioned continuous vector and compact image domains, seed (4-round D^1.5) or assign x to C via tiled addmm, update (C, u, sse, feat_scale, S_fast, N_fast) with state-settling power-cosine alpha_eff, revive starved prototypes (u_k < 0.10 mean(u)) by splitting top (sse * u^0.35) donors by anisotropic RMS radius 0.55 * sqrt(sse / (u * d)) * r * sigma_feat, and read out Empirical-Bayes centroids C_eb (tau=0.20) and local RMS radii ell_k.",
+    "  Compute prototype-chord Elastic Born-Infeld critic gradient penalty + zero-mean logit gauge and update instance-bound thermal scale s_thermal; step D.",
+    "  With D fixed, recompute y=G(z) and evaluate SMPFGANLoss: centered adversarial log-odds + thermally coupled debiased physical Born-Infeld s-means prototype Sinkhorn divergence + RMS distortion shell (or affine-detrended whitened IMQ conditional fiber transport on conditioned fibers), plus H_0-connected simplicial chord alignment on zero-sigma ParticlePrior tables and SMPFPriorRegularizer; step G, P and E."
+  ],
+  "training_details": {
+    "loss": "SMPFGANLoss pairing shift-invariant centered adversarial log-odds with thermally coupled, Kantorovich-Hellinger slack-screened physical Born-Infeld s-means prototype Sinkhorn divergence + Laguerre Monge outlier pull + per-prototype RMS distortion shell on unconditioned continuous/compact-image domains, Nadaraya-Watson detrended coordinate-whitened multi-scale IMQ conditional fiber transport on continuous-conditioned fibers, and standard calibrated GANLoss on discrete simplexes.",
+    "optimizer": "Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset quintic convolution, polar_cpu_v1 dense polar profile, batched SVD backend, BF16 channels-last conv training, direction-blend constraint geometry) as well as native Adam and formulation-owned SMPFCriticAdam without an EMA critic network copy.",
+    "learning_rates": "Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.012$, critic multiplier $1.5$ and DualNorm sampled-row prior multiplier $2.5$ (`prior_reg=0.01`).",
+    "gradient_clipping": "None. Critic spike guard is disabled; critic and generator transport gradients are bounded smoothly by unit-slope Born-Infeld potentials.",
+    "critic_penalty": "s-means EB-prototype-chord Elastic Born-Infeld regularizer evaluated on real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords ($\\kappa=1$, base sharpness $\\beta_0=6$ tightening quadratically as transport residual settles, harmonic floor $\\lambda_{\\mathrm{floor}}=0.01$, chord blend $0.08$) plus a settling zero-mean logit gauge ($\\gamma_{\\mathrm{gauge}}=0.05$).",
+    "damping_and_guards": "Instance-bound shock-filtered transport EMA, state-settling s-means power-cosine prototype turnover, trimmed 1D quantile-$W_2$ floor-subtracted $1/\\sqrt{B}$ cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic capture lock, and discrete-simplex post-acquisition Chamfer cooling ($[0.064, 0.084]\\to 0.0004$) impedance-matched across critic, generator transport, simplicial chords, and prior regularization.",
+    "noise": "No scheduled additive critic-input or generator-output training noise in the selected benchmark configuration ($0.0$). Task-declared MoG intrinsic sigma is preserved.",
+    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+  },
+  "configuration_notes": [
+    "SMPF translates all four algorithmic pillars of s-means (D^1.5 seeding, tiled L2 assignment, sse_ema x usage^0.35 anisotropic RMS revival across d >= 1, and progressive Empirical-Bayes tau=0.20 shrinkage) into a clock-free, zero-RNG adversarial transport formulation.",
+    "All six s-means sufficient-statistics tensors (proto_centroids, proto_usage, proto_sse, feat_scale, fast_sum, fast_count), low-discrepancy phases, and thermal scalars live exclusively on the critic optimizer's instance-bound step record and serialize bit-for-bit through state_dict() and load_state_dict() with strict corruption rejection.",
+    "Physical Born-Infeld prototype costs sqrt(ell_k^2 + ||y - C_k^eb||^2) - ell_k match each prototype's quadratic basin curvature to its tracked s-means RMS quantization radius ell_k while bounding long-range sample gradients to unit slope across arbitrary coordinate scales.",
+    "One global trainer configuration supplies every displayed result across all tiers and model families without task-specific overrides, clearing 13/13 Tier 1 gates and 29/41 discriminator_stability benchmarks (including vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, img_blobs4, img_intensity2, and five_word_joint_hold)."
+  ],
+  "references": [
+    {
+      "title": "s-means: outperforming e-means (which outperforms k-means)",
+      "url": "https://suayptalha.github.io/s-means-blog/",
+      "component": "Multi-round D^1.5 seeding, tiled assignment, distortion x usage^0.35 anisotropic RMS dead-cluster revival, and Empirical-Bayes count-adaptive centroid shrinkage inspiring the SMPF prototype bank and distortion-aware generator transport."
+    },
+    {
+      "title": "e-means: outperforming k-means (in one-tenth the epochs)",
+      "url": "https://arxiv.org/abs/2611.09501",
+      "component": "Online mini-batch sufficient-statistics clustering baseline extended by s-means and EMPF."
+    },
+    {
+      "title": "Interpolating between Optimal Transport and MMD using Sinkhorn Divergences",
+      "url": "https://arxiv.org/abs/1810.08278",
+      "component": "Entropic self-coupling debiasing adapted here to mass-weighted physical Born-Infeld s-means prototype transport."
+    }
+  ],
+  "sources": [
+    "particlegan/smpf.py",
+    "particlegan/_smpf/prototypes.py",
+    "particlegan/_smpf/transport.py",
+    "particlegan/_smpf/loss.py",
+    "particlegan/_smpf/critic.py",
+    "particlegan/_smpf/penalty.py",
+    "particlegan/_smpf/prior.py",
+    "particlegan/optim/dualnorm.py",
+    "particlegan/recipes.py",
+    "configs/forge/ideas/smpf-v3.json",
+    "configs/forge/studies/smpf-v3-study.json",
+    "reports/forge/smpf/README.md"
+  ],
+  "equations": [
+    {
+      "label": "Clock-Free Online s-means Distortion-Anisotropic Revival and Empirical-Bayes Centroid Update",
+      "latex": "\\Delta_s = 0.55\\sqrt{\\frac{\\mathrm{sse}_s}{u_s d}}\\,\\mathbf r_s\\odot\\hat{\\sigma}_{\\mathrm{feat}},\\quad C_k^{\\mathrm{eb}}=\\frac{N_k^{\\mathrm{fast}}}{N_k^{\\mathrm{fast}}+\\tau_{\\mathrm{eb}}\\bar N^{\\mathrm{fast}}}\\bar{\\mu}_k^{\\mathrm{fast}}+\\frac{\\tau_{\\mathrm{eb}}\\bar N^{\\mathrm{fast}}}{N_k^{\\mathrm{fast}}+\\tau_{\\mathrm{eb}}\\bar N^{\\mathrm{fast}}}C_k",
+      "explanation": "Splits starved prototypes ($u_k<0.10\\bar u$) from active donors scored by $\\mathrm{sse}_s\\cdot u_s^{0.35}$ along online inter-cluster feature spread $\\hat{\\sigma}_{\\mathrm{feat}}$ at exact local RMS distortion scale without arbitrary $\\epsilon$, and shrinks rare-mode fast estimates toward smoothed EMA centroids ($\\tau_{\\mathrm{eb}}=0.20$)."
+    },
+    {
+      "label": "Debiased Physical Born-Infeld s-means Prototype Transport and RMS Distortion Shell",
+      "latex": "\\mathcal L_{\\mathrm{SMPF}}(y)=\\langle\\Pi_{pf}^{\\mathrm{det}},c_{\\ell}(C^{\\mathrm{eb}},y)\\rangle-\\tfrac{1}{2}\\langle\\Pi_{ff}^{\\mathrm{det}},c_{\\bar\\ell}(y,y)\\rangle+\\lambda_{\\mathrm{shell}}\\sum_k w_k\\operatorname{relu}(0.85\\ell_k-\\hat r_k(y)),\\quad c_{\\ell_k}(c,y)=\\sqrt{\\ell_k^2+\\lVert y-c\\rVert_2^2}-\\ell_k",
+      "explanation": "Matches generated samples to Empirical-Bayes prototype masses $w_k$ with prototype-specific Born-Infeld curvature $\\ell_k=\\sqrt{\\mathrm{sse}_k/u_k}$, unit asymptotic gradient slope, entropic self-coupling debiasing, and rare-cluster within-cell dispersion preservation."
+    }
+  ]
+}

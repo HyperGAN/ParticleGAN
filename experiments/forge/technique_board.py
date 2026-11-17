@@ -43,6 +43,9 @@ DEFAULT_LABELS = {
     "rhbi-v10": "RHBI (v10)",
     "rhbi-v11": "RHBI (v11)",
     "rhbi-v12": "RHBI",
+    "smpf-v1": "SMPF (v1)",
+    "smpf-v2": "SMPF (v2)",
+    "smpf-v3": "SMPF",
 }
 ARCHIVED_SCOPES = ("pinned", "calibration_diagnostic", "research_diagnostic", "historical")
 

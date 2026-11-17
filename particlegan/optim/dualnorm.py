@@ -727,6 +727,14 @@ class NormalizedOptimizer(Optimizer):
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
+        smpf_rec = getattr(self, "_smpf_record", None)
+        smpf_step_scale = float(getattr(smpf_rec, "_step_scale", 1.0))
+        if (
+            smpf_rec is not None
+            and getattr(self, "critic", None) is not None
+            and float(getattr(smpf_rec, "ema_cond_energy", 0.0)) != 0.0
+        ):
+            smpf_step_scale = 1.0
         rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
         if rhbi_damp > 0.0:
             rhbi_rec = getattr(self, "_rhbi_record", None)
@@ -756,6 +764,7 @@ class NormalizedOptimizer(Optimizer):
                 rate = (
                     base_rate
                     * empf_step_scale
+                    * smpf_step_scale
                     * rhbi_step_scale
                     * (origin_damping if (is_generator and state["step"] > 80) else 1.0)
                 )
@@ -1136,6 +1145,12 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _EMPFObserverStepRecord()
             optimizer._empf_record = optimizer.record
             _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "smpf":
+            from ..smpf import _SMPFObserverStepRecord
+            from .._smpf.critic import _attach_smpf_critic_hook
+            optimizer.record = _SMPFObserverStepRecord()
+            optimizer._smpf_record = optimizer.record
+            _attach_smpf_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from ..rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
