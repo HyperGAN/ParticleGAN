@@ -17,7 +17,7 @@ critic penalty and prior regularizer.
 Requires Python 3.11+. PyTorch and NumPy are installed as dependencies.
 
 ```bash
-python -m pip install particlegan           # the library (0.10.0)
+python -m pip install particlegan           # the library (0.10.1)
 ```
 
 To run the examples, experiments and tests, install from source with the extras you need:
@@ -67,14 +67,15 @@ for _ in range(recipe.total_steps):
 samples = trainer.sample(1024)
 ```
 
-`get_recipe()` returns the default recipe, **RHBI** (*Relativistic Hellinger-Born-Infeld
-Transport*, `DEFAULT_RECIPE = "rhbi_optimized"` in [particlegan/recipes.py](particlegan/recipes.py)).
-It pairs debiased slack-screened Kantorovich-Hellinger Sinkhorn generator transport
-(`RHBIGANLoss`) with a Weyl-phased balanced Born-Infeld geodesic chord and thermal-settling
-critic penalty (`RHBICriticPenalty`), SBNP particle prior regularization (`prior_reg = 0.02`),
-and zero-momentum DualNorm (`polar_cpu_v1`, `native` SVD, `float32`) at constant rates.
-Explicit `get_recipe("empf")`, `get_recipe("rhbi")` and `get_recipe("bispf_optimized")`
-retain earlier named presets. The acronyms are expanded in the
+`get_recipe()` returns the default recipe, **EMPF** (*Exponential Moving Prototype
+Flow*, `DEFAULT_RECIPE = "empf"` in [particlegan/recipes.py](particlegan/recipes.py)).
+It uses a clock-free online *e-means* sufficient-statistics prototype bank,
+mass-weighted prototype-to-fake Sinkhorn OT, a state-driven settling Born-Infeld
+critic penalty (`EMPFCriticPenalty`, `ebi_beta = 6.0`), a DoF-aware EMPF prior
+regularizer (`prior_reg = 0.01`), and zero-momentum DualNorm
+(`newton_schulz_hybrid_v1`, `batched` SVD, `bf16_channels_last`) at constant rates.
+Explicit `get_recipe("rhbi_optimized")`, `get_recipe("rhbi")` and
+`get_recipe("bispf_optimized")` retain named presets. The acronyms are expanded in the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names), and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) explain the configuration.
 
@@ -108,14 +109,14 @@ metrics, receipts and training GIFs. Other report pages are historical records.
 What the evidence does and does not show today:
 
 - **The default is a research selection, not a qualified winner.** In the
-  [technique inventory](reports/forge/technique-inventory.md), the selected RHBI recipe
-  (`rhbi-v12`, `DEFAULT_RECIPE = "rhbi_optimized"`) ties `empf` (`empf-v8`) at **83/115**
-  counted view requirements (`27/27` Tier 1 PASS, `56/78` Tier 2 with 2 not run, `0/10`
-  Tier 3 with 10 not run) while leading on the 64-test fixed suite at **33 PASS**, **7 FAIL**,
-  8 not measured and 16 blocked (vs `empf`'s `23/64` PASS, `17` FAIL, 8 not measured and
-  16 blocked) and on stretch view assignments at **35/63** (vs `empf`'s `0/63`), ahead of
-  `bispf_optimized` at `81/115` and `18/64`. Forge's screening calibration (`BLOCKED`), Tier 2/3
-  full-tier gates and untouched holdout confirmation remain open.
+  [technique inventory](reports/forge/technique-inventory.md), the selected EMPF recipe
+  (`empf-v8`, `DEFAULT_RECIPE = "empf"`) ties `rhbi_optimized` (`rhbi-v12`) at **83/115**
+  counted view requirements (`27/27` Tier 1 PASS, `56/78` Tier 2, `0/10` Tier 3) with
+  **23 PASS**, **17 FAIL**, 8 not measured and 16 blocked across the 64-test fixed suite
+  (ahead of `bispf_optimized` at `81/115` and `18/64`; explicit `rhbi_optimized` reaches
+  `33/64` PASS and `35/63` stretch view assignments on the Forge suite). Forge's screening
+  calibration (`BLOCKED`), Tier 2/3 full-tier gates and untouched holdout confirmation
+  remain open.
 - **Controlled prior comparison** ([matched prior ablation, 2026-10-25](reports/prior-ablation-2026-10-25/README.md)).
   Each arm changes only the prior policy. Architecture, data, budget, seed 0 and
   the initial table are the same. These are one-seed diagnostics with no
@@ -153,7 +154,7 @@ What the evidence does and does not show today:
 
 ### The 100-Gaussian animations
 
-These three animations use different historical or opt-in recipes rather than the current `rhbi_optimized` default.
+These three animations use different historical or opt-in recipes rather than the current `empf` default.
 
 | Animation | Recipe | What it shows | Pass/fail metric | Result |
 | --- | --- | --- | --- | --- |
@@ -185,9 +186,9 @@ qualification and review of the winner. The
 acquisition, settling, endurance and recovery required again.
 
 **Changing the default.** A promotion changes one line in
-[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "rhbi_optimized"`.
+[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "empf"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
-`get_recipe("empf")`, `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
+`get_recipe("rhbi_optimized")`, `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
 `get_recipe("ka2")` remain available. This is the owner-selected research default;
 Forge calibration remains provisional (`BLOCKED`), Tier 2/3 qualification is incomplete,
 and untouched holdout confirmation remains open.

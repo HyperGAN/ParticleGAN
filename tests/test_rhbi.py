@@ -1845,7 +1845,7 @@ def test_rhbi_v12_diag_cmmd_whiten_support_completion_and_curve_settle():
 
 
 def test_public_default_rhbi_optimized_parity_import_order_continuation_and_controls():
-    """Verify public default rhbi_optimized == rhbi-v12.json, import-order invariance, continuation, and controls."""
+    """Verify explicit rhbi_optimized == rhbi-v12.json, import-order invariance, continuation, and controls."""
     from dataclasses import asdict
     from io import BytesIO
     import json
@@ -1858,10 +1858,11 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
 
     root = Path(__file__).resolve().parents[1]
     rhbi_v12 = json.loads((root / "configs/forge/ideas/rhbi-v12.json").read_text())["recipe_overrides"]
-    default_recipe = get_recipe()
-    actual = json.loads(json.dumps(asdict(default_recipe)))
-    assert DEFAULT_RECIPE == actual["name"] == "rhbi_optimized"
-    assert default_recipe == get_recipe("rhbi_optimized") == get_recipe("gan")
+    rhbi_opt_recipe = get_recipe("rhbi_optimized")
+    actual = json.loads(json.dumps(asdict(rhbi_opt_recipe)))
+    assert DEFAULT_RECIPE == "empf"
+    assert get_recipe() == get_recipe("empf") == get_recipe("gan")
+    assert actual["name"] == "rhbi_optimized"
     for field, value in rhbi_v12.items():
         if field != "name":
             assert actual[field] == value, field
@@ -1870,11 +1871,11 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
     assert get_recipe("rhbi").prior_regularizer == "moment_tether"
     assert Recipe.from_dict({}) == get_recipe("ka2")
 
-    # Forbidden 1-arg g_loss(fake) fallback check on active public default
-    default_loss = default_recipe.make_loss()
-    assert isinstance(default_loss, RHBIGANLoss)
+    # Forbidden 1-arg g_loss(fake) fallback check on explicit rhbi_optimized
+    rhbi_loss = rhbi_opt_recipe.make_loss()
+    assert isinstance(rhbi_loss, RHBIGANLoss)
     with pytest.raises(ValueError, match="requires real_logits"):
-        default_loss.g_loss(torch.zeros(8, requires_grad=True))
+        rhbi_loss.g_loss(torch.zeros(8, requires_grad=True))
 
     # Fresh-process import-order invariance and preset signature stability
     presets = ("bispf_optimized", "bispf", "bcap", "empf", "rhbi", "rhbi_optimized")
@@ -1902,11 +1903,11 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, env=env, text=True))
     assert out_a == out_b
     assert Path(out_a["file"]).resolve() == (root / "particlegan/recipes.py").resolve()
-    assert out_a["default"] == "rhbi_optimized"
+    assert out_a["default"] == "empf"
     assert len(set(out_a["sigs"].values())) == len(presets)
 
-    # Bit-exact serialized GANTrainer checkpoint continuation on bare get_recipe(...)
-    rec_run = get_recipe(total_steps=6, batch_size=32, num_particles=64, z_dim=2)
+    # Bit-exact serialized GANTrainer checkpoint continuation on rhbi_optimized
+    rec_run = get_recipe("rhbi_optimized", total_steps=6, batch_size=32, num_particles=64, z_dim=2)
     Ga, Da, Pa = _make_mlp_pair(x_dim=2, seed=71)
     Gb, Db, Pb = _make_mlp_pair(x_dim=2, seed=71)
     tr_a = GANTrainer(rec_run, Ga, Da, prior=Pa, seed=0)
@@ -1934,10 +1935,10 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
     s_b = tr_b.sample(32, generator=torch.Generator().manual_seed(7))
     assert torch.equal(s_a, s_b)
 
-    # Deliberate model-damage semantic control on bare get_recipe(...)
+    # Deliberate model-damage semantic control on rhbi_optimized
     target_mean = torch.tensor([-2.2, 1.8])
     Gt, Dt, Pt = _make_mlp_pair(x_dim=2, seed=83)
-    tr_dmg = GANTrainer(get_recipe(total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
+    tr_dmg = GANTrainer(get_recipe("rhbi_optimized", total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
     dmg_rng = torch.Generator().manual_seed(202)
     for _ in range(220):
         tr_dmg.step(target_mean + 0.15 * torch.randn(32, 2, generator=dmg_rng))
@@ -1995,7 +1996,7 @@ def test_simplicial_manifold_forge_parity_prim_mst_and_large_table_bounded_memor
     assert torch.equal(cpu_rng_before, torch.get_rng_state())
 
     # 2. Forge-size (num_particles=256, batch_size=128) uses the exact unsubsampled table & batch
-    rec_forge = get_recipe(total_steps=2, num_particles=256, batch_size=128, z_dim=2)
+    rec_forge = get_recipe("rhbi_optimized", total_steps=2, num_particles=256, batch_size=128, z_dim=2)
     Gf = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 2))
     Df = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
     init.deterministic_orthogonal_(Gf, seed=0)
@@ -2016,8 +2017,8 @@ def test_simplicial_manifold_forge_parity_prim_mst_and_large_table_bounded_memor
         RHBILoss.simplicial_manifold_loss = orig_simplicial
     assert seen_vertex_counts == [(256, 128)]
 
-    # 3. Default large scale (num_particles=20000, batch_size=2048) runs fast, RNG-clean, with exact continuation
-    rec_large = get_recipe(total_steps=2)
+    # 3. Large scale (num_particles=20000, batch_size=2048) runs fast, RNG-clean, with exact continuation
+    rec_large = get_recipe("rhbi_optimized", total_steps=2)
     assert (rec_large.num_particles, rec_large.batch_size) == (20000, 2048)
     Gl1 = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 2))
     Dl1 = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
