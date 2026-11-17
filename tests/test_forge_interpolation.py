@@ -20,7 +20,7 @@ from benchmarks.toy_audit.api_interpolation import (
 from experiments.forge.adapters import adapter_preflight, run_task
 from experiments.forge.priors import prior_code_path, prior_noise_sigma
 from experiments.forge.state import state_digest
-from experiments.forge.views import grade_result, load_tasks, load_view
+from experiments.forge.views import grade_result, load_tasks
 from particlegan import ParticlePrior, unwrap_prior
 
 ROOT = Path(__file__).resolve().parents[1]

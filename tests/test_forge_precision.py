@@ -7,7 +7,7 @@ import pytest
 import torch
 
 from experiments.forge.adapters import adapter_preflight, run_task
-from experiments.forge.views import grade_result, load_tasks, load_view
+from experiments.forge.views import grade_result, load_tasks
 
 ROOT = Path(__file__).resolve().parents[1]
 CANDIDATE = {"recipe_preset": "bispf_optimized", "claim_contract": {"sampling_law": "task_declared"}}
@@ -18,7 +18,7 @@ def task(format):
 
 
 def test_precision_is_optional_and_preserves_every_original_required_assignment():
-    view = load_view(ROOT, "discriminator_stability")
+    view = json.loads((ROOT / "configs/forge/view-history/discriminator_stability-v17.json").read_text())
     v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     v14 = json.loads((ROOT / v15["previous_revision"]["archive"]).read_text())
