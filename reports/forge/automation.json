@@ -1,25 +1,25 @@
 {
   "attempt_outcomes": {
     "cancelled": 1,
-    "completed": 199,
+    "completed": 214,
     "error": 1,
-    "timeout": 1
+    "timeout": 2
   },
   "component_timing": {
-    "measured_attempts": 85,
+    "measured_attempts": 92,
     "scope": "Exclusive phases in instrumented adapters; missing phase timing is not zero.",
     "seconds": {
-      "evaluation": 105.569797234828,
-      "sampling": 2.1560926913662115,
-      "training_updates": 3398.0641814984265
+      "evaluation": 109.07651440204063,
+      "sampling": 2.4854020686034346,
+      "training_updates": 4395.170923484897
     },
-    "unmeasured_attempts": 117
+    "unmeasured_attempts": 126
   },
   "concurrency": {
-    "mean_active_workers": 0.0016000811044730595,
-    "measured_attempts": 200,
+    "mean_active_workers": 0.00205989389544373,
+    "measured_attempts": 216,
     "missing_interval_attempts": 2,
-    "observation_window_seconds": 4245071.28837204,
+    "observation_window_seconds": 4247955.224323511,
     "peak_distinct_gpu_devices": 2,
     "peak_workers": 2,
     "scope": "Actual supervised-attempt intervals; this is process occupancy, not GPU kernel utilization."
@@ -34,26 +34,26 @@
   },
   "cost_to_reject": {
     "maximum_seconds": 2300.7381956405006,
-    "mean_seconds": 1483.2402499755456,
-    "measured_outcomes": 3,
-    "median_seconds": 1331.424284213921,
-    "outcomes": 3,
+    "mean_seconds": 1601.899927311577,
+    "measured_outcomes": 4,
+    "median_seconds": 1644.6516217667959,
+    "outcomes": 4,
     "unknown_cost_outcomes": 0
   },
   "execution_error_rate": {
-    "denominator": 202,
-    "fraction": 0.01485148514851485,
-    "numerator": 3
+    "denominator": 218,
+    "fraction": 0.01834862385321101,
+    "numerator": 4
   },
-  "execution_jobs_avoided": 58,
+  "execution_jobs_avoided": 87,
   "flops": {
     "kind": "unavailable",
     "value": null
   },
   "incomplete_task_rate": {
-    "denominator": 202,
-    "fraction": 0.01485148514851485,
-    "numerator": 3
+    "denominator": 218,
+    "fraction": 0.01834862385321101,
+    "numerator": 4
   },
   "limits": [
     "Cost-to-outcome uses owned incremental paid costs. Evidence costs may overlap across requests and are not additive spending.",
@@ -63,23 +63,23 @@
   "memory": {
     "cuda_peak_allocated_bytes": {
       "maximum_bytes": 3932741120,
-      "measured_attempts": 174
+      "measured_attempts": 189
     },
     "cuda_peak_reserved_bytes": {
       "maximum_bytes": 6664749056,
-      "measured_attempts": 174
+      "measured_attempts": 189
     },
     "maximum_reaped_child_peak_rss_bytes": {
       "maximum_bytes": 3350679552,
-      "measured_attempts": 200
+      "measured_attempts": 216
     },
     "process_peak_rss_bytes": {
       "maximum_bytes": 3350679552,
-      "measured_attempts": 198
+      "measured_attempts": 213
     },
     "supervisor_peak_rss_bytes": {
       "maximum_bytes": 3523280896,
-      "measured_attempts": 200
+      "measured_attempts": 216
     }
   },
   "memory_scope": "Process-lifetime RSS and PyTorch allocator peaks have distinct scopes; none is whole-host or whole-device memory.",
@@ -447,38 +447,103 @@
       "status": "INCOMPLETE",
       "through_tier": 3,
       "view": "discriminator_stability"
+    },
+    {
+      "attempt_ids": [
+        "0722333caa69447aaabb19e54c44cf04",
+        "0b2c2cecb481498db643593808c7a226",
+        "1df7ca52809b49e8aa0b2b4606b45d90",
+        "2ddb373c73e6467c884bc1a97f63111a",
+        "31c0b39b0229433c8831c89f57161e41",
+        "3a594b693172420081153970076b64ce",
+        "513d3f47f404448b9a6aa69eb90f6863",
+        "66c3d1f0de8b41509bb8510b3b36c18d",
+        "6a5caf7aab7f42259b3880054890246d",
+        "6b7adb1a79fd47dca7f63a34c967cc0e",
+        "869c510ae90747fb896b06120aed50c6",
+        "bbd680281d82456ba7fc5fc25cba8979",
+        "c7961655c6f44ceb825fe2097de9dd25",
+        "f0ea7d2ee7ed4485bc6822eae5c1773c",
+        "fbf5bbe995b54c6bae4a94dbaac2a7f4",
+        "fdd27658ecf64fb7b2e7f390f8299422"
+      ],
+      "avoided_execution_jobs": 29,
+      "avoided_tasks": [
+        "gaussian1d_stability",
+        "five_word_joint_hold",
+        "trajectory",
+        "residual_student",
+        "unipolar",
+        "cover_leftover",
+        "mid_scale_identity",
+        "mode_hold",
+        "model_ae_ddgan_gaussian_chain",
+        "vector_two_broad",
+        "vector_unequal_mass",
+        "model_ddgan_gaussian_chain",
+        "vector_unequal_width",
+        "vector_anisotropic",
+        "vector_overlap",
+        "vector_spiral",
+        "img_stripes2",
+        "img_bars4",
+        "img_blobs4",
+        "img_intensity2",
+        "grid100",
+        "rotated100",
+        "staggered100",
+        "model_ae_ddgan_bimodal_chain",
+        "model_ddgan_bimodal_chain",
+        "interp_img_patch_shift",
+        "interp_saddle_barycentric",
+        "ring_hold",
+        "ring_extension",
+        "zero_tanh_rail_escape"
+      ],
+      "candidate_revision": "a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da",
+      "evidence_wall_seconds": 1957.8789593196707,
+      "incremental_paid_seconds": 1957.8789593196707,
+      "qualified_tier": 0,
+      "rejected_tier": 1,
+      "request_ids": [
+        "384c7a731dc35b9d2146e11a"
+      ],
+      "status": "FAIL",
+      "through_tier": 3,
+      "view": "discriminator_stability"
     }
   ],
   "queue_available": true,
   "queue_locations": [
     "/nvme/dev/hypergan/ParticleGAN/runs/forge",
-    "/nvme/dev/hypergan/ParticleGAN/runs/forge/smpf-v1-queue"
+    "/nvme/dev/hypergan/ParticleGAN/runs/forge/smpf-v1-queue",
+    "/nvme/dev/hypergan/ParticleGAN/runs/forge/smpf-v2-queue"
   ],
   "receipt_issues": [],
   "requests_with_unavailable_cap": 0,
   "reuse": {
-    "evidence_uses": 73,
+    "evidence_uses": 89,
     "reused_evidence_uses": 0,
-    "submitted_execution_demands": 605,
-    "unique_evidence_jobs": 73
+    "submitted_execution_demands": 650,
+    "unique_evidence_jobs": 89
   },
   "schema_version": 1,
   "scope": "recorded current Forge receipts; historical imports are excluded",
   "spend": {
-    "attempts": 757,
-    "known_wall_seconds": 38305.38967849179,
+    "attempts": 773,
+    "known_wall_seconds": 40263.26863781146,
     "scope": "Unique paid attempts, including retries; grouped predicates and subscribers are not charged again.",
     "unknown_cost_attempts": 0,
-    "wall_seconds": 38305.38967849179
+    "wall_seconds": 40263.26863781146
   },
   "task_gate_counts": {
-    "FAIL": 69,
-    "INCOMPLETE": 3,
-    "PASS": 130
+    "FAIL": 74,
+    "INCOMPLETE": 4,
+    "PASS": 140
   },
-  "tasks_avoided": 59,
+  "tasks_avoided": 89,
   "tier_rejections": {
-    "1": 2,
+    "1": 3,
     "2": 1
   }
 }

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "smpf-v3-study"
+  },
+  "candidate": "smpf-v3",
+  "competing_explanation": "If EMPF's failures on skewed, unequal-width, anisotropic, overlapping, and multi-mode image benchmarks stem from DualNorm spectral step geometry rather than e-means's count-only prototype splitting and missing generator prototype transport, then clearing all 13/13 counted Tier 1 gates in smpf-v3 will still fail to bring Tier 2 vector_anisotropic component_covariance_error <= 0.85 or regress mode_hold / five_word_joint_hold.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "hypothesis": "Combining smpf-v1's clock-free s-means Scale- & Distortion-Aware Moving Prototype Flow (4-round D^1.5 seeding, tiled addmm assignment, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes tau=0.20 centroid shrinkage, slack-screened Born-Infeld prototype Sinkhorn + Laguerre outlier pull + RMS distortion shell, Nadaraya-Watson detrended conditional fiber transport, H_0-connected simplicial manifold alignment, and 0.20 1D step-scale settling) with smpf-v2's __deepcopy__ capture-ring isolation and unwhitened ParticleEncoding AE reconstruction clears all 13/13 counted Tier 1 gates (27/27 Tier 1 view requirements) and converts Tier 2 skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks (including vector_anisotropic component_covariance_error <= 0.85 and vector_unequal_width PASS) under one global seed-0 recipe.",
+  "id": "smpf-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "smpf-v2",
+        "candidate_revision": "a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da"
+      },
+      "path": "reports/forge/records/readout-a59a95422ee14fd1fd70ad85.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

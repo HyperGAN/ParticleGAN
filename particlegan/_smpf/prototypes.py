@@ -396,19 +396,22 @@ def update_smeans_prototypes(
     new_fsum = (1.0 - alpha_fast) * cur_fsum + (alpha_fast * w_pass) * batch_sum
     new_fcnt = ((1.0 - alpha_fast) * cur_fcnt + (alpha_fast * w_pass) * batch_count).clamp_min(1e-8)
 
-    # Vectorized distortion-weighted anisotropic dead-prototype revival (s-means all d >= 1).
+    # Vectorized distortion-weighted anisotropic dead-prototype revival (s-means all d >= 1)
+    # with a single GPU-to-CPU count readback (eliminating 2 extra per-step stream syncs).
     thresh = new_u.mean() * float(revival_tau)
     unused = new_u < thresh
     donors = (~unused) & (new_u > thresh)
     score_vec = new_sse.clamp_min(1e-12) * (new_u.clamp_min(1e-12) ** float(donor_usage_w))
-    if bool(donors.any()):
-        donor_mean_score = score_vec[donors].mean()
-        eligible_donors = donors & (score_vec >= 0.15 * donor_mean_score)
-        if not bool(eligible_donors.any()):
-            eligible_donors = donors
+    d_float = donors.to(dtype=torch.float32)
+    donor_mean_score = (score_vec * d_float).sum() / d_float.sum().clamp_min(1.0)
+    cand_donors = donors & (score_vec >= 0.15 * donor_mean_score)
+    n_un, n_cand, n_do_raw = torch.stack((unused.sum(), cand_donors.sum(), donors.sum())).tolist()
+    if int(n_cand) > 0:
+        eligible_donors = cand_donors
+        n_do = int(n_cand)
     else:
         eligible_donors = donors
-    n_un, n_do = torch.stack((unused.sum(), eligible_donors.sum())).tolist()
+        n_do = int(n_do_raw)
     n_sp = min(int(n_un), int(n_do))
     phase = float(revival_phase)
     total_revivals = int(revivals)

@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Current qualification is recomputed from compatible receipts. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1021. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1023. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -3832,6 +3832,22 @@ Administrative superseded: Isolate ephemeral non-leaf autograd captures in SMPFS
 
 [Evidence](../../) · [Record](records/lifecycle-39f590b431e367827b2853f4.json)
 
+### smpf-v2 · lifecycle-61a05a1df818d869d94c175c
+
+**Scope:** administrative; administrative; revision `a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da`.
+
+None
+
+**Observed:** No normalized scientific verdict; wall seconds unknown; mechanism `structural`.
+
+
+
+Administrative superseded: Restore unwhitened ParticleEncoding AE reconstruction and smpf-v1's 1D-only 0.20 step-scale floor while retaining smpf-v2's __deepcopy__ capture-ring isolation.
+
+**Next:** See successor smpf-v3@ca83937b8fc5443b1eb2cde8426dd8bbf89b3adb54367a726834c2c52252b467.
+
+[Evidence](../../) · [Record](records/lifecycle-61a05a1df818d869d94c175c.json)
+
 ### atlas-particle-normal-v4 · lifecycle-6c54ed3e24538152abaee6dc
 
 **Scope:** administrative; administrative; revision `79e308b48506dccbf888516575643268a7499751b98b7d9802fbf7c56b2ad186`.
@@ -6440,6 +6456,22 @@ Ordinary discriminator_stability revision-14 re-qualification reproduces all 7 c
 
 [Record and receipt provenance](records/readout-a3ec7ffcdaaf0f88b4171cec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### smpf-v2 · readout-a59a95422ee14fd1fd70ad85
+
+**Scope:** current; scientific; revision `a5983ee2288725a1c4028e6064822b2bc538aa2dd78fec4fc20ce573eb8017da`.
+
+Isolating ephemeral non-leaf autograd captures in SMPFStepRecord.__deepcopy__ and _SMPFObserverStepRecord.__deepcopy__ while damping settled compact-batch 2D-4D DualNorm steps ([0.045, 0.095] -> 0.62) and restoring the 0.32 1D step-scale floor clears all 13/13 counted Tier 1 gates (including five_word_joint_smoke and model_ae_gan_multimodal) and advances SMPF into Tier 2/3 to convert skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks under one global seed-0 recipe.
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 10}; wall seconds 1957.879; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+Isolating _capture_ring in __deepcopy__ resolved five_word_joint_smoke (PASS, minimum_reconstruction_token_probability=0.999999) and 2D-4D step damping resolved model_ae_gan_multimodal (PASS), but 38% step damping across [0.045, 0.095] for B<=256 over-damped ring16_acquisition (B=128) and model_vae_categorical (B=64, step 1150 mse=0.0543 vs <=0.05), while raising the 1D step floor from 0.20 to 0.32 regressed precision_gaussian_fp32.
+
+**Next:** Restore smpf-v1's verified 0.20 1D step floor and full step_scale=1.0 for B>=128 while restricting gentle post-acquisition 2D-4D step damping (0.86 across [0.035, 0.065]) to B<=64 in smpf-v3.
+
+[Record and receipt provenance](records/readout-a59a95422ee14fd1fd70ad85.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-optimized-quintic-v1 · readout-a66096228357c6881cb90290
 
 **Scope:** research_diagnostic; scientific; revision `4b199ad28279ef9616e67ebc460824f614dc141a7f00ca739993218fc5635ae6`.
@@ -8486,4 +8518,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `5adf7aefcbe39455f9ec6c1cab7f2a910364186a7f071267104013ce1a0ca5f1`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `30b5d01a07ac432735fae0010b743a88686b0e5fbf5ace5c74aed8ff10239845`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

@@ -992,7 +992,7 @@ class Recipe:
             if offset is None:
                 raise ValueError("AE encoding requires offset")
             return particle_ae(query, offset, base, uniformity_weight=self.ucd_weight,
-                               coord_whiten=bool(self.rhbi_ae_coord_whiten or self.effective_critic_formulation == "smpf"),
+                               coord_whiten=bool(self.rhbi_ae_coord_whiten),
                                **options)
         if self.encoder_mode in ("categorical", "hard"):
             if offset is not None:

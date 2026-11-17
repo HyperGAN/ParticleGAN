@@ -314,20 +314,16 @@ def compute_smpf_step_scale(
     *,
     min_batch: int = 16,
 ) -> float:
-    """State-driven DualNorm step-scale damping for settled 1D and compact-batch 2D-4D holds."""
+    """State-driven DualNorm step-scale damping for settled 1D holds."""
+    if int(dim) != 1:
+        return 1.0
     b = max(int(min_batch), int(batch_size))
-    if int(dim) == 1:
-        inv_sqrt_b = 1.0 / math.sqrt(float(b))
-        r_step_floor = 1.55 * inv_sqrt_b
-        r_step_tau = 2.65 * inv_sqrt_b
-        u = max(0.0, min(1.0, (float(ema_residual) - r_step_floor) / max(r_step_tau - r_step_floor, 1e-12)))
-        smooth = u * u * (3.0 - 2.0 * u)
-        return float(0.32 + 0.68 * smooth)
-    if 2 <= int(dim) <= 4 and b <= 256:
-        u = max(0.0, min(1.0, (float(ema_residual) - 0.045) / (0.095 - 0.045)))
-        smooth = u * u * (3.0 - 2.0 * u)
-        return float(0.62 + 0.38 * smooth)
-    return 1.0
+    inv_sqrt_b = 1.0 / math.sqrt(float(b))
+    r_step_floor = 1.50 * inv_sqrt_b
+    r_step_tau = 2.80 * inv_sqrt_b
+    u = max(0.0, min(1.0, (float(ema_residual) - r_step_floor) / max(r_step_tau - r_step_floor, 1e-12)))
+    smooth = u * u * (3.0 - 2.0 * u)
+    return float(0.20 + 0.80 * smooth)
 
 
 def _validate_smpf_packet(packet: Any) -> Dict[str, Any]:
