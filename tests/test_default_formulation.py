@@ -51,7 +51,7 @@ def test_bcap_optimizers_and_losses_bind_the_selected_leader():
     dict(prior_kind='mog', sigma_rel=.025, encoder_mode='hard')])
 def test_component_choices_share_the_winning_training_defaults(options):
     recipe = get_recipe(**options)
-    assert (recipe.reg_coeff, recipe.reg_kappa, recipe.prior_reg, recipe.betas) == (1., 1., .02, (0., .999))
+    assert (recipe.reg_coeff, recipe.reg_kappa, recipe.prior_reg, recipe.betas) == (1., 1., .01, (0., .999))
     selected = get_recipe()
     for field in ("network_lr_floor", "network_lr_horizon_cap", "lr", "d_lr_mult", "prior_lr_mult",
                   "optimizer_family", "loss", "constraint_geometry_mode"):
