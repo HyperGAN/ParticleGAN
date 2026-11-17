@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "smpf-v1-study"
+  },
+  "candidate": "smpf-v1",
+  "competing_explanation": "If EMPF's failures on skewed/anisotropic vector mixtures (vector_unequal_mass, vector_unequal_width, vector_anisotropic, vector_overlap) and multi-mode procedural images (img_bars4, img_blobs4, img_intensity2) arise from generator MLP/conv architecture limits or DualNorm step smoothing rather than e-means's count-only prototype splitting and missing generator prototype transport, then upgrading to s-means (D^1.5 seeding, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes shrinkage) and coupling (C_eb, w, ell_proto) into SMPFGANLoss will either fail to bring vector_anisotropic mass_tv <= 0.15 and component_covariance_error <= 0.85 or regress Tier 1 acquisition/stability gates.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "hypothesis": "Upgrading EMPF's online e-means bank to a clock-free s-means Scale- & Distortion-Aware Moving Prototype Flow (SMPF: 4-round deterministic D^1.5 seeding, tiled addmm assignment, sse_ema x usage^0.35 anisotropic RMS revival, Empirical-Bayes tau=0.20 centroid shrinkage, thermally coupled Born-Infeld prototype Sinkhorn + RMS distortion shell generator transport, affine-detrended whitened conditional fiber transport, and H_0-connected simplicial chord alignment) preserves all 13/13 counted Tier 1 gates, gaussian1d_stability, five_word_joint_hold, and mode_hold while converting anisotropic, skewed, overlapping, image, conditional, and interpolation failures (including vector_anisotropic component_covariance_error <= 0.85 and mass_tv <= 0.15) under one global seed-0 recipe.",
+  "id": "smpf-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v7",
+        "candidate_revision": "e9cb4e9e9d26179d1fa70cf52b42cee045c9c8e67238b78e5c0c28ac0d8fda8e"
+      },
+      "path": "reports/forge/records/readout-4901963885d977da23e139ba.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

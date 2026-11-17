@@ -68,6 +68,14 @@ from .empf import (
     EMPFSinkhornRelativisticLoss,
     EMPFStepRecord,
 )
+from .smpf import (
+    SMPFCriticAdam,
+    SMPFCriticPenalty,
+    SMPFGANLoss,
+    SMPFPriorRegularizer,
+    SMPFStepRecord,
+    bind_smpf_record,
+)
 from .rhbi import (
     RHBICriticAdam,
     RHBICriticPenalty,
@@ -94,6 +102,7 @@ __all__ = [
     "StratifiedBlueNoisePrior", "SBNPPriorRegularizer", "ContinuousThermalCooler", "BISPFEngine", "BISPFLossAdapter",
     "BISPFStepRecord", "BISPFCriticAdam", "BISPFCriticPenalty", "SinkhornRelativisticLoss", "BISPFGates",
     "EMPFStepRecord", "EMPFCriticAdam", "EMPFCriticPenalty", "EMPFPriorRegularizer", "EMPFSinkhornRelativisticLoss",
+    "SMPFStepRecord", "SMPFCriticAdam", "SMPFCriticPenalty", "SMPFPriorRegularizer", "SMPFGANLoss", "bind_smpf_record",
     "RHBICriticAdam", "RHBICriticPenalty", "RHBIGANLoss", "RHBILoss", "RHBIStepRecord", "bind_rhbi_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",

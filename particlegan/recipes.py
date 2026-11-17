@@ -427,8 +427,8 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp or empf")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "smpf"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf or smpf")
         for key, minimum in (("prior_sigreg_projections", 1), ("prior_sigreg_knots", 2)):
             if type(getattr(self, key)) is not int or getattr(self, key) < minimum:
                 raise ValueError(f"{key} must be an integer >= {minimum}")
@@ -562,7 +562,7 @@ class Recipe:
                 and self.critic_formulation != "rhbi"):
             raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, or RHBI formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "smpf", "rhbi"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -579,11 +579,11 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf or rhbi")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "smpf", "rhbi"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, smpf or rhbi")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf"):
+        if self.critic_formulation in ("bispf", "empf", "smpf"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
@@ -675,7 +675,7 @@ class Recipe:
             raise ValueError("rhbi_iters must be a positive integer")
         if type(self.ebi_beta) not in (int, float) or not math.isfinite(self.ebi_beta) or self.ebi_beta <= 0:
             raise ValueError("ebi_beta must be finite and positive")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "smpf", "rhbi"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -992,7 +992,8 @@ class Recipe:
             if offset is None:
                 raise ValueError("AE encoding requires offset")
             return particle_ae(query, offset, base, uniformity_weight=self.ucd_weight,
-                               coord_whiten=self.rhbi_ae_coord_whiten, **options)
+                               coord_whiten=bool(self.rhbi_ae_coord_whiten or self.effective_critic_formulation == "smpf"),
+                               **options)
         if self.encoder_mode in ("categorical", "hard"):
             if offset is not None:
                 raise ValueError("prior-matching VAE does not accept an offset")
@@ -1002,6 +1003,9 @@ class Recipe:
 
     def make_loss(self):
         """The selected objective: ``d_loss(real, fake)``, ``g_loss(fake, real=None)``."""
+        if self.effective_critic_formulation == "smpf":
+            from .smpf import SMPFGANLoss
+            return SMPFGANLoss(self.loss, labels=self.loss_labels)
         if self.effective_critic_formulation == "rhbi" or self.rhbi_weight > 0 or self.rhbi_critic_weight > 0:
             from .rhbi import RHBIGANLoss
             return RHBIGANLoss(
@@ -1099,6 +1103,8 @@ class Recipe:
             from .bispf import BISPFCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "empf":
             from .empf import EMPFCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "smpf":
+            from .smpf import SMPFCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "rhbi":
             from .rhbi import RHBICriticPenalty as CriticPenalty
         elif self.effective_critic_formulation in ("k3p", "bcap"):
@@ -1110,8 +1116,8 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf or rhbi")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "smpf", "rhbi"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, smpf or rhbi")
         if self.effective_critic_formulation == "rhbi":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1150,6 +1156,14 @@ class Recipe:
                        "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
             from .empf import _EMPFPenaltyKernel
             _EMPFPenaltyKernel(**options)
+            return options
+        if self.effective_critic_formulation == "smpf":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
+                       "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
+            from .smpf import _SMPFPenaltyKernel
+            _SMPFPenaltyKernel(**options)
             return options
         if self.effective_critic_formulation in ("k3p", "bcap"):
             if not self.critic_r1_real:
@@ -1219,6 +1233,11 @@ class Recipe:
         if self.effective_critic_formulation == "empf":
             from .empf import EMPFCriticAdam
             return EMPFCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                  ema_critic=ema_critic,
+                                  guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "smpf":
+            from .smpf import SMPFCriticAdam
+            return SMPFCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                   ema_critic=ema_critic,
                                   guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "rhbi":
@@ -1362,7 +1381,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "smpf", "rhbi"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -1400,6 +1419,15 @@ class Recipe:
             if self.prior_update == "frozen":
                 options["weight"] = 0.
             return EMPFPriorRegularizer(reference, **options)
+        if self.prior_regularizer == "smpf":
+            from .smpf import SMPFPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "eps": self.prior_reg_eps, **overrides}
+            if prior is not None and hasattr(prior, "_smpf_record"):
+                options.setdefault("smpf_record", prior._smpf_record)
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            return SMPFPriorRegularizer(reference, **options)
         if self.prior_regularizer == "coulomb":
             from .coulomb_prior import CoulombPriorRegularizer, coulomb_reference
             options = {"weight": self.prior_reg, "softening": self.prior_coulomb_softening,
@@ -1513,7 +1541,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "smpf") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -1644,6 +1672,11 @@ class Recipe:
             opt_d._empf_record = opt_d.record
             if base_prior is not None:
                 base_prior._empf_record = opt_d.record
+        if self.effective_critic_formulation == "smpf" and hasattr(opt_d, "record"):
+            opt_g._smpf_record = opt_d.record
+            opt_d._smpf_record = opt_d.record
+            if base_prior is not None:
+                base_prior._smpf_record = opt_d.record
         if (
             self.effective_critic_formulation == "rhbi"
             or self.rhbi_weight > 0
@@ -1803,6 +1836,11 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "prior_regularizer": "empf", "prior_reg": 0.01, "lr_schedule": "cosine",
         "optimizer_svd_backend": "batched", "training_precision": "bf16_channels_last",
         "routing_temperature": 0.25, "ucd_weight": 0.02,
+    }
+    presets["smpf"] = {
+        **presets["empf"], "critic_formulation": "smpf",
+        "prior_regularizer": "smpf",
+        "optimizer_dense_profile": "polar_cpu_v1",
     }
     presets["rhbi"] = {
         **presets["bcap"], "critic_formulation": "rhbi", "reg_arm": None,

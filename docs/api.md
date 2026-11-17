@@ -525,6 +525,11 @@ constant G/E, D and prior rates `.012`, `.018` and `.03`. `GANTrainer` binds
 sampled rows and the protected adversarial objective automatically. Additive
 training noise, EMA serving and KA2 interventions are disabled. DoF-aware EMPF
 prior regularization has weight `.01`.
+`get_recipe("smpf")` selects **SMPF** (Scale- & Distortion-Aware Moving Prototype Flow,
+inspired by [`s-means`](https://suayptalha.github.io/s-means-blog/)): `SMPFGANLoss`,
+`SMPFCriticPenalty` (4-round deterministic $D^{1.5}$ seeding, tiled L2 assignment,
+distortion $\times$ usage$^{0.35}$ anisotropic RMS revival, and Empirical-Bayes
+$\tau=0.20$ centroid shrinkage), and `SMPFPriorRegularizer`.
 See [the selected settings and evidence](#recipes-and-defaults).
 
 `get_recipe("ka2")` retains **KA2** ([details](ka2.md)): Rp logistic, the KA2

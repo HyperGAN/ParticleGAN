@@ -144,6 +144,11 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from ._empf.critic import _attach_empf_critic_hook
             optimizer.record = _EMPFObserverStepRecord()
             _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "smpf":
+            from .smpf import _SMPFObserverStepRecord
+            from ._smpf.critic import _attach_smpf_critic_hook
+            optimizer.record = _SMPFObserverStepRecord()
+            _attach_smpf_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()

@@ -36,6 +36,15 @@ def _float_output(value):
             result._empf_record = value._empf_record
         if hasattr(value, "_empf_conditioned"):
             result._empf_conditioned = value._empf_conditioned
+        if hasattr(value, "_smpf_input"):
+            result._smpf_input = value._smpf_input
+            result._smpf_conditioned = bool(getattr(value, "_smpf_conditioned", False))
+            result._smpf_cond_tensors = getattr(value, "_smpf_cond_tensors", ())
+            result._smpf_cond_disc = getattr(value, "_smpf_cond_disc", None)
+            result._smpf_parts = getattr(value, "_smpf_parts", None)
+            result._smpf_thermally_scaled = bool(getattr(value, "_smpf_thermally_scaled", False))
+        if hasattr(value, "_smpf_record"):
+            result._smpf_record = value._smpf_record
         if hasattr(value, "_rhbi_input"):
             result._rhbi_input = value._rhbi_input
             result._rhbi_cond = getattr(value, "_rhbi_cond", None)
@@ -80,6 +89,24 @@ class InputNoise(nn.Module):
         if isinstance(target, torch.Tensor):
             target._bispf_input = x
             target._empf_input = x
+            if hasattr(target, "_smpf_input") or hasattr(self.critic, "_smpf_record"):
+                from ._smpf.critic import _extract_smpf_call_parts, _record_smpf_capture
+                rec_s = getattr(target, "_smpf_record", getattr(self.critic, "_smpf_record", None))
+                if rec_s is None or not getattr(rec_s, "_in_penalty", False):
+                    x_clean_s, is_c_s, ct_s, cd_s, fp_s = _extract_smpf_call_parts(
+                        (x, *args), kwargs, int(target.shape[0])
+                    )
+                    _record_smpf_capture(
+                        out,
+                        x_clean_s,
+                        rec_s,
+                        is_c_s,
+                        ct_s,
+                        cd_s,
+                        fp_s,
+                        thermally_scaled=bool(getattr(target, "_smpf_thermally_scaled", False)),
+                        overwrite=True,
+                    )
             if hasattr(target, "_rhbi_input") or hasattr(self.critic, "_rhbi_record"):
                 from .rhbi import _extract_critic_inputs_parts, _record_rhbi_capture
                 rec = getattr(target, "_rhbi_record", getattr(self.critic, "_rhbi_record", None))
@@ -308,7 +335,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "smpf", "rhbi") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -330,6 +357,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "empf":
             from .empf import bind_empf_record
             bind_empf_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "smpf":
+            from .smpf import bind_smpf_record
+            bind_smpf_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
@@ -570,6 +600,8 @@ class GANTrainer:
                     self.prior_noise_generator is None,
                     simplicial_active=simplicial_active,
                 )
+            if recipe.effective_critic_formulation == "smpf" and hasattr(self.opt_d, "record"):
+                self.opt_d.record._discrete_prior_step = bool(self.prior_noise_generator is None)
             fake_logits = critic(fake_g)
             real_g = generator_real() if callable(generator_real) else generator_real
             real_g = real if real_g is None else self._batch(real_g, "generator_real")
@@ -627,6 +659,21 @@ class GANTrainer:
                     curve_settle=recipe.rhbi_simplex_curve_settle,
                 )
                 loss_g = loss_g + simplex_loss
+            if (
+                recipe.effective_critic_formulation == "smpf"
+                and self.prior_noise_generator is None
+                and self.prior.z.requires_grad
+                and 4 <= len(self.prior.z) <= 64
+            ):
+                from .smpf import smeans_simplicial_manifold_loss
+                raw_base = unwrap_prior(self.prior).z
+                smpf_simplex = 0.45 * smeans_simplicial_manifold_loss(
+                    raw_base,
+                    lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
+                    getattr(self.opt_d, "record", None),
+                    y_real=real_g,
+                )
+                loss_g = loss_g + smpf_simplex
             self.opt_g.zero_grad()
             protected_evaluator = None
             if recipe.constraint_geometry_mode == "strict_progress":
@@ -677,6 +724,8 @@ class GANTrainer:
         finally:
             if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
                 self.loss.rhbi.bind_discrete_prior_step(False)
+            if recipe.effective_critic_formulation == "smpf" and hasattr(self.opt_d, "record"):
+                self.opt_d.record._discrete_prior_step = False
             for parameter, flag in zip(self.D.parameters(), flags):
                 parameter.requires_grad_(flag)
         self.policy.finish_step()

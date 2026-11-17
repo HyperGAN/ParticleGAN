@@ -236,9 +236,9 @@ def recipe_field_active(name, value, *, task=None):
         return prior_active and recipe.prior_regularizer == "coulomb" and recipe.prior_reg > 0
     if name in {"prior_reg_target_std", "prior_reg_eps"} and recipe.prior_reg == 0:
         return False
-    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf"}:
+    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "smpf"}:
         return False
-    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf"}:
+    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "smpf"}:
         return False
     if name in {"prior_sigreg_projections", "prior_sigreg_knots"}:
         return prior_active and recipe.prior_regularizer == "sigreg" and recipe.prior_reg > 0
