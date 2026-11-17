@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.1 — 2026-11-16
+
+- **Default EMPF research selection (`DEFAULT_RECIPE = "empf"`).**
+  Promote `empf` (matching [`empf-v8`](configs/forge/ideas/empf-v8.json)) as
+  the public default trainer preset while preserving explicit
+  `get_recipe("rhbi_optimized")` (`rhbi-v12`), `get_recipe("rhbi")` (`rhbi-v1`),
+  `get_recipe("bispf_optimized")`, and `Recipe.from_dict(saved_fields)`
+  historical restoration. In the
+  [technique inventory](reports/forge/technique-inventory.md), `empf-v8` ties
+  `rhbi-v12` at `83/115` counted view requirements (`27/27` Tier 1 PASS,
+  `56/78` Tier 2, `0/10` Tier 3) with `23/64` fixed-suite passes (`17` FAIL,
+  `8` not measured, `16` blocked), while scaling cleanly on 32×32 image-scale
+  CUDA workloads (`newton_schulz_hybrid_v1`, `batched` SVD, and
+  `bf16_channels_last`). Forge screening calibration remains `BLOCKED`, Tier 2/3
+  full-tier qualification is incomplete, and untouched holdout confirmation
+  remains open.
+
 ## 0.10.0 — 2026-11-16
 
 - **Default RHBI research selection (`DEFAULT_RECIPE = "rhbi_optimized"`).**

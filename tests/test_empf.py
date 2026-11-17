@@ -25,8 +25,8 @@ from particlegan.empf import (
 
 
 def test_default_recipe_and_incumbent_presets_unchanged():
-    assert DEFAULT_RECIPE == "rhbi_optimized"
-    assert get_recipe() == get_recipe("rhbi_optimized")
+    assert DEFAULT_RECIPE == "empf"
+    assert get_recipe() == get_recipe("empf")
     empf = get_recipe("empf")
     assert empf.effective_critic_formulation == "empf"
     assert empf.prior_regularizer == "empf"
@@ -366,7 +366,7 @@ def test_empf_fresh_process_import_order_and_incumbent_hashes():
     out_a = json.loads(subprocess.check_output([sys.executable, "-c", probe_a], cwd=root, text=True))
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, text=True))
     assert out_a == out_b
-    assert out_a["default"] == "rhbi_optimized"
+    assert out_a["default"] == "empf"
     assert out_a["hashes"]["bispf_optimized"].startswith("a59d78806e67")
     assert out_a["hashes"]["bispf"].startswith("6bb9c45dfbdb")
     assert out_a["hashes"]["bcap"].startswith("1c0aeefa46b0")
@@ -713,5 +713,76 @@ def test_empf_v8_discrete_simplex_cooling_and_continuation():
     assert math.isclose(pen.last_stats["s_thermal"], 1.0, rel_tol=1e-6)
 
 
+def test_public_default_empf_continuation_and_damage_control():
+    """Verify bare get_recipe() selects empf (empf-v8), exact serialized continuation, and model-damage control."""
+    from dataclasses import asdict
+    import json
+    from pathlib import Path
 
+    from particlegan import Recipe
+
+    root = Path(__file__).resolve().parents[1]
+    empf_v8 = json.loads((root / "configs/forge/ideas/empf-v8.json").read_text())["recipe_overrides"]
+    default_recipe = get_recipe()
+    actual = json.loads(json.dumps(asdict(default_recipe)))
+    assert DEFAULT_RECIPE == actual["name"] == "empf"
+    assert default_recipe == get_recipe("empf") == get_recipe("gan")
+    for field, value in empf_v8.items():
+        if field != "name":
+            assert actual[field] == value, field
+
+    def _make_pair(seed: int):
+        G = nn.Sequential(nn.Linear(2, 32), nn.LeakyReLU(0.2), nn.Linear(32, 2))
+        D = nn.Sequential(nn.Linear(2, 32), nn.LeakyReLU(0.2), nn.Linear(32, 1))
+        P = get_recipe(num_particles=64, z_dim=2).make_prior()
+        init.deterministic_orthogonal_(G, seed=seed)
+        init.deterministic_orthogonal_(D, seed=seed + 1)
+        init.deterministic_orthogonal_(P, seed=seed + 2)
+        return G, D, P
+
+    # Exact serialized GANTrainer checkpoint continuation on bare get_recipe(...)
+    rec_run = get_recipe(total_steps=6, batch_size=32, num_particles=64, z_dim=2)
+    Ga, Da, Pa = _make_pair(seed=71)
+    Gb, Db, Pb = _make_pair(seed=71)
+    tr_a = GANTrainer(rec_run, Ga, Da, prior=Pa, seed=0)
+    data_rng = torch.Generator().manual_seed(101)
+    for _ in range(3):
+        tr_a.step(torch.randn(32, 2, generator=data_rng))
+    buf = io.BytesIO()
+    torch.save({"trainer": tr_a.state_dict(), "data": data_rng.get_state()}, buf)
+    buf.seek(0)
+    saved = torch.load(buf, weights_only=True)
+    for _ in range(2):
+        tr_a.step(torch.randn(32, 2, generator=data_rng))
+
+    tr_b = GANTrainer(Recipe.from_dict(saved["trainer"]["recipe"]), Gb, Db, prior=Pb, seed=99)
+    tr_b.load_state_dict(saved["trainer"])
+    resumed_rng = torch.Generator().set_state(saved["data"])
+    for _ in range(2):
+        tr_b.step(torch.randn(32, 2, generator=resumed_rng))
+    for pa, pb in zip(Ga.parameters(), Gb.parameters()):
+        assert torch.equal(pa, pb)
+    for pa, pb in zip(Da.parameters(), Db.parameters()):
+        assert torch.equal(pa, pb)
+    assert torch.equal(Pa.z, Pb.z)
+    s_a = tr_a.sample(32, generator=torch.Generator().manual_seed(7))
+    s_b = tr_b.sample(32, generator=torch.Generator().manual_seed(7))
+    assert torch.equal(s_a, s_b)
+
+    # Deliberate model-damage semantic control on bare get_recipe(...)
+    target_mean = torch.tensor([-2.2, 1.8])
+    Gt, Dt, Pt = _make_pair(seed=83)
+    tr_dmg = GANTrainer(get_recipe(total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
+    dmg_rng = torch.Generator().manual_seed(202)
+    for _ in range(220):
+        tr_dmg.step(target_mean + 0.15 * torch.randn(32, 2, generator=dmg_rng))
+    clean_samples = tr_dmg.sample(256, generator=torch.Generator().manual_seed(555))
+    clean_err = float((clean_samples.mean(dim=0) - target_mean).norm().item())
+    assert clean_err < 0.6
+    with torch.no_grad():
+        for p in tr_dmg.G.parameters():
+            p.mul_(-3.0).add_(4.0)
+    damaged_samples = tr_dmg.sample(256, generator=torch.Generator().manual_seed(555))
+    damaged_err = float((damaged_samples.mean(dim=0) - target_mean).norm().item())
+    assert damaged_err > clean_err + 1.5
 

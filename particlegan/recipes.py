@@ -48,7 +48,7 @@ except (ImportError, ValueError):
     pass
 
 # Promote a registered trainer preset here; model-family factories inherit it.
-DEFAULT_RECIPE = "rhbi_optimized"
+DEFAULT_RECIPE = "empf"
 
 
 def _reject_table_storage_owners(table, tensors):
@@ -1692,22 +1692,22 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"rhbi_optimized"`` is the selected RHBI research default
-    (``DEFAULT_RECIPE``, matching ``rhbi-v12``): Relativistic Hellinger-Born-Infeld
-    transport with debiased Feydy discrete self-coupling, Weibull Adaptive
-    Kinetic Horizon, sparse-mode support completion, coordinate-whitened
-    conditional IMQ-CMMD fibre transport with residual step damping,
-    thermal-driven settling Born-Infeld critic regularization (``ebi_beta=12.0``),
-    SBNP prior regularization (``prior_reg=0.02``), discrete-simplex and 1D-curve
-    chart settling, and zero-momentum DualNorm with ``polar_cpu_v1`` / ``native``
-    SVD in ``float32``. ``"rhbi"`` retains the original ``rhbi-v1`` formulation.
-    ``"empf"`` retains the explicit EMPF preset:
-    clock-free online ``e-means`` sufficient-statistics prototype bank,
-    mass-weighted prototype-to-fake Sinkhorn OT, state-driven settling
-    Born-Infeld critic penalty (``ebi_beta=6.0``), degree-of-freedom-aware EMPF
-    prior regularization (``prior_reg=0.01``), zero-momentum DualNorm with
-    quintic batched convolution updates, and BF16/channels-last training for
-    supported CUDA convolutional networks. See
+    ``"empf"`` is the selected EMPF research default (``DEFAULT_RECIPE``,
+    matching ``empf-v8``): clock-free online ``e-means`` sufficient-statistics
+    prototype bank, mass-weighted prototype-to-fake Sinkhorn OT, state-driven
+    settling Born-Infeld critic penalty (``ebi_beta=6.0``), degree-of-freedom-aware
+    EMPF prior regularization (``prior_reg=0.01``), zero-momentum DualNorm
+    (``newton_schulz_hybrid_v1``) with quintic batched convolution updates, and
+    BF16/channels-last training for supported CUDA convolutional networks.
+    ``"rhbi_optimized"`` retains the explicit optimized RHBI preset (``rhbi-v12``):
+    Relativistic Hellinger-Born-Infeld transport with debiased Feydy discrete
+    self-coupling, Weibull Adaptive Kinetic Horizon, sparse-mode support
+    completion, coordinate-whitened conditional IMQ-CMMD fibre transport with
+    residual step damping, thermal-driven settling Born-Infeld critic
+    regularization (``ebi_beta=12.0``), SBNP prior regularization
+    (``prior_reg=0.02``), discrete-simplex and 1D-curve chart settling, and
+    zero-momentum DualNorm with ``polar_cpu_v1`` / ``native`` SVD in ``float32``.
+    ``"rhbi"`` retains the original ``rhbi-v1`` formulation. See
     ``reports/forge/technique-inventory.md`` for current ordinary CUDA
     readouts; selection does not add accepted calibration, Tier 3 confirmation,
     or natural-image quality credit.
