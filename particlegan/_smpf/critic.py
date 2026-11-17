@@ -314,16 +314,20 @@ def compute_smpf_step_scale(
     *,
     min_batch: int = 16,
 ) -> float:
-    """State-driven DualNorm step-scale damping for 1D stationary/shifted holds."""
-    if int(dim) != 1:
-        return 1.0
+    """State-driven DualNorm step-scale damping for settled 1D and compact-batch 2D-4D holds."""
     b = max(int(min_batch), int(batch_size))
-    inv_sqrt_b = 1.0 / math.sqrt(float(b))
-    r_step_floor = 1.50 * inv_sqrt_b
-    r_step_tau = 2.80 * inv_sqrt_b
-    u = max(0.0, min(1.0, (float(ema_residual) - r_step_floor) / max(r_step_tau - r_step_floor, 1e-12)))
-    smooth = u * u * (3.0 - 2.0 * u)
-    return float(0.20 + 0.80 * smooth)
+    if int(dim) == 1:
+        inv_sqrt_b = 1.0 / math.sqrt(float(b))
+        r_step_floor = 1.55 * inv_sqrt_b
+        r_step_tau = 2.65 * inv_sqrt_b
+        u = max(0.0, min(1.0, (float(ema_residual) - r_step_floor) / max(r_step_tau - r_step_floor, 1e-12)))
+        smooth = u * u * (3.0 - 2.0 * u)
+        return float(0.32 + 0.68 * smooth)
+    if 2 <= int(dim) <= 4 and b <= 256:
+        u = max(0.0, min(1.0, (float(ema_residual) - 0.045) / (0.095 - 0.045)))
+        smooth = u * u * (3.0 - 2.0 * u)
+        return float(0.62 + 0.38 * smooth)
+    return 1.0
 
 
 def _validate_smpf_packet(packet: Any) -> Dict[str, Any]:
@@ -550,6 +554,29 @@ class _SMPFRecordMixin:
             if isinstance(val, torch.Tensor):
                 setattr(self, attr, val.to(device=device))
 
+    def _copy_smpf_fields_into(self, dup: "_SMPFRecordMixin") -> None:
+        dup.initialized = bool(self.initialized)
+        dup.ema_residual = float(self.ema_residual)
+        dup.ema_data_scale = float(self.ema_data_scale)
+        dup.ema_cond_energy = float(self.ema_cond_energy)
+        dup._thermal_scale = float(self._thermal_scale)
+        dup._step_scale = float(self._step_scale)
+        dup.chord_phase = float(self.chord_phase)
+        dup.revival_phase = float(self.revival_phase)
+        dup.revivals = int(self.revivals)
+        dup.proto_initialized = bool(self.proto_initialized)
+        dup.proto_centroids = None if self.proto_centroids is None else self.proto_centroids.detach().clone()
+        dup.proto_usage = None if self.proto_usage is None else self.proto_usage.detach().clone()
+        dup.proto_sse = None if self.proto_sse is None else self.proto_sse.detach().clone()
+        dup.feat_scale = None if self.feat_scale is None else self.feat_scale.detach().clone()
+        dup.fast_sum = None if self.fast_sum is None else self.fast_sum.detach().clone()
+        dup.fast_count = None if self.fast_count is None else self.fast_count.detach().clone()
+        dup._capture_ring = OrderedDict()
+        dup._last_d_logits = None
+        dup._in_penalty = False
+        dup._in_protected_probe = False
+        dup._discrete_prior_step = bool(self._discrete_prior_step)
+
 
 class _SMPFObserverStepRecord(_SMPFRecordMixin, CriticStepRecord):
     """Observer record for DualNorm and plain Adam critics under SMPF."""
@@ -557,6 +584,17 @@ class _SMPFObserverStepRecord(_SMPFRecordMixin, CriticStepRecord):
     def __init__(self) -> None:
         super().__init__()
         self._init_smpf_fields()
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "_SMPFObserverStepRecord":
+        dup = _SMPFObserverStepRecord()
+        memo[id(self)] = dup
+        dup.lr_max = self.lr_max
+        dup.lr_last = self.lr_last
+        dup.anchor_started = self.anchor_started
+        dup.calls = self.calls
+        dup.observed_steps = self.observed_steps
+        self._copy_smpf_fields_into(dup)
+        return dup
 
     def state_dict(self) -> Dict[str, Any]:
         return {**super().state_dict(), "smpf": self._smpf_packet()}
@@ -583,6 +621,17 @@ class SMPFStepRecord(_SMPFRecordMixin, CriticStepRecord):
     def __init__(self) -> None:
         super().__init__(anchor=None)
         self._init_smpf_fields()
+
+    def __deepcopy__(self, memo: Dict[int, Any]) -> "SMPFStepRecord":
+        dup = SMPFStepRecord()
+        memo[id(self)] = dup
+        dup.lr_max = self.lr_max
+        dup.lr_last = self.lr_last
+        dup.anchor_started = self.anchor_started
+        dup.calls = self.calls
+        dup.observed_steps = self.observed_steps
+        self._copy_smpf_fields_into(dup)
+        return dup
 
     def record_step(self, optimizer: torch.optim.Optimizer) -> None:
         lr = max(float(group["lr"]) for group in optimizer.param_groups)

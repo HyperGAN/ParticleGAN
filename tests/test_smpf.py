@@ -413,3 +413,32 @@ def test_smpf_deliberate_damage_instance_isolation_and_import_order():
     assert out_a["hashes"]["bispf"].startswith("6bb9c45dfbdb")
     assert out_a["hashes"]["bcap"].startswith("1c0aeefa46b0")
     assert out_a["sigs"]["smpf"] != out_a["sigs"]["empf"]
+
+
+def test_smpf_deepcopy_mid_graph_survives_nonleaf_capture():
+    recipe = get_recipe(
+        "smpf",
+        num_particles=16,
+        z_dim=4,
+        batch_size=8,
+        total_steps=10,
+        training_precision="float32",
+    )
+    g = nn.Sequential(nn.Linear(4, 16), nn.LeakyReLU(0.2), nn.Linear(16, 6))
+    d = nn.Sequential(nn.Linear(6, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    p = recipe.make_prior()
+    trainer = GANTrainer(recipe, g, d, prior=p, seed=0)
+    trainer.step(torch.randn(8, 6))
+
+    # Populate _capture_ring with live non-leaf autograd tensors from G(z).
+    z_live = p.z[:8]
+    fake_live = g(z_live)
+    logits_live = d(fake_live)
+    assert logits_live.requires_grad and not fake_live.is_leaf
+
+    d_copy = deepcopy(trainer.D)
+    opt_d_copy = deepcopy(trainer.opt_d)
+    rec_copy = deepcopy(trainer.opt_d.record)
+    assert len(rec_copy._capture_ring) == 0
+    assert d_copy._smpf_record.proto_initialized is True
+    assert opt_d_copy.record.proto_centroids is not None

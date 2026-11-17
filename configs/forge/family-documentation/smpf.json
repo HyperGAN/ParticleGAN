@@ -52,8 +52,8 @@
     "particlegan/_smpf/prior.py",
     "particlegan/optim/dualnorm.py",
     "particlegan/recipes.py",
-    "configs/forge/ideas/smpf-v1.json",
-    "configs/forge/studies/smpf-v1-study.json",
+    "configs/forge/ideas/smpf-v2.json",
+    "configs/forge/studies/smpf-v2-study.json",
     "reports/forge/smpf/README.md"
   ],
   "equations": [

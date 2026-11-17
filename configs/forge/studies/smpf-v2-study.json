@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "smpf-v2-study"
+  },
+  "candidate": "smpf-v2",
+  "competing_explanation": "If model_ae_gan_multimodal's step-1000 dip (1.044 vs <= 1.0) in smpf-v1 arose from coordinate-whitened AE reconstruction conflicting with s-means prototype Sinkhorn rather than uncooled B=64 2D DualNorm step amplitude, or if five_word_joint_smoke fails numerical inverse token reconstruction even after isolating _capture_ring in __deepcopy__, then smpf-v2 will still fail Tier 1 qualification or regress vector_anisotropic / vector_unequal_width in Tier 2.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "hypothesis": "Isolating ephemeral non-leaf autograd captures in SMPFStepRecord.__deepcopy__ and _SMPFObserverStepRecord.__deepcopy__ while damping settled compact-batch 2D-4D DualNorm steps ([0.045, 0.095] -> 0.62) and restoring the 0.32 1D step-scale floor clears all 13/13 counted Tier 1 gates (including five_word_joint_smoke and model_ae_gan_multimodal) and advances SMPF into Tier 2/3 to convert skewed, unequal-width, anisotropic, overlapping, procedural-image, and patch-interpolation benchmarks under one global seed-0 recipe.",
+  "id": "smpf-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "smpf-v1",
+        "candidate_revision": "71ccc234abd10431375a5883c12a06946be33acf810d7f2c057f992597ce06f0"
+      },
+      "path": "reports/forge/records/readout-6407e0abdc6f42b388d67124.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

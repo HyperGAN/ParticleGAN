@@ -263,7 +263,7 @@ class _SMPFPenaltyKernel:
                     tau_cooling=self.tau_cooling,
                     s_min=self.s_min,
                 )
-                if dim == 1:
+                if 1 <= dim <= 4:
                     step_scale_val = compute_smpf_step_scale(float(self.record.ema_residual), b_r, dim)
             elif is_image_tensor and dim <= 256 and b_r >= 16 and b_f >= 16:
                 u_img = max(0.0, min(1.0, (float(self.record.ema_residual) - 0.015) / (0.045 - 0.015)))
