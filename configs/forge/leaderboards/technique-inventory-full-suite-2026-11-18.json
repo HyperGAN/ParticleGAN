@@ -7,7 +7,7 @@
     "rule": "distinct required, held, or stretch tests across the inventory's counted views (full_suite_tasks)",
     "publication": "reports/forge/technique-inventory.json",
     "publication_sha256": "8c1488950eb5d4733185f815edfbf93c8be2123c82fe90ec6c81fbe37bc93217",
-    "commit": "d705c9cb62924440d2fb9ac83db03b78d7f06409"
+    "commit": "1ea5e02185e93f26f7e0f910e9828bf3bdcf5024"
   },
   "policy": "The denominator is fixed: every listed test counts in every row as PASS, FAIL, not measured or another outcome, whether it is currently required, held or removed from a view. A test leaves the denominator only through a new dated list that keeps this one as history.",
   "tests": [
@@ -65,6 +65,8 @@
     "rotated100_14k",
     "staggered100",
     "staggered100_14k",
+    "t3_iso_horizon_saddle_shift",
+    "t3_iso_scale_mass_8x",
     "target_shift_recovery",
     "trajectory",
     "two_pole",
@@ -80,7 +82,7 @@
     "zero_tanh_smoke"
   ],
   "previous_list": "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-12.json",
-  "change": "Append the three Theory 4A severe G/D capacity-imbalance and hostile non-complementary initialization stretch tests (nash_overpowered_critic_ring16, nash_overpowered_generator_ring16, nash_unequal_width_hostile_imbalance). Preserve all 64 earlier fixed-list tests and original evidence.",
+  "change": "Append the two Theory-3 causal-isolation stretch tests (t3_iso_horizon_saddle_shift, t3_iso_scale_mass_8x) and three Theory 4A severe G/D capacity-imbalance and hostile non-complementary initialization stretch tests (nash_overpowered_critic_ring16, nash_overpowered_generator_ring16, nash_unequal_width_hostile_imbalance). Preserve all 64 earlier fixed-list tests and original evidence.",
   "recorded_display_scope": {
     "path": "configs/forge/leaderboards/technique-inventory-full-suite-2026-10-25.json",
     "sha256": "14155fb6273af76ef248db2da6335c22ddeab2a1deb82b3eb3f0f6cd08b19c34"

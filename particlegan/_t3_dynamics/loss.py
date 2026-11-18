@@ -363,8 +363,9 @@ class RGDTGANLoss(GANLoss):
 
         phase = float(getattr(rec, "rgdt_chord_phase", 0.0)) if rec is not None else 0.0
         macro_term = None
+        m_orph_obs = 0.0
         if self.macro_slack_weight > 0.0 and not cond_present:
-            macro_loss, explorer_mask = bipartite_deficit_macro_loss(
+            macro_loss, explorer_mask, m_orph_obs = bipartite_deficit_macro_loss(
                 x_aug,
                 y_aug,
                 c_hat_xy,
@@ -375,7 +376,9 @@ class RGDTGANLoss(GANLoss):
                 g_conn=g_conn_fwd,
                 cond_fake=cond_f,
                 cond_real=cond_r,
+                discrete_step=discrete_step,
                 return_explorer_mask=True,
+                return_orphan_mass=True,
             )
             if explorer_mask is not None:
                 P_xy_act = P_xy_act * (1.0 - explorer_mask.unsqueeze(1))
@@ -418,7 +421,7 @@ class RGDTGANLoss(GANLoss):
                     r_mu_sq,
                     r_spread,
                     r_q90,
-                    r_hmax,
+                    max(float(r_hmax), 0.85 * float(m_orph_obs)),
                     self.thermal_tau,
                     r_tail=r_tail,
                 )
@@ -426,6 +429,9 @@ class RGDTGANLoss(GANLoss):
                     inv_sqrt_b = 1.0 / math.sqrt(float(max(16, b_r)))
                     u_1d = min(1.0, max(0.0, (rec.rgdt_ema_residual - 1.52 * inv_sqrt_b) / max(0.73 * inv_sqrt_b, 1e-8)))
                     rec._step_scale = float(0.48 + 0.52 * (u_1d * u_1d * (3.0 - 2.0 * u_1d)))
+                elif not discrete_step and r_tail < 0.015 and rec.rgdt_ema_residual < 0.115:
+                    u_md = min(1.0, max(0.0, (0.115 - rec.rgdt_ema_residual) / 0.055))
+                    rec._step_scale = float(1.0 - 0.58 * (u_md * u_md * (3.0 - 2.0 * u_md)))
                 else:
                     rec._step_scale = 1.0
 

@@ -10,7 +10,7 @@
       "benchmark/shared": 6,
       "benchmark/smart_descent": 9,
       "benchmark/toy100": 21,
-      "benchmark/toy_audit": 96,
+      "benchmark/toy_audit": 97,
       "benchmark/transfer_suite": 88,
       "config/100gaussians": 4,
       "config/cifar_ddgan": 77,
@@ -40,7 +40,7 @@
       "experiment/toy": 3,
       "experiment/trajectory": 2,
       "experiment/transition": 7,
-      "forge_engine": 127,
+      "forge_engine": 128,
       "lrfree/feature-cells-cb64-ra": 4058,
       "report/atlas-explanation": 7,
       "report/behavioral_baseline": 32,
@@ -92,7 +92,7 @@
       "report/toy100/shared22": 201,
       "report/toy100/simpler22": 180,
       "report/toy100/torch214-gpu-check": 10,
-      "report/toy_audit": 608,
+      "report/toy_audit": 611,
       "report/trajectory": 167,
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
@@ -105,7 +105,7 @@
       "candidate_patch": 26,
       "configuration": 810,
       "driver": 405,
-      "engine_support": 127,
+      "engine_support": 128,
       "evaluator_or_audit": 324,
       "evidence_artifact": 1551,
       "frozen_candidate_implementation": 15,
@@ -113,19 +113,19 @@
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
       "narrative": 975,
-      "structured_evidence": 5069,
-      "support": 1560,
+      "structured_evidence": 5070,
+      "support": 1561,
       "support_artifact": 52,
       "visualization": 23,
-      "visualization_artifact": 763
+      "visualization_artifact": 765
     },
-    "files": 11850
+    "files": 11855
   },
   "coverage": {
-    "declared_count": 11850,
+    "declared_count": 11855,
     "missing": [],
     "stale": [],
-    "tracked_count": 11850,
+    "tracked_count": 11855,
     "unclassified": [],
     "valid": true
   },
@@ -1082,6 +1082,13 @@
       "family": "benchmark/toy_audit",
       "git_blob": "eefb6c44f4c90928c8f77a14b0334eba94b5cdce",
       "path": "benchmarks/toy_audit/api_sources/sprite.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/toy_audit",
+      "git_blob": "31ddc76210ab43391d094d17db119213db83f88b",
+      "path": "benchmarks/toy_audit/api_t3_isolation.py",
       "role": "support",
       "suggested_tiers": []
     },
@@ -7401,14 +7408,14 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "6c8aea4644eefa0e9e9dadb7bd8b1078e899d4a5",
+      "git_blob": "cc0a6b594903d948feea5f4271ead35c97256690",
       "path": "experiments/forge/adapters.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
     {
       "family": "forge_engine",
-      "git_blob": "eb98b4ecd009255ac0ad4ae5bf0cf6c7851d778b",
+      "git_blob": "758c3a70a75f9923c24cf3c72abe2983aa18ceba",
       "path": "experiments/forge/api.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7709,7 +7716,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "968a9d00dbc6df28cb06882911e4a5bdf6dc9c07",
+      "git_blob": "a1d03eb507f8a06c270d47f159e3ac1d5fc3a0b0",
       "path": "experiments/forge/hostprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8031,7 +8038,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "f1d1bd429e75ecc5eee035230cb6672a7f82a6f3",
+      "git_blob": "9c01465d6d5edef476c51c053b9dbe954f476e95",
       "path": "experiments/forge/sampling.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8124,6 +8131,13 @@
       "family": "forge_engine",
       "git_blob": "92f2d0676f61484fa27a1f3c6be2e75f367749de",
       "path": "experiments/forge/studies.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
+      "git_blob": "68f2134defa05fc00135f388f712f6f42b1fec43",
+      "path": "experiments/forge/t3_isolation.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
@@ -8241,7 +8255,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a89fc9a36818efdbc0860cc4160d57a7fefeb1b6",
+      "git_blob": "6ab89fe1bb834962db5bdf76b93c08648f654baf",
       "path": "experiments/forge/views.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -78308,6 +78322,27 @@
       "family": "report/toy_audit",
       "git_blob": "808ad4b6b3278fae06801e69ca39390f5dadc05c",
       "path": "reports/toy_audit/api_contract/software-validation.json",
+      "role": "structured_evidence",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "38322676a0667bf24fb489bd783fe9598c226e11",
+      "path": "reports/toy_audit/api_contract/t3_isolation/media/api-t3-iso-horizon-saddle-shift.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "80707c5774c12c9ecf037904865dd1d485385cff",
+      "path": "reports/toy_audit/api_contract/t3_isolation/media/api-t3-iso-scale-mass-8x.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "807e5890b615dfb4a89916eb2850f4bd96b30253",
+      "path": "reports/toy_audit/api_contract/t3_isolation/publication.json",
       "role": "structured_evidence",
       "suggested_tiers": []
     },

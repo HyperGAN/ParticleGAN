@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **201 tasks**; **163 assigned** to at least one view; **38 unassigned**. Showing **34/34 views**.
+Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **36/36 views**.
 
-Declared priors across the catalog: **91 MoGParticlePrior**, **110 ParticlePrior** (including **10 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -47,7 +47,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [dcgan_performance_cpu_smoke](../../configs/forge/views/dcgan_performance_cpu_smoke.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
-| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 18 | 11 required, 3 stretch, 2 diagnostic | 18 required, 5 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
+| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 19 | 11 required, 4 stretch, 2 diagnostic | 18 required, 6 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -65,6 +65,8 @@ This report follows changing declarations and published evidence; it selects no 
 | [recipe-prior-refactor-release07-gan-v3-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-release07-gan-v3-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [selected-family-coverage-diagnostic-v1](../../configs/forge/views/selected-family-coverage-diagnostic-v1.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [t3-shift-recovery-diagnostic-v1](../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json) | 1 | 5 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json) | 1 | 8 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json) | 1 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json) | 1 | 7 required | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [vaegan_coverage](../../configs/forge/views/vaegan_coverage.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -652,7 +654,7 @@ No tasks assigned.
 
 ## discriminator_stability
 
-Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 18; goal: `discriminator_stability`.
+Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 19; goal: `discriminator_stability`.
 
 Declared calibration status: **provisional**.
 
@@ -664,7 +666,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 1: smoke
 
-11 required, 3 stretch, 2 diagnostic.
+11 required, 4 stretch, 2 diagnostic.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -684,10 +686,11 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [precision_gaussian_mxfp8](../../configs/forge/tasks/precision_gaussian_mxfp8.json) | [stretch: frontier stretch benchmark beyond the required suite](precision-stretch/README.md#precision-stretch) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-precision-gaussian) | transfer_vector / transfer_sustained | 1000 | 300 | — |
 | [precision_gaussian_nvfp4](../../configs/forge/tasks/precision_gaussian_nvfp4.json) | [stretch: frontier stretch benchmark beyond the required suite](precision-stretch/README.md#precision-stretch) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-precision-gaussian) | transfer_vector / transfer_sustained | 1000 | 300 | — |
 | [interp_sparse_arc](../../configs/forge/tasks/interp_sparse_arc.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_sparse_arc) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-sparse-arc) | particle_interpolation / interp_sparse_arc | 600 | 300 | — |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
 
 ### Tier 2: quality
 
-18 required, 5 stretch, 7 held.
+18 required, 6 stretch, 7 held.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -718,6 +721,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [model_ddgan_bimodal_chain](../../configs/forge/tasks/model_ddgan_bimodal_chain.json) | required | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-bimodal-chain) | public_api_model_toy / transfer_sustained | 5000 | 600 | [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) (gate) |
 | [interp_img_patch_shift](../../configs/forge/tasks/interp_img_patch_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_img_patch_shift) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-img-patch-shift) | particle_interpolation / interp_img_patch_shift | 800 | 300 | — |
 | [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_saddle_barycentric) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
 | [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
 | [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
 | [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
@@ -1703,6 +1707,90 @@ No published solution leaderboard for this view yet; task registration and relat
 | [target_shift_recovery](../../configs/forge/tasks/target_shift_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | paired_adaptation / paired_adaptation | 3600 | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate) |
 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
 | [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t3_causal_isolation_stretch
+
+Declaration: [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Two Theory-1-free, Theory-2-verified causal isolation stretch probes do not establish whole-suite screen calibration or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+2 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t3_factorial_ablation
+
+Declaration: [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Bounded 8-task factorial ablation isolating RGDT Pillars 1-3 does not establish whole-suite qualification or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+8 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+| [vector_unequal_width](../../configs/forge/tasks/vector_unequal_width.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-width) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [vector_unequal_mass](../../configs/forge/tasks/vector_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-mass) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [vector_anisotropic](../../configs/forge/tasks/vector_anisotropic.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-anisotropic) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
+| [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 600 | — |
+| [model_ae_ddgan_gaussian_chain](../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ae-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 180 | — |
 
 ### Tier 2: quality
 
@@ -5626,6 +5714,86 @@ Related public-API demonstrations, with their own recorded contracts:
 | --- | --- | --- | --- | --- | --- |
 | [api-staggered100](../toy_audit/api_contract/media/api-staggered100.gif) | Recover all 100 equal-weight Gaussian modes, their mass and local width, including independent density-fidelity bounds. Scope: A per-observation gate is not full-budget or sustained convergence; no historical verdict is replaced. | ParticlePrior (sigma=0) | COMPLETE / PASS; 7000/7000 updates | atlas / cpu / d9d51eff83a2 | [definition](../toy_audit/api_contract/cases.json); [readout](../toy_audit/api_contract/readout.json); [recipe and provenance](../toy_audit/api_contract/runs.json) |
 
+### Experiment: t3-iso-horizon-saddle-shift
+
+Eliminate Theory-1 continuous generator topology (G=nn.Identity(), direct 128-particle zero-sigma cloud) and verify Theory-2 critic smoothness (critic_grad_med <= 1.0) across a step-300 2->4 equidistant orthogonal mode expansion in R^4 (+-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2), sigma=0.05, 42.4-sigma valley) with a paired step-300 frozen control.
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t3-third-piece-proof.md).
+
+Forge declarations: [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json).
+
+Declared Forge numerical gates and sampling:
+
+[t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| pre_shift_hq | >= 0.92 |
+| modes | == 4 |
+| mass_tv | <= 0.12 |
+| hq | >= 0.92 |
+| frozen_control_modes | == 2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | learned_particles_and_critic_gradient |
+| Scoring weights | live |
+| Evaluation output noise | not_applied_to_measurement |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-t3-iso-horizon-saddle-shift](../toy_audit/api_contract/t3_isolation/media/api-t3-iso-horizon-saddle-shift.gif) | Transport 128 direct data-space zero-sigma ParticlePrior locations (G=nn.Identity(), 0 generator parameters) with a smooth SiLU critic (critic_grad_med <= 1.0) across a step-300 2->4 equidistant orthogonal mode expansion in R^4 (+-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2), sigma=0.05, 42.4-sigma valley) with a paired step-300 frozen control. Scope: Public API stretch variant: Theory-1-free (G=nn.Identity) & Theory-2-verified (critic_grad_med<=1.0) beyond-horizon equidistant saddle shift | ParticlePrior (sigma=0) | COMPLETE / PASS; 1000/1000 updates | rgdt / NVIDIA RTX A6000 / 1c77eada9413 | [definition](../toy_audit/api_contract/t3_isolation/publication.json); [readout](../toy_audit/api_contract/t3_isolation/publication.json); [recipe and provenance](../toy_audit/api_contract/t3_isolation/publication.json) |
+
+### Experiment: t3-iso-scale-mass-8x
+
+Eliminate Theory-1 continuous generator topology (G=nn.Identity(), direct 512-particle zero-sigma cloud) and verify Theory-2 critic smoothness (critic_grad_med <= 1.0) on a 4-mode R^2 Gaussian mixture with 8x width disparity (sigma=[0.04,0.08,0.16,0.32]) and 6x unequal mode weights (pi=[0.48,0.26,0.18,0.08]).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t3-third-piece-proof.md).
+
+Forge declarations: [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json).
+
+Declared Forge numerical gates and sampling:
+
+[t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| modes | == 4 |
+| mass_tv | <= 0.1 |
+| hq | >= 0.94 |
+| core_component_covariance_error | <= 0.45 |
+| core_min_eigen_ratio | >= 0.45 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | learned_particles_and_critic_gradient |
+| Scoring weights | live |
+| Evaluation output noise | not_applied_to_measurement |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-t3-iso-scale-mass-8x](../toy_audit/api_contract/t3_isolation/media/api-t3-iso-scale-mass-8x.gif) | Transport 512 direct data-space zero-sigma ParticlePrior locations (G=nn.Identity(), 0 generator parameters) with a smooth SiLU critic (critic_grad_med <= 1.0) onto a 4-mode R^2 Gaussian mixture with 8x width disparity sigma=[0.04,0.08,0.16,0.32] and 6x mass disparity pi=[0.48,0.26,0.18,0.08]. Scope: Public API stretch variant: Theory-1-free (G=nn.Identity) & Theory-2-verified (critic_grad_med<=1.0) heteroscedastic scale-mass isolation | ParticlePrior (sigma=0) | COMPLETE / PASS; 800/800 updates | rgdt / NVIDIA RTX A6000 / 1c77eada9413 | [definition](../toy_audit/api_contract/t3_isolation/publication.json); [readout](../toy_audit/api_contract/t3_isolation/publication.json); [recipe and provenance](../toy_audit/api_contract/t3_isolation/publication.json) |
+
 ### Experiment: trajectory
 
 Checks the extracted trajectory edit while preserving identity in finite paired rows.
@@ -6651,6 +6819,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `4bab197f1ade758b94696eb655f6578e4d20df3168466a9a9341a6d7b39295fa`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `2ad777be8b05fafdb4b1ead76e49c3f0a260cb990a92d2f60b13b472ac5fd970`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `2b308d2bfbaab0d64978418919ea39f66f98cfef878a0dd57498e7eaed1983f9`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `936a91645c822fdb5dfe4544356d805985a141757d40989152ef678867e8b1b5`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

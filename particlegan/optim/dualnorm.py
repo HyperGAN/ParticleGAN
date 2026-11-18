@@ -735,12 +735,18 @@ class NormalizedOptimizer(Optimizer):
         unified_rec = getattr(self, "_unified_record", None)
         if unified_rec is not None:
             # Symmetric G + D conditional equilibrium damping for unified (prevents critic overdrive on t1_q0):
+            rgdt_th_damp = 1.0
             rgdt_step_scale = float(getattr(unified_rec, "_step_scale", 1.0))
         else:
             rgdt_rec = getattr(self, "_rgdt_record", None)
+            rgdt_th = float(getattr(rgdt_rec, "_thermal_scale", 1.0))
+            has_enc_role = getattr(self, "critic", None) is None and any(
+                g.get("role") == "encoder" for g in self.param_groups
+            )
+            rgdt_th_damp = rgdt_th if (has_enc_role and rgdt_th < 1.0) else 1.0
             rgdt_step_scale = (
-                float(getattr(rgdt_rec, "_step_scale", 1.0))
-                if getattr(self, "critic", None) is None
+                float(getattr(rgdt_rec, "_step_scale", 1.0)) * rgdt_th_damp
+                if (getattr(self, "critic", None) is None or getattr(rgdt_rec, "rgdt_cond_initialized", False))
                 else 1.0
             )
         rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
@@ -1000,7 +1006,17 @@ class NormalizedOptimizer(Optimizer):
                         param.add_(dev_upd[u_off:u_off + numel].view_as(param), alpha=-scaled_rate)
                         u_off += numel
         if self._adam is not None:
-            self._adam.step()
+            if rgdt_th_damp < 1.0:
+                saved_lrs = [ag["lr"] for ag in self._adam.param_groups]
+                for ag in self._adam.param_groups:
+                    ag["lr"] = ag["lr"] * rgdt_th_damp
+                try:
+                    self._adam.step()
+                finally:
+                    for ag, lr0 in zip(self._adam.param_groups, saved_lrs):
+                        ag["lr"] = lr0
+            else:
+                self._adam.step()
         self.clear_sampled_rows()
         self._origin_norm = None
         if t1c_deconflict_blend > 0.0:

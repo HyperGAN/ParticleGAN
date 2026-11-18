@@ -170,7 +170,7 @@ Complete current Tier 1 measurement in: discriminator_stability. PASS and FAIL a
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](rhbi.md#cohort-cuda-23a94f16ca88-adaptation) | [3/3](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-1) | [9/12](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) | [0/1 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-4) | [12/16 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-adaptation) | [5/7](rhbi.md#cohort-cuda-23a94f16ca88-held) |
 | [clockfree_continuous](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous) | [4/4](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-1) | [9/12](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) | [0/6 (6 not run)](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-4) | [13/22 (6 not run)](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous) | [5/7](rhbi.md#cohort-cuda-23a94f16ca88-held) |
-| [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [11/11](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | [11/18 (2 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | [0/1 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-4) | [22/30 (3 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [10/31 (3 not run, 16 incompatible)](rhbi.md#cohort-cuda-23a94f16ca88-held) |
+| [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [11/11](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | [11/18 (2 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | [0/1 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-4) | [22/30 (3 not run)](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [10/33 (5 not run, 16 incompatible)](rhbi.md#cohort-cuda-23a94f16ca88-held) |
 | [formulation_comparison](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison) | [3/3](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-1) | [9/12](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) | [0/1 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-4) | [12/16 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison) | [5/7](rhbi.md#cohort-cuda-23a94f16ca88-held) |
 | [host_profile_transfer](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer) | [3/3](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-1) | [9/12](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) | [0/1 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-4) | [12/16 (1 not run)](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer) | [5/7](rhbi.md#cohort-cuda-23a94f16ca88-held) |
 | [quality_coverage](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage) | [3/3](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-1) | [9/12](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-3) | [0/0](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-4) | [12/15](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage) | [5/7](rhbi.md#cohort-cuda-23a94f16ca88-held) |
@@ -212,6 +212,7 @@ Held at this tier (measured and shown, not counted):
 | [interp_sparse_arc](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_sparse_arc) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | matches recorded run |
 | [precision_gaussian_mxfp8](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_mxfp8) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_nvfp4) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-23a94f16ca88-tier-2"></a>
 
@@ -252,6 +253,7 @@ Held at this tier (measured and shown, not counted):
 | [nash_overpowered_critic_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [nash_overpowered_generator_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [nash_unequal_width_hostile_imbalance](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [t3_iso_horizon_saddle_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [vector_anisotropic](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) | [adaptation](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_overlap](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_overlap) | [adaptation](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_unequal_mass](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | [adaptation](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | matches recorded run |
@@ -324,6 +326,7 @@ These tests keep running and keep this recipe's recorded result, but they do not
 | [interp_sparse_arc](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_sparse_arc) | [discriminator_stability / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping? | Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass. |
 | [precision_gaussian_mxfp8](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_mxfp8) | [discriminator_stability / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [precision_gaussian_nvfp4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_nvfp4) | [discriminator_stability / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | PASS | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
+| [t3_iso_scale_mass_8x](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) | [discriminator_stability / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | Can a generator-free (G=nn.Identity) zero-sigma ParticlePrior with a smooth critic (grad_med<=1.0) resolve 8x mode-width and 6x mode-mass disparity without collapsing broad-mode eigenvalues? | Consider counted status only after independent calibration and one global recipe that passes heteroscedastic scale-mass isolation while retaining every counted pass. |
 | [img_bars4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-img_bars4) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_bars4) | Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_blobs4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-img_blobs4) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_blobs4) | Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_intensity2](rhbi.md#cohort-cuda-23a94f16ca88-experiment-img_intensity2) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
@@ -332,6 +335,7 @@ These tests keep running and keep this recipe's recorded result, but they do not
 | [nash_overpowered_critic_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | Can one global recipe recover all 16 equal-mass Gaussian ring modes under >600x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and -30-logit hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes severe D>>G hostile-init ring recovery while retaining every counted pass. |
 | [nash_overpowered_generator_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | Can one global recipe recover all 16 equal-mass Gaussian ring modes under >540x generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-2 0.25x-gain critic) and hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes severe G>>D hostile-init ring recovery while retaining every counted pass. |
 | [nash_unequal_width_hostile_imbalance](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | Can one global recipe recover all 4 heteroscedastic unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and core covariances under >600x critic overcapacity and hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes unequal-width hostile-imbalance recovery while retaining every counted pass. |
+| [t3_iso_horizon_saddle_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | Can a generator-free (G=nn.Identity) zero-sigma ParticlePrior with a smooth critic (grad_med<=1.0) split cleanly across a step-300 42.4-sigma equidistant orthogonal mode shift in R^4? | Consider counted status only after independent calibration and one global recipe that passes beyond-horizon orthogonal saddle shift while retaining every counted pass. |
 | [vector_anisotropic](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_overlap](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_overlap) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_unequal_mass](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | PASS | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together. |
@@ -860,9 +864,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 18**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 19**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 12 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **4 / 13 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -888,6 +892,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [precision_gaussian_mxfp8](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
 | [interp_sparse_arc](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-23a94f16ca88-discriminator_stability-tier-2"></a>
 
@@ -922,6 +927,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [model_ddgan_bimodal_chain](rhbi.md#cohort-cuda-23a94f16ca88-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
 | [interp_img_patch_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | PASS | matches recorded run |
 | [interp_saddle_barycentric](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | PASS | matches recorded run |
+| [t3_iso_horizon_saddle_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | UNKNOWN | recorded definition unavailable |
 | [nash_overpowered_critic_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | UNKNOWN | recorded definition unavailable |
 | [nash_overpowered_generator_ring16](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | UNKNOWN | recorded definition unavailable |
 | [nash_unequal_width_hostile_imbalance](rhbi.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | UNKNOWN | recorded definition unavailable |
@@ -1767,6 +1773,86 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-23a94f16ca88-t3-shift-recovery-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch"></a>
+
+## t3_causal_isolation_stretch
+
+**t3_causal_isolation_stretch — revision 1**. [View declaration](../../../configs/forge/views/t3_causal_isolation_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two Theory-1-free, Theory-2-verified causal isolation stretch probes do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [t3_iso_horizon_saddle_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_factorial_ablation"></a>
+
+## t3_factorial_ablation
+
+**t3_factorial_ablation — revision 1**. [View declaration](../../../configs/forge/views/t3_factorial_ablation.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT Pillars 1-3 does not establish whole-suite qualification or default adoption.
+
+<a name="cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [t3_iso_horizon_saddle_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [vector_unequal_width](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_width) | diagnostic | FAIL | matches recorded run |
+| [vector_unequal_mass](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
+| [vector_anisotropic](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) | diagnostic | PASS | matches recorded run |
+| [img_bars4](rhbi.md#cohort-cuda-23a94f16ca88-experiment-img_bars4) | diagnostic | FAIL | matches recorded run |
+| [model_ddgan_gaussian_chain](rhbi.md#cohort-cuda-23a94f16ca88-experiment-model_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](rhbi.md#cohort-cuda-23a94f16ca88-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+
+<a name="cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-4"></a>
 
 ### Tier 4
 
@@ -3121,7 +3207,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -3909,7 +3995,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -4201,7 +4287,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -5274,6 +5360,72 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+<a name="cohort-cuda-23a94f16ca88-experiment-t3_iso_horizon_saddle_shift"></a>
+
+### t3_iso_horizon_saddle_shift
+
+**t3_iso_horizon_saddle_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [t3_causal_isolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| pre_shift_hq | >= 0.92 |
+| modes | == 4 |
+| mass_tv | <= 0.12 |
+| hq | >= 0.92 |
+| frozen_control_modes | == 2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1000 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
+
+[Explanation and existing training artifacts](../studies/t3-third-piece-proof.md)
+
+<a name="cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x"></a>
+
+### t3_iso_scale_mass_8x
+
+**t3_iso_scale_mass_8x: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_scale_mass_8x.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) · [t3_causal_isolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| modes | == 4 |
+| mass_tv | <= 0.1 |
+| hq | >= 0.94 |
+| core_component_covariance_error | <= 0.45 |
+| core_min_eigen_ratio | >= 0.45 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 300 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
+
+[Explanation and existing training artifacts](../studies/t3-third-piece-proof.md)
+
 <a name="cohort-cuda-23a94f16ca88-experiment-target_shift_recovery"></a>
 
 ### target_shift_recovery
@@ -5581,7 +5733,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -5865,7 +6017,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -5942,7 +6094,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 

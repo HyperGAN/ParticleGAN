@@ -522,3 +522,64 @@ torch.save({{"state": trainer.state_dict(), "sample": sample}}, {str(out_path)!r
     resumed = torch.load(out_path, map_location="cpu", weights_only=True)
     assert torch.equal(ref_sample, resumed["sample"])
     assert state_digest(ref_state) == state_digest(resumed["state"])
+
+
+def test_bipartite_macro_poisson_zero_draw_rare_mode_invariance() -> None:
+    """Rare (< 3/B_f) modes experiencing Poisson 0-fake-draws do not trigger false orphan routing."""
+    g = torch.Generator().manual_seed(17)
+    centers = torch.tensor([[-3.0, -3.0], [-3.0, 3.0], [3.0, -3.0], [3.0, 3.0]])
+    y_real = torch.cat(
+        [
+            centers[0] + 0.10 * torch.randn(64, 2, generator=g),
+            centers[1] + 0.10 * torch.randn(38, 2, generator=g),
+            centers[2] + 0.10 * torch.randn(23, 2, generator=g),
+            centers[3] + 0.10 * torch.randn(3, 2, generator=g),
+        ],
+        dim=0,
+    )
+    x_fake = torch.cat(
+        [
+            centers[0] + 0.10 * torch.randn(65, 2, generator=g),
+            centers[1] + 0.10 * torch.randn(40, 2, generator=g),
+            centers[2] + 0.10 * torch.randn(23, 2, generator=g),
+        ],
+        dim=0,
+    ).clone().requires_grad_(True)
+    ell = torch.tensor(0.08)
+    _, c_hat = born_infeld_pair(x_fake, y_real, ell)
+    zeros = torch.zeros(128)
+    P_xy = sinkhorn_slack(c_hat, zeros, zeros, rho=3.0)
+    loss_rare = bipartite_deficit_macro_loss(
+        x_fake, y_real, c_hat, P_xy[:128, 128], P_xy[128, :128], rho=3.0, discrete_step=False
+    )
+    assert float(loss_rare.item()) == 0.0
+    grad_rare = torch.autograd.grad(loss_rare, x_fake, allow_unused=True)[0]
+    assert grad_rare is None or float(grad_rare.abs().max().item()) == 0.0
+
+
+def test_conformal_horizon_valley_capped_voronoi_bandwidth_protects_rare_pair() -> None:
+    """2-sample rare narrow mode stays decoupled from a 62-sample broad mode across an empty valley."""
+    g = torch.Generator().manual_seed(29)
+    y_broad = torch.tensor([-3.0, 0.0]) + 0.65 * torch.randn(62, 2, generator=g)
+    y_rare = torch.tensor([3.0, 0.0]) + 0.06 * torch.randn(2, 2, generator=g)
+    y_real = torch.cat([y_broad, y_rare], dim=0)
+    ell_scalar = torch.tensor(0.25)
+    ell_xy, ell_xx, ok = conformal_horizon_pair(y_real, y_real, ell_scalar, enabled=True)
+    assert ok is True
+    assert torch.allclose(ell_xy, ell_xx, atol=1e-7)
+    rare_diag = float(ell_xy[-2:, -2:].diagonal().mean().item())
+    broad_diag = float(ell_xy[:62, :62].diagonal().mean().item())
+    assert rare_diag < 0.75 * broad_diag
+
+
+def test_rgdt_thermal_hausdorff_shock_reopens_zero_mean_orthogonal_shift() -> None:
+    """Zero-mean orthogonal mode expansion (r_hmax > 0.45) immediately reopens cooled _thermal_scale."""
+    from particlegan.t3_dynamics import RGDTStepRecord
+
+    rec = RGDTStepRecord()
+    rec.observe_rgdt_thermal(0.5, 0.2, 0.0, 0.3, 0.3, 0.080)
+    for _ in range(200):
+        rec.observe_rgdt_thermal(0.0, 0.0, 0.0, 0.0, 0.0, 0.080)
+    assert rec._thermal_scale < 1e-4
+    reopened = rec.observe_rgdt_thermal(0.15, 0.0, -0.04, 0.0, 0.85, 0.080)
+    assert reopened == 1.0
