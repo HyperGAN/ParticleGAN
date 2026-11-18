@@ -100,6 +100,14 @@ from .t3_dynamics import (
     RGDTStepRecord,
     bind_rgdt_record,
 )
+from .unified import (
+    UnifiedCriticAdam,
+    UnifiedCriticPenalty,
+    UnifiedGANLoss,
+    UnifiedPriorRegularizer,
+    UnifiedStepRecord,
+    bind_unified_record,
+)
 from . import init
 
 __all__ = [
@@ -123,6 +131,7 @@ __all__ = [
     "T1CouplingCriticAdam", "T1CouplingCriticPenalty", "T1CouplingGANLoss", "T1CouplingLoss", "T1CouplingStepRecord", "bind_t1_coupling_record",
     "T2SecantCriticAdam", "T2SecantCriticPenalty", "T2SecantGANLoss", "T2SecantStepRecord", "bind_t2_record",
     "RGDTCriticAdam", "RGDTCriticPenalty", "RGDTGANLoss", "RGDTPriorRegularizer", "RGDTStepRecord", "bind_rgdt_record",
+    "UnifiedCriticAdam", "UnifiedCriticPenalty", "UnifiedGANLoss", "UnifiedPriorRegularizer", "UnifiedStepRecord", "bind_unified_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
