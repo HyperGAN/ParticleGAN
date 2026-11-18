@@ -230,30 +230,35 @@ def conformal_horizon_pair(
     d2 = knn_d[:, min(1, k_loc - 1)].clamp_min(1e-6)
     dk = knn_d[:, -1].clamp_min(1e-6)
 
-    # Valley cap prevents bridging empty inter-mode valleys; d2 jump cap protects rare (2%) modes.
-    y_mid = 0.5 * (yu + yu.roll(1, dims=0))
+    # Permutation-equivariant antipodal midpoint valley cap prevents bridging empty inter-mode
+    # valleys even under extreme mass skew (e.g. 2% rare modes or ordered batches):
+    k_far = min(b_r - 1, 2)
+    j_far = torch.topk(d_yy, k=k_far, dim=-1, largest=True).indices[:, -1]
+    y_mid = 0.5 * (yu + yu[j_far])
     d_my = torch.cdist(y_mid, yu, p=2.0, compute_mode="donot_use_mm_for_euclid_dist") * scale
     idx = torch.arange(b_r, device=yf.device)
     d_my[idx, idx] = float("inf")
-    d_my[idx, (idx - 1) % b_r] = float("inf")
-    valley_q75 = torch.quantile(d_my.amin(dim=-1), 0.75)
+    d_my[idx, j_far] = float("inf")
+    valley_q85 = torch.quantile(d_my.amin(dim=-1), 0.85)
     med_d1 = torch.quantile(d1, 0.50)
-    valley_cap = torch.where(valley_q75 > 3.0 * med_d1, 0.28 * valley_q75, dk.amax() * 2.0)
-    jump_cap = 3.2 * torch.minimum(d2, valley_cap)
+    valley_cap = torch.where(valley_q85 > 3.0 * med_d1, 0.28 * valley_q85, dk.amax() * 2.0)
+    jump_cap = torch.where(d2 > valley_cap, 2.2 * d1, 3.2 * d2)
     ell_raw = (0.55 * torch.minimum(dk, torch.minimum(jump_cap, valley_cap))).clamp_min(0.45 * ell_base)
 
     # Evaluate the exact same smooth Euclidean-Voronoi kernel field ell_Y(u) on y_real and x_fake:
-    # Using row-local k=3 distance h_Y(u) keeps softmax weights strictly monotone in Euclidean
-    # distance ||u - y_j|| (preventing broad modes from hijacking narrow Voronoi basins) while
-    # preserving bit-for-bit X == Y symmetry.
+    # Using row-local k=3 distance h_Y(u) capped by valley_cap keeps softmax weights strictly
+    # monotone in ||u - y_j|| without bleeding across empty valleys on 2-sample rare modes.
     d_yy.fill_diagonal_(0.0)
     k_bw = min(3, b_r)
-    h_y = (0.45 * torch.topk(d_yy, k=k_bw, dim=-1, largest=False).values[:, -1] + 0.35 * ell_base).clamp_min(1e-6)
+    bw_cap = 1.6 * valley_cap
+    bw_y = torch.minimum(torch.topk(d_yy, k=k_bw, dim=-1, largest=False).values[:, -1], bw_cap)
+    h_y = (0.45 * bw_y + 0.35 * ell_base).clamp_min(1e-6)
     w_yy = torch.softmax(-d_yy / h_y.unsqueeze(1), dim=1)
     ell_y = (w_yy @ ell_raw).clamp_min(1e-6)
 
     d_xy = torch.cdist(xu, yu, p=2.0, compute_mode="donot_use_mm_for_euclid_dist") * scale
-    h_x = (0.45 * torch.topk(d_xy, k=k_bw, dim=-1, largest=False).values[:, -1] + 0.35 * ell_base).clamp_min(1e-6)
+    bw_x = torch.minimum(torch.topk(d_xy, k=k_bw, dim=-1, largest=False).values[:, -1], bw_cap)
+    h_x = (0.45 * bw_x + 0.35 * ell_base).clamp_min(1e-6)
     w_xy = torch.softmax(-d_xy / h_x.unsqueeze(1), dim=1)
     ell_x = (w_xy @ ell_raw).clamp_min(1e-6)
 
@@ -329,58 +334,102 @@ def bipartite_deficit_macro_loss(
     g_conn: float = 0.0,
     cond_fake: Optional[torch.Tensor] = None,
     cond_real: Optional[torch.Tensor] = None,
+    discrete_step: bool = False,
     return_explorer_mask: bool = False,
+    return_orphan_mass: bool = False,
 ) -> Any:
-    """Orphan-gated surplus-partitioned bipartite Monge deficit-to-surplus macro-transport.
+    """Orphan- & Poisson-deficit-gated bipartite Monge macro-transport.
 
-    Couples ONLY the ``K = round(B_f * m_orphan)`` most-crowded/surplus fake explorer
-    rows to genuinely uncovered real orphan columns whose nearest fake neighbor exceeds
-    ``2.8 * rho`` (never firing on 3-sigma tails of populated modes or connected curves),
-    releasing explorer rows from microscopic anchors so 3/4 -> 4/4 mode splits succeed
-    without tug-of-war deadlock.
+    Couples the ``K = round(B_f * m_orphan)`` most-crowded/surplus/in-flight fake
+    explorer rows to genuinely uncovered real orphan columns (``min_i c_hat > 2.8 * rho``)
+    and disconnected multimodal basins with statistically significant mass deficit
+    above the multinomial Poisson floor, using strided quantile projection onto
+    principal-axis-ordered columns so equidistant saddles split cleanly without
+    step-to-step phase oscillation or Poisson shot-noise drift.
     """
     b_f = x_fake.shape[0]
     b_r = y_real.shape[0]
     zero = x_fake[:0].sum()
     if b_f < 2 or b_r < 2 or g_conn > 0.05 or cond_fake is not None or cond_real is not None:
+        if return_orphan_mass:
+            return (zero, None, 0.0) if return_explorer_mask else (zero, 0.0)
         return (zero, None) if return_explorer_mask else zero
 
     with torch.no_grad():
         c_f = c_hat_xy.detach().float()
         col_min_c = c_f.amin(dim=0)
         u_orph = ((col_min_c - 2.80 * float(rho)) / max(1.20 * float(rho), 1e-6)).clamp(0.0, 1.0)
-        g_orph = u_orph * u_orph * (3.0 - 2.0 * u_orph)
+        g_prox = u_orph * u_orph * (3.0 - 2.0 * u_orph)
+
+        xf = x_fake.detach().reshape(b_f, -1).float()
+        yf = y_real.detach().reshape(b_r, -1).float()
+        scale = torch.maximum(xf.abs().amax(), yf.abs().amax()).clamp_min(1.0)
+        d_xy = torch.cdist(xf / scale, yf / scale, p=2.0) * scale
+
+        g_orph = g_prox
+        if b_r >= 8 and b_f >= 8:
+            yu = yf / scale
+            d_yy = torch.cdist(yu, yu, p=2.0) * scale
+            d_yy_inf = d_yy.clone()
+            d_yy_inf.fill_diagonal_(float("inf"))
+            med_d1 = torch.quantile(d_yy_inf.amin(dim=1), 0.50).clamp_min(1e-6)
+            k_far_m = min(b_r - 1, 2)
+            j_far_m = torch.topk(d_yy, k=k_far_m, dim=-1, largest=True).indices[:, -1]
+            y_mid = 0.5 * (yu + yu[j_far_m])
+            d_my = torch.cdist(y_mid, yu, p=2.0) * scale
+            idx_r = torch.arange(b_r, device=yf.device)
+            d_my[idx_r, idx_r] = float("inf")
+            d_my[idx_r, j_far_m] = float("inf")
+            valley_q85 = torch.quantile(d_my.amin(dim=1), 0.85)
+            u_val = ((valley_q85 / med_d1 - 3.20) / 1.80).clamp(0.0, 1.0)
+            w_val = float((u_val * u_val * (3.0 - 2.0 * u_val)).item())
+            if w_val > 1e-4:
+                h_bas = (0.38 * valley_q85).clamp_min(1e-4)
+                a_yy = torch.exp(-0.5 * (d_yy / h_bas).square())
+                pi_y = (a_yy.mean(dim=1)).clamp(1e-4, 1.0)
+                a_xy = torch.exp(-0.5 * (d_xy / h_bas).square())
+                pi_x = a_xy.mean(dim=0)
+                # Reject Poisson zero-draw false orphans (< 4.2/B_f) and already-populated basins (pi_x/pi_y >= 0.45):
+                u_zd = ((float(b_f) * pi_y - 4.2) / 2.3).clamp(0.0, 1.0)
+                s_zd = u_zd * u_zd * (3.0 - 2.0 * u_zd)
+                u_starv = ((0.45 - pi_x / pi_y) / 0.20).clamp(0.0, 1.0)
+                s_starv = u_starv * u_starv * (3.0 - 2.0 * u_starv)
+                g_orph = g_prox * ((1.0 - w_val) + w_val * s_zd * s_starv)
 
         s_col = (float(b_r) * p_col_slack.detach().float()).clamp(0.0, 1.0)
         q_raw = s_col * g_orph
         m_orphan = q_raw.mean()
         m_orph_val = float(m_orphan.item())
         if m_orph_val <= 1e-4:
+            if return_orphan_mass:
+                return (zero, None, 0.0) if return_explorer_mask else (zero, 0.0)
             return (zero, None) if return_explorer_mask else zero
 
         s_row = (float(b_f) * p_row_slack.detach().float()).clamp(0.0, 1.0)
-        xf = x_fake.detach().reshape(b_f, -1).float()
-        yf = y_real.detach().reshape(b_r, -1).float()
-        scale = torch.maximum(xf.abs().amax(), yf.abs().amax()).clamp_min(1.0)
-        d_xy = torch.cdist(xf / scale, yf / scale, p=2.0) * scale
         med_d = torch.quantile(d_xy.reshape(-1), 0.50).clamp_min(1e-4)
         ell_macro = (0.25 * med_d).clamp_min(1e-5)
 
-        d_xx = torch.cdist(xf / scale, xf / scale, p=2.0) * scale
-        d_xx.fill_diagonal_(float("inf"))
-        nn_xx = d_xx.amin(dim=1)
         idx_f = torch.arange(b_f, device=x_fake.device, dtype=torch.float32)
-        weyl_tie = 1e-4 * torch.remainder((idx_f + 0.5) * _PHI1 + float(phase), 1.0)
+        det_tie = 1e-4 * torch.remainder((idx_f + 0.5) * _PHI1, 1.0)
 
         if m_orph_val >= 0.85:
             k_exp = b_f
             exp_idx = torch.arange(b_f, device=x_fake.device, dtype=torch.long)
             explorer_mask = torch.ones(b_f, device=x_fake.device, dtype=x_fake.dtype)
         else:
-            k_exp = max(1, min(b_f - 1, int(round(float(b_f) * m_orph_val))))
-            # Surplus slack rows go first; among anchored rows, most-crowded duplicates go first:
-            score = s_row - 0.25 * (nn_xx / med_d).clamp_max(4.0) + weyl_tie
-            exp_idx = torch.topk(score, k=k_exp, largest=True).indices
+            k_exp = min(b_f - 1, int(round(float(b_f) * m_orph_val)))
+            if k_exp < 1:
+                if return_orphan_mass:
+                    return (zero, None, 0.0) if return_explorer_mask else (zero, 0.0)
+                return (zero, None) if return_explorer_mask else zero
+            orph_active = (g_orph > 0.05).float()
+            if bool((orph_active > 0.0).any()):
+                d_orph_min = (d_xy + (1.0 - orph_active).unsqueeze(0) * (1e6 * med_d)).amin(dim=1)
+            else:
+                d_orph_min = d_xy.amin(dim=1)
+            score = 1.50 * s_row - 0.65 * (d_orph_min / med_d).clamp_max(4.0) + det_tie
+            raw_exp = torch.topk(score, k=k_exp, largest=True).indices
+            exp_idx = torch.sort(raw_exp).values
             explorer_mask = torch.zeros(b_f, device=x_fake.device, dtype=x_fake.dtype)
             explorer_mask[exp_idx] = 1.0
 
@@ -388,13 +437,27 @@ def bipartite_deficit_macro_loss(
         q_marg = q_raw + 1e-7
         q_marg = q_marg / q_marg.sum().clamp_min(1e-12)
 
-        cost_norm = d_xy[exp_idx] / med_d
-        L_mac = -cost_norm / 0.06
+        if yf.shape[1] >= 2 and b_r >= 2:
+            y_mean_c = (q_marg.unsqueeze(1) * yf).sum(dim=0, keepdim=True)
+            yc_c = (yf - y_mean_c) * q_marg.sqrt().unsqueeze(1)
+            _, evecs_c = torch.linalg.eigh((yc_c.T @ yc_c).double())
+            axis_c = evecs_c[:, -1].float()
+            nz_mask = axis_c.abs() > 1e-6
+            if bool(nz_mask.any()):
+                first_nz = axis_c[torch.nonzero(nz_mask, as_tuple=False)[0, 0]]
+                axis_c = torch.where(first_nz < 0, -axis_c, axis_c)
+            col_order = torch.argsort(yf @ axis_c)
+        else:
+            col_order = torch.argsort(yf[:, 0])
+        q_ord = q_marg[col_order]
+
+        cost_norm = d_xy[exp_idx][:, col_order] / med_d
+        L_mac = -cost_norm / 0.03
         log_p = p_marg.log()
-        log_q = q_marg.clamp_min(1e-12).log()
+        log_q = q_ord.clamp_min(1e-12).log()
         u = torch.zeros_like(log_p)
         v = torch.zeros_like(log_q)
-        for _ in range(8):
+        for _ in range(10):
             v = log_q - torch.logsumexp(L_mac + u.unsqueeze(1), dim=0)
             u = log_p - torch.logsumexp(L_mac + v.unsqueeze(0), dim=1)
         pi_mac = torch.exp(L_mac + u.unsqueeze(1) + v.unsqueeze(0))
@@ -402,13 +465,17 @@ def bipartite_deficit_macro_loss(
         row_cond = pi_mac / pi_mac.sum(dim=1, keepdim=True).clamp_min(1e-12)
         cdf = torch.cumsum(row_cond, dim=1)
         cdf[:, -1] = 1.0
-        idx_e = torch.arange(k_exp, device=x_fake.device, dtype=torch.float32)
-        q_u = torch.remainder((idx_e + 0.5) / float(k_exp) + float(phase), 1.0).unsqueeze(1)
-        j_star = torch.searchsorted(cdf, q_u).squeeze(1).clamp(0, b_r - 1)
-        y_matched = y_real.detach()[j_star]
+        idx_e_long = torch.arange(k_exp, device=x_fake.device, dtype=torch.long)
+        half = (k_exp + 1) // 2
+        slot = torch.where(idx_e_long % 2 == 0, idx_e_long // 2, half + (idx_e_long // 2))
+        q_u = ((slot.float() + 0.5) / float(k_exp)).clamp(1e-6, 1.0 - 1e-6).unsqueeze(1)
+        j_ord = torch.searchsorted(cdf, q_u).squeeze(1).clamp(0, b_r - 1)
+        y_matched = y_real.detach()[col_order[j_ord]]
 
     chord_cost = born_infeld_aligned(x_fake[exp_idx], y_matched, ell_macro)
     loss_val = chord_cost.sum() / float(b_f)
+    if return_orphan_mass:
+        return (loss_val, explorer_mask, m_orph_val) if return_explorer_mask else (loss_val, m_orph_val)
     return (loss_val, explorer_mask) if return_explorer_mask else loss_val
 
 
@@ -509,7 +576,8 @@ def pooled_tangent_conditional_loss(
         nn_idx = sort_idx[:, 0]
 
         n_i = m_valid.sum(dim=1)
-        # Wider local context neighborhood (k=3) is safe now that base drift m(c_i) - m(c_k) is removed!
+        # 3-NN context neighborhood paired with 0.45 pooled-tangent drift residualization
+        # balances boundary tail slope (t1_q0) with bounded fiber variance (eig_max <= 1.40):
         k_idx = torch.minimum(torch.full_like(n_i, 3), n_i.clamp_min(1)) - 1
         sigma_raw = d_sorted.gather(1, k_idx.unsqueeze(1)).squeeze(1)
         sigma_floor = 1e-3 * d_c_max + 1e-6
@@ -549,7 +617,8 @@ def pooled_tangent_conditional_loss(
         w_imq_sym = 0.5 * (w_imq + w_imq.T)
         w_imq_dt = w_imq_sym.to(x_flat.dtype)
 
-    # Subtract detached m_hat64: (x_i - m_hat(c_i)) - (y_k - m_hat(c_k)) == (x_i - y_k) - (m_hat(c_i) - m_hat(c_k))
+    # Subtract full detached m_hat64: exact exchangeability invariance at q_theta = p
+    # with complete removal of base drift m(c_i) - m(c_k) for fiber covariance fidelity:
     xw = (x_flat.double() - m_hat64) * w_coord
     yw = (y_flat.double() - m_hat64) * w_coord
     sq_w_xy = (

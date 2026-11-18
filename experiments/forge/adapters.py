@@ -59,6 +59,12 @@ def adapter_preflight(task, candidate, *, root=None):
     if adapter == "particle_interpolation":
         from .interpolation import preflight
         return preflight(task, candidate, root=root)
+    if adapter == "t3_isolation":
+        from .t3_isolation import preflight
+        return preflight(task, candidate, root=root)
+    if adapter == "imbalance_nash":
+        from .imbalance_nash import preflight
+        return preflight(task, candidate, root=root)
     from .tier1_policy import is_policy_task
     if is_policy_task(task):
         from .tier1_policy import validate
@@ -849,6 +855,12 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
         return run(request, task, output_dir, device)
     if adapter == "particle_interpolation":
         from .interpolation import run
+        return run(request, task, output_dir, device)
+    if adapter == "t3_isolation":
+        from .t3_isolation import run
+        return run(request, task, output_dir, device)
+    if adapter == "imbalance_nash":
+        from .imbalance_nash import run
         return run(request, task, output_dir, device)
     from .tier1_policy import blocked_host, is_policy_task
     if blocked_host(task) is not None:

@@ -73,6 +73,14 @@ def _float_output(value):
             result._rgdt_record = value._rgdt_record
         if hasattr(value, "_rgdt_thermally_scaled"):
             result._rgdt_thermally_scaled = value._rgdt_thermally_scaled
+        if hasattr(value, "_t4_input"):
+            result._t4_input = value._t4_input
+        if hasattr(value, "_t4_record"):
+            result._t4_record = value._t4_record
+        if hasattr(value, "_t4_conditioned"):
+            result._t4_conditioned = value._t4_conditioned
+        if hasattr(value, "_t4_cond_tensors"):
+            result._t4_cond_tensors = value._t4_cond_tensors
         return result
     if isinstance(value, tuple):
         return tuple(_float_output(item) for item in value)
@@ -120,6 +128,7 @@ class InputNoise(nn.Module):
             target._bispf_input = x
             target._empf_input = x
             target._t2_input = x
+            target._t4_input = x
             if hasattr(target, "_rhbi_input") or hasattr(self.critic, "_rhbi_record"):
                 from .rhbi import _extract_critic_inputs_parts, _record_rhbi_capture
                 rec = getattr(target, "_rhbi_record", getattr(self.critic, "_rhbi_record", None))
@@ -389,7 +398,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "unified") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -426,6 +435,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "rgdt":
             from .t3_dynamics import bind_rgdt_record
             bind_rgdt_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "t4_nash":
+            from .t4_nash import bind_t4_nash_record
+            bind_t4_nash_record(self.opt_d.record, self.loss, self.prior_regularizer)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -469,6 +481,9 @@ class GANTrainer:
         self._noisy_D = InputNoise(self.D, 0.0, self.input_noise_generator,
                                    bf16=recipe.training_precision == "bf16_channels_last")
         self._bf16_generator = _convolution_autocast(self.G, recipe.training_precision == "bf16_channels_last")
+        if recipe.effective_critic_formulation == "t4_nash":
+            self.G._t4_bf16_autocast = bool(self._bf16_generator)
+            self.D._t4_bf16_autocast = bool(self._noisy_D.bf16)
         self._in_training_step = False
         # Manipulator hooks resolved once; plain priors have neither.
         self._postprocesses = bool(getattr(self.prior, "postprocesses_generated", False))

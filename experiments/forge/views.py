@@ -943,6 +943,11 @@ STRETCH_EVALUATOR_KINDS = frozenset({
     "interp_sparse_arc",
     "interp_img_patch_shift",
     "interp_saddle_barycentric",
+    "t3_iso_scale_mass_8x",
+    "t3_iso_horizon_saddle_shift",
+    "nash_overpowered_critic_ring16",
+    "nash_overpowered_generator_ring16",
+    "nash_unequal_width_hostile_imbalance",
 })
 
 
@@ -1057,6 +1062,16 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         interp_check = interpolation_grade(task, evidence)
         if interp_check is not None:
             return _verdict(*interp_check)
+    if task.get("adapter") == "t3_isolation":
+        from .t3_isolation import grade as t3_isolation_grade
+        t3_check = t3_isolation_grade(task, evidence)
+        if t3_check is not None:
+            return _verdict(*t3_check)
+    if task.get("adapter") == "imbalance_nash":
+        from .imbalance_nash import grade as imbalance_nash_grade
+        nash_check = imbalance_nash_grade(task, evidence)
+        if nash_check is not None:
+            return _verdict(*nash_check)
     from .tier1_policy import is_policy_task
     if is_policy_task(task) and task["adapter"] != "clockfree_audit":
         from .tier1_policy import validate_evidence

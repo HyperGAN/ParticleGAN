@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 12000.0,
+    "id": "t3-ablation-rgdt-v3-full"
+  },
+  "candidate": "rgdt-v3",
+  "competing_explanation": "If a pillar is redundant rather than causally necessary for its sub-phenomenon, disabling it will leave its corresponding benchmark gates unchanged relative to full rgdt-v3.",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mass_tv",
+    "op": ">",
+    "phase": "final",
+    "task_id": "t3_iso_horizon_saddle_shift",
+    "threshold": 0.12
+  },
+  "hypothesis": "Factorial ablation (Full rgdt-v3 reference arm with all 3 Theory-3 pillars active.) measuring causal necessity of each RGDT pillar across Theory-3 isolation, unequal-width/mass vectors, orthogonal image bars, and conditional DDGAN fibers.",
+  "id": "t3-ablation-rgdt-v3-full",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3_factorial_ablation"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
