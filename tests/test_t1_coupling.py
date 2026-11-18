@@ -236,6 +236,7 @@ def test_fresh_process_checkpoint_continuation_and_tamper_rejection(tmp_path: Pa
     # Continue from step 5 in a genuinely fresh Python process using weights_only=True
     script = f"""
 import torch
+torch.set_num_threads({torch.get_num_threads()})
 from particlegan import GANTrainer, ParticlePrior, get_recipe, init
 from tests.test_t1_coupling import _ToyGen, _ToyDisc
 
@@ -356,6 +357,7 @@ def test_deliberate_damage_control_and_forge_extension_bindings():
     assert bad_loss > good_loss + 1.0, f"Deliberate generator damage must worsen g_loss ({bad_loss} vs {good_loss})"
 
 
+@pytest.mark.cuda
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA determinism check")
 def test_cuda_strict_deterministic_algorithms_highres_conv():
     import os
@@ -534,6 +536,7 @@ def test_fresh_process_continuation_across_all_active_mechanism_boundaries(tmp_p
 
     script = f"""
 import torch
+torch.set_num_threads({torch.get_num_threads()})
 from particlegan import GANTrainer, ParticlePrior, get_recipe, init
 from tests.test_t1_coupling import _ToyGen, _ToyDisc
 
@@ -725,6 +728,7 @@ def test_input_noise_joint_bigan_and_fresh_process_step_damp_continuation(tmp_pa
 
     script_c = f"""
 import torch
+torch.set_num_threads({torch.get_num_threads()})
 from particlegan import GANTrainer, get_recipe, init
 from tests.test_t1_coupling import _ToyGen, _ToyDisc
 
