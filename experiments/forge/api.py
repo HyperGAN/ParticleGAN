@@ -33,7 +33,7 @@ TRAINER_STREAM_BINDINGS = {
 BUILTIN_CAPABILITIES = (
     "public_trainer", "public_components", "scalar_gan", "mog_prior", "particle_cloud", "learned_locations",
     "uniform_masses", "fixed_prior_width", "a2", "checkpoint", "named_rng", "live_sampling",
-    "policy_controls", "policy_serving", "served_sampling",
+    "policy_controls", "policy_serving", "served_sampling", "secant_critic",
 )
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
@@ -603,6 +603,7 @@ class FormulationContext:
                 "policy_controls": policy_controls(self.recipe),
                 "policy_serving": self.recipe.serve_average > 0,
                 "served_sampling": bool(self.policy_task) and policy_controls(self.recipe),
+                "secant_critic": self.recipe.effective_critic_formulation == "t2_secant",
                 **{name: True for name in self.extension_values}}
 
     def _check_capabilities(self):

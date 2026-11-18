@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "t2-secant-v5-dcgan-perf-study"
+  },
+  "candidate": "t2-secant-v5",
+  "competing_explanation": "If any kernel change in t2-secant-v5 adds per-step overhead to the convolutional image path, dcgan_performance_r256 median update time will exceed 100.0 ms on uncontended NVIDIA RTX A6000.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 115.0
+  },
+  "hypothesis": "t2-secant-v5 preserves the live-endpoint reuse + separable Rademacher BF16 micro-secant + 8x8 pooled Chamfer scale path on 4D convolutional images, achieving <= 100.0 ms median update time across dcgan_performance (r32, r64, w128, b64, r128, r256) on uncontended NVIDIA RTX A6000 under identical source digest as t2-secant-v5-study.",
+  "id": "t2-secant-v5-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 100.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v2",
+        "candidate_revision": "df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45"
+      },
+      "path": "reports/forge/records/readout-14cc2a44f2d8da942d2873dc.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
