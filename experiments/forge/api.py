@@ -33,7 +33,7 @@ TRAINER_STREAM_BINDINGS = {
 BUILTIN_CAPABILITIES = (
     "public_trainer", "public_components", "scalar_gan", "mog_prior", "particle_cloud", "learned_locations",
     "uniform_masses", "fixed_prior_width", "a2", "checkpoint", "named_rng", "live_sampling",
-    "policy_controls", "policy_serving", "served_sampling",
+    "policy_controls", "policy_serving", "served_sampling", "secant_critic",
 )
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
@@ -456,7 +456,29 @@ def default_registry():
     Add a supported ExtensionSpec here after implementing its public API field;
     ordinary Recipe fields require no extension declaration.
     """
-    return CapabilityRegistry()
+    reg = CapabilityRegistry()
+    for name, vtype, arg, desc in (
+        ("t1c_chart_weight", "float", "t1c_chart_weight", "Track 1B Laguerre single-chart commitment weight"),
+        ("t1c_chart_capacity", "int", "t1c_chart_capacity", "Track 1B persistent multi-batch chart bank capacity"),
+        ("t1c_halo_mult", "float", "t1c_halo_mult", "Track 1B C^1 intra-chart halo dead-zone multiplier"),
+        ("t1c_multiscale_horizon", "bool", "t1c_multiscale_horizon", "Track 1B symmetric conformal multi-scale horizon"),
+        ("t1c_grad_deconflict", "float", "t1c_grad_deconflict", "Track 1B activation-gram whitened generator polar blend"),
+        ("t1c_cond_drift_deconflict", "bool", "t1c_cond_drift_deconflict", "Track 1B exchangeable conditional fiber drift subtraction"),
+    ):
+        reg.register_extension(
+            ExtensionSpec(
+                name,
+                vtype,
+                "recipe",
+                arg,
+                desc,
+                checkpoint=f"Recipe.{arg} + critic record t1_coupling packet",
+                gradient_ownership="T1CouplingLoss / NormalizedOptimizer",
+                optimizer_binding="Recipe.make_optimizers",
+                initialization="deterministic zero-RNG online initialization",
+            )
+        )
+    return reg
 
 
 def _resolved_prior(value):
@@ -603,6 +625,7 @@ class FormulationContext:
                 "policy_controls": policy_controls(self.recipe),
                 "policy_serving": self.recipe.serve_average > 0,
                 "served_sampling": bool(self.policy_task) and policy_controls(self.recipe),
+                "secant_critic": self.recipe.effective_critic_formulation == "t2_secant",
                 **{name: True for name in self.extension_values}}
 
     def _check_capabilities(self):

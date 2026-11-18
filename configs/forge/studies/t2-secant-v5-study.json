@@ -1,0 +1,73 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t2-secant-v5-study"
+  },
+  "candidate": "t2-secant-v5",
+  "competing_explanation": "If 1st-order hybrid endpoint canonical forward-AD + spatial-frame chord forward-AD still lacks 2nd-order Hessian stability across long continuation holds or multi-mode vector/image tasks, then t2-secant-v5 will either fail a required Tier 1 gate (blocking Tier 2) or collapse on Tier 2 continuation tasks (gaussian1d_stability, five_word_joint_hold, mode_hold, img_bars4, grid100).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Combining exact canonical forward-mode AD tangents I_d on real/fake endpoints (zero cross-mode bias) with 1-tangent Spatial-Frame forward-mode AD along Sinkhorn transport chords (chord_blend = 0.06, smoothing inter-mode bridges) for d <= 4, gated T2SecantGANLoss relativistic pairing, Murmur32 Rademacher + local k-NN Hutchinson forward-AD for d > 8 non-image manifolds, and live-endpoint BF16 micro-secants + 8x8 pooled Chamfer moments for images clears all 11/11 required Tier 1 discriminator_stability gates (including ring16_acquisition <= 0.85, model_ae_gan_multimodal <= 1.0, model_vae_hard, two_pole grad_med <= 1.0, and five_word_joint_smoke) and executes all 25 Tier 2 discriminator_stability tasks under protocol seed 0 with zero autograd.grad calls.",
+  "id": "t2-secant-v5-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v4",
+        "candidate_revision": "6f2ac19f90c31fd4beaa7ffd9e38101d176cbe034bca67d97c0b8889d37e128e"
+      },
+      "path": "reports/forge/records/readout-e9cdca8471c210869cd70d91.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v2",
+        "candidate_revision": "df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45"
+      },
+      "path": "reports/forge/records/readout-d1539c52c610cf0b249ed2e5.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-33f7628135472eef06f0d92a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

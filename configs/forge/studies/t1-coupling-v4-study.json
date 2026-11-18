@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-coupling-v4-study"
+  },
+  "candidate": "t1-coupling-v4",
+  "competing_explanation": "Tightening streaming sub-chart novelty insertion to 3.2 r_near could slow chart discovery on densely packed grids if r_near is overestimated, or K >= 3 quota-balanced Laguerre commitment could trade off against anisotropic covariance shape on vector_anisotropic.",
+  "control": {
+    "candidate_id": "t1-coupling-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "reconstruction_mse",
+    "op": ">",
+    "phase": "final",
+    "task_id": "model_ae_gan_multimodal",
+    "threshold": 0.05
+  },
+  "hypothesis": "Bypassing unconditional chart slot-rebalancing when Recipe.encoder_mode != 'none' and tightening Gaussian sub-chart novelty insertion to 3.2 r_near with native SVD backend preserves 100% of Tier 1 required gates (11/11 required + 2/2 diagnostic) while unlocking full Tier 2-3 qualification on disconnected multimodal and multi-scale bottlenecks (img_bars4, img_blobs4, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, grid100, model_ddgan_gaussian_chain) at EMPF-class GPU speed.",
+  "id": "t1-coupling-v4-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "resolved_core_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.5
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v3",
+        "candidate_revision": "014f0e572d07ad1580b1ede8dd76c1aaf7b3e84d12117b7c18b845294f624336"
+      },
+      "path": "reports/forge/records/readout-6265233640061013149586d5.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

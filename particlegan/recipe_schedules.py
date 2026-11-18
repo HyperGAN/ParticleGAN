@@ -144,10 +144,18 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from ._empf.critic import _attach_empf_critic_hook
             optimizer.record = _EMPFObserverStepRecord()
             _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t2_secant":
+            from .t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
+            optimizer.record = _T2SecantObserverStepRecord()
+            _attach_t2_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+            from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rgdt":
             from .t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
             optimizer.record = _RGDTObserverStepRecord()

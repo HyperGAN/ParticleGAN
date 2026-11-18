@@ -43,6 +43,18 @@ try:
         rhbi_cond_step_damp=0.0,
         rhbi_ae_coord_whiten=False,
         rhbi_support_completion=False,
+        t1_pullback_weight=0.0,
+        t1_iso_weight=0.60,
+        t1_laguerre_lr=0.015,
+        t1_prior_row_lr=0.06,
+        t1_max_prototypes=256,
+        t1c_weight=0.0,
+        t1c_chart_capacity=256,
+        t1c_chart_weight=0.0,
+        t1c_halo_mult=2.1,
+        t1c_multiscale_horizon=False,
+        t1c_grad_deconflict=0.0,
+        t1c_cond_drift_deconflict=False,
         rgdt_conformal_horizon=True,
         rgdt_macro_slack_weight=0.0,
         rgdt_fiber_residual_weight=0.0,
@@ -368,6 +380,20 @@ class Recipe:
     rhbi_cond_step_damp: float = 0.0
     rhbi_ae_coord_whiten: bool = False
     rhbi_support_completion: bool = False
+    # Theory 1A Gersho-Laguerre pullback prior topology & chart dynamics.
+    t1_pullback_weight: float = 0.0
+    t1_iso_weight: float = 0.60
+    t1_laguerre_lr: float = 0.015
+    t1_prior_row_lr: float = 0.06
+    t1_max_prototypes: int = 256
+    # Track 1B Deconflicted Piecewise Coupling & Screened Transport parameters.
+    t1c_weight: float = 0.0
+    t1c_chart_capacity: int = 256
+    t1c_chart_weight: float = 0.0
+    t1c_halo_mult: float = 2.1
+    t1c_multiscale_horizon: bool = False
+    t1c_grad_deconflict: float = 0.0
+    t1c_cond_drift_deconflict: bool = False
     # Riemannian Gauge-Deconflicted Transport (RGDT / Theory 3) parameters.
     rgdt_conformal_horizon: bool = True
     rgdt_macro_slack_weight: float = 0.0
@@ -436,8 +462,21 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "rgdt"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf or rgdt")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback or rgdt")
+        for t1_name, t1_pos in (
+            ("t1_pullback_weight", False),
+            ("t1_iso_weight", False),
+            ("t1_laguerre_lr", True),
+            ("t1_prior_row_lr", False),
+        ):
+            t1_val = getattr(self, t1_name)
+            if type(t1_val) not in (int, float) or not math.isfinite(t1_val) or (
+                t1_val <= 0 if t1_pos else t1_val < 0
+            ):
+                raise ValueError(f"{t1_name} must be finite and {'positive' if t1_pos else 'nonnegative'}")
+        if type(self.t1_max_prototypes) is not int or self.t1_max_prototypes < 2:
+            raise ValueError("t1_max_prototypes must be an integer >= 2")
         for key, minimum in (("prior_sigreg_projections", 1), ("prior_sigreg_knots", 2)):
             if type(getattr(self, key)) is not int or getattr(self, key) < minimum:
                 raise ValueError(f"{key} must be an integer >= {minimum}")
@@ -568,10 +607,10 @@ class Recipe:
                 raise ValueError(f"{name} must be finite and nonnegative")
         if ((self.reg_real_weight, self.reg_fake_weight) != (1., 1.)
                 and self.reg_arm not in ("a_r1r2", "b_cap")
-                and self.critic_formulation not in ("rhbi", "rgdt")):
-            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, or RGDT formulation")
+                and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt")):
+            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, or RGDT formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "rgdt"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -588,20 +627,20 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "rgdt"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi or rgdt")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant or rgdt")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf", "rgdt"):
+        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
                 raise ValueError(f"{self.critic_formulation} formulation uses a zero-mean logit gauge instead of an EMA critic anchor (require reg_anchor_weight=0)")
-        if self.critic_formulation == "rhbi":
+        if self.critic_formulation in ("rhbi", "t1_coupling"):
             if self.reg_arm is not None:
-                raise ValueError("rhbi formulation does not accept a legacy reg_arm")
+                raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
-                raise ValueError("rhbi formulation does not use an EMA critic anchor (require reg_anchor_weight=0)")
+                raise ValueError(f"{self.critic_formulation} formulation does not use an EMA critic anchor (require reg_anchor_weight=0)")
         for rhbi_name, rhbi_pos in (
             ("rhbi_weight", False),
             ("rhbi_rho", True),
@@ -682,6 +721,25 @@ class Recipe:
             raise ValueError("rhbi_cond_step_damp must be in [0, 1)")
         if type(self.rhbi_iters) is not int or self.rhbi_iters < 1:
             raise ValueError("rhbi_iters must be a positive integer")
+        for t1c_name, t1c_pos in (
+            ("t1c_weight", False),
+            ("t1c_chart_weight", False),
+            ("t1c_halo_mult", True),
+            ("t1c_grad_deconflict", False),
+        ):
+            t1c_val = getattr(self, t1c_name)
+            if type(t1c_val) not in (int, float) or not math.isfinite(t1c_val) or (
+                t1c_val <= 0 if t1c_pos else t1c_val < 0
+            ):
+                raise ValueError(f"{t1c_name} must be finite and {'positive' if t1c_pos else 'nonnegative'}")
+        if self.t1c_grad_deconflict > 1.0:
+            raise ValueError("t1c_grad_deconflict must be in [0, 1]")
+        if type(self.t1c_chart_capacity) is not int or self.t1c_chart_capacity < 2:
+            raise ValueError("t1c_chart_capacity must be an integer >= 2")
+        if type(self.t1c_multiscale_horizon) is not bool:
+            raise ValueError("t1c_multiscale_horizon must be a boolean")
+        if type(self.t1c_cond_drift_deconflict) is not bool:
+            raise ValueError("t1c_cond_drift_deconflict must be a boolean")
         if type(self.ebi_beta) not in (int, float) or not math.isfinite(self.ebi_beta) or self.ebi_beta <= 0:
             raise ValueError("ebi_beta must be finite and positive")
         if type(self.rgdt_conformal_horizon) is not bool:
@@ -690,7 +748,7 @@ class Recipe:
             rgdt_val = getattr(self, rgdt_name)
             if type(rgdt_val) not in (int, float) or not math.isfinite(rgdt_val) or rgdt_val < 0:
                 raise ValueError(f"{rgdt_name} must be finite and nonnegative")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "rgdt"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -1017,6 +1075,45 @@ class Recipe:
 
     def make_loss(self):
         """The selected objective: ``d_loss(real, fake)``, ``g_loss(fake, real=None)``."""
+        if self.effective_critic_formulation == "t1_coupling" or self.t1c_weight > 0:
+            from .t1_coupling import T1CouplingGANLoss
+            cond_mode = self.rhbi_cond_ot_mode if self.rhbi_cond_ot_mode in ("imq_cmmd", "diag_imq_cmmd") else "diag_imq_cmmd"
+            return T1CouplingGANLoss(
+                self.loss,
+                labels=self.loss_labels,
+                weight=self.t1c_weight,
+                rho=self.rhbi_rho,
+                tau=self.rhbi_tau,
+                eps=self.rhbi_eps,
+                iters=self.rhbi_iters,
+                c_max=self.rhbi_c_max,
+                beta_ell=self.rhbi_beta_ell,
+                nn_quantile=self.rhbi_nn_quantile,
+                critic_weight=self.rhbi_critic_weight,
+                self_coupling=self.rhbi_self_coupling,
+                relativistic_weight=self.rhbi_relativistic_weight,
+                rapidity_screening=self.rhbi_rapidity_screening,
+                scale_log_odds=self.rhbi_scale_log_odds,
+                conditional_fibre=self.rhbi_conditional_fibre,
+                akt_horizon=self.rhbi_akt_horizon,
+                akt_mode=self.rhbi_akt_mode,
+                slack_gain=self.rhbi_slack_gain,
+                thermal_tau=self.rhbi_thermal_tau,
+                thermal_shock_mu=self.rhbi_thermal_shock_mu,
+                fibre_rel_blend=self.rhbi_fibre_rel_blend,
+                cond_ot_weight=self.rhbi_cond_ot_weight,
+                cond_ot_mode=cond_mode,
+                cvx_mu_gain=self.rhbi_cvx_mu_gain,
+                tail_spill_gain=self.rhbi_tail_spill_gain,
+                simplex_macro_settle=self.rhbi_simplex_macro_settle,
+                simplex_curve_settle=self.rhbi_simplex_curve_settle,
+                support_completion=self.rhbi_support_completion,
+                chart_capacity=self.t1c_chart_capacity,
+                chart_weight=(0.0 if self.encoder_mode != "none" else self.t1c_chart_weight),
+                halo_mult=self.t1c_halo_mult,
+                multiscale_horizon=self.t1c_multiscale_horizon,
+                cond_drift_deconflict=self.t1c_cond_drift_deconflict,
+            )
         if self.effective_critic_formulation == "rgdt":
             from .t3_dynamics import RGDTGANLoss
             return RGDTGANLoss(
@@ -1066,6 +1163,9 @@ class Recipe:
         if self.effective_critic_formulation == "empf" and self.loss == "relativistic":
             from .empf import EMPFSinkhornRelativisticLoss
             return EMPFSinkhornRelativisticLoss(labels=self.loss_labels, loss=self.loss)
+        if self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantGANLoss
+            return T2SecantGANLoss(labels=self.loss_labels, loss=self.loss)
         from .gan_loss import GANLoss
         return GANLoss(self.loss, labels=self.loss_labels)
 
@@ -1124,8 +1224,12 @@ class Recipe:
             from .bispf import BISPFCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "empf":
             from .empf import EMPFCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "rhbi":
             from .rhbi import RHBICriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "t1_coupling":
+            from .t1_coupling import T1CouplingCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "rgdt":
             from .t3_dynamics import RGDTCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation in ("k3p", "bcap"):
@@ -1137,8 +1241,31 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "rgdt"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi or rgdt")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant or rgdt")
+        if self.effective_critic_formulation == "t1_coupling":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {
+                "coeff": self.reg_coeff,
+                "kappa": self.reg_kappa,
+                "lazy_k": self.reg_every,
+                "anchor_weight": self.reg_anchor_weight,
+                "ebi_beta": self.ebi_beta,
+                "real_weight": self.reg_real_weight,
+                "fake_weight": self.reg_fake_weight,
+                "lambda_floor": self.rhbi_lambda_floor,
+                "gamma_gauge": self.rhbi_gamma_gauge,
+                "chord_weight": self.rhbi_chord_weight,
+                "akt_horizon": self.rhbi_akt_horizon,
+                "akt_mode": self.rhbi_akt_mode,
+                "settle_beta": self.rhbi_settle_beta,
+                "settle_mode": self.rhbi_settle_mode,
+                **overrides,
+            }
+            from .t1_coupling import _T1CouplingPenaltyKernel
+            _T1CouplingPenaltyKernel(**options)
+            return options
         if self.effective_critic_formulation == "rgdt":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1193,6 +1320,14 @@ class Recipe:
                        "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
             from .empf import _EMPFPenaltyKernel
             _EMPFPenaltyKernel(**options)
+            return options
+        if self.effective_critic_formulation == "t2_secant":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
+                       "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
+            from .t2_critic import _T2SecantPenaltyKernel
+            _T2SecantPenaltyKernel(**options)
             return options
         if self.effective_critic_formulation in ("k3p", "bcap"):
             if not self.critic_r1_real:
@@ -1264,10 +1399,20 @@ class Recipe:
             return EMPFCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                   ema_critic=ema_critic,
                                   guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantCriticAdam
+            return T2SecantCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                      ema_critic=ema_critic,
+                                      guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "rhbi":
             from .rhbi import RHBICriticAdam
             return RHBICriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                   guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "t1_coupling":
+            from .t1_coupling import T1CouplingCriticAdam
+            return T1CouplingCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                        ema_critic=ema_critic,
+                                        guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "rgdt":
             from .t3_dynamics import RGDTCriticAdam
             return RGDTCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
@@ -1393,6 +1538,10 @@ class Recipe:
             if module_owners and self.optimizer_convolution == "per_offset":
                 groups = convolution_parameter_groups(groups, module_owners, family=self.optimizer_family,
                                                       convolution_rule=self.optimizer_convolution_rule)
+            if module_owners and self.t1c_grad_deconflict > 0:
+                from .t1_coupling import attach_generator_deconflict_hooks
+                for owner_mod in module_owners:
+                    attach_generator_deconflict_hooks(owner_mod)
             return make_normalized_optimizer(self, groups, **options)
         from .k3p import K3PGeneratorAdam
         return K3PGeneratorAdam(params, latent_table=latent_table, direct_particles=direct_particles,
@@ -1409,7 +1558,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "rgdt"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -1447,6 +1596,18 @@ class Recipe:
             if self.prior_update == "frozen":
                 options["weight"] = 0.
             return EMPFPriorRegularizer(reference, **options)
+        if self.prior_regularizer == "t1_pullback":
+            from ._t1_prior import T1PullbackPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "eps": self.prior_reg_eps, "max_prototypes": self.t1_max_prototypes, **overrides}
+            if prior is not None and hasattr(prior, "_empf_record"):
+                options.setdefault("empf_record", prior._empf_record)
+            if prior is not None and hasattr(prior, "z"):
+                options.setdefault("bound_device", prior.z.device)
+                options.setdefault("bound_shape", tuple(prior.z.shape))
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            return T1PullbackPriorRegularizer(reference, **options)
         if self.prior_regularizer == "rgdt":
             from .t3_dynamics import RGDTPriorRegularizer
             options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
@@ -1520,6 +1681,11 @@ class Recipe:
             state = regularizer.state_dict()
             if state:
                 return {"prior_regularizer": state}
+        if (self.prior_regularizer == "t1_pullback"
+                and self.t1_pullback_weight > 0 and regularizer is not None):
+            state = regularizer.state_dict()
+            if state:
+                return {"prior_regularizer": state}
         return {}
 
     def restore_prior_regularizer(self, regularizer, state, *, validate_only=False):
@@ -1569,7 +1735,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "rgdt") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -1689,17 +1855,25 @@ class Recipe:
         # ownership. Standardized MoG keeps the component API's historic policy
         # (no A2), now explicit in the optimizer receipt and optionally required.
         latent_table = base_prior.z if (base_prior is not None and hasattr(base_prior, "z") and mechanisms["prior"]["a2_eligible"]) else None
+        if self.t1c_grad_deconflict > 0 and generator is not None:
+            from .t1_coupling import attach_generator_deconflict_hooks
+            attach_generator_deconflict_hooks(generator)
         opt_g = self.make_generator_optimizer(groups, latent_table=latent_table, **adam_kwargs)
         opt_g.prior_mechanisms = mechanisms
         # Forwarded only when declared: subclass overrides of make_critic_optimizer keep their signature.
         if ka2_trust_mode != "compound":
             adam_kwargs = {**adam_kwargs, "ka2_trust_mode": ka2_trust_mode}
         opt_d = self.make_critic_optimizer(discriminator, ema_critic=ema_critic, **adam_kwargs)
-        if self.effective_critic_formulation == "empf" and hasattr(opt_d, "record"):
+        if self.effective_critic_formulation in ("empf", "t2_secant") and hasattr(opt_d, "record"):
             opt_g._empf_record = opt_d.record
             opt_d._empf_record = opt_d.record
             if base_prior is not None:
                 base_prior._empf_record = opt_d.record
+            if self.effective_critic_formulation == "t2_secant":
+                opt_g._t2_record = opt_d.record
+                opt_d._t2_record = opt_d.record
+                if base_prior is not None:
+                    base_prior._t2_record = opt_d.record
         if (
             self.effective_critic_formulation == "rhbi"
             or self.rhbi_weight > 0
@@ -1707,6 +1881,12 @@ class Recipe:
         ) and hasattr(opt_d, "record"):
             opt_g._rhbi_record = opt_d.record
             opt_d._rhbi_record = opt_d.record
+        if (
+            self.effective_critic_formulation == "t1_coupling"
+            or self.t1c_weight > 0
+        ) and hasattr(opt_d, "record"):
+            opt_g._t1c_record = opt_d.record
+            opt_d._t1c_record = opt_d.record
         if self.effective_critic_formulation == "rgdt" and hasattr(opt_d, "record"):
             opt_g._rgdt_record = opt_d.record
             opt_d._rgdt_record = opt_d.record
@@ -1865,6 +2045,18 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "optimizer_svd_backend": "batched", "training_precision": "bf16_channels_last",
         "routing_temperature": 0.25, "ucd_weight": 0.02,
     }
+    presets["t1_prior"] = {
+        **presets["empf"],
+        "prior_regularizer": "t1_pullback",
+        "t1_pullback_weight": 1.5,
+        "t1_iso_weight": 0.62,
+        "t1_laguerre_lr": 0.015,
+        "t1_prior_row_lr": 0.06,
+        "t1_max_prototypes": 256,
+    }
+    presets["t2_secant"] = {
+        **presets["empf"], "critic_formulation": "t2_secant",
+    }
     presets["rhbi"] = {
         **presets["bcap"], "critic_formulation": "rhbi", "reg_arm": None,
         "optimizer_convolution_rule": "quintic",
@@ -1893,6 +2085,57 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "rhbi_simplex_weight": 0.35, "rhbi_simplex_chart_weight": 4.0,
         "rhbi_simplex_macro_settle": True, "rhbi_simplex_curve_settle": True,
         "rhbi_cvx_mu_gain": 0.58, "rhbi_tail_spill_gain": 0.95,
+    }
+    presets["t1_coupling"] = {
+        **presets["bcap"],
+        "critic_formulation": "t1_coupling",
+        "reg_arm": None,
+        "lr": 0.014,
+        "prior_lr_mult": 2.9,
+        "optimizer_smoothing": 0.0061,
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_dense_profile": "polar_cpu_v1",
+        "optimizer_svd_backend": "native",
+        "training_precision": "bf16_channels_last",
+        "lr_schedule": "cosine",
+        "ebi_beta": 12.0,
+        "prior_regularizer": "sbnp",
+        "prior_reg": 0.02,
+        "routing_temperature": 0.25,
+        "ucd_weight": 0.02,
+        "rhbi_rho": 3.0,
+        "rhbi_eps": 0.1,
+        "rhbi_self_coupling": "feydy_discrete",
+        "rhbi_rapidity_screening": False,
+        "rhbi_conditional_fibre": "slack",
+        "rhbi_cond_ot_mode": "diag_imq_cmmd",
+        "rhbi_cond_ot_weight": 1.5,
+        "rhbi_cond_step_damp": 0.68,
+        "rhbi_ae_coord_whiten": True,
+        "rhbi_support_completion": True,
+        "rhbi_akt_horizon": True,
+        "rhbi_akt_mode": "weibull",
+        "rhbi_slack_gain": 0.35,
+        "rhbi_chord_weight": 0.25,
+        "rhbi_lambda_floor": 0.005,
+        "rhbi_gamma_gauge": 0.03,
+        "rhbi_thermal_tau": 0.084,
+        "rhbi_thermal_shock_mu": 0.35,
+        "rhbi_settle_beta": 16.0,
+        "rhbi_settle_mode": "thermal",
+        "rhbi_simplex_weight": 0.35,
+        "rhbi_simplex_chart_weight": 4.0,
+        "rhbi_simplex_macro_settle": True,
+        "rhbi_simplex_curve_settle": True,
+        "rhbi_cvx_mu_gain": 0.58,
+        "rhbi_tail_spill_gain": 0.95,
+        "t1c_weight": 1.0,
+        "t1c_chart_capacity": 256,
+        "t1c_chart_weight": 1.0,
+        "t1c_halo_mult": 2.1,
+        "t1c_multiscale_horizon": True,
+        "t1c_grad_deconflict": 0.5,
+        "t1c_cond_drift_deconflict": True,
     }
     presets["rgdt"] = {
         **presets["bcap"], "critic_formulation": "rgdt", "reg_arm": None,
