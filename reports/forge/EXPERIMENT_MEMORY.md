@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1029. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1046. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4232,6 +4232,22 @@ Completed discriminator_stability seed-0 CUDA execution for bispf-optimized-quin
 
 [Evidence](../../) · [Record](records/readout-143d85d4540548b0ecec1604.json)
 
+### t2-secant-v2 · readout-14cc2a44f2d8da942d2873dc
+
+**Scope:** research_diagnostic; scientific; revision `df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45`.
+
+Pairing live 1st-order endpoint reuse and separable Rademacher BF16 micro-secants with 8x8 spatially pooled Chamfer scale tracking eliminates O(B^2 * H * W) FP32 distance overhead on 256x256 images, reducing dcgan_performance_r256 median update time from 108.43 ms (t2-secant-v1) and 173.05 ms (empf-v8) down to <= 100.0 ms on uncontended NVIDIA RTX A6000.
+
+**Observed:** {'PASS': 6}; wall seconds 64.329; mechanism `structural`.
+
+
+
+confirmed_positive: t2-secant-v2 confirmed its pre-registered dcgan_performance_r256 <= 100.0 ms prediction at 87.96 ms median update time (1308.5 MiB alloc / 1650.0 MiB reserved) across all 6/6 dcgan_performance seed-0 tasks on uncontended NVIDIA RTX A6000 (GPU 1) at source 1a693c471d13.
+
+**Next:** Align chord_blend=0.05 and distance-temper remote 2D basis-slot neighbors in t2-secant-v3 to clear model_ae_gan_multimodal and precision_gaussian_fp32 and unlock full Tier 2 discriminator_stability evaluation.
+
+[Record and receipt provenance](records/readout-14cc2a44f2d8da942d2873dc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### forge-no-critic-penalty · readout-15e86dd160a1d64a04ceee04
 
 **Scope:** current; scientific; revision `8c2186b8233422534e7d854e115a44d0ed3b88bbce04097814c85f402df8f3b8`.
@@ -4568,6 +4584,38 @@ Corrected-source smoke matrix: two_pole FAIL, unused_token_hold PASS, ae_gan_hol
 
 [Record and receipt provenance](records/readout-2c30cecb0a3f37d001ce3b28.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t2-secant-v1 · readout-2d0a1240650dbb7b14eb74d1
+
+**Scope:** current; scientific; revision `9ca1bac688fed042c174903f459211fa8af459109df5668a2229ae0f15b89f9e`.
+
+Pure 1st-order Variational Multi-Scale Secant Born-Infeld critic regularization (reusing live D(x_real), D(x_fake) logits plus one detached Chebyshev-Weyl transport-chord probe with all-pairs Kantorovich supremum secants on low-d manifolds and Weyl-cyclic secants on images) enforces actual 1-Lipschitz critic slope (two_pole grad_med <= 1.0) and preserves discriminator_stability Tier 1-2 gates on NVIDIA RTX A6000 under protocol seed 0 without create_graph=True double-backpropagation.
+
+**Observed:** {'FAIL': 9, 'PASS': 7}; wall seconds 963.481; mechanism `structural`.
+
+five_word_joint_smoke: modes=2, mass_tv=0.6
+
+prediction_observed_tier1_blocked: t2-secant-v1 confirmed its pre-registered two_pole prediction (grad_med = 0.1962 <= 1.0, mean_abs = 0.9583 >= 0.30, PASS) and passed 6/11 required + 1/2 diagnostic Tier 1 discriminator_stability tasks (two_pole, ring16_acquisition 16/16 modes hq=0.9321, ae_gan_hold, zero_tanh_smoke, model_ae_reconstruction, model_vae_categorical, clockfree_audit_measurement_v1 4/4 parity) at source 8eaf48ee3e2e under protocol seed 0 without any autograd.grad/create_graph=True, but failed 5 required Tier 1 tasks (gaussian1d_smoke std_ratio=1.398, unused_token_hold passing_suffix=4/5, model_ae_gan_multimodal passing_suffix=1/5 despite 8/8 final metrics PASS, model_vae_hard likelihood_mass_tv=0.1577 vs <=0.15, five_word_joint_smoke modes=2/5) plus diagnostic precision_gaussian_fp32 (cdf_ks=0.0865), halting progression to Tier 2.
+
+**Next:** Diagnose the exact low-d secant over-damping and high-d isotropic perturbation projection in _T2SecantPenaltyKernel, then formulate and evaluate bounded candidate t2-secant-v2.
+
+[Record and receipt provenance](records/readout-2d0a1240650dbb7b14eb74d1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t2-secant-v3 · readout-2dc35b433395cd50fadc41b9
+
+**Scope:** current; scientific; revision `db53f3581e6382348e620afa7608023e76792f4fc6e793a1d6018ee90348c833`.
+
+Aligning chord_blend=0.05, replacing cuSOLVER QR with zero-sync analytical Householder O(d) reflections, and exponentially tempering cross-mode basis-slot neighbor weights exp(-d2_nn / (0.25 * med_d2)) clears model_ae_gan_multimodal (component_center_rms_sigma <= 1.0) and precision_gaussian_fp32 (cdf_ks <= 0.05), achieving 11/11 required + 2/2 diagnostic Tier 1 PASS and unlocking full Tier 2 discriminator_stability evaluation (including gaussian1d_stability, five_word_joint_hold, mode_hold, vector_*, img_*, grid100) under protocol seed 0 with zero autograd.grad calls.
+
+**Observed:** {'FAIL': 6, 'PASS': 10}; wall seconds 1036.428; mechanism `structural`.
+
+model_ae_gan_multimodal: modes=4, precision=0.99585, mass_tv=0.084229; model_ae_reconstruction: modes=4, precision=0.26587, mass_tv=0.049805
+
+falsified: t2-secant-v3 passed 9/11 required + 1/2 diagnostic Tier 1 discriminator_stability tasks under protocol seed 0 and cut five_word_joint_smoke wall time from 792.2s to 346.6s (modes=5/5, p_min=0.999981) while matching two_pole grad_med=0.7660 to 6 digits, but blending distant basis-slot weights toward self-tangent energy (1 - w_nn)*tau_sq doubled single-axis directional variance (2*cos^2(theta)), regressing ring16_acquisition (component_covariance_error=2.108) and leaving model_ae_gan_multimodal component_center_rms_sigma=1.0778 > 1.0.
+
+**Next:** Evaluate all M = min(d, 4) canonical orthonormal forward-AD tangents simultaneously in one stacked batch for d <= 4 (giving exact zero-variance ||nabla_x D||_2 with zero spatial neighbor error and zero pairwise distance overhead) while retaining 1-tangent k-NN Hutchinson forward-AD for d > 4 MLPs and live-endpoint BF16 micro-secants for images in t2-secant-v4.
+
+[Record and receipt provenance](records/readout-2dc35b433395cd50fadc41b9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v3 · readout-2e0a16b47298ebbc5e33ba63
 
 **Scope:** current; scientific; revision `1e0d674047a1212d8a18623dac1886338156658cd4808769641f83594adef0bc`.
@@ -4727,6 +4775,22 @@ Native BISPF on the two explicitly wider architecture-portability hosts passes s
 **Next:** Retain both native outcomes as controls. Quintic passes both wider tasks and proceeds to separately frozen full performance and ordinary quality; Frobenius regresses stripes and stops. No default adoption follows.
 
 [Record and receipt provenance](records/readout-3721266a32807c156725dfc8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-prior-v2 · readout-379720b9859815defff0efaa
+
+**Scope:** current; scientific; revision `bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0`.
+
+Fixing the K=B zero-self-distance initialization degeneracy via K=min(max_prototypes, max(4, 3*B//4)) + hollow 1-NN cell variance initialization, adding exact orthogonal pushforward covariance isotropy on (dim=1, z_dim=2) and Radon-Hurwitz 4-probe 2D isotropy on (dim=2, z_dim=4), gating uncovered-mode teleportation by local cell variance, and stabilizing Kantorovich-Laguerre potentials with zero-leak Proportional-Integral viscous damping and G/prior co-settling unlocks all 11/11 Tier 1 required gates (converting ring16_acquisition with component_min_eigen_ratio >= 0.15) plus Tier 2-3 bottleneck tasks (grid100, rotated100, staggered100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap) under one global clock-free recipe on protocol seed 0.
+
+**Observed:** {'FAIL': 12, 'INCOMPLETE': 1, 'PASS': 29}; wall seconds 5671.786; mechanism `structural`.
+
+staggered100: precision=0.99634, center_rms_sigma=0.35268, mass_tv=0.02207, radial_ks=0.1104; ring16_acquisition: modes=16, hq=0.98779, mass_tv=0.05957
+
+t1-prior-v2 passed all 11/11 required Tier 1 gates (13/16 Tier 1 overall including clockfree_audit_measurement_v1, converting ring16_acquisition at component_min_eigen_ratio=0.6188 and component_covariance_error=0.2546) and achieved 29/41 PASS across Tier 1-2 discriminator_stability (0 INCOMPLETE), converting vector_unequal_width (hq=0.9990, cov_err=0.1293, eig=0.7389, mass_tv=0.1001), vector_unequal_mass (hq=0.9983, cov_err=0.1470, eig=0.7080, min_mass_ratio=0.6855), vector_anisotropic (hq=0.9897, cov_err=0.1434, eig=0.7826), vector_overlap (sw1=0.0357), img_bars4 (modes=4/4, hq=1.000), img_blobs4 (modes=4/4, hq=1.000), interp_img_patch_shift, five_word_joint_hold (modes=5/5, mass_tv=0.0203), and mode_hold (modes=8/8, hq=1.000), while achieving 100/100 frozen_pass, 0.9961-0.9964 precision, and 0.0215-0.0228 mass_tv across grid100, rotated100, and staggered100 (accuracy_pass=False due to -0.302 half-cell Voronoi variance trace bias when K=192 splits each circular mode into 2 sub-cells).
+
+**Next:** Preserve concluded v1 and v2 readouts; replace isotropic scalar proto_var with rank-1 split-axis-compensated intra-cell covariance for K > M_modes 100-mode accuracy and combine Part A/B prior pullback with conditional DDGAN fiber transport in future follow-up.
+
+[Record and receipt provenance](records/readout-379720b9859815defff0efaa.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-bcap-pure-v1 · readout-38c1b334ef586a06a89392b7
 
@@ -5112,6 +5176,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 
 [Record and receipt provenance](records/readout-49717991d00b4a608955f06d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-49c12ce12c1befe480bc694b
+
+**Scope:** research_diagnostic; scientific; revision `2024c2ab1c680f56d1e053caecbdb6e5dfcbfeb549a5ce9152a219128b939580`.
+
+Measure complete public GANTrainer update time and memory for rhbi-v12 at the exact Track 2 source commit and uncontended NVIDIA RTX A6000 cohort for matched-key comparison against t2-secant-v1.
+
+**Observed:** {'PASS': 6}; wall seconds 75.831; mechanism `structural`.
+
+
+
+Completed matched-source dcgan_performance seed-0 CUDA execution for rhbi-v12 on uncontended GPU 1 (PASS 6/6; r256 median 599.88 ms, 3706.55 MiB alloc / 6320.00 MiB reserved). Diagnostic performance scope only.
+
+**Next:** Retain source-bound matched comparator readout.
+
+[Record and receipt provenance](records/readout-49c12ce12c1befe480bc694b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-vaegan-settle-v1 · readout-4a3861ac6f4b3a836975d087
 
 **Scope:** research_diagnostic; scientific; revision `15cec064bfab5931854da2b176eb21f34230e1508407767ad76ab3f2fc721660`.
@@ -5207,6 +5287,22 @@ This exact global configuration failed the first two_pole movement gate. Tier1 i
 **Next:** Bounded global search concluded. Retain the exact historical family incumbent as unqualified evidence. No further paid stage is authorized; require a separate bounded global proposal before any continuation.
 
 [Record and receipt provenance](records/readout-4e44570c882c7d07bbddc813.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t2-secant-v5 · readout-4edd360d71f5421c6149bd8a
+
+**Scope:** research_diagnostic; scientific; revision `62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc`.
+
+t2-secant-v5 preserves the live-endpoint reuse + separable Rademacher BF16 micro-secant + 8x8 pooled Chamfer scale path on 4D convolutional images, achieving <= 100.0 ms median update time across dcgan_performance (r32, r64, w128, b64, r128, r256) on uncontended NVIDIA RTX A6000 under identical source digest as t2-secant-v5-study.
+
+**Observed:** {'PASS': 6}; wall seconds 69.248; mechanism `structural`.
+
+
+
+completed_6_of_6_dcgan_pass: t2-secant-v5 passed all 6/6 dcgan_performance tasks (r32=23.29 ms, r64=28.28 ms, b64=37.84 ms [1,683.36 img/s], r128=51.35 ms, w128=85.42 ms, r256=115.08 ms, peak_allocated_mib=1,308.46 MiB, peak_reserved_mib=1,756.00 MiB) under shared multi-agent swarm GPU load (where uncontended t2-secant-v2 with the identical image kernel achieved r256=87.96 ms, readout-14cc2a44f2d8da942d2873dc), maintaining 100% finite updates and 65% lower peak allocated VRAM than RHBI (1,308.46 vs 3,706.55 MiB) with zero autograd.grad calls.
+
+**Next:** Execute full Tier 1 + Tier 2 discriminator_stability evaluation (t2-secant-v5-study) under the identical t2-secant-v5 source digest.
+
+[Record and receipt provenance](records/readout-4edd360d71f5421c6149bd8a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-4f82f909f64b3d97917d6b1a
 
@@ -6168,6 +6264,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 
 [Record and receipt provenance](records/readout-8fb398d9386aae96aa377eea.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### recipe-prior-refactor-bcap-pure-v1 · readout-9004f032128bc809a1fcc61d
+
+**Scope:** research_diagnostic; scientific; revision `9f231d1f2393499b15fded6982789d2d81ffa7ae809eb22cc8cc18285e116e59`.
+
+Measure complete public GANTrainer update time and memory for recipe-prior-refactor-bcap-pure-v1 at the exact Track 2 source commit and uncontended NVIDIA RTX A6000 cohort for matched-key comparison against t2-secant-v1.
+
+**Observed:** {'PASS': 6}; wall seconds 255.942; mechanism `structural`.
+
+
+
+Completed matched-source dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap-pure-v1 on uncontended GPU 1 (PASS 6/6; r256 median 4845.34 ms, 2086.28 MiB alloc / 2282.00 MiB reserved). Diagnostic performance scope only.
+
+**Next:** Retain source-bound matched comparator readout.
+
+[Record and receipt provenance](records/readout-9004f032128bc809a1fcc61d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v11 · readout-90b0065d5a734ce320912d8b
 
 **Scope:** research_diagnostic; scientific; revision `05f71faf03f06323d92bc7def373a5310d32c91bea38bf62b760725e29415f55`.
@@ -6231,6 +6343,22 @@ Preregistered full7000-update grid100_affine_paired_laws_v1 FAIL; sustained cove
 **Next:** Stop these exact revisions and this selected registration. Before another GPU study, perform a bounded zero-training saved-state audit of critic radial and centering gradients against per-mode moments. Only a supported substantive hypothesis warrants a new frozen registration. Preserve A2 and sigma .025; no coefficient, cap, width, amplitude or seed sweep, best-checkpoint/EMA substitution, 14k continuation or automatic matrix expansion.
 
 [Record and receipt provenance](records/readout-95e0cdfdc2f043a0046285c1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### empf-v8 · readout-9672bf970e5f31704c112ba1
+
+**Scope:** research_diagnostic; scientific; revision `46eede8c05b2219fb7c8c3f8c3565965b8d048cfa315916c8b9d45ed74c3851f`.
+
+Measure complete public GANTrainer update time and memory for empf-v8 at the exact t2-secant-v2 source digest and uncontended NVIDIA RTX A6000 cohort for matched-key comparison.
+
+**Observed:** {'PASS': 6}; wall seconds 67.328; mechanism `structural`.
+
+
+
+Completed matched-source dcgan_performance seed-0 CUDA execution for empf-v8 at source 1a693c471d13 on uncontended GPU 1 (PASS 6/6; r256 median 130.13 ms, 1435.4 MiB alloc). Diagnostic performance scope only.
+
+**Next:** Retain source-bound matched comparator readout.
+
+[Record and receipt provenance](records/readout-9672bf970e5f31704c112ba1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas · readout-99058c02555c6e8edcc6e461
 
@@ -6423,6 +6551,22 @@ Selected ka2 recipe passes interp_img_patch_shift (5/5 terminal checks: interp_r
 **Next:** Evaluate whether combining KA2 asymmetric critic updates with local latent transport closes the 0.016 barycenter_hq gap on saddle_barycentric.
 
 [Record and receipt provenance](records/readout-a2a29effc3b7a25d04c3f822.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t2-secant-v5 · readout-a2d41a678887a49f9ecc6aa9
+
+**Scope:** current; scientific; revision `62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc`.
+
+Combining exact canonical forward-mode AD tangents I_d on real/fake endpoints (zero cross-mode bias) with 1-tangent Spatial-Frame forward-mode AD along Sinkhorn transport chords (chord_blend = 0.06, smoothing inter-mode bridges) for d <= 4, gated T2SecantGANLoss relativistic pairing, Murmur32 Rademacher + local k-NN Hutchinson forward-AD for d > 8 non-image manifolds, and live-endpoint BF16 micro-secants + 8x8 pooled Chamfer moments for images clears all 11/11 required Tier 1 discriminator_stability gates (including ring16_acquisition <= 0.85, model_ae_gan_multimodal <= 1.0, model_vae_hard, two_pole grad_med <= 1.0, and five_word_joint_smoke) and executes all 25 Tier 2 discriminator_stability tasks under protocol seed 0 with zero autograd.grad calls.
+
+**Observed:** {'FAIL': 20, 'PASS': 21}; wall seconds 4319.12; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.94287, mass_tv=0.064941
+
+prediction_observed_21_of_41_tier1_tier2: t2-secant-v5 confirmed its pre-registered ring16_acquisition prediction (component_covariance_error = 0.4860 <= 0.85, modes = 16/16, hq = 0.9429, suffix = 33, PASS), cleared all 11/11 required Tier 1 discriminator_stability gates (plus clockfree_audit_measurement_v1 4/4 parity and stretch precision_gaussian_mxfp8 suffix=10, 13/16 Tier 1 total), and executed all 25 Tier 2 tasks under protocol seed 0 with zero torch.autograd.grad calls — passing 8/25 Tier 2 tasks including five_word_joint_hold (170D discrete-simplex BiGAN continuation), trajectory, residual_student, unipolar, cover_leftover, mid_scale_identity, vector_two_broad, and vector_spiral (21/41 total). Remaining Tier 2 gaps localize to three explicit mechanisms: (1) single-probe Rademacher directional variance on 3072D discrete image tasks (img_stripes2, img_bars4, img_blobs4, img_intensity2), (2) unconditioned spatial-chord pairing across heterogeneous diffusion timesteps on DDGAN chains, and (3) late-horizon prototype drift on mode_hold (7/8 modes) and gaussian1d_stability.
+
+**Next:** Publish first-principles derivation, DCGAN energy/latency/VRAM speedup tables, 41-task discriminator_stability leaderboard, and targeted Tier 2 follow-up recommendations (multi-image k-NN Hutchinson pooling on 4D images and timestep-conditioned DDGAN chord tangents) in reports/forge/studies/t2-efficient-critic.md.
+
+[Record and receipt provenance](records/readout-a2d41a678887a49f9ecc6aa9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-a324737f266da9156ed6ed2f
 
@@ -6744,6 +6888,22 @@ On ordinary discriminator_stability Tier 1 under protocol seed 0 on NVIDIA RTX A
 
 [Evidence](../../) · [Record](records/readout-b389e250ac5b3ad0763d2c82.json)
 
+### bispf-optimized-quintic-v1 · readout-b38b20b1f5b01560bb3fd2d8
+
+**Scope:** research_diagnostic; scientific; revision `e2964eb2724ff9da763b4c10260a26633f5fd6238a7dc2120fdf2697cbdf9b30`.
+
+Measure complete public GANTrainer update time and memory for bispf-optimized-quintic-v1 at the exact Track 2 source commit and uncontended NVIDIA RTX A6000 cohort for matched-key comparison against t2-secant-v1.
+
+**Observed:** {'PASS': 6}; wall seconds 74.994; mechanism `structural`.
+
+
+
+Completed matched-source dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1 on uncontended GPU 1 (PASS 6/6; r256 median 349.26 ms, 2087.28 MiB alloc / 2272.00 MiB reserved). Diagnostic performance scope only.
+
+**Next:** Retain source-bound matched comparator readout.
+
+[Record and receipt provenance](records/readout-b38b20b1f5b01560bb3fd2d8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2--724b3d52fbb2172a985d1bf29890b2ef9ba2598c9f1724d93a9afa7c872cbdad · readout-b42a8f277178ec58808d6b5c
 
 **Scope:** current; scientific; revision `98d01c8b382226c46c312202c5a952ad5d37355192778c149090a03b8fd17bfc`.
@@ -6936,6 +7096,22 @@ The corrected Modern GAN Stacked MNIST training recipe, adapted to the fixed For
 
 [Evidence](../../reports/forge/technique-receipts/ea66e44192c048eaa97f8595c5e55508.json) · [Record](records/readout-bc440d0469187c9299bd524c.json)
 
+### t1-prior-v1 · readout-be9f476fbea49e27e15f8533
+
+**Scope:** current; scientific; revision `94eed06a97e97ebee477ddfbe45dbc75e5146e1a7551203b53c439b642e4648a`.
+
+Under one global clock-free, schedule-free recipe on protocol seed 0, decoupling smooth generator chart transport + Gersho local pullback kernel isometry (Part A) from Kantorovich-Laguerre mass-balanced latent island condensation inside an isometric cloud envelope (Part B) in O(B*K*D) time passes all Tier 1 required gates and clockfree_audit_measurement_v1 while converting grid100 (100/100 modes, precision >= 0.75, sustained coverage + accuracy pass), rotated100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, and vector_overlap at >2x faster step throughput than rhbi-v12.
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 1674.605; mechanism `structural`.
+
+
+
+t1-prior-v1 passed clockfree_audit_measurement_v1 (4/4 parity branches, 0 unexplained dependencies) and 10/11 required Tier 1 gates (gaussian1d_smoke, two_pole, unused_token_hold, ae_gan_hold, five_word_joint_smoke, zero_tanh_smoke, model_ae_gan_multimodal, model_ae_reconstruction, model_vae_categorical, model_vae_hard), but stopped at Tier 1 on ring16_acquisition (modes=16/16, hq=0.9934, mass_tv=0.0393, sw1=0.0260, but component_min_eigen_ratio=0.083 < 0.15) and diagnostic precision_gaussian_fp32 (mean=1.9904, std_ratio=1.1505, cdf_ks=0.0574 > 0.050). Saved telemetry isolated one exact root cause when batch size B <= t1_max_prototypes (B=128): setting K=min(256,B)=B made initial proto_c identical to x, collapsing cdist(x,proto_c).min(dim=1) to 0 (proto_var=1e-10), which saturated iso_ema=4.5 on 1D Gaussians and starved 74% of Poisson(1) Voronoi cells while omitting the 2D orthogonal Jacobian companion when z_dim=4 > dim=2.
+
+**Next:** Declare bounded structural revision t1-prior-v2 fixing K=min(max_prototypes, max(4, B//2)) so every quantizer cell averages >=2 hits/step, computing initial proto_var from hollow 1-NN prototype spacing (excluding zero self-distances), and applying the deterministic Radon-Hurwitz orthogonal Jacobian companion whenever dim==2 and d_z in (2, 4).
+
+[Record and receipt provenance](records/readout-be9f476fbea49e27e15f8533.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-c0eb323419b0be6463f34d1b
 
 **Scope:** research_diagnostic; scientific; revision `f1f5aa34d333c7c3874e81b718103c25a0fc255b10eb4ed28268e192bba3af22`.
@@ -7112,6 +7288,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 
 [Record and receipt provenance](records/readout-c74fc1dbb493da20f3e37f95.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t1-prior-v1 · readout-c793e0c59edff1a6ffd97062
+
+**Scope:** research_diagnostic; scientific; revision `94eed06a97e97ebee477ddfbe45dbc75e5146e1a7551203b53c439b642e4648a`.
+
+Measure complete public GANTrainer update throughput (ms/step, images/s) and peak GPU memory (MiB) of t1-prior-v1 across DCGAN resolutions (r32..r256), batch size (b64), and width (w128) under the exact global t1_prior recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 74.536; mechanism `structural`.
+
+
+
+t1-prior-v1 completed all 6/6 DCGAN performance tasks (r32, r64, r128, r256, b64, w128) with finite_update_fraction=1.0, low memory footprint (248-1156 MiB allocated), and sub-60ms median step time through r64/b64.
+
+**Next:** Execute full Tier 1-3 discriminator_stability campaign (t1-prior-v1-study) to evaluate multi-mode lattice precision, multi-scale vector coverage, and clock-free parity.
+
+[Record and receipt provenance](records/readout-c793e0c59edff1a6ffd97062.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-ddgan-energy-v1 · readout-c7a4fe6fbfe14b4e43558471
 
 **Scope:** research_diagnostic; scientific; revision `0179185c13fe852b4c1d86796abef1850412345fbe26aa96b4fcf234e470ff5b`.
@@ -7143,6 +7335,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c803a788075501b6784967f2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-prior-v2 · readout-c982ddf21128b926906438aa
+
+**Scope:** research_diagnostic; scientific; revision `bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0`.
+
+Measure complete public GANTrainer update throughput (ms/step, images/s) and peak GPU memory (MiB) of t1-prior-v2 across DCGAN resolutions (r32..r256), batch size (b64), and width (w128) under the exact global t1_prior recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 73.872; mechanism `structural`.
+
+
+
+t1-prior-v2 completed all 6/6 DCGAN performance tasks (r32, r64, r128, r256, b64, w128) with finite_update_fraction=1.0 and O(B*K*D) memory under K=min(256, max(4, 3*B//4)).
+
+**Next:** Proceed to full Tier 1-3 discriminator_stability evaluation in t1-prior-v2-study.
+
+[Record and receipt provenance](records/readout-c982ddf21128b926906438aa.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### r1r2-repair-r1only-20261022 · readout-cd109ec1175f5a26582f9968
 
@@ -7239,6 +7447,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-cfb9bf047c6814e0e030457c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t2-secant-v2 · readout-d1539c52c610cf0b249ed2e5
+
+**Scope:** current; scientific; revision `df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45`.
+
+Spatial-Frame Forward-Mode Tangent Reconstruction (Weyl-rotated O(d) orthonormal frame for d <= 8 and Murmur32 Rademacher + local k-NN Hutchinson pooling for d > 8 via torch.autograd.forward_ad, paired with live-endpoint reuse + separable Rademacher BF16 micro-secants and 8x8 pooled Chamfer moments on images) clears all 11/11 required + 2/2 diagnostic Tier 1 discriminator_stability gates including five_word_joint_smoke (modes == 5, minimum_reconstruction_token_probability >= 0.90), gaussian1d_smoke, and two_pole (grad_med <= 1.0), unlocking full Tier 2 evaluation under protocol seed 0 with zero autograd.grad calls.
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 1769.29; mechanism `structural`.
+
+model_ae_reconstruction: modes=4, precision=0.26587, mass_tv=0.049805
+
+prediction_observed_10_of_11_tier1: t2-secant-v2 confirmed its pre-registered five_word_joint_smoke prediction (minimum_reconstruction_token_probability = 0.999981 >= 0.99, modes = 5/5, mass_tv = 0.0189, PASS) and converted 4 previously failing required Tier 1 tasks (five_word_joint_smoke, gaussian1d_smoke, unused_token_hold, model_vae_hard) from FAIL -> PASS (reaching 10/11 required + 1/2 diagnostic Tier 1 PASS including two_pole grad_med=0.303 and ring16_acquisition hq=0.9600), missing Tier 2 progression solely on model_ae_gan_multimodal (7/8 bounds PASS, component_center_rms_sigma = 1.0627 vs <= 1.0) and diagnostic precision_gaussian_fp32 due to chord_blend=0.35 (7x higher than EMPF's 0.05) and unweighted cross-mode basis-slot pairing.
+
+**Next:** Set chord_blend=0.05, replace cuSOLVER qr with zero-sync analytical Householder reflections, and distance-temper cross-mode basis-slot neighbors in t2-secant-v3 to clear all 11/11 required Tier 1 gates and evaluate all 25 Tier 2 tasks.
+
+[Record and receipt provenance](records/readout-d1539c52c610cf0b249ed2e5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas-particle-normal-v4 · readout-d156a482c49f278303ac9880
 
@@ -7496,6 +7720,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 
 [Record and receipt provenance](records/readout-dc5a72705708c9da1685c19d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### empf-v8 · readout-dcac6347fd2669483212c6db
+
+**Scope:** research_diagnostic; scientific; revision `d79e34daf7c5ed7e7c1b313ce4e70c144bc409af75d7fade663d13828089d375`.
+
+Measure complete public GANTrainer update time and memory for empf-v8 at the exact Track 2 source commit and uncontended NVIDIA RTX A6000 cohort for matched-key comparison against t2-secant-v1.
+
+**Observed:** {'PASS': 6}; wall seconds 69.378; mechanism `structural`.
+
+
+
+Completed matched-source dcgan_performance seed-0 CUDA execution for empf-v8 on uncontended GPU 1 (PASS 6/6; r256 median 173.05 ms, 1435.44 MiB alloc / 2090.00 MiB reserved). Diagnostic performance scope only.
+
+**Next:** Retain source-bound matched comparator readout.
+
+[Record and receipt provenance](records/readout-dcac6347fd2669483212c6db.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-dd6ed9cfc7ac77bebc9b2bda
 
 **Scope:** research_diagnostic; scientific; revision `fa050d0eea980c0d8d79a813ae2f45149e1cd5c9046d102dffe0f648923926b0`.
@@ -7719,6 +7959,22 @@ Under protocol seed 0 on prior-ablation-full-suite-v1 (NVIDIA RTX A6000), atlas-
 **Next:** Introduce a clock-free state-gated critic payoff/ratio guard (activating only after initial critic discrimination settles rather than at step 0 or fixed step 200) to recover five_word_joint_smoke/hold without regressing mode_hold or img_intensity2, and reduce clean per-mode covariance trace deficit (cov_trace_bias ~ -0.30 on 100-mode grids and ring16_acquisition) via local Jacobian spread or lower stationary R1/R2 damping.
 
 [Record and receipt provenance](records/readout-e97f5dbf54d7493604c4689f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t2-secant-v4 · readout-e9cdca8471c210869cd70d91
+
+**Scope:** current; scientific; revision `6f2ac19f90c31fd4beaa7ffd9e38101d176cbe034bca67d97c0b8889d37e128e`.
+
+Propagating all M = d canonical basis tangents I_d simultaneously via forward-mode AD for 1 <= d <= 4 (with fd_delta=1e-4 fallback for custom emulated-precision ops), paired with 1-tangent Murmur32 Rademacher + local k-NN Hutchinson forward-AD for d > 4 non-image manifolds and live-endpoint BF16 micro-secants + 8x8 pooled Chamfer moments for images, achieves exact zero-variance ||nabla_x D||_2 on all low-d tasks, clears all 11/11 required + 2/2 diagnostic Tier 1 gates (including model_ae_gan_multimodal, ring16_acquisition, five_word_joint_smoke, two_pole, and precision_gaussian_fp32), and completes full Tier 2 discriminator_stability evaluation under protocol seed 0 with zero autograd.grad calls.
+
+**Observed:** {'FAIL': 6, 'PASS': 10}; wall seconds 1715.302; mechanism `structural`.
+
+model_ae_reconstruction: modes=4, precision=0.26587, mass_tv=0.049805; ring16_acquisition: modes=16, hq=0.92725, mass_tv=0.097656
+
+prediction_observed_9_of_11_tier1: t2-secant-v4 confirmed its pre-registered model_ae_gan_multimodal prediction (component_center_rms_sigma = 0.8740 <= 1.0, PASS with 16/24 passing observations and suffix=16) and passed 9/11 required + 1/2 diagnostic Tier 1 discriminator_stability gates (including five_word_joint_smoke p_min=0.999981, gaussian1d_smoke, two_pole grad_med=0.7660, ae_gan_hold, unused_token_hold, zero_tanh_smoke, model_ae_reconstruction, model_vae_categorical, clockfree_audit_measurement_v1), while revealing two exact root causes for the remaining gap: (1) pure pointwise canonical-basis tangents omit spatial-frame neighbor regularization across empty inter-mode bridges on ring16_acquisition (component_covariance_error=2.4337 vs <= 0.85, matching empf-v8's 3.1455 bridge-outlier sensitivity on torch 2.15+cu132, whereas v2's spatial-frame neighbor pairing achieved 0.4625 PASS), and (2) unguarded T2SecantGANLoss selection when loss='non_saturating' + one-sided fd_delta=1e-4 fallback caused a single transient suffix dip on model_vae_hard (all 13 final metrics PASS, suffix=1) and subtraction rounding on EmulatedPrecisionLinear in precision_gaussian_fp32.
+
+**Next:** Gate T2SecantGANLoss on self.loss == 'relativistic' (matching EMPF), use central-difference fd_delta=1e-3 fallback for custom emulated-precision ops, and combine intra-basin spatial-frame neighbor regularization with exact local forward-AD tangents in t2-secant-v5 to clear all 11/11 required Tier 1 gates and execute all 25 Tier 2 tasks.
+
+[Record and receipt provenance](records/readout-e9cdca8471c210869cd70d91.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-ea9a34c10e46857f904487a0
 
@@ -7975,6 +8231,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 0.063
 **Next:** Stop this exact failed ordinary cohort; preserve the negative and unknown denominator. Do not rerun it, vary seeds, fill downstream gates or promote it. Calibration requires a supported bounded design, not relaxed thresholds.
 
 [Evidence](../../reports/forge/technique-receipts/3e1d8ca0f47a4954b41119cbe605548e.json) · [Record](records/readout-faf4999394106140c8a2052e.json)
+
+### t2-secant-v1 · readout-fbe38229308f61967c632eba
+
+**Scope:** research_diagnostic; scientific; revision `9ca1bac688fed042c174903f459211fa8af459109df5668a2229ae0f15b89f9e`.
+
+Eliminating 2nd-order autograd.grad(..., create_graph=True) double-backpropagation via live 1st-order endpoint reuse + one 1st-order Chebyshev-Weyl chord probe reduces dcgan_performance_r256 median update time from 155.41 ms (empf-v8), 339.64 ms (bispf), 588.75 ms (rhbi-v12), and 3112.91 ms (bcap) down to <= 100.0 ms while lowering peak GPU memory on NVIDIA RTX A6000.
+
+**Observed:** {'PASS': 6}; wall seconds 66.819; mechanism `structural`.
+
+
+
+inconclusive_sub100_confirmed_speedup: t2-secant-v1 completed all 6/6 dcgan_performance seed-0 tasks on uncontended NVIDIA RTX A6000 (GPU 1) with dcgan_performance_r256 median update 108.43 ms (148.43 img/s, 1296.44 MiB alloc / 1650.00 MiB reserved), missing the strict <= 100.0 ms pre-registered threshold by 8.43 ms while beating the >= 130.0 ms falsifier by 21.57 ms and accelerating every DCGAN workload over all 2nd-order baselines.
+
+**Next:** Evaluate t2-secant-v1 on discriminator_stability Tiers 1-2 at the identical source digest 8eaf48ee3e2e, then inspect quality and r256 spatial-stride Chamfer overhead for potential t2-secant-v2 refinement.
+
+[Record and receipt provenance](records/readout-fbe38229308f61967c632eba.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas-particle-normal-v4 · readout-ff53c8e071687458a4c51315
 
@@ -8614,4 +8886,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `55b89dbf3f24645ae6452e44bd29fd2abc6234f8ee1fa3b062272b562b833cba`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `983915c16d3ddb04b3595c0478ac4dd2f259004eed434efd35087f84cca3e930`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
