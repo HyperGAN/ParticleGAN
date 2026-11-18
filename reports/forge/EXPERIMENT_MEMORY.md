@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1022. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4504,6 +4504,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 1.254
 
 [Evidence](../../reports/forge/technique-receipts/33bc62d63509425e9f7237ef19ee7374.json) · [Record](records/readout-28f0c9140b4cfeef57f23dd2.json)
 
+### rhbi-v12-feature-transport · readout-293fdd1fd459e8a46fbd285b
+
+**Scope:** research_diagnostic; scientific; revision `2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'PASS': 1}; wall seconds 47.169; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+All six texture gates passed at all five terminal checks. Final energy ratio 0.69586, clean texture fraction 0.90625, two orientations, mass TV 0.13281 and phase diversity 0.75472.
+
+**Next:** Measure the frozen rare-mass and three interpolation retention gates in rhbi-texture-retention-study.
+
+[Record and receipt provenance](records/readout-293fdd1fd459e8a46fbd285b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2-repair-control-20261022 · readout-2b96c09667e7a4aef944ce96
 
 **Scope:** research_diagnostic; scientific; revision `3cca6de5d931b16469b0ef0fedbc0b5cb21f55b8af202a7868e94277fcef2037`.
@@ -5111,6 +5127,22 @@ empf-v6 cleared five_word_joint_smoke in 549.7s (20,001/20,001 steps, modes=5, q
 **Next:** Define empf-v7 with a size-gated hybrid dense profile (newton_schulz_hybrid_v1) mirroring DualNorm's per-offset convolution rule: exact rank-1 normalization for vector-shaped 2D heads, exact polar_factor SVD for small matrices (min_dim < 64 or max_dim < 128), and guarded cubic Newton-Schulz for large dense matrices (min_dim >= 64 and max_dim >= 128).
 
 [Record and receipt provenance](records/readout-4aa764495c669b9247ca874b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-4b999d9239756b51afedd9fd
+
+**Scope:** research_diagnostic; scientific; revision `d69d62df5dffd09e3788a99c26d85a2d32d7c70e92d8238fd46d90d104fb81ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.523; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+The matched parent failed all 24 texture observations, with 0/5 terminal checks. The final high-frequency energy ratio was 0.00862, clean fraction 0 and phase diversity 0.
+
+**Next:** Retain this research-only control as the comparator for the one-delta texture study.
+
+[Record and receipt provenance](records/readout-4b999d9239756b51afedd9fd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p · readout-4bd94051f203bbbb28a3e7a6
 
@@ -6727,6 +6759,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-b7acc4d7ec8bb9cb7dd704a8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-b8643c936f96a75fb059eb10
+
+**Scope:** research_diagnostic; scientific; revision `2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'FAIL': 4}; wall seconds 182.648; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98169, mass_tv=0.097119
+
+Full gates failed for all four tasks. Rare-mass endpoint passed but its passing suffix was 1/5; minimum covariance eigenvalue ratio fell to 0.142 at update 1150. Arc quality 0.739 < 0.80. The patch passed two of five terminal observations and saddle passed zero.
+
+**Next:** Stop this exact revision. Preserve the image result and parameterization as research evidence. Do not advance to CIFAR or default selection. Examine whether the learned metric distorts neighborhoods already captured by raw coordinates.
+
+[Record and receipt provenance](records/readout-b8643c936f96a75fb059eb10.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-b9f8dfc752cd1ca9ceaaff21
 
@@ -8454,4 +8502,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `36ecdc85405d17a185dd65e94de55db351206c355e270a10d7aaff0e0dabb305`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `5e8bd643a714ccf84f58e70e3327b19bdb3be94d329894f3f2bce1560930e38b`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

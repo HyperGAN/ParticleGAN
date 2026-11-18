@@ -1,0 +1,214 @@
+{
+  "attempt_ids": [
+    "e72d41bc328748b09108666b8bce01bf"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "d69d62df5dffd09e3788a99c26d85a2d32d7c70e92d8238fd46d90d104fb81ce",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The feature-transport candidate passed 5/5 under the same source, architecture, initialization hashes, real batches, budget and clean-live sampling law.",
+  "conclusion": "The matched parent failed all 24 texture observations, with 0/5 terminal checks. The final high-frequency energy ratio was 0.00862, clean fraction 0 and phase diversity 0.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "e72d41bc328748b09108666b8bce01bf"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "20fd8b77b6b68ef65891fb3e3e06c9547ca84b70540b18068cdadde37aad30fe",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.0
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.0
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "e72d41bc328748b09108666b8bce01bf",
+          "producer_request_id": "9c6bc82cd539ba1d8c166655",
+          "producer_study_id": "rhbi-texture-feature-control",
+          "result_hash": "f3b16a4f33eafeec3eb6e38ed5a1df882f58c7724bb8c63c9fcc86d826c34e7a",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "752586fddc0eea0315d81ffefbeab683413c1bd611b14783755de02ae8b510a1",
+        "contract_sha256": "20fd8b77b6b68ef65891fb3e3e06c9547ca84b70540b18068cdadde37aad30fe",
+        "control_binding_sha256": "3ee29497b5166acdfeca6ac8cd17c0d3a5b255aac6c4a363b8b97e08b35ac17d",
+        "policy_fingerprint": "65ec20e2b6cba90e72578fed492d296cb1a4a130112ca693c31b952c17ab93af",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "091f5417f4abc5fd4b5f916dc3ad670ace9f4c78a1b3fbed523a5cf388ef0594"
+      },
+      "study_id": "rhbi-texture-feature-control",
+      "study_sha256": "091f5417f4abc5fd4b5f916dc3ad670ace9f4c78a1b3fbed523a5cf388ef0594"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-texture-feature-v1",
+  "hypothesis": "The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain this research-only control as the comparator for the one-delta texture study.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "e72d41bc328748b09108666b8bce01bf",
+        "result_hash": "f3b16a4f33eafeec3eb6e38ed5a1df882f58c7724bb8c63c9fcc86d826c34e7a",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-4b999d9239756b51afedd9fd",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/e72d41bc328748b09108666b8bce01bf/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 600,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-texture-feature-v1"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "The learned metric can distinguish blur but may still yield a poor local generator direction or lose class mass.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-transport",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "clean_texture_fraction",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "hypothesis": "The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.",
+    "id": "rhbi-texture-feature-control",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "clean_texture_fraction",
+      "op": "<",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false,
+          "schema": "forge_conv_texture32_tier1_readout_v1"
+        },
+        "path": "reports/forge/conv-texture32-tier1/summary.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-texture-feature-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-texture-feature-control",
+  "study_sha256": "091f5417f4abc5fd4b5f916dc3ad670ace9f4c78a1b3fbed523a5cf388ef0594",
+  "task_results": [
+    {
+      "compatibility_key": "8e50df97d1d349ee1b7782d2cb4d9497ccbde0cb99cab928d1daa0f0529d147f",
+      "cost": {
+        "adapter_loop_seconds": 35.17346213199198,
+        "adapter_seconds": 36.750472223968245,
+        "charged_task": "img_conv_texture32",
+        "completed_steps": 288,
+        "device": "1",
+        "execution_seconds": 46.52265883295331,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 28.29078278550878,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.7379103506682441
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.030735616805031896
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 27.522136818035506
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 39.346055204980075,
+        "wall_seconds": 46.52265883295331
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "band_purity_mean": 0.053255724903805424,
+        "clean_texture_fraction": 0.0,
+        "dc_mean_err": 0.30791230226440935,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.008624047764909826,
+        "mass_tv": 0.00390625,
+        "orientations": 0,
+        "pairwise_phase_diversity": 0.0,
+        "sample_count": 256,
+        "step": 288
+      },
+      "raw_status": "completed",
+      "reason": "failed img_conv_texture32 thresholds: hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75, orientations == 2, pairwise_phase_diversity >= 0.4",
+      "task_id": "img_conv_texture32"
+    }
+  ]
+}

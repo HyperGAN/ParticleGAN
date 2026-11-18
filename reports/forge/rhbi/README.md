@@ -54,3 +54,7 @@
 - `configs/forge/studies/rhbi-v10-study.json`
 - `configs/forge/studies/rhbi-v11-study.json`
 - `configs/forge/studies/rhbi-v12-study.json`
+
+## Critic-feature transport study
+
+The opt-in marginal GAN recipe `get_recipe("rhbi_optimized", rhbi_feature_transport=True)` passed the 32×32 texture gate across all five terminal checks. The matched parent passed zero. The candidate subsequently failed the rare-mass and three interpolation retention gates. The scalar-linear-readout requirement and measured trade-off limit this recipe to research use. [Study, metrics and training GIF](../rhbi-texture-feature/README.md).

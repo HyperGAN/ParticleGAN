@@ -1841,6 +1841,81 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
+| [interp_sparse_arc](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-bc3debd3fa5e-selected-family-coverage-diagnostic-v1"></a>
 
 ## selected-family-coverage-diagnostic-v1
@@ -3845,7 +3920,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-rhbi-texture-feature-v1-tier-1).
 
 Current pass criteria:
 
@@ -4154,7 +4229,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -4186,7 +4261,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -4218,7 +4293,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -7261,7 +7336,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Run attempt: **PASS** (new_attempt; qualification unchanged). recomputed complete live curve and terminal suffix [Attempt evidence](../attempt-coverage.json).
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -9265,6 +9340,81 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](atlas.md#cohort-cuda-c195899a64af-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](atlas.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | diagnostic | BLOCKED | changed since run |
+| [interp_sparse_arc](atlas.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](atlas.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](atlas.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-c195899a64af-selected-family-coverage-diagnostic-v1"></a>
 
 ## selected-family-coverage-diagnostic-v1
@@ -11181,7 +11331,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-1).
 
 Current pass criteria:
 
@@ -11488,7 +11638,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -11520,7 +11670,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -11552,7 +11702,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -14332,7 +14482,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -16319,6 +16469,81 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](atlas.md#cohort-cuda-0d83d78027c5-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](atlas.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | diagnostic | BLOCKED | changed since run |
+| [interp_sparse_arc](atlas.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](atlas.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](atlas.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-0d83d78027c5-selected-family-coverage-diagnostic-v1"></a>
 
 ## selected-family-coverage-diagnostic-v1
@@ -18276,7 +18501,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-1).
 
 Current pass criteria:
 
@@ -18583,7 +18808,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -18615,7 +18840,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -18647,7 +18872,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -21463,7 +21688,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 

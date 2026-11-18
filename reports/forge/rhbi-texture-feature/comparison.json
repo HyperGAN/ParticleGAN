@@ -1,0 +1,53 @@
+{
+  "arms": {
+    "rhbi-v12": {
+      "actual_training_gif_sha256": "81831996ac55ff01a06cd077157b3107c3d8835addc53a9075b5d91db22e8b17",
+      "attempt": "e72d41bc328748b09108666b8bce01bf",
+      "batch_sequence_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+      "candidate_revision": "d69d62df5dffd09e3788a99c26d85a2d32d7c70e92d8238fd46d90d104fb81ce",
+      "checkpoint_sha256": "dc57017901ac94f8aff53c2071b7a7dcd4370fdd60880bd59cc7b0cb49688ba5",
+      "device": "1",
+      "evaluation_noise": "clean",
+      "gpu_model": "NVIDIA RTX A6000",
+      "initial_parameters": {
+        "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+        "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+        "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+      },
+      "resolved_recipe_sha256": "42c04261d3b6a4b29fc13f674d7dba853f168ff99dff687d76b7ca6ad49e4458",
+      "sampling_law": "public_prior_without_output_noise",
+      "scoring_weights": "live",
+      "source_commit": "27803af6ae036e91b7c7a627ddd03771a51a13eb",
+      "source_sha256": "91ca104be624f16234611334f2cb12d8d392204165517877e7a485141fa81ceb",
+      "status": "FAIL",
+      "terminal_passed": 0
+    },
+    "rhbi-v12-feature-transport": {
+      "actual_training_gif_sha256": "08e6d705250e36130f524a24b5ddc81bbf0a97b550d284eea02ffaba5b51a7b1",
+      "attempt": "6afc5da8791c4b2db3e7829de05099c0",
+      "batch_sequence_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+      "candidate_revision": "2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce",
+      "checkpoint_sha256": "c5c446434b36448bdd250f0ef0fb7e92a812ec9113635aabbec282eb1fb834ba",
+      "device": "0",
+      "evaluation_noise": "clean",
+      "gpu_model": "NVIDIA RTX A6000",
+      "initial_parameters": {
+        "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+        "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+        "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+      },
+      "resolved_recipe_sha256": "7efb0cf88be50fe5e3f513df995d418712a461ad8b9f9a13e46545acd89f3d19",
+      "sampling_law": "public_prior_without_output_noise",
+      "scoring_weights": "live",
+      "source_commit": "27803af6ae036e91b7c7a627ddd03771a51a13eb",
+      "source_sha256": "91ca104be624f16234611334f2cb12d8d392204165517877e7a485141fa81ceb",
+      "status": "PASS",
+      "terminal_passed": 5
+    }
+  },
+  "changed_recipe_field": "rhbi_feature_transport",
+  "evidence_scope": "research_diagnostic",
+  "protocol_seed": 0,
+  "qualification_input": false,
+  "task": "img_conv_texture32"
+}

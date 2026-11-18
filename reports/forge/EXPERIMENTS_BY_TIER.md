@@ -2,7 +2,7 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **199 tasks**; **161 assigned** to at least one view; **38 unassigned**. Showing **32/32 views**.
+Catalog: **199 tasks**; **161 assigned** to at least one view; **38 unassigned**. Showing **34/34 views**.
 
 Declared priors across the catalog: **89 MoGParticlePrior**, **110 ParticlePrior** (including **10 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
@@ -63,6 +63,8 @@ This report follows changing declarations and published evidence; it selects no 
 | [recipe-prior-refactor-ka2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-ka2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-r1r2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-r1r2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-release07-gan-v3-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-release07-gan-v3-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [rhbi-texture-feature-v1](../../configs/forge/views/rhbi-texture-feature-v1.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [rhbi-texture-retention-v1](../../configs/forge/views/rhbi-texture-retention-v1.json) | 1 | 4 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [selected-family-coverage-diagnostic-v1](../../configs/forge/views/selected-family-coverage-diagnostic-v1.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json) | 1 | 7 required | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [vaegan_coverage](../../configs/forge/views/vaegan_coverage.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -1623,6 +1625,85 @@ No published solution leaderboard for this view yet; task registration and relat
 | [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
 | [rotated100](../../configs/forge/tasks/rotated100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-rotated100) | native100 / native_accuracy | 7000 | 3600 | — |
 | [staggered100](../../configs/forge/tasks/staggered100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100 / native_accuracy | 7000 | 3600 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## rhbi-texture-feature-v1
+
+Declaration: [rhbi-texture-feature-v1](../../configs/forge/views/rhbi-texture-feature-v1.json); revision 1; goal: `rhbi_texture_feature`.
+
+Declared calibration status: **provisional**.
+
+This diagnostic study tests one selected failure and four known retention tasks.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+1 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [img_conv_texture32](../../configs/forge/tasks/img_conv_texture32.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-conv-texture32) | conv_texture32 / img_conv_texture32 | 288 | 300 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## rhbi-texture-retention-v1
+
+Declaration: [rhbi-texture-retention-v1](../../configs/forge/views/rhbi-texture-retention-v1.json); revision 1; goal: `rhbi_texture_feature`.
+
+Declared calibration status: **provisional**.
+
+This diagnostic study tests one selected failure and four known retention tasks.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+4 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [vector_unequal_mass](../../configs/forge/tasks/vector_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-mass) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [interp_sparse_arc](../../configs/forge/tasks/interp_sparse_arc.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-sparse-arc) | particle_interpolation / interp_sparse_arc | 600 | 300 | — |
+| [interp_img_patch_shift](../../configs/forge/tasks/interp_img_patch_shift.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-img-patch-shift) | particle_interpolation / interp_img_patch_shift | 800 | 300 | — |
+| [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
 
 ### Tier 2: quality
 
@@ -6486,6 +6567,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `91f0e6d16013b70ad3bf30195e897be23ddbf996ecd6da757bd20b2fc515b46d`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `f1196719b0e79649c03244873978244a2b6a0a122bd1edb6f736b75f94084de6`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `4484501ad0e8b4d3c3a0b1a3ad6c1a157568886f4906c2e7d8c0c5853448387e`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `f2e2811b63710c79f4ae2cdab8d0db276508df225e74cb65f028ce8aec295831`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

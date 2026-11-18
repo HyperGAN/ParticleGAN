@@ -1672,6 +1672,81 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](empf.md#cohort-cuda-23a94f16ca88-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | diagnostic | FAIL | matches recorded run |
+| [interp_sparse_arc](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_sparse_arc) | diagnostic | FAIL | matches recorded run |
+| [interp_img_patch_shift](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | diagnostic | FAIL | matches recorded run |
+| [interp_saddle_barycentric](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | diagnostic | FAIL | matches recorded run |
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-23a94f16ca88-selected-family-coverage-diagnostic-v1"></a>
 
 ## selected-family-coverage-diagnostic-v1
@@ -3195,7 +3270,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1).
+Used by: [discriminator_stability / Tier 1](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-rhbi-texture-feature-v1-tier-1).
 
 Current pass criteria:
 
@@ -3418,7 +3493,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3472,7 +3547,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3524,7 +3599,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metrics:
 
@@ -5766,7 +5841,7 @@ Run attempt: **FAIL** (retained_selected_row; qualification unchanged). Matched 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](empf.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](empf.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](empf.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metric checks:
 
