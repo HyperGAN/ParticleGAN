@@ -366,7 +366,7 @@ class Recipe:
     rhbi_cond_step_damp: float = 0.0
     rhbi_ae_coord_whiten: bool = False
     rhbi_support_completion: bool = False
-    rhbi_feature_transport: bool | Literal["assignment_only", "raw_self"] = False
+    rhbi_feature_transport: bool | Literal["assignment_only", "raw_self", "raw_assignment"] = False
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -660,8 +660,8 @@ class Recipe:
             raise ValueError("rhbi_simplex_curve_settle must be a boolean")
         if type(self.rhbi_ae_coord_whiten) is not bool:
             raise ValueError("rhbi_ae_coord_whiten must be a boolean")
-        if type(self.rhbi_feature_transport) is not bool and self.rhbi_feature_transport not in ("assignment_only", "raw_self"):
-            raise ValueError("rhbi_feature_transport must be a boolean, 'assignment_only' or 'raw_self'")
+        if type(self.rhbi_feature_transport) is not bool and self.rhbi_feature_transport not in ("assignment_only", "raw_self", "raw_assignment"):
+            raise ValueError("rhbi_feature_transport must be a boolean, 'assignment_only', 'raw_self' or 'raw_assignment'")
         if self.rhbi_feature_transport and (
             self.effective_critic_formulation != "rhbi" or self.rhbi_weight <= 0
             or self.model != "gan" or self.conditioning != "scalar" or self.encoder_mode != "none"

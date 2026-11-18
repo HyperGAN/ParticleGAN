@@ -1,0 +1,9 @@
+# Can raw matching preserve texture and recover arc interpolation?
+
+## Frozen comparison
+
+The parent recovered texture with feature-based attraction and raw self-repulsion, then failed the arc gate. Set `rhbi_feature_transport="raw_assignment"` and change only the detached real–fake cost that enters the marginal generator's Sinkhorn solve. Compute this cost in raw coordinates using the same local horizons, centered critic scores, masks, and slack convention. The resulting plan supplies the real matches, slack weights and active fractions that weight self-repulsion. Keep the physical cross-cost and its derivative in augmented raw-plus-critic-feature coordinates, the support-completion geometry from the parent, the raw fake–fake plan and cost, the learned prior policy and SBNP regularizer. [Parent experiment](../raw-self/README.md)
+
+Compare the candidate with its immediate parent and raw RHBI-v12. Within each task use a single frozen source, protocol seed 0, the public deterministic initializer, and matched prior capacity, starting tensors, seen batches, sampler, budgets and evaluation cadence. Reserve 300 worker-seconds per arm per stage. First require the complete texture gate across the last five of 24 observations after 288 updates. Both controls must reproduce their published 24 observations, with a parent PASS and a raw RHBI FAIL. Only that result admits the three matched sparse-arc runs of 600 updates. The arc prediction is a candidate PASS alongside a raw RHBI PASS and a parent FAIL. Grade the clean live model on its own learned graph.
+
+A numerical texture failure stops this candidate. A disagreement between controls or execution contracts triggers an evidence review. There is no seed search, retuning, CIFAR run or default promotion in this study. Source-bound receipts determine eligibility.

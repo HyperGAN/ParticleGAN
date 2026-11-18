@@ -36,7 +36,7 @@ def attach(trainer, context, task, output):
         return None
     candidates = {"rhbi-v12", "rhbi-v12-feature-transport"}
     if view["id"] == ARC_VIEW:
-        candidates.add("rhbi-v12-feature-raw-self")
+        candidates.update(("rhbi-v12-feature-raw-self", "rhbi-v12-raw-assignment"))
     if (task["id"] not in {"vector_unequal_mass", "interp_sparse_arc"} or
             request["candidate"]["id"] not in candidates or
             view.get("evidence_scope") != "research_diagnostic"):
@@ -91,8 +91,8 @@ class TrajectoryArchive:
                     with torch.no_grad():
                         _, raw_hat = pair(x.detach(), y.detach(), ell[0])
                         raw_plan = solve(raw_hat, row_logits, col_logits, **options)
-                        if not trainer.loss.feature_transport and not torch.equal(raw_plan, plan):
-                            raise ValueError("Raw-cost replay differs from the executed parent plan")
+                        if trainer.loss.feature_transport in (False, "raw_assignment") and not torch.equal(raw_plan, plan):
+                            raise ValueError("Raw-cost replay differs from the executed raw assignment")
                         active_rows = plan[:-1].detach()
                         raw_rows = raw_plan[:-1]
                         tv = (active_rows.double() - raw_rows.double()).abs().sum() / (active_rows.double().sum() + raw_rows.double().sum())
@@ -103,7 +103,8 @@ class TrajectoryArchive:
 
             with patch.object(core, "_born_infeld_pair", cost), patch.object(core, "_sinkhorn_slack", sinkhorn):
                 result = forward(x, y, *args, **kwargs)
-            if len(plans) != 2 or len(ell) != 2:
+            expected_costs = 3 if trainer.loss.feature_transport == "raw_assignment" else 2
+            if len(plans) != 2 or len(ell) != expected_costs:
                 raise ValueError("Expected one cross and one self solve in marginal generator transport")
             return result
 

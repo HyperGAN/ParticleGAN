@@ -81,7 +81,7 @@ class RHBIGANLoss(GANLoss):
         simplex_macro_settle: bool = False,
         simplex_curve_settle: bool = False,
         support_completion: bool = False,
-        feature_transport: bool | Literal["assignment_only", "raw_self"] = False,
+        feature_transport: bool | Literal["assignment_only", "raw_self", "raw_assignment"] = False,
         record: Any = None,
     ) -> None:
         super().__init__(loss, labels=labels)
@@ -124,8 +124,8 @@ class RHBIGANLoss(GANLoss):
         self.cond_ot_weight = float(cond_ot_weight)
         self.cond_ot_mode = cond_ot_mode
         self.record = record
-        if type(feature_transport) is not bool and feature_transport not in ("assignment_only", "raw_self"):
-            raise ValueError("feature_transport must be a boolean, 'assignment_only' or 'raw_self'")
+        if type(feature_transport) is not bool and feature_transport not in ("assignment_only", "raw_self", "raw_assignment"):
+            raise ValueError("feature_transport must be a boolean, 'assignment_only', 'raw_self' or 'raw_assignment'")
         self.feature_transport = feature_transport
         self.rhbi = RHBILoss(
             weight=weight,
@@ -338,7 +338,8 @@ class RHBIGANLoss(GANLoss):
             feat_fake=feat_fake,
             feat_real=feat_real,
             feature_assignment_only=self.feature_transport == "assignment_only",
-            raw_self_transport=self.feature_transport == "raw_self",
+            raw_self_transport=self.feature_transport in ("raw_self", "raw_assignment"),
+            raw_cross_assignment=self.feature_transport == "raw_assignment",
             record=rec,
             symmetric=False,
             allow_ell_update=allow_ell,

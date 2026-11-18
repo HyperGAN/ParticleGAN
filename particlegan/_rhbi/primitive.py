@@ -657,6 +657,7 @@ class RHBILoss(nn.Module):
         *,
         feature_assignment_only: bool = False,
         raw_self_transport: bool = False,
+        raw_cross_assignment: bool = False,
         record: Any = None,
         symmetric: bool = False,
         allow_ell_update: bool = True,
@@ -698,7 +699,9 @@ class RHBILoss(nn.Module):
             if g_macro_fwd > 1e-4:
                 defer_thermal = True
 
-        if (feature_assignment_only or raw_self_transport) and (
+        if feature_assignment_only and raw_cross_assignment:
+            raise ValueError("Feature-only and raw cross assignments are mutually exclusive")
+        if (feature_assignment_only or raw_self_transport or raw_cross_assignment) and (
             feat_fake is None or feat_real is None or symmetric or cond_fake is not None or cond_real is not None
         ):
             raise ValueError("Feature assignment requires marginal real and fake features")
@@ -797,6 +800,11 @@ class RHBILoss(nn.Module):
         else:
             c_phys_xy, c_hat_xy = self._born_infeld_pair(x_aug, y_aug, ell_xy)
             cross_assignment_cost = c_hat_xy
+            if raw_cross_assignment:
+                # Only the marginal Sinkhorn solve receives raw distances. Attraction
+                # and the support-completion geometry keep their augmented costs.
+                with torch.no_grad():
+                    _, cross_assignment_cost = self._born_infeld_pair(x_fake, y_target, ell_xy)
         self_coords = x_fake if feature_assignment_only or raw_self_transport else x_aug
         c_phys_xx, c_hat_xx = self._born_infeld_pair(self_coords, self_coords, ell)
 

@@ -2156,8 +2156,9 @@ def test_rhbi_feature_assignment_matches_fixed_cross_plan_raw_loss_and_gradient(
         recipe.replace(rhbi_feature_transport="unknown")
 
 
-def test_rhbi_feature_raw_self_changes_only_self_cost_and_derivative(monkeypatch):
-    recipe = get_recipe("rhbi_optimized", z_dim=2, num_particles=64, rhbi_feature_transport="raw_self")
+@pytest.mark.parametrize("mode", ["raw_self", "raw_assignment"])
+def test_rhbi_feature_attraction_raw_self_formula_and_derivative(monkeypatch, mode):
+    recipe = get_recipe("rhbi_optimized", z_dim=2, num_particles=64, rhbi_feature_transport=mode)
     g, d, _ = _make_mlp_pair()
     trainer = GANTrainer(recipe, g, d, seed=0)
     record = trainer.opt_d.record
@@ -2168,8 +2169,8 @@ def test_rhbi_feature_raw_self_changes_only_self_cost_and_derivative(monkeypatch
     actual = trainer.loss.g_loss(fake, real)
     op = trainer.loss.rhbi
 
-    # Run the full-feature reference on explicit augmented coordinates. Replace only
-    # its self-distance matrix, including the derivative of the physical cost.
+    # Build the reference on explicit augmented coordinates, with raw self costs.
+    # For raw assignment give the cross solver the raw parent's precomputed plan.
     hf, hr = d[:-1](x), d[:-1](y).detach()
     radius = (hr - hr.mean(0)).square().sum(1).mean().sqrt()
     xf = torch.cat((x, (hf - hr.mean(0)) / radius), dim=1)
@@ -2181,6 +2182,18 @@ def test_rhbi_feature_raw_self_changes_only_self_cost_and_derivative(monkeypatch
         is_self = a is b
         geometries.append(is_self)
         return pair(x, x, ell) if is_self else pair(a, b, ell)
+    if mode == "raw_assignment":
+        raw_hat = pair(x, y, x.new_tensor(1.))[1]
+        solve = op._sinkhorn_slack
+        solve_calls = []
+        def raw_matching(hat, rows, cols, **options):
+            solve_calls.append(hat)
+            if len(solve_calls) == 1:
+                plan = solve(raw_hat, rows, cols, **options)
+                assert (plan - solve(hat, rows, cols, **options)).abs().max() > 1e-6
+                return plan
+            return solve(hat, rows, cols, **options)
+        monkeypatch.setattr(op, "_sinkhorn_slack", raw_matching)
     monkeypatch.setattr(op, "_born_infeld_pair", reference_pair)
     reference, _ = op(xf, yr, fake, real, record=record, allow_ell_update=False)
     assert geometries == [False, True]
@@ -2192,7 +2205,7 @@ def test_rhbi_feature_raw_self_changes_only_self_cost_and_derivative(monkeypatch
         trainer.loss.g_loss(d(x), d(y))
 
 
-@pytest.mark.parametrize("mode", [True, "assignment_only", "raw_self"])
+@pytest.mark.parametrize("mode", [True, "assignment_only", "raw_self", "raw_assignment"])
 def test_rhbi_feature_transport_exact_continuation(mode):
     recipe = get_recipe("rhbi_optimized", batch_size=16, z_dim=2, num_particles=64,
                         rhbi_feature_transport=mode)

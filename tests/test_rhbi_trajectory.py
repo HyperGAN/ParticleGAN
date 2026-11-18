@@ -15,7 +15,7 @@ from experiments.forge.vectorprofiles import build_vector_models, resolve_vector
 ROOT = Path(__file__).resolve().parents[1]
 
 
-@pytest.mark.parametrize("candidate", ["rhbi-v12", "rhbi-v12-feature-transport", "rhbi-v12-feature-raw-self"])
+@pytest.mark.parametrize("candidate", ["rhbi-v12", "rhbi-v12-feature-transport", "rhbi-v12-feature-raw-self", "rhbi-v12-raw-assignment"])
 def test_archive_observes_actual_plans_without_changing_updates(tmp_path, candidate):
     card = json.loads((ROOT / "configs/forge/tasks/vector_unequal_mass.json").read_text())
 
@@ -39,4 +39,4 @@ def test_archive_observes_actual_plans_without_changing_updates(tmp_path, candid
     plans = torch.load(archive.directory / "plans-0002.pt", weights_only=True)
     assert plans["plan"].shape == (2, 128, 129)
     assert plans["generator_rows"].shape == (2, 128)
-    assert plans["direct_tv"].gt(0).any().item() == (candidate != "rhbi-v12")
+    assert plans["direct_tv"].gt(0).any().item() == (candidate in {"rhbi-v12-feature-transport", "rhbi-v12-feature-raw-self"})

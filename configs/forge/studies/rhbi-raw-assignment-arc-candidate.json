@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-raw-assignment-arc-candidate",
+  "status": "ready",
+  "candidate": "rhbi-v12-raw-assignment",
+  "control": {
+    "candidate_id": "rhbi-v12-feature-raw-self",
+    "task_map": {}
+  },
+  "hypothesis": "With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.",
+  "scope": {
+    "view": "rhbi-retention-trajectory-arc-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-raw-assignment-arc-v1",
+    "budget_seconds": 900,
+    "candidate_budget_seconds": 300
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/raw-self/arc.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "interp_sparse_arc",
+    "metric": "interp_hq",
+    "op": ">=",
+    "threshold": 0.8,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "interp_sparse_arc",
+    "metric": "interp_hq",
+    "op": "<",
+    "threshold": 0.8,
+    "phase": "final"
+  },
+  "competing_explanation": "Feature-based cross-attraction itself impairs arc interiors under this recipe.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}
