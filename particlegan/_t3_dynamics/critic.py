@@ -286,7 +286,7 @@ class _RGDTRecordMixin:
         ema_decay: float = 0.96,
         s_min: float = 1e-6,
         shock_mu_ratio: float = 0.35,
-        shock_ed_floor: float = 0.28,
+        shock_ed_floor: float = 0.26,
         lock_hysteresis: float = 0.0,
         r_tail: float = 0.0,
     ) -> float:
@@ -313,7 +313,7 @@ class _RGDTRecordMixin:
         shock_mu_thresh = float(shock_mu_ratio) * shock_ed_thresh
         if not self.rgdt_thermal_initialized or (
             self._thermal_scale < 0.99
-            and (ed_f > shock_ed_thresh or mu_sq_f > shock_mu_thresh or hmax_f > 0.65)
+            and (ed_f > shock_ed_thresh or mu_sq_f > shock_mu_thresh or hmax_f > 0.60)
         ):
             self.rgdt_ema_ed = ed_c
             self.rgdt_ema_mu_sq = mu_sq_c

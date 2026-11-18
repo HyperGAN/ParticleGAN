@@ -1,0 +1,67 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "t3_iso_scale_mass_8x"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "t3_iso_horizon_saddle_shift"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "vector_unequal_width"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "vector_unequal_mass"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "vector_anisotropic"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "img_bars4"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "model_ddgan_gaussian_chain"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 7,
+      "qualification_tier": 1,
+      "task": "model_ae_ddgan_gaussian_chain"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Bounded 8-task factorial ablation isolating RGDT Pillars 1-3 does not establish whole-suite qualification or default adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "t3_factorial_ablation",
+  "policy_change_reason": "Matched protocol-seed-0 factorial knockout ablation isolating Pillar 1 (Conformal Horizon), Pillar 2 (Orphan-Gated Monge Macro-Transport), and Pillar 3 (Exchangeability-Invariant Pooled-Tangent Conditional Fiber Residualization) against full rgdt-v3 across the 8 core Theory-3 tasks.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}
