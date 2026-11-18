@@ -124,7 +124,7 @@ def task_recipe_resources(task):
         return {"num_particles": LOCKED_SHARED.n_particles, "z_dim": 4, "batch_size": 128}
     if adapter in {"native100", "native100_continuation"} and "native_profile" in execution:
         return deepcopy(execution["host_definition"]["resources"])
-    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation"}:
+    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation", "conv_texture32"}:
         return deepcopy(execution["host_definition"]["resources"])
     return deepcopy(execution.get("resources", {}))
 
@@ -197,7 +197,7 @@ def task_recipe_overrides(candidate, task):
 # table. Other hosts enumerate, encode against or directly optimize table rows,
 # so Recipe.prior_code_law='fresh_gaussian' has no defined meaning there.
 FRESH_GAUSSIAN_ADAPTERS = frozenset({"transfer_vector", "native100", "native100_continuation",
-                                     "clockfree_audit", "ring_endurance"})
+                                     "clockfree_audit", "ring_endurance", "conv_texture32"})
 FRESH_GAUSSIAN_BEHAVIOR_HOSTS = frozenset({"mode_hold"})
 
 
@@ -287,6 +287,7 @@ PUBLIC_TRAINER_POLICY_ADAPTERS = frozenset({
     "transfer_vector", "transfer_image", "native100", "native100_continuation",
     "ring_endurance", "paired_adaptation", "clockfree_audit",
     "word_joint", "public_api_model_toy", "transfer_behavior", "particle_interpolation",
+    "conv_texture32",
 })
 
 

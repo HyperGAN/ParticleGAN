@@ -1,0 +1,213 @@
+{
+  "attempt_ids": [
+    "a7dabed8c9e24e028c980c1ad7bd39cb"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The historical negative control reproduced all 24 observations exactly; the two arms with feature-based attraction passed all five checks.",
+  "conclusion": "Raw RHBI failed all five terminal checks with zero clean samples at update 288 and energy ratio 0.0086.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "a7dabed8c9e24e028c980c1ad7bd39cb"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "83c639e50650554b06c003f3d51243378c9a9dbc104bea3e71d6a914c1d5c34e",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.0
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.0
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "a7dabed8c9e24e028c980c1ad7bd39cb",
+          "producer_request_id": "3e6a1105339a092b4f3a7537",
+          "producer_study_id": "rhbi-raw-assignment-texture-raw",
+          "result_hash": "99da149dc99b3d1422e88fffd4531eb4396bc96180530506b3302480590b4cc2",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "752586fddc0eea0315d81ffefbeab683413c1bd611b14783755de02ae8b510a1",
+        "contract_sha256": "83c639e50650554b06c003f3d51243378c9a9dbc104bea3e71d6a914c1d5c34e",
+        "control_binding_sha256": "7f5ee95eea4aa08f7b85edb3973b76d7252fcca9104e8d02ad386b568859f248",
+        "policy_fingerprint": "65ec20e2b6cba90e72578fed492d296cb1a4a130112ca693c31b952c17ab93af",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "8ef142f36aebc94382d8a88fb57e0530fefc5f4a74bd1ce63d7ff9add3387f15"
+      },
+      "study_id": "rhbi-raw-assignment-texture-raw",
+      "study_sha256": "8ef142f36aebc94382d8a88fb57e0530fefc5f4a74bd1ce63d7ff9add3387f15"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-texture-feature-v1",
+  "hypothesis": "Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as the raw-geometry reference for the arc comparison.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "a7dabed8c9e24e028c980c1ad7bd39cb",
+        "result_hash": "99da149dc99b3d1422e88fffd4531eb4396bc96180530506b3302480590b4cc2",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-b95be1e653ca6b69470c481b",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/a7dabed8c9e24e028c980c1ad7bd39cb/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 900,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-raw-assignment-texture-v1"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "Selecting pairs in the critic representation is necessary even when generator attraction uses those features.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-raw-self",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "clean_texture_fraction",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "hypothesis": "Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.",
+    "id": "rhbi-raw-assignment-texture-raw",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "clean_texture_fraction",
+      "op": "<",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false
+        },
+        "path": "reports/forge/rhbi-texture-feature/raw-self/texture.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-texture-feature-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-raw-assignment-texture-raw",
+  "study_sha256": "8ef142f36aebc94382d8a88fb57e0530fefc5f4a74bd1ce63d7ff9add3387f15",
+  "task_results": [
+    {
+      "compatibility_key": "1e2a6e22c9562c17b72c92f9d62367783aa1264bf1390798398f95925e87fbe3",
+      "cost": {
+        "adapter_loop_seconds": 35.3854395019589,
+        "adapter_seconds": 37.40875394700561,
+        "charged_task": "img_conv_texture32",
+        "completed_steps": 288,
+        "device": "0",
+        "execution_seconds": 47.335049789980985,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 28.368593756458722,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.7145539296325296
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.030293610296212137
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 27.62374621652998
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 39.95515896601137,
+        "wall_seconds": 47.335049789980985
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "band_purity_mean": 0.053255724903805424,
+        "clean_texture_fraction": 0.0,
+        "dc_mean_err": 0.30791230226440935,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.008624047764909826,
+        "mass_tv": 0.00390625,
+        "orientations": 0,
+        "pairwise_phase_diversity": 0.0,
+        "sample_count": 256,
+        "step": 288
+      },
+      "raw_status": "completed",
+      "reason": "failed img_conv_texture32 thresholds: hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75, orientations == 2, pairwise_phase_diversity >= 0.4",
+      "task_id": "img_conv_texture32"
+    }
+  ]
+}

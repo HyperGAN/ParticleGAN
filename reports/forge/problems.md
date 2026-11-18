@@ -47,6 +47,7 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 | [Interpolate unseen latent k-NN chords along a 270-degree circular arc from 12 zero-sigma particles without MoG](problems.md#interp_sparse_arc) | Train 12 discrete zero-sigma `ParticlePrior` locations and an MLP generator on a 2D circular arc (`R = 2.0`, `sigma = 0.03`) under protocol seed 0 so both endpoints (`endpoint_hq >= 0.85`) and unseen latent k-NN chords (`interp_hq >= 0.80`, `interp_arc_bins >= 22`, `midpoint_novelty >= 0.20`) stay on the curved manifold across five final live checks. | Selected recorded PASS: RHBI. |
 | [Translate a sharp 2x2 patch smoothly across unseen latent chords in 8x8 images from 16 zero-sigma particles](problems.md#interp_img_patch_shift) | Train 16 zero-sigma `ParticlePrior` codes (`z_dim = 4`) and a `residual_upsample` convolutional generator on continuous single-patch 8x8 images so unseen latent k-NN chords render single sharp shifted patches (`interp_rmse <= 0.10`, `interp_peak >= 0.78`, `midpoint_novelty >= 0.18`, `quadrant_coverage == 4`) rather than 0.5-peak pixel double exposures. | Selected recorded PASS: RHBI. |
 | [Interpolate unseen 2D latent triangle barycenters across a curved 3D saddle sheet from 24 zero-sigma particles](problems.md#interp_saddle_barycentric) | Train 24 zero-sigma `ParticlePrior` locations (`z_dim = 2`) and a 3D-output MLP generator on $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y)$ so unseen 2D latent k-NN triangle barycenters stay on the curved surface (`barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78`, `xy_bins_covered >= 12`, `barycenter_novelty >= 0.18`) across five final live checks. | Selected recorded PASS: RHBI. |
+| [Acquire 3x32x32 random-phase 12-mode RGB textures under high-dimensional shell concentration](problems.md#img_conv_texture32) | Acquire two equiprobable 3x32x32 (d=3072) random-phase 12-mode oriented RGB texture classes from a recipe-owned 64-particle MoGParticlePrior (sigma=0.1) within 288 updates, sustaining high-frequency carrier energy (hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75), balanced class shares (orientations == 2, mass_tv <= 0.18), and within-class phase diversity (pairwise_phase_diversity >= 0.40) across the final five live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 
 <a name="gaussian1d_stability"></a>
 
@@ -1327,3 +1328,38 @@ Test: `interp_saddle_barycentric` · Held for qualification; included in full-su
 **Recommendation from the dated diagnosis.** Stabilize late-step live-iterate fluctuations and test recipe-owned 2D simplex interior supervision so `atlas` and `release07-gan-v3` hold `barycenter_hq >= 0.78` across all five terminal checks.
 
 Evidence: [Particle interpolation stretch report and 9-family table](particle-interpolation-stretch/README.md#interp_saddle_barycentric) · [Atlas diagnostic stretch readout receipt](records/readout-669ead9699347bdcc998eb81.json) · [GAN v3 release 0.7 diagnostic stretch readout receipt](records/readout-e838608cfd803f50b58f4e21.json) · [Task declaration](../../configs/forge/tasks/interp_saddle_barycentric.json).
+
+
+<a name="img_conv_texture32"></a>
+
+## Acquire 3x32x32 random-phase 12-mode RGB textures under high-dimensional shell concentration
+
+Test: `img_conv_texture32` · Required for qualification and included in full-suite results.
+
+**What it tests.** Acquire two equiprobable 3x32x32 (d=3072) random-phase 12-mode oriented RGB texture classes from a recipe-owned 64-particle MoGParticlePrior (sigma=0.1) within 288 updates, sustaining high-frequency carrier energy (hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75), balanced class shares (orientations == 2, mass_tv <= 0.18), and within-class phase diversity (pairwise_phase_diversity >= 0.40) across the final five live checks.
+
+**Historical diagnosis (2026-10-15).** In d=3072 at B=64, real multi-frequency random-phase textures concentrate on a shell whose 25th-percentile real-to-real nearest-neighbor distance (~16.1) exceeds the distance from zero-carrier interior DC mean blobs to the real shell (~15.6). Raw-pixel Born-Infeld transport with zero active-pair critic weight (`rhbi-v12` / `rhbi_optimized`) maps c_hat << rho=3.0 inside the pixel-OT ball and exponentially suppresses slack critic mass when d_tilde_fake < 0, collapsing onto the two flat interior DC color means (`hf_band_ratio = 0.0086`, `clean_texture_fraction = 0.0`, `orientations = 0`, `pairwise_phase_diversity = 0.0`, 0/5 terminal checks).
+
+**Historical passer evidence.** Feature-critic formulations (`empf-v8` and `bispf-throughput-v1`) pass 5/5 terminal checks under protocol seed 0; `rhbi-v12` fails 0/5.
+
+- `empf-v8` (`empf`) and `bispf-throughput-v1` (`bispf_optimized`) pass all six gates across all five terminal checks in the matched CUDA readout (`reports/forge/conv-texture32-tier1/summary.json`), whereas `rhbi-v12` (`rhbi_optimized`) fails 0/5 with zero spatial carrier energy.
+- Previously selected family cohorts in `technique-inventory.json` remain unmeasured (`UNKNOWN`) under their archived pre-revision-18 sources until a fresh full-view cohort is registered.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-img_conv_texture32) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-img_conv_texture32) |
+| [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [NOT MEASURED](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-img_conv_texture32) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [K3P](families/k3p.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+| [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) |
+
+**Recommendation from the dated diagnosis.** Evaluate generic modality-agnostic RHBI repairs (critic penultimate feature-space geometry vs ambient pixel distance, sign-faithful adversarial slack escape, and nonzero active-pair relativistic critic gradient) in a bounded Forge study while preserving every counted Tier 1-3 pass.
+
+Evidence: [Tier 1 3x32x32 texture readout and root-cause verification](conv-texture32-tier1/README.md#img_conv_texture32) · [Matched CUDA summary receipt](conv-texture32-tier1/summary.json) · [Supplemental public-API failure publication](../toy_audit/api_contract/conv_texture32/publication.json) · [Task declaration](../../configs/forge/tasks/img_conv_texture32.json).

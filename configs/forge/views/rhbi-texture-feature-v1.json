@@ -1,0 +1,25 @@
+{
+  "assignments": [
+    {
+      "task": "img_conv_texture32",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 0
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "This diagnostic study tests one selected failure and four known retention tasks.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi_texture_feature",
+  "id": "rhbi-texture-feature-v1",
+  "policy_change_reason": "Bounded matched marginal transport geometry study. Verify the texture gate before rare-mass and interpolation retention.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

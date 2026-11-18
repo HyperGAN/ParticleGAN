@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1044. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4312,6 +4312,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-186c24688ccd9e1dbc108b9d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-transport · readout-1942d27fe6d2bb51cf94dd07
+
+**Scope:** research_diagnostic; scientific; revision `820b6d437545fe4a5b6bc8ab42ed1c293cc651b08bf68ee13b828008edb78d39`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 42.602; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98169, mass_tv=0.097119
+
+The feature arm failed the sustained unequal-mass gate, with one passing terminal observation. Arc admission was blocked by the observer change to its pinned host source before any arc updates.
+
+**Next:** Restore the pinned interpolation host and capture at dispatch. Reserve only the outstanding arc cell.
+
+[Record and receipt provenance](records/readout-1942d27fe6d2bb51cf94dd07.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-1b511c8eec2bb40f41aee6ec
 
 **Scope:** research_diagnostic; scientific; revision `71405ef7cd9845970eb77c21283ef064e80ed8b099665a5b75e2a17b602cb7eb`.
@@ -4327,6 +4343,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-1b511c8eec2bb40f41aee6ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-1bb7f1ca1295d6b4243338f9
+
+**Scope:** research_diagnostic; scientific; revision `cd9dd1277c4a50f46e23fab28a635e4cc3b61b0776dbf316c97be34b6f931746`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.218; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Negative control failed all five checks. Final energy ratio 0.0086 with zero clean textures.
+
+**Next:** Use as the raw-coordinate reference on sparse arc.
+
+[Record and receipt provenance](records/readout-1bb7f1ca1295d6b4243338f9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### e22 · readout-1ccb789078ba83ef238d9a80
 
@@ -4472,6 +4504,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 
 [Record and receipt provenance](records/readout-26fb2e199524ac0e8b905358.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-270008de8ad43a04e4813b2b
+
+**Scope:** research_diagnostic; scientific; revision `91382d96596eef591a9b0a35b97ceb99d2eebc43ba19cf96c0fdc7d5b323cbab`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.674; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Negative control reproduced FAIL at all five terminal checks on img_conv_texture32.
+
+**Next:** Retain as the raw-coordinate reference. The assignment candidate stopped at texture.
+
+[Record and receipt provenance](records/readout-270008de8ad43a04e4813b2b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-271e0b4766487e5e23d59018
 
 **Scope:** current; scientific; revision `4717b4b13aba2f8a4f523a5b8c66863b60d55c5d05f4bfa2dd6a238a829a86a7`.
@@ -4503,6 +4551,38 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 1.254
 **Next:** Stop this exact failed ordinary cohort; preserve the negative and unknown denominator. Do not rerun it, vary seeds, fill downstream gates or promote it. Calibration requires a supported bounded design, not relaxed thresholds.
 
 [Evidence](../../reports/forge/technique-receipts/33bc62d63509425e9f7237ef19ee7374.json) · [Record](records/readout-28f0c9140b4cfeef57f23dd2.json)
+
+### rhbi-v12-feature-transport · readout-293fdd1fd459e8a46fbd285b
+
+**Scope:** research_diagnostic; scientific; revision `2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'PASS': 1}; wall seconds 47.169; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+All six texture gates passed at all five terminal checks. Final energy ratio 0.69586, clean texture fraction 0.90625, two orientations, mass TV 0.13281 and phase diversity 0.75472.
+
+**Next:** Measure the frozen rare-mass and three interpolation retention gates in rhbi-texture-retention-study.
+
+[Record and receipt provenance](records/readout-293fdd1fd459e8a46fbd285b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-raw-assignment · readout-2a638eb3fa03819e6015bfcd
+
+**Scope:** research_diagnostic; scientific; revision `569e84ecb842ff59d9b9a803c51405ab038a458338ceb486b5c0f2b77dab9518`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'PASS': 1}; wall seconds 63.978; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.15625
+
+PASS, 5/5 terminal checks on the clean 288-update texture gate. At update 288 all 256 samples were clean; both orientations, 0.7055 high-frequency energy ratio, 0.15625 mass TV and 0.7712 phase diversity.
+
+**Next:** Run the predeclared matched sparse-arc comparison.
+
+[Record and receipt provenance](records/readout-2a638eb3fa03819e6015bfcd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### r1r2-repair-control-20261022 · readout-2b96c09667e7a4aef944ce96
 
@@ -4840,6 +4920,22 @@ Born-Infeld Sinkhorn Particle Flow (BISPF, bispf-v1) passes 6/6 required Tier 1 
 
 [Evidence](../../reports/forge/bispf/README.md) · [Record](records/readout-3f3f893ae724d651f1655fc9.json)
 
+### rhbi-v12 · readout-3faa4a64e574f0506bfa33d4
+
+**Scope:** research_diagnostic; scientific; revision `fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'PASS': 1}; wall seconds 41.096; mechanism `structural`.
+
+
+
+PASS at all five terminal checks. All 24 previous observations reproduced; raw RHBI retained 53/66 interior points on its learned graph.
+
+**Next:** Keep as the raw geometry control on subsequent matched retention research.
+
+[Record and receipt provenance](records/readout-3faa4a64e574f0506bfa33d4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-40767bea377ac807d62a047a
 
 **Scope:** research_diagnostic; scientific; revision `af91a2d7a18e4a328dc19baedc201f2d690a135aff5df6ea7a9d59cb29c9e7ca`.
@@ -5016,6 +5112,22 @@ confirmed_positive: rhbi-v12 passed 34/41 executed discriminator_stability tasks
 
 [Record and receipt provenance](records/readout-47591bd9555febfe3409fd0d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-raw-assignment · readout-47ae4e9c8c2e782e4747f222
+
+**Scope:** research_diagnostic; scientific; revision `32d3754dcdb2e1ee05e4fbce44aebe4e6a5eab8f5208ae05bd6350ad1caf6d37`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 2, 'PASS': 1}; wall seconds 145.257; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99219, mass_tv=0.087549
+
+Unequal mass passed for 19 consecutive observations. Moving patch passed four of the five terminal observations and saddle passed one. The final patch peak was 0.77374 against 0.78. The all-retention hypothesis failed.
+
+**Next:** Keep CIFAR on hold. Probe raw versus feature attraction on matched saved states to localize the saddle-interior deficit before selecting a trainer delta.
+
+[Record and receipt provenance](records/readout-47ae4e9c8c2e782e4747f222.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-47b63d833c3093305f9af42b
 
 **Scope:** research_diagnostic; scientific; revision `c1506a6c0a6d0a64cca6cd274ef1eeddcd71ecc9305fd17c96bf000576d4fc43`.
@@ -5112,6 +5224,22 @@ empf-v6 cleared five_word_joint_smoke in 549.7s (20,001/20,001 steps, modes=5, q
 
 [Record and receipt provenance](records/readout-4aa764495c669b9247ca874b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-4b999d9239756b51afedd9fd
+
+**Scope:** research_diagnostic; scientific; revision `d69d62df5dffd09e3788a99c26d85a2d32d7c70e92d8238fd46d90d104fb81ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.523; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+The matched parent failed all 24 texture observations, with 0/5 terminal checks. The final high-frequency energy ratio was 0.00862, clean fraction 0 and phase diversity 0.
+
+**Next:** Retain this research-only control as the comparator for the one-delta texture study.
+
+[Record and receipt provenance](records/readout-4b999d9239756b51afedd9fd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-4bd94051f203bbbb28a3e7a6
 
 **Scope:** current; scientific; revision `87d849138dd0ae385260a77223e9a70a7c2a8a112733b2312f556b462cc164e9`.
@@ -5175,6 +5303,22 @@ This exact global configuration failed the first two_pole movement gate. Tier1 i
 **Next:** Bounded global search concluded. Retain the exact historical family incumbent as unqualified evidence. No further paid stage is authorized; require a separate bounded global proposal before any continuation.
 
 [Record and receipt provenance](records/readout-4e44570c882c7d07bbddc813.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-4eed35ca04c58e48dcea5195
+
+**Scope:** research_diagnostic; scientific; revision `2b1a242e6f27dbdce22befc1d0ab7df7686813f6ddebd2ab758f26dd19c0e79a`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 147.495; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99023, mass_tv=0.087549
+
+Raw RHBI passed all five terminal patch and saddle checks. It failed sustained unequal mass. The minimum eigenvalue ratio fell below 0.15 at updates 1100 and 1150 and the final passing suffix was one.
+
+**Next:** Retain raw RHBI as the matched interpolation control for diagnostics. Use the observed width failure for comparisons under this contract.
+
+[Record and receipt provenance](records/readout-4eed35ca04c58e48dcea5195.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-4f82f909f64b3d97917d6b1a
 
@@ -5368,6 +5512,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-5dd930f8ee66504eac0787b1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-transport · readout-5e4c5c6abb5f177f32cf3316
+
+**Scope:** research_diagnostic; scientific; revision `a4dee55e52a8a4b805a417d3ebbf7433a0d15f4dd106afb234176ad162406904`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 36.631; mechanism `structural`.
+
+
+
+The feature arm failed all five terminal arc checks. Endpoint chord HQ was 0.7391. All 24 official observations matched its previous run.
+
+**Next:** Stop this revision. Investigate whether using features only to select matches and slack can preserve raw-coordinate movement, with full texture and retention gates.
+
+[Record and receipt provenance](records/readout-5e4c5c6abb5f177f32cf3316.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-prior-fresh-gaussian-v1 · readout-5ed4195bb58c87dc84a60827
 
 **Scope:** research_diagnostic; scientific; revision `535d9c1c86a6b34cd606465d32a8071e842e37015d4641da4c7e90c281e7c78b`.
@@ -5479,6 +5639,38 @@ Selected atlas recipe passes interp_img_patch_shift (5/5 sustained terminal chec
 **Next:** Test EMA/served weight evaluation or explicit local latent Jacobian smoothness regularization to stabilize the 5-check live suffix on sparse_arc and saddle_barycentric.
 
 [Record and receipt provenance](records/readout-669ead9699347bdcc998eb81.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-raw-assignment · readout-68041f47a43e69a562505633
+
+**Scope:** research_diagnostic; scientific; revision `569e84ecb842ff59d9b9a803c51405ab038a458338ceb486b5c0f2b77dab9518`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'PASS': 1}; wall seconds 41.539; mechanism `structural`.
+
+
+
+PASS at all five terminal arc checks. The candidate retained all 12 endpoints, 30/32 arc bins and 56/69 final high-quality interiors (0.81159 against a floor of 0.80).
+
+**Next:** Advance this fixed research recipe to a separate matched remaining-retention study on rare width, moving patch and saddle before external CIFAR evaluation.
+
+[Record and receipt provenance](records/readout-68041f47a43e69a562505633.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-raw-self · readout-69e232cfff5c56be8649104f
+
+**Scope:** research_diagnostic; scientific; revision `9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'PASS': 1}; wall seconds 66.539; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.125
+
+The texture-positive parent passed 5/5 terminal checks and reproduced all 24 prior observations.
+
+**Next:** Retain as the immediate matched control for the assignment change.
+
+[Record and receipt provenance](records/readout-69e232cfff5c56be8649104f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-69f698e7c003c96d01d05c05
 
@@ -5623,6 +5815,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-704dd415ee7878a1bbfbe7d9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-7140c16ce14700569784ef15
+
+**Scope:** research_diagnostic; scientific; revision `4e3e8d8e170c44962b7902efb92fbdbdd1feb833e071f5c9985ad24e4d4a6261`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'PASS': 1}; wall seconds 47.94; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+Positive control reproduced PASS at all five terminal checks on img_conv_texture32.
+
+**Next:** Retain as the positive texture reference. The matched sparse-arc retention failure still applies to its own source.
+
+[Record and receipt provenance](records/readout-7140c16ce14700569784ef15.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-bcap-pure-v1 · readout-72bbe311465e6ccf90b28084
 
@@ -6136,6 +6344,22 @@ Completed dcgan_performance seed-0 CUDA execution for atlas-particle-normal-v4 (
 
 [Record and receipt provenance](records/readout-90dc786040135b340c5005de.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-93dcfd4e0ea1ccf289dda8a7
+
+**Scope:** research_diagnostic; scientific; revision `cd9dd1277c4a50f46e23fab28a635e4cc3b61b0776dbf316c97be34b6f931746`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'PASS': 1}; wall seconds 62.162; mechanism `structural`.
+
+
+
+Raw RHBI reproduced all 24 previous observations and passed the complete arc gate at five terminal checks. At the endpoint 53/66 chord interiors passed.
+
+**Next:** Retain the matched interpolation reference.
+
+[Record and receipt provenance](records/readout-93dcfd4e0ea1ccf289dda8a7.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-946a921be2625c9d807c6d1f
 
 **Scope:** research_diagnostic; scientific; revision `8c1d7b083639d1f12c8d5398f27d03bb9e437b991f9e56178eaab2914d1e4fcc`.
@@ -6167,6 +6391,22 @@ Preregistered full7000-update grid100_affine_paired_laws_v1 FAIL; sustained cove
 **Next:** Stop these exact revisions and this selected registration. Before another GPU study, perform a bounded zero-training saved-state audit of critic radial and centering gradients against per-mode moments. Only a supported substantive hypothesis warrants a new frozen registration. Preserve A2 and sigma .025; no coefficient, cap, width, amplitude or seed sweep, best-checkpoint/EMA substitution, 14k continuation or automatic matrix expansion.
 
 [Record and receipt provenance](records/readout-95e0cdfdc2f043a0046285c1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-9900c47fe4b1edd1a04a8f96
+
+**Scope:** research_diagnostic; scientific; revision `1c14837aa12e5c5769ce38c7713e4f4ccdaa6ac26756e1ee3e500ec847e97965`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'PASS': 1}; wall seconds 47.616; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+Positive control passed all five terminal texture checks and reproduced its 24 prior observations exactly.
+
+**Next:** Retain as the positive feature control for texture.
+
+[Record and receipt provenance](records/readout-9900c47fe4b1edd1a04a8f96.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas · readout-99058c02555c6e8edcc6e461
 
@@ -6215,6 +6455,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-99d51a04a1d1358bfd32303e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-99dfee25c9646a5673c97bab
+
+**Scope:** research_diagnostic; scientific; revision `d455209f8de99054c907665cc3cbafb953a6963c8bc20e8574645e45cfef070b`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'PASS': 1}; wall seconds 35.604; mechanism `structural`.
+
+
+
+The parent passed all five terminal arc checks. Endpoint chord HQ was 0.8030. The feature arm failed all five on the matched source.
+
+**Next:** Retain this matched parent control. Inspect the paired trajectory report before selecting another trainer change.
+
+[Record and receipt provenance](records/readout-99dfee25c9646a5673c97bab.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-9ba1e04d7902d860f201b335
 
@@ -6728,6 +6984,38 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 
 [Record and receipt provenance](records/readout-b7acc4d7ec8bb9cb7dd704a8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-transport · readout-b8643c936f96a75fb059eb10
+
+**Scope:** research_diagnostic; scientific; revision `2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce`.
+
+The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.
+
+**Observed:** {'FAIL': 4}; wall seconds 182.648; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98169, mass_tv=0.097119
+
+Full gates failed for all four tasks. Rare-mass endpoint passed but its passing suffix was 1/5; minimum covariance eigenvalue ratio fell to 0.142 at update 1150. Arc quality 0.739 < 0.80. The patch passed two of five terminal observations and saddle passed zero.
+
+**Next:** Stop this exact revision. Preserve the image result and parameterization as research evidence. Do not advance to CIFAR or default selection. Examine whether the learned metric distorts neighborhoods already captured by raw coordinates.
+
+[Record and receipt provenance](records/readout-b8643c936f96a75fb059eb10.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-b95be1e653ca6b69470c481b
+
+**Scope:** research_diagnostic; scientific; revision `fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'FAIL': 1}; wall seconds 47.335; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Raw RHBI failed all five terminal checks with zero clean samples at update 288 and energy ratio 0.0086.
+
+**Next:** Retain as the raw-geometry reference for the arc comparison.
+
+[Record and receipt provenance](records/readout-b95be1e653ca6b69470c481b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-k3p-v1 · readout-b9f8dfc752cd1ca9ceaaff21
 
 **Scope:** research_diagnostic; scientific; revision `c293a9230ffcb73c9f2796e0f3db711f482d655f135c381646b4071b9b1d8a53`.
@@ -6824,6 +7112,22 @@ The corrected Modern GAN Stacked MNIST training recipe, adapted to the fixed For
 
 [Evidence](../../reports/forge/technique-receipts/ea66e44192c048eaa97f8595c5e55508.json) · [Record](records/readout-bc440d0469187c9299bd524c.json)
 
+### rhbi-v12-feature-raw-self · readout-c083425e72ca647a8b8613cf
+
+**Scope:** research_diagnostic; scientific; revision `9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'FAIL': 1}; wall seconds 36.918; mechanism `structural`.
+
+
+
+FAIL. Only chord-interior quality missed its bound; all five terminal checks failed. All 24 observations reproduced the previous source exactly.
+
+**Next:** Keep as the matched feature-assignment control and retain the original arc failure.
+
+[Record and receipt provenance](records/readout-c083425e72ca647a8b8613cf.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-c0eb323419b0be6463f34d1b
 
 **Scope:** research_diagnostic; scientific; revision `f1f5aa34d333c7c3874e81b718103c25a0fc255b10eb4ed28268e192bba3af22`.
@@ -6839,6 +7143,22 @@ Selected bcap-pure recipe fails all 3 zero-sigma ParticlePrior interpolation tas
 **Next:** Investigate BCAP gradient-cap interaction with unsmoothed zero-sigma ParticlePrior updates before proposing a recipe-owned latent regularizer.
 
 [Record and receipt provenance](records/readout-c0eb323419b0be6463f34d1b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-raw-self · readout-c12c9b140cd30d69b788d46d
+
+**Scope:** research_diagnostic; scientific; revision `af882d55aaca49e277d79c6b26ee9fd48cefb8e88e963cc5d5ec6d942a515e3d`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'FAIL': 1}; wall seconds 37.265; mechanism `structural`.
+
+
+
+FAIL at all five terminal arc checks. All 12 endpoints passed, but only 51/69 final chord interiors met the distance bound (0.7391 against 0.80).
+
+**Next:** Keep the texture recovery separate from arc retention. Isolate cross-assignment versus cross-attraction in a subsequent recipe.
+
+[Record and receipt provenance](records/readout-c12c9b140cd30d69b788d46d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v7 · readout-c162cb8fb6ab4d55620a8693
 
@@ -6871,6 +7191,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c164627eb57d4e7515314cd6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-assignment · readout-c20e0ab213205669efe1045e
+
+**Scope:** research_diagnostic; scientific; revision `54282c8dfae0fb13baef1a1d74b021245dd7596c8783ff3afd206f9ab461c4be`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'FAIL': 1}; wall seconds 48.794; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.074219
+
+FAIL on img_conv_texture32, 0/5 terminal checks. No observation produced any clean textures. Final high-frequency energy ratio 0.1992, orientations 0, phase diversity 0.
+
+**Next:** Stop this revision before retention or CIFAR. A separate cross-feature movement plus raw self-coupling ablation could distinguish the two remaining terms.
+
+[Record and receipt provenance](records/readout-c20e0ab213205669efe1045e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-misgan-amortized-v1 · readout-c21940571fd7349e5f2a9c1b
 
@@ -7272,6 +7608,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 
 [Record and receipt provenance](records/readout-d84b69a82debc8d2678cf004.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-raw-self · readout-da17f462507164779b6b47ac
+
+**Scope:** research_diagnostic; scientific; revision `af882d55aaca49e277d79c6b26ee9fd48cefb8e88e963cc5d5ec6d942a515e3d`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'PASS': 1}; wall seconds 47.744; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.125
+
+PASS at five of five terminal texture observations. Final energy 0.6700, 241/256 clean textures, both orientations, mass TV 0.1250, phase diversity 0.8049.
+
+**Next:** Proceed to the frozen three-arm sparse-arc test.
+
+[Record and receipt provenance](records/readout-da17f462507164779b6b47ac.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2--f78d5d603be1611025389c4ca0f7f485f3d2caa0a25fb6bc38b7c96da3509a3e · readout-da2ac34b1675880ab8ace248
 
 **Scope:** current; scientific; revision `ecd7497dc47ac901328a0e28a32d2657cf2ce0601db5690c629b1f33a6626d45`.
@@ -7303,6 +7655,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-da78d1d541082f723b706f2c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-dac256adfce23a647398b368
+
+**Scope:** research_diagnostic; scientific; revision `1c14837aa12e5c5769ce38c7713e4f4ccdaa6ac26756e1ee3e500ec847e97965`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'FAIL': 1}; wall seconds 97.16; mechanism `structural`.
+
+
+
+The full-feature control reproduced all 24 previous arc observations and failed all five terminal checks on chord quality.
+
+**Next:** Retain this source-bound arc failure alongside the positive texture result.
+
+[Record and receipt provenance](records/readout-dac256adfce23a647398b368.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-throughput-v1 · readout-dbb540fd1a0d83052f31aef8
 
@@ -7512,6 +7880,22 @@ All six declared DCGAN mock-data performance workloads completed their finite pu
 
 [Evidence](../../reports/forge/scaling-receipts/dcgan-performance-cloud-v2/ka2-dcgan_performance_b64-0dcd26728de3eb07.json) · [Record](records/readout-e6e872f73024fd6c0b2b2d42.json)
 
+### rhbi-v12-feature-raw-self · readout-e77a1c6bb3e4b9bf185d0dc1
+
+**Scope:** research_diagnostic; scientific; revision `401981261850a29a13b8871878c7be8fabdd93b7b1fe3154fdc60ec611797397`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 2, 'PASS': 1}; wall seconds 180.713; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98926, mass_tv=0.091455
+
+The parent sustained all six unequal-mass bounds for 19 observations. It passed four of five terminal patch checks and zero saddle checks. Its final patch peak met the single numerical prediction, while step 734 missed and failed the full gate.
+
+**Next:** Retain this matched parent as the feature-assignment control for frozen-state diagnostics.
+
+[Record and receipt provenance](records/readout-e77a1c6bb3e4b9bf185d0dc1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-e838608cfd803f50b58f4e21
 
 **Scope:** research_diagnostic; scientific; revision `9c4c532b8c3773b5f17b7b2ec3f5729d4920bd9b6e409609b7da88059ea3fa2f`.
@@ -7607,6 +7991,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-eb425a0e7fa0639a1081f369.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-eb79d4492cd8b70c2a8aa2d5
+
+**Scope:** research_diagnostic; scientific; revision `c772b7012c312c6c7973ad027346af9d366483d579819d6707f1c42b95b153e0`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 42.709; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99023, mass_tv=0.087549
+
+The matched parent failed the sustained unequal-mass gate, with one passing terminal observation. Arc admission was blocked by the observer change to its pinned host source before any arc updates.
+
+**Next:** Restore the pinned interpolation host and capture at dispatch. Reserve only the outstanding arc cell.
+
+[Record and receipt provenance](records/readout-eb79d4492cd8b70c2a8aa2d5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p · readout-eeec25002d17191c315f126b
 
@@ -8454,4 +8854,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `01aa1e21fbeebfc49ba1f22e40b5ccdd7f6dad567dd73e16d4cd67e614f673ef`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `8aed120a5c3bfe15839ab4bc75b0f8c3db6fe3c7cf87733981e07c92dd9b9f2b`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

@@ -88,6 +88,7 @@ def _archived_inactive_comparison_scope(module, directory):
         "rhbi_cond_step_damp": 0.0,
         "rhbi_ae_coord_whiten": False,
         "rhbi_support_completion": False,
+        "rhbi_feature_transport": False,
     }
     tail = '    "training_precision": "float32",\n}\n'
     assert adapted.decode().count(tail) == 1

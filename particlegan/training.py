@@ -318,6 +318,8 @@ class GANTrainer:
             from .gradient_response import GradientCoherence
             self._gradient_response = GradientCoherence()
         self.loss = recipe.make_loss()
+        self._rhbi_feature_head = (self.loss.scalar_feature_head(self.D)
+                                   if recipe.rhbi_feature_transport else None)
         self.prior_regularizer = recipe.make_prior_regularizer(
             weight=1.0 if recipe.prior_regularizer == "vicreg" or recipe.prior_reg > 0 else 0.,
             prior=self.prior, reference=self.prior)
@@ -499,6 +501,11 @@ class GANTrainer:
     def _average_rate(self):
         return self.policy._average_rate()
 
+    def _generator_score(self, samples):
+        if self._rhbi_feature_head is None:
+            return self._noisy_D(samples)
+        return self.loss.score_with_features(self._noisy_D, self._rhbi_feature_head, samples)
+
     def _sample_training_prior(self, n):
         if self.prior_noise_generator is not None:
             return self.prior.sample(n, generator=self.latent_generator,
@@ -570,14 +577,14 @@ class GANTrainer:
                     self.prior_noise_generator is None,
                     simplicial_active=simplicial_active,
                 )
-            fake_logits = critic(fake_g)
+            fake_logits = self._generator_score(fake_g)
             real_g = generator_real() if callable(generator_real) else generator_real
             real_g = real if real_g is None else self._batch(real_g, "generator_real")
             if real_g.shape[1:] != real.shape[1:]:
                 raise ValueError("generator_real must match the real sample shape")
             if len(real_g) != len(real):
                 raise ValueError("RpGAN generator_real must match the real batch size")
-            real_logits = critic(real_g)
+            real_logits = self._generator_score(real_g)
             loss_gan = self.loss.g_loss(fake_logits, real_logits)
             transport = (recipe.kinetic_transport_loss(fake_g, real_g)
                          if recipe.kinetic_transport_weight else loss_gan.new_zeros(()))
@@ -643,7 +650,7 @@ class GANTrainer:
                         replay = sampled_latent + (self.prior.z[indices] - locations[indices])
                         generated = self._postprocess(
                             self.prior, self._generate(self.G, replay, sigma_out, noise, rows=indices))
-                        logits = critic(generated)
+                        logits = self._generator_score(generated)
                         return (self.loss.g_loss(logits, real_logits),)
                     finally:
                         if rec is not None:

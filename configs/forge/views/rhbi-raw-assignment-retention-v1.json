@@ -1,0 +1,37 @@
+{
+  "assignments": [
+    {
+      "task": "vector_unequal_mass",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 1
+    },
+    {
+      "task": "interp_img_patch_shift",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 2
+    },
+    {
+      "task": "interp_saddle_barycentric",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 3
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi_texture_feature",
+  "id": "rhbi-raw-assignment-retention-v1",
+  "policy_change_reason": "Complete the three unmeasured matched retention gates after raw assignment passed texture and sparse arc.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

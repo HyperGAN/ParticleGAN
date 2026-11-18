@@ -1,0 +1,205 @@
+{
+  "source_commit": "27803af6ae036e91b7c7a627ddd03771a51a13eb",
+  "protocol_seed": 0,
+  "target_batches_per_task": 32,
+  "optimizer_updates_added": 0,
+  "tasks": {
+    "img_conv_texture32": {
+      "attempt": "e72d41bc328748b09108666b8bce01bf",
+      "checkpoint_sha256": "dc57017901ac94f8aff53c2071b7a7dcd4370fdd60880bd59cc7b0cb49688ba5",
+      "updates": 288,
+      "raw_sample_horizon": 15.62470531463623,
+      "state_sha256_before_and_after": "d4e63434e603e545ada26d935b030d3722cd72b02e72cf94360ef5d91b48d736",
+      "panels": {
+        "sample": {
+          "fake_rows": 2048,
+          "plan_tv_including_slack": 0.9755835875560493,
+          "raw_active_fraction": 1.0,
+          "feature_active_fraction": 0.03163912796981396,
+          "raw_active_mean_task_distance": 0.3053279574837971,
+          "feature_active_mean_task_distance": 0.3426089819046909,
+          "top_target_changed": 0.9993788965444633,
+          "raw_probability_gap_on_flips": 0.0071752212008685794,
+          "top_task_distance_worsened": 0.6276667592179285,
+          "top_task_distance_improved": 0.3717121373265348,
+          "gradient_cosine": -0.00891042705054402,
+          "gradient_delta_over_raw_l2": 10.124586784546922,
+          "direct_feature_gradient_over_raw_l2": 9.500878161578568
+        }
+      }
+    },
+    "vector_unequal_mass": {
+      "attempt": "152fe091abcc4fefaaa36e4da6c20a22",
+      "checkpoint_sha256": "9b60dc389d12428c54741e98e377acd301ce084b797fa0d667b01d599b25d37d",
+      "updates": 1200,
+      "raw_sample_horizon": 0.02749069221317768,
+      "saved_observations": {
+        "sha256": "3990471c7dd4adb47513931e694fe3183b50116e6a75c8a659b31503488e9e87",
+        "terminal_observations": [
+          {
+            "step": 1000,
+            "samples": 4096,
+            "rare_samples": 125,
+            "rare_core_eigen_ratio": 0.13405655324459076,
+            "gate_min_eigen_ratio": 0.13405655324459076
+          },
+          {
+            "step": 1050,
+            "samples": 4096,
+            "rare_samples": 104,
+            "rare_core_eigen_ratio": 0.13547809422016144,
+            "gate_min_eigen_ratio": 0.13547809422016144
+          },
+          {
+            "step": 1100,
+            "samples": 4096,
+            "rare_samples": 106,
+            "rare_core_eigen_ratio": 0.1520102173089981,
+            "gate_min_eigen_ratio": 0.1520102173089981
+          },
+          {
+            "step": 1150,
+            "samples": 4096,
+            "rare_samples": 119,
+            "rare_core_eigen_ratio": 0.14170727133750916,
+            "gate_min_eigen_ratio": 0.14170727133750916
+          },
+          {
+            "step": 1200,
+            "samples": 4096,
+            "rare_samples": 135,
+            "rare_core_eigen_ratio": 0.17792019248008728,
+            "gate_min_eigen_ratio": 0.17792019248008728
+          }
+        ]
+      },
+      "panels_without_rare_real": 2,
+      "state_sha256_before_and_after": "e8f3ef2bfaa23448f36169e17190994aaeecd4b623aa395ca9800aaf29b0c884",
+      "panels": {
+        "sample": {
+          "fake_rows": 4096,
+          "plan_tv_including_slack": 0.000345426732926487,
+          "raw_active_fraction": 0.8245976996221007,
+          "feature_active_fraction": 0.8244726710001409,
+          "raw_active_mean_task_distance": 0.0,
+          "feature_active_mean_task_distance": 0.0,
+          "top_target_changed": 0.0,
+          "raw_probability_gap_on_flips": null,
+          "top_task_distance_worsened": 0.0,
+          "top_task_distance_improved": 0.0,
+          "gradient_cosine": 0.9999995235101241,
+          "gradient_delta_over_raw_l2": 0.0010698716321215379,
+          "direct_feature_gradient_over_raw_l2": 0.0009254386867605446
+        },
+        "rare_fake": {
+          "fake_rows": 99,
+          "plan_tv_including_slack": 0.000132351693955408,
+          "raw_active_fraction": 0.6552316104569579,
+          "feature_active_fraction": 0.6551844998149791,
+          "raw_active_mean_task_distance": 0.0,
+          "feature_active_mean_task_distance": 0.0,
+          "top_target_changed": 0.0,
+          "raw_probability_gap_on_flips": null,
+          "top_task_distance_worsened": 0.0,
+          "top_task_distance_improved": 0.0,
+          "gradient_cosine": 0.9999998029381342,
+          "gradient_delta_over_raw_l2": 0.0007662366947722567,
+          "direct_feature_gradient_over_raw_l2": 0.0008322503565365917
+        },
+        "rare_fake_target_present": {
+          "fake_rows": 93,
+          "plan_tv_including_slack": 0.00014083410870597874,
+          "raw_active_fraction": 0.6975045971385596,
+          "feature_active_fraction": 0.697454447101794,
+          "raw_active_mean_task_distance": 0.0,
+          "feature_active_mean_task_distance": 0.0,
+          "top_target_changed": 0.0,
+          "raw_probability_gap_on_flips": null,
+          "top_task_distance_worsened": 0.0,
+          "top_task_distance_improved": 0.0,
+          "gradient_cosine": 0.9999998743008437,
+          "gradient_delta_over_raw_l2": 0.0006776744618722139,
+          "direct_feature_gradient_over_raw_l2": 0.0008464715871745871
+        },
+        "rare_fake_target_absent": {
+          "fake_rows": 6,
+          "plan_tv_including_slack": 8.742017346069764e-07,
+          "raw_active_fraction": 0.0,
+          "feature_active_fraction": 0.0,
+          "raw_active_mean_task_distance": null,
+          "feature_active_mean_task_distance": null,
+          "top_target_changed": null,
+          "raw_probability_gap_on_flips": null,
+          "top_task_distance_worsened": null,
+          "top_task_distance_improved": null,
+          "gradient_cosine": 0.9999979001160221,
+          "gradient_delta_over_raw_l2": 0.00204954692994452,
+          "direct_feature_gradient_over_raw_l2": 0.0001342488930096231
+        }
+      }
+    },
+    "interp_sparse_arc": {
+      "attempt": "a0ba74974db94bd693d3ae7f3d85ce2e",
+      "checkpoint_sha256": "8e92c4f12440a5210067e7b4cab6e1af246c63e8292f62b47f75f0292ddb5293",
+      "updates": 600,
+      "raw_sample_horizon": 0.0287137720733881,
+      "chord_geometry": {
+        "edges": 23,
+        "chords": 69,
+        "failed_chords": 18,
+        "bad_endpoints": 0,
+        "median_edge_degrees_failed_chords": 48.16586685180664,
+        "median_edge_degrees_passing_chords": 25.90199089050293,
+        "failed_inside_circle": 18
+      },
+      "state_sha256_before_and_after": "c2afa7a0b05695f8d616b35cf188c16915b70e1f86e7d05df682090139e476d8",
+      "panels": {
+        "sample": {
+          "fake_rows": 4096,
+          "plan_tv_including_slack": 0.0005503956138013119,
+          "raw_active_fraction": 0.2930403479940605,
+          "feature_active_fraction": 0.2925416382578929,
+          "raw_active_mean_task_distance": 1.3228407810868885,
+          "feature_active_mean_task_distance": 1.3210631484993776,
+          "top_target_changed": 0.19178591421996596,
+          "raw_probability_gap_on_flips": 1.098730871910019e-07,
+          "top_task_distance_worsened": 0.1163823043313914,
+          "top_task_distance_improved": 0.07540360988857456,
+          "gradient_cosine": 0.9999984675528901,
+          "gradient_delta_over_raw_l2": 0.0018110506279067603,
+          "direct_feature_gradient_over_raw_l2": 0.0012887110896153114
+        },
+        "failed_chords": {
+          "fake_rows": 576,
+          "plan_tv_including_slack": 0.0005682735661500559,
+          "raw_active_fraction": 0.08376400316461959,
+          "feature_active_fraction": 0.08320428404267242,
+          "raw_active_mean_task_distance": 0.898399164576035,
+          "feature_active_mean_task_distance": 0.8970291142305437,
+          "top_target_changed": 1.451461730685794e-28,
+          "raw_probability_gap_on_flips": 0.0008427748523908942,
+          "top_task_distance_worsened": 0.0,
+          "top_task_distance_improved": 1.451461730685794e-28,
+          "gradient_cosine": 0.9999990403803741,
+          "gradient_delta_over_raw_l2": 0.001437569336156433,
+          "direct_feature_gradient_over_raw_l2": 0.0007466534541340449
+        },
+        "passing_chords": {
+          "fake_rows": 1632,
+          "plan_tv_including_slack": 0.0010400671787164696,
+          "raw_active_fraction": 0.7233251814326301,
+          "feature_active_fraction": 0.722749858418251,
+          "raw_active_mean_task_distance": 0.9237384302269568,
+          "feature_active_mean_task_distance": 0.922807288819961,
+          "top_target_changed": 0.000847802332084429,
+          "raw_probability_gap_on_flips": 0.0008369513066071602,
+          "top_task_distance_worsened": 0.0,
+          "top_task_distance_improved": 0.000847802332084429,
+          "gradient_cosine": 0.9999967358483557,
+          "gradient_delta_over_raw_l2": 0.002823957225524774,
+          "direct_feature_gradient_over_raw_l2": 0.0026501786666303854
+        }
+      }
+    }
+  }
+}

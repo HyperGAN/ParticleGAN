@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-raw-assignment-retention-parent",
+  "status": "ready",
+  "candidate": "rhbi-v12-feature-raw-self",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "hypothesis": "Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.",
+  "scope": {
+    "view": "rhbi-raw-assignment-retention-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-raw-assignment-retention-v1",
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 2400
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/raw-assignment/texture.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false,
+        "task": "img_conv_texture32"
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/rhbi-texture-feature/raw-assignment/arc.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false,
+        "task": "interp_sparse_arc"
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "interp_img_patch_shift",
+    "metric": "interp_peak",
+    "op": ">=",
+    "threshold": 0.78,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "interp_img_patch_shift",
+    "metric": "interp_peak",
+    "op": "<",
+    "threshold": 0.78,
+    "phase": "final"
+  },
+  "competing_explanation": "Texture and sparse-arc recovery may coexist with inconsistent rare-mode width or poor interiors on other learned graphs.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

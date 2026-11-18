@@ -147,7 +147,7 @@ Task prior: particle_cloud, sigma 0.0, 256 initial locations. The common finite-
 
 Runtime: **cuda**. Selected configuration: [recipe-prior-refactor-k3p-v1](../../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 18, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -164,7 +164,7 @@ Selection: recorded_source_measurement. Recorded source-bound original measureme
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-1bf9d7d34422-adaptation) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-adaptation) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2) | [0/6 (3 not run, 3 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-4) | [3/22 (3 not run, 15 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [5/11 (4 not run, 1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | [0/18 (4 not run, 14 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-4) | [5/30 (8 not run, 16 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [0/28 (7 not run, 21 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [5/12 (5 not run, 1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | [0/18 (4 not run, 14 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-4) | [5/31 (9 not run, 16 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability) | [0/28 (7 not run, 21 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2) | [0/1 (1 diagnostic attempt)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-4) | [3/16 (13 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
 | [quality_coverage](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage) | [3/3](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-1) | [0/12 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-4) | [3/15 (12 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage) | [0/7 (7 diagnostic attempts)](k3p.md#cohort-cuda-1bf9d7d34422-held) |
@@ -190,6 +190,7 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-1bf9d7d34422-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-1) | FAIL | matches recorded run |
 | [five_word_joint_smoke](k3p.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_smoke) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | PASS | changed since run |
 | [gaussian1d_smoke](k3p.md#cohort-cuda-1bf9d7d34422-experiment-gaussian1d_smoke) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [img_conv_texture32](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_gan_multimodal](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_gan_multimodal) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_reconstruction](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_reconstruction) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_categorical) | [discriminator_stability](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
@@ -848,9 +849,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 18**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **12 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -871,6 +872,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [model_ae_reconstruction](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_reconstruction) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_categorical) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_hard](k3p.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_hard) | required | UNKNOWN | recorded definition unavailable |
+| [img_conv_texture32](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) | required | UNKNOWN | recorded definition unavailable |
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-1bf9d7d34422-experiment-clockfree_audit_measurement_v1) | diagnostic | FAIL | matches recorded run |
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
@@ -1676,6 +1678,192 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-1bf9d7d34422-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1"></a>
+
+## rhbi-raw-assignment-retention-v1
+
+**rhbi-raw-assignment-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-raw-assignment-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1"></a>
+
+## rhbi-retention-trajectory-arc-v1
+
+**rhbi-retention-trajectory-arc-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-arc-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1"></a>
+
+## rhbi-retention-trajectory-v1
+
+**rhbi-retention-trajectory-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](k3p.md#cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-4"></a>
 
 ### Tier 4
 
@@ -3070,6 +3258,38 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+<a name="cohort-cuda-1bf9d7d34422-experiment-img_conv_texture32"></a>
+
+### img_conv_texture32
+
+**img_conv_texture32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_conv_texture32.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-texture-feature-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| hf_band_ratio | >= 0.55 |
+| clean_texture_fraction | >= 0.75 |
+| orientations | == 2 |
+| mass_tv | <= 0.18 |
+| pairwise_phase_diversity | >= 0.4 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: exact optimizer updates = True; finite state = True; mechanism exercised = True; optimizer roles = generator, discriminator, prior; rng isolation = True.
+
+Declared budget: 288 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../conv-texture32-tier1/README.md)
+
 <a name="cohort-cuda-1bf9d7d34422-experiment-img_intensity2"></a>
 
 ### img_intensity2
@@ -3245,7 +3465,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -3277,7 +3497,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -3309,7 +3529,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-particle_interpolation_stretch-tier-1) · [rhbi-retention-trajectory-arc-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-arc-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -5095,7 +5315,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Run attempt: **FAIL** (retained_receipt; qualification unchanged). Matched existing execution receipt. [Attempt evidence](../tier-coverage-20261014/results.json).
 
-Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-1bf9d7d34422-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-1bf9d7d34422-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -5268,7 +5488,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 Runtime: **cuda**. Selected configuration: [k3p · 0b37e98a01e3](../../../configs/forge/configurations/k3p--0b37e98a01e3cc7c0f4b3325b43f9e6d569de81e4f890f20942f0fc33221305c.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 18, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -5285,7 +5505,7 @@ Selection: historical_incumbent. Preserve the exact archived revision-7 measurem
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-c195899a64af-adaptation) | [3/3](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-adaptation) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) | [0/6 (6 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-4) | [3/22 (18 not run)](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [4/11 (6 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [4/30 (25 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [4/12 (7 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [4/31 (26 not run)](k3p.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-c195899a64af-formulation_comparison) | [3/3](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-formulation_comparison) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
 | [quality_coverage](k3p.md#cohort-cuda-c195899a64af-quality_coverage) | [3/3](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-4) | [3/15 (12 not run)](k3p.md#cohort-cuda-c195899a64af-quality_coverage) | [0/7 (7 not run)](k3p.md#cohort-cuda-c195899a64af-held) |
@@ -5311,6 +5531,7 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-c195899a64af-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) | FAIL | changed since run |
 | [five_word_joint_smoke](k3p.md#cohort-cuda-c195899a64af-experiment-five_word_joint_smoke) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [gaussian1d_smoke](k3p.md#cohort-cuda-c195899a64af-experiment-gaussian1d_smoke) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | PASS | changed since run |
+| [img_conv_texture32](k3p.md#cohort-cuda-c195899a64af-experiment-img_conv_texture32) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_gan_multimodal](k3p.md#cohort-cuda-c195899a64af-experiment-model_ae_gan_multimodal) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_reconstruction](k3p.md#cohort-cuda-c195899a64af-experiment-model_ae_reconstruction) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-c195899a64af-experiment-model_vae_categorical) | [discriminator_stability](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
@@ -5969,9 +6190,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 18**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **12 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -5992,6 +6213,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [model_ae_reconstruction](k3p.md#cohort-cuda-c195899a64af-experiment-model_ae_reconstruction) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-c195899a64af-experiment-model_vae_categorical) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_hard](k3p.md#cohort-cuda-c195899a64af-experiment-model_vae_hard) | required | UNKNOWN | recorded definition unavailable |
+| [img_conv_texture32](k3p.md#cohort-cuda-c195899a64af-experiment-img_conv_texture32) | required | UNKNOWN | recorded definition unavailable |
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-c195899a64af-experiment-clockfree_audit_measurement_v1) | diagnostic | FAIL | changed since run |
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
@@ -6797,6 +7019,192 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1"></a>
+
+## rhbi-raw-assignment-retention-v1
+
+**rhbi-raw-assignment-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-raw-assignment-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.
+
+<a name="cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1"></a>
+
+## rhbi-retention-trajectory-arc-v1
+
+**rhbi-retention-trajectory-arc-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-arc-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1"></a>
+
+## rhbi-retention-trajectory-v1
+
+**rhbi-retention-trajectory-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](k3p.md#cohort-cuda-c195899a64af-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-c195899a64af-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-c195899a64af-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-c195899a64af-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-c195899a64af-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-4"></a>
 
 ### Tier 4
 
@@ -8145,6 +8553,38 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+<a name="cohort-cuda-c195899a64af-experiment-img_conv_texture32"></a>
+
+### img_conv_texture32
+
+**img_conv_texture32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_conv_texture32.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-texture-feature-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| hf_band_ratio | >= 0.55 |
+| clean_texture_fraction | >= 0.75 |
+| orientations | == 2 |
+| mass_tv | <= 0.18 |
+| pairwise_phase_diversity | >= 0.4 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: exact optimizer updates = True; finite state = True; mechanism exercised = True; optimizer roles = generator, discriminator, prior; rng isolation = True.
+
+Declared budget: 288 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../conv-texture32-tier1/README.md)
+
 <a name="cohort-cuda-c195899a64af-experiment-img_intensity2"></a>
 
 ### img_intensity2
@@ -8318,7 +8758,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -8350,7 +8790,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -8382,7 +8822,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-c195899a64af-particle_interpolation_stretch-tier-1) · [rhbi-retention-trajectory-arc-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-retention-trajectory-arc-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -10148,7 +10588,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-c195899a64af-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -10321,7 +10761,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 Runtime: **cuda**. Selected configuration: [k3p · 0b37e98a01e3](../../../configs/forge/configurations/k3p--0b37e98a01e3cc7c0f4b3325b43f9e6d569de81e4f890f20942f0fc33221305c.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 17, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 18, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -10338,7 +10778,7 @@ Selection: historical_incumbent. Retain the exact complete measurement under its
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](k3p.md#cohort-cuda-0d83d78027c5-adaptation) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-adaptation) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous) | [3/4](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) | [0/6 (6 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-4) | [3/22 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
-| [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [4/11 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-4) | [4/30 (26 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
+| [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [4/12 (8 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | [0/18 (18 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-4) | [4/31 (27 not run)](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability) | [0/28 (28 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [formulation_comparison](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [host_profile_transfer](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) | [0/1 (1 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-4) | [3/16 (13 not run)](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
 | [quality_coverage](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage) | [3/3](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-1) | [0/12 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-3) | [0/0](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-4) | [3/15 (12 not run)](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage) | [0/7 (7 not run)](k3p.md#cohort-cuda-0d83d78027c5-held) |
@@ -10364,6 +10804,7 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-0d83d78027c5-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-1) | FAIL | changed since run |
 | [five_word_joint_smoke](k3p.md#cohort-cuda-0d83d78027c5-experiment-five_word_joint_smoke) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [gaussian1d_smoke](k3p.md#cohort-cuda-0d83d78027c5-experiment-gaussian1d_smoke) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
+| [img_conv_texture32](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_conv_texture32) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_gan_multimodal](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_ae_gan_multimodal) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_ae_reconstruction](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_ae_reconstruction) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_vae_categorical) | [discriminator_stability](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) | UNKNOWN | recorded definition unavailable |
@@ -11022,9 +11463,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 18**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **12 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -11045,6 +11486,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [model_ae_reconstruction](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_ae_reconstruction) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_categorical](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_vae_categorical) | required | UNKNOWN | recorded definition unavailable |
 | [model_vae_hard](k3p.md#cohort-cuda-0d83d78027c5-experiment-model_vae_hard) | required | UNKNOWN | recorded definition unavailable |
+| [img_conv_texture32](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_conv_texture32) | required | UNKNOWN | recorded definition unavailable |
 | [clockfree_audit_measurement_v1](k3p.md#cohort-cuda-0d83d78027c5-experiment-clockfree_audit_measurement_v1) | diagnostic | FAIL | changed since run |
 | [precision_gaussian_fp32](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_fp32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [precision_gaussian_mxfp8](k3p.md#cohort-cuda-0d83d78027c5-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | UNKNOWN | recorded definition unavailable |
@@ -11850,6 +12292,192 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1"></a>
+
+## rhbi-raw-assignment-retention-v1
+
+**rhbi-raw-assignment-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-raw-assignment-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1"></a>
+
+## rhbi-retention-trajectory-arc-v1
+
+**rhbi-retention-trajectory-arc-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-arc-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1"></a>
+
+## rhbi-retention-trajectory-v1
+
+**rhbi-retention-trajectory-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-retention-trajectory-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two selected diagnostic tasks with no independent holdout.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1"></a>
+
+## rhbi-texture-feature-v1
+
+**rhbi-texture-feature-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-feature-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [img_conv_texture32](k3p.md#cohort-cuda-0d83d78027c5-experiment-img_conv_texture32) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1"></a>
+
+## rhbi-texture-retention-v1
+
+**rhbi-texture-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-texture-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. This diagnostic study tests one selected failure and four known retention tasks.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](k3p.md#cohort-cuda-0d83d78027c5-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_sparse_arc) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_img_patch_shift](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](k3p.md#cohort-cuda-0d83d78027c5-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-4"></a>
 
 ### Tier 4
 
@@ -13201,6 +13829,38 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+<a name="cohort-cuda-0d83d78027c5-experiment-img_conv_texture32"></a>
+
+### img_conv_texture32
+
+**img_conv_texture32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_conv_texture32.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [rhbi-texture-feature-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-texture-feature-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| hf_band_ratio | >= 0.55 |
+| clean_texture_fraction | >= 0.75 |
+| orientations | == 2 |
+| mass_tv | <= 0.18 |
+| pairwise_phase_diversity | >= 0.4 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: exact optimizer updates = True; finite state = True; mechanism exercised = True; optimizer roles = generator, discriminator, prior; rng isolation = True.
+
+Declared budget: 288 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../conv-texture32-tier1/README.md)
+
 <a name="cohort-cuda-0d83d78027c5-experiment-img_intensity2"></a>
 
 ### img_intensity2
@@ -13374,7 +14034,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -13406,7 +14066,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -13438,7 +14098,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-particle_interpolation_stretch-tier-1) · [rhbi-retention-trajectory-arc-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-arc-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -15210,7 +15870,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](k3p.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](k3p.md#cohort-cuda-0d83d78027c5-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 

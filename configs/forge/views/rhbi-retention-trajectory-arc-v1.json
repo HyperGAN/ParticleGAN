@@ -1,0 +1,25 @@
+{
+  "assignments": [
+    {
+      "task": "interp_sparse_arc",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 2
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Two selected diagnostic tasks with no independent holdout.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi_retention_trajectory",
+  "id": "rhbi-retention-trajectory-arc-v1",
+  "policy_change_reason": "Outstanding arc pair only. Attach the same passive transport observer at dispatch with the original interpolation host source.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

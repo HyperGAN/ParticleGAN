@@ -1,0 +1,213 @@
+{
+  "attempt_ids": [
+    "6525cdca43ec410f83390b5572e01dbd"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "91382d96596eef591a9b0a35b97ceb99d2eebc43ba19cf96c0fdc7d5b323cbab",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "All 24 earlier scored observations reproduced. Raw RHBI reached 0.0086 energy, assignment-only 0.1992 and full features 0.6959.",
+  "conclusion": "Negative control reproduced FAIL at all five terminal checks on img_conv_texture32.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "6525cdca43ec410f83390b5572e01dbd"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "749f5b1fd8dc0acf80f7760349409299317103d75248fc0e36eaeded62191e0c",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.0
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.0
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "6525cdca43ec410f83390b5572e01dbd",
+          "producer_request_id": "a558d601543c1df8fbb6c4d3",
+          "producer_study_id": "rhbi-assignment-texture-raw",
+          "result_hash": "3d40bd1a85382f490efa546156b1facc8501b61face401a7dee6039397bb6929",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "752586fddc0eea0315d81ffefbeab683413c1bd611b14783755de02ae8b510a1",
+        "contract_sha256": "749f5b1fd8dc0acf80f7760349409299317103d75248fc0e36eaeded62191e0c",
+        "control_binding_sha256": "3ee29497b5166acdfeca6ac8cd17c0d3a5b255aac6c4a363b8b97e08b35ac17d",
+        "policy_fingerprint": "65ec20e2b6cba90e72578fed492d296cb1a4a130112ca693c31b952c17ab93af",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "6a2a08839d0169ebccee93a43b1dab9d386cce790b08b0d019667993123c2014"
+      },
+      "study_id": "rhbi-assignment-texture-raw",
+      "study_sha256": "6a2a08839d0169ebccee93a43b1dab9d386cce790b08b0d019667993123c2014"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-texture-feature-v1",
+  "hypothesis": "On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as the raw-coordinate reference. The assignment candidate stopped at texture.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "6525cdca43ec410f83390b5572e01dbd",
+        "result_hash": "3d40bd1a85382f490efa546156b1facc8501b61face401a7dee6039397bb6929",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-270008de8ad43a04e4813b2b",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/6525cdca43ec410f83390b5572e01dbd/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 900,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-assignment-texture-v1"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "The feature-space generator derivative or the feature self-coupling is necessary to acquire texture even when augmented cross pair assignment distinguishes blur.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-transport",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "clean_texture_fraction",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "hypothesis": "On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.",
+    "id": "rhbi-assignment-texture-raw",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "clean_texture_fraction",
+      "op": "<",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false
+        },
+        "path": "reports/forge/rhbi-texture-feature/trajectory/results.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-texture-feature-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-assignment-texture-raw",
+  "study_sha256": "6a2a08839d0169ebccee93a43b1dab9d386cce790b08b0d019667993123c2014",
+  "task_results": [
+    {
+      "compatibility_key": "e394c7bceb9b62bfaf1a89af2abcaa51cce00e9011c25132170a3627a8900b1e",
+      "cost": {
+        "adapter_loop_seconds": 34.916778670973144,
+        "adapter_seconds": 36.47794697701465,
+        "charged_task": "img_conv_texture32",
+        "completed_steps": 288,
+        "device": "0",
+        "execution_seconds": 46.67443437105976,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 28.041470804368146,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.7091422473313287
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.029987053712829947
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 27.302341503323987
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 39.222887812997214,
+        "wall_seconds": 46.67443437105976
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "band_purity_mean": 0.053255724903805424,
+        "clean_texture_fraction": 0.0,
+        "dc_mean_err": 0.30791230226440935,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.008624047764909826,
+        "mass_tv": 0.00390625,
+        "orientations": 0,
+        "pairwise_phase_diversity": 0.0,
+        "sample_count": 256,
+        "step": 288
+      },
+      "raw_status": "completed",
+      "reason": "failed img_conv_texture32 thresholds: hf_band_ratio >= 0.55, clean_texture_fraction >= 0.75, orientations == 2, pairwise_phase_diversity >= 0.4",
+      "task_id": "img_conv_texture32"
+    }
+  ]
+}

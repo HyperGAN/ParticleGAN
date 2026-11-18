@@ -184,8 +184,9 @@ def test_committed_declarations_view_and_tiers_cover_all_selected_tests():
         ("model_ddgan_bimodal_chain", 2),
         ("model_ae_ddgan_bimodal_chain", 2),
     }
+    revision_18_new_tasks = {("img_conv_texture32", 1)}
     assert selected == ({(name, tier) for tier, names in TIERS.items() for name in names}
-                        | revision_13_new_tasks | revision_14_new_tasks)
+                        | revision_13_new_tasks | revision_14_new_tasks | revision_18_new_tasks)
 
 
 @pytest.mark.parametrize("family", FAMILIES)

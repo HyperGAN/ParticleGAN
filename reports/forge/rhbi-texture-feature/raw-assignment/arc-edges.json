@@ -1,0 +1,335 @@
+{
+  "edges": {
+    "rhbi-v12": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        9,
+        11
+      ]
+    ],
+    "rhbi-v12-feature-raw-self": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        4,
+        11
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        9,
+        11
+      ]
+    ],
+    "rhbi-v12-raw-assignment": [
+      [
+        0,
+        2
+      ],
+      [
+        0,
+        6
+      ],
+      [
+        0,
+        7
+      ],
+      [
+        0,
+        9
+      ],
+      [
+        0,
+        11
+      ],
+      [
+        1,
+        4
+      ],
+      [
+        1,
+        5
+      ],
+      [
+        1,
+        8
+      ],
+      [
+        1,
+        9
+      ],
+      [
+        2,
+        6
+      ],
+      [
+        2,
+        7
+      ],
+      [
+        3,
+        5
+      ],
+      [
+        3,
+        8
+      ],
+      [
+        3,
+        10
+      ],
+      [
+        4,
+        5
+      ],
+      [
+        4,
+        9
+      ],
+      [
+        4,
+        11
+      ],
+      [
+        5,
+        8
+      ],
+      [
+        5,
+        10
+      ],
+      [
+        6,
+        7
+      ],
+      [
+        7,
+        11
+      ],
+      [
+        8,
+        10
+      ],
+      [
+        9,
+        11
+      ]
+    ]
+  },
+  "parent_vs_raw_assignment": {
+    "candidate_same_state_raw_replay_matches": 600,
+    "identical_executed_cross_plans": 12,
+    "identical_model_states": 14,
+    "parent_max_same_state_raw_replay_tv": 0.0013718138996088205,
+    "saved_states": 101,
+    "updates": 600
+  },
+  "passing_chords_by_model_and_edge_owner": {
+    "rhbi-v12": {
+      "rhbi-v12": {
+        "passing": 53,
+        "total": 66
+      },
+      "rhbi-v12-feature-raw-self": {
+        "passing": 56,
+        "total": 69
+      },
+      "rhbi-v12-raw-assignment": {
+        "passing": 56,
+        "total": 69
+      }
+    },
+    "rhbi-v12-feature-raw-self": {
+      "rhbi-v12": {
+        "passing": 49,
+        "total": 66
+      },
+      "rhbi-v12-feature-raw-self": {
+        "passing": 51,
+        "total": 69
+      },
+      "rhbi-v12-raw-assignment": {
+        "passing": 51,
+        "total": 69
+      }
+    },
+    "rhbi-v12-raw-assignment": {
+      "rhbi-v12": {
+        "passing": 53,
+        "total": 66
+      },
+      "rhbi-v12-feature-raw-self": {
+        "passing": 56,
+        "total": 69
+      },
+      "rhbi-v12-raw-assignment": {
+        "passing": 56,
+        "total": 69
+      }
+    }
+  },
+  "scope": "exploratory_terminal_graph_comparison"
+}

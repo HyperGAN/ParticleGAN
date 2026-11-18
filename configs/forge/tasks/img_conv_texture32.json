@@ -1,0 +1,117 @@
+{
+  "adapter": "conv_texture32",
+  "dependencies": [],
+  "description": "Can a convolutional generator and nonlinear feature-pyramid critic acquire two equiprobable 3x32x32 (d=3072) random-phase 12-mode RGB texture orientations from a recipe-owned 64-particle MoGParticlePrior (sigma=0.1) within 288 updates, recovering high-frequency carrier energy, balanced class mass, and within-class phase diversity rather than collapsing onto interior zero-carrier DC mean blobs?",
+  "evaluation": {
+    "eval_output_noise": "clean",
+    "eval_samples": 256,
+    "guards": {
+      "exact_optimizer_updates": true,
+      "finite_state": true,
+      "mechanism_exercised": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "rng_isolation": true
+    },
+    "kind": "img_conv_texture32",
+    "minimum_stable_checks": 5,
+    "observations": 24,
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "scoring_weights": "live",
+    "sources": {
+      "benchmarks/toy_audit/api_conv_texture32.py": "00134c6895861035bd9be0f887ef34815d2d7946c1b8553f3ca0c02bf0798bdd",
+      "experiments/forge/conv_texture32.py": "21ad76d69776acacb9f949dc2b24cd4a16a345a0e10182954d70cbc75f39f03f"
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "hf_band_ratio",
+        ">=",
+        0.55
+      ],
+      [
+        "clean_texture_fraction",
+        ">=",
+        0.75
+      ],
+      [
+        "orientations",
+        "==",
+        2
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.18
+      ],
+      [
+        "pairwise_phase_diversity",
+        ">=",
+        0.4
+      ]
+    ]
+  },
+  "execution": {
+    "host": "img_conv_texture32",
+    "host_definition": {
+      "case_id": "api-img-conv-texture32",
+      "kind": "img_conv_texture32",
+      "model": {
+        "critic_mlp_hidden": 64,
+        "family": "conv32_residual_upsample_miniresnet_mlp",
+        "image_shape": [
+          3,
+          32,
+          32
+        ],
+        "width": 16
+      },
+      "resources": {
+        "batch_size": 64,
+        "num_particles": 64,
+        "z_dim": 8
+      },
+      "steps": 288,
+      "target": "Two equiprobable 3x32x32 (d=3072) random-phase 12-mode oriented RGB texture classes (horizontal coral-cyan vs vertical emerald-magenta, rms_amp=0.68, noise_std=0.02, clamped to [-1, 1])"
+    },
+    "initializer": "deterministic_orthogonal",
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.1,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "produces_state": true,
+    "protocol": "screening",
+    "steps": 288
+  },
+  "id": "img_conv_texture32",
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "research_artifacts": {
+    "api_publication": "reports/toy_audit/api_contract/conv_texture32/publication.json",
+    "readout": "reports/forge/conv-texture32-tier1/README.md"
+  },
+  "resources": {
+    "cpu_threads": 1,
+    "gpu_memory_mb": 2048,
+    "gpus": 1,
+    "timeout_seconds": 300
+  },
+  "retained_question_ids": [
+    "tier1-img-conv-texture32"
+  ],
+  "schema_version": 1
+}

@@ -59,6 +59,9 @@ def adapter_preflight(task, candidate, *, root=None):
     if adapter == "particle_interpolation":
         from .interpolation import preflight
         return preflight(task, candidate, root=root)
+    if adapter == "conv_texture32":
+        from .conv_texture32 import preflight
+        return preflight(task, candidate, root=root)
     from .tier1_policy import is_policy_task
     if is_policy_task(task):
         from .tier1_policy import validate
@@ -310,6 +313,8 @@ class _Run:
         self.output, self.task = Path(output), task
         self.output.mkdir(parents=True, exist_ok=True)
         self.started = time.monotonic()
+        from .rhbi_trajectory import attach as attach_trajectory
+        self.trajectory = attach_trajectory(trainer, context, task, self.output)
         self.finite = True
         self.measuring = False
         self.measured_weights = set()
@@ -360,7 +365,8 @@ class _Run:
     def step(self, real):
         before = self.trainer.completed_steps
         with self.timing.measure("training_updates"):
-            self.last_update = self.trainer.step(real, collect_stats=True)
+            self.last_update = (self.trainer.step(real, collect_stats=True) if self.trajectory is None
+                                else self.trajectory.step(real))
         self.mechanism_audit.observe_penalty(self.last_update.get("penalty_stats", {}))
         if self.trainer.completed_steps != before + 1:
             raise RuntimeError("public trainer did not complete one update")
@@ -417,6 +423,8 @@ class _Run:
     def receipt(self, evidence, *, save_state=True):
         trainer = self.trainer
         state = self.context.state_dict()
+        if self.trajectory is not None:
+            evidence["rhbi_trajectory"] = self.trajectory.receipt()
         from .api import policy_controls
         if self.policy_audit is not None or policy_controls(self.context.recipe):
             from .policy_adapters import finite_policy_state
@@ -823,6 +831,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
     if adapter == "particle_interpolation":
         from .interpolation import run
         return run(request, task, output_dir, device)
+    if adapter == "conv_texture32":
+        from .conv_texture32 import run
+        return run(request, task, output_dir, device)
     from .tier1_policy import blocked_host, is_policy_task
     if blocked_host(task) is not None:
         # Explicit ownership boundary: refuse before any host-specific setup.
@@ -877,7 +888,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
 
 @serial_autograd()
 def run_task(request: dict, job: dict, output_dir: Path, device: str) -> dict:
-    result = normalize_adapter_costs(_dispatch_task(request, job, output_dir, device))
+    from .rhbi_trajectory import archive_scope
+    with archive_scope(request):
+        result = normalize_adapter_costs(_dispatch_task(request, job, output_dir, device))
     result["autograd_multithreading_enabled"] = torch.autograd.is_multithreading_enabled()
     # Normalize the common diagnostic receipt too. The certified bulk evidence
     # lives in separate artifact roots and is not modified by timing annotation.

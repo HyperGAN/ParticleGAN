@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-raw-self-texture-candidate",
+  "status": "ready",
+  "candidate": "rhbi-v12-feature-raw-self",
+  "control": {
+    "candidate_id": "rhbi-v12-feature-transport",
+    "task_map": {}
+  },
+  "hypothesis": "Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.",
+  "scope": {
+    "view": "rhbi-texture-feature-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-raw-self-texture-v1",
+    "budget_seconds": 900,
+    "candidate_budget_seconds": 300
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/assignment/results.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": ">=",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": "<",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "competing_explanation": "Feature self-repulsion is required for sustained energy, both classes, their mass and phase diversity.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 import math
-from typing import Any, Dict, Optional, Tuple
+from typing import Any, Dict, Literal, Optional, Tuple
 
 import torch
 import torch.nn.functional as F
@@ -81,6 +81,7 @@ class RHBIGANLoss(GANLoss):
         simplex_macro_settle: bool = False,
         simplex_curve_settle: bool = False,
         support_completion: bool = False,
+        feature_transport: bool | Literal["assignment_only", "raw_self", "raw_assignment"] = False,
         record: Any = None,
     ) -> None:
         super().__init__(loss, labels=labels)
@@ -123,6 +124,9 @@ class RHBIGANLoss(GANLoss):
         self.cond_ot_weight = float(cond_ot_weight)
         self.cond_ot_mode = cond_ot_mode
         self.record = record
+        if type(feature_transport) is not bool and feature_transport not in ("assignment_only", "raw_self", "raw_assignment"):
+            raise ValueError("feature_transport must be a boolean, 'assignment_only', 'raw_self' or 'raw_assignment'")
+        self.feature_transport = feature_transport
         self.rhbi = RHBILoss(
             weight=weight,
             rho=rho,
@@ -148,6 +152,33 @@ class RHBIGANLoss(GANLoss):
             support_completion=support_completion,
         )
         self.last_metrics: Dict[str, float] = {}
+
+    @staticmethod
+    def scalar_feature_head(critic):
+        heads = [m for m in critic.modules() if isinstance(m, torch.nn.Linear) and m.out_features == 1]
+        if len(heads) != 1:
+            raise ValueError("RHBI feature transport requires one scalar linear readout")
+        return heads[0]
+
+    @staticmethod
+    def score_with_features(critic, head, samples):
+        """Capture this forward's readout input, retaining the fake-to-feature derivative."""
+        features = []
+
+        def capture(_module, args):
+            features.append(args[0])
+
+        with head.register_forward_pre_hook(capture):
+            logits = critic(samples)
+        if (len(features) != 1 or features[0].ndim != 2 or features[0].shape[0] != len(samples)
+                or not isinstance(logits, torch.Tensor) or logits.numel() != len(samples)):
+            raise ValueError("RHBI feature transport requires one scalar score and feature vector per sample")
+        if getattr(logits, "_rhbi_input", None) is None:
+            raise ValueError("RHBI feature transport requires its critic input capture")
+        if features[0].untyped_storage().data_ptr() == logits._rhbi_input.untyped_storage().data_ptr():
+            raise ValueError("RHBI feature transport requires learned features before the readout")
+        logits._rhbi_features = features[0]
+        return logits
 
     def _resolve_pair_parts(
         self,
@@ -244,6 +275,18 @@ class RHBIGANLoss(GANLoss):
         x_f, x_r, cond_f, cond_r, rec, has_cont_cond, parts_f, parts_r = self._resolve_pair_parts(
             fake_logits, real_logits
         )
+        feat_fake = feat_real = None
+        if self.feature_transport:
+            feat_fake = getattr(fake_logits, "_rhbi_features", None)
+            feat_real = getattr(real_logits, "_rhbi_features", None)
+            if feat_fake is None or feat_real is None or has_cont_cond or cond_f is not None or cond_r is not None:
+                raise ValueError("RHBI feature transport requires captured scalar marginal critic features")
+            feature_dtype = torch.promote_types(feat_real.dtype, torch.float32)
+            feat_real = feat_real.detach().to(feature_dtype)
+            center = feat_real.mean(0)
+            radius = (feat_real - center).square().sum(1).mean().sqrt().clamp_min(1e-6)
+            feat_fake = (feat_fake.to(feature_dtype) - center) / radius
+            feat_real = (feat_real - center) / radius
         if self.conditional_fibre == "calibrated" and has_cont_cond:
             return self.rhbi.weight * super().g_loss(fake_logits, real_logits)
         if self.conditional_fibre == "slack" and has_cont_cond:
@@ -292,6 +335,11 @@ class RHBIGANLoss(GANLoss):
             x_r,
             fake_logits,
             real_logits,
+            feat_fake=feat_fake,
+            feat_real=feat_real,
+            feature_assignment_only=self.feature_transport == "assignment_only",
+            raw_self_transport=self.feature_transport in ("raw_self", "raw_assignment"),
+            raw_cross_assignment=self.feature_transport == "raw_assignment",
             record=rec,
             symmetric=False,
             allow_ell_update=allow_ell,
@@ -302,6 +350,8 @@ class RHBIGANLoss(GANLoss):
         return loss_val
 
     def joint_g_loss(self, fake_logits: torch.Tensor, real_logits: torch.Tensor) -> torch.Tensor:
+        if self.feature_transport:
+            raise ValueError("RHBI feature transport requires a scalar marginal GAN")
         if not fake_logits.requires_grad or not real_logits.requires_grad:
             raise ValueError("joint_g_loss requires gradients on both generator and encoder streams")
         if self.rhbi.weight == 0.0:

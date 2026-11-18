@@ -1,0 +1,215 @@
+{
+  "attempt_ids": [
+    "72aacf2368284e40bb9dab054e8a90c0"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "d455209f8de99054c907665cc3cbafb953a6963c8bc20e8574645e45cfef070b",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Executed plans differed by at least 1% on updates 29\u201331. The fixed-edge mean arc-error difference first exceeded 0.03 between observations 40 and 50. Replacing only the feature arm cross-cost by raw cost never moved 1% of plan mass.",
+  "conclusion": "The parent passed all five terminal arc checks. Endpoint chord HQ was 0.8030. The feature arm failed all five on the matched source.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "72aacf2368284e40bb9dab054e8a90c0"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "fc4acbe35a4b4490a3bf98680a270d8ea84402f5b276207574819bb9c0d6bfa1",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.8030303120613098
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.8030303120613098
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "72aacf2368284e40bb9dab054e8a90c0",
+          "producer_request_id": "87ead64f3ed377685ce6ba3d",
+          "producer_study_id": "rhbi-retention-trajectory-arc-parent",
+          "result_hash": "19a0a483c49ad283a68b4c6cf80371826ed4474a65ed31050fa98b19a61c2d55",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "63f81b6c09aa8444d284382e540664d82b9f562ba8f29456d3890f77fe6e82be",
+        "contract_sha256": "fc4acbe35a4b4490a3bf98680a270d8ea84402f5b276207574819bb9c0d6bfa1",
+        "control_binding_sha256": "da44f61850db94d30f9c33cb68d6fea4d7855b585229f09f225d4110a44de672",
+        "policy_fingerprint": "5304cc17355e93d6652dee13712a6b4d9409336de605f71d0b18c1d21e9f3230",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "adee5b3f9ece0d26bd295eb7513adfa30673043a8e16ccf94019584b0e506c27"
+      },
+      "study_id": "rhbi-retention-trajectory-arc-parent",
+      "study_sha256": "adee5b3f9ece0d26bd295eb7513adfa30673043a8e16ccf94019584b0e506c27"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-retention-trajectory-arc-v1",
+  "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain this matched parent control. Inspect the paired trajectory report before selecting another trainer change.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "72aacf2368284e40bb9dab054e8a90c0",
+        "result_hash": "19a0a483c49ad283a68b4c6cf80371826ed4474a65ed31050fa98b19a61c2d55",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-99dfee25c9646a5673c97bab",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/72aacf2368284e40bb9dab054e8a90c0/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 600,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-retention-trajectory-arc-v1"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "Small direct metric changes accumulate through game dynamics, graph rewiring or the optimizer. The historical parent positives may also fail to reproduce.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-transport",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+    "id": "rhbi-retention-trajectory-arc-parent",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "optimizer_updates_added": 0,
+          "protocol_seed": 0
+        },
+        "path": "reports/forge/rhbi-texture-feature/retention-probe.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-retention-trajectory-arc-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-retention-trajectory-arc-parent",
+  "study_sha256": "adee5b3f9ece0d26bd295eb7513adfa30673043a8e16ccf94019584b0e506c27",
+  "task_results": [
+    {
+      "compatibility_key": "769cdbecca7b81d55324f1a8989ac7c38446559dc9b5301f9a6efd0582390fc3",
+      "cost": {
+        "adapter_loop_seconds": 27.35343712591566,
+        "adapter_seconds": 28.058848474989645,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 600,
+        "device": "0",
+        "execution_seconds": 35.604435462038964,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 21.017973635927774,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.11726612434722483
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.006410115049220622
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 20.89429739653133
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 29.955321397981606,
+        "wall_seconds": 35.604435462038964
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "all_pairs_interp_hq": 0.28787878155708313,
+        "edge_count": 22,
+        "endpoint_arc_bins": 12,
+        "endpoint_hq": 1.0,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 30,
+        "interp_hq": 0.8030303120613098,
+        "interp_mean_dist": 0.056927990168333054,
+        "midpoint_novelty": 0.4031730680299587,
+        "output_knn_interp_hq": 0.8095238208770752,
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "recomputed interp_sparse_arc gates (5/5 terminal checks passed)",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}

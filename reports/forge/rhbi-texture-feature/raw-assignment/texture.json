@@ -1,0 +1,289 @@
+{
+  "arms": {
+    "rhbi-v12": {
+      "attempt": "a7dabed8c9e24e028c980c1ad7bd39cb",
+      "candidate_revision": "fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f",
+      "checkpoint_sha256": "22f4c43c5c00f64820a35a272450e6edde6ea3a8ccd504e6489af69b3b4cc6b1",
+      "gate": "FAIL",
+      "gif_sha256": "81831996ac55ff01a06cd077157b3107c3d8835addc53a9075b5d91db22e8b17",
+      "mode": false,
+      "observations_sha256": "3c826570c64ffaef9a058014c60a1947570093a3758deb316d4800117be51128",
+      "reproduced_previous_24_observations": true,
+      "result_sha256": "d57f641883961bc2f0a241c0db52f8ac95f181ad56fcc09df2b734759d84069f",
+      "terminal": {
+        "failed_bounds": [
+          "hf_band_ratio >= 0.55",
+          "clean_texture_fraction >= 0.75",
+          "orientations == 2",
+          "pairwise_phase_diversity >= 0.4"
+        ],
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "terminal_observations": [
+        {
+          "band_purity_mean": 0.04878164821502612,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.3194846798874725,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.007360131431514687,
+          "mass_tv": 0.0546875,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.04970861670913332,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.32923455219912195,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008003651792868959,
+          "mass_tv": 0.06640625,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.05335745221436282,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.300651127826194,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008699559222735648,
+          "mass_tv": 0.0,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.05551285270923362,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.30016351753392856,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.009014173416493451,
+          "mass_tv": 0.03125,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.053255724903805424,
+          "clean_texture_fraction": 0.0,
+          "dc_mean_err": 0.30791230226440935,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.008624047764909826,
+          "mass_tv": 0.00390625,
+          "orientations": 0,
+          "pairwise_phase_diversity": 0.0,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "worker_seconds": 47.335049789980985
+    },
+    "rhbi-v12-feature-raw-self": {
+      "attempt": "986b4377311b4811a5ad23cee3915b88",
+      "candidate_revision": "9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c",
+      "checkpoint_sha256": "2f6652bb33f0a755a069a5fef6402fee776807b248905793594e5e5c4d506f31",
+      "gate": "PASS",
+      "gif_sha256": "e4e6125c29151abcf937827b7b4e818c054a2d4495ceb075fe666f810542da08",
+      "mode": "raw_self",
+      "observations_sha256": "d2871c0639cf93bd41c814be2ee38bf0eada96e9a7ab0e8b2dde5d960c0c7280",
+      "reproduced_previous_24_observations": true,
+      "result_sha256": "c00fb23e2cc73f631fa52d1338f031547d4a0a4c8e382c1d4dc2d0b28780a366",
+      "terminal": {
+        "failed_bounds": [],
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "terminal_observations": [
+        {
+          "band_purity_mean": 0.6002394794042096,
+          "clean_texture_fraction": 0.9453125,
+          "dc_mean_err": 0.0911649205691244,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.8279117800215283,
+          "mass_tv": 0.09765625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7699771762013358,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.5988816288474814,
+          "clean_texture_fraction": 0.94140625,
+          "dc_mean_err": 0.06785473821831237,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.7532241812879781,
+          "mass_tv": 0.07421875,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7552977039318416,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.5971821395308834,
+          "clean_texture_fraction": 0.9375,
+          "dc_mean_err": 0.07174885500104052,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.704869371920883,
+          "mass_tv": 0.03515625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8121207076376984,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.6013900823054612,
+          "clean_texture_fraction": 0.97265625,
+          "dc_mean_err": 0.06473444954691021,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.6777730803635975,
+          "mass_tv": 0.09765625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8065527403766586,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.615776162349621,
+          "clean_texture_fraction": 0.94140625,
+          "dc_mean_err": 0.060460311470337876,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.6700316364224655,
+          "mass_tv": 0.125,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8048605153527577,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "worker_seconds": 66.53908029501326
+    },
+    "rhbi-v12-raw-assignment": {
+      "attempt": "2af786e3b41945679c151a7529a8fc5b",
+      "candidate_revision": "569e84ecb842ff59d9b9a803c51405ab038a458338ceb486b5c0f2b77dab9518",
+      "checkpoint_sha256": "381b711b86e1b3edd36a4cb43b5aed74e94db1975e1af43fc7175803280e6eca",
+      "gate": "PASS",
+      "gif_sha256": "6de3cbff775064a5d2c21f387275e24a4d115a3c0ec957b30636995bdb39741c",
+      "mode": "raw_assignment",
+      "observations_sha256": "3deb3acd5549c89b863cfe703552eceb1cc6aee45939c86d910befbd1ddfcd42",
+      "result_sha256": "a1f9bad8237563ed923d8105b3797006af186bd6c9f1d5a4bde8c3b75a3ac969",
+      "terminal": {
+        "failed_bounds": [],
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "terminal_observations": [
+        {
+          "band_purity_mean": 0.5910971044356705,
+          "clean_texture_fraction": 0.9375,
+          "dc_mean_err": 0.10284453221915171,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.74627711954292,
+          "mass_tv": 0.1640625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8086490870774786,
+          "sample_count": 256,
+          "step": 240
+        },
+        {
+          "band_purity_mean": 0.625308724552426,
+          "clean_texture_fraction": 0.98828125,
+          "dc_mean_err": 0.07896316790260115,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.7259176663205128,
+          "mass_tv": 0.09765625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7778458703459771,
+          "sample_count": 256,
+          "step": 252
+        },
+        {
+          "band_purity_mean": 0.6522078955891804,
+          "clean_texture_fraction": 1.0,
+          "dc_mean_err": 0.08029908341685632,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.7115949927951799,
+          "mass_tv": 0.08203125,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.8061797175445972,
+          "sample_count": 256,
+          "step": 264
+        },
+        {
+          "band_purity_mean": 0.671596128549572,
+          "clean_texture_fraction": 1.0,
+          "dc_mean_err": 0.07880792796036878,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.7163213387030044,
+          "mass_tv": 0.1640625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7960425989045412,
+          "sample_count": 256,
+          "step": 276
+        },
+        {
+          "band_purity_mean": 0.6883257400764505,
+          "clean_texture_fraction": 1.0,
+          "dc_mean_err": 0.07564845677877813,
+          "finite_fraction": 1.0,
+          "hf_band_ratio": 0.7054731774128438,
+          "mass_tv": 0.15625,
+          "orientations": 2,
+          "pairwise_phase_diversity": 0.7712234589224204,
+          "sample_count": 256,
+          "step": 288
+        }
+      ],
+      "worker_seconds": 63.97785578703042
+    }
+  },
+  "matched": {
+    "compute": {
+      "autograd_multithreading_enabled": false,
+      "backend": "cuda",
+      "compute_capability": "8.6",
+      "deterministic": true,
+      "driver": "615.78.08",
+      "model": "NVIDIA RTX A6000",
+      "tf32": false,
+      "threads": 1
+    },
+    "eval_output_noise": "clean",
+    "evaluation": "2901e92594ff00cfde0fbddcf946f9fb1d04ca7b7dc32b38d74a40276f52bb66",
+    "execution": "9847389515d0ab4dfcbb27c83f7818bc5ea2816b74b776711c38ff6ff2800915",
+    "initial_parameters": {
+      "discriminator": "6495fc8ec37840266ff8f1e97f3ee6d125afe979070ae1fff9eaa3bcddde284b",
+      "generator": "69d0a3691ad4682a5f205b69b4e2948ab836a6be65b4e1087a48cb5642ea540c",
+      "prior": "81001785a4476190e5e4406e95c87f5479c057f81b8cad78582923cb1eafa8e7"
+    },
+    "initial_prior": {
+      "kind": "mog",
+      "sigma": 0.1,
+      "standardize": false
+    },
+    "initializer": "deterministic_orthogonal",
+    "named_initial_streams_sha256": "0fc364a9bed41115bc9a88c555236f6f42061e6b6cca1d429fb59a3e5d68cd6b",
+    "named_terminal_streams_sha256": "0d2b1933e4931db2062ab8ebf42fcce290ca66c7174c6fe74e2daa0460543ab2",
+    "other_recipe_fields_sha256": "42c04261d3b6a4b29fc13f674d7dba853f168ff99dff687d76b7ca6ad49e4458",
+    "runtime": {
+      "rng": "torch.Generator",
+      "torch": "2.15.0+cu132"
+    },
+    "sampling_law": "public_prior_without_output_noise",
+    "scoring_weights": "live",
+    "seed": 0,
+    "seen_batches_sha256": "eac470a9c7d6ceef7e9ee8913b3e2a32090a2c2b45cd16e8f0b9a7bdcaea4649",
+    "source_commit": "483b042b616f6092fa73e536b789425cbe315468",
+    "source_sha256": "8c307ab47073032beb07a3b0e94cc2b02a7b57cf79f64fc652b0a906c9f5dca1"
+  },
+  "qualification_input": false,
+  "task": "img_conv_texture32"
+}

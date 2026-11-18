@@ -1,0 +1,656 @@
+{
+  "attempt_ids": [
+    "152fe091abcc4fefaaa36e4da6c20a22",
+    "7d87d47791cd4d0ba4d0df3ef86d7857",
+    "9f25ad459b0048c7acf86f9d7cd18160",
+    "a0ba74974db94bd693d3ae7f3d85ce2e"
+  ],
+  "candidate_id": "rhbi-v12-feature-transport",
+  "candidate_revision": "2b16a17377f3a503f9eccf5089ceff76d6ee1952260de829506f02736effe0ce",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The selected published parent passes these four tasks on its original source. The concurrent fresh-source parent arm in this PR measured the texture task only. Some patch and saddle rows hit the frozen finite-fraction sentinel even for reduction sizes where all-ones float32 CUDA means round below 1. Independent measured bounds also fail on finite panels.",
+  "conclusion": "Full gates failed for all four tasks. Rare-mass endpoint passed but its passing suffix was 1/5; minimum covariance eigenvalue ratio fell to 0.142 at update 1150. Arc quality 0.739 < 0.80. The patch passed two of five terminal observations and saddle passed zero.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "152fe091abcc4fefaaa36e4da6c20a22",
+        "7d87d47791cd4d0ba4d0df3ef86d7857",
+        "9f25ad459b0048c7acf86f9d7cd18160",
+        "a0ba74974db94bd693d3ae7f3d85ce2e"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "9dc6efc07d06c5c963e80ad2347e6d14aa71e86dd8984dfd20f85c29134c88f5",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.09711914509534836
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.09711914509534836
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "152fe091abcc4fefaaa36e4da6c20a22",
+          "producer_request_id": "12dc4979116b0ad8d9573ba1",
+          "producer_study_id": "rhbi-texture-retention-study",
+          "result_hash": "8ea3cd68b8a5c5d53c3aa18f9ce39839ead81b2157eff350571542e2c471b010",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "7d87d47791cd4d0ba4d0df3ef86d7857",
+          "producer_request_id": "12dc4979116b0ad8d9573ba1",
+          "producer_study_id": "rhbi-texture-retention-study",
+          "result_hash": "dec978f825032405b19b88f1229f5c43e31dbeaf7eaec727eff51e607a102e5f",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9f25ad459b0048c7acf86f9d7cd18160",
+          "producer_request_id": "12dc4979116b0ad8d9573ba1",
+          "producer_study_id": "rhbi-texture-retention-study",
+          "result_hash": "c2ab09d9d2191cad288403b2b317953edf4633a541c60176e912a9ce93011a1b",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "a0ba74974db94bd693d3ae7f3d85ce2e",
+          "producer_request_id": "12dc4979116b0ad8d9573ba1",
+          "producer_study_id": "rhbi-texture-retention-study",
+          "result_hash": "0467a03dfb692846d0074d57f8b109d7fc30a781ea428ee9f11134aaf0718c7b",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "d3e5334ae29067f1cbe5825de534e9963d7f4143b29a1d575c2c114589381dac",
+        "contract_sha256": "9dc6efc07d06c5c963e80ad2347e6d14aa71e86dd8984dfd20f85c29134c88f5",
+        "control_binding_sha256": "ec8c29f35e5e548c927a5d4514db373caee7a8c1e660210ff701bb218626c044",
+        "policy_fingerprint": "81016d99c7dbdbe0bde83f41d11c73155cd244705095b40f25f08f8b10f3922d",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "2d5fe6b7a63925ebdecc8c8fc3691762d02bc51d4b34e86e5c607224fe031d65"
+      },
+      "study_id": "rhbi-texture-retention-study",
+      "study_sha256": "2d5fe6b7a63925ebdecc8c8fc3691762d02bc51d4b34e86e5c607224fe031d65"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-texture-retention-v1",
+  "hypothesis": "The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Stop this exact revision. Preserve the image result and parameterization as research evidence. Do not advance to CIFAR or default selection. Examine whether the learned metric distorts neighborhoods already captured by raw coordinates.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "152fe091abcc4fefaaa36e4da6c20a22",
+        "result_hash": "8ea3cd68b8a5c5d53c3aa18f9ce39839ead81b2157eff350571542e2c471b010",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "7d87d47791cd4d0ba4d0df3ef86d7857",
+        "result_hash": "dec978f825032405b19b88f1229f5c43e31dbeaf7eaec727eff51e607a102e5f",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9f25ad459b0048c7acf86f9d7cd18160",
+        "result_hash": "c2ab09d9d2191cad288403b2b317953edf4633a541c60176e912a9ce93011a1b",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "a0ba74974db94bd693d3ae7f3d85ce2e",
+        "result_hash": "0467a03dfb692846d0074d57f8b109d7fc30a781ea428ee9f11134aaf0718c7b",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-b8643c936f96a75fb059eb10",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/152fe091abcc4fefaaa36e4da6c20a22/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 2700,
+      "candidate_budget_seconds": 2700,
+      "id": "rhbi-texture-retention-v1"
+    },
+    "candidate": "rhbi-v12-feature-transport",
+    "competing_explanation": "The learned metric can distinguish blur but may still yield a poor local generator direction or lose class mass.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "mass_tv",
+      "op": ">",
+      "phase": "final",
+      "task_id": "vector_unequal_mass",
+      "threshold": 0.15
+    },
+    "hypothesis": "The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.",
+    "id": "rhbi-texture-retention-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "mass_tv",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "vector_unequal_mass",
+      "threshold": 0.15
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false,
+          "schema": "forge_conv_texture32_tier1_readout_v1"
+        },
+        "path": "reports/forge/conv-texture32-tier1/summary.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-texture-retention-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-texture-retention-study",
+  "study_sha256": "2d5fe6b7a63925ebdecc8c8fc3691762d02bc51d4b34e86e5c607224fe031d65",
+  "task_results": [
+    {
+      "compatibility_key": "cf99f7b988dcb53694aeaf946456049c493b77226f48842757442dd4b454f559",
+      "cost": {
+        "adapter_loop_seconds": 32.866681762970984,
+        "adapter_seconds": 33.25532399408985,
+        "charged_task": "vector_unequal_mass",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 39.60718971595634,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 32.28926082968246,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.6295609086519107
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.007971684564836323
+            },
+            "training_updates": {
+              "calls": 1200,
+              "seconds": 31.651728236465715
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 34.72288843197748,
+        "wall_seconds": 39.60718971595634
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 300,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 10,
+          "passing_suffix": 1,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "component_covariance_error": {
+            "margin": 0.42054387405514715,
+            "metric": "component_covariance_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.42945612594485283
+          },
+          "component_min_eigen_ratio": {
+            "margin": 0.027920192480087286,
+            "metric": "component_min_eigen_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.17792019248008728
+          },
+          "hq": {
+            "margin": 0.13168945312500002,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.981689453125
+          },
+          "mass_tv": {
+            "margin": 0.052880854904651636,
+            "metric": "mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.09711914509534836
+          },
+          "min_mass_ratio": {
+            "margin": 0.42626953125,
+            "metric": "min_mass_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.67626953125
+          },
+          "sw1_normalized": {
+            "margin": 0.026675639003748725,
+            "metric": "sw1_normalized",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.18,
+            "value": 0.15332436099625127
+          }
+        },
+        "passed": false,
+        "shortfall": 0.0,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 0.33383418433368206,
+        "component_core_covariance_errors": [
+          0.10667634755373001,
+          0.22631190717220306,
+          0.29901301860809326,
+          0.7033354640007019
+        ],
+        "component_core_eigen_ratios": [
+          0.8491536378860474,
+          0.7122356295585632,
+          0.6246329545974731,
+          0.17792019248008728
+        ],
+        "component_core_min_eigen_ratio": 0.17792019248008728,
+        "component_counts": [
+          2276,
+          831,
+          854,
+          135
+        ],
+        "component_covariance_error": 0.42945612594485283,
+        "component_covariance_errors": [
+          0.48063164949417114,
+          0.22631190717220306,
+          0.3075454831123352,
+          0.7033354640007019
+        ],
+        "component_mass": [
+          0.5556640625,
+          0.202880859375,
+          0.20849609375,
+          0.032958984375
+        ],
+        "component_min_eigen_ratio": 0.17792019248008728,
+        "component_resolved": [
+          true,
+          true,
+          true,
+          false
+        ],
+        "component_spill": [
+          0.016695957630872726,
+          0.018050542101264,
+          0.02576112374663353,
+          0.0
+        ],
+        "covariance_error": 0.3031187057495117,
+        "hq": 0.981689453125,
+        "mass_tv": 0.09711914509534836,
+        "max_component_spill": 0.02576112374663353,
+        "mean_error": 0.22476233541965485,
+        "min_mass_ratio": 0.67626953125,
+        "noise_floor": {
+          "draws": 16,
+          "eval_draw_contract": "fixed_v1",
+          "kind": "vector",
+          "metrics": {
+            "component_covariance_error": {
+              "margin_oracle_std": 21.042811614454006,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 38.352487862887536,
+              "oracle_mean": 0.08351954477257095,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.019985156059957387,
+              "threshold": 0.85
+            },
+            "component_min_eigen_ratio": {
+              "margin_oracle_std": 0.2594736292218315,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 6.108737207301989,
+              "oracle_mean": 0.807319663465023,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.10760319869044384,
+              "threshold": 0.15
+            },
+            "covariance_error": {
+              "oracle_draws": 16,
+              "oracle_mean": 0.03590691240970045,
+              "oracle_std": 0.011337437883263461
+            },
+            "hq": {
+              "margin_oracle_std": 71.2476393450473,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 74.92955989889082,
+              "oracle_mean": 0.988494873046875,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.0018483342653254414,
+              "threshold": 0.85
+            },
+            "mass_tv": {
+              "margin_oracle_std": 16.02679115449684,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 42.84484814108016,
+              "oracle_mean": 0.008632200537249446,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.003299528545351649,
+              "threshold": 0.15
+            },
+            "mean_error": {
+              "oracle_draws": 16,
+              "oracle_mean": 0.02094255347037688,
+              "oracle_std": 0.00859417063572251
+            },
+            "min_mass_ratio": {
+              "margin_oracle_std": 22.26474802412341,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 36.83620122741052,
+              "oracle_mean": 0.9552471563220024,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.019145490925302433,
+              "threshold": 0.25
+            },
+            "sw1_normalized": {
+              "margin_oracle_std": 4.774265482214481,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 29.243864571557985,
+              "oracle_mean": 0.016603394324950917,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.005587380740162688,
+              "threshold": 0.18
+            }
+          },
+          "oracle_all_gates_pass_fraction": 1.0,
+          "oracle_seed_rule": "derived_seed('oracle-noise-floor-v1', 'vector', reference_seed, draw)",
+          "projection_seed": 992,
+          "reference_seed": 991,
+          "sample_count": 4096,
+          "sw1_projections": 32,
+          "unscored_gates": [],
+          "version": "oracle-noise-floor-v1"
+        },
+        "resolved_core_covariance_error": 0.2106670911113421,
+        "resolved_core_min_eigen_ratio": 0.6246329545974731,
+        "resolved_max_component_spill": 0.02576112374663353,
+        "sample_count": 4096,
+        "step": 1200,
+        "sw1_finite_n_bias": 0.016603394324950917,
+        "sw1_normalized": 0.15332436099625127,
+        "sw1_projections": 32,
+        "target_mass": [
+          0.550000011920929,
+          0.30000001192092896,
+          0.12999999523162842,
+          0.019999999552965164
+        ],
+        "target_scale": 1.7593294382095337
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "vector_unequal_mass"
+    },
+    {
+      "compatibility_key": "71065bdb733e10fcf7a5420eca4d7f12006f0f50a5944d00be4de51bad559222",
+      "cost": {
+        "adapter_loop_seconds": 38.98497404297814,
+        "adapter_seconds": 39.822527903015725,
+        "charged_task": "interp_saddle_barycentric",
+        "completed_steps": 800,
+        "device": "1",
+        "execution_seconds": 48.25657622306608,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 800,
+          "generator": 800,
+          "prior": 800
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 32.082633147249,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.30131779331713915
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.008462077821604908
+            },
+            "training_updates": {
+              "calls": 800,
+              "seconds": 31.772853276110254
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 41.90993048099335,
+        "wall_seconds": 48.25657622306608
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "barycenter_hq": 0.0,
+        "barycenter_novelty": 0.0,
+        "barycenter_surface_mae": 9.9,
+        "edge_midpoint_surface_mae": 9.9,
+        "endpoint_hq": 0.0,
+        "endpoint_surface_mae": 9.9,
+        "finite_fraction": 0.9999999403953552,
+        "output_knn_barycenter_mae": 9.9,
+        "step": 800,
+        "triangle_count": 73,
+        "xy_bins_covered": 0
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_saddle_barycentric thresholds: endpoint_surface_mae <= 0.08, barycenter_surface_mae <= 0.09, barycenter_hq >= 0.78, xy_bins_covered >= 12, finite_fraction == 1.0, barycenter_novelty >= 0.18",
+      "task_id": "interp_saddle_barycentric"
+    },
+    {
+      "compatibility_key": "4a8d3fad9fb5e0ee0fd8a8dffa5290c639fb3222ea21f3dada611415c11c1c95",
+      "cost": {
+        "adapter_loop_seconds": 51.79905220598448,
+        "adapter_seconds": 52.630734393023886,
+        "charged_task": "interp_img_patch_shift",
+        "completed_steps": 800,
+        "device": "0",
+        "execution_seconds": 60.80613819498103,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 800,
+          "generator": 800,
+          "prior": 800
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 46.51995947328396,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.6352405672660097
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.013302164734341204
+            },
+            "training_updates": {
+              "calls": 800,
+              "seconds": 45.87141674128361
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 54.680968625005335,
+        "wall_seconds": 60.80613819498103
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 2
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "all_pairs_interp_rmse": 0.09375142306089401,
+        "edge_count": 25,
+        "endpoint_hq": 1.0,
+        "endpoint_rmse": 0.03844111040234566,
+        "finite_fraction": 1.0,
+        "interp_hq": 1.0,
+        "interp_peak": 0.8430371284484863,
+        "interp_rmse": 0.039023272693157196,
+        "midpoint_novelty": 0.3856778900939593,
+        "output_knn_interp_peak": 0.8641955256462097,
+        "output_knn_interp_rmse": 0.03841259703040123,
+        "quadrant_coverage": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_img_patch_shift thresholds: finite_fraction == 1.0, endpoint_rmse <= 0.09, interp_rmse <= 0.1, interp_peak >= 0.78, quadrant_coverage == 4, midpoint_novelty >= 0.18",
+      "task_id": "interp_img_patch_shift"
+    },
+    {
+      "compatibility_key": "255c0d9f53e27e0787c7b48b7e3e37041cc3eee23ce61968164cd30c93a5230a",
+      "cost": {
+        "adapter_loop_seconds": 25.6225330340676,
+        "adapter_seconds": 26.381194937974215,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 600,
+        "device": "1",
+        "execution_seconds": 33.97769284702372,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 19.638338435208425,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.11833512410521507
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.006094873766414821
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 19.513908437336795
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 28.377563537913375,
+        "wall_seconds": 33.97769284702372
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "all_pairs_interp_hq": 0.21212121844291687,
+        "edge_count": 23,
+        "endpoint_arc_bins": 12,
+        "endpoint_hq": 1.0,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 31,
+        "interp_hq": 0.739130437374115,
+        "interp_mean_dist": 0.06997050344944,
+        "midpoint_novelty": 0.38770643144124717,
+        "output_knn_interp_hq": 0.6190476417541504,
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_sparse_arc thresholds: interp_hq >= 0.8",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}

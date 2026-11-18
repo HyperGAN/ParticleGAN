@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-raw-assignment-texture-parent",
+  "status": "ready",
+  "candidate": "rhbi-v12-feature-raw-self",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "hypothesis": "Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.",
+  "scope": {
+    "view": "rhbi-texture-feature-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-raw-assignment-texture-v1",
+    "budget_seconds": 900,
+    "candidate_budget_seconds": 300
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/raw-self/texture.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": ">=",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": "<",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "competing_explanation": "Selecting pairs in the critic representation is necessary even when generator attraction uses those features.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

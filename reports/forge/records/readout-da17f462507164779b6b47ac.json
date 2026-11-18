@@ -1,0 +1,213 @@
+{
+  "attempt_ids": [
+    "8768b423325144618e9844b8f19c486f"
+  ],
+  "candidate_id": "rhbi-v12-feature-raw-self",
+  "candidate_revision": "af882d55aaca49e277d79c6b26ee9fd48cefb8e88e963cc5d5ec6d942a515e3d",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Full features also passed at five checks and raw RHBI failed all five. Both controls reproduced all 24 earlier observations on the matched source.",
+  "conclusion": "PASS at five of five terminal texture observations. Final energy 0.6700, 241/256 clean textures, both orientations, mass TV 0.1250, phase diversity 0.8049.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "8768b423325144618e9844b8f19c486f"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "b7099706f11bfef0f786642cdce93178ed7da046233a12a5766743a76ac065e0",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.94140625
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.94140625
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "8768b423325144618e9844b8f19c486f",
+          "producer_request_id": "e54c058275d67ed4a232f753",
+          "producer_study_id": "rhbi-raw-self-texture-candidate",
+          "result_hash": "e6f9c56a254e6dd6094b3fbffab73adc025ee03ebe83d584810ad0eb92b944a9",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "7f5ee95eea4aa08f7b85edb3973b76d7252fcca9104e8d02ad386b568859f248",
+        "contract_sha256": "b7099706f11bfef0f786642cdce93178ed7da046233a12a5766743a76ac065e0",
+        "control_binding_sha256": "3ee29497b5166acdfeca6ac8cd17c0d3a5b255aac6c4a363b8b97e08b35ac17d",
+        "policy_fingerprint": "65ec20e2b6cba90e72578fed492d296cb1a4a130112ca693c31b952c17ab93af",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "ddf74b25690cc2ab9f4b0cc652f1b3100cb9fedf902b0a830e2a830c30969386"
+      },
+      "study_id": "rhbi-raw-self-texture-candidate",
+      "study_sha256": "ddf74b25690cc2ab9f4b0cc652f1b3100cb9fedf902b0a830e2a830c30969386"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-texture-feature-v1",
+  "hypothesis": "Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Proceed to the frozen three-arm sparse-arc test.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "8768b423325144618e9844b8f19c486f",
+        "result_hash": "e6f9c56a254e6dd6094b3fbffab73adc025ee03ebe83d584810ad0eb92b944a9",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-da17f462507164779b6b47ac",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/8768b423325144618e9844b8f19c486f/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 900,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-raw-self-texture-v1"
+    },
+    "candidate": "rhbi-v12-feature-raw-self",
+    "competing_explanation": "Feature self-repulsion is required for sustained energy, both classes, their mass and phase diversity.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-transport",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "clean_texture_fraction",
+      "op": "<",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "hypothesis": "Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.",
+    "id": "rhbi-raw-self-texture-candidate",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "clean_texture_fraction",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "img_conv_texture32",
+      "threshold": 0.75
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false
+        },
+        "path": "reports/forge/rhbi-texture-feature/assignment/results.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-texture-feature-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-raw-self-texture-candidate",
+  "study_sha256": "ddf74b25690cc2ab9f4b0cc652f1b3100cb9fedf902b0a830e2a830c30969386",
+  "task_results": [
+    {
+      "compatibility_key": "c473e5ef90e48626b2e5ebfa609d4943dbf8af7485b18e93b42f3d5dd9fb2038",
+      "cost": {
+        "adapter_loop_seconds": 35.69021681195591,
+        "adapter_seconds": 37.238591860979795,
+        "charged_task": "img_conv_texture32",
+        "completed_steps": 288,
+        "device": "0",
+        "execution_seconds": 47.74368287308607,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 288,
+          "generator": 288,
+          "prior": 288
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 28.640914475661702,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.7834985301597044
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.030382119119167328
+            },
+            "training_updates": {
+              "calls": 288,
+              "seconds": 27.82703382638283
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 39.87102828209754,
+        "wall_seconds": 47.74368287308607
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "band_purity_mean": 0.615776162349621,
+        "clean_texture_fraction": 0.94140625,
+        "dc_mean_err": 0.060460311470337876,
+        "finite_fraction": 1.0,
+        "hf_band_ratio": 0.6700316364224655,
+        "mass_tv": 0.125,
+        "orientations": 2,
+        "pairwise_phase_diversity": 0.8048605153527577,
+        "sample_count": 256,
+        "step": 288
+      },
+      "raw_status": "completed",
+      "reason": "recomputed img_conv_texture32 gates (5/5 terminal checks passed)",
+      "task_id": "img_conv_texture32"
+    }
+  ]
+}

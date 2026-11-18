@@ -1,0 +1,31 @@
+{
+  "assignments": [
+    {
+      "task": "vector_unequal_mass",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 1
+    },
+    {
+      "task": "interp_sparse_arc",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 2
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Two selected diagnostic tasks with no independent holdout.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi_retention_trajectory",
+  "id": "rhbi-retention-trajectory-v1",
+  "policy_change_reason": "Paired seed-0 training paths with passive per-update marginal cross-plan capture and retained public states.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

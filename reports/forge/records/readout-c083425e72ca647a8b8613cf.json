@@ -1,0 +1,214 @@
+{
+  "attempt_ids": [
+    "46bc6a6ec71141e095e26fa1aaa8cf14"
+  ],
+  "candidate_id": "rhbi-v12-feature-raw-self",
+  "candidate_revision": "9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The parent and raw-assignment candidate ended with the same 23 particle-row edges. At their own endpoints the parent passed 51/69 interiors and the candidate 56/69.",
+  "conclusion": "FAIL. Only chord-interior quality missed its bound; all five terminal checks failed. All 24 observations reproduced the previous source exactly.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "46bc6a6ec71141e095e26fa1aaa8cf14"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "49d4fe73ba513ec0088fb1c213bded03503914a6350c5d2345b73ef1c88571bd",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.739130437374115
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.739130437374115
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "46bc6a6ec71141e095e26fa1aaa8cf14",
+          "producer_request_id": "cf6e49ea5d4cea040b23918b",
+          "producer_study_id": "rhbi-raw-assignment-arc-parent",
+          "result_hash": "f36cdeaa17cc141b89c0a0528c0a34cdbf1503512d973d4467ce014ed96c695f",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "ce81dde7e317b9151d7fba625017e1d85fd1a8ab1c4d01106bcd8aa01530c141",
+        "contract_sha256": "49d4fe73ba513ec0088fb1c213bded03503914a6350c5d2345b73ef1c88571bd",
+        "control_binding_sha256": "63f81b6c09aa8444d284382e540664d82b9f562ba8f29456d3890f77fe6e82be",
+        "policy_fingerprint": "5304cc17355e93d6652dee13712a6b4d9409336de605f71d0b18c1d21e9f3230",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "d8f828f00b4872e9c3d99ce506fe7e59cbfa5f8e9857dc683ceadd7e8313a461"
+      },
+      "study_id": "rhbi-raw-assignment-arc-parent",
+      "study_sha256": "d8f828f00b4872e9c3d99ce506fe7e59cbfa5f8e9857dc683ceadd7e8313a461"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-retention-trajectory-arc-v1",
+  "hypothesis": "With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Keep as the matched feature-assignment control and retain the original arc failure.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "46bc6a6ec71141e095e26fa1aaa8cf14",
+        "result_hash": "f36cdeaa17cc141b89c0a0528c0a34cdbf1503512d973d4467ce014ed96c695f",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-c083425e72ca647a8b8613cf",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/46bc6a6ec71141e095e26fa1aaa8cf14/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 900,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-raw-assignment-arc-v1"
+    },
+    "candidate": "rhbi-v12-feature-raw-self",
+    "competing_explanation": "Feature-based cross-attraction itself impairs arc interiors under this recipe.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "hypothesis": "With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.",
+    "id": "rhbi-raw-assignment-arc-parent",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false
+        },
+        "path": "reports/forge/rhbi-texture-feature/raw-self/arc.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-retention-trajectory-arc-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-raw-assignment-arc-parent",
+  "study_sha256": "d8f828f00b4872e9c3d99ce506fe7e59cbfa5f8e9857dc683ceadd7e8313a461",
+  "task_results": [
+    {
+      "compatibility_key": "07df86f142bbeb5c20282b535a632fe4152c900fa173fba082104a69936b0e15",
+      "cost": {
+        "adapter_loop_seconds": 28.299039856996387,
+        "adapter_seconds": 29.122302638948895,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 600,
+        "device": "1",
+        "execution_seconds": 36.91786007792689,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 22.046351180877537,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.12357474432792515
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.0069679917069152
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 21.915808444842696
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 31.295865081017837,
+        "wall_seconds": 36.91786007792689
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "all_pairs_interp_hq": 0.21212121844291687,
+        "edge_count": 23,
+        "endpoint_arc_bins": 12,
+        "endpoint_hq": 1.0,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 31,
+        "interp_hq": 0.739130437374115,
+        "interp_mean_dist": 0.06997050344944,
+        "midpoint_novelty": 0.38770643144124717,
+        "output_knn_interp_hq": 0.6190476417541504,
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_sparse_arc thresholds: interp_hq >= 0.8",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}

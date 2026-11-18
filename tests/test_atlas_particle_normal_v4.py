@@ -225,7 +225,9 @@ def test_atlas_particle_normal_v4_readout_recovers_mode_hold_with_zero_regressio
     from reports.forge import regenerate_technique_inventory as rti
     display = rti._formulaic_display_payload(inventory, ROOT)
     assert display is not None
-    expected = "[18/27]" if display["scope"] == "recorded_source_formulaic_display" else "[27/27]"
+    # The new required texture task has no measurement on this frozen Atlas cohort.
+    passes = 18 if display["scope"] == "recorded_source_formulaic_display" else 27
+    expected = f"[{passes}/28 (1 not run)]"
     assert expected in atlas_top_line
     assert "invalid" not in atlas_top_line.lower()
 
