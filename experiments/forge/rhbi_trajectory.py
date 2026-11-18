@@ -32,6 +32,12 @@ def capture_steps(budget):
 def attach(trainer, context, task, output):
     request = _request.get() or {}
     view = request.get("view")
+    if isinstance(view, dict) and view.get("id") == "rhbi-raw-assignment-retention-v1":
+        if (task["id"] not in {"vector_unequal_mass", "interp_img_patch_shift", "interp_saddle_barycentric"}
+                or request["candidate"]["id"] not in {"rhbi-v12", "rhbi-v12-feature-raw-self", "rhbi-v12-raw-assignment"}
+                or view.get("evidence_scope") != "research_diagnostic"):
+            raise ValueError("Unexpected task or arm for the terminal RHBI archive")
+        return TerminalArchive(trainer, context, task, Path(output) / "rhbi-terminal")
     if not isinstance(view, dict) or view.get("id") not in {VIEW, ARC_VIEW}:
         return None
     candidates = {"rhbi-v12", "rhbi-v12-feature-transport"}
@@ -128,4 +134,37 @@ class TrajectoryArchive:
             raise ValueError("Incomplete RHBI trajectory")
         return {"schema_version": 1, "directory": self.directory.name, "state_steps": sorted(self.milestones),
                 "plan_updates": self.steps, "real_batch_sequence_sha256": self.batches.hexdigest(),
+                "artifacts": manifest_artifacts(self.directory), "prerequisite_eligible": False}
+
+
+class TerminalArchive:
+    """Save the pre-evaluation training states and hash real inputs without additional draws."""
+
+    def __init__(self, trainer, context, task, directory):
+        from .adapters import _checkpoints
+
+        self.trainer, self.context = trainer, context
+        self.directory = directory
+        self.directory.mkdir()
+        self.budget = task["execution"]["steps"]
+        self.milestones = {0, *_checkpoints(task)[-5:]}
+        self.batches = hashlib.sha256()
+        self.save_state(0)
+
+    def save_state(self, step):
+        torch.save(self.context.state_dict(), self.directory / f"state-{step:04d}.pt")
+
+    def step(self, real):
+        result = self.trainer.step(real, collect_stats=True)
+        self.batches.update(real.detach().cpu().contiguous().numpy().tobytes())
+        step = self.trainer.completed_steps
+        if step in self.milestones:
+            self.save_state(step)
+        return result
+
+    def receipt(self):
+        if self.trainer.completed_steps != self.budget:
+            raise ValueError("Incomplete terminal RHBI archive")
+        return {"directory": self.directory.name, "state_steps": sorted(self.milestones),
+                "real_batch_sequence_sha256": self.batches.hexdigest(),
                 "artifacts": manifest_artifacts(self.directory), "prerequisite_eligible": False}
