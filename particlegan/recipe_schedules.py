@@ -152,6 +152,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified":
+            from .unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
+            optimizer.record = _UnifiedObserverStepRecord()
+            _attach_unified_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
             from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
