@@ -100,6 +100,10 @@ def _archived_inactive_comparison_scope(module, directory):
         "t1c_multiscale_horizon": False,
         "t1c_grad_deconflict": 0.0,
         "t1c_cond_drift_deconflict": False,
+        "rgdt_conformal_horizon": True,
+        "rgdt_macro_slack_weight": 0.0,
+        "rgdt_fiber_residual_weight": 0.0,
+        "rgdt_manifold_chart_weight": 0.0,
     }
     tail = '    "training_precision": "float32",\n}\n'
     assert adapted.decode().count(tail) == 1

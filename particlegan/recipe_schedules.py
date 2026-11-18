@@ -156,6 +156,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
             _attach_t1_coupling_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from .t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
+            optimizer.record = _RGDTObserverStepRecord()
+            _attach_rgdt_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

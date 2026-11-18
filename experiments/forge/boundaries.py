@@ -37,6 +37,7 @@ TUNABLE_FIELDS = frozenset({
     "rhbi_cond_step_damp",
     "t1_pullback_weight", "t1_iso_weight", "t1_laguerre_lr", "t1_prior_row_lr",
     "t1c_weight", "t1c_chart_weight", "t1c_halo_mult", "t1c_grad_deconflict",
+    "rgdt_macro_slack_weight", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight",
     "lr_anneal_start", "lr_floor", "network_lr_floor", "beta2_end", "beta2_anneal_end",
 })
 TASK_RECIPE_FIELDS = RESOURCE_FIELDS | {"prior_kind", "sigma_rel", "standardize"}
@@ -57,6 +58,7 @@ TECHNIQUE_RECIPE_FIELDS = frozenset({
     "critic_step_mode", "bispf_shape_gates", "bispf_gate_overrides", "prior_code_law", "generator_gradient_response",
     "rhbi_self_coupling", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre", "rhbi_akt_horizon", "rhbi_akt_mode", "rhbi_settle_mode", "rhbi_cond_ot_mode", "rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle", "rhbi_ae_coord_whiten", "rhbi_support_completion",
     "t1c_multiscale_horizon", "t1c_cond_drift_deconflict",
+    "rgdt_conformal_horizon",
 })
 HYPERPARAMETER_RECIPE_FIELDS = TUNABLE_FIELDS | {
     "conditional_energy_weight", "conditional_energy_samples",

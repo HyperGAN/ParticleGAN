@@ -1875,6 +1875,46 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1"></a>
+
+## t3-shift-recovery-diagnostic-v1
+
+**t3-shift-recovery-diagnostic-v1 — revision 1**. [View declaration](../../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [ae_gan_hold](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-ae_gan_hold) | diagnostic | PASS | changed since run |
+| [mode_hold](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-mode_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [target_shift_recovery](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_smoke](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
+| [zero_tanh_rail_escape](atlas.md#cohort-cuda-bc3debd3fa5e-experiment-zero_tanh_rail_escape) | diagnostic | BLOCKED | matches recorded run |
+
+<a name="cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-bc3debd3fa5e-tier1_policy_coverage"></a>
 
 ## tier1_policy_coverage
@@ -1974,7 +2014,7 @@ Run attempt: **PASS** (retained_selected_row; qualification unchanged). Matched 
 
 Actual task device: `cuda:0` (recorded execution receipt).
 
-Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-1).
+Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -4409,7 +4449,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Run attempt: **PASS** (new_attempt; qualification unchanged). recomputed complete live curve and terminal suffix [Attempt evidence](../attempt-coverage.json).
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-bc3debd3fa5e-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -6312,7 +6352,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Run attempt: **FAIL** (new_attempt; qualification unchanged). recomputed live recovery and matched frozen negative control [Attempt evidence](../attempt-coverage.json).
 
-Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1).
+Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -7475,7 +7515,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Run attempt: **FAIL** (new_attempt; qualification unchanged). Failed rail-escape bounds: mean_abs_error <= 0.005. [Attempt evidence](../attempt-coverage.json).
 
-Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.1); public_prior_without_output_noise; weights unavailable; output noise clean.
 
@@ -7508,7 +7548,7 @@ Run attempt: **PASS** (retained_selected_row; qualification unchanged). Matched 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-bc3debd3fa5e-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -9265,6 +9305,46 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1"></a>
+
+## t3-shift-recovery-diagnostic-v1
+
+**t3-shift-recovery-diagnostic-v1 — revision 1**. [View declaration](../../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [ae_gan_hold](atlas.md#cohort-cuda-c195899a64af-experiment-ae_gan_hold) | diagnostic | BLOCKED | changed since run |
+| [mode_hold](atlas.md#cohort-cuda-c195899a64af-experiment-mode_hold) | diagnostic | BLOCKED | changed since run |
+| [target_shift_recovery](atlas.md#cohort-cuda-c195899a64af-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_smoke](atlas.md#cohort-cuda-c195899a64af-experiment-zero_tanh_smoke) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_rail_escape](atlas.md#cohort-cuda-c195899a64af-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-c195899a64af-tier1_policy_coverage"></a>
 
 ## tier1_policy_coverage
@@ -9362,7 +9442,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-1).
+Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -11697,7 +11777,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -13375,7 +13455,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-c195899a64af-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -14512,7 +14592,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -14541,7 +14621,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -16285,6 +16365,46 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1"></a>
+
+## t3-shift-recovery-diagnostic-v1
+
+**t3-shift-recovery-diagnostic-v1 — revision 1**. [View declaration](../../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [ae_gan_hold](atlas.md#cohort-cuda-0d83d78027c5-experiment-ae_gan_hold) | diagnostic | BLOCKED | changed since run |
+| [mode_hold](atlas.md#cohort-cuda-0d83d78027c5-experiment-mode_hold) | diagnostic | BLOCKED | changed since run |
+| [target_shift_recovery](atlas.md#cohort-cuda-0d83d78027c5-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_smoke](atlas.md#cohort-cuda-0d83d78027c5-experiment-zero_tanh_smoke) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_rail_escape](atlas.md#cohort-cuda-0d83d78027c5-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-0d83d78027c5-tier1_policy_coverage"></a>
 
 ## tier1_policy_coverage
@@ -16382,7 +16502,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-1).
+Used by: [adaptation / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -18758,7 +18878,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **incompatible; skipped**.
 
-Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](atlas.md#cohort-cuda-0d83d78027c5-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -20455,7 +20575,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1).
+Used by: [adaptation / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-adaptation-tier-3) · [clockfree_continuous / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -21609,7 +21729,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -21638,7 +21758,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](atlas.md#cohort-cuda-0d83d78027c5-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 

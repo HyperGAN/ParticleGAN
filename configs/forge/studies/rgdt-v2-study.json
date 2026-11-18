@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "rgdt-v2-study"
+  },
+  "candidate": "rgdt-v2",
+  "competing_explanation": "If vector_unequal_width spill, img_bars4 3/4 mode stall, and model_ddgan_gaussian_chain tail mean error in rgdt-v1 arise from intrinsic neural generator conditioning rather than Voronoi softmax bleed, microscopic/macroscopic anchor tug-of-war, critic step damping, and missing finite-batch thermal cooling deadband, then rgdt-v2 will either regress ring16_acquisition (component_covariance_error > 0.85) or leave vector_unequal_width failing component_covariance_error > 0.85.",
+  "control": {
+    "candidate_id": "rgdt-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Adding row-local Euclidean Voronoi bandwidth in conformal_horizon_pair, surplus-partitioned explorer release in bipartite_deficit_macro_loss, finite-batch thermal cooling deadband with LOO cov90, and non-critic DualNorm step scaling converts vector_unequal_width, vector_unequal_mass, img_bars4, model_ddgan_gaussian_chain, precision_gaussian_fp32, and gaussian1d_stability to PASS while retaining all Tier 1 gates under one global clock-free recipe on protocol seed 0.",
+  "id": "rgdt-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v1",
+        "candidate_revision": "aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17"
+      },
+      "path": "reports/forge/records/readout-42d9413e214894f66d707f4c.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
