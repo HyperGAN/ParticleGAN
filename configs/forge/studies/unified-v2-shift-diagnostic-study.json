@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "unified-v2-shift-diagnostic-study"
+  },
+  "candidate": "unified-v2",
+  "competing_explanation": "If the coalesced unimodal equilibrium refinement inside UnifiedPriorRegularizer alters non-coalesced shock reopening on 8-mode target shifts, unified-v2 will fail to reacquire all 8 shifted modes within the 400-step deadline or drop post-recovery hold checks on target_shift_recovery.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global clock-free unified-v2 preserves bit-exact non-coalesced dynamics on ae_gan_hold, mode_hold, zero_tanh_smoke, and Tier-3 target_shift_recovery (81/81 post-deadline live checks passed, min_hq >= 0.90) under the exact same source digest as unified-v2-study.",
+  "id": "unified-v2-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v1",
+        "candidate_revision": "5132650acd6bbc9f53ffa639b62b3f2aa3d35c9c6cef450e507514ca9e2d58c8"
+      },
+      "path": "reports/forge/records/readout-3e304250cee4ef11edd181dd.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

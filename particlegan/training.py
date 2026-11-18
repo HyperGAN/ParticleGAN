@@ -389,7 +389,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "unified") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -414,6 +414,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "t2_secant":
             from .t2_critic import bind_t2_record
             bind_t2_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "unified":
+            from .unified import bind_unified_record
+            bind_unified_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
@@ -644,7 +647,26 @@ class GANTrainer:
         try:
             self.D.requires_grad_(False)
             latent, indices = self._sample_training_prior(len(real))
-            if (
+            use_unified_pb = False
+            if recipe.prior_regularizer == "unified" and recipe.t1_pullback_weight > 0.0:
+                from ._unified import should_use_unified_pullback
+                use_unified_pb = should_use_unified_pullback(self, real, latent, indices)
+            if use_unified_pb:
+                from ._unified import unified_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
+            elif (
                 recipe.prior_regularizer == "t4_arch"
                 and recipe.t1_pullback_weight > 0.0
                 and recipe.encoder_mode == "none"
@@ -682,10 +704,16 @@ class GANTrainer:
                 fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
+                highres_unified_skip = (
+                    recipe.effective_critic_formulation == "unified"
+                    and real.ndim >= 4
+                    and real[0].numel() > 1024
+                )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                     simplicial_active = (
-                        recipe.rhbi_simplex_weight > 0.0
+                        not highres_unified_skip
+                        and recipe.rhbi_simplex_weight > 0.0
                         and recipe.rhbi_simplex_chart_weight > 0.0
                         and recipe.rhbi_simplex_macro_settle
                         and self.prior_noise_generator is None
@@ -746,7 +774,8 @@ class GANTrainer:
                     loss_g = loss_g + transport_local
                 simplex_loss = None
                 if (
-                    recipe.rhbi_simplex_weight > 0.0
+                    not highres_unified_skip
+                    and recipe.rhbi_simplex_weight > 0.0
                     and self.prior_noise_generator is None
                     and self.prior.z.requires_grad
                     and len(self.prior.z) >= 2

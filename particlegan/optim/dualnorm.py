@@ -732,11 +732,17 @@ class NormalizedOptimizer(Optimizer):
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
-        rgdt_step_scale = (
-            float(getattr(getattr(self, "_rgdt_record", None), "_step_scale", 1.0))
-            if getattr(self, "critic", None) is None
-            else 1.0
-        )
+        unified_rec = getattr(self, "_unified_record", None)
+        if unified_rec is not None:
+            # Symmetric G + D conditional equilibrium damping for unified (prevents critic overdrive on t1_q0):
+            rgdt_step_scale = float(getattr(unified_rec, "_step_scale", 1.0))
+        else:
+            rgdt_rec = getattr(self, "_rgdt_record", None)
+            rgdt_step_scale = (
+                float(getattr(rgdt_rec, "_step_scale", 1.0))
+                if getattr(self, "critic", None) is None
+                else 1.0
+            )
         rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
         active_rec = getattr(self, "_t1c_record", None) or getattr(self, "_rhbi_record", None)
         if rhbi_damp > 0.0:
@@ -747,7 +753,12 @@ class NormalizedOptimizer(Optimizer):
         else:
             rhbi_step_scale = 1.0
         rhbi_cond_damp = float(getattr(self, "_rhbi_cond_step_damp", 0.0))
-        if rhbi_cond_damp > 0.0 and getattr(self, "critic", None) is None and active_rec is not None:
+        if (
+            rhbi_cond_damp > 0.0
+            and unified_rec is None
+            and getattr(self, "critic", None) is None
+            and active_rec is not None
+        ):
             cond_init = bool(
                 getattr(active_rec, "t1c_cond_initialized", False)
                 or getattr(active_rec, "rhbi_cond_initialized", False)
@@ -1235,6 +1246,13 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _RHBIObserverStepRecord()
             optimizer._rhbi_record = optimizer.record
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified":
+            from ..unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
+            optimizer.record = _UnifiedObserverStepRecord()
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            _attach_unified_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
             from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
