@@ -1241,6 +1241,11 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _RGDTObserverStepRecord()
             optimizer._rgdt_record = optimizer.record
             _attach_rgdt_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t4_nash":
+            from ..t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
+            optimizer.record = _T4NashObserverStepRecord()
+            optimizer._t4_record = optimizer.record
+            _attach_t4_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
     return optimizer

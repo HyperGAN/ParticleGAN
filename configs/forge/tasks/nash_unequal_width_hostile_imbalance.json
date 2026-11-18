@@ -1,0 +1,208 @@
+{
+  "schema_version": 1,
+  "id": "nash_unequal_width_hostile_imbalance",
+  "description": "Recover all 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and component-specific core covariances under 16x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and hostile non-complementary initialization at (-4.0, +4.0).",
+  "adapter": "imbalance_nash",
+  "retained_question_ids": [
+    "stretch-nash-unequal-width-hostile-imbalance"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/studies/t4-imbalance-nash.md",
+    "api_publication": "reports/toy_audit/api_contract/imbalance_nash/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "nash_unequal_width_hostile_imbalance",
+    "steps": 1100,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-nash-unequal-width-hostile-imbalance",
+      "kind": "nash_unequal_width_hostile_imbalance",
+      "target": "4-mode unequal-width Gaussian mixture (sigma in {0.07, 0.12, 0.20, 0.30}) under 16x overpowered tilted critic vs compressed off-manifold generator",
+      "target_spec": {
+        "kind": "gaussian_mixture",
+        "identifiable": true,
+        "particles": 256,
+        "steps": 1100,
+        "means": [
+          [
+            -1.5,
+            -1.5
+          ],
+          [
+            -1.5,
+            1.5
+          ],
+          [
+            1.5,
+            -1.5
+          ],
+          [
+            1.5,
+            1.5
+          ]
+        ],
+        "covariances": [
+          [
+            [
+              0.0049,
+              0.0
+            ],
+            [
+              0.0,
+              0.0049
+            ]
+          ],
+          [
+            [
+              0.0144,
+              0.0
+            ],
+            [
+              0.0,
+              0.0144
+            ]
+          ],
+          [
+            [
+              0.04,
+              0.0
+            ],
+            [
+              0.0,
+              0.04
+            ]
+          ],
+          [
+            [
+              0.09,
+              0.0
+            ],
+            [
+              0.0,
+              0.09
+            ]
+          ]
+        ],
+        "masses": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "thresholds": []
+      },
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 4,
+        "batch_size": 128
+      },
+      "generator": {
+        "family": "hostile_imbalanced_mlp",
+        "hidden": 32,
+        "layers": 2,
+        "out_dim": 2,
+        "output_scale": 0.08,
+        "output_offset": [
+          -4.0,
+          4.0
+        ]
+      },
+      "discriminator": {
+        "family": "hostile_imbalanced_mlp",
+        "hidden": 512,
+        "layers": 4,
+        "in_dim": 2,
+        "fourier": 3,
+        "logit_gain": 3.5,
+        "hostile_tilt": [
+          -3.5,
+          3.5
+        ]
+      },
+      "steps": 1100
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "nash_unequal_width_hostile_imbalance",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "min_mass_ratio",
+        ">=",
+        0.6
+      ],
+      [
+        "hq",
+        ">=",
+        0.82
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.18
+      ],
+      [
+        "sw1_normalized",
+        "<=",
+        0.16
+      ],
+      [
+        "resolved_core_covariance_error",
+        "<=",
+        0.65
+      ],
+      [
+        "resolved_core_min_eigen_ratio",
+        ">=",
+        0.15
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_imbalance_nash.py": "abe992f1f04c3b0cba760395fabe3f8d61eb74d9d276274e965a8434eac14fb8",
+      "experiments/forge/imbalance_nash.py": "cd9835255d0320847d267bcc15a6dd392b6e716cd92a301de526c9c0988db2c3"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

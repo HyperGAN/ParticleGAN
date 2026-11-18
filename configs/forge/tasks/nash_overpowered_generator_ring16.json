@@ -1,0 +1,388 @@
+{
+  "schema_version": 1,
+  "id": "nash_overpowered_generator_ring16",
+  "description": "Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under severe generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-1 critic; >600x reverse parameter ratio) and hostile non-complementary initialization (generator shifted to (+4.5, -4.5) against a tilted (-3.5, +3.5) critic).",
+  "adapter": "imbalance_nash",
+  "retained_question_ids": [
+    "stretch-nash-overpowered-generator-ring16"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/studies/t4-imbalance-nash.md",
+    "api_publication": "reports/toy_audit/api_contract/imbalance_nash/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "nash_overpowered_generator_ring16",
+    "steps": 1600,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.1,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-nash-overpowered-generator-ring16",
+      "kind": "nash_overpowered_generator_ring16",
+      "target": "16-mode equal-mass isotropic Gaussian ring (R=3.0, sigma=0.10) under 16x overpowered amplified off-manifold generator vs tiny underpowered tilted critic",
+      "target_spec": {
+        "kind": "gaussian_mixture",
+        "identifiable": true,
+        "particles": 256,
+        "steps": 1600,
+        "means": [
+          [
+            3.0,
+            0.0
+          ],
+          [
+            2.7716385975,
+            1.1480502971
+          ],
+          [
+            2.1213203436,
+            2.1213203436
+          ],
+          [
+            1.1480502971,
+            2.7716385975
+          ],
+          [
+            0.0,
+            3.0
+          ],
+          [
+            -1.1480502971,
+            2.7716385975
+          ],
+          [
+            -2.1213203436,
+            2.1213203436
+          ],
+          [
+            -2.7716385975,
+            1.1480502971
+          ],
+          [
+            -3.0,
+            0.0
+          ],
+          [
+            -2.7716385975,
+            -1.1480502971
+          ],
+          [
+            -2.1213203436,
+            -2.1213203436
+          ],
+          [
+            -1.1480502971,
+            -2.7716385975
+          ],
+          [
+            -0.0,
+            -3.0
+          ],
+          [
+            1.1480502971,
+            -2.7716385975
+          ],
+          [
+            2.1213203436,
+            -2.1213203436
+          ],
+          [
+            2.7716385975,
+            -1.1480502971
+          ]
+        ],
+        "covariances": [
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ],
+          [
+            [
+              0.01,
+              0.0
+            ],
+            [
+              0.0,
+              0.01
+            ]
+          ]
+        ],
+        "masses": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "thresholds": []
+      },
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 4,
+        "batch_size": 128
+      },
+      "generator": {
+        "family": "hostile_imbalanced_mlp",
+        "hidden": 512,
+        "layers": 4,
+        "out_dim": 2,
+        "output_scale": 2.2,
+        "output_offset": [
+          4.5,
+          -4.5
+        ]
+      },
+      "discriminator": {
+        "family": "hostile_imbalanced_mlp",
+        "hidden": 32,
+        "layers": 2,
+        "in_dim": 2,
+        "fourier": 2,
+        "logit_gain": 0.25,
+        "hostile_tilt": [
+          -3.5,
+          3.5
+        ]
+      },
+      "steps": 1600
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "nash_overpowered_generator_ring16",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "modes",
+        "==",
+        16
+      ],
+      [
+        "hq",
+        ">=",
+        0.72
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.18
+      ],
+      [
+        "sw1_normalized",
+        "<=",
+        0.12
+      ],
+      [
+        "component_core_covariance_error",
+        "<=",
+        1.28
+      ],
+      [
+        "component_core_min_eigen_ratio",
+        ">=",
+        0.15
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_imbalance_nash.py": "abe992f1f04c3b0cba760395fabe3f8d61eb74d9d276274e965a8434eac14fb8",
+      "experiments/forge/imbalance_nash.py": "cd9835255d0320847d267bcc15a6dd392b6e716cd92a301de526c9c0988db2c3"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}
