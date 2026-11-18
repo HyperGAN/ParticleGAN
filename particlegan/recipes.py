@@ -43,6 +43,11 @@ try:
         rhbi_cond_step_damp=0.0,
         rhbi_ae_coord_whiten=False,
         rhbi_support_completion=False,
+        t1_pullback_weight=0.0,
+        t1_iso_weight=0.60,
+        t1_laguerre_lr=0.015,
+        t1_prior_row_lr=0.06,
+        t1_max_prototypes=256,
     )
 except (ImportError, ValueError):
     pass
@@ -364,6 +369,12 @@ class Recipe:
     rhbi_cond_step_damp: float = 0.0
     rhbi_ae_coord_whiten: bool = False
     rhbi_support_completion: bool = False
+    # Theory 1A Gersho-Laguerre pullback prior topology & chart dynamics.
+    t1_pullback_weight: float = 0.0
+    t1_iso_weight: float = 0.60
+    t1_laguerre_lr: float = 0.015
+    t1_prior_row_lr: float = 0.06
+    t1_max_prototypes: int = 256
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -427,8 +438,21 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp or empf")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf or t1_pullback")
+        for t1_name, t1_pos in (
+            ("t1_pullback_weight", False),
+            ("t1_iso_weight", False),
+            ("t1_laguerre_lr", True),
+            ("t1_prior_row_lr", False),
+        ):
+            t1_val = getattr(self, t1_name)
+            if type(t1_val) not in (int, float) or not math.isfinite(t1_val) or (
+                t1_val <= 0 if t1_pos else t1_val < 0
+            ):
+                raise ValueError(f"{t1_name} must be finite and {'positive' if t1_pos else 'nonnegative'}")
+        if type(self.t1_max_prototypes) is not int or self.t1_max_prototypes < 2:
+            raise ValueError("t1_max_prototypes must be an integer >= 2")
         for key, minimum in (("prior_sigreg_projections", 1), ("prior_sigreg_knots", 2)):
             if type(getattr(self, key)) is not int or getattr(self, key) < minimum:
                 raise ValueError(f"{key} must be an integer >= {minimum}")
@@ -1418,6 +1442,18 @@ class Recipe:
             if self.prior_update == "frozen":
                 options["weight"] = 0.
             return EMPFPriorRegularizer(reference, **options)
+        if self.prior_regularizer == "t1_pullback":
+            from ._t1_prior import T1PullbackPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "eps": self.prior_reg_eps, "max_prototypes": self.t1_max_prototypes, **overrides}
+            if prior is not None and hasattr(prior, "_empf_record"):
+                options.setdefault("empf_record", prior._empf_record)
+            if prior is not None and hasattr(prior, "z"):
+                options.setdefault("bound_device", prior.z.device)
+                options.setdefault("bound_shape", tuple(prior.z.shape))
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            return T1PullbackPriorRegularizer(reference, **options)
         if self.prior_regularizer == "coulomb":
             from .coulomb_prior import CoulombPriorRegularizer, coulomb_reference
             options = {"weight": self.prior_reg, "softening": self.prior_coulomb_softening,
@@ -1482,6 +1518,11 @@ class Recipe:
             state = regularizer.state_dict()
             if state:
                 return {"prior_regularizer": state}
+        if (self.prior_regularizer == "t1_pullback"
+                and self.t1_pullback_weight > 0 and regularizer is not None):
+            state = regularizer.state_dict()
+            if state:
+                return {"prior_regularizer": state}
         return {}
 
     def restore_prior_regularizer(self, regularizer, state, *, validate_only=False):
@@ -1531,7 +1572,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -1826,6 +1867,15 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "prior_regularizer": "empf", "prior_reg": 0.01, "lr_schedule": "cosine",
         "optimizer_svd_backend": "batched", "training_precision": "bf16_channels_last",
         "routing_temperature": 0.25, "ucd_weight": 0.02,
+    }
+    presets["t1_prior"] = {
+        **presets["empf"],
+        "prior_regularizer": "t1_pullback",
+        "t1_pullback_weight": 1.5,
+        "t1_iso_weight": 0.62,
+        "t1_laguerre_lr": 0.015,
+        "t1_prior_row_lr": 0.06,
+        "t1_max_prototypes": 256,
     }
     presets["t2_secant"] = {
         **presets["empf"], "critic_formulation": "t2_secant",

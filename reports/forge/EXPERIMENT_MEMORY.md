@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1032. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1036. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4760,6 +4760,22 @@ Native BISPF on the two explicitly wider architecture-portability hosts passes s
 
 [Record and receipt provenance](records/readout-3721266a32807c156725dfc8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t1-prior-v2 · readout-379720b9859815defff0efaa
+
+**Scope:** current; scientific; revision `bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0`.
+
+Fixing the K=B zero-self-distance initialization degeneracy via K=min(max_prototypes, max(4, 3*B//4)) + hollow 1-NN cell variance initialization, adding exact orthogonal pushforward covariance isotropy on (dim=1, z_dim=2) and Radon-Hurwitz 4-probe 2D isotropy on (dim=2, z_dim=4), gating uncovered-mode teleportation by local cell variance, and stabilizing Kantorovich-Laguerre potentials with zero-leak Proportional-Integral viscous damping and G/prior co-settling unlocks all 11/11 Tier 1 required gates (converting ring16_acquisition with component_min_eigen_ratio >= 0.15) plus Tier 2-3 bottleneck tasks (grid100, rotated100, staggered100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap) under one global clock-free recipe on protocol seed 0.
+
+**Observed:** {'FAIL': 12, 'INCOMPLETE': 1, 'PASS': 29}; wall seconds 5671.786; mechanism `structural`.
+
+staggered100: precision=0.99634, center_rms_sigma=0.35268, mass_tv=0.02207, radial_ks=0.1104; ring16_acquisition: modes=16, hq=0.98779, mass_tv=0.05957
+
+t1-prior-v2 passed all 11/11 required Tier 1 gates (13/16 Tier 1 overall including clockfree_audit_measurement_v1, converting ring16_acquisition at component_min_eigen_ratio=0.6188 and component_covariance_error=0.2546) and achieved 29/41 PASS across Tier 1-2 discriminator_stability (0 INCOMPLETE), converting vector_unequal_width (hq=0.9990, cov_err=0.1293, eig=0.7389, mass_tv=0.1001), vector_unequal_mass (hq=0.9983, cov_err=0.1470, eig=0.7080, min_mass_ratio=0.6855), vector_anisotropic (hq=0.9897, cov_err=0.1434, eig=0.7826), vector_overlap (sw1=0.0357), img_bars4 (modes=4/4, hq=1.000), img_blobs4 (modes=4/4, hq=1.000), interp_img_patch_shift, five_word_joint_hold (modes=5/5, mass_tv=0.0203), and mode_hold (modes=8/8, hq=1.000), while achieving 100/100 frozen_pass, 0.9961-0.9964 precision, and 0.0215-0.0228 mass_tv across grid100, rotated100, and staggered100 (accuracy_pass=False due to -0.302 half-cell Voronoi variance trace bias when K=192 splits each circular mode into 2 sub-cells).
+
+**Next:** Preserve concluded v1 and v2 readouts; replace isotropic scalar proto_var with rank-1 split-axis-compensated intra-cell covariance for K > M_modes 100-mode accuracy and combine Part A/B prior pullback with conditional DDGAN fiber transport in future follow-up.
+
+[Record and receipt provenance](records/readout-379720b9859815defff0efaa.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-38c1b334ef586a06a89392b7
 
 **Scope:** research_diagnostic; scientific; revision `ad1a2e99d28e1485a7a33510e1e5bbd503e1d760fef45af1964e12e6d0ca42ef`.
@@ -6968,6 +6984,22 @@ The corrected Modern GAN Stacked MNIST training recipe, adapted to the fixed For
 
 [Evidence](../../reports/forge/technique-receipts/ea66e44192c048eaa97f8595c5e55508.json) · [Record](records/readout-bc440d0469187c9299bd524c.json)
 
+### t1-prior-v1 · readout-be9f476fbea49e27e15f8533
+
+**Scope:** current; scientific; revision `94eed06a97e97ebee477ddfbe45dbc75e5146e1a7551203b53c439b642e4648a`.
+
+Under one global clock-free, schedule-free recipe on protocol seed 0, decoupling smooth generator chart transport + Gersho local pullback kernel isometry (Part A) from Kantorovich-Laguerre mass-balanced latent island condensation inside an isometric cloud envelope (Part B) in O(B*K*D) time passes all Tier 1 required gates and clockfree_audit_measurement_v1 while converting grid100 (100/100 modes, precision >= 0.75, sustained coverage + accuracy pass), rotated100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, and vector_overlap at >2x faster step throughput than rhbi-v12.
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 1674.605; mechanism `structural`.
+
+
+
+t1-prior-v1 passed clockfree_audit_measurement_v1 (4/4 parity branches, 0 unexplained dependencies) and 10/11 required Tier 1 gates (gaussian1d_smoke, two_pole, unused_token_hold, ae_gan_hold, five_word_joint_smoke, zero_tanh_smoke, model_ae_gan_multimodal, model_ae_reconstruction, model_vae_categorical, model_vae_hard), but stopped at Tier 1 on ring16_acquisition (modes=16/16, hq=0.9934, mass_tv=0.0393, sw1=0.0260, but component_min_eigen_ratio=0.083 < 0.15) and diagnostic precision_gaussian_fp32 (mean=1.9904, std_ratio=1.1505, cdf_ks=0.0574 > 0.050). Saved telemetry isolated one exact root cause when batch size B <= t1_max_prototypes (B=128): setting K=min(256,B)=B made initial proto_c identical to x, collapsing cdist(x,proto_c).min(dim=1) to 0 (proto_var=1e-10), which saturated iso_ema=4.5 on 1D Gaussians and starved 74% of Poisson(1) Voronoi cells while omitting the 2D orthogonal Jacobian companion when z_dim=4 > dim=2.
+
+**Next:** Declare bounded structural revision t1-prior-v2 fixing K=min(max_prototypes, max(4, B//2)) so every quantizer cell averages >=2 hits/step, computing initial proto_var from hollow 1-NN prototype spacing (excluding zero self-distances), and applying the deterministic Radon-Hurwitz orthogonal Jacobian companion whenever dim==2 and d_z in (2, 4).
+
+[Record and receipt provenance](records/readout-be9f476fbea49e27e15f8533.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-c0eb323419b0be6463f34d1b
 
 **Scope:** research_diagnostic; scientific; revision `f1f5aa34d333c7c3874e81b718103c25a0fc255b10eb4ed28268e192bba3af22`.
@@ -7144,6 +7176,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 
 [Record and receipt provenance](records/readout-c74fc1dbb493da20f3e37f95.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t1-prior-v1 · readout-c793e0c59edff1a6ffd97062
+
+**Scope:** research_diagnostic; scientific; revision `94eed06a97e97ebee477ddfbe45dbc75e5146e1a7551203b53c439b642e4648a`.
+
+Measure complete public GANTrainer update throughput (ms/step, images/s) and peak GPU memory (MiB) of t1-prior-v1 across DCGAN resolutions (r32..r256), batch size (b64), and width (w128) under the exact global t1_prior recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 74.536; mechanism `structural`.
+
+
+
+t1-prior-v1 completed all 6/6 DCGAN performance tasks (r32, r64, r128, r256, b64, w128) with finite_update_fraction=1.0, low memory footprint (248-1156 MiB allocated), and sub-60ms median step time through r64/b64.
+
+**Next:** Execute full Tier 1-3 discriminator_stability campaign (t1-prior-v1-study) to evaluate multi-mode lattice precision, multi-scale vector coverage, and clock-free parity.
+
+[Record and receipt provenance](records/readout-c793e0c59edff1a6ffd97062.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-ddgan-energy-v1 · readout-c7a4fe6fbfe14b4e43558471
 
 **Scope:** research_diagnostic; scientific; revision `0179185c13fe852b4c1d86796abef1850412345fbe26aa96b4fcf234e470ff5b`.
@@ -7175,6 +7223,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c803a788075501b6784967f2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-prior-v2 · readout-c982ddf21128b926906438aa
+
+**Scope:** research_diagnostic; scientific; revision `bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0`.
+
+Measure complete public GANTrainer update throughput (ms/step, images/s) and peak GPU memory (MiB) of t1-prior-v2 across DCGAN resolutions (r32..r256), batch size (b64), and width (w128) under the exact global t1_prior recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 73.872; mechanism `structural`.
+
+
+
+t1-prior-v2 completed all 6/6 DCGAN performance tasks (r32, r64, r128, r256, b64, w128) with finite_update_fraction=1.0 and O(B*K*D) memory under K=min(256, max(4, 3*B//4)).
+
+**Next:** Proceed to full Tier 1-3 discriminator_stability evaluation in t1-prior-v2-study.
+
+[Record and receipt provenance](records/readout-c982ddf21128b926906438aa.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### r1r2-repair-r1only-20261022 · readout-cd109ec1175f5a26582f9968
 
@@ -8662,4 +8726,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `76563f137e3167d383169ff06cd5fe995d6b503c38d1430fa945e9979e9e0a26`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `952a75fca9287a6bccc21a7ea28bf2bd67b34e9c2217895e4af975c712bf1c0d`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

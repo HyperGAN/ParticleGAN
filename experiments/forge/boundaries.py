@@ -35,6 +35,7 @@ TUNABLE_FIELDS = frozenset({
     "rhbi_step_damp", "rhbi_cond_ot_weight", "rhbi_simplex_weight",
     "rhbi_cvx_mu_gain", "rhbi_simplex_chart_weight", "rhbi_tail_spill_gain",
     "rhbi_cond_step_damp",
+    "t1_pullback_weight", "t1_iso_weight", "t1_laguerre_lr", "t1_prior_row_lr",
     "lr_anneal_start", "lr_floor", "network_lr_floor", "beta2_end", "beta2_anneal_end",
 })
 TASK_RECIPE_FIELDS = RESOURCE_FIELDS | {"prior_kind", "sigma_rel", "standardize"}
@@ -65,7 +66,7 @@ HYPERPARAMETER_RECIPE_FIELDS = TUNABLE_FIELDS | {
     "input_noise_anneal_end", "output_noise_std", "output_noise_warmup",
     "routing_temperature", "observation_sigma", "reconstruction_weight", "serve_average",
     "birth_death_cells", "birth_death_metric_rank", "birth_death_chunk",
-    "kappa_radial",
+    "kappa_radial", "t1_max_prototypes",
 }
 RECIPE_FIELD_OWNERS = {
     **dict.fromkeys(TASK_RECIPE_FIELDS, "task"),

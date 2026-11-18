@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-prior-v2-study"
+  },
+  "candidate": "t1-prior-v2",
+  "competing_explanation": "If Proportional-Integral Kantorovich viscous damping and finite-sample TV floor gating under-drive potentials psi_k on 100-mode lattices or unequal-mass mixtures, then t1-prior-v2 will either fail to populate all 100 modes on grid100/rotated100/staggered100 (precision < 0.75 or mass_tv > 0.06) or drop the 2% rare mode on vector_unequal_mass.",
+  "control": {
+    "candidate_id": "t1-prior-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.15
+  },
+  "hypothesis": "Fixing the K=B zero-self-distance initialization degeneracy via K=min(max_prototypes, max(4, 3*B//4)) + hollow 1-NN cell variance initialization, adding exact orthogonal pushforward covariance isotropy on (dim=1, z_dim=2) and Radon-Hurwitz 4-probe 2D isotropy on (dim=2, z_dim=4), gating uncovered-mode teleportation by local cell variance, and stabilizing Kantorovich-Laguerre potentials with zero-leak Proportional-Integral viscous damping and G/prior co-settling unlocks all 11/11 Tier 1 required gates (converting ring16_acquisition with component_min_eigen_ratio >= 0.15) plus Tier 2-3 bottleneck tasks (grid100, rotated100, staggered100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap) under one global clock-free recipe on protocol seed 0.",
+  "id": "t1-prior-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.15
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-prior-v1",
+        "candidate_revision": "94eed06a97e97ebee477ddfbe45dbc75e5146e1a7551203b53c439b642e4648a"
+      },
+      "path": "reports/forge/records/readout-be9f476fbea49e27e15f8533.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
