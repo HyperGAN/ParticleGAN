@@ -307,12 +307,14 @@ def bind_measurement_law(trainer, task, *, draws=None, role="measured"):
 
 class _Run:
     """Shared progress, state, measured optimizer counts and RNG audit."""
-    def __init__(self, context, trainer, output, task, *, sampling_law=PUBLIC_PRIOR_CLEAN):
+    def __init__(self, context, trainer, output, task, *, sampling_law=PUBLIC_PRIOR_CLEAN, trace_request=None):
         self.context, self.trainer = context, trainer
         self.sampling_policy = executed_receipt(sampling_law, eval_output_noise="clean")
         self.output, self.task = Path(output), task
         self.output.mkdir(parents=True, exist_ok=True)
         self.started = time.monotonic()
+        from .rhbi_trajectory import attach as attach_trajectory
+        self.trajectory = attach_trajectory(trace_request, trainer, context, task, self.output)
         self.finite = True
         self.measuring = False
         self.measured_weights = set()
@@ -363,7 +365,8 @@ class _Run:
     def step(self, real):
         before = self.trainer.completed_steps
         with self.timing.measure("training_updates"):
-            self.last_update = self.trainer.step(real, collect_stats=True)
+            self.last_update = (self.trainer.step(real, collect_stats=True) if self.trajectory is None
+                                else self.trajectory.step(real))
         self.mechanism_audit.observe_penalty(self.last_update.get("penalty_stats", {}))
         if self.trainer.completed_steps != before + 1:
             raise RuntimeError("public trainer did not complete one update")
@@ -420,6 +423,8 @@ class _Run:
     def receipt(self, evidence, *, save_state=True):
         trainer = self.trainer
         state = self.context.state_dict()
+        if self.trajectory is not None:
+            evidence["rhbi_trajectory"] = self.trajectory.receipt()
         from .api import policy_controls
         if self.policy_audit is not None or policy_controls(self.context.recipe):
             from .policy_adapters import finite_policy_state
@@ -541,7 +546,7 @@ def _vector(request, task, output, device, *, retain_scored_outputs=True):
     precision_initial = precision.initial_parameters(g, d) if "linear_precision" in task["execution"] else None
     host_receipt = _host_receipt(spec, task["execution"].get("vector_profile"), g, d)
     spec["thresholds"] = task["evaluation"]["thresholds"]
-    run = _Run(context, trainer, output, task)
+    run = _Run(context, trainer, output, task, trace_request=request)
     data = context.streams.generator("data", component="target", purpose="training", device="cpu")
     observations, records = [], []
     checkpoints = set(_checkpoints(task))

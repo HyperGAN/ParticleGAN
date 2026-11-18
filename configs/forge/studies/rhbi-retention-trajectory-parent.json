@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-retention-trajectory-parent",
+  "status": "ready",
+  "candidate": "rhbi-v12",
+  "control": {
+    "candidate_id": "rhbi-v12-feature-transport",
+    "task_map": {}
+  },
+  "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+  "scope": {
+    "view": "rhbi-retention-trajectory-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-retention-trajectory-v1",
+    "budget_seconds": 4200,
+    "candidate_budget_seconds": 2100
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/retention-probe.json",
+      "selector": [],
+      "identity": {
+        "protocol_seed": 0,
+        "optimizer_updates_added": 0
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "interp_sparse_arc",
+    "metric": "interp_hq",
+    "op": ">=",
+    "threshold": 0.8,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "interp_sparse_arc",
+    "metric": "interp_hq",
+    "op": "<",
+    "threshold": 0.8,
+    "phase": "final"
+  },
+  "competing_explanation": "Small direct metric changes accumulate through game dynamics, graph rewiring or the optimizer. The historical parent positives may also fail to reproduce.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}
