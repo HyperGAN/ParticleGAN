@@ -14,11 +14,11 @@ from experiments.forge.state import state_digest
 from particlegan import unwrap_prior
 
 
-def compare_saved_paths(runs, arms):
+def compare_saved_paths(campaign, arms, pair, *, verify_raw_assignment=False):
     """Compare the recorded model tensors and the active cross-plan on every update."""
     traces = []
-    for arm in ("rhbi-v12-feature-transport", "rhbi-v12-feature-raw-self"):
-        folder = runs / "rhbi-raw-self-arc-v1" / arms[arm]["attempt"]
+    for arm in pair:
+        folder = campaign / arms[arm]["attempt"]
         archive = read_json(folder / "raw-result.json")["evidence"]["rhbi_trajectory"]
         directory = folder / archive["directory"]
         verify_artifacts(directory, archive["artifacts"])
@@ -32,6 +32,8 @@ def compare_saved_paths(runs, arms):
                   for d in (full, candidate)]
         same_models += state_digest(states[0]["trainer"]["models"]) == state_digest(states[1]["trainer"]["models"])
     same_plans = 0
+    raw_replay_matches = 0
+    parent_max_raw_tv = 0.0
     for end in range(50, 601, 50):
         left, right = [torch.load(d / f"plans-{end:04d}.pt", map_location="cpu", weights_only=True)
                        for d in (full, candidate)]
@@ -39,16 +41,26 @@ def compare_saved_paths(runs, arms):
                 or not torch.equal(left["real"], right["real"]) or left["plan"].shape[0] != 50):
             raise ValueError("Unmatched consumed particles or real examples")
         same_plans += int((left["plan"] == right["plan"]).flatten(1).all(1).sum())
-    return {"saved_states": len(a["state_steps"]), "identical_model_states": same_models,
+        if verify_raw_assignment:
+            raw_replay_matches += int((right["direct_tv"] == 0).sum())
+            parent_max_raw_tv = max(parent_max_raw_tv, left["direct_tv"].max().item())
+    result = {"saved_states": len(a["state_steps"]), "identical_model_states": same_models,
             "updates": a["plan_updates"], "identical_executed_cross_plans": same_plans}
+    if verify_raw_assignment:
+        if raw_replay_matches != a["plan_updates"]:
+            raise ValueError("Executed candidate plans differ from their same-state raw replay")
+        result["candidate_same_state_raw_replay_matches"] = raw_replay_matches
+        result["parent_max_same_state_raw_replay_tv"] = parent_max_raw_tv
+    return result
 
 
 @reproducible_execution
 @torch.no_grad()
-def cross_score(runs, measurement):
+def cross_score(runs, measurement, study="raw-self"):
+    campaign = runs / f"rhbi-{study}-arc-v1"
     graphs, models = {}, {}
     for arm, row in measurement["arms"].items():
-        folder = runs / "rhbi-raw-self-arc-v1" / row["attempt"]
+        folder = campaign / row["attempt"]
         request = read_json(folder / "request.json")["request"]
         task = request["tasks"]["interp_sparse_arc"]
         spec = task["execution"]["host_definition"]
@@ -79,14 +91,22 @@ def cross_score(runs, measurement):
             counts[arm][owner] = {"passing": int(good.sum()), "total": len(good)}
             if arm == owner and good.float().mean().item() != measurement["arms"][arm]["terminal_observations"][-1]["interp_hq"]:
                 raise ValueError("Rescored native graph differs from the official final observation")
-    return {"scope": "exploratory_terminal_graph_comparison", "edges": graphs,
-            "passing_chords_by_model_and_edge_owner": counts,
-            "full_feature_vs_raw_self": compare_saved_paths(runs, measurement["arms"])}
+    result = {"scope": "exploratory_terminal_graph_comparison", "edges": graphs,
+              "passing_chords_by_model_and_edge_owner": counts}
+    if study == "raw-self":
+        pair = ("rhbi-v12-feature-transport", "rhbi-v12-feature-raw-self")
+        result["full_feature_vs_raw_self"] = compare_saved_paths(campaign, measurement["arms"], pair)
+    else:
+        pair = ("rhbi-v12-feature-raw-self", "rhbi-v12-raw-assignment")
+        result["parent_vs_raw_assignment"] = compare_saved_paths(campaign, measurement["arms"], pair,
+                                                                  verify_raw_assignment=True)
+    return result
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("forge_runs", type=Path)
+    parser.add_argument("--study", choices=("raw-self", "raw-assignment"), default="raw-self")
     args = parser.parse_args()
-    measure = read_json(Path(__file__).with_name("arc.json"))
-    print(json.dumps(cross_score(args.forge_runs, measure), sort_keys=True, indent=2))
+    measure = read_json(Path(__file__).resolve().parents[1] / args.study / "arc.json")
+    print(json.dumps(cross_score(args.forge_runs, measure, args.study), sort_keys=True, indent=2))

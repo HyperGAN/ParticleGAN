@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1035. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1041. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4568,6 +4568,22 @@ All six texture gates passed at all five terminal checks. Final energy ratio 0.6
 
 [Record and receipt provenance](records/readout-293fdd1fd459e8a46fbd285b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-raw-assignment · readout-2a638eb3fa03819e6015bfcd
+
+**Scope:** research_diagnostic; scientific; revision `569e84ecb842ff59d9b9a803c51405ab038a458338ceb486b5c0f2b77dab9518`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'PASS': 1}; wall seconds 63.978; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.15625
+
+PASS, 5/5 terminal checks on the clean 288-update texture gate. At update 288 all 256 samples were clean; both orientations, 0.7055 high-frequency energy ratio, 0.15625 mass TV and 0.7712 phase diversity.
+
+**Next:** Run the predeclared matched sparse-arc comparison.
+
+[Record and receipt provenance](records/readout-2a638eb3fa03819e6015bfcd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2-repair-control-20261022 · readout-2b96c09667e7a4aef944ce96
 
 **Scope:** research_diagnostic; scientific; revision `3cca6de5d931b16469b0ef0fedbc0b5cb21f55b8af202a7868e94277fcef2037`.
@@ -4903,6 +4919,22 @@ Born-Infeld Sinkhorn Particle Flow (BISPF, bispf-v1) passes 6/6 required Tier 1 
 **Next:** Retain bispf-v1 as the selected current measurement for the BISPF family (16/29 on discriminator_stability, 77/152 across views). Target the remaining 11 Tier 2 bottlenecks (gaussian1d_stability post-shift transport, non-uniform mass/anisotropic 2D mixtures, 4-mode conv image symmetry breaking, and 100-mode cluster tightness) in a bounded follow-up study before spending on Tier 3.
 
 [Evidence](../../reports/forge/bispf/README.md) · [Record](records/readout-3f3f893ae724d651f1655fc9.json)
+
+### rhbi-v12 · readout-3faa4a64e574f0506bfa33d4
+
+**Scope:** research_diagnostic; scientific; revision `fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'PASS': 1}; wall seconds 41.096; mechanism `structural`.
+
+
+
+PASS at all five terminal checks. All 24 previous observations reproduced; raw RHBI retained 53/66 interior points on its learned graph.
+
+**Next:** Keep as the raw geometry control on subsequent matched retention research.
+
+[Record and receipt provenance](records/readout-3faa4a64e574f0506bfa33d4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-40767bea377ac807d62a047a
 
@@ -5575,6 +5607,38 @@ Selected atlas recipe passes interp_img_patch_shift (5/5 sustained terminal chec
 **Next:** Test EMA/served weight evaluation or explicit local latent Jacobian smoothness regularization to stabilize the 5-check live suffix on sparse_arc and saddle_barycentric.
 
 [Record and receipt provenance](records/readout-669ead9699347bdcc998eb81.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-raw-assignment · readout-68041f47a43e69a562505633
+
+**Scope:** research_diagnostic; scientific; revision `569e84ecb842ff59d9b9a803c51405ab038a458338ceb486b5c0f2b77dab9518`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'PASS': 1}; wall seconds 41.539; mechanism `structural`.
+
+
+
+PASS at all five terminal arc checks. The candidate retained all 12 endpoints, 30/32 arc bins and 56/69 final high-quality interiors (0.81159 against a floor of 0.80).
+
+**Next:** Advance this fixed research recipe to a separate matched remaining-retention study on rare width, moving patch and saddle before external CIFAR evaluation.
+
+[Record and receipt provenance](records/readout-68041f47a43e69a562505633.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-raw-self · readout-69e232cfff5c56be8649104f
+
+**Scope:** research_diagnostic; scientific; revision `9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'PASS': 1}; wall seconds 66.539; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.125
+
+The texture-positive parent passed 5/5 terminal checks and reproduced all 24 prior observations.
+
+**Next:** Retain as the immediate matched control for the assignment change.
+
+[Record and receipt provenance](records/readout-69e232cfff5c56be8649104f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-69f698e7c003c96d01d05c05
 
@@ -6904,6 +6968,22 @@ Full gates failed for all four tasks. Rare-mass endpoint passed but its passing 
 
 [Record and receipt provenance](records/readout-b8643c936f96a75fb059eb10.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-b95be1e653ca6b69470c481b
+
+**Scope:** research_diagnostic; scientific; revision `fc088cea0d94bc8bfc2786b164da1c3d5338e6b94e1a9b823c6601c1014f492f`.
+
+Raw cross assignment with augmented physical attraction and raw self-repulsion retains the full 288-update texture gate. The raw-self parent passes and the raw RHBI control fails.
+
+**Observed:** {'FAIL': 1}; wall seconds 47.335; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Raw RHBI failed all five terminal checks with zero clean samples at update 288 and energy ratio 0.0086.
+
+**Next:** Retain as the raw-geometry reference for the arc comparison.
+
+[Record and receipt provenance](records/readout-b95be1e653ca6b69470c481b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-k3p-v1 · readout-b9f8dfc752cd1ca9ceaaff21
 
 **Scope:** research_diagnostic; scientific; revision `c293a9230ffcb73c9f2796e0f3db711f482d655f135c381646b4071b9b1d8a53`.
@@ -6999,6 +7079,22 @@ The corrected Modern GAN Stacked MNIST training recipe, adapted to the fixed For
 **Next:** Stop this exact failed revision. Preserve full denominators and the separate recorded cohorts; no seed repeats,unchanged reruns or downstream gate filling. Before a substantive further test, establish an independently justified and bounded convergence/reference protocol; calibrate the provisional screen before adoption.
 
 [Evidence](../../reports/forge/technique-receipts/ea66e44192c048eaa97f8595c5e55508.json) · [Record](records/readout-bc440d0469187c9299bd524c.json)
+
+### rhbi-v12-feature-raw-self · readout-c083425e72ca647a8b8613cf
+
+**Scope:** research_diagnostic; scientific; revision `9e76be452cfb081fbe1c29e9cd9be2fc7d9c7c5bf48f622faf6bf1f9e7d3cb6c`.
+
+With verified texture recovery, raw cross assignment recovers the complete 600-update sparse-arc gate. The raw RHBI control passes and the raw-self parent fails.
+
+**Observed:** {'FAIL': 1}; wall seconds 36.918; mechanism `structural`.
+
+
+
+FAIL. Only chord-interior quality missed its bound; all five terminal checks failed. All 24 observations reproduced the previous source exactly.
+
+**Next:** Keep as the matched feature-assignment control and retain the original arc failure.
+
+[Record and receipt provenance](records/readout-c083425e72ca647a8b8613cf.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-bcap-pure-v1 · readout-c0eb323419b0be6463f34d1b
 
@@ -8710,4 +8806,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `68ceac36ac2c290778356e7ad41fadf15fed97f9d69843cce439646bfaf71fd3`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `e0af2303625f389984da7467e2ff1f52ace5ceb11a5b18b9c56075706a6b0ecc`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

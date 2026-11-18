@@ -64,3 +64,5 @@ On the matched retention runs, both recipes failed rare width. The parent passed
 Using features only for marginal cross assignment raised the texture energy ratio to 0.199 and produced zero clean textures. Both controls reproduced their 24 earlier observations. [Assignment-only study](../rhbi-texture-feature/assignment/README.md).
 
 Feature-based attraction with raw self-repulsion passed the complete texture gate and reproduced the full-feature arc failure. [Raw self-repulsion study and public recipe setting](../rhbi-texture-feature/raw-self/README.md).
+
+The raw-assignment recipe retained feature attraction and passed all five terminal checks on both texture and sparse arc. [Matched results and public setting](../rhbi-texture-feature/raw-assignment/README.md).

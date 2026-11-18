@@ -7,14 +7,20 @@ from experiments.forge.contracts import file_hash, read_json, stable_hash
 from experiments.forge.views import grade_result
 
 HERE = Path(__file__).resolve().parent
-SOURCE = "d2abfed51fd36f494c896317e8055c9c814bd046"
 RAW = "rhbi-v12"
 FULL = "rhbi-v12-feature-transport"
-CANDIDATE = "rhbi-v12-feature-raw-self"
-MODES = {RAW: False, FULL: True, CANDIDATE: "raw_self"}
+RAW_SELF = "rhbi-v12-feature-raw-self"
+RAW_ASSIGNMENT = "rhbi-v12-raw-assignment"
+STUDIES = {
+    "raw-self": ("d2abfed51fd36f494c896317e8055c9c814bd046", {RAW: False, FULL: True, RAW_SELF: "raw_self"}),
+    "raw-assignment": ("483b042b616f6092fa73e536b789425cbe315468", {RAW: False, RAW_SELF: "raw_self", RAW_ASSIGNMENT: "raw_assignment"}),
+}
 
 
-def prior_observations(runs, stage):
+def prior_observations(runs, stage, study):
+    if study == "raw-assignment":
+        previous = read_json(HERE / f"{stage}.json")["arms"]
+        return {a: previous[a]["observations_sha256"] for a in (RAW, RAW_SELF)}
     if stage == "texture":
         previous = read_json(HERE.parent / "assignment/results.json")["arms"]
         return {a: previous[a]["observations_sha256"] for a in (RAW, FULL)}
@@ -29,17 +35,18 @@ def prior_observations(runs, stage):
     return reference
 
 
-def compare(runs, stage):
+def compare(runs, stage, study="raw-self"):
+    source_commit, modes = STUDIES[study]
     task_id, steps = ("img_conv_texture32", 288) if stage == "texture" else ("interp_sparse_arc", 600)
-    expected = prior_observations(runs, stage)
+    expected = prior_observations(runs, stage, study)
     common, arms = None, {}
-    for envelope in sorted((runs / f"rhbi-raw-self-{stage}-v1").glob("*/request.json")):
+    for envelope in sorted((runs / f"rhbi-{study}-{stage}-v1").glob("*/request.json")):
         directory = envelope.parent
         env = read_json(envelope)
         req, science = env["request"], env["job"]["science"]
         arm = req["candidate"]["id"]
         source = req["source"]
-        if (arm not in MODES or arm in arms or source["origin_commit"] != SOURCE
+        if (arm not in modes or arm in arms or source["origin_commit"] != source_commit
                 or env["job"]["task_id"] != task_id or science["seed"] != 0):
             raise ValueError(f"Unexpected attempt {directory}")
         task = req["tasks"][task_id]
@@ -50,7 +57,7 @@ def compare(runs, stage):
         observations = evidence["observations"]
         guards, ckpt = evidence["guards"], evidence["provenance_checkpoint"]
         recipe = dict(raw["recipe"])
-        if (recipe.pop("rhbi_feature_transport", False) != MODES[arm]
+        if (recipe.pop("rhbi_feature_transport", False) != modes[arm]
                 or result["task_id"] != task_id or grade["gate_status"] not in {"PASS", "FAIL"}
                 or grade["gate_status"] != result["gate_status"] or grade["evaluator_result"] != result["evaluator_result"]
                 or observations != result["evidence"]["observations"] or len(observations) != 24
@@ -59,7 +66,7 @@ def compare(runs, stage):
                 or file_hash(directory / "goal.gif") != evidence["actual_training_gif"]["sha256"]
                 or file_hash(directory / "provenance" / ckpt["path"]) != ckpt["sha256"]):
             raise ValueError(f"Inconsistent measurement, recipe or artifact for {arm}")
-        contract = {"source_commit": SOURCE, "source_sha256": source["digest"], "seed": science["seed"],
+        contract = {"source_commit": source_commit, "source_sha256": source["digest"], "seed": science["seed"],
                     "runtime": raw["rng"]["runtime"], "compute": science["compute"],
                     "initializer": raw["initializer"], "initial_parameters": evidence["initial_parameters"],
                     "initial_prior": raw["initial_prior"], "other_recipe_fields_sha256": stable_hash(recipe),
@@ -72,7 +79,7 @@ def compare(runs, stage):
             raise ValueError(f"Mismatched controls for {arm}: {[k for k in contract if contract[k] != common[k]]}")
         common = contract
         digest = stable_hash(observations)
-        data = {"attempt": directory.name, "candidate_revision": req["candidate_revision"], "mode": MODES[arm],
+        data = {"attempt": directory.name, "candidate_revision": req["candidate_revision"], "mode": modes[arm],
                 "gate": grade["gate_status"], "terminal": grade["evaluator_result"], "terminal_observations": observations[-5:],
                 "observations_sha256": digest, "gif_sha256": evidence["actual_training_gif"]["sha256"],
                 "checkpoint_sha256": ckpt["sha256"], "result_sha256": file_hash(directory / "result.json"),
@@ -80,7 +87,7 @@ def compare(runs, stage):
         if arm in expected:
             data["reproduced_previous_24_observations"] = digest == expected[arm]
         arms[arm] = data
-    if set(arms) != set(MODES):
+    if set(arms) != set(modes):
         raise ValueError("Expected three complete distinct arms")
     return {"task": task_id, "qualification_input": False, "matched": common, "arms": arms}
 
@@ -89,5 +96,6 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("forge_runs", type=Path)
     parser.add_argument("stage", choices=("texture", "arc"))
+    parser.add_argument("--study", choices=STUDIES, default="raw-self")
     args = parser.parse_args()
-    print(json.dumps(compare(args.forge_runs, args.stage), sort_keys=True, indent=2, allow_nan=False))
+    print(json.dumps(compare(args.forge_runs, args.stage, args.study), sort_keys=True, indent=2, allow_nan=False))
