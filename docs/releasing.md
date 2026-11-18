@@ -1,4 +1,4 @@
-# CI and PyPI releases
+# CI, PyPI, and GitHub releases
 
 ParticleGAN is published as `particlegan`, separately from HyperGAN. The package
 version is declared in `pyproject.toml`; release 0.9.0 changes the public recipe
@@ -15,7 +15,7 @@ notes on `develop` once the release scope is chosen.
 on pull requests targeting `develop` or `master` and pushes to those branches.
 Manual dispatches execute tests only on `develop` or `master`; dispatching on
 another branch skips the jobs. The release workflow also calls these checks
-against its immutable tagged source, including releases targeted by commit SHA.
+against the exact `master` or tagged source revision.
 New commits to a PR automatically cancel that PR's superseded test run. Branch,
 manual and release runs remain independent and are not canceled by PR updates.
 
@@ -65,9 +65,14 @@ managed through the existing PyPI account associated with 255labs.xyz.
    the version in `pyproject.toml`, the workflow builds and tests that exact
    `master` revision before publishing. HyperGAN integration stays on HyperGAN's
    `develop`.
-3. Publish the matching GitHub release against the tested revision. The tag
-   path also provides a retry for incomplete PyPI uploads. For example, with
-   `RELEASE_SHA` set to that verified commit:
+3. After PyPI publishes, the workflow verifies the distribution hashes against
+   the tested files from the same run. It then publishes `v<version>` on GitHub
+   at the exact tested commit, with links to the PyPI package and changelog.
+   If the source release job fails after PyPI succeeds, rerun that job in the
+   original workflow run.
+
+   A manually published release can still retry an incomplete PyPI upload.
+   The following example uses `RELEASE_SHA` set to the verified commit.
 
    ```sh
    gh release create v0.10.1 --repo HyperGAN/ParticleGAN \
