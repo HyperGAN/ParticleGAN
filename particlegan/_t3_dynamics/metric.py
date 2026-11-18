@@ -17,7 +17,6 @@ import math
 from typing import Any, Optional, Tuple
 
 import torch
-import torch.nn.functional as F
 
 _PHI1 = 0.6180339887498949
 _PHI2 = 0.7548776662466927
