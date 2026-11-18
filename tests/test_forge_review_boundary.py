@@ -186,11 +186,13 @@ def test_fixed_denominator_counts_held_and_missing_tests():
 
 def test_committed_inventory_reports_against_the_fixed_dated_list():
     fixed = load_fixed_test_list(ROOT)
+    interp_list = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-12.json")
     prior_list = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-06.json")
     previous = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-10-25.json")
     assert previous and len(previous["tests"]) == 49
     assert prior_list and prior_list["dated"] == "2026-11-06" and len(prior_list["tests"]) == 61
-    assert fixed and fixed["dated"] == "2026-11-12" and len(fixed["tests"]) == 64
+    assert interp_list and interp_list["dated"] == "2026-11-12" and len(interp_list["tests"]) == 64
+    assert fixed and fixed["dated"] == "2026-11-18" and len(fixed["tests"]) == 67
     view = views.load_view(ROOT, "discriminator_stability")
     assert set(fixed["tests"]) - set(previous["tests"]) == {a["task"] for a in view["assignments"] if a["importance"] == "stretch"}
     text = (ROOT / "reports/forge/technique-inventory.md").read_text()

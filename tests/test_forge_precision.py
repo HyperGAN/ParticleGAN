@@ -19,10 +19,12 @@ def task(format):
 
 def test_precision_is_optional_and_preserves_every_original_required_assignment():
     view = load_view(ROOT, "discriminator_stability")
-    v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     v14 = json.loads((ROOT / v15["previous_revision"]["archive"]).read_text())
-    assert [a for a in view["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
+    assert [a for a in view["assignments"] if not a["task"].startswith("nash_")] == v17["assignments"]
+    assert [a for a in v17["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
     assert [a for a in v16["assignments"] if a["task"] != "grid100_res16_scaled_tanh"] == v15["assignments"]
     assert [a for a in v15["assignments"] if not a["task"].startswith("precision_gaussian_")] == v14["assignments"]
     assert [a for a in view["assignments"] if a["importance"] == "required"] == [
@@ -64,6 +66,9 @@ def test_new_stretch_tasks_stay_visible_without_invalidating_archived_coverage()
         "interp_img_patch_shift",
         "interp_saddle_barycentric",
         "interp_sparse_arc",
+        "nash_overpowered_critic_ring16",
+        "nash_overpowered_generator_ring16",
+        "nash_unequal_width_hostile_imbalance",
         "precision_gaussian_mxfp8",
         "precision_gaussian_nvfp4",
     ]

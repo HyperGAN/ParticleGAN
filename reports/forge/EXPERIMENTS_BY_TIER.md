@@ -47,7 +47,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [dcgan_performance_cpu_smoke](../../configs/forge/views/dcgan_performance_cpu_smoke.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
-| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 17 | 11 required, 3 stretch, 2 diagnostic | 18 required, 2 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
+| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 18 | 11 required, 3 stretch, 2 diagnostic | 18 required, 5 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -652,7 +652,7 @@ No tasks assigned.
 
 ## discriminator_stability
 
-Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 17; goal: `discriminator_stability`.
+Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 18; goal: `discriminator_stability`.
 
 Declared calibration status: **provisional**.
 
@@ -687,7 +687,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 2: quality
 
-18 required, 2 stretch, 7 held.
+18 required, 5 stretch, 7 held.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -718,6 +718,9 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [model_ddgan_bimodal_chain](../../configs/forge/tasks/model_ddgan_bimodal_chain.json) | required | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-bimodal-chain) | public_api_model_toy / transfer_sustained | 5000 | 600 | [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) (gate) |
 | [interp_img_patch_shift](../../configs/forge/tasks/interp_img_patch_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_img_patch_shift) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-img-patch-shift) | particle_interpolation / interp_img_patch_shift | 800 | 300 | — |
 | [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_saddle_barycentric) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
 
 ### Tier 3: endurance
 
@@ -6648,6 +6651,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `d37c3bed93b79da3ab387380c8d8fea398af0ec323c536630297cd3f98985d91`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `4bab197f1ade758b94696eb655f6578e4d20df3168466a9a9341a6d7b39295fa`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `aa9412b304342850befb359a5ee7a848f14362a5437bfd0112cf8d22da740eab`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `2b308d2bfbaab0d64978418919ea39f66f98cfef878a0dd57498e7eaed1983f9`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

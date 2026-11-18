@@ -153,7 +153,7 @@ Complete current Tier 1 measurement in: discriminator_stability. PASS and FAIL a
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](empf.md#cohort-cuda-23a94f16ca88-adaptation) | [3/3](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-1) | [9/12](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) | [0/1 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-4) | [12/16 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-adaptation) | [0/7](empf.md#cohort-cuda-23a94f16ca88-held) |
 | [clockfree_continuous](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous) | [4/4](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-1) | [9/12](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) | [0/6 (3 blocked, 3 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-4) | [13/22 (3 blocked, 3 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous) | [0/7](empf.md#cohort-cuda-23a94f16ca88-held) |
-| [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [11/11](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | [11/18 (2 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-4) | [22/30 (3 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [0/28 (1 incompatible, 15 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-held) |
+| [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [11/11](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-1) | [11/18 (2 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | [0/1 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-4) | [22/30 (3 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability) | [0/31 (3 not run, 1 incompatible, 15 diagnostic attempts)](empf.md#cohort-cuda-23a94f16ca88-held) |
 | [formulation_comparison](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison) | [3/3](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-1) | [9/12](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) | [0/1 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-4) | [12/16 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison) | [0/7](empf.md#cohort-cuda-23a94f16ca88-held) |
 | [host_profile_transfer](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer) | [3/3](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-1) | [9/12](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) | [0/1 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-4) | [12/16 (1 diagnostic attempt)](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer) | [0/7](empf.md#cohort-cuda-23a94f16ca88-held) |
 | [quality_coverage](empf.md#cohort-cuda-23a94f16ca88-quality_coverage) | [3/3](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-1) | [9/12](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | [0/0](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-3) | [0/0](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-4) | [12/15](empf.md#cohort-cuda-23a94f16ca88-quality_coverage) | [0/7](empf.md#cohort-cuda-23a94f16ca88-held) |
@@ -232,6 +232,9 @@ Held at this tier (measured and shown, not counted):
 | [img_intensity2](empf.md#cohort-cuda-23a94f16ca88-experiment-img_intensity2) | [adaptation](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | matches recorded run |
 | [interp_img_patch_shift](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | FAIL | matches recorded run |
 | [interp_saddle_barycentric](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | FAIL | matches recorded run |
+| [nash_overpowered_critic_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [nash_overpowered_generator_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
+| [nash_unequal_width_hostile_imbalance](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [vector_anisotropic](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) | [adaptation](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | matches recorded run |
 | [vector_overlap](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_overlap) | [adaptation](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | matches recorded run |
 | [vector_unequal_mass](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | [adaptation](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | matches recorded run |
@@ -309,6 +312,9 @@ These tests keep running and keep this recipe's recorded result, but they do not
 | [img_intensity2](empf.md#cohort-cuda-23a94f16ca88-experiment-img_intensity2) | [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [interp_img_patch_shift](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | FAIL | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts? | Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass. |
 | [interp_saddle_barycentric](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | FAIL | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface? | Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass. |
+| [nash_overpowered_critic_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | Can one global recipe recover all 16 equal-mass Gaussian ring modes under >600x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and -30-logit hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes severe D>>G hostile-init ring recovery while retaining every counted pass. |
+| [nash_overpowered_generator_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | Can one global recipe recover all 16 equal-mass Gaussian ring modes under >540x generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-2 0.25x-gain critic) and hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes severe G>>D hostile-init ring recovery while retaining every counted pass. |
+| [nash_unequal_width_hostile_imbalance](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | Can one global recipe recover all 4 heteroscedastic unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and core covariances under >600x critic overcapacity and hostile initialization? | Consider counted status only after independent calibration and one global recipe that passes unequal-width hostile-imbalance recovery while retaining every counted pass. |
 | [vector_anisotropic](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) | [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | Three stretched, tilted blobs: BCAP and BISPF draw the shapes but the wrong amounts (mass TV 0.196 and 0.191; limit 0.15). Of the 16 recipes passing its current declaration, 12 fail Tier 1 ring16_acquisition, 1 timed out on it and 3 fail mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_overlap](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_overlap) | [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | One broad cloud made of two overlapping blobs: BCAP and BISPF reach it early, then drift (centre error 0.39 and 0.28; limit 0.15). All 15 recipes passing its current declaration fail Tier 1 ring16_acquisition or mode_hold. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. |
 | [vector_unequal_mass](empf.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | [adaptation / Tier 2](empf.md#cohort-cuda-23a94f16ca88-adaptation-tier-2), [clockfree_continuous / Tier 2](empf.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2), [formulation_comparison / Tier 2](empf.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](empf.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2), [quality_coverage / Tier 2](empf.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) | FAIL | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | The rare 2% blob loses its share or collapses (BCAP eigen ratio 0.009, BISPF 0.004; need 0.15). Perfect samples pass 200/200 runs. Its passers fail counted tests, except some round-5 research recipes that fail only held tests and never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_width, so the two will likely return together. |
@@ -837,9 +843,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 17**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 18**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 9 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **3 / 12 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -899,6 +905,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [model_ddgan_bimodal_chain](empf.md#cohort-cuda-23a94f16ca88-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
 | [interp_img_patch_shift](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | FAIL | matches recorded run |
 | [interp_saddle_barycentric](empf.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | FAIL | matches recorded run |
+| [nash_overpowered_critic_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | UNKNOWN | recorded definition unavailable |
+| [nash_overpowered_generator_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | UNKNOWN | recorded definition unavailable |
+| [nash_unequal_width_hostile_imbalance](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-23a94f16ca88-discriminator_stability-tier-3"></a>
 
@@ -1741,6 +1750,44 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-23a94f16ca88-t3-shift-recovery-diagnostic-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch"></a>
+
+## t4_imbalance_nash_stretch
+
+**t4_imbalance_nash_stretch — revision 1**. [View declaration](../../../configs/forge/views/t4_imbalance_nash_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [nash_overpowered_critic_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [nash_overpowered_generator_ring16](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [nash_unequal_width_hostile_imbalance](empf.md#cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-4"></a>
 
 ### Tier 4
 
@@ -4445,6 +4492,105 @@ Declared budget: 1200 updates; timeout 300 seconds.
 Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_without_serving_noise; weights live; output noise clean.
 
 [Explanation and existing training artifacts](../api-model-toys/vae.md)
+
+<a name="cohort-cuda-23a94f16ca88-experiment-nash_overpowered_critic_ring16"></a>
+
+### nash_overpowered_critic_ring16
+
+**nash_overpowered_critic_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_critic_ring16.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [t4_imbalance_nash_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.8 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 0.98 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1600 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
+
+<a name="cohort-cuda-23a94f16ca88-experiment-nash_overpowered_generator_ring16"></a>
+
+### nash_overpowered_generator_ring16
+
+**nash_overpowered_generator_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_generator_ring16.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [t4_imbalance_nash_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.72 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 1.28 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1600 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
+
+<a name="cohort-cuda-23a94f16ca88-experiment-nash_unequal_width_hostile_imbalance"></a>
+
+### nash_unequal_width_hostile_imbalance
+
+**nash_unequal_width_hostile_imbalance: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [discriminator_stability / Tier 2](empf.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [t4_imbalance_nash_stretch / Tier 1](empf.md#cohort-cuda-23a94f16ca88-t4_imbalance_nash_stretch-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| min_mass_ratio | >= 0.6 |
+| hq | >= 0.82 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.16 |
+| resolved_core_covariance_error | <= 0.65 |
+| resolved_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1100 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
 
 <a name="cohort-cuda-23a94f16ca88-experiment-pacgan8_grid100"></a>
 
