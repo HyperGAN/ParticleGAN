@@ -7408,7 +7408,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "cc0a6b594903d948feea5f4271ead35c97256690",
+      "git_blob": "464feb98c141bc33e8a8cbaf0cd181acc2cc1593",
       "path": "experiments/forge/adapters.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7604,7 +7604,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "d9ac7cc864fb91dc20d3033626b4d143c325ea11",
+      "git_blob": "33bc1bfab944a9ef3c1b47932b26b7b504853090",
       "path": "experiments/forge/clockfree.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7814,7 +7814,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "14dbc11fc954024922d5b942213c18e0367b5686",
+      "git_blob": "f6e4deaa40f2c4e60141484296a3108512d23554",
       "path": "experiments/forge/nativeprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8143,7 +8143,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a5ca3fc02851f4c0fbe5e74d00e4f0cf27174b26",
+      "git_blob": "bc7bff84f5672e25f6f0dc3b82b6d821ee4bce9a",
       "path": "experiments/forge/tanh_point_mass.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8171,7 +8171,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "cae2062f1a3923cf27cacef42f8ef2cc944f8c8b",
+      "git_blob": "1b2495e704ac3e2db88a53ac1e61b62f12e9b403",
       "path": "experiments/forge/techniques.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8255,7 +8255,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "6ab89fe1bb834962db5bdf76b93c08648f654baf",
+      "git_blob": "7ccdb129137d4cc365b49de8a876e7386fae76da",
       "path": "experiments/forge/views.py",
       "role": "engine_support",
       "suggested_tiers": []

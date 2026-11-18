@@ -686,7 +686,8 @@ def _native(task, evidence, *, diagnostic=False):
         return _verdict("INVALID", "native artifact observation cadence differs from declared task")
     if config.get("eval_samples") != task["evaluation"]["eval_samples"]:
         return _verdict("INVALID", "native evaluation sample count differs from declared task")
-    if config.get("early_eval_steps") != task["evaluation"]["early_eval_steps"]:
+    expected_early = list(task["evaluation"].get("early_eval_steps", [0, 1, 10, 25, 50, 100]))
+    if config.get("early_eval_steps") != expected_early:
         return _verdict("INVALID", "native early observation schedule differs from declared task")
     if task["execution"].get("preserve_prefix_steps"):
         prefix = evidence.get("prefix_parity", {})
@@ -697,9 +698,37 @@ def _native(task, evidence, *, diagnostic=False):
         from .continuation import verify_native_prefix
         verify_native_prefix(task, evidence, diagnostic=diagnostic)
     grade = evaluate_suite(path, problem=problem, write=False)["problems"][problem]
+    metrics = dict(grade.get("holdout_metrics", {}) or {})
+    if "max_saturated_fraction" in task["evaluation"] and grade.get("status") != "INVALID":
+        import numpy as np
+        max_sat = float(task["evaluation"]["max_saturated_fraction"])
+        tanh_scale = float(task["execution"].get("model", {}).get("tanh_scale", 1.0))
+        rail = 0.99 * tanh_scale
+        run_dir = path / problem
+        summary = _read(run_dir / "summary.json")
+        min_stable = int(task["evaluation"].get("minimum_stable_checks", 5))
+        term_steps = list(summary.get("eval_steps", []))[-min_stable:]
+        term_sats = []
+        for s_step in term_steps:
+            with np.load(run_dir / "quality_checks" / f"step_{s_step:06d}.npz", allow_pickle=False) as archive:
+                term_sats.append(float((np.abs(archive["live"]) >= rail).mean()))
+        with np.load(run_dir / "holdout_samples.npz", allow_pickle=False) as archive:
+            holdout_sat = float((np.abs(archive["live"]) >= rail).mean())
+        metrics["saturated_fraction"] = holdout_sat
+        metrics["terminal_max_saturated_fraction"] = max(term_sats) if term_sats else holdout_sat
+        if holdout_sat > max_sat or any(val > max_sat for val in term_sats):
+            grade = {
+                **grade,
+                "status": "FAIL",
+                "passed": False,
+                "reason": (
+                    f"saturated_fraction exceeded max_saturated_fraction={max_sat} "
+                    f"(holdout={holdout_sat:.6f}, terminal_max={metrics['terminal_max_saturated_fraction']:.6f})"
+                ),
+            }
     verify_artifacts(path, manifest)
     return _verdict(grade["status"], grade["reason"],
-                    metrics=grade.get("holdout_metrics", {}), evaluator_result=grade)
+                    metrics=metrics, evaluator_result=grade)
 
 
 # Evidence identity of the ring grader. Task declarations (ring_hold,

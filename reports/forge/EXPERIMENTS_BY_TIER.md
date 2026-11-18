@@ -2,7 +2,7 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **36/36 views**.
+Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **37/37 views**.
 
 Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
@@ -67,6 +67,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [t3-shift-recovery-diagnostic-v1](../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json) | 1 | 5 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json) | 1 | 8 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [t4-strange-architectures-v1](../../configs/forge/views/t4-strange-architectures-v1.json) | 1 | 7 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json) | 1 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json) | 1 | 7 required | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [vaegan_coverage](../../configs/forge/views/vaegan_coverage.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -1791,6 +1792,48 @@ No published solution leaderboard for this view yet; task registration and relat
 | [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
 | [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 600 | — |
 | [model_ae_ddgan_gaussian_chain](../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ae-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 180 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t4-strange-architectures-v1
+
+Declaration: [t4-strange-architectures-v1](../../configs/forge/views/t4-strange-architectures-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+7 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [clockfree_audit_measurement_v1](../../configs/forge/tasks/clockfree_audit_measurement_v1.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-clockfree-audit-measurement-v1) | clockfree_audit / clockfree_parity | 24 | 300 | — |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
 
 ### Tier 2: quality
 
@@ -6819,6 +6862,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `2ad777be8b05fafdb4b1ead76e49c3f0a260cb990a92d2f60b13b472ac5fd970`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `ad0c002a754404b9e04d08522707e35fa41305d6100c9270043096a2ae7c8bab`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `936a91645c822fdb5dfe4544356d805985a141757d40989152ef678867e8b1b5`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `1a17617ff88ad2f857cfee996668fd99d897a826243fbc0b73d0ec1d8b95ddb7`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

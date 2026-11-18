@@ -22,7 +22,7 @@ CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
 
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
-    "dualnorm_D_only", "particle_rownorm_only",
+    "dualnorm_D_only", "particle_rownorm_only", "t4_equil",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -1205,32 +1205,36 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     # Materialize once: a generator must survive the role probe below, and
     # plain tensors (no group dicts) default to the generator role.
     params = list(params)
-    optimizer_class = NormalizedOptimizer
-    if critic is not None and recipe.critic_step_mode == "finite_cap":
-        from .critic_cap import CriticCapOptimizer
-        optimizer_class = CriticCapOptimizer
-    if recipe.constraint_geometry_mode == "nonascent" and critic is None:
-        from .constraint_geometry import ConstraintGeometryOptimizer
-        optimizer_class = ConstraintGeometryOptimizer
-    elif recipe.constraint_geometry_mode == "strict_progress" and critic is None:
-        from .strict_progress import StrictProgressOptimizer
-        optimizer_class = StrictProgressOptimizer
-    elif recipe.constraint_geometry_mode == "direction_blend" and critic is None:
-        from .direction_blend import DirectionBlendOptimizer
-        optimizer_class = DirectionBlendOptimizer
-    if recipe.prior_proximal_strength and recipe.prior_update == "learned" and critic is None:
-        from .prior_proximal import proximal_optimizer_class
-        if any(isinstance(group, dict) and group.get("role", "generator") in ("prior", "table")
-               for group in params):
-            optimizer_class = proximal_optimizer_class(optimizer_class)
-            options["prior_proximal_strength"] = recipe.prior_proximal_strength
-    optimizer = optimizer_class(params, family=recipe.optimizer_family,
-                                    momentum=recipe.optimizer_momentum,
-                                    smoothing=recipe.optimizer_smoothing,
-                                    convolution=recipe.optimizer_convolution,
-                                    convolution_rule=recipe.optimizer_convolution_rule,
-                                    svd_backend=recipe.optimizer_svd_backend,
-                                    dense_profile=recipe.optimizer_dense_profile, **options)
+    if recipe.optimizer_family == "t4_equil":
+        from .._t4_arch import T4EquilibratedOptimizer
+        optimizer = T4EquilibratedOptimizer(params, **options)
+    else:
+        optimizer_class = NormalizedOptimizer
+        if critic is not None and recipe.critic_step_mode == "finite_cap":
+            from .critic_cap import CriticCapOptimizer
+            optimizer_class = CriticCapOptimizer
+        if recipe.constraint_geometry_mode == "nonascent" and critic is None:
+            from .constraint_geometry import ConstraintGeometryOptimizer
+            optimizer_class = ConstraintGeometryOptimizer
+        elif recipe.constraint_geometry_mode == "strict_progress" and critic is None:
+            from .strict_progress import StrictProgressOptimizer
+            optimizer_class = StrictProgressOptimizer
+        elif recipe.constraint_geometry_mode == "direction_blend" and critic is None:
+            from .direction_blend import DirectionBlendOptimizer
+            optimizer_class = DirectionBlendOptimizer
+        if recipe.prior_proximal_strength and recipe.prior_update == "learned" and critic is None:
+            from .prior_proximal import proximal_optimizer_class
+            if any(isinstance(group, dict) and group.get("role", "generator") in ("prior", "table")
+                   for group in params):
+                optimizer_class = proximal_optimizer_class(optimizer_class)
+                options["prior_proximal_strength"] = recipe.prior_proximal_strength
+        optimizer = optimizer_class(params, family=recipe.optimizer_family,
+                                        momentum=recipe.optimizer_momentum,
+                                        smoothing=recipe.optimizer_smoothing,
+                                        convolution=recipe.optimizer_convolution,
+                                        convolution_rule=recipe.optimizer_convolution_rule,
+                                        svd_backend=recipe.optimizer_svd_backend,
+                                        dense_profile=recipe.optimizer_dense_profile, **options)
     optimizer._rhbi_step_damp = float(getattr(recipe, "rhbi_step_damp", 0.0))
     optimizer._rhbi_cond_step_damp = float(getattr(recipe, "rhbi_cond_step_damp", 0.0))
     if critic is None:

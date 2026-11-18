@@ -681,6 +681,25 @@ class GANTrainer:
                     loss_d=loss_d,
                     penalty=penalty,
                 )
+            elif (
+                recipe.prior_regularizer == "t4_arch"
+                and recipe.t1_pullback_weight > 0.0
+                and recipe.encoder_mode == "none"
+            ):
+                from ._t4_arch import t4_arch_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = t4_arch_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
             elif recipe.prior_regularizer == "t1_pullback" and recipe.t1_pullback_weight > 0.0:
                 from ._t1_prior import t1_pullback_step
                 simplex_loss = None
