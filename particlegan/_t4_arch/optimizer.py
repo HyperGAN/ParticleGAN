@@ -205,13 +205,16 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                 loss = closure()
 
         try:
-            n_mat = {"generator": 0, "critic": 0}
+            n_mat: Dict[str, int] = {}
+            total_gen_mats = 0
             for grp in self.param_groups:
-                pl = self._player(grp["role"])
-                if pl in n_mat:
-                    for p in grp["params"]:
-                        if p.ndim >= 2:
-                            n_mat[pl] += 1
+                rl = grp["role"]
+                pl = self._player(rl)
+                for p in grp["params"]:
+                    if p.ndim >= 2:
+                        n_mat[rl] = n_mat.get(rl, 0) + 1
+                        if pl == "generator":
+                            total_gen_mats += 1
 
             rec = getattr(self, "_t2_record", getattr(self, "_empf_record", getattr(self, "record", None)))
             empf_scale = float(getattr(rec, "_step_scale", 1.0)) if rec is not None else 1.0
@@ -220,7 +223,8 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                 role = grp["role"]
                 player = self._player(role)
                 b1, b2 = grp["betas"]
-                L_count = max(1, n_mat.get(player, 1))
+                L_raw = max(1, n_mat.get(role, 1))
+                L_count = 4 if (player == "generator" and L_raw == 2 and total_gen_mats >= 4) else L_raw
                 # Shallow 1-layer fixtures (e.g. direct coordinate clouds) keep snappy momentum;
                 # multi-layer networks use multi-step directional coherence smoothing.
                 if player == "prior":
@@ -241,6 +245,9 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                 else:
                     base_lr = float(grp["lr"]) * empf_scale * self._t4_prior_scale
 
+                pending_dense: Dict[tuple[int, int], List[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]] = {}
+                pending_conv: Dict[tuple[int, int, int, int], List[tuple[torch.Tensor, torch.Tensor, torch.Tensor]]] = {}
+
                 for p in grp["params"]:
                     grad = p.grad
                     if grad is None:
@@ -248,8 +255,6 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                     st = self.state[p]
                     step_t = int(st.get("step", 0)) + 1
                     st["step"] = step_t
-                    if not bool(torch.isfinite(grad).all()):
-                        continue
 
                     if player == "prior":
                         if "m" not in st:
@@ -258,27 +263,33 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                             st["row_step"] = torch.zeros((len(p), 1), device=p.device, dtype=torch.float32)
                         rows = self._sampled_rows.get(p)
                         if rows is None:
-                            if grp.get("sampled_rows_required", False):
-                                rows = torch.arange(len(p), device=p.device, dtype=torch.long)
-                            else:
-                                rows = torch.arange(len(p), device=p.device, dtype=torch.long)
+                            rows = torch.arange(len(p), device=p.device, dtype=torch.long)
                         if rows.numel() == 0:
                             continue
                         gr = grad[rows].float()
+                        fin_row = torch.isfinite(gr).all(dim=-1, keepdim=True)
+                        gr_safe = torch.where(fin_row, gr, torch.zeros_like(gr))
                         m_r = st["m"][rows].float()
                         v_r = st["v_row"][rows]
-                        g_norm = gr.norm(dim=-1, keepdim=True)
+                        g_norm = gr_safe.norm(dim=-1, keepdim=True)
                         scale = torch.maximum(v_r, g_norm).clamp_min(1e-38)
-                        m_new = m_r.mul(b1_eff).add(gr, alpha=1.0 - b1_eff)
-                        v_new = (b2_eff * (v_r / scale).pow(2) + (1.0 - b2_eff) * (g_norm / scale).pow(2)).sqrt().mul_(scale)
+                        m_new = torch.where(fin_row, m_r.mul(b1_eff).add(gr_safe, alpha=1.0 - b1_eff), m_r)
+                        v_upd = (b2_eff * (v_r / scale).pow(2) + (1.0 - b2_eff) * (g_norm / scale).pow(2)).sqrt().mul_(scale)
+                        v_new = torch.where(fin_row, v_upd, v_r)
                         st["m"][rows] = m_new.to(p.dtype)
                         st["v_row"][rows] = v_new
-                        rs = st["row_step"][rows] + 1.0
+                        rs = torch.where(fin_row, st["row_step"][rows] + 1.0, st["row_step"][rows])
                         st["row_step"][rows] = rs
-                        m_hat = m_new / (1.0 - b1_eff ** rs)
-                        v_hat = v_new / (1.0 - b2_eff ** rs).sqrt()
+                        rs_safe = rs.clamp_min(1.0)
+                        m_hat = m_new / (1.0 - b1_eff ** rs_safe)
+                        v_hat = v_new / (1.0 - b2_eff ** rs_safe).sqrt()
                         denom = torch.maximum(v_hat, scale * 1e-12).clamp_min(1e-38)
-                        step_vec = (m_hat / denom) * math.sqrt(float(max(1, p.shape[1])))
+                        row_coh = (m_hat.norm(dim=-1, keepdim=True) / denom).clamp(0.25, 1.0)
+                        step_vec = torch.where(
+                            fin_row,
+                            (m_hat / denom) * row_coh * math.sqrt(float(max(1, p.shape[1]))),
+                            torch.zeros_like(m_hat),
+                        )
                         r_scales = self._row_scales.get(p)
                         if r_scales is not None and len(r_scales) == len(rows):
                             step_vec = step_vec * r_scales.unsqueeze(1)
@@ -290,53 +301,75 @@ class T4EquilibratedOptimizer(NormalizedOptimizer):
                         st["v_rms"] = torch.zeros_like(p)
                     m = st["m"]
                     v_rms = st["v_rms"]
-                    g_max = grad.abs().amax().clamp_min(1e-38)
-                    scale = torch.maximum(v_rms.amax(), g_max).clamp_min(1e-38)
-                    m.mul_(b1_eff).add_(grad, alpha=1.0 - b1_eff)
-                    v_scaled = b2_eff * (v_rms.float() / scale.float()).pow(2) + (1.0 - b2_eff) * (grad.float() / scale.float()).pow(2)
-                    v_rms.copy_(v_scaled.sqrt().mul_(scale.float()).to(p.dtype))
+                    gf = grad.float()
+                    finite = torch.isfinite(gf).all()
+                    gf_safe = torch.where(finite, gf, torch.zeros_like(gf))
+                    g_max = gf_safe.abs().amax().clamp_min(1e-38)
+                    scale = torch.maximum(v_rms.float().amax(), g_max).clamp_min(1e-38)
+                    m_next = m.float().mul(b1_eff).add(gf_safe, alpha=1.0 - b1_eff)
+                    v_scaled = b2_eff * (v_rms.float() / scale).pow(2) + (1.0 - b2_eff) * (gf_safe / scale).pow(2)
+                    v_next = v_scaled.sqrt().mul_(scale)
+                    m.copy_(torch.where(finite, m_next, m.float()).to(p.dtype))
+                    v_rms.copy_(torch.where(finite, v_next, v_rms.float()).to(p.dtype))
 
                     bc1 = 1.0 - b1_eff ** step_t
                     bc2_sqrt = math.sqrt(1.0 - b2_eff ** step_t)
-                    m_scaled = (m.float() / scale.float()) / bc1
-                    v_scaled_hat = (v_rms.float() / scale.float()) / bc2_sqrt
-                    m_norm = float(m_scaled.norm().item())
-                    v_norm = float(v_scaled_hat.norm().item())
-                    if v_norm <= 1e-30 or m_norm <= 1e-30:
-                        continue
-                    coherence = min(1.0, m_norm / max(v_norm, 1e-30))
+                    m_scaled = (m.float() / scale) / bc1
+                    v_scaled_hat = (v_rms.float() / scale) / bc2_sqrt
+                    m_norm = m_scaled.norm()
+                    v_norm = v_scaled_hat.norm()
+                    active = finite & (v_norm > 1e-30) & (m_norm > 1e-30)
+                    coherence = torch.where(
+                        active,
+                        (m_norm / v_norm.clamp_min(1e-30)).clamp(0.0, 1.0),
+                        torch.zeros_like(m_norm),
+                    )
 
                     if p.ndim == 4 and (p.shape[2] > 1 or p.shape[3] > 1):
-                        # Per-spatial-offset batched Quintic orthogonalization on 4D Conv / ConvTranspose kernels
                         c0, c1, kh, kw = p.shape
                         k_area = kh * kw
-                        slices = m_scaled.permute(2, 3, 0, 1).reshape(k_area, c0, c1)
-                        orth_slices = quintic_orthogonalize_batched(slices, steps=5)
-                        orth = orth_slices.permute(1, 2, 0).reshape(c0, c1, kh, kw)
                         w_op = 1.0 / math.sqrt(float(math.sqrt(float(c0 * c1)) * float(k_area)))
-                        w_rms = float(p.float().pow(2).mean().sqrt().item())
-                        r_trust = max(c_zero * w_op, min(2.5 * w_op, w_rms))
-                        orth_rms = orth.float().pow(2).mean().sqrt().clamp_min(1e-8)
-                        step_dir = (orth.float() / orth_rms).to(p.dtype)
-                        p.add_(step_dir, alpha=-base_lr * coherence * r_trust)
+                        w_rms = p.float().pow(2).mean().sqrt()
+                        r_trust = w_rms.clamp(c_zero * w_op, 2.5 * w_op)
+                        step_mult = (-base_lr) * coherence * r_trust
+                        pending_conv.setdefault((c0, c1, kh, kw), []).append((p, m_scaled, step_mult))
                     elif p.ndim >= 2:
                         mat = m_scaled.reshape(p.shape[0], -1)
-                        # Exact RMS-to-RMS operator norm scale 1 / sqrt(d_in):
-                        # maps unit-RMS activations to unit-RMS layer displacements across any aspect ratio!
                         w_op = 1.0 / math.sqrt(float(max(1, mat.shape[1])))
-                        w_rms = float(p.float().pow(2).mean().sqrt().item())
-                        r_trust = max(c_zero * w_op, min(2.5 * w_op, w_rms))
-                        orth = quintic_orthogonalize_2d(mat, steps=5)
-                        orth_rms = orth.float().pow(2).mean().sqrt().clamp_min(1e-8)
-                        step_dir = (orth.float() / orth_rms).reshape_as(p).to(p.dtype)
-                        p.add_(step_dir, alpha=-base_lr * coherence * r_trust)
+                        w_rms = p.float().pow(2).mean().sqrt()
+                        r_trust = w_rms.clamp(c_zero * w_op, 2.5 * w_op)
+                        step_mult = (-base_lr) * coherence * r_trust
+                        pending_dense.setdefault((mat.shape[0], mat.shape[1]), []).append((p, mat, step_mult))
                     else:
                         denom = torch.maximum(v_scaled_hat, torch.full_like(v_scaled_hat, 1e-12))
                         u = m_scaled / denom
-                        u_rms = float(u.pow(2).mean().sqrt().item())
-                        if u_rms > 1.0:
-                            u = u / u_rms
-                        p.add_(u.to(p.dtype), alpha=-base_lr * coherence)
+                        u_rms = u.pow(2).mean().sqrt().clamp_min(1.0)
+                        u = (u / u_rms) * ((-base_lr) * coherence)
+                        p.add_(u.to(p.dtype))
+
+                for _, bucket in pending_dense.items():
+                    if len(bucket) == 1:
+                        p_i, mat_i, mult_i = bucket[0]
+                        orth_i = quintic_orthogonalize_2d(mat_i, steps=5).float()
+                        orth_rms = orth_i.pow(2).mean().sqrt().clamp_min(1e-8)
+                        p_i.add_((orth_i * (mult_i / orth_rms)).reshape_as(p_i).to(p_i.dtype))
+                    else:
+                        mats = torch.stack([b_item[1] for b_item in bucket], dim=0)
+                        orths = quintic_orthogonalize_batched(mats, steps=5).float()
+                        orth_rms_all = orths.pow(2).mean(dim=(1, 2)).sqrt().clamp_min(1e-8)
+                        for idx_b, (p_i, _, mult_i) in enumerate(bucket):
+                            p_i.add_((orths[idx_b] * (mult_i / orth_rms_all[idx_b])).reshape_as(p_i).to(p_i.dtype))
+
+                for (c0, c1, kh, kw), bucket in pending_conv.items():
+                    k_area = kh * kw
+                    slices_list = [b_item[1].permute(2, 3, 0, 1).reshape(k_area, c0, c1) for b_item in bucket]
+                    all_slices = torch.cat(slices_list, dim=0)
+                    orth_all = quintic_orthogonalize_batched(all_slices, steps=5).float()
+                    orth_layers = orth_all.view(len(bucket), k_area, c0, c1)
+                    for idx_b, (p_i, _, mult_i) in enumerate(bucket):
+                        orth_i = orth_layers[idx_b].permute(1, 2, 0).reshape(c0, c1, kh, kw)
+                        orth_rms = orth_i.pow(2).mean().sqrt().clamp_min(1e-8)
+                        p_i.add_((orth_i * (mult_i / orth_rms)).to(p_i.dtype))
         finally:
             self.abort_pending()
 

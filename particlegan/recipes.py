@@ -2084,7 +2084,7 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "prior_regularizer": "t4_arch",
         "prior_reg": 0.01,
         "t1_pullback_weight": 1.0,
-        "t1_iso_weight": 0.40,
+        "t1_iso_weight": 0.55,
         "t1_laguerre_lr": 0.015,
         "t1_prior_row_lr": 0.06,
         "t1_max_prototypes": 256,

@@ -62,6 +62,7 @@ _T4_STATE_KEYS = frozenset({
     "res_ema",
     "iso_initialized",
     "iso_ema",
+    "iso_err_ema",
 })
 
 
@@ -98,14 +99,33 @@ def _project_for_transport(x: torch.Tensor) -> torch.Tensor:
     return x.reshape(b, -1)
 
 
-def _feydy_sinkhorn_barycenter(x: torch.Tensor, y: torch.Tensor, *, iters: int = 6) -> Tuple[torch.Tensor, float]:
-    """Scale-normalized FP32 Feydy-debiased Sinkhorn target for connected K=1 distributions."""
+def _feydy_sinkhorn_barycenter(
+    x: torch.Tensor,
+    y: torch.Tensor,
+    *,
+    iters: int = 6,
+    ref_mean: Optional[torch.Tensor] = None,
+    ref_std: Optional[torch.Tensor] = None,
+) -> Tuple[torch.Tensor, float]:
+    """Scale-normalized FP32 Feydy-debiased Sinkhorn target (with streaming-stabilized 1D Monge quantile OT when D=1)."""
     with torch.no_grad():
         fx = x.detach().float()
         ry = y.detach().float()
         b, m = fx.shape[0], ry.shape[0]
         r_std = ry.std(dim=0, unbiased=False).mean().clamp_min(1e-5)
         f_std = fx.std(dim=0, unbiased=False).mean().clamp_min(1e-12)
+        if fx.shape[1] == 1 and b == m:
+            _, perm_x = torch.sort(fx[:, 0], stable=True)
+            y_sorted, _ = torch.sort(ry[:, 0], stable=True)
+            if ref_mean is not None and ref_std is not None and b >= 4:
+                yb_mean = y_sorted.mean()
+                yb_std = y_sorted.std(unbiased=True).clamp_min(1e-6)
+                y_sorted = ref_mean.reshape(()) + ref_std.reshape(()) * ((y_sorted - yb_mean) / yb_std)
+            targ_1d = torch.empty_like(fx)
+            targ_1d[perm_x, 0] = y_sorted
+            res_1d = float((fx - targ_1d).abs().mean().item() / float(r_std.item()))
+            return targ_1d.to(x.dtype), res_1d
+
         if float((f_std / r_std).item()) < 0.30:
             fw = (fx - fx.mean(0, keepdim=True)) / fx.std(0, keepdim=True).clamp_min(1e-12)
             rw = (ry - ry.mean(0, keepdim=True)) / ry.std(0, keepdim=True).clamp_min(1e-6)
@@ -135,12 +155,13 @@ def _feydy_sinkhorn_barycenter(x: torch.Tensor, y: torch.Tensor, *, iters: int =
         pi_xy = torch.exp(-d2_xy / eps + u.unsqueeze(1) + v.unsqueeze(0))
         bary_xy = (float(b) * pi_xy) @ ry
 
-        f_dual = torch.zeros(b, device=fx.device)
-        for _ in range(max(3, iters // 2)):
-            f_dual = 0.5 * (f_dual + log_b - torch.logsumexp(-d2_xx / eps + f_dual.unsqueeze(0), dim=1))
-        pi_xx = torch.exp(-d2_xx / eps + f_dual.unsqueeze(1) + f_dual.unsqueeze(0) - log_b)
-        pi_xx = pi_xx / pi_xx.sum(dim=1, keepdim=True).clamp_min(1e-12)
-        bary_xx = pi_xx @ fx
+        u_xx = torch.zeros(b, device=fx.device)
+        v_xx = torch.zeros(b, device=fx.device)
+        for _ in range(iters):
+            v_xx = log_b - torch.logsumexp(-d2_xx / eps + u_xx.unsqueeze(1), dim=0)
+            u_xx = log_b - torch.logsumexp(-d2_xx / eps + v_xx.unsqueeze(0), dim=1)
+        pi_xx = torch.exp(-d2_xx / eps + u_xx.unsqueeze(1) + v_xx.unsqueeze(0))
+        bary_xx = (float(b) * pi_xx) @ fx
 
         drift = bary_xy - bary_xx
         y_deb = fx + drift
@@ -156,7 +177,7 @@ def _validate_t4_state(state: Any) -> Dict[str, Any]:
     for bkey in ("atlas_initialized", "is_point", "iso_initialized"):
         if type(state[bkey]) is not bool:
             raise ValueError(f"invalid T4 boolean field {bkey}")
-    for fkey, strict_pos in (("res_ema", False), ("iso_ema", True)):
+    for fkey, strict_pos in (("res_ema", False), ("iso_ema", True), ("iso_err_ema", False)):
         val = state[fkey]
         if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
             raise ValueError(f"invalid T4 scalar field {fkey}")
@@ -175,10 +196,12 @@ def _validate_t4_state(state: Any) -> Dict[str, Any]:
         c = state["proto_c"]
         if c.ndim != 2 or c.shape[0] < 1 or c.shape[1] < 1:
             raise ValueError("invalid T4 proto_c shape")
-        k_len = c.shape[0]
-        for k in ("proto_var", "proto_w", "proto_hits", "psi", "w_fake", "v_push"):
+        k_len, d_len = c.shape
+        for k in ("proto_var", "proto_w", "proto_hits", "psi", "w_fake"):
             if state[k].ndim != 1 or state[k].shape[0] != k_len:
                 raise ValueError(f"incompatible T4 {k} shape")
+        if state["v_push"].ndim != 2 or state["v_push"].shape != (k_len, d_len):
+            raise ValueError("incompatible T4 v_push shape")
         if bool((state["proto_var"] <= 0).any()) or bool((state["proto_hits"] <= 0).any()):
             raise ValueError("T4 proto_var and proto_hits must be positive")
         if bool((state["proto_w"] < 0).any()) or not math.isclose(float(state["proto_w"].sum().item()), 1.0, rel_tol=1e-3, abs_tol=1e-3):
@@ -227,6 +250,7 @@ class T4ArchPriorRegularizer(nn.Module):
         self.res_ema: float = 1.0
         self.iso_initialized: bool = False
         self.iso_ema: float = 1.0
+        self.iso_err_ema: float = 0.0
 
     @property
     def empf_record(self) -> Any:
@@ -259,6 +283,7 @@ class T4ArchPriorRegularizer(nn.Module):
             "res_ema": float(self.res_ema),
             "iso_initialized": bool(self.iso_initialized),
             "iso_ema": float(self.iso_ema),
+            "iso_err_ema": float(self.iso_err_ema),
         }
 
     def load_state_dict(self, state_dict: Dict[str, Any], strict: bool = True) -> None:
@@ -286,6 +311,7 @@ class T4ArchPriorRegularizer(nn.Module):
         self.res_ema = float(validated["res_ema"])
         self.iso_initialized = bool(validated["iso_initialized"])
         self.iso_ema = float(validated["iso_ema"])
+        self.iso_err_ema = float(validated["iso_err_ema"])
 
     def _filter_atlas(self, mask: torch.Tensor) -> None:
         self.proto_c = self.proto_c[mask]
@@ -310,7 +336,7 @@ class T4ArchPriorRegularizer(nn.Module):
             self.proto_hits = torch.ones(1, device=x.device, dtype=torch.float32)
             self.psi = torch.zeros(1, device=x.device, dtype=torch.float32)
             self.w_fake = torch.ones(1, device=x.device, dtype=torch.float32)
-            self.v_push = torch.zeros(1, device=x.device, dtype=torch.float32)
+            self.v_push = torch.zeros((1, dim), device=x.device, dtype=torch.float32)
             self.atlas_initialized = True
             return
 
@@ -330,8 +356,10 @@ class T4ArchPriorRegularizer(nn.Module):
 
             centers = [x[0]]
             min_d2 = (x - x[0]).pow(2).sum(dim=-1)
-            sep_thresh = 14.0 * float(dim) * v0
+            sep_thresh = max(25.0, 14.0 * float(dim)) * v0
             while len(centers) < self.max_prototypes:
+                if int((min_d2 > sep_thresh).sum().item()) < 2:
+                    break
                 max_val, idx = min_d2.max(dim=0)
                 if float(max_val.item()) <= sep_thresh:
                     break
@@ -357,7 +385,7 @@ class T4ArchPriorRegularizer(nn.Module):
                     ).clamp_min(1e-8)
             self.psi = torch.zeros(k, device=x.device, dtype=torch.float32)
             self.w_fake = self.proto_w.clone()
-            self.v_push = 0.70 * self.proto_var.clone()
+            self.v_push = (0.70 * self.proto_var).unsqueeze(1).expand(k, dim).clone()
             self.atlas_initialized = True
             return
 
@@ -397,13 +425,16 @@ class T4ArchPriorRegularizer(nn.Module):
 
         med_v = self.proto_var.median().clamp_min(1e-10)
         v_loc = torch.maximum(self.proto_var[assign], med_v)
-        uncov_mask = d2_min > (16.0 * float(dim) * v_loc)
-        if bool(uncov_mask.any()):
+        uncov_factor = max(25.0, 16.0 * float(dim))
+        uncov_mask = d2_min > (uncov_factor * v_loc)
+        if int(uncov_mask.sum().item()) >= 2:
             cand = x[uncov_mask]
             for _ in range(min(8, len(cand))):
                 d2_c = torch.cdist(cand, self.proto_c).pow(2).min(dim=1).values
+                if int((d2_c > float(uncov_factor * med_v.item())).sum().item()) < 2:
+                    break
                 best_d2, best_j = d2_c.max(dim=0)
-                if float(best_d2.item()) <= float(16.0 * float(dim) * med_v.item()):
+                if float(best_d2.item()) <= float(uncov_factor * med_v.item()):
                     break
                 pt = cand[best_j : best_j + 1]
                 new_w = max(1.0 / float(max(b, len(self.proto_c) + 1)), 0.005)
@@ -414,7 +445,7 @@ class T4ArchPriorRegularizer(nn.Module):
                     self.proto_hits = torch.cat([self.proto_hits, torch.tensor([2.0], device=x.device)], dim=0)
                     self.psi = torch.cat([self.psi, torch.zeros(1, device=x.device)], dim=0)
                     self.w_fake = torch.cat([self.w_fake * (1.0 - new_w), torch.tensor([new_w], device=x.device)], dim=0)
-                    self.v_push = torch.cat([self.v_push, (0.70 * med_v).view(1)], dim=0)
+                    self.v_push = torch.cat([self.v_push, (0.70 * med_v).view(1, 1).expand(1, dim)], dim=0)
                 else:
                     slot = int(self.proto_w.argmin().item())
                     self.proto_c[slot] = pt[0]
@@ -424,7 +455,7 @@ class T4ArchPriorRegularizer(nn.Module):
                     self.proto_hits[slot] = 2.0
                     self.psi[slot] = 0.0
                     self.w_fake[slot] = new_w
-                    self.v_push[slot] = 0.70 * med_v
+                    self.v_push[slot] = (0.70 * med_v).expand(dim)
 
         if len(self.proto_c) >= 2:
             d2_cc = torch.cdist(self.proto_c, self.proto_c).pow(2)
@@ -637,7 +668,7 @@ def t4_arch_step(
 
         s_coord = unit_jvp.abs().clamp_min(1e-5)
         s_ref = torch.maximum(
-            s_coord.median(dim=0, keepdim=True).values,
+            torch.quantile(s_coord, 0.5, dim=0, keepdim=True),
             torch.full((1, dim), max(0.15 * reg.res_ema, 1e-4), device=fake_proj.device, dtype=s_coord.dtype),
         )
         w_sat_pt = (s_ref / s_coord).clamp(1.0, 12.0).to(fake_proj.dtype)
@@ -649,7 +680,13 @@ def t4_arch_step(
         gan_blend = 0.02 * min(1.0, reg.res_ema / 0.25)
     elif k_modes == 1:
         # Case B: Connected single-mode continuous target (1D/2D Gaussians, DCGAN image distributions)
-        y_feydy, cur_res = _feydy_sinkhorn_barycenter(fake_proj, real_proj, iters=6)
+        y_feydy, cur_res = _feydy_sinkhorn_barycenter(
+            fake_proj,
+            real_proj,
+            iters=6,
+            ref_mean=reg.proto_c[0],
+            ref_std=reg.proto_var[0].clamp_min(1e-10).sqrt(),
+        )
         if cur_res > max(4.0 * reg.res_ema, reg.res_ema + 0.15):
             reg.res_ema = min(cur_res, 10.0)
         else:
@@ -658,7 +695,7 @@ def t4_arch_step(
         f_std = float(fake_proj.detach().float().std(dim=0, unbiased=False).mean().clamp_min(1e-12).item())
         scale_ratio = f_std / r_std
         wakeup_boost = 5.0 if scale_ratio < 0.5 else (1.5 if scale_ratio < 0.85 else 1.0)
-        g_scale = 1.0 if scale_ratio < 0.6 else max(0.08, min(1.0, reg.res_ema / 0.08))
+        g_scale = 1.0 if scale_ratio < 0.6 else max(0.015, min(1.0, reg.res_ema / 0.18))
         prior_scale = g_scale
 
         s_vec = unit_jvp.norm(dim=-1).clamp_min(1e-8)
@@ -670,7 +707,7 @@ def t4_arch_step(
         loss_iso = fake_proj.new_zeros(())
         r_env = real_proj.abs().amax(dim=0, keepdim=True) + 3.5 * r_std
         loss_env = F.relu(fake_proj.abs() - r_env).pow(2).mean()
-        gan_blend = 0.25
+        gan_blend = 0.05 if dim == 1 else 0.15
     else:
         # Case C: Disconnected multi-modal target (K >= 2)
         with torch.no_grad():
@@ -725,7 +762,11 @@ def t4_arch_step(
             if scale_ratio >= 0.65 and indices is not None:
                 halo_r = 3.5 * math.sqrt(float(dim)) * sigma_cell_all[near_k_full]
                 halo_blend = ((d_near / halo_r.clamp_min(1e-6)).clamp(0.0, 1.0) ** 2).unsqueeze(1).to(fake_proj.dtype)
-                v_mu_i = (reg.proto_var - reg.v_push).clamp_min(0.0)[near_k_full] if sigma_z > 0.0 else reg.proto_var[near_k_full]
+                v_mu_i = (
+                    (reg.proto_var.unsqueeze(1) - reg.v_push).clamp_min(0.0)[near_k_full]
+                    if sigma_z > 0.0
+                    else reg.proto_var[near_k_full].unsqueeze(1).expand(-1, dim)
+                )
                 xi_i = _deterministic_box_muller(indices, dim, torch.float32).to(xff.device)
                 cnt_f = torch.bincount(near_k_full, minlength=k_modes).float()
                 xi_f_sum = torch.zeros((k_modes, dim), device=xff.device, dtype=torch.float32).index_add_(0, near_k_full, xi_i)
@@ -733,7 +774,7 @@ def t4_arch_step(
                 cf2 = cnt_f >= 2
                 xi_f_mean[cf2] = xi_f_sum[cf2] / cnt_f[cf2].unsqueeze(1)
                 innov = dx_jvp.to(fake_proj.dtype) if sigma_z > 0.0 else 0.0
-                c_exact_i = (reg.proto_c[near_k_full] + v_mu_i.sqrt().unsqueeze(1) * (xi_i - xi_f_mean[near_k_full])).to(fake_proj.dtype) + innov
+                c_exact_i = (reg.proto_c[near_k_full] + v_mu_i.sqrt() * (xi_i - xi_f_mean[near_k_full])).to(fake_proj.dtype) + innov
                 y_ot = halo_blend * y_ot_soft + (1.0 - halo_blend) * c_exact_i
             else:
                 y_ot = y_ot_soft
@@ -754,7 +795,7 @@ def t4_arch_step(
             d_z = mu_for_a.shape[1]
             e1 = eps_g / eps_g.norm(dim=-1, keepdim=True).clamp_min(1e-6)
             if dim == 2 and d_z == 2:
-                m_iso = min(b, 128)
+                m_iso = min(b, 256)
                 ms = mu_for_a[:m_iso].detach()
                 e1s = e1[:m_iso]
                 e2s = torch.stack((-e1s[:, 1], e1s[:, 0]), dim=1)
@@ -765,20 +806,22 @@ def t4_arch_step(
                 near_sub = torch.cdist(x_c.detach().float(), reg.proto_c, p=2.0).argmin(dim=1)
                 v_mode_sub = reg.proto_var[near_sub].to(fake_proj.dtype)
                 inv_w_sub = (1.0 / (float(k_modes) * reg.proto_w[near_sub]).clamp_min(1e-4)).sqrt().clamp(0.5, 4.0).to(fake_proj.dtype)
-                with torch.no_grad():
-                    vp_obs = 0.5 * (dx1.detach().float().pow(2).sum(-1) + dx2.detach().float().pow(2).sum(-1))
-                    cnt_vp = torch.bincount(near_sub, minlength=k_modes).float()
-                    sum_vp = torch.zeros(k_modes, device=xff.device).scatter_add_(0, near_sub, vp_obs)
-                    h_vp = cnt_vp > 0
-                    if bool(h_vp.any()):
-                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp])
                 Sigma_push = dx1.unsqueeze(2) * dx1.unsqueeze(1) + dx2.unsqueeze(2) * dx2.unsqueeze(1)
                 eye2 = torch.eye(2, device=xff.device, dtype=fake_proj.dtype).unsqueeze(0)
                 t_vp = 0.72 * v_mode_sub
+                with torch.no_grad():
+                    vp_diag = dx1.detach().float().pow(2) + dx2.detach().float().pow(2)
+                    cnt_vp = torch.bincount(near_sub, minlength=k_modes).float()
+                    sum_vp = torch.zeros((k_modes, dim), device=xff.device).index_add_(0, near_sub, vp_diag)
+                    h_vp = cnt_vp > 0
+                    if bool(h_vp.any()):
+                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp].unsqueeze(1))
+                    iso_rel = ((Sigma_push.detach().float() / t_vp.detach().float().view(m_iso, 1, 1).clamp_min(1e-10)) - eye2.float()).pow(2).sum(dim=(1, 2)).sqrt().mean()
+                    reg.iso_err_ema = 0.92 * reg.iso_err_ema + 0.08 * min(float(iso_rel.item()), 5.0)
                 denom_c = (t_vp.sqrt() * sc_med).clamp_min(1e-8).view(m_iso, 1, 1)
                 loss_iso = 0.5 * (inv_w_sub * ((Sigma_push - t_vp.view(m_iso, 1, 1) * eye2) / denom_c).pow(2).sum(dim=(1, 2))).mean()
             elif dim == 2 and d_z == 4:
-                m_iso = min(b, 64)
+                m_iso = min(b, 96)
                 ms = mu_for_a[:m_iso].detach()
                 e1s = e1[:m_iso]
                 a_q, b_q, c_q, d_q = e1s[:, 0], e1s[:, 1], e1s[:, 2], e1s[:, 3]
@@ -794,15 +837,17 @@ def t4_arch_step(
                 near_sub = torch.cdist(x_c.detach().float(), reg.proto_c, p=2.0).argmin(dim=1)
                 v_mode_sub = reg.proto_var[near_sub].to(fake_proj.dtype)
                 inv_w_sub = (1.0 / (float(k_modes) * reg.proto_w[near_sub]).clamp_min(1e-4)).sqrt().clamp(0.5, 4.0).to(fake_proj.dtype)
-                with torch.no_grad():
-                    vp_obs = 0.5 * (Sigma_push.detach().float()[:, 0, 0] + Sigma_push.detach().float()[:, 1, 1])
-                    cnt_vp = torch.bincount(near_sub, minlength=k_modes).float()
-                    sum_vp = torch.zeros(k_modes, device=xff.device).scatter_add_(0, near_sub, vp_obs)
-                    h_vp = cnt_vp > 0
-                    if bool(h_vp.any()):
-                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp])
                 eye2 = torch.eye(2, device=xff.device, dtype=fake_proj.dtype).unsqueeze(0)
                 t_vp = 0.72 * v_mode_sub
+                with torch.no_grad():
+                    vp_diag = torch.diagonal(Sigma_push.detach().float(), dim1=1, dim2=2)
+                    cnt_vp = torch.bincount(near_sub, minlength=k_modes).float()
+                    sum_vp = torch.zeros((k_modes, dim), device=xff.device).index_add_(0, near_sub, vp_diag)
+                    h_vp = cnt_vp > 0
+                    if bool(h_vp.any()):
+                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp].unsqueeze(1))
+                    iso_rel = ((Sigma_push.detach().float() / t_vp.detach().float().view(m_iso, 1, 1).clamp_min(1e-10)) - eye2.float()).pow(2).sum(dim=(1, 2)).sqrt().mean()
+                    reg.iso_err_ema = 0.92 * reg.iso_err_ema + 0.08 * min(float(iso_rel.item()), 5.0)
                 denom_c = (t_vp.sqrt() * sc_med).clamp_min(1e-8).view(m_iso, 1, 1)
                 loss_iso = 0.5 * (inv_w_sub * ((Sigma_push - t_vp.view(m_iso, 1, 1) * eye2) / denom_c).pow(2).sum(dim=(1, 2))).mean()
             else:
@@ -815,13 +860,14 @@ def t4_arch_step(
                 dx1 = x_1 - x_c
                 near_sub = torch.cdist(x_c.detach().float(), reg.proto_c, p=2.0).argmin(dim=1)
                 v_mode_sub = reg.proto_var[near_sub].to(fake_proj.dtype)
+                vp_diag = dx1.detach().float().pow(2) * float(d_z)
                 vp_sub = dx1.pow(2).mean(dim=-1) * float(d_z)
                 with torch.no_grad():
                     cnt_vp = torch.bincount(near_sub, minlength=k_modes).float()
-                    sum_vp = torch.zeros(k_modes, device=xff.device).scatter_add_(0, near_sub, vp_sub.detach().float())
+                    sum_vp = torch.zeros((k_modes, dim), device=xff.device).index_add_(0, near_sub, vp_diag)
                     h_vp = cnt_vp > 0
                     if bool(h_vp.any()):
-                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp])
+                        reg.v_push[h_vp] = 0.88 * reg.v_push[h_vp] + 0.12 * (sum_vp[h_vp] / cnt_vp[h_vp].unsqueeze(1))
                 t_vp = 0.72 * v_mode_sub
                 loss_iso = ((vp_sub.clamp_min(1e-12).sqrt() - t_vp.sqrt()) / sc_med.clamp_min(1e-6)).pow(2).mean()
         else:
@@ -830,7 +876,8 @@ def t4_arch_step(
         r_env = real_proj.abs().amax(dim=0, keepdim=True) + 3.5 * sc_med
         loss_env = F.relu(fake_proj.abs() - r_env).pow(2).mean()
         wakeup_boost = 5.0 if scale_ratio < 0.5 else (1.5 if scale_ratio < 0.85 else 1.0)
-        g_scale = 1.0 if scale_ratio < 0.6 else max(0.012, min(1.0, reg.res_ema / 0.10))
+        iso_gate = max(0.0, min(1.0, (reg.iso_err_ema - 0.22) / 0.45)) if (sigma_z > 0.0 and dim == 2 and mu_for_a.shape[1] in (2, 4)) else 0.0
+        g_scale = 1.0 if scale_ratio < 0.6 else max(0.012, min(1.0, max(reg.res_ema / 0.10, 0.28 * iso_gate)))
         prior_scale = 1.0
         gan_blend = 0.15
 
@@ -841,8 +888,15 @@ def t4_arch_step(
         + float(recipe.t1_iso_weight) * loss_iso
         + (2.0 * pb_w) * loss_env
     )
-    if not use_part_b and has_trainable_table and recipe.prior_l2 > 0:
-        loss_g = loss_g + recipe.prior_l2 * base_prior.z.square().mean()
+    if not use_part_b and has_trainable_table:
+        if not is_point and recipe.prior_reg > 0:
+            loss_g = loss_g + recipe.prior_regularization(
+                latent,
+                regularizer=trainer.prior_regularizer,
+                prior=trainer.prior,
+            )
+        elif recipe.prior_l2 > 0:
+            loss_g = loss_g + recipe.prior_l2 * base_prior.z.square().mean()
 
     prior_manip_loss = None
     if trainer._prior_penalty:
@@ -917,7 +971,11 @@ def t4_arch_step(
                 psi_cap = 2.5 * float(dim) * r_mac_sq + 0.5
                 reg.psi.clamp_(-psi_cap, psi_cap)
 
-                v_mu_star_k = (reg.proto_var - reg.v_push).clamp_min(0.0) if sigma_z > 0.0 else reg.proto_var
+                v_mu_star_k = (
+                    (reg.proto_var.unsqueeze(1) - reg.v_push).clamp_min(0.0)
+                    if sigma_z > 0.0
+                    else reg.proto_var.unsqueeze(1).expand(-1, dim)
+                )
                 xi_raw = _deterministic_box_muller(u_rows, dim, torch.float32).to(xu_det.device)
                 cnt_k = torch.bincount(k_star, minlength=k_modes).float()
                 xi_sum = torch.zeros((k_modes, dim), device=xu_det.device, dtype=torch.float32).index_add_(0, k_star, xi_raw)
@@ -926,7 +984,7 @@ def t4_arch_step(
                 xi_mean[cnt2] = xi_sum[cnt2] / cnt_k[cnt2].unsqueeze(1)
                 xi_centered = xi_raw - xi_mean[k_star]
 
-                c_targ = (reg.proto_c[k_star] + v_mu_star_k[k_star].sqrt().unsqueeze(1) * xi_centered).to(x_u.dtype)
+                c_targ = (reg.proto_c[k_star] + v_mu_star_k[k_star].sqrt() * xi_centered).to(x_u.dtype)
                 sc_all = reg.proto_var.clamp_min(1e-10).sqrt()
                 sc_u = sc_all[k_star]
                 dist_u = (xu_det - c_targ.float()).norm(dim=-1)
@@ -950,20 +1008,56 @@ def t4_arch_step(
                 base_prior.z.grad.zero_()
             (loss_mu_total * float(len(u_rows))).backward()
 
-            # Coordinatewise Dead-Jacobian latent recovery for particles trapped on flat clamp/ReLU walls (dG/dz_j == 0)
+            # Coordinatewise Dead-Jacobian latent recovery for particles trapped on flat clamp/saturation walls
             with torch.no_grad():
                 if base_prior.z.grad is not None:
                     gu = base_prior.z.grad[u_rows]
-                    far_mask = (dist_u > 1.5 * math.sqrt(float(dim)) * sc_u).unsqueeze(1)
-                    dead_coord = far_mask & (gu.float().abs() <= 1e-9)
-                    if bool(dead_coord.any()):
-                        live_coord = ~dead_coord
-                        live_cnt = live_coord.float().sum(dim=0, keepdim=True).clamp_min(1.0)
-                        mu_ref = (mu_raw_u.detach() * live_coord.to(mu_raw_u.dtype)).sum(dim=0, keepdim=True) / live_cnt.to(mu_raw_u.dtype)
-                        inward_grad = 0.25 * (mu_raw_u.detach() - mu_ref)
-                        base_prior.z.grad[u_rows] = torch.where(dead_coord, inward_grad, gu)
-                        any_dead_row = dead_coord.any(dim=1)
-                        part_scale = torch.where(any_dead_row, torch.ones_like(part_scale), part_scale)
+                    far_mask_1d = dist_u > (2.8 * math.sqrt(float(dim)) * sc_u)
+                    d_z_u = c_u.shape[1]
+                    if d_z_u <= 8 and bool(far_mask_1d.any()):
+                        far_idx = torch.nonzero(far_mask_1d, as_tuple=False).squeeze(-1)
+                        in_idx = torch.nonzero(~far_mask_1d, as_tuple=False).squeeze(-1)[:64]
+                        if in_idx.numel() < 4:
+                            in_idx = torch.arange(min(64, len(c_u)), device=c_u.device, dtype=torch.long)
+                        probe_idx = torch.cat([far_idx, in_idx], dim=0)
+                        c_probe = c_u[probe_idx].detach()
+                        x_probe = xu_det[probe_idx]
+                        out_sgn = torch.where(c_probe >= 0.0, 1.0, -1.0)
+                        eye_z = torch.eye(d_z_u, device=c_u.device, dtype=c_u.dtype)
+                        c_pert = (c_probe.unsqueeze(1) + (1e-3 * out_sgn).unsqueeze(2) * eye_z.unsqueeze(0)).reshape(-1, d_z_u)
+                        x_pert = _project_for_transport(
+                            trainer._postprocess(trainer.prior, trainer._generate(trainer.G, c_pert, 0.0, noise))
+                        ).float().reshape(len(probe_idx), d_z_u, dim)
+                        col_sens = (x_pert - x_probe.unsqueeze(1)).norm(dim=-1) / 1e-3
+                        s_far = col_sens[: len(far_idx)]
+                        s_in = col_sens[len(far_idx) :]
+                        s_ref_col = torch.quantile(s_in, 0.5, dim=0, keepdim=True).clamp_min(1e-6)
+                        dead_far = s_far < (0.04 * s_ref_col)
+                        if bool(dead_far.any()):
+                            mu_ref = c_u[in_idx].detach().mean(dim=0, keepdim=True)
+                            z_far = mu_raw_u[far_idx].detach()
+                            gu_far = gu[far_idx]
+                            g_mag = torch.maximum(gu_far.float().norm(dim=-1, keepdim=True), torch.ones_like(z_far[:, :1], dtype=torch.float32))
+                            inward_grad = (torch.sign(z_far - mu_ref).float() * g_mag).to(gu.dtype)
+                            gu_far_new = torch.where(dead_far, inward_grad, gu_far)
+                            gu_new = gu.clone()
+                            gu_new[far_idx] = gu_far_new
+                            base_prior.z.grad[u_rows] = gu_new
+                            any_dead_far = dead_far.any(dim=1)
+                            ps_new = part_scale.clone()
+                            ps_new[far_idx] = torch.where(any_dead_far, torch.ones_like(ps_new[far_idx]), ps_new[far_idx])
+                            part_scale = ps_new
+                    else:
+                        far_mask = far_mask_1d.unsqueeze(1)
+                        dead_coord = far_mask & (gu.float().abs() <= 1e-9)
+                        if bool(dead_coord.any()):
+                            live_coord = ~dead_coord
+                            live_cnt = live_coord.float().sum(dim=0, keepdim=True).clamp_min(1.0)
+                            mu_ref = (mu_raw_u.detach() * live_coord.to(mu_raw_u.dtype)).sum(dim=0, keepdim=True) / live_cnt.to(mu_raw_u.dtype)
+                            inward_grad = 0.5 * (mu_raw_u.detach() - mu_ref)
+                            base_prior.z.grad[u_rows] = torch.where(dead_coord, inward_grad, gu)
+                            any_dead_row = dead_coord.any(dim=1)
+                            part_scale = torch.where(any_dead_row, torch.ones_like(part_scale), part_scale)
 
             if hasattr(trainer.opt_g, "set_sampled_rows"):
                 trainer.opt_g.set_sampled_rows(base_prior.z, u_rows)

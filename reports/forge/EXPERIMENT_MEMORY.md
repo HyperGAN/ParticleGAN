@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1053. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1059. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4536,6 +4536,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 1.254
 
 [Evidence](../../reports/forge/technique-receipts/33bc62d63509425e9f7237ef19ee7374.json) · [Record](records/readout-28f0c9140b4cfeef57f23dd2.json)
 
+### t4-arch-v1 · readout-2b160a70b11093992b400283
+
+**Scope:** research_diagnostic; scientific; revision `4b40d6f2fa410d183846f22d7d8e147cdcdb01dbe6f2c549f7255d7a2cfebf0a`.
+
+Under one unchanged global clock-free SVD-free 1st-order recipe on protocol seed 0, t4-arch-v1 passes clockfree_audit_measurement_v1 (4/4), zero_tanh_smoke, zero_tanh_rail_escape (escape_mae <= 0.01 within 400 updates after step 1000 rail convergence), grid100, grid100_mlp16 (16-layer skip-free unnormalized LeakyReLU MLP), grid100_res16_tanh (16-layer unscaled identity-skip residual MLP + S=5.25 tanh head with saturated_fraction <= 0.001), and grid100_res16_scaled_tanh.
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 3}; wall seconds 3455.485; mechanism `structural`.
+
+grid100_res16_tanh: precision=0.98403, center_rms_sigma=0.1174, mass_tv=0.01543, radial_ks=0.017569; grid100: precision=0.98357, center_rms_sigma=0.073465, mass_tv=0.01454, radial_ks=0.011516
+
+t4-arch-v1 passed clockfree_audit_measurement_v1 (4/4), grid100 (precision=0.9836, center_rms=0.0735), and grid100_mlp16 (16-layer unnormalized skip-free MLP: precision=0.9847, center_rms=0.0933, cov_trace_bias=-0.0138, radial_ks=0.0086), while isolating three actionable findings: (1) zero_tanh_smoke hit non-deterministic CUDA median(dim=0) under use_deterministic_algorithms(True), (2) grid100_res16_tanh passed 100k holdout (precision=0.9840, sat=0.0) but cooled g_scale on center distance before residual blocks finished curving against boundary tanh anisotropy (n=20k eig=[0.212, 1.957]), and (3) grid100_res16_scaled_tanh reached center_rms=0.0667, cov_trace_bias=-0.0027, radial_ks=0.0059 with 12.1% particles trapped outside TanhRailGuard due to 1e-4 LayerNorm cross-talk exceeding |grad|<=1e-9.
+
+**Next:** Declare structural revision t4-arch-v2 replacing median(dim=0) with deterministic quantile, adding axis-aware pushforward variance compensation + isotropy-gated cooling for bounded tanh heads, and probing coordinate Jacobian column sensitivity ||dG/dz_j|| directly on far outlier rows.
+
+[Record and receipt provenance](records/readout-2b160a70b11093992b400283.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2-repair-control-20261022 · readout-2b96c09667e7a4aef944ce96
 
 **Scope:** research_diagnostic; scientific; revision `3cca6de5d931b16469b0ef0fedbc0b5cb21f55b8af202a7868e94277fcef2037`.
@@ -6440,6 +6456,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 
 [Record and receipt provenance](records/readout-946a921be2625c9d807c6d1f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t4-arch-v3 · readout-95d61950559e6e35c77b9df3
+
+**Scope:** current; scientific; revision `0ff04720aaefda7c1aebb938b17bbfea77d7f694d94499e1a4a9f9d281383b78`.
+
+Unchanged global clock-free SVD-free 1st-order t4-arch-v3 clears all 11/11 required Tier 1 gates of discriminator_stability (converting model_vae_categorical to PASS with decoder_mean_mass_tv <= 0.15 while retaining model_ae_gan_multimodal, ring16_acquisition, gaussian1d_smoke, five_word_joint_smoke, two_pole, and zero_tanh_smoke) and executes all 25 Tier 2 discriminator_stability tasks under protocol seed 0.
+
+**Observed:** {'FAIL': 15, 'PASS': 26}; wall seconds 3341.32; mechanism `structural`.
+
+img_blobs4: modes=4, hq=1; ae_gan_hold: recon_mse=0.0031617
+
+Prediction observed: unchanged global clock-free SVD-free 1st-order t4-arch-v3 passed 11/11 (100%) required Tier 1 gates (including model_vae_categorical likelihood_hq=0.9988, mass_tv=0.0698; model_ae_gan_multimodal precision=0.9631, center_rms=0.7171; ring16_acquisition cov_err=0.2597; two_pole grad_med=0.5572; five_word_joint_smoke; zero_tanh_smoke; gaussian1d_smoke) + clockfree_audit_measurement_v1 (4/4 parity), and unlocked all 25 Tier 2 tasks with zero BLOCKED/ERROR/TIMEOUT, achieving 26/41 total Tier 1-2 PASS (+2 over empf-v8 24/41, +5 over t2-secant-v5 21/41), including all three 100-cluster lattices grid100 (prec=0.9816, bias=-0.0285), rotated100 (crms=0.0709, bias=-0.0279), and staggered100 (crms=0.0684, bias=-0.0256), plus vector_unequal_width (cov_err=0.2413), img_bars4 (4/4 modes, hq=0.9688, tv=0.0625), img_blobs4 (4/4, hq=1.0), img_stripes2, vector_overlap (sw1=0.0684), vector_two_broad, and vector_spiral.
+
+**Next:** Publish reports/forge/studies/t4-strange-architectures.md, refresh generated Forge summaries and view pages, run full lint/governance/pytest verification, and open PR against develop.
+
+[Record and receipt provenance](records/readout-95d61950559e6e35c77b9df3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p-bcap-matched-v1 · readout-95e0cdfdc2f043a0046285c1
 
 **Scope:** calibration_diagnostic; scientific; revision `5db772f81cafe59b642b5707e600380fb49c3d42623b5c769e03dd677bbbfafd`.
@@ -7079,6 +7111,22 @@ Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v2 (PASS 6/6: 
 **Next:** Retain source-bound performance readout and advance to t1-coupling-v3 to raise the in-basin cross-chart rebalancing deadband from 1.15 SE to 2.8 SE gated by thermal disequilibrium.
 
 [Record and receipt provenance](records/readout-b5b0255afd0d8014b7e3684e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-arch-v3 · readout-b71204af30cb84dc9713fece
+
+**Scope:** research_diagnostic; scientific; revision `0ff04720aaefda7c1aebb938b17bbfea77d7f694d94499e1a4a9f9d281383b78`.
+
+Verify that zero-sync batched Quintic Newton-Schulz T4EquilibratedOptimizer + 1st-order T2Secant + BF16 channels-last achieves 6/6 finite updates with minimal step time and VRAM footprint across 32^2..256^2 RGB DCGAN tasks under one global clock-free recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 68.898; mechanism `structural`.
+
+
+
+Prediction observed: unchanged global clock-free SVD-free 1st-order t4-arch-v3 achieved 6/6 PASS (finite_update_fraction=1.0) across dcgan_performance (r32..r256) on NVIDIA RTX A6000: r256 median 93.85 ms/step (p95=99.07 ms, 170.31 img/s, 1372.72 MiB allocated / 1410.00 MiB reserved), r128 67.20 ms/step (563.15 MiB), w128 64.43 ms/step (674.66 MiB), b64 54.66 ms/step (1171.37 img/s, 386.94 MiB), r64 56.86 ms/step (216.22 MiB), and r32 49.56 ms/step (84.37 MiB).
+
+**Next:** Run t4-arch-v3-study on discriminator_stability (through Tier 2) across GPUs 0,1.
+
+[Record and receipt provenance](records/readout-b71204af30cb84dc9713fece.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-b7acc4d7ec8bb9cb7dd704a8
 
@@ -7800,6 +7848,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-dbd37db03b844fa11e42af29.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t4-arch-v2 · readout-dbdfe2dd5ef42a8be8001ddc
+
+**Scope:** current; scientific; revision `20c99f89eb5ed3020ea2ca92678581de5b849a9f07fe5d9c7a9dcb77c8bb22ab`.
+
+One unchanged global SVD-free 1st-order clock-free recipe (t4-arch-v2) clears all 11/11 required Tier 1 gates of discriminator_stability (including ring16_acquisition <= 0.85, model_ae_gan_multimodal, model_vae_hard, five_word_joint_smoke, gaussian1d_smoke, two_pole, and zero_tanh_smoke) and executes Tier 2 discriminator_stability tasks (passing grid100, rotated100, staggered100, precision_gaussian_*, vector_*, and img_*) under protocol seed 0.
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 1390.278; mechanism `structural`.
+
+
+
+t4-arch-v2 cleared 10/11 required Tier 1 discriminator_stability gates (passing ring16_acquisition, model_ae_gan_multimodal 6/6 terminal suffix, model_ae_reconstruction, ae_gan_hold, model_vae_hard, five_word_joint_smoke, gaussian1d_smoke, two_pole, unused_token_hold, zero_tanh_smoke, plus clockfree_audit_measurement_v1), while isolating two exact interactions: (1) model_vae_categorical failed mass_tv (0.245 > 0.15) after removing encoder/router two-timescale step damping when splitting n_mat by role, and (2) precision_gaussian_fp32/mxfp8/nvfp4 reached cdf_ks=0.026 at step 1000 (10 passing observations) but crossed 0.05 on single steps due to O(1/sqrt(128)) minibatch mean jitter in 1D quantile targets.
+
+**Next:** Declare t4-arch-v3 restoring 0.55x two-timescale damping on encoder/router roles relative to generator G and stabilizing 1D K=1 quantile OT targets with the atlas Robbins-Monro streaming moments (proto_c[0], proto_var[0]), then run diagnostic, full Tier 1-2 discriminator_stability, and dcgan_performance.
+
+[Record and receipt provenance](records/readout-dbdfe2dd5ef42a8be8001ddc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2--7728cf93188b9fe122536244667789941da52d435cfb0a3ae42b90db200d7595 · readout-dc31730b85dde3cf85253359
 
 **Scope:** current; scientific; revision `059128df90e1bcb0af7f4596f5f9dd034686b171c24177f080a2b971e0f79fe2`.
@@ -7831,6 +7895,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-dc5a72705708c9da1685c19d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-arch-v3 · readout-dc890b704514d91effb156a6
+
+**Scope:** research_diagnostic; scientific; revision `0ff04720aaefda7c1aebb938b17bbfea77d7f694d94499e1a4a9f9d281383b78`.
+
+Unchanged global clock-free SVD-free 1st-order t4-arch-v3 retains 7/7 (100%) certified PASS on t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0 while supplying compatible receipts for discriminator_stability.
+
+**Observed:** {'PASS': 7}; wall seconds 2480.563; mechanism `structural`.
+
+grid100: precision=0.98155, center_rms_sigma=0.07433, mass_tv=0.01603, radial_ks=0.016032; grid100_res16_tanh: precision=0.98556, center_rms_sigma=0.11585, mass_tv=0.01511, radial_ks=0.016338
+
+Prediction observed: unchanged global clock-free SVD-free 1st-order t4-arch-v3 passed 7/7 (100%) tasks on t4-strange-architectures-v1 under protocol seed 0: clockfree_audit_measurement_v1 (4/4), zero_tanh_smoke (mae=0.00166, p99=0.01119, sat=0.0), zero_tanh_rail_escape (mae=0.00105 <= 0.005, p99=0.00652, sat=0.0), grid100 (precision=0.98155, center_rms=0.07433, score=0.33124), 16-layer unnormalized skip-free grid100_mlp16 (precision=0.98137, center_rms=0.09480, cov_trace_bias=-0.01710, radial_ks=0.01192, score=0.30097), 16-layer unscaled identity-skip residual grid100_res16_tanh (precision=0.98556, center_rms=0.11585, sat=0.0), and grid100_res16_scaled_tanh (precision=0.98681, center_rms=0.05527, score=0.28844, sat=0.0).
+
+**Next:** Run t4-arch-v3-study on discriminator_stability (through Tier 2, reusing compatible diagnostic receipts) and t4-arch-v3-dcgan-perf-study on dcgan_performance.
+
+[Record and receipt provenance](records/readout-dc890b704514d91effb156a6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v8 · readout-dcac6347fd2669483212c6db
 
@@ -7879,6 +7959,22 @@ Both800-update diagnostics FAIL movement: original-schedule .0896976665 and stre
 **Next:** See reports/forge/k3p-two-pole-horizon-v1/README.md and saved force analysis. Retain the main gate and family selection. Investigate existing global critic/particle balance before any new separately bounded search; no automatic follow-on work.
 
 [Record and receipt provenance](records/readout-dd6ff59094d1d766c5b0fe2b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-arch-v2 · readout-e1de5ae1858206d0810866db
+
+**Scope:** research_diagnostic; scientific; revision `20c99f89eb5ed3020ea2ca92678581de5b849a9f07fe5d9c7a9dcb77c8bb22ab`.
+
+With deterministic CUDA quantile sensitivity, axis-aware [K, D] pushforward variance compensation + isotropy-gated cooling, and direct outward coordinate Jacobian sensitivity probing on far outlier rows, unchanged global clock-free SVD-free t4-arch-v2 passes all 7/7 tasks of t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0.
+
+**Observed:** {'PASS': 7}; wall seconds 2614.621; mechanism `structural`.
+
+grid100_res16_tanh: precision=0.98556, center_rms_sigma=0.11585, mass_tv=0.01511, radial_ks=0.016338; grid100: precision=0.98155, center_rms_sigma=0.07433, mass_tv=0.01603, radial_ks=0.016032
+
+Prediction observed: unchanged global clock-free SVD-free 1st-order t4-arch-v2 passed 7/7 (100%) tasks on t4-strange-architectures-v1 under protocol seed 0: clockfree_audit_measurement_v1 (4/4), zero_tanh_smoke (mae=0.00166, p99=0.01119, sat=0.0), zero_tanh_rail_escape (mae=0.00105 <= 0.005, p99=0.00652, sat=0.0), grid100 (precision=0.98155, center_rms=0.07433, score=0.33124), 16-layer unnormalized skip-free grid100_mlp16 (precision=0.98137, center_rms=0.09480, cov_trace_bias=-0.01710, radial_ks=0.01192, score=0.30097), 16-layer unscaled identity-skip residual grid100_res16_tanh (precision=0.98556, center_rms=0.11585, cov_frob_rms=0.09546, sat=0.0), and grid100_res16_scaled_tanh (precision=0.98681, center_rms=0.05527, radial_ks=0.01383, score=0.28844, sat=0.0).
+
+**Next:** Run t4-arch-v2-study on discriminator_stability (through Tier 2) and t4-arch-v2-dcgan-perf-study on dcgan_performance under the identical unchanged t4-arch-v2 recipe.
+
+[Record and receipt provenance](records/readout-e1de5ae1858206d0810866db.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-e2a893a94b380b21b52fde5c
 
@@ -8998,4 +9094,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `00bae16f894cbce383a238bb72dccd2f7eb779d150f9ab7c32c65a405bc522d2`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `1384d5b5bd643ffdbbaa9925a1d52f2fb0c4a1d2d7e1887622b3103e8f898932`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
