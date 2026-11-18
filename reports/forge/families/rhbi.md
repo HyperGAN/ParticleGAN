@@ -1689,6 +1689,44 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1"></a>
+
+## rhbi-raw-assignment-retention-v1
+
+**rhbi-raw-assignment-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-raw-assignment-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
+| [interp_img_patch_shift](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) | diagnostic | PASS | matches recorded run |
+| [interp_saddle_barycentric](rhbi.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) | diagnostic | PASS | matches recorded run |
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-23a94f16ca88-rhbi-retention-trajectory-arc-v1"></a>
 
 ## rhbi-retention-trajectory-arc-v1
@@ -3559,7 +3597,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3613,7 +3651,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metrics:
 
@@ -5861,7 +5899,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
+Used by: [adaptation / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](rhbi.md#cohort-cuda-23a94f16ca88-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](rhbi.md#cohort-cuda-23a94f16ca88-rhbi-texture-retention-v1-tier-1).
 
 Recorded final metric checks:
 

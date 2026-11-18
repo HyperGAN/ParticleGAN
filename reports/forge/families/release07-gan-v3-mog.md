@@ -1646,6 +1646,44 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1"></a>
+
+## rhbi-raw-assignment-retention-v1
+
+**rhbi-raw-assignment-retention-v1 — revision 1**. [View declaration](../../../configs/forge/views/rhbi-raw-assignment-retention-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Selected retention tasks at one protocol seed. Independent confirmation and calibration remain open.
+
+<a name="cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [vector_unequal_mass](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | changed since run |
+| [interp_img_patch_shift](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-experiment-interp_img_patch_shift) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_saddle_barycentric](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-7f9c23eb0e27-rhbi-retention-trajectory-arc-v1"></a>
 
 ## rhbi-retention-trajectory-arc-v1
@@ -3319,7 +3357,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -3351,7 +3389,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-particle_interpolation_stretch-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
+Used by: [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-particle_interpolation_stretch-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
 
 Current pass criteria:
 
@@ -5149,7 +5187,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
+Used by: [adaptation / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [rhbi-raw-assignment-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-raw-assignment-retention-v1-tier-1) · [rhbi-retention-trajectory-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-retention-trajectory-v1-tier-1) · [rhbi-texture-retention-v1 / Tier 1](release07-gan-v3-mog.md#cohort-cuda-7f9c23eb0e27-rhbi-texture-retention-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 

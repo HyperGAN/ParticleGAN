@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1041. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1044. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -5112,6 +5112,22 @@ confirmed_positive: rhbi-v12 passed 34/41 executed discriminator_stability tasks
 
 [Record and receipt provenance](records/readout-47591bd9555febfe3409fd0d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-raw-assignment · readout-47ae4e9c8c2e782e4747f222
+
+**Scope:** research_diagnostic; scientific; revision `32d3754dcdb2e1ee05e4fbce44aebe4e6a5eab8f5208ae05bd6350ad1caf6d37`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 2, 'PASS': 1}; wall seconds 145.257; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99219, mass_tv=0.087549
+
+Unequal mass passed for 19 consecutive observations. Moving patch passed four of the five terminal observations and saddle passed one. The final patch peak was 0.77374 against 0.78. The all-retention hypothesis failed.
+
+**Next:** Keep CIFAR on hold. Probe raw versus feature attraction on matched saved states to localize the saddle-interior deficit before selecting a trainer delta.
+
+[Record and receipt provenance](records/readout-47ae4e9c8c2e782e4747f222.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-47b63d833c3093305f9af42b
 
 **Scope:** research_diagnostic; scientific; revision `c1506a6c0a6d0a64cca6cd274ef1eeddcd71ecc9305fd17c96bf000576d4fc43`.
@@ -5287,6 +5303,22 @@ This exact global configuration failed the first two_pole movement gate. Tier1 i
 **Next:** Bounded global search concluded. Retain the exact historical family incumbent as unqualified evidence. No further paid stage is authorized; require a separate bounded global proposal before any continuation.
 
 [Record and receipt provenance](records/readout-4e44570c882c7d07bbddc813.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-4eed35ca04c58e48dcea5195
+
+**Scope:** research_diagnostic; scientific; revision `2b1a242e6f27dbdce22befc1d0ab7df7686813f6ddebd2ab758f26dd19c0e79a`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 147.495; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99023, mass_tv=0.087549
+
+Raw RHBI passed all five terminal patch and saddle checks. It failed sustained unequal mass. The minimum eigenvalue ratio fell below 0.15 at updates 1100 and 1150 and the final passing suffix was one.
+
+**Next:** Retain raw RHBI as the matched interpolation control for diagnostics. Use the observed width failure for comparisons under this contract.
+
+[Record and receipt provenance](records/readout-4eed35ca04c58e48dcea5195.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-4f82f909f64b3d97917d6b1a
 
@@ -7848,6 +7880,22 @@ All six declared DCGAN mock-data performance workloads completed their finite pu
 
 [Evidence](../../reports/forge/scaling-receipts/dcgan-performance-cloud-v2/ka2-dcgan_performance_b64-0dcd26728de3eb07.json) · [Record](records/readout-e6e872f73024fd6c0b2b2d42.json)
 
+### rhbi-v12-feature-raw-self · readout-e77a1c6bb3e4b9bf185d0dc1
+
+**Scope:** research_diagnostic; scientific; revision `401981261850a29a13b8871878c7be8fabdd93b7b1fe3154fdc60ec611797397`.
+
+Raw assignment with feature attraction retains all six bounds at the last five observations on each of unequal mass, moving patch and saddle. Both same-source controls provide context for any shared failures.
+
+**Observed:** {'FAIL': 2, 'PASS': 1}; wall seconds 180.713; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98926, mass_tv=0.091455
+
+The parent sustained all six unequal-mass bounds for 19 observations. It passed four of five terminal patch checks and zero saddle checks. Its final patch peak met the single numerical prediction, while step 734 missed and failed the full gate.
+
+**Next:** Retain this matched parent as the feature-assignment control for frozen-state diagnostics.
+
+[Record and receipt provenance](records/readout-e77a1c6bb3e4b9bf185d0dc1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-e838608cfd803f50b58f4e21
 
 **Scope:** research_diagnostic; scientific; revision `9c4c532b8c3773b5f17b7b2ec3f5729d4920bd9b6e409609b7da88059ea3fa2f`.
@@ -8806,4 +8854,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `e0af2303625f389984da7467e2ff1f52ace5ceb11a5b18b9c56075706a6b0ecc`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `8aed120a5c3bfe15839ab4bc75b0f8c3db6fe3c7cf87733981e07c92dd9b9f2b`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

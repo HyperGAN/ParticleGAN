@@ -10,7 +10,7 @@ Using features only to select matches raised the high-frequency energy ratio to 
 
 The next matched comparison kept feature-based attraction and restored raw self-repulsion. It passed every terminal texture check with 94.1% clean textures at the endpoint and failed all five sparse-arc checks. [Raw self-repulsion results](raw-self/README.md).
 
-Switching the real–fake assignment and slack back to raw coordinates while preserving feature attraction passed both the texture and sparse-arc gates. The candidate reached 256/256 clean textures and 56/69 good arc interiors. [Matched raw-assignment study](raw-assignment/README.md).
+Raw real–fake assignment with feature attraction produced 256/256 clean textures, passed 56/69 sparse-arc interiors and sustained unequal-mass width. It failed moving-patch sharpness and saddle interior quality. [Five-task comparison and research decision](raw-assignment/README.md).
 
 ## Frozen decision
 

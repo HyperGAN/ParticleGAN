@@ -1,12 +1,14 @@
-# Can raw matching preserve texture and recover arc interpolation?
+# Does raw assignment preserve texture across the RHBI retention tasks?
 
-**Raw matching with feature-based attraction passed both the 32×32 texture and sparse-arc gates.** Each gate held at all five terminal observations. At the final image evaluation, 256/256 generated samples passed the clean-texture criterion. The arc model learned all 12 endpoints and passed 56/69 chord interiors. [Texture measurements](texture.json) · [Arc measurements](arc.json)
+**Raw assignment with feature attraction passed texture, sparse arc and unequal-mass width. It failed moving-patch sharpness and saddle interpolation.** Raw RHBI passed both of those interpolation tasks, while its texture collapsed and its rare-mode width fell below the threshold. All five tasks used the same global recipe per arm and protocol seed 0. [Texture measurements](texture.json) · [Arc measurements](arc.json) · [Remaining retention measurements](retention/results.json)
 
-| Recipe | Texture gate | Clean textures at update 288 | High-frequency energy ratio | Arc gate | Good interiors at update 600 |
-| --- | --- | ---: | ---: | --- | ---: |
-| Raw assignment, feature attraction | [PASS 5/5](../../records/readout-2a638eb3fa03819e6015bfcd.json) | 256/256 | 0.7055 | [PASS 5/5](../../records/readout-68041f47a43e69a562505633.json) | 56/69 |
-| Feature assignment and attraction (parent) | [PASS 5/5](../../records/readout-69e232cfff5c56be8649104f.json) | 241/256 | 0.6700 | [FAIL 0/5](../../records/readout-c083425e72ca647a8b8613cf.json) | 51/69 |
-| Raw RHBI-v12 | [FAIL 0/5](../../records/readout-b95be1e653ca6b69470c481b.json) | 0/256 | 0.0086 | [PASS 5/5](../../records/readout-3faa4a64e574f0506bfa33d4.json) | 53/66 |
+| Recipe | Texture | Sparse arc | Unequal mass | Moving patch | Saddle |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Raw assignment, feature attraction | [5/5](../../records/readout-2a638eb3fa03819e6015bfcd.json) | [5/5](../../records/readout-68041f47a43e69a562505633.json) | 5/5 | 4/5 | [1/5](../../records/readout-47ae4e9c8c2e782e4747f222.json) |
+| Feature assignment and attraction (parent) | [5/5](../../records/readout-69e232cfff5c56be8649104f.json) | [0/5](../../records/readout-c083425e72ca647a8b8613cf.json) | 5/5 | 4/5 | [0/5](../../records/readout-e77a1c6bb3e4b9bf185d0dc1.json) |
+| Raw RHBI-v12 | [0/5](../../records/readout-b95be1e653ca6b69470c481b.json) | [5/5](../../records/readout-3faa4a64e574f0506bfa33d4.json) | 3/5 | 5/5 | [5/5](../../records/readout-4eed35ca04c58e48dcea5195.json) |
+
+Each cell counts the last five observations at which every bound passed. All five are required. The texture and arc columns come from their original six runs. The other columns come from nine same-source runs. At the final image evaluation, the candidate, parent and raw RHBI produced 256, 241 and 0 clean textures out of 256 respectively. Their high-frequency energy ratios were 0.7055, 0.6700 and 0.0086. At the final arc evaluation, they passed 56/69, 51/69 and 53/66 interiors respectively. [Retention report and actual-training GIFs](retention/README.md)
 
 At the last five image observations, 93.75% to 100% of the candidate's samples were clean and both orientations appeared each time. Final class mass TV was 0.1563 (ceiling 0.18), and phase diversity was 0.7712 (floor 0.40). Across both tasks each control reproduced all 24 of its earlier observations exactly. The six runs consumed 2,664 updates and 297.40 worker-seconds. [Texture training GIF](texture-training.gif) · [Arc training GIF](arc-training.gif)
 
@@ -18,7 +20,7 @@ On the parent's own inputs, replacing its assignment with raw matching moved at 
 
 ## Research decision
 
-Advance this fixed recipe to the remaining matched retention tasks covering unequal-mass rare-mode width, moving image patch and saddle interpolation. The prior rare-width comparison failed in the raw baseline as well, so include the same-source controls. The result here establishes recovery on two selected synthetic tasks at seed 0. CIFAR quality and independent confirmation remain open. [Prior retention results](../README.md)
+Keep CIFAR on hold. The candidate preserved rare-mode width for 19 consecutive checks. Its final moving-patch peak was 0.7737 against a floor of 0.78, and only 53/71 saddle interiors met the quality criterion at the final check. Raw RHBI passed 59/71 on the same triangle row IDs. Next, use the saved states to compare how raw and feature attraction move the generated interiors. These five synthetic tasks are a selected diagnostic suite, and CIFAR quality and independent confirmation remain open. [Retention analysis](retention/README.md)
 
 The public setting for scalar marginal GANs with a supported critic head is `get_recipe("rhbi_optimized", rhbi_feature_transport="raw_assignment")`.
 
