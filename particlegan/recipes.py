@@ -462,8 +462,8 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback or rgdt")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt", "t4_arch"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback, rgdt or t4_arch")
         for t1_name, t1_pos in (
             ("t1_pullback_weight", False),
             ("t1_iso_weight", False),
@@ -1617,6 +1617,17 @@ class Recipe:
             if self.prior_update == "frozen":
                 options["weight"] = 0.
             return RGDTPriorRegularizer(reference, **options)
+        if self.prior_regularizer == "t4_arch":
+            from ._t4_arch import T4ArchPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "eps": self.prior_reg_eps, "max_prototypes": self.t1_max_prototypes, **overrides}
+            if prior is not None and hasattr(prior, "_empf_record"):
+                options.setdefault("empf_record", prior._empf_record)
+            if prior is not None and hasattr(prior, "z"):
+                options.setdefault("bound_device", prior.z.device)
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            return T4ArchPriorRegularizer(reference, **options)
         if self.prior_regularizer == "coulomb":
             from .coulomb_prior import CoulombPriorRegularizer, coulomb_reference
             options = {"weight": self.prior_reg, "softening": self.prior_coulomb_softening,
@@ -1681,7 +1692,7 @@ class Recipe:
             state = regularizer.state_dict()
             if state:
                 return {"prior_regularizer": state}
-        if (self.prior_regularizer == "t1_pullback"
+        if (self.prior_regularizer in ("t1_pullback", "t4_arch")
                 and self.t1_pullback_weight > 0 and regularizer is not None):
             state = regularizer.state_dict()
             if state:
@@ -1735,7 +1746,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "t4_arch") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -2056,6 +2067,29 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     }
     presets["t2_secant"] = {
         **presets["empf"], "critic_formulation": "t2_secant",
+    }
+    presets["t4_arch"] = {
+        **presets["bcap_adam"],
+        "critic_formulation": "t2_secant",
+        "reg_arm": None,
+        "optimizer_family": "t4_equil",
+        "loss": "non_saturating",
+        "lr": 0.016,
+        "d_lr_mult": 1.25,
+        "prior_lr_mult": 3.75,
+        "betas": (0.80, 0.97),
+        "ebi_beta": 6.0,
+        "training_precision": "bf16_channels_last",
+        "lr_schedule": "cosine",
+        "prior_regularizer": "t4_arch",
+        "prior_reg": 0.01,
+        "t1_pullback_weight": 1.0,
+        "t1_iso_weight": 0.40,
+        "t1_laguerre_lr": 0.015,
+        "t1_prior_row_lr": 0.06,
+        "t1_max_prototypes": 256,
+        "routing_temperature": 0.25,
+        "ucd_weight": 0.02,
     }
     presets["rhbi"] = {
         **presets["bcap"], "critic_formulation": "rhbi", "reg_arm": None,
