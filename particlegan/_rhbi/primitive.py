@@ -655,6 +655,7 @@ class RHBILoss(nn.Module):
         feat_fake: Optional[torch.Tensor] = None,
         feat_real: Optional[torch.Tensor] = None,
         *,
+        feature_assignment_only: bool = False,
         record: Any = None,
         symmetric: bool = False,
         allow_ell_update: bool = True,
@@ -696,6 +697,9 @@ class RHBILoss(nn.Module):
             if g_macro_fwd > 1e-4:
                 defer_thermal = True
 
+        if feature_assignment_only and (feat_fake is None or feat_real is None or symmetric
+                                        or cond_fake is not None or cond_real is not None):
+            raise ValueError("Feature assignment requires marginal real and fake features")
         y_target = y_real if symmetric else y_real.detach()
         if feat_fake is not None and feat_real is not None:
             f_real = feat_real if symmetric else feat_real.detach()
@@ -782,8 +786,17 @@ class RHBILoss(nn.Module):
                         ell_x_loc = (ell_f_base + s_near * (near_ell - ell_f_base)).to(ell.dtype)
                         ell_xy = torch.sqrt(ell_x_loc.unsqueeze(1) * ell_y_loc.unsqueeze(0))
 
-        c_phys_xy, c_hat_xy = self._born_infeld_pair(x_aug, y_aug, ell_xy)
-        c_phys_xx, c_hat_xx = self._born_infeld_pair(x_aug, x_aug, ell)
+        if feature_assignment_only:
+            # The generator treats the augmented cross-plan as a fixed assignment.
+            # Motion, the support-completion distance and self transport use raw coordinates.
+            with torch.no_grad():
+                _, cross_assignment_cost = self._born_infeld_pair(x_aug, y_aug, ell_xy)
+            c_phys_xy, c_hat_xy = self._born_infeld_pair(x_fake, y_target, ell_xy)
+            c_phys_xx, c_hat_xx = self._born_infeld_pair(x_fake, x_fake, ell)
+        else:
+            c_phys_xy, c_hat_xy = self._born_infeld_pair(x_aug, y_aug, ell_xy)
+            c_phys_xx, c_hat_xx = self._born_infeld_pair(x_aug, x_aug, ell)
+            cross_assignment_cost = c_hat_xy
 
         d_fake_tilde, d_real_tilde = self._centered_log_odds(
             d_fake, d_real, ell=ell, detach_real=not symmetric
@@ -792,7 +805,7 @@ class RHBILoss(nn.Module):
         mask_xy = self._discrete_pair_mask(cond_fake, cond_real, b_f, b_r)
         mask_xx = self._discrete_pair_mask(cond_fake, cond_fake, b_f, b_f)
         P_xy = self._sinkhorn_slack(
-            c_hat_xy, d_fake_tilde.detach(), d_real_tilde.detach(), hollow=False, pair_mask=mask_xy
+            cross_assignment_cost, d_fake_tilde.detach(), d_real_tilde.detach(), hollow=False, pair_mask=mask_xy
         )
         use_hollow = self.self_coupling == "hollow"
         dedup_xx = self.self_coupling == "feydy_unique" or (
@@ -969,7 +982,7 @@ class RHBILoss(nn.Module):
         with torch.no_grad():
             m_vals = torch.stack([
                 P_xy_act.float().sum(),
-                (P_xy_act * (c_hat_xy > self.rho).to(P_xy_act.dtype)).float().sum(),
+                (P_xy_act * (cross_assignment_cost > self.rho).to(P_xy_act.dtype)).float().sum(),
                 ell.float(),
             ]).tolist()
         active_rate = float(m_vals[0])

@@ -2,6 +2,7 @@
 import math
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass, fields, replace
+from typing import Literal
 try:
     from .recipe_compat import SEARCH_RECIPE_DEFAULTS
     SEARCH_RECIPE_DEFAULTS["generator_gradient_response"] = "none"
@@ -365,7 +366,7 @@ class Recipe:
     rhbi_cond_step_damp: float = 0.0
     rhbi_ae_coord_whiten: bool = False
     rhbi_support_completion: bool = False
-    rhbi_feature_transport: bool = False
+    rhbi_feature_transport: bool | Literal["assignment_only"] = False
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -659,8 +660,8 @@ class Recipe:
             raise ValueError("rhbi_simplex_curve_settle must be a boolean")
         if type(self.rhbi_ae_coord_whiten) is not bool:
             raise ValueError("rhbi_ae_coord_whiten must be a boolean")
-        if type(self.rhbi_feature_transport) is not bool:
-            raise ValueError("rhbi_feature_transport must be a boolean")
+        if type(self.rhbi_feature_transport) is not bool and self.rhbi_feature_transport != "assignment_only":
+            raise ValueError("rhbi_feature_transport must be a boolean or 'assignment_only'")
         if self.rhbi_feature_transport and (
             self.effective_critic_formulation != "rhbi" or self.rhbi_weight <= 0
             or self.model != "gan" or self.conditioning != "scalar" or self.encoder_mode != "none"

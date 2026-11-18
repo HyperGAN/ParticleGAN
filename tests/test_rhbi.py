@@ -2111,9 +2111,55 @@ def test_rhbi_feature_transport_formula_and_missing_capture():
         trainer.loss.scalar_feature_head(nn.Sequential(nn.Linear(2, 2), nn.ReLU()))
 
 
-def test_rhbi_feature_transport_exact_continuation():
+def test_rhbi_feature_assignment_matches_fixed_cross_plan_raw_loss_and_gradient(monkeypatch):
+    recipe = get_recipe("rhbi_optimized", z_dim=2, num_particles=64, rhbi_feature_transport="assignment_only")
+    g, d, _ = _make_mlp_pair()
+    trainer = GANTrainer(recipe, g, d, seed=0)
+    x = torch.tensor([[1., 2.], [0., -1.], [-1., 1.], [2., -1.]], requires_grad=True)
+    y = x.detach().flip(0) * 0.8
+    fake, real = trainer._generator_score(x), trainer._generator_score(y)
+    record = trainer.opt_d.record
+    record._in_protected_probe = True
+    op = trainer.loss.rhbi
+    loss = trainer.loss.g_loss(fake, real)
+    grad = torch.autograd.grad(loss, x, retain_graph=True)[0]
+
+    # Rebuild the feature cross-cost independently. Insert only its fixed plan
+    # into the raw parent objective, which supplies both motion and self-repulsion.
+    hf, hr = d[:-1](x).detach(), d[:-1](y).detach()
+    radius = (hr - hr.mean(0)).square().sum(1).mean().sqrt()
+    xf = torch.cat((x.detach(), (hf - hr.mean(0)) / radius), dim=1)
+    yr = torch.cat((y, (hr - hr.mean(0)) / radius), dim=1)
+    ell = x.new_tensor(1.)
+    augmented_hat = op._born_infeld_pair(xf, yr, ell)[1]
+    raw_hat = op._born_infeld_pair(x, y, ell)[1]
+    raw_self = op._born_infeld_pair(x, x, ell)[1]
+    solve = op._sinkhorn_slack
+    calls = []
+    def fixed_cross(hat, rows, cols, **options):
+        calls.append(hat)
+        if len(calls) == 1:
+            torch.testing.assert_close(hat, raw_hat)
+            plan = solve(augmented_hat, rows, cols, **options)
+            assert (plan - solve(raw_hat, rows, cols, **options)).abs().max() > 1e-6
+            return plan
+        torch.testing.assert_close(hat, raw_self)
+        return solve(hat, rows, cols, **options)
+    monkeypatch.setattr(op, "_sinkhorn_slack", fixed_cross)
+    ref, _ = op(x, y, fake, real, record=record, allow_ell_update=False)
+    assert len(calls) == 2
+    torch.testing.assert_close(loss, ref)
+    torch.testing.assert_close(grad, torch.autograd.grad(ref, x)[0])
+    with pytest.raises(ValueError, match="captured"):
+        trainer.loss.g_loss(d(x), d(y))
+    with pytest.raises(ValueError, match="rhbi_feature_transport"):
+        recipe.replace(rhbi_feature_transport="unknown")
+
+
+@pytest.mark.parametrize("mode", [True, "assignment_only"])
+def test_rhbi_feature_transport_exact_continuation(mode):
     recipe = get_recipe("rhbi_optimized", batch_size=16, z_dim=2, num_particles=64,
-                        rhbi_feature_transport=True)
+                        rhbi_feature_transport=mode)
     rng = torch.Generator().manual_seed(0)
     def build(recipe, initial):
         g, d, _ = _make_mlp_pair(seed=initial)
@@ -2126,6 +2172,8 @@ def test_rhbi_feature_transport_exact_continuation():
     resumed.load_state_dict(saved)
     with pytest.raises(ValueError, match="recipe"):
         build(recipe.replace(rhbi_feature_transport=False), 1).load_state_dict(saved)
+    with pytest.raises(ValueError, match="recipe"):
+        build(recipe.replace(rhbi_feature_transport=True if mode == "assignment_only" else "assignment_only"), 1).load_state_dict(saved)
     batch = torch.randn(16, 2, generator=rng)
     original.step(batch)
     resumed.step(batch)

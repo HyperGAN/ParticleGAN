@@ -126,7 +126,7 @@ def technique_signature(value):
             if recipe.rhbi_simplex_curve_settle:
                 mechanisms["rhbi_simplex_curve_settle"] = True
     if recipe.rhbi_feature_transport:
-        mechanisms["rhbi_feature_transport"] = True
+        mechanisms["rhbi_feature_transport"] = recipe.rhbi_feature_transport
     if recipe.rhbi_weight > 0 and recipe.rhbi_support_completion:
         mechanisms["rhbi_support_completion"] = True
     if recipe.rhbi_ae_coord_whiten:

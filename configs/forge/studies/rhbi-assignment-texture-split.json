@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-assignment-texture-split",
+  "status": "ready",
+  "candidate": "rhbi-v12-feature-assignment",
+  "control": {
+    "candidate_id": "rhbi-v12-feature-transport",
+    "task_map": {}
+  },
+  "hypothesis": "On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.",
+  "scope": {
+    "view": "rhbi-texture-feature-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-assignment-texture-v1",
+    "budget_seconds": 900,
+    "candidate_budget_seconds": 300
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/rhbi-texture-feature/trajectory/results.json",
+      "selector": [],
+      "identity": {
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": ">=",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": "<",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "competing_explanation": "The feature-space generator derivative or the feature self-coupling is necessary to acquire texture even when augmented cross pair assignment distinguishes blur.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}
