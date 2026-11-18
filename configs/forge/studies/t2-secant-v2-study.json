@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t2-secant-v2-study"
+  },
+  "candidate": "t2-secant-v2",
+  "competing_explanation": "If single-tangent spatial-frame pooling across nearest basis-slot neighbors introduces cross-sample spatial smoothing bias on multi-mode manifolds or 170D word simplexes, then t2-secant-v2 will either fail five_word_joint_smoke / five_word_joint_hold (< 0.9995 minimum reconstruction token probability) or degrade ring16_acquisition / two_pole.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": "<",
+    "phase": "final",
+    "task_id": "five_word_joint_smoke",
+    "threshold": 0.9
+  },
+  "hypothesis": "Spatial-Frame Forward-Mode Tangent Reconstruction (Weyl-rotated O(d) orthonormal frame for d <= 8 and Murmur32 Rademacher + local k-NN Hutchinson pooling for d > 8 via torch.autograd.forward_ad, paired with live-endpoint reuse + separable Rademacher BF16 micro-secants and 8x8 pooled Chamfer moments on images) clears all 11/11 required + 2/2 diagnostic Tier 1 discriminator_stability gates including five_word_joint_smoke (modes == 5, minimum_reconstruction_token_probability >= 0.90), gaussian1d_smoke, and two_pole (grad_med <= 1.0), unlocking full Tier 2 evaluation under protocol seed 0 with zero autograd.grad calls.",
+  "id": "t2-secant-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "five_word_joint_smoke",
+    "threshold": 0.99
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v1",
+        "candidate_revision": "9ca1bac688fed042c174903f459211fa8af459109df5668a2229ae0f15b89f9e"
+      },
+      "path": "reports/forge/records/readout-2d0a1240650dbb7b14eb74d1.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-33f7628135472eef06f0d92a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
