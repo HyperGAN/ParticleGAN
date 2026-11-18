@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1022. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1026. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4312,6 +4312,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-186c24688ccd9e1dbc108b9d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-transport · readout-1942d27fe6d2bb51cf94dd07
+
+**Scope:** research_diagnostic; scientific; revision `820b6d437545fe4a5b6bc8ab42ed1c293cc651b08bf68ee13b828008edb78d39`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 42.602; mechanism `structural`.
+
+vector_unequal_mass: hq=0.98169, mass_tv=0.097119
+
+The feature arm failed the sustained unequal-mass gate, with one passing terminal observation. Arc admission was blocked by the observer change to its pinned host source before any arc updates.
+
+**Next:** Restore the pinned interpolation host and capture at dispatch. Reserve only the outstanding arc cell.
+
+[Record and receipt provenance](records/readout-1942d27fe6d2bb51cf94dd07.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-1b511c8eec2bb40f41aee6ec
 
 **Scope:** research_diagnostic; scientific; revision `71405ef7cd9845970eb77c21283ef064e80ed8b099665a5b75e2a17b602cb7eb`.
@@ -5400,6 +5416,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-5dd930f8ee66504eac0787b1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-transport · readout-5e4c5c6abb5f177f32cf3316
+
+**Scope:** research_diagnostic; scientific; revision `a4dee55e52a8a4b805a417d3ebbf7433a0d15f4dd106afb234176ad162406904`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 36.631; mechanism `structural`.
+
+
+
+The feature arm failed all five terminal arc checks. Endpoint chord HQ was 0.7391. All 24 official observations matched its previous run.
+
+**Next:** Stop this revision. Investigate whether using features only to select matches and slack can preserve raw-coordinate movement, with full texture and retention gates.
+
+[Record and receipt provenance](records/readout-5e4c5c6abb5f177f32cf3316.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-prior-fresh-gaussian-v1 · readout-5ed4195bb58c87dc84a60827
 
 **Scope:** research_diagnostic; scientific; revision `535d9c1c86a6b34cd606465d32a8071e842e37015d4641da4c7e90c281e7c78b`.
@@ -6247,6 +6279,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-99d51a04a1d1358bfd32303e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-99dfee25c9646a5673c97bab
+
+**Scope:** research_diagnostic; scientific; revision `d455209f8de99054c907665cc3cbafb953a6963c8bc20e8574645e45cfef070b`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'PASS': 1}; wall seconds 35.604; mechanism `structural`.
+
+
+
+The parent passed all five terminal arc checks. Endpoint chord HQ was 0.8030. The feature arm failed all five on the matched source.
+
+**Next:** Retain this matched parent control. Inspect the paired trajectory report before selecting another trainer change.
+
+[Record and receipt provenance](records/readout-99dfee25c9646a5673c97bab.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-9ba1e04d7902d860f201b335
 
@@ -7656,6 +7704,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 
 [Record and receipt provenance](records/readout-eb425a0e7fa0639a1081f369.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-eb79d4492cd8b70c2a8aa2d5
+
+**Scope:** research_diagnostic; scientific; revision `c772b7012c312c6c7973ad027346af9d366483d579819d6707f1c42b95b153e0`.
+
+The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.
+
+**Observed:** {'FAIL': 1}; wall seconds 42.709; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99023, mass_tv=0.087549
+
+The matched parent failed the sustained unequal-mass gate, with one passing terminal observation. Arc admission was blocked by the observer change to its pinned host source before any arc updates.
+
+**Next:** Restore the pinned interpolation host and capture at dispatch. Reserve only the outstanding arc cell.
+
+[Record and receipt provenance](records/readout-eb79d4492cd8b70c2a8aa2d5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-eeec25002d17191c315f126b
 
 **Scope:** calibration_diagnostic; scientific; revision `6385ef80463dca6a3c1c1f94dd3269c8e1db3702a8d236c1bd59d69787e06325`.
@@ -8502,4 +8566,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `5e8bd643a714ccf84f58e70e3327b19bdb3be94d329894f3f2bce1560930e38b`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `49a3804c1029aa903e468b19b9b15635ca5594196c858817bdcbe678abda08de`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

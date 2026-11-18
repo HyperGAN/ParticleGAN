@@ -1,0 +1,215 @@
+{
+  "attempt_ids": [
+    "04d1ffe3368143c3902df00323dae23e"
+  ],
+  "candidate_id": "rhbi-v12-feature-transport",
+  "candidate_revision": "a4dee55e52a8a4b805a417d3ebbf7433a0d15f4dd106afb234176ad162406904",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The matched parent passed. On the parent endpoint graph the feature model still missed the 0.80 quality bound (0.7424). The instantaneous feature cross-plan perturbation stayed below 0.138% at every update.",
+  "conclusion": "The feature arm failed all five terminal arc checks. Endpoint chord HQ was 0.7391. All 24 official observations matched its previous run.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "04d1ffe3368143c3902df00323dae23e"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "b9a29ec4f0d6058995e2c3802a615868c70b064c9069a4a152ce29c52db34cf3",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.739130437374115
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.739130437374115
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "04d1ffe3368143c3902df00323dae23e",
+          "producer_request_id": "79e77222e8fba2ca5e614cd9",
+          "producer_study_id": "rhbi-retention-trajectory-arc-feature",
+          "result_hash": "c3dd875e69ebc04b310eea9796b305913a695b2e11c239cb1fe257b7ba1a5be4",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "da44f61850db94d30f9c33cb68d6fea4d7855b585229f09f225d4110a44de672",
+        "contract_sha256": "b9a29ec4f0d6058995e2c3802a615868c70b064c9069a4a152ce29c52db34cf3",
+        "control_binding_sha256": "63f81b6c09aa8444d284382e540664d82b9f562ba8f29456d3890f77fe6e82be",
+        "policy_fingerprint": "5304cc17355e93d6652dee13712a6b4d9409336de605f71d0b18c1d21e9f3230",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "71da3b4f418f59875b1221275e96112d58f875d5e12fa77d85081c153142ec2b"
+      },
+      "study_id": "rhbi-retention-trajectory-arc-feature",
+      "study_sha256": "71da3b4f418f59875b1221275e96112d58f875d5e12fa77d85081c153142ec2b"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-retention-trajectory-arc-v1",
+  "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Stop this revision. Investigate whether using features only to select matches and slack can preserve raw-coordinate movement, with full texture and retention gates.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "04d1ffe3368143c3902df00323dae23e",
+        "result_hash": "c3dd875e69ebc04b310eea9796b305913a695b2e11c239cb1fe257b7ba1a5be4",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-5e4c5c6abb5f177f32cf3316",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/04d1ffe3368143c3902df00323dae23e/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 600,
+      "candidate_budget_seconds": 300,
+      "id": "rhbi-retention-trajectory-arc-v1"
+    },
+    "candidate": "rhbi-v12-feature-transport",
+    "competing_explanation": "Small direct metric changes accumulate through game dynamics, graph rewiring or the optimizer. The historical parent positives may also fail to reproduce.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+    "id": "rhbi-retention-trajectory-arc-feature",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "optimizer_updates_added": 0,
+          "protocol_seed": 0
+        },
+        "path": "reports/forge/rhbi-texture-feature/retention-probe.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-retention-trajectory-arc-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-retention-trajectory-arc-feature",
+  "study_sha256": "71da3b4f418f59875b1221275e96112d58f875d5e12fa77d85081c153142ec2b",
+  "task_results": [
+    {
+      "compatibility_key": "76a0a244994b0684aa85a8a16cb637916bf13e27c98bbae749cb703278a35996",
+      "cost": {
+        "adapter_loop_seconds": 28.600435793981887,
+        "adapter_seconds": 29.32905540894717,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 600,
+        "device": "1",
+        "execution_seconds": 36.631433362024836,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 22.419475394068286,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.12436239968519658
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.007758237887173891
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 22.287354756495915
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 31.23330128705129,
+        "wall_seconds": 36.631433362024836
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "all_pairs_interp_hq": 0.21212121844291687,
+        "edge_count": 23,
+        "endpoint_arc_bins": 12,
+        "endpoint_hq": 1.0,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 31,
+        "interp_hq": 0.739130437374115,
+        "interp_mean_dist": 0.06997050344944,
+        "midpoint_novelty": 0.38770643144124717,
+        "output_knn_interp_hq": 0.6190476417541504,
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_sparse_arc thresholds: interp_hq >= 0.8",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}
