@@ -40,7 +40,7 @@
       "experiment/toy": 3,
       "experiment/trajectory": 2,
       "experiment/transition": 7,
-      "forge_engine": 125,
+      "forge_engine": 126,
       "lrfree/feature-cells-cb64-ra": 4058,
       "report/atlas-explanation": 7,
       "report/behavioral_baseline": 32,
@@ -105,7 +105,7 @@
       "candidate_patch": 26,
       "configuration": 810,
       "driver": 405,
-      "engine_support": 125,
+      "engine_support": 126,
       "evaluator_or_audit": 324,
       "evidence_artifact": 1551,
       "frozen_candidate_implementation": 15,
@@ -119,13 +119,13 @@
       "visualization": 23,
       "visualization_artifact": 757
     },
-    "files": 11840
+    "files": 11841
   },
   "coverage": {
-    "declared_count": 11840,
+    "declared_count": 11841,
     "missing": [],
     "stale": [],
-    "tracked_count": 11840,
+    "tracked_count": 11841,
     "unclassified": [],
     "valid": true
   },
@@ -8138,6 +8138,13 @@
       "family": "forge_engine",
       "git_blob": "030f206b2e5076da168b2d10f4dbf9a8aca19a9c",
       "path": "experiments/forge/technique_inventory.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
+      "git_blob": "1b2495e704ac3e2db88a53ac1e61b62f12e9b403",
+      "path": "experiments/forge/techniques.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
