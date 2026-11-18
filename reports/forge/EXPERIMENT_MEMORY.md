@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1053. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1065. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4104,6 +4104,22 @@ Learned-MoG vector_two_broad PASS after exactly one registered operational cance
 
 [Record and receipt provenance](records/readout-060e7be73e2832e314b9573f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v3-no-macro · readout-0a2c5b1945af6c00c9ab44bb
+
+**Scope:** research_diagnostic; scientific; revision `b692212fc2fcd61894760bbd3a9916ce1e1e988c3c75d9fb92e690d31a19f68b`.
+
+Evaluate rgdt-v3-no-macro on target_shift_recovery (81 post-deadline checks after step-2400 +1.0 ring shift) to test post-reacquisition thermal stability and Pillar 2 macro-transport necessity.
+
+**Observed:** {'PASS': 4}; wall seconds 369.489; mechanism `structural`.
+
+mode_hold: modes=8, hq=1; ae_gan_hold: recon_mse=0.0041506
+
+rgdt-v3-no-macro passes 4/4 tasks on t3-shift-recovery-diagnostic-v1 (target_shift_recovery 81/81 checks, min_hq=1.0, mode_hold 16/24 vs 19/24 in full rgdt-v3), isolating why a +1.0 shift on a radius-1.0 ring (where shifted modes lie within local 3*ell overlap of old ring modes) recovers via shock reopening + active Sinkhorn, whereas the 42.4-sigma beyond-horizon shift in t3_iso_horizon_saddle_shift strictly requires Pillar 2 (failing at 2/4 modes without macro-transport).
+
+**Next:** Document the <3*ell vs >>3*ell horizon boundary contrast in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-0a2c5b1945af6c00c9ab44bb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v3 · readout-0c549ac1c635a42dc43cf6dc
 
 **Scope:** current; scientific; revision `baae191aa8fc7e2d0563cd8a3b52e8ef53ece846d63213cadf159a2e2c47018e`.
@@ -4312,6 +4328,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 0.063
 
 [Evidence](../../reports/forge/technique-receipts/b86f62c3e4f84a43b85d366e4cc43824.json) · [Record](records/readout-170dc0a68d5b68737b370a5f.json)
 
+### rgdt-v3 · readout-176050c4bef145cbbc290760
+
+**Scope:** research_diagnostic; scientific; revision `1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed`.
+
+Measure uncontended RTX A6000 update latency, image throughput, and peak VRAM of rgdt-v3 across 32x32 to 256x256 RGB DCGAN architectures.
+
+**Observed:** {'PASS': 6}; wall seconds 70.285; mechanism `structural`.
+
+
+
+rgdt-v3 passes 6/6 dcgan_performance tasks (32x32 through 256x256 RGB DCGANs) with 100% finite updates and identical lean BF16 channels-last VRAM footprint to rgdt-v2 (227.3 MiB r32, 314.8 MiB r64, 404.9 MiB b64, 859.8 MiB w128, 584.7 MiB r128, 1471.4 MiB r256 — 2.55x lower VRAM than rhbi-v12's 3750.6 MiB and leaner than empf-v8's 1531.4 MiB at 256x256).
+
+**Next:** Publish scaling throughput and VRAM metrics in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-176050c4bef145cbbc290760.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-optimized-quintic-v1 · readout-1858b3294015f9149e7fcb9d
 
 **Scope:** research_diagnostic; scientific; revision `a2bdf3d01a3c507b273d49bdefa1bf0707963aed72d1ed10fcca32bf82e4cf6d`.
@@ -4343,6 +4375,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-186c24688ccd9e1dbc108b9d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### recipe-prior-refactor-bcap-pure-v1 · readout-18e9fbb07a4d8c24ba8e924b
+
+**Scope:** research_diagnostic; scientific; revision `6240c7eadd1add4a140e2ae9a4929ff87fecb6408bfee5e0b89c8f2359709a59`.
+
+Test whether recipe-prior-refactor-bcap-pure-v1 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).
+
+**Observed:** {'FAIL': 2}; wall seconds 101.528; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.94531, mass_tv=0.1875; t3_iso_scale_mass_8x: modes=4, hq=0.99414, mass_tv=0.029062
+
+recipe-prior-refactor-bcap-pure-v1 scores 0/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x FAIL: core_component_covariance_error=0.5788 > 0.45, core_min_eigen_ratio=0.0984 < 0.45 despite critic_grad_med=0.1767 <= 1.0; t3_iso_horizon_saddle_shift FAIL: mass_tv=0.1875 > 0.12, 0/5 terminal checks despite critic_grad_med=0.3009 <= 1.0).
+
+**Next:** Retain as Theory-2-satisfied 1-Lipschitz baseline control in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-18e9fbb07a4d8c24ba8e924b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v7 · readout-1b511c8eec2bb40f41aee6ec
 
@@ -6136,6 +6184,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-7bbb55d0ca2d3c3b99f56d10.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### empf-v8 · readout-7e0c315962234ea1c2c2ba3f
+
+**Scope:** research_diagnostic; scientific; revision `4b7b21a5cd270052c4f199a39bca1fdf78a8cc5601aec7331a852e1dd8599f3b`.
+
+Test whether empf-v8 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).
+
+**Observed:** {'FAIL': 2}; wall seconds 110.216; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.98633, mass_tv=0.030781; t3_iso_horizon_saddle_shift: modes=4, hq=0.95312, mass_tv=0.21094
+
+empf-v8 scores 0/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x FAIL: core_component_covariance_error=0.6316 > 0.45, core_min_eigen_ratio=0.0680 < 0.45 with critic_grad_med=0.0994 <= 1.0; t3_iso_horizon_saddle_shift FAIL: mass_tv=0.2109 > 0.12 with critic_grad_med=0.3180 <= 1.0).
+
+**Next:** Retain as default-family isolation control in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-7e0c315962234ea1c2c2ba3f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### e22 · readout-7e503bfe82163be58737c0a3
 
 **Scope:** research_diagnostic; scientific; revision `2a50367f321a22ea612e87d3b6b87bc64d3ea78483279061eff578327bf5dcb6`.
@@ -6264,6 +6328,22 @@ Frobenius convolution rule fails both width64 image gates at600 updates: stripes
 
 [Record and receipt provenance](records/readout-85a714c5fc9c0b038c400b22.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-8a63e947313fcb7d2e62a8d2
+
+**Scope:** research_diagnostic; scientific; revision `50db84ca0198d566cf42d136166eb598a309289b6bceee522f18eea831b7e489`.
+
+Test whether rhbi-v12 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).
+
+**Observed:** {'FAIL': 2}; wall seconds 82.935; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.97461, mass_tv=0.036641; t3_iso_horizon_saddle_shift: modes=3, hq=0.92188, mass_tv=0.25
+
+rhbi-v12 scores 0/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x FAIL: core_min_eigen_ratio=0.1197 < 0.45 due to scalar horizon ell_t screening broad-mode intra-mode pairs into slack; t3_iso_horizon_saddle_shift FAIL: modes=3/4, mass_tv=0.2500 > 0.12 due to rho=3.0 horizon starvation across the 42.4-sigma valley).
+
+**Next:** Retain as scalar-horizon OT isolation control proving Theory 3 orthogonality in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-8a63e947313fcb7d2e62a8d2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### forge-onboarding-anchor-ablation · readout-8aacfe961f0e62b062e621fa
 
 **Scope:** calibration_diagnostic; scientific; revision `b10c31a0de40294be8966579fbe56e84e06e24dea1e3576e65b35148f610d350`.
@@ -6327,6 +6407,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-8c7a73578180c764da4f2774.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v3-no-macro · readout-8d2fa268bcc8c0d356135699
+
+**Scope:** research_diagnostic; scientific; revision `b692212fc2fcd61894760bbd3a9916ce1e1e988c3c75d9fb92e690d31a19f68b`.
+
+Factorial ablation (Knockout of Pillar 2 (rgdt_macro_slack_weight=0.0).) measuring causal necessity of each RGDT pillar across Theory-3 isolation, unequal-width/mass vectors, orthogonal image bars, and conditional DDGAN fibers.
+
+**Observed:** {'FAIL': 7, 'PASS': 1}; wall seconds 528.56; mechanism `structural`.
+
+vector_unequal_mass: hq=0.97217, mass_tv=0.081494; vector_anisotropic: hq=0.98267, mass_tv=0.16561; t3_iso_horizon_saddle_shift: modes=2, hq=1, mass_tv=0.38281
+
+Knocking out Pillar 2 (rgdt_macro_slack_weight=0.0) selectively breaks t3_iso_horizon_saddle_shift (PASS -> FAIL: modes collapse from 4/4 to 2/4 stranded in pre-shift modes, mass_tv explodes from 0.1094 to 0.3828 > 0.12) and breaks vector_anisotropic mass_tv (0.0165 -> 0.1656 > 0.15 FAIL), while sparing stationary heteroscedastic t3_iso_scale_mass_8x (PASS, core_cov_err=0.2105, core_min_eigen_ratio=0.5678).
+
+**Next:** Record Pillar-2 necessity in the factorial dissociation table of reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-8d2fa268bcc8c0d356135699.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v5 · readout-8d88061b544c2ad1873e7160
 
@@ -6519,6 +6615,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-99d51a04a1d1358bfd32303e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v3 · readout-9ac29cca3e759e381fb46e36
+
+**Scope:** research_diagnostic; scientific; revision `1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed`.
+
+Evaluate rgdt-v3 on target_shift_recovery (81 post-deadline checks after step-2400 +1.0 ring shift) to test post-reacquisition thermal stability and Pillar 2 macro-transport necessity.
+
+**Observed:** {'PASS': 4}; wall seconds 434.02; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0041506; mode_hold: modes=8, hq=1
+
+rgdt-v3 passes 4/4 tasks on t3-shift-recovery-diagnostic-v1, converting Tier-3 target_shift_recovery from FAIL in rgdt-v1 (77/81 checks, min_hq=0.852) and rgdt-v2 (79/81 checks, min_hq=0.8953) to full PASS (81/81 post-deadline checks, min_hq=0.9998 >= 0.90, min_modes=8, 0 failing steps), alongside ae_gan_hold (22/22), mode_hold (19/19), and zero_tanh_smoke PASS.
+
+**Next:** Report 81/81 target_shift_recovery PASS in reports/forge/studies/t3-third-piece-proof.md and integrate with unified synthesis.
+
+[Record and receipt provenance](records/readout-9ac29cca3e759e381fb46e36.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-9ba1e04d7902d860f201b335
 
@@ -6888,6 +7000,22 @@ All six declared DCGAN mock-data performance workloads completed their finite pu
 
 [Evidence](../../reports/forge/scaling-receipts/dcgan-performance-cloud-v2/bcap-dualnorm-dcgan_performance_b64-addedac8ac836908.json) · [Record](records/readout-ad21627bf4def92894dd98ce.json)
 
+### rgdt-v3 · readout-aec7fddd6bbedbb516f9c33e
+
+**Scope:** current; scientific; revision `1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed`.
+
+Evaluate refined global clock-free rgdt-v3 across the complete 41-task discriminator_stability suite (Tiers 1-2 including stretch/held tasks) on protocol seed 0.
+
+**Observed:** {'FAIL': 18, 'PASS': 23}; wall seconds 4254.327; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.91968, mass_tv=0.054932; img_bars4: modes=2, hq=1
+
+rgdt-v3 clears 100% of Tier-1 required gates (11/11 PASS, including model_ae_gan_multimodal 17/17 suffix PASS via synchronous encoder-role DualNorm thermal damping, ring16_acquisition 26 suffix PASS, model_vae_categorical 18/18, model_vae_hard 16/16, plus clockfree_audit_measurement_v1 PASS) and 23/41 discriminator_stability tasks under one global clock-free recipe on protocol seed 0, while reducing vector_unequal_width component_covariance_error from 9.11 (rgdt-v2) to 4.005 (mass_tv=0.0913, min_eigen_ratio=0.7414) and vector_unequal_mass min_eigen_ratio from 0.1479 to 0.3050 (mass_tv=0.0300).
+
+**Next:** Pair rgdt-v3 conformal + macro + fiber dynamics with Track 1 discontinuous generator routing while keeping DEFAULT_RECIPE='empf' unchanged.
+
+[Record and receipt provenance](records/readout-aec7fddd6bbedbb516f9c33e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v5 · readout-aef7cbc33a8a6b3326b86bb8
 
 **Scope:** current; scientific; revision `a457aa4e6487d00f5630eeebf70830674145a1dae9f64dc38d6643f6eff3508b`.
@@ -7079,6 +7207,22 @@ Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v2 (PASS 6/6: 
 **Next:** Retain source-bound performance readout and advance to t1-coupling-v3 to raise the in-basin cross-chart rebalancing deadband from 1.15 SE to 2.8 SE gated by thermal disequilibrium.
 
 [Record and receipt provenance](records/readout-b5b0255afd0d8014b7e3684e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v3-no-fiber · readout-b72ef35814c763323f8a50af
+
+**Scope:** research_diagnostic; scientific; revision `5c1b15ebc0efb8cb2f44d52d3494aed8f6000be1710b001655be32c41e720756`.
+
+Factorial ablation (Knockout of Pillar 3 (rgdt_fiber_residual_weight=0.0).) measuring causal necessity of each RGDT pillar across Theory-3 isolation, unequal-width/mass vectors, orthogonal image bars, and conditional DDGAN fibers.
+
+**Observed:** {'FAIL': 6, 'PASS': 2}; wall seconds 501.923; mechanism `structural`.
+
+vector_anisotropic: hq=0.96802, mass_tv=0.01652; t3_iso_horizon_saddle_shift: modes=4, hq=0.96875, mass_tv=0.10938
+
+Knocking out Pillar 3 (rgdt_fiber_residual_weight=0.0) selectively degrades conditional fiber tasks—model_ddgan_gaussian_chain final_normalized_mean degrades 0.2311 (PASS) -> 0.2813 (FAIL), final_projection_cdf degrades 0.1048 (PASS) -> 0.1849 (FAIL), and final_covariance_eigen_min collapses 0.9087 (PASS) -> 0.2913 < 0.65 (FAIL), while model_ae_ddgan_gaussian_chain t1_q0_covariance_eigen_max jumps 1.8675 -> 2.4385—while leaving unconditional t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift bit-for-bit PASS.
+
+**Next:** Record Pillar-3 necessity in the factorial dissociation table of reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-b72ef35814c763323f8a50af.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-b7acc4d7ec8bb9cb7dd704a8
 
@@ -7319,6 +7463,22 @@ Completed dcgan_performance seed-0 CUDA execution for rhbi-v9 (PASS 6). Diagnost
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c2f6f3c483dff61d72296842.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v3 · readout-c30d4a5840e8d861f62c1dcb
+
+**Scope:** research_diagnostic; scientific; revision `1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed`.
+
+Test whether rgdt-v3 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).
+
+**Observed:** {'PASS': 2}; wall seconds 103.701; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.9668, mass_tv=0.028828; t3_iso_horizon_saddle_shift: modes=4, hq=0.96875, mass_tv=0.10938
+
+rgdt-v3 achieves 2/2 PASS (5/5 sustained terminal checks on both tasks) on t3_causal_isolation_stretch under protocol seed 0: t3_iso_scale_mass_8x PASS (modes=4, mass_tv=0.0288 <= 0.10, hq=0.9668 >= 0.94, core_component_covariance_error=0.1965 <= 0.45, core_min_eigen_ratio=0.5874 >= 0.45, critic_grad_med=1.6e-7 <= 1.0) and t3_iso_horizon_saddle_shift PASS (modes=4, mass_tv=0.1094 <= 0.12, hq=0.9688 >= 0.92, pre_shift_hq=0.9609, frozen_control_modes=2).
+
+**Next:** Publish representative API contract supplement and training GIFs in reports/toy_audit/api_contract/t3_isolation/publication.json.
+
+[Record and receipt provenance](records/readout-c30d4a5840e8d861f62c1dcb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p · readout-c3df7159c90725fdef1cb700
 
@@ -7928,6 +8088,22 @@ This exact global configuration failed the first two_pole movement gate. Tier1 i
 
 [Record and receipt provenance](records/readout-e3ab30a3f7ae4a6debe66e5d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v3-no-conformal · readout-e3f9c013a59970d13ee2c46a
+
+**Scope:** research_diagnostic; scientific; revision `52359d7e4966dd0113fa875877cdabf9127973fba212f2093ba7961410cba800`.
+
+Factorial ablation (Knockout of Pillar 1 (rgdt_conformal_horizon=false).) measuring causal necessity of each RGDT pillar across Theory-3 isolation, unequal-width/mass vectors, orthogonal image bars, and conditional DDGAN fibers.
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 2}; wall seconds 768.456; mechanism `structural`.
+
+vector_anisotropic: hq=0.97388, mass_tv=0.022868; vector_unequal_width: hq=0.96582, mass_tv=0.05957
+
+Knocking out Pillar 1 (rgdt_conformal_horizon=False) selectively breaks t3_iso_scale_mass_8x (PASS -> FAIL: core_min_eigen_ratio collapses from 0.5874 to 0.0980 < 0.45, core_component_covariance_error degrades from 0.1965 to 0.4537 > 0.45) and worsens vector_unequal_width component_covariance_error from 4.0049 to 6.0968 (spill 0.0515 -> 0.1162), while sparing homoscedastic t3_iso_horizon_saddle_shift (PASS, 4/4 modes, mass_tv=0.0547).
+
+**Next:** Record Pillar-1 necessity in the factorial dissociation table of reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-e3f9c013a59970d13ee2c46a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-throughput-v1 · readout-e5cf5311e83c25cc0b333270
 
 **Scope:** research_diagnostic; scientific; revision `5519ffc77cf0cfd46928ca25fbbf29efb9a642d8da333482419f4c9af3a4300d`.
@@ -8183,6 +8359,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Evidence](../../) · [Record](records/readout-efc9b823a6b391bc25754f9a.json)
+
+### rgdt-v3 · readout-efdd1af5aaae12be96acbc7a
+
+**Scope:** research_diagnostic; scientific; revision `1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed`.
+
+Factorial ablation (Full rgdt-v3 reference arm with all 3 Theory-3 pillars active.) measuring causal necessity of each RGDT pillar across Theory-3 isolation, unequal-width/mass vectors, orthogonal image bars, and conditional DDGAN fibers.
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 2}; wall seconds 751.477; mechanism `structural`.
+
+img_bars4: modes=2, hq=1; vector_unequal_mass: hq=0.97705, mass_tv=0.02998
+
+Full rgdt-v3 passes both Theory-3 isolation benchmarks (t3_iso_scale_mass_8x core_min_eigen_ratio=0.5874 PASS, t3_iso_horizon_saddle_shift 4/4 modes mass_tv=0.1094 PASS) while achieving mass_tv=0.0913 and min_eigen_ratio=0.7414 on vector_unequal_width, mass_tv=0.0300 on vector_unequal_mass, mass_tv=0.0165 on vector_anisotropic, and final_normalized_mean=0.2311 (<=0.25 PASS) / final_projection_cdf=0.1048 (<=0.12 PASS) on model_ddgan_gaussian_chain.
+
+**Next:** Cross-tabulate against Pillar 1-3 knockouts in reports/forge/studies/t3-third-piece-proof.md.
+
+[Record and receipt provenance](records/readout-efdd1af5aaae12be96acbc7a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### r1r2--f398f6ea70a2d101c520a1a01db90ea968bbb16736e6cec7ffc887e1dd7e241a · readout-f0dadd320f7db48cbf5d7b20
 
@@ -8998,4 +9190,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `ce1b1bfc6b3aecf88d0143eb10581e8742fdfbbf1e8e4405b451e97612fd5c84`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `cefb54e4f7ab58865293378dd1ab3e162a4746515e61c63d1fcaa4593bf7101a`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

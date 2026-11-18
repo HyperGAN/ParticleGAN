@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2247 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **424 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2249 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **426 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 424 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 426 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -298,6 +298,8 @@ Indexed: **2247 test/protocol rows**, **581 complete recipe/source/runtime ident
 | staggered100_affine_square_named_v1_14k<br>unmeasured declaration<br>`78aa72104128` | [matches](../../configs/forge/tasks/staggered100_affine_square_named_v1_14k.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | staggered100_policy_cloud_coverage_as_served_v1<br>unmeasured declaration<br>`370286287025` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/staggered100_policy_cloud_coverage_as_served_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | staggered100_policy_cloud_coverage_v1<br>unmeasured declaration<br>`9418ff24d086` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_v1/staggered100_policy_cloud_coverage_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| t3_iso_horizon_saddle_shift<br>unmeasured declaration<br>`46ecdb64efc1` | [matches](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| t3_iso_scale_mass_8x<br>unmeasured declaration<br>`0dfdca6e10b8` | [matches](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | target_shift_recovery<br>unmeasured declaration<br>`8257a76c7ec8` | [matches](../../configs/forge/tasks/target_shift_recovery.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | target_shift_recovery_policy_cloud_coverage_as_served_v1<br>unmeasured declaration<br>`26bb3db31019` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/target_shift_recovery_policy_cloud_coverage_as_served_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | target_shift_recovery_policy_cloud_coverage_v1<br>unmeasured declaration<br>`f1a9e017872a` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_v1/target_shift_recovery_policy_cloud_coverage_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |

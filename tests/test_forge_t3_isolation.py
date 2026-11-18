@@ -34,7 +34,9 @@ def _load_task(name: str) -> dict:
 
 def test_t3_isolation_view_and_tasks_preserve_discriminator_stability_v17():
     main_view = load_view(ROOT, "discriminator_stability")
-    assert main_view["revision"] == 17
+    assert main_view["revision"] == 18 and main_view["previous_revision"]["revision"] == 17
+    stretch_map = {a["task"]: a["importance"] for a in main_view["assignments"] if a["task"] in ISO_TASKS}
+    assert stretch_map == {name: "stretch" for name in ISO_TASKS}
 
     iso_view = load_view(ROOT, "t3_causal_isolation_stretch")
     assert iso_view["evidence_scope"] == "research_diagnostic"
