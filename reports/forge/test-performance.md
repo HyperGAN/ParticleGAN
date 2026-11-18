@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2249 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **426 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2252 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **429 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 426 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 429 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -205,6 +205,9 @@ Indexed: **2249 test/protocol rows**, **581 complete recipe/source/runtime ident
 | model_ddgan_gaussian_chain<br>seed 0 · 2500 updates · source 184aa7597b<br>`9db0d09b9edd` | [matches](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [FAIL](technique-receipts/cc4becdb5f904a2f8b97eb3939bb82c6.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | model_ddgan_gaussian_chain<br>seed 0 · 2500 updates · source ee2635996f<br>`d8e564464829` | [matches](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [FAIL](technique-receipts/bf5783c3a869479db8aef21b11c1b52f.json) |
 | model_misgan_four_mode<br>unmeasured declaration<br>`25bc6f2bb818` | [matches](../../configs/forge/tasks/model_misgan_four_mode.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| nash_overpowered_critic_ring16<br>unmeasured declaration<br>`5b2b5db471b5` | [matches](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| nash_overpowered_generator_ring16<br>unmeasured declaration<br>`b872b7efe2ba` | [matches](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| nash_unequal_width_hostile_imbalance<br>unmeasured declaration<br>`b16153c7cd81` | [matches](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | pacgan8_grid100<br>seed 0 · 4000 updates · source ee2635996f<br>`f28b0617847f` | [matches](../../configs/forge/tasks/pacgan8_grid100.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/a180befb48d553f837102c12139e0987f32d714eec99f61e49ade59c99f8736c.json) |
 | pacgan8_grid100<br>seed 0 · 4000 updates · source 184aa7597b<br>`f6b9233f33c8` | [matches](../../configs/forge/tasks/pacgan8_grid100.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/bddeeeace8fc3513806afd96b11b912a4628103348fd1b6083043c66a839b36f.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | pacgan_unequal_mass<br>seed 0 · 3000 updates · source ee2635996f<br>`44d5df130166` | [matches](../../configs/forge/tasks/pacgan_unequal_mass.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/a180befb48d553f837102c12139e0987f32d714eec99f61e49ade59c99f8736c.json) |

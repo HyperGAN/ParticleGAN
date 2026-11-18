@@ -192,7 +192,7 @@ def test_committed_inventory_reports_against_the_fixed_dated_list():
     assert previous and len(previous["tests"]) == 49
     assert prior_list and prior_list["dated"] == "2026-11-06" and len(prior_list["tests"]) == 61
     assert prior_1112 and prior_1112["dated"] == "2026-11-12" and len(prior_1112["tests"]) == 64
-    assert fixed and fixed["dated"] == "2026-11-18" and len(fixed["tests"]) == 66
+    assert fixed and fixed["dated"] == "2026-11-18" and len(fixed["tests"]) == 69
     view = views.load_view(ROOT, "discriminator_stability")
     assert set(fixed["tests"]) - set(previous["tests"]) == {a["task"] for a in view["assignments"] if a["importance"] == "stretch"}
     text = (ROOT / "reports/forge/technique-inventory.md").read_text()

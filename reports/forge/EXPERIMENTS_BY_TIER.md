@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **200 tasks**; **162 assigned** to at least one view; **38 unassigned**. Showing **35/35 views**.
+Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **36/36 views**.
 
-Declared priors across the catalog: **88 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -47,7 +47,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [dcgan_performance_cpu_smoke](../../configs/forge/views/dcgan_performance_cpu_smoke.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
-| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 18 | 11 required, 4 stretch, 2 diagnostic | 18 required, 3 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
+| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 19 | 11 required, 4 stretch, 2 diagnostic | 18 required, 6 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -67,6 +67,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [t3-shift-recovery-diagnostic-v1](../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json) | 1 | 5 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json) | 1 | 8 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json) | 1 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json) | 1 | 7 required | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [vaegan_coverage](../../configs/forge/views/vaegan_coverage.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 
@@ -653,7 +654,7 @@ No tasks assigned.
 
 ## discriminator_stability
 
-Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 18; goal: `discriminator_stability`.
+Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 19; goal: `discriminator_stability`.
 
 Declared calibration status: **provisional**.
 
@@ -689,7 +690,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 2: quality
 
-18 required, 3 stretch, 7 held.
+18 required, 6 stretch, 7 held.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -721,6 +722,9 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [interp_img_patch_shift](../../configs/forge/tasks/interp_img_patch_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_img_patch_shift) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-img-patch-shift) | particle_interpolation / interp_img_patch_shift | 800 | 300 | — |
 | [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_saddle_barycentric) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
 | [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
 
 ### Tier 3: endurance
 
@@ -1787,6 +1791,46 @@ No published solution leaderboard for this view yet; task registration and relat
 | [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
 | [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 600 | — |
 | [model_ae_ddgan_gaussian_chain](../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ae-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 180 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t4_imbalance_nash_stretch
+
+Declaration: [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks do not establish whole-suite screen calibration or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+3 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
 
 ### Tier 2: quality
 
@@ -4844,6 +4888,126 @@ Related public-API demonstrations, with their own recorded contracts:
 | --- | --- | --- | --- | --- | --- |
 | [api-model-misgan-four-mode](../toy_audit/api_contract/misgan_bispf/media/bispf-misgan-transport-settle-v1.gif) | Learn an 8D four-mode complete distribution and the block-mask law using only incomplete rows, then learn a stochastic neural imputer whose held-out single-sensor queries cover both ambiguous branches with correct mass. Scope: Explicit four-corner sigma=.08 target with a fixed Hadamard 8x2 lift. Same four block masks and masses as original MisGAN; sensor7 sees x+y, leaving two equally probable branches at zero. Original 100-mode MLP questions remain unchanged. Absolute task-owned MoG sigma=.025; relative calibration is bypassed. Recommended scoped recipe: bispf-misgan-transport-settle-v1 | MoGParticlePrior (sigma_rel=0) | COMPLETE / PASS; 1200/1200 updates | bispf / cuda:0 / d2b5cf8eba1f | [definition](../toy_audit/api_contract/misgan_bispf/publication.json); [readout](../toy_audit/api_contract/misgan_bispf/publication.json); [recipe and provenance](../toy_audit/api_contract/misgan_bispf/publication.json) |
 
+### Experiment: nash-overpowered-critic-ring16
+
+Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under severe critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator; >600x parameter ratio) and hostile non-complementary initialization (generator shifted to (-4.5, -4.5) against an upside-down (-3.5, -3.5) critic tilt).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.8 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 0.98 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-overpowered-critic-ring16](../toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-critic-ring16.gif) | Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under 512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator shifted to (-4.5, -4.5) against (-3.5, -3.5) upside-down critic tilt. Scope: Public API stretch variant: D >> G capacity imbalance & non-complementary initialization Nash convergence | MoGParticlePrior (sigma_rel=0.1) | COMPLETE / PASS; 1600/1600 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
+
+### Experiment: nash-overpowered-generator-ring16
+
+Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under severe generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-1 critic; >600x reverse parameter ratio) and hostile non-complementary initialization (generator shifted to (+4.5, -4.5) against a tilted (-3.5, +3.5) critic).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.72 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 1.28 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-overpowered-generator-ring16](../toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-generator-ring16.gif) | Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under 512x4 2.2x-amplified generator shifted to (+4.5, -4.5) vs tiny 32x2 Fourier-2 0.25x-gain critic. Scope: Public API stretch variant: G >> D capacity imbalance & non-complementary initialization Nash convergence | MoGParticlePrior (sigma_rel=0.1) | COMPLETE / FAIL; 1600/1600 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
+
+### Experiment: nash-unequal-width-hostile-imbalance
+
+Recover all 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and component-specific core covariances under 16x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and hostile non-complementary initialization at (-4.0, +4.0).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| min_mass_ratio | >= 0.6 |
+| hq | >= 0.82 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.16 |
+| resolved_core_covariance_error | <= 0.65 |
+| resolved_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.025) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-unequal-width-hostile-imbalance](../toy_audit/api_contract/imbalance_nash/media/api-nash-unequal-width-hostile-imbalance.gif) | Recover all 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and core covariances under 512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator shifted to (-4.0, +4.0). Scope: Public API stretch variant: heteroscedastic unequal-width Nash convergence under hostile imbalance | MoGParticlePrior (sigma_rel=0.025) | COMPLETE / PASS; 1100/1100 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
+
 ### Experiment: pacgan8-grid100
 
 PacGAN m=8 packed discriminator on 100-mode 10x10 2D Gaussian grid (centers in {-9,-7,...,7,9}^2, sigma=0.05) testing high-order product-measure mode coverage and within-mode covariance preservation.
@@ -6655,6 +6819,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `5f48e0fe2b603261e48755a04cfe3071d4e4798420db821932fc385858b06744`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `2ad777be8b05fafdb4b1ead76e49c3f0a260cb990a92d2f60b13b472ac5fd970`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `7aa8596c16709f4777cff1b63b17640de9a2d0b608aae4cac0bfadde45edade1`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `936a91645c822fdb5dfe4544356d805985a141757d40989152ef678867e8b1b5`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
