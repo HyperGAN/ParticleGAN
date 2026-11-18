@@ -47,7 +47,7 @@ PyPI password or token. Its configuration is:
 | Workflow filename | `release.yml` |
 | GitHub environment | `pypi` |
 
-The repository's `pypi` environment permits release tags matching `v*`. Its
+The repository's `pypi` environment permits `master` and release tags matching `v*`. Its
 name must match the PyPI publisher. Repository Actions must be enabled, the
 publishing job must retain `id-token: write`, and the GitHub actor must be able
 to create a release. If environment rules require review, resolve that actual
@@ -60,13 +60,14 @@ managed through the existing PyPI account associated with 255labs.xyz.
 1. Merge the reviewed changes into `develop`, including the version, README,
    dated `CHANGELOG.md` entry and release notes. Finish the exact HyperGAN
    integration smoke locally before committing its dependency to a release.
-2. Wait for CI on the final `develop` commit and record its immutable SHA as
-   the release source, then tag that verified commit directly. A reviewed
-   `develop` to `master` PR may also align `master` with the published source;
-   the release workflow validates the tagged commit without relying on its
-   branch label. HyperGAN integration stays on HyperGAN's `develop`.
-3. Create and publish the GitHub release with a tag matching the package
-   version. For example, with `RELEASE_SHA` set to that verified commit:
+2. Wait for CI on the final `develop` commit, then merge the reviewed release
+   PR into `master`. The push starts `release.yml`. If PyPI has no files for
+   the version in `pyproject.toml`, the workflow builds and tests that exact
+   `master` revision before publishing. HyperGAN integration stays on HyperGAN's
+   `develop`.
+3. Publish the matching GitHub release against the tested revision. The tag
+   path also provides a retry for incomplete PyPI uploads. For example, with
+   `RELEASE_SHA` set to that verified commit:
 
    ```sh
    gh release create v0.10.1 --repo HyperGAN/ParticleGAN \
