@@ -270,4 +270,3 @@ def test_published_cuda_readout_shows_rhbi_failure_and_empf_bispf_pass_with_boun
     assert api_run["candidate_id"] == "rhbi-v12" and api_run["verdict"] == "FAIL"
     api_gif = ROOT / "reports/toy_audit/api_contract/conv_texture32" / api_run["gif"]
     assert hashlib.sha256(api_gif.read_bytes()).hexdigest() == api_run["gif_sha256"]
-
