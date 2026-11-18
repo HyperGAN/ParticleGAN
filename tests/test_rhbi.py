@@ -2084,3 +2084,50 @@ def test_simplicial_manifold_forge_parity_prim_mst_and_large_table_bounded_memor
     _ = pen_bdd(D_bdd, xr_2048[:128], xf_2048[:128])
     _ = pen_bdd(D_bdd, xr_2048[:520], xf_2048[:520])
     assert seen_concat == [True, False]
+
+
+def test_rhbi_feature_transport_formula_and_missing_capture():
+    recipe = get_recipe("rhbi_optimized", z_dim=2, num_particles=64, rhbi_feature_transport=True)
+    g, d, _ = _make_mlp_pair()
+    trainer = GANTrainer(recipe, g, d, seed=0)
+    x = torch.tensor([[1., 2.], [0., -1.], [-1., 1.], [2., -1.]], requires_grad=True)
+    y = x.detach().flip(0) * 0.8
+    fake, real = trainer._generator_score(x), trainer._generator_score(y)
+    trainer.opt_d.record._in_protected_probe = True
+    loss = trainer.loss.g_loss(fake, real)
+    hf, hr = d[:-1](x), d[:-1](y).detach()
+    radius = ((hr - hr.mean(0)).square().sum() / len(y)).sqrt()
+    # Initial protected horizon is 1. Supply the explicit augmented coordinates
+    # to the parent primitive to check both the value and the feature derivative.
+    ref, _ = trainer.loss.rhbi(torch.cat((x, (hf - hr.mean(0)) / radius), 1),
+                               torch.cat((y, (hr - hr.mean(0)) / radius), 1),
+                               fake, real, record=trainer.opt_d.record, allow_ell_update=False)
+    torch.testing.assert_close(loss, ref)
+    torch.testing.assert_close(torch.autograd.grad(loss, x, retain_graph=True)[0],
+                               torch.autograd.grad(ref, x)[0])
+    with pytest.raises(ValueError, match="captured"):
+        trainer.loss.g_loss(d(x), d(y))
+    with pytest.raises(ValueError, match="one scalar linear"):
+        trainer.loss.scalar_feature_head(nn.Sequential(nn.Linear(2, 2), nn.ReLU()))
+
+
+def test_rhbi_feature_transport_exact_continuation():
+    recipe = get_recipe("rhbi_optimized", batch_size=16, z_dim=2, num_particles=64,
+                        rhbi_feature_transport=True)
+    rng = torch.Generator().manual_seed(0)
+    def build(recipe, initial):
+        g, d, _ = _make_mlp_pair(seed=initial)
+        return GANTrainer(recipe, g, d, seed=0)
+
+    original = build(recipe, 0)
+    original.step(torch.randn(16, 2, generator=rng))
+    saved = deepcopy(original.state_dict())
+    resumed = build(recipe, 1)
+    resumed.load_state_dict(saved)
+    with pytest.raises(ValueError, match="recipe"):
+        build(recipe.replace(rhbi_feature_transport=False), 1).load_state_dict(saved)
+    batch = torch.randn(16, 2, generator=rng)
+    original.step(batch)
+    resumed.step(batch)
+    from experiments.forge.policy_adapters import typed_state_digest
+    assert typed_state_digest(original.state_dict()) == typed_state_digest(resumed.state_dict())

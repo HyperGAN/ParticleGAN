@@ -43,6 +43,7 @@ try:
         rhbi_cond_step_damp=0.0,
         rhbi_ae_coord_whiten=False,
         rhbi_support_completion=False,
+        rhbi_feature_transport=False,
     )
 except (ImportError, ValueError):
     pass
@@ -364,6 +365,7 @@ class Recipe:
     rhbi_cond_step_damp: float = 0.0
     rhbi_ae_coord_whiten: bool = False
     rhbi_support_completion: bool = False
+    rhbi_feature_transport: bool = False
 
     def __init__(self, **resolved_fields):
         declared = {field.name for field in fields(type(self))}
@@ -657,6 +659,13 @@ class Recipe:
             raise ValueError("rhbi_simplex_curve_settle must be a boolean")
         if type(self.rhbi_ae_coord_whiten) is not bool:
             raise ValueError("rhbi_ae_coord_whiten must be a boolean")
+        if type(self.rhbi_feature_transport) is not bool:
+            raise ValueError("rhbi_feature_transport must be a boolean")
+        if self.rhbi_feature_transport and (
+            self.effective_critic_formulation != "rhbi" or self.rhbi_weight <= 0
+            or self.model != "gan" or self.conditioning != "scalar" or self.encoder_mode != "none"
+        ):
+            raise ValueError("rhbi_feature_transport requires a scalar marginal RHBI GAN")
         if type(self.rhbi_support_completion) is not bool:
             raise ValueError("rhbi_support_completion must be a boolean")
         if self.rhbi_beta_ell > 1.0:
@@ -1034,6 +1043,7 @@ class Recipe:
                 simplex_macro_settle=self.rhbi_simplex_macro_settle,
                 simplex_curve_settle=self.rhbi_simplex_curve_settle,
                 support_completion=self.rhbi_support_completion,
+                feature_transport=self.rhbi_feature_transport,
             )
         if self.effective_critic_formulation == "bispf" and self.loss == "relativistic":
             from .bispf import SinkhornRelativisticLoss

@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "rhbi-texture-feature-control",
+  "status": "ready",
+  "candidate": "rhbi-v12",
+  "control": {
+    "candidate_id": "rhbi-v12-feature-transport",
+    "task_map": {}
+  },
+  "hypothesis": "The original RHBI-v12 misses clean texture at the fixed budget; adding normalized critic readout coordinates to marginal generator transport passes the complete texture gate and retains rare-mass and interpolation gates.",
+  "scope": {
+    "view": "rhbi-texture-feature-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "rhbi-texture-feature-v1",
+    "budget_seconds": 600,
+    "candidate_budget_seconds": 300
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/conv-texture32-tier1/summary.json",
+      "selector": [],
+      "identity": {
+        "schema": "forge_conv_texture32_tier1_readout_v1",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": "<",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "img_conv_texture32",
+    "metric": "clean_texture_fraction",
+    "op": ">=",
+    "threshold": 0.75,
+    "phase": "final"
+  },
+  "competing_explanation": "The learned metric can distinguish blur but may still yield a poor local generator direction or lose class mass.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

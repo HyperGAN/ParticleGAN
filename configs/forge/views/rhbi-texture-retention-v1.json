@@ -1,0 +1,43 @@
+{
+  "assignments": [
+    {
+      "task": "vector_unequal_mass",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 1
+    },
+    {
+      "task": "interp_sparse_arc",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 2
+    },
+    {
+      "task": "interp_img_patch_shift",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 3
+    },
+    {
+      "task": "interp_saddle_barycentric",
+      "qualification_tier": 1,
+      "importance": "diagnostic",
+      "order": 4
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "This diagnostic study tests one selected failure and four known retention tasks.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi_texture_feature",
+  "id": "rhbi-texture-retention-v1",
+  "policy_change_reason": "Retention after a complete texture PASS. Original four gate contracts remain frozen.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

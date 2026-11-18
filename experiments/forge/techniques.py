@@ -125,6 +125,8 @@ def technique_signature(value):
                 mechanisms["rhbi_simplex_macro_settle"] = True
             if recipe.rhbi_simplex_curve_settle:
                 mechanisms["rhbi_simplex_curve_settle"] = True
+    if recipe.rhbi_feature_transport:
+        mechanisms["rhbi_feature_transport"] = True
     if recipe.rhbi_weight > 0 and recipe.rhbi_support_completion:
         mechanisms["rhbi_support_completion"] = True
     if recipe.rhbi_ae_coord_whiten:
@@ -300,7 +302,7 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0
     if name in {"rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle"}:
         return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0 and recipe.rhbi_simplex_chart_weight > 0
-    if name == "rhbi_support_completion":
+    if name in {"rhbi_feature_transport", "rhbi_support_completion"}:
         return recipe.rhbi_weight > 0
     if name == "rhbi_ae_coord_whiten":
         if recipe.encoder_mode == "ae":
