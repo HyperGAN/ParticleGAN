@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200.0,
+    "candidate_budget_seconds": 7200.0,
+    "id": "rgdt-v3-dcgan-perf-study"
+  },
+  "candidate": "rgdt-v3",
+  "competing_explanation": "If rgdt-v3 adds host synchronization or high-D OT overhead, dcgan_performance_r256 step latency will regress relative to rgdt-v2.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 1.0
+  },
+  "hypothesis": "Measure uncontended RTX A6000 update latency, image throughput, and peak VRAM of rgdt-v3 across 32x32 to 256x256 RGB DCGAN architectures.",
+  "id": "rgdt-v3-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": "==",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

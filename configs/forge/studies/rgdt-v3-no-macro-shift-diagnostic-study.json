@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200.0,
+    "candidate_budget_seconds": 7200.0,
+    "id": "rgdt-v3-no-macro-shift-diagnostic-study"
+  },
+  "candidate": "rgdt-v3-no-macro",
+  "competing_explanation": "Without smooth DualNorm post-acquisition step damping or Pillar 2 macro-transport, unit-norm updates or horizon screening will dip below hq=0.90 during post-shift settling.",
+  "control": {
+    "candidate_id": "rgdt-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "min_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "target_shift_recovery",
+    "threshold": 0.9
+  },
+  "hypothesis": "Evaluate rgdt-v3-no-macro on target_shift_recovery (81 post-deadline checks after step-2400 +1.0 ring shift) to test post-reacquisition thermal stability and Pillar 2 macro-transport necessity.",
+  "id": "rgdt-v3-no-macro-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "min_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "target_shift_recovery",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
