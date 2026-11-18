@@ -656,6 +656,7 @@ class RHBILoss(nn.Module):
         feat_real: Optional[torch.Tensor] = None,
         *,
         feature_assignment_only: bool = False,
+        raw_self_transport: bool = False,
         record: Any = None,
         symmetric: bool = False,
         allow_ell_update: bool = True,
@@ -697,8 +698,9 @@ class RHBILoss(nn.Module):
             if g_macro_fwd > 1e-4:
                 defer_thermal = True
 
-        if feature_assignment_only and (feat_fake is None or feat_real is None or symmetric
-                                        or cond_fake is not None or cond_real is not None):
+        if (feature_assignment_only or raw_self_transport) and (
+            feat_fake is None or feat_real is None or symmetric or cond_fake is not None or cond_real is not None
+        ):
             raise ValueError("Feature assignment requires marginal real and fake features")
         y_target = y_real if symmetric else y_real.detach()
         if feat_fake is not None and feat_real is not None:
@@ -792,11 +794,11 @@ class RHBILoss(nn.Module):
             with torch.no_grad():
                 _, cross_assignment_cost = self._born_infeld_pair(x_aug, y_aug, ell_xy)
             c_phys_xy, c_hat_xy = self._born_infeld_pair(x_fake, y_target, ell_xy)
-            c_phys_xx, c_hat_xx = self._born_infeld_pair(x_fake, x_fake, ell)
         else:
             c_phys_xy, c_hat_xy = self._born_infeld_pair(x_aug, y_aug, ell_xy)
-            c_phys_xx, c_hat_xx = self._born_infeld_pair(x_aug, x_aug, ell)
             cross_assignment_cost = c_hat_xy
+        self_coords = x_fake if feature_assignment_only or raw_self_transport else x_aug
+        c_phys_xx, c_hat_xx = self._born_infeld_pair(self_coords, self_coords, ell)
 
         d_fake_tilde, d_real_tilde = self._centered_log_odds(
             d_fake, d_real, ell=ell, detach_real=not symmetric

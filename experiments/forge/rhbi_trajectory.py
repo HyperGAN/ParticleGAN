@@ -34,8 +34,11 @@ def attach(trainer, context, task, output):
     view = request.get("view")
     if not isinstance(view, dict) or view.get("id") not in {VIEW, ARC_VIEW}:
         return None
+    candidates = {"rhbi-v12", "rhbi-v12-feature-transport"}
+    if view["id"] == ARC_VIEW:
+        candidates.add("rhbi-v12-feature-raw-self")
     if (task["id"] not in {"vector_unequal_mass", "interp_sparse_arc"} or
-            request["candidate"]["id"] not in {"rhbi-v12", "rhbi-v12-feature-transport"} or
+            request["candidate"]["id"] not in candidates or
             view.get("evidence_scope") != "research_diagnostic"):
         raise ValueError("The RHBI trajectory archive requires its declared research arms and tasks")
     return TrajectoryArchive(trainer, context, task, Path(output) / "rhbi-trajectory")

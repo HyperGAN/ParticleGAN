@@ -2156,7 +2156,43 @@ def test_rhbi_feature_assignment_matches_fixed_cross_plan_raw_loss_and_gradient(
         recipe.replace(rhbi_feature_transport="unknown")
 
 
-@pytest.mark.parametrize("mode", [True, "assignment_only"])
+def test_rhbi_feature_raw_self_changes_only_self_cost_and_derivative(monkeypatch):
+    recipe = get_recipe("rhbi_optimized", z_dim=2, num_particles=64, rhbi_feature_transport="raw_self")
+    g, d, _ = _make_mlp_pair()
+    trainer = GANTrainer(recipe, g, d, seed=0)
+    record = trainer.opt_d.record
+    record._in_protected_probe = True
+    x = torch.tensor([[1., 2.], [0., -1.], [-1., 1.], [2., -1.]], requires_grad=True)
+    y = x.detach().flip(0) * 0.8
+    fake, real = trainer._generator_score(x), trainer._generator_score(y)
+    actual = trainer.loss.g_loss(fake, real)
+    op = trainer.loss.rhbi
+
+    # Run the full-feature reference on explicit augmented coordinates. Replace only
+    # its self-distance matrix, including the derivative of the physical cost.
+    hf, hr = d[:-1](x), d[:-1](y).detach()
+    radius = (hr - hr.mean(0)).square().sum(1).mean().sqrt()
+    xf = torch.cat((x, (hf - hr.mean(0)) / radius), dim=1)
+    yr = torch.cat((y, (hr - hr.mean(0)) / radius), dim=1)
+    full, _ = op(xf, yr, fake, real, record=record, allow_ell_update=False)
+    pair = op._born_infeld_pair
+    geometries = []
+    def reference_pair(a, b, ell):
+        is_self = a is b
+        geometries.append(is_self)
+        return pair(x, x, ell) if is_self else pair(a, b, ell)
+    monkeypatch.setattr(op, "_born_infeld_pair", reference_pair)
+    reference, _ = op(xf, yr, fake, real, record=record, allow_ell_update=False)
+    assert geometries == [False, True]
+    grad = torch.autograd.grad(actual, x, retain_graph=True)[0]
+    torch.testing.assert_close(actual, reference)
+    torch.testing.assert_close(grad, torch.autograd.grad(reference, x, retain_graph=True)[0])
+    assert not torch.allclose(grad, torch.autograd.grad(full, x)[0])
+    with pytest.raises(ValueError, match="captured"):
+        trainer.loss.g_loss(d(x), d(y))
+
+
+@pytest.mark.parametrize("mode", [True, "assignment_only", "raw_self"])
 def test_rhbi_feature_transport_exact_continuation(mode):
     recipe = get_recipe("rhbi_optimized", batch_size=16, z_dim=2, num_particles=64,
                         rhbi_feature_transport=mode)
