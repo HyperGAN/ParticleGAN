@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Publish a GitHub source release at the tested commit after PyPI publishes the new version from `master`.
+
 ## 0.10.1 — 2026-11-16
 
 - **Default EMPF research selection (`DEFAULT_RECIPE = "empf"`).**
