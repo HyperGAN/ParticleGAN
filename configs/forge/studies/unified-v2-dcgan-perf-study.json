@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "unified-v2-dcgan-perf-study"
+  },
+  "candidate": "unified-v2",
+  "competing_explanation": "If the coalesced unimodal equilibrium damping in UnifiedPriorRegularizer introduces any overhead on 4D convolutional tensors, dcgan_performance_r256 will exceed empf-v8 step latency (155.41 ms).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 150.0
+  },
+  "hypothesis": "Under the exact unified-v2 source digest, 4D convolutional image tasks execute zero autograd.grad calls and live-endpoint BF16 secant regularization, preserving sub-100 ms/step (~88 ms/step uncontended, ~1,308 MiB peak allocated VRAM) across dcgan_performance_r256 and passing all 6/6 dcgan_performance benchmarks.",
+  "id": "unified-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 120.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v1",
+        "candidate_revision": "5132650acd6bbc9f53ffa639b62b3f2aa3d35c9c6cef450e507514ca9e2d58c8"
+      },
+      "path": "reports/forge/records/readout-3a416c2ad84c6a246f1d8cfc.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "unified-v3-dcgan-perf-study"
+  },
+  "candidate": "unified-v3",
+  "competing_explanation": "If UnifiedPriorRegularizer or UnifiedCriticPenalty introduces extra forward passes or memory copies on 4D convolutional images, dcgan_performance_r256 will exceed empf-v8 step latency (155.41 ms).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 155.4
+  },
+  "hypothesis": "With zero autograd.grad calls and live-endpoint BF16 secant reuse, unified-v3 beats empf-v8 latency (< 145 ms/step even under shared GPU load, ~87.5 ms/step uncontended) and allocates ~1,308.4 MiB VRAM at 256x256 across all 6/6 dcgan_performance tasks under the exact unified-v3 source digest.",
+  "id": "unified-v3-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 145.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v2",
+        "candidate_revision": "cc7a04762547d3d463c237074e80c3e24b36074c18e3ffe5d498119c475f1428"
+      },
+      "path": "reports/forge/records/readout-a05ee6e86f954b22c39367d4.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "unified-v1",
+        "candidate_revision": "5132650acd6bbc9f53ffa639b62b3f2aa3d35c9c6cef450e507514ca9e2d58c8"
+      },
+      "path": "reports/forge/records/readout-3a416c2ad84c6a246f1d8cfc.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

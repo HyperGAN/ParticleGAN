@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "unified-v1-shift-diagnostic-study"
+  },
+  "candidate": "unified-v1",
+  "competing_explanation": "If streaming Zador-Gersho prototype adaptation or res_ema shock reopening lags abrupt 8-mode target shifts, unified-v1 will fail to reacquire all 8 shifted modes within the 400-step deadline or drop post-recovery hold checks on target_shift_recovery.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global clock-free unified-v1 passes ae_gan_hold, mode_hold, and zero_tanh_smoke while shock-reopening streaming Zador-Gersho prototypes to reacquire all 8/8 shifted modes and hold HQ >= 0.90 on Tier-3 target_shift_recovery under protocol seed 0.",
+  "id": "unified-v1-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-4fa7e706751e4f17c64a523e.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
