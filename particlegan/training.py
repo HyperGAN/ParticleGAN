@@ -36,6 +36,16 @@ def _float_output(value):
             result._empf_record = value._empf_record
         if hasattr(value, "_empf_conditioned"):
             result._empf_conditioned = value._empf_conditioned
+        if hasattr(value, "_empf_cond_tensors"):
+            result._empf_cond_tensors = value._empf_cond_tensors
+        if hasattr(value, "_t2_input"):
+            result._t2_input = value._t2_input
+        if hasattr(value, "_t2_record"):
+            result._t2_record = value._t2_record
+        if hasattr(value, "_t2_conditioned"):
+            result._t2_conditioned = value._t2_conditioned
+        if hasattr(value, "_t2_cond_tensors"):
+            result._t2_cond_tensors = value._t2_cond_tensors
         if hasattr(value, "_rhbi_input"):
             result._rhbi_input = value._rhbi_input
             result._rhbi_cond = getattr(value, "_rhbi_cond", None)
@@ -65,21 +75,31 @@ class InputNoise(nn.Module):
         self.critic, self.std, self.generator = critic, float(std), generator
         self.bf16 = _convolution_autocast(critic, bf16)
 
-    def _forward(self, x, *args, **kwargs):
-        if not self.bf16 or x.device.type != "cuda":
-            return self.critic(x, *args, **kwargs)
-        with torch.autocast("cuda", dtype=torch.bfloat16):
-            return _float_output(self.critic(x.contiguous(memory_format=torch.channels_last), *args, **kwargs))
+    def _forward(self, x, *args, _source_x=None, **kwargs):
+        src = x if _source_x is None else _source_x
+        has_t2 = hasattr(self.critic, "_t2_record")
+        if has_t2:
+            from ._t2_critic.critic import _tensor_identity_key
+            self.critic._t2_pending_source_key = _tensor_identity_key(src)
+        try:
+            if not self.bf16 or x.device.type != "cuda":
+                return self.critic(x, *args, **kwargs)
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                return _float_output(self.critic(x.contiguous(memory_format=torch.channels_last), *args, **kwargs))
+        finally:
+            if has_t2:
+                self.critic._t2_pending_source_key = None
 
     def forward(self, x, *args, **kwargs):
         if self.std == 0:
             return self._forward(x, *args, **kwargs)
         noise = torch.randn(x.shape, generator=self.generator, device=x.device, dtype=x.dtype)
-        out = self._forward(x + self.std * noise, *args, **kwargs)
+        out = self._forward(x + self.std * noise, *args, **kwargs, _source_x=x)
         target = out[0] if isinstance(out, (tuple, list)) and out else out
         if isinstance(target, torch.Tensor):
             target._bispf_input = x
             target._empf_input = x
+            target._t2_input = x
             if hasattr(target, "_rhbi_input") or hasattr(self.critic, "_rhbi_record"):
                 from .rhbi import _extract_critic_inputs_parts, _record_rhbi_capture
                 rec = getattr(target, "_rhbi_record", getattr(self.critic, "_rhbi_record", None))
@@ -311,7 +331,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t2_secant") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -333,6 +353,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "empf":
             from .empf import bind_empf_record
             bind_empf_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "t2_secant":
+            from .t2_critic import bind_t2_record
+            bind_t2_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)

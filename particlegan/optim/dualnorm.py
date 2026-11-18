@@ -1136,6 +1136,12 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _EMPFObserverStepRecord()
             optimizer._empf_record = optimizer.record
             _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t2_secant":
+            from ..t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
+            optimizer.record = _T2SecantObserverStepRecord()
+            optimizer._empf_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            _attach_t2_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from ..rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()

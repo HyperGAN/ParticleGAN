@@ -586,7 +586,7 @@ class Recipe:
                 and self.critic_formulation != "rhbi"):
             raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, or RHBI formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t2_secant"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -603,11 +603,11 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf or rhbi")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t2_secant"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi or t2_secant")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf"):
+        if self.critic_formulation in ("bispf", "empf", "t2_secant"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
@@ -699,7 +699,7 @@ class Recipe:
             raise ValueError("rhbi_iters must be a positive integer")
         if type(self.ebi_beta) not in (int, float) or not math.isfinite(self.ebi_beta) or self.ebi_beta <= 0:
             raise ValueError("ebi_beta must be finite and positive")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t2_secant"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -1065,6 +1065,9 @@ class Recipe:
         if self.effective_critic_formulation == "empf" and self.loss == "relativistic":
             from .empf import EMPFSinkhornRelativisticLoss
             return EMPFSinkhornRelativisticLoss(labels=self.loss_labels, loss=self.loss)
+        if self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantGANLoss
+            return T2SecantGANLoss(labels=self.loss_labels, loss=self.loss)
         from .gan_loss import GANLoss
         return GANLoss(self.loss, labels=self.loss_labels)
 
@@ -1123,6 +1126,8 @@ class Recipe:
             from .bispf import BISPFCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "empf":
             from .empf import EMPFCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "rhbi":
             from .rhbi import RHBICriticPenalty as CriticPenalty
         elif self.effective_critic_formulation in ("k3p", "bcap"):
@@ -1134,8 +1139,8 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf or rhbi")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t2_secant"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi or t2_secant")
         if self.effective_critic_formulation == "rhbi":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1174,6 +1179,14 @@ class Recipe:
                        "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
             from .empf import _EMPFPenaltyKernel
             _EMPFPenaltyKernel(**options)
+            return options
+        if self.effective_critic_formulation == "t2_secant":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
+                       "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
+            from .t2_critic import _T2SecantPenaltyKernel
+            _T2SecantPenaltyKernel(**options)
             return options
         if self.effective_critic_formulation in ("k3p", "bcap"):
             if not self.critic_r1_real:
@@ -1245,6 +1258,11 @@ class Recipe:
             return EMPFCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                   ema_critic=ema_critic,
                                   guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "t2_secant":
+            from .t2_critic import T2SecantCriticAdam
+            return T2SecantCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                      ema_critic=ema_critic,
+                                      guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "rhbi":
             from .rhbi import RHBICriticAdam
             return RHBICriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
@@ -1386,7 +1404,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t2_secant"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -1680,11 +1698,16 @@ class Recipe:
         if ka2_trust_mode != "compound":
             adam_kwargs = {**adam_kwargs, "ka2_trust_mode": ka2_trust_mode}
         opt_d = self.make_critic_optimizer(discriminator, ema_critic=ema_critic, **adam_kwargs)
-        if self.effective_critic_formulation == "empf" and hasattr(opt_d, "record"):
+        if self.effective_critic_formulation in ("empf", "t2_secant") and hasattr(opt_d, "record"):
             opt_g._empf_record = opt_d.record
             opt_d._empf_record = opt_d.record
             if base_prior is not None:
                 base_prior._empf_record = opt_d.record
+            if self.effective_critic_formulation == "t2_secant":
+                opt_g._t2_record = opt_d.record
+                opt_d._t2_record = opt_d.record
+                if base_prior is not None:
+                    base_prior._t2_record = opt_d.record
         if (
             self.effective_critic_formulation == "rhbi"
             or self.rhbi_weight > 0
@@ -1853,6 +1876,9 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "t1_laguerre_lr": 0.015,
         "t1_prior_row_lr": 0.06,
         "t1_max_prototypes": 256,
+    }
+    presets["t2_secant"] = {
+        **presets["empf"], "critic_formulation": "t2_secant",
     }
     presets["rhbi"] = {
         **presets["bcap"], "critic_formulation": "rhbi", "reg_arm": None,
