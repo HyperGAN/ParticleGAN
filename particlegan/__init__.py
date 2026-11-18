@@ -76,6 +76,14 @@ from .rhbi import (
     RHBIStepRecord,
     bind_rhbi_record,
 )
+from .t3_dynamics import (
+    RGDTCriticAdam,
+    RGDTCriticPenalty,
+    RGDTGANLoss,
+    RGDTPriorRegularizer,
+    RGDTStepRecord,
+    bind_rgdt_record,
+)
 from . import init
 
 __all__ = [
@@ -95,6 +103,7 @@ __all__ = [
     "BISPFStepRecord", "BISPFCriticAdam", "BISPFCriticPenalty", "SinkhornRelativisticLoss", "BISPFGates",
     "EMPFStepRecord", "EMPFCriticAdam", "EMPFCriticPenalty", "EMPFPriorRegularizer", "EMPFSinkhornRelativisticLoss",
     "RHBICriticAdam", "RHBICriticPenalty", "RHBIGANLoss", "RHBILoss", "RHBIStepRecord", "bind_rhbi_record",
+    "RGDTCriticAdam", "RGDTCriticPenalty", "RGDTGANLoss", "RGDTPriorRegularizer", "RGDTStepRecord", "bind_rgdt_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",

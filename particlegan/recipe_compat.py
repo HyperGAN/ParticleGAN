@@ -32,6 +32,10 @@ SEARCH_RECIPE_DEFAULTS = {
     "kappa_radial": 1.0,
     "ebi_beta": 30.0,
     "generator_gradient_response": "none",
+    "rgdt_conformal_horizon": True,
+    "rgdt_macro_slack_weight": 0.0,
+    "rgdt_fiber_residual_weight": 0.0,
+    "rgdt_manifold_chart_weight": 0.0,
 }
 
 

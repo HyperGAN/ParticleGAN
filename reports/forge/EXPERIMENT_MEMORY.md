@@ -1,8 +1,8 @@
 # ParticleGAN Forge experiment memory
 
-Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
+Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Current qualification is recomputed from compatible receipts. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1026. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -20,7 +20,7 @@ Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Pending readouts
 
-bcap--148a58dc4036cfc2d71a10b427582aeea304b4ac70874ff2fe7ec02f31cee561, bcap--17c9d255a2f8e1adfc1e4ec686e3cee3c7e3fd40fc7979328d4e1955cc2d29a1, bcap--263d190ebb4c40ddb21337a16a598f5ffcca4639031b3b70aaa3036aec67b31e, bcap--655141ae1d99b0b08dcbac36abbb6f135473d47d389f2ec9d41d9aa6d1201fbe, bcap--6c72e4aaf8ffe22be663a6e041971cc22bbee9402bb0095c4935aa167b6ccb03, bcap--8a9884cad1e87d5d950d8dff3d4901a787e8f94fc99b00e83877fdf6e1a932c2, bcap--90dcc2c3039f9f4c7ed2b1de03dec0c75cec2e9d386de0bb302f90a5f923de23, bcap--a3675bf5a89a136bd4c64b5577021215c1e118aca2971e274b6d23ded6ac55a9, bcap--c89e202b7830cfc38743c25fc1b34ca8ceef3f113c4f091017cac7c843972da3, bcap--ccfa83125643932bdfc88a2178a94ec019a2687d7915dae1ed0d6852925f603d, bcap--e8c9fcd62a13b748b0a1c97543b828ee618833ea45789681323a37c9c300d773, bcap--f0163dead110803a0e982cacfa2589918cd7345eea1655c76a3e3f21b0037887, bcap-original-horizon-diagnostics-v1, bcap-tier2-round6-control-v1, bcap-tier2-round6-half-network-v1, bcap-tier2-round6-late-anneal-v1, bcap-tier2-round6-prior-smoothing-v1, bcap-tier2-round6-zero-damping-v1, constraint_geometry-control-v1, constraint_geometry-nonascent-v1, five-word-joint-ka2-v1, hydraulic-output-travel-v1, information_geometry_spectral_half_v1, kinetic_transport_sliced_v1, thermodynamic-bcap-optimism-v1
+None recorded.
 
 ## Experiment and family records
 
@@ -4744,6 +4744,22 @@ Word confidence signature observed, but global repair hypothesis fails: 9/13 req
 
 [Evidence](../../reports/forge/r1r2-repair-20261022/README.md) · [Record](records/readout-39165e761d4e5ea74a5a67d1.json)
 
+### rgdt-v2 · readout-39526ee7f7d154d6eb95ee57
+
+**Scope:** current; scientific; revision `4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd`.
+
+Adding row-local Euclidean Voronoi bandwidth in conformal_horizon_pair, surplus-partitioned explorer release in bipartite_deficit_macro_loss, finite-batch thermal cooling deadband with LOO cov90, and non-critic DualNorm step scaling converts vector_unequal_width, vector_unequal_mass, img_bars4, model_ddgan_gaussian_chain, precision_gaussian_fp32, and gaussian1d_stability to PASS while retaining all Tier 1 gates under one global clock-free recipe on protocol seed 0.
+
+**Observed:** {'FAIL': 16, 'PASS': 25}; wall seconds 4579.966; mechanism `structural`.
+
+vector_unequal_mass: hq=0.9856, mass_tv=0.026221
+
+rgdt-v2 passes 100% of counted Tier 1 gates (13/13 PASS, 14/16 total Tier 1 PASS adding precision_gaussian_fp32 cdf_ks=0.0161 and precision_gaussian_nvfp4 cdf_ks=0.0298) and 25/41 discriminator_stability tasks under one global clock-free recipe. Row-local Euclidean Voronoi conformal bandwidth improves vector_unequal_width core covariance error from 0.2675 to 0.1680 and mass_tv to 0.0474 (<=0.15) while isolating continuous-MLP bridge spill (max_component_spill=0.0714) under early thermal cooling; finite-batch thermal deadband achieves 72/72 stationary and 24/24 shifted hold passes on gaussian1d_stability (cdf_ks=0.0328, mean_error_sigma=0.0095).
+
+**Next:** Conclude rgdt-v2-shift-diagnostic-study, publish Track 3 first-principles study report reports/forge/studies/t3-missing-piece.md, and recommend bridge-aware thermal tail gating plus column-deficit (rather than min-distance) orphan mass routing for follow-up integration with Track 1.
+
+[Record and receipt provenance](records/readout-39526ee7f7d154d6eb95ee57.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-ka2-v1 · readout-3ac6c4c08f886f05d0b92dfc
 
 **Scope:** research_diagnostic; scientific; revision `d374199b825ad11bf123d47e7b7d68eba029b49ac58e97614c49f14862198f95`.
@@ -4791,6 +4807,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Evidence](../../) · [Record](records/readout-3bd45e331f5dd03701da2700.json)
+
+### rgdt-v1 · readout-3ce5e17e85f112ed337c5c24
+
+**Scope:** research_diagnostic; scientific; revision `aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17`.
+
+Directly measure unchanged global clock-free rgdt-v1 on target_shift_recovery and record zero_tanh_rail_escape host-adapter BLOCKED status under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 3}; wall seconds 371.647; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0068994; mode_hold: modes=8, hq=0.99268
+
+On t3-shift-recovery-diagnostic-v1, rgdt-v1 reacquires all 8/8 shifted modes within the 400-step deadline (min_modes=8 at step 2800, passing 77/81 checks with pass_suffix=True, passing_suffix=22, min_hq=0.8523) while missing strict pass_all (81/81) on 4 post-recovery steps [2860, 2960, 3280, 3380] due to uncooled post-recovery thermal scale; zero_tanh_rail_escape is recorded BLOCKED by Forge's unrouted tanh host adapter.
+
+**Next:** Advance to rgdt-v2 with finite-batch thermal cooling deadband, LOO cov90 residual, row-local Euclidean Voronoi conformal bandwidth, surplus-partitioned orphan explorer routing, and non-critic DualNorm step scaling.
+
+[Record and receipt provenance](records/readout-3ce5e17e85f112ed337c5c24.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v8 · readout-3d6ce9a324a579c291eac043
 
@@ -4887,6 +4919,22 @@ Guarding LossSurprise.decide against KA2 pre-anchor critic-only SettledReopenGua
 **Next:** Investigate adaptive per-population cell budgeting so N=256 rare-mode vector hosts avoid under-resolved k=7 kNN turnover without doubling K=256 FeatureCellBirthDeath cells on N=20000 100-mode tasks (grid100, rotated100, staggered100), and investigate joint-inference stability for BiGAN/DDGAN/five_word_joint hosts.
 
 [Record and receipt provenance](records/readout-423f82f13ee30c0a95fd266a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v1 · readout-42d9413e214894f66d707f4c
+
+**Scope:** current; scientific; revision `aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17`.
+
+Replacing scalar-horizon and homoscedastic adversarial pairing with Riemannian Gauge-Deconflicted Transport (RGDT: symmetric target-induced conformal horizon ell_Y(u,v)=sqrt(ell_Y(u)ell_Y(v)), orphan-gated bipartite Monge deficit-to-surplus macro-transport, exchangeability-invariant pooled-tangent conditional fiber residualization, and kernel-variance-softened prior regularization) resolves scale-mass gauge conflation and horizon starvation, converting vector_unequal_width (component_covariance_error <= 0.85, mass_tv <= 0.15, component_min_eigen_ratio >= 0.15), img_bars4 (modes >= 4), and model_ddgan_gaussian_chain to PASS while retaining all 13/13 Tier 1 gates on protocol seed 0.
+
+**Observed:** {'FAIL': 14, 'INCOMPLETE': 1, 'PASS': 26}; wall seconds 4389.837; mechanism `structural`.
+
+model_ae_gan_multimodal: modes=4, precision=0.96777, mass_tv=0.084229
+
+rgdt-v1 passes all 11 Tier 1 required gates and 25/39 counted + 4/4 held = 29/43 executed tasks on discriminator_stability through Tier 2 under one global clock-free recipe, validating conformal Feydy gauge-deconfliction (vector_anisotropic, vector_overlap, img_blobs4, img_intensity2, img_stripes2 PASS; vector_unequal_width mass_tv=0.0527 PASS; img_bars4 3/4 modes at hq=1.0; model_ddgan_gaussian_chain 31/32 gates PASS with t1_q0_cov_eig_max=1.148) while exposing four sharp second-order issues: missing finite-batch thermal cooling deadband, column-wise Voronoi softmax bleed, uniform vs surplus-partitioned orphan routing on 3/4 bars, and critic damping in DualNorm.
+
+**Next:** Measure target_shift_recovery on rgdt-v1 via diagnostic view, then test rgdt-v2 with row-local Euclidean Voronoi bandwidth, surplus-partitioned explorer routing, finite-batch thermal deadband, and non-critic DualNorm step scaling.
+
+[Record and receipt provenance](records/readout-42d9413e214894f66d707f4c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v11 · readout-4301e02799ec0ad34cc958a1
 
@@ -5048,6 +5096,22 @@ Stop this numerical-backend revision: graph acceleration improves the 64-pixel p
 
 [Record and receipt provenance](records/readout-47d84c98f42853a07d20becb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v1 · readout-48516a300c5fb79e2db8ccff
+
+**Scope:** current; scientific; revision `aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17`.
+
+The unchanged global clock-free rgdt-v1 recipe preserves stationary mode_hold and ae_gan_hold while using step-1 shock reopening plus orphan-gated bipartite Monge deficit-to-surplus macro-transport to bridge the [+1.0, 0.0] non-stationary shift on target_shift_recovery within the 400-step deadline on protocol seed 0.
+
+**Observed:** {'FAIL': 6, 'PASS': 16}; wall seconds 2509.419; mechanism `structural`.
+
+vector_unequal_width: hq=0.98291, mass_tv=0.052734
+
+On adaptation through Tier 3 under complete_current_tier, rgdt-v1 passes all Tier 1 required gates (two_pole, unused_token_hold, ae_gan_hold) and Tier 2 mode_hold, vector_anisotropic, vector_overlap, img_blobs4, img_intensity2, and img_stripes2, while Tier 2 100-mode grid tasks (grid100, rotated100, staggered100) block ordinary advancement to Tier 3 target_shift_recovery.
+
+**Next:** Measure target_shift_recovery directly under research_diagnostic view t3-shift-recovery-diagnostic-v1 and test surplus-partitioned orphan routing in rgdt-v2.
+
+[Record and receipt provenance](records/readout-48516a300c5fb79e2db8ccff.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-4901963885d977da23e139ba
 
 **Scope:** current; scientific; revision `e9cb4e9e9d26179d1fa70cf52b42cee045c9c8e67238b78e5c0c28ac0d8fda8e`.
@@ -5192,6 +5256,22 @@ Ordinary discriminator_stability revision-14 re-qualification reproduces all 7 c
 
 [Record and receipt provenance](records/readout-4f82f909f64b3d97917d6b1a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v2 · readout-4fa7e706751e4f17c64a523e
+
+**Scope:** research_diagnostic; scientific; revision `4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd`.
+
+With finite-batch thermal cooling deadband, LOO cov90 residual, and surplus-partitioned orphan explorer routing, unchanged global clock-free rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and holds all 81/81 post-deadline checks on target_shift_recovery while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 3}; wall seconds 439.305; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0041506
+
+On t3-shift-recovery-diagnostic-v1, rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and improves post-deadline stability from 77/81 (rgdt-v1, min_hq=0.8523, passing_suffix=22) to 79/81 passing checks (min_hq=0.8953 vs 0.9000 gate, passing_suffix=46, stable_from_step=3150) while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS; zero_tanh_rail_escape remains formally BLOCKED by Forge's unrouted tanh host adapter.
+
+**Next:** Publish complete rgdt-v1 and rgdt-v2 leaderboards, mathematical derivations, and Track 1+2+3 integration recommendations in reports/forge/studies/t3-missing-piece.md.
+
+[Record and receipt provenance](records/readout-4fa7e706751e4f17c64a523e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-5449c98aa6ac41a9138a74e6
 
 **Scope:** research_diagnostic; scientific; revision `4c33fa871d84961a929bbfd21b0f147320e1bf8ccfb5c844792e03d19cd7d834`.
@@ -5320,6 +5400,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 
 [Record and receipt provenance](records/readout-5a2f259958a8784b19e78ff3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v1 · readout-5b5d0fc5fa0b73886c36e64f
+
+**Scope:** research_diagnostic; scientific; revision `aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17`.
+
+Measure complete public GANTrainer update time (ms/step, images/s) and peak GPU memory (MiB) across 32^2..256^2 RGB DCGAN tasks under the unchanged global rgdt-v1 recipe, verifying ~3.7x faster updates and ~2.4x lower GPU memory than rhbi-v12 via BF16 channels-last, Newton-Schulz hybrid DualNorm, BatchNorm-clean dual-endpoint EBI, and connected-low-D gating of manifold chart forward passes.
+
+**Observed:** {'PASS': 6}; wall seconds 64.858; mechanism `structural`.
+
+
+
+rgdt-v1 completed all 6/6 dcgan_performance scaling tasks cleanly on NVIDIA RTX A6000 (finite_update_fraction=1.0), achieving 130.39 ms/step and 1471.44 MiB peak allocated on dcgan_performance_r256 (122.97 img/s) and 61.10 ms/step / 584.67 MiB on dcgan_performance_r128.
+
+**Next:** Execute full Tier 1-2 discriminator_stability (rgdt-v1-study) and Tier 3 adaptation (rgdt-v1-adaptation-study) benchmarks on the unchanged global rgdt-v1 recipe.
+
+[Record and receipt provenance](records/readout-5b5d0fc5fa0b73886c36e64f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2--abf642c42c5346ad096c29202e4716db535c393c113478552133c1c22761ddbd · readout-5bc30fee4d41b69294b1e32e
 
 **Scope:** current; scientific; revision `7c08dcbf6b2e1a90368368ba328f3597a260381ca68b67f2ac28904050ce3ee1`.
@@ -5447,6 +5543,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v1 (PASS 6). Diagnost
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-65e4f5d253025443fdee7ee4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v2 · readout-66149110f7d44d8ffe08d293
+
+**Scope:** research_diagnostic; scientific; revision `4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd`.
+
+Verify that rgdt-v2 preserves rgdt-v1's BF16 channels-last and Newton-Schulz hybrid DualNorm energy/speed efficiency across 32^2..256^2 RGB DCGAN tasks (~4.5x faster and ~2.5x lower GPU memory than rhbi-v12 at 256^2) under one global clock-free recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 64.798; mechanism `structural`.
+
+
+
+rgdt-v2 passes all 6/6 dcgan_performance tasks (r32, r64, b64, w128, r128, r256) with finite_update_fraction=1.0 on uncontended RTX A6000 GPU 1, preserving rgdt-v1 speed and memory efficiency (~4.5x faster and ~2.5x lower GPU memory than rhbi-v12 at 256^2, matching or beating empf-v8 across all 6 cells).
+
+**Next:** Run rgdt-v2-study on discriminator_stability through Tier 2 and rgdt-v2-shift-diagnostic-study on target_shift_recovery.
+
+[Record and receipt provenance](records/readout-66149110f7d44d8ffe08d293.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-pure-global-v1 · readout-6675da6b575648d03b2182e9
 
@@ -8454,4 +8566,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `01aa1e21fbeebfc49ba1f22e40b5ccdd7f6dad567dd73e16d4cd67e614f673ef`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `1d446aea541c4d7344457907df867e19b2b52c0f5436e34edd61f1ba0ac9cd54`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

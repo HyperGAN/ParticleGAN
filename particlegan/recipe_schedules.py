@@ -148,6 +148,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from .t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
+            optimizer.record = _RGDTObserverStepRecord()
+            _attach_rgdt_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

@@ -43,6 +43,15 @@ def _float_output(value):
             result._rhbi_parts = getattr(value, "_rhbi_parts", None)
         if hasattr(value, "_rhbi_record"):
             result._rhbi_record = value._rhbi_record
+        if hasattr(value, "_rgdt_input"):
+            result._rgdt_input = value._rgdt_input
+            result._rgdt_cond = getattr(value, "_rgdt_cond", None)
+            result._rgdt_cont_cond = bool(getattr(value, "_rgdt_cont_cond", False))
+            result._rgdt_parts = getattr(value, "_rgdt_parts", None)
+        if hasattr(value, "_rgdt_record"):
+            result._rgdt_record = value._rgdt_record
+        if hasattr(value, "_rgdt_thermally_scaled"):
+            result._rgdt_thermally_scaled = value._rgdt_thermally_scaled
         return result
     if isinstance(value, tuple):
         return tuple(_float_output(item) for item in value)
@@ -92,6 +101,22 @@ class InputNoise(nn.Module):
                         x_clean,
                         cond_disc,
                         rec,
+                        has_cont_cond=has_cont_cond,
+                        float_parts=float_parts,
+                        overwrite=True,
+                    )
+            if hasattr(target, "_rgdt_input") or hasattr(self.critic, "_rgdt_record"):
+                from .t3_dynamics import _extract_rgdt_inputs_parts, _record_rgdt_capture
+                rec_t3 = getattr(target, "_rgdt_record", getattr(self.critic, "_rgdt_record", None))
+                if rec_t3 is None or not getattr(rec_t3, "_in_penalty", False):
+                    x_clean, cond_disc, has_cont_cond, float_parts = _extract_rgdt_inputs_parts(
+                        (x, *args), kwargs, int(target.shape[0])
+                    )
+                    _record_rgdt_capture(
+                        out,
+                        x_clean,
+                        cond_disc,
+                        rec_t3,
                         has_cont_cond=has_cont_cond,
                         float_parts=float_parts,
                         overwrite=True,
@@ -157,7 +182,9 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
                         "rhbi_simplex_macro_settle": False, "rhbi_simplex_curve_settle": False,
                         "rhbi_cond_step_damp": 0.0, "rhbi_ae_coord_whiten": False,
-                        "rhbi_support_completion": False}
+                        "rhbi_support_completion": False,
+                        "rgdt_conformal_horizon": True, "rgdt_macro_slack_weight": 0.0,
+                        "rgdt_fiber_residual_weight": 0.0, "rgdt_manifold_chart_weight": 0.0}
 
 
 class GANTrainer:
@@ -308,7 +335,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "rgdt") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -333,6 +360,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from .t3_dynamics import bind_rgdt_record
+            bind_rgdt_record(self.opt_d.record, self.loss, self.prior_regularizer)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -570,6 +600,17 @@ class GANTrainer:
                     self.prior_noise_generator is None,
                     simplicial_active=simplicial_active,
                 )
+            if hasattr(self.loss, "bind_discrete_prior_step") and hasattr(self.loss, "manifold_chart_loss"):
+                rgdt_manifold_active = (
+                    recipe.rgdt_manifold_chart_weight > 0.0
+                    and self.prior_noise_generator is None
+                    and self.prior.z.requires_grad
+                    and 2 <= len(self.prior.z) <= 128
+                )
+                self.loss.bind_discrete_prior_step(
+                    self.prior_noise_generator is None,
+                    manifold_active=rgdt_manifold_active,
+                )
             fake_logits = critic(fake_g)
             real_g = generator_real() if callable(generator_real) else generator_real
             real_g = real if real_g is None else self._batch(real_g, "generator_real")
@@ -627,6 +668,22 @@ class GANTrainer:
                     curve_settle=recipe.rhbi_simplex_curve_settle,
                 )
                 loss_g = loss_g + simplex_loss
+            rgdt_chart_loss = None
+            if (
+                recipe.rgdt_manifold_chart_weight > 0.0
+                and self.prior_noise_generator is None
+                and self.prior.z.requires_grad
+                and 2 <= len(self.prior.z) <= 128
+                and hasattr(self.loss, "manifold_chart_loss")
+            ):
+                raw_base_t3 = unwrap_prior(self.prior).z
+                rgdt_chart_loss = self.loss.manifold_chart_loss(
+                    raw_base_t3,
+                    lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
+                    real_g,
+                    record=getattr(self.opt_d, "record", None),
+                )
+                loss_g = loss_g + rgdt_chart_loss
             self.opt_g.zero_grad()
             protected_evaluator = None
             if recipe.constraint_geometry_mode == "strict_progress":
@@ -677,6 +734,8 @@ class GANTrainer:
         finally:
             if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
                 self.loss.rhbi.bind_discrete_prior_step(False)
+            if hasattr(self.loss, "bind_discrete_prior_step"):
+                self.loss.bind_discrete_prior_step(False)
             for parameter, flag in zip(self.D.parameters(), flags):
                 parameter.requires_grad_(flag)
         self.policy.finish_step()

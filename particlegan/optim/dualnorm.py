@@ -727,6 +727,11 @@ class NormalizedOptimizer(Optimizer):
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
+        rgdt_step_scale = (
+            float(getattr(getattr(self, "_rgdt_record", None), "_step_scale", 1.0))
+            if getattr(self, "critic", None) is None
+            else 1.0
+        )
         rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
         if rhbi_damp > 0.0:
             rhbi_rec = getattr(self, "_rhbi_record", None)
@@ -756,6 +761,7 @@ class NormalizedOptimizer(Optimizer):
                 rate = (
                     base_rate
                     * empf_step_scale
+                    * rgdt_step_scale
                     * rhbi_step_scale
                     * (origin_damping if (is_generator and state["step"] > 80) else 1.0)
                 )
@@ -783,8 +789,11 @@ class NormalizedOptimizer(Optimizer):
                             else torch.arange(len(parameter), device=parameter.device))
                     selected = gradient[rows]
                     norm = selected.norm(dim=1, keepdim=True)
-                    denominator = (torch.hypot(norm, torch.full_like(norm, self.smoothing))
-                                   if self.smoothing else norm + eps)
+                    eff_smooth = self.smoothing
+                    if eff_smooth and getattr(self, "_rgdt_record", None) is not None and len(rows) > 128:
+                        eff_smooth = eff_smooth * (128.0 / float(len(rows)))
+                    denominator = (torch.hypot(norm, torch.full_like(norm, eff_smooth))
+                                   if eff_smooth else norm + eps)
                     update = selected / denominator
                     parameter.index_add_(0, rows, update, alpha=-rate)
                 elif algorithm == "dualnorm":
@@ -1141,6 +1150,11 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _RHBIObserverStepRecord()
             optimizer._rhbi_record = optimizer.record
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from ..t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
+            optimizer.record = _RGDTObserverStepRecord()
+            optimizer._rgdt_record = optimizer.record
+            _attach_rgdt_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
     return optimizer
