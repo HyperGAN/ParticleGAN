@@ -33,11 +33,29 @@ The published rhbi-v12 selection passes the four retention tasks under its origi
 
 The frozen interpolation scorer uses a float32 mean of per-row finite flags. On this CUDA runtime, even 82 true flags give 0.99999994. That trips the scorer's early return on the patch task at steps 667 and 700. The saddle endpoint also took the early return. Its reported error of 9.9 is a sentinel. Both tasks independently miss a measured bound at step 767, as shown above. Preserve these receipts. A future scorer revision should use an integer count for the all-finite decision and be tested with the observed row counts before comparison.
 
-The next research question is where the added feature distance changes a correct raw-space match. Inspect the frozen candidate's real–fake couplings on the rare mode and the sparse arc before selecting another trainer delta. EMPF remains the existing positive image control. This study supplies no CIFAR measurement, independent confirmation, or calibration for default adoption.
+## Where the feature distance changes the match
+
+The feature distance strongly redirected the blurry texture control. Its effect on the learned rare-mode and arc endpoints was small. Each row below compares both distances on identical clean generator outputs, real examples, critic scores and frozen RHBI state. The texture checkpoint comes from the raw-space parent. The other two checkpoints come from the feature-trained candidate. [Probe source](retention_probe.py) · [Compact measurements and checkpoint hashes](retention-probe.json)
+
+| Frozen endpoint | Raw distance horizon ℓ | Active mass, raw → with features | Fraction of the transport plan moved¹ | Change in output gradient² |
+| --- | ---: | ---: | ---: | ---: |
+| Blurry texture, 288 updates | 15.625 | 100.00% → 3.16% | 97.56% | 10.12× |
+| Unequal mass, 1,200 updates | 0.0275 | 82.46% → 82.45% | 0.035% | 0.00107× |
+| Sparse arc, 600 updates | 0.0287 | 29.30% → 29.25% | 0.055% | 0.00181× |
+
+¹ Total variation across the real-target and slack columns, pooled over generated rows. Active mass is the fraction assigned to a real example. The frozen solver can send the rest to slack. ² L2 norm of the gradient difference divided by the raw-gradient norm for the marginal generator loss. The cosine between the two gradients was −0.009 on texture and above 0.99999 on each retention task. This comparison measures gradients at the generated outputs, before the generator Jacobian, separate prior and simplicial terms, and optimizer.
+
+**Unequal mass.** Both distances assigned zero active mass across the four mode boundaries on these batches. Among the 99 generated examples nearest the 2% component, active mass was 65.52% with either distance. Two batches had no rare real observation, and both distances routed all six rare generated rows in those batches to slack. Re-scoring the original 4,096 stored samples at update 1,150 found 119 rare examples (2.91%). Their smallest normalized covariance eigenvalue was 0.142 against the 0.15 floor. The sample count and thin direction distinguish a width failure from disappearance of the rare component at that observation. Only the endpoint has a saved critic for the coupling probe.
+
+**Sparse arc.** All 12 endpoints met the quality bound. All 18 failures among the 69 chord interiors lay inside the circle. The median angle between endpoints was 48.2° for failed interiors and 25.9° for passing interiors. When the 69 interiors were presented to the marginal loss as a diagnostic, only 8.38% → 8.32% of the failed interiors' mass matched real points, versus 72.33% → 72.27% for passing interiors. The ordinary endpoint-sample batches did change their top real example on 19.2% of common active mass. On those changes the old and new winners differed by just 1.1×10⁻⁷ of the raw row's active probability on average. Mean active angular mismatch was 1.323° → 1.321°.
+
+**Decision.** Keep the texture mechanism as an image result. These endpoint measurements give little reason to tune feature strength or redesign matching to address retention. The most informative next training comparison would capture the first divergence between the parent and candidate on one frozen source. Record the rare component's narrow-axis variance and the arc errors on the same latent edges, alongside the transport plans, before the final window. An early coupling difference preceding a quality difference would support a training-path explanation. The current measurements leave that timing open. CIFAR remains unmeasured.
+
+The probe used 32 consecutive real batches per task, protocol seed 0, separate diagnostic RNGs and zero optimizer updates. It verified each checkpoint hash, exact public-context restoration, and identical serialized trainer and named RNG state after evaluation. A derivative control detached only the fake feature path and checked the forward loss and cross-plan bit for bit. Two fresh processes reproduced the compact diagnostic byte for byte. The extra arc panel reused the same 69 distinct interiors across reference batches. These are endpoint diagnostics, with no additional qualification runs.
 
 ## Reproduction
 
-For the matched study, use execution commit `27803af6ae036e91b7c7a627ddd03771a51a13eb`. The read-only probe accepts the original provenance checkpoint specified in [probe.json](probe.json). Each Forge worker writes `run.log` in its campaign/attempt directory. From the repository root:
+For the matched study, use execution commit `27803af6ae036e91b7c7a627ddd03771a51a13eb`. The read-only probe accepts the original provenance checkpoint specified in [probe.json](probe.json). To reproduce the coupling probe, use the script from this report revision with the three original provenance checkpoints and the unequal-mass saved observations in their original campaign directories. Run from the repository root on CUDA with `PYTHONPATH=. python reports/forge/rhbi-texture-feature/retention_probe.py /path/to/runs/forge`. Each Forge worker writes `run.log` in its campaign/attempt directory. From the repository root:
 
 ```sh
 python -m experiments.forge enqueue rhbi-v12-feature-transport --study rhbi-texture-feature-study
