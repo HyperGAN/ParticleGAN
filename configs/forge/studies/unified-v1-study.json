@@ -1,0 +1,82 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v1-study"
+  },
+  "candidate": "unified-v1",
+  "competing_explanation": "If Pythagorean sibling coalescence on 2..4 sub-cell isolated modes over-smooths mode centers or interacts with high-rate Zador-Gersho clouds, or if replacing 2nd-order autograd.grad with 1st-order forward-AD / K=2 micro-secants weakens discrete chart separation, then unified-v1 will either regress abs_cov_trace_bias > 0.10 on grid100/rotated100/staggered100 or dropcounted Tier 1/2 behavioral/vector/image passes.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "abs_cov_trace_bias",
+    "op": ">",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.2
+  },
+  "hypothesis": "Combining 1st-order forward-AD + K=2 orthogonal image secant critic regularization (0 autograd.grad calls), isolated sibling Pythagorean variance conservation + Radon-Hurwitz pullback isometry on multi-mode MoGs, H0-screened Laguerre chart coupling on discrete/1D domains, and zero-shrinkage pooled conditional fiber residualization under one global clock-free recipe eliminates half-cell cov_trace_bias (abs_cov_trace_bias <= 0.10 on grid100/rotated100/staggered100) while retaining 13/13 counted Tier 1 gates, vector unequal-mass/width/anisotropic accuracy, and discrete image mode coverage on protocol seed 0.",
+  "id": "unified-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "abs_cov_trace_bias",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.1
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-prior-v2",
+        "candidate_revision": "bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0"
+      },
+      "path": "reports/forge/records/readout-379720b9859815defff0efaa.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v5",
+        "candidate_revision": "db973aabb86cad9c924b63dea3c57ea3ad19ccf44be6ffe8abfd9f536955bbdf"
+      },
+      "path": "reports/forge/records/readout-b87c22fbdb500d43981e839b.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-a2d41a678887a49f9ecc6aa9.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
