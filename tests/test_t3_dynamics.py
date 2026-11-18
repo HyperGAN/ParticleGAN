@@ -349,3 +349,179 @@ torch.save({{"state": trainer.state_dict(), "sample": sample}}, {str(out_path)!r
     resumed = torch.load(out_path, map_location="cpu", weights_only=True)
     assert torch.equal(ref_sample, resumed["sample"])
     assert state_digest(ref_state) == state_digest(resumed["state"])
+
+
+class _Tiny1DGen(nn.Module):
+    def __init__(self, z_dim: int = 2) -> None:
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(z_dim, 16), nn.SiLU(), nn.Linear(16, 1))
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        return 1.0 + 0.25 * z[:, :1] + 0.01 * self.net(z)
+
+
+class _Tiny1DCritic(nn.Module):
+    def __init__(self) -> None:
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(1, 16), nn.SiLU(), nn.Linear(16, 1))
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        return self.net(x).squeeze(-1)
+
+
+def test_rgdt_fresh_process_continuation_across_thermal_step_and_shift_boundaries(tmp_path: Path) -> None:
+    """Fresh-process continuation across active thermal cooling (<1), 1D step damping (<1), and shift shock reopening."""
+    ckpt_path = tmp_path / "ckpt_boundary.pt"
+    batches_path = tmp_path / "batches_boundary.pt"
+    out_path = tmp_path / "continued_boundary.pt"
+
+    rng = torch.Generator().manual_seed(77)
+    stationary = [1.0 + 0.25 * torch.randn(128, 1, generator=rng) for _ in range(5)]
+    shifted = [8.0 + 0.25 * torch.randn(128, 1, generator=rng) for _ in range(3)]
+    batches = stationary + shifted
+    torch.save(batches, batches_path)
+
+    recipe = get_recipe(
+        "rgdt",
+        prior_kind="mog",
+        standardize=True,
+        num_particles=128,
+        z_dim=2,
+        batch_size=128,
+        total_steps=20,
+        training_precision="float32",
+    )
+    g, d = _Tiny1DGen(), _Tiny1DCritic()
+    p = MoGParticlePrior(128, 2, sigma=0.05, standardize=True, generator=torch.Generator().manual_seed(5))
+    init.deterministic_orthogonal_(g, seed=6)
+    init.deterministic_orthogonal_(d, seed=7)
+    trainer = GANTrainer(recipe, g, d, prior=p, seed=0)
+
+    for step_idx in range(4):
+        trainer.step(batches[step_idx])
+    # Verify checkpoint sits strictly inside active thermal cooling and 1D DualNorm step damping:
+    assert trainer.opt_d.record._thermal_scale < 1.0
+    assert trainer.opt_d.record._step_scale < 1.0
+    torch.save(trainer.state_dict(), ckpt_path)
+
+    # Step 4 stays cooled, then steps 5..7 cross the abrupt +7.0 shift and trigger 1-step shock reopening:
+    for step_idx in range(4, 8):
+        trainer.step(batches[step_idx])
+    assert trainer.opt_d.record._thermal_scale == 1.0
+    assert trainer.opt_d.record._step_scale > 0.48
+    ref_sample = trainer.sample(32)
+    ref_state = trainer.state_dict()
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_t3_dynamics import _Tiny1DCritic, _Tiny1DGen
+
+ckpt = torch.load({str(ckpt_path)!r}, map_location="cpu", weights_only=True)
+batches = torch.load({str(batches_path)!r}, map_location="cpu", weights_only=True)
+recipe = Recipe.from_dict(ckpt["recipe"])
+g, d = _Tiny1DGen(), _Tiny1DCritic()
+p = MoGParticlePrior(128, 2, sigma=0.05, standardize=True)
+trainer = GANTrainer(recipe, g, d, prior=p, seed=123)
+trainer.load_state_dict(ckpt)
+assert trainer.opt_d.record._thermal_scale < 1.0
+assert trainer.opt_d.record._step_scale < 1.0
+for idx in range(4, 8):
+    trainer.step(batches[idx])
+assert trainer.opt_d.record._thermal_scale == 1.0
+sample = trainer.sample(32)
+torch.save({{"state": trainer.state_dict(), "sample": sample}}, {str(out_path)!r})
+"""
+    root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(root),
+        env={"PYTHONPATH": str(root)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    from experiments.forge.state import state_digest
+
+    resumed = torch.load(out_path, map_location="cpu", weights_only=True)
+    assert torch.equal(ref_sample, resumed["sample"])
+    assert state_digest(ref_state) == state_digest(resumed["state"])
+
+
+def test_rgdt_fresh_process_continuation_across_connected_manifold_chart(tmp_path: Path) -> None:
+    """Fresh-process continuation with zero-sigma ParticlePrior activating connected manifold_chart_loss."""
+    ckpt_path = tmp_path / "ckpt_manifold.pt"
+    batches_path = tmp_path / "batches_manifold.pt"
+    out_path = tmp_path / "continued_manifold.pt"
+
+    rng = torch.Generator().manual_seed(91)
+    batches = []
+    for _ in range(6):
+        theta = (0.05 + 0.90 * torch.rand(24, generator=rng)) * torch.pi
+        arc = torch.stack([torch.cos(theta), torch.sin(theta)], dim=-1)
+        batches.append(arc)
+    torch.save(batches, batches_path)
+
+    recipe = get_recipe(
+        "rgdt",
+        prior_kind="particles",
+        sigma_rel=0.0,
+        num_particles=16,
+        z_dim=2,
+        batch_size=24,
+        total_steps=20,
+        training_precision="float32",
+    )
+    g, d = _TinyGen(z_dim=2, out_dim=2), _TinyCritic(in_dim=2)
+    p = ParticlePrior(16, 2, generator=torch.Generator().manual_seed(8))
+    init.deterministic_orthogonal_(g, seed=9)
+    init.deterministic_orthogonal_(d, seed=10)
+    trainer = GANTrainer(recipe, g, d, prior=p, seed=0)
+
+    # Confirm connected semicircle activates manifold_chart_loss (g_conn > 1e-4):
+    probe_chart = trainer.loss.manifold_chart_loss(trainer.prior.z.detach(), trainer.G, batches[0])
+    assert float(probe_chart.item()) > 0.0
+
+    for step_idx in range(3):
+        trainer.step(batches[step_idx])
+    assert trainer.opt_d.record.rgdt_chord_phase > 0.0
+    torch.save(trainer.state_dict(), ckpt_path)
+
+    for step_idx in range(3, 6):
+        trainer.step(batches[step_idx])
+    ref_sample = trainer.sample(24)
+    ref_state = trainer.state_dict()
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, ParticlePrior, Recipe
+from tests.test_t3_dynamics import _TinyCritic, _TinyGen
+
+ckpt = torch.load({str(ckpt_path)!r}, map_location="cpu", weights_only=True)
+batches = torch.load({str(batches_path)!r}, map_location="cpu", weights_only=True)
+recipe = Recipe.from_dict(ckpt["recipe"])
+g, d = _TinyGen(z_dim=2, out_dim=2), _TinyCritic(in_dim=2)
+p = ParticlePrior(16, 2)
+trainer = GANTrainer(recipe, g, d, prior=p, seed=456)
+trainer.load_state_dict(ckpt)
+for idx in range(3, 6):
+    trainer.step(batches[idx])
+sample = trainer.sample(24)
+torch.save({{"state": trainer.state_dict(), "sample": sample}}, {str(out_path)!r})
+"""
+    root = Path(__file__).resolve().parents[1]
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(root),
+        env={"PYTHONPATH": str(root)},
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, proc.stderr
+    from experiments.forge.state import state_digest
+
+    resumed = torch.load(out_path, map_location="cpu", weights_only=True)
+    assert torch.equal(ref_sample, resumed["sample"])
+    assert state_digest(ref_state) == state_digest(resumed["state"])

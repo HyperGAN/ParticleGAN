@@ -1,6 +1,6 @@
 # ParticleGAN Forge experiment memory
 
-Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Current qualification is recomputed from compatible receipts. Compact publications enter recall as display-only summaries and grant no qualification.
+Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
 Records: 1026. Inventory coverage: complete. Unresolved import items: 7.
 
@@ -8566,4 +8566,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `1d446aea541c4d7344457907df867e19b2b52c0f5436e34edd61f1ba0ac9cd54`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `27b6529dd98c95d69e1b7304122fd133fc99d25c6e73bffa35284e96285cbbcf`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
