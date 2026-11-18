@@ -701,6 +701,27 @@
         "optimizer-interventions",
         "selectable-loss"
       ]
+    },
+    {
+      "candidates": [
+        "t1-prior-v1",
+        "t1-prior-v2"
+      ],
+      "canonical_candidate": "t1-prior-v2",
+      "id": "t1-prior",
+      "inventory_visible": false,
+      "label": "Theory 1A Gersho-Laguerre Pullback Prior",
+      "rationale": "Theory 1A Gersho Total-Variance & Kantorovich-Laguerre Pullback Prior Dynamics: streaming Zador-Gersho quantizer with mass-conserving w_k^{d/(d+2)} sigma_{cell,k}^2 distortion splitting, Part A smooth Sinkhorn chart projection + local Gersho pullback kernel isometry, and Part B Kantorovich-Laguerre mass-balanced island condensation inside an isometric cloud envelope under one global clock-free recipe.",
+      "tags": [
+        "adversarial-training",
+        "capped-input-gradients",
+        "constant-learning-rate",
+        "critic-gradient-penalty",
+        "optimizer-interventions",
+        "selectable-loss"
+      ],
+      "unmeasured_display_backend": "cuda",
+      "unmeasured_display_reason": "Branch-scoped Theory 1A study family; published technique-inventory selections on develop remain untouched."
     }
   ],
   "historical_families": [

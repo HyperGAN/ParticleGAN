@@ -1,0 +1,64 @@
+{
+  "overview": "Theory 1A Gersho-Laguerre Pullback Prior (t1_prior) resolves the continuous-generator / discontinuous-support obstruction in GANs via a clock-free O(B*K*D) Division of Labor on top of the EMPF critic and DualNorm backbone. A checkpointed streaming Zador-Gersho quantizer (C_k, w_k, sigma_{cell,k}^2) decomposes target covariance into macroscopic centroid covariance plus local within-cell covariance; Part A trains a smooth low-energy generator chart G_theta (with prior.z detached) via mass-weighted Sinkhorn barycentric projection and local Gersho pullback kernel isometry, while Part B condenses sampled prior rows into exact mass-balanced Kantorovich-Laguerre islands inside an expanded isometric cloud envelope.",
+  "symbols": "$G_\\theta$ is the generator, $D$ the EMPF critic, $P$ the task prior with $M$ locations $\\mu_i \\in \\mathbb R^{d_z}$ and kernel width $\\sigma_z \\ge 0$, $(C_k, w_k, \\sigma_{\\mathrm{cell},k}^2)_{k=1}^K$ is the online Zador-Gersho quantizer of size $K=\\min(K_{\\max}, B)$, $\\psi_k \\in \\mathbb R$ are persistent zero-mean Kantorovich-Laguerre dual potentials, and $(m_i, v_i, n_i)$ are per-row coherent drift moments.",
+  "pseudocode": [
+    "Initialize G, D and task-owned prior P; bind EMPF critic penalty and T1PullbackPriorRegularizer.",
+    "For each training update:",
+    "  Execute the EMPF critic step on real batch x and generated batch G(z_d).",
+    "  Sample (z_g, idx) from P; in GANTrainer, update Zador-Gersho quantizer (C_k, w_k, sigma_{cell,k}^2) on real_g with uncovered-mode teleportation and mass-conserving w_k^{d/(d+2)} sigma_{cell,k}^2 distortion splitting.",
+    "  Part A (mu detached): compute mass-weighted Sinkhorn target y_ot against (C_k, w_k), local Gersho pullback kernel loss matching ||G(mu + sigma_z eps) - G(mu)|| to sigma_{cell,k}, and residual-cooled DualNorm step on G_theta.",
+    "  Part B (G_theta frozen): assign sampled prior rows u_rows to Laguerre cells k*(i) = argmin_k (||G(mu_i) - C_k||^2 - psi_k), ascend Kantorovich potentials psi_k on w_k - w_fake_ema, and step mu_u along coherent drift SNR m_i / sqrt(v_i)."
+  ],
+  "training_details": {
+    "loss": "Selectable adversarial loss (non-saturating logistic in t1_prior) paired with Part A smooth Sinkhorn chart projection + Gersho pullback isometry in GANTrainer, and EMPF Sinkhorn/fiber loss on component hosts.",
+    "optimizer": "Zero-momentum DualNorm (newton_schulz_hybrid_v1 dense polar profile, quintic batched per-offset convolution, BF16 channels-last conv training, direction-blend constraint geometry) with residual-cooled generator chart step and bias-corrected per-row drift-SNR prior condensation.",
+    "learning_rates": "Strictly constant schedule (`lr_floor=1.0`, `network_lr_floor=1.0`): base LR 0.012, critic multiplier 1.5, pullback weight 1.5, iso weight 0.62, Laguerre rate 0.015, and coherent row rate 0.06.",
+    "gradient_clipping": "None. Critic gradients are bounded smoothly by the EMPF Elastic Born-Infeld potential.",
+    "critic_penalty": "EMPF prototype-chord Elastic Born-Infeld regularizer (kappa=1.0, ebi_beta=6.0) with settling zero-mean logit gauge and no EMA critic copy.",
+    "damping_and_guards": "State-driven generator chart settling g_scale(res_ema), Robbins-Monro hit-cooled prototype centroids, and shock-reactive quantizer re-heating with zero step counters and zero extra RNG draws.",
+    "noise": "Zero scheduled critic-input or generator-output additive training noise; task-declared MoG sigma_z is preserved.",
+    "averaging": "EMA decay=0 and serve_average=0; all evaluations score live weights."
+  },
+  "configuration_notes": [
+    "All Zador-Gersho quantizer tensors (proto_c, proto_var, proto_w, proto_hits), Kantorovich potentials (psi, w_fake_ema), and per-row moments (row_m, row_v, row_n) serialize in GANTrainer checkpoints under prior_regularizer with strict fail-closed validation.",
+    "Standalone component hosts (AE/VAE/DDGAN/BiGAN) calling prior_regularizer(rows) delegate cleanly to EMPFPriorRegularizer under the exact same global t1_prior recipe.",
+    "Setting t1_pullback_weight=0.0 disables the pullback step and reproduces exact baseline EMPF trajectories."
+  ],
+  "references": [
+    {
+      "title": "Asymptotically Optimal Block Quantization",
+      "url": "https://ieeexplore.ieee.org/document/1056067",
+      "component": "Zador-Gersho p^{d/(d+2)} optimal quantizer point-density law and high-rate Voronoi cell distortion decomposition."
+    },
+    {
+      "title": "Sinkhorn Distances: Lightspeed Computation of Optimal Transport",
+      "url": "https://arxiv.org/abs/1306.0895",
+      "component": "Entropic Optimal Transport barycentric coupling for smooth Part A generator chart projection."
+    }
+  ],
+  "sources": [
+    "particlegan/_t1_prior/__init__.py",
+    "particlegan/_t1_prior/pullback.py",
+    "particlegan/recipes.py",
+    "particlegan/training.py",
+    "configs/forge/ideas/t1-prior-v1.json",
+    "configs/forge/ideas/t1-prior-v2.json",
+    "configs/forge/studies/t1-prior-v1-study.json",
+    "configs/forge/studies/t1-prior-v1-dcgan-perf.json",
+    "configs/forge/studies/t1-prior-v2-study.json",
+    "configs/forge/studies/t1-prior-v2-dcgan-perf.json",
+    "reports/forge/studies/t1-prior-topology.md"
+  ],
+  "equations": [
+    {
+      "label": "Gersho Law of Total Variance Decomposition",
+      "latex": "\\operatorname{Cov}(Y) = \\operatorname{Cov}_{k \\sim w}(C_k) + \\sum_{k=1}^K w_k \\operatorname{Cov}(Y \\mid Y \\in V_k), \\quad E_k = w_k^{\\frac{d}{d+2}} \\sigma_{\\mathrm{cell},k}^2",
+      "explanation": "Decomposes arbitrary multi-modal or multi-scale target covariance into macroscopic quantizer centroid spread plus local within-cell pushforward variance across all K/M regimes."
+    },
+    {
+      "label": "Kantorovich-Laguerre Mass-Balanced Island Condensation",
+      "latex": "k^\\star(i) = \\arg\\min_{1 \\le k \\le K} \\left(\\lVert G(\\mu_i) - C_k \\rVert_2^2 - \\psi_k\\right), \\quad \\psi_k \\leftarrow \\psi_k + \\eta_\\psi (w_k - \\hat w_{\\mathrm{fake},k})",
+      "explanation": "Assigns latent components to discrete Laguerre islands with exact asymptotic probability shares w_k without cross-valley entropic midpoint blur."
+    }
+  ]
+}

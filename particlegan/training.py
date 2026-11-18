@@ -157,7 +157,10 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
                         "rhbi_simplex_macro_settle": False, "rhbi_simplex_curve_settle": False,
                         "rhbi_cond_step_damp": 0.0, "rhbi_ae_coord_whiten": False,
-                        "rhbi_support_completion": False}
+                        "rhbi_support_completion": False,
+                        "t1_pullback_weight": 0.0, "t1_iso_weight": 0.60,
+                        "t1_laguerre_lr": 0.015, "t1_prior_row_lr": 0.06,
+                        "t1_max_prototypes": 256}
 
 
 class GANTrainer:
@@ -554,126 +557,142 @@ class GANTrainer:
         try:
             self.D.requires_grad_(False)
             latent, indices = self._sample_training_prior(len(real))
-            fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
-            if hasattr(self.opt_g, "bind_origin_sample"):
-                self.opt_g.bind_origin_sample(fake_g)
-            if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
-                simplicial_active = (
+            if recipe.prior_regularizer == "t1_pullback" and recipe.t1_pullback_weight > 0.0:
+                from ._t1_prior import t1_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = t1_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
+            else:
+                fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
+                if hasattr(self.opt_g, "bind_origin_sample"):
+                    self.opt_g.bind_origin_sample(fake_g)
+                if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
+                    simplicial_active = (
+                        recipe.rhbi_simplex_weight > 0.0
+                        and recipe.rhbi_simplex_chart_weight > 0.0
+                        and recipe.rhbi_simplex_macro_settle
+                        and self.prior_noise_generator is None
+                        and self.prior.z.requires_grad
+                        and len(self.prior.z) >= 2
+                    )
+                    self.loss.rhbi.bind_discrete_prior_step(
+                        self.prior_noise_generator is None,
+                        simplicial_active=simplicial_active,
+                    )
+                fake_logits = critic(fake_g)
+                real_g = generator_real() if callable(generator_real) else generator_real
+                real_g = real if real_g is None else self._batch(real_g, "generator_real")
+                if real_g.shape[1:] != real.shape[1:]:
+                    raise ValueError("generator_real must match the real sample shape")
+                if len(real_g) != len(real):
+                    raise ValueError("RpGAN generator_real must match the real batch size")
+                real_logits = critic(real_g)
+                loss_gan = self.loss.g_loss(fake_logits, real_logits)
+                transport = (recipe.kinetic_transport_loss(fake_g, real_g)
+                             if recipe.kinetic_transport_weight else loss_gan.new_zeros(()))
+                transport_local = (recipe.kinetic_transport_local_loss(fake_g, real_g)
+                                   if recipe.kinetic_transport_local_weight else loss_gan.new_zeros(()))
+                prior_reg = loss_gan.new_zeros(())
+                if self.prior.z.requires_grad and (recipe.prior_regularizer == "vicreg" or recipe.prior_reg > 0):
+                    # Keep the historical unweighted diagnostic, even at weight 0.
+                    # Its contribution to the training objective is recipe.prior_reg.
+                    raw = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
+                    prior_reg = self.prior_regularizer(raw)
+                loss_g = loss_gan + recipe.prior_reg * prior_reg
+                if self.prior.z.requires_grad and recipe.prior_l2 > 0:
+                    loss_g = loss_g + recipe.prior_l2 * self.prior.z.square().mean()
+                prior_manip_loss = None
+                if self._prior_penalty:
+                    raw_rows = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
+                    prior_manip_loss = self.prior.regularize(
+                        raw_rows,
+                        sampled_codes=latent,
+                        indices=indices,
+                        generated=fake_g,
+                        logits=fake_logits,
+                    )
+                    loss_g = loss_g + prior_manip_loss
+                if recipe.kinetic_transport_weight:
+                    loss_g = loss_g + transport
+                if recipe.kinetic_transport_local_weight:
+                    loss_g = loss_g + transport_local
+                simplex_loss = None
+                if (
                     recipe.rhbi_simplex_weight > 0.0
-                    and recipe.rhbi_simplex_chart_weight > 0.0
-                    and recipe.rhbi_simplex_macro_settle
                     and self.prior_noise_generator is None
                     and self.prior.z.requires_grad
                     and len(self.prior.z) >= 2
-                )
-                self.loss.rhbi.bind_discrete_prior_step(
-                    self.prior_noise_generator is None,
-                    simplicial_active=simplicial_active,
-                )
-            fake_logits = critic(fake_g)
-            real_g = generator_real() if callable(generator_real) else generator_real
-            real_g = real if real_g is None else self._batch(real_g, "generator_real")
-            if real_g.shape[1:] != real.shape[1:]:
-                raise ValueError("generator_real must match the real sample shape")
-            if len(real_g) != len(real):
-                raise ValueError("RpGAN generator_real must match the real batch size")
-            real_logits = critic(real_g)
-            loss_gan = self.loss.g_loss(fake_logits, real_logits)
-            transport = (recipe.kinetic_transport_loss(fake_g, real_g)
-                         if recipe.kinetic_transport_weight else loss_gan.new_zeros(()))
-            transport_local = (recipe.kinetic_transport_local_loss(fake_g, real_g)
-                               if recipe.kinetic_transport_local_weight else loss_gan.new_zeros(()))
-            prior_reg = loss_gan.new_zeros(())
-            if self.prior.z.requires_grad and (recipe.prior_regularizer == "vicreg" or recipe.prior_reg > 0):
-                # Keep the historical unweighted diagnostic, even at weight 0.
-                # Its contribution to the training objective is recipe.prior_reg.
-                raw = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
-                prior_reg = self.prior_regularizer(raw)
-            loss_g = loss_gan + recipe.prior_reg * prior_reg
-            if self.prior.z.requires_grad and recipe.prior_l2 > 0:
-                loss_g = loss_g + recipe.prior_l2 * self.prior.z.square().mean()
-            prior_manip_loss = None
-            if self._prior_penalty:
-                raw_rows = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
-                prior_manip_loss = self.prior.regularize(
-                    raw_rows,
-                    sampled_codes=latent,
-                    indices=indices,
-                    generated=fake_g,
-                    logits=fake_logits,
-                )
-                loss_g = loss_g + prior_manip_loss
-            if recipe.kinetic_transport_weight:
-                loss_g = loss_g + transport
-            if recipe.kinetic_transport_local_weight:
-                loss_g = loss_g + transport_local
-            simplex_loss = None
-            if (
-                recipe.rhbi_simplex_weight > 0.0
-                and self.prior_noise_generator is None
-                and self.prior.z.requires_grad
-                and len(self.prior.z) >= 2
-                and hasattr(self.loss, "rhbi")
-            ):
-                raw_base = unwrap_prior(self.prior).z
-                base_table = raw_base if recipe.num_particles <= 1024 else raw_base[torch.unique(indices)]
-                simplex_loss = recipe.rhbi_simplex_weight * self.loss.rhbi.simplicial_manifold_loss(
-                    base_table,
-                    lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
-                    real_g,
-                    record=getattr(self.opt_d, "record", None),
-                    chart_weight=recipe.rhbi_simplex_chart_weight,
-                    macro_settle=recipe.rhbi_simplex_macro_settle,
-                    curve_settle=recipe.rhbi_simplex_curve_settle,
-                )
-                loss_g = loss_g + simplex_loss
-            self.opt_g.zero_grad()
-            protected_evaluator = None
-            if recipe.constraint_geometry_mode == "strict_progress":
-                # Same sampled indices and fixed within-component perturbation;
-                # probes never call a sampler or draw training/output noise.
-                locations = self.prior.z.detach().clone()
-                sampled_latent = latent.detach().clone()
-                def protected_evaluator():
-                    rec = getattr(self.opt_d, "record", None)
-                    prev_probe = getattr(rec, "_in_protected_probe", False) if rec is not None else False
-                    if rec is not None:
-                        rec._in_protected_probe = True
-                    try:
-                        replay = sampled_latent + (self.prior.z[indices] - locations[indices])
-                        generated = self._postprocess(
-                            self.prior, self._generate(self.G, replay, sigma_out, noise, rows=indices))
-                        logits = critic(generated)
-                        return (self.loss.g_loss(logits, real_logits),)
-                    finally:
+                    and hasattr(self.loss, "rhbi")
+                ):
+                    raw_base = unwrap_prior(self.prior).z
+                    base_table = raw_base if recipe.num_particles <= 1024 else raw_base[torch.unique(indices)]
+                    simplex_loss = recipe.rhbi_simplex_weight * self.loss.rhbi.simplicial_manifold_loss(
+                        base_table,
+                        lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
+                        real_g,
+                        record=getattr(self.opt_d, "record", None),
+                        chart_weight=recipe.rhbi_simplex_chart_weight,
+                        macro_settle=recipe.rhbi_simplex_macro_settle,
+                        curve_settle=recipe.rhbi_simplex_curve_settle,
+                    )
+                    loss_g = loss_g + simplex_loss
+                self.opt_g.zero_grad()
+                protected_evaluator = None
+                if recipe.constraint_geometry_mode == "strict_progress":
+                    # Same sampled indices and fixed within-component perturbation;
+                    # probes never call a sampler or draw training/output noise.
+                    locations = self.prior.z.detach().clone()
+                    sampled_latent = latent.detach().clone()
+                    def protected_evaluator():
+                        rec = getattr(self.opt_d, "record", None)
+                        prev_probe = getattr(rec, "_in_protected_probe", False) if rec is not None else False
                         if rec is not None:
-                            rec._in_protected_probe = prev_probe
-            constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
-                                         protected_evaluator=protected_evaluator)
-            self.policy.after_generator_backward(
-                loss_gan=loss_gan.detach(), loss_critic=(loss_d - penalty).detach())
-            if self._gradient_response is not None:
-                params = list(self.G.parameters())
-                grads = [torch.zeros_like(p) if p.grad is None else p.grad for p in params]
-                gain = self._gradient_response.observe(grads)
-                # Replace noisy stochastic parameter gradients with bias-corrected EMA mean
-                for p, m in zip(params, self._gradient_response.packet["means"]):
-                    p.grad = (m / self._gradient_response.packet["weight"]).to(p).clone()
-                # Temporarily scale generator proposal learning rate
-                saved_lrs = []
-                for group in self.opt_g.param_groups:
-                    saved_lrs.append(group["lr"])
-                    if group.get("role") == "generator":
-                        group["lr"] = group["lr"] * gain
-                try:
+                            rec._in_protected_probe = True
+                        try:
+                            replay = sampled_latent + (self.prior.z[indices] - locations[indices])
+                            generated = self._postprocess(
+                                self.prior, self._generate(self.G, replay, sigma_out, noise, rows=indices))
+                            logits = critic(generated)
+                            return (self.loss.g_loss(logits, real_logits),)
+                        finally:
+                            if rec is not None:
+                                rec._in_protected_probe = prev_probe
+                constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
+                                             protected_evaluator=protected_evaluator)
+                self.policy.after_generator_backward(
+                    loss_gan=loss_gan.detach(), loss_critic=(loss_d - penalty).detach())
+                if self._gradient_response is not None:
+                    params = list(self.G.parameters())
+                    grads = [torch.zeros_like(p) if p.grad is None else p.grad for p in params]
+                    gain = self._gradient_response.observe(grads)
+                    # Replace noisy stochastic parameter gradients with bias-corrected EMA mean
+                    for p, m in zip(params, self._gradient_response.packet["means"]):
+                        p.grad = (m / self._gradient_response.packet["weight"]).to(p).clone()
+                    # Temporarily scale generator proposal learning rate
+                    saved_lrs = []
+                    for group in self.opt_g.param_groups:
+                        saved_lrs.append(group["lr"])
+                        if group.get("role") == "generator":
+                            group["lr"] = group["lr"] * gain
+                    try:
+                        self.opt_g.step()
+                    finally:
+                        for group, lr in zip(self.opt_g.param_groups, saved_lrs):
+                            group["lr"] = lr
+                        self._gradient_response.response["applied_steps"] += 1
+                else:
                     self.opt_g.step()
-                finally:
-                    for group, lr in zip(self.opt_g.param_groups, saved_lrs):
-                        group["lr"] = lr
-                    self._gradient_response.response["applied_steps"] += 1
-            else:
-                self.opt_g.step()
-            self.policy.after_generator_step()
+                self.policy.after_generator_step()
         finally:
             if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
                 self.loss.rhbi.bind_discrete_prior_step(False)

@@ -76,6 +76,7 @@ from .rhbi import (
     RHBIStepRecord,
     bind_rhbi_record,
 )
+from ._t1_prior import T1PullbackPriorRegularizer
 from . import init
 
 __all__ = [
@@ -95,6 +96,7 @@ __all__ = [
     "BISPFStepRecord", "BISPFCriticAdam", "BISPFCriticPenalty", "SinkhornRelativisticLoss", "BISPFGates",
     "EMPFStepRecord", "EMPFCriticAdam", "EMPFCriticPenalty", "EMPFPriorRegularizer", "EMPFSinkhornRelativisticLoss",
     "RHBICriticAdam", "RHBICriticPenalty", "RHBIGANLoss", "RHBILoss", "RHBIStepRecord", "bind_rhbi_record",
+    "T1PullbackPriorRegularizer",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
