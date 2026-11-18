@@ -588,6 +588,11 @@ class NormalizedOptimizer(Optimizer):
     def _clear_pending(self):
         """Drop wrapper-bound per-step inputs; the base optimizer binds none."""
         self._origin_norm = None
+        if getattr(self, "_t1c_grad_deconflict", 0.0) > 0.0:
+            from .._t1_coupling.deconflict import clear_generator_deconflict_captures
+            clear_generator_deconflict_captures(
+                p for g in self.param_groups if g.get("role") == "generator" for p in g["params"]
+            )
 
     def bind_origin_sample(self, sample):
         """Bind the latest generated sample to evaluate origin proximity for velocity damping."""
@@ -728,22 +733,38 @@ class NormalizedOptimizer(Optimizer):
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
         rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
+        active_rec = getattr(self, "_t1c_record", None) or getattr(self, "_rhbi_record", None)
         if rhbi_damp > 0.0:
-            rhbi_rec = getattr(self, "_rhbi_record", None)
-            rhbi_s = float(getattr(rhbi_rec, "_thermal_scale", 1.0)) if rhbi_rec is not None else 1.0
+            rhbi_s = float(getattr(active_rec, "_thermal_scale", 1.0)) if active_rec is not None else 1.0
             u_log = min(1.0, max(0.0, -math.log10(max(1e-6, rhbi_s)) * (1.0 / 6.0)))
             u_log2 = u_log * u_log
             rhbi_step_scale = 1.0 - rhbi_damp * (u_log2 * u_log2)
         else:
             rhbi_step_scale = 1.0
         rhbi_cond_damp = float(getattr(self, "_rhbi_cond_step_damp", 0.0))
-        if rhbi_cond_damp > 0.0 and getattr(self, "critic", None) is None:
-            rhbi_rec = getattr(self, "_rhbi_record", None)
-            if rhbi_rec is not None and getattr(rhbi_rec, "rhbi_cond_initialized", False):
-                r_cond_ema = max(0.0, float(getattr(rhbi_rec, "rhbi_cond_ema", 1.0)))
+        if rhbi_cond_damp > 0.0 and getattr(self, "critic", None) is None and active_rec is not None:
+            cond_init = bool(
+                getattr(active_rec, "t1c_cond_initialized", False)
+                or getattr(active_rec, "rhbi_cond_initialized", False)
+            )
+            if cond_init:
+                cond_val = (
+                    getattr(active_rec, "t1c_cond_ema", 1.0)
+                    if getattr(active_rec, "t1c_cond_initialized", False)
+                    else getattr(active_rec, "rhbi_cond_ema", 1.0)
+                )
+                r_cond_ema = max(0.0, float(cond_val))
                 u_cond = min(1.0, max(0.0, (0.028 - r_cond_ema) / 0.016))
                 s_cond = u_cond * u_cond * (3.0 - 2.0 * u_cond)
                 rhbi_step_scale *= 1.0 - rhbi_cond_damp * s_cond
+        raw_deconflict = float(getattr(self, "_t1c_grad_deconflict", 0.0))
+        if active_rec is not None:
+            disc_gate = float(getattr(active_rec, "_t1c_disc_gate", 0.0))
+            if hasattr(active_rec, "_t1c_disc_gate"):
+                active_rec._t1c_disc_gate = 0.0
+        else:
+            disc_gate = 1.0
+        t1c_deconflict_blend = raw_deconflict * disc_gate
         for group_index, group in enumerate(self.param_groups):
             algorithm, base_rate, eps = group["algorithm"], group["lr"], group["eps"]
             is_generator = group.get("role") == "generator"
@@ -818,6 +839,23 @@ class NormalizedOptimizer(Optimizer):
                                                    backend=self.svd_backend))
                             weight_matrix.add_(update, alpha=-rate * factor)
                     elif parameter.ndim == 2 and self.dense_profile == CPU_POLAR_DENSE_PROFILE:
+                        if is_generator and t1c_deconflict_blend > 0.0 and getattr(parameter, "_t1c_last_act", None) is not None:
+                            if bool(gradient.norm() < eps) or (direction is not gradient and bool(direction.norm() < eps)):
+                                parameter._t1c_last_act = None
+                                continue
+                            from .._t1_coupling.deconflict import deconflicted_polar_step
+                            factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
+                            def _cpu_polar_fn(mat):
+                                u_c = polar_factor(mat.detach().cpu(), smoothing=self.smoothing)
+                                return u_c.to(device=mat.device, dtype=mat.dtype)
+                            update = deconflicted_polar_step(
+                                parameter, direction, _cpu_polar_fn, blend=t1c_deconflict_blend
+                            )
+                            if update is not None:
+                                parameter.add_(update, alpha=-rate * factor)
+                                continue
+                        elif hasattr(parameter, "_t1c_last_act"):
+                            parameter._t1c_last_act = None
                         if parameter.device.type == "cpu":
                             if float(gradient.norm()) < eps or float(direction.norm()) < eps:
                                 continue
@@ -828,9 +866,39 @@ class NormalizedOptimizer(Optimizer):
                             pending_cpu_polar.append((parameter, gradient, direction, rate, eps))
                     elif parameter.ndim == 2:
                         if bool(gradient.norm() < eps) or (direction is not gradient and bool(direction.norm() < eps)):
+                            if hasattr(parameter, "_t1c_last_act"):
+                                parameter._t1c_last_act = None
                             continue
                         factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
-                        if self.dense_profile == GRAM_DENSE_PROFILE:
+                        update = None
+                        if is_generator and t1c_deconflict_blend > 0.0 and getattr(parameter, "_t1c_last_act", None) is not None:
+                            from .._t1_coupling.deconflict import deconflicted_polar_step
+                            if (
+                                self.dense_profile == NEWTON_SCHULZ_DENSE_PROFILE
+                                or (
+                                    self.dense_profile == NEWTON_SCHULZ_HYBRID_DENSE_PROFILE
+                                    and min(parameter.shape) >= 64
+                                    and max(parameter.shape) >= 128
+                                )
+                            ):
+                                def _polar_fn(mat):
+                                    if parameter.device.type == "cuda":
+                                        if not hasattr(self, "_newton_graphs"):
+                                            self._newton_graphs = _PolarGraphCache()
+                                        return _newton_schulz_polar(mat, smoothing=self.smoothing, cache=self._newton_graphs)
+                                    return _newton_schulz_polar(mat, smoothing=self.smoothing)
+                            elif self.svd_backend in ("native", "newton_schulz", "batched"):
+                                def _polar_fn(mat):
+                                    return polar_factor(mat, smoothing=self.smoothing) if self.smoothing else polar_factor(mat)
+                            else:
+                                def _polar_fn(mat):
+                                    return polar_factor(mat, smoothing=self.smoothing, backend=self.svd_backend)
+                            update = deconflicted_polar_step(
+                                parameter, direction, _polar_fn, blend=t1c_deconflict_blend
+                            )
+                        if update is not None:
+                            pass
+                        elif self.dense_profile == GRAM_DENSE_PROFILE:
                             update = guarded_gram_polar(direction, smoothing=self.smoothing)
                         elif self.dense_profile == FALLBACK_DENSE_PROFILE:
                             if not hasattr(self, "_dense_profile_leaf_counters"):
@@ -915,6 +983,11 @@ class NormalizedOptimizer(Optimizer):
             self._adam.step()
         self.clear_sampled_rows()
         self._origin_norm = None
+        if t1c_deconflict_blend > 0.0:
+            from .._t1_coupling.deconflict import clear_generator_deconflict_captures
+            clear_generator_deconflict_captures(
+                p for g in self.param_groups if g.get("role") == "generator" for p in g["params"]
+            )
         if hasattr(self, "record"):
             self.record.record_step(self)
         return loss
@@ -1124,6 +1197,8 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
                                     dense_profile=recipe.optimizer_dense_profile, **options)
     optimizer._rhbi_step_damp = float(getattr(recipe, "rhbi_step_damp", 0.0))
     optimizer._rhbi_cond_step_damp = float(getattr(recipe, "rhbi_cond_step_damp", 0.0))
+    if critic is None:
+        optimizer._t1c_grad_deconflict = float(getattr(recipe, "t1c_grad_deconflict", 0.0))
     if critic is not None:
         optimizer.critic = critic
         optimizer.ema_critic = optimizer.anchor = optimizer.guard = None
@@ -1141,6 +1216,11 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer.record = _RHBIObserverStepRecord()
             optimizer._rhbi_record = optimizer.record
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+            from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            optimizer._t1c_record = optimizer.record
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
     return optimizer

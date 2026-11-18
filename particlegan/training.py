@@ -43,6 +43,17 @@ def _float_output(value):
             result._rhbi_parts = getattr(value, "_rhbi_parts", None)
         if hasattr(value, "_rhbi_record"):
             result._rhbi_record = value._rhbi_record
+        if hasattr(value, "_rhbi_thermally_scaled"):
+            result._rhbi_thermally_scaled = value._rhbi_thermally_scaled
+        if hasattr(value, "_t1c_input"):
+            result._t1c_input = value._t1c_input
+            result._t1c_cond = getattr(value, "_t1c_cond", None)
+            result._t1c_cont_cond = bool(getattr(value, "_t1c_cont_cond", False))
+            result._t1c_parts = getattr(value, "_t1c_parts", None)
+        if hasattr(value, "_t1c_record"):
+            result._t1c_record = value._t1c_record
+        if hasattr(value, "_t1c_thermally_scaled"):
+            result._t1c_thermally_scaled = value._t1c_thermally_scaled
         return result
     if isinstance(value, tuple):
         return tuple(_float_output(item) for item in value)
@@ -94,6 +105,22 @@ class InputNoise(nn.Module):
                         rec,
                         has_cont_cond=has_cont_cond,
                         float_parts=float_parts,
+                        overwrite=True,
+                    )
+            if hasattr(target, "_t1c_input") or hasattr(self.critic, "_t1c_record"):
+                from ._t1_coupling.critic import _extract_t1c_inputs_parts, _record_t1c_capture
+                rec_t1c = getattr(target, "_t1c_record", getattr(self.critic, "_t1c_record", None))
+                if rec_t1c is None or not getattr(rec_t1c, "_in_penalty", False):
+                    x_clean_t, cond_disc_t, has_cont_t, float_parts_t = _extract_t1c_inputs_parts(
+                        (x, *args), kwargs, int(target.shape[0])
+                    )
+                    _record_t1c_capture(
+                        out,
+                        x_clean_t,
+                        cond_disc_t,
+                        rec_t1c,
+                        has_cont_cond=has_cont_t,
+                        float_parts=float_parts_t,
                         overwrite=True,
                     )
         return out
@@ -157,7 +184,11 @@ _ADDED_RECIPE_FIELDS = {"reg_anchor_weight": 1.0, "direct_particle_gain": True,
                         "rhbi_simplex_chart_weight": 0.0, "rhbi_tail_spill_gain": 0.0,
                         "rhbi_simplex_macro_settle": False, "rhbi_simplex_curve_settle": False,
                         "rhbi_cond_step_damp": 0.0, "rhbi_ae_coord_whiten": False,
-                        "rhbi_support_completion": False}
+                        "rhbi_support_completion": False,
+                        "t1c_weight": 0.0, "t1c_chart_capacity": 256,
+                        "t1c_chart_weight": 0.0, "t1c_halo_mult": 2.1,
+                        "t1c_multiscale_horizon": False, "t1c_grad_deconflict": 0.0,
+                        "t1c_cond_drift_deconflict": False}
 
 
 class GANTrainer:
@@ -308,7 +339,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -333,6 +364,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "t1_coupling" or recipe.t1c_weight > 0:
+            from .t1_coupling import bind_t1_coupling_record
+            bind_t1_coupling_record(self.opt_d.record, self.loss, self.prior_regularizer)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -557,7 +591,8 @@ class GANTrainer:
             fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
             if hasattr(self.opt_g, "bind_origin_sample"):
                 self.opt_g.bind_origin_sample(fake_g)
-            if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
+            prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
+            if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                 simplicial_active = (
                     recipe.rhbi_simplex_weight > 0.0
                     and recipe.rhbi_simplex_chart_weight > 0.0
@@ -566,7 +601,7 @@ class GANTrainer:
                     and self.prior.z.requires_grad
                     and len(self.prior.z) >= 2
                 )
-                self.loss.rhbi.bind_discrete_prior_step(
+                prim_op.bind_discrete_prior_step(
                     self.prior_noise_generator is None,
                     simplicial_active=simplicial_active,
                 )
@@ -613,11 +648,11 @@ class GANTrainer:
                 and self.prior_noise_generator is None
                 and self.prior.z.requires_grad
                 and len(self.prior.z) >= 2
-                and hasattr(self.loss, "rhbi")
+                and prim_op is not None
             ):
                 raw_base = unwrap_prior(self.prior).z
                 base_table = raw_base if recipe.num_particles <= 1024 else raw_base[torch.unique(indices)]
-                simplex_loss = recipe.rhbi_simplex_weight * self.loss.rhbi.simplicial_manifold_loss(
+                simplex_loss = recipe.rhbi_simplex_weight * prim_op.simplicial_manifold_loss(
                     base_table,
                     lambda z_q: self._postprocess(self.prior, self._generate(self.G, z_q, 0.0, noise)),
                     real_g,
@@ -675,8 +710,9 @@ class GANTrainer:
                 self.opt_g.step()
             self.policy.after_generator_step()
         finally:
-            if hasattr(self.loss, "rhbi") and hasattr(self.loss.rhbi, "bind_discrete_prior_step"):
-                self.loss.rhbi.bind_discrete_prior_step(False)
+            prim_cleanup = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
+            if prim_cleanup is not None and hasattr(prim_cleanup, "bind_discrete_prior_step"):
+                prim_cleanup.bind_discrete_prior_step(False)
             for parameter, flag in zip(self.D.parameters(), flags):
                 parameter.requires_grad_(flag)
         self.policy.finish_step()

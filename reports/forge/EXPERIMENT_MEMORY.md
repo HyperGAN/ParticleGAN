@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1019. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1029. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4264,6 +4264,22 @@ Own-checkpoint acquisition and full4000-update hold PASS: all25 scheduled/restor
 
 [Evidence](../../reports/forge/r1r2-repair-20261022/README.md) · [Record](records/readout-15fd8ba9f7b947395f31c418.json)
 
+### t1-coupling-v4 · readout-1601436209f93adc811c95c6
+
+**Scope:** current; scientific; revision `91d8a7149fad4a2157eaf29a65cfbdd905bab2a0ab1e95b0ee8375766abbcace`.
+
+Bypassing unconditional chart slot-rebalancing when Recipe.encoder_mode != 'none' and tightening Gaussian sub-chart novelty insertion to 3.2 r_near with native SVD backend preserves 100% of Tier 1 required gates (11/11 required + 2/2 diagnostic) while unlocking full Tier 2-3 qualification on disconnected multimodal and multi-scale bottlenecks (img_bars4, img_blobs4, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, grid100, model_ddgan_gaussian_chain) at EMPF-class GPU speed.
+
+**Observed:** {'FAIL': 1, 'PASS': 15}; wall seconds 1516.163; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945; ae_gan_hold: recon_mse=0.010742
+
+Completed Tier 1 discriminator_stability seed-0 CUDA execution for t1-coupling-v4 (15/16 Tier 1 PASS including 10/11 required + 2/2 diagnostic + 3/3 stretch interp_sparse_arc=0.8116, mxfp8, and nvfp4, resolving both model_ae_gan_multimodal and model_vae_hard; sole Tier 1 failure on ring16_acquisition component_covariance_error=1.6559 > 0.85).
+
+**Next:** Restore 2.2 r_near / 0.06 d_max streaming novelty insertion in t1-coupling-v5 while keeping encoder_mode != 'none' chart bypass so all 16/16 Tier 1 tasks pass and full Tier 2-3 executes.
+
+[Record and receipt provenance](records/readout-1601436209f93adc811c95c6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p-a2-off-native-diagnostic · readout-170dc0a68d5b68737b370a5f
 
 **Scope:** current; scientific; revision `b5ae40d1428d03591c42cb5cddb8adea5042caaa34c8ea2b131565c0ccca72e9`.
@@ -4839,6 +4855,22 @@ Born-Infeld Sinkhorn Particle Flow (BISPF, bispf-v1) passes 6/6 required Tier 1 
 **Next:** Retain bispf-v1 as the selected current measurement for the BISPF family (16/29 on discriminator_stability, 77/152 across views). Target the remaining 11 Tier 2 bottlenecks (gaussian1d_stability post-shift transport, non-uniform mass/anisotropic 2D mixtures, 4-mode conv image symmetry breaking, and 100-mode cluster tightness) in a bounded follow-up study before spending on Tier 3.
 
 [Evidence](../../reports/forge/bispf/README.md) · [Record](records/readout-3f3f893ae724d651f1655fc9.json)
+
+### t1-coupling-v1 · readout-3f4e2e77a7e690e73f330683
+
+**Scope:** research_diagnostic; scientific; revision `ca0df685d3d4c87d7c7a9962a9510233c0e15e4b84363cc3cdeb8ccb3f2879eb`.
+
+Verify that Track 1B Deconflicted Piecewise Coupling (t1-coupling-v1) achieves EMPF-class GPU step throughput and bounded VRAM across DCGAN resolutions r32..r256, batch b64, and width w128 under the exact same global recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 70.147; mechanism `structural`.
+
+
+
+Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v1 (PASS 6/6: r32 56.02 ms / 229.5 MiB, r64 67.80 ms / 324.0 MiB, r128 101.43 ms / 617.6 MiB, r256 178.47 ms / 1606.3 MiB, b64 96.62 ms / 440.7 MiB, w128 102.33 ms / 869.7 MiB). Diagnostic performance evidence only.
+
+**Next:** Retain source-bound performance readout and advance to t1-coupling-v2 to fix collapsed-fake local horizon shrinkage on Tier 1 gates while preserving conv throughput.
+
+[Record and receipt provenance](records/readout-3f4e2e77a7e690e73f330683.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-40767bea377ac807d62a047a
 
@@ -5416,6 +5448,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 
 [Evidence](../../) · [Record](records/readout-613fc91cba03a8c327465202.json)
 
+### t1-coupling-v3 · readout-6265233640061013149586d5
+
+**Scope:** current; scientific; revision `014f0e572d07ad1580b1ede8dd76c1aaf7b3e84d12117b7c18b845294f624336`.
+
+Gating piecewise Laguerre chart commitment and activation-gram gradient deconfliction on K >= 3 disconnected modes (leaving K <= 2 scalar-balanced problems strictly neutral) and raising the patch-smoothed real width-heterogeneity threshold kappa_width to 2.85 eliminates single-batch slot-swap spikes and finite-batch horizon fluctuations on ae_gan_hold and model_vae_categorical, achieving 100% Tier 1 qualification (16/16 including mxfp8, nvfp4, and interp_sparse_arc) while unlocking full Tier 2-3 evaluation on img_bars4, vector_unequal_width, grid100, and model_ddgan_gaussian_chain at 4x faster r256 conv speed than rhbi-v12.
+
+**Observed:** {'FAIL': 3, 'PASS': 13}; wall seconds 1804.559; mechanism `structural`.
+
+model_ae_gan_multimodal: modes=4, precision=0.94897, mass_tv=0.036865
+
+Completed Tier 1 discriminator_stability seed-0 CUDA execution for t1-coupling-v3 (13/16 Tier 1 PASS: converted ae_gan_hold PASS hold=0.0087 and model_vae_categorical PASS recon_mse=0.0077 alongside two_pole, ring16_acquisition hq=0.9722, five_word_joint_smoke, clockfree_audit_measurement_v1, mxfp8, and nvfp4; 2/11 required Tier 1 FAIL on encoder-coupled 4-mode model_ae_gan_multimodal suffix=3/5 and model_vae_hard suffix=1/5 with 0.0 live shortfall).
+
+**Next:** Advance to final revision t1-coupling-v4: zero unconditional chart routing whenever Recipe.encoder_mode != 'none', tighten streaming sub-chart novelty radius from 2.2 to 3.4 r_near to prevent Gaussian tail splitting, and use native SVD backend so encoder/two-mode tasks retain exact Tier 1 stability while full Tier 1-3 executes.
+
+[Record and receipt provenance](records/readout-6265233640061013149586d5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### ka2-global-repair-v1 · readout-628b01d1adffd11312aff9b1
 
 **Scope:** current; scientific; revision `71a50b7b10fdc6307c92b781224e73625f670377ffeb4a31b9f3abe4b34be108`.
@@ -5719,6 +5767,22 @@ The explicit published residual16 intensity host passed all sustained/terminal r
 **Next:** Bind published vector/native architecture and initialization policies explicitly through shared public components before expanding the full reference matrix. Keep this positive, prior failures and costs in separate compatible cohorts. Register any further diagnostic narrowly; no automatic control/reference sweep or adoption is justified by one image pass.
 
 [Record and receipt provenance](records/readout-7650981f9a48a164aebbd631.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-coupling-v2 · readout-77681c90f98c8fd897882945
+
+**Scope:** current; scientific; revision `7493617575999ae8b6951c7a4790df46717b997fd17976c53b062d7ea04713c5`.
+
+Gating conformal local horizons on patch-smoothed real width heterogeneity g_width(Y), gating quota-capped Laguerre chart commitment and exact FP32 activation-gram gradient deconfliction on topological disconnectedness w_valley * (1 - g_conn(Y)) with strictly intra-mode halos r_halo <= min(1.65 * r_k, 0.35 * d_nn_chart), and restoring polar_cpu_v1 on small dense layers resolves all Tier 1 regressions from t1-coupling-v1 (two_pole, ae_gan_hold, model_vae_hard, interp_sparse_arc) while improving disconnected-mode coverage and multi-scale accuracy across Tier 2-3 (img_bars4, vector_unequal_width, grid100, model_ddgan_gaussian_chain) at 3x+ faster high-res conv throughput than rhbi-v12.
+
+**Observed:** {'FAIL': 2, 'PASS': 14}; wall seconds 1196.516; mechanism `structural`.
+
+model_ae_gan_multimodal: modes=4, precision=0.95508, mass_tv=0.036865
+
+Completed Tier 1 discriminator_stability seed-0 CUDA execution for t1-coupling-v2 (14/16 Tier 1 PASS: converted two_pole to PASS grad_med=0.1172, model_vae_hard to PASS, interp_sparse_arc to PASS interp_hq=0.8116, and precision_gaussian_nvfp4 to PASS alongside mxfp8, ring16_acquisition, five_word_joint_smoke, and clockfree_audit_measurement_v1; 2/11 required Tier 1 FAIL on ae_gan_hold and model_vae_categorical with 0.0 live shortfall but passing_suffix 1/5 and 2/5).
+
+**Next:** Advance to bounded revision t1-coupling-v3: raise the in-basin cross-chart rebalancing threshold to 2.8 SE (>99% confidence, keeping genuine 4-6 SE mode-collapse rebalancing active while eliminating multinomial slot-swap false alarms) and gate in-basin cross-chart pulls by thermal disequilibrium s_thermal.
+
+[Record and receipt provenance](records/readout-77681c90f98c8fd897882945.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-bcap-pure-v1 · readout-7781bffb3ec011c9b933c0b5
 
@@ -6712,6 +6776,38 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 
 [Record and receipt provenance](records/readout-b4cb8ae3dab15ed18da48cee.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t1-coupling-v4 · readout-b54ad56abb1f8f85ab558b5b
+
+**Scope:** research_diagnostic; scientific; revision `91d8a7149fad4a2157eaf29a65cfbdd905bab2a0ab1e95b0ee8375766abbcace`.
+
+Verify that t1-coupling-v4 maintains EMPF-class GPU step throughput and 59% lower r64 peak VRAM across DCGAN resolutions r32..r256, batch b64, and width w128.
+
+**Observed:** {'PASS': 6}; wall seconds 73.092; mechanism `structural`.
+
+
+
+Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v4 (PASS 6/6: r32 64.44 ms / 92.9 MiB, r64 60.76 ms / 233.2 MiB, r128 108.82 ms / 501.9 MiB, r256 184.93 ms / 1492.3 MiB, b64 76.53 ms / 388.1 MiB, w128 104.73 ms / 686.3 MiB). Diagnostic performance evidence only.
+
+**Next:** Retain source-bound performance readout and advance to t1-coupling-v5 restoring the 2.2 r_near chart novelty threshold so 16-mode ring separation is preserved.
+
+[Record and receipt provenance](records/readout-b54ad56abb1f8f85ab558b5b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-coupling-v2 · readout-b5b0255afd0d8014b7e3684e
+
+**Scope:** research_diagnostic; scientific; revision `7493617575999ae8b6951c7a4790df46717b997fd17976c53b062d7ea04713c5`.
+
+Verify that t1-coupling-v2 retains EMPF-class GPU step throughput and 51% lower r64 peak VRAM across DCGAN resolutions r32..r256, batch b64, and width w128 under the exact same global recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 69.493; mechanism `structural`.
+
+
+
+Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v2 (PASS 6/6: r32 43.60 ms / 106.8 MiB, r64 51.96 ms / 282.5 MiB, r128 81.10 ms / 616.0 MiB, r256 146.59 ms / 1606.3 MiB, b64 66.82 ms / 439.3 MiB, w128 81.00 ms / 870.4 MiB). Diagnostic performance evidence only.
+
+**Next:** Retain source-bound performance readout and advance to t1-coupling-v3 to raise the in-basin cross-chart rebalancing deadband from 1.15 SE to 2.8 SE gated by thermal disequilibrium.
+
+[Record and receipt provenance](records/readout-b5b0255afd0d8014b7e3684e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-b7acc4d7ec8bb9cb7dd704a8
 
 **Scope:** research_diagnostic; scientific; revision `6bc63bbe693a22f5aada19b0855b56d81fd389db4ec9275783679368e0058df3`.
@@ -6727,6 +6823,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-b7acc4d7ec8bb9cb7dd704a8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-coupling-v5 · readout-b87c22fbdb500d43981e839b
+
+**Scope:** current; scientific; revision `db973aabb86cad9c924b63dea3c57ea3ad19ccf44be6ffe8abfd9f536955bbdf`.
+
+Restoring 2.2 r_near / 0.06 d_max streaming sub-chart novelty insertion while retaining Recipe.encoder_mode != 'none' chart bypass restores ring16_acquisition PASS (<= 0.85) alongside t1-coupling-v4's 15/15 Tier 1 passes (16/16 Tier 1 total), unlocking complete Tier 2-3 evaluation across img_bars4, img_blobs4, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, grid100, and model_ddgan_gaussian_chain at EMPF-class GPU speed.
+
+**Observed:** {'FAIL': 10, 'INCOMPLETE': 3, 'PASS': 31}; wall seconds 17206.195; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.010742
+
+PASS 13/13 counted Tier 1 gates (15/16 total Tier 1 incl. mxfp8 & nvfp4) and 31/41 Tier 1+2 discriminator_stability tasks, passing ALL 4/4 discrete image tasks simultaneously (img_bars4 modes=4/4 hq=0.9688 tv=0.1562, img_blobs4 tv=0.0625, img_stripes2 tv=0.0625, img_intensity2 hq=1.0) and satisfying the registered prediction vector_unequal_width resolved_core_covariance_error=0.3266 <= 0.50 (mass_tv=0.0298, sw1=0.0435).
+
+**Next:** Archive all 10 t1-coupling-v1..v5 readouts and recommend combining Track 1B chart-deconflicted generator coupling with Track 1A disconnected prior pullback (to remove continuous-prior bridge outliers on vector_unequal_width and toy100) and Track 2 1st-order secant critic.
+
+[Record and receipt provenance](records/readout-b87c22fbdb500d43981e839b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-b9f8dfc752cd1ca9ceaaff21
 
@@ -7095,6 +7207,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-cecfd17c12d47c1b8f85c63c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-coupling-v5 · readout-cedd207fc183ede3b4e66e38
+
+**Scope:** research_diagnostic; scientific; revision `db973aabb86cad9c924b63dea3c57ea3ad19ccf44be6ffe8abfd9f536955bbdf`.
+
+Verify that t1-coupling-v5 maintains EMPF-class GPU step throughput and 66% lower r64 peak VRAM than rhbi-v12 across DCGAN resolutions r32..r256, batch b64, and width w128.
+
+**Observed:** {'PASS': 6}; wall seconds 69.303; mechanism `structural`.
+
+
+
+PASS 6/6 dcgan_performance tasks (finite_update_fraction=1.0 on all resolutions/batches/widths): r32=50.00ms/92.9MiB, r64=61.28ms/233.2MiB, r128=88.85ms/501.9MiB, r256=154.62ms (103.3 img/s, 1492.3MiB alloc / 1668MiB reserved), b64=72.27ms (893.7 img/s, 388.1MiB), w128=87.89ms/686.3MiB.
+
+**Next:** Publish concluded performance evidence alongside t1-coupling-v5-study in reports/forge/studies/t1-deconflicted-coupling.md.
+
+[Record and receipt provenance](records/readout-cedd207fc183ede3b4e66e38.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-cfb9bf047c6814e0e030457c
 
@@ -7512,6 +7640,22 @@ All six declared DCGAN mock-data performance workloads completed their finite pu
 
 [Evidence](../../reports/forge/scaling-receipts/dcgan-performance-cloud-v2/ka2-dcgan_performance_b64-0dcd26728de3eb07.json) · [Record](records/readout-e6e872f73024fd6c0b2b2d42.json)
 
+### t1-coupling-v1 · readout-e770044794f0c855f4331e16
+
+**Scope:** current; scientific; revision `ca0df685d3d4c87d7c7a9962a9510233c0e15e4b84363cc3cdeb8ccb3f2879eb`.
+
+Replacing minibatch-only unbalanced screening and CPU-LAPACK float64 transport in rhbi-v12 with Track 1B Deconflicted Piecewise Coupling (persistent multi-batch Laguerre hard chart commitment with C^1 halo dead-zone and absent-chart shielding, position-symmetric conformal multi-scale horizons, activation-gram whitened generator polar steps, exchangeable conditional drift subtraction, and pure-FP32 / 8x8 pooled / newton_schulz_hybrid_v1 / bf16_channels_last execution) under one global clock-free recipe resolves disconnected-mode ghosting and multi-scale conflation (e.g. img_bars4 modes == 4 and vector_unequal_width mass_tv <= 0.15, resolved_core_covariance_error <= 0.50) while achieving EMPF-class GPU step throughput on seed 0.
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 1951.3; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0077726
+
+Completed Tier 1 discriminator_stability seed-0 CUDA execution for t1-coupling-v1 (11/16 Tier 1 PASS including ring16_acquisition, five_word_joint_smoke, gaussian1d_smoke, zero_tanh_smoke, model_ae_gan_multimodal, model_ae_reconstruction, model_vae_categorical, unused_token_hold, clockfree_audit_measurement_v1, precision_gaussian_fp32, and precision_gaussian_mxfp8; 3/11 required Tier 1 FAIL on two_pole, ae_gan_hold, and model_vae_hard halting Tier 2/3 under complete_current_tier).
+
+**Next:** Stop t1-coupling-v1 cleanly and test bounded structural revision t1-coupling-v2: anchor the symmetric conformal multi-scale field ell_Y(u) strictly to detached real-cloud k-NN scales gated by real scale heterogeneity g_het(Y), restore exact polar_cpu_v1 on dense layers, and quota-balance Laguerre chart routing.
+
+[Record and receipt provenance](records/readout-e770044794f0c855f4331e16.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-e838608cfd803f50b58f4e21
 
 **Scope:** research_diagnostic; scientific; revision `9c4c532b8c3773b5f17b7b2ec3f5729d4920bd9b6e409609b7da88059ea3fa2f`.
@@ -7607,6 +7751,22 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-eb425a0e7fa0639a1081f369.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t1-coupling-v3 · readout-ed10575082057b56c75b39cc
+
+**Scope:** research_diagnostic; scientific; revision `014f0e572d07ad1580b1ede8dd76c1aaf7b3e84d12117b7c18b845294f624336`.
+
+Verify that t1-coupling-v3 retains or improves EMPF-class GPU step throughput and low VRAM across DCGAN resolutions r32..r256, batch b64, and width w128 under the exact same global recipe.
+
+**Observed:** {'PASS': 6}; wall seconds 71.58; mechanism `structural`.
+
+
+
+Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v3 (PASS 6/6: r32 66.76 ms / 106.8 MiB, r64 78.01 ms / 282.5 MiB, r128 113.38 ms / 616.0 MiB, r256 178.64 ms / 1606.3 MiB, b64 91.56 ms / 439.3 MiB, w128 100.73 ms / 870.4 MiB). Diagnostic performance evidence only.
+
+**Next:** Retain source-bound performance readout and advance to t1-coupling-v4 to disable unconditional chart slot-rebalancing on encoder-coupled recipes (encoder_mode != 'none') and tighten Gaussian sub-chart novelty threshold to 3.4 r_near.
+
+[Record and receipt provenance](records/readout-ed10575082057b56c75b39cc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p · readout-eeec25002d17191c315f126b
 
@@ -8454,4 +8614,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `01aa1e21fbeebfc49ba1f22e40b5ccdd7f6dad567dd73e16d4cd67e614f673ef`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `55b89dbf3f24645ae6452e44bd29fd2abc6234f8ee1fa3b062272b562b833cba`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
