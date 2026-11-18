@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1026. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1029. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4488,6 +4488,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 
 [Record and receipt provenance](records/readout-26fb2e199524ac0e8b905358.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-270008de8ad43a04e4813b2b
+
+**Scope:** research_diagnostic; scientific; revision `91382d96596eef591a9b0a35b97ceb99d2eebc43ba19cf96c0fdc7d5b323cbab`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.674; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Negative control reproduced FAIL at all five terminal checks on img_conv_texture32.
+
+**Next:** Retain as the raw-coordinate reference. The assignment candidate stopped at texture.
+
+[Record and receipt provenance](records/readout-270008de8ad43a04e4813b2b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-271e0b4766487e5e23d59018
 
 **Scope:** current; scientific; revision `4717b4b13aba2f8a4f523a5b8c66863b60d55c5d05f4bfa2dd6a238a829a86a7`.
@@ -5687,6 +5703,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-704dd415ee7878a1bbfbe7d9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-7140c16ce14700569784ef15
+
+**Scope:** research_diagnostic; scientific; revision `4e3e8d8e170c44962b7902efb92fbdbdd1feb833e071f5c9985ad24e4d4a6261`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'PASS': 1}; wall seconds 47.94; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+Positive control reproduced PASS at all five terminal checks on img_conv_texture32.
+
+**Next:** Retain as the positive texture reference. The matched sparse-arc retention failure still applies to its own source.
+
+[Record and receipt provenance](records/readout-7140c16ce14700569784ef15.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-bcap-pure-v1 · readout-72bbe311465e6ccf90b28084
 
@@ -6967,6 +6999,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c164627eb57d4e7515314cd6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-assignment · readout-c20e0ab213205669efe1045e
+
+**Scope:** research_diagnostic; scientific; revision `54282c8dfae0fb13baef1a1d74b021245dd7596c8783ff3afd206f9ab461c4be`.
+
+On the full 288-update texture test, normalized critic features for cross assignment with raw-coordinate motion achieve five consecutive passing terminal observations. Full-feature transport is the positive reference and raw RHBI is the negative reference.
+
+**Observed:** {'FAIL': 1}; wall seconds 48.794; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.074219
+
+FAIL on img_conv_texture32, 0/5 terminal checks. No observation produced any clean textures. Final high-frequency energy ratio 0.1992, orientations 0, phase diversity 0.
+
+**Next:** Stop this revision before retention or CIFAR. A separate cross-feature movement plus raw self-coupling ablation could distinguish the two remaining terms.
+
+[Record and receipt provenance](records/readout-c20e0ab213205669efe1045e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-misgan-amortized-v1 · readout-c21940571fd7349e5f2a9c1b
 
@@ -8566,4 +8614,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `49a3804c1029aa903e468b19b9b15635ca5594196c858817bdcbe678abda08de`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `3dc9cba3ad2ddf8bffba1a9481be119045d5e1b89febdd02dea94494346f1639`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

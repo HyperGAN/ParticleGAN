@@ -6,6 +6,8 @@ For the marginal generator loss, concatenate each raw sample with the input to t
 
 The [matched training trajectories](trajectory/README.md) show when the parent and feature arm diverged on rare width and arc interpolation.
 
+Using features only to select matches raised the high-frequency energy ratio to 0.199 and produced zero clean textures. Full feature transport reproduced its PASS. [Three-arm texture comparison](assignment/README.md).
+
 ## Frozen decision
 
 One candidate, protocol seed 0. Compare with the parent on the complete 288-update texture gate. Only a full pass advances the candidate to the frozen rare-mass, sparse arc, patch-shift and saddle retention tasks. A failure on any of these stops external CIFAR evaluation. No retuning or seed search in this study. Results in this research view provide no ordinary qualification or default adoption credit.

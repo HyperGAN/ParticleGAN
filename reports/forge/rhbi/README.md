@@ -60,3 +60,5 @@
 The opt-in marginal GAN recipe `get_recipe("rhbi_optimized", rhbi_feature_transport=True)` passed the 32×32 texture gate across all five terminal checks. The matched parent passed zero. The candidate subsequently failed the rare-mass and three interpolation retention gates. The scalar-linear-readout requirement and measured trade-off limit this recipe to research use. [Study, metrics and training GIF](../rhbi-texture-feature/README.md).
 
 On the matched retention runs, both recipes failed rare width. The parent passed sparse arc and the feature recipe failed. Their executed arc transport plans separated at update 29, before mean error on common edges separated between 40 and 50. [Matched training trajectories](../rhbi-texture-feature/trajectory/README.md).
+
+Using features only for marginal cross assignment raised the texture energy ratio to 0.199 and produced zero clean textures. Both controls reproduced their 24 earlier observations. [Assignment-only study](../rhbi-texture-feature/assignment/README.md).
