@@ -19,7 +19,6 @@ from particlegan import (
     T2SecantCriticAdam,
     T2SecantCriticPenalty,
     T2SecantGANLoss,
-    T2SecantStepRecord,
     get_recipe,
     init,
 )
@@ -258,6 +257,15 @@ def test_deliberate_damage_slope_bound_control():
 
 def test_fresh_process_checkpoint_and_rng_continuation_and_tamper_rejection(tmp_path: Path):
     """Exact continuation across process restart + prototype/thermal activation, plus tamper rejection."""
+    prev_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        _run_fresh_process_checkpoint_and_tamper_test(tmp_path)
+    finally:
+        torch.set_num_threads(prev_threads)
+
+
+def _run_fresh_process_checkpoint_and_tamper_test(tmp_path: Path):
     repo_root = Path(__file__).resolve().parents[1]
     ckpt_path = tmp_path / "ckpt.pt"
     out_path = tmp_path / "resumed.pt"
@@ -310,6 +318,7 @@ def test_fresh_process_checkpoint_and_rng_continuation_and_tamper_rejection(tmp_
     # Fresh-process continuation check (also verifies import path isolation!)
     script = f"""
 import pathlib, torch
+torch.set_num_threads(1)
 import particlegan
 from particlegan import GANTrainer, get_recipe, init
 from torch import nn
@@ -341,6 +350,8 @@ torch.save({{"trainer": tr.state_dict(), "data_rng": data.get_state()}}, {str(ou
 """
     env = dict(os.environ)
     env["PYTHONPATH"] = f"{repo_root}:{env.get('PYTHONPATH', '')}"
+    env["OMP_NUM_THREADS"] = "1"
+    env["MKL_NUM_THREADS"] = "1"
     subprocess.run([sys.executable, "-c", script], check=True, env=env)
 
     resumed = torch.load(out_path, map_location="cpu", weights_only=True)
@@ -362,6 +373,15 @@ torch.save({{"trainer": tr.state_dict(), "data_rng": data.get_state()}}, {str(ou
 
 def test_fresh_process_continuation_across_thermal_cooling_shock_step_scale_and_sampling(tmp_path: Path):
     """Verify exact fresh-process continuation + sample parity across thermal cooling, step_scale < 1, shock reopening, and 4D live-reuse."""
+    prev_threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        _run_fresh_process_activation_boundary_test(tmp_path)
+    finally:
+        torch.set_num_threads(prev_threads)
+
+
+def _run_fresh_process_activation_boundary_test(tmp_path: Path):
     repo_root = Path(__file__).resolve().parents[1]
     ckpt_1d = tmp_path / "ckpt_1d.pt"
     out_1d = tmp_path / "out_1d.pt"
@@ -470,6 +490,7 @@ def test_fresh_process_continuation_across_thermal_cooling_shock_step_scale_and_
 
     script = f"""
 import pathlib, torch
+torch.set_num_threads(1)
 from torch import nn
 import particlegan
 from particlegan import GANTrainer, get_recipe, init
@@ -545,6 +566,8 @@ torch.save({{"d": d_img.state_dict(), "opt": opt_img.state_dict(), "rng": rng_im
 """
     env = dict(os.environ)
     env["PYTHONPATH"] = f"{repo_root}:{env.get('PYTHONPATH', '')}"
+    env["OMP_NUM_THREADS"] = "1"
+    env["MKL_NUM_THREADS"] = "1"
     subprocess.run([sys.executable, "-c", script], check=True, env=env)
 
     res_1d = torch.load(out_1d, map_location="cpu", weights_only=True)
