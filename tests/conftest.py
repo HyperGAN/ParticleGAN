@@ -93,6 +93,13 @@ def _archived_inactive_comparison_scope(module, directory):
         "t1_laguerre_lr": 0.015,
         "t1_prior_row_lr": 0.06,
         "t1_max_prototypes": 256,
+        "t1c_weight": 0.0,
+        "t1c_chart_capacity": 256,
+        "t1c_chart_weight": 0.0,
+        "t1c_halo_mult": 2.1,
+        "t1c_multiscale_horizon": False,
+        "t1c_grad_deconflict": 0.0,
+        "t1c_cond_drift_deconflict": False,
     }
     tail = '    "training_precision": "float32",\n}\n'
     assert adapted.decode().count(tail) == 1

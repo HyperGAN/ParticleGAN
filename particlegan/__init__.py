@@ -77,6 +77,14 @@ from .rhbi import (
     bind_rhbi_record,
 )
 from ._t1_prior import T1PullbackPriorRegularizer
+from .t1_coupling import (
+    T1CouplingCriticAdam,
+    T1CouplingCriticPenalty,
+    T1CouplingGANLoss,
+    T1CouplingLoss,
+    T1CouplingStepRecord,
+    bind_t1_coupling_record,
+)
 from .t2_critic import (
     T2SecantCriticAdam,
     T2SecantCriticPenalty,
@@ -104,6 +112,7 @@ __all__ = [
     "EMPFStepRecord", "EMPFCriticAdam", "EMPFCriticPenalty", "EMPFPriorRegularizer", "EMPFSinkhornRelativisticLoss",
     "RHBICriticAdam", "RHBICriticPenalty", "RHBIGANLoss", "RHBILoss", "RHBIStepRecord", "bind_rhbi_record",
     "T1PullbackPriorRegularizer",
+    "T1CouplingCriticAdam", "T1CouplingCriticPenalty", "T1CouplingGANLoss", "T1CouplingLoss", "T1CouplingStepRecord", "bind_t1_coupling_record",
     "T2SecantCriticAdam", "T2SecantCriticPenalty", "T2SecantGANLoss", "T2SecantStepRecord", "bind_t2_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",

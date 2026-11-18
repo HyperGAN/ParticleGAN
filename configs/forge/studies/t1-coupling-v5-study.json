@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-coupling-v5-study"
+  },
+  "candidate": "t1-coupling-v5",
+  "competing_explanation": "Quota-balanced Laguerre commitment across K >= 3 disconnected charts (with 2.2 r_near novelty insertion) or activation-gram whitened generator polar updates could still leave residual inter-mode covariance inflation on 100-mode grids (grid100) or anisotropic covariance skew on vector_anisotropic.",
+  "control": {
+    "candidate_id": "t1-coupling-v4",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Restoring 2.2 r_near / 0.06 d_max streaming sub-chart novelty insertion while retaining Recipe.encoder_mode != 'none' chart bypass restores ring16_acquisition PASS (<= 0.85) alongside t1-coupling-v4's 15/15 Tier 1 passes (16/16 Tier 1 total), unlocking complete Tier 2-3 evaluation across img_bars4, img_blobs4, vector_unequal_width, vector_unequal_mass, vector_anisotropic, vector_overlap, grid100, and model_ddgan_gaussian_chain at EMPF-class GPU speed.",
+  "id": "t1-coupling-v5-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "resolved_core_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.5
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v4",
+        "candidate_revision": "91d8a7149fad4a2157eaf29a65cfbdd905bab2a0ab1e95b0ee8375766abbcace"
+      },
+      "path": "reports/forge/records/readout-1601436209f93adc811c95c6.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
