@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1029. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1035. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4344,6 +4344,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 
 [Record and receipt provenance](records/readout-1b511c8eec2bb40f41aee6ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-1bb7f1ca1295d6b4243338f9
+
+**Scope:** research_diagnostic; scientific; revision `cd9dd1277c4a50f46e23fab28a635e4cc3b61b0776dbf316c97be34b6f931746`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'FAIL': 1}; wall seconds 46.218; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.0039062
+
+Negative control failed all five checks. Final energy ratio 0.0086 with zero clean textures.
+
+**Next:** Use as the raw-coordinate reference on sparse arc.
+
+[Record and receipt provenance](records/readout-1bb7f1ca1295d6b4243338f9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### e22 · readout-1ccb789078ba83ef238d9a80
 
 **Scope:** research_diagnostic; scientific; revision `57f556b8cddb54cbfc93c412d824e0baa588b8e62b9ab3016e24adbae7f7b4b7`.
@@ -6232,6 +6248,22 @@ Completed dcgan_performance seed-0 CUDA execution for atlas-particle-normal-v4 (
 
 [Record and receipt provenance](records/readout-90dc786040135b340c5005de.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12 · readout-93dcfd4e0ea1ccf289dda8a7
+
+**Scope:** research_diagnostic; scientific; revision `cd9dd1277c4a50f46e23fab28a635e4cc3b61b0776dbf316c97be34b6f931746`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'PASS': 1}; wall seconds 62.162; mechanism `structural`.
+
+
+
+Raw RHBI reproduced all 24 previous observations and passed the complete arc gate at five terminal checks. At the endpoint 53/66 chord interiors passed.
+
+**Next:** Retain the matched interpolation reference.
+
+[Record and receipt provenance](records/readout-93dcfd4e0ea1ccf289dda8a7.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-946a921be2625c9d807c6d1f
 
 **Scope:** research_diagnostic; scientific; revision `8c1d7b083639d1f12c8d5398f27d03bb9e437b991f9e56178eaab2914d1e4fcc`.
@@ -6263,6 +6295,22 @@ Preregistered full7000-update grid100_affine_paired_laws_v1 FAIL; sustained cove
 **Next:** Stop these exact revisions and this selected registration. Before another GPU study, perform a bounded zero-training saved-state audit of critic radial and centering gradients against per-mode moments. Only a supported substantive hypothesis warrants a new frozen registration. Preserve A2 and sigma .025; no coefficient, cap, width, amplitude or seed sweep, best-checkpoint/EMA substitution, 14k continuation or automatic matrix expansion.
 
 [Record and receipt provenance](records/readout-95e0cdfdc2f043a0046285c1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-9900c47fe4b1edd1a04a8f96
+
+**Scope:** research_diagnostic; scientific; revision `1c14837aa12e5c5769ce38c7713e4f4ccdaa6ac26756e1ee3e500ec847e97965`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'PASS': 1}; wall seconds 47.616; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.13281
+
+Positive control passed all five terminal texture checks and reproduced its 24 prior observations exactly.
+
+**Next:** Retain as the positive feature control for texture.
+
+[Record and receipt provenance](records/readout-9900c47fe4b1edd1a04a8f96.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas · readout-99058c02555c6e8edcc6e461
 
@@ -6968,6 +7016,22 @@ Selected bcap-pure recipe fails all 3 zero-sigma ParticlePrior interpolation tas
 
 [Record and receipt provenance](records/readout-c0eb323419b0be6463f34d1b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-raw-self · readout-c12c9b140cd30d69b788d46d
+
+**Scope:** research_diagnostic; scientific; revision `af882d55aaca49e277d79c6b26ee9fd48cefb8e88e963cc5d5ec6d942a515e3d`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'FAIL': 1}; wall seconds 37.265; mechanism `structural`.
+
+
+
+FAIL at all five terminal arc checks. All 12 endpoints passed, but only 51/69 final chord interiors met the distance bound (0.7391 against 0.80).
+
+**Next:** Keep the texture recovery separate from arc retention. Isolate cross-assignment versus cross-attraction in a subsequent recipe.
+
+[Record and receipt provenance](records/readout-c12c9b140cd30d69b788d46d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v7 · readout-c162cb8fb6ab4d55620a8693
 
 **Scope:** current; scientific; revision `af74e8b4a3d6f9a68c4fc8a6f87c808172f6769788da1a74828e67de99c468bd`.
@@ -7416,6 +7480,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 
 [Record and receipt provenance](records/readout-d84b69a82debc8d2678cf004.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rhbi-v12-feature-raw-self · readout-da17f462507164779b6b47ac
+
+**Scope:** research_diagnostic; scientific; revision `af882d55aaca49e277d79c6b26ee9fd48cefb8e88e963cc5d5ec6d942a515e3d`.
+
+Using raw self geometry with full feature cross-attraction passes all five terminal texture observations. Raw RHBI fails and full features pass.
+
+**Observed:** {'PASS': 1}; wall seconds 47.744; mechanism `structural`.
+
+img_conv_texture32: mass_tv=0.125
+
+PASS at five of five terminal texture observations. Final energy 0.6700, 241/256 clean textures, both orientations, mass TV 0.1250, phase diversity 0.8049.
+
+**Next:** Proceed to the frozen three-arm sparse-arc test.
+
+[Record and receipt provenance](records/readout-da17f462507164779b6b47ac.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r1r2--f78d5d603be1611025389c4ca0f7f485f3d2caa0a25fb6bc38b7c96da3509a3e · readout-da2ac34b1675880ab8ace248
 
 **Scope:** current; scientific; revision `ecd7497dc47ac901328a0e28a32d2657cf2ce0601db5690c629b1f33a6626d45`.
@@ -7447,6 +7527,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-da78d1d541082f723b706f2c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12-feature-transport · readout-dac256adfce23a647398b368
+
+**Scope:** research_diagnostic; scientific; revision `1c14837aa12e5c5769ce38c7713e4f4ccdaa6ac26756e1ee3e500ec847e97965`.
+
+Conditional on texture recovery, raw self geometry recovers five passing sparse-arc observations. Raw RHBI passes and full features fail.
+
+**Observed:** {'FAIL': 1}; wall seconds 97.16; mechanism `structural`.
+
+
+
+The full-feature control reproduced all 24 previous arc observations and failed all five terminal checks on chord quality.
+
+**Next:** Retain this source-bound arc failure alongside the positive texture result.
+
+[Record and receipt provenance](records/readout-dac256adfce23a647398b368.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-throughput-v1 · readout-dbb540fd1a0d83052f31aef8
 
@@ -8614,4 +8710,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `3dc9cba3ad2ddf8bffba1a9481be119045d5e1b89febdd02dea94494346f1639`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `68ceac36ac2c290778356e7ad41fadf15fed97f9d69843cce439646bfaf71fd3`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

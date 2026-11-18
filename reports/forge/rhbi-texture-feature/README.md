@@ -8,6 +8,8 @@ The [matched training trajectories](trajectory/README.md) show when the parent a
 
 Using features only to select matches raised the high-frequency energy ratio to 0.199 and produced zero clean textures. Full feature transport reproduced its PASS. [Three-arm texture comparison](assignment/README.md).
 
+The next matched comparison kept feature-based attraction and restored raw self-repulsion. It passed every terminal texture check with 94.1% clean textures at the endpoint and failed all five sparse-arc checks. [Raw self-repulsion results](raw-self/README.md).
+
 ## Frozen decision
 
 One candidate, protocol seed 0. Compare with the parent on the complete 288-update texture gate. Only a full pass advances the candidate to the frozen rare-mass, sparse arc, patch-shift and saddle retention tasks. A failure on any of these stops external CIFAR evaluation. No retuning or seed search in this study. Results in this research view provide no ordinary qualification or default adoption credit.
