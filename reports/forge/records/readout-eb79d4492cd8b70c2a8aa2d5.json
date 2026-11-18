@@ -1,0 +1,420 @@
+{
+  "attempt_ids": [
+    "da34de56997c4153a8332876ec371b00"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "c772b7012c312c6c7973ad027346af9d366483d579819d6707f1c42b95b153e0",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "The feature arm also failed unequal mass. Compare the captured paths in the paired reduction.",
+  "conclusion": "The matched parent failed the sustained unequal-mass gate, with one passing terminal observation. Arc admission was blocked by the observer change to its pinned host source before any arc updates.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "da34de56997c4153a8332876ec371b00"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "7e24d2552424f6d4a2ca70a98e7758c89db6cd0b052c14459b8806d59a2bb429",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": null,
+          "value": null
+        },
+        "prediction": {
+          "satisfied": null,
+          "value": null
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "da34de56997c4153a8332876ec371b00",
+          "producer_request_id": "1db996af4fb67473e4969177",
+          "producer_study_id": "rhbi-retention-trajectory-parent",
+          "result_hash": "5c78a632e0c106bfa7ee6212e8ebfd9df61452ab91dc2bd7962a4fb7571148a3",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "348a27d0f1d99a3277cc702889435754e8274dc2bce709c294abcf078a879677",
+        "contract_sha256": "7e24d2552424f6d4a2ca70a98e7758c89db6cd0b052c14459b8806d59a2bb429",
+        "control_binding_sha256": "50f553a2582135ac999bb43aea3ee10e5e5773592052b5a9c1bd92e04fcad248",
+        "policy_fingerprint": "3750ef0b4c945dab43693030dde4b7bc67e874c07474201d448e731b18ea3fbe",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "63c953f97c202d28906f66a4a80649b2c6f2b838da3c36735b83ed53c75600a2"
+      },
+      "study_id": "rhbi-retention-trajectory-parent",
+      "study_sha256": "63c953f97c202d28906f66a4a80649b2c6f2b838da3c36735b83ed53c75600a2"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "rhbi-retention-trajectory-v1",
+  "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Restore the pinned interpolation host and capture at dispatch. Reserve only the outstanding arc cell.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "da34de56997c4153a8332876ec371b00",
+        "result_hash": "5c78a632e0c106bfa7ee6212e8ebfd9df61452ab91dc2bd7962a4fb7571148a3",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-eb79d4492cd8b70c2a8aa2d5",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/da34de56997c4153a8332876ec371b00/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 4200,
+      "candidate_budget_seconds": 2100,
+      "id": "rhbi-retention-trajectory-v1"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "Small direct metric changes accumulate through game dynamics, graph rewiring or the optimizer. The historical parent positives may also fail to reproduce.",
+    "control": {
+      "candidate_id": "rhbi-v12-feature-transport",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "hypothesis": "The feature arm changes executed marginal cross-plans before separation in rare within-mode width or interpolation error on common particle-row edges. The matched parent retains the two full gates and the feature arm repeats the failures.",
+    "id": "rhbi-retention-trajectory-parent",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "optimizer_updates_added": 0,
+          "protocol_seed": 0
+        },
+        "path": "reports/forge/rhbi-texture-feature/retention-probe.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "rhbi-retention-trajectory-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rhbi-retention-trajectory-parent",
+  "study_sha256": "63c953f97c202d28906f66a4a80649b2c6f2b838da3c36735b83ed53c75600a2",
+  "task_results": [
+    {
+      "compatibility_key": "7dc63ec1b2db1a27fbec36f3b4b69e391235ca0eea8b26a5ac3d798bff8abbec",
+      "cost": {
+        "adapter_loop_seconds": 35.77390170900617,
+        "adapter_seconds": 36.171072544995695,
+        "charged_task": "vector_unequal_mass",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 42.708928948035464,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 35.1295452194754,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.626497081015259
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.00863418891094625
+            },
+            "training_updates": {
+              "calls": 1200,
+              "seconds": 34.4944139495492
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 37.60905290499795,
+        "wall_seconds": 42.708928948035464
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 550,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 9,
+          "passing_suffix": 1,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "component_covariance_error": {
+            "margin": 0.2903244890272617,
+            "metric": "component_covariance_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.5596755109727383
+          },
+          "component_min_eigen_ratio": {
+            "margin": 0.01319315135478974,
+            "metric": "component_min_eigen_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.16319315135478973
+          },
+          "hq": {
+            "margin": 0.14023437500000002,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.990234375
+          },
+          "mass_tv": {
+            "margin": 0.06245115548372268,
+            "metric": "mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.08754884451627731
+          },
+          "min_mass_ratio": {
+            "margin": 0.4759114384651184,
+            "metric": "min_mass_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.7259114384651184
+          },
+          "sw1_normalized": {
+            "margin": 0.028361297776000993,
+            "metric": "sw1_normalized",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.18,
+            "value": 0.151638702223999
+          }
+        },
+        "passed": false,
+        "shortfall": 0.0,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 0.37467649951577187,
+        "component_core_covariance_errors": [
+          0.1893756091594696,
+          0.20301000773906708,
+          0.35818153619766235,
+          0.7481388449668884
+        ],
+        "component_core_eigen_ratios": [
+          0.7572276592254639,
+          0.7800226211547852,
+          0.51732337474823,
+          0.16319315135478973
+        ],
+        "component_core_min_eigen_ratio": 0.16319315135478973,
+        "component_counts": [
+          2231,
+          892,
+          854,
+          119
+        ],
+        "component_covariance_error": 0.5596755109727383,
+        "component_covariance_errors": [
+          0.9293716549873352,
+          0.20301000773906708,
+          0.35818153619766235,
+          0.7481388449668884
+        ],
+        "component_mass": [
+          0.544677734375,
+          0.2177734375,
+          0.20849609375,
+          0.029052734375
+        ],
+        "component_min_eigen_ratio": 0.16319315135478973,
+        "component_resolved": [
+          true,
+          true,
+          true,
+          false
+        ],
+        "component_spill": [
+          0.017929179593920708,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "covariance_error": 0.2897903621196747,
+        "hq": 0.990234375,
+        "mass_tv": 0.08754884451627731,
+        "max_component_spill": 0.017929179593920708,
+        "mean_error": 0.2202153205871582,
+        "min_mass_ratio": 0.7259114384651184,
+        "noise_floor": {
+          "draws": 16,
+          "eval_draw_contract": "fixed_v1",
+          "kind": "vector",
+          "metrics": {
+            "component_covariance_error": {
+              "margin_oracle_std": 14.527006351927419,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 38.352487862887536,
+              "oracle_mean": 0.08351954477257095,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.019985156059957387,
+              "threshold": 0.85
+            },
+            "component_min_eigen_ratio": {
+              "margin_oracle_std": 0.12260928592600857,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 6.108737207301989,
+              "oracle_mean": 0.807319663465023,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.10760319869044384,
+              "threshold": 0.15
+            },
+            "covariance_error": {
+              "oracle_draws": 16,
+              "oracle_mean": 0.03590691240970045,
+              "oracle_std": 0.011337437883263461
+            },
+            "hq": {
+              "margin_oracle_std": 75.87067860547863,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 74.92955989889082,
+              "oracle_mean": 0.988494873046875,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.0018483342653254414,
+              "threshold": 0.85
+            },
+            "mass_tv": {
+              "margin_oracle_std": 18.92729661990753,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 42.84484814108016,
+              "oracle_mean": 0.008632200537249446,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.003299528545351649,
+              "threshold": 0.15
+            },
+            "mean_error": {
+              "oracle_draws": 16,
+              "oracle_mean": 0.02094255347037688,
+              "oracle_std": 0.00859417063572251
+            },
+            "min_mass_ratio": {
+              "margin_oracle_std": 24.85762524042463,
+              "op": ">=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 36.83620122741052,
+              "oracle_mean": 0.9552471563220024,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.019145490925302433,
+              "threshold": 0.25
+            },
+            "sw1_normalized": {
+              "margin_oracle_std": 5.075955818105783,
+              "op": "<=",
+              "oracle_draws": 16,
+              "oracle_margin_oracle_std": 29.243864571557985,
+              "oracle_mean": 0.016603394324950917,
+              "oracle_pass_fraction": 1.0,
+              "oracle_std": 0.005587380740162688,
+              "threshold": 0.18
+            }
+          },
+          "oracle_all_gates_pass_fraction": 1.0,
+          "oracle_seed_rule": "derived_seed('oracle-noise-floor-v1', 'vector', reference_seed, draw)",
+          "projection_seed": 992,
+          "reference_seed": 991,
+          "sample_count": 4096,
+          "sw1_projections": 32,
+          "unscored_gates": [],
+          "version": "oracle-noise-floor-v1"
+        },
+        "resolved_core_covariance_error": 0.25018905103206635,
+        "resolved_core_min_eigen_ratio": 0.51732337474823,
+        "resolved_max_component_spill": 0.017929179593920708,
+        "sample_count": 4096,
+        "step": 1200,
+        "sw1_finite_n_bias": 0.016603394324950917,
+        "sw1_normalized": 0.151638702223999,
+        "sw1_projections": 32,
+        "target_mass": [
+          0.550000011920929,
+          0.30000001192092896,
+          0.12999999523162842,
+          0.019999999552965164
+        ],
+        "target_scale": 1.7593294382095337
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "vector_unequal_mass"
+    }
+  ]
+}

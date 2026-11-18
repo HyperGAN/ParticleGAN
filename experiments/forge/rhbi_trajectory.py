@@ -1,4 +1,6 @@
 """Passive, study-scoped archive of the executed marginal RHBI cross-plan."""
+from contextlib import contextmanager
+from contextvars import ContextVar
 import hashlib
 from pathlib import Path
 from unittest.mock import patch
@@ -8,6 +10,17 @@ import torch
 from .artifacts import manifest_artifacts
 
 VIEW = "rhbi-retention-trajectory-v1"
+ARC_VIEW = "rhbi-retention-trajectory-arc-v1"
+_request = ContextVar("rhbi_trajectory_request", default=None)
+
+
+@contextmanager
+def archive_scope(request):
+    token = _request.set(request)
+    try:
+        yield
+    finally:
+        _request.reset(token)
 
 
 def capture_steps(budget):
@@ -16,9 +29,10 @@ def capture_steps(budget):
             *((i * budget + 23) // 24 for i in range(1, 25))}
 
 
-def attach(request, trainer, context, task, output):
-    view = (request or {}).get("view")
-    if not isinstance(view, dict) or view.get("id") != VIEW:
+def attach(trainer, context, task, output):
+    request = _request.get() or {}
+    view = request.get("view")
+    if not isinstance(view, dict) or view.get("id") not in {VIEW, ARC_VIEW}:
         return None
     if (task["id"] not in {"vector_unequal_mass", "interp_sparse_arc"} or
             request["candidate"]["id"] not in {"rhbi-v12", "rhbi-v12-feature-transport"} or

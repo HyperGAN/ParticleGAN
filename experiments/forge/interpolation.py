@@ -227,7 +227,7 @@ def run(request: dict, task: dict, output_dir: Path, device: str) -> dict:
     }
     host_receipt = _host_receipt(spec, None, g, d)
 
-    runner = _Run(context, trainer, output_dir, task, sampling_law=ENUMERATED_PRIOR_CLEAN, trace_request=request)
+    runner = _Run(context, trainer, output_dir, task, sampling_law=ENUMERATED_PRIOR_CLEAN)
     data_rng = context.streams.generator("data", component="target", purpose="training", device="cpu")
     eval_samples = int(task["evaluation"].get("eval_samples", 512))
     ref_target = runner.evaluate(

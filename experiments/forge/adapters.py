@@ -307,14 +307,14 @@ def bind_measurement_law(trainer, task, *, draws=None, role="measured"):
 
 class _Run:
     """Shared progress, state, measured optimizer counts and RNG audit."""
-    def __init__(self, context, trainer, output, task, *, sampling_law=PUBLIC_PRIOR_CLEAN, trace_request=None):
+    def __init__(self, context, trainer, output, task, *, sampling_law=PUBLIC_PRIOR_CLEAN):
         self.context, self.trainer = context, trainer
         self.sampling_policy = executed_receipt(sampling_law, eval_output_noise="clean")
         self.output, self.task = Path(output), task
         self.output.mkdir(parents=True, exist_ok=True)
         self.started = time.monotonic()
         from .rhbi_trajectory import attach as attach_trajectory
-        self.trajectory = attach_trajectory(trace_request, trainer, context, task, self.output)
+        self.trajectory = attach_trajectory(trainer, context, task, self.output)
         self.finite = True
         self.measuring = False
         self.measured_weights = set()
@@ -546,7 +546,7 @@ def _vector(request, task, output, device, *, retain_scored_outputs=True):
     precision_initial = precision.initial_parameters(g, d) if "linear_precision" in task["execution"] else None
     host_receipt = _host_receipt(spec, task["execution"].get("vector_profile"), g, d)
     spec["thresholds"] = task["evaluation"]["thresholds"]
-    run = _Run(context, trainer, output, task, trace_request=request)
+    run = _Run(context, trainer, output, task)
     data = context.streams.generator("data", component="target", purpose="training", device="cpu")
     observations, records = [], []
     checkpoints = set(_checkpoints(task))
@@ -888,7 +888,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
 
 @serial_autograd()
 def run_task(request: dict, job: dict, output_dir: Path, device: str) -> dict:
-    result = normalize_adapter_costs(_dispatch_task(request, job, output_dir, device))
+    from .rhbi_trajectory import archive_scope
+    with archive_scope(request):
+        result = normalize_adapter_costs(_dispatch_task(request, job, output_dir, device))
     result["autograd_multithreading_enabled"] = torch.autograd.is_multithreading_enabled()
     # Normalize the common diagnostic receipt too. The certified bulk evidence
     # lives in separate artifact roots and is not modified by timing annotation.
