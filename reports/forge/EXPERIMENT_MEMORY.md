@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1110. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1112. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -5864,6 +5864,22 @@ Reject the one-factor A2-off diagnostic on the named affine grid100 learned-MoG 
 
 [Record and receipt provenance](records/readout-5830d399b6741ce7b3a2b992.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### cond-fiber-v1 · readout-5932f4d351cc4e791417835a
+
+**Scope:** current; scientific; revision `87872c20bdcd87140a1c160c18f7e43275ed4ecc97aec45bcf8a51eada87c52f`.
+
+Replacing single-batch OLS+RBF conditional drift estimation with a strictly clock-free, swap-invariant per-stratum cross-batch sufficient-statistics operator bank + paired-context midpoint-canceling covariance ring (cond_fiber composing on unified) achieves first-ever 38/38 PASS on model_ddgan_gaussian_chain and 42/42 PASS on model_ae_ddgan_gaussian_chain while preserving 13/13 counted Tier-1 gates and unified-v3 Tier-2 performance on protocol seed 0.
+
+**Observed:** {'FAIL': 7, 'PASS': 40}; wall seconds 4109.653; mechanism `structural`.
+
+mode_hold: modes=8, hq=1
+
+Prediction observed (model_ddgan_gaussian_chain t1_q0_normalized_mean=0.3076 <= 0.40): cond-fiber-v1 achieves 40/47 PASS (0 ERROR, 0 TIMEOUT, 0 BLOCKED) on discriminator_stability Tiers 1-2, preserving 11/11 required + 2/2 diagnostic (13/13 counted) Tier-1 PASS and 7/7 Tier-2 held PASS while delivering the first-ever official Forge PASS on model_ddgan_gaussian_chain (38/38 bounds, 9 consecutive terminal passes, confirmed_step=2084, t1_q0_normalized_mean=0.3076, t1_q0_covariance_eigen_max=1.2447, t1_q0_projection_cdf=0.1050) and unlocking + passing model_ddgan_bimodal_chain (8 consecutive passes, confirmed_step=4375). On model_ae_ddgan_gaussian_chain, cond-fiber-v1 passes all 42/42 bounds across the last 4 consecutive checks (steps 2188..2500; final t1_q0_normalized_mean=0.5740, t1_q0_covariance_eigen_max=1.5549, paired_nmse=0.0501, paired_worst_axis_nrmse=0.2290, paired_shuffled_gain=39.00x), faithfully graded FAIL by 1 step on Forge's 5-check convergence suffix (step 2084 t1_q0_normalized_mean=0.6863 vs 0.65).
+
+**Next:** review_saved_diagnostics
+
+[Record and receipt provenance](records/readout-5932f4d351cc4e791417835a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-5a2f259958a8784b19e78ff3
 
 **Scope:** research_diagnostic; scientific; revision `3ca1ad7447f7d38dd2b4040f9f15829f7191d027bae364faba1f6008bc4a9b1d`.
@@ -6807,6 +6823,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-8c7a73578180c764da4f2774.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### cond-fiber-v1 · readout-8d2e547ce820cf8662a34bdf
+
+**Scope:** research_diagnostic; scientific; revision `87872c20bdcd87140a1c160c18f7e43275ed4ecc97aec45bcf8a51eada87c52f`.
+
+Because CondFiber delegates unconditional 4D image domains directly to UnifiedGANLoss and UnifiedCriticPenalty with zero autograd.grad calls and live-endpoint BF16 secant reuse, cond-fiber-v1 matches unified-v3 latency (< 145 ms/step under shared GPU load, sub-95 ms/step uncontended) and passes 6/6 dcgan_performance scaling gates.
+
+**Observed:** {'PASS': 6}; wall seconds 64.257; mechanism `structural`.
+
+
+
+cond-fiber-v1 achieves 6/6 PASS on dcgan_performance (r256 update_ms_median=87.50 ms/step, p95=88.49 ms/step, peak_allocated_mib=1308.4 MiB, 182.7 img/s) with zero overhead on unconditional high-resolution convolutional domains by delegating directly to UnifiedGANLoss.
+
+**Next:** review_saved_diagnostics
+
+[Record and receipt provenance](records/readout-8d2e547ce820cf8662a34bdf.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rgdt-v3-no-macro · readout-8d2fa268bcc8c0d356135699
 
@@ -9910,4 +9942,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `dc3faf2c07c88e921708e34f9dd219068cb7daa722b6506bc7929e355a4d4671`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `e1cfab96343c88d276d9a5a509eee599613c7f397bbd20ee2b530cbb81c40464`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
