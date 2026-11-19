@@ -168,6 +168,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
             optimizer.record = _T4NashObserverStepRecord()
             _attach_t4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
+            optimizer.record = _NashV3ObserverStepRecord()
+            _attach_nash_v3_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)
