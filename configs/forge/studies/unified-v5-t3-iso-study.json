@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600.0,
+    "candidate_budget_seconds": 3600.0,
+    "id": "unified-v5-t3-iso-study"
+  },
+  "candidate": "unified-v5",
+  "competing_explanation": "If replacing eigh with deterministic power-iteration principal-axis ordering in zero_eigh_bipartite_deficit_macro_loss or unifying with UnifiedV4EquilibratedOptimizer degrades orphan mode rescue or conformal horizon balancing, unified-v5 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "hypothesis": "Unchanged global zero-SVD zero-eigh zero-autograd.grad unified-v5 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+  "id": "unified-v5-t3-iso-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v4",
+        "candidate_revision": "fe87e2181f9527d0957e6bbf1b8823f742790935cc8974e6b061b2ddcbf64332"
+      },
+      "path": "reports/forge/records/readout-31c12df2908246606b5bb072.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3_causal_isolation_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

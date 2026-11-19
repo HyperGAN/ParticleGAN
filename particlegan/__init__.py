@@ -129,6 +129,15 @@ from .unified import (
     UnifiedStepRecord,
     bind_unified_record,
 )
+from .unified_v4 import (
+    UnifiedV4CriticAdam,
+    UnifiedV4CriticPenalty,
+    UnifiedV4EquilibratedOptimizer,
+    UnifiedV4GANLoss,
+    UnifiedV4PriorRegularizer,
+    UnifiedV4StepRecord,
+    bind_unified_v4_record,
+)
 from .cond_fiber import (
     CondFiberBank,
     CondFiberCriticAdam,
@@ -164,6 +173,7 @@ __all__ = [
     "T4NashCriticAdam", "T4NashCriticPenalty", "T4NashGeneratorAdam", "T4NashLoss", "T4NashStepRecord", "bind_t4_nash_record",
     "NashV3ConstraintGeneratorAdam", "NashV3CriticAdam", "NashV3CriticPenalty", "NashV3GeneratorAdam", "NashV3Loss", "NashV3StepRecord", "bind_nash_v3_record",
     "UnifiedCriticAdam", "UnifiedCriticPenalty", "UnifiedGANLoss", "UnifiedPriorRegularizer", "UnifiedStepRecord", "bind_unified_record",
+    "UnifiedV4CriticAdam", "UnifiedV4CriticPenalty", "UnifiedV4EquilibratedOptimizer", "UnifiedV4GANLoss", "UnifiedV4PriorRegularizer", "UnifiedV4StepRecord", "bind_unified_v4_record",
     "CondFiberBank", "CondFiberCriticAdam", "CondFiberCriticPenalty", "CondFiberGANLoss", "CondFiberStepRecord", "bind_cond_fiber_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",

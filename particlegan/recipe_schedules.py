@@ -156,6 +156,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
             optimizer.record = _UnifiedObserverStepRecord()
             _attach_unified_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v4":
+            from .unified_v4 import _UnifiedV4ObserverStepRecord, _attach_unified_v4_critic_hook
+            optimizer.record = _UnifiedV4ObserverStepRecord()
+            _attach_unified_v4_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from .cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()

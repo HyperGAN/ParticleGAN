@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "unified-v9-endurance-study"
+  },
+  "candidate": "unified-v9",
+  "competing_explanation": "If zero-SVD Tikhonov-smoothed Quintic or 1st-order forward-tangent secant critic drifts over long 14k uninterrupted horizons, unified-v9 will fail ring_extension (300/300 checks) or mode_hold.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "ring_extension",
+    "threshold": 0.9
+  },
+  "hypothesis": "Unchanged global zero-SVD zero-autograd.grad unified-v9 passes Tier-3 14k uninterrupted endurance (mode_hold, ring_hold, and ring_extension 300/300 checks) under protocol seed 0.",
+  "id": "unified-v9-endurance-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "ring_extension",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v8",
+        "candidate_revision": "0483ddee4266f8710abf69313434184aa554b9b5d1e9bf5392629e4bcef127e0"
+      },
+      "path": "reports/forge/records/readout-8a6d598509ad19bdef5fd5ed.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bispf_throughput_endurance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
