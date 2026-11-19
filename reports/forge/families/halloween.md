@@ -1381,6 +1381,110 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1"></a>
+
+## r3-tier3-long-horizon-holdout-v1
+
+**r3-tier3-long-horizon-holdout-v1 — revision 1**. [View declaration](../../../configs/forge/views/r3-tier3-long-horizon-holdout-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [two_pole](halloween.md#cohort-cuda-c195899a64af-experiment-two_pole) | diagnostic | UNKNOWN | changed since run |
+| [unused_token_hold](halloween.md#cohort-cuda-c195899a64af-experiment-unused_token_hold) | diagnostic | UNKNOWN | changed since run |
+| [ae_gan_hold](halloween.md#cohort-cuda-c195899a64af-experiment-ae_gan_hold) | diagnostic | UNKNOWN | changed since run |
+| [clockfree_audit](halloween.md#cohort-cuda-c195899a64af-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_smoke](halloween.md#cohort-cuda-c195899a64af-experiment-zero_tanh_smoke) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [zero_tanh_rail_escape](halloween.md#cohort-cuda-c195899a64af-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [five_word_joint_smoke](halloween.md#cohort-cuda-c195899a64af-experiment-five_word_joint_smoke) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [five_word_joint_hold](halloween.md#cohort-cuda-c195899a64af-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [mode_hold](halloween.md#cohort-cuda-c195899a64af-experiment-mode_hold) | diagnostic | UNKNOWN | changed since run |
+| [ring_hold](halloween.md#cohort-cuda-c195899a64af-experiment-ring_hold) | diagnostic | UNKNOWN | changed since run |
+| [ring_extension](halloween.md#cohort-cuda-c195899a64af-experiment-ring_extension) | diagnostic | UNKNOWN | changed since run |
+| [target_shift_recovery](halloween.md#cohort-cuda-c195899a64af-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100](halloween.md#cohort-cuda-c195899a64af-experiment-grid100) | diagnostic | UNKNOWN | changed since run |
+| [rotated100](halloween.md#cohort-cuda-c195899a64af-experiment-rotated100) | diagnostic | UNKNOWN | changed since run |
+| [staggered100](halloween.md#cohort-cuda-c195899a64af-experiment-staggered100) | diagnostic | UNKNOWN | changed since run |
+| [grid100_14k](halloween.md#cohort-cuda-c195899a64af-experiment-grid100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [rotated100_14k](halloween.md#cohort-cuda-c195899a64af-experiment-rotated100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [staggered100_14k](halloween.md#cohort-cuda-c195899a64af-experiment-staggered100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1"></a>
+
+## r3-tier4-frontier-holdout-v1
+
+**r3-tier4-frontier-holdout-v1 — revision 1**. [View declaration](../../../configs/forge/views/r3-tier4-frontier-holdout-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [grid100](halloween.md#cohort-cuda-c195899a64af-experiment-grid100) | diagnostic | UNKNOWN | changed since run |
+| [grid100_mlp16](halloween.md#cohort-cuda-c195899a64af-experiment-grid100_mlp16) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_res16_tanh](halloween.md#cohort-cuda-c195899a64af-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_res16_scaled_tanh](halloween.md#cohort-cuda-c195899a64af-experiment-grid100_res16_scaled_tanh) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [misgan_block_recovery](halloween.md#cohort-cuda-c195899a64af-experiment-misgan_block_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [misgan_block_neural_imputer](halloween.md#cohort-cuda-c195899a64af-experiment-misgan_block_neural_imputer) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [ring16_bigan_continuous](halloween.md#cohort-cuda-c195899a64af-experiment-ring16_bigan_continuous) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [misgan_mcar_p50_recovery](halloween.md#cohort-cuda-c195899a64af-experiment-misgan_mcar_p50_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [misgan_mcar_p80_anchored](halloween.md#cohort-cuda-c195899a64af-experiment-misgan_mcar_p80_anchored) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [pacgan_unequal_mass](halloween.md#cohort-cuda-c195899a64af-experiment-pacgan_unequal_mass) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [pacgan8_grid100](halloween.md#cohort-cuda-c195899a64af-experiment-pacgan8_grid100) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [alice_spiral_bigan](halloween.md#cohort-cuda-c195899a64af-experiment-alice_spiral_bigan) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [infogan_anisotropic_modes](halloween.md#cohort-cuda-c195899a64af-experiment-infogan_anisotropic_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [cgan_overlapping_classes](halloween.md#cohort-cuda-c195899a64af-experiment-cgan_overlapping_classes) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [cramer_energy_overlap](halloween.md#cohort-cuda-c195899a64af-experiment-cramer_energy_overlap) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [cyclegan_unpaired_constellation](halloween.md#cohort-cuda-c195899a64af-experiment-cyclegan_unpaired_constellation) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1"></a>
 
 ## recipe-prior-refactor-k3p-diagnostic-v1
@@ -1946,7 +2050,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -2004,7 +2108,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -2032,7 +2136,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -2060,7 +2164,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [selected-family-coverage-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-selected-family-coverage-diagnostic-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [selected-family-coverage-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-selected-family-coverage-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -2156,7 +2260,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -2183,7 +2287,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -2515,7 +2619,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r1r2-repair-word-retention-20261022 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r1r2-repair-word-retention-20261022-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r1r2-repair-word-retention-20261022 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r1r2-repair-word-retention-20261022-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -2548,7 +2652,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r1r2-repair-word-retention-20261022 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r1r2-repair-word-retention-20261022-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r1r2-repair-word-retention-20261022 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r1r2-repair-word-retention-20261022-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -2682,7 +2786,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -2723,7 +2827,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -2842,7 +2946,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Current pass criteria:
 
@@ -2922,7 +3026,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Current pass criteria:
 
@@ -2963,7 +3067,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Current pass criteria:
 
@@ -3272,7 +3376,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -3430,7 +3534,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -3457,7 +3561,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -3486,7 +3590,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -3515,7 +3619,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -3544,7 +3648,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4136,7 +4240,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -4162,7 +4266,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -4375,7 +4479,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier4-frontier-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -4402,7 +4506,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4434,7 +4538,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4466,7 +4570,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4507,7 +4611,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -4587,7 +4691,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4628,7 +4732,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Current pass criteria:
 
@@ -4774,7 +4878,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 3](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-3) · [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 3](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-3) · [clockfree_continuous / Tier 3](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -4824,7 +4928,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [bcap-tier1-stability-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-tier1-stability-diagnostic-v1-tier-1) · [bcap-tier1-stability-repairs-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-tier1-stability-repairs-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1).
+Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [bcap-tier1-stability-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-tier1-stability-diagnostic-v1-tier-1) · [bcap-tier1-stability-repairs-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-tier1-stability-repairs-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
@@ -4969,7 +5073,7 @@ Test definition: **changed since run**. Test definition changed since this run: 
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1).
+Used by: [adaptation / Tier 1](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 1](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [formulation_comparison / Tier 1](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) · [host_profile_transfer / Tier 1](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) · [lazy_cadence_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 1](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 
@@ -5381,7 +5485,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Current pass criteria:
 
@@ -5410,7 +5514,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](halloween.md#cohort-cuda-c195899a64af-t4-strange-architectures-v1-tier-1).
 
 Current pass criteria:
 

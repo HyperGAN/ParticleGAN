@@ -398,7 +398,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "unified_v4") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "cond_fiber") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -433,6 +433,9 @@ class GANTrainer:
                 g_dev = next((p.device for p in self.G.parameters()), None)
                 if g_dev is not None:
                     self.prior_regularizer._bound_device = g_dev
+        elif recipe.effective_critic_formulation == "cond_fiber":
+            from .cond_fiber import bind_cond_fiber_record
+            bind_cond_fiber_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
@@ -445,6 +448,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "t4_nash":
             from .t4_nash import bind_t4_nash_record
             bind_t4_nash_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import bind_nash_v3_record
+            bind_nash_v3_record(self.opt_d.record, self.loss, self.prior_regularizer)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -494,6 +500,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "unified_v4":
             self.G._unified_v4_bf16_autocast = bool(self._bf16_generator)
             self.D._unified_v4_bf16_autocast = bool(self._noisy_D.bf16)
+        elif recipe.effective_critic_formulation == "t4_nash_v3":
+            self.G._nash_v3_bf16_autocast = bool(self._bf16_generator)
+            self.D._nash_v3_bf16_autocast = bool(self._noisy_D.bf16)
         self._in_training_step = False
         # Manipulator hooks resolved once; plain priors have neither.
         self._postprocesses = bool(getattr(self.prior, "postprocesses_generated", False))
@@ -749,7 +758,7 @@ class GANTrainer:
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
                 highres_unified_skip = (
-                    recipe.effective_critic_formulation in ("unified", "unified_v4")
+                    recipe.effective_critic_formulation in ("unified", "unified_v4", "cond_fiber")
                     and real.ndim >= 4
                     and real[0].numel() > 1024
                 )

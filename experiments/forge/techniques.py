@@ -280,8 +280,8 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.kinetic_transport_local_weight > 0
     if name == "kinetic_transport_projections":
         return recipe.kinetic_transport_weight > 0 or recipe.kinetic_transport_local_weight > 0
-    active_bi_weight = recipe.rhbi_weight > 0 or recipe.t1c_weight > 0 or recipe.effective_critic_formulation in {"unified", "unified_v4"}
-    active_bi_form = recipe.effective_critic_formulation in {"rhbi", "t1_coupling", "unified", "unified_v4"}
+    active_bi_weight = recipe.rhbi_weight > 0 or recipe.t1c_weight > 0 or recipe.effective_critic_formulation in {"unified", "unified_v4", "cond_fiber"}
+    active_bi_form = recipe.effective_critic_formulation in {"rhbi", "t1_coupling", "unified", "unified_v4", "cond_fiber"}
     if name == "rhbi_weight":
         return recipe.rhbi_weight > 0
     if name == "t1c_weight":

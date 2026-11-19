@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 50000,
+    "candidate_budget_seconds": 50000,
+    "id": "r3-t3-holdout-t4-arch-v3-study"
+  },
+  "candidate": "t4-arch-v3",
+  "competing_explanation": "If t4-arch-v3's learned equilibrium or prototype/atlas state drifts after 7,000 updates or across fresh-process checkpoint continuation, 14,000-update native accuracy or 7,500-step ring endurance will degrade below frozen thresholds.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs",
+    "op": "<",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "hypothesis": "Evaluate frozen t4-arch-v3 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).",
+  "id": "r3-t3-holdout-t4-arch-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-arch-v3",
+        "candidate_revision": "0ff04720aaefda7c1aebb938b17bbfea77d7f694d94499e1a4a9f9d281383b78"
+      },
+      "path": "reports/forge/records/readout-95d61950559e6e35c77b9df3.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r3-tier3-long-horizon-holdout-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

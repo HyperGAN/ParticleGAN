@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 50000,
+    "candidate_budget_seconds": 50000,
+    "id": "r3-t3-holdout-rhbi-v12-study"
+  },
+  "candidate": "rhbi-v12",
+  "competing_explanation": "If rhbi-v12's learned equilibrium or prototype/atlas state drifts after 7,000 updates or across fresh-process checkpoint continuation, 14,000-update native accuracy or 7,500-step ring endurance will degrade below frozen thresholds.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs",
+    "op": "<",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "hypothesis": "Evaluate frozen rhbi-v12 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).",
+  "id": "r3-t3-holdout-rhbi-v12-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v12",
+        "candidate_revision": "2f133c575e3553b119ce8b3742a3d16dddb72c8cb07a4b33fbfe5ceff4e693eb"
+      },
+      "path": "reports/forge/records/readout-47591bd9555febfe3409fd0d.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r3-tier3-long-horizon-holdout-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

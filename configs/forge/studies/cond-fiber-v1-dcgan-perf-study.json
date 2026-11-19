@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "cond-fiber-v1-dcgan-perf-study"
+  },
+  "candidate": "cond-fiber-v1",
+  "competing_explanation": "If CondFiber introduces overhead on unconditional 4D convolutional image tasks, dcgan_performance_r256 will exceed 145.0 ms/step or allocate more VRAM than unified-v3.",
+  "control": {
+    "candidate_id": "unified-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 155.4
+  },
+  "hypothesis": "Because CondFiber delegates unconditional 4D image domains directly to UnifiedGANLoss and UnifiedCriticPenalty with zero autograd.grad calls and live-endpoint BF16 secant reuse, cond-fiber-v1 matches unified-v3 latency (< 145 ms/step under shared GPU load, sub-95 ms/step uncontended) and passes 6/6 dcgan_performance scaling gates.",
+  "id": "cond-fiber-v1-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 145.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v3",
+        "candidate_revision": "f8dd4ea746c2510e0de06f76a0fb66cb1c3b2b600847d6d8ed54749c5d84c824"
+      },
+      "path": "reports/forge/records/readout-333332d97507ed52ce2592e5.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

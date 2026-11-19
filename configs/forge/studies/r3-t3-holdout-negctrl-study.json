@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 50000,
+    "candidate_budget_seconds": 50000,
+    "id": "r3-t3-holdout-negctrl-study"
+  },
+  "candidate": "r3-negctrl-unreg-adam",
+  "competing_explanation": "If cheap Tier-1 smoke gates lacked true-rejection sensitivity to removing critic Lipschitz and prior regularization, r3-negctrl-unreg-adam would spuriously pass two_pole/unused_token_hold/ae_gan_hold (false_accept).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "hypothesis": "Deliberate unregularized Adam negative control (reg_coeff=0.0, prior_reg=0.0) fails both cheap calibration smoke predicates (two_pole mean_abs < 0.30) and multimodal Tier-2/Tier-3 holdouts, establishing true_reject=('FAIL','FAIL') gate sensitivity on the ff9b14b78 cohort.",
+  "id": "r3-t3-holdout-negctrl-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs",
+    "op": "<",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 0.3
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-33f7628135472eef06f0d92a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r3-tier3-long-horizon-holdout-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

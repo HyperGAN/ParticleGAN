@@ -1290,6 +1290,14 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "cond_fiber":
+            from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
+            optimizer.record = _CondFiberObserverStepRecord()
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            optimizer._cond_fiber_record = optimizer.record
+            _attach_cond_fiber_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
             from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
