@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1105. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1110. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4472,6 +4472,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 
 [Record and receipt provenance](records/readout-1b511c8eec2bb40f41aee6ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t4-nash-v3 · readout-1ca76c61c875ba5a33dca488
+
+**Scope:** current; scientific; revision `4ce780c06a3414187c2a94cf69657afb3cc46d41eefd6fe24ad51fba89c7c324`.
+
+Pure-elementwise t4_nash_v3 (0 SVD, 0 eigh, 0 pinv, 0 NS, 0 autograd.grad) lifts required Tier-1 discriminator_stability from t4-nash-v2's 6/11 to 11/11 (100%) PASS (clearing gaussian1d_smoke, precision_gaussian_*, ring16_acquisition, model_vae_*, and model_ae_gan_multimodal) and advances into Tier 2.
+
+**Observed:** {'FAIL': 13, 'PASS': 33}; wall seconds 3807.562; mechanism `structural`.
+
+mode_hold: modes=7, hq=0.86548
+
+33/46 total PASS across discriminator_stability Tiers 1-2 with strictly 0 SVD, 0 eigh, 0 pinv, 0 Newton-Schulz, and 0 torch.autograd.grad calls: 11/11 (100%) Required Tier 1 PASS (15/16 total Tier 1 incl. clockfree + fp32/mxfp8/nvfp4 precision), 10/16 Required Tier 2 PASS (incl. img_stripes2, vector_spiral, gaussian1d_stability, five_word_joint_hold), 5/5 T3+T4 Tier-2 Stretch PASS (t3_iso_scale_mass_8x, t3_iso_horizon_saddle_shift, and 3/3 t4_imbalance_nash_stretch), and 3/7 Held Tier-2 PASS.
+
+**Next:** Publish full synthesis report reports/forge/studies/r3-nash-complete.md with all 5 concluded Forge readout receipts, standalone Ring16BiGANFixture Tier-4 diagnosis (PASS at step 4000, recon_rmse=0.0583 vs empf FAIL 0.1905), and open PR to develop for @verifier-r3b.
+
+[Record and receipt provenance](records/readout-1ca76c61c875ba5a33dca488.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### e22 · readout-1ccb789078ba83ef238d9a80
 
 **Scope:** research_diagnostic; scientific; revision `57f556b8cddb54cbfc93c412d824e0baa588b8e62b9ab3016e24adbae7f7b4b7`.
@@ -6024,6 +6040,22 @@ Ordinary global candidate failed two_pole movement: mean_abs=0.0363295227<0.3; q
 
 [Record and receipt provenance](records/readout-628b01d1adffd11312aff9b1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t4-nash-v3 · readout-642d4c55d093b44ed1e0309e
+
+**Scope:** research_diagnostic; scientific; revision `4ce780c06a3414187c2a94cf69657afb3cc46d41eefd6fe24ad51fba89c7c324`.
+
+Eliminating 2nd-order torch.autograd.grad critic penalties via live-endpoint reuse + single BF16 micro-secant probe alongside 0-SVD Marchenko-Pastur updates cuts 256x256 RGB DCGAN latency well below 90 ms/step across all 6 dcgan_performance tasks with finite_update_fraction == 1.0.
+
+**Observed:** {'PASS': 6}; wall seconds 67.81; mechanism `structural`.
+
+
+
+6/6 PASS with finite_update_fraction=1.0 across all 32x32-256x256 RGB DCGAN benchmarks using strictly 0 SVD, 0 eigh, 0 pinv, 0 Newton-Schulz, and 0 torch.autograd.grad calls: r32=21.19ms (81.98 MiB), r64=26.69ms (216.35 MiB), b64=22.67ms (389.07 MiB), w128=27.95ms (595.25 MiB), r128=28.82ms (551.29 MiB), r256=39.68ms (1372.86 MiB, p95=40.91ms).
+
+**Next:** Pair this 6/6 sub-40ms dcgan_performance receipt with t4-nash-v3-stretch-study and t4-nash-v3-study readouts in reports/forge/studies/r3-nash-complete.md.
+
+[Record and receipt provenance](records/readout-642d4c55d093b44ed1e0309e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v1 · readout-65e4f5d253025443fdee7ee4
 
 **Scope:** research_diagnostic; scientific; revision `45a5684f2961affd93bfb3cdd35b79928763c60cfe6a3e913492dc1bc77007e4`.
@@ -6087,6 +6119,22 @@ Selected atlas recipe passes interp_img_patch_shift (5/5 sustained terminal chec
 **Next:** Test EMA/served weight evaluation or explicit local latent Jacobian smoothness regularization to stabilize the 5-check live suffix on sparse_arc and saddle_barycentric.
 
 [Record and receipt provenance](records/readout-669ead9699347bdcc998eb81.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-nash-v3-g10x · readout-696ab5f8318bc8b356af8217
+
+**Scope:** research_diagnostic; scientific; revision `4eb5094b538e898b6d7ff1f5fa9d50d5958fa490b16886f7e7969089370e398b`.
+
+Under 1:10 critic-to-generator nominal LR asymmetry (d_lr_mult=0.10) compounded with >600x G/D parameter imbalance and hostile initialization, t4_nash_v3 unwinds hostile tilt and preserves multimodal Nash equilibrium with core_min_eigen_ratio >= 0.15 on nash_overpowered_generator_ring16.
+
+**Observed:** {'FAIL': 3}; wall seconds 277.155; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.76147, mass_tv=0.061035; nash_unequal_width_hostile_imbalance: hq=0.98169, mass_tv=0.16772; nash_overpowered_critic_ring16: modes=16, hq=0.83154, mass_tv=0.077393
+
+0/3 sustained 5/5 PASS under extreme 1:10 critic LR (>24,000x combined G>>D asymmetry) while recovering all 16/16 final modes and >=0.319 core_min_eigen_ratio on every task: D>>G 16/16 hq=0.8315 core_cov=1.0235 core_min_eig=0.3194; G>>D 2/5 checks 16/16 hq=0.7615 core_cov=0.9252 core_min_eig=0.3331; unequal-width hq=0.9817 core_cov=0.1664 core_min_eig=0.7552 (sw1=0.1916 vs 0.16).
+
+**Next:** Record exact 1:10 LR-asymmetry bounds alongside t4-nash-v3 and t4-nash-v3-d10x in reports/forge/studies/r3-nash-complete.md.
+
+[Record and receipt provenance](records/readout-696ab5f8318bc8b356af8217.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-69f698e7c003c96d01d05c05
 
@@ -6215,6 +6263,22 @@ Prediction observed on ae_gan_hold, mode_hold, zero_tanh_smoke, and Tier-3 targe
 **Next:** request_missing_evidence
 
 [Record and receipt provenance](records/readout-6f0b5ae6650f70e2609f81fa.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-nash-v3 · readout-6f996ec256a149b2f1620f64
+
+**Scope:** research_diagnostic; scientific; revision `4ce780c06a3414187c2a94cf69657afb3cc46d41eefd6fe24ad51fba89c7c324`.
+
+Adding O(BKD) Voronoi + core-ball Burg Log-Det pullback covariance isometry and 1st-order fwAD/secant critic regulation (0 SVD, 0 eigh, 0 pinv, 0 NS, 0 autograd.grad) lifts t4_imbalance_nash_stretch from t4-nash-v2's 2/3 to 3/3 (100%) sustained 5/5 PASS including nash_overpowered_generator_ring16 core_min_eigen_ratio >= 0.15.
+
+**Observed:** {'PASS': 3}; wall seconds 277.947; mechanism `structural`.
+
+nash_unequal_width_hostile_imbalance: hq=0.98022, mass_tv=0.077148; nash_overpowered_generator_ring16: modes=16, hq=0.82983, mass_tv=0.062744; nash_overpowered_critic_ring16: modes=16, hq=0.86963, mass_tv=0.06958
+
+3/3 (100%) sustained 5/5 PASS on t4_imbalance_nash_stretch with strictly 0 SVD, 0 eigh, 0 pinv, 0 Newton-Schulz, and 0 torch.autograd.grad calls: nash_overpowered_critic_ring16 PASS 5/5 (16/16, hq=0.8696, tv=0.0696, sw1=0.0585, core_cov=0.8021, core_min_eig=0.5717), nash_overpowered_generator_ring16 PASS 5/5 (16/16, hq=0.8298, tv=0.0627, sw1=0.0654, core_cov=1.0293, core_min_eig=0.3892 >= 0.15), nash_unequal_width_hostile_imbalance PASS 5/5 (min_mr=0.8281, hq=0.9802, tv=0.0771, sw1=0.0968, core_cov=0.3150, core_min_eig=0.8295).
+
+**Next:** Combine with t4-nash-v3-d10x, t4-nash-v3-g10x, t4-nash-v3-dcgan-perf-study, and t4-nash-v3-study readouts in reports/forge/studies/r3-nash-complete.md.
+
+[Record and receipt provenance](records/readout-6f996ec256a149b2f1620f64.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas-particle-normal-v4 · readout-7018a47a2fdd016bbe6b2658
 
@@ -6615,6 +6679,22 @@ Cancelled partial diagnostic run of atlas-particle-normal-v4 on pre-fix commit 6
 **Next:** Mark revision 79e308b48506 superseded by efebaebc63fb and retain clean reverified v4 evidence.
 
 [Record and receipt provenance](records/readout-828f21ff6556847d8f000678.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-nash-v3-d10x · readout-84d832df34d5eb3f04f8113f
+
+**Scope:** research_diagnostic; scientific; revision `3a97a4db39ea70d664d89b5c41763b4d0ebb8b2a0e49171ea3d83c850bad4ad5`.
+
+Under 10:1 critic-to-generator nominal LR asymmetry (d_lr_mult=10.0) compounded with >600x G/D parameter imbalance and hostile initialization, t4_nash_v3 preserves multimodal Nash equilibrium with core_min_eigen_ratio >= 0.15 on nash_overpowered_generator_ring16.
+
+**Observed:** {'FAIL': 2, 'PASS': 1}; wall seconds 263.555; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.87354, mass_tv=0.067871; nash_unequal_width_hostile_imbalance: hq=0.98657, mass_tv=0.19604; nash_overpowered_generator_ring16: modes=16, hq=0.86304, mass_tv=0.067871
+
+1/3 sustained 5/5 PASS (nash_overpowered_generator_ring16 PASS 5/5: 16/16, hq=0.8630, core_cov=0.8601, core_min_eig=0.4345) plus 4/5 terminal PASS on nash_overpowered_critic_ring16 (16/16, hq=0.8735, core_cov=0.9270, core_min_eig=0.5713) and hq=0.9866/core_cov=0.1803/core_min_eig=0.7411 (tv=0.196 vs 0.18) on nash_unequal_width_hostile_imbalance under 10:1 critic LR.
+
+**Next:** Document 100x bidirectional LR-ratio resilience alongside t4-nash-v3 and t4-nash-v3-g10x in reports/forge/studies/r3-nash-complete.md.
+
+[Record and receipt provenance](records/readout-84d832df34d5eb3f04f8113f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### e22 · readout-85674fad5d145e6171cc44af
 
@@ -9830,4 +9910,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `96d5fc2f7018d60c4ad17fc540f24b3781dd550b7a76332eb37c30256f8976bd`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `dc3faf2c07c88e921708e34f9dd219068cb7daa722b6506bc7929e355a4d4671`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

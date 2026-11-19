@@ -1,0 +1,62 @@
+{
+  "campaign": {
+    "budget_seconds": 9600,
+    "candidate_budget_seconds": 1200,
+    "id": "t4-nash-v3-dcgan-perf-study"
+  },
+  "candidate": "t4-nash-v3",
+  "competing_explanation": "Synthetic update throughput omits data loading and image quality; isolated GPU timing, warmup, and memory receipts benchmark T4Nash's 0-SVD update energy and wall-time against DualNorm SVD/Newton-Schulz formulations (empf-v8, rhbi-v12, rgdt-v2, t2-secant).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {
+      "dcgan_performance_b64": "img_stripes2",
+      "dcgan_performance_r128": "img_stripes2",
+      "dcgan_performance_r256": "img_stripes2",
+      "dcgan_performance_r32": "img_stripes2",
+      "dcgan_performance_r64": "img_stripes2",
+      "dcgan_performance_w128": "img_stripes2"
+    }
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "hypothesis": "Eliminating 2nd-order torch.autograd.grad critic penalties via live-endpoint reuse + single BF16 micro-secant probe alongside 0-SVD Marchenko-Pastur updates cuts 256x256 RGB DCGAN latency well below 90 ms/step across all 6 dcgan_performance tasks with finite_update_fraction == 1.0.",
+  "id": "t4-nash-v3-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-nash-v2",
+        "candidate_revision": "b1966a034bb45192d1a37d4e024ceb5170ffdbf57da7e55d40458598f673cba6"
+      },
+      "path": "reports/forge/records/readout-4472e3643d5f2bbf29928c79.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
