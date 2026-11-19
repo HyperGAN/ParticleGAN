@@ -1,0 +1,111 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "grid100_mlp16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "grid100_res16_tanh"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "grid100_res16_scaled_tanh"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "misgan_block_recovery"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "misgan_block_neural_imputer"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "ring16_bigan_continuous"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 7,
+      "qualification_tier": 1,
+      "task": "misgan_mcar_p50_recovery"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 8,
+      "qualification_tier": 1,
+      "task": "misgan_mcar_p80_anchored"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 9,
+      "qualification_tier": 1,
+      "task": "pacgan_unequal_mass"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 10,
+      "qualification_tier": 1,
+      "task": "pacgan8_grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 11,
+      "qualification_tier": 1,
+      "task": "alice_spiral_bigan"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 12,
+      "qualification_tier": 1,
+      "task": "infogan_anisotropic_modes"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 13,
+      "qualification_tier": 1,
+      "task": "cgan_overlapping_classes"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 14,
+      "qualification_tier": 1,
+      "task": "cramer_energy_overlap"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 15,
+      "qualification_tier": 1,
+      "task": "cyclegan_unpaired_constellation"
+    }
+  ],
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "r3-tier4-frontier-holdout-v1",
+  "policy_change_reason": "Round-3 untouched Tier-4 frontier holdout audit evaluating all 15 Tier-4 held/stretch tasks (3 runnable 16-layer/rail-guarded 100-mode tasks behind their grid100 gate plus all 12 host-blocked STRETCH_VECTOR_HOSTS tasks) under unchanged frozen task gates and protocol seed 0. Grants no ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}
