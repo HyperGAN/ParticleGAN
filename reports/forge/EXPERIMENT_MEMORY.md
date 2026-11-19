@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1093. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1105. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4120,6 +4120,22 @@ Learned-MoG vector_two_broad PASS after exactly one registered operational cance
 
 [Record and receipt provenance](records/readout-060e7be73e2832e314b9573f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r3-negctrl-unreg-adam · readout-07a5dd7f26c48345c7a9f35f
+
+**Scope:** research_diagnostic; scientific; revision `b5e2766672bb9a19b2426775c3b3e918c95113aca4f7464007c9308654143835`.
+
+Deliberate unregularized Adam negative control (reg_coeff=0.0, prior_reg=0.0) fails both cheap calibration smoke predicates (two_pole mean_abs < 0.30) and multimodal Tier-2/Tier-3 holdouts, establishing true_reject=('FAIL','FAIL') gate sensitivity on the ff9b14b78 cohort.
+
+**Observed:** {'FAIL': 8, 'PASS': 3}; wall seconds 532.594; mechanism `structural`.
+
+five_word_joint_smoke: modes=0, mass_tv=1; staggered100: precision=0.70903, mass_tv=0.47232
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 532.6s), deliberate negative control r3-negctrl-unreg-adam (reg_coeff=0, prior_reg=0, Adam) passed only 3/18 tasks (ae_gan_hold, clockfree_audit, zero_tanh_smoke) and failed 8 tasks: two_pole (mean_abs=0.0714 < 0.30), unused_token_hold (concept_move=0.6850), zero_tanh_rail_escape (0.8669 MAE), five_word_joint_smoke (0/5 words, mass_tv=1.0), mode_hold (cover=0.125, eff=1.0, hq=0.2476), grid100 (mass_tv=0.9800), rotated100 (prec=0.6664, mass_tv=0.6058), and staggered100 (prec=0.7090, mass_tv=0.4723), gating all 7 downstream continuation/endurance tasks.
+
+**Next:** Record verified negative-control true rejection in reports/forge/studies/r3-calibration-holdout.md and calibration feasibility audit.
+
+[Record and receipt provenance](records/readout-07a5dd7f26c48345c7a9f35f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t4-nash-v2 · readout-0a06aa66bdb37bbb9f4ec2c1
 
 **Scope:** research_diagnostic; scientific; revision `b1966a034bb45192d1a37d4e024ceb5170ffdbf57da7e55d40458598f673cba6`.
@@ -4295,6 +4311,22 @@ confirmed_positive: t2-secant-v2 confirmed its pre-registered dcgan_performance_
 **Next:** Align chord_blend=0.05 and distance-temper remote 2D basis-slot neighbors in t2-secant-v3 to clear model_ae_gan_multimodal and precision_gaussian_fp32 and unlock full Tier 2 discriminator_stability evaluation.
 
 [Record and receipt provenance](records/readout-14cc2a44f2d8da942d2873dc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### unified-v3 · readout-14efe09d667072696e386290
+
+**Scope:** research_diagnostic; scientific; revision `349254f0ccb8b447c1d86e6e6c5d3f03689936ab0c1145802753fc58bea4e912`.
+
+Audit frozen unified-v3 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'FAIL': 1}; wall seconds 688.575; mechanism `structural`.
+
+grid100: precision=0.98668, center_rms_sigma=0.12694, mass_tv=0.04208, radial_ks=0.026455
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), unified-v3 reused its compatible grid100 FAIL receipt (holdout prec=0.9867/acc=0.6751 passed, failed step-6000 sustained live window) from r3-t3-holdout-unified-v3-study, gating all 3 runnable 16-layer/rail Tier-4 tasks (grid100_mlp16, grid100_res16_tanh, grid100_res16_scaled_tanh), while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Report grid100-gated status and explicit 12-task adapter BLOCKED boundary in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-14efe09d667072696e386290.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### forge-no-critic-penalty · readout-15e86dd160a1d64a04ceee04
 
@@ -5000,6 +5032,22 @@ Prediction observed: unified-v1 passed all 6/6 dcgan_performance benchmarks with
 
 [Record and receipt provenance](records/readout-3a416c2ad84c6a246f1d8cfc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v3 · readout-3a8aa62939f0e420f0d08ed2
+
+**Scope:** research_diagnostic; scientific; revision `349254f0ccb8b447c1d86e6e6c5d3f03689936ab0c1145802753fc58bea4e912`.
+
+Evaluate frozen unified-v3 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 13}; wall seconds 6060.66; mechanism `structural`.
+
+rotated100_14k: precision=0.9865, center_rms_sigma=0.15534, mass_tv=0.03647, radial_ks=0.0095663
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 6060.7s), unified-v3 passed 13/18 tasks including two 14,000-update native continuations (rotated100 0.9856/0.6953 -> rotated100_14k 0.9865/0.4961; staggered100 0.9910/0.5863 -> staggered100_14k 0.9907/0.5147), uninterrupted 7500-step ring_extension (300/300 checks), and target_shift_recovery (81/81 live checks, min_hq=0.9160). It failed 2 tasks: grid100 (holdout passed 0.9867/0.6751 and 4/5 terminal checks passed, failing only step-6000 sustained live window acc=0.9180, gating grid100_14k) and zero_tanh_rail_escape (0.8795 MAE rail-trapped), and hit the 900s timeout INCOMPLETE on five_word_joint_smoke (gating five_word_joint_hold).
+
+**Next:** Document complementary frontier with t4-arch-v3 in reports/forge/studies/r3-calibration-holdout.md; do not promote without solving grid100 sustained window, rail escape, and accepted calibration.
+
+[Record and receipt provenance](records/readout-3a8aa62939f0e420f0d08ed2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-ka2-v1 · readout-3ac6c4c08f886f05d0b92dfc
 
 **Scope:** research_diagnostic; scientific; revision `d374199b825ad11bf123d47e7b7d68eba029b49ac58e97614c49f14862198f95`.
@@ -5496,6 +5544,22 @@ empf-v6 cleared five_word_joint_smoke in 549.7s (20,001/20,001 steps, modes=5, q
 
 [Record and receipt provenance](records/readout-4aa764495c669b9247ca874b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### t4-arch-v3 · readout-4acf96c2efad5e17f86d9df2
+
+**Scope:** research_diagnostic; scientific; revision `1110cf4ed9a561fc55b6bd4f0c1daf1e66fbce7c20218693f87e3f3d9fe55015`.
+
+Audit frozen t4-arch-v3 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'PASS': 4}; wall seconds 2660.202; mechanism `structural`.
+
+grid100_mlp16: precision=0.98137, center_rms_sigma=0.094799, mass_tv=0.01566, radial_ks=0.011916; grid100_res16_scaled_tanh: precision=0.98681, center_rms_sigma=0.055272, mass_tv=0.01306, radial_ks=0.01383; grid100: precision=0.98155, center_rms_sigma=0.07433, mass_tv=0.01603, radial_ks=0.016032
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 2162.7s new compute), t4-arch-v3 was the sole candidate to pass the grid100 prerequisite gate (reused prec=0.9816, acc=0.3312) and PASSED ALL 3 runnable deep/rail Tier-4 architecture tasks: grid100_mlp16 (742.8s, prec=0.9814, mass_tv=0.0157, acc=0.3010), grid100_res16_tanh (698.3s, prec=0.9856, mass_tv=0.0151, acc=0.4170), and grid100_res16_scaled_tanh (721.6s, prec=0.9868, mass_tv=0.0131, acc=0.2884). All 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Highlight 4/4 runnable Tier-4 confirmation alongside honest 12-task adapter BLOCKED accounting in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-4acf96c2efad5e17f86d9df2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-4bd94051f203bbbb28a3e7a6
 
 **Scope:** current; scientific; revision `87d849138dd0ae385260a77223e9a70a7c2a8a112733b2312f556b462cc164e9`.
@@ -5639,6 +5703,22 @@ Isolating bind_protected_losses onto T4NashConstraintGeneratorAdam resolves t4-n
 **Next:** Document complete Tier 1 diagnostics and Theory 4A unification roadmap in reports/forge/studies/t4-imbalance-nash.md.
 
 [Record and receipt provenance](records/readout-500c635ac3558acf8c455b48.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-51a0d5590d041ce50f3ce174
+
+**Scope:** research_diagnostic; scientific; revision `c8ceb0973a8346d6bf0e53ab6d9b97144d797f93ed066252b3a128a1e448c010`.
+
+Audit frozen rhbi-v12 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'FAIL': 1}; wall seconds 511.136; mechanism `structural`.
+
+grid100: precision=0.20678, mass_tv=0.12944
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), rhbi-v12 reused its compatible grid100 FAIL receipt (prec=0.2068, mass_tv=0.1294) from r3-t3-holdout-rhbi-v12-study, gating all 3 runnable 16-layer/rail Tier-4 tasks (grid100_mlp16, grid100_res16_tanh, grid100_res16_scaled_tanh), while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Report grid100-gated status and explicit 12-task adapter BLOCKED boundary in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-51a0d5590d041ce50f3ce174.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-loss-only-adam · readout-53cd231b9980a87ce588ee55
 
@@ -7000,6 +7080,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 
 [Record and receipt provenance](records/readout-a00bfca2993b57da0e7ca161.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### rgdt-v3 · readout-a01d9274e8c48786bbd562d4
+
+**Scope:** research_diagnostic; scientific; revision `f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a`.
+
+Evaluate frozen rgdt-v3 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 9}; wall seconds 5984.846; mechanism `structural`.
+
+mode_hold: modes=8, hq=1
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 5984.8s), rgdt-v3 passed 9/18 tasks (two_pole 0.8769, unused_token_hold, ae_gan_hold, clockfree_audit, zero_tanh_smoke 0.0030 MAE, mode_hold 1.0000 hq, ring_hold conv=1400, uninterrupted 7500-step ring_extension 300/300 checks, and target_shift_recovery 81/81 live checks min_hq=0.9998), failed 4 tasks (zero_tanh_rail_escape sustained window with final 0.0035 MAE, grid100 prec=0.3080, rotated100 0.2507, staggered100 0.2989, gating all three 14k continuations), and hit the 900s timeout INCOMPLETE on five_word_joint_smoke (gating five_word_joint_hold).
+
+**Next:** Record in reports/forge/studies/r3-calibration-holdout.md as RGDT long-horizon reference; do not promote over empf.
+
+[Record and receipt provenance](records/readout-a01d9274e8c48786bbd562d4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v2 · readout-a05ee6e86f954b22c39367d4
 
 **Scope:** research_diagnostic; scientific; revision `cc7a04762547d3d463c237074e80c3e24b36074c18e3ffe5d498119c475f1428`.
@@ -7191,6 +7287,22 @@ On ordinary discriminator_stability Tier 1 under protocol seed 0 on NVIDIA RTX A
 **Next:** Pin rhbi-v1 as the selected canonical RHBI family candidate in configs/forge/selections/family-current-v1.json, register its frozen numerical snapshot and compact receipts, regenerate reports/forge/technique-inventory.md, and test Kantorovich-slack residual damping below DualNorm smoothing plus SBNP low-mobility prior scaling (prior_lr_mult=0.02) in a follow-up rhbi-v2 study.
 
 [Record and receipt provenance](records/readout-a94316e3e91606df03a346de.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rhbi-v12 · readout-a97cc4411799f84fe22dec86
+
+**Scope:** research_diagnostic; scientific; revision `c8ceb0973a8346d6bf0e53ab6d9b97144d797f93ed066252b3a128a1e448c010`.
+
+Evaluate frozen rhbi-v12 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 8}; wall seconds 3840.636; mechanism `structural`.
+
+grid100: precision=0.20678, mass_tv=0.12944
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 3840.6s), rhbi-v12 passed 8/18 tasks (two_pole 0.9954, unused_token_hold, ae_gan_hold, clockfree_audit, zero_tanh_smoke 0.0039 MAE, mode_hold 1.0000 hq, ring_hold conv=1400, uninterrupted 7500-step ring_extension 300/300 checks), failed 5 tasks (zero_tanh_rail_escape sustained window with final 0.0047 MAE, target_shift_recovery 45/81 live checks min_hq=0.7805, grid100 prec=0.2068, rotated100 0.2028, staggered100 0.2960, gating all three 14k continuations), and hit the 900s timeout INCOMPLETE on five_word_joint_smoke (gating five_word_joint_hold).
+
+**Next:** Record in reports/forge/studies/r3-calibration-holdout.md as long-horizon baseline reference; do not promote over empf.
+
+[Record and receipt provenance](records/readout-a97cc4411799f84fe22dec86.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p-r1r2-matched-v1 · readout-a9c44ece3a8e2265db452db4
 
@@ -7688,6 +7800,22 @@ t1-prior-v1 passed clockfree_audit_measurement_v1 (4/4 parity branches, 0 unexpl
 
 [Record and receipt provenance](records/readout-be9f476fbea49e27e15f8533.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### empf-v8 · readout-c0ac30cc7b69526e535b9091
+
+**Scope:** research_diagnostic; scientific; revision `039950bf79df2a79cecc2ff8bc2ad3d84752723c0bfd9aa5a22dedc178e25556`.
+
+Audit frozen empf-v8 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'FAIL': 1}; wall seconds 505.586; mechanism `structural`.
+
+grid100: precision=0.346, center_rms_sigma=1.2906, mass_tv=0.20221, radial_ks=0.40057
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), empf-v8 reused its compatible grid100 FAIL receipt (prec=0.3460, acc=6.1166) from r3-t3-holdout-empf-v8-study, gating all 3 runnable 16-layer/rail Tier-4 tasks (grid100_mlp16, grid100_res16_tanh, grid100_res16_scaled_tanh), while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Report grid100-gated status and explicit 12-task adapter BLOCKED boundary in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-c0ac30cc7b69526e535b9091.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-c0eb323419b0be6463f34d1b
 
 **Scope:** research_diagnostic; scientific; revision `f1f5aa34d333c7c3874e81b718103c25a0fc255b10eb4ed28268e192bba3af22`.
@@ -8072,6 +8200,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-cfb9bf047c6814e0e030457c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### empf-v8 · readout-d0f74bbbd3c76f240c0e2729
+
+**Scope:** research_diagnostic; scientific; revision `039950bf79df2a79cecc2ff8bc2ad3d84752723c0bfd9aa5a22dedc178e25556`.
+
+Evaluate frozen empf-v8 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 10}; wall seconds 3822.586; mechanism `structural`.
+
+ae_gan_hold: recon_mse=0.0043931; mode_hold: modes=8, hq=1
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 3822.6s), empf-v8 passed 10/18 tasks (two_pole 0.9583, unused_token_hold, ae_gan_hold, clockfree_audit, zero_tanh_smoke, zero_tanh_rail_escape 0.0026 MAE, mode_hold 1.0000 hq, ring_hold conv=1400, uninterrupted 7500-step ring_extension 300/300 checks, and target_shift_recovery 81/81 live checks min_hq=0.9995), failed all three 100-mode tasks (grid100 prec=0.3460, rotated100 0.3582, staggered100 0.2960, gating all three 14k continuations), and hit the 900s timeout INCOMPLETE on five_word_joint_smoke (gating five_word_joint_hold).
+
+**Next:** Record as frozen public-default baseline reference in reports/forge/studies/r3-calibration-holdout.md; keep DEFAULT_RECIPE=empf unchanged pending accepted calibration and unified 16/16 reference solver.
+
+[Record and receipt provenance](records/readout-d0f74bbbd3c76f240c0e2729.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t2-secant-v2 · readout-d1539c52c610cf0b249ed2e5
 
 **Scope:** current; scientific; revision `df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45`.
@@ -8151,6 +8295,22 @@ On ordinary discriminator_stability (Rev 16) under protocol seed 0 on NVIDIA RTX
 **Next:** Register empf-v1 as the initial measured selected recipe for the EMPF trainer family on the current leaderboard with no default-adoption claim; in future EMPF v2 studies, scale prototype bank capacity K >= max(64, M) or adaptive split-merge, reduce prototype EMA inertia across distribution shifts, and add timestep-aware conditional prototype routing for multi-step DDGAN chains.
 
 [Record and receipt provenance](records/readout-d46a41a1da2da54d67d154f4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### rgdt-v3 · readout-d547ba37dabfc5ab66eca538
+
+**Scope:** research_diagnostic; scientific; revision `f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a`.
+
+Audit frozen rgdt-v3 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'FAIL': 1}; wall seconds 942.512; mechanism `structural`.
+
+grid100: precision=0.30796, center_rms_sigma=1.1901, mass_tv=0.15747, radial_ks=0.40961
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), rgdt-v3 reused its compatible grid100 FAIL receipt (prec=0.3080, acc=6.1531) from r3-t3-holdout-rgdt-v3-study, gating all 3 runnable 16-layer/rail Tier-4 tasks (grid100_mlp16, grid100_res16_tanh, grid100_res16_scaled_tanh), while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Report grid100-gated status and explicit 12-task adapter BLOCKED boundary in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-d547ba37dabfc5ab66eca538.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas-particle-normal-v4 · readout-d56fb0d14fb4d87b0442cae4
 
@@ -8760,6 +8920,22 @@ Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v3 (PASS 6/6: 
 
 [Record and receipt provenance](records/readout-ed10575082057b56c75b39cc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r3-negctrl-unreg-adam · readout-edae8af27f75b55c971db675
+
+**Scope:** research_diagnostic; scientific; revision `b5e2766672bb9a19b2426775c3b3e918c95113aca4f7464007c9308654143835`.
+
+Audit frozen r3-negctrl-unreg-adam with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).
+
+**Observed:** {'FAIL': 1}; wall seconds 98.946; mechanism `structural`.
+
+grid100: precision=0.98364, mass_tv=0.98
+
+On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), negative control r3-negctrl-unreg-adam reused its compatible grid100 FAIL receipt (mass_tv=0.9800 collapse) from r3-t3-holdout-negctrl-study, gating all 3 runnable 16-layer/rail Tier-4 tasks, while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).
+
+**Next:** Record Tier-4 gate rejection in reports/forge/studies/r3-calibration-holdout.md.
+
+[Record and receipt provenance](records/readout-edae8af27f75b55c971db675.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-eeec25002d17191c315f126b
 
 **Scope:** calibration_diagnostic; scientific; revision `6385ef80463dca6a3c1c1f94dd3269c8e1db3702a8d236c1bd59d69787e06325`.
@@ -8999,6 +9175,22 @@ inconclusive_sub100_confirmed_speedup: t2-secant-v1 completed all 6/6 dcgan_perf
 **Next:** Evaluate t2-secant-v1 on discriminator_stability Tiers 1-2 at the identical source digest 8eaf48ee3e2e, then inspect quality and r256 spatial-stride Chamfer overhead for potential t2-secant-v2 refinement.
 
 [Record and receipt provenance](records/readout-fbe38229308f61967c632eba.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### t4-arch-v3 · readout-ff22843954240927dfd7ecc3
+
+**Scope:** research_diagnostic; scientific; revision `1110cf4ed9a561fc55b6bd4f0c1daf1e66fbce7c20218693f87e3f3d9fe55015`.
+
+Evaluate frozen t4-arch-v3 without tuning under protocol seed 0 on the Round-3 Tier-3 long-horizon holdout suite (14,000-update fresh-process native continuations grid100_14k/rotated100_14k/staggered100_14k, 7,500-update uninterrupted ring_extension, 4,000-update five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap smoke screen).
+
+**Observed:** {'FAIL': 2, 'PASS': 13}; wall seconds 4214.963; mechanism `structural`.
+
+rotated100_14k: precision=0.98365, center_rms_sigma=0.076653, mass_tv=0.01395, radial_ks=0.014725
+
+On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 4215.0s), t4-arch-v3 passed 13/18 tasks including ALL THREE 14,000-update fresh-process native continuations with zero degradation (grid100 0.9816/0.3312 -> grid100_14k 0.9839/0.3313; rotated100 0.9825/0.3124 -> rotated100_14k 0.9837/0.3327; staggered100 0.9833/0.2990 -> staggered100_14k 0.9863/0.3282), best zero_tanh_rail_escape (0.0011 MAE), and the sole five_word_joint_smoke PASS (561.1s, 5/5 words, exact=1). It failed 2 tasks: five_word_joint_hold (dropped apple at step 7334, 4/5 words, exact=0) and mode_hold (8/8 modes, hq=0.8308 < 0.90, gating ring_hold, ring_extension, and target_shift_recovery).
+
+**Next:** Document 14k native continuation proof and mode_hold/word-hold tradeoffs in reports/forge/studies/r3-calibration-holdout.md; keep DEFAULT_RECIPE=empf.
+
+[Record and receipt provenance](records/readout-ff22843954240927dfd7ecc3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### atlas-particle-normal-v4 · readout-ff53c8e071687458a4c51315
 
@@ -9638,4 +9830,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `b4b6d46dd5397e1870e6650021517f2a3d6432931d11ec6313ab1c3fd3fd0f04`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `96d5fc2f7018d60c4ad17fc540f24b3781dd550b7a76332eb37c30256f8976bd`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
