@@ -398,7 +398,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -426,6 +426,9 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "unified":
             from .unified import bind_unified_record
             bind_unified_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "cond_fiber":
+            from .cond_fiber import bind_cond_fiber_record
+            bind_cond_fiber_record(self.opt_d.record, self.loss, self.prior_regularizer)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
@@ -726,7 +729,7 @@ class GANTrainer:
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
                 highres_unified_skip = (
-                    recipe.effective_critic_formulation == "unified"
+                    recipe.effective_critic_formulation in ("unified", "cond_fiber")
                     and real.ndim >= 4
                     and real[0].numel() > 1024
                 )
