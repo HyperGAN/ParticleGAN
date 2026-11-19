@@ -22,7 +22,7 @@ CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
 
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
-    "dualnorm_D_only", "particle_rownorm_only", "t4_equil",
+    "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -732,7 +732,7 @@ class NormalizedOptimizer(Optimizer):
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
-        unified_rec = getattr(self, "_unified_record", None)
+        unified_rec = getattr(self, "_unified_v4_record", getattr(self, "_unified_record", None))
         if unified_rec is not None:
             # Symmetric G + D conditional equilibrium damping for unified (prevents critic overdrive on t1_q0):
             rgdt_th_damp = 1.0
@@ -1208,6 +1208,13 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     if recipe.optimizer_family == "t4_equil":
         from .._t4_arch import T4EquilibratedOptimizer
         optimizer = T4EquilibratedOptimizer(params, **options)
+    elif recipe.optimizer_family == "unified_equil":
+        from .._unified_v4 import UnifiedV4EquilibratedOptimizer
+        optimizer = UnifiedV4EquilibratedOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
     else:
         optimizer_class = NormalizedOptimizer
         if critic is not None and recipe.critic_step_mode == "finite_cap":
@@ -1269,6 +1276,20 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer._t1c_record = optimizer.record
             optimizer._t2_record = optimizer.record
             _attach_unified_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v4":
+            from ..unified_v4 import (
+                _UnifiedV4ObserverStepRecord,
+                _attach_unified_v4_critic_hook,
+                collect_conv_layouts,
+            )
+            optimizer.record = _UnifiedV4ObserverStepRecord()
+            optimizer._unified_v4_record = optimizer.record
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
+            _attach_unified_v4_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
             from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
