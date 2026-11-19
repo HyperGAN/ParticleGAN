@@ -610,7 +610,7 @@ class Recipe:
                 and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "cond_fiber")):
             raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, or cond_fiber formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -627,11 +627,11 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, unified or cond_fiber")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified or cond_fiber")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
+        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
@@ -748,7 +748,7 @@ class Recipe:
             rgdt_val = getattr(self, rgdt_name)
             if type(rgdt_val) not in (int, float) or not math.isfinite(rgdt_val) or rgdt_val < 0:
                 raise ValueError(f"{rgdt_name} must be finite and nonnegative")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -1208,6 +1208,9 @@ class Recipe:
         if self.effective_critic_formulation == "t4_nash":
             from .t4_nash import T4NashLoss
             return T4NashLoss(labels=self.loss_labels, loss=self.loss)
+        if self.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import NashV3Loss
+            return NashV3Loss(labels=self.loss_labels, loss=self.loss)
         if self.effective_critic_formulation == "t2_secant":
             from .t2_critic import T2SecantGANLoss
             return T2SecantGANLoss(labels=self.loss_labels, loss=self.loss)
@@ -1279,6 +1282,8 @@ class Recipe:
             from .t3_dynamics import RGDTCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "t4_nash":
             from .t4_nash import T4NashCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import NashV3CriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "unified":
             from .unified import UnifiedCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "cond_fiber":
@@ -1292,8 +1297,8 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, unified or cond_fiber")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified or cond_fiber")
         if self.effective_critic_formulation == "t4_nash":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1301,6 +1306,14 @@ class Recipe:
                        "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
             from .t4_nash import _T4NashPenaltyKernel
             _T4NashPenaltyKernel(**options)
+            return options
+        if self.effective_critic_formulation == "t4_nash_v3":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
+                       "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta, **overrides}
+            from .nash_v3 import _NashV3PenaltyKernel
+            _NashV3PenaltyKernel(**options)
             return options
         if self.effective_critic_formulation in ("unified", "cond_fiber"):
             if not self.critic_r1_real:
@@ -1507,6 +1520,11 @@ class Recipe:
             return T4NashCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                     ema_critic=ema_critic,
                                     guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import NashV3CriticAdam
+            return NashV3CriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                    ema_critic=ema_critic,
+                                    guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "unified":
             from .unified import UnifiedCriticAdam
             return UnifiedCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
@@ -1654,6 +1672,15 @@ class Recipe:
                            direct_betas=self.direct_particle_betas,
                            direct_gain=self.direct_particle_gain,
                            saddle_escape=(self.continuous_policy == "dv12"), **options)
+        if self.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import NashV3ConstraintGeneratorAdam, NashV3GeneratorAdam
+            opt_cls = NashV3ConstraintGeneratorAdam if self.constraint_geometry_mode != "none" else NashV3GeneratorAdam
+            return opt_cls(params, latent_table=latent_table, direct_particles=direct_particles,
+                           module_owners=module_owners, generator_module=module,
+                           latent_max_rate=self.latent_damping_max_rate,
+                           direct_betas=self.direct_particle_betas,
+                           direct_gain=self.direct_particle_gain,
+                           saddle_escape=(self.continuous_policy == "dv12"), **options)
         from .k3p import K3PGeneratorAdam
         return K3PGeneratorAdam(params, latent_table=latent_table, direct_particles=direct_particles,
                                 latent_max_rate=self.latent_damping_max_rate,
@@ -1669,7 +1696,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "unified", "cond_fiber"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "cond_fiber"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -2046,6 +2073,24 @@ class Recipe:
             if self.optimizer_family == "formulation" and generator is not None:
                 opt_d.record._enable_secant_probe = True
                 _attach_t4_generator_hook(generator, opt_d.record)
+        if self.effective_critic_formulation == "t4_nash_v3" and hasattr(opt_d, "record"):
+            from .nash_v3 import _attach_nash_v3_generator_hook
+            from ._nash_v3.optim import _collect_conv_layouts
+            opt_g._nash_v3_record = opt_d.record
+            opt_d._nash_v3_record = opt_d.record
+            opt_g._t4_record = opt_d.record
+            opt_d._t4_record = opt_d.record
+            if base_prior is not None:
+                base_prior._empf_record = opt_d.record
+            if hasattr(opt_g, "_prior_param_ids"):
+                opt_g._prior_param_ids.update(id(p) for p in base_params)
+            if hasattr(opt_g, "_conv_layouts"):
+                opt_g._conv_layouts.update(_collect_conv_layouts((generator, encoder)))
+            if hasattr(opt_g, "_gen_param_ids") and generator is not None:
+                opt_g._gen_param_ids = {id(p) for p in generator.parameters()}
+            if self.optimizer_family == "formulation" and generator is not None:
+                opt_d.record._enable_secant_probe = True
+                _attach_nash_v3_generator_hook(generator, opt_d.record)
         if self.effective_critic_formulation in ("unified", "cond_fiber") and hasattr(opt_d, "record"):
             opt_g._unified_record = opt_d.record
             opt_d._unified_record = opt_d.record
@@ -2347,6 +2392,15 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         **presets["bispf"], "critic_formulation": "t4_nash", "reg_arm": None,
         "optimizer_family": "formulation", "loss": "relativistic",
         "lr": 0.0135, "d_lr_mult": 1.25, "prior_lr_mult": 2.5,
+        "ebi_beta": 8.0, "prior_regularizer": "empf", "prior_reg": 0.01,
+        "lr_schedule": "cosine", "lr_floor": 1.0, "network_lr_floor": 1.0,
+        "training_precision": "bf16_channels_last",
+        "routing_temperature": 0.25, "ucd_weight": 0.02,
+    }
+    presets["t4_nash_v3"] = {
+        **presets["bispf"], "critic_formulation": "t4_nash_v3", "reg_arm": None,
+        "optimizer_family": "formulation", "loss": "relativistic",
+        "lr": 0.0135, "d_lr_mult": 1.25, "prior_lr_mult": 2.6,
         "ebi_beta": 8.0, "prior_regularizer": "empf", "prior_reg": 0.01,
         "lr_schedule": "cosine", "lr_floor": 1.0, "network_lr_floor": 1.0,
         "training_precision": "bf16_channels_last",

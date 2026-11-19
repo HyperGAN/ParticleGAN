@@ -112,6 +112,15 @@ from .t4_nash import (
     T4NashStepRecord,
     bind_t4_nash_record,
 )
+from .nash_v3 import (
+    NashV3ConstraintGeneratorAdam,
+    NashV3CriticAdam,
+    NashV3CriticPenalty,
+    NashV3GeneratorAdam,
+    NashV3Loss,
+    NashV3StepRecord,
+    bind_nash_v3_record,
+)
 from .unified import (
     UnifiedCriticAdam,
     UnifiedCriticPenalty,
@@ -153,6 +162,7 @@ __all__ = [
     "RGDTCriticAdam", "RGDTCriticPenalty", "RGDTGANLoss", "RGDTPriorRegularizer", "RGDTStepRecord", "bind_rgdt_record",
     "T4ArchPriorRegularizer", "T4EquilibratedOptimizer",
     "T4NashCriticAdam", "T4NashCriticPenalty", "T4NashGeneratorAdam", "T4NashLoss", "T4NashStepRecord", "bind_t4_nash_record",
+    "NashV3ConstraintGeneratorAdam", "NashV3CriticAdam", "NashV3CriticPenalty", "NashV3GeneratorAdam", "NashV3Loss", "NashV3StepRecord", "bind_nash_v3_record",
     "UnifiedCriticAdam", "UnifiedCriticPenalty", "UnifiedGANLoss", "UnifiedPriorRegularizer", "UnifiedStepRecord", "bind_unified_record",
     "CondFiberBank", "CondFiberCriticAdam", "CondFiberCriticPenalty", "CondFiberGANLoss", "CondFiberStepRecord", "bind_cond_fiber_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",

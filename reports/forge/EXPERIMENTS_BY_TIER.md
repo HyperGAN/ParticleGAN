@@ -2,7 +2,7 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **37/37 views**.
+Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **39/39 views**.
 
 Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
@@ -59,6 +59,8 @@ This report follows changing declarations and published evidence; it selects no 
 | [prior-ablation-full-suite-v1](../../configs/forge/views/prior-ablation-full-suite-v1.json) | 1 | 48 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [quality_coverage](../../configs/forge/views/quality_coverage.json) | 4 | 3 required | 12 required, 7 held | 0 tasks | 0 tasks | provisional |
 | [r1r2-repair-word-retention-20261022](../../configs/forge/views/r1r2-repair-word-retention-20261022.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [r3-tier3-long-horizon-holdout-v1](../../configs/forge/views/r3-tier3-long-horizon-holdout-v1.json) | 1 | 18 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [r3-tier4-frontier-holdout-v1](../../configs/forge/views/r3-tier4-frontier-holdout-v1.json) | 1 | 16 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [recipe-prior-refactor-k3p-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-k3p-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-ka2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-ka2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-r1r2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-r1r2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -1392,6 +1394,110 @@ No published solution leaderboard for this view yet; task registration and relat
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_smoke | 20001 | 900 | — |
 | [five_word_joint_hold](../../configs/forge/tasks/five_word_joint_hold.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_hold | 4000 | 300 | [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) (checkpoint) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## r3-tier3-long-horizon-holdout-v1
+
+Declaration: [r3-tier3-long-horizon-holdout-v1](../../configs/forge/views/r3-tier3-long-horizon-holdout-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+18 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [two_pole](../../configs/forge/tasks/two_pole.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; fixed: {"critic": "stored_host_weights", "particles": "zeros"}; screening | [Question, results, GIFs](#experiment-two-pole) | transfer_behavior / transfer_sustained | 80 | 300 | — |
+| [unused_token_hold](../../configs/forge/tasks/unused_token_hold.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-unused-token-hold) | transfer_behavior / transfer_sustained | 200 | 300 | — |
+| [ae_gan_hold](../../configs/forge/tasks/ae_gan_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ae-gan-hold) | transfer_behavior / transfer_sustained | 250 | 300 | — |
+| [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-clockfree-audit) | clockfree_audit / clockfree_parity | 24 | 300 | — |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_smoke | 20001 | 900 | — |
+| [five_word_joint_hold](../../configs/forge/tasks/five_word_joint_hold.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_hold | 4000 | 300 | [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) (checkpoint) |
+| [mode_hold](../../configs/forge/tasks/mode_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | transfer_behavior / transfer_sustained | 1200 | 1800 | — |
+| [ring_hold](../../configs/forge/tasks/ring_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_hold | up to 7500 total | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate); group: ring_endurance (uninterrupted) |
+| [ring_extension](../../configs/forge/tasks/ring_extension.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_extension | up to 7500 total; 300 extension | 3600 | [ring_hold](../../configs/forge/tasks/ring_hold.json) (checkpoint); group: ring_endurance (uninterrupted) |
+| [target_shift_recovery](../../configs/forge/tasks/target_shift_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | paired_adaptation / paired_adaptation | 3600 | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate) |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [rotated100](../../configs/forge/tasks/rotated100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-rotated100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [staggered100](../../configs/forge/tasks/staggered100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_14k](../../configs/forge/tasks/grid100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [grid100](../../configs/forge/tasks/grid100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+| [rotated100_14k](../../configs/forge/tasks/rotated100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-rotated100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [rotated100](../../configs/forge/tasks/rotated100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+| [staggered100_14k](../../configs/forge/tasks/staggered100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [staggered100](../../configs/forge/tasks/staggered100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## r3-tier4-frontier-holdout-v1
+
+Declaration: [r3-tier4-frontier-holdout-v1](../../configs/forge/views/r3-tier4-frontier-holdout-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+16 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [misgan_block_recovery](../../configs/forge/tasks/misgan_block_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-block-recovery) | transfer_vector / misgan_block_recovery | 7000 | 1800 | — |
+| [misgan_block_neural_imputer](../../configs/forge/tasks/misgan_block_neural_imputer.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-block-neural-imputer) | transfer_vector / misgan_block_neural_imputer | 7000 | 1800 | — |
+| [ring16_bigan_continuous](../../configs/forge/tasks/ring16_bigan_continuous.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ring16-bigan-continuous) | transfer_vector / ring16_bigan_continuous | 4000 | 600 | — |
+| [misgan_mcar_p50_recovery](../../configs/forge/tasks/misgan_mcar_p50_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-mcar-p50-recovery) | transfer_vector / misgan_mcar_p50_recovery | 4000 | 1800 | — |
+| [misgan_mcar_p80_anchored](../../configs/forge/tasks/misgan_mcar_p80_anchored.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-mcar-p80-anchored) | transfer_vector / misgan_mcar_p80_anchored | 4000 | 1800 | — |
+| [pacgan_unequal_mass](../../configs/forge/tasks/pacgan_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-pacgan-unequal-mass) | transfer_vector / pacgan_unequal_mass | 3000 | 600 | — |
+| [pacgan8_grid100](../../configs/forge/tasks/pacgan8_grid100.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-pacgan8-grid100) | transfer_vector / pacgan8_grid100 | 4000 | 600 | — |
+| [alice_spiral_bigan](../../configs/forge/tasks/alice_spiral_bigan.json) | diagnostic | MoGParticlePrior (sigma=0.06) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-alice-spiral-bigan) | transfer_vector / alice_spiral_bigan | 4000 | 600 | — |
+| [infogan_anisotropic_modes](../../configs/forge/tasks/infogan_anisotropic_modes.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-infogan-anisotropic-modes) | transfer_vector / infogan_anisotropic_modes | 3500 | 600 | — |
+| [cgan_overlapping_classes](../../configs/forge/tasks/cgan_overlapping_classes.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cgan-overlapping-classes) | transfer_vector / cgan_overlapping_classes | 3000 | 600 | — |
+| [cramer_energy_overlap](../../configs/forge/tasks/cramer_energy_overlap.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cramer-energy-overlap) | transfer_vector / cramer_energy_overlap | 3000 | 600 | — |
+| [cyclegan_unpaired_constellation](../../configs/forge/tasks/cyclegan_unpaired_constellation.json) | diagnostic | MoGParticlePrior (sigma=0.08) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cyclegan-unpaired-constellation) | transfer_vector / cyclegan_unpaired_constellation | 3500 | 600 | — |
 
 ### Tier 2: quality
 
@@ -6862,6 +6968,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `ad0c002a754404b9e04d08522707e35fa41305d6100c9270043096a2ae7c8bab`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `bfdf49b87c57a8f64a81b42de599968c5347be7ab9d18ebdab9c4e20deec6f89`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `1a17617ff88ad2f857cfee996668fd99d897a826243fbc0b73d0ec1d8b95ddb7`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `551cfa40ca706e4f6602be0a770a7b8dac7d2e44b8b99be92776ee1119e78568`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 1200.0,
+    "id": "t4-imbalance-nash-stretch-v1"
+  },
+  "candidate": "t4-nash-v3",
+  "competing_explanation": "If severe >600x G/D parameter asymmetry and -30-logit hostile non-complementary initialization cause irreversible ReLU/SiLU dead zones or finite-capacity bottleneck collapse on the 32-neuron player regardless of function-space step regulation, then candidates will either stall off-manifold or collapse to <16 modes on nash_overpowered_critic_ring16 / nash_overpowered_generator_ring16.",
+  "control": {
+    "candidate_id": "t4-nash-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_generator_ring16",
+    "threshold": 0.15
+  },
+  "hypothesis": "Adding O(BKD) Voronoi + core-ball Burg Log-Det pullback covariance isometry and 1st-order fwAD/secant critic regulation (0 SVD, 0 eigh, 0 pinv, 0 NS, 0 autograd.grad) lifts t4_imbalance_nash_stretch from t4-nash-v2's 2/3 to 3/3 (100%) sustained 5/5 PASS including nash_overpowered_generator_ring16 core_min_eigen_ratio >= 0.15.",
+  "id": "t4-nash-v3-stretch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_generator_ring16",
+    "threshold": 0.15
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-nash-v2",
+        "candidate_revision": "b1966a034bb45192d1a37d4e024ceb5170ffdbf57da7e55d40458598f673cba6"
+      },
+      "path": "reports/forge/records/readout-0a06aa66bdb37bbb9f4ec2c1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
