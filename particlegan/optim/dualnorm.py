@@ -23,7 +23,7 @@ CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
-    "r4_mp_no_ns", "r4_no_secant_band",
+    "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -733,7 +733,11 @@ class NormalizedOptimizer(Optimizer):
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
-        unified_rec = getattr(self, "_unified_v4_record", getattr(self, "_unified_record", None))
+        unified_rec = getattr(
+            self,
+            "_unified_v11_record",
+            getattr(self, "_unified_v4_record", getattr(self, "_unified_record", None)),
+        )
         if unified_rec is not None:
             # Symmetric G + D conditional equilibrium damping for unified (prevents critic overdrive on t1_q0):
             rgdt_th_damp = 1.0
@@ -1216,6 +1220,14 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             smoothing=float(recipe.optimizer_smoothing),
             **options,
         )
+    elif recipe.optimizer_family == "unified_v11_equil":
+        from .._unified_v11 import UnifiedV11EquilibratedOptimizer
+        optimizer = UnifiedV11EquilibratedOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
     elif recipe.optimizer_family == "r4_mp_no_ns":
         from .._r4_ablation import R4MPNoNSOptimizer
         optimizer = R4MPNoNSOptimizer(
@@ -1305,6 +1317,20 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v11":
+            from ..unified_v11 import (
+                _UnifiedV11ObserverStepRecord,
+                _attach_unified_v11_critic_hook,
+                collect_conv_layouts,
+            )
+            optimizer.record = _UnifiedV11ObserverStepRecord()
+            optimizer._unified_v11_record = optimizer.record
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
+            _attach_unified_v11_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()

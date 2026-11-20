@@ -46,7 +46,7 @@ Cohorts (kept separate):
   * public-API toy-GAN arms (training): 8 Gaussians on a ring trained
     through ``GANTrainer`` with the unmodified default ``get_recipe()``
     (only ``total_steps`` set), public deterministic initialization and
-    protocol seed 0 (``lib/paper_watch_ring``, shared with PR #559). A
+    protocol seed 0 (``tests/paper_watch_ring.py``, shared with PR #559). A
     covered arm trains on all 8 modes, a collapsed arm on modes {0, 1};
     both are evaluated against the full mixture with CADMA at every
     checkpoint. The committed receipt and actual-training GIF live in
@@ -54,8 +54,9 @@ Cohorts (kept separate):
 
 Controls are the incumbent metrics: Naeem coverage with raw (uncapped)
 kNN radii and the empirical Gini distance correlation rho_g from the
-cycle-1 study (PR #559), imported from lib/toy_metrics.py (this PR
-depends on #559). rho_g is a discrepancy (0 = identical), not a
+cycle-1 study (PR #559), imported from tests/paper_watch_metrics.py
+(this PR depends on #559; CADMA lives there too, outside the Forge
+source digest that covers lib/). rho_g is a discrepancy (0 = identical), not a
 coverage estimate; where an MAE is reported for it, it is for the
 proxy 1 - rho_g, and the table says so.
 
@@ -112,8 +113,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from lib import paper_watch_ring as ring  # noqa: E402
-from lib.toy_metrics import cadma_scores, gini_distance_correlation, naeem_coverage  # noqa: E402
+import paper_watch_ring as ring  # noqa: E402
+from paper_watch_metrics import cadma_scores, gini_distance_correlation, naeem_coverage  # noqa: E402
 
 # =========================
 # Constructions: 7-mode Gaussian mixture

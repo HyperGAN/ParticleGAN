@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v11-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If integrating UnifiedV11CondFiberBank, zero-autograd.grad analytic direction_blend, or scale-invariant k=4 orphan gating introduces cross-domain regressions, unified-v11 will fail counted Tier-1/Tier-2 tasks or regress rotated100 accuracy.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Unchanged global clock-free zero-SVD / zero-eigh / zero-pinv / zero-autograd.grad unified-v11 closes residual_student, precision_gaussian_nvfp4, t3_iso_scale_mass_8x, and conditional DDGAN/AE-DDGAN reverse diffusion chains while preserving unified-v10's 11/11 required Tier-1, 7/7 held Tier-2, 3/3 100-mode lattices, 4/4 discrete images, 6/6 vectors, and 3/3 Nash equilibria across discriminator_stability Tiers 1-4 under protocol seed 0.",
+  "id": "unified-v11-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-6da9dee19abe886e7ddbe184.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 4,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
