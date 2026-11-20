@@ -162,7 +162,7 @@ def test_word_goal_correction_admits_main_tier1_without_changing_candidate_revis
     assert request["preflight_blockers"] == []
     assert all(not task["preflight_blockers"] for name, task in request["tasks"].items()
                if name in {"two_pole", "unused_token_hold", "ae_gan_hold",
-                           "ring16_acquisition", "five_word_joint_smoke"})
+                           "ring16_acquisition_6400", "five_word_joint_smoke"})
     validate_legacy_admission(request, root=ROOT)
     original = deepcopy(request["candidate"])
     original["goal"] = "five_word_joint"

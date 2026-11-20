@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 19,
+  "revision": 20,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -32,7 +32,7 @@
       "importance": "required",
       "order": 4,
       "qualification_tier": 1,
-      "task": "ring16_acquisition"
+      "task": "ring16_acquisition_6400"
     },
     {
       "importance": "required",
@@ -666,10 +666,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-18 policy, preserving all required, held, diagnostic, and stretch assignments (including Theory-3 causal-isolation stretch tasks). Add three Theory 4A severe G/D capacity-imbalance and hostile non-complementary initialization stretch toys at Tier 2 (nash_overpowered_critic_ring16, nash_overpowered_generator_ring16, nash_unequal_width_hostile_imbalance); required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Archive the exact develop revision-19 policy, preserving all required, held, diagnostic, and stretch assignments (including interpolation, Theory-3 causal-isolation and Theory 4A stretch tasks). Replace only ring16_acquisition with the separately identified 6,400-update task ring16_acquisition_6400. Archived sources and numerical results retain their original identity; new measurements require a declared study and budget.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v18.json",
-    "policy_fingerprint": "736371180d327ef8b7d8dec630fa6b0ded8f98ae29def00ab3b8f7b3af7612e7",
-    "revision": 18
+    "archive": "configs/forge/view-history/discriminator_stability-v19.json",
+    "policy_fingerprint": "6e4fc1ea423a461c5b370788afa6eb54d47eb96d1b9a9ea22d78dc2f60039542",
+    "revision": 19
   }
 }

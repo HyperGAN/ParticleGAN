@@ -538,7 +538,9 @@ def _prepare(root, queue_root, spec, queue):
         requests.append(request)
         planned = plan_summary(request, state)
         allowed = {row["task"] for row in planned["tasks"] if row["permitted_by_tier_cap"]}
-        ceiling = sum(job["budget_seconds"] for job in request["jobs"] if set(job["task_ids"]) <= allowed)
+        from .wallclock import reservation_seconds
+        ceiling = sum(reservation_seconds(job, request.get("wallclock_policy", "default"))
+                      for job in request["jobs"] if set(job["task_ids"]) <= allowed)
         if ceiling > spec["campaign"]["candidate_budget_seconds"]:
             raise ValueError("search candidate budget cannot cover its declared tuning task ceiling")
         blockers = list(request["preflight_blockers"]) + _first_task_blockers(request)

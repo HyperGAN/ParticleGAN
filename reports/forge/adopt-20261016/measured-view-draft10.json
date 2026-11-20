@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "id": "discriminator_stability",
+  "revision": 10,
+  "goal": "discriminator_stability",
+  "assignments": [
+    {
+      "importance": "required",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "gaussian1d_smoke"
+    },
+    {
+      "importance": "required",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "two_pole"
+    },
+    {
+      "importance": "required",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "unused_token_hold"
+    },
+    {
+      "importance": "required",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "ae_gan_hold"
+    },
+    {
+      "importance": "required",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "ring16_acquisition_6400"
+    },
+    {
+      "importance": "required",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "task": "gaussian1d_stability",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 0
+    },
+    {
+      "task": "five_word_joint_hold",
+      "qualification_tier": 2,
+      "importance": "required",
+      "order": 1
+    },
+    {
+      "importance": "required",
+      "order": 2,
+      "qualification_tier": 2,
+      "task": "trajectory"
+    },
+    {
+      "importance": "required",
+      "order": 3,
+      "qualification_tier": 2,
+      "task": "residual_student"
+    },
+    {
+      "importance": "required",
+      "order": 4,
+      "qualification_tier": 2,
+      "task": "unipolar"
+    },
+    {
+      "importance": "required",
+      "order": 5,
+      "qualification_tier": 2,
+      "task": "cover_leftover"
+    },
+    {
+      "importance": "required",
+      "order": 6,
+      "qualification_tier": 2,
+      "task": "mid_scale_identity"
+    },
+    {
+      "importance": "required",
+      "order": 7,
+      "qualification_tier": 2,
+      "task": "mode_hold"
+    },
+    {
+      "importance": "required",
+      "order": 8,
+      "qualification_tier": 2,
+      "task": "vector_two_broad"
+    },
+    {
+      "importance": "required",
+      "order": 9,
+      "qualification_tier": 2,
+      "task": "vector_unequal_mass"
+    },
+    {
+      "importance": "required",
+      "order": 10,
+      "qualification_tier": 2,
+      "task": "vector_unequal_width"
+    },
+    {
+      "importance": "required",
+      "order": 11,
+      "qualification_tier": 2,
+      "task": "vector_anisotropic"
+    },
+    {
+      "importance": "required",
+      "order": 12,
+      "qualification_tier": 2,
+      "task": "vector_overlap"
+    },
+    {
+      "importance": "required",
+      "order": 13,
+      "qualification_tier": 2,
+      "task": "vector_spiral"
+    },
+    {
+      "importance": "required",
+      "order": 14,
+      "qualification_tier": 2,
+      "task": "img_stripes2"
+    },
+    {
+      "importance": "required",
+      "order": 15,
+      "qualification_tier": 2,
+      "task": "img_bars4"
+    },
+    {
+      "importance": "required",
+      "order": 16,
+      "qualification_tier": 2,
+      "task": "img_blobs4"
+    },
+    {
+      "importance": "required",
+      "order": 17,
+      "qualification_tier": 2,
+      "task": "img_intensity2"
+    },
+    {
+      "importance": "required",
+      "order": 18,
+      "qualification_tier": 2,
+      "task": "grid100"
+    },
+    {
+      "importance": "required",
+      "order": 19,
+      "qualification_tier": 2,
+      "task": "rotated100"
+    },
+    {
+      "importance": "required",
+      "order": 20,
+      "qualification_tier": 2,
+      "task": "staggered100"
+    },
+    {
+      "importance": "required",
+      "order": 0,
+      "qualification_tier": 3,
+      "task": "ring_hold"
+    },
+    {
+      "importance": "required",
+      "order": 1,
+      "qualification_tier": 3,
+      "task": "ring_extension"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 100,
+      "qualification_tier": 1,
+      "task": "clockfree_audit_measurement_v1"
+    }
+  ],
+  "eligibility": {},
+  "calibration": {
+    "status": "provisional",
+    "adoption_blocker": "Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities."
+  },
+  "ranking": {
+    "policy": "qualified_tier_only_with_raw_metrics",
+    "compare_compatible_cohorts": true,
+    "cost_separate": true
+  },
+  "policy_change_reason": "User decision 2026-10-16 (dig2 round 2): the required Tier 1 ring16 question becomes ring16_acquisition_6400 (6400 updates, each recipe's own schedule declared over the full 6400, 384 checks at the same 16.67-update cadence, unchanged numerical gate and unchanged 5-check terminal sustained rule). ring16_acquisition (1600 updates) and every receipt graded under it keep their identity; revision 9 is archived at configs/forge/view-history/discriminator_stability-v9.json. Evidence: reports/forge/dig2-20261016/ring16-cap.md."
+}

@@ -10,7 +10,7 @@ from benchmarks.toy_audit import api_contract
 from benchmarks.toy_audit.api_ring16 import CASE_ID, CURRENT_CASE_ID, list_cases
 from benchmarks.toy_audit.ring16_controls import run_controls
 from experiments.forge.adapters import adapter_preflight
-from experiments.forge.views import load_tasks, load_view
+from experiments.forge.views import load_tasks
 from particlegan import GANTrainer, MoGParticlePrior
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +55,8 @@ def test_shared_declaration_is_required_smoke_and_preserves_original_mode_hold()
     assert means.shape == (16, 2)
     assert torch.allclose(means.norm(dim=1), torch.full((16,), 3., device="cuda:0"))
     assert case["law"]["masses"] == [1/16]*16
-    view = load_view(ROOT, "discriminator_stability")
+    # This test validates the preserved 1,600-update public-API cohort.
+    view = json.loads((ROOT / "configs/forge/view-history/discriminator_stability-v16.json").read_text())
     assert view["calibration"]["status"] == "provisional"
     assert next(a for a in view["assignments"] if a["task"] == "ring16_acquisition") == dict(
         task="ring16_acquisition", qualification_tier=1, importance="required", order=4)

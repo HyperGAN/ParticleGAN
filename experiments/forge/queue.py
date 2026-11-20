@@ -560,7 +560,9 @@ class Queue:
                             entry.update(status="blocked", reason="resource: no currently available configured device satisfies task memory/device requirements",
                                          lifecycle="awaiting_readout")
                         continue
-                    seconds = job["definition"]["budget_seconds"]
+                    from .wallclock import reservation_seconds, resolve_policy
+                    wallclock_policy = resolve_policy(request.get("wallclock_policy", "default"))
+                    seconds = reservation_seconds(job["definition"], wallclock_policy)
                     ok, reason = self._available_budget(state, request, seconds, job_key=key)
                     if not ok:
                         entry.update(status="blocked", reason="resource: " + reason, lifecycle="awaiting_readout")
@@ -574,7 +576,8 @@ class Queue:
                               "token": uuid.uuid4().hex, "started_at": time.time(), "pid": None,
                               "host_reservation": needed, "host_capacity_at_claim": capacity}
                     resolved = {"schema_version": 1, "request_id": request_id, "request": request,
-                                "job": job["definition"], "worker": worker}
+                                "job": job["definition"], "worker": worker,
+                                "wallclock_policy": wallclock_policy, "reservation_seconds": seconds}
                     prerequisites = {}
                     for member in job["definition"].get("task_ids", [job["definition"]["task_id"]]):
                         for dependency in request["tasks"][member].get("dependencies", []):
@@ -604,7 +607,8 @@ class Queue:
                     self.event(state, "claimed", request=request_id, campaign=request["campaign_id"],
                                candidate=request["candidate"]["id"], task=job["definition"]["task_id"],
                                attempt=attempt, worker=attempt, gpu=worker["device"],
-                               budget_seconds=seconds, log=str(directory / "run.log"))
+                               budget_seconds=seconds, declared_budget_seconds=job["definition"]["budget_seconds"],
+                               log=str(directory / "run.log"))
                     return resolved
             return None
 
@@ -732,6 +736,11 @@ class Queue:
                                "reason": raw.get("reason", raw["attempt_status"])}
                     row.setdefault("reason", "; ".join(row.get("reasons", [])))
                     row.update(task_id=member, compatibility_key=key, raw_status=raw["attempt_status"])
+                    if raw["attempt_status"] == "timeout":
+                        # Never graded: reported as NOT MEASURED (wall-clock), not FAIL.
+                        row["wallclock_outcome"] = "NOT_MEASURED_WALLCLOCK"
+                    if raw.get("wallclock"):
+                        row["wallclock"] = raw["wallclock"]
                     row["cost"] = {**row.get("cost", {}), "wall_seconds": elapsed if member == task_id else 0,
                                    "execution_seconds": elapsed, "charged_task": task_id,
                                    "device": worker["device"], "flops": {"kind": "unavailable", "value": None}}

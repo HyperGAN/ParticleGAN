@@ -1,0 +1,430 @@
+[
+  {
+    "family": "BCAP",
+    "candidate": "recipe-prior-refactor-bcap-pure-v1",
+    "scenario": "published",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      49,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      71,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "BCAP",
+    "candidate": "recipe-prior-refactor-bcap-pure-v1",
+    "scenario": "strict",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      49,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      71,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "BCAP",
+    "candidate": "recipe-prior-refactor-bcap-pure-v1",
+    "scenario": "diag",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      49,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      71,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "BISPF",
+    "candidate": "bispf-v1",
+    "scenario": "published",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      55,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      77,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "BISPF",
+    "candidate": "bispf-v1",
+    "scenario": "strict",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      55,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      77,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "BISPF",
+    "candidate": "bispf-v1",
+    "scenario": "diag",
+    "tier1": [
+      22,
+      22
+    ],
+    "tier2": [
+      55,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      77,
+      152
+    ],
+    "tier1_failures": []
+  },
+  {
+    "family": "GAN v3 release 0.7",
+    "candidate": "recipe-prior-refactor-release07-gan-v3-v1",
+    "scenario": "published",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "GAN v3 release 0.7",
+    "candidate": "recipe-prior-refactor-release07-gan-v3-v1",
+    "scenario": "strict",
+    "tier1": [
+      21,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      21,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1"
+    ]
+  },
+  {
+    "family": "GAN v3 release 0.7",
+    "candidate": "recipe-prior-refactor-release07-gan-v3-v1",
+    "scenario": "diag",
+    "tier1": [
+      21,
+      22
+    ],
+    "tier2": [
+      54,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      75,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1"
+    ]
+  },
+  {
+    "family": "K3P",
+    "candidate": "recipe-prior-refactor-k3p-v1",
+    "scenario": "published",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "K3P",
+    "candidate": "recipe-prior-refactor-k3p-v1",
+    "scenario": "strict",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "K3P",
+    "candidate": "recipe-prior-refactor-k3p-v1",
+    "scenario": "diag",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "KA2",
+    "candidate": "recipe-prior-refactor-ka2-v1",
+    "scenario": "published",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "KA2",
+    "candidate": "recipe-prior-refactor-ka2-v1",
+    "scenario": "strict",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "KA2",
+    "candidate": "recipe-prior-refactor-ka2-v1",
+    "scenario": "diag",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "R1/R2",
+    "candidate": "recipe-prior-refactor-r1r2-v1",
+    "scenario": "published",
+    "tier1": [
+      20,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      20,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1",
+      "ring16_acquisition"
+    ]
+  },
+  {
+    "family": "R1/R2",
+    "candidate": "recipe-prior-refactor-r1r2-v1",
+    "scenario": "strict",
+    "tier1": [
+      21,
+      22
+    ],
+    "tier2": [
+      0,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      21,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1"
+    ]
+  },
+  {
+    "family": "R1/R2",
+    "candidate": "recipe-prior-refactor-r1r2-v1",
+    "scenario": "diag",
+    "tier1": [
+      21,
+      22
+    ],
+    "tier2": [
+      54,
+      116
+    ],
+    "tier3": [
+      0,
+      14
+    ],
+    "total": [
+      75,
+      152
+    ],
+    "tier1_failures": [
+      "clockfree_audit_measurement_v1"
+    ]
+  }
+]

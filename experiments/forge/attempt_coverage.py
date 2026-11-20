@@ -592,8 +592,16 @@ def critical_path_seconds(state):
 
 
 def drain(root, directory, *, gpus, source=None, watch=False, refresh=False, completion_hook=None,
-          retry_interrupted=False):
+          retry_interrupted=False, wallclock_policy="default"):
     initial = read_json(directory / "state.json")
+    # Operational wall-clock limits (experiments/forge/wallclock.py DEFAULT_POLICY) apply
+    # by default to the selected intake. The scoped policy-cloud intake keeps its own
+    # declared fixed limits; pass "declared" to restore declared limits everywhere.
+    if initial.get("intake") == "policy-cloud":
+        wallclock_policy = None
+    elif wallclock_policy is not None and wallclock_policy != "declared":
+        from .wallclock import resolve_policy
+        wallclock_policy = resolve_policy(wallclock_policy)
     if initial.get("intake") == "policy-cloud":
         # The cohort intake may also drain on one GPU (two tests at a time).
         if not 1 <= len(gpus) <= 2 or len(set(gpus)) != len(gpus):
@@ -676,6 +684,8 @@ def drain(root, directory, *, gpus, source=None, watch=False, refresh=False, com
                     spec = {**job, "dependency_blockers": dependency_blockers(job, state),
                             "prerequisites": prerequisite_bindings(job, state),
                             "device": f"cuda:{slot['device']}" if job["resources"].get("gpus", 1) else "cpu"}
+                    if wallclock_policy and wallclock_policy != "declared":
+                        spec["wallclock_policy"] = wallclock_policy
                     atomic_json(target / "request.json", spec)
                     log = (target / "run.log").open("w")
                     child = subprocess.Popen([sys.executable, "-u", str(WORKER), "supervise", str(target / "request.json")],
@@ -744,6 +754,10 @@ def main():
                         help="policy-cloud run only: re-queue INTERRUPTED attempts (worker stopped without any receipt) "
                         "once, with the same frozen request and seed, plus dependents refused only because of them; "
                         "PASS, FAIL, TIMEOUT and ERROR records are never retried and every prior record is kept")
+    parser.add_argument("--wallclock-policy", default="default",
+                        help="operational wall-clock limits for the selected intake: 'default' (raised task minimums plus "
+                             "a contention-aware extension, experiments/forge/wallclock.py), 'declared' (declared limits "
+                             "only) or a JSON policy file")
     args = parser.parse_args(); root=args.root.resolve(); directory=args.state_root.resolve()
     if args.action == "status":
         state = read_json(directory / "state.json")
@@ -770,7 +784,9 @@ def main():
     if args.action == "run":
         value = drain(root, directory, gpus=args.gpus.split(","), source=args.source_root.resolve(),
                       watch=args.watch, refresh=args.refresh, completion_hook=args.completion_hook,
-                      retry_interrupted=args.retry_interrupted)
+                      retry_interrupted=args.retry_interrupted,
+                      wallclock_policy=(args.wallclock_policy if args.wallclock_policy in {"default", "declared"}
+                                        else read_json(Path(args.wallclock_policy))))
     else:
         value = summary(state)
         if state.get("intake") == "policy-cloud":

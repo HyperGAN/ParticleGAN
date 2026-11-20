@@ -44,6 +44,21 @@ def execute(path: Path) -> int:
             validate_request_host_profiles(request, task_ids=job.get("task_ids", [job["task_id"]]))
         except ValueError as exc:
             raise CapabilityError([str(exc)]) from exc
+        # Adapters stop themselves at resources.timeout_seconds. Under the default
+        # operational wall-clock policy raise only that in-process deadline (in
+        # memory; the frozen request and every fingerprint are unchanged) to the
+        # policy's hard ceiling; the supervisor enforces the operational limit.
+        from .wallclock import adapter_allowance, resolve_policy, task_policy
+        policy = resolve_policy(resolved.get("wallclock_policy", "default"))
+        if policy:
+            tasks = dict(request["tasks"])
+            for member in job.get("task_ids", [job["task_id"]]):
+                entry = task_policy(policy, member)
+                if entry and member in tasks:
+                    card = tasks[member]
+                    tasks[member] = {**card, "resources": {**card["resources"], "timeout_seconds": adapter_allowance(
+                        card["resources"]["timeout_seconds"], entry)}}
+            request = {**request, "tasks": tasks}
         adapter_started = time.monotonic()
         result = run_task(request, execution_job, output, "cpu" if worker["device"] == "cpu" else "cuda:0")
         if not isinstance(result, dict):

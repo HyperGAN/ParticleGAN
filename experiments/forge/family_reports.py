@@ -617,7 +617,10 @@ def build_progress(root: Path, publication: dict, *, selection_card: dict | None
                 or registry.get("qualification_input") is not False
                 or registry.get("qualification_reuse") is not False):
             raise ValueError("run-attempt coverage must remain diagnostic only")
-        for attempt in registry["records"]:
+        from .wallclock import RERUNS, apply_reruns, load_reruns
+        if (root / RERUNS).is_file():
+            load(RERUNS)  # Record the rerun overlay among the publication inputs.
+        for attempt in apply_reruns(registry["records"], load_reruns(root)):
             key = (attempt["source_digest"], attempt["candidate_revision"], attempt["task"],
                    attempt["execution_sha256"], attempt["evaluation_sha256"])
             if attempt["key"] != stable_hash(list(key)) or key in run_attempts:

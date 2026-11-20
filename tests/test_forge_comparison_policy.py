@@ -206,9 +206,14 @@ def test_diagnostic_study_does_not_require_an_ordinary_qualifying_row(scope):
 
 
 def test_additive_view_revision_is_valid_comparison_projection_and_retains_added_tasks():
-    actual_view = read_json(ROOT / 'configs/forge/views/discriminator_stability.json')
+    # v16 adds tasks to the historical v9 universe; v17 replaces ring1600
+    # with a separately identified ring6400 question and is not additive.
+    actual_view = read_json(ROOT / 'configs/forge/view-history/discriminator_stability-v16.json')
     recorded_view = read_json(ROOT / 'configs/forge/view-history/discriminator_stability-v9.json')
     publication._validate_comparison_policy(actual_view, recorded_view)
+    current_view = read_json(ROOT / 'configs/forge/views/discriminator_stability.json')
+    with pytest.raises(ValueError, match='changes task identities, tiers or ordering'):
+        publication._validate_comparison_policy(current_view, recorded_view)
 
     actual, projected, comparison = comparison_fixture()
     actual['status_reasons'] = {'added-reason': ['new task failure reason']}

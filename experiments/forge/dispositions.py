@@ -423,7 +423,19 @@ def plan(root: Path | str, registry_path: Path | str) -> dict:
                             differences=[f"assignment {name}" for name in item["held"] + item["removed"]],
                             _write=(view_paths[view_id], dump_view(revised, raw).encode("utf-8"), live_bytes))
                 live_views[view_id] = revised
-        elif live.get("revision") == entry["to_revision"]:
+        elif (live.get("revision") == entry["to_revision"]
+              or (type(live.get("revision")) is int and live["revision"] > entry["to_revision"])):
+            if live["revision"] > entry["to_revision"]:
+                # A later revision supersedes the disposition revision. Compare the
+                # disposition revision itself, reached through the archive chain.
+                superseded_by = live["revision"]
+                try:
+                    live = _archived_revision(root, view_id, live, entry["to_revision"])
+                except ValueError as error:
+                    item.update(state="drift", differences=[str(error)])
+                    result[view_id] = item
+                    continue
+                item["superseded_by"] = superseded_by
             if not archive.is_file():
                 item.update(state="drift", differences=[f"archive {entry['archive']} is missing"])
             else:
@@ -468,6 +480,26 @@ def _report(root, registry_path, planned, **extra):
             "drift": any(item["state"] != "applied" for item in views.values()),
             "views": views, "skipped": planned["skipped"], **extra,
             "training_launched": False, "qualification_changed": False}
+
+
+def _archived_revision(root: Path, view_id: str, view: dict, revision: int) -> dict:
+    """Follow previous_revision archives (each pinned by fingerprint) back to ``revision``."""
+    current = view
+    while current.get("revision") != revision:
+        previous = current.get("previous_revision")
+        if not isinstance(previous, dict) or previous.get("archive") != archive_path(view_id, previous.get("revision")):
+            raise ValueError(f"{view_id} revision {current.get('revision')} has no archive chain to revision {revision}")
+        path = root / previous["archive"]
+        if not path.is_file():
+            raise ValueError(f"archive {previous['archive']} is missing")
+        archived = json.loads(path.read_text())
+        if (archived.get("id") != view_id or archived.get("revision") != previous["revision"]
+                or view_fingerprint(archived) != previous["policy_fingerprint"]):
+            raise ValueError(f"archive {previous['archive']} does not match its previous_revision fingerprint")
+        if archived["revision"] < revision:
+            raise ValueError(f"{view_id} archive chain skips revision {revision}")
+        current = archived
+    return current
 
 
 def check(root: Path | str, registry_path: Path | str) -> dict:

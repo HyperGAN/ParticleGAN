@@ -1,0 +1,29 @@
+{
+  "base_candidate": "bcap-dualnorm-smoothed-v1",
+  "campaign": {
+    "accept_shared_cost_transfer": false,
+    "budget_seconds": 41760,
+    "candidate_budget_seconds": 13920,
+    "id": "bcap-dualnorm-smoothing-tier1-v3",
+    "purpose": "Unexecuted bounded search example: three complete global recipes on view-v18 Tier 1, including the optional precision toys and FP32 diagnostic. Planning only; no seed variations, retries, higher-tier spend, or default adoption.",
+    "schema_version": 1
+  },
+  "cuda_model": "NVIDIA RTX A6000",
+  "execution_backend": "cuda",
+  "grid": {
+    "optimizer_smoothing": [
+      1e-05,
+      0.0001,
+      0.001
+    ]
+  },
+  "guide": "docs/dualnorm-smoothing.md",
+  "hypothesis": "Compare three explicitly enabled fixed global smoothing scales on the unchanged ordinary Tier1 tasks. This unexecuted example supplies no winning scale, stability claim, or default adoption.",
+  "id": "bcap-dualnorm-smoothing-tier1-v3",
+  "protocol": "screening",
+  "rationale": "Revises the unexecuted v2 example for view18 and full operational runtime reservations. The structural base enables smoothing at lambda=1e-4; same-signature positive-strength trials use one scale across all roles and tasks. Zero belongs to the separate unsmoothed control. Protocol seed0, public deterministic initializer, named streams, task budgets, architectures, priors, batch sequence, cadence and sampling remain fixed. Planning launches no training; no search is executed by this feature PR.",
+  "schema_version": 2,
+  "trainer_family": "bcap-dualnorm",
+  "tuning_through_tier": 1,
+  "view": "discriminator_stability"
+}

@@ -1,0 +1,54 @@
+{
+  "campaign": {
+    "budget_seconds": 120000,
+    "candidate_budget_seconds": 120000,
+    "id": "adopt-20261016-bispf-v1"
+  },
+  "candidate": "bispf-v1",
+  "competing_explanation": "Longer operational wall-clock limits only let runs finish their declared updates; a different verdict from the archived one would come from the 6,400-update ring16 question or a run that previously hit the limit.",
+  "control": {
+    "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "ring16_acquisition_6400",
+    "threshold": 0.15
+  },
+  "hypothesis": "bispf-v1 is measured unchanged through Tier 3 of discriminator_stability revision 10 (ring16_acquisition_6400) under the default operational wall-clock limits.",
+  "id": "adopt-20261016-bispf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "ring16_acquisition_6400",
+    "threshold": 0.15
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "schema_version": 1
+      },
+      "path": "reports/forge/dig2-20261016/ring16-cap-results.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

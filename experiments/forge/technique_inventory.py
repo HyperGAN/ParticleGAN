@@ -84,9 +84,18 @@ def _prepare(root, queue_root, *, view_id, through_tier, execution_backend, cuda
     names = discovered
     family_choices = None
     if technique_ids is None:
-        from .trainer_families import CURRENT_SELECTION, current_family_candidates
+        from .trainer_families import CURRENT_SELECTION, current_family_candidates, load_declared_revisions
         if (root / CURRENT_SELECTION).is_file():
             family_choices = current_family_candidates(root)
+            # A declared revision (configs/forge/selections/family-revisions-*.json)
+            # is the recipe a family is measured with next; its measured pin is
+            # replaced only by a later publication of that measurement.
+            revisions = load_declared_revisions(root)
+            for index, choice in enumerate(family_choices):
+                revision = revisions.get(choice["configuration_family"])
+                if revision and revision["status"] == "awaiting_measurement":
+                    family_choices[index] = {**choice, "candidate_id": revision["candidate_id"],
+                                             "selection_kind": "declared_revision", "supersedes": revision["supersedes"]}
             names = [choice["candidate_id"] for choice in family_choices]
     if technique_ids is not None:
         if (not isinstance(technique_ids, (list, tuple)) or not technique_ids

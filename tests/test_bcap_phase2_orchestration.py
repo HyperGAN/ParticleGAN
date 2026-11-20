@@ -77,7 +77,9 @@ def test_prepare_really_resolves_ready_without_worker_or_queue(software_checkout
     assert result["campaign_budget_seconds"] == 5040
     assert result["candidate_budget_seconds"] == 2520
     assert result["required_tasks"] == module.TIMEOUTS
-    assert len(module.resolved(software_checkout, result)) == 2
+    requests = module.resolved(software_checkout, result)
+    assert len(requests) == 2
+    assert all(request["wallclock_policy"] == "declared" for request in requests.values())
     assert all(plan["admission"] == "READY" and len(plan["active_tasks"]) == 7 for plan in result["arms"].values())
     assert not (software_checkout / "reports/forge/attempts").exists()
     assert not (software_checkout / "queue").exists()

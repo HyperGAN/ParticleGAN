@@ -33,7 +33,10 @@ def _link(root, page, label, target):
 
 @lru_cache(maxsize=4)
 def _attempt_registry(path, modified):
-    return read_json(path)["records"]
+    # Same-key solo reruns replace wall-clock hits only when they produced a real
+    # PASS/FAIL verdict; without reports/forge/wallclock-reruns.json this is a no-op.
+    from .wallclock import apply_reruns, load_reruns
+    return apply_reruns(read_json(path)["records"], load_reruns(Path(path).parents[2]))
 
 
 def attempt_count(tasks, attempts, required, *, fill):
@@ -47,6 +50,11 @@ def attempt_count(tasks, attempts, required, *, fill):
     if fill:
         for task in required:
             if outcomes[task] in {None, "UNKNOWN", "NOT_RUN"} and attempts.get(task, {}).get("status") in {"PASS", "FAIL"}:
+                outcomes[task] = attempts[task]["status"]
+            # An archived wall-clock hit was never graded; a same-key solo rerun's
+            # real verdict (wallclock_rerun) is its first measurement.
+            elif (outcomes[task] in {"INCOMPLETE", "TIMEOUT", "BLOCKED"} and attempts.get(task, {}).get("wallclock_rerun")
+                  and attempts[task]["status"] in {"PASS", "FAIL"}):
                 outcomes[task] = attempts[task]["status"]
     value = {"passed": sum(outcomes[task] == "PASS" for task in required), "total": len(required),
              "not_run": sum(tasks.get(task) in {None, "UNKNOWN", "NOT_RUN"} for task in required),
@@ -177,6 +185,54 @@ def checkpoint_repair_rows(root, page):
     return rows
 
 
+ADOPT = Path("reports/forge/adopt-20261016/results.json")
+
+
+def adopt_rows(root, page):
+    """One row per family for the verified adopt measurements of 2026-10-16.
+
+    Records come only from the committed adopt results (one frozen source,
+    seed 0). They are diagnostic rows: they never fill selected-recipe cells,
+    pins or qualification. Tier-vetoed tests show as blocked and tests a
+    paused campaign never ran show as not run, never as FAIL.
+    """
+    path = Path(root) / ADOPT
+    if not path.is_file():
+        return {}
+    value = read_json(path)
+    if (value.get("schema") != "adopt_20261016_measurements_v1" or value.get("qualification_input") is not False
+            or value.get("qualification_reuse") is not False or value.get("seed") != 0):
+        raise ValueError("adopt measurements must remain seed-0 diagnostics outside qualification")
+    view = Path(root) / value["measured_view"]["path"]
+    if file_hash(view) != value["measured_view"]["sha256"]:
+        raise ValueError("adopt measured view changed: " + value["measured_view"]["path"])
+    by_group = {}
+    for record in value["records"]:
+        if (record["source_digest"] != value["source"]["digest"] or record["seed"] != 0
+                or record["status"] not in {"PASS", "FAIL"}):
+            raise ValueError("adopt record outside its frozen source, seed or graded outcomes")
+        if record["diagnostic_only"]:
+            continue
+        cells = by_group.setdefault(record["group"], {})
+        if record["task"] in cells:
+            raise ValueError("adopt row repeats a task")
+        cells[record["task"]] = {"status": record["status"], "attempted": True}
+    rows = {}
+    anchor = value["readme"] + "#measured-cells"
+    for row in value["diagnostic_rows"]:
+        cells = dict(by_group.get(row["group"], {}))
+        if {task: cell["status"] for task, cell in cells.items()} != {
+                task: status for task, status in row["tasks"].items() if status in {"PASS", "FAIL"}}:
+            raise ValueError("adopt row does not match its records")
+        for task, item in row["unmeasured"].items():
+            if item["status"] == "BLOCKED":
+                cells[task] = {"status": "BLOCKED", "block_kind": item["block_kind"], "attempted": False}
+        requirements = {tier: set(names) for tier, names in row["requirements"].items()}
+        rows.setdefault(row["family"], []).append(_row(root, page, row["label"], anchor, {}, requirements,
+                                                       records=cells))
+    return rows
+
+
 def policy_cohort_rows(root, page):
     """One row per family and scoring law of the policy-cloud cohorts.
 
@@ -272,6 +328,8 @@ def tier_rows(root, page):
                 target, record["tasks"], requirements,
                 selected_family=record["family"] if record["label"].startswith("Unchanged selected recipe:") else None,
                 policy_scope=policy))
+    for family, additions in adopt_rows(root, page).items():
+        rows.setdefault(family, []).extend(additions)
     for family, additions in checkpoint_repair_rows(root, page).items():
         rows.setdefault(family, []).extend(additions)
     for family, additions in policy_cohort_rows(root, page).items():

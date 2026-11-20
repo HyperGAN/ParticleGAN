@@ -1,0 +1,549 @@
+{
+ "label": "NOT MEASURED (wall-clock)",
+ "not_measured": [
+  {
+   "key": "a2622e54b209695fa440c703a0838b658e834c8e419d363b2eab8d7e680118f9",
+   "label": "cell-quota-dualnorm-cross-v1",
+   "seconds": 3600.5155270039977,
+   "status": "TIMEOUT",
+   "task": "grid100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "3601bf4e8d00a4b6fd82bbe759caa4c267cb2c21906fc7793dd0de50126bdf2f",
+   "label": "cell-quota-dualnorm-cross-v1",
+   "seconds": 3600.464429971995,
+   "status": "TIMEOUT",
+   "task": "rotated100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "1c95e581c28ce87b1e51237235119d0d836b1ad1fd3c442cf48e7b0a306e8134",
+   "label": "cell-quota-dualnorm-cross-v1",
+   "seconds": 3600.514375111001,
+   "status": "TIMEOUT",
+   "task": "staggered100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "709b42497e4769deab97a2ed7cf58a04ccca8640cb4d7e15a2ff797492db2080",
+   "label": "confidence-lr-finite-cap-gaussian-v1",
+   "seconds": 900.2138515409897,
+   "status": "TIMEOUT",
+   "task": "five_word_joint_smoke",
+   "timeout_seconds": 900
+  },
+  {
+   "key": "cda019e9800954c9fef18f983b34238f828c0cd89fe0e5d8dda6f5e2db2a44fa",
+   "label": "kinetic-local-dualnorm-g-history-bank8-u-v1",
+   "seconds": 3600.264543043013,
+   "status": "TIMEOUT",
+   "task": "rotated100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "29bacbd51192aa3a78216d0de6a6a7ecab00487345c32c35f93f495bc16b3a6c",
+   "label": "kinetic-local-dualnorm-g-history-bank8-u-v1",
+   "seconds": 3600.2137948290037,
+   "status": "TIMEOUT",
+   "task": "staggered100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "56d435ca7d2fcdabd35a41b7f1c12e1f25ed81b0f874e020aecf13ed4a5d4d62",
+   "label": "kinetic-local-dualnorm-g-history-bank8-v-v1",
+   "seconds": 3600.26404718298,
+   "status": "TIMEOUT",
+   "task": "rotated100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "fd4ab35ebb0f7418324cf556a4f11abee36482d90acaee53d665d78f3535b949",
+   "label": "kinetic-local-dualnorm-g-history-bank8-v-v1",
+   "seconds": 3600.2640514399973,
+   "status": "TIMEOUT",
+   "task": "staggered100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "df880f61c86819a688ecb340aa013ae0a9cd24cb342492a214f8def94ca7b8d8",
+   "label": "kinetic-local-dualnorm-g-history-reference8-u-v1",
+   "seconds": 3600.2639230350032,
+   "status": "TIMEOUT",
+   "task": "grid100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "4f1c632236635e63c64d54bc3c1f3caa3c7e3f46f628be6d01f2637740e2d49b",
+   "label": "kinetic-local-dualnorm-g-history-reference8-u-v1",
+   "seconds": 300.2639248059713,
+   "status": "TIMEOUT",
+   "task": "ring16_acquisition",
+   "timeout_seconds": 300
+  },
+  {
+   "key": "01abb41da967bd547d8b1960b23aff09c5b3454cf79c872e155a43fb78ac9816",
+   "label": "kinetic-local-dualnorm-g-history-reference8-u-v1",
+   "seconds": 3600.2138617419987,
+   "status": "TIMEOUT",
+   "task": "rotated100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "3a007f378b60bbd3c729fdbd2d2cce0a81e856571b9e643984fe63bfda6bcb51",
+   "label": "kinetic-local-dualnorm-g-history-reference8-u-v1",
+   "seconds": 3600.213857144001,
+   "status": "TIMEOUT",
+   "task": "staggered100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "cc69974d01c9c5edc0698611df61d826fd0e12b19a628af7c4df2e5cc3bccd9c",
+   "label": "kinetic-local-dualnorm-g-history-reference8-v1",
+   "seconds": 3600.263959200005,
+   "status": "TIMEOUT",
+   "task": "grid100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "17f6f75fb4dbac4ea62e72f55aba1024516c0ed7a8064eeb2cb30c8635477478",
+   "label": "kinetic-local-dualnorm-g-history-reference8-v1",
+   "seconds": 3600.2138608589885,
+   "status": "TIMEOUT",
+   "task": "rotated100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "fd658fa13ee8379401d1c8db8668857249802a2d1cf95e7c4cd2705861e5a34e",
+   "label": "kinetic-local-dualnorm-g-history-reference8-v1",
+   "seconds": 3600.254611241049,
+   "status": "TIMEOUT",
+   "task": "staggered100",
+   "timeout_seconds": 3600
+  },
+  {
+   "key": "75490077485313469a02f06e772721587148bd1a7d61e1e54f8a4fa820a0ea98",
+   "label": "kinetic-local-dualnorm-g-history-v1",
+   "seconds": 900.2139600130031,
+   "status": "TIMEOUT",
+   "task": "five_word_joint_smoke",
+   "timeout_seconds": 900
+  },
+  {
+   "key": "a8c54aba4bee039672f11df37872e134e9d9af2be557816d8872c06db7f813a4",
+   "label": "kinetic_transport_local_v2",
+   "seconds": 900.2138507659838,
+   "status": "TIMEOUT",
+   "task": "five_word_joint_smoke",
+   "timeout_seconds": 900
+  },
+  {
+   "key": "6799aca59e7091ce5f71209153fde0e9aef5804f0224d291048f9aaeb27443fa",
+   "label": "positive-evidence-lr-gaussian-v1",
+   "seconds": 900.2138506390038,
+   "status": "TIMEOUT",
+   "task": "five_word_joint_smoke",
+   "timeout_seconds": 900
+  },
+  {
+   "key": "ac9c402b4718feb10ec830311a74f7cbe42486c0954aad5facc89df2d009a217",
+   "label": "signed-confidence-lr-gaussian-v1",
+   "seconds": 900.4313961059961,
+   "status": "TIMEOUT",
+   "task": "five_word_joint_smoke",
+   "timeout_seconds": 900
+  }
+ ],
+ "qualification_input": false,
+ "recipes": {
+  "ATLAS checkpoint-export repair (same recipe)": {
+   "counts": {
+    "FAIL": 2
+   },
+   "failed": 2,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "BISPF continuation attempts before prior-metadata fix": {
+   "counts": {
+    "BLOCKED": 1,
+    "ERROR": 2
+   },
+   "failed": 0,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "BISPF rebuilt checkpoints + matched-prior 14k diagnostics": {
+   "counts": {
+    "FAIL": 6
+   },
+   "failed": 6,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "E22 checkpoint-export repair (same recipe)": {
+   "counts": {
+    "FAIL": 2
+   },
+   "failed": 2,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "Fresh matched protected NS/transport control": {
+   "counts": {
+    "BLOCKED": 27,
+    "FAIL": 1,
+    "PASS": 1
+   },
+   "failed": 1,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 1
+  },
+  "G-only coherent mean (original seed0)": {
+   "counts": {
+    "BLOCKED": 27,
+    "FAIL": 1,
+    "PASS": 1
+   },
+   "failed": 1,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 1
+  },
+  "atlas": {
+   "counts": {
+    "BLOCKED": 35
+   },
+   "failed": 0,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "atlas selected-cloud after investigation": {
+   "counts": {
+    "ERROR": 2,
+    "FAIL": 1
+   },
+   "failed": 1,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "bcap-default-baseline-direction-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "ERROR": 1,
+    "FAIL": 12,
+    "INCOMPLETE": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 13
+   },
+   "failed": 12,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 0,
+   "passed": 13
+  },
+  "bispf current unbound task": {
+   "counts": {
+    "BLOCKED": 6
+   },
+   "failed": 0,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "bispf-v1": {
+   "counts": {
+    "BLOCKED": 3,
+    "FAIL": 12,
+    "PASS": 20
+   },
+   "failed": 12,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 20
+  },
+  "cell-quota-dualnorm-cross-v1": {
+   "counts": {
+    "BLOCKED": 11,
+    "ERROR": 4,
+    "FAIL": 6,
+    "NOT_MEASURED_WALLCLOCK": 3,
+    "PASS": 5
+   },
+   "failed": 6,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 3,
+   "passed": 5
+  },
+  "confidence-lr-critic-orientation-gaussian-v1": {
+   "counts": {
+    "BLOCKED": 20,
+    "FAIL": 7,
+    "PASS": 2
+   },
+   "failed": 7,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 2
+  },
+  "confidence-lr-finite-cap-gaussian-v1": {
+   "counts": {
+    "BLOCKED": 2,
+    "FAIL": 14,
+    "NOT_MEASURED_WALLCLOCK": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 11
+   },
+   "failed": 14,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 1,
+   "passed": 11
+  },
+  "e22": {
+   "counts": {
+    "BLOCKED": 35
+   },
+   "failed": 0,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 0
+  },
+  "generator-confidence-lr-bcap-direction-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 13,
+    "PASS": 15
+   },
+   "failed": 13,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 15
+  },
+  "generator-idle-ema-bcap-direction-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 12,
+    "INCOMPLETE": 2,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 2,
+    "PASS": 12
+   },
+   "failed": 12,
+   "not_measured_downstream": 2,
+   "not_measured_wallclock": 0,
+   "passed": 12
+  },
+  "kinetic-local-dualnorm-g-history-bank8-u-v1": {
+   "counts": {
+    "BLOCKED": 11,
+    "FAIL": 9,
+    "NOT_MEASURED_WALLCLOCK": 2,
+    "PASS": 7
+   },
+   "failed": 9,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 2,
+   "passed": 7
+  },
+  "kinetic-local-dualnorm-g-history-bank8-v-v1": {
+   "counts": {
+    "BLOCKED": 11,
+    "FAIL": 8,
+    "NOT_MEASURED_WALLCLOCK": 2,
+    "PASS": 8
+   },
+   "failed": 8,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 2,
+   "passed": 8
+  },
+  "kinetic-local-dualnorm-g-history-reference8-current-v1": {
+   "counts": {
+    "BLOCKED": 12,
+    "FAIL": 12,
+    "PASS": 5
+   },
+   "failed": 12,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 5
+  },
+  "kinetic-local-dualnorm-g-history-reference8-u-v1": {
+   "counts": {
+    "BLOCKED": 12,
+    "FAIL": 6,
+    "NOT_MEASURED_WALLCLOCK": 4,
+    "PASS": 7
+   },
+   "failed": 6,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 4,
+   "passed": 7
+  },
+  "kinetic-local-dualnorm-g-history-reference8-v1": {
+   "counts": {
+    "BLOCKED": 12,
+    "FAIL": 8,
+    "NOT_MEASURED_WALLCLOCK": 3,
+    "PASS": 6
+   },
+   "failed": 8,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 3,
+   "passed": 6
+  },
+  "kinetic-local-dualnorm-g-history-u-v1": {
+   "counts": {
+    "BLOCKED": 11,
+    "FAIL": 11,
+    "PASS": 7
+   },
+   "failed": 11,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 7
+  },
+  "kinetic-local-dualnorm-g-history-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 15,
+    "NOT_MEASURED_WALLCLOCK": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 11
+   },
+   "failed": 15,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 1,
+   "passed": 11
+  },
+  "kinetic-local-nsgda-cross-v1": {
+   "counts": {
+    "BLOCKED": 2,
+    "FAIL": 19,
+    "PASS": 8
+   },
+   "failed": 19,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 8
+  },
+  "kinetic_transport_local_v2": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 13,
+    "NOT_MEASURED_WALLCLOCK": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 13
+   },
+   "failed": 13,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 1,
+   "passed": 13
+  },
+  "positive-evidence-lr-gaussian-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 13,
+    "NOT_MEASURED_WALLCLOCK": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 13
+   },
+   "failed": 13,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 1,
+   "passed": 13
+  },
+  "recipe-prior-refactor-bcap-pure-v1": {
+   "counts": {
+    "BLOCKED": 4,
+    "FAIL": 14,
+    "PASS": 17
+   },
+   "failed": 14,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 17
+  },
+  "recipe-prior-refactor-k3p-v1": {
+   "counts": {
+    "BLOCKED": 4,
+    "FAIL": 15,
+    "PASS": 16
+   },
+   "failed": 15,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 16
+  },
+  "recipe-prior-refactor-ka2-v1": {
+   "counts": {
+    "BLOCKED": 4,
+    "FAIL": 16,
+    "PASS": 15
+   },
+   "failed": 16,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 15
+  },
+  "recipe-prior-refactor-r1r2-v1": {
+   "counts": {
+    "BLOCKED": 4,
+    "FAIL": 17,
+    "PASS": 14
+   },
+   "failed": 17,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 14
+  },
+  "recipe-prior-refactor-release07-gan-v3-v1": {
+   "counts": {
+    "BLOCKED": 4,
+    "FAIL": 17,
+    "PASS": 14
+   },
+   "failed": 17,
+   "not_measured_downstream": 0,
+   "not_measured_wallclock": 0,
+   "passed": 14
+  },
+  "signed-confidence-lr-gaussian-v1": {
+   "counts": {
+    "BLOCKED": 1,
+    "FAIL": 13,
+    "NOT_MEASURED_WALLCLOCK": 1,
+    "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 1,
+    "PASS": 13
+   },
+   "failed": 13,
+   "not_measured_downstream": 1,
+   "not_measured_wallclock": 1,
+   "passed": 13
+  }
+ },
+ "registry": "reports/forge/attempt-coverage.json",
+ "rerun_verdicts": [],
+ "reruns": null,
+ "schema": "forge_wallclock_outcomes_v1",
+ "summary": {
+  "counts": {
+   "BLOCKED": 265,
+   "ERROR": 9,
+   "FAIL": 295,
+   "INCOMPLETE": 3,
+   "NOT_MEASURED_WALLCLOCK": 19,
+   "NOT_MEASURED_WALLCLOCK_DOWNSTREAM": 8,
+   "PASS": 254
+  },
+  "failed": 295,
+  "not_measured_downstream": 8,
+  "not_measured_wallclock": 19,
+  "passed": 254
+ }
+}

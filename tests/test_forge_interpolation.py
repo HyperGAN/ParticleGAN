@@ -33,7 +33,12 @@ def _load_task(name: str) -> dict:
 
 
 def test_interpolation_stretch_preserves_view_chain_and_required_assignments():
-    view = load_view(ROOT, "discriminator_stability")
+    current = load_view(ROOT, "discriminator_stability")
+    view = json.loads((ROOT / current["previous_revision"]["archive"]).read_text())
+    # Revision 20 replaces only ring16_acquisition with ring16_acquisition_6400.
+    assert current["revision"] == 20 and [
+        dict(a, task="ring16_acquisition") if a["task"] == "ring16_acquisition_6400" else a
+        for a in current["assignments"]] == view["assignments"]
     v18 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
     v17 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
     v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())

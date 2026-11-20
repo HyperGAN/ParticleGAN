@@ -814,6 +814,7 @@ def resolve_idea(root: Path, idea_id: str, *, view_id: str | None = None,
 
 
 def plan_summary(request: dict, queue_state: dict | None = None, *, include_ownership=False) -> dict:
+    from .wallclock import reservation_seconds
     existing = (queue_state or {}).get("jobs", {})
     by_task = {m: job for job in request["jobs"] for m in job.get("task_ids", [job["task_id"]])}
     tasks = []
@@ -826,10 +827,11 @@ def plan_summary(request: dict, queue_state: dict | None = None, *, include_owne
         reusable = bool(saved and saved.get("status") == "terminal")
         allowed = assignment["qualification_tier"] <= request["through_tier"]
         if allowed and not reusable and job["compatibility_key"] not in seen_groups:
-            total += job["budget_seconds"]
+            total += reservation_seconds(job, request.get("wallclock_policy", "default"))
             seen_groups.add(job["compatibility_key"])
         tasks.append({**assignment, "reusable": reusable, "shared_pending": bool(saved and not reusable),
                       "permitted_by_tier_cap": allowed, "budget_seconds": job["budget_seconds"],
+                      "reservation_seconds": reservation_seconds(job, request.get("wallclock_policy", "default")),
                       "execution_group": job["execution_group"],
                       "blockers": request["tasks"][task_id].get("preflight_blockers", []),
                       "execution_group_blockers": group_blockers(request, job),

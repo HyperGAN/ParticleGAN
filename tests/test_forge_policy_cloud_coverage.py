@@ -184,7 +184,8 @@ def test_committed_declarations_view_and_tiers_cover_all_selected_tests():
         ("model_ddgan_bimodal_chain", 2),
         ("model_ae_ddgan_bimodal_chain", 2),
     }
-    assert selected == ({(name, tier) for tier, names in TIERS.items() for name in names}
+    assert selected == (({(name, tier) for tier, names in TIERS.items() for name in names}
+                         - {("ring16_acquisition", 1)}) | {("ring16_acquisition_6400", 1)}
                         | revision_13_new_tasks | revision_14_new_tasks)
 
 
