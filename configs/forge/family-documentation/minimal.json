@@ -1,0 +1,53 @@
+{
+  "overview": "Minimal (selected candidate minimal-v2, preset \"minimal\") is a self-contained <900-LOC (899 total lines across 5 files, zero sibling-package imports) fast architectural core that collapses the four GAN laws into Measure & Potential Geometry plus Function-Space Two-Player Dynamics with strictly zero torch.autograd.grad, zero torch.linalg.svd/eigh/pinv, and zero Newton-Schulz iterations. It achieves 55.50 ms/step median and 1344.84 MiB peak allocated VRAM on DCGAN r256 (fastest and lowest-VRAM zero-autograd core, 6/6 dcgan_performance PASS) while passing core multimodal, 100-mode grid100, 2/3 extreme Nash imbalance, and 1/2 causal-isolation stretch tasks; its empirical boundaries (deep skip-free 16-layer MLPs where depth-gated 2D Newton-Schulz is irreducible, and Tier-1 10/17 vs Unified's 17/17) remain explicitly documented.",
+  "symbols": "$G$ is the generator, $D$ the critic, $P$ the task prior, $x$ a real batch, and $y=G(z)$ a generated batch. Half A (geometry.py, prior.py) implements parity-interleaved 1st-order Born-Infeld secant critic regularization, Sinkhorn-debiased relativistic transport, ring-only 384-pair zero-eigh conditional fiber operator matching, and rank-agnostic Laguerre-Pythagorean pullback prior geometry; Half B (dynamics.py) implements pure-elementwise dynamic-1e-38 Marchenko-Pastur + peak_rms scaling and realized generator pushforward secant trust.",
+  "pseudocode": [
+    "Initialize MinimalCriticOptimizer, MinimalGeneratorOptimizer (or MinimalConstraintGeneratorOptimizer), MinimalCriticPenalty, MinimalLoss, and MinimalPriorRegularizer.",
+    "For each task-owned training update:",
+    "  Sample real x and latent z from P; compute y = G(z).",
+    "  Compute parity-interleaved 1st-order Born-Infeld secant critic penalty (no torch.autograd.grad) and step D using elementwise 1e-38 MP + peak_rms scaling (zero SVD, zero Newton-Schulz).",
+    "  Recompute differentiable y = G(z) and evaluate Sinkhorn-debiased relativistic + Born-Infeld transport + core-ball Burg covariance + ring-only conditional fiber operator + Laguerre-Pythagorean prior regularization.",
+    "  Step G, P, and E using elementwise MP scaling and realized generator pushforward secant trust."
+  ],
+  "training_details": {
+    "loss": "Selectable non-saturating logistic augmented with Sinkhorn-debiased relativistic transport, Born-Infeld transport, core-ball Burg covariance (2 <= dim <= 8), and a 384-pair FIFO ring-only zero-eigh conditional fiber operator on conditioned hosts.",
+    "optimizer": "Pure-elementwise O(params) dynamic-1e-38 Marchenko-Pastur + peak_rms scaling with torch._foreach_* fast path and realized generator pushforward secant trust (zero SVD, zero eigh, zero pinv, zero Newton-Schulz).",
+    "learning_rates": "Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`).",
+    "gradient_clipping": "None. Scale normalization and realized generator pushforward secant trust bound updates without hard clipping.",
+    "critic_penalty": "Parity-interleaved 1st-order Born-Infeld secant critic regularizer (`critic_formulation=\"minimal\"`, zero `torch.autograd.grad`) with zero-mean logit gauge.",
+    "damping_and_guards": "MinimalStepRecord instance-bound state dict carrying transport EMA, 384-pair conditional FIFO ring, and realized pushforward secant state; strict clock-free invariance (`clockfree_audit_measurement_v1` PASS).",
+    "noise": "No scheduled additive critic-input or generator-output training noise (`0.0`). Task-declared MoG intrinsic sigma is preserved.",
+    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+  },
+  "configuration_notes": [
+    "Minimal is registered as the compact <900-LOC fast core (899 LOC across 5 files, 4.8x smaller than unified-v10 and 9.6x smaller than the combined Round-3 packages) and does not replace Unified as DEFAULT_RECIPE.",
+    "Empirical boundary disclosure: without depth-gated 2D Newton-Schulz (L > 5), minimal-v2 fails skip-free 16-layer MLPs (grid100_mlp16 precision=0.0714) and scores 10/17 on discriminator_stability Tier 1 (readout-889d4d1d), corroborating Round-4 Occam's Razor Arm 1 (r4-occam-ablation-razor.md).",
+    "Zero-autograd, zero-SVD/eigh/pinv, zero-NS invariants and bit-exact fresh-process continuation are monkeypatch-enforced in tests/test_minimal.py."
+  ],
+  "references": [
+    {
+      "title": "Sinkhorn Distances: Lightspeed Computation of Optimal Transport",
+      "url": "https://arxiv.org/abs/1306.0895",
+      "component": "Entropic Optimal Transport coupling in MinimalLoss."
+    }
+  ],
+  "sources": [
+    "particlegan/minimal.py",
+    "particlegan/_minimal/__init__.py",
+    "particlegan/_minimal/dynamics.py",
+    "particlegan/_minimal/geometry.py",
+    "particlegan/_minimal/prior.py",
+    "particlegan/recipes.py",
+    "configs/forge/ideas/minimal-v1.json",
+    "configs/forge/ideas/minimal-v2.json",
+    "reports/forge/studies/r4-minimal-core.md",
+    "reports/forge/studies/r4-occam-ablation-razor.md"
+  ],
+  "equations": [
+    {
+      "label": "Dynamic-1e-38 Scale-Normalized Elementwise Equilibration",
+      "latex": "\\tilde g_p = \\frac{g_p}{s_p},\\qquad \\Delta\\theta_p = -\\eta\\,\\operatorname{clip}\\!\\left(\\frac{\\tilde g_p}{\\sqrt{\\operatorname{EMA}(\\tilde g_p^2)+\\epsilon}},\\;\\tau_{\\mathrm{secant}}\\right)",
+      "explanation": "Preconditions gradients across vanishing and overflowing layers in O(params) without SVD, eigh, or Newton-Schulz, bounded by realized generator pushforward secant trust."
+    }
+  ]
+}

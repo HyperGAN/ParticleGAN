@@ -701,6 +701,51 @@
         "optimizer-interventions",
         "selectable-loss"
       ]
+    },
+    {
+      "candidates": [
+        "unified-v1",
+        "unified-v2",
+        "unified-v3",
+        "unified-v4",
+        "unified-v5",
+        "unified-v6",
+        "unified-v7",
+        "unified-v8",
+        "unified-v9",
+        "unified-v10",
+        "unified-v11"
+      ],
+      "canonical_candidate": "unified-v11",
+      "id": "unified",
+      "label": "Unified",
+      "rationale": "Unified 4-Law Zero-SVD / Zero-eigh / Zero-pinv / Zero-autograd.grad Formulation: combines Law 1 (streaming Laguerre-Pythagorean prototype quantization, orthogonal pullback covariance isometry, and fwAD rail-escape weighting), Law 2 (first-order Born-Infeld secant critic regularization with zero-mean logit gauge and zero torch.autograd.grad), Law 3 (scale-invariant k=4 density-ratio orphan macro-transport, core-ball Burg covariance matching, and zero-eigh cyclic-Jacobi cross-batch conditional fiber operator bank), and Law 4 (fused Z=[X,Y] Quintic Tikhonov polar equilibration with dynamic-1e-38 Marchenko-Pastur scaling, realized generator pushforward secant trust band, and zero-autograd.grad / zero-pinv analytic 1x1/2x2 non-ascent direction_blend projection) under constant learning rates.",
+      "tags": [
+        "adversarial-training",
+        "capped-input-gradients",
+        "constant-learning-rate",
+        "critic-gradient-penalty",
+        "optimizer-interventions",
+        "selectable-loss"
+      ]
+    },
+    {
+      "candidates": [
+        "minimal-v1",
+        "minimal-v2"
+      ],
+      "canonical_candidate": "minimal-v2",
+      "id": "minimal",
+      "label": "Minimal",
+      "rationale": "Minimal-Principle 4-Law Core (<900 LOC, zero sibling-package imports, zero torch.autograd.grad, zero SVD/eigh/pinv, zero Newton-Schulz): collapses Measure & Potential Geometry (parity-interleaved 1st-order Born-Infeld secant critic, Sinkhorn-debiased relativistic transport, ring-only zero-eigh conditional fiber operator, and rank-agnostic Laguerre-Pythagorean prior) and Function-Space Two-Player Dynamics (elementwise 1e-38 Marchenko-Pastur + peak_rms scaling and realized generator pushforward secant trust) into five compact files for fast low-VRAM scaling.",
+      "tags": [
+        "adversarial-training",
+        "capped-input-gradients",
+        "constant-learning-rate",
+        "critic-gradient-penalty",
+        "optimizer-interventions",
+        "selectable-loss"
+      ]
     }
   ],
   "historical_families": [
