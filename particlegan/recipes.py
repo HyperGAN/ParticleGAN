@@ -64,7 +64,7 @@ except (ImportError, ValueError):
     pass
 
 # Promote a registered trainer preset here; model-family factories inherit it.
-DEFAULT_RECIPE = "empf"
+DEFAULT_RECIPE = "unified_v11"
 
 
 def _reject_table_storage_owners(table, tensors):
@@ -2435,13 +2435,27 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"empf"`` is the selected EMPF research default (``DEFAULT_RECIPE``,
-    matching ``empf-v8``): clock-free online ``e-means`` sufficient-statistics
-    prototype bank, mass-weighted prototype-to-fake Sinkhorn OT, state-driven
-    settling Born-Infeld critic penalty (``ebi_beta=6.0``), degree-of-freedom-aware
-    EMPF prior regularization (``prior_reg=0.01``), zero-momentum DualNorm
-    (``newton_schulz_hybrid_v1``) with quintic batched convolution updates, and
-    BF16/channels-last training for supported CUDA convolutional networks.
+    ``"unified_v11"`` is the selected Unified 4-Law research default
+    (``DEFAULT_RECIPE``, matching ``unified-v11``): strictly zero-``autograd.grad``,
+    zero-SVD, zero-``eigh``, zero-``pinv`` unification of the four GAN laws
+    (Law 1 streaming Laguerre-Pythagorean prototype prior & orthogonal pullback
+    isometry, Law 2 first-order Born-Infeld secant critic with zero-mean gauge,
+    Law 3 scale-invariant k-NN density-ratio macro-transport & zero-``eigh``
+    cross-batch conditional fiber operator bank, and Law 4 fused ``Z=[X,Y]``
+    Quintic Tikhonov equilibration with analytic non-ascent ``direction_blend``
+    and BF16/channels-last convolutional training) at constant learning rates
+    (``lr=0.014``, ``d_lr_mult=1.5``, ``prior_lr_mult=2.9``, ``prior_reg=0.02``,
+    ``ebi_beta=12.0``).
+    ``"minimal"`` selects the self-contained ``<900``-LOC fast core (matching
+    ``minimal-v2``) with zero ``autograd.grad``, zero SVD/``eigh``/``pinv``, and
+    zero Newton-Schulz iterations.
+    ``"empf"`` retains the explicit EMPF preset (``empf-v8``): clock-free online
+    ``e-means`` sufficient-statistics prototype bank, mass-weighted
+    prototype-to-fake Sinkhorn OT, state-driven settling Born-Infeld critic
+    penalty (``ebi_beta=6.0``), degree-of-freedom-aware EMPF prior regularization
+    (``prior_reg=0.01``), zero-momentum DualNorm (``newton_schulz_hybrid_v1``)
+    with quintic batched convolution updates, and BF16/channels-last training
+    for supported CUDA convolutional networks.
     ``"rhbi_optimized"`` retains the explicit optimized RHBI preset (``rhbi-v12``):
     Relativistic Hellinger-Born-Infeld transport with debiased Feydy discrete
     self-coupling, Weibull Adaptive Kinetic Horizon, sparse-mode support

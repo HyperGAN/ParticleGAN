@@ -25,8 +25,8 @@ from particlegan.empf import (
 
 
 def test_default_recipe_and_incumbent_presets_unchanged():
-    assert DEFAULT_RECIPE == "empf"
-    assert get_recipe() == get_recipe("empf")
+    assert DEFAULT_RECIPE == "unified_v11"
+    assert get_recipe() == get_recipe("unified_v11")
     empf = get_recipe("empf")
     assert empf.effective_critic_formulation == "empf"
     assert empf.prior_regularizer == "empf"
@@ -366,7 +366,7 @@ def test_empf_fresh_process_import_order_and_incumbent_hashes():
     out_a = json.loads(subprocess.check_output([sys.executable, "-c", probe_a], cwd=root, text=True))
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, text=True))
     assert out_a == out_b
-    assert out_a["default"] == "empf"
+    assert out_a["default"] == "unified_v11"
     assert out_a["hashes"]["bispf_optimized"].startswith("a59d78806e67")
     assert out_a["hashes"]["bispf"].startswith("6bb9c45dfbdb")
     assert out_a["hashes"]["bcap"].startswith("1c0aeefa46b0")
@@ -714,7 +714,7 @@ def test_empf_v8_discrete_simplex_cooling_and_continuation():
 
 
 def test_public_default_empf_continuation_and_damage_control():
-    """Verify bare get_recipe() selects empf (empf-v8), exact serialized continuation, and model-damage control."""
+    """Verify explicit empf (empf-v8), exact serialized continuation, and model-damage control."""
     from dataclasses import asdict
     import json
     from pathlib import Path
@@ -723,10 +723,11 @@ def test_public_default_empf_continuation_and_damage_control():
 
     root = Path(__file__).resolve().parents[1]
     empf_v8 = json.loads((root / "configs/forge/ideas/empf-v8.json").read_text())["recipe_overrides"]
-    default_recipe = get_recipe()
-    actual = json.loads(json.dumps(asdict(default_recipe)))
-    assert DEFAULT_RECIPE == actual["name"] == "empf"
-    assert default_recipe == get_recipe("empf") == get_recipe("gan")
+    empf_recipe = get_recipe("empf")
+    actual = json.loads(json.dumps(asdict(empf_recipe)))
+    assert DEFAULT_RECIPE == "unified_v11"
+    assert get_recipe() == get_recipe("unified_v11") == get_recipe("gan")
+    assert actual["name"] == "empf"
     for field, value in empf_v8.items():
         if field != "name":
             assert actual[field] == value, field
@@ -734,14 +735,14 @@ def test_public_default_empf_continuation_and_damage_control():
     def _make_pair(seed: int):
         G = nn.Sequential(nn.Linear(2, 32), nn.LeakyReLU(0.2), nn.Linear(32, 2))
         D = nn.Sequential(nn.Linear(2, 32), nn.LeakyReLU(0.2), nn.Linear(32, 1))
-        P = get_recipe(num_particles=64, z_dim=2).make_prior()
+        P = get_recipe("empf", num_particles=64, z_dim=2).make_prior()
         init.deterministic_orthogonal_(G, seed=seed)
         init.deterministic_orthogonal_(D, seed=seed + 1)
         init.deterministic_orthogonal_(P, seed=seed + 2)
         return G, D, P
 
-    # Exact serialized GANTrainer checkpoint continuation on bare get_recipe(...)
-    rec_run = get_recipe(total_steps=6, batch_size=32, num_particles=64, z_dim=2)
+    # Exact serialized GANTrainer checkpoint continuation on explicit empf
+    rec_run = get_recipe("empf", total_steps=6, batch_size=32, num_particles=64, z_dim=2)
     Ga, Da, Pa = _make_pair(seed=71)
     Gb, Db, Pb = _make_pair(seed=71)
     tr_a = GANTrainer(rec_run, Ga, Da, prior=Pa, seed=0)
@@ -769,10 +770,10 @@ def test_public_default_empf_continuation_and_damage_control():
     s_b = tr_b.sample(32, generator=torch.Generator().manual_seed(7))
     assert torch.equal(s_a, s_b)
 
-    # Deliberate model-damage semantic control on bare get_recipe(...)
+    # Deliberate model-damage semantic control on explicit empf
     target_mean = torch.tensor([-2.2, 1.8])
     Gt, Dt, Pt = _make_pair(seed=83)
-    tr_dmg = GANTrainer(get_recipe(total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
+    tr_dmg = GANTrainer(get_recipe("empf", total_steps=220, batch_size=32, num_particles=64, z_dim=2), Gt, Dt, prior=Pt, seed=0)
     dmg_rng = torch.Generator().manual_seed(202)
     for _ in range(220):
         tr_dmg.step(target_mean + 0.15 * torch.randn(32, 2, generator=dmg_rng))

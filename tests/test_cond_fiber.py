@@ -108,7 +108,7 @@ class _ToyImgDisc(nn.Module):
 
 
 def test_cond_fiber_preset_validation_and_default_recipe_invariant() -> None:
-    assert DEFAULT_RECIPE == "empf"
+    assert DEFAULT_RECIPE == "unified_v11"
     rec = get_recipe("cond_fiber")
     assert rec.critic_formulation == "cond_fiber"
     assert rec.effective_critic_formulation == "cond_fiber"
@@ -399,9 +399,9 @@ def test_cond_fiber_fresh_process_ddgan_continuation_across_active_bank(tmp_path
     script = f"""
 import torch
 import particlegan
-assert particlegan.DEFAULT_RECIPE == "empf"
+assert particlegan.DEFAULT_RECIPE == "unified_v11"
 import particlegan.cond_fiber
-assert particlegan.DEFAULT_RECIPE == "empf"
+assert particlegan.DEFAULT_RECIPE == "unified_v11"
 from particlegan import Recipe
 from benchmarks.toy_audit import api_model_ddgan
 

@@ -45,7 +45,10 @@ def module_digest(module):
     result = hashlib.sha256()
     for name, value in module.state_dict().items():
         result.update(name.encode())
-        result.update(value.detach().cpu().contiguous().numpy().tobytes())
+        if isinstance(value, torch.Tensor):
+            result.update(value.detach().cpu().contiguous().numpy().tobytes())
+        else:
+            result.update(json.dumps(value, sort_keys=True, separators=(",", ":")).encode())
     return result.hexdigest()
 
 
@@ -63,13 +66,14 @@ def score(samples, centers):
                 passed=modes == 100 and hq >= .95)
 
 
-def make_trainer(recipe, device, *, max_steps=None):
+def make_trainer(recipe, device, *, max_steps=None, prior_sigma=None):
     devices = [device.index] if device.type == "cuda" else []
+    prior_kwargs = {"sigma": prior_sigma} if recipe.prior_kind == "mog" else {}
     with torch.random.fork_rng(devices=devices):
         torch.manual_seed(STREAM_SEEDS["constructor"])
         generator = init.deterministic_orthogonal_(SimpleMLPGenerator(z_dim=recipe.z_dim), seed=0)
         critic = init.deterministic_orthogonal_(SimpleMLPDiscriminator(fourier=2), seed=1)
-        prior = init.deterministic_orthogonal_(recipe.make_prior(), seed=2)
+        prior = init.deterministic_orthogonal_(recipe.make_prior(**prior_kwargs), seed=2)
         constructor_rng = torch.get_rng_state().clone()
     streams = {name: torch.Generator(device=device).manual_seed(seed)
                for name, seed in STREAM_SEEDS.items() if name.endswith("_generator")}
@@ -79,11 +83,50 @@ def make_trainer(recipe, device, *, max_steps=None):
     return trainer
 
 
+def _resolve_task_recipe(default, args, parser):
+    """Apply only explicit task-owned prior/resource declarations; never touch technique fields."""
+    prior_kind = args.prior_kind if args.prior_kind is not None else default.prior_kind
+    standardize = args.standardize if args.standardize is not None else default.standardize
+    num_particles = args.num_particles if args.num_particles is not None else default.num_particles
+    batch_size = args.batch_size if args.batch_size is not None else default.batch_size
+    if num_particles <= 0 or batch_size <= 0:
+        parser.error("--num-particles and --batch-size must be positive integers")
+    if prior_kind == "mog":
+        prior_sigma = 0.025 if args.prior_sigma is None else args.prior_sigma
+        if not np.isfinite(prior_sigma) or prior_sigma < 0.0:
+            parser.error("--prior-sigma must be finite and nonnegative for prior_kind='mog'")
+        recipe = default.replace(prior_kind="mog", sigma_rel=0.0, standardize=standardize,
+                                 num_particles=num_particles, batch_size=batch_size)
+        prior_spec = dict(kind="mog", class_name="MoGParticlePrior", num_particles=num_particles,
+                          z_dim=recipe.z_dim, sigma=float(prior_sigma), standardize=bool(standardize),
+                          learnable=recipe.prior_update == "learned")
+    else:
+        if args.prior_sigma is not None and args.prior_sigma != 0.0:
+            parser.error("--prior-sigma requires --prior-kind mog")
+        prior_sigma = 0.0
+        recipe = default.replace(prior_kind="particles", standardize=standardize,
+                                 num_particles=num_particles, batch_size=batch_size)
+        prior_spec = dict(kind="particle_cloud", class_name="ParticlePrior", num_particles=num_particles,
+                          z_dim=recipe.z_dim, sigma=0.0, standardize=bool(standardize),
+                          learnable=recipe.prior_update == "learned")
+    return recipe, prior_sigma, prior_spec
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--steps", type=int, default=20_000,
                         help="External demo budget (default: 20000); recipe and schedules stay unchanged.")
     parser.add_argument("--resume-run", type=Path, help="Continue a saved recording, retaining all scored observations.")
+    parser.add_argument("--prior-kind", choices=("particles", "mog"), default=None,
+                        help="Explicit task-owned prior family (default: recipe.prior_kind).")
+    parser.add_argument("--prior-sigma", type=float, default=None,
+                        help="Intrinsic isotropic Gaussian sigma for --prior-kind mog (default: 0.025).")
+    parser.add_argument("--standardize", action=argparse.BooleanOptionalAction, default=None,
+                        help="Explicit task-owned prior standardization flag (default: recipe.standardize).")
+    parser.add_argument("--num-particles", type=int, default=None,
+                        help="Explicit task-owned prior component/row count (default: recipe.num_particles).")
+    parser.add_argument("--batch-size", type=int, default=None,
+                        help="Explicit task-owned batch size (default: recipe.batch_size).")
     parser.add_argument("--frames", type=int, default=250)
     parser.add_argument("--frame-power", type=float, default=2.)
     parser.add_argument("--fps", type=int, default=25)
@@ -94,7 +137,8 @@ def main():
     parser.add_argument("--record-only", action="store_true")
     args = parser.parse_args()
     default = get_recipe()  # Follow the public default; never select a different favorite for the demo.
-    recipe, total = default, args.steps
+    recipe, prior_sigma, prior_spec = _resolve_task_recipe(default, args, parser)
+    total = args.steps
     if total is None or total <= 0 or args.frames <= 0 or not np.isfinite(args.frame_power) or args.frame_power <= 0:
         parser.error("a positive budget, --frames and finite --frame-power are required")
     if args.fps <= 0 or 100 % args.fps or not np.isfinite(args.hold_seconds) or args.hold_seconds < 0:
@@ -124,6 +168,8 @@ def main():
             raise ValueError("resume artifacts do not match the parent receipt")
         if parent["recipe"] != json.loads(json.dumps(recipe.to_dict())):
             raise ValueError("resume recipe differs from the current public default")
+        if "prior" in parent and parent["prior"] != prior_spec:
+            raise ValueError("resume prior cohort differs from the requested prior")
         if (parent["seed"] != SEED or parent["stream_seeds"] != STREAM_SEEDS
                 or parent["completed_steps"] >= total or parent["device"] != str(device)):
             raise ValueError("resume protocol/device differs or the new budget does not extend it")
@@ -134,9 +180,9 @@ def main():
         with np.load(parent_path / "observations.npz", allow_pickle=False) as archive:
             prior_data = {name: archive[name] for name in archive.files}
         old_cap = saved["trainer"].get("max_steps", recipe.total_steps)
-        trainer = make_trainer(recipe, device, max_steps=old_cap)
+        trainer = make_trainer(recipe, device, max_steps=old_cap, prior_sigma=prior_sigma)
     else:
-        trainer = make_trainer(recipe, device, max_steps=total)
+        trainer = make_trainer(recipe, device, max_steps=total, prior_sigma=prior_sigma)
     initial_hashes = {name: module_digest(module) for name, module in
                       [("G", trainer.G), ("D", trainer.D), ("prior", trainer.prior)]}
     data = torch.Generator(device=device).manual_seed(STREAM_SEEDS["data"])
@@ -173,16 +219,26 @@ def main():
     sources = [*sorted((ROOT / "particlegan").rglob("*.py")),
                ROOT / "lib/toy_models.py", ROOT / "lib/denoising_toy.py", ROOT / "lib/toy_metrics.py",
                Path(__file__), Path(__file__).with_name("generate.py")]
+    prior_desc = (
+        f"MoGParticlePrior(num_particles={prior_spec['num_particles']}, z_dim={prior_spec['z_dim']}, "
+        f"sigma={prior_spec['sigma']}, standardize={prior_spec['standardize']}); "
+        "public deterministic initialization (matches Forge grid100 task prior)"
+        if prior_spec["kind"] == "mog"
+        else "recipe.make_prior(); public deterministic initialization"
+    )
+    plotted_n = min(PLOT_SAMPLES, recipe.num_particles)
     contract = dict(
         schema=1, scope="README mode-acquisition illustration; not Forge qualification",
-        seed=SEED, default_recipe=default.name, recipe=recipe.to_dict(), execution_budget=total,
+        cohort=f"{default.name}_{prior_spec['kind']}_{prior_spec['num_particles']}",
+        seed=SEED, default_recipe=default.name, recipe=recipe.to_dict(), prior=prior_spec,
+        execution_budget=total,
         version=tomllib.loads((ROOT / "pyproject.toml").read_text())["project"]["version"],
         task=dict(target="uniform 10x10 Gaussian grid", sigma=.03,
                   generator="SimpleMLPGenerator(width=128, depth=3)",
                   critic="SimpleMLPDiscriminator(width=128, depth=3, fourier=2)",
-                  prior="recipe.make_prior(); public deterministic initialization",
+                  prior=prior_desc,
                   initialization=dict(generator=0, critic=1, prior=2),
-                  sampling="live, clean, uniform prior draws; fixed first 4096 rows for plotting"),
+                  sampling=f"live, clean (output_noise=0), uniform prior draws; fixed first {plotted_n} rows for plotting"),
         gate=dict(modes=100, minimum_nearby_samples=10, radius=.09, hq_min=.95,
                   terminal_checks=5, evaluation_samples=EVAL_SAMPLES, full_default_budget=default.total_steps),
         scoring_steps=scoring, media_steps=media, stream_seeds=STREAM_SEEDS,

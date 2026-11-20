@@ -8,15 +8,35 @@ from particlegan import get_recipe
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_gaussian_animation_preserves_the_explicit_090_recipe():
+def test_gaussian_animation_preserves_the_current_default_recipe():
     receipt = json.loads((ROOT / 'reports/readme-100gaussians/summary-current.json').read_text())
-    expected = json.loads(json.dumps(get_recipe(
-        'bispf_optimized', optimizer_svd_backend='native', training_precision='float32').to_dict()))
-    assert receipt['recipe'] == expected, 'Preserve the archived 0.9.0 illustration identity'
+    default = get_recipe()
+    prior = receipt['prior']
+    expected = json.loads(json.dumps(default.replace(
+        prior_kind=prior['kind'] if prior['kind'] == 'mog' else 'particles',
+        sigma_rel=0.0,
+        standardize=prior['standardize'],
+        num_particles=prior['num_particles'],
+    ).to_dict()))
+    assert receipt['default_recipe'] == default.name == 'unified_v11'
+    assert receipt['recipe'] == expected, 'Current README illustration must match get_recipe() + declared task prior'
+    assert prior == {
+        'kind': 'mog',
+        'class_name': 'MoGParticlePrior',
+        'num_particles': 20000,
+        'z_dim': 2,
+        'sigma': 0.025,
+        'standardize': False,
+        'learnable': True,
+    }
     assert receipt['completed_steps'] == receipt.get('execution_budget', expected['total_steps'])
     assert receipt['completed_steps'] >= expected['total_steps']
     assert receipt['seed'] == 0
     assert receipt['task']['initialization'] == {'generator': 0, 'critic': 1, 'prior': 2}
+    archived = receipt['artifact_archive']['archived_090_20k_particle_cloud']
+    assert archived['commit'] == '1bc01a7bf4b151c01073c35f59a1d894d0917571'
+    assert archived['gif_blob'] == '4f97aee33969d391182338dd41a90e3c896eb11a'
+    assert archived['summary_blob'] == 'f6f31cc543f7960c6c79d95d3e2a7e7db4eecb5b'
 
 
 def test_readme_current_default_illustration_uses_actual_candidate_training():

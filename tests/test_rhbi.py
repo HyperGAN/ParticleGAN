@@ -1860,8 +1860,8 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
     rhbi_v12 = json.loads((root / "configs/forge/ideas/rhbi-v12.json").read_text())["recipe_overrides"]
     rhbi_opt_recipe = get_recipe("rhbi_optimized")
     actual = json.loads(json.dumps(asdict(rhbi_opt_recipe)))
-    assert DEFAULT_RECIPE == "empf"
-    assert get_recipe() == get_recipe("empf") == get_recipe("gan")
+    assert DEFAULT_RECIPE == "unified_v11"
+    assert get_recipe() == get_recipe("unified_v11") == get_recipe("gan")
     assert actual["name"] == "rhbi_optimized"
     for field, value in rhbi_v12.items():
         if field != "name":
@@ -1903,7 +1903,7 @@ def test_public_default_rhbi_optimized_parity_import_order_continuation_and_cont
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, env=env, text=True))
     assert out_a == out_b
     assert Path(out_a["file"]).resolve() == (root / "particlegan/recipes.py").resolve()
-    assert out_a["default"] == "empf"
+    assert out_a["default"] == "unified_v11"
     assert len(set(out_a["sigs"].values())) == len(presets)
 
     # Bit-exact serialized GANTrainer checkpoint continuation on rhbi_optimized
