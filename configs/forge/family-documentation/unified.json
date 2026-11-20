@@ -1,0 +1,87 @@
+{
+  "overview": "Unified (selected candidate unified-v11, preset \"unified_v11\") is a clock-free, constant-learning-rate ParticleGAN formulation that unites all four GAN laws with strictly zero torch.autograd.grad, zero torch.linalg.svd/svdvals, zero torch.linalg.eigh/eigvalsh, and zero torch.linalg.pinv across every forward, backward, penalty, transport, conditional fiber bank, prior, and optimizer path. It combines streaming Laguerre-Pythagorean prototype quantization and orthogonal pullback covariance isometry (Law 1), a first-order Born-Infeld secant critic regularizer with zero-mean logit gauge (Law 2), scale-invariant k=4 density-ratio orphan macro-transport and a zero-eigh cyclic-Jacobi cross-batch conditional fiber operator bank (Law 3), and fused Z=[X,Y] Quintic Tikhonov polar equilibration with dynamic-1e-38 Marchenko-Pastur scaling, realized generator pushforward secant trust, and strictly zero-autograd.grad / zero-pinv analytic non-ascent direction_blend projection (Law 4). It is the provisional public research default (DEFAULT_RECIPE = \"unified_v11\") in 0.11.0; Forge screening calibration remains provisional (BLOCKED under criteria-v1.json) and remaining failures (staggered100 / staggered100_14k, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, interp_img_patch_shift, interp_saddle_barycentric, and 12 unimplemented Tier-4 stretch hosts) stay explicitly disclosed.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\\sim P$ a latent batch, and $y=G(z)$ the generated batch of size $B_f$. $r_{\\mathrm{loc}}(y_j)=d_{k=4}(y_j,X_{\\mathrm{fake}})/d_{k=4}(y_j,Y_{\\mathrm{real}}\\setminus\\{y_j\\})$ is the scale-invariant local orphan density ratio, $(W_t,S_c,S_y,S_{cc},S_{cy},S_{yy})$ plus a paired-context FIFO ring ($M=384$) form the zero-eigh conditional fiber operator bank, $Z=[X,Y]\\in\\mathbb R^{m\\times(n+m)}$ is the fused Tikhonov-augmented polar matrix, and $\\Delta D_{\\mathrm{sec}}$ is the first-order finite-difference / fwAD critic secant slope.",
+  "pseudocode": [
+    "Choose an adversarial loss and constant learning rates (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9).",
+    "For each task-owned training update:",
+    "  Sample real x and latent z from the task prior P; compute y = G(z).",
+    "  Evaluate first-order Born-Infeld secant critic penalty (no torch.autograd.grad) on real/fake/chord perturbations plus zero-mean logit gauge and update instance-bound thermal scale.",
+    "  Backpropagate critic adversarial loss + secant penalty and step D via UnifiedV11EquilibratedOptimizer (dynamic-1e-38 MP scaling + fused Z=[X,Y] Quintic Tikhonov polar, zero SVD).",
+    "  With D fixed, recompute differentiable y = G(z) and evaluate generator loss: Sinkhorn-debiased relativistic + Born-Infeld transport + scale-invariant k=4 density-ratio orphan macro-transport + core-ball Burg covariance + zero-eigh cyclic-Jacobi conditional fiber operator matching (when conditioned) + UnifiedV11PriorRegularizer.",
+    "  When multiple protected objectives exist (e.g. residual_student or AE/VAE), evaluate protected normals via standard .backward(retain_graph=True) and project via closed-form 1x1/2x2 zero-pinv non-ascent direction_blend.",
+    "  Step G, trainable prior P (with Laguerre-Pythagorean pullback isometry), and encoder E when present using constant learning rates and realized generator pushforward secant trust."
+  ],
+  "training_details": {
+    "loss": "Selectable non-saturating logistic (selected configuration) augmented with Sinkhorn-debiased relativistic transport, scale-invariant k=4 density-ratio orphan macro-transport, core-ball Burg covariance matching, and zero-eigh cross-batch conditional fiber operator matching (IMQ-CMMD + whitened stratum mean/covariance + paired-context ring local covariance) on conditioned hosts.",
+    "optimizer": "UnifiedV11EquilibratedOptimizer (optimizer_family=\"unified_v11_equil\", zero momentum, smoothing 0.0061, BF16 channels-last conv training, direction_blend constraint geometry): dynamic-1e-38 Marchenko-Pastur scaling, fused Z=[X,Y] 5-step Quintic Tikhonov polar (FP32 for m<64, BF16 for 64<=m<=128, zero torch.linalg.svd/eigh/pinv), realized generator pushforward secant trust band, and closed-form 1x1/2x2 analytic non-ascent projection.",
+    "learning_rates": "Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.014$, critic multiplier $1.5$, and prior multiplier $2.9$ (`prior_reg=0.02`).",
+    "gradient_clipping": "None. Step equilibration operates through dynamic-$10^{-38}$ scale normalization, fused Quintic Tikhonov polar projection, and realized pushforward secant trust without hard parameter clipping.",
+    "critic_penalty": "First-order Born-Infeld secant critic regularizer (`critic_formulation=\"unified_v11\"`, `ebi_beta=12.0`, `reg_coeff=1.0`, `reg_kappa=1.0`, zero `torch.autograd.grad`) evaluated along endpoints and transport chords with zero-mean logit gauge and state-driven thermal settling.",
+    "damping_and_guards": "Instance-bound checkpointed step record carrying shock-filtered transport EMA, conditional fiber bank sufficient statistics and 384-pair FIFO ring, worst-stratum operator-gated conditional cooling, thermal-safe precision gating, and per-group depth accounting; zero global state and zero step counters.",
+    "noise": "No scheduled additive critic-input or generator-output training noise (`input_noise_std=0.0`, `output_noise_std=0.0`). Task-declared MoG intrinsic sigma is preserved.",
+    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+  },
+  "configuration_notes": [
+    "Unified combines the four independently isolated GAN laws (T1 prior topology & coupling, T2 first-order secant critic, T3 RGDT macro-transport & causal isolation, T4 Nash equilibration & deep-architecture transport) plus Round-3's conditional fiber operator matching into one zero-SVD / zero-eigh / zero-pinv / zero-autograd.grad global recipe.",
+    "All bank tensors, FIFO rings, low-discrepancy phases, and thermal scalars live exclusively on instance-bound state dicts and travel bit-for-bit across fresh-process checkpoint save/load with tamper rejection.",
+    "Honest governance disclosure (AGENTS.md): tuning budget spans 11 hand-declared unified-v1..v11 candidate cards across Round 2-4 studies (no registered grid search). Forge calibration acceptance remains BLOCKED under configs/forge/calibration/criteria-v1.json (see reports/forge/studies/r3-calibration-holdout.md and reports/forge/calibration/r3-calibration-holdout.json). Remaining honest numerical failures on unified-v11 (staggered100 / staggered100_14k, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, interp_img_patch_shift, interp_saddle_barycentric) and 12 unimplemented Tier-4 stretch hosts remain explicitly visible. For a compact <900-LOC zero-Newton-Schulz fast core (55.50 ms/step on DCGAN r256), see the separate Minimal family (preset=\"minimal\").",
+    "One global trainer configuration supplies every displayed result across Tier 1-4; task-owned architectures, priors, initializations, budgets, and gates remain fixed."
+  ],
+  "references": [
+    {
+      "title": "Sinkhorn Distances: Lightspeed Computation of Optimal Transport",
+      "url": "https://arxiv.org/abs/1306.0895",
+      "component": "Entropic Optimal Transport Sinkhorn-Knopp coupling underlying the debiased transport and macro-transport terms."
+    },
+    {
+      "title": "Muon: An optimizer for hidden layers in neural networks",
+      "url": "https://kellerjordan.github.io/posts/muon/",
+      "component": "Polynomial Newton-Schulz polar orthogonalization generalized here to fused Tikhonov-augmented Quintic polar equilibration without SVD."
+    },
+    {
+      "title": "e-means: outperforming k-means (in one-tenth the epochs)",
+      "url": "https://arxiv.org/abs/2611.09501",
+      "component": "Online sufficient-statistics prototype updating adapted into the streaming Laguerre-Pythagorean prototype prior."
+    }
+  ],
+  "sources": [
+    "particlegan/unified_v11.py",
+    "particlegan/_unified_v11/__init__.py",
+    "particlegan/_unified_v11/bank.py",
+    "particlegan/_unified_v11/critic.py",
+    "particlegan/_unified_v11/loss.py",
+    "particlegan/_unified_v11/optimizer.py",
+    "particlegan/_unified_v11/penalty.py",
+    "particlegan/_unified_v11/prior.py",
+    "particlegan/recipes.py",
+    "configs/forge/ideas/unified-v1.json",
+    "configs/forge/ideas/unified-v2.json",
+    "configs/forge/ideas/unified-v3.json",
+    "configs/forge/ideas/unified-v4.json",
+    "configs/forge/ideas/unified-v5.json",
+    "configs/forge/ideas/unified-v6.json",
+    "configs/forge/ideas/unified-v7.json",
+    "configs/forge/ideas/unified-v8.json",
+    "configs/forge/ideas/unified-v9.json",
+    "configs/forge/ideas/unified-v10.json",
+    "configs/forge/ideas/unified-v11.json",
+    "configs/forge/studies/unified-v11-study.json",
+    "reports/forge/unified/README.md",
+    "reports/forge/studies/r4-solution-complete.md",
+    "reports/forge/studies/r3-unified-v4.md",
+    "reports/forge/studies/r3-calibration-holdout.md",
+    "reports/forge/studies/r4-occam-ablation-razor.md"
+  ],
+  "equations": [
+    {
+      "label": "Scale-Invariant Local k=4 Density-Ratio Orphan Gate",
+      "latex": "r_{\\mathrm{loc}}(y_j)=\\frac{d_{k=4}(y_j,X_{\\mathrm{fake}})}{d_{k=4}(y_j,Y_{\\mathrm{real}}\\setminus\\{y_j\\})},\\qquad g_{\\mathrm{orphan}}(y_j)=\\operatorname{smoothstep}\\!\\left(\\frac{r_{\\mathrm{loc}}(y_j)-3.52}{1.30}\\right)",
+      "explanation": "Detects genuinely uncaptured orphan modes invariant to per-component spatial scale, avoiding over-pulling small-scale components on heteroscedastic mixtures while rescuing equidistant shifted modes."
+    },
+    {
+      "label": "Zero-eigh Conditional Fiber Operator Cooling Law",
+      "latex": "r_{\\mathrm{cond}}=r_{\\mathrm{imq}}+\\min\\!\\left(0.5,\\;0.11\\,\\max(0,\\;r_{\\mathrm{op,worst}}-0.10)\\right),\\qquad s_{\\mathrm{step}}=1-0.85\\,\\operatorname{smoothstep}\\!\\left(\\frac{0.050-\\max(0,\\bar r_{\\mathrm{cond}})}{0.024}\\right)",
+      "explanation": "Couples hollow multi-scale IMQ-CMMD with worst-stratum cyclic-Jacobi whitened operator discrepancy to stabilize conditional reverse-diffusion chains without torch.linalg.eigh."
+    }
+  ]
+}

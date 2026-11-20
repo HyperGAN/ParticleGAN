@@ -10,7 +10,7 @@
       "benchmark/shared": 6,
       "benchmark/smart_descent": 9,
       "benchmark/toy100": 21,
-      "benchmark/toy_audit": 95,
+      "benchmark/toy_audit": 97,
       "benchmark/transfer_suite": 88,
       "config/100gaussians": 4,
       "config/cifar_ddgan": 77,
@@ -40,7 +40,7 @@
       "experiment/toy": 3,
       "experiment/trajectory": 2,
       "experiment/transition": 7,
-      "forge_engine": 126,
+      "forge_engine": 128,
       "lrfree/feature-cells-cb64-ra": 4058,
       "report/atlas-explanation": 7,
       "report/behavioral_baseline": 32,
@@ -92,7 +92,7 @@
       "report/toy100/shared22": 201,
       "report/toy100/simpler22": 180,
       "report/toy100/torch214-gpu-check": 10,
-      "report/toy_audit": 601,
+      "report/toy_audit": 611,
       "report/trajectory": 167,
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
@@ -105,7 +105,7 @@
       "candidate_patch": 26,
       "configuration": 810,
       "driver": 405,
-      "engine_support": 126,
+      "engine_support": 128,
       "evaluator_or_audit": 324,
       "evidence_artifact": 1551,
       "frozen_candidate_implementation": 15,
@@ -113,19 +113,19 @@
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
       "narrative": 975,
-      "structured_evidence": 5068,
-      "support": 1559,
+      "structured_evidence": 5070,
+      "support": 1561,
       "support_artifact": 52,
       "visualization": 23,
-      "visualization_artifact": 757
+      "visualization_artifact": 765
     },
-    "files": 11841
+    "files": 11855
   },
   "coverage": {
-    "declared_count": 11841,
+    "declared_count": 11855,
     "missing": [],
     "stale": [],
-    "tracked_count": 11841,
+    "tracked_count": 11855,
     "unclassified": [],
     "valid": true
   },
@@ -959,6 +959,13 @@
     },
     {
       "family": "benchmark/toy_audit",
+      "git_blob": "4e7cead76a890f0100de2577bdb8c6cde3f3886d",
+      "path": "benchmarks/toy_audit/api_imbalance_nash.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/toy_audit",
       "git_blob": "96601762d1b23c6cd99e0c3c30978ce599245936",
       "path": "benchmarks/toy_audit/api_infogan.py",
       "role": "support",
@@ -1075,6 +1082,13 @@
       "family": "benchmark/toy_audit",
       "git_blob": "eefb6c44f4c90928c8f77a14b0334eba94b5cdce",
       "path": "benchmarks/toy_audit/api_sources/sprite.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/toy_audit",
+      "git_blob": "31ddc76210ab43391d094d17db119213db83f88b",
+      "path": "benchmarks/toy_audit/api_t3_isolation.py",
       "role": "support",
       "suggested_tiers": []
     },
@@ -7394,14 +7408,14 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "98dd980aa461384351b0a9f8bfc52bd51aed6f6f",
+      "git_blob": "464feb98c141bc33e8a8cbaf0cd181acc2cc1593",
       "path": "experiments/forge/adapters.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
     {
       "family": "forge_engine",
-      "git_blob": "e3192e1dfefd4abea269f5589c9a3e06d9bf069a",
+      "git_blob": "382f187ce1f89bee29ebab698394f1d501fe8c58",
       "path": "experiments/forge/api.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7464,7 +7478,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "ba9947e065822025305612af0d89e1799bb22066",
+      "git_blob": "4d5bfc8d6fc3cf4db7cdbc3c14809cd4030234d2",
       "path": "experiments/forge/boundaries.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7590,7 +7604,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "be0766618723455545850cc5e8d0c2dd5018cae9",
+      "git_blob": "dfed60b0d1c4a44a9139b39c765dcc193d851715",
       "path": "experiments/forge/clockfree.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7702,7 +7716,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "934c3233d2decbb5a2ec7e7f24b939e8d3f75c27",
+      "git_blob": "a1d03eb507f8a06c270d47f159e3ac1d5fc3a0b0",
       "path": "experiments/forge/hostprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7711,6 +7725,13 @@
       "family": "forge_engine",
       "git_blob": "34d58623d95fff3211f3fa2024b65df56ba91fcb",
       "path": "experiments/forge/imageprofiles.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
+      "git_blob": "92ca154f3bb3a0355f64e306289f52ad221ce7a3",
+      "path": "experiments/forge/imbalance_nash.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
@@ -7737,7 +7758,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "759aa223e43a8c59a4248a614e8b0b983b933bcc",
+      "git_blob": "86fb1d56536e523a884cabd0c7d215dbe69a55fd",
       "path": "experiments/forge/leaderboard_contract.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7793,7 +7814,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "14dbc11fc954024922d5b942213c18e0367b5686",
+      "git_blob": "f6e4deaa40f2c4e60141484296a3108512d23554",
       "path": "experiments/forge/nativeprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7828,7 +7849,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "1509177d71e1468f0d70884c4326ba12c9f0b47b",
+      "git_blob": "a7c78844a1837abb6b16d177253d952d35936538",
       "path": "experiments/forge/planning.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8017,7 +8038,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "ca9acd24cf7279ca840087cb57c1645239672912",
+      "git_blob": "9c01465d6d5edef476c51c053b9dbe954f476e95",
       "path": "experiments/forge/sampling.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8115,7 +8136,14 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a5ca3fc02851f4c0fbe5e74d00e4f0cf27174b26",
+      "git_blob": "68f2134defa05fc00135f388f712f6f42b1fec43",
+      "path": "experiments/forge/t3_isolation.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
+      "git_blob": "bc7bff84f5672e25f6f0dc3b82b6d821ee4bce9a",
       "path": "experiments/forge/tanh_point_mass.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8129,7 +8157,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "40bff7a33515c56bc3b725104061bf2563b6f6d4",
+      "git_blob": "c10a8400a09aa61607c099ec9e3cdcf467248bdc",
       "path": "experiments/forge/technique_board.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8143,7 +8171,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "b7bafc8c96ec02fab7d37a70f1817beb222f05ba",
+      "git_blob": "4bcad0ec9b90c6e75d01a395c3e9c42c01d957bc",
       "path": "experiments/forge/techniques.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8227,7 +8255,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "dfa3eaefdb8a02bde85c2bece8ebd107e7e22879",
+      "git_blob": "7ccdb129137d4cc365b49de8a876e7386fae76da",
       "path": "experiments/forge/views.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -76703,6 +76731,55 @@
     },
     {
       "family": "report/toy_audit",
+      "git_blob": "7ad6ff7d7f322090c6b7f1b9882f7b45f9568b56",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-critic-ring16.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "d48d187d33504517fda1a8ce8b79c379f163b8b2",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-generator-ring16.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "df680d998c13a15e266064a465901cdf9923bec4",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/api-nash-unequal-width-hostile-imbalance.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "fcf22138dd5daed3e1996077b04294a8a9aa9acf",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/bcap-adam-overpowered-critic-ring16.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "3b681b52d40f70ff628332c6881a9bbf762edce2",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/bcap-adam-overpowered-generator-ring16.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "f48702b9e9b5969de72e89ca9c89441b28c460ac",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/media/bcap-adam-unequal-width-hostile-imbalance.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "1a5051252aa283b15ad2fd37fcec8953cc8ceff9",
+      "path": "reports/toy_audit/api_contract/imbalance_nash/publication.json",
+      "role": "structured_evidence",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
       "git_blob": "74fc162ac77735d4d735e2d603d2db1e5717ed64",
       "path": "reports/toy_audit/api_contract/interpolation/media/api-interp-img-patch-shift.gif",
       "role": "visualization_artifact",
@@ -78245,6 +78322,27 @@
       "family": "report/toy_audit",
       "git_blob": "808ad4b6b3278fae06801e69ca39390f5dadc05c",
       "path": "reports/toy_audit/api_contract/software-validation.json",
+      "role": "structured_evidence",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "38322676a0667bf24fb489bd783fe9598c226e11",
+      "path": "reports/toy_audit/api_contract/t3_isolation/media/api-t3-iso-horizon-saddle-shift.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "80707c5774c12c9ecf037904865dd1d485385cff",
+      "path": "reports/toy_audit/api_contract/t3_isolation/media/api-t3-iso-scale-mass-8x.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "807e5890b615dfb4a89916eb2850f4bd96b30253",
+      "path": "reports/toy_audit/api_contract/t3_isolation/publication.json",
       "role": "structured_evidence",
       "suggested_tiers": []
     },

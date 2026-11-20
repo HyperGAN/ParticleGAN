@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 3600.0,
+    "id": "minimal-v1-t4-nash-study"
+  },
+  "candidate": "minimal-v1",
+  "competing_explanation": "If removing Newton-Schulz and the critic logit secant band while keeping only pure-elementwise Marchenko-Pastur + generator pushforward secant trust fails under >548x G/D imbalance or -30-logit hostile init, minimal-v1 will collapse to <16 modes on nash_overpowered_critic_ring16.",
+  "control": {
+    "candidate_id": "t4-ctrl-bcap-adam",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "modes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "hypothesis": "Unchanged global 893-LOC zero-SVD zero-NS zero-autograd.grad minimal-v1 recovers all 16 modes on nash_overpowered_critic_ring16 and matches multimodal Nash recovery across t4_imbalance_nash_stretch under protocol seed 0.",
+  "id": "minimal-v1-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "modes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-8f0a450815d09f56bc74a678.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

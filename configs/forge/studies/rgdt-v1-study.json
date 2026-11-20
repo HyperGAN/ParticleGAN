@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "rgdt-v1-study"
+  },
+  "candidate": "rgdt-v1",
+  "competing_explanation": "If vector_unequal_width, img_bars4, and model_ddgan_gaussian_chain fail due to finite network expressivity or DualNorm step conditioning rather than scale-mass gauge conflation and unbalanced horizon starvation, then symmetric conformal horizons, orphan-gated Monge macro-slack transport, and pooled-tangent fiber residualization will either over-couple separated equal-mass modes on ring16_acquisition (component_covariance_error > 0.85) or leave vector_unequal_width failing component_covariance_error > 0.85.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Replacing scalar-horizon and homoscedastic adversarial pairing with Riemannian Gauge-Deconflicted Transport (RGDT: symmetric target-induced conformal horizon ell_Y(u,v)=sqrt(ell_Y(u)ell_Y(v)), orphan-gated bipartite Monge deficit-to-surplus macro-transport, exchangeability-invariant pooled-tangent conditional fiber residualization, and kernel-variance-softened prior regularization) resolves scale-mass gauge conflation and horizon starvation, converting vector_unequal_width (component_covariance_error <= 0.85, mass_tv <= 0.15, component_min_eigen_ratio >= 0.15), img_bars4 (modes >= 4), and model_ddgan_gaussian_chain to PASS while retaining all 13/13 Tier 1 gates on protocol seed 0.",
+  "id": "rgdt-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

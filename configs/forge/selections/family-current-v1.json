@@ -867,8 +867,8 @@
   },
   "policy_fingerprint": "fcb7ac52465e555fc6d88a1d53d92c485ae340216eafaa6fe49b03981c8f175a",
   "previous_selection": {
-    "path": "configs/forge/selections/history/family-current-f64a062e0985fd97147dc6a73592ba3b86274298d010de77ac95d8deae3b256d.json",
-    "sha256": "f64a062e0985fd97147dc6a73592ba3b86274298d010de77ac95d8deae3b256d"
+    "path": "configs/forge/selections/history/family-current-824da6ddadd82bd516459b512c064bbf4fb450af91c45fb32a4d038f8295847f.json",
+    "sha256": "824da6ddadd82bd516459b512c064bbf4fb450af91c45fb32a4d038f8295847f"
   },
   "schema_version": 1,
   "scope": "whole_candidate_family_current",
@@ -1059,6 +1059,25 @@
       "source_digest": "ee2635996fe6c877962a51a60209352dabe43ecac95fa9408eedcd6df1e948de",
       "task_keys_sha256": "0641f37bc9906579204fda6b869b8eda02b31d8472ae53a0e9089cb49a6905d4",
       "trainer_family": "rhbi"
+    },
+    {
+      "candidate_id": "unified-v11",
+      "candidate_revision": "0b9627afbd1057fa01e132ced2ed235c260f277fb912b853c5d1071d94e065d8",
+      "cohort": "491299fab237a41952c80be8bd19ce5ab7d5f6cce68a788106f7aa55870d4e08",
+      "execution_backend": "cuda",
+      "measurement_views": [
+        "discriminator_stability"
+      ],
+      "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+      "reason": "Select unified-v11 (Unified 4-Law zero-autograd.grad / zero-SVD / zero-eigh / zero-pinv formulation combining streaming Laguerre-Pythagorean prototype prior & orthogonal pullback isometry, first-order fwAD/secant Born-Infeld critic with zero-mean gauge, scale-invariant k=4 density-ratio orphan macro-transport & zero-eigh cyclic-Jacobi cross-batch conditional fiber bank, and fused Z=[X,Y] Quintic Tikhonov equilibration with analytic direction_blend) following ordinary discriminator_stability CUDA measurement on NVIDIA RTX A6000 (11/11 required Tier 1 PASS, 3/3 precision fp32/mxfp8/nvfp4 PASS, 2/2 causal isolation PASS, 3/3 extreme Nash imbalance PASS, model_ddgan_gaussian_chain PASS, 4/4 discrete images PASS, 6/6 vectors PASS, grid100 & rotated100 PASS; 41/47 executed discriminator_stability tasks PASS with 0 ERROR/TIMEOUT/BLOCKED; 6 honest numerical failures explicitly visible: five_word_joint_hold, interp_img_patch_shift, interp_saddle_barycentric, model_ae_ddgan_gaussian_chain, model_ddgan_bimodal_chain, staggered100). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
+      "recipe_sha256": "5a885f9e0dc29d0fb5f1f1ce4d80b861c0f21fbec2834197b2c53c7daaf13732",
+      "rng_sha256": "ea1838dd2440d16754beb1e1d4f3066e9e4858a393fb6a7ae0e341e34a7a744a",
+      "runtime_cohort_sha256": "42a130a78fc32c9220dd9c0fb6ecb99d6f26199d26d0dcdf467caff9ab9e3162",
+      "scientific_row_sha256": "e571c40373b11f068b7760d8913dacac40808292056e3474c2e2221c61a5284b",
+      "selection_kind": "current_measurement",
+      "source_digest": "e132cf1f36afb7dec83d173558702cb3c5facdde184405c0ad8e229f163dbdd9",
+      "task_keys_sha256": "40f4a86017b830991505f19a264e78463a2065e4dfde0b5bc86f8696a8eca335",
+      "trainer_family": "unified"
     }
   ],
   "view": "discriminator_stability"

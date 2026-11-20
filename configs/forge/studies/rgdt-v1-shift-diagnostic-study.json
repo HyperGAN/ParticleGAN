@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "rgdt-v1-shift-diagnostic-study"
+  },
+  "candidate": "rgdt-v1",
+  "competing_explanation": "If target_shift_recovery failure across clock-free trainers stems from uniform macro weight dilution or DualNorm inertia rather than finite-horizon unbalanced OT starvation after the [+1.0, 0.0] shift at step 2400, rgdt-v1 will miss the 400-step recovery deadline.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "Directly measure unchanged global clock-free rgdt-v1 on target_shift_recovery and record zero_tanh_rail_escape host-adapter BLOCKED status under protocol seed 0.",
+  "id": "rgdt-v1-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v1",
+        "candidate_revision": "aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17"
+      },
+      "path": "reports/forge/records/readout-48516a300c5fb79e2db8ccff.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

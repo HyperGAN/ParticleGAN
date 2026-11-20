@@ -1,0 +1,768 @@
+{
+  "attempt_ids": [
+    "3b3b857869ba422caf1052ccae9c5ed6",
+    "8f3663ce39954be6bdf5e1725a2cffbc",
+    "dca7d1adf1c6417892c0203fd9e56b0a"
+  ],
+  "candidate_id": "t4-nash-loss-only-adam",
+  "candidate_revision": "62f2f161eb7a1ef27fde49cbc2819a749b4da6790fa2cecb894b9611947616d7",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Directly falsifies the loss-only hypothesis: compared to t4-nash-v1 (2/3 PASS, 16/16 modes, hq=0.85-0.96), removing function-space step regulation destroys multimodal Nash convergence.",
+  "conclusion": "Causal ablation replacing T4Nash's SVD-free function-space impedance-matched optimizers with plain parameter-space Adam (keeping T4NashLoss and T4NashCriticPenalty identical) collapses to 0/3 PASS (modes=1/16, hq=0.1233 on critic_ring16; modes=3/16, hq=0.0994 on generator_ring16; min_mass_ratio=0.0, hq=0.3853 on unequal_width).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "3b3b857869ba422caf1052ccae9c5ed6",
+        "8f3663ce39954be6bdf5e1725a2cffbc",
+        "dca7d1adf1c6417892c0203fd9e56b0a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "f399acbb70ae7d9a3e6aaae878ff45f4a65b0b3f40a2a92d466a1b65a89ad133",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 1
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 1
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "3b3b857869ba422caf1052ccae9c5ed6",
+          "producer_request_id": "2d079147a24a2eeca8d0dbd9",
+          "producer_study_id": "t4-nash-loss-only-adam-stretch-study",
+          "result_hash": "c09aab43963c7b7c1157690f33d5c3dc4d6597075c2008913a8eb811c62e7742",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "8f3663ce39954be6bdf5e1725a2cffbc",
+          "producer_request_id": "2d079147a24a2eeca8d0dbd9",
+          "producer_study_id": "t4-nash-loss-only-adam-stretch-study",
+          "result_hash": "c42c3d998b0ff22a2d201004eec6034bf94ae60a608089db3939c3d7b9999aac",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "dca7d1adf1c6417892c0203fd9e56b0a",
+          "producer_request_id": "2d079147a24a2eeca8d0dbd9",
+          "producer_study_id": "t4-nash-loss-only-adam-stretch-study",
+          "result_hash": "75c0db501f3c57394b2deb8cb291949117f7d20599088e53346e5a85c8f1e1a1",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "224f566e90e6a6e2cc9b87588bd0a2401d78ba61538aff4b017d9052971bd8bd",
+        "contract_sha256": "f399acbb70ae7d9a3e6aaae878ff45f4a65b0b3f40a2a92d466a1b65a89ad133",
+        "control_binding_sha256": "11beb77724308ac1bb9f70927a7287ab7e581186c6985fae67d6492654934f97",
+        "policy_fingerprint": "b32987a0c46f11b7ee3220dc47d57fa88202ee852981ddd30fe1c2c006d646cb",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "ae79ee2aae3c019cecc399bbf88e961ea7fac695999539f38d1e2a6272be6a58"
+      },
+      "study_id": "t4-nash-loss-only-adam-stretch-study",
+      "study_sha256": "ae79ee2aae3c019cecc399bbf88e961ea7fac695999539f38d1e2a6272be6a58"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4_imbalance_nash_stretch",
+  "hypothesis": "Causal ablation: stripping T4Nash's SVD-free function-space impedance-matched optimizers down to plain parameter-space Adam while keeping T4NashLoss and T4NashCriticPenalty identical tests whether loss/transport coupling alone suffices under >600x G/D imbalance.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Cite as primary causal ablation proof of Theorem 4A.1/4A.2 in reports/forge/studies/t4-imbalance-nash.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "3b3b857869ba422caf1052ccae9c5ed6",
+        "result_hash": "c09aab43963c7b7c1157690f33d5c3dc4d6597075c2008913a8eb811c62e7742",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "8f3663ce39954be6bdf5e1725a2cffbc",
+        "result_hash": "c42c3d998b0ff22a2d201004eec6034bf94ae60a608089db3939c3d7b9999aac",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "dca7d1adf1c6417892c0203fd9e56b0a",
+        "result_hash": "75c0db501f3c57394b2deb8cb291949117f7d20599088e53346e5a85c8f1e1a1",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-53cd231b9980a87ce588ee55",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/3b3b857869ba422caf1052ccae9c5ed6/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 12000.0,
+      "candidate_budget_seconds": 1200.0,
+      "id": "t4-imbalance-nash-stretch-v1"
+    },
+    "candidate": "t4-nash-loss-only-adam",
+    "competing_explanation": "If severe >600x G/D parameter asymmetry and -30-logit hostile non-complementary initialization cause irreversible ReLU/SiLU dead zones or finite-capacity bottleneck collapse on the 32-neuron player regardless of function-space step regulation, then candidates will either stall off-manifold or collapse to <16 modes on nash_overpowered_critic_ring16 / nash_overpowered_generator_ring16.",
+    "control": {
+      "candidate_id": "t4-nash-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "modes",
+      "op": "<",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 16
+    },
+    "hypothesis": "Causal ablation: stripping T4Nash's SVD-free function-space impedance-matched optimizers down to plain parameter-space Adam while keeping T4NashLoss and T4NashCriticPenalty identical tests whether loss/transport coupling alone suffices under >600x G/D imbalance.",
+    "id": "t4-nash-loss-only-adam-stretch-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "modes",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 16
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "empf-v8",
+          "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+        },
+        "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4_imbalance_nash_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "t4-nash-loss-only-adam-stretch-study",
+  "study_sha256": "ae79ee2aae3c019cecc399bbf88e961ea7fac695999539f38d1e2a6272be6a58",
+  "task_results": [
+    {
+      "compatibility_key": "aa032c13c289cba7e78a8f1ee795025f41b8dccb2179b16f4f2c9b551659c7e0",
+      "cost": {
+        "adapter_loop_seconds": 45.00024907407351,
+        "adapter_seconds": 45.65703945606947,
+        "charged_task": "nash_unequal_width_hostile_imbalance",
+        "completed_steps": 1100,
+        "device": "0",
+        "execution_seconds": 53.04617604799569,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1100,
+          "generator": 1100,
+          "prior": 1100
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 35.32728672702797,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.39096610550768673
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.015660752542316914
+            },
+            "training_updates": {
+              "calls": 1100,
+              "seconds": 34.920659868977964
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 47.3454612439964,
+        "wall_seconds": 53.04617604799569
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 0.7807617709040642,
+        "component_core_covariance_errors": [
+          1.0,
+          0.4502595365047455,
+          0.6727875471115112,
+          1.0
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.36932599544525146,
+          0.1614380031824112,
+          0.0
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          898,
+          2038,
+          1160,
+          0
+        ],
+        "component_covariance_error": 7.542265795171261,
+        "component_covariance_errors": [
+          0.3922707736492157,
+          27.654937744140625,
+          1.1218546628952026,
+          1.0
+        ],
+        "component_mass": [
+          0.21923828125,
+          0.49755859375,
+          0.283203125,
+          0.0
+        ],
+        "component_min_eigen_ratio": 0.0,
+        "component_resolved": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "component_spill": [
+          1.0,
+          0.47105005383491516,
+          0.568965494632721,
+          1.0
+        ],
+        "covariance_error": 0.7011955380439758,
+        "finite_fraction": 1.0,
+        "hq": 0.38525390625,
+        "mass_tv": 0.28076171875,
+        "max_component_spill": 1.0,
+        "mean_error": 0.22049982845783234,
+        "min_mass_ratio": 0.0,
+        "resolved_core_covariance_error": 0.7807617709040642,
+        "resolved_core_min_eigen_ratio": 0.0,
+        "resolved_max_component_spill": 1.0,
+        "sample_count": 4096,
+        "step": 1100,
+        "sw1_normalized": 0.3106336089569791,
+        "target_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "target_scale": 2.1343955993652344
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_unequal_width_hostile_imbalance thresholds: min_mass_ratio >= 0.6, hq >= 0.82, mass_tv <= 0.18, sw1_normalized <= 0.16, resolved_core_covariance_error <= 0.65, resolved_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_unequal_width_hostile_imbalance"
+    },
+    {
+      "compatibility_key": "f30635ada134695dd25cf2f45b31b288c5846b1df8e92957b8107e35a0186bf2",
+      "cost": {
+        "adapter_loop_seconds": 53.05094607104547,
+        "adapter_seconds": 53.70623226184398,
+        "charged_task": "nash_overpowered_generator_ring16",
+        "completed_steps": 1600,
+        "device": "1",
+        "execution_seconds": 61.239849233068526,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 44.14760530600324,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.501008050981909
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.02728882571682334
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 43.61930842930451
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 55.50770840700716,
+        "wall_seconds": 61.239849233068526
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 1.5135544911026955,
+        "component_core_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.4788297414779663,
+          3.437401294708252,
+          1.0,
+          1.0,
+          1.4192463159561157,
+          1.8276346921920776,
+          3.022524118423462,
+          2.1757864952087402,
+          1.0,
+          1.8554491996765137
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.1049585342407227,
+          2.3842861652374268,
+          0.0,
+          0.0,
+          1.0162744522094727,
+          1.0914866924285889,
+          0.9457530975341797,
+          2.8386497497558594,
+          0.0,
+          0.6959719657897949
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          453,
+          101,
+          81,
+          76,
+          72,
+          200,
+          523,
+          369,
+          134,
+          41,
+          197,
+          307,
+          314,
+          321,
+          355,
+          552
+        ],
+        "component_covariance_error": 22.209498524665833,
+        "component_covariance_errors": [
+          18.943008422851562,
+          10.486260414123535,
+          7.949756145477295,
+          7.8564653396606445,
+          11.618508338928223,
+          17.002159118652344,
+          39.49830627441406,
+          18.085147857666016,
+          14.631596565246582,
+          139.1213836669922,
+          10.895286560058594,
+          7.78214693069458,
+          9.892436027526855,
+          10.404786109924316,
+          12.897274017333984,
+          18.28745460510254
+        ],
+        "component_mass": [
+          0.110595703125,
+          0.024658203125,
+          0.019775390625,
+          0.0185546875,
+          0.017578125,
+          0.048828125,
+          0.127685546875,
+          0.090087890625,
+          0.03271484375,
+          0.010009765625,
+          0.048095703125,
+          0.074951171875,
+          0.07666015625,
+          0.078369140625,
+          0.086669921875,
+          0.134765625
+        ],
+        "component_min_eigen_ratio": 1.3801748752593994,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.9950000047683716,
+          0.961759090423584,
+          0.9728997349739075,
+          1.0,
+          0.9756097793579102,
+          0.8578680157661438,
+          0.6188924908638,
+          0.6242038011550903,
+          0.8940809965133667,
+          0.9943661689758301,
+          0.8623188138008118
+        ],
+        "covariance_error": 0.4235124886035919,
+        "finite_fraction": 1.0,
+        "hq": 0.099365234375,
+        "hq_component_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          20,
+          10,
+          0,
+          1,
+          28,
+          117,
+          118,
+          34,
+          2,
+          76
+        ],
+        "mass_tv": 0.27978515625,
+        "max_component_spill": 1.0,
+        "mean_error": 0.2938641607761383,
+        "min_hq_mass_ratio": 0.0,
+        "min_mass_ratio": 0.16015625,
+        "modes": 3,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.2387985496353088,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_overpowered_generator_ring16 thresholds: modes == 16, hq >= 0.72, mass_tv <= 0.18, sw1_normalized <= 0.12, component_core_covariance_error <= 1.28, component_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_overpowered_generator_ring16"
+    },
+    {
+      "compatibility_key": "d087dd3618aca23e21ccec76fb9c5065c8466ff284a38eaccc22c7e1d1b021d7",
+      "cost": {
+        "adapter_loop_seconds": 59.06763549288735,
+        "adapter_seconds": 59.725171139929444,
+        "charged_task": "nash_overpowered_critic_ring16",
+        "completed_steps": 1600,
+        "device": "0",
+        "execution_seconds": 67.31036107498221,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 48.788387609412894,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.4308683241251856
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.01289131329394877
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 48.34462797199376
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 61.46219306997955,
+        "wall_seconds": 67.31036107498221
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 1.1799381077289581,
+        "component_core_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          3.87900972366333,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.013034462928771973,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          5,
+          22,
+          276,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3721,
+          55,
+          10,
+          3,
+          3,
+          1
+        ],
+        "component_covariance_error": 6.631857663393021,
+        "component_covariance_errors": [
+          1.0,
+          0.862393319606781,
+          4.627583026885986,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          87.77315521240234,
+          0.856458306312561,
+          0.990132749080658,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "component_mass": [
+          0.001220703125,
+          0.00537109375,
+          0.0673828125,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.908447265625,
+          0.013427734375,
+          0.00244140625,
+          0.000732421875,
+          0.000732421875,
+          0.000244140625
+        ],
+        "component_min_eigen_ratio": 0.0,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.8642838001251221,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "covariance_error": 0.8270875215530396,
+        "finite_fraction": 1.0,
+        "hq": 0.123291015625,
+        "hq_component_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          505,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "mass_tv": 0.850830078125,
+        "max_component_spill": 1.0,
+        "mean_error": 0.5920481085777283,
+        "min_hq_mass_ratio": 0.0,
+        "min_mass_ratio": 0.0,
+        "modes": 1,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.5311541473375087,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_overpowered_critic_ring16 thresholds: modes == 16, hq >= 0.8, mass_tv <= 0.18, sw1_normalized <= 0.12, component_core_covariance_error <= 0.98, component_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_overpowered_critic_ring16"
+    }
+  ]
+}

@@ -1,97 +1,73 @@
 # README 100-Gaussian visualization
 
-<!-- superseded-banner: generated -->
-> **Superseded — historical record.** Current status: [reports/forge/technique-inventory.md](../forge/technique-inventory.md).
-> Results below are preserved as recorded; statements about "current" selections, defaults,
-> leaderboards, queues or GPUs describe the time of writing.
-
 ## Current default
 
-The root `100gaussians.gif` was generated from `get_recipe()` in **0.9.0** and
-retains that exact recipe and its original receipt. The 0.9.1 README additionally
-illustrates its faster default with [actual candidate image training](../forge/bispf-throughput/README.md).
-The 100-Gaussian evidence below remains an explicitly archived 0.9.0 cohort;
-no training is repeated merely for the release. The
+The root `100gaussians.gif` was generated from `get_recipe()` in **0.11.0**
+(`DEFAULT_RECIPE = "unified_v11"`) on the explicit Forge `grid100` task-prior
+cohort (`MoGParticlePrior(num_particles=20000, z_dim=2, sigma=0.025, standardize=False)`),
+with zero technique-recipe overrides. The
 [current protocol](CURRENT_PROTOCOL.md) declares the fixed task, seed-0 public
-initialization, separate RNG streams, budget and mode-acquisition gate before
-execution. Historical K3P evidence below retains its original identity.
+deterministic initialization (`generator=0, critic=1, prior=2`), separate RNG
+streams, 7,000-update default budget and mode-acquisition gate before execution.
+The archived 0.9.0 `ParticlePrior(20000)` runs and historical K3P runs below
+are separate cohorts and retain their original identities and receipts.
 
-| Current illustration | Updates | Covered modes | Within 3σ | Mode TV ↓ | Sliced W1 ↓ | Beyond 10σ ↓ | Gate |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
-| 0.9.0 optimized BISPF, clean/live, seed 0 | 20,000 | 100/100 | 42.115% | 0.11660 | 0.15783 | 1.30% | FAIL |
+| Current illustration | Prior cohort | Updates | Covered modes | Within 3σ | Mode TV ↓ | Sliced W1 ↓ | Beyond 10σ ↓ | Gate |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 0.11.0 `unified_v11`, live/clean, seed 0 | `MoGParticlePrior(20000, σ=0.025, std=False)` | 7,000 | 100/100 | 98.520% | 0.04555 | 0.08353 | 0.400% | **PASS** |
 
-The model covers all modes, but misses the declared 95% precision goal at all
-five terminal scoring checks. The final per-mode core width ratio is 1.780
-(target 1). These observations do not qualify full Gaussian fidelity. The
-[current receipt](summary-current.json) records the exact default, initializer,
-task, controls, all terminal checks, source hashes and artifact identities.
-The requested continuation adds 13,000 updates to the exact saved 7k state;
-the recipe and schedule remain unchanged. The earlier 7k endpoint had 36.645%
-within 3σ. Its
-[receipt](https://github.com/255BITS/ParticleGAN/blob/d266a1233304fba1c7328412b258725d5f7b3593/reports/readme-100gaussians/summary-current.json)
-and [GIF](https://github.com/255BITS/ParticleGAN/blob/d266a1233304fba1c7328412b258725d5f7b3593/100gaussians.gif)
-retain their original FAIL. The extra budget modestly improves this run's endpoint
-precision, tails and width, but does not repair the precision failure.
-The continuation took 491.8 seconds; total training was 754.2 seconds on an RTX
-A6000, with no repeated prefix updates. This is not a controlled comparison
-to the old seed-1234/random-initialization animation; those results retain their
-own source and sampling contract.
+The model covers all 100 modes and passes the declared ≥95% within-3σ
+mode-acquisition gate at all five terminal scoring checks:
 
-The first 7,000 updates used source commit
-[`dd2cfd8b0`](https://github.com/255BITS/ParticleGAN/commit/dd2cfd8b0).
-The continuation used
-[`c2a3813aa`](https://github.com/255BITS/ParticleGAN/commit/c2a3813aa4e1ca0f1183542989532aeaf060bc4e)
-and verified that numerical sources, recipe, initializer and parent artifact
-hashes match. All prefix observations and scoring checks are bitwise unchanged.
-The rendering receipt separately binds the visual source to saved observations.
-Restoring the final public-API checkpoint reproduces both the plotted rows and
-the 20,000 evaluation outputs bit for bit. A four-plus-four-update resume smoke
-also matches uninterrupted execution in every model/optimizer tensor and
-training/data RNG state.
+- step `5,833`: `100/100` modes, `hq = 99.085%`, `mode_tv = 0.04390` (`PASS`)
+- step `6,125`: `100/100` modes, `hq = 98.870%`, `mode_tv = 0.04560` (`PASS`)
+- step `6,417`: `100/100` modes, `hq = 99.390%`, `mode_tv = 0.04720` (`PASS`)
+- step `6,708`: `100/100` modes, `hq = 98.635%`, `mode_tv = 0.04675` (`PASS`)
+- step `7,000`: `100/100` modes, `hq = 98.520%`, `mode_tv = 0.04555` (`PASS`)
 
-Recommendation: use this actual endpoint to illustrate the archived 0.9.0 default;
-keep the precision failure visible. Reuse the saved observations for visual
-changes. A grid-accuracy investigation would be a separate research task.
+For reference, the independent 20,000-draw oracle control scores `100/100` modes,
+`hq = 98.755%`, and `mode_tv = 0.02915`, while the collapsed zero control scores
+`0/100` modes and `hq = 0.0%`. At step 7,000, the per-mode core width ratio is
+`0.957` (`per_mode_core_std = 0.02872` vs target `σ = 0.0300`, target ratio `1`),
+and the per-mode covariance eigenvalue ratio spans `[0.812, 1.769]` across all
+100 audited modes. Training took `260.49` seconds (`263.47` seconds including
+recording overhead) on an NVIDIA RTX A6000.
 
-Reproduce this animation from its original source checkout and recorded recipe.
-The commands below describe that original checkout, whose `get_recipe()` resolved
-the 0.9.0 policy; a current-default run has a different recipe identity:
+The [current receipt](summary-current.json) records the exact resolved recipe,
+explicit `MoGParticlePrior` task cohort, initializer, controls, all terminal
+checks, source hashes, rendering receipt (`4,389,753` bytes, `960×640`, `251`
+frames at 25 fps with 2.5 s final hold), and artifact archive identities.
+Restoring the saved `final.pt` public-API checkpoint reproduces both the 4,096
+plotted rows and the 20,000 evaluation draws bit for bit; independent metric
+recomputation matches `summary-current.json`, and `render.py` rejects altered
+observation hashes and forged status verdicts.
+
+This is one fixed-seed visual illustration, not Forge qualification (see
+[reports/forge/technique-inventory.md](../forge/technique-inventory.md) for full
+Forge status, where screening calibration remains provisional/`BLOCKED` and
+remaining failures stay disclosed). Because this 0.11.0 run uses the Forge
+`grid100` `MoGParticlePrior(20000, σ=0.025, standardize=False)` task prior while
+the archived 0.9.0 runs used zero-sigma `ParticlePrior(20000)`, they are
+explicitly separate cohorts rather than a controlled prior-held-fixed comparison.
+
+Reproduce this animation from the current 0.11.0 checkout:
 
 ```bash
 CUBLAS_WORKSPACE_CONFIG=:4096:8 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
   python -u reports/readme-100gaussians/generate.py \
-  --steps 20000 --device cuda:1 --output-dir /path/to/new-run > /path/to/training.log 2>&1
+  --steps 7000 --prior-kind mog --prior-sigma 0.025 --no-standardize \
+  --device cuda:0 --output-dir /path/to/new-run > /path/to/training.log 2>&1
 tail -f /path/to/training.log
 ```
 
-Use `--device cpu` or `cuda:0` as appropriate. The output directory must be new.
-The external illustration budget defaults to 20,000 updates. The recipe remains
-exactly `get_recipe()`, including its original schedule horizon; the execution
-cap is separate. The 0.9.0 recipe's rates remain constant past its 7k horizon.
-Playback requests 250 training frames plus the untrained state, 25 fps, a
-smooth quadratic time warp and a 2.5-second final hold. The plot follows fixed
-particle IDs; trails connect saved observations. Targets are true 3σ circles.
-The right panel reports independent 20,000-draw metrics and their observed
-history; fixed scoring checks determine the terminal verdict, independently
-of media density. The command writes results and exits 1 if the gate fails.
-
-To extend a saved recording without repeating its updates:
-
-```bash
-CUBLAS_WORKSPACE_CONFIG=:4096:8 OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 \
-  python -u reports/readme-100gaussians/generate.py \
-  --resume-run /path/to/saved-run --steps 20000 --device cuda:1 \
-  --output-dir /path/to/new-20k-run > /path/to/continuation.log 2>&1
-tail -f /path/to/continuation.log
-```
-
-The continuation verifies the parent checkpoint, observations, numerical source,
-default recipe and initialization before calling `extend_execution(20000)`.
-It restores every saved stream and all optimizer state. The original scoring
-checks are retained; 24 new checks span the extension. Media can reuse only actual
-saved prefix observations, so exact frame steps and counts are recorded in the
-receipt. The continuation's `initial.pt` is the resumed start (step 7,000 here);
-the parent's `initial.pt` preserves the untrained state.
+Use `--device cpu`, `cuda:0`, or `cuda:1` as appropriate. The output directory
+must be new. Playback requests 250 training frames plus the untrained state
+(251 frames total), 25 fps, a smooth quadratic time warp and a 2.5-second final
+hold. The plot follows 4,096 fixed particle row IDs; trails connect saved
+observations. Targets are true 3σ circles. The right panel reports independent
+20,000-draw metrics and their observed history; fixed scoring checks determine
+the terminal verdict, independently of media density. The command writes results
+and exits 1 if the gate fails.
 
 Re-style the same saved observations without running training again:
 
@@ -102,10 +78,40 @@ python reports/readme-100gaussians/render.py /path/to/new-run
 `observations.npz`, complete `initial.pt`/`final.pt` checkpoints, raw
 `metrics.jsonl`, the frozen `contract.json`, `summary.json`, previews and GIF
 stay in that local output directory. The renderer verifies the observations'
-hash, schedules and verdict against the receipt. Publish only the final GIF,
-compact summary and rendering receipt. `--record-only` separates recording
-from rendering; `--steps 4 --frames 4` is a software smoke, not a passing
-scientific run. No seed sweep or best-checkpoint selection is used.
+hash, schedules and verdict against the receipt. Publish only the final GIF and
+compact summary/render receipt. `--record-only` separates recording from
+rendering; `--steps 4 --frames 4` is a software smoke, not a passing scientific
+run. No seed sweep or best-checkpoint selection is used.
+
+### Archived 0.9.0 default (ParticlePrior cohort)
+
+The prior root `100gaussians.gif` was generated from `get_recipe()` in **0.9.0**
+(`bispf_optimized`, native SVD, float32) on the zero-sigma `ParticlePrior(20000)`
+particle-cloud cohort and is preserved byte for byte in Git history:
+
+- 20,000-update continuation publication commit:
+  [`1bc01a7bf`](https://github.com/255BITS/ParticleGAN/commit/1bc01a7bf4b151c01073c35f59a1d894d0917571)
+  — archived [GIF](https://github.com/255BITS/ParticleGAN/blob/1bc01a7bf4b151c01073c35f59a1d894d0917571/100gaussians.gif)
+  (Git blob `4f97aee33969d391182338dd41a90e3c896eb11a`) and
+  [receipt](https://github.com/255BITS/ParticleGAN/blob/1bc01a7bf4b151c01073c35f59a1d894d0917571/reports/readme-100gaussians/summary-current.json)
+  (Git blob `f6f31cc543f7960c6c79d95d3e2a7e7db4eecb5b`).
+- Initial 7,000-update publication commit:
+  [`d266a1233`](https://github.com/255BITS/ParticleGAN/commit/d266a1233304fba1c7328412b258725d5f7b3593)
+  — archived [GIF](https://github.com/255BITS/ParticleGAN/blob/d266a1233304fba1c7328412b258725d5f7b3593/100gaussians.gif)
+  and [receipt](https://github.com/255BITS/ParticleGAN/blob/d266a1233304fba1c7328412b258725d5f7b3593/reports/readme-100gaussians/summary-current.json).
+
+| Archived 0.9.0 illustration | Prior cohort | Updates | Covered modes | Within 3σ | Mode TV ↓ | Sliced W1 ↓ | Beyond 10σ ↓ | Gate |
+| --- | --- | ---: | ---: | ---: | ---: | ---: | ---: | --- |
+| 0.9.0 optimized BISPF, clean/live, seed 0 | `ParticlePrior(20000)` | 20,000 | 100/100 | 42.115% | 0.11660 | 0.15783 | 1.30% | FAIL |
+| 0.9.0 optimized BISPF, clean/live, seed 0 | `ParticlePrior(20000)` | 7,000 | 100/100 | 36.645% | 0.12055 | 0.16725 | 3.39% | FAIL |
+
+The 0.9.0 model covered all modes, but missed the declared 95% precision goal at
+all five terminal scoring checks (final 20k per-mode core width ratio `1.780`,
+total training `754.2` seconds on an RTX A6000 across source commits
+[`dd2cfd8b0`](https://github.com/255BITS/ParticleGAN/commit/dd2cfd8b0) and
+[`c2a3813aa`](https://github.com/255BITS/ParticleGAN/commit/c2a3813aa4e1ca0f1183542989532aeaf060bc4e)).
+The 0.9.1 README additionally illustrated its faster default with
+[actual candidate image training](../forge/bispf-throughput/README.md).
 
 ## Historical runs
 

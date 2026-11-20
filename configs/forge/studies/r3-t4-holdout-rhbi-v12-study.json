@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 30000,
+    "candidate_budget_seconds": 30000,
+    "id": "r3-t4-holdout-rhbi-v12-study"
+  },
+  "candidate": "rhbi-v12",
+  "competing_explanation": "If rhbi-v12 silently bypassed missing stretch host adapters or failed its declared grid100 prerequisite contract on the unified ff9b14b78 source cohort, Tier-4 preflight or gate outcomes would deviate from frozen adapter boundaries.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "all_finite",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 1
+  },
+  "hypothesis": "Audit frozen rhbi-v12 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).",
+  "id": "r3-t4-holdout-rhbi-v12-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "all_finite",
+    "op": "==",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 1
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v12",
+        "candidate_revision": "2f133c575e3553b119ce8b3742a3d16dddb72c8cb07a4b33fbfe5ceff4e693eb"
+      },
+      "path": "reports/forge/records/readout-47591bd9555febfe3409fd0d.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r3-tier4-frontier-holdout-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

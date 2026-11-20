@@ -601,6 +601,31 @@
       ]
     },
     {
+      "task": "model_ddgan_bimodal_chain",
+      "title": "Learn four-step conditional reverse transitions on a bimodal diffusion chain (DDGAN)",
+      "intent": "Train a four-step public-API DDGAN on a 2D two-mode Gaussian mixture forward diffusion chain (unlocked only after passing model_ddgan_gaussian_chain) so every reverse conditional transition (`t1..t4`, `q0`/`q1`) and the final ancestral two-mode marginal satisfy mode coverage, mass TV, projection CDF, mean, and covariance eigenvalue bounds across the last five checks.",
+      "problem": "Selected `unified-v11` is the first selected family recipe to pass `model_ddgan_gaussian_chain` and unlock `model_ddgan_bimodal_chain`, achieving strong final ancestral mode recovery (`final_hq = 0.9478`, `final_mode_mass_tv = 0.0376`, `8/24` passing checks) while retaining excessive outer-tail `t1_q0` variance (`t1_q0_covariance_eigen_max = 3.1085`, `t1_q0_normalized_mean = 0.7189`) without exact SVD DualNorm smoothing.",
+      "pass_summary": "No ordinary selected-family PASS yet; research candidate `cond-fiber-v1` passed with 8 consecutive terminal checks in bounded Round-3 research.",
+      "passers": [
+        "Research candidate `cond-fiber-v1` passed `model_ddgan_bimodal_chain` (`confirmed_step = 4375`, `worst_transition_cdf = 0.2034`, `final_normalized_mean = 0.1929`, `final_covariance_eigen_max = 1.0293`) using exact SVD DualNorm smoothing + CondFiberBank (`reports/forge/studies/r3-conditional-ddgan.md`)."
+      ],
+      "next_step": "Control outer-tail `t1_q0` high-curvature overshoot in the zero-SVD/zero-eigh `unified_v11` conditional fiber bank without regressing `model_ddgan_gaussian_chain` or unconditional multimodal tasks.",
+      "evidence": [
+        {
+          "label": "Round-3 conditional DDGAN study (cond-fiber-v1)",
+          "path": "reports/forge/studies/r3-conditional-ddgan.md"
+        },
+        {
+          "label": "Round-4 solution-complete study (unified-v11)",
+          "path": "reports/forge/studies/r4-solution-complete.md"
+        },
+        {
+          "label": "Task declaration",
+          "path": "configs/forge/tasks/model_ddgan_bimodal_chain.json"
+        }
+      ]
+    },
+    {
       "task": "model_ae_ddgan_gaussian_chain",
       "title": "Pair particle AE reconstruction with four-step DDGAN reverse transitions and ancestral generation",
       "intent": "Reconstruct held-out inputs through a learned particle autoencoder and four public DDGAN reverse steps (`paired_nmse <= 0.10`, `paired_worst_axis_nrmse <= 0.25`, `paired_shuffled_gain >= 3.0`) while simultaneously passing all conditional reverse-transition and independent ancestral-chain bounds.",

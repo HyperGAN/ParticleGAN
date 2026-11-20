@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "r4-razor-no-ns-v2-t4-nash-study"
+  },
+  "candidate": "r4-razor-no-ns-v2",
+  "competing_explanation": "If Quintic NS is required alongside realized secant trust bands for >500x Nash imbalance, r4-razor-no-ns will fail at least one t4_imbalance_nash_stretch task.",
+  "control": {
+    "candidate_id": "unified-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 0.85
+  },
+  "hypothesis": "Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves 3/3 PASS on t4_imbalance_nash_stretch (>500x G/D imbalance & hostile -30-logit init).",
+  "id": "r4-razor-no-ns-v2-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "r4-razor-no-ns",
+        "candidate_revision": "d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f"
+      },
+      "path": "reports/forge/records/readout-fcfec5e8ae1c8411f818fa8f.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

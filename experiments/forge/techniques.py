@@ -133,6 +133,56 @@ def technique_signature(value):
         mechanisms["rhbi_cvx_mu"] = True
     if recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0 and recipe.rhbi_tail_spill_gain > 0:
         mechanisms["rhbi_tail_spill"] = True
+    if recipe.prior_regularizer in {"t1_pullback", "unified"} and recipe.t1_pullback_weight > 0:
+        mechanisms["t1_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["t1_pullback_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["t1_prior_condensation"] = True
+    if recipe.optimizer_family == "t4_equil":
+        mechanisms["t4_equil_optimizer"] = True
+    if recipe.optimizer_family == "unified_equil":
+        mechanisms["unified_equil_optimizer"] = True
+    if recipe.optimizer_family == "unified_v11_equil":
+        mechanisms["unified_v11_equil_optimizer"] = True
+    if recipe.optimizer_family in {"r4_mp_no_ns", "r4_no_secant_band"}:
+        mechanisms[f"{recipe.optimizer_family}_optimizer"] = True
+    if recipe.prior_regularizer in {"unified_v4", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe"} and recipe.t1_pullback_weight > 0:
+        mechanisms["unified_v4_pullback"] = True
+        if recipe.prior_regularizer != "unified_v4":
+            mechanisms[f"r4_ablation_{recipe.prior_regularizer}"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["unified_v4_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["unified_v4_condensation"] = True
+    if recipe.prior_regularizer == "unified_v11" and recipe.t1_pullback_weight > 0:
+        mechanisms["unified_v11_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["unified_v11_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["unified_v11_condensation"] = True
+    if recipe.prior_regularizer == "minimal" and recipe.t1_pullback_weight > 0:
+        mechanisms["minimal_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["minimal_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["minimal_condensation"] = True
+    if recipe.prior_regularizer == "t4_arch" and recipe.t1_pullback_weight > 0:
+        mechanisms["t4_arch_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["t4_arch_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["t4_arch_condensation"] = True
+    if recipe.t1c_weight > 0:
+        mechanisms["t1c_transport"] = True
+        if recipe.t1c_chart_weight > 0:
+            mechanisms["t1c_chart_commitment"] = True
+        if recipe.t1c_multiscale_horizon:
+            mechanisms["t1c_multiscale_horizon"] = True
+        if recipe.t1c_cond_drift_deconflict and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0:
+            mechanisms["t1c_cond_drift_deconflict"] = True
+    if recipe.t1c_grad_deconflict > 0 and recipe.optimizer_family == "dualnorm":
+        mechanisms["t1c_grad_deconflict"] = True
     if recipe.optimizer_smoothing:
         mechanisms["smoothed_dualnorm"] = True
     if recipe.optimizer_family in {"dualnorm_D_only", "particle_rownorm_only"}:
@@ -188,7 +238,7 @@ def recipe_field_active(name, value, *, task=None):
     if name == "optimizer_momentum":
         return recipe.optimizer_family in {"dualnorm", "dualnorm_D_only"}
     if name == "optimizer_smoothing":
-        return recipe.optimizer_family == "dualnorm"
+        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band"}
     if name == "optimizer_convolution":
         return recipe.optimizer_family == "dualnorm"
     if name == "optimizer_convolution_rule":
@@ -236,9 +286,9 @@ def recipe_field_active(name, value, *, task=None):
         return prior_active and recipe.prior_regularizer == "coulomb" and recipe.prior_reg > 0
     if name in {"prior_reg_target_std", "prior_reg_eps"} and recipe.prior_reg == 0:
         return False
-    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf"}:
+    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"}:
         return False
-    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf"}:
+    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"}:
         return False
     if name in {"prior_sigreg_projections", "prior_sigreg_knots"}:
         return prior_active and recipe.prior_regularizer == "sigreg" and recipe.prior_reg > 0
@@ -248,60 +298,72 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.kinetic_transport_local_weight > 0
     if name == "kinetic_transport_projections":
         return recipe.kinetic_transport_weight > 0 or recipe.kinetic_transport_local_weight > 0
+    active_bi_weight = recipe.rhbi_weight > 0 or recipe.t1c_weight > 0 or recipe.effective_critic_formulation in {"unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber"}
+    active_bi_form = recipe.effective_critic_formulation in {"rhbi", "t1_coupling", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber"}
     if name == "rhbi_weight":
         return recipe.rhbi_weight > 0
+    if name == "t1c_weight":
+        return recipe.t1c_weight > 0
+    if name in {"t1c_chart_weight", "t1c_multiscale_horizon"}:
+        return recipe.t1c_weight > 0
+    if name in {"t1c_chart_capacity", "t1c_halo_mult"}:
+        return recipe.t1c_weight > 0 and recipe.t1c_chart_weight > 0
+    if name == "t1c_grad_deconflict":
+        return recipe.optimizer_family == "dualnorm" and recipe.t1c_grad_deconflict > 0
+    if name == "t1c_cond_drift_deconflict":
+        return recipe.t1c_weight > 0 and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0
     if name == "rhbi_critic_weight":
         return recipe.rhbi_critic_weight > 0
     if name in {"rhbi_self_coupling", "rhbi_relativistic_weight", "rhbi_slack_gain", "rhbi_thermal_tau"}:
-        return recipe.rhbi_weight > 0
+        return active_bi_weight
     if name == "rhbi_thermal_shock_mu":
-        return recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0
+        return active_bi_weight and recipe.rhbi_thermal_tau > 0
     if name in {"rhbi_lambda_floor", "rhbi_gamma_gauge", "rhbi_chord_weight", "rhbi_settle_beta"}:
-        return recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0
+        return active_bi_form and recipe.reg_coeff > 0
     if name == "rhbi_settle_mode":
-        return recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_settle_beta > 0
+        return active_bi_form and recipe.reg_coeff > 0 and recipe.rhbi_settle_beta > 0
     if name == "rhbi_akt_horizon":
-        return recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0 or (
-            recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0
+        return active_bi_weight or recipe.rhbi_critic_weight > 0 or (
+            active_bi_form and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0
         )
     if name == "rhbi_akt_mode":
         return recipe.rhbi_akt_horizon and (
-            recipe.rhbi_weight > 0
+            active_bi_weight
             or recipe.rhbi_critic_weight > 0
-            or (recipe.effective_critic_formulation == "rhbi" and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0)
+            or (active_bi_form and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0)
         )
     if name == "rhbi_fibre_rel_blend":
         return (
-            recipe.effective_critic_formulation == "rhbi"
-            or recipe.rhbi_weight > 0
+            active_bi_form
+            or active_bi_weight
             or recipe.rhbi_critic_weight > 0
         ) and recipe.rhbi_conditional_fibre == "slack"
     if name == "rhbi_step_damp":
         return (
-            (recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0)
+            (active_bi_form or active_bi_weight or recipe.rhbi_critic_weight > 0)
             and recipe.optimizer_family not in {"formulation", "adam"}
             and recipe.rhbi_thermal_tau > 0
         )
     if name == "rhbi_cond_ot_weight":
-        return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack"
+        return active_bi_weight and recipe.rhbi_conditional_fibre == "slack"
     if name == "rhbi_cond_ot_mode":
-        return recipe.rhbi_weight > 0 and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0
+        return active_bi_weight and recipe.rhbi_conditional_fibre == "slack" and recipe.rhbi_cond_ot_weight > 0
     if name == "rhbi_cond_step_damp":
         return (
-            recipe.rhbi_weight > 0
+            active_bi_weight
             and recipe.rhbi_conditional_fibre == "slack"
             and recipe.rhbi_cond_ot_weight > 0
             and recipe.rhbi_cond_ot_mode == "diag_imq_cmmd"
             and recipe.optimizer_family not in {"formulation", "adam"}
         )
     if name == "rhbi_simplex_weight":
-        return recipe.rhbi_weight > 0
+        return active_bi_weight
     if name == "rhbi_simplex_chart_weight":
-        return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0
+        return active_bi_weight and recipe.rhbi_simplex_weight > 0
     if name in {"rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle"}:
-        return recipe.rhbi_weight > 0 and recipe.rhbi_simplex_weight > 0 and recipe.rhbi_simplex_chart_weight > 0
+        return active_bi_weight and recipe.rhbi_simplex_weight > 0 and recipe.rhbi_simplex_chart_weight > 0
     if name == "rhbi_support_completion":
-        return recipe.rhbi_weight > 0
+        return active_bi_weight
     if name == "rhbi_ae_coord_whiten":
         if recipe.encoder_mode == "ae":
             return True
@@ -310,7 +372,17 @@ def recipe_field_active(name, value, *, task=None):
         host_def = execution.get("host_definition", {})
         return execution.get("host") == "ae_gan_hold" or host_def.get("encoder_mode") == "ae"
     if name in {"rhbi_cvx_mu_gain", "rhbi_tail_spill_gain"}:
-        return recipe.rhbi_weight > 0 and recipe.rhbi_thermal_tau > 0
+        return active_bi_weight and recipe.rhbi_thermal_tau > 0
     if name in {"rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_iters", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre"}:
-        return recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0
+        return active_bi_weight or recipe.rhbi_critic_weight > 0
+    if name == "t1_pullback_weight":
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0
+    if name in {"t1_iso_weight", "t1_max_prototypes"}:
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0
+    if name in {"t1_laguerre_lr", "t1_prior_row_lr"}:
+        return prior_active and recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0 and recipe.t1_prior_row_lr > 0
+    if name == "rgdt_macro_slack_weight":
+        return recipe.effective_critic_formulation in {"rgdt", "unified_v4", "unified_v11", "r4_autograd_critic"}
+    if name in {"rgdt_conformal_horizon", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight"}:
+        return recipe.effective_critic_formulation == "rgdt"
     return True

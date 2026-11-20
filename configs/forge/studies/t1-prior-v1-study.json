@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-prior-v1-study"
+  },
+  "candidate": "t1-prior-v1",
+  "competing_explanation": "If 100-mode lattice precision failure (grid100, rotated100) and multi-scale/discrete mode collapse (vector_unequal_width, vector_unequal_mass, img_bars4) are dominated by critic architectural capacity or require full O(B^2) pairwise Sinkhorn + CPU SVD rather than latent-prior topology and G/prior pullback coupling, then replacing EMPF's isotropic moment tether with Gersho-Laguerre pullback condensation and isometric chart scaling in O(B*K*D) will either fail grid100 precision (< 0.75), regress Tier 1 required gates, or break clockfree_audit_measurement_v1.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.75
+  },
+  "hypothesis": "Under one global clock-free, schedule-free recipe on protocol seed 0, decoupling smooth generator chart transport + Gersho local pullback kernel isometry (Part A) from Kantorovich-Laguerre mass-balanced latent island condensation inside an isometric cloud envelope (Part B) in O(B*K*D) time passes all Tier 1 required gates and clockfree_audit_measurement_v1 while converting grid100 (100/100 modes, precision >= 0.75, sustained coverage + accuracy pass), rotated100, img_bars4, img_blobs4, img_intensity2, vector_unequal_width, vector_unequal_mass, vector_anisotropic, and vector_overlap at >2x faster step throughput than rhbi-v12.",
+  "id": "t1-prior-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.75
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "rhbi-v12",
+        "candidate_revision": "fd37d721d016fd222020c4a7a0c8deb835010fec7eaa2e5d9bc9ff1456efbfcd"
+      },
+      "path": "reports/forge/records/readout-9917dee7ebd20eedc0310687.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

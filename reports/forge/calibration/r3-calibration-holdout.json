@@ -1,0 +1,341 @@
+{
+  "adoption": "BLOCKED",
+  "calibration_blockers": {
+    "criteria_max_smoke_to_reference_ratio": 0.1,
+    "criteria_max_smoke_wall_seconds": 900.0,
+    "current_scope_reports_blocked": 11,
+    "negative_control_id": "r3-negctrl-unreg-adam",
+    "negative_control_true_reject_verified": true,
+    "reference_positives_observed": 0,
+    "reference_set_size": 16,
+    "rev19_smoke_to_reference_ratio_unified_v3": 0.7009,
+    "rev19_tier1_required_count": 11,
+    "rev19_tier1_wall_seconds_unified_v3": 1229.0,
+    "rev19_tier2_wall_seconds_unified_v3": 1753.5,
+    "t4_arch_v3_reference_failures": [
+      "unipolar",
+      "vector_unequal_mass",
+      "vector_anisotropic"
+    ],
+    "t4_arch_v3_reference_passes": 13,
+    "unified_v3_reference_failures": [
+      "grid100"
+    ],
+    "unified_v3_reference_passes": 15
+  },
+  "criteria_id": "calibration-criteria-v1",
+  "criteria_sha256": "6eac2531eed68e392c11a57328999ac5dce509f8fe51d23e7b9031b7a4e3f9d1",
+  "default_recipe": "empf",
+  "evidence_scope": "research_diagnostic",
+  "gpu_model": "NVIDIA RTX A6000",
+  "id": "r3-calibration-holdout",
+  "initializer": "deterministic_orthogonal",
+  "protocol_seed": 0,
+  "report_path": "reports/forge/studies/r3-calibration-holdout.md",
+  "schema_version": 1,
+  "source_commit": "ff9b14b78",
+  "studies": {
+    "r3-t3-holdout-empf-v8-study": {
+      "attempt_count": 13,
+      "candidate_id": "empf-v8",
+      "candidate_revision": "039950bf79df2a79cecc2ff8bc2ad3d84752723c0bfd9aa5a22dedc178e25556",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 3,
+        "INCOMPLETE": 1,
+        "OTHER": 0,
+        "PASS": 10
+      },
+      "readout_path": "reports/forge/records/readout-d0f74bbbd3c76f240c0e2729.json",
+      "readout_record_id": "readout-d0f74bbbd3c76f240c0e2729",
+      "spent_seconds": 3822.586,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_smoke": "INCOMPLETE",
+        "grid100": "FAIL",
+        "mode_hold": "PASS",
+        "ring_extension": "PASS",
+        "ring_hold": "PASS",
+        "rotated100": "FAIL",
+        "staggered100": "FAIL",
+        "target_shift_recovery": "PASS",
+        "two_pole": "PASS",
+        "unused_token_hold": "PASS",
+        "zero_tanh_rail_escape": "PASS",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t3-holdout-negctrl-study": {
+      "attempt_count": 11,
+      "candidate_id": "r3-negctrl-unreg-adam",
+      "candidate_revision": "b5e2766672bb9a19b2426775c3b3e918c95113aca4f7464007c9308654143835",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 8,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 3
+      },
+      "readout_path": "reports/forge/records/readout-07a5dd7f26c48345c7a9f35f.json",
+      "readout_record_id": "readout-07a5dd7f26c48345c7a9f35f",
+      "spent_seconds": 532.594,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_smoke": "FAIL",
+        "grid100": "FAIL",
+        "mode_hold": "FAIL",
+        "rotated100": "FAIL",
+        "staggered100": "FAIL",
+        "two_pole": "FAIL",
+        "unused_token_hold": "FAIL",
+        "zero_tanh_rail_escape": "FAIL",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t3-holdout-rgdt-v3-study": {
+      "attempt_count": 13,
+      "candidate_id": "rgdt-v3",
+      "candidate_revision": "f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 4,
+        "INCOMPLETE": 1,
+        "OTHER": 0,
+        "PASS": 9
+      },
+      "readout_path": "reports/forge/records/readout-a01d9274e8c48786bbd562d4.json",
+      "readout_record_id": "readout-a01d9274e8c48786bbd562d4",
+      "spent_seconds": 5984.846,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_smoke": "INCOMPLETE",
+        "grid100": "FAIL",
+        "mode_hold": "PASS",
+        "ring_extension": "PASS",
+        "ring_hold": "PASS",
+        "rotated100": "FAIL",
+        "staggered100": "FAIL",
+        "target_shift_recovery": "PASS",
+        "two_pole": "PASS",
+        "unused_token_hold": "PASS",
+        "zero_tanh_rail_escape": "FAIL",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t3-holdout-rhbi-v12-study": {
+      "attempt_count": 13,
+      "candidate_id": "rhbi-v12",
+      "candidate_revision": "c8ceb0973a8346d6bf0e53ab6d9b97144d797f93ed066252b3a128a1e448c010",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 5,
+        "INCOMPLETE": 1,
+        "OTHER": 0,
+        "PASS": 8
+      },
+      "readout_path": "reports/forge/records/readout-a97cc4411799f84fe22dec86.json",
+      "readout_record_id": "readout-a97cc4411799f84fe22dec86",
+      "spent_seconds": 3840.636,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_smoke": "INCOMPLETE",
+        "grid100": "FAIL",
+        "mode_hold": "PASS",
+        "ring_extension": "PASS",
+        "ring_hold": "PASS",
+        "rotated100": "FAIL",
+        "staggered100": "FAIL",
+        "target_shift_recovery": "FAIL",
+        "two_pole": "PASS",
+        "unused_token_hold": "PASS",
+        "zero_tanh_rail_escape": "FAIL",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t3-holdout-t4-arch-v3-study": {
+      "attempt_count": 15,
+      "candidate_id": "t4-arch-v3",
+      "candidate_revision": "1110cf4ed9a561fc55b6bd4f0c1daf1e66fbce7c20218693f87e3f3d9fe55015",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 2,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 13
+      },
+      "readout_path": "reports/forge/records/readout-ff22843954240927dfd7ecc3.json",
+      "readout_record_id": "readout-ff22843954240927dfd7ecc3",
+      "spent_seconds": 4214.963,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_hold": "FAIL",
+        "five_word_joint_smoke": "PASS",
+        "grid100": "PASS",
+        "grid100_14k": "PASS",
+        "mode_hold": "FAIL",
+        "rotated100": "PASS",
+        "rotated100_14k": "PASS",
+        "staggered100": "PASS",
+        "staggered100_14k": "PASS",
+        "two_pole": "PASS",
+        "unused_token_hold": "PASS",
+        "zero_tanh_rail_escape": "PASS",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t3-holdout-unified-v3-study": {
+      "attempt_count": 15,
+      "candidate_id": "unified-v3",
+      "candidate_revision": "349254f0ccb8b447c1d86e6e6c5d3f03689936ab0c1145802753fc58bea4e912",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 2,
+        "INCOMPLETE": 1,
+        "OTHER": 0,
+        "PASS": 13
+      },
+      "readout_path": "reports/forge/records/readout-3a8aa62939f0e420f0d08ed2.json",
+      "readout_record_id": "readout-3a8aa62939f0e420f0d08ed2",
+      "spent_seconds": 6060.66,
+      "task_statuses": {
+        "ae_gan_hold": "PASS",
+        "clockfree_audit": "PASS",
+        "five_word_joint_smoke": "INCOMPLETE",
+        "grid100": "FAIL",
+        "mode_hold": "PASS",
+        "ring_extension": "PASS",
+        "ring_hold": "PASS",
+        "rotated100": "PASS",
+        "rotated100_14k": "PASS",
+        "staggered100": "PASS",
+        "staggered100_14k": "PASS",
+        "target_shift_recovery": "PASS",
+        "two_pole": "PASS",
+        "unused_token_hold": "PASS",
+        "zero_tanh_rail_escape": "FAIL",
+        "zero_tanh_smoke": "PASS"
+      }
+    },
+    "r3-t4-holdout-empf-v8-study": {
+      "attempt_count": 1,
+      "candidate_id": "empf-v8",
+      "candidate_revision": "039950bf79df2a79cecc2ff8bc2ad3d84752723c0bfd9aa5a22dedc178e25556",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 1,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 0
+      },
+      "readout_path": "reports/forge/records/readout-c0ac30cc7b69526e535b9091.json",
+      "readout_record_id": "readout-c0ac30cc7b69526e535b9091",
+      "spent_seconds": 0.0,
+      "task_statuses": {
+        "grid100": "FAIL"
+      }
+    },
+    "r3-t4-holdout-negctrl-study": {
+      "attempt_count": 1,
+      "candidate_id": "r3-negctrl-unreg-adam",
+      "candidate_revision": "b5e2766672bb9a19b2426775c3b3e918c95113aca4f7464007c9308654143835",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 1,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 0
+      },
+      "readout_path": "reports/forge/records/readout-edae8af27f75b55c971db675.json",
+      "readout_record_id": "readout-edae8af27f75b55c971db675",
+      "spent_seconds": 0.0,
+      "task_statuses": {
+        "grid100": "FAIL"
+      }
+    },
+    "r3-t4-holdout-rgdt-v3-study": {
+      "attempt_count": 1,
+      "candidate_id": "rgdt-v3",
+      "candidate_revision": "f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 1,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 0
+      },
+      "readout_path": "reports/forge/records/readout-d547ba37dabfc5ab66eca538.json",
+      "readout_record_id": "readout-d547ba37dabfc5ab66eca538",
+      "spent_seconds": 0.0,
+      "task_statuses": {
+        "grid100": "FAIL"
+      }
+    },
+    "r3-t4-holdout-rhbi-v12-study": {
+      "attempt_count": 1,
+      "candidate_id": "rhbi-v12",
+      "candidate_revision": "c8ceb0973a8346d6bf0e53ab6d9b97144d797f93ed066252b3a128a1e448c010",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 1,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 0
+      },
+      "readout_path": "reports/forge/records/readout-51a0d5590d041ce50f3ce174.json",
+      "readout_record_id": "readout-51a0d5590d041ce50f3ce174",
+      "spent_seconds": 0.0,
+      "task_statuses": {
+        "grid100": "FAIL"
+      }
+    },
+    "r3-t4-holdout-t4-arch-v3-study": {
+      "attempt_count": 4,
+      "candidate_id": "t4-arch-v3",
+      "candidate_revision": "1110cf4ed9a561fc55b6bd4f0c1daf1e66fbce7c20218693f87e3f3d9fe55015",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 0,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 4
+      },
+      "readout_path": "reports/forge/records/readout-4acf96c2efad5e17f86d9df2.json",
+      "readout_record_id": "readout-4acf96c2efad5e17f86d9df2",
+      "spent_seconds": 2162.675,
+      "task_statuses": {
+        "grid100": "PASS",
+        "grid100_mlp16": "PASS",
+        "grid100_res16_scaled_tanh": "PASS",
+        "grid100_res16_tanh": "PASS"
+      }
+    },
+    "r3-t4-holdout-unified-v3-study": {
+      "attempt_count": 1,
+      "candidate_id": "unified-v3",
+      "candidate_revision": "349254f0ccb8b447c1d86e6e6c5d3f03689936ab0c1145802753fc58bea4e912",
+      "observed_counts": {
+        "BLOCKED": 0,
+        "FAIL": 1,
+        "INCOMPLETE": 0,
+        "OTHER": 0,
+        "PASS": 0
+      },
+      "readout_path": "reports/forge/records/readout-14efe09d667072696e386290.json",
+      "readout_record_id": "readout-14efe09d667072696e386290",
+      "spent_seconds": 0.0,
+      "task_statuses": {
+        "grid100": "FAIL"
+      }
+    }
+  },
+  "total_gpu_seconds": 26618.961,
+  "views": [
+    "r3-tier3-long-horizon-holdout-v1",
+    "r3-tier4-frontier-holdout-v1"
+  ]
+}

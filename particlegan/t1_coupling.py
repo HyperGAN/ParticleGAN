@@ -1,0 +1,46 @@
+"""Public Track 1B Deconflicted Piecewise Coupling surface."""
+from __future__ import annotations
+
+from ._t1_coupling import (
+    T1CouplingCriticAdam,
+    T1CouplingCriticPenalty,
+    T1CouplingGANLoss,
+    T1CouplingLoss,
+    T1CouplingStepRecord,
+    _T1CouplingObserverStepRecord,
+    _T1CouplingPenaltyKernel,
+    _attach_t1_coupling_critic_hook,
+    attach_generator_deconflict_hooks,
+    bind_t1_coupling_record,
+    chart_effective_alpha,
+    clear_generator_deconflict_captures,
+    compute_chart_valley_gate,
+    deconflicted_chart_routing,
+    deconflicted_polar_step,
+    laguerre_hard_commitment,
+    project_chart_features,
+    project_transport_features,
+    update_streaming_charts,
+)
+
+__all__ = [
+    "T1CouplingCriticAdam",
+    "T1CouplingCriticPenalty",
+    "T1CouplingGANLoss",
+    "T1CouplingLoss",
+    "T1CouplingStepRecord",
+    "_T1CouplingObserverStepRecord",
+    "_T1CouplingPenaltyKernel",
+    "_attach_t1_coupling_critic_hook",
+    "attach_generator_deconflict_hooks",
+    "bind_t1_coupling_record",
+    "chart_effective_alpha",
+    "clear_generator_deconflict_captures",
+    "compute_chart_valley_gate",
+    "deconflicted_chart_routing",
+    "deconflicted_polar_step",
+    "laguerre_hard_commitment",
+    "project_chart_features",
+    "project_transport_features",
+    "update_streaming_charts",
+]
