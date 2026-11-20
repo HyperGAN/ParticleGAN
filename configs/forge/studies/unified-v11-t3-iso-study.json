@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600.0,
+    "candidate_budget_seconds": 3600.0,
+    "id": "unified-v11-t3-iso-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If k=4 local-NN density-ratio gating either under-triggers on shifted modes or over-triggers on the 8x broad cluster, unified-v11 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "hypothesis": "Scale-invariant k=4 local-NN density-ratio orphan gating in v11_zero_eigh_bipartite_deficit_macro_loss paired with scaled direct-cloud prior row smoothing restores 2/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+  "id": "unified-v11-t3-iso-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.45
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-15aafd6ce00180e64ecd23fc.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3_causal_isolation_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
