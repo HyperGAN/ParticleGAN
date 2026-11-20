@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "id": "t3_iso_horizon_saddle_shift",
+  "description": "Eliminate Theory-1 continuous generator topology (G=nn.Identity(), direct 128-particle zero-sigma cloud) and verify Theory-2 critic smoothness (critic_grad_med <= 1.0) across a step-300 2->4 equidistant orthogonal mode expansion in R^4 (+-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2), sigma=0.05, 42.4-sigma valley) with a paired step-300 frozen control.",
+  "adapter": "t3_isolation",
+  "retained_question_ids": [
+    "stretch-t3-iso-horizon-saddle-shift"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/studies/t3-third-piece-proof.md",
+    "api_publication": "reports/toy_audit/api_contract/t3_isolation/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "t3_iso_horizon_saddle_shift",
+    "steps": 1000,
+    "execution_path": "public_components",
+    "prior_applicability": "not_sampled",
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Direct data-space zero-sigma ParticlePrior with parameterless G = nn.Identity() required to eliminate Theory-1 continuous generator topology completely while isolating Theory-3 dynamics."
+    },
+    "protocol": "screening",
+    "produces_state": false,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-t3-iso-horizon-saddle-shift",
+      "kind": "t3_iso_horizon_saddle_shift",
+      "target": "R^4 orthogonal mode expansion +-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2) at step 300 (sigma=0.05, 42.4-sigma valley) with step-300 frozen control",
+      "resources": {
+        "num_particles": 128,
+        "z_dim": 4,
+        "batch_size": 128
+      },
+      "model": {
+        "generator": "nn.Identity (0 trainable parameters; direct data-space ParticlePrior)",
+        "discriminator_family": "smooth_silu_mlp",
+        "hidden": 64,
+        "layers": 2,
+        "in_dim": 4
+      },
+      "shift_step": 300,
+      "steps": 1000
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "learned_particles_and_critic_gradient",
+    "eval_output_noise": "not_applied_to_measurement",
+    "scoring_weights": "live",
+    "kind": "t3_iso_horizon_saddle_shift",
+    "eval_samples": 2048,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "discriminator"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "critic_grad_med",
+        "<=",
+        1.0
+      ],
+      [
+        "pre_shift_hq",
+        ">=",
+        0.92
+      ],
+      [
+        "modes",
+        "==",
+        4
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.12
+      ],
+      [
+        "hq",
+        ">=",
+        0.92
+      ],
+      [
+        "frozen_control_modes",
+        "==",
+        2
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_t3_isolation.py": "dfd940a1c56daf5adf68f5eaff5e58fba4b6c1128b61d19c7ba71a5c516f7e25",
+      "experiments/forge/t3_isolation.py": "058a6b88a8eb1e85becf38c27c38e5b97895f924924336f3217959d24a205220"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "public_components",
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": []
+}

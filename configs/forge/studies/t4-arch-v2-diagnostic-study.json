@@ -1,0 +1,73 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "t4-arch-v2-diagnostic-study"
+  },
+  "candidate": "t4-arch-v2",
+  "competing_explanation": "If 16-layer unscaled residual skip blowup, S=5.25 tanh boundary anisotropy, TanhRailGuard clamped-coordinate nullspace, and tanh saturation rail deadlock cannot be simultaneously resolved by one clock-free SVD-free recipe without task-specific tuning, then t4-arch-v2 will either fail zero_tanh_rail_escape (mean_abs_error > 0.005) or regress grid100_mlp16, grid100_res16_tanh, or grid100_res16_scaled_tanh.",
+  "control": {
+    "candidate_id": "t4-arch-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "With deterministic CUDA quantile sensitivity, axis-aware [K, D] pushforward variance compensation + isotropy-gated cooling, and direct outward coordinate Jacobian sensitivity probing on far outlier rows, unchanged global clock-free SVD-free t4-arch-v2 passes all 7/7 tasks of t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0.",
+  "id": "t4-arch-v2-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-arch-v1",
+        "candidate_revision": "4b40d6f2fa410d183846f22d7d8e147cdcdb01dbe6f2c549f7255d7a2cfebf0a"
+      },
+      "path": "reports/forge/records/readout-2b160a70b11093992b400283.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-a2d41a678887a49f9ecc6aa9.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t1-prior-v2",
+        "candidate_revision": "bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0"
+      },
+      "path": "reports/forge/records/readout-379720b9859815defff0efaa.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

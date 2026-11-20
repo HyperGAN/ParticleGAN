@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "0cac1ec591b045e19d19e9c46e8dd51e",
+    "9fa802464a214c9fb14e710c62bae95a"
+  ],
+  "candidate_id": "empf-v8",
+  "candidate_revision": "4b7b21a5cd270052c4f199a39bca1fdf78a8cc5601aec7331a852e1dd8599f3b",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Against rgdt-v3 (2/2 PASS, core_cov_err=0.1965, core_min_eigen_ratio=0.5874, shift mass_tv=0.1094), default empf-v8 collapses broad-mode eigenvalues (0.0680) and distorts post-shift mode share (0.2109) even with zero continuous generator topology and smooth critic slopes.",
+  "conclusion": "empf-v8 scores 0/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x FAIL: core_component_covariance_error=0.6316 > 0.45, core_min_eigen_ratio=0.0680 < 0.45 with critic_grad_med=0.0994 <= 1.0; t3_iso_horizon_saddle_shift FAIL: mass_tv=0.2109 > 0.12 with critic_grad_med=0.3180 <= 1.0).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "0cac1ec591b045e19d19e9c46e8dd51e",
+        "9fa802464a214c9fb14e710c62bae95a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "9bebabbf9fccb889580fbf5e40ee99d94230dd9bcde8465951f4cfeb08eaca6a",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 0.06798452736036366
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 0.06798452736036366
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "0cac1ec591b045e19d19e9c46e8dd51e",
+          "producer_request_id": "2894623409548fa6f5e821c5",
+          "producer_study_id": "t3-iso-stretch-empf",
+          "result_hash": "d55fb91cf014010a4fc3aab7d20ac6f4ebb719d31be2869868b48ef90909a9bd",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9fa802464a214c9fb14e710c62bae95a",
+          "producer_request_id": "2894623409548fa6f5e821c5",
+          "producer_study_id": "t3-iso-stretch-empf",
+          "result_hash": "e512314763c3f1f4a73373ea8c9a74431a1abdb67b6c1fd2821a26fbb651f2d8",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "bb71dbba2e8b32e4aa4c366d3717ab8d3fcf179c0eebc8f7bb09cdfb605af43c",
+        "contract_sha256": "9bebabbf9fccb889580fbf5e40ee99d94230dd9bcde8465951f4cfeb08eaca6a",
+        "control_binding_sha256": "20496576cfaa9e709eccc98e943e334795eef976f66622ba295189bc5b22a038",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "99db195f1dd511b297f54d2661135b141b2a81617c43d5ecb314291ed890f374"
+      },
+      "study_id": "t3-iso-stretch-empf",
+      "study_sha256": "99db195f1dd511b297f54d2661135b141b2a81617c43d5ecb314291ed890f374"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Test whether empf-v8 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as default-family isolation control in reports/forge/studies/t3-third-piece-proof.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "0cac1ec591b045e19d19e9c46e8dd51e",
+        "result_hash": "d55fb91cf014010a4fc3aab7d20ac6f4ebb719d31be2869868b48ef90909a9bd",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9fa802464a214c9fb14e710c62bae95a",
+        "result_hash": "e512314763c3f1f4a73373ea8c9a74431a1abdb67b6c1fd2821a26fbb651f2d8",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-7e0c315962234ea1c2c2ba3f",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/0cac1ec591b045e19d19e9c46e8dd51e/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "t3-iso-stretch-empf"
+    },
+    "candidate": "empf-v8",
+    "competing_explanation": "If Theory 3 reduces to continuous generator topology (Theory 1) or unbounded critic sharpness (Theory 2), then scalar-horizon and 1-Lipschitz baselines will pass both generator-free smooth-critic benchmarks without conformal horizon normalization or Monge macro-transport.",
+    "control": {
+      "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Test whether empf-v8 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+    "id": "t3-iso-stretch-empf",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "rgdt-v2",
+          "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+        },
+        "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "t3-iso-stretch-empf",
+  "study_sha256": "99db195f1dd511b297f54d2661135b141b2a81617c43d5ecb314291ed890f374",
+  "task_results": [
+    {
+      "compatibility_key": "0dab7da1fbd125deb42d42124257398be3f8c493ea9121a898d893e46e25f985",
+      "cost": {
+        "adapter_loop_seconds": 39.6528609090019,
+        "adapter_seconds": 39.96532662399113,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "1",
+        "eval_seconds": 0.10110601526685059,
+        "execution_seconds": 46.88751245592721,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 41.45882977405563,
+        "train_seconds": 35.30145542183891,
+        "wall_seconds": 46.88751245592721
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.631624252845786,
+        "core_min_eigen_ratio": 0.06798452736036366,
+        "critic_grad_med": 0.09944391995668411,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 1.1237640136523437,
+        "hq": 0.986328125,
+        "mass_tv": 0.030781246721744537,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_scale_mass_8x thresholds: core_component_covariance_error <= 0.45, core_min_eigen_ratio >= 0.45",
+      "task_id": "t3_iso_scale_mass_8x"
+    },
+    {
+      "compatibility_key": "1a3c6c9b6755e1abf2c35f03ac019e4c1d75995f118627a5b0613727f46a9c30",
+      "cost": {
+        "adapter_loop_seconds": 55.969910494983196,
+        "adapter_seconds": 56.29125094297342,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "0",
+        "eval_seconds": 0.13716287771239877,
+        "execution_seconds": 63.32885799417272,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 57.85243938304484,
+        "train_seconds": 51.50343252252787,
+        "wall_seconds": 63.32885799417272
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.6962250361412752,
+        "critic_grad_med": 0.3179945945739746,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 0.953125,
+        "mass_tv": 0.2109375,
+        "modes": 4,
+        "pre_shift_hq": 0.984375,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_horizon_saddle_shift thresholds: mass_tv <= 0.12",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    }
+  ]
+}

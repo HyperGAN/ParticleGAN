@@ -570,18 +570,21 @@ def test_misgan_tasks_host_definition_particles_declared():
 
 def test_stretch_formulation_tasks_graders_and_preflight():
     """Unsupported hosts refuse admission; numerical graders retain their exact gates."""
+    from benchmarks.toy_audit.api_imbalance_nash import build_models_for_spec
     from experiments.forge.adapters import adapter_preflight
+    from experiments.forge.imbalance_nash import IMBALANCE_NASH_KINDS, _contract_payload as _nash_contract_payload
     from experiments.forge.interpolation import INTERPOLATION_KINDS, _contract_payload
     from experiments.forge.mechanisms import NAMES as MECHANISM_NAMES
     from experiments.forge.priors import RECIPE_PRIOR_CONTRACT
-    from experiments.forge.sampling import ENUMERATED_PRIOR_CLEAN, PUBLIC_PRIOR_CLEAN, executed_receipt
+    from experiments.forge.sampling import ENUMERATED_PRIOR_CLEAN, PARTICLES_AND_GRADIENT, PUBLIC_PRIOR_CLEAN, executed_receipt
+    from experiments.forge.t3_isolation import T3_ISOLATION_KINDS
     from experiments.forge.vectorprofiles import STRETCH_VECTOR_HOSTS
     from experiments.forge.views import STRETCH_EVALUATOR_KINDS, grade_result
     from ops.formulaic_coverage import STRETCH_FIXTURE_TASKS, adapt_candidate_for_task, load_candidate_card
 
     tasks = load_tasks(ROOT)
     assert STRETCH_VECTOR_HOSTS == STRETCH_FIXTURE_TASKS
-    assert STRETCH_EVALUATOR_KINDS == STRETCH_FIXTURE_TASKS | {"zero_tanh_rail_escape"} | INTERPOLATION_KINDS
+    assert STRETCH_EVALUATOR_KINDS == STRETCH_FIXTURE_TASKS | {"zero_tanh_rail_escape"} | INTERPOLATION_KINDS | T3_ISOLATION_KINDS | IMBALANCE_NASH_KINDS
     for tid in sorted(STRETCH_FIXTURE_TASKS):
         t = deepcopy(tasks[tid])
         for cid in ("bispf-optimized-quintic-v1", "atlas-particle-normal-v4"):
@@ -609,13 +612,21 @@ def test_stretch_formulation_tasks_graders_and_preflight():
                     steps,
                 }
             )
-        sampling_law = ENUMERATED_PRIOR_CLEAN if tid in INTERPOLATION_KINDS else PUBLIC_PRIOR_CLEAN
+        if tid in INTERPOLATION_KINDS:
+            sampling_law = ENUMERATED_PRIOR_CLEAN
+            noise_mode = "clean"
+        elif tid in T3_ISOLATION_KINDS:
+            sampling_law = PARTICLES_AND_GRADIENT
+            noise_mode = "not_applied_to_measurement"
+        else:
+            sampling_law = PUBLIC_PRIOR_CLEAN
+            noise_mode = "clean"
         base_ev = {
-            **executed_receipt(sampling_law, eval_output_noise="clean"),
+            **executed_receipt(sampling_law, eval_output_noise=noise_mode),
             "scoring_weights": "live",
             "prior_policy": {
                 "contract": RECIPE_PRIOR_CONTRACT,
-                "applicability": "latent_prior",
+                "applicability": "not_sampled" if tid in T3_ISOLATION_KINDS else "latent_prior",
                 "update": "learned",
                 "trainable_locations": True,
                 "regularizer": "vicreg",
@@ -626,7 +637,11 @@ def test_stretch_formulation_tasks_graders_and_preflight():
             },
             "guards": {
                 "all_finite": True,
-                "optimizer_updates": {"generator": steps, "discriminator": steps, "prior": steps},
+                "optimizer_updates": {
+                    "generator": 0 if tid in T3_ISOLATION_KINDS else steps,
+                    "discriminator": steps,
+                    "prior": steps,
+                },
                 "hooks_exercised": True,
                 "mechanism_audit": {
                     "mechanisms": {
@@ -640,9 +655,33 @@ def test_stretch_formulation_tasks_graders_and_preflight():
         if tid in INTERPOLATION_KINDS:
             base_ev["interpolation_contract"] = _contract_payload(tid, t["execution"]["host_definition"])
             base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
+        elif tid in T3_ISOLATION_KINDS:
+            res_spec = t["execution"]["host_definition"]["resources"]
+            base_ev["t3_isolation_contract"] = {
+                "schema_version": 1,
+                "kind": tid,
+                "generator_class": "Identity",
+                "generator_trainable_params": 0,
+                "prior_code_path": "ParticlePrior",
+                "sigma": 0.0,
+                "num_particles": res_spec["num_particles"],
+                "z_dim": res_spec["z_dim"],
+            }
+            base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
+        elif tid in IMBALANCE_NASH_KINDS:
+            spec = t["execution"]["host_definition"]
+            g_ref, d_ref = build_models_for_spec(spec, z_dim=int(spec["resources"]["z_dim"]))
+            base_ev["imbalance_nash_contract"] = _nash_contract_payload(
+                tid,
+                spec,
+                g_params=sum(p.numel() for p in g_ref.parameters()),
+                d_params=sum(p.numel() for p in d_ref.parameters()),
+            )
+            base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
         obs_pass = [{"step": s, **passing_metrics} for s in ckpts]
         obs_fail = [{"step": s, **failing_metrics} for s in ckpts]
-        live_pass = {"step": steps, **passing_metrics} if tid in INTERPOLATION_KINDS else passing_metrics
-        live_fail = {"step": steps, **failing_metrics} if tid in INTERPOLATION_KINDS else failing_metrics
+        has_step_live = tid in (INTERPOLATION_KINDS | T3_ISOLATION_KINDS | IMBALANCE_NASH_KINDS)
+        live_pass = {"step": steps, **passing_metrics} if has_step_live else passing_metrics
+        live_fail = {"step": steps, **failing_metrics} if has_step_live else failing_metrics
         assert grade_result(t, {"evidence": {**base_ev, "observations": obs_pass, "live": live_pass}})["status"] == "PASS"
         assert grade_result(t, {"evidence": {**base_ev, "observations": obs_fail, "live": live_fail}})["status"] == "FAIL"

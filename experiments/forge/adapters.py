@@ -66,6 +66,12 @@ def adapter_preflight(task, candidate, *, root=None):
     if adapter == "particle_interpolation":
         from .interpolation import preflight
         return preflight(task, candidate, root=root)
+    if adapter == "t3_isolation":
+        from .t3_isolation import preflight
+        return preflight(task, candidate, root=root)
+    if adapter == "imbalance_nash":
+        from .imbalance_nash import preflight
+        return preflight(task, candidate, root=root)
     from .tier1_policy import is_policy_task
     if is_policy_task(task):
         from .tier1_policy import validate
@@ -516,22 +522,36 @@ def _vector(request, task, output, device, *, retain_scored_outputs=True):
             from benchmarks.toy_audit.ring16_quality import score_samples
         else:
             raise CapabilityError([f"unsupported vector sample evaluator: {scorer}"])
-    from .tanh_point_mass import accepts_origin_smoke, refuse_unsupported_tanh
+    from .tanh_point_mass import (
+        accepts_origin_smoke,
+        accepts_rail_escape,
+        refuse_unsupported_tanh,
+        sample_rail_escape_target,
+        score_rail_escape_samples,
+    )
     from .vectorprofiles import build_vector_models, resolve_vector_spec
     # Routing refusal is independent of card validation. An unsupported tanh
-    # host, including zero_tanh_rail_escape, stops here.
+    # host stops here; published zero_tanh_smoke and zero_tanh_rail_escape route cleanly.
     refuse_unsupported_tanh(task, task.get("execution", {}).get("host_definition"))
     spec = resolve_vector_spec(task)
     # The frozen vector law has no tanh branch. Only the published origin
-    # smoke card is redirected; every other host keeps the import above.
+    # smoke and rail-escape cards are redirected; every other host keeps the import above.
     tanh_smoke = scorer is None and accepts_origin_smoke(task, spec)
+    tanh_rail_escape = scorer is None and accepts_rail_escape(task, spec)
     if tanh_smoke:
         from .tanh_point_mass import sample_target, score_samples
+    elif tanh_rail_escape:
+        sample_target = lambda card_spec, count, rng, completed_steps: sample_rail_escape_target(
+            task, card_spec, count, rng, completed_steps
+        )
+        score_samples = lambda fake, card_spec, completed_steps: score_rail_escape_samples(
+            fake, task, card_spec, completed_steps
+        )
     # Oracle noise floors are reporting-only fields next to the frozen vector
     # scorer's gates. An eval_draw_contract other than fixed_v1 is an explicit,
     # versioned new evaluation cohort (see metric_uncertainty).
     from benchmarks.transfer_suite import metric_uncertainty
-    plain_vector = scorer is None and not tanh_smoke
+    plain_vector = scorer is None and not tanh_smoke and not tanh_rail_escape
     contract = task["evaluation"].get("eval_draw_contract", "fixed_v1")
     metric_uncertainty.evaluation_seeds(contract, 0)
     if contract != "fixed_v1" and not plain_vector:
@@ -549,6 +569,13 @@ def _vector(request, task, output, device, *, retain_scored_outputs=True):
     data = context.streams.generator("data", component="target", purpose="training", device="cpu")
     observations, records = [], []
     checkpoints = set(_checkpoints(task))
+    if tanh_rail_escape:
+        shift_step = int(task["execution"]["shift_step"])
+        deadline = int(task["evaluation"].get("recovery_deadline", 400))
+        total_budget = int(task["execution"]["steps"])
+        for extra_step in (shift_step - 1, shift_step + deadline, total_budget):
+            if 1 <= extra_step <= total_budget:
+                checkpoints.add(extra_step)
     batch_digest = hashlib.sha256()
     def evaluate():
         samples = run.sample(4096).cpu()
@@ -679,14 +706,19 @@ def _native(request, task, output, device, *, prerequisites=None, diagnostic=Fal
     from benchmarks.toy100.metrics import evaluate_samples
     from benchmarks.toy100.accuracy_evidence import AccuracyEvidence
     from benchmarks.toy100.train import evaluation_steps
-    from .nativeprofiles import build_native_models, resolve_native_spec, validate_native_continuation
+    from .nativeprofiles import (
+        build_declared_native_models,
+        build_native_models,
+        resolve_native_spec,
+        validate_native_continuation,
+    )
     problem = task["execution"]["problem"]
     evaluation = task["evaluation"]
     spec = resolve_native_spec(task)
     if task["execution"].get("continuation_of"):
         validate_native_continuation(request["tasks"][task["execution"]["continuation_of"]], task)
     context = _context(request, task, device, spec["resources"] if spec else task["execution"]["resources"])
-    g, d = build_native_models(context, spec) if spec else _models(context, task["execution"]["model"])
+    g, d = build_native_models(context, spec) if spec else build_declared_native_models(context, task["execution"]["model"])
     prefix_cap = context.recipe.total_steps
     if task["execution"].get("preserve_prefix_steps") and prefix_cap is None:
         # A schedule-free recipe has no horizon; its producer's external cap
@@ -745,9 +777,10 @@ def _native(request, task, output, device, *, prerequisites=None, diagnostic=Fal
     # Only a registered as-served policy cohort keeps the learned output noise;
     # its run measurement law then applies it to the holdout draws as well.
     served = run.measurement is not None and run.measurement.output_noise
+    early_eval_steps = list(evaluation.get("early_eval_steps", [0, 1, 10, 25, 50, 100]))
     config = {"problem": problem, "steps": task["execution"]["steps"], "device": str(device),
               "seed": request["protocol"]["seed"], "eval_interval": evaluation["eval_interval"],
-              "early_eval_steps": evaluation["early_eval_steps"], "eval_samples": evaluation["eval_samples"],
+              "early_eval_steps": early_eval_steps, "eval_samples": evaluation["eval_samples"],
               "snapshot_samples": min(4096, evaluation["eval_samples"]),
               "eval_output_noise": run.measurement.law if served else "clean",
               "forge_recipe": context.recipe.to_dict(), "forge_prior": context.prior_config}
@@ -832,6 +865,12 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
         return run(request, task, output_dir, device)
     if adapter == "particle_interpolation":
         from .interpolation import run
+        return run(request, task, output_dir, device)
+    if adapter == "t3_isolation":
+        from .t3_isolation import run
+        return run(request, task, output_dir, device)
+    if adapter == "imbalance_nash":
+        from .imbalance_nash import run
         return run(request, task, output_dir, device)
     from .tier1_policy import blocked_host, is_policy_task
     if blocked_host(task) is not None:

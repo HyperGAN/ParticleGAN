@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v10-t4-arch-study"
+  },
+  "candidate": "unified-v10",
+  "competing_explanation": "If unifying Law 4 Quintic polar depth-scaling, fwAD saturation pullback, and outward column-sensitivity clamp rescue with Laws 1-3 inside unified-v10 interferes with deep vanishing-gradient or tanh rail-clamped architectures, unified-v10 will fail one or more of the 7 t4-strange-architectures-v1 gates.",
+  "control": {
+    "candidate_id": "t2-secant-v5",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "Unchanged global clock-free zero-SVD zero-autograd.grad unified-v10 achieves 7/7 (100%) PASS on t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0.",
+  "id": "unified-v10-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v9",
+        "candidate_revision": "a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77"
+      },
+      "path": "reports/forge/records/readout-45107d16afdf5bb8dc138497.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -213,7 +213,19 @@ def test_all_current_tier1_tier2_bindings_admit_sigreg_after_source_refresh():
     candidate = json.loads((ROOT / "configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json").read_text())
     candidate["recipe_overrides"].update(prior_regularizer="sigreg", prior_reg=.001)
     view = json.loads((ROOT / "configs/forge/views/discriminator_stability.json").read_text())
+    # Stretch hosts that bind one declared formulation report BLOCKED for any
+    # other recipe instead of substituting it; they are excluded with a reason
+    # and must keep reporting the blocker (never a silent admission).
+    excluded = {
+        "wide_conditional_spread": "stretch host binds clean EMPF critic and EMPF prior regularizer only "
+                                   "(experiments/forge/conditional_spread.py:context_for)",
+    }
     for row in view["assignments"]:
+        if row["task"] in excluded:
+            assert row["importance"] == "stretch", row["task"]
+            task = json.loads((ROOT / "configs/forge/tasks" / (row["task"] + ".json")).read_text())
+            assert adapter_preflight(task, candidate, root=ROOT), excluded[row["task"]]
+            continue
         if row["qualification_tier"] <= 2:
             task = json.loads((ROOT / "configs/forge/tasks" / (row["task"] + ".json")).read_text())
             # Source-bound model cards require their original checkout or a

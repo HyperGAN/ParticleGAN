@@ -20,7 +20,7 @@ from benchmarks.toy_audit.api_interpolation import (
 from experiments.forge.adapters import adapter_preflight, run_task
 from experiments.forge.priors import prior_code_path, prior_noise_sigma
 from experiments.forge.state import state_digest
-from experiments.forge.views import grade_result, load_tasks
+from experiments.forge.views import grade_result, load_tasks, load_view
 from particlegan import ParticlePrior, unwrap_prior
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -33,11 +33,17 @@ def _load_task(name: str) -> dict:
 
 
 def test_interpolation_stretch_preserves_view_chain_and_required_assignments():
-    view = json.loads((ROOT / "configs/forge/view-history/discriminator_stability-v17.json").read_text())
-    v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    view = load_view(ROOT, "discriminator_stability")
+    v19 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v18 = json.loads((ROOT / v19["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
-    assert view["revision"] == 17 and view["previous_revision"]["revision"] == 16
-    assert [a for a in view["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
+    assert view["revision"] == 20 and view["previous_revision"]["revision"] == 19
+    assert [a for a in view["assignments"] if a["task"] != "wide_conditional_spread"] == v19["assignments"]
+    assert [a for a in v19["assignments"] if not a["task"].startswith("nash_")] == v18["assignments"]
+    assert [a for a in v18["assignments"] if not a["task"].startswith("t3_iso_")] == v17["assignments"]
+    assert [a for a in v17["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
     assert [a for a in view["assignments"] if a["importance"] == "required"] == [
         a for a in v15["assignments"] if a["importance"] == "required"
     ]

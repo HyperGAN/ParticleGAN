@@ -33,7 +33,7 @@ TRAINER_STREAM_BINDINGS = {
 BUILTIN_CAPABILITIES = (
     "public_trainer", "public_components", "scalar_gan", "mog_prior", "particle_cloud", "learned_locations",
     "uniform_masses", "fixed_prior_width", "a2", "checkpoint", "named_rng", "live_sampling",
-    "policy_controls", "policy_serving", "served_sampling",
+    "policy_controls", "policy_serving", "served_sampling", "secant_critic",
 )
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
@@ -124,7 +124,7 @@ def task_recipe_resources(task):
         return {"num_particles": LOCKED_SHARED.n_particles, "z_dim": 4, "batch_size": 128}
     if adapter in {"native100", "native100_continuation"} and "native_profile" in execution:
         return deepcopy(execution["host_definition"]["resources"])
-    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation"}:
+    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation", "t3_isolation", "imbalance_nash"}:
         return deepcopy(execution["host_definition"]["resources"])
     return deepcopy(execution.get("resources", {}))
 
@@ -270,7 +270,7 @@ def task_formulation_context(candidate, task, protocol=None, *, device="cpu", ro
                       extension_recipe_bindings=context.bindings["recipe"])
     if context.recipe.constraint_geometry_mode != "none":
         if (context.execution_path == "public_components"
-                and task["adapter"] != "public_api_model_toy"
+                and task["adapter"] not in {"public_api_model_toy", "t3_isolation"}
                 and task["execution"].get("host") not in COMPONENT_OBJECTIVE_HOSTS):
             raise CapabilityError(["constraint_geometry protected-loss hook is unavailable for this host"])
         if context.recipe.constraint_geometry_mode == "strict_progress" and (
@@ -287,6 +287,7 @@ PUBLIC_TRAINER_POLICY_ADAPTERS = frozenset({
     "transfer_vector", "transfer_image", "native100", "native100_continuation",
     "ring_endurance", "paired_adaptation", "clockfree_audit",
     "word_joint", "public_api_model_toy", "transfer_behavior", "particle_interpolation",
+    "t3_isolation", "imbalance_nash",
 })
 
 
@@ -456,7 +457,29 @@ def default_registry():
     Add a supported ExtensionSpec here after implementing its public API field;
     ordinary Recipe fields require no extension declaration.
     """
-    return CapabilityRegistry()
+    reg = CapabilityRegistry()
+    for name, vtype, arg, desc in (
+        ("t1c_chart_weight", "float", "t1c_chart_weight", "Track 1B Laguerre single-chart commitment weight"),
+        ("t1c_chart_capacity", "int", "t1c_chart_capacity", "Track 1B persistent multi-batch chart bank capacity"),
+        ("t1c_halo_mult", "float", "t1c_halo_mult", "Track 1B C^1 intra-chart halo dead-zone multiplier"),
+        ("t1c_multiscale_horizon", "bool", "t1c_multiscale_horizon", "Track 1B symmetric conformal multi-scale horizon"),
+        ("t1c_grad_deconflict", "float", "t1c_grad_deconflict", "Track 1B activation-gram whitened generator polar blend"),
+        ("t1c_cond_drift_deconflict", "bool", "t1c_cond_drift_deconflict", "Track 1B exchangeable conditional fiber drift subtraction"),
+    ):
+        reg.register_extension(
+            ExtensionSpec(
+                name,
+                vtype,
+                "recipe",
+                arg,
+                desc,
+                checkpoint=f"Recipe.{arg} + critic record t1_coupling packet",
+                gradient_ownership="T1CouplingLoss / NormalizedOptimizer",
+                optimizer_binding="Recipe.make_optimizers",
+                initialization="deterministic zero-RNG online initialization",
+            )
+        )
+    return reg
 
 
 def _resolved_prior(value):
@@ -603,6 +626,7 @@ class FormulationContext:
                 "policy_controls": policy_controls(self.recipe),
                 "policy_serving": self.recipe.serve_average > 0,
                 "served_sampling": bool(self.policy_task) and policy_controls(self.recipe),
+                "secant_critic": self.recipe.effective_critic_formulation in ("t2_secant", "unified", "unified_v4", "cond_fiber"),
                 **{name: True for name in self.extension_values}}
 
     def _check_capabilities(self):

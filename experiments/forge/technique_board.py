@@ -43,6 +43,11 @@ DEFAULT_LABELS = {
     "rhbi-v10": "RHBI (v10)",
     "rhbi-v11": "RHBI (v11)",
     "rhbi-v12": "RHBI",
+    "t1-coupling-v1": "T1-Coupling (v1)",
+    "t1-coupling-v2": "T1-Coupling (v2)",
+    "t1-coupling-v3": "T1-Coupling (v3)",
+    "t1-coupling-v4": "T1-Coupling (v4)",
+    "t1-coupling-v5": "T1-Coupling (v5)",
 }
 ARCHIVED_SCOPES = ("pinned", "calibration_diagnostic", "research_diagnostic", "historical")
 

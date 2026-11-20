@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-coupling-v1-study"
+  },
+  "candidate": "t1-coupling-v1",
+  "competing_explanation": "Hard single-chart Laguerre commitment (t1c_chart_weight=1.0, t1c_halo_mult=2.1) or activation-gram whitened generator polar steps (t1c_grad_deconflict=0.5) could induce intra-mode covariance shrinkage on unimodal/anisotropic tasks (gaussian1d_stability, vector_anisotropic), conformal multi-scale horizons (t1c_multiscale_horizon=true) could weaken rare-mode support completion on vector_unequal_mass, or pure-FP32 Born-Infeld + newton_schulz_hybrid_v1 could regress Tier 1 BiGAN/quantized precision gates relative to rhbi-v12.",
+  "control": {
+    "candidate_id": "rhbi-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Replacing minibatch-only unbalanced screening and CPU-LAPACK float64 transport in rhbi-v12 with Track 1B Deconflicted Piecewise Coupling (persistent multi-batch Laguerre hard chart commitment with C^1 halo dead-zone and absent-chart shielding, position-symmetric conformal multi-scale horizons, activation-gram whitened generator polar steps, exchangeable conditional drift subtraction, and pure-FP32 / 8x8 pooled / newton_schulz_hybrid_v1 / bf16_channels_last execution) under one global clock-free recipe resolves disconnected-mode ghosting and multi-scale conflation (e.g. img_bars4 modes == 4 and vector_unequal_width mass_tv <= 0.15, resolved_core_covariance_error <= 0.50) while achieving EMPF-class GPU step throughput on seed 0.",
+  "id": "t1-coupling-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "resolved_core_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.5
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v12",
+        "candidate_revision": "fd37d721d016fd222020c4a7a0c8deb835010fec7eaa2e5d9bc9ff1456efbfcd"
+      },
+      "path": "reports/forge/records/readout-9917dee7ebd20eedc0310687.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

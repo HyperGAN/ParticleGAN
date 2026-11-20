@@ -461,12 +461,8 @@ def test_zero_tanh_smoke_card_runs_through_transfer_vector_and_sample_target(tmp
     assert samples.shape == (4096, 2) and torch.isfinite(samples).all() and torch.all(samples.abs() < 1)
 
 
-def test_zero_tanh_rail_escape_is_refused_at_validation_and_routing(tmp_path):
-    """The Tier-3 rail-escape card is a tanh host with no routed law.
-
-    Validation and transfer_vector routing each raise CapabilityError.
-    The frozen vector law is left unchanged, so this card is not sampled.
-    """
+def test_zero_tanh_rail_escape_routes_and_unregistered_tanh_host_is_refused(tmp_path):
+    """zero_tanh_rail_escape routes through its shift law; unregistered tanh hosts still raise CapabilityError."""
     from experiments.forge.vectorprofiles import resolve_vector_spec
 
     card = json.loads((ROOT / "configs/forge/tasks/zero_tanh_rail_escape.json").read_text())
@@ -475,7 +471,20 @@ def test_zero_tanh_rail_escape_is_refused_at_validation_and_routing(tmp_path):
     assert card["evaluation"]["kind"] == "zero_tanh_rail_escape"
     host = card["execution"]["host_definition"]
     assert host["output_activation"] == "tanh" and "kind" not in host
-    with pytest.raises(CapabilityError, match="unsupported tanh host zero_tanh_rail_escape"):
-        resolve_vector_spec(card)
-    with pytest.raises(CapabilityError, match="unsupported tanh host zero_tanh_rail_escape"):
-        adapters.run_task(request(card), {"task_id": card["id"]}, tmp_path, "cpu")
+    assert resolve_vector_spec(card) == host
+
+    short = deepcopy(card)
+    short["execution"]["steps"] = 2
+    short["execution"]["shift_step"] = 2
+    short["evaluation"]["recovery_deadline"] = 0
+    raw = adapters.run_task(request(short), {"task_id": short["id"]}, tmp_path / "rail", "cpu")
+    assert [pt["step"] for pt in raw["evidence"]["observations"]] == [1, 2]
+    assert grade_result(short, raw)["gate_status"] in ("PASS", "FAIL")
+
+    unregistered = deepcopy(card)
+    unregistered["id"] = "unregistered_tanh_host"
+    unregistered["evaluation"]["kind"] = "unregistered_tanh_host"
+    with pytest.raises(CapabilityError, match="unsupported tanh host unregistered_tanh_host"):
+        resolve_vector_spec(unregistered)
+    with pytest.raises(CapabilityError, match="unsupported tanh host unregistered_tanh_host"):
+        adapters.run_task(request(unregistered), {"task_id": unregistered["id"]}, tmp_path / "unreg", "cpu")

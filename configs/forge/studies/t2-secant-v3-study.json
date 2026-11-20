@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t2-secant-v3-study"
+  },
+  "candidate": "t2-secant-v3",
+  "competing_explanation": "If model_ae_gan_multimodal's 1.0627 component_center_rms_sigma in t2-secant-v2 arose from intrinsic forward-AD frame rotation noise rather than chord_blend=0.35 and unweighted cross-mode basis-slot pairing, then setting chord_blend=0.05 and distance-tempering slot weights will still leave component_center_rms_sigma > 1.0 and block Tier 2.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "model_ae_gan_multimodal",
+    "threshold": 1.0
+  },
+  "hypothesis": "Aligning chord_blend=0.05, replacing cuSOLVER QR with zero-sync analytical Householder O(d) reflections, and exponentially tempering cross-mode basis-slot neighbor weights exp(-d2_nn / (0.25 * med_d2)) clears model_ae_gan_multimodal (component_center_rms_sigma <= 1.0) and precision_gaussian_fp32 (cdf_ks <= 0.05), achieving 11/11 required + 2/2 diagnostic Tier 1 PASS and unlocking full Tier 2 discriminator_stability evaluation (including gaussian1d_stability, five_word_joint_hold, mode_hold, vector_*, img_*, grid100) under protocol seed 0 with zero autograd.grad calls.",
+  "id": "t2-secant-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "model_ae_gan_multimodal",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v2",
+        "candidate_revision": "df7276fde2ba7f96acf28f4e1d436462892335eabe6691c7916014bf84a9eb45"
+      },
+      "path": "reports/forge/records/readout-d1539c52c610cf0b249ed2e5.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-33f7628135472eef06f0d92a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

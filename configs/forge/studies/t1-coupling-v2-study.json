@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-coupling-v2-study"
+  },
+  "candidate": "t1-coupling-v2",
+  "competing_explanation": "Quota-capped Laguerre Monge commitment (t1c_chart_weight=1.0, t1c_halo_mult=1.65) or disconnected-gated activation-gram whitened polar updates (t1c_grad_deconflict=0.5) could still induce intra-mode covariance shrinkage on anisotropic clouds (vector_anisotropic), or width-heterogeneity conformal horizons (t1c_multiscale_horizon=true) could trade off against rare-mode support completion on vector_unequal_mass relative to rhbi-v12.",
+  "control": {
+    "candidate_id": "t1-coupling-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "grad_med",
+    "op": ">",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "hypothesis": "Gating conformal local horizons on patch-smoothed real width heterogeneity g_width(Y), gating quota-capped Laguerre chart commitment and exact FP32 activation-gram gradient deconfliction on topological disconnectedness w_valley * (1 - g_conn(Y)) with strictly intra-mode halos r_halo <= min(1.65 * r_k, 0.35 * d_nn_chart), and restoring polar_cpu_v1 on small dense layers resolves all Tier 1 regressions from t1-coupling-v1 (two_pole, ae_gan_hold, model_vae_hard, interp_sparse_arc) while improving disconnected-mode coverage and multi-scale accuracy across Tier 2-3 (img_bars4, vector_unequal_width, grid100, model_ddgan_gaussian_chain) at 3x+ faster high-res conv throughput than rhbi-v12.",
+  "id": "t1-coupling-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "resolved_core_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.5
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v1",
+        "candidate_revision": "ca0df685d3d4c87d7c7a9962a9510233c0e15e4b84363cc3cdeb8ccb3f2879eb"
+      },
+      "path": "reports/forge/records/readout-e770044794f0c855f4331e16.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v10-study"
+  },
+  "candidate": "unified-v10",
+  "competing_explanation": "If unifying all 4 Laws in strictly 0 torch.autograd.grad and 0 torch.linalg.svd/eigh/pinv calls introduces cross-law interference, unified-v10 will regress counted Tier-1 gates, held Tier-2 gates, 100-mode lattices, discrete images, vector/conditional chains, or Tier-3 14k continuation relative to unified-v3 (34/41 Tier 1-2 PASS).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Unchanged global clock-free zero-SVD zero-autograd.grad unified-v10 unifies all 4 Laws across discriminator_stability Tiers 1-3: preserving 13/13 counted Tier-1 gates, 7/7 held Tier-2 gates, 3/3 100-mode lattices (grid100, rotated100, staggered100), 4/4 discrete images, 6/6 vectors, Tier-3 14k continuation (ring_extension) & zero_tanh_rail_escape, and lifting conditional reverse diffusion chains (model_ddgan_*_chain) via cross-batch sufficient-statistics BLP alignment under protocol seed 0.",
+  "id": "unified-v10-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v9",
+        "candidate_revision": "a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77"
+      },
+      "path": "reports/forge/records/readout-566a1a057026c1e1ea97984d.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

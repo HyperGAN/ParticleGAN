@@ -1,11 +1,11 @@
 {
   "schema": "forge_fixed_test_list_v1",
-  "id": "technique-inventory-full-suite-2026-11-17",
-  "dated": "2026-11-17",
+  "id": "technique-inventory-full-suite-2026-11-20",
+  "dated": "2026-11-20",
   "leaderboard": "reports/forge/technique-inventory.md",
   "derived_from": {
-    "rule": "Previous dated list plus the new Tier 2 stretch task in discriminator_stability revision 18.",
-    "previous_list_sha256": "160ab6c350e2c10c36f08eb49f78e4ae1721a45eddf0fdfb021799bab8be1bb7"
+    "rule": "Previous dated list plus the new Tier 2 stretch task in discriminator_stability revision 20.",
+    "previous_list_sha256": "e03d3154ff77a8bcdc684e7e88d446d702132cb14971035aa095e9d65bf0f2a0"
   },
   "policy": "The denominator is fixed: every listed test counts in every row as PASS, FAIL, not measured or another outcome, whether it is currently required, held or removed from a view. A test leaves the denominator only through a new dated list that keeps this one as history.",
   "tests": [
@@ -48,6 +48,9 @@
     "model_ddgan_gaussian_chain",
     "model_vae_categorical",
     "model_vae_hard",
+    "nash_overpowered_critic_ring16",
+    "nash_overpowered_generator_ring16",
+    "nash_unequal_width_hostile_imbalance",
     "pacgan8_grid100",
     "pacgan_unequal_mass",
     "precision_gaussian_mxfp8",
@@ -60,6 +63,8 @@
     "rotated100_14k",
     "staggered100",
     "staggered100_14k",
+    "t3_iso_horizon_saddle_shift",
+    "t3_iso_scale_mass_8x",
     "target_shift_recovery",
     "trajectory",
     "two_pole",
@@ -75,8 +80,8 @@
     "zero_tanh_rail_escape",
     "zero_tanh_smoke"
   ],
-  "previous_list": "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-12.json",
-  "change": "Append the wide conditional spread Tier 2 stretch task to the 64 previously listed tests.",
+  "previous_list": "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-18.json",
+  "change": "Append the wide conditional spread Tier 2 stretch test (wide_conditional_spread). Preserve all 69 earlier fixed-list tests and original evidence.",
   "recorded_display_scope": {
     "path": "configs/forge/leaderboards/technique-inventory-full-suite-2026-10-25.json",
     "sha256": "14155fb6273af76ef248db2da6335c22ddeab2a1deb82b3eb3f0f6cd08b19c34"
