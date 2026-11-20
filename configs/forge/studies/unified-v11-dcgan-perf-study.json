@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "unified-v11-dcgan-perf-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If UnifiedV11EquilibratedOptimizer or UnifiedV11GANLoss adds significant Conv2d overhead, dcgan_performance_r256 will exceed 145 ms/step.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 145.0
+  },
+  "hypothesis": "With strictly 0 torch.autograd.grad, 0 SVD/eigh/pinv, zero-overhead single-loss direction_blend fast path, and fused Z=[X,Y] Quintic polar updates (BF16 for m>64), unified-v11 passes 6/6 dcgan_performance tasks at <115 ms/step (and <95 ms/step uncontended) on dcgan_performance_r256 under protocol seed 0.",
+  "id": "unified-v11-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 115.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-90580c7aff5ec6988cfbcfad.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -398,7 +398,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "cond_fiber") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "cond_fiber") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -429,6 +429,13 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "unified_v4":
             from .unified_v4 import bind_unified_v4_record
             bind_unified_v4_record(self.opt_d.record, self.loss, self.prior_regularizer)
+            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
+                g_dev = next((p.device for p in self.G.parameters()), None)
+                if g_dev is not None:
+                    self.prior_regularizer._bound_device = g_dev
+        elif recipe.effective_critic_formulation == "unified_v11":
+            from .unified_v11 import bind_unified_v11_record
+            bind_unified_v11_record(self.opt_d.record, self.loss, self.prior_regularizer)
             if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
                 g_dev = next((p.device for p in self.G.parameters()), None)
                 if g_dev is not None:
@@ -497,7 +504,7 @@ class GANTrainer:
         if recipe.effective_critic_formulation == "t4_nash":
             self.G._t4_bf16_autocast = bool(self._bf16_generator)
             self.D._t4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "unified_v4":
+        elif recipe.effective_critic_formulation in ("unified_v4", "unified_v11"):
             self.G._unified_v4_bf16_autocast = bool(self._bf16_generator)
             self.D._unified_v4_bf16_autocast = bool(self._noisy_D.bf16)
         elif recipe.effective_critic_formulation == "t4_nash_v3":
@@ -681,6 +688,10 @@ class GANTrainer:
         try:
             self.D.requires_grad_(False)
             latent, indices = self._sample_training_prior(len(real))
+            use_unified_v11_pb = False
+            if recipe.prior_regularizer == "unified_v11" and recipe.t1_pullback_weight > 0.0:
+                from ._unified_v11 import should_use_unified_v11_pullback
+                use_unified_v11_pb = should_use_unified_v11_pullback(self, real, latent, indices)
             use_unified_v4_pb = False
             if recipe.prior_regularizer == "unified_v4" and recipe.t1_pullback_weight > 0.0:
                 from ._unified_v4 import should_use_unified_v4_pullback
@@ -689,7 +700,22 @@ class GANTrainer:
             if recipe.prior_regularizer == "unified" and recipe.t1_pullback_weight > 0.0:
                 from ._unified import should_use_unified_pullback
                 use_unified_pb = should_use_unified_pullback(self, real, latent, indices)
-            if use_unified_v4_pb:
+            if use_unified_v11_pb:
+                from ._unified_v11 import unified_v11_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v11_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
+            elif use_unified_v4_pb:
                 from ._unified_v4 import unified_v4_pullback_step
                 simplex_loss = None
                 loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v4_pullback_step(
@@ -758,7 +784,7 @@ class GANTrainer:
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
                 highres_unified_skip = (
-                    recipe.effective_critic_formulation in ("unified", "unified_v4", "cond_fiber")
+                    recipe.effective_critic_formulation in ("unified", "unified_v4", "unified_v11", "cond_fiber")
                     and real.ndim >= 4
                     and real[0].numel() > 1024
                 )
