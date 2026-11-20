@@ -149,6 +149,12 @@ def technique_signature(value):
             mechanisms["unified_v4_iso"] = True
         if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
             mechanisms["unified_v4_condensation"] = True
+    if recipe.prior_regularizer == "minimal" and recipe.t1_pullback_weight > 0:
+        mechanisms["minimal_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["minimal_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["minimal_condensation"] = True
     if recipe.prior_regularizer == "t4_arch" and recipe.t1_pullback_weight > 0:
         mechanisms["t4_arch_pullback"] = True
         if recipe.t1_iso_weight > 0:
@@ -268,9 +274,9 @@ def recipe_field_active(name, value, *, task=None):
         return prior_active and recipe.prior_regularizer == "coulomb" and recipe.prior_reg > 0
     if name in {"prior_reg_target_std", "prior_reg_eps"} and recipe.prior_reg == 0:
         return False
-    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch"}:
+    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "minimal"}:
         return False
-    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch"}:
+    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "minimal"}:
         return False
     if name in {"prior_sigreg_projections", "prior_sigreg_knots"}:
         return prior_active and recipe.prior_regularizer == "sigreg" and recipe.prior_reg > 0
@@ -358,11 +364,11 @@ def recipe_field_active(name, value, *, task=None):
     if name in {"rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_iters", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre"}:
         return active_bi_weight or recipe.rhbi_critic_weight > 0
     if name == "t1_pullback_weight":
-        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch"} and recipe.t1_pullback_weight > 0
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch", "minimal"} and recipe.t1_pullback_weight > 0
     if name in {"t1_iso_weight", "t1_max_prototypes"}:
-        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch"} and recipe.t1_pullback_weight > 0
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch", "minimal"} and recipe.t1_pullback_weight > 0
     if name in {"t1_laguerre_lr", "t1_prior_row_lr"}:
-        return prior_active and recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch"} and recipe.t1_pullback_weight > 0 and recipe.t1_prior_row_lr > 0
+        return prior_active and recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "t4_arch", "minimal"} and recipe.t1_pullback_weight > 0 and recipe.t1_prior_row_lr > 0
     if name == "rgdt_macro_slack_weight":
         return recipe.effective_critic_formulation in {"rgdt", "unified_v4"}
     if name in {"rgdt_conformal_horizon", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight"}:

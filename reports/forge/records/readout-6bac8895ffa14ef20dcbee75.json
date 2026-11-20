@@ -1,0 +1,1256 @@
+{
+  "attempt_ids": [
+    "09f3fe33b8a244b3a10e03135b816015",
+    "2fa134e8cb074f7c98d6b0e235582013",
+    "4b5f50154fba4815b4ffefce25d80540",
+    "68203c752f0d4517a1cd9e08a70f3878",
+    "699f9ca34cb14692825ac0df62a94e83",
+    "8b36632b4c7f40d3af0694e4e4abc7b2",
+    "c65b44a6058545a28edb8320da21d343",
+    "db8a9cf785504e10a4103ad5fa185769",
+    "ea05f02252ba4c8fba65ddf95fb6e984"
+  ],
+  "candidate_id": "minimal-v2",
+  "candidate_revision": "56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Passes grid100 at 0.0566 sigma center RMS and -0.0053 cov_trace_bias with 0 NS at 4.8x fewer LOC than unified-v10 (6/7 PASS); transparently exposes the exact zero-NS boundary on grid100_mlp16.",
+  "conclusion": "minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) evaluated all 7/7 t4-strange-architectures-v1 tasks, passing 3/7: clockfree_audit_measurement_v1 PASS, zero_tanh_smoke PASS (mae=0.0038), and grid100 PASS (center_rms_sigma=0.0566, cov_trace_bias=-0.0053, radial_ks=0.0026, mass_tv=0.0374, precision=0.9795, frozen_pass=True). On 16-block residual tanh nets, minimal-v2 recovered 100/100 modes with ultra-sharp centers (grid100_res16_scaled_tanh center_rms_sigma=0.0471, precision=0.9914, frozen_pass=True; grid100_res16_tanh center_rms_sigma=0.0630, precision=0.9774) missing only cov_trace_bias (-0.2717/-0.2095). On skip-free 16-layer MLP (grid100_mlp16), zero-NS minimal-v2 collapsed (precision=0.0714, mass_tv=0.5782), independently confirming r4-ablation-razor's finding that Newton-Schulz is strictly irreducible on deep skip-free MLPs.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "09f3fe33b8a244b3a10e03135b816015",
+        "2fa134e8cb074f7c98d6b0e235582013",
+        "4b5f50154fba4815b4ffefce25d80540",
+        "68203c752f0d4517a1cd9e08a70f3878",
+        "699f9ca34cb14692825ac0df62a94e83",
+        "8b36632b4c7f40d3af0694e4e4abc7b2",
+        "c65b44a6058545a28edb8320da21d343",
+        "db8a9cf785504e10a4103ad5fa185769",
+        "ea05f02252ba4c8fba65ddf95fb6e984"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "19dd843f2be02a7ee7d366de8d417013daa02a370a27e86b89c330afe8824980",
+      "duplicate_task_ids": [
+        "zero_tanh_rail_escape",
+        "zero_tanh_smoke"
+      ],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.047052558505824425
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.047052558505824425
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "09f3fe33b8a244b3a10e03135b816015",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "efa56d89ac97d834ff123479a1cbbfcc7a5c67a6cf0447f185e8970a1e9f8b7a",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "2fa134e8cb074f7c98d6b0e235582013",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "e737d4340f7e9ad27c5b9d16afd7f8b2938354b9c7571e2635254f8f178425dc",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "4b5f50154fba4815b4ffefce25d80540",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "8aac10dc81b60005f6eb21c3dddb657540fa80bc1ab90e4139a2ffff25929dcd",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "68203c752f0d4517a1cd9e08a70f3878",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "884b9d6d3dfc65e1e23f3e93b178d32bfe17fd471285a1091510ef3bd2eb7331",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "699f9ca34cb14692825ac0df62a94e83",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "9f16112b4571304cf7701764fb9b7475e2541fc6c2a200b7e8990850aad2e781",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "8b36632b4c7f40d3af0694e4e4abc7b2",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "8072aa367d7cb85cbb1dd387693c47741580dcf25f72122d5f399d65453971eb",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "c65b44a6058545a28edb8320da21d343",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "c952713e9e2860fc55f6f9ddcafd6dc8486649fa4dcfa49b4957d34af7fd5074",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "db8a9cf785504e10a4103ad5fa185769",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "e12fd25c1cd8143552f886c2614f617dff5a0e2ef769b2b7d6be292b33e26224",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "ea05f02252ba4c8fba65ddf95fb6e984",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "8a42312676bf14750b3aab58758741a6e6054800e9348909a0d9839c56e36192",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "3e5b03973abf6064616becfa22511e213cddf5b260c0547e93384449c89d1ff0",
+        "contract_sha256": "19dd843f2be02a7ee7d366de8d417013daa02a370a27e86b89c330afe8824980",
+        "control_binding_sha256": "a0bc40beb4007b76edce7fff2a024c1f2b525637184e3a5c032242eb4d055f73",
+        "policy_fingerprint": "c02e192d3434ebb7e656f5131e9a3d7703e521401b84296abc2963343006b5b9",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "5cb7df96451d290c0a04180ec439339b15fdaaffeed522c5291fba7b79137ef5"
+      },
+      "study_id": "minimal-v2-t4-arch-study",
+      "study_sha256": "5cb7df96451d290c0a04180ec439339b15fdaaffeed522c5291fba7b79137ef5"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4-strange-architectures-v1",
+  "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes clockfree_audit_measurement_v1, zero_tanh_smoke, grid100, and deep residual tanh architectures (grid100_res16_scaled_tanh center_rms_sigma <= 0.20) on t4-strange-architectures-v1 while transparently measuring the zero-NS boundary on skip-free 16-layer MLPs under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Refresh Forge history/compile, write reports/forge/studies/r4-minimal-core.md, pass all CI/lint/wheel checks, and open PR to develop.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "09f3fe33b8a244b3a10e03135b816015",
+        "result_hash": "efa56d89ac97d834ff123479a1cbbfcc7a5c67a6cf0447f185e8970a1e9f8b7a",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "2fa134e8cb074f7c98d6b0e235582013",
+        "result_hash": "e737d4340f7e9ad27c5b9d16afd7f8b2938354b9c7571e2635254f8f178425dc",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "4b5f50154fba4815b4ffefce25d80540",
+        "result_hash": "8aac10dc81b60005f6eb21c3dddb657540fa80bc1ab90e4139a2ffff25929dcd",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "68203c752f0d4517a1cd9e08a70f3878",
+        "result_hash": "884b9d6d3dfc65e1e23f3e93b178d32bfe17fd471285a1091510ef3bd2eb7331",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "699f9ca34cb14692825ac0df62a94e83",
+        "result_hash": "9f16112b4571304cf7701764fb9b7475e2541fc6c2a200b7e8990850aad2e781",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "8b36632b4c7f40d3af0694e4e4abc7b2",
+        "result_hash": "8072aa367d7cb85cbb1dd387693c47741580dcf25f72122d5f399d65453971eb",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "c65b44a6058545a28edb8320da21d343",
+        "result_hash": "c952713e9e2860fc55f6f9ddcafd6dc8486649fa4dcfa49b4957d34af7fd5074",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "db8a9cf785504e10a4103ad5fa185769",
+        "result_hash": "e12fd25c1cd8143552f886c2614f617dff5a0e2ef769b2b7d6be292b33e26224",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "ea05f02252ba4c8fba65ddf95fb6e984",
+        "result_hash": "8a42312676bf14750b3aab58758741a6e6054800e9348909a0d9839c56e36192",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-6bac8895ffa14ef20dcbee75",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/09f3fe33b8a244b3a10e03135b816015/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 20000,
+      "candidate_budget_seconds": 20000,
+      "id": "minimal-v2-t4-arch-study"
+    },
+    "candidate": "minimal-v2",
+    "competing_explanation": "Without Newton-Schulz polar orthogonalization, pure-elementwise Marchenko-Pastur + depth-trust + fwAD saturation pullback may pass residual/rail-escape/100-mode tasks while exposing the exact skip-free 16-layer MLP ceiling (grid100_mlp16) identified by r4-ablation-razor.",
+    "control": {
+      "candidate_id": "t2-secant-v5",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "center_rms_sigma",
+      "op": ">",
+      "phase": "final",
+      "task_id": "grid100_res16_scaled_tanh",
+      "threshold": 0.35
+    },
+    "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes clockfree_audit_measurement_v1, zero_tanh_smoke, grid100, and deep residual tanh architectures (grid100_res16_scaled_tanh center_rms_sigma <= 0.20) on t4-strange-architectures-v1 while transparently measuring the zero-NS boundary on skip-free 16-layer MLPs under protocol seed 0.",
+    "id": "minimal-v2-t4-arch-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "center_rms_sigma",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "grid100_res16_scaled_tanh",
+      "threshold": 0.2
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "minimal-v1",
+          "candidate_revision": "cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16"
+        },
+        "path": "reports/forge/records/readout-2386a25b92b16ff30b059055.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4-strange-architectures-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "minimal-v2-t4-arch-study",
+  "study_sha256": "5cb7df96451d290c0a04180ec439339b15fdaaffeed522c5291fba7b79137ef5",
+  "task_results": [
+    {
+      "compatibility_key": "010f68f794ac7282bc937e27de1946c01e2490c47735787473d33f9a4e90ba11",
+      "cost": {
+        "adapter_loop_seconds": 28.40744808013551,
+        "adapter_seconds": 28.929785506101325,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "execution_seconds": 36.076421204954386,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 26.2586492637638,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.013408886501565576
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.011353899026289582
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 26.233886478235945
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 30.219001356046647,
+        "wall_seconds": 36.076421204954386
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0011904031224548818,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0038095968775451183
+          },
+          "p99_abs_error": {
+            "margin": 0.006181954964995386,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.018818045035004616
+          },
+          "rms_error": {
+            "margin": 0.004461098220199347,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.0055389017798006535
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0038095968775451183,
+        "p99_abs_error": 0.018818045035004616,
+        "rms_error": 0.0055389017798006535,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "51042066ed18589e8b9d33afdb44fc940cd64b726d473535376ddfe51a2fd63c",
+      "cost": {
+        "adapter_reported_inclusive_seconds": 2.97977432096377,
+        "adapter_seconds": 3.02758799190633,
+        "charged_task": "clockfree_audit_measurement_v1",
+        "completed_updates": 24,
+        "component_timing": "unavailable; legacy elapsed time includes evaluation and sampling",
+        "device": "0",
+        "execution_seconds": 10.460172805003822,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 4.317527446895838,
+        "wall_seconds": 10.460172805003822
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "parity_comparisons": 4
+      },
+      "raw_status": "completed",
+      "reason": "declared state/horizon/cadence/restart comparisons agree; source audit bound",
+      "task_id": "clockfree_audit_measurement_v1"
+    },
+    {
+      "compatibility_key": "63394fa3facdd2231277746aa4126bd6fd38b6b2c5bff6ac2a9d7d25c3bdf173",
+      "cost": {
+        "adapter_loop_seconds": 65.37069995794445,
+        "adapter_seconds": 65.84383885306306,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "execution_seconds": 72.79114609700628,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 58.36434369138442,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.01399713079445064
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.01911101955920458
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 58.331235541030765
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 67.10599594679661,
+        "wall_seconds": 72.79114609700628
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "mean_abs_error": 0.010088237933814526,
+        "p99_abs_error": 0.04139058664441109,
+        "rms_error": 0.013335560448467731,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "failed zero_tanh_rail_escape thresholds: mean_abs_error <= 0.005, rms_error <= 0.01, p99_abs_error <= 0.025",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "db40e5e2c927127ed42617c7f0abdb31b9f117758b6ea0d137591b8ecf135083",
+      "cost": {
+        "adapter_loop_seconds": 530.5819788898807,
+        "adapter_seconds": 531.0063526500016,
+        "charged_task": "grid100",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 539.6588320049923,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 515.31236654846,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 9.268719685729593
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.0742070849519223
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 505.96943977777846
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 532.3603369481862,
+        "wall_seconds": 539.6588320049923
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.011961605913832218,
+          "accuracy_pass": true,
+          "accuracy_score": 0.37681745460267674,
+          "all_finite": true,
+          "center_max_sigma": 0.2674775964219086,
+          "center_rms_sigma": 0.11395800785371395,
+          "cov_frob_rms": 0.13353179727002498,
+          "cov_trace_bias": -0.011961605913832218,
+          "frozen_pass": true,
+          "mass_tv": 0.042,
+          "n": 20000,
+          "passed": true,
+          "precision": 0.98055,
+          "precision_gap": 0.008341003461757701,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.004714548800152596,
+          "valid_n": 20000,
+          "within_radius_n": 19611
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.005293795948725255,
+          "accuracy_pass": true,
+          "accuracy_score": 0.256150155071577,
+          "all_finite": true,
+          "center_max_sigma": 0.11772430630689293,
+          "center_rms_sigma": 0.05664911285291938,
+          "cov_frob_rms": 0.09029494139313533,
+          "cov_trace_bias": -0.005293795948725255,
+          "frozen_pass": true,
+          "mass_tv": 0.037360000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.97945,
+          "precision_gap": 0.009441003461757691,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.0026300171947116757,
+          "valid_n": 100000,
+          "within_radius_n": 97945
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.005293795948725255,
+          "accuracy_pass": true,
+          "accuracy_score": 0.256150155071577,
+          "all_finite": true,
+          "center_max_sigma": 0.11772430630689293,
+          "center_rms_sigma": 0.05664911285291938,
+          "cov_frob_rms": 0.09029494139313533,
+          "cov_trace_bias": -0.005293795948725255,
+          "frozen_pass": true,
+          "mass_tv": 0.037360000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.97945,
+          "precision_gap": 0.009441003461757691,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.0026300171947116757,
+          "valid_n": 100000,
+          "within_radius_n": 97945
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": true,
+        "problem": "grid100",
+        "reason": "sustained live accuracy and independent holdout pass",
+        "status": "PASS",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 5,
+          "status_counts": {
+            "PASS": 5
+          }
+        }
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "abs_cov_trace_bias": 0.005293795948725255,
+        "accuracy_pass": true,
+        "accuracy_score": 0.256150155071577,
+        "all_finite": true,
+        "center_max_sigma": 0.11772430630689293,
+        "center_rms_sigma": 0.05664911285291938,
+        "cov_frob_rms": 0.09029494139313533,
+        "cov_trace_bias": -0.005293795948725255,
+        "frozen_pass": true,
+        "mass_tv": 0.037360000000000004,
+        "n": 100000,
+        "passed": true,
+        "precision": 0.97945,
+        "precision_gap": 0.009441003461757691,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.0026300171947116757,
+        "valid_n": 100000,
+        "within_radius_n": 97945
+      },
+      "raw_status": "completed",
+      "reason": "sustained live accuracy and independent holdout pass",
+      "task_id": "grid100"
+    },
+    {
+      "compatibility_key": "15062f73cb25832a2c3fb24a49a52651537e9b05dc3f7dbb712d89dfe849984e",
+      "cost": {
+        "adapter_loop_seconds": 1001.6285137750674,
+        "adapter_seconds": 1002.1458609681576,
+        "charged_task": "grid100_mlp16",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 1010.8522388869897,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 977.3146714698523,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 7.8921506714541465
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.3160437492188066
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 969.1064770491794
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 1003.4016995180864,
+        "wall_seconds": 1010.8522388869897
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.581,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.07195,
+          "precision_gap": 0.9169410034617578,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 20000,
+          "within_radius_n": 1439
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.5782400000000001,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.07139,
+          "precision_gap": 0.9175010034617578,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 7139
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.5782400000000001,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.07139,
+          "precision_gap": 0.9175010034617578,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 7139
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": null,
+        "accuracy_pass": false,
+        "accuracy_score": null,
+        "all_finite": true,
+        "center_max_sigma": null,
+        "center_rms_sigma": null,
+        "cov_frob_rms": null,
+        "cov_trace_bias": null,
+        "frozen_pass": false,
+        "mass_tv": 0.5782400000000001,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.07139,
+        "precision_gap": 0.9175010034617578,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": null,
+        "valid_n": 100000,
+        "within_radius_n": 7139
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_mlp16"
+    },
+    {
+      "compatibility_key": "63394fa3facdd2231277746aa4126bd6fd38b6b2c5bff6ac2a9d7d25c3bdf173",
+      "cost": {
+        "adapter_loop_seconds": 59.82891624700278,
+        "adapter_seconds": 60.29981701611541,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "execution_seconds": 67.17915421910584,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 54.691442725248635,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.013678971445187926
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.012032893486320972
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 54.665730860317126
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 61.58957172301598,
+        "wall_seconds": 67.17915421910584
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "mean_abs_error": 0.010088237933814526,
+        "p99_abs_error": 0.04139058664441109,
+        "rms_error": 0.013335560448467731,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "failed zero_tanh_rail_escape thresholds: mean_abs_error <= 0.005, rms_error <= 0.01, p99_abs_error <= 0.025",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "010f68f794ac7282bc937e27de1946c01e2490c47735787473d33f9a4e90ba11",
+      "cost": {
+        "adapter_loop_seconds": 33.461223484016955,
+        "adapter_seconds": 33.92988604679704,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "execution_seconds": 40.974145107204095,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 29.838018900481984,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.01337291020900011
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.013241591863334179
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 29.81140439840965
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 35.228926758049056,
+        "wall_seconds": 40.974145107204095
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0011904031224548818,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0038095968775451183
+          },
+          "p99_abs_error": {
+            "margin": 0.006181954964995386,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.018818045035004616
+          },
+          "rms_error": {
+            "margin": 0.004461098220199347,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.0055389017798006535
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0038095968775451183,
+        "p99_abs_error": 0.018818045035004616,
+        "rms_error": 0.0055389017798006535,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "7a09d75382a6faf580a08f5f021f962d4beb9be283b43f007bab788165fd73e8",
+      "cost": {
+        "adapter_loop_seconds": 1001.5350713811349,
+        "adapter_seconds": 1002.0630160449073,
+        "charged_task": "grid100_res16_tanh",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 1010.6811215260532,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 979.6396257472225,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 11.692660862812772
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.35060943104326725
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 967.5963554533664
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 1003.2905156000052,
+        "wall_seconds": 1010.6811215260532
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.21738796363260893,
+          "accuracy_pass": false,
+          "accuracy_score": 1.6825407222732478,
+          "all_finite": true,
+          "center_max_sigma": 0.2648589220421543,
+          "center_rms_sigma": 0.09996505360120846,
+          "cov_frob_rms": 0.4375694453508176,
+          "cov_trace_bias": -0.21738796363260893,
+          "frozen_pass": false,
+          "mass_tv": 0.044449999999999996,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.97815,
+          "precision_gap": 0.01074100346175777,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.13262498605710105,
+          "valid_n": 20000,
+          "within_radius_n": 19563
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.20947988676484064,
+          "accuracy_pass": false,
+          "accuracy_score": 1.5550134123508006,
+          "all_finite": true,
+          "center_max_sigma": 0.16635304368992468,
+          "center_rms_sigma": 0.06297022277011656,
+          "cov_frob_rms": 0.4254732738890051,
+          "cov_trace_bias": -0.20947988676484064,
+          "frozen_pass": false,
+          "mass_tv": 0.037099999999999994,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.97737,
+          "precision_gap": 0.011521003461757773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.12768281338283521,
+          "valid_n": 100000,
+          "within_radius_n": 97737
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.20947988676484064,
+          "accuracy_pass": false,
+          "accuracy_score": 1.5550134123508006,
+          "all_finite": true,
+          "center_max_sigma": 0.16635304368992468,
+          "center_rms_sigma": 0.06297022277011656,
+          "cov_frob_rms": 0.4254732738890051,
+          "cov_trace_bias": -0.20947988676484064,
+          "frozen_pass": false,
+          "mass_tv": 0.037099999999999994,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.97737,
+          "precision_gap": 0.011521003461757773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.12768281338283521,
+          "valid_n": 100000,
+          "within_radius_n": 97737
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.20947988676484064,
+        "accuracy_pass": false,
+        "accuracy_score": 1.5550134123508006,
+        "all_finite": true,
+        "center_max_sigma": 0.16635304368992468,
+        "center_rms_sigma": 0.06297022277011656,
+        "cov_frob_rms": 0.4254732738890051,
+        "cov_trace_bias": -0.20947988676484064,
+        "frozen_pass": false,
+        "mass_tv": 0.037099999999999994,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.97737,
+        "precision_gap": 0.011521003461757773,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.12768281338283521,
+        "saturated_fraction": 0.0,
+        "terminal_max_saturated_fraction": 0.0,
+        "valid_n": 100000,
+        "within_radius_n": 97737
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_res16_tanh"
+    },
+    {
+      "compatibility_key": "6799e6e0d47ab713e3a3af64a4e82dab3516a6ea0e89ba4c73451fe3952b93fc",
+      "cost": {
+        "adapter_loop_seconds": 778.3866629949771,
+        "adapter_seconds": 778.9381828939077,
+        "charged_task": "grid100_res16_scaled_tanh",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 786.8602486141026,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 766.9248302392662,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 8.030347493942827
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.3669362256769091
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 758.5275465196464
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 780.1817023118492,
+        "wall_seconds": 786.8602486141026
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.2795736696051422,
+          "accuracy_pass": false,
+          "accuracy_score": 1.8346627033725738,
+          "all_finite": true,
+          "center_max_sigma": 0.2411719017292672,
+          "center_rms_sigma": 0.09567123084375234,
+          "cov_frob_rms": 0.2985905212640015,
+          "cov_trace_bias": -0.2795736696051422,
+          "frozen_pass": true,
+          "mass_tv": 0.05004999999999999,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.99185,
+          "precision_gap": 0.0029589965382422756,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.1292156518621378,
+          "valid_n": 20000,
+          "within_radius_n": 19837
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.2717008946908662,
+          "accuracy_pass": false,
+          "accuracy_score": 1.6666696643544932,
+          "all_finite": true,
+          "center_max_sigma": 0.10863962027675474,
+          "center_rms_sigma": 0.047052558505824425,
+          "cov_frob_rms": 0.2813136700240707,
+          "cov_trace_bias": -0.2717008946908662,
+          "frozen_pass": true,
+          "mass_tv": 0.034530000000000005,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.99141,
+          "precision_gap": 0.0025189965382422796,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.12555627671920755,
+          "valid_n": 100000,
+          "within_radius_n": 99141
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.2717008946908662,
+          "accuracy_pass": false,
+          "accuracy_score": 1.6666696643544932,
+          "all_finite": true,
+          "center_max_sigma": 0.10863962027675474,
+          "center_rms_sigma": 0.047052558505824425,
+          "cov_frob_rms": 0.2813136700240707,
+          "cov_trace_bias": -0.2717008946908662,
+          "frozen_pass": true,
+          "mass_tv": 0.034530000000000005,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.99141,
+          "precision_gap": 0.0025189965382422796,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.12555627671920755,
+          "valid_n": 100000,
+          "within_radius_n": 99141
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.2717008946908662,
+        "accuracy_pass": false,
+        "accuracy_score": 1.6666696643544932,
+        "all_finite": true,
+        "center_max_sigma": 0.10863962027675474,
+        "center_rms_sigma": 0.047052558505824425,
+        "cov_frob_rms": 0.2813136700240707,
+        "cov_trace_bias": -0.2717008946908662,
+        "frozen_pass": true,
+        "mass_tv": 0.034530000000000005,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.99141,
+        "precision_gap": 0.0025189965382422796,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.12555627671920755,
+        "saturated_fraction": 0.0,
+        "terminal_max_saturated_fraction": 0.0,
+        "valid_n": 100000,
+        "within_radius_n": 99141
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_res16_scaled_tanh"
+    }
+  ]
+}

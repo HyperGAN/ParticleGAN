@@ -146,6 +146,16 @@ from .cond_fiber import (
     CondFiberStepRecord,
     bind_cond_fiber_record,
 )
+from .minimal import (
+    MinimalConstraintGeneratorOptimizer,
+    MinimalCriticOptimizer,
+    MinimalCriticPenalty,
+    MinimalGeneratorOptimizer,
+    MinimalLoss,
+    MinimalPriorRegularizer,
+    MinimalStepRecord,
+    bind_minimal_record,
+)
 from . import init
 
 __all__ = [
@@ -175,6 +185,7 @@ __all__ = [
     "UnifiedCriticAdam", "UnifiedCriticPenalty", "UnifiedGANLoss", "UnifiedPriorRegularizer", "UnifiedStepRecord", "bind_unified_record",
     "UnifiedV4CriticAdam", "UnifiedV4CriticPenalty", "UnifiedV4EquilibratedOptimizer", "UnifiedV4GANLoss", "UnifiedV4PriorRegularizer", "UnifiedV4StepRecord", "bind_unified_v4_record",
     "CondFiberBank", "CondFiberCriticAdam", "CondFiberCriticPenalty", "CondFiberGANLoss", "CondFiberStepRecord", "bind_cond_fiber_record",
+    "MinimalConstraintGeneratorOptimizer", "MinimalCriticOptimizer", "MinimalCriticPenalty", "MinimalGeneratorOptimizer", "MinimalLoss", "MinimalPriorRegularizer", "MinimalStepRecord", "bind_minimal_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
