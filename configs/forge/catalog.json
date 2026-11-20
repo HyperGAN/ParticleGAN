@@ -92,7 +92,7 @@
       "report/toy100/shared22": 201,
       "report/toy100/simpler22": 180,
       "report/toy100/torch214-gpu-check": 10,
-      "report/toy_audit": 611,
+      "report/toy_audit": 613,
       "report/trajectory": 167,
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
@@ -113,19 +113,19 @@
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
       "narrative": 975,
-      "structured_evidence": 5070,
+      "structured_evidence": 5071,
       "support": 1561,
       "support_artifact": 52,
       "visualization": 23,
-      "visualization_artifact": 765
+      "visualization_artifact": 766
     },
-    "files": 11855
+    "files": 11857
   },
   "coverage": {
-    "declared_count": 11855,
+    "declared_count": 11857,
     "missing": [],
     "stale": [],
-    "tracked_count": 11855,
+    "tracked_count": 11857,
     "unclassified": [],
     "valid": true
   },
@@ -79989,6 +79989,20 @@
       "git_blob": "6bca53fea86e6a4d79e284145428caf52a57c647",
       "path": "reports/toy_audit/paired_sources/media/swirl2-baseline-movable.png",
       "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "14c3e91f683ed4dae100f2e39083af5d8cada210",
+      "path": "reports/toy_audit/paper_watch/gini-distance-metric/goal.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "dc7db153f663561823adf446609f66f5244eb583",
+      "path": "reports/toy_audit/paper_watch/gini-distance-metric/receipt.json",
+      "role": "structured_evidence",
       "suggested_tiers": []
     },
     {
