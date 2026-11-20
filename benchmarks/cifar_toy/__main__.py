@@ -75,7 +75,7 @@ def build_parser() -> argparse.ArgumentParser:
     p.add_argument(
         "--output-dir",
         type=str,
-        default="/nvme/dev/hypergan/ParticleGAN/runs/cifar_toy_bench",
+        default="runs/cifar_toy_bench",
         help="Directory for bulk logs, JSONL traces, receipts, and leaderboard.md.",
     )
     p.add_argument(

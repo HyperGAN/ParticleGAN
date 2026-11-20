@@ -23,7 +23,6 @@ from .metrics import (
     compute_pixel_diversity_ratio,
 )
 from .models import (
-    DEFAULT_INCEPTION_WEIGHTS,
     DEFAULT_RESNET18_WEIGHTS,
     DEFAULT_RESNET34_WEIGHTS,
     RESNET18_SHA256,
@@ -47,7 +46,6 @@ __all__ = [
     "BatchSequenceStream",
     "BenchmarkConfig",
     "CIFAR10Dataset",
-    "DEFAULT_INCEPTION_WEIGHTS",
     "DEFAULT_MOG_SIGMA",
     "DEFAULT_RESNET18_WEIGHTS",
     "DEFAULT_RESNET34_WEIGHTS",

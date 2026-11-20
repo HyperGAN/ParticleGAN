@@ -1,6 +1,7 @@
 {
   "counts": {
     "by_family": {
+      "benchmark/cifar_toy": 6,
       "benchmark/init_research": 10,
       "benchmark/learned_lr": 10,
       "benchmark/legacy": 5,
@@ -104,7 +105,7 @@
       "candidate_implementation": 17,
       "candidate_patch": 26,
       "configuration": 810,
-      "driver": 405,
+      "driver": 407,
       "engine_support": 128,
       "evaluator_or_audit": 324,
       "evidence_artifact": 1551,
@@ -114,18 +115,18 @@
       "frozen_support": 28,
       "narrative": 975,
       "structured_evidence": 5070,
-      "support": 1561,
+      "support": 1565,
       "support_artifact": 52,
       "visualization": 23,
       "visualization_artifact": 765
     },
-    "files": 11855
+    "files": 11861
   },
   "coverage": {
-    "declared_count": 11855,
+    "declared_count": 11861,
     "missing": [],
     "stale": [],
-    "tracked_count": 11855,
+    "tracked_count": 11861,
     "unclassified": [],
     "valid": true
   },
@@ -140,6 +141,52 @@
       "path": "benchmarks/__init__.py",
       "role": "support",
       "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "0e0e96f3d4a8a96b49ac7634b98ae379506dc55f",
+      "path": "benchmarks/cifar_toy/__init__.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "6c781d2029b7f039ac50cfa34878cd59c0aa80d3",
+      "path": "benchmarks/cifar_toy/__main__.py",
+      "role": "driver",
+      "suggested_tiers": [
+        2
+      ]
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "b6bda1008e8ffea99018cbcb4116807c92ae7dde",
+      "path": "benchmarks/cifar_toy/data.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "01352b5a2af35a216e924287ee0dec7212196891",
+      "path": "benchmarks/cifar_toy/metrics.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "f85348b0da6ba67b000675547ac27bc73c5725b9",
+      "path": "benchmarks/cifar_toy/models.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/cifar_toy",
+      "git_blob": "da058a4c2ae6d5c1e365988020e786e9fb58598a",
+      "path": "benchmarks/cifar_toy/runner.py",
+      "role": "driver",
+      "suggested_tiers": [
+        2
+      ]
     },
     {
       "family": "benchmark/shared",
@@ -18209,14 +18256,14 @@
     },
     {
       "family": "report/readme-100gaussians",
-      "git_blob": "c2ef7afe29bf4c0f0d7cfda3b606aa54e2cfc98e",
+      "git_blob": "85df9d9d3b24290af8520988ab179afdcc0fd634",
       "path": "reports/readme-100gaussians/CURRENT_PROTOCOL.md",
       "role": "narrative",
       "suggested_tiers": []
     },
     {
       "family": "report/readme-100gaussians",
-      "git_blob": "99b40cffa7ac9aca95fb326530ddc645791fdbc8",
+      "git_blob": "b15543ac2d6a83b1fde9bac944f507801aa66c54",
       "path": "reports/readme-100gaussians/README.md",
       "role": "narrative",
       "suggested_tiers": []
@@ -18230,14 +18277,14 @@
     },
     {
       "family": "report/readme-100gaussians",
-      "git_blob": "bfa9a90e443d212db2a0177bfbf04ae8e37ada83",
+      "git_blob": "2067f78abf8a0036c68b5e3e4f2459d8953a2625",
       "path": "reports/readme-100gaussians/record.py",
       "role": "support",
       "suggested_tiers": []
     },
     {
       "family": "report/readme-100gaussians",
-      "git_blob": "8a0bef9381624504698f6b5ed35de05067406e81",
+      "git_blob": "cfc6409b4a6c8e647eb2541d09ebeb6961a7fc95",
       "path": "reports/readme-100gaussians/render.py",
       "role": "visualization",
       "suggested_tiers": []
@@ -18251,7 +18298,7 @@
     },
     {
       "family": "report/readme-100gaussians",
-      "git_blob": "f6f31cc543f7960c6c79d95d3e2a7e7db4eecb5b",
+      "git_blob": "326c8f03f9483266f6dedb8e649b0c233ef25d2f",
       "path": "reports/readme-100gaussians/summary-current.json",
       "role": "structured_evidence",
       "suggested_tiers": []

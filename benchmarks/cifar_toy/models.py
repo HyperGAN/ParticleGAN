@@ -29,13 +29,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 RESNET18_SHA256 = "f37072fd47e89c5e827621c5baffa7500819f7896bbacec160b1a16c560e07ec"
-RESNET34_SHA256 = "b627a593f4b504425f6d6c373712e796be8773f6cb3c5910b09070727651153e"
+RESNET34_SHA256 = "b627a593bcbe140c234610266fe4f8ae95ea42fc881d091c9b6052e6b1d0590f"
 
 DEFAULT_RESNET18_WEIGHTS = Path.home() / ".cache" / "torch" / "hub" / "checkpoints" / "resnet18-f37072fd.pth"
 DEFAULT_RESNET34_WEIGHTS = Path.home() / ".cache" / "torch" / "hub" / "checkpoints" / "resnet34-b627a593.pth"
-DEFAULT_INCEPTION_WEIGHTS = (
-    Path.home() / ".cache" / "torch" / "hub" / "checkpoints" / "weights-inception-2015-12-05-6726825d.pth"
-)
 
 _IMAGENET_MEAN = (0.485, 0.456, 0.406)
 _IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -347,7 +344,7 @@ class ResNet34FeatureEvaluator(nn.Module):
         if backbone_mode == "pretrained":
             if weights_path is None:
                 raise ValueError("weights_path is required when backbone_mode='pretrained'")
-            sd, actual_sha = _load_verified_resnet_weights(Path(weights_path), expected_sha256=None)
+            sd, actual_sha = _load_verified_resnet_weights(Path(weights_path), expected_sha256=RESNET34_SHA256)
             self.backbone.load_torchvision_state_dict(sd)
             self.backbone_sha256 = actual_sha
         else:
