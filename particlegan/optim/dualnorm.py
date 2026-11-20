@@ -23,6 +23,7 @@ CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
+    "r4_mp_no_ns", "r4_no_secant_band",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -1211,6 +1212,20 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     elif recipe.optimizer_family == "unified_equil":
         from .._unified_v4 import UnifiedV4EquilibratedOptimizer
         optimizer = UnifiedV4EquilibratedOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    elif recipe.optimizer_family == "r4_mp_no_ns":
+        from .._r4_ablation import R4MPNoNSOptimizer
+        optimizer = R4MPNoNSOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    elif recipe.optimizer_family == "r4_no_secant_band":
+        from .._r4_ablation import R4NoSecantBandOptimizer
+        optimizer = R4NoSecantBandOptimizer(
             params,
             smoothing=float(recipe.optimizer_smoothing),
             **options,

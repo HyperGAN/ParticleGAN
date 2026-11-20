@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "r4-razor-autograd-critic-dcgan-perf-study"
+  },
+  "candidate": "r4-razor-autograd-critic",
+  "competing_explanation": "If 2nd-order autograd.grad double-backward is cheap on 256x256 RGB CNNs, r4-razor-autograd-critic will stay near unified-v10's 89.66 ms/step and 1372.6 MiB alloc.",
+  "control": {
+    "candidate_id": "unified-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 120.0
+  },
+  "hypothesis": "Quantify exact 256x256 RGB latency (ms/step) and peak VRAM energy penalty of 2nd-order torch.autograd.grad EBI vs 1st-order fwAD/secant critic under otherwise identical unified-v10.",
+  "id": "r4-razor-autograd-critic-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 120.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-90580c7aff5ec6988cfbcfad.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
