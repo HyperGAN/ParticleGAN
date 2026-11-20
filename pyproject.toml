@@ -46,7 +46,6 @@ pythonpath = [".", "tests"]
 # never competes with queued GPU experiments. Run them with
 #   CUDA_VISIBLE_DEVICES=<gpu> python -m pytest -m cuda
 # (a later -m on the command line replaces this default selection).
-# Full-budget study reruns are marked slow and are likewise opt-in (-m slow).
-addopts = "-ra -m 'not cuda and not slow'"
+addopts = "-ra -m 'not cuda'"
 markers = ["cuda: requires an explicitly admitted CUDA device; deselected by default, opt in with -m cuda",
-           "slow: full-budget study rerun that reproduces a committed receipt; deselected by default, opt in with -m slow"]
+           "slow: full-budget study rerun that reproduces a committed receipt; skipped unless PARTICLEGAN_RUN_SLOW=1"]
