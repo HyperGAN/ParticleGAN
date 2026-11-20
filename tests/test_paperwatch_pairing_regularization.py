@@ -55,7 +55,7 @@ ka2 recipe and budget, independent of pairing.
 Cohort: CPU, one intra-op thread, seeds 0/1/2 (pinned so the numbers
 reproduce). The training assertions are slow and opt-in; the mechanism
 checks always run. Report (summary.json + actual-training GIF):
-reports/paper-watch/pairing-regularization/.
+reports/toy_audit/paper-watch/pairing-regularization/.
 
 Run: PARTICLEGAN_RUN_PAPERWATCH=1 python -m pytest tests/test_paperwatch_pairing_regularization.py
 Regenerate report: PYTHONPATH=.:tests python tests/test_paperwatch_pairing_regularization.py
@@ -189,7 +189,7 @@ DEVICE = "cpu"
 SNAPSHOTS = 12          # evenly spaced post-update observations for the GIF
 SNAPSHOT_SAMPLES = 1024
 RUN_ENV = "PARTICLEGAN_RUN_PAPERWATCH"
-REPORT_DIR = (Path(__file__).resolve().parents[1] / "reports" / "paper-watch"
+REPORT_DIR = (Path(__file__).resolve().parents[1] / "reports" / "toy_audit" / "paper-watch"
               / "pairing-regularization")
 
 # The pairing arm is an ASSISTED/DIAGNOSTIC cohort: the host injects the
@@ -385,7 +385,7 @@ def test_pairing_loss_falls_below_chance_as_identification_is_learned():
 
 # --------------------------------------------------------------------------
 # The gauntlet result, encoded against the pinned CPU cohort
-# (reports/paper-watch/pairing-regularization/summary.json). The pairing arm
+# (reports/toy_audit/paper-watch/pairing-regularization/summary.json). The pairing arm
 # is an assisted host-hook cohort tuned over 6 rounds; the controls were not
 # tuned. Measured means (seeds 0/1/2): coverage particle 0.201, plain 0.638,
 # pairing 0.245; dispersion particle 0.775, plain 1.069, pairing 1.461.

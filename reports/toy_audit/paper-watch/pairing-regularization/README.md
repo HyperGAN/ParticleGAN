@@ -2,7 +2,7 @@
 
 Question: does the paper's contrastive pairing term help ParticleGAN's
 learned particle prior on an 8-Gaussian ring (radius 2, sigma 0.15)?
-Source test: [`tests/test_paperwatch_pairing_regularization.py`](../../../tests/test_paperwatch_pairing_regularization.py).
+Source test: [`tests/test_paperwatch_pairing_regularization.py`](../../../../tests/test_paperwatch_pairing_regularization.py).
 
 Cohort: CPU, one intra-op thread, ka2 recipe, 2,400 updates, batch 128,
 seeds 0/1/2, shared deterministic initializer. Metrics are in
