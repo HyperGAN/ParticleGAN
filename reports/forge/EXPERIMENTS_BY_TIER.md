@@ -3455,17 +3455,17 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | five_word_joint_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -7022,6 +7022,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `a5b81003d7b5d81fe89d9f8cb61d3c1929606ac3c8958182871f686192f371de`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `909d7ab2e8a0af88645facb7b941944af7a4d8ea5283aceefcb2066334adf497`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `2265f4a5683b0ed42abab86b3e9d461ae095ae8bbc56824a618fd59b75f90375`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `4b1cebe1d2f4300416a8a14fb2cdb02e089a0381ef630a44659dc8cd2ea58d83`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

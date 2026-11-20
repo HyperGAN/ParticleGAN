@@ -216,15 +216,34 @@ def test_malformed_route_rejected_before_model_optimizer_mutation(mutation):
 
 def test_shape_invariants_are_checked_before_any_optimizer_update():
     a = make(width=9)
-    models=deepcopy(a.state_dict()['models'])
+    saved=a.state_dict()
+    models=deepcopy(saved['models'])
     with pytest.raises(ValueError,match='generator output shape'): a.step(real(2))
-    equal(models,a.state_dict()['models'])
+    equal(models,{name:getattr(a,name).state_dict() for name in models})
     assert a.completed_steps == 0 and not a.opt_g.state and not a.opt_d.state
+    assert a.interrupted
+    with pytest.raises(RuntimeError,match='interrupted'):a.state_dict()
+    # The failed first cycle bound a real shape. Restore the unresolved
+    # checkpoint into a fresh owner rather than rewriting that frozen binding.
+    with pytest.raises(ValueError,match='output shape differs'):a.load_state_dict(saved)
+    assert a.interrupted
+    recovered=make(width=9)
+    recovered.load_state_dict(saved)
+    assert not recovered.interrupted
+    equal(saved,recovered.state_dict())
+    recovered.step(real(9))
+    assert recovered.completed_steps == 1
     b=make();b.step(real())
-    models=deepcopy(b.state_dict()['models'])
+    saved=b.state_dict()
+    models=deepcopy(saved['models'])
     with pytest.raises(ValueError,match='real output shape'): b.step(real(9))
-    equal(models,b.state_dict()['models'])
+    equal(models,{name:getattr(b,name).state_dict() for name in models})
     assert b.completed_steps == 1
+    assert b.interrupted
+    with pytest.raises(RuntimeError,match='interrupted'):b.state_dict()
+    b.load_state_dict(saved)
+    assert not b.interrupted
+    equal(saved,b.state_dict())
 
 
 def test_separate_plain_adam_table_owner_preserves_rates_and_copy_states():

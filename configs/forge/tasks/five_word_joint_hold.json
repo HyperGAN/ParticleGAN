@@ -136,7 +136,7 @@
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      "particlegan/policy.py": "9ea0bb9a6084df35780d5429bf38424d17a5fc04789391d4d726b77e9c572b82"
     },
     "evaluator_revision": {
       "id": "pr-474-develop-integration-20261108",
@@ -279,14 +279,14 @@
       "rationale": "Continue this candidate's earliest confirmed five-word acquisition state for 4,000 updates. Every scheduled generation and inverse check, including the exact restored state, must pass."
     },
     "integration_source_binding": {
-      "id": "reviewed-model-prs-integration-20261109",
-      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
-      "qualification_input": false,
-      "previous_task_commit": "4a5ff6d4db831a23a7c95b5d14ce84ff73dfee06",
+      "id": "pr-522-audit-develop-integration-20261114",
+      "previous_task_commit": "45e481d35f0c56ca4aae992713d55b4a1295e44d",
       "previous_task_path": "configs/forge/tasks/five_word_joint_hold.json",
-      "previous_task_sha256": "6f4135e47c5dd736d6c658ad5fb161873364107444a7d07c0a5bfb59c63eeec3",
-      "previous_task_blob": "13d0988b2c04a5d56991d8d8daab0cf8bc636a50",
-      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
+      "previous_task_sha256": "4dce47dc8f0e4e76c47bdb3eedef5e334ddf5812a48d02fdee77636a721a5b52",
+      "previous_task_blob": "3308599f3d0d06c5763ed01f31eb2b5e956d19b6",
+      "integration_receipt": "reports/forge/software-audits/pr522-update-boundary-source-binding.json",
+      "qualification_input": false,
+      "change": "Interrupted-update recovery and pure optional-observation preflight; source-only future execution binding. Preserve all original questions, gates, source receipts and verdicts."
     }
   },
   "resources": {

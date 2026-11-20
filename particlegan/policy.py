@@ -629,6 +629,8 @@ class UpdatePolicy:
         ``execution_limit`` is an external update cap; it does not change the
         recipe's schedule horizon. Omit it to use the recipe's ordinary cap.
         """
+        if self.interrupted:
+            raise RuntimeError("policy update was interrupted; restore a completed-update checkpoint before continuing")
         if self._phase != "ready":
             raise RuntimeError("finish_step must complete the previous policy update")
         if self.routed_control is not None:
@@ -650,12 +652,15 @@ class UpdatePolicy:
                 or real.device != self.device or real.dtype != self.dtype):
             raise ValueError("real must be a nonempty batch on the model device and dtype")
         real = real.detach()
+        # Optional observations are pure preflight when row controls are off.
+        # Reject them before a started update can require checkpoint recovery.
+        if self.routed_control is not None and not self._routed_controls_enabled and routed is not None:
+            self.routed_control.check_batch(routed)
+        self._phase = "starting"
         if self._feature_selection is not None:
             self._feature_selection.observe_shape(real)
         if self.routed_control is not None and self._routed_controls_enabled:
             self.routed_control.begin(routed)
-        elif self.routed_control is not None and routed is not None:
-            self.routed_control.check_batch(routed)
         if self.controller is not None:
             self.controller.observe_prior(self._prior_view())
             record = getattr(self.opt_d, "record", None) if game_record is None else game_record
@@ -870,8 +875,9 @@ class UpdatePolicy:
                             tester.rebase(group["params"], self.birth_death.moved_rows)
                 if self.row_evidence is not None:
                     self.row_evidence.reset(self.birth_death.moved_rows)
+        self._clear_step()
         self.completed_steps += 1
-        self.abort_step()
+        self._phase = "ready"
         return event
 
     def _routed_rebase(self):
@@ -890,13 +896,27 @@ class UpdatePolicy:
                 elif getattr(self.routed_control, "restart_router", False) and role in ("encoder", "router"):
                     tester.restart(group["params"])
 
+    @property
+    def interrupted(self):
+        """Whether an aborted update requires a completed-checkpoint restore."""
+        return self._phase == "interrupted"
+
     def abort_step(self):
-        """Release lifecycle bookkeeping after a caller error; does not undo updates."""
+        """Clear pending bookkeeping and latch an unfinished update as interrupted.
+
+        Parameters, optimizer state, controller observations and RNG draws are
+        retained. Restore a completed-update checkpoint before training or
+        checkpointing again. An idle boundary is not marked interrupted.
+        """
+        if self._phase != "ready":
+            self._phase = "interrupted"
+        self._clear_step()
+
+    def _clear_step(self):
         for optimizer in self.optimizers:
             clear = getattr(optimizer, "clear_sampled_rows", None)
             if clear is not None:
                 clear()
-        self._phase = "ready"
         self._noise = None
         self._stray_flags = self._hot = self._z_before = None
 
@@ -1317,11 +1337,12 @@ class UpdatePolicy:
                 raise ValueError(f"incompatible policy {label} tensor {key}")
 
     def _check_state(self, state):
-        if self._feature_selection is None and self.reopen_guard is None:
+        if not self.interrupted and self._feature_selection is None and self.reopen_guard is None:
             expected = self.state_dict()
         else:
             # Inspect shapes/topology without touching compatibility swaps.
             validator = copy(self)
+            validator._phase = "ready"
             validator._fast = None
             expected = validator.state_dict()
         allowed = [set(expected)]
@@ -1439,7 +1460,7 @@ class UpdatePolicy:
 
     def load_state_dict(self, state):
         """Validate then restore, keeping caller modules at fast training weights."""
-        if self._phase != "ready":
+        if self._phase not in ("ready", "interrupted"):
             raise RuntimeError("restore requires a completed update boundary")
         prepared = self._check_state(state)
         self._serve_release()
@@ -1481,6 +1502,7 @@ class UpdatePolicy:
         torch.set_rng_state(state["cpu_rng"].cpu())
         if self.device.type == "cuda":
             torch.cuda.set_rng_state(state["cuda_rng"].cpu(), self.device)
+        self._phase = "ready"
 
 
 class E22Policy(UpdatePolicy):
