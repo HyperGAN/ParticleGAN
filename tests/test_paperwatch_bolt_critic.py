@@ -110,7 +110,6 @@ Regenerate report: PYTHONPATH=.:tests python tests/test_paperwatch_bolt_critic.p
 from __future__ import annotations
 
 import json
-import math
 import os
 from pathlib import Path
 
