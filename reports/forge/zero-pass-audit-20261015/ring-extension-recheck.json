@@ -1,0 +1,58 @@
+{
+  "artifact_files_verified": 1,
+  "artifact_manifest_sha256": "979e2395e83a863f4c1f8c97d010b6a52c0ca478ba058068ec355696675fa709",
+  "attempt_id": "bf5d13ff3aeb4cba98d07373963839d8",
+  "candidate_id": "bispf-v1",
+  "candidate_revision": "45e5304bd6d19af271e0d2072cf1c5d36a3cf8cbcbf45e9eada0218c8ad0782b",
+  "continuity": {
+    "max_total_steps": 7500,
+    "mode": "uninterrupted",
+    "original_schedule_horizon": 1200,
+    "resume_count": 0,
+    "run_id": "783a8fd768f05061ac2261d3aff6724998a8eba6cb590e0cd1a78b530223216f"
+  },
+  "convergence_source_sha256": "a29c8c21083195c2944a2b2509ec7d4b96e6fc1eb7c3fa6df70d51dea6fe1ce0",
+  "evaluator_sha256": "81feb63c0fdecd7937c318abe73bf912d056c4e2f4e3b2b0ad5090bf16f56021",
+  "grade": {
+    "gate_status": "PASS",
+    "metrics": {
+      "confirmation_checks": 200,
+      "converged_step": 1400,
+      "convergence": "first consecutive qualifying window; operational quality criterion",
+      "extension_checks": 300,
+      "extension_passing": 300,
+      "first_hold_failure": null,
+      "frozen_toy_verdicts_unchanged": true,
+      "hold": "the next updates, disjoint from confirmation; no restart after failure",
+      "hold_budget": 1200,
+      "hold_budget_complete": true,
+      "hold_checks": 1200,
+      "longest_settling_streak": 200,
+      "min_hq": 0.9,
+      "modes": 8,
+      "name": "first_convergence_then_hold_v1",
+      "settling_budget": 4800,
+      "settling_checks": 200,
+      "settling_failures": 0,
+      "start_step": 1200,
+      "status": "PASS",
+      "training_feedback": false
+    },
+    "reasons": [
+      "recomputed every extension observation without selecting another window"
+    ],
+    "status": "PASS"
+  },
+  "minimum_extension_hq": 0.9921875,
+  "original_index_changed": false,
+  "qualification_input": false,
+  "raw_sha256": "ac5df3aa92268a513ee830cdc5f7c6ad9779ed3a044ff645c925dd875ba1812d",
+  "result_sha256": "53e2c58da68eed428b80346ea1c866b8bc3b02b688a6c51e07ee20feb53e82aa",
+  "sampling_draws_added": 0,
+  "schema": "saved_ring_extension_diagnostic_recheck_v1",
+  "scope": "Saved observations meet the numerical gate; certification and indexed publication remain separate.",
+  "snapshot": "17df086e92e4ae700a7676993238094191d24dee",
+  "source_digest": "fafd661541083840ae55fe9b4b282aa575f68f5f6652ecbe7b6e8e234ae36d8f",
+  "task_sha256": "213d1122f849b6987b802e6a5413dcf0d6bc6b893bb14f93eeecfd6edc47dbf9",
+  "training_updates_added": 0
+}
