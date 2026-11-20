@@ -93,13 +93,14 @@ construction tables:
 
     python tests/test_cadma_metrics.py --device cuda:0
 
-The full toy-GAN rerun is marked ``slow`` (deselected by default; run
-with ``-m slow``).
+The full toy-GAN rerun is marked ``slow`` and skipped unless
+``PARTICLEGAN_RUN_SLOW=1``.
 """
 
 import argparse
 import json
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -476,6 +477,7 @@ def test_published_gan_receipt_is_consistent():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(os.environ.get("PARTICLEGAN_RUN_SLOW") != "1", reason="full-budget rerun; set PARTICLEGAN_RUN_SLOW=1")
 def test_full_gan_study_reproduces_receipt_verdict():
     payload = json.loads(RECEIPT.read_text())
     stats = gan_statistics(_gan_rows(run_gan_arms()))
