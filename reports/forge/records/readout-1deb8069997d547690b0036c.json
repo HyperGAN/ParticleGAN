@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "278cbf1de7f94f26a73301a420b05995",
+    "fd2a5957eb4b4743baa90109d2d11a6a"
+  ],
+  "candidate_id": "minimal-v2",
+  "candidate_revision": "56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v10 (1/2 PASS) and outperforms empf-v8 (0/2) and rhbi-v12 (0/2) at 899 LOC.",
+  "conclusion": "minimal-v2 passed 1/2 t3_causal_isolation_stretch tasks: t3_iso_scale_mass_8x PASS (4/4 modes, hq=1.0000, mass_tv=0.0134, core_min_eigen_ratio=0.8505, up from 0.8117 on minimal-v1); t3_iso_horizon_saddle_shift recovered 4/4 modes and hq=1.0000 with mass_tv=0.1875 > 0.12.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "278cbf1de7f94f26a73301a420b05995",
+        "fd2a5957eb4b4743baa90109d2d11a6a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "cbac9a387f244a997a5ef4ef899c3b8cce2ee4b3aeeb5fbb784c55a680fa2550",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.850476682719663
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.850476682719663
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "278cbf1de7f94f26a73301a420b05995",
+          "producer_request_id": "f16d4e52846cf2cbec5ed6a4",
+          "producer_study_id": "minimal-v2-t3-iso-study",
+          "result_hash": "ae633587ccf5cf2f13d17c407875fd624390e4bda392cd3c040369c7ac1601f3",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "fd2a5957eb4b4743baa90109d2d11a6a",
+          "producer_request_id": "f16d4e52846cf2cbec5ed6a4",
+          "producer_study_id": "minimal-v2-t3-iso-study",
+          "result_hash": "f90306c56862ac174ba44b33ca0d9a1848c3fd536cb7b4888fd9baf84570dcef",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "34beb0b19104854fb30ac9aa121fbf532ea1481908582592823fb48df5fc2015",
+        "contract_sha256": "cbac9a387f244a997a5ef4ef899c3b8cce2ee4b3aeeb5fbb784c55a680fa2550",
+        "control_binding_sha256": "6f0d38df6cc335fe3ad808bdc06436800c801a7c74b0f4b30748935ac359b56c",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "08326d893bd1e7de1a83de0d9633a967dae30bf7b66230c5cc0adc64e5765e0b"
+      },
+      "study_id": "minimal-v2-t3-iso-study",
+      "study_sha256": "08326d893bd1e7de1a83de0d9633a967dae30bf7b66230c5cc0adc64e5765e0b"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3_causal_isolation_stretch (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Record minimal-v2 causal isolation results in reports/forge/studies/r4-minimal-core.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "278cbf1de7f94f26a73301a420b05995",
+        "result_hash": "ae633587ccf5cf2f13d17c407875fd624390e4bda392cd3c040369c7ac1601f3",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "fd2a5957eb4b4743baa90109d2d11a6a",
+        "result_hash": "f90306c56862ac174ba44b33ca0d9a1848c3fd536cb7b4888fd9baf84570dcef",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-1deb8069997d547690b0036c",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/278cbf1de7f94f26a73301a420b05995/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "minimal-v2-t3-iso-study"
+    },
+    "candidate": "minimal-v2",
+    "competing_explanation": "If collapsing multi-scale prototype management and Burg covariance into the 899-LOC core degrades 8x scale-mass separation or saddle-shift recovery, minimal-v2 will fail t3_iso_scale_mass_8x (core_min_eigen_ratio < 0.45).",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3_causal_isolation_stretch (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+    "id": "minimal-v2-t3-iso-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "minimal-v1",
+          "candidate_revision": "cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16"
+        },
+        "path": "reports/forge/records/readout-2386a25b92b16ff30b059055.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "minimal-v2-t3-iso-study",
+  "study_sha256": "08326d893bd1e7de1a83de0d9633a967dae30bf7b66230c5cc0adc64e5765e0b",
+  "task_results": [
+    {
+      "compatibility_key": "83c2f6d0a05dbc8cd5107f79d15639e6616b4a003bdc537c276ecd318ae2eec7",
+      "cost": {
+        "adapter_loop_seconds": 45.70487169013359,
+        "adapter_seconds": 46.60032289708033,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "0",
+        "eval_seconds": 0.12974406615830958,
+        "execution_seconds": 53.88870080187917,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 47.94250052492134,
+        "train_seconds": 39.7891866134014,
+        "wall_seconds": 53.88870080187917
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.11356064885953368,
+        "critic_grad_med": 0.04911573603749275,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 1.0,
+        "mass_tv": 0.1875,
+        "modes": 4,
+        "pre_shift_hq": 0.9921875,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_horizon_saddle_shift thresholds: mass_tv <= 0.12",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    },
+    {
+      "compatibility_key": "8ae147ba9435817e9dfd72d748c4c750f20cf824caba7b033a849e9dc01c9653",
+      "cost": {
+        "adapter_loop_seconds": 39.197982216021046,
+        "adapter_seconds": 39.49363305512816,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "0",
+        "eval_seconds": 0.08529681852087379,
+        "execution_seconds": 46.69030601787381,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 40.848941813921556,
+        "train_seconds": 33.07078926987015,
+        "wall_seconds": 46.69030601787381
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.1118968909066052,
+        "core_min_eigen_ratio": 0.850476682719663,
+        "critic_grad_med": 0.016464628279209137,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 0.1118968909066052,
+        "hq": 1.0,
+        "mass_tv": 0.013437502086162567,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_scale_mass_8x"
+    }
+  ]
+}
