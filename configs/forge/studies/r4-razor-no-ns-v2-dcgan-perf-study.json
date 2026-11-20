@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "r4-razor-no-ns-v2-dcgan-perf-study"
+  },
+  "candidate": "r4-razor-no-ns-v2",
+  "competing_explanation": "If Quintic NS is not a major contributor to 256x256 RGB step latency, r4-razor-no-ns will not meaningfully reduce update_ms_median below unified-v10 (89.66 ms/step).",
+  "control": {
+    "candidate_id": "unified-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 90.0
+  },
+  "hypothesis": "Measure exact r256 ms/step latency speedup and VRAM footprint when replacing 5-step Quintic Newton-Schulz with pure-elementwise O(params) Marchenko-Pastur + peak_rms.",
+  "id": "r4-razor-no-ns-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 60.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "r4-razor-no-ns",
+        "candidate_revision": "d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f"
+      },
+      "path": "reports/forge/records/readout-1b23903f5aad2cbdee8c8a7a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

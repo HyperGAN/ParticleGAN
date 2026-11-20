@@ -398,7 +398,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "cond_fiber") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -426,7 +426,7 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "unified":
             from .unified import bind_unified_record
             bind_unified_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "unified_v4":
+        elif recipe.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
             from .unified_v4 import bind_unified_v4_record
             bind_unified_v4_record(self.opt_d.record, self.loss, self.prior_regularizer)
             if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
@@ -458,6 +458,13 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "t4_nash_v3":
             from .nash_v3 import bind_nash_v3_record
             bind_nash_v3_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "minimal":
+            from .minimal import bind_minimal_record
+            bind_minimal_record(self.opt_d.record, self.loss, self.prior_regularizer)
+            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
+                g_dev = next((p.device for p in self.G.parameters()), None)
+                if g_dev is not None:
+                    self.prior_regularizer._bound_device = g_dev
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -504,12 +511,15 @@ class GANTrainer:
         if recipe.effective_critic_formulation == "t4_nash":
             self.G._t4_bf16_autocast = bool(self._bf16_generator)
             self.D._t4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation in ("unified_v4", "unified_v11"):
+        elif recipe.effective_critic_formulation in ("unified_v4", "unified_v11", "r4_autograd_critic"):
             self.G._unified_v4_bf16_autocast = bool(self._bf16_generator)
             self.D._unified_v4_bf16_autocast = bool(self._noisy_D.bf16)
         elif recipe.effective_critic_formulation == "t4_nash_v3":
             self.G._nash_v3_bf16_autocast = bool(self._bf16_generator)
             self.D._nash_v3_bf16_autocast = bool(self._noisy_D.bf16)
+        elif recipe.effective_critic_formulation == "minimal":
+            self.G._minimal_bf16_autocast = bool(self._bf16_generator)
+            self.D._minimal_bf16_autocast = bool(self._noisy_D.bf16)
         self._in_training_step = False
         # Manipulator hooks resolved once; plain priors have neither.
         self._postprocesses = bool(getattr(self.prior, "postprocesses_generated", False))
@@ -692,10 +702,21 @@ class GANTrainer:
             if recipe.prior_regularizer == "unified_v11" and recipe.t1_pullback_weight > 0.0:
                 from ._unified_v11 import should_use_unified_v11_pullback
                 use_unified_v11_pb = should_use_unified_v11_pullback(self, real, latent, indices)
+            use_minimal_pb = False
+            if recipe.prior_regularizer == "minimal" and recipe.t1_pullback_weight > 0.0:
+                from .minimal import should_use_minimal_pullback
+                use_minimal_pb = should_use_minimal_pullback(self, real, latent, indices)
             use_unified_v4_pb = False
             if recipe.prior_regularizer == "unified_v4" and recipe.t1_pullback_weight > 0.0:
                 from ._unified_v4 import should_use_unified_v4_pullback
                 use_unified_v4_pb = should_use_unified_v4_pullback(self, real, latent, indices)
+            use_r4_ablation_pb = False
+            if (
+                recipe.prior_regularizer in ("r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe")
+                and recipe.t1_pullback_weight > 0.0
+            ):
+                from ._r4_ablation import should_use_r4_ablation_pullback
+                use_r4_ablation_pb = should_use_r4_ablation_pullback(self, real, latent, indices)
             use_unified_pb = False
             if recipe.prior_regularizer == "unified" and recipe.t1_pullback_weight > 0.0:
                 from ._unified import should_use_unified_pullback
@@ -704,6 +725,18 @@ class GANTrainer:
                 from ._unified_v11 import unified_v11_pullback_step
                 simplex_loss = None
                 loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v11_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out,
+                    noise,
+                )
+            elif use_minimal_pb:
+                from .minimal import minimal_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = minimal_pullback_step(
                     self,
                     real,
                     generator_real,
@@ -719,6 +752,21 @@ class GANTrainer:
                 from ._unified_v4 import unified_v4_pullback_step
                 simplex_loss = None
                 loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v4_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
+            elif use_r4_ablation_pb:
+                from ._r4_ablation import r4_ablation_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = r4_ablation_pullback_step(
                     self,
                     real,
                     generator_real,
@@ -784,7 +832,7 @@ class GANTrainer:
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
                 highres_unified_skip = (
-                    recipe.effective_critic_formulation in ("unified", "unified_v4", "unified_v11", "cond_fiber")
+                    recipe.effective_critic_formulation in ("unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber")
                     and real.ndim >= 4
                     and real[0].numel() > 1024
                 )

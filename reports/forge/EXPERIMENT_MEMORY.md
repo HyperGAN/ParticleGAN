@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1154. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1180. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4056,6 +4056,38 @@ MatchedGPU0 selected-recipe Gaussian completes2500updates and FAILS; bimodal is 
 
 [Record and receipt provenance](records/readout-01bff4a5f0a8f6d91bc51c65.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-ns-v2 · readout-0219c6e2857b1605cbcf3428
+
+**Scope:** research_diagnostic; scientific; revision `98ebd4d6b2ef69e601363653e5f94b6ae882f02187cf316d0760983d3582edad`.
+
+Measure exact r256 ms/step latency speedup and VRAM footprint when replacing 5-step Quintic Newton-Schulz with pure-elementwise O(params) Marchenko-Pastur + peak_rms.
+
+**Observed:** {'PASS': 6}; wall seconds 66.299; mechanism `structural`.
+
+
+
+Arm 1 (-NS, v2 float32 peak_rms): 6/6 dcgan_performance PASS at r256=76.17 ms/step (p95=77.77 ms, 209.5 img/s, 1372.6 MiB alloc), 1.18x faster (-13.49 ms/step) than unified-v10 (89.66 ms/step).
+
+**Next:** Include in final Occam complexity-Pareto table.
+
+[Record and receipt provenance](records/readout-0219c6e2857b1605cbcf3428.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-ns-v2 · readout-023ec5bb580b7f86afaa21ff
+
+**Scope:** research_diagnostic; scientific; revision `98ebd4d6b2ef69e601363653e5f94b6ae882f02187cf316d0760983d3582edad`.
+
+Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves 3/3 PASS on t4_imbalance_nash_stretch (>500x G/D imbalance & hostile -30-logit init).
+
+**Observed:** {'PASS': 3}; wall seconds 286.909; mechanism `structural`.
+
+nash_unequal_width_hostile_imbalance: hq=0.99097, mass_tv=0.085938; nash_overpowered_generator_ring16: modes=16, hq=0.89868, mass_tv=0.050293; nash_overpowered_critic_ring16: modes=16, hq=0.97266, mass_tv=0.086182
+
+Arm 1 (-NS, v2 float32 peak_rms) on t4_imbalance_nash_stretch: 3/3 (100%) PASS (overpowered_critic hq=0.9727 eig=0.3715, overpowered_generator hq=0.8987 eig=0.3480, hostile_imbalance hq=0.9910 eig=0.5178).
+
+**Next:** Include in final Occam report.
+
+[Record and receipt provenance](records/readout-023ec5bb580b7f86afaa21ff.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p-r1r2-matched-v1 · readout-0297c36f9f2d9c5feb45b3cb
 
 **Scope:** calibration_diagnostic; scientific; revision `3bff4e5835a30fd018893f3b3cb1b612c5ba28d39e62247b61b728b38987b85e`.
@@ -4087,6 +4119,38 @@ Cancelled: every attempt crashed at prior construction (Recipe rejected fresh_ga
 **Next:** Superseded by prior-ablation-a3-fresh-gaussian-r2.
 
 [Record and receipt provenance](records/readout-030ba1dfffb896ffe7ef8768.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-coalesce-ltv · readout-04bb3c211150d5629c489b5e
+
+**Scope:** research_diagnostic; scientific; revision `50a94391c1ae92c2810c4fea13c3b1192d7d81a893f45c07fbe58a5897590421`.
+
+Evaluate r4-razor-no-coalesce-ltv (Knockout Arm 4 (-coalesce-ltv): disable externally isolated Pythagorean sibling coalescence (w_mat=I, multicell_coal=False), LTV rho_mu variance subtraction, and concentric v_push residual.) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 5, 'INCOMPLETE': 1, 'PASS': 9}; wall seconds 2394.619; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99707, mass_tv=0.035225; ring16_acquisition: modes=16, hq=0.96997, mass_tv=0.068115; t3_iso_horizon_saddle_shift: modes=4, hq=1, mass_tv=0.10938
+
+Arm 4 (-coalesce-ltv): 9/16 PASS, 5 FAIL (grid100 severe Zador-Gersho collapse center_rms_sigma=0.5312, cov_trace_bias=-0.3798, cov_frob_rms=0.3975; nash_overpowered_critic hq=0.7097; vector_unequal_mass; ddgan; scale_mass_8x), 1 TIMEOUT (five_word), 1 BLOCKED (grid100_mlp16).
+
+**Next:** Retain Pythagorean sibling coalescence + LTV in the irreducible core.
+
+[Record and receipt provenance](records/readout-04bb3c211150d5629c489b5e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v1 · readout-05bfed4a33e8ae32ff30e37e
+
+**Scope:** research_diagnostic; scientific; revision `cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16`.
+
+With 893 LOC, strictly 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz, torch._foreach in-place updates, and 100% live-endpoint secant reuse, minimal-v1 achieves <=55 ms/step on dcgan_performance_r256 across 6/6 dcgan_performance tasks under protocol seed 0 (~2x faster than unified-v10's 92.7 ms/step).
+
+**Observed:** {'PASS': 6}; wall seconds 65.142; mechanism `structural`.
+
+
+
+minimal-v1 (896 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 6/6 dcgan_performance tasks at 57.37 ms/step r256 median (1523.88 MiB peak), 36% faster than unified-v10 (89.66 ms/step) and 34% faster than cond-fiber-v1 (87.50 ms/step), just above the 55.0 ms prediction due to can_cat 2B activation memory and foreach temporary buffer allocation.
+
+**Next:** Eliminate 2B concat/foreach peak memory in bounded minimal-v2 to drop r256 below 55 ms/step and ~1370 MiB.
+
+[Record and receipt provenance](records/readout-05bfed4a33e8ae32ff30e37e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v2 · readout-05eaed46ab0e45214ae8e7b4
 
@@ -4552,6 +4616,22 @@ unified-v6 passed 4/4 (100%) t3-shift-recovery-diagnostic-v1 tasks (ae_gan_hold,
 
 [Record and receipt provenance](records/readout-19d586284a3d1252f8fbe4d1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-ns · readout-1b23903f5aad2cbdee8c8a7a
+
+**Scope:** research_diagnostic; scientific; revision `d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f`.
+
+Evaluate r4-razor-no-ns (Knockout Arm 1 (-NS): replace 5-step Quintic Newton-Schulz polar orthogonalization with pure-elementwise O(params) 10^-38-safe peak_rms + Marchenko-Pastur RMS-to-RMS operator scaling (t4_nash_v3 style).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 2994.25; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+Arm 1 (-NS, v1): 11/16 PASS, 4 FAIL (grid100_mlp16 collapsed prec=0.0621, zero_tanh_rail_escape mae=0.0040, model_ddgan_gaussian_chain, t3_iso_scale_mass_8x), 1 ERROR (gaussian1d_stability float64->float32 peak_rms checkpoint cast).
+
+**Next:** Run r4-razor-no-ns-v2 with float32 peak_rms checkpoint dtype parity to clear gaussian1d_stability ERROR and clockfree INVALID.
+
+[Record and receipt provenance](records/readout-1b23903f5aad2cbdee8c8a7a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-1b511c8eec2bb40f41aee6ec
 
 **Scope:** research_diagnostic; scientific; revision `71405ef7cd9845970eb77c21283ef064e80ed8b099665a5b75e2a17b602cb7eb`.
@@ -4567,6 +4647,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-1b511c8eec2bb40f41aee6ec.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-ns-v2 · readout-1c538e28f3716f374f4c527e
+
+**Scope:** research_diagnostic; scientific; revision `98ebd4d6b2ef69e601363653e5f94b6ae882f02187cf316d0760983d3582edad`.
+
+Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves unified-v10's 6/7 t4-strange-architectures-v1 performance on 16-layer mlp16, res16_tanh, and res16_scaled_tanh.
+
+**Observed:** {'FAIL': 3, 'PASS': 4}; wall seconds 3126.594; mechanism `structural`.
+
+grid100_mlp16: precision=0.02445, mass_tv=0.67075
+
+Arm 1 (-NS, v2 float32 peak_rms) on t4-strange-architectures-v1: 4/7 PASS (clockfree 4/4 PASS, zero_tanh_smoke PASS, grid100 PASS, grid100_res16_scaled_tanh PASS prec=0.9910 ctr=0.0547), 0 INVALID, 3 FAIL (grid100_mlp16 prec=0.0244, grid100_res16_tanh 100k holdout prec=0.9913, zero_tanh_rail_escape mae=0.0040).
+
+**Next:** Include in final Occam report.
+
+[Record and receipt provenance](records/readout-1c538e28f3716f374f4c527e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-v3 · readout-1ca76c61c875ba5a33dca488
 
@@ -4615,6 +4711,22 @@ Ordinary discriminator_stability revision-14 re-qualification stops at Tier 1: s
 **Next:** Repair the Tier 1 execution defects or hold the API model toys before re-qualifying.
 
 [Record and receipt provenance](records/readout-1d42b97bbb8f1366a766a233.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-1deb8069997d547690b0036c
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3_causal_isolation_stretch (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 1}; wall seconds 100.579; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=1, mass_tv=0.1875; t3_iso_scale_mass_8x: modes=4, hq=1, mass_tv=0.013438
+
+minimal-v2 passed 1/2 t3_causal_isolation_stretch tasks: t3_iso_scale_mass_8x PASS (4/4 modes, hq=1.0000, mass_tv=0.0134, core_min_eigen_ratio=0.8505, up from 0.8117 on minimal-v1); t3_iso_horizon_saddle_shift recovered 4/4 modes and hq=1.0000 with mass_tv=0.1875 > 0.12.
+
+**Next:** Record minimal-v2 causal isolation results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-1deb8069997d547690b0036c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v8 · readout-1e8054c27ba98f19d9d9202a
 
@@ -4712,6 +4824,22 @@ Completed dcgan_performance seed-0 CUDA execution for atlas-particle-normal-v4 (
 
 [Record and receipt provenance](records/readout-220c7c0eba270609fd9233a6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-ns · readout-226ec4012c0becaa51d8ce75
+
+**Scope:** research_diagnostic; scientific; revision `d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f`.
+
+Measure exact r256 ms/step latency speedup and VRAM footprint when replacing 5-step Quintic Newton-Schulz with pure-elementwise O(params) Marchenko-Pastur + peak_rms.
+
+**Observed:** {'PASS': 6}; wall seconds 62.605; mechanism `structural`.
+
+
+
+Arm 1 (-NS, v1) passes 6/6 dcgan_performance at r256=76.09 ms/step (p95=77.21 ms, 209.7 img/s, 1372.6 MiB alloc), 1.18x faster (-13.57 ms/step) than unified-v10 (89.66 ms/step).
+
+**Next:** Fix float64->float32 peak_rms checkpoint dtype cast in r4-razor-no-ns-v2 and verify 0 ERROR / 0 INVALID across all four views.
+
+[Record and receipt provenance](records/readout-226ec4012c0becaa51d8ce75.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v7 · readout-228486492e2b4f2959fe621a
 
 **Scope:** research_diagnostic; scientific; revision `8995871aa3fbf84b4626fec2725cefc1e3f44e2b5b38b471320b9df24f2842f8`.
@@ -4727,6 +4855,22 @@ unified-v7 passed t3_iso_horizon_saddle_shift (modes=4, hq=0.9609) and missed t3
 **Next:** Add exact 128/len(rows) row-count scaling to s_prior in unified-v8.
 
 [Record and receipt provenance](records/readout-228486492e2b4f2959fe621a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v1 · readout-2386a25b92b16ff30b059055
+
+**Scope:** current; scientific; revision `cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16`.
+
+Unchanged global 893-LOC zero-SVD zero-NS zero-autograd.grad minimal-v1 preserves strong multimodal, 100-mode lattice (rotated100 center_rms_sigma <= 0.18), discrete-image, vector, and conditional-fiber stability across discriminator_stability Tiers 1-2 under protocol seed 0 at ~10x fewer lines and ~2x faster r256 speed than unified-v10.
+
+**Observed:** {'FAIL': 9, 'PASS': 8}; wall seconds 1536.407; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=1, mass_tv=0.011484; ring16_acquisition: modes=16, hq=0.97241, mass_tv=0.045654
+
+minimal-v1 passed 8/17 Tier-1 discriminator_stability tasks (ae_gan_hold, clockfree_audit_measurement_v1, gaussian1d_smoke, model_ae_reconstruction, ring16_acquisition, t3_iso_scale_mass_8x, unused_token_hold, zero_tanh_smoke), stopping before Tier 2 due to 1D Burg interference on two_pole/precision_gaussian_*, deep_g triggering on multi-module AE/VAE (five_word_joint_smoke, model_vae_*), and square-layer 2x MP under-scaling.
+
+**Next:** Implement surgical 4-fix bounded minimal-v2 (<900 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 NS) to clear Tier 1 and measure full Tiers 1-2.
+
+[Record and receipt provenance](records/readout-2386a25b92b16ff30b059055.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-23a27d9f41e3d4285248abda
 
@@ -4967,6 +5111,22 @@ prediction_observed
 **Next:** review_saved_diagnostics
 
 [Record and receipt provenance](records/readout-2e0a16b47298ebbc5e33ba63.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-2f4291537e93817e412994e3
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 recovers all 16 modes on nash_overpowered_critic_ring16 and matches multimodal Nash recovery across t4_imbalance_nash_stretch under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 372.051; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.98584, mass_tv=0.042725; nash_overpowered_critic_ring16: modes=16, hq=0.9917, mass_tv=0.052002; nash_unequal_width_hostile_imbalance: hq=0.99683, mass_tv=0.042725
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 2/3 t4_imbalance_nash_stretch tasks: nash_overpowered_critic_ring16 (621x PASS: 16/16 modes, hq=0.9917, mass_tv=0.0520, eig=0.2159) and nash_overpowered_generator_ring16 (548x PASS: 16/16 modes, hq=0.9858, mass_tv=0.0427, eig=0.1854); nash_unequal_width_hostile_imbalance achieved hq=0.9968, mass_tv=0.0427 with resolved_core_min_eigen_ratio=0.1240 vs 0.15.
+
+**Next:** Record minimal-v2 Nash results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-2f4291537e93817e412994e3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-v1 · readout-3056c61a1d2d3386643a1367
 
@@ -5576,6 +5736,38 @@ Completed dcgan_performance seed-0 CUDA execution for bispf-optimized-quintic-v1
 
 [Record and receipt provenance](records/readout-44a844de0b6e23e430a12858.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-secant-band · readout-44d5ad0a2de36996b109445b
+
+**Scope:** research_diagnostic; scientific; revision `8e6452a58cff20fbb01f170634d33f644a4c900f667f2efa487c6037cb43ea72`.
+
+Evaluate r4-razor-no-secant-band (Knockout Arm 2 (-secant-band): disable realized function-space pushforward/logit secant trust-band regulation (alpha_gain == 1.0 always).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 5, 'PASS': 10}; wall seconds 2468.016; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99854, mass_tv=0.10358; img_bars4: modes=4, hq=0.96875
+
+Arm 2 (-secant-band): 10/16 PASS, 5 FAIL (nash_overpowered_generator_ring16 collapsed to 6/16 modes hq=0.2522; grid100 holdout passed prec=0.9933 but final trace_bias=-0.1022 missed by 0.0022; zero_tanh_rail_escape mae=0.0021; ddgan; scale_mass_8x), 1 BLOCKED (grid100_mlp16 gated by grid100).
+
+**Next:** Keep lightweight generator pushforward ceiling in minimal core; drop critic logit secant band.
+
+[Record and receipt provenance](records/readout-44d5ad0a2de36996b109445b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-pullback-iso · readout-44dbbe8ab156d3615c474db4
+
+**Scope:** research_diagnostic; scientific; revision `170b5b8649907b48c47485b2854f57c3e28eb6be45d1d228e157dabdaeaf59b8`.
+
+Evaluate r4-razor-no-pullback-iso (Knockout Arm 3 (-pullback-iso): disable dimension-specific 2D-complex (d_z==2) and Radon-Hurwitz (d_z==4) multi-tangent pushforward covariance isometry, keeping only universal 1-sample radial iso_1.) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 2262.257; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.94067, mass_tv=0.075195; t3_iso_scale_mass_8x: modes=4, hq=0.99805, mass_tv=0.013906
+
+Arm 3 (-pullback-iso): 11/16 PASS, 3 FAIL (grid100 cov_trace_bias=+0.2388, cov_frob_rms=0.2816; ddgan; scale_mass_8x), 1 TIMEOUT (five_word_joint_smoke under shared-box load), 1 BLOCKED (grid100_mlp16 gated by grid100).
+
+**Next:** Eliminate Radon-Hurwitz d_z=4 branch; keep compact d_z=2 orthogonal pair only for lattice precision.
+
+[Record and receipt provenance](records/readout-44dbbe8ab156d3615c474db4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v9 · readout-45107d16afdf5bb8dc138497
 
 **Scope:** research_diagnostic; scientific; revision `a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77`.
@@ -5591,6 +5783,22 @@ unified-v9 passed clockfree_audit_measurement_v1, zero_tanh_smoke, and zero_tanh
 **Next:** Raise augmented Tikhonov cutoff from <=64 to <=128 in unified-v10.
 
 [Record and receipt provenance](records/readout-45107d16afdf5bb8dc138497.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-sat-probe · readout-453cc0e86ed3223a21d247c3
+
+**Scope:** research_diagnostic; scientific; revision `921de9f3afcd70db4ad811fdee26688730c6547a64c43ab4defe66e16023522b`.
+
+Evaluate r4-razor-no-sat-probe (Knockout Arm 8 (-sat-probe): disable Case A fwAD saturation inverse-attenuation (w_sat_pt=1), Case B saturation compensation (w_sat_vec=1, w_iso_sat=1), and coordinatewise outward column-sensitivity dead-clamp rescue.) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 2606.506; mechanism `structural`.
+
+img_bars4: modes=4, hq=0.96875; t3_iso_horizon_saddle_shift: modes=4, hq=1, mass_tv=0.10938
+
+Arm 8 (-sat-probe): 11/16 PASS (zero_tanh_rail_escape PASS mae=0.0026!), 3 FAIL (grid100 100k holdout PASS prec=0.9928 ctr=0.1300 but missed step-6250 suffix; ddgan; scale_mass_8x), 1 TIMEOUT (five_word under shared load), 1 BLOCKED (grid100_mlp16).
+
+**Next:** Drop Case A fwAD saturation probe; retain lightweight dynamic scale normalization.
+
+[Record and receipt provenance](records/readout-453cc0e86ed3223a21d247c3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### e22 · readout-454e20c82f89cc56488e7f98
 
@@ -5639,6 +5847,22 @@ Both unchanged width 64 image controls PASS their complete 600-update sustained 
 **Next:** Retain the source-bound controls and actual-training GIFs; do not rerun unchanged arms.
 
 [Evidence](../../reports/forge/bispf-throughput/README.md) · [Record](records/readout-464567d128031fee54c42252.json)
+
+### r4-razor-no-ns · readout-473d9273f48217f741893cb4
+
+**Scope:** research_diagnostic; scientific; revision `d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f`.
+
+Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves unified-v10's 6/7 t4-strange-architectures-v1 performance on 16-layer mlp16, res16_tanh, and res16_scaled_tanh.
+
+**Observed:** {'FAIL': 3, 'INVALID': 1, 'PASS': 3}; wall seconds 2874.701; mechanism `structural`.
+
+grid100_res16_tanh: precision=0.99035, center_rms_sigma=0.11113, mass_tv=0.03616, radial_ks=0.033792; grid100: precision=0.9927, center_rms_sigma=0.094518, mass_tv=0.03748, radial_ks=0.033663
+
+Arm 1 (-NS, v1) on t4-strange-architectures-v1: grid100 PASS, grid100_res16_scaled_tanh PASS (prec=0.9910, ctr=0.0547), grid100_mlp16 FAIL (prec=0.0621), grid100_res16_tanh FAIL (100k holdout prec=0.9903), zero_tanh_rail_escape FAIL (mae=0.0040), clockfree INVALID (float64 peak_rms cast).
+
+**Next:** Re-verify on r4-razor-no-ns-v2 with float32 peak_rms to confirm clean clockfree PASS.
+
+[Record and receipt provenance](records/readout-473d9273f48217f741893cb4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v12 · readout-47591bd9555febfe3409fd0d
 
@@ -5800,6 +6024,22 @@ On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 2162.7s new 
 
 [Record and receipt provenance](records/readout-4acf96c2efad5e17f86d9df2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-autograd-critic · readout-4b04c4bf0dc3d7408a82e51e
+
+**Scope:** research_diagnostic; scientific; revision `99cb547d1f4fb42c344e88251cd087d21490e4b648c25751195caa40b3f3ba30`.
+
+Quantify exact 256x256 RGB latency (ms/step) and peak VRAM energy penalty of 2nd-order torch.autograd.grad EBI vs 1st-order fwAD/secant critic under otherwise identical unified-v10.
+
+**Observed:** {'PASS': 6}; wall seconds 61.843; mechanism `structural`.
+
+
+
+Arm 7 (-fwad-critic, 2nd-order autograd.grad EBI) passes 6/6 dcgan_performance at r256=133.01 ms/step (p95=135.65 ms, 120.2 img/s, 1850.3 MiB alloc / 1968.0 MiB res).
+
+**Next:** Retain 1st-order fwAD/secant critic as strictly Pareto-dominant for energy and memory.
+
+[Record and receipt provenance](records/readout-4b04c4bf0dc3d7408a82e51e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-4bd94051f203bbbb28a3e7a6
 
 **Scope:** current; scientific; revision `87d849138dd0ae385260a77223e9a70a7c2a8a112733b2312f556b462cc164e9`.
@@ -5863,6 +6103,22 @@ The ordinary fresh-checkout two_pole attempt failed its slope bound (grad_med1.2
 **Next:** Retain all nine cheap-cell outcomes and costs. Keep ordinary qualification stopped. Review the exact historical/public-host parity differences before deeper reference spending; reserve the required GPU window and register only justified missing reference cells. Do not tune thresholds or treat unmeasured reference labels as failures.
 
 [Record and receipt provenance](records/readout-4e04059eb9f631a2e406447e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-secant-band · readout-4e2fd695306a5dd6fd222e62
+
+**Scope:** research_diagnostic; scientific; revision `9ef66970ab0b2855f59d764f9656329d5aca5c2a894e4ee869ba116e57df1fb4`.
+
+Test whether knocking out realized function-space secant trust bands breaks all three >500x Nash imbalance and hostile -30-logit init probes in t4_imbalance_nash_stretch.
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 285.741; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.93237, mass_tv=0.069092; nash_overpowered_generator_ring16: modes=6, hq=0.2522, mass_tv=0.094482; nash_unequal_width_hostile_imbalance: hq=0.98096, mass_tv=0.09668
+
+Arm 2 (-secant-band) on t4_imbalance_nash_stretch: 2/3 PASS (overpowered_critic hq=0.9324, hostile_imbalance hq=0.9810), 1 FAIL (overpowered_generator collapsed 6/16 modes, hq=0.2522).
+
+**Next:** Retain generator secant ceiling only.
+
+[Record and receipt provenance](records/readout-4e2fd695306a5dd6fd222e62.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p--370894f9284090fc9771145a869f2d7fa617283c3736c8e461a47553c9668ce6 · readout-4e44570c882c7d07bbddc813
 
@@ -6456,6 +6712,22 @@ unified-v10 achieved 6/7 PASS on t4-strange-architectures-v1: clockfree_audit_me
 
 [Record and receipt provenance](records/readout-688bc7ed35078e19c10daf6a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-ns-v2 · readout-690dd40a4221b390d8680e43
+
+**Scope:** research_diagnostic; scientific; revision `98ebd4d6b2ef69e601363653e5f94b6ae882f02187cf316d0760983d3582edad`.
+
+Evaluate r4-razor-no-ns (Knockout Arm 1 (-NS): replace 5-step Quintic Newton-Schulz polar orthogonalization with pure-elementwise O(params) 10^-38-safe peak_rms + Marchenko-Pastur RMS-to-RMS operator scaling (t4_nash_v3 style).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 3508.994; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.9812, mass_tv=0.070557
+
+Arm 1 (-NS, v2 float32 peak_rms): 11/16 PASS, 0 ERROR, 0 INVALID, 4 FAIL (grid100_mlp16 collapsed prec=0.0244 mass_tv=0.6707; zero_tanh_rail_escape mae=0.0040; ddgan; scale_mass_8x), 1 INCOMPLETE (five_word timeout under shared load; passed in v1). gaussian1d_stability PASS (cdf_ks=0.0204).
+
+**Next:** Synthesize with Arms 2-8 in r4-occam-ablation-razor.md.
+
+[Record and receipt provenance](records/readout-690dd40a4221b390d8680e43.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t4-nash-v3-g10x · readout-696ab5f8318bc8b356af8217
 
 **Scope:** research_diagnostic; scientific; revision `4eb5094b538e898b6d7ff1f5fa9d50d5958fa490b16886f7e7969089370e398b`.
@@ -6519,6 +6791,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-6b39d05e0c481a63f7aa8aa3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-6bac8895ffa14ef20dcbee75
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes clockfree_audit_measurement_v1, zero_tanh_smoke, grid100, and deep residual tanh architectures (grid100_res16_scaled_tanh center_rms_sigma <= 0.20) on t4-strange-architectures-v1 while transparently measuring the zero-NS boundary on skip-free 16-layer MLPs under protocol seed 0.
+
+**Observed:** {'FAIL': 5, 'PASS': 4}; wall seconds 3575.533; mechanism `structural`.
+
+
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) evaluated all 7/7 t4-strange-architectures-v1 tasks, passing 3/7: clockfree_audit_measurement_v1 PASS, zero_tanh_smoke PASS (mae=0.0038), and grid100 PASS (center_rms_sigma=0.0566, cov_trace_bias=-0.0053, radial_ks=0.0026, mass_tv=0.0374, precision=0.9795, frozen_pass=True). On 16-block residual tanh nets, minimal-v2 recovered 100/100 modes with ultra-sharp centers (grid100_res16_scaled_tanh center_rms_sigma=0.0471, precision=0.9914, frozen_pass=True; grid100_res16_tanh center_rms_sigma=0.0630, precision=0.9774) missing only cov_trace_bias (-0.2717/-0.2095). On skip-free 16-layer MLP (grid100_mlp16), zero-NS minimal-v2 collapsed (precision=0.0714, mass_tv=0.5782), independently confirming r4-ablation-razor's finding that Newton-Schulz is strictly irreducible on deep skip-free MLPs.
+
+**Next:** Refresh Forge history/compile, write reports/forge/studies/r4-minimal-core.md, pass all CI/lint/wheel checks, and open PR to develop.
+
+[Record and receipt provenance](records/readout-6bac8895ffa14ef20dcbee75.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v6 · readout-6bf4d676cc7a12b04a631fd2
 
@@ -6679,6 +6967,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-704dd415ee7878a1bbfbe7d9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-71264208cbaf820429ca4975
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery) under protocol seed 0.
+
+**Observed:** {'FAIL': 3, 'PASS': 3}; wall seconds 318.316; mechanism `structural`.
+
+
+
+minimal-v2 passed 2/4 t3-shift-recovery-diagnostic-v1 tasks: ae_gan_hold PASS (hold=0.0550) and zero_tanh_smoke PASS (mae=0.0038, rms=0.0055); mode_hold retained 8/8 modes (hq=0.8269) and zero_tanh_rail_escape reached pre-shift mae=0.0018 and post-shift mae=0.0101 / rms=0.0133.
+
+**Next:** Record minimal-v2 shift diagnostic results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-71264208cbaf820429ca4975.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### unified-v10 · readout-72b4701ffe3e02fae8ac8982
 
@@ -7144,6 +7448,22 @@ Frobenius convolution rule fails both width64 image gates at600 updates: stripes
 
 [Record and receipt provenance](records/readout-85a714c5fc9c0b038c400b22.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v2 · readout-889d4d1d2b24d0a08ab4017c
+
+**Scope:** current; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 preserves strong multimodal, 100-mode lattice (rotated100 center_rms_sigma <= 0.18), discrete-image, vector, and conditional-fiber stability across discriminator_stability Tiers 1-2 under protocol seed 0 at ~10x fewer lines and ~2x faster r256 speed than unified-v10.
+
+**Observed:** {'FAIL': 7, 'PASS': 10}; wall seconds 1564.557; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+minimal-v2 passed 10/17 Tier-1 discriminator_stability tasks (up from 8/17 on minimal-v1), adding full PASS on two_pole (mean_abs=0.9616) and five_word_joint_smoke (5/5 modes, mass_tv=0.0189) alongside ae_gan_hold, clockfree_audit_measurement_v1, gaussian1d_smoke, model_ae_reconstruction, ring16_acquisition (16/16, hq=0.9839), t3_iso_scale_mass_8x (eig=0.8505), unused_token_hold, and zero_tanh_smoke.
+
+**Next:** Wait for minimal-v2-t4-arch-study to finish, conclude its readout, refresh Forge history/compile, and publish reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-889d4d1d2b24d0a08ab4017c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v12 · readout-8a63e947313fcb7d2e62a8d2
 
 **Scope:** research_diagnostic; scientific; revision `50db84ca0198d566cf42d136166eb598a309289b6bceee522f18eea831b7e489`.
@@ -7559,6 +7879,22 @@ rgdt-v3 passes 4/4 tasks on t3-shift-recovery-diagnostic-v1, converting Tier-3 t
 **Next:** Report 81/81 target_shift_recovery PASS in reports/forge/studies/t3-third-piece-proof.md and integrate with unified synthesis.
 
 [Record and receipt provenance](records/readout-9ac29cca3e759e381fb46e36.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-sat-probe · readout-9b7edc6de002e2ce4dde5bc5
+
+**Scope:** research_diagnostic; scientific; revision `921de9f3afcd70db4ad811fdee26688730c6547a64c43ab4defe66e16023522b`.
+
+Test whether knocking out fwAD saturation inverse-attenuation and outward dead-clamp rescue breaks zero_tanh_rail_escape, grid100_res16_tanh, and grid100_res16_scaled_tanh.
+
+**Observed:** {'FAIL': 1, 'PASS': 3}; wall seconds 513.374; mechanism `structural`.
+
+grid100: precision=0.99277, center_rms_sigma=0.12999, mass_tv=0.03631, radial_ks=0.032225
+
+Arm 8 (-sat-probe) on t4-strange-architectures-v1: clockfree PASS (4/4), zero_tanh_smoke PASS (0.0025), zero_tanh_rail_escape PASS (0.0026), grid100 FAIL (4/5 checks + 100k holdout PASS prec=0.9928 ctr=0.1300), gating mlp16/res16_* as BLOCKED.
+
+**Next:** Conclude study and report marginal step-6250 grid100 gate cleanly.
+
+[Record and receipt provenance](records/readout-9b7edc6de002e2ce4dde5bc5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-9ba1e04d7902d860f201b335
 
@@ -8120,6 +8456,22 @@ Ordinary global candidate failed two_pole movement: mean_abs=0.0468712635<0.3; q
 
 [Record and receipt provenance](records/readout-b214c23e088f39337c3d8784.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-chart-laguerre · readout-b27b26896bd137e2e701ce2d
+
+**Scope:** research_diagnostic; scientific; revision `3666a81626e58dddb118f8dfbb4788586e1f1a3d5988a8ae0501f2dbebd4ee50`.
+
+Evaluate r4-razor-no-chart-laguerre (Knockout Arm 5 (-chart-laguerre): disable streaming H0-screened Laguerre chart commitment in T1CouplingLoss (t1c_chart_weight=0.0) and Laguerre dual-potential psi updates in pullback condensation (pure Voronoi).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 8, 'PASS': 7}; wall seconds 2451.055; mechanism `structural`.
+
+grid100: precision=0.28268, mass_tv=0.4417; vector_unequal_width: hq=0.98828, mass_tv=0.17627; t3_iso_horizon_saddle_shift: modes=4, hq=0.99219, mass_tv=0.03125
+
+Arm 5 (-chart-laguerre): 7/16 PASS, 8 FAIL (grid100 collapsed prec=0.2827 mass_tv=0.4417; img_bars4 mode collapse 2/4; ring16 mass_tv=0.1863; both Nash tasks; vector_unequal_width mass_tv=0.1763; scale_mass_8x eig=0.0034; ddgan), 1 BLOCKED (grid100_mlp16).
+
+**Next:** Retain Laguerre chart commitment as a non-negotiable core law.
+
+[Record and receipt provenance](records/readout-b27b26896bd137e2e701ce2d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### atlas-particle-normal-v4 · readout-b389e250ac5b3ad0763d2c82
 
 **Scope:** current; scientific; revision `3e568ed2213479cc8bbd8844796ab6f0ca4c804fa846e627563b06f556001089`.
@@ -8327,6 +8679,22 @@ PASS 13/13 counted Tier 1 gates (15/16 total Tier 1 incl. mxfp8 & nvfp4) and 31/
 **Next:** Archive all 10 t1-coupling-v1..v5 readouts and recommend combining Track 1B chart-deconflicted generator coupling with Track 1A disconnected prior pullback (to remove continuous-prior bridge outliers on vector_unequal_width and toy100) and Track 2 1st-order secant critic.
 
 [Record and receipt provenance](records/readout-b87c22fbdb500d43981e839b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-autograd-critic · readout-b96faf85499b1dbe9dce102e
+
+**Scope:** research_diagnostic; scientific; revision `06baf01b3bcd5d3e2a19eee4434ea593ca7c1a71157159deae24f8166d351d73`.
+
+Evaluate r4-razor-autograd-critic (Knockout Arm 7 (-fwad-critic): replace 1st-order fwAD/multi-probe secant critic penalty with exact 2nd-order torch.autograd.grad(..., create_graph=True) Born-Infeld EBI penalty (_T1CouplingPenaltyKernel).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 4, 'PASS': 11}; wall seconds 2400.347; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.99805, mass_tv=0.013438; img_bars4: modes=4, hq=1
+
+Arm 7 (-fwad-critic, 2nd-order autograd.grad EBI): 11/16 PASS, 4 FAIL (grid100 prec=0.9822 ctr=0.1757; img_bars4 suffix 4/5; zero_tanh_rail_escape; ddgan), 1 BLOCKED (grid100_mlp16). Sole gain over unified-v10: t3_iso_scale_mass_8x PASS (core_min_eigen_ratio=0.5313 vs 0.2155).
+
+**Next:** Keep 1st-order fwAD/secant critic in core; note t3_iso_scale_mass_8x sensitivity for follow-up.
+
+[Record and receipt provenance](records/readout-b96faf85499b1dbe9dce102e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-k3p-v1 · readout-b9f8dfc752cd1ca9ceaaff21
 
@@ -9016,6 +9384,22 @@ On ordinary discriminator_stability (Rev 16) under protocol seed 0 on NVIDIA RTX
 
 [Record and receipt provenance](records/readout-d46a41a1da2da54d67d154f4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v2 · readout-d50a87c606ed4cd8e01a42fe
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+With 893 LOC, strictly 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz, torch._foreach in-place updates, and 100% live-endpoint secant reuse, minimal-v2 achieves <=55 ms/step on dcgan_performance_r256 across 6/6 dcgan_performance tasks under protocol seed 0 (~2x faster than unified-v10's 92.7 ms/step).
+
+**Observed:** {'PASS': 6}; wall seconds 66.664; mechanism `structural`.
+
+
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 6/6 dcgan_performance tasks at 55.50 ms/step r256 median (1344.84 MiB peak allocated, 1384.0 MiB reserved; 50.91 ms uncontended), cutting -179.0 MiB peak VRAM vs minimal-v1 (1523.88 MiB) and running 38% faster than unified-v10 (89.66 ms/step) and 37% faster than cond-fiber-v1 (87.50 ms/step).
+
+**Next:** Complete the 5 quality/stability minimal-v2 studies and compile final R4 Minimal Core report.
+
+[Record and receipt provenance](records/readout-d50a87c606ed4cd8e01a42fe.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rgdt-v3 · readout-d547ba37dabfc5ab66eca538
 
 **Scope:** research_diagnostic; scientific; revision `f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a`.
@@ -9688,6 +10072,22 @@ unified-v6 passed clockfree_audit_measurement_v1, zero_tanh_smoke (0.0027), and 
 
 [Record and receipt provenance](records/readout-edd5648b2522a2546e4ac0ef.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### r4-razor-no-conformal · readout-edffe8cee489f8b14768e2cb
+
+**Scope:** research_diagnostic; scientific; revision `b2116fc9ffbe0cee5113d08bb885c0195b57cf7ff88e3076eff8b4f5413d27fe`.
+
+Evaluate r4-razor-no-conformal (Knockout Arm 6 (-conformal): disable conformal local scale horizon (t1c_multiscale_horizon=False, rgdt_conformal_horizon=False) and 1D Weibull AKT horizon scaling (rhbi_akt_horizon=False).) across all 14 surgical probes (+2 smoke prerequisites) of r4-occam-ablation-v1 under protocol seed 0 to isolate irreducible vs redundant Laws 1-4 mechanisms.
+
+**Observed:** {'FAIL': 3, 'PASS': 12}; wall seconds 2602.548; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.93311, mass_tv=0.068359; grid100: precision=0.99176, center_rms_sigma=0.13792, mass_tv=0.03613, radial_ks=0.029708; t3_iso_horizon_saddle_shift: modes=4, hq=1, mass_tv=0.10938
+
+Arm 6 (-conformal): 12/16 PASS, 3 FAIL (gaussian1d_smoke cdf_ks=0.0986 vs 0.0220; ddgan; scale_mass_8x), 1 BLOCKED (gaussian1d_stability gated by smoke). Every 2D/4D/deep/Nash/image/lattice probe passed identically to unified-v10 (incl. vector_unequal_width hq=0.9980, grid100 0.9918, grid100_mlp16 0.9929).
+
+**Next:** Delete 2D _conformal_local_horizons; keep only the 3-line 1D Weibull AKT factor.
+
+[Record and receipt provenance](records/readout-edffe8cee489f8b14768e2cb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-eeec25002d17191c315f126b
 
 **Scope:** calibration_diagnostic; scientific; revision `6385ef80463dca6a3c1c1f94dd3269c8e1db3702a8d236c1bd59d69787e06325`.
@@ -9959,6 +10359,22 @@ inconclusive_sub100_confirmed_speedup: t2-secant-v1 completed all 6/6 dcgan_perf
 **Next:** Evaluate t2-secant-v1 on discriminator_stability Tiers 1-2 at the identical source digest 8eaf48ee3e2e, then inspect quality and r256 spatial-stride Chamfer overhead for potential t2-secant-v2 refinement.
 
 [Record and receipt provenance](records/readout-fbe38229308f61967c632eba.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### r4-razor-no-ns · readout-fcfec5e8ae1c8411f818fa8f
+
+**Scope:** research_diagnostic; scientific; revision `d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f`.
+
+Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves 3/3 PASS on t4_imbalance_nash_stretch (>500x G/D imbalance & hostile -30-logit init).
+
+**Observed:** {'PASS': 3}; wall seconds 327.517; mechanism `structural`.
+
+nash_unequal_width_hostile_imbalance: hq=1, mass_tv=0.098145; nash_overpowered_critic_ring16: modes=16, hq=0.94727, mass_tv=0.073975; nash_overpowered_generator_ring16: modes=16, hq=0.91724, mass_tv=0.050781
+
+Arm 1 (-NS, v1) passes 3/3 (100%) on t4_imbalance_nash_stretch: overpowered_critic (hq=0.9473), overpowered_generator (hq=0.9172), hostile_imbalance (hq=1.0000).
+
+**Next:** Confirm 3/3 parity under r4-razor-no-ns-v2.
+
+[Record and receipt provenance](records/readout-fcfec5e8ae1c8411f818fa8f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-arch-v3 · readout-ff22843954240927dfd7ecc3
 
@@ -10614,4 +11030,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `0dedace07571d3b47b5367cf7f587bee05970e84e4d3db903426bfb0f7f69ed9`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `5ec35aed6e2732a4ff20619d1cea289d2324b7a99ce70336e6d1d03711ecd28f`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

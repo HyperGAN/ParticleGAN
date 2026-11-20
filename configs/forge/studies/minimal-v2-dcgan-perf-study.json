@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "minimal-v2-dcgan-perf-study"
+  },
+  "candidate": "minimal-v2",
+  "competing_explanation": "If the 899-LOC pure-elementwise MinimalOptimizer foreach fast path or 1st-order live-endpoint secant reuse still adds overhead on 4D convolutional networks, dcgan_performance_r256 will exceed 55 ms/step uncontended (or >=85 ms/step under shared GPU load).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 85.0
+  },
+  "hypothesis": "With 893 LOC, strictly 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz, torch._foreach in-place updates, and 100% live-endpoint secant reuse, minimal-v2 achieves <=55 ms/step on dcgan_performance_r256 across 6/6 dcgan_performance tasks under protocol seed 0 (~2x faster than unified-v10's 92.7 ms/step).",
+  "id": "minimal-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 55.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "minimal-v1",
+        "candidate_revision": "cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16"
+      },
+      "path": "reports/forge/records/readout-05bfed4a33e8ae32ff30e37e.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

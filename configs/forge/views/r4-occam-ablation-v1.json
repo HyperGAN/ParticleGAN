@@ -1,0 +1,115 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "gaussian1d_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "zero_tanh_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "ring16_acquisition"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "gaussian1d_stability"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "vector_unequal_width"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "vector_unequal_mass"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "img_bars4"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 7,
+      "qualification_tier": 1,
+      "task": "grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 8,
+      "qualification_tier": 1,
+      "task": "model_ddgan_gaussian_chain"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 9,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 10,
+      "qualification_tier": 1,
+      "task": "zero_tanh_rail_escape"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 11,
+      "qualification_tier": 1,
+      "task": "grid100_mlp16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 12,
+      "qualification_tier": 1,
+      "task": "nash_overpowered_critic_ring16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 13,
+      "qualification_tier": 1,
+      "task": "nash_overpowered_generator_ring16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 14,
+      "qualification_tier": 1,
+      "task": "t3_iso_scale_mass_8x"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 15,
+      "qualification_tier": 1,
+      "task": "t3_iso_horizon_saddle_shift"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Fourteen surgical probes plus two prerequisite smoke tasks form a bounded single-factor knockout diagnostic view isolating irreducible Laws 1-4 mechanisms vs redundant epicycles; supplies no ordinary qualification or default-adoption credit.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "r4-occam-ablation-v1",
+  "policy_change_reason": "Matched protocol-seed-0 Round-4 Occam's Razor systematic single-factor knockout view spanning 14 surgical probes (+ 2 required smoke dependencies: gaussian1d_smoke, zero_tanh_smoke) across every regime (ring, 1D, unequal width/mass, discrete image, 100-mode lattice, conditional DDGAN, 5-word BiGAN, tanh rail escape, 16-layer MLP, >500x D>>G and G>>D Nash imbalance, 8x scale-mass and 42.4-sigma horizon saddle shift). Retains every frozen task gate, architecture, initialization, budget, and clean live sampling law. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "minimal-v1-study"
+  },
+  "candidate": "minimal-v1",
+  "competing_explanation": "If collapsing 8,665 LOC / 718 branches across 3 Round-3 packages into an 893-LOC zero-SVD zero-NS zero-autograd.grad core sacrifices multimodal, discrete, vector, or conditional coverage, minimal-v1 will fail rotated100 (center_rms_sigma > 0.25) or regress sharply across discriminator_stability Tiers 1-2.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Unchanged global 893-LOC zero-SVD zero-NS zero-autograd.grad minimal-v1 preserves strong multimodal, 100-mode lattice (rotated100 center_rms_sigma <= 0.18), discrete-image, vector, and conditional-fiber stability across discriminator_stability Tiers 1-2 under protocol seed 0 at ~10x fewer lines and ~2x faster r256 speed than unified-v10.",
+  "id": "minimal-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-6da9dee19abe886e7ddbe184.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
