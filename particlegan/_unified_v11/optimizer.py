@@ -1,24 +1,32 @@
 """Zero-SVD / Zero-`pinv` / Zero-`autograd.grad` Unified-v11 Equilibrated Optimizer (`unified_v11_equil`).
 
-Builds on ``UnifiedV4EquilibratedOptimizer`` with four first-principles improvements:
+Builds on ``UnifiedV4EquilibratedOptimizer`` with five first-principles improvements:
 1. **Strictly Zero-`autograd.grad` / Zero-`pinv` Analytic Direction Blend** (``direction_blend=True``):
    Computes protected-loss normals via standard ``loss.backward(retain_graph=True)`` (``0``
    ``torch.autograd.grad``) and projects conflicting 1- or 2-objective displacements using closed-form
    ``1x1`` / ``2x2`` Gram algebra (``0`` ``torch.linalg.pinv``), restoring ``1.0`` own-pad accuracy on
    ``residual_student`` without adding any SVD or double-backward primitive.
-2. **Direct Particle Cloud Row Smoothing Parity (``t3_iso_scale_mass_8x``)**:
-   Applies scaled Tikhonov row smoothing ``hypot(d_norm, s_p_row)`` on ``prior`` groups uniformly
-   (including direct clouds ``total_gen_mats == 0``) with ``therm_p = 1.0``, preserving small-mass/small-scale
-   component covariance without premature direct-cloud damping.
-3. **Thermal-Safe & Simplicial-Safe Secant Trust Band (``interp_saddle_barycentric``, ``precision_gaussian_nvfp4``)**:
-   Restricts ``delta_g_min`` amplification strictly to non-simplicial, non-thermally-cooled (``s_th >= 0.90``),
-   off-equilibrium hostile initializations (``push_res > 0.25``), preventing ``_band_scale`` from fighting
-   thermal settling or amplifying 4-bit NVFP4 quantization jitter.
-4. **Cross-Batch Conditional Bank Alignment & Deep Residual Trust Parity**:
-   Removes redundant ``b1_eff = 0.82`` optimizer lag on conditional tasks (already cross-batch smoothed by
-   ``UnifiedV11CondFiberBank``) and aligns deep-network (``deep_gate > 0``) depth scaling (``3.5 / L``,
-   ``b1_eff = 0.80``) with ``t4_arch`` while bypassing the shallow ``delta_g_max`` secant cap on deep
-   16-layer networks (``grid100_res16_tanh``).
+2. **Universal Function-Space Conditioning (Zero ``L_count`` / ``deep_gate`` Discontinuities)**:
+   Replaces parameter-count heuristics (``depth_scale = 3.2 / L``, ``deep_gate``, ``trust_mult``)
+   with a checkpointed realized function-space conditioning EMA (``_ema_func_gain``) driven by the
+   unclamped Law 4 secant probe ratio (``free_ratio = (delta_max / delta_obs) * pre_gain``).
+   Well-conditioned 2D MLPs, LayerNorm Transformers, and CNNs stay in the deadband
+   (``pre_gain = 1.0``, ``stiff_gate = 0.0``, exact ``1 : 1.5 : 2.9`` G : D : prior equilibrium
+   regardless of player matrix-count asymmetry), while pathologically stiff unnormalized deep
+   networks smoothly attenuate pre-step LR and engage momentum-coherence damping (``stiff_gate``),
+   and recover smoothly toward ``1.0`` once stiffness subsides (no one-way ratchet).
+3. **Degree-0 Scale-Invariant ``peak_rms`` Tikhonov Smoothing (Zero GPU-CPU Sync)**:
+   Tracks a per-parameter exponential peak singular-value RMS on device (``peak_rms``) and caps
+   Tikhonov smoothing at ``min(s_base, 0.03 * peak_rms)`` (passed as batched device tensors into
+   ``quintic_orthogonalize_2d`` / ``quintic_orthogonalize_batched``), preventing small high-D or
+   early-layer gradients from being crushed while preserving equilibrium settling.
+4. **Exact ``1x1`` Conv2d / ConvTranspose2d RMS-to-RMS Scaling**:
+   Applies ``sqrt(out_ch / in_ch)`` uniformly to all 4D convolutional weights (including ``1x1``
+   projections such as ResNet feature heads), matching ``DualNorm`` exactly.
+5. **Direct Particle Cloud Row Smoothing Parity & Thermal/Simplicial-Safe Secant Band**:
+   Applies scale-invariant Tikhonov row smoothing ``hypot(d_norm, s_p_row)`` on ``prior`` groups
+   uniformly and restricts ``delta_g_min`` wakeup strictly to non-simplicial, non-thermally-cooled
+   off-equilibrium steps (``push_res > 0.18``, ``s_therm > 0.10``) with zero dimension thresholds.
 """
 from __future__ import annotations
 
@@ -57,7 +65,7 @@ def quintic_orthogonalize_2d(
     mat: torch.Tensor,
     steps: int = 5,
     *,
-    smoothing: float = 0.0,
+    smoothing: float | torch.Tensor = 0.0,
 ) -> torch.Tensor:
     """Zero-SVD scale-normalized 5-step Quintic polar (exact FP32 Tikhonov for ``m<=64``, BF16 for ``65..128``)."""
     if mat.ndim != 2:
@@ -67,14 +75,20 @@ def quintic_orthogonalize_2d(
         return torch.zeros_like(mat)
     orig_dtype = mat.dtype
     x_f32 = mat.float()
-    s_val = float(smoothing)
+    if isinstance(smoothing, torch.Tensor):
+        s_ten = smoothing.to(device=mat.device, dtype=torch.float32).reshape(()).clamp_min(0.0)
+        has_smooth = True
+    else:
+        s_val = float(smoothing)
+        has_smooth = s_val > 0.0
+        s_ten = x_f32.new_tensor(s_val) if has_smooth else None
     max_abs = x_f32.abs().amax()
     finite_mat = torch.isfinite(x_f32).all()
-    if s_val > 0.0 and min(r_dim, c_dim) <= 128:
-        scale_ref = torch.maximum(torch.where(finite_mat, max_abs, max_abs.new_zeros(())), max_abs.new_tensor(s_val))
+    if has_smooth and s_ten is not None and min(r_dim, c_dim) <= 512:
+        scale_ref = torch.maximum(torch.where(finite_mat, max_abs, max_abs.new_zeros(())), s_ten)
         safe_max = torch.where(scale_ref > 0.0, scale_ref, torch.ones_like(scale_ref))
         x_scaled = torch.where(finite_mat, x_f32 / safe_max, torch.zeros_like(x_f32))
-        s_scaled = s_val / safe_max
+        s_scaled = s_ten / safe_max
         frob = x_scaled.norm()
         active = finite_mat & (frob > 1e-30)
         if r_dim == 1 or c_dim == 1:
@@ -85,7 +99,7 @@ def quintic_orthogonalize_2d(
         m_dim, n_dim = int(x_in.shape[0]), int(x_in.shape[1])
         aug_frob = torch.sqrt(frob.square() + float(m_dim) * s_scaled.square()).clamp_min(1e-30)
         inv_aug = 1.0 / (aug_frob * 1.02)
-        work_dtype = torch.bfloat16 if (mat.is_cuda and m_dim >= 64) else torch.float32
+        work_dtype = torch.bfloat16 if (mat.is_cuda and m_dim > 256) else torch.float32
         x_part = (x_in * inv_aug).to(dtype=work_dtype)
         y_part = _cached_eye(m_dim, mat.device, work_dtype) * (s_scaled * inv_aug).to(dtype=work_dtype)
         # Fuse Z = [X, Y] so Z @ Z.T = X X^T + Y Y^T and poly @ Z = [poly @ X, poly @ Y] in half the matmuls:
@@ -99,7 +113,7 @@ def quintic_orthogonalize_2d(
         x_out = z_f32[:, :n_dim]
         if transposed:
             x_out = x_out.T
-        out = x_out * (math.sqrt(float(m_dim)) / joint_frob)
+        out = x_out * (math.sqrt(float(m_dim)) / joint_frob).clamp_max(1.15)
         out = torch.where(active & torch.isfinite(out).all(), out, torch.zeros_like(out))
         return out.to(orig_dtype)
 
@@ -128,9 +142,9 @@ def quintic_orthogonalize_2d(
     out = x.float()
     target_frob = math.sqrt(float(min(r_dim, c_dim)))
     out_frob = out.norm().clamp_min(1e-8)
-    if s_val > 0.0:
+    if has_smooth and s_ten is not None:
         g_rms = (frob * safe_max) / max(target_frob, 1.0)
-        s_scale = g_rms / torch.hypot(g_rms, g_rms.new_tensor(s_val)).clamp_min(1e-30)
+        s_scale = g_rms / torch.hypot(g_rms, s_ten).clamp_min(1e-30)
         out = out * ((target_frob / out_frob) * s_scale)
     else:
         out = out * (target_frob / out_frob)
@@ -143,7 +157,7 @@ def quintic_orthogonalize_batched(
     mats: torch.Tensor,
     steps: int = 5,
     *,
-    smoothing: float = 0.0,
+    smoothing: float | torch.Tensor = 0.0,
 ) -> torch.Tensor:
     """Batched zero-SVD 5-step Quintic polar (exact FP32 Tikhonov for ``m<=64``, BF16 for ``65..128``)."""
     if mats.ndim != 3:
@@ -153,14 +167,20 @@ def quintic_orthogonalize_batched(
         return torch.zeros_like(mats)
     orig_dtype = mats.dtype
     x_f32 = mats.float()
-    s_val = float(smoothing)
+    if isinstance(smoothing, torch.Tensor):
+        s_ten = smoothing.to(device=mats.device, dtype=torch.float32).reshape(b_sz, 1, 1).clamp_min(0.0)
+        has_smooth = True
+    else:
+        s_val = float(smoothing)
+        has_smooth = s_val > 0.0
+        s_ten = x_f32.new_full((b_sz, 1, 1), s_val) if has_smooth else None
     max_abs = x_f32.abs().amax(dim=(1, 2), keepdim=True)
     finite_mat = torch.isfinite(x_f32).all(dim=(1, 2), keepdim=True)
-    if s_val > 0.0 and min(r_dim, c_dim) <= 128:
-        scale_ref = torch.maximum(torch.where(finite_mat, max_abs, torch.zeros_like(max_abs)), max_abs.new_tensor(s_val))
+    if has_smooth and s_ten is not None and min(r_dim, c_dim) <= 512:
+        scale_ref = torch.maximum(torch.where(finite_mat, max_abs, torch.zeros_like(max_abs)), s_ten)
         safe_max = torch.where(scale_ref > 0.0, scale_ref, torch.ones_like(scale_ref))
         x_scaled = torch.where(finite_mat, x_f32 / safe_max, torch.zeros_like(x_f32))
-        s_scaled = s_val / safe_max
+        s_scaled = s_ten / safe_max
         frob = x_scaled.flatten(1).norm(dim=1).view(b_sz, 1, 1)
         active = finite_mat & (frob > 1e-30)
         if r_dim == 1 or c_dim == 1:
@@ -171,7 +191,7 @@ def quintic_orthogonalize_batched(
         m_dim, n_dim = int(x_in.shape[1]), int(x_in.shape[2])
         aug_frob = torch.sqrt(frob.square() + float(m_dim) * s_scaled.square()).clamp_min(1e-30)
         inv_aug = 1.0 / (aug_frob * 1.02)
-        work_dtype = torch.bfloat16 if (mats.is_cuda and m_dim >= 64) else torch.float32
+        work_dtype = torch.bfloat16 if (mats.is_cuda and m_dim > 256) else torch.float32
         x_part = (x_in * inv_aug).to(dtype=work_dtype)
         eye_b = _cached_eye(m_dim, mats.device, work_dtype).unsqueeze(0).expand(b_sz, m_dim, m_dim)
         y_part = eye_b * (s_scaled * inv_aug).to(dtype=work_dtype)
@@ -185,7 +205,7 @@ def quintic_orthogonalize_batched(
         x_out = z_f32[:, :, :n_dim]
         if transposed:
             x_out = x_out.transpose(1, 2)
-        out = x_out * (math.sqrt(float(m_dim)) / joint_frob)
+        out = x_out * (math.sqrt(float(m_dim)) / joint_frob).clamp_max(1.15)
         out_ok = active & torch.isfinite(out).all(dim=(1, 2), keepdim=True)
         out = torch.where(out_ok, out, torch.zeros_like(out))
         return out.to(orig_dtype)
@@ -215,9 +235,9 @@ def quintic_orthogonalize_batched(
     out = x.float()
     target_frob = math.sqrt(float(min(r_dim, c_dim)))
     out_frob = out.flatten(1).norm(dim=1).view(b_sz, 1, 1).clamp_min(1e-8)
-    if s_val > 0.0:
+    if has_smooth and s_ten is not None:
         g_rms = (frob * safe_max) / max(target_frob, 1.0)
-        s_scale = g_rms / torch.hypot(g_rms, g_rms.new_tensor(s_val)).clamp_min(1e-30)
+        s_scale = g_rms / torch.hypot(g_rms, s_ten).clamp_min(1e-30)
         out = out * ((target_frob / out_frob) * s_scale)
     else:
         out = out * (target_frob / out_frob)
@@ -371,6 +391,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._v4_prior_scale: float = 1.0
         self._origin_norm: Optional[float] = None
         self.last_step_gain: float = 1.0
+        self._ema_func_gain: float = 1.0
 
         self._protected: Optional[torch.Tensor] = None
         self._protected_single: bool = False
@@ -589,60 +610,52 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             if self._origin_norm is not None and self._origin_norm < 0.05:
                 origin_damping = min(1.0, self._origin_norm / 0.05)
 
-            n_mat_role: Dict[str, int] = {}
-            total_gen_mats = 0
-            for grp in self.param_groups:
-                rl = grp["role"]
-                pl = self._player(rl)
-                for p in grp["params"]:
-                    if pl != "prior" and p.ndim >= 2:
-                        n_mat_role[rl] = n_mat_role.get(rl, 0) + 1
-                        if pl == "generator":
-                            total_gen_mats += 1
+            # Universal Function-Space Conditioning (replaces syntactic L_count / deep_gate):
+            # Well-conditioned MLPs, LayerNorm Transformers, and CNNs stay at ema_func_gain ~= 1.0
+            # (pre_gain = 1.0, stiff_gate = 0.0), preserving exact G : D : prior equilibrium
+            # regardless of player matrix-count asymmetry. Pathologically stiff unnormalized deep
+            # networks (>3x function-space overshoot) smoothly lower ema_func_gain pre-step and
+            # activate momentum-coherence damping via stiff_gate.
+            ema_fg = float(self._ema_func_gain)
+            stiff_gate_raw = _smoothstep01((0.40 - ema_fg) / 0.20)
+            pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
 
             applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]] = []
             pending_dense: Dict[
-                Tuple[int, int, float],
-                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
+                Tuple[int, int, bool],
+                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
             ] = {}
             pending_conv: Dict[
-                Tuple[int, int, int, int, bool, int],
-                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, bool]],
+                Tuple[int, int, int, int, bool, int, bool],
+                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool]],
             ] = {}
 
+            pre_gain_applied = 1.0
             for grp in self.param_groups:
                 role = grp["role"]
                 player = self._player(role)
+                stiff_gate = stiff_gate_raw if player == "generator" else 0.0
                 b1, b2 = grp["betas"]
                 eps = float(grp["eps"])
-                L_raw = max(1, sum(1 for p in grp["params"] if p.ndim >= 2)) if player != "prior" else 1
-                L_count = 4 if (player == "generator" and L_raw == 2 and total_gen_mats >= 4) else L_raw
-                deep_gate = _smoothstep01((float(L_count) - 5.0) / 4.0)
-                s_eff = self.smoothing * (1.0 - deep_gate)
-                # Direct particle clouds (total_gen_mats == 0) retain scaled row smoothing matching DualNorm:
-                s_prior = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
+                s_base = self.smoothing * (1.0 - stiff_gate)
+                # Direct particle clouds retain scaled row smoothing matching DualNorm:
+                s_prior_base = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
 
                 if player == "prior":
                     b1_eff = max(float(b1), 0.75) if self._v4_prior_scale < 1.0 else float(b1)
-                elif deep_gate > 0.0:
-                    b1_eff = max(float(b1), 0.75 * deep_gate)
+                elif stiff_gate > 0.0:
+                    b1_eff = max(float(b1), 0.75 * stiff_gate)
                 else:
                     b1_eff = float(b1)
                 b2_eff = min(max(float(b2), 0.95), 0.999)
-                c_zero = 1.0 / math.sqrt(float(max(1, L_count)))
 
                 if player == "generator":
-                    depth_scale = (
-                        min(1.0, (3.2 / float(max(3, L_count))) * self._v4_wakeup_boost)
-                        if deep_gate > 0.0
-                        else 1.0
-                    )
-                    eff_depth = (1.0 - deep_gate) + deep_gate * depth_scale
-                    base_lr = float(grp["lr"]) * step_scale * self._v4_g_scale * eff_depth
+                    pre_g = min(1.0, pre_gain_base * self._v4_wakeup_boost)
+                    pre_gain_applied = pre_g
+                    base_lr = float(grp["lr"]) * step_scale * self._v4_g_scale * pre_g
                 elif player == "critic":
-                    depth_scale = (3.2 / float(max(3, L_count))) if deep_gate > 0.0 else 1.0
-                    eff_depth = (1.0 - deep_gate) + deep_gate * depth_scale
-                    base_lr = float(grp["lr"]) * step_scale * eff_depth
+                    pre_gain_applied = pre_gain_base
+                    base_lr = float(grp["lr"]) * step_scale * pre_gain_base
                 else:
                     base_lr = float(grp["lr"]) * step_scale * self._v4_prior_scale
 
@@ -677,9 +690,18 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         g_norm = gr_safe.norm(dim=-1, keepdim=True)
                         d_norm = dir_r.norm(dim=-1, keepdim=True)
                         active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
-                        if s_prior > 0.0:
-                            s_p_row = s_prior * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior
-                            denom_r = torch.hypot(d_norm, d_norm.new_tensor(s_p_row)).clamp_min(1e-36)
+
+                        # Degree-0 scale-invariant peak-RMS tracking on prior rows (no GPU-CPU sync):
+                        cur_row_rms = d_norm.square().mean().sqrt()
+                        if "peak_rms" not in st:
+                            st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                        peak_r = torch.maximum(st["peak_rms"] * 0.9995, torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())))
+                        st["peak_rms"].copy_(torch.where(torch.isfinite(peak_r), peak_r, st["peak_rms"]))
+
+                        if s_prior_base > 0.0:
+                            s_cap = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
+                            s_p_row = torch.minimum(d_norm.new_tensor(s_cap), peak_r * 0.03)
+                            denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
                         else:
                             denom_r = d_norm.clamp_min(1e-36)
                         unit_r = torch.where(
@@ -702,8 +724,39 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     g_max = gf_safe.abs().amax()
                     g_active = finite & (g_max > 1e-38)
 
+                    is_conv = (p.ndim == 4) and (id(p) in self._conv_layouts or p.shape[2] > 1 or p.shape[3] > 1)
+                    if is_conv:
+                        c0, c1, kh, kw = (int(s) for s in p.shape)
+                        is_trans, groups_c = self._conv_layouts.get(id(p), (False, 1))
+                        out_ch = c1 * groups_c if is_trans else c0
+                        in_ch = c0 if is_trans else c1 * groups_c
+                        cur_sv_rms = gf_safe.norm() / math.sqrt(float(max(1, min(out_ch, in_ch) * kh * kw)))
+                    elif p.ndim >= 2:
+                        r_d = int(p.shape[0])
+                        c_d = int(p.numel() // max(1, r_d))
+                        cur_sv_rms = gf_safe.norm() / math.sqrt(float(max(1, min(r_d, c_d))))
+                    else:
+                        cur_sv_rms = gf_safe.norm()
+
+                    # Degree-0 scale-invariant peak-RMS tracking (zero GPU-CPU sync, prevents vanishing-layer
+                    # and high-D small-gradient crushing while preserving equilibrium settling):
+                    if "peak_rms" not in st:
+                        st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                    peak_new = torch.maximum(
+                        st["peak_rms"] * 0.9995,
+                        torch.where(finite, cur_sv_rms, st["peak_rms"].new_zeros(())),
+                    )
+                    st["peak_rms"].copy_(torch.where(finite, peak_new, st["peak_rms"]))
+
+                    has_smooth = s_base > 0.0
+                    s_eff_t = (
+                        torch.minimum(gf_safe.new_tensor(s_base), peak_new * 0.03)
+                        if has_smooth
+                        else gf_safe.new_zeros(())
+                    )
+
                     is_scalar_1d = p.ndim == 1 and p.numel() == 1
-                    use_moments = (b1_eff > 0.0) or (deep_gate > 0.0) or is_scalar_1d
+                    use_moments = (b1_eff > 0.0) or (stiff_gate > 0.0) or is_scalar_1d
                     if use_moments:
                         b1_use = max(b1_eff, 0.80) if is_scalar_1d else b1_eff
                         if "m_unit" not in st:
@@ -746,61 +799,53 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         )
                         if is_scalar_1d:
                             coh = raw_coh.clamp(0.35, 1.0)
-                        elif deep_gate > 0.0:
-                            coh = (1.0 - deep_gate) + deep_gate * raw_coh
+                        elif stiff_gate > 0.0:
+                            coh = (1.0 - stiff_gate) + stiff_gate * raw_coh
                         else:
                             coh = torch.ones_like(m_norm)
-                        raw_dir = (m_hat * sc) if s_eff > 0.0 else m_hat
+                        raw_dir = (m_hat * sc) if has_smooth else m_hat
                         direc = torch.where(g_active, raw_dir, torch.zeros_like(m_hat))
                     else:
-                        raw_dir = gf_safe if s_eff > 0.0 else (gf_safe / g_max.clamp_min(1e-38))
+                        raw_dir = gf_safe if has_smooth else (gf_safe / g_max.clamp_min(1e-38))
                         direc = torch.where(g_active, raw_dir, torch.zeros_like(gf_safe))
                         coh = gf_safe.new_ones(())
 
                     if rate_p <= 0.0:
                         continue
 
-                    if p.ndim == 4 and (p.shape[2] > 1 or p.shape[3] > 1):
+                    if is_conv and (p.shape[2] > 1 or p.shape[3] > 1):
                         c0, c1, kh, kw = (int(s) for s in p.shape)
                         is_trans, groups_c = self._conv_layouts.get(id(p), (False, 1))
                         out_ch = c1 * groups_c if is_trans else c0
                         in_ch = c0 if is_trans else c1 * groups_c
                         factor = math.sqrt(float(out_ch) / float(max(1, in_ch))) / float(kh * kw)
-                        if deep_gate > 0.0:
-                            w_op = 1.0 / math.sqrt(float(math.sqrt(float(max(1, out_ch * in_ch))) * float(kh * kw)))
-                            w_rms = p.float().square().mean().sqrt()
-                            r_ratio = (w_rms / max(w_op, 1e-8)).clamp(c_zero, 2.5)
-                            trust_mult = (1.0 - deep_gate) + deep_gate * r_ratio
-                        else:
-                            trust_mult = direc.new_ones(())
-                        if s_eff > 0.0:
-                            g_slice_rms = (direc.norm() / math.sqrt(float(max(1, min(out_ch, in_ch) * kh * kw)))).clamp_min(0.0)
-                            conv_smooth = g_slice_rms / torch.hypot(g_slice_rms, g_slice_rms.new_tensor(s_eff)).clamp_min(1e-30)
-                            trust_mult = trust_mult * conv_smooth
-                        step_mult = (-rate_p * factor) * coh * trust_mult
-                        pending_conv.setdefault((c0, c1, kh, kw, is_trans, groups_c), []).append(
-                            (p, direc, step_mult, track_secant)
+                        step_mult = (-rate_p * factor) * coh
+                        pending_conv.setdefault((c0, c1, kh, kw, is_trans, groups_c, has_smooth), []).append(
+                            (p, direc, step_mult, s_eff_t, track_secant)
                         )
                     elif p.ndim >= 2:
                         mat = direc.reshape(p.shape[0], -1)
                         r_d, c_d = int(mat.shape[0]), int(mat.shape[1])
-                        factor = math.sqrt(max(1.0, float(r_d) / float(max(1, c_d))))
-                        if deep_gate > 0.0:
-                            w_op = 1.0 / math.sqrt(float(max(1, c_d)))
-                            w_rms = p.float().square().mean().sqrt()
-                            r_ratio = (w_rms / max(w_op, 1e-8)).clamp(c_zero, 2.5)
-                            trust_mult = (1.0 - deep_gate) + deep_gate * r_ratio
+                        if is_conv:
+                            # 1x1 Conv2d / ConvTranspose2d: exact RMS-to-RMS sqrt(out_ch / in_ch) matching DualNorm:
+                            c0, c1, _, _ = (int(s) for s in p.shape)
+                            is_trans, groups_c = self._conv_layouts.get(id(p), (False, 1))
+                            out_ch = c1 * groups_c if is_trans else c0
+                            in_ch = c0 if is_trans else c1 * groups_c
+                            factor = math.sqrt(float(out_ch) / float(max(1, in_ch)))
                         else:
-                            trust_mult = direc.new_ones(())
-                        step_mult = (-rate_p * factor) * coh * trust_mult
+                            factor = math.sqrt(max(1.0, float(r_d) / float(max(1, c_d))))
+                        step_mult = (-rate_p * factor) * coh
                         needs_t = r_d > c_d
                         mat_canon = mat.T if needs_t else mat
-                        m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), s_eff)
-                        pending_dense.setdefault(m_key, []).append((p, mat_canon, step_mult, track_secant, needs_t))
+                        m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
+                        pending_dense.setdefault(m_key, []).append(
+                            (p, mat_canon, step_mult, s_eff_t, track_secant, needs_t)
+                        )
                     else:
                         d_norm = direc.norm()
-                        if s_eff > 0.0:
-                            denom_1d = torch.hypot(d_norm, d_norm.new_tensor(s_eff)).clamp_min(eps)
+                        if has_smooth:
+                            denom_1d = torch.hypot(d_norm, s_eff_t).clamp_min(eps)
                         else:
                             denom_1d = d_norm + eps
                         unit_1d = torch.where(
@@ -813,10 +858,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         if track_secant:
                             applied_deltas.append((p, delta_1d))
 
-            for (_, _, s_bucket), bucket in pending_dense.items():
+            for (_, _, has_s_b), bucket in pending_dense.items():
                 if len(bucket) == 1:
-                    p_i, mat_i, mult_i, trk_i, needs_t = bucket[0]
-                    orth_i = quintic_orthogonalize_2d(mat_i, steps=5, smoothing=s_bucket).float()
+                    p_i, mat_i, mult_i, s_i, trk_i, needs_t = bucket[0]
+                    orth_i = quintic_orthogonalize_2d(mat_i, steps=5, smoothing=(s_i if has_s_b else 0.0)).float()
                     if needs_t:
                         orth_i = orth_i.T
                     delta_i = (orth_i * mult_i).reshape_as(p_i).to(p_i.dtype)
@@ -825,31 +870,36 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         applied_deltas.append((p_i, delta_i))
                 else:
                     mats = torch.stack([b_item[1] for b_item in bucket], dim=0)
-                    orths = quintic_orthogonalize_batched(mats, steps=5, smoothing=s_bucket).float()
-                    for idx_b, (p_i, _, mult_i, trk_i, needs_t) in enumerate(bucket):
+                    s_batch = torch.stack([b_item[3] for b_item in bucket], dim=0) if has_s_b else 0.0
+                    orths = quintic_orthogonalize_batched(mats, steps=5, smoothing=s_batch).float()
+                    for idx_b, (p_i, _, mult_i, _, trk_i, needs_t) in enumerate(bucket):
                         orth_b = orths[idx_b].T if needs_t else orths[idx_b]
                         delta_i = (orth_b * mult_i).reshape_as(p_i).to(p_i.dtype)
                         p_i.add_(delta_i)
                         if trk_i:
                             applied_deltas.append((p_i, delta_i))
 
-            for (c0, c1, kh, kw, is_trans, groups_c), bucket in pending_conv.items():
+            for (c0, c1, kh, kw, is_trans, groups_c, has_s_b), bucket in pending_conv.items():
                 n_b = len(bucket)
                 k_slices = groups_c * kh * kw
                 per_c0 = c0 // groups_c
                 slices_list = []
-                for _, d_t, _, _ in bucket:
+                s_slices_list = []
+                for _, d_t, _, s_i, _ in bucket:
                     st_view = d_t.reshape(groups_c, per_c0, c1, kh, kw)
                     if is_trans:
                         sl = st_view.permute(0, 3, 4, 2, 1).reshape(k_slices, c1, per_c0)
                     else:
                         sl = st_view.permute(0, 3, 4, 1, 2).reshape(k_slices, per_c0, c1)
                     slices_list.append(sl)
+                    if has_s_b:
+                        s_slices_list.append(s_i.expand(k_slices))
                 all_slices = torch.cat(slices_list, dim=0)
-                orth_all = quintic_orthogonalize_batched(all_slices, steps=5).float()
+                s_conv_batch = torch.cat(s_slices_list, dim=0) if has_s_b else 0.0
+                orth_all = quintic_orthogonalize_batched(all_slices, steps=5, smoothing=s_conv_batch).float()
                 r_sl, c_sl = (c1, per_c0) if is_trans else (per_c0, c1)
                 orth_layers = orth_all.view(n_b, groups_c, kh, kw, r_sl, c_sl)
-                for idx_b, (p_i, _, mult_i, trk_i) in enumerate(bucket):
+                for idx_b, (p_i, _, mult_i, _, trk_i) in enumerate(bucket):
                     if is_trans:
                         orth_i = orth_layers[idx_b].permute(0, 4, 3, 1, 2).reshape(c0, c1, kh, kw)
                     else:
@@ -862,6 +912,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             # Law 4 Two-Player Function-Space Secant Trust Band (bypassed on thermally-cooled simplicial
             # manifolds, continuous-conditioned fibers, and 2-loss direction_blend steps):
             alpha_gain = 1.0
+            probe_ran = False
+            free_ratio = 1.0
             if (
                 rec is not None
                 and applied_deltas
@@ -879,6 +931,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             if d_post is not None and d_post.numel() == d_pre.numel():
                                 sq_diffs.append((d_post.reshape(-1) - d_pre.reshape(-1)).square().mean())
                         if sq_diffs:
+                            probe_ran = True
                             delta_d = float(torch.stack(sq_diffs).mean().sqrt().item())
                             ema_m = float(getattr(rec, "ema_margin", 0.0)) if getattr(rec, "margin_initialized", False) else 0.0
                             inv_gap = min(25.0, max(0.0, -ema_m - 1.5))
@@ -886,6 +939,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             delta_d_min = 0.12 * inv_gap * th_d
                             delta_d_max = (0.55 * step_scale + 0.20 * inv_gap) * th_d
                             alpha_gain = _band_scale(delta_d, delta_d_min, delta_d_max, alpha_max=64.0)
+                            if math.isfinite(delta_d) and delta_d > 1e-12:
+                                free_ratio = (delta_d_max / delta_d) * pre_gain_applied
                 else:
                     probe_cache = getattr(rec, "_g_probe_cache", None)
                     rec._g_probe_cache = None
@@ -893,23 +948,34 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         g_mod, p_args, p_kwargs, y_pre = probe_cache
                         y_post = _eval_probe_forward(g_mod, p_args, p_kwargs, rec)
                         if y_post is not None and y_post.shape == y_pre.shape:
+                            probe_ran = True
                             out_dim = max(1, int(y_pre[0].numel()))
                             delta_rms = float((y_post - y_pre).square().mean().sqrt().item())
                             data_scale = float(getattr(rec, "ema_data_scale", 1.0))
                             coord_scale = max(0.05, data_scale / math.sqrt(float(out_dim)))
                             delta_rel = delta_rms / coord_scale
                             push_res = float(getattr(rec, "ema_push_res", 0.0))
-                            delta_g_max = (0.045 + 0.105 * min(1.5, max(0.25, push_res))) * step_scale
+                            ema_m = float(getattr(rec, "ema_margin", 0.0)) if getattr(rec, "margin_initialized", False) else 0.0
+                            eff_res = max(push_res, min(1.5, abs(ema_m)))
+                            delta_g_max = (0.22 + 0.18 * min(1.5, eff_res)) * step_scale
                             if (not is_simp) and push_res > 0.18 and s_therm > 0.10:
                                 off_gate = _smoothstep01((push_res - 0.18) / 0.25)
                                 delta_g_min = 0.012 * off_gate * step_scale
                             else:
                                 delta_g_min = 0.0
                             alpha_gain = _band_scale(delta_rel, delta_g_min, delta_g_max, alpha_max=48.0)
+                            if math.isfinite(delta_rel) and delta_rel > 1e-12:
+                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied
                 if alpha_gain != 1.0:
                     adj = alpha_gain - 1.0
                     for p_i, d_i in applied_deltas:
                         p_i.add_(d_i, alpha=adj)
+                if probe_ran:
+                    # Update checkpointed realized function-space conditioning EMA using the unclamped
+                    # free_ratio (no one-way ratchet: recovers smoothly to 1.0 when stiffness subsides):
+                    target_fg = max(0.05, min(1.0, free_ratio))
+                    beta_fg = 0.70 if target_fg < self._ema_func_gain else 0.90
+                    self._ema_func_gain = float(beta_fg * self._ema_func_gain + (1.0 - beta_fg) * target_fg)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
 
@@ -971,6 +1037,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             "schema": 1,
             "family": self.family,
             "last_step_gain": float(self.last_step_gain),
+            "ema_func_gain": float(self._ema_func_gain),
             "direction_blend": bool(self.direction_blend),
             "sampled_rows": [
                 self._sampled_rows.get(grp["params"][0]) if grp["algorithm"] == "unified_prior" else None
@@ -1002,7 +1069,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         if not isinstance(saved, dict) or set(saved) != expected_keys:
             raise ValueError("invalid UnifiedV11EquilibratedOptimizer checkpoint schema")
         meta = saved["unified_v11_equil"]
-        expected_meta_keys = {"schema", "family", "last_step_gain", "direction_blend", "sampled_rows"}
+        expected_meta_keys = {"schema", "family", "last_step_gain", "ema_func_gain", "direction_blend", "sampled_rows"}
         if self.direction_blend:
             expected_meta_keys.add("constraint_geometry")
         if (
@@ -1020,6 +1087,14 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         gain = meta["last_step_gain"]
         if isinstance(gain, bool) or not isinstance(gain, (int, float)) or not math.isfinite(gain) or float(gain) <= 0.0:
             raise ValueError("invalid UnifiedV11EquilibratedOptimizer last_step_gain")
+        ema_fg = meta["ema_func_gain"]
+        if (
+            isinstance(ema_fg, bool)
+            or not isinstance(ema_fg, (int, float))
+            or not math.isfinite(ema_fg)
+            or not (0.0 < float(ema_fg) <= 1.0)
+        ):
+            raise ValueError("invalid UnifiedV11EquilibratedOptimizer ema_func_gain")
         if self.direction_blend:
             cg = meta["constraint_geometry"]
             if (
@@ -1049,11 +1124,13 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             step_v = st_val.get("step", 0)
             if type(step_v) is not int or step_v < 0:
                 raise ValueError("invalid UnifiedV11EquilibratedOptimizer step counter")
-            for t_key in ("m_unit", "m_scale", "v_rms", "v_scale", "m_prior"):
+            for t_key in ("m_unit", "m_scale", "v_rms", "v_scale", "m_prior", "peak_rms"):
                 if t_key in st_val:
                     ten = st_val[t_key]
                     if not isinstance(ten, torch.Tensor) or not bool(torch.isfinite(ten).all()):
                         raise ValueError(f"non-finite or invalid tensor {t_key} in UnifiedV11EquilibratedOptimizer state")
+                    if t_key == "peak_rms" and (ten.ndim != 0 or float(ten.item()) < 0.0):
+                        raise ValueError("invalid peak_rms tensor in UnifiedV11EquilibratedOptimizer state")
         if hasattr(self, "record") and self.record is not None:
             reg = saved["regularizer"]
             if (
@@ -1073,6 +1150,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self.clear_sampled_rows()
         meta = state_dict["unified_v11_equil"]
         self.last_step_gain = float(meta["last_step_gain"])
+        self._ema_func_gain = float(meta["ema_func_gain"])
         for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
             if rows is not None and grp["algorithm"] == "unified_prior":
                 self.set_sampled_rows(grp["params"][0], rows.to(grp["params"][0].device))

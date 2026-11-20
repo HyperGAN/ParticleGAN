@@ -421,6 +421,89 @@ def test_unified_v11_deliberate_damage_and_tamper_rejection() -> None:
     with pytest.raises(ValueError, match="v_push"):
         trainer.load_state_dict(bad_vpush)
 
+    bad_ema_fg_missing = deepcopy(good)
+    del bad_ema_fg_missing["optimizers"][0]["unified_v11_equil"]["ema_func_gain"]
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
+        trainer.load_state_dict(bad_ema_fg_missing)
+
+    for bad_val in (0.0, -0.2, 1.5, float("nan")):
+        bad_ema_fg = deepcopy(good)
+        bad_ema_fg["optimizers"][0]["unified_v11_equil"]["ema_func_gain"] = bad_val
+        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain"):
+            trainer.load_state_dict(bad_ema_fg)
+
+    first_state_key = next(iter(good["optimizers"][0]["state"]))
+    for bad_peak in (torch.tensor(-1.0), torch.tensor([1.0]), torch.tensor(float("nan"))):
+        bad_pr = deepcopy(good)
+        bad_pr["optimizers"][0]["state"][first_state_key]["peak_rms"] = bad_peak
+        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|peak_rms"):
+            trainer.load_state_dict(bad_pr)
+
+
+def test_unified_v11_optimizer_group_split_asymmetry_and_conv1x1_invariance() -> None:
+    """Semantic controls: zero L_count/deep_gate discontinuity, asymmetric player equilibrium, and 1x1 conv scaling."""
+    torch.manual_seed(7)
+
+    # 1. Splitting 16 matrices into 1 group vs 4 groups produces identical updates (zero L_count dependence):
+    g_single = _DeepGen16(z_dim=2, width=16, out_dim=2)
+    g_split = deepcopy(g_single)
+    x_in = torch.randn(8, 2)
+    g_single(x_in).square().mean().backward()
+    g_split(x_in).square().mean().backward()
+
+    opt_single = UnifiedV11EquilibratedOptimizer(
+        [{"params": list(g_single.parameters()), "lr": 0.014, "role": "generator"}],
+        direction_blend=False,
+    )
+    split_params = list(g_split.parameters())
+    chunk = max(1, len(split_params) // 4)
+    opt_split = UnifiedV11EquilibratedOptimizer(
+        [
+            {"params": split_params[i : i + chunk], "lr": 0.014, "role": "generator"}
+            for i in range(0, len(split_params), chunk)
+        ],
+        direction_blend=False,
+    )
+    opt_single.step()
+    opt_split.step()
+    for p_a, p_b in zip(g_single.parameters(), g_split.parameters()):
+        assert torch.allclose(p_a, p_b, atol=1e-6, rtol=1e-6)
+
+    # 2. 1x1 Conv2d (out=16, in=64) via public make_critic_optimizer uses exact RMS-to-RMS sqrt(out_ch / in_ch) = 0.5:
+    conv1x1 = nn.Conv2d(64, 16, kernel_size=1, bias=False)
+    nn.init.zeros_(conv1x1.weight)
+    rec_c = get_recipe("unified_v11", lr=0.02, d_lr_mult=1.0, training_precision="float32")
+    opt_c = rec_c.make_critic_optimizer(conv1x1)
+    opt_c.smoothing = 0.0
+    conv1x1.weight.grad = torch.randn_like(conv1x1.weight)
+    opt_c.step()
+    # Orthogonalized 16x64 matrix has Frobenius norm sqrt(16) = 4.0; scaled by lr * sqrt(16/64) = 0.02 * 0.5 = 0.01:
+    expected_frob = 0.02 * (16.0 / 64.0) ** 0.5 * (16.0**0.5)
+    got_frob = float(conv1x1.weight.detach().norm().item())
+    assert abs(got_frob - expected_frob) / expected_frob < 0.05
+
+    # 3. _ema_func_gain attenuates on function-space overshoot and recovers smoothly upward (no one-way ratchet):
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=2,
+        total_steps=20,
+        training_precision="float32",
+    )
+    g_m = _ToyGen2D(2, 2)
+    d_m = _ToyDisc2D(2)
+    p_m = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=False)
+    trainer = GANTrainer(rec, g_m, d_m, prior=p_m, seed=0)
+    # Seed a depressed ema_func_gain as after transient deep stiffness, then step well-conditioned 2-layer G:
+    trainer.opt_g._ema_func_gain = 0.25
+    before_fg = trainer.opt_g._ema_func_gain
+    for _ in range(8):
+        trainer.step(torch.randn(8, 2))
+    assert trainer.opt_g._ema_func_gain > before_fg + 0.25
+
 
 @pytest.mark.parametrize("mode", ["mog_2d", "cond_ddgan"])
 def test_unified_v11_fresh_process_continuation_and_import_purity(tmp_path: Path, mode: str) -> None:
