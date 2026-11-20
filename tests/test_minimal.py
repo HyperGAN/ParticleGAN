@@ -349,38 +349,55 @@ def test_minimal_checkpoint_tamper_rejection():
         t.step(torch.randn(32, 2, generator=rng))
     sd = t.state_dict()
 
-    # 1. Corrupt MinimalStepRecord schema version
+    # 1. Corrupt MinimalStepRecord minimal_state schema version
     bad_schema = deepcopy(sd)
-    bad_schema["optimizers"][1]["regularizer"]["record"]["schema"] = 999
-    with pytest.raises(ValueError):
+    bad_schema["optimizers"][1]["regularizer"]["record"]["minimal_state"]["schema"] = 999
+    with pytest.raises(ValueError, match="invalid or missing minimal_state packet"):
+        _make_trainer(2, 2, seed=1).opt_d.record.load_state_dict(bad_schema["optimizers"][1]["regularizer"]["record"])
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state"):
         _make_trainer(2, 2, seed=1).load_state_dict(bad_schema)
 
-    # 2. Inject NaN scalar into MinimalStepRecord
+    # 2. Inject NaN scalar into MinimalStepRecord minimal_state
     bad_nan = deepcopy(sd)
-    bad_nan["optimizers"][1]["regularizer"]["record"]["ema_residual"] = float("nan")
-    with pytest.raises(ValueError):
+    bad_nan["optimizers"][1]["regularizer"]["record"]["minimal_state"]["ema_residual"] = float("nan")
+    with pytest.raises(ValueError, match="invalid minimal_state scalar"):
+        _make_trainer(2, 2, seed=1).opt_d.record.load_state_dict(bad_nan["optimizers"][1]["regularizer"]["record"])
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state"):
         _make_trainer(2, 2, seed=1).load_state_dict(bad_nan)
 
-    # 3. Corrupt cond_bank ring shape mismatch
+    # 3. Corrupt cond_bank ring shape mismatch (valid tuple key so ring-length validation triggers)
     bad_bank = deepcopy(sd)
-    bad_bank["optimizers"][1]["regularizer"]["record"]["cond_bank"] = {
+    bad_bank["optimizers"][1]["regularizer"]["record"]["minimal_state"]["cond_bank"] = {
         "d_c": 3,
         "d_x": 2,
         "strata": [
             {
-                "key": [0],
+                "key": (0,),
                 "ring_c": torch.zeros(10, 3),
                 "ring_x": torch.zeros(8, 2),
                 "ring_y": torch.zeros(10, 2),
             }
         ],
     }
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError, match="invalid minimal cond_bank stratum"):
+        _make_trainer(2, 2, seed=1).opt_d.record.load_state_dict(bad_bank["optimizers"][1]["regularizer"]["record"])
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state"):
         _make_trainer(2, 2, seed=1).load_state_dict(bad_bank)
 
-    # 4. Corrupt MinimalPriorRegularizer state
+    # 4. Corrupt MinimalOptimizer peak_rms to negative scalar
+    bad_peak = deepcopy(sd)
+    first_pid = next(iter(bad_peak["optimizers"][0]["state"]))
+    bad_peak["optimizers"][0]["state"][first_pid]["peak_rms"] = torch.tensor(-1.0)
+    with pytest.raises(ValueError, match="invalid minimal optimizer state"):
+        _make_trainer(2, 2, seed=1).opt_g.load_state_dict(bad_peak["optimizers"][0])
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state"):
+        _make_trainer(2, 2, seed=1).load_state_dict(bad_peak)
+
+    # 5. Corrupt MinimalPriorRegularizer state
     bad_prior = deepcopy(sd)
     bad_prior["prior_regularizer"]["schema"] = 99
+    with pytest.raises(ValueError, match="invalid MinimalPriorRegularizer state"):
+        _make_trainer(2, 2, seed=1).prior_regularizer.load_state_dict(bad_prior["prior_regularizer"])
     with pytest.raises(ValueError):
         _make_trainer(2, 2, seed=1).load_state_dict(bad_prior)
 
