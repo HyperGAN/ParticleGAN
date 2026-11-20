@@ -1,172 +1,174 @@
 """Paper-watch study: is the Gini distance correlation a good *evaluation*
 metric for GAN runs?
 
-Source paper: "EmbeddGAN" (arXiv:2609.22508). The paper's framework —
+Source paper: "EmbeddGAN" (arXiv:2609.22508). The paper's framework --
 replace the discriminator with an embedding network trained against the
-Gini distance correlation rho_g — is a replacement for the ParticleGAN
+Gini distance correlation rho_g -- is a replacement for the ParticleGAN
 formulation and out of scope. The salvage tested here is rho_g itself,
 computed on raw samples, as a distribution-level evaluation metric.
 
-Claim under test: across short toy runs in a covered regime and a
-deliberately mode-dropped regime, rho_g separates collapsed from covered
-runs at least as well as the runs' own critic loss does, and rho_g tracks
-true (Naeem) coverage across checkpoints at least as well.
+Question: across a covered and a deliberately mode-dropped public-API run,
+does rho_g separate the collapsed from the covered run at least as well as
+the run's own critic loss, and track true (Naeem) coverage across
+checkpoints at least as well?
 
-Ground truth is by construction, never by the metric: the collapsed arm
-is trained on a 2-of-8-mode subset of the target mixture and evaluated
-against the full mixture. The critic in that arm equilibrates on its own
-training distribution, which is exactly the blindness being measured.
+Execution (toy-test contract, reports/toy_audit/api_contract/README.md):
+both arms train through ``GANTrainer`` with the unmodified default
+``get_recipe()`` (only the task budget ``total_steps`` is set), public
+deterministic initialization and protocol seed 0 (``lib/paper_watch_ring``).
+Ground truth is by construction, never by the metric: the collapsed arm's
+training law is the 2-of-8-mode subset; both arms are evaluated against the
+full mixture. No seed replicates: separation is measured over the terminal
+checkpoint window of the single seed-0 trajectory per arm.
 
-Run directly (`python tests/test_gini_distance_metric.py`) to print the
-full study table without the assertions.
+Declared gate (fixed before training; ``study_statistics``):
+  * construction valid: terminal-window mean coverage, covered minus
+    collapsed, > 0.3 (else INVALID, not FAIL);
+  * separation: standardized terminal-window gap for rho_g > 2 and >= the
+    gap of the run's own critic loss;
+  * tracking: pooled Spearman(rho_g, coverage) < -0.7 and |.| >= that of
+    the run's own critic loss.
+
+History: the first revision of this PR trained a hand-written SimpleMLP
+softplus loop over seeds {0, 1, 2}; that loop bypassed the ParticleGAN API
+and is superseded (its numbers are in the PR history, not this receipt).
+
+Publish the receipt and actual-training GIF (GPU optional):
+
+    python tests/test_gini_distance_metric.py --device cuda:0
+
+The full rerun test is marked ``slow`` (deselected by default; run with
+``-m slow``). Default tests check the metric units, a short public-API
+smoke run with GIF rendering, and the committed receipt's internal
+consistency.
 """
 
+import argparse
+import json
 import math
 import sys
 from pathlib import Path
 
 import pytest
 import torch
-import torch.nn.functional as F
 from scipy.stats import spearmanr
 
 _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
+from lib import paper_watch_ring as ring  # noqa: E402
 from lib.toy_metrics import gini_distance_correlation, naeem_coverage  # noqa: E402
-from lib.toy_models import SimpleMLPDiscriminator, SimpleMLPGenerator
 
-# =========================
-# Toy problem: 8 Gaussians on a ring
-# =========================
-
-N_MODES = 8
-MODE_STD = 0.25
-COLLAPSED_MODES = (0, 1)
-Z_DIM = 4
-STEPS = 1600
-BATCH = 256
-CHECKPOINT_EVERY = 200
-SEEDS = (0, 1, 2)
+STEPS = 1200
+CHECK_EVERY = 100
+TERMINAL_WINDOW = 4
+N_EVAL = 2048
+METRIC_KEYS = ("rho_g", "critic_loss", "critic_loss_full", "coverage")
+REPORT_DIR = _REPO_ROOT / "reports" / "paper_watch" / "gini-distance-metric"
+RECEIPT = REPORT_DIR / "receipt.json"
+GIF = REPORT_DIR / "goal.gif"
+ARMS = {"covered": ring.ALL_MODES, "collapsed": ring.COLLAPSED_MODES}
 
 
-def _centers(device="cpu"):
-    ang = torch.arange(N_MODES, dtype=torch.float64) * (2 * math.pi / N_MODES)
-    return torch.stack([2.0 * torch.cos(ang), 2.0 * torch.sin(ang)], dim=1).to(device)
+def _observe(real_eval):
+    def observe(obs):
+        fake = obs["fake"]
+        return {
+            "rho_g": gini_distance_correlation(
+                real_eval, fake, max_n=512, generator=torch.Generator().manual_seed(1234)),
+            "coverage": naeem_coverage(real_eval, fake, k=5),
+        }
+    return observe
 
 
-def sample_mog(n, modes, gen):
-    centers = _centers()
-    pick = torch.randint(0, len(modes), (n,), generator=gen)
-    base = centers[list(modes)][pick]
-    return (base + MODE_STD * torch.randn(n, 2, generator=gen)).float()
-
-
-# =========================
-# One training run
-# =========================
-
-def train_run(seed, modes):
-    """Train a plain MLP GAN on `modes`; log metrics at each checkpoint.
-
-    Returns a list of per-checkpoint dicts with rho_g, the run's own
-    critic loss (mean over the window since the previous checkpoint),
-    the same critic evaluated against the full mixture, and Naeem
-    coverage of the generated samples against the full mixture.
-    """
-    torch.manual_seed(seed)
-    gen = torch.Generator().manual_seed(10_000 + seed)
-    eval_gen = torch.Generator().manual_seed(999)
-    real_eval = sample_mog(4096, tuple(range(N_MODES)), eval_gen)
-    z_eval = torch.randn(4096, Z_DIM, generator=torch.Generator().manual_seed(998))
-
-    g = SimpleMLPGenerator(z_dim=Z_DIM)
-    d = SimpleMLPDiscriminator(fourier=2)
-    opt_g = torch.optim.Adam(g.parameters(), lr=1e-3, betas=(0.5, 0.999))
-    opt_d = torch.optim.Adam(d.parameters(), lr=1e-3, betas=(0.5, 0.999))
-
-    rows = []
-    window_d = []
-    for step in range(1, STEPS + 1):
-        real = sample_mog(BATCH, modes, gen)
-        z = torch.randn(BATCH, Z_DIM, generator=gen)
-        fake = g(z)
-        d_loss = F.softplus(-d(real)).mean() + F.softplus(d(fake.detach())).mean()
-        opt_d.zero_grad()
-        d_loss.backward()
-        opt_d.step()
-        window_d.append(float(d_loss.detach()))
-
-        z = torch.randn(BATCH, Z_DIM, generator=gen)
-        g_loss = F.softplus(-d(g(z))).mean()
-        opt_g.zero_grad()
-        g_loss.backward()
-        opt_g.step()
-
-        if step % CHECKPOINT_EVERY == 0:
-            with torch.no_grad():
-                fake_eval = g(z_eval)
-                full_real = sample_mog(1024, tuple(range(N_MODES)), gen)
-                critic_full = float(
-                    F.softplus(-d(full_real)).mean() + F.softplus(d(fake_eval[:1024])).mean()
-                )
-            rows.append(
-                {
-                    "step": step,
-                    "rho_g": gini_distance_correlation(
-                        real_eval,
-                        fake_eval,
-                        max_n=512,
-                        generator=torch.Generator().manual_seed(1234),
-                    ),
-                    "critic_loss": sum(window_d) / len(window_d),
-                    "critic_loss_full": critic_full,
-                    "coverage": naeem_coverage(real_eval[:2048], fake_eval[:2048], k=5),
-                }
-            )
-            window_d = []
-    return rows
-
-
-def run_study(seeds=SEEDS):
-    return {
-        "covered": [train_run(s, tuple(range(N_MODES))) for s in seeds],
-        "collapsed": [train_run(s, COLLAPSED_MODES) for s in seeds],
-    }
+def run_study(steps=STEPS, check_every=CHECK_EVERY, device="cpu", n_eval=N_EVAL, progress=None):
+    real_eval = ring.eval_real(n_eval)
+    out = {}
+    for arm, modes in ARMS.items():
+        result = ring.train_ring_arm(
+            modes, steps, check_every, device=device, n_eval=n_eval,
+            observe=_observe(real_eval),
+            progress=(lambda row, arm=arm: progress(arm, row)) if progress else None)
+        out[arm] = result
+    return out
 
 
 # =========================
-# Statistics helpers
+# Statistics and gate
 # =========================
 
-def _cohens_d(a, b):
+def _standardized_gap(a, b):
     a, b = torch.tensor(a, dtype=torch.float64), torch.tensor(b, dtype=torch.float64)
     pooled = math.sqrt((float(a.var(unbiased=True)) + float(b.var(unbiased=True))) / 2)
+    gap = abs(float(a.mean()) - float(b.mean()))
     if pooled == 0:
-        return float("inf") if float(a.mean()) != float(b.mean()) else 0.0
-    return float(abs(a.mean() - b.mean()) / pooled)
+        return float("inf") if gap else 0.0
+    return gap / pooled
 
 
-def study_statistics(study):
-    """Final-checkpoint separation and pooled checkpoint correlations."""
-    final = {
-        regime: [{k: run[-1][k] for k in ("rho_g", "critic_loss", "critic_loss_full", "coverage")}
-                 for run in runs]
-        for regime, runs in study.items()
+def study_statistics(rows):
+    """rows: {arm: [checkpoint dicts with METRIC_KEYS]} -> statistics + verdict."""
+    term = {arm: r[-TERMINAL_WINDOW:] for arm, r in rows.items()}
+    sep = {key: _standardized_gap([x[key] for x in term["collapsed"]],
+                                  [x[key] for x in term["covered"]])
+           for key in ("rho_g", "critic_loss", "critic_loss_full")}
+    pooled = [x for r in rows.values() for x in r]
+    corr = {key: float(spearmanr([x[key] for x in pooled], [x["coverage"] for x in pooled]).statistic)
+            for key in ("rho_g", "critic_loss", "critic_loss_full")}
+    cov = {arm: sum(x["coverage"] for x in r) / len(r) for arm, r in term.items()}
+    finite = all(math.isfinite(x[k]) for r in rows.values() for x in r for k in METRIC_KEYS)
+    gates = {
+        "construction_valid": cov["covered"] - cov["collapsed"] > 0.3,
+        "rho_g_separation_gt_2": sep["rho_g"] > 2.0,
+        "rho_g_separation_ge_critic": sep["rho_g"] >= sep["critic_loss"],
+        "rho_g_coverage_spearman_lt_-0.7": corr["rho_g"] < -0.7,
+        "rho_g_tracking_ge_critic": abs(corr["rho_g"]) >= abs(corr["critic_loss"]),
     }
-    sep = {
-        key: _cohens_d(
-            [r[key] for r in final["collapsed"]], [r[key] for r in final["covered"]]
-        )
-        for key in ("rho_g", "critic_loss", "critic_loss_full")
+    if not finite:
+        verdict = "ERROR"
+    elif not gates["construction_valid"]:
+        verdict = "INVALID"
+    else:
+        verdict = "PASS" if all(gates.values()) else "FAIL"
+    return {"terminal_coverage": cov, "separation": sep, "correlation": corr,
+            "gates": gates, "verdict": verdict}
+
+
+def _rows(study):
+    return {arm: [{k: obs[k] for k in ("step",) + METRIC_KEYS} for obs in res["observations"]]
+            for arm, res in study.items()}
+
+
+def publish(study, receipt=RECEIPT, gif=GIF, device="cpu"):
+    rows = _rows(study)
+    stats = study_statistics(rows)
+    receipt.parent.mkdir(parents=True, exist_ok=True)
+
+    def caption(arm, obs):
+        return (f"{arm} | step {obs['step']}/{STEPS}\nrho_g={obs['rho_g']:.3f} "
+                f"cov={obs['coverage']:.2f} critic={obs['critic_loss']:.3f}")
+
+    frames = ring.render_arms_gif(
+        gif, {arm: res["observations"] for arm, res in study.items()}, caption,
+        title=f"Gini distance correlation study (GANTrainer, default recipe, seed 0): {stats['verdict']}")
+    recipes = {arm: res["recipe"] for arm, res in study.items()}
+    if recipes["covered"] != recipes["collapsed"]:
+        raise RuntimeError("arms resolved different recipes")
+    payload = {
+        "question": "rho_g separates collapsed from covered runs and tracks coverage at least as well as critic loss",
+        "source_paper": "arXiv:2609.22508 (EmbeddGAN), metric salvage only",
+        "cohort": "public-API GANTrainer, default get_recipe(total_steps), deterministic init, protocol seed 0",
+        "task": {"target": "8-Gaussian ring r=2 std=0.25", "collapsed_training_modes": list(ring.COLLAPSED_MODES),
+                 "architecture": f"MLP hidden {ring.HIDDEN}x2 LeakyReLU(0.2)", "steps": STEPS,
+                 "check_every": CHECK_EVERY, "terminal_window": TERMINAL_WINDOW, "n_eval": N_EVAL,
+                 "naeem_k": 5, "rho_g_max_n": 512, "sampler": "GANTrainer.sample (live, clean)"},
+        "resolved_recipe": recipes["covered"],
+        "device": str(device), "torch": torch.__version__,
+        "rows": rows, "statistics": stats, "gif": gif.name, "gif_frames": frames,
     }
-    pooled = [row for runs in study.values() for run in runs for row in run]
-    corr = {
-        key: float(spearmanr([r[key] for r in pooled], [r["coverage"] for r in pooled]).statistic)
-        for key in ("rho_g", "critic_loss", "critic_loss_full")
-    }
-    return {"final": final, "separation": sep, "correlation": corr}
+    receipt.write_text(json.dumps(payload, indent=1, sort_keys=True) + "\n")
+    return payload
 
 
 # =========================
@@ -197,45 +199,63 @@ def test_naeem_coverage_basics():
     assert naeem_coverage(a, b + torch.tensor([6.0, 0.0])) < 0.05
 
 
+def test_oracle_and_destructive_controls():
+    real = ring.eval_real(1024)
+    oracle = ring.sample_ring(1024, ring.ALL_MODES, torch.Generator().manual_seed(5))
+    dropped = ring.sample_ring(1024, ring.COLLAPSED_MODES, torch.Generator().manual_seed(5))
+    g = torch.Generator().manual_seed(1234)
+    assert abs(gini_distance_correlation(real, oracle, generator=g)) < 0.02
+    assert naeem_coverage(real, oracle) > 0.9
+    assert gini_distance_correlation(real, dropped, generator=g) > 0.2
+    assert naeem_coverage(real, dropped) < 0.4
+
+
 # =========================
-# The study
+# Public-API execution
 # =========================
 
-@pytest.fixture(scope="module")
-def study():
-    return run_study()
+def test_short_api_run_renders_actual_training_gif(tmp_path):
+    # One arm keeps the CPU smoke cheap; the full study trains both.
+    real_eval = ring.eval_real(256)
+    res = ring.train_ring_arm(ring.COLLAPSED_MODES, 2, 1, n_eval=256, observe=_observe(real_eval))
+    assert isinstance(res["trainer"], ring.GANTrainer)
+    assert res["recipe"]["total_steps"] == 2
+    assert [o["step"] for o in res["observations"]] == [1, 2]
+    assert all(math.isfinite(o[k]) for o in res["observations"] for k in METRIC_KEYS)
+    frames = ring.render_arms_gif(
+        tmp_path / "goal.gif", {"collapsed": res["observations"]},
+        lambda arm, obs: f"{arm} {obs['step']} rho_g={obs['rho_g']:.2f}")
+    assert frames == 2 and (tmp_path / "goal.gif").stat().st_size > 1000
 
 
-@pytest.fixture(scope="module")
-def stats(study):
-    return study_statistics(study)
+def test_published_receipt_is_consistent():
+    payload = json.loads(RECEIPT.read_text())
+    assert payload["task"]["steps"] == STEPS and payload["task"]["check_every"] == CHECK_EVERY
+    rows = payload["rows"]
+    for arm in ARMS:
+        assert [r["step"] for r in rows[arm]] == list(range(CHECK_EVERY, STEPS + 1, CHECK_EVERY))
+    recomputed = study_statistics(rows)
+    assert json.loads(json.dumps(recomputed)) == payload["statistics"]
+    assert payload["statistics"]["verdict"] in {"PASS", "FAIL", "INVALID", "ERROR"}
+    assert payload["resolved_recipe"]["total_steps"] == STEPS
+    assert payload["gif_frames"] == len(rows["covered"])
+    assert (REPORT_DIR / payload["gif"]).stat().st_size > 10_000
 
 
-def test_construction_ground_truth(stats):
-    cov = {r: [x["coverage"] for x in rows] for r, rows in stats["final"].items()}
-    mean = {r: sum(v) / len(v) for r, v in cov.items()}
-    # The collapsed arm really is collapsed, the covered arm really covers.
-    assert mean["covered"] - mean["collapsed"] > 0.3
-
-
-def test_rho_g_separates_at_least_as_well_as_critic_loss(stats):
-    sep = stats["separation"]
-    assert sep["rho_g"] >= sep["critic_loss"]
-    assert sep["rho_g"] > 2.0  # and the separation is large in absolute terms
-
-
-def test_rho_g_tracks_coverage_at_least_as_well_as_critic_loss(stats):
-    corr = stats["correlation"]
-    assert corr["rho_g"] < -0.7  # rho_g falls as true coverage rises
-    assert abs(corr["rho_g"]) >= abs(corr["critic_loss"])
+@pytest.mark.slow
+def test_full_study_reproduces_receipt_verdict():
+    payload = json.loads(RECEIPT.read_text())
+    stats = study_statistics(_rows(run_study()))
+    assert stats["verdict"] == payload["statistics"]["verdict"]
 
 
 if __name__ == "__main__":
-    result = run_study()
-    stats = study_statistics(result)
-    for regime, runs in result.items():
-        for seed, run in zip(SEEDS, runs):
-            for row in run:
-                print(regime, seed, row)
-    print("separation (Cohen's d, final checkpoint):", stats["separation"])
-    print("correlation with coverage (Spearman, pooled):", stats["correlation"])
+    parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
+    parser.add_argument("--device", default="cpu")
+    args = parser.parse_args()
+
+    def progress(arm, row):
+        print(json.dumps({"arm": arm, **row}), flush=True)
+
+    result = publish(run_study(device=args.device, progress=progress), device=args.device)
+    print(json.dumps(result["statistics"], indent=1))
