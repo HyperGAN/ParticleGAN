@@ -107,8 +107,13 @@ class TrainingFigure:
         self.step_text = self.fig.text(.666, .136, "", color=INK, fontsize=13, weight="bold")
         self.fig.text(.066, .089, "○ target: 3σ radius", color=GOLD, fontsize=8.5)
         self.fig.text(.292, .089, "● learned particle outputs", color=CYAN, fontsize=8.5)
-        self.fig.text(.055, .031, "ACTUAL TRAINING  ·  live weights  ·  clean samples  ·  seed 0",
-                      color=MUTED, fontsize=8)
+        prior_info = summary.get("prior") or {}
+        footer = (
+            f"ACTUAL TRAINING  ·  live weights  ·  MoG prior (σ={prior_info['sigma']:g})  ·  clean  ·  seed 0"
+            if prior_info.get("kind") == "mog"
+            else "ACTUAL TRAINING  ·  live weights  ·  clean samples  ·  seed 0"
+        )
+        self.fig.text(.055, .031, footer, color=MUTED, fontsize=8)
         self.fig.text(.945, .031, f'{n:,} fixed row IDs  /  20,000 evaluation draws',
                       ha="right", color=MUTED, fontsize=8)
         self.progress_bg = FancyBboxPatch((.666, .10), .276, .005, boxstyle="square,pad=0",

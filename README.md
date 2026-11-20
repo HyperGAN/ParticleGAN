@@ -168,15 +168,15 @@ What the evidence does and does not show today:
 
 ### The 100-Gaussian animations
 
-These three animations use different historical or opt-in recipes rather than the current `unified_v11` default.
+The lead [`100gaussians.gif`](100gaussians.gif) shows actual training of the current **0.11.0 default** (`get_recipe()` = `unified_v11`) on the Forge `grid100` `MoGParticlePrior(20000, σ=0.025, standardize=False)` cohort; the other two animations retain their archived 0.9.1 and opt-in E22 identities.
 
 | Animation | Recipe | What it shows | Pass/fail metric | Result |
 | --- | --- | --- | --- | --- |
-| [`100gaussians.gif`](100gaussians.gif) | **Archived 0.9.0 default** (`get_recipe("bispf_optimized", optimizer_svd_backend="native", training_precision="float32")`). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 20,000 updates. | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **FAIL**: 100/100 modes, but `hq` 42.1% ([receipt](reports/readme-100gaussians/README.md#current-default)) |
+| [`100gaussians.gif`](100gaussians.gif) | **0.11.0 default** (`get_recipe()` = `unified_v11`) with the Forge `grid100` task prior (`MoGParticlePrior(20000, σ=0.025, standardize=False)`). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 7,000 updates (live weights, clean sampling, 260.5 s on RTX A6000). | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **PASS**: 100/100 modes, `hq` 98.52% (5/5 terminal checks 98.52%–99.39%), Mode TV `0.04555`, Sliced W1 `0.08353`, core width ratio `0.957` ([receipt](reports/readme-100gaussians/README.md#current-default); archived 0.9.0 `ParticlePrior` FAIL retained [here](reports/readme-100gaussians/README.md#archived-090-default-particleprior-cohort)) |
 | [stripes GIF](reports/forge/bispf-throughput/media/bispf-throughput-v1/img_stripes2.gif) | **Archived 0.9.1 default** (`get_recipe("bispf_optimized")`, batched SVD, BF16/channels-last) | Fixed 600-update `img_stripes2` image task | The task's declared Forge gate, including all required modes | **PASS** ([readout](reports/forge/bispf-throughput/README.md)) |
 | [E22 GIF](reports/e22-animation/e22-100gaussians.gif) | **Not the default.** Opt-in preset `get_recipe("e22", ...)` with an identity `nn.Linear(2, 2)` generator, a 20,000-row table, batch 2,048 and seed 1234 | Grid, rotated and staggered 100-Gaussian layouts, 7,000 updates each | Native gates: worst live precision over the last 5 checks ≥ 0.97 and worst centre error ≤ 0.20σ | **PASS** on all three layouts (precision .9822–.9851); the animation draws reach `hq` 98.3–98.6% ([E22 results](docs/e22.md#results), [animation](reports/e22-animation/README.md)). In the Forge suite, E22 is 0/115: its policy cohort is blocked or incompatible with the current task definitions. |
 
-![Archived 0.9.0 default on the 100-Gaussian grid: particle outputs, target modes and numerical learning curves (FAIL: hq 42.1% < 95%)](100gaussians.gif)
+![0.11.0 default (unified_v11, MoGParticlePrior) on the 100-Gaussian grid: particle outputs, target modes and numerical learning curves (PASS: 100/100 modes, hq 98.5%)](100gaussians.gif)
 
 ![Actual training of the 0.9.1 BISPF default on the stripes task, with numerical quality observations (PASS)](reports/forge/bispf-throughput/media/bispf-throughput-v1/img_stripes2.gif)
 
