@@ -26,7 +26,7 @@ TIER1 = ["gaussian1d_smoke", "two_pole", "unused_token_hold", "ae_gan_hold", "ri
 def test_counted_ring16_is_the_6400_update_revision_in_every_ordinary_view():
     tasks = load_tasks(ROOT)
     view = load_view(ROOT, "discriminator_stability")
-    assert view["revision"] == 18
+    assert view["revision"] == 20
     tier1 = [a["task"] for a in view["assignments"] if a["qualification_tier"] == 1 and a["importance"] == "required"]
     assert tier1 == TIER1
     validate_view(view, tasks)
