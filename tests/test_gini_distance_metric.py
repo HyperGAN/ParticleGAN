@@ -15,7 +15,7 @@ checkpoints at least as well?
 Execution (toy-test contract, reports/toy_audit/api_contract/README.md):
 both arms train through ``GANTrainer`` with the unmodified default
 ``get_recipe()`` (only the task budget ``total_steps`` is set), public
-deterministic initialization and protocol seed 0 (``lib/paper_watch_ring``).
+deterministic initialization and protocol seed 0 (``tests/paper_watch_ring.py``).
 Ground truth is by construction, never by the metric: the collapsed arm's
 training law is the 2-of-8-mode subset; both arms are evaluated against the
 full mixture. No seed replicates: separation is measured over the terminal
@@ -58,8 +58,8 @@ _REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(_REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT))
 
-from lib import paper_watch_ring as ring  # noqa: E402
-from lib.toy_metrics import gini_distance_correlation, naeem_coverage  # noqa: E402
+import paper_watch_ring as ring  # noqa: E402
+from paper_watch_metrics import gini_distance_correlation, naeem_coverage  # noqa: E402
 
 STEPS = 1200
 CHECK_EVERY = 100

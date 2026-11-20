@@ -24,6 +24,9 @@ Task identity (owned here, identical across arms):
 
 Rendering (``render_arms_gif``) draws the actual API samples at every
 checkpoint beside the full target, one panel per arm.
+
+This helper lives in tests/ rather than lib/ because every lib/*.py file is
+part of the Forge catalog source digest.
 """
 from __future__ import annotations
 
