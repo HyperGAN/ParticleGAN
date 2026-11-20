@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t4-nash-v3-study"
+  },
+  "candidate": "t4-nash-v3",
+  "competing_explanation": "Without per-layer orthogonal polar SVD whitening (DualNorm), Marchenko-Pastur + peak_rms scalar/row scaling cannot orthogonalize correlated multi-head hidden-feature singular spectra on tightly coupled encoder-generator or ultra-tight covariance gates (e.g. ring16_acquisition full-sample component_covariance_error <= 0.85 when 3-5 MLP bridge samples span adjacent modes).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Pure-elementwise t4_nash_v3 (0 SVD, 0 eigh, 0 pinv, 0 NS, 0 autograd.grad) lifts required Tier-1 discriminator_stability from t4-nash-v2's 6/11 to 11/11 (100%) PASS (clearing gaussian1d_smoke, precision_gaussian_*, ring16_acquisition, model_vae_*, and model_ae_gan_multimodal) and advances into Tier 2.",
+  "id": "t4-nash-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-nash-v2",
+        "candidate_revision": "b1966a034bb45192d1a37d4e024ceb5170ffdbf57da7e55d40458598f673cba6"
+      },
+      "path": "reports/forge/records/readout-500c635ac3558acf8c455b48.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

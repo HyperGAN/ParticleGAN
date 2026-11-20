@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "r4-razor-no-ns-v2-t4-arch-study"
+  },
+  "candidate": "r4-razor-no-ns-v2",
+  "competing_explanation": "If matrix orthogonalization (Quintic NS) is strictly required for 16-layer skip-free or tanh-saturated networks, r4-razor-no-ns will fail grid100_mlp16 or grid100_res16_scaled_tanh.",
+  "control": {
+    "candidate_id": "unified-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "hypothesis": "Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves unified-v10's 6/7 t4-strange-architectures-v1 performance on 16-layer mlp16, res16_tanh, and res16_scaled_tanh.",
+  "id": "r4-razor-no-ns-v2-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "r4-razor-no-ns",
+        "candidate_revision": "d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f"
+      },
+      "path": "reports/forge/records/readout-473d9273f48217f741893cb4.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

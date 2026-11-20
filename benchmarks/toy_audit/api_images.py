@@ -1025,8 +1025,11 @@ class WordGenerator(nn.Module):
         self.net = nn.Sequential(nn.Linear(2, 64), nn.LeakyReLU(.2), nn.Linear(64, 128),
                                  nn.LeakyReLU(.2), nn.Linear(128, WORD_DIM))
 
+    def forward_logits(self, latent):
+        return self.net(latent).reshape(-1, len(WORD_CHARS), WORD_LENGTH)
+
     def forward(self, latent):
-        return self.net(latent).reshape(-1, len(WORD_CHARS), WORD_LENGTH).softmax(1)
+        return self.forward_logits(latent).softmax(1)
 
 
 class WordEncoder(nn.Module):
@@ -1162,6 +1165,10 @@ class WordFixture:
             loss_gan = self.loss.joint_g_loss(self.noisy_critic(_join_words(fake_words, latent)),
                                               self.noisy_critic(_join_words(real_words, encoded)))
             loss_g = loss_gan + self.recipe.prior_regularization(self.prior.z, regularizer=self.spread)
+            if self.recipe.joint_reconstruction_weight:
+                reconstruction = self.recipe.joint_reconstruction_loss(
+                    self.G.forward_logits(encoded), real_words, categorical_dim=1)
+                loss_g = loss_g + reconstruction
             if self.transport is not None:
                 # Categorical probability coordinates only. The joint latent
                 # coordinates and inverse encoder retain their original loss.
@@ -1181,7 +1188,10 @@ class WordFixture:
             self.opt_g.step()
             self.policy.after_generator_step()
             self.policy.finish_step()
-            return dict(step=self.completed_steps, loss_d=loss_d.detach(), loss_g=loss_g.detach(), penalty=penalty.detach())
+            result = dict(step=self.completed_steps, loss_d=loss_d.detach(), loss_g=loss_g.detach(), penalty=penalty.detach())
+            if self.recipe.joint_reconstruction_weight:
+                result["joint_reconstruction"] = reconstruction.detach()
+            return result
         except Exception:
             self.policy.abort_step()
             raise

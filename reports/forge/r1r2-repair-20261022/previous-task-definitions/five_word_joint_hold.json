@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "id": "five_word_joint_hold",
+  "description": "Continue this candidate's earliest confirmed five-word acquisition state for 4,000 updates. Every scheduled generation and inverse check, including the exact restored state, must pass.",
+  "adapter": "word_joint",
+  "retained_question_ids": [
+    "source-family-15"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "execution_path": "public_components",
+    "host": "five_word_joint",
+    "steps": 4000,
+    "original_schedule_horizon": 20000,
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Retained finite-vocabulary joint BiGAN question explicitly uses five learned 2D rows, one possible code per word; a MoG-width question needs its own protocol."
+    },
+    "protocol": "screening",
+    "produces_state": false,
+    "host_source": "benchmarks/toy_audit/api_images.py",
+    "host_definition": {
+      "words": [
+        "apple",
+        "grape",
+        "lemon",
+        "melon",
+        "berry"
+      ],
+      "characters": "abcdefghijklmnopqrstuvwxyz_ ",
+      "length": 6,
+      "generator_widths": [
+        2,
+        64,
+        128,
+        168
+      ],
+      "encoder_widths": [
+        168,
+        128,
+        64,
+        2
+      ],
+      "joint_critic_widths": [
+        170,
+        256,
+        128,
+        1
+      ],
+      "resources": {
+        "num_particles": 5,
+        "z_dim": 2,
+        "batch_size": 256
+      }
+    },
+    "continuation_of": "five_word_joint_smoke",
+    "transport_consumer": "output_marginal_v1",
+    "transport_contract": {
+      "version": 1,
+      "sample_space": "generated categorical probabilities flattened per word",
+      "target_law": "original current real word minibatch; latent coordinates excluded",
+      "conditioning_in_distance": false,
+      "new_paired_supervision": false,
+      "new_forward_passes": false,
+      "new_random_draws": false,
+      "gradient_ownership": "original generated branch parameters and learned prior; encoder receives only original word joint objective",
+      "protected_objectives": "original joint adversarial loss for G, encoder and prior",
+      "inactive": "original losses, updates, clocks and RNG; no hook requirement"
+    },
+    "prior_contract": "recipe_owned_v1"
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "generated_and_paired_reconstructed_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "kind": "word_hold",
+    "evaluator": "experiments.forge.word_tasks:grade",
+    "thresholds": [
+      [
+        "sample_count",
+        ">=",
+        1024
+      ],
+      [
+        "quality_fraction",
+        ">=",
+        0.95
+      ],
+      [
+        "modes",
+        "==",
+        5
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.1
+      ],
+      [
+        "reconstruction_exact",
+        "==",
+        1
+      ],
+      [
+        "minimum_reconstruction_token_probability",
+        ">=",
+        0.9
+      ]
+    ],
+    "eval_samples": 1024,
+    "observations": 24,
+    "scoring_weights": "live",
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "encoder",
+        "prior",
+        "discriminator"
+      ],
+      "mechanism_exercised": true,
+      "rng_isolation": true,
+      "exact_optimizer_updates": false
+    },
+    "sources": {
+      "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
+      "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+      "benchmarks/toy_audit/api_images.py": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+      "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
+      "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+      "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
+      "experiments/forge/word_adapter.py": "e3923fd7904e465375c15915f729c1de4058f1bd88f801c020932184ef074dbd",
+      "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
+      "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c",
+      "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
+      "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
+      "experiments/forge/behavior_adapters.py": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8"
+    },
+    "evaluator_revision": {
+      "id": "mog-policy-extra-state-source-binding-v1",
+      "change": "Bind the public checkpoint validator after immutable MoG _extra_state support, additively after the upstream guarded-Gram receipt compatibility source refresh. Word hosts use particle clouds; training, numerical gates, sampling, initialization, budgets and cadence are unchanged. Original receipts and qualifications retain their prior source identity; no rerun, regrading or automatic cross-source reuse.",
+      "previous_task_commit": "364a1da2b4508a25be10d457dae3ff2e6a22a4ae",
+      "previous_task_path": "configs/forge/tasks/five_word_joint_hold.json",
+      "previous_task_sha256": "b3d94bf0b69fab0a9000d5a17bfcaf6256979d7c0a8ca2700a79007b26a3a5fd",
+      "previous_task_blob": "ce7d519074d0f75c181045e6a1a6e813705a242d",
+      "previous_source_sha256": {
+        "particlegan/policy.py": "7b904bec09c4bbcfaa59b74465102489e5b45456f5725441b6538da6adf2accc"
+      },
+      "previous_revision": {
+        "id": "guarded-gram-default-receipt-source-binding-v1",
+        "change": "Bind the optional guarded-Gram profile receipt compatibility update for future execution. The full effective Recipe is still validated; an unselected default optimizer_dense_profile is omitted from historical applied receipt metadata. Only current source provenance changes. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence, numerical gates and previous source-bound verdicts remain unchanged; this refresh grants no evidence reuse, pass credit or numerical-profile adoption.",
+        "previous_task_commit": "90ae663551dd0fa35749d56e1859f276a4d09587",
+        "previous_task_path": "configs/forge/tasks/five_word_joint_hold.json",
+        "previous_task_sha256": "188894eb648ae88da2cb1fc4c585b8986f5d8577b82a495502db3d792411ea70",
+        "previous_source_sha256": {
+          "experiments/forge/behavior_adapters.py": "639d437a4621de84396dcfe6e192b8bd3ed72382bd8cde8943edba336d3cd104"
+        },
+        "previous_revision": {
+          "id": "bispf-checkpoint-preflight-source-binding-v1",
+          "change": "Bind the current checkpoint-preflight thermal-cache isolation for future joint-word execution. Architecture, vocabulary, target/data/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts, historical policy variants and qualification verdicts retain their original identities; this refresh grants no reuse or pass credit.",
+          "previous_task_commit": "00976bc98fd8a89a0e17db5fbd0d7b0afdfe2791",
+          "previous_task_path": "configs/forge/tasks/five_word_joint_hold.json",
+          "previous_task_sha256": "d74c3ad2985901b4520427ed0e475de060c518c5a1bd5e3ec89967999893888f",
+          "previous_source_sha256": {
+            "particlegan/policy.py": "f3af6679aea15e3c2693605a8d020fb175dd9afe1f48f05ca0565a33599cee4e"
+          },
+          "previous_revision": {
+            "id": "combined-opt-in-prior-source-v1",
+            "change": "Bind the integrated proximal, Coulomb, SIGReg, moment-tether and initial-MMD public API for future execution. Only current source provenance changes; architecture, target/data/prior/sampling laws, budgets, cadence and numerical gates are unchanged. Archived source-bound evidence and verdicts are preserved.",
+            "previous_source_sha256": {
+              "benchmarks/toy_audit/api_images.py": "d3fe74979d7ccea0c272386b90bd2a857c2d991cafff48a6cd4c9665e7dec30b",
+              "experiments/forge/word_adapter.py": "bd4a3798bc8d8e3aded6dfe2db264850d42d58777ba76053452cb64b9247bf4e",
+              "experiments/forge/word_tasks.py": "f090d5300fdf12178d5c54556c40c98f593b2796e2bb8ab91c7e81450f89ba05",
+              "experiments/forge/behavior_adapters.py": "890f0e984e4430aa277c1df76a013d9f4ce388b5f2a0340ae54a336066d6eba1"
+            },
+            "previous_revision": {
+              "id": "opt-in-coulomb-prior-reference-v1",
+              "change": "Bind opt-in Coulomb initial-reference and factory plumbing. Task architecture, initialized prior, target/data/sampling laws, budgets, cadence and numerical gates are unchanged. Archived evidence retains its source identity. Import the existing recipe-owned word receipt helper; training and scoring are unchanged.",
+              "previous_source_sha256": {
+                "benchmarks/toy_audit/api_images.py": "a79aafb643182d707796b25b2b3abec3dd3c7e452c615a7cf68274f157a778ea",
+                "experiments/forge/behavior_adapters.py": "570b26537ca48930c49c88cc839a945ff3f4beddffadf86dd22ebe2fcb677306",
+                "experiments/forge/word_adapter.py": "dd6c337d437637981b000f9e3f310c1c6f38010bf142ddc133f5deaccb45668e"
+              },
+              "previous_revision": {
+                "id": "opt-in-component-objective-hooks-v1",
+                "change": "Explicit optional transport/protected-objective hooks and current source binding. Original question, architecture, data/prior/sampling laws, update budget, cadence and all numerical gates retained. Disabled mechanisms preserve original behavior.",
+                "original_task_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
+                "original_task_path": "configs/forge/tasks/five_word_joint_hold.json",
+                "previous_source_sha256": {
+                  "benchmarks/toy_audit/api_images.py": "c1573e6e34c05302db8608982ff03819447a38b4a310a91aaf1832508c3e4336",
+                  "experiments/forge/word_adapter.py": "4aa771dd39d58e6ec7a00ab21d82f689d74638a15403e4b2d9024f67a1c57225",
+                  "experiments/forge/word_tasks.py": "71169e6164ea85ac7cda623fe08d3a52ffc352646be5c600416461bf5b5aeeac"
+                },
+                "previous_revision": {
+                  "id": "five-word-acquisition-hold-split-v1",
+                  "change": "Separate acquisition from retention without changing numerical bounds, public host, prior, initialization or original schedule horizon. Historical sustained task and receipts retain their identities.",
+                  "historical_task": "five_word_joint_acquisition",
+                  "historical_task_sha256": "3a0db059c0465bcb44754ee2c817d42eec07473b84b63717ee514171192b217b",
+                  "previous_revision": {
+                    "change": "Bind the current shared comparison helper after project-wide disabled multithreaded autograd scheduling. Task architecture, target law, prior, named streams, update budget, sampling, cadence and numerical bounds remain unchanged. Earlier declarations and receipts retain their original source and runtime identity.",
+                    "id": "joint-word-serial-autograd-source-binding-v5",
+                    "previous_revision": {
+                      "change": "Bind the current shared public fixture and deterministic comparison helper for future execution. Forge named component initialization, numerical bounds, geometry, training budget and sampling laws remain unchanged; original receipts retain their original source binding.",
+                      "id": "public-api-reproducibility-source-binding-v4",
+                      "previous_revision": {
+                        "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged.",
+                        "id": "explicit-equality-and-word-prior-betas-v3",
+                        "previous_revision": {
+                          "change": "Bind the current public fixture after bounded Recipe configuration API additions; retain the declared numerical bounds, task geometry and budget. Earlier evidence keeps its original source binding.",
+                          "id": "joint-word-task-source-binding-v2",
+                          "previous_api_images_sha256": "bedcb88841ef5cae8c9bfa60364bfacebbef29dea640036c1e30c4593ae71a3f"
+                        },
+                        "previous_source_sha256": {
+                          "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8",
+                          "benchmarks/toy_audit/api_images.py": "243190aba0c5870668a63289b771dc6f784c9460b890bc6a77e12cc2796d7184",
+                          "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97"
+                        }
+                      },
+                      "previous_source_sha256": {
+                        "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
+                        "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+                        "benchmarks/toy_audit/api_images.py": "65d5ab6be9e80d3633922dca958a3dcd0e1b01b770e470e3c69a66654e800016",
+                        "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
+                        "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89"
+                      }
+                    },
+                    "previous_source_sha256": {
+                      "benchmarks/toy_audit/reproducibility.py": "bb8cf4836bf8331c1a955a1cbb532c9fa24f469f53560624972bc5a2053f5786"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "confirmation": "independent_draw_same_state",
+    "hold_policy": "all_scheduled_checks_including_restored_state",
+    "gate_policy": {
+      "id": "five-word-hold-v1",
+      "rationale": "Continue this candidate's earliest confirmed five-word acquisition state for 4,000 updates. Every scheduled generation and inverse check, including the exact restored state, must pass."
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 300
+  },
+  "requires_capabilities": [
+    "public_components",
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": [
+    {
+      "task": "five_word_joint_smoke",
+      "kind": "checkpoint"
+    }
+  ],
+  "research_artifacts": {
+    "api_publication": "reports/toy_audit/api_contract/five_word_smoke_hold/publication.json",
+    "readout": "reports/forge/five-word-tier-split/README.md"
+  },
+  "task_cohort": "component_output_transport_v1"
+}

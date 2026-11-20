@@ -516,12 +516,15 @@ Schedule-free E22 and Atlas retain `total_steps=None`; pass `max_steps` to bound
 their execution without inserting a schedule. Their policy hooks use that
 external allowance without changing the formulation.
 
-`get_recipe()` constructs the selected **optimized BISPF** research recipe: non-saturating
-loss, the Born-Infeld chord penalty, DualNorm, direction blending and constant
-G/E, D and prior rates `.012`, `.018` and `.03`. `GANTrainer` binds sampled
-rows and the protected adversarial objective automatically. Additive training
-noise, EMA serving and KA2 interventions are disabled. SBNP prior regularization
-has weight `.01`.
+`get_recipe()` constructs the selected **EMPF** research recipe (`DEFAULT_RECIPE = "empf"`,
+matching `empf-v8`): non-saturating loss, `EMPFCriticPenalty` (online *e-means*
+prototype-chord Born-Infeld penalty with state-driven settling sharpness,
+`ebi_beta=6.0`, and zero-mean logit gauge), DualNorm (`newton_schulz_hybrid_v1`,
+`batched` SVD, `bf16_channels_last`, smoothing `.001`), direction blending, and
+constant G/E, D and prior rates `.012`, `.018` and `.03`. `GANTrainer` binds
+sampled rows and the protected adversarial objective automatically. Additive
+training noise, EMA serving and KA2 interventions are disabled. DoF-aware EMPF
+prior regularization has weight `.01`.
 See [the selected settings and evidence](#recipes-and-defaults).
 
 `get_recipe("ka2")` retains **KA2** ([details](ka2.md)): Rp logistic, the KA2
@@ -851,7 +854,7 @@ tracks device and dtype.
 ### `GANLoss`
 
 ```python
-gan = recipe.make_loss()  # GANLoss(recipe.loss, labels=recipe.loss_labels)
+gan = recipe.make_loss()  # RHBIGANLoss on RHBI recipes; GANLoss(recipe.loss, labels=recipe.loss_labels) otherwise
 recipe = get_recipe("bcap", loss="hinge")
 gan = recipe.make_loss()
 ```
@@ -879,8 +882,13 @@ For `(a,b,c)`, D minimizes `(mean((r-b)**2)+mean((f-a)**2))/2` and G minimizes
 Use `GANLoss("least_squares", labels=(-1,1,1))` or the corresponding Recipe
 field; nondefault labels on other objectives are rejected.
 
-Only `relativistic` requires real scores in `g_loss`, paired row by row. The
-other losses ignore that optional argument. Recompute D's scores after updating
+Both `relativistic` and `RHBIGANLoss` (when `rhbi_weight > 0`, as in explicit
+`get_recipe("rhbi_optimized")` and `get_recipe("rhbi")`) require `real_logits`
+in `g_loss(fake_logits, real_logits)`:
+`relativistic` pairs scores row by row, while `RHBIGANLoss` resolves the
+critic-captured `(x_fake, x_real)` batch pair from those logits (calling
+1-arg `g_loss(fake_logits)` with `rhbi_weight > 0` raises `ValueError`). The
+other `GANLoss` objectives (including the default `empf` non-saturating loss) ignore that optional argument. Recompute D's scores after updating
 D; freeze its weights during the G step while retaining the gradient path
 through the fake input. Unknown loss names raise `ValueError` when constructing
 `Recipe` or `GANLoss`. Alternative objectives are explicit in `recipe.to_dict()`;
@@ -936,6 +944,23 @@ recipe. Explicit legacy arms select the K3P optimizer; `reg_arm="k3p"` selects
 the earlier K3P penalty too. `reg_arm=None` follows `critic_formulation`, whose
 restoration default is KA2. These choices are recorded in new source/formulation cohorts.
 
+For the fixed arms, `reg_real_weight` and `reg_fake_weight` separately multiply
+the two mean penalties. Both default to `1`; for example,
+`Recipe(reg_arm="a_r1r2", reg_fake_weight=0)` applies real-only R1 at the
+unchanged `reg_coeff / 2` coefficient. A zero-weight term performs no critic
+forward. Nondefault weights require an explicit fixed arm and form a new
+recipe/checkpoint identity.
+
+`joint_reconstruction_weight` defaults to `0`. An explicitly bound joint
+inverse host can add `recipe.joint_reconstruction_loss(reconstruction, target)`
+to its generator/encoder loss. Continuous values use mean squared error;
+passing `categorical_dim` interprets the reconstruction as raw logits and uses
+stable categorical cross entropy. Targets are detached. The five-word joint
+fixture consumes this objective as `G(E(real_words))` using its existing real
+batch, without extra draws or a change to generation. Scalar hosts without a
+joint inverse are inapplicable; ordinary AE/VAE reconstruction keeps its own
+declared objective.
+
 `get_recipe("bcap")` selects fixed BCAP with zero-momentum `dualnorm`,
 `constraint_geometry_mode="direction_blend"`, and constant G/D/prior step sizes.
 Direction blending protects existing task objectives across the joint
@@ -954,7 +979,7 @@ Transport weights remain zero, `critic_step_mode="none"`, and
 `optimizer_svd_backend="native"`. Use
 `get_recipe("bcap", constraint_geometry_mode="none")` for the earlier winning
 DualNorm recipe. Pin `trainer="bcap"` on a model family to select these settings;
-the shared default is optimized BISPF. `Recipe()` and partial constructors are
+the shared default is EMPF (`empf`). `Recipe()` and partial constructors are
 disabled. Use `get_recipe()` for new runs and `Recipe.from_dict(saved_fields)` for checkpoint restoration.
 Each setting can be overridden explicitly.
 `optimizer_svd_backend="newton_schulz"` selects a separate numerical backend
@@ -1045,10 +1070,13 @@ second derivatives use explicit straight-through quantizer surrogates. The
 defines the format/scaling rules, higher-precision operations, gates and native
 validation still needed. Existing precision settings and recipes are unchanged.
 
-The public BISPF default selects both policies:
+The public `"empf"` default and explicit `"bispf_optimized"` select both policies (while explicit
+`"rhbi_optimized"` uses `optimizer_svd_backend="native"`,
+`optimizer_dense_profile="polar_cpu_v1"` and `training_precision="float32"`):
 
 ```python
 recipe = get_recipe()
+bispf_opt = get_recipe("bispf_optimized")
 # Previous 0.9.0 execution settings, including for matching native checkpoints:
 previous = get_recipe("bispf_optimized", optimizer_svd_backend="native",
                       training_precision="float32")
@@ -1235,13 +1263,16 @@ examples, gradient caveats, DDGAN integration and measured evidence.
 ## Recipes and defaults
 
 ```python
-get_recipe(**overrides)        # Current default: optimized BISPF.
+get_recipe(**overrides)        # Current default: EMPF (DEFAULT_RECIPE = "empf").
 get_recipe("gan", **overrides) # Named components, current shared hyperparameters.
+get_recipe("empf", **overrides) # Selected EMPF/DualNorm/newton_schulz_hybrid_v1 recipe (empf-v8).
+get_recipe("rhbi_optimized", **overrides) # Explicit RHBI/DualNorm/polar_cpu_v1 recipe (rhbi-v12).
+get_recipe("rhbi", **overrides) # Original RHBI (rhbi-v1) preset.
 get_recipe("ka2", **overrides) # Previous public trainer, explicitly pinned.
 get_recipe("ae_gan", trainer="ka2", **overrides) # Model with a pinned trainer.
 get_recipe("bcap", **overrides) # Fixed BCAP, direction blend, constant DualNorm rates.
 get_recipe("bcap_adam", **overrides) # Earlier fixed BCAP/native Adam control.
-get_recipe("bispf_optimized", **overrides) # Selected BISPF/DualNorm/quintic recipe.
+get_recipe("bispf_optimized", **overrides) # Explicit BISPF/DualNorm/quintic recipe.
 get_recipe("bispf", **overrides) # Original BISPF/formulation optimizer preset.
 get_recipe("halloween", **overrides) # Explicit historical optimizer/loss transfer.
 get_recipe("e22", **overrides) # Schedule-free E22 policy, explicit task settings.
@@ -1259,29 +1290,48 @@ To promote a future registered trainer preset, change this single line in
 [`particlegan/recipes.py`](../particlegan/recipes.py):
 
 ```python
-DEFAULT_RECIPE = "bispf_optimized"
+DEFAULT_RECIPE = "empf"
 ```
 
 The selector affects `get_recipe()`, `get_recipe("gan")` and all model-family
 recipes. Explicit presets and `Recipe.from_dict(saved_fields)` remain independent of
 it. Save resolved recipes, rather than resolving the current default when
 resuming. The selected recipe matches the complete
-[`bispf-throughput-v1` candidate](../configs/forge/ideas/bispf-throughput-v1.json),
-apart from its public preset label. This owner-directed release choice retains
-the [19 passes and 11 failures](../reports/forge/bispf-throughput/README.md) in the
-30-task ordinary readout; it adds no calibration, universal architecture or
-natural-image quality claim. Observed matched DCGAN speedups are 1.02–2.15×
-over the 0.9.0 quintic default across six tasks, with unknown GPU contention.
+[`empf-v8` candidate](../configs/forge/ideas/empf-v8.json)
+(`83/115` counted view requirements and `23/64` fixed-suite passes in the
+[technique inventory](../reports/forge/technique-inventory.md)); it is an
+owner-directed research selection and adds no accepted calibration (`BLOCKED`),
+full Tier 2/3 qualification, untouched holdout confirmation, universal
+architecture or natural-image quality claim. Explicit `get_recipe("rhbi_optimized")`
+retains the optimized `rhbi-v12` preset (`83/115` counted view requirements,
+`33/64` fixed-suite passes, and `35/63` stretch view assignments), `get_recipe("rhbi")`
+retains the original `rhbi-v1` preset, and `get_recipe("bispf_optimized")` retains the complete
+[`bispf-throughput-v1` candidate](../configs/forge/ideas/bispf-throughput-v1.json)
+([19 passes and 11 failures](../reports/forge/bispf-throughput/README.md) in its
+30-task readout; 1.02–2.15× observed matched DCGAN speedups over the 0.9.0 quintic
+default across six tasks).
 
-`bispf_optimized` uses the Born-Infeld chord penalty and zero-mean logit gauge,
+`rhbi_optimized` pairs `RHBIGANLoss` (calibrated non-saturating critic log-odds
+plus debiased Feydy-discrete slack-screened Kantorovich-Hellinger Sinkhorn
+generator transport, Weibull AKT horizon, sparse-mode support completion,
+coordinate-whitened conditional IMQ-CMMD fibre transport with residual step
+damping `0.68`, and discrete-simplex / 1D-curve chart settling) with
+`RHBICriticPenalty` (`ebi_beta=12.0`, `rhbi_settle_beta=16.0`, `rhbi_chord_weight=0.25`,
+`rhbi_gamma_gauge=0.03`), SBNP prior regularization at `.02` (`ucd_weight=.02`),
+and zero-momentum DualNorm (`optimizer_smoothing=.0061`,
+`optimizer_dense_profile="polar_cpu_v1"`, `optimizer_svd_backend="native"`,
+`training_precision="float32"`, direction blending) at constant G/E, D and prior
+step sizes `.014`, `.021` and `.0406`.
+`empf` uses the online *e-means* prototype-chord Born-Infeld penalty (`ebi_beta=6.0`
+with state-driven settling sharpness) and zero-mean logit gauge, non-saturating loss,
+zero-momentum DualNorm (`newton_schulz_hybrid_v1`), smoothing `.001`, direction blending, learned sampled-prior row
+updates and DoF-aware EMPF prior regularization at `.01` (`ucd_weight=.02`). `bispf_optimized` uses the Born-Infeld chord penalty and zero-mean logit gauge,
 non-saturating loss, zero-momentum DualNorm, smoothing `.001`, direction blending,
-learned sampled-prior row updates and SBNP regularization at `.01`. Generator,
-critic and prior step sizes are `.012`, `.018` and `.03`. Both schedule floors
-are `1`, so rates stay constant. Batched SVD handles small CUDA convolution
-kernels; larger quintic kernels use CUDA graphs. Supported wide convolutional
-networks use BF16/channels-last training. CPU and dense transformer matrices
-retain the native polar/SVD rule; transformer
-throughput is a separate profiling question. `get_recipe("bispf")` and
+learned sampled-prior row updates and SBNP regularization at `.01`, with G/E,
+critic and prior step sizes `.012`, `.018` and `.03`. In all three presets both schedule floors
+are `1`, so rates stay constant. For `empf` and `bispf_optimized`, batched SVD handles small CUDA convolution
+kernels, larger quintic kernels use CUDA graphs, and supported wide convolutional
+networks use BF16/channels-last training. `get_recipe("rhbi")`, `get_recipe("bispf")` and
 `get_recipe("bcap")` retain their explicit presets; `Recipe.from_dict` preserves
 historical snapshots without selecting a new default.
 
@@ -1318,8 +1368,11 @@ and fields are rejected. Restore a complete saved configuration with
 
 | Name | Components and dimensions |
 | --- | --- |
-| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise |
-| `bispf_optimized` | Selected BISPF recipe; DualNorm, optimized convolution filter, direction blending, SBNP `.01` and constant rates |
+| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise (inherits `DEFAULT_RECIPE = "empf"`) |
+| `empf` | Selected EMPF research default (`empf-v8`); online *e-means* prototype bank, settling Born-Infeld penalty, DualNorm (`newton_schulz_hybrid_v1`), optimized convolution filter, direction blending, EMPF prior `.01` and constant rates |
+| `rhbi_optimized` | Explicit optimized RHBI preset (`rhbi-v12`); `RHBIGANLoss` + `RHBICriticPenalty` (`ebi_beta=12`), DualNorm (`polar_cpu_v1`, `native` SVD, `float32`), direction blending, SBNP `.02` and constant rates |
+| `rhbi` | Original `rhbi-v1` preset; `RHBIGANLoss` + `RHBICriticPenalty` (`ebi_beta=20`), DualNorm (`polar_cpu_v1`), moment-tether prior `.01` and constant rates |
+| `bispf_optimized` | Explicit optimized BISPF recipe; DualNorm, optimized convolution filter, direction blending, SBNP `.01` and constant rates |
 | `bispf` | Original BISPF recipe with relativistic Sinkhorn loss and formulation optimizer |
 | `bcap` | Scalar GAN, 20,000 particles, latent dimension 2; fixed BCAP, direction blending and DualNorm at constant rates |
 | `bcap_adam` | Earlier pure fixed BCAP preset with native Adam and constant rates |
@@ -1404,7 +1457,8 @@ opt_g, opt_d = recipe.make_optimizers(G, D, prior)
 | `prior_kind`, `sigma_rel`, `standardize` | `particles`, `0`, `True` (standardize applies only to MoG) |
 | `lr`, `d_lr_mult`, `prior_lr_mult` | `.012`, `1.5`, `2.5` |
 | `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `dualnorm`, `0`, `.001` |
-| `optimizer_convolution`, `optimizer_svd_backend` | `per_offset`, `native` |
+| `optimizer_dense_profile`, `training_precision` | `newton_schulz_hybrid_v1`, `bf16_channels_last` |
+| `optimizer_convolution`, `optimizer_svd_backend` | `per_offset`, `batched` |
 | `optimizer_convolution_rule` | `quintic` (CUDA wide convolutions only; native fallback elsewhere) |
 | `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `None`, `None` (role overrides inherit shared betas) |
 | `eps`, `d_eps`, `prior_eps` | `1e-8`, `None`, `None` (role overrides inherit shared epsilon) |
@@ -1413,10 +1467,10 @@ opt_g, opt_d = recipe.make_optimizers(G, D, prior)
 | `lr_decay_rate`, `lr_decay_steps`, `lr_decay_staircase` | `.96`, `50000`, `False` (exponential schedule only) |
 | `loss` | `non_saturating` (also `relativistic`, `hinge`, `wasserstein`, `least_squares`) |
 | `constraint_geometry_mode` | `direction_blend` |
-| `critic_formulation`, `reg_arm` | `bispf`, `None` |
-| `reg_coeff`, `reg_kappa` | `1`, `1` (Born-Infeld penalty strength and chord scale) |
+| `critic_formulation`, `reg_arm` | `empf`, `None` |
+| `reg_coeff`, `reg_kappa`, `ebi_beta` | `1`, `1`, `6` (EMPF Born-Infeld penalty strength, cap and sharpness) |
 | `reg_every` | `1` (apply the penalty every k-th step at k× coefficient) |
-| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `sbnp`, `.01`, `0`, `0` |
+| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `empf`, `.01`, `0`, `0` |
 | `lr_anneal_start`, `lr_floor` | `.6`, `1` (constant prior rate) |
 | `network_lr_horizon_cap`, `network_lr_floor` | `None`, `1` (constant G/D rates) |
 | `reg_anchor_min_decay`, `reg_anchor_weight`, `critic_r1_real` | `.9`, `0`, `True` (inactive KA2 settings) |
@@ -1435,8 +1489,8 @@ caller.
 | Optional factory | Result |
 | --- | --- |
 | `recipe.make_prior(**kwargs)` | Prior selected by `prior_kind`, tables drawn at random ([initialize](#initializing-priors) for R2) |
-| `recipe.make_loss()` | `GANLoss(recipe.loss, labels=recipe.loss_labels)` (default non-saturating logistic) |
-| `recipe.make_optimizers(G, D, prior=None, *, encoder=None, ema_critic=None, **adam_kwargs)` | Build `(opt_g, opt_d)` over the weights as given (see below) |
+| `recipe.make_loss()` | `RHBIGANLoss` on RHBI recipes (`g_loss` requires `real_logits` when `rhbi_weight > 0`); `GANLoss(recipe.loss, labels=recipe.loss_labels)` otherwise |
+| `recipe.make_optimizers(G, D, prior=None, *, encoder=None, ema_critic=None, separate_encoder_groups=False, **adam_kwargs)` | Build `(opt_g, opt_d)` over the weights as given (see below) |
 | `recipe.make_critic_optimizer(D, *, ema_critic=None, **adam_kwargs)` | Recipe-selected optimizer for one (additional) critic (see below) |
 | `recipe.make_generator_optimizer(params, *, modules=None, latent_table=None, direct_particles=None, **adam_kwargs)` | Recipe-selected optimizer for generator-side params; `modules` binds kernel semantics alongside custom groups |
 | `recipe.make_critic_penalty(opt_d, *, output=None, collect_stats=False, **penalty_kwargs)` | The critic penalty paired with a critic optimizer (see below) |
@@ -1456,8 +1510,13 @@ The previous K3P critic replays through
 `benchmarks.legacy.recipe` ([K3P](k3p.md#replaying-k3p)).
 
 The following loop and Adam controller descriptions use the explicit KA2 recipe.
-The default optimized BISPF recipe also uses the protected-backward contract below.
+The default EMPF recipe (`"empf"`) and explicit `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below.
 
+When binding G and E to `UpdatePolicy`, pass `separate_encoder_groups=True`.
+Native Adam then uses distinct homogeneous generator and encoder groups with
+identical network settings. Parameter updates and per-parameter Adam state are
+unchanged; the default retains develop's unlabelled G/E checkpoint groups.
+Normalized optimizer families already separate these roles.
 For BISPF, declare a native continuous feature vector with
 `recipe.make_critic_penalty(opt_d, input_domain="continuous")`, or pass
 `penalty_options={"input_domain": "continuous"}` to `GANTrainer`. The declaration
@@ -1661,7 +1720,7 @@ preserved; float16/bfloat16 inputs compute in float32 and cast the result back.
 This replaces the former Newton--Schulz fast path for matrices larger than 1024,
 so large full-rank matrices can cost more per update. Conv2d/ConvTranspose2d
 weights require module bindings and `optimizer_convolution="per_offset"`,
-enabled by the `bcap` and `bispf_optimized` presets; unlabelled high-rank tensors
+enabled by the `bcap`, `bispf_optimized`, `empf`, `rhbi`, and `rhbi_optimized` presets; unlabelled high-rank tensors
 remain unsupported. The [convolution contract](dualnorm-convolution.md) specifies
 channel-group layout, kernel scaling, smoothing and checkpoint compatibility.
 Older checkpoints load their stored state, but continue

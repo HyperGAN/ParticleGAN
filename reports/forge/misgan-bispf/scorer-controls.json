@@ -1,0 +1,174 @@
+{
+  "schema": "misgan_scorer_controls_v1",
+  "cohort": "Explicit analytic posterior and destructive evaluation controls; never trained-recipe qualification.",
+  "oracle_law": "Exact conditional Gaussian-mixture draws with stochastic branch selection using observed test entries only; hidden test labels are read only by the scorer.",
+  "protocol_seed": 0,
+  "oracle_fixture_eval_seed": 913,
+  "training_updates": 0,
+  "scorer_source_sha256": "db54d6a6ba7dc6f3db9cb85f599e3d7a79e3272fc58f515d2d9f65055ae25e0a",
+  "control_source_sha256": "446514db5655ab17decfb1ce6aac7c349112dc92e0c89edcbbe6c01bfcc54b56",
+  "controls": {
+    "analytic_conditional_oracle": {
+      "passed": true,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.0,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.996826171875,
+        "ambiguous_mass_tv": 0.026123046875,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9992876648902893
+      },
+      "failed_bounds": []
+    },
+    "conditional_mean": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 2.2351741790771484e-08,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.0,
+        "ambiguous_mass_tv": 0.59375,
+        "ambiguous_query_coverage": 0.0,
+        "ambiguous_std_ratio": 0.0
+      },
+      "failed_bounds": [
+        "ambiguous_hq=0 >= 0.9 failed",
+        "ambiguous_mass_tv=0.59375 <= 0.12 failed",
+        "ambiguous_query_coverage=0 >= 0.9 failed",
+        "ambiguous_std_ratio=0 >= 0.7 failed"
+      ]
+    },
+    "noise_ignore": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.0,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 1.0,
+        "ambiguous_mass_tv": 0.5,
+        "ambiguous_query_coverage": 0.0,
+        "ambiguous_std_ratio": 0.0
+      },
+      "failed_bounds": [
+        "ambiguous_mass_tv=0.5 <= 0.12 failed",
+        "ambiguous_query_coverage=0 >= 0.9 failed",
+        "ambiguous_std_ratio=0 >= 0.7 failed"
+      ]
+    },
+    "wrong_coordinates": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.010561201721429825,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.0,
+        "ambiguous_mass_tv": 0.52001953125,
+        "ambiguous_query_coverage": 0.0,
+        "ambiguous_std_ratio": 0.4996527135372162
+      },
+      "failed_bounds": [
+        "imputer_observed_error=0.0105612 <= 1e-06 failed",
+        "ambiguous_hq=0 >= 0.9 failed",
+        "ambiguous_mass_tv=0.52002 <= 0.12 failed",
+        "ambiguous_query_coverage=0 >= 0.9 failed",
+        "ambiguous_std_ratio=0.499653 >= 0.7 failed"
+      ]
+    },
+    "generator_collapse": {
+      "passed": false,
+      "metrics": {
+        "modes": 1,
+        "hq": 1.0,
+        "mass_tv": 0.75,
+        "off_plane": 0.0,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.0,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.996826171875,
+        "ambiguous_mass_tv": 0.026123046875,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9992876648902893
+      },
+      "failed_bounds": [
+        "modes=1 >= 4 failed",
+        "mass_tv=0.75 <= 0.1 failed"
+      ]
+    },
+    "mask_collapse": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.6000000238418579,
+        "imputer_observed_error": 0.0,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.996826171875,
+        "ambiguous_mass_tv": 0.026123046875,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9992876648902893
+      },
+      "failed_bounds": [
+        "mask_tv=0.6 <= 0.05 failed"
+      ]
+    },
+    "observed_identity_violation": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.01000000536441803,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.996826171875,
+        "ambiguous_mass_tv": 0.026123046875,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9992876648902893
+      },
+      "failed_bounds": [
+        "imputer_observed_error=0.01 <= 1e-06 failed"
+      ]
+    },
+    "wrong_branch_mass": {
+      "passed": false,
+      "metrics": {
+        "modes": 4,
+        "hq": 0.98876953125,
+        "mass_tv": 0.010009765625,
+        "off_plane": 3.372904444631786e-08,
+        "mask_tv": 0.009277347475290298,
+        "imputer_observed_error": 0.0,
+        "imputer_accuracy": 0.9716796875,
+        "ambiguous_hq": 0.99951171875,
+        "ambiguous_mass_tv": 0.447265625,
+        "ambiguous_query_coverage": 0.0,
+        "ambiguous_std_ratio": 0.4459708333015442
+      },
+      "failed_bounds": [
+        "ambiguous_mass_tv=0.447266 <= 0.12 failed",
+        "ambiguous_query_coverage=0 >= 0.9 failed",
+        "ambiguous_std_ratio=0.445971 >= 0.7 failed"
+      ]
+    }
+  }
+}

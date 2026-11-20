@@ -1,0 +1,522 @@
+{
+  "schema_version": 1,
+  "scope": "saved_word_atoms_and_declared_target_enumeration_only",
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "training_updates": 0,
+  "random_draws": 0,
+  "model_constructions": 0,
+  "device": "cpu",
+  "torch": "2.14.0+cu130",
+  "source_digest": "a5eafc73e4c4a995cc388b9be00bea5aec289fd35863099e369008e7def0ab14",
+  "source_commit": "f3631bf94f457e0325f6992aa1252d9ac3f3f582",
+  "request_sha256": "f1f9dc109594797815d7c01b2f7b05650512317584051b79d1da0f01e3974e5b",
+  "publication_sha256": "bd7f939d195c7e35f615412e4f1aced921a806f4da08ba615350e573e7b0678c",
+  "immutable_publication_commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+  "publication_matches_immutable_archive": true,
+  "certificate_proofs": {
+    "4e6ef24d55cf4b28b23a1be665a1f836": {
+      "published_certificate_sha256": {
+        "evidence": "e14cacf50f4c1593427f60be214a9d4c1efa3234ff1960c538923553ce1178a3",
+        "request": "e32a1ad842114a695071c58b43db3bf77010ecc636e86e7f8910e1eed8de2ff1",
+        "result": "176394cc35e2b518cf3e420218fcfd092d141a44ad924b8bdda9212dc71ec58b"
+      },
+      "local_request_and_result_bytes_match": true,
+      "raw_result_matches_published_certificate": true,
+      "raw_result_file_sha256": "52d38e30688008e7458478298896ebb5df661548a6a61b8fb9d94c4d4148b855",
+      "raw_result_canonical_content_sha256": "295a53be99cd455d5de0008e97ad39205139d0b208a3e830dcc1fcbaae71cb88"
+    },
+    "d765aa2da2d1434b9234f7114309c60e": {
+      "published_certificate_sha256": {
+        "evidence": "2bb7d60e00db8e7dc242643546129a9a7711551cda057b041dec3be53766be63",
+        "request": "f1f9dc109594797815d7c01b2f7b05650512317584051b79d1da0f01e3974e5b",
+        "result": "bc36ad6db70b4a3553bf69abe75d3d63f696199ae70369b1c53e4962c8413ee9"
+      },
+      "local_request_and_result_bytes_match": true,
+      "raw_result_matches_published_certificate": true,
+      "raw_result_file_sha256": "eb007cf71275d31dd7739e8a0bb2a473514bef0563f4b3933b3c5ec3104518f0",
+      "raw_result_canonical_content_sha256": "c474a234ca8e07f5e7662d2bfb228f806727504fc0a48a96294d8b863a6a1fe3"
+    }
+  },
+  "saved_recipe_architecture_and_declared_target_checks": true,
+  "acquisition_checkpoint_proof": {
+    "completed_steps": 2501,
+    "path": "acquired-state.pt",
+    "selection": "earliest_confirmed_passing_state",
+    "sha256": "b47e160191b08d81e7789262d5b8cdc7da28aab3ec2108f0c4ad5b23b2e896e7",
+    "state_sha256": "604a14fd5b5e4c872a5d3bfdabc90aa64619672e5b0b273135ebfce13171b6e7",
+    "training_state_sha256": "fa5299b62ab073179404bba839adcf74a754403b23619aef86fe12e51d100fac"
+  },
+  "hold_endpoint_checkpoint_proof": {
+    "artifact_manifest_sha256": "5f6d441fb57430e8170b99e267d819db2898d7b0ea85aab526d1e0461d7fba40",
+    "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/recipe-owned-priors-20261010/queue/recipe-prior-refactor-selected-leaders-v1/d765aa2da2d1434b9234f7114309c60e/provenance",
+    "bytes": 1953498,
+    "completed_steps": 6501,
+    "path": "provenance-state.pt",
+    "prerequisite_eligible": false,
+    "purpose": "provenance_only",
+    "sha256": "d7fcac4c0fd3cf5dcaa9c24aae57e1c34de1c07efa4ce356eaad3444d989bf58",
+    "state_sha256": "c7dfa33ec24a1ed26de89cb3187771c5b82f2ba521c411968f611910d6d48f13"
+  },
+  "observed_records_sha256": "cebb9c648d767116fa155a52b6f84c6f3c09b734d7034b15cb6ef9126349b0c2",
+  "source_files_verified": 1206,
+  "used_source_sha256": {
+    "benchmarks/toy_audit/api_images.py": "a79aafb643182d707796b25b2b3abec3dd3c7e452c615a7cf68274f157a778ea",
+    "particlegan/gan_loss.py": "f73cc593aef5d7507dc1a468ee261cc186c8dbfbee3a0aad769b6e252c2c143f"
+  },
+  "recipe_id": "recipe-prior-refactor-r1r2-v1",
+  "candidate_revision": "594012d6f37dcf9bb8d8c2e9c84085cfcd896d5d44843496901fb5d0019c617a",
+  "acquisition_parent_attempt": "4e6ef24d55cf4b28b23a1be665a1f836",
+  "hold_attempt": "d765aa2da2d1434b9234f7114309c60e",
+  "protocol": "Enumerate five saved prior rows and declared five one-hot words. Public joint loss averages all25 independent real/fake combinations. CPU float32 reconstruction agrees with original CUDA observer within2e-5; float64 is a separate numerical diagnostic.",
+  "numerical_fixture": {
+    "metric": "maximum absolute functional-vs-saved reconstruction probability error",
+    "threshold": 2e-05,
+    "status": "PASS"
+  },
+  "gradient_obstruction_threshold": 1e-06,
+  "original_grades_preserved": {
+    "word_smoke": "PASS acquired at2501",
+    "word_hold": "FAIL"
+  },
+  "loss_path": "Frozen WordFixture trains joint adversarial generator/encoder plus zero prior regularization; reconstruction is scored, not an explicit optimized reconstruction loss.",
+  "limitations": "Endpoint forces omit minibatch realizations, future critic/optimizer changes and causal history. Reconstruction CE/clamp gradients are arithmetic diagnostics, not the trained objective or a tested repair. No target sampling or task regrading.",
+  "states": [
+    {
+      "path": "/mnt/ml7tb/ParticleGAN-forge/recipe-owned-priors-20261010/queue/recipe-prior-refactor-selected-leaders-v1/4e6ef24d55cf4b28b23a1be665a1f836/acquisition/acquired-state.pt",
+      "checkpoint_sha256": "b47e160191b08d81e7789262d5b8cdc7da28aab3ec2108f0c4ad5b23b2e896e7",
+      "complete_state_sha256": "604a14fd5b5e4c872a5d3bfdabc90aa64619672e5b0b273135ebfce13171b6e7",
+      "consumed_streams_sha256": "edba04012a9e67d7a93ecb992861a6c50f50f73f8dd0e341dc0dccaca62a666c",
+      "step": 2501,
+      "observer_step": 2501,
+      "cpu_functional_vs_saved_cuda_reconstruction_max_error": 2.384185791015625e-07,
+      "original_observer_metrics": {
+        "sample_count": 1024,
+        "quality_fraction": 1.0,
+        "mass_tv": 0.035546875000000006,
+        "modes": 5,
+        "reconstruction_exact": 1,
+        "minimum_reconstruction_token_probability": 0.9888484477996826,
+        "reconstruction_nll": 0.001159843933116973,
+        "mass_apple": 0.201171875,
+        "mass_grape": 0.1904296875,
+        "mass_lemon": 0.234375,
+        "mass_melon": 0.1923828125,
+        "mass_berry": 0.181640625,
+        "completed_steps": 2501.0,
+        "served_averaged": 0.0,
+        "output_noise_added": 0.0,
+        "policy_latent_perturbation": 0.0
+      },
+      "diagnostics": [
+        {
+          "dtype": "torch.float32",
+          "generated_atom_strings": [
+            "melon_",
+            "lemon_",
+            "grape_",
+            "apple_",
+            "berry_"
+          ],
+          "reconstructed_strings": [
+            "apple_",
+            "grape_",
+            "lemon_",
+            "melon_",
+            "berry_"
+          ],
+          "generated_logits": {
+            "min": -58.96307373046875,
+            "mean": -6.935764312744141,
+            "max": 48.78609085083008
+          },
+          "generated_top_two_logit_gap": {
+            "min": 6.873710632324219,
+            "mean": 14.961153984069824,
+            "max": 57.14293670654297
+          },
+          "generated_exact_zero_probabilities": 0,
+          "generated_exact_unit_probabilities": 8,
+          "reconstructed_logits": {
+            "min": -53.1735725402832,
+            "mean": -6.954812049865723,
+            "max": 46.16109085083008
+          },
+          "reconstructed_exact_zero_probabilities": 0,
+          "minimum_correct_reconstruction_probability_by_word": [
+            0.9921552538871765,
+            0.9888484477996826,
+            0.9999868869781494,
+            0.9994035959243774,
+            0.9980646967887878
+          ],
+          "joint_generator_loss": 0.6932923793792725,
+          "fake_scores": [
+            0.09805527329444885,
+            0.08828804641962051,
+            0.06993945688009262,
+            0.007521102204918861,
+            0.07484427094459534
+          ],
+          "real_scores": [
+            0.00702710822224617,
+            0.06998810172080994,
+            0.08796446770429611,
+            0.09773814678192139,
+            0.07486527413129807
+          ],
+          "probability_gradient_norm": 0.016577355563640594,
+          "probability_gradient_norm_by_atom": [
+            0.007496781647205353,
+            0.006464018952101469,
+            0.006832171697169542,
+            0.007408600766211748,
+            0.00867511611431837
+          ],
+          "logit_gradient_norm": 8.067091584962327e-06,
+          "probability_to_logit_gradient_ratio": 0.00048663319996924124,
+          "probability_to_logit_gradient_ratio_by_atom": [
+            6.211947493284242e-06,
+            9.072072089111316e-07,
+            0.00021538914006669074,
+            0.0006460659205913544,
+            0.0007290472276508808
+          ],
+          "atoms_with_gradient_ratio_below_1e_minus_6": 1,
+          "generator_parameter_gradient_norm": 0.00010558938971062982,
+          "encoder_parameter_gradient_norm": 0.002337636851338906,
+          "prior_gradient_norm": 0.0010930297430604696,
+          "analytic_softmax_backward_max_error": 4.652065399568528e-10,
+          "prior_gradient_via_generator_norm": 0.00024178357853088528,
+          "prior_gradient_direct_joint_latent_norm": 0.0011083377758041024,
+          "prior_generator_to_direct_gradient_ratio_by_atom": [
+            0.0038449415005743504,
+            0.00038708365173079073,
+            0.6244989633560181,
+            0.15084505081176758,
+            1.3058552742004395
+          ],
+          "diagnostic_reconstruction_clamped_nll": 0.0011598359560593963,
+          "diagnostic_reconstruction_stable_cross_entropy": 0.0011598377022892237,
+          "diagnostic_reconstruction_clamped_gradient_norm": 0.0007107634446583688,
+          "diagnostic_reconstruction_stable_ce_gradient_norm": 0.0007107617566362023,
+          "diagnostic_reconstruction_clamped_to_stable_gradient_ratio": 1.0000023749479354,
+          "reconstruction_tokens_below_scorer_clamp": 0
+        },
+        {
+          "dtype": "torch.float64",
+          "generated_atom_strings": [
+            "melon_",
+            "lemon_",
+            "grape_",
+            "apple_",
+            "berry_"
+          ],
+          "reconstructed_strings": [
+            "apple_",
+            "grape_",
+            "lemon_",
+            "melon_",
+            "berry_"
+          ],
+          "generated_logits": {
+            "min": -58.963049416529344,
+            "mean": -6.9357640939866245,
+            "max": 48.78609084745742
+          },
+          "generated_top_two_logit_gap": {
+            "min": 6.8737078517072,
+            "mean": 14.96115521210143,
+            "max": 57.14293814538691
+          },
+          "generated_exact_zero_probabilities": 0,
+          "generated_exact_unit_probabilities": 1,
+          "reconstructed_logits": {
+            "min": -53.17355834891207,
+            "mean": -6.954809843701686,
+            "max": 46.16108474047116
+          },
+          "reconstructed_exact_zero_probabilities": 0,
+          "minimum_correct_reconstruction_probability_by_word": [
+            0.9921550706137975,
+            0.9888484876907019,
+            0.9999868678249653,
+            0.9994035676643577,
+            0.9980646820286904
+          ],
+          "joint_generator_loss": 0.6932924582131369,
+          "fake_scores": [
+            0.09805526061876065,
+            0.0882880458753226,
+            0.06993945399413307,
+            0.0075211009445808,
+            0.07484425400370832
+          ],
+          "real_scores": [
+            0.0070271047582736255,
+            0.06998810170148279,
+            0.08796447184121606,
+            0.09773815145991349,
+            0.07486526786296606
+          ],
+          "probability_gradient_norm": 0.016577359638687356,
+          "probability_gradient_norm_by_atom": [
+            0.007496781608293712,
+            0.006464019422938383,
+            0.006832171445982521,
+            0.007408601597288911,
+            0.008675115371748896
+          ],
+          "logit_gradient_norm": 8.067480443786359e-06,
+          "probability_to_logit_gradient_ratio": 0.0004866565375681966,
+          "probability_to_logit_gradient_ratio_by_atom": [
+            6.213496949360302e-06,
+            9.083481868860624e-07,
+            0.0002153786266600469,
+            0.0006461935750574128,
+            0.0007290238287086978
+          ],
+          "atoms_with_gradient_ratio_below_1e_minus_6": 1,
+          "generator_parameter_gradient_norm": 0.00010559954199175145,
+          "encoder_parameter_gradient_norm": 0.002337636361170973,
+          "prior_gradient_norm": 0.001093053216196818,
+          "analytic_softmax_backward_max_error": 4.336808689942018e-19,
+          "prior_gradient_via_generator_norm": 0.00024183668526488725,
+          "prior_gradient_direct_joint_latent_norm": 0.0011083376532180112,
+          "prior_generator_to_direct_gradient_ratio_by_atom": [
+            0.0038383702504495346,
+            0.0003865579623560418,
+            0.6246373893281115,
+            0.15096770743426946,
+            1.3057989476695386
+          ],
+          "diagnostic_reconstruction_clamped_nll": 0.0011598573401817452,
+          "diagnostic_reconstruction_stable_cross_entropy": 0.0011598573401817444,
+          "diagnostic_reconstruction_clamped_gradient_norm": 0.0007107634344419013,
+          "diagnostic_reconstruction_stable_ce_gradient_norm": 0.0007107634344418997,
+          "diagnostic_reconstruction_clamped_to_stable_gradient_ratio": 1.0000000000000022,
+          "reconstruction_tokens_below_scorer_clamp": 0
+        }
+      ]
+    },
+    {
+      "path": "/mnt/ml7tb/ParticleGAN-forge/recipe-owned-priors-20261010/queue/recipe-prior-refactor-selected-leaders-v1/d765aa2da2d1434b9234f7114309c60e/provenance/provenance-state.pt",
+      "checkpoint_sha256": "d7fcac4c0fd3cf5dcaa9c24aae57e1c34de1c07efa4ce356eaad3444d989bf58",
+      "complete_state_sha256": "c7dfa33ec24a1ed26de89cb3187771c5b82f2ba521c411968f611910d6d48f13",
+      "consumed_streams_sha256": "4cb23457f55c8cc74fd84610a940213803231cc3645cddd3dc0a44c3d6a9e463",
+      "step": 6501,
+      "observer_step": 6501,
+      "cpu_functional_vs_saved_cuda_reconstruction_max_error": 6.994014256633818e-10,
+      "original_observer_metrics": {
+        "sample_count": 1024,
+        "quality_fraction": 0.3837890625,
+        "mass_tv": 0.7999999999999999,
+        "modes": 1,
+        "reconstruction_exact": 0,
+        "minimum_reconstruction_token_probability": 0.0,
+        "reconstruction_nll": 11.00641638074989,
+        "mass_apple": 0.0,
+        "mass_grape": 0.3837890625,
+        "mass_lemon": 0.0,
+        "mass_melon": 0.0,
+        "mass_berry": 0.0,
+        "completed_steps": 6501.0,
+        "served_averaged": 0.0,
+        "output_noise_added": 0.0,
+        "policy_latent_perturbation": 0.0
+      },
+      "diagnostics": [
+        {
+          "dtype": "torch.float32",
+          "generated_atom_strings": [
+            "mrlpz_",
+            "grape_",
+            "arale_",
+            "grape_",
+            "appled"
+          ],
+          "reconstructed_strings": [
+            "appled",
+            "grape_",
+            "mrlpn_",
+            "mrlpz_",
+            "grape_"
+          ],
+          "generated_logits": {
+            "min": -374.9747619628906,
+            "mean": -8.922853469848633,
+            "max": 404.7106628417969
+          },
+          "generated_top_two_logit_gap": {
+            "min": 7.828121185302734,
+            "mean": 79.58334350585938,
+            "max": 321.82366943359375
+          },
+          "generated_exact_zero_probabilities": 458,
+          "generated_exact_unit_probabilities": 27,
+          "reconstructed_logits": {
+            "min": -706.6181640625,
+            "mean": -31.070650100708008,
+            "max": 755.3851928710938
+          },
+          "reconstructed_exact_zero_probabilities": 705,
+          "minimum_correct_reconstruction_probability_by_word": [
+            1.6747232281136865e-30,
+            1.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "joint_generator_loss": 2.1136202812194824,
+          "fake_scores": [
+            -1.4567046165466309,
+            -0.6410638689994812,
+            -0.8152187466621399,
+            -0.6545318365097046,
+            -0.5792389512062073
+          ],
+          "real_scores": [
+            0.6025921106338501,
+            -0.6461785435676575,
+            1.9936938285827637,
+            1.5178446769714355,
+            1.8916757106781006
+          ],
+          "probability_gradient_norm": 0.3578776717185974,
+          "probability_gradient_norm_by_atom": [
+            0.22617635130882263,
+            0.11691676825284958,
+            0.1429145336151123,
+            0.1136183813214302,
+            0.17296673357486725
+          ],
+          "logit_gradient_norm": 3.507796282065101e-05,
+          "probability_to_logit_gradient_ratio": 9.80166285652857e-05,
+          "probability_to_logit_gradient_ratio_by_atom": [
+            7.425858539189534e-12,
+            3.949103414072064e-13,
+            7.272559514603927e-07,
+            4.347282450858164e-18,
+            0.0002028009039349854
+          ],
+          "atoms_with_gradient_ratio_below_1e_minus_6": 4,
+          "generator_parameter_gradient_norm": 0.0008866824723969012,
+          "encoder_parameter_gradient_norm": 0.12224530597342832,
+          "prior_gradient_norm": 0.01988842897117138,
+          "analytic_softmax_backward_max_error": 0.0,
+          "prior_gradient_via_generator_norm": 0.00043071270920336246,
+          "prior_gradient_direct_joint_latent_norm": 0.01975066028535366,
+          "prior_generator_to_direct_gradient_ratio_by_atom": [
+            1.2157789797129226e-07,
+            4.4041423286067527e-10,
+            0.005993006285279989,
+            8.644342227161032e-15,
+            0.0705799087882042
+          ],
+          "diagnostic_reconstruction_clamped_nll": 7.629292964935303,
+          "diagnostic_reconstruction_stable_cross_entropy": 135.8238067626953,
+          "diagnostic_reconstruction_clamped_gradient_norm": 0.06666627526283264,
+          "diagnostic_reconstruction_stable_ce_gradient_norm": 0.1699671745300293,
+          "diagnostic_reconstruction_clamped_to_stable_gradient_ratio": 0.3922302965097195,
+          "reconstruction_tokens_below_scorer_clamp": 11
+        },
+        {
+          "dtype": "torch.float64",
+          "generated_atom_strings": [
+            "mrlpz_",
+            "grape_",
+            "arale_",
+            "grape_",
+            "appled"
+          ],
+          "reconstructed_strings": [
+            "appled",
+            "grape_",
+            "mrlpn_",
+            "mrlpz_",
+            "grape_"
+          ],
+          "generated_logits": {
+            "min": -374.97481168591986,
+            "mean": -8.922852999430171,
+            "max": 404.7107330055081
+          },
+          "generated_top_two_logit_gap": {
+            "min": 7.828119654497588,
+            "mean": 79.58334407809282,
+            "max": 321.8236498502913
+          },
+          "generated_exact_zero_probabilities": 1,
+          "generated_exact_unit_probabilities": 23,
+          "reconstructed_logits": {
+            "min": -706.6181667184457,
+            "mean": -31.070653372911785,
+            "max": 755.3849387631141
+          },
+          "reconstructed_exact_zero_probabilities": 43,
+          "minimum_correct_reconstruction_probability_by_word": [
+            1.674725095850862e-30,
+            1.0,
+            1.299999820951183e-113,
+            1.9904278985737137e-219,
+            7.689352387891047e-288
+          ],
+          "joint_generator_loss": 2.1136204155617415,
+          "fake_scores": [
+            -1.4567045714678977,
+            -0.6410638783114712,
+            -0.815218844706842,
+            -0.6545318753574294,
+            -0.5792387888293287
+          ],
+          "real_scores": [
+            0.6025922278372657,
+            -0.6461784864093258,
+            1.9936941944603679,
+            1.5178445368550824,
+            1.89167570812199
+          ],
+          "probability_gradient_norm": 0.35787775491667195,
+          "probability_gradient_norm_by_atom": [
+            0.22617635637927883,
+            0.11691678220493971,
+            0.14291454896136188,
+            0.11361838930138277,
+            0.17296676740276923
+          ],
+          "logit_gradient_norm": 3.507635997963031e-05,
+          "probability_to_logit_gradient_ratio": 9.801212703985322e-05,
+          "probability_to_logit_gradient_ratio_by_atom": [
+            1.0502481801205626e-11,
+            5.58482217864934e-13,
+            7.236115772402784e-07,
+            3.0843866965930566e-17,
+            0.00020279160013694553
+          ],
+          "atoms_with_gradient_ratio_below_1e_minus_6": 4,
+          "generator_parameter_gradient_norm": 0.0008866421989925405,
+          "encoder_parameter_gradient_norm": 0.12224531858765392,
+          "prior_gradient_norm": 0.01988836111670878,
+          "analytic_softmax_backward_max_error": 2.7742023088472845e-17,
+          "prior_gradient_via_generator_norm": 0.0004305700286667081,
+          "prior_gradient_direct_joint_latent_norm": 0.019750661350211172,
+          "prior_generator_to_direct_gradient_ratio_by_atom": [
+            1.517267821592554e-07,
+            6.012456213372521e-10,
+            0.005962878575312139,
+            1.0909183036675936e-13,
+            0.070558664391978
+          ],
+          "diagnostic_reconstruction_clamped_nll": 7.629292144368502,
+          "diagnostic_reconstruction_stable_cross_entropy": 135.82382232194223,
+          "diagnostic_reconstruction_clamped_gradient_norm": 0.06666627333247402,
+          "diagnostic_reconstruction_stable_ce_gradient_norm": 0.16996716253797114,
+          "diagnostic_reconstruction_clamped_to_stable_gradient_ratio": 0.3922303128263413,
+          "reconstruction_tokens_below_scorer_clamp": 11
+        }
+      ]
+    }
+  ],
+  "global_rng_states_unchanged": true,
+  "reproducer_sha256": "d10d31dd953b525d4441af308beada7f5253ce184e8b3de06cc2e8eced6a737d"
+}

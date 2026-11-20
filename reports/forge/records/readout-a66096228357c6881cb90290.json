@@ -1,0 +1,494 @@
+{
+  "attempt_ids": [
+    "7189bb6b75074e46a28cb04fc37a4c10",
+    "78e897878ca8442d9f5e71f4c56a79ce"
+  ],
+  "candidate_id": "bispf-optimized-quintic-v1",
+  "candidate_revision": "4b199ad28279ef9616e67ebc460824f614dc141a7f00ca739993218fc5635ae6",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Historical CPU hardFAIL and categoricalPASS remain separate; current matched source/data/initialization baseline supplies no complete positive. All failures retained in reports/forge/vaegan-coverage/results.json.",
+  "conclusion": "Matched CUDA VAEGAN baseline completes both1200-update tasks but fails sustained gates: hard2/5 and categorical3/5 terminal checks; both endpoints pass.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "7189bb6b75074e46a28cb04fc37a4c10",
+        "78e897878ca8442d9f5e71f4c56a79ce"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "d7d42908cf642ce316c5c853862bbf22a877d166a5fc1ea7b27ee07dc6e7afd9",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.990966796875
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.990966796875
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "7189bb6b75074e46a28cb04fc37a4c10",
+          "producer_request_id": "292f1ddf5f428782a7fa84dd",
+          "producer_study_id": "vaegan-coverage-baseline-v1",
+          "result_hash": "5570092f26fdb5413bb6596b0e1f30dad4aa8ed39a60afc66f471d42f099e000",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "78e897878ca8442d9f5e71f4c56a79ce",
+          "producer_request_id": "292f1ddf5f428782a7fa84dd",
+          "producer_study_id": "vaegan-coverage-baseline-v1",
+          "result_hash": "6536110339f37cd7413113ea071caec35b6816c55afdb5257ceed2f30cb8aeaf",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "6f59578493a44725fcb0948130ad36579fa4fcff4c68e290e3fc642028fc8b74",
+        "contract_sha256": "d7d42908cf642ce316c5c853862bbf22a877d166a5fc1ea7b27ee07dc6e7afd9",
+        "control_binding_sha256": "a81f85fc15f67bf5d3db42f0a8237f515fe54f2e4f28fa4d440cd3550fd2a9e2",
+        "policy_fingerprint": "c25bbc534322c46d8535e5cb62bf2fbfbe26ee4f0d92c1fc304bf1b8ae2c2f05",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "e6cf3007afa18f9c86a59e8ec29dbdd7a5245ef95ad2ba06a6d11345b6798f83"
+      },
+      "study_id": "vaegan-coverage-baseline-v1",
+      "study_sha256": "e6cf3007afa18f9c86a59e8ec29dbdd7a5245ef95ad2ba06a6d11345b6798f83"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "vaegan_coverage",
+  "hypothesis": "One global projected transport auxiliary repairs sustained independent-prior generation in hard VAEGAN while retaining the categorical positive reference; measure an exact matched CUDA baseline before causal comparison.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain this baseline, compare only bounded registered substantive repairs, and confer no ordinary qualification or default credit.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "7189bb6b75074e46a28cb04fc37a4c10",
+        "result_hash": "5570092f26fdb5413bb6596b0e1f30dad4aa8ed39a60afc66f471d42f099e000",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "78e897878ca8442d9f5e71f4c56a79ce",
+        "result_hash": "6536110339f37cd7413113ea071caec35b6816c55afdb5257ceed2f30cb8aeaf",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-a66096228357c6881cb90290",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/7189bb6b75074e46a28cb04fc37a4c10/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 1200,
+      "candidate_budget_seconds": 600,
+      "id": "vaegan-coverage-round1-v1"
+    },
+    "candidate": "bispf-optimized-quintic-v1",
+    "competing_explanation": "Final-state low usage is associative and also occurs in the passing categorical control. Added transport could conflict with reconstruction, underfill narrow modes, or leave transient instability unchanged. Full original sustained gates decide outcomes; endpoint predictions do not replace them. No seed repeats, gate changes, task pruning or unchanged paid retries. On failure inspect saved scheduled states before at most two separately frozen substantive repairs, each at most600 seconds and two1200-update runs; whole campaign maximum2400 seconds.",
+    "control": {
+      "candidate_id": "bispf-vaegan-transport-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "likelihood_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "model_vae_hard",
+      "threshold": 0.85
+    },
+    "hypothesis": "One global projected transport auxiliary repairs sustained independent-prior generation in hard VAEGAN while retaining the categorical positive reference; measure an exact matched CUDA baseline before causal comparison.",
+    "id": "vaegan-coverage-baseline-v1",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "likelihood_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "model_vae_hard",
+      "threshold": 0.85
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "record_id": "api-model-vae-failure-investigation-v1"
+        },
+        "path": "reports/forge/records/api-model-vae-failure-investigation-v1.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "vaegan_coverage"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "vaegan-coverage-baseline-v1",
+  "study_sha256": "e6cf3007afa18f9c86a59e8ec29dbdd7a5245ef95ad2ba06a6d11345b6798f83",
+  "task_results": [
+    {
+      "compatibility_key": "8fc620de1e0eaa68ecd8f208d7cada88af6302ceaca0a997312e6d9126c294d0",
+      "cost": {
+        "adapter_loop_seconds": 213.94793863099767,
+        "adapter_seconds": 217.39541433900013,
+        "charged_task": "model_vae_hard",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 224.84978489301284,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "runner_seconds": 219.21125609401497,
+        "wall_seconds": 224.84978489301284
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 150,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 14,
+          "passing_suffix": 1,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "decoder_mean_hq": {
+            "margin": 0.14951171875000002,
+            "metric": "decoder_mean_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.99951171875
+          },
+          "decoder_mean_mass_tv": {
+            "margin": 0.139013671875,
+            "metric": "decoder_mean_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.010986328125
+          },
+          "decoder_mean_modes": {
+            "margin": 0,
+            "metric": "decoder_mean_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "elbo_identity_error": {
+            "margin": 9.999999999955592e-05,
+            "metric": "elbo_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.0001,
+            "value": 4.440892098500626e-16
+          },
+          "kl_identity_error": {
+            "margin": 9.992381382707408e-06,
+            "metric": "kl_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1e-05,
+            "value": 7.618617292592944e-09
+          },
+          "likelihood_hq": {
+            "margin": 0.14096679687500002,
+            "metric": "likelihood_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.990966796875
+          },
+          "likelihood_mass_tv": {
+            "margin": 0.134130859375,
+            "metric": "likelihood_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.015869140625
+          },
+          "likelihood_modes": {
+            "margin": 0,
+            "metric": "likelihood_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "posterior_mutual_information": {
+            "margin": 1.1669688584822249,
+            "metric": "posterior_mutual_information",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.3,
+            "value": 1.466968858482225
+          },
+          "posterior_noise_variance_ratio": {
+            "margin": 0.1990993738174438,
+            "metric": "posterior_noise_variance_ratio",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.2,
+            "value": 1.0009006261825562
+          },
+          "reconstruction_mse": {
+            "margin": 0.04673230375912322,
+            "metric": "reconstruction_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.0032676962408767834
+          },
+          "shuffle_reconstruction_ratio": {
+            "margin": 679.3803988819515,
+            "metric": "shuffle_reconstruction_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 5.0,
+            "value": 684.3803988819515
+          }
+        },
+        "passed": false,
+        "shortfall": 0.0,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "aggregate_effective_components": 4.336071953676409,
+        "decoder_mean_hq": 0.99951171875,
+        "decoder_mean_mass_tv": 0.010986328125,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 7.618617292592944e-09,
+        "kl_nats": 2.7725887298583984,
+        "likelihood_hq": 0.990966796875,
+        "likelihood_mass_tv": 0.015869140625,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 1.2281236026019835,
+        "posterior_effective_components": 1.0,
+        "posterior_mutual_information": 1.466968858482225,
+        "posterior_noise_variance_ratio": 1.0009006261825562,
+        "posterior_pair_rms": 0.027291620150208473,
+        "reconstruction_mse": 0.0032676962408767834,
+        "shuffle_reconstruction_ratio": 684.3803988819515,
+        "shuffled_reconstruction_mse": 2.2363472567563063,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_vae_hard"
+    },
+    {
+      "compatibility_key": "e5dd51de09eda8f9940b47e0dd2d67ea78647e6da6ba933cd42a5b279326c9fb",
+      "cost": {
+        "adapter_loop_seconds": 216.64762268800405,
+        "adapter_seconds": 220.3075487820024,
+        "charged_task": "model_vae_categorical",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 227.84540201898199,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "runner_seconds": 222.1646780850133,
+        "wall_seconds": 227.84540201898199
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 200,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 13,
+          "passing_suffix": 2,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "decoder_mean_hq": {
+            "margin": 0.14951171875000002,
+            "metric": "decoder_mean_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.99951171875
+          },
+          "decoder_mean_mass_tv": {
+            "margin": 0.09482421875,
+            "metric": "decoder_mean_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.05517578125
+          },
+          "decoder_mean_modes": {
+            "margin": 0,
+            "metric": "decoder_mean_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "elbo_identity_error": {
+            "margin": 9.999999999955592e-05,
+            "metric": "elbo_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.0001,
+            "value": 4.440892098500626e-16
+          },
+          "kl_identity_error": {
+            "margin": 9.413760243038852e-06,
+            "metric": "kl_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1e-05,
+            "value": 5.862397569611488e-07
+          },
+          "likelihood_hq": {
+            "margin": 0.14511718750000002,
+            "metric": "likelihood_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.9951171875
+          },
+          "likelihood_mass_tv": {
+            "margin": 0.09482421875,
+            "metric": "likelihood_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.05517578125
+          },
+          "likelihood_modes": {
+            "margin": 0,
+            "metric": "likelihood_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "posterior_mutual_information": {
+            "margin": 0.39320919026492734,
+            "metric": "posterior_mutual_information",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.3,
+            "value": 0.6932091902649273
+          },
+          "posterior_noise_variance_ratio": {
+            "margin": 0.1966964721679687,
+            "metric": "posterior_noise_variance_ratio",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.2,
+            "value": 1.0033035278320312
+          },
+          "reconstruction_mse": {
+            "margin": 0.04602747941367148,
+            "metric": "reconstruction_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.003972520586328519
+          },
+          "shuffle_reconstruction_ratio": {
+            "margin": 562.7478367893857,
+            "metric": "shuffle_reconstruction_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 5.0,
+            "value": 567.7478367893857
+          }
+        },
+        "passed": false,
+        "shortfall": 0.0,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "aggregate_effective_components": 8.69911096683117,
+        "decoder_mean_hq": 0.99951171875,
+        "decoder_mean_mass_tv": 0.05517578125,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 5.862397569611488e-07,
+        "kl_nats": 1.3025771379470825,
+        "likelihood_hq": 0.9951171875,
+        "likelihood_mass_tv": 0.05517578125,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 0.5412501256211639,
+        "posterior_effective_components": 4.349285777125546,
+        "posterior_mutual_information": 0.6932091902649273,
+        "posterior_noise_variance_ratio": 1.0033035278320312,
+        "posterior_pair_rms": 0.033437203615903854,
+        "reconstruction_mse": 0.003972520586328519,
+        "shuffle_reconstruction_ratio": 567.7478367893857,
+        "shuffled_reconstruction_mse": 2.2553899694893187,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_vae_categorical"
+    }
+  ]
+}

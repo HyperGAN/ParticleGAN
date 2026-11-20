@@ -258,6 +258,7 @@ def test_repaired_hosts_and_replay_declarations_pin_current_sources():
     import hashlib
     import json
     from pathlib import Path
+    from pr_integration_compat import before_pr_integration
 
     root = Path(__file__).resolve().parents[1]
     cards = [*root.glob("configs/forge/tasks/*.json"),
@@ -265,15 +266,22 @@ def test_repaired_hosts_and_replay_declarations_pin_current_sources():
     checked = inherited = 0
     for path in cards:
         task = json.loads(path.read_text())
-        revision = task["evaluation"].get("evaluator_revision") or {}
+        # Verify the new exact-parent source-only layer before inspecting the
+        # historical declaration. Keep current task bytes for the live hash checks.
+        previous = before_pr_integration(root, task, str(path.relative_to(root)))
         refreshed = set()
+        if previous is not task:
+            layer = task["evaluation"]["evaluator_revision"]
+            refreshed.update(layer["previous_source_sha256"])
+            refreshed.update(layer.get("added_source_members", ()))
+        revision = previous["evaluation"].get("evaluator_revision") or {}
         if revision.get("id") == "guarded-gram-default-receipt-source-binding-v1":
             # One exact source-only layer retains the original PR399 question;
             # include its rebound source in the same strict live-byte check.
             assert revision["previous_task_commit"] == "90ae663551dd0fa35749d56e1859f276a4d09587"
             assert revision["previous_task_path"] == str(path.relative_to(root))
             assert set(revision["previous_source_sha256"]) == {"experiments/forge/behavior_adapters.py"}
-            refreshed = set(revision["previous_source_sha256"])
+            refreshed.update(revision["previous_source_sha256"])
             revision = revision["previous_revision"]
         if revision.get("id") not in {
             "pr399-host-device-replay-source-only-v1",

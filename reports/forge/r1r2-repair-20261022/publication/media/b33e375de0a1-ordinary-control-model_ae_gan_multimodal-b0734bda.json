@@ -1,0 +1,12 @@
+{
+  "gif_sha256": "2fea917d4f168cdf26d3247302ea003e27b808ccbe05354fef72feffdb76e43a",
+  "kind": "retained_original_public_api_actual_training_gif",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "PASS",
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "source_path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/b0734bda81bc439e86bb690056a3e88c/api/goal.gif",
+  "source_sha256": "2fea917d4f168cdf26d3247302ea003e27b808ccbe05354fef72feffdb76e43a",
+  "task_id": "model_ae_gan_multimodal"
+}

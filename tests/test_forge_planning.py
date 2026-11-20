@@ -225,6 +225,29 @@ def test_published_host_sources_are_frozen_independently_of_selected_view(checko
     assert missing["tasks"][task["id"]]["preflight_blockers"]
 
 
+@pytest.mark.parametrize("cached", [False, True])
+def test_model_provider_resources_are_frozen_outside_selected_view(checkout, cached):
+    from contextlib import nullcontext
+    from experiments.forge.model_toy_sources import model_toy_source_paths
+    from experiments.forge.planning import resolution_cache
+    task = read_json(checkout / "configs/forge/tasks/t3.json")
+    task["adapter"] = "public_api_model_toy"
+    task["execution"]["host_definition"] = {"provider": "benchmarks.toy_audit.api_model_ae_ddgan"}
+    atomic_json(checkout / "configs/forge/tasks/t3.json", task)
+    support = model_toy_source_paths(task)
+    for relative in support:
+        resource = read_json(checkout / "configs/forge/tasks/t1.json")
+        resource["id"] = Path(relative).stem
+        atomic_json(checkout / relative, resource)
+    view = read_json(checkout / "configs/forge/views/stability.json")
+    atomic_json(checkout / "configs/forge/views/quality.json", {
+        **view, "id": "quality", "goal": "quality", "assignments": view["assignments"][:1]})
+    with resolution_cache(checkout) if cached else nullcontext():
+        request = resolve_idea(checkout, "base", view_id="quality", execution_backend="cpu")
+    for relative in support:
+        assert request["source"]["files"][relative] == file_hash(checkout / relative)
+
+
 def test_changed_prerequisite_invalidates_downstream_evidence_identity(checkout):
     for child, parent in (("t2", "t1"), ("t3", "t2")):
         path = checkout / f"configs/forge/tasks/{child}.json"

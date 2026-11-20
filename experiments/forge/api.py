@@ -33,7 +33,7 @@ TRAINER_STREAM_BINDINGS = {
 BUILTIN_CAPABILITIES = (
     "public_trainer", "public_components", "scalar_gan", "mog_prior", "particle_cloud", "learned_locations",
     "uniform_masses", "fixed_prior_width", "a2", "checkpoint", "named_rng", "live_sampling",
-    "policy_controls", "policy_serving", "served_sampling",
+    "policy_controls", "policy_serving", "served_sampling", "secant_critic",
 )
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
@@ -124,7 +124,7 @@ def task_recipe_resources(task):
         return {"num_particles": LOCKED_SHARED.n_particles, "z_dim": 4, "batch_size": 128}
     if adapter in {"native100", "native100_continuation"} and "native_profile" in execution:
         return deepcopy(execution["host_definition"]["resources"])
-    if adapter in {"word_joint", "public_api_model_toy"}:
+    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation", "t3_isolation", "imbalance_nash"}:
         return deepcopy(execution["host_definition"]["resources"])
     return deepcopy(execution.get("resources", {}))
 
@@ -270,7 +270,7 @@ def task_formulation_context(candidate, task, protocol=None, *, device="cpu", ro
                       extension_recipe_bindings=context.bindings["recipe"])
     if context.recipe.constraint_geometry_mode != "none":
         if (context.execution_path == "public_components"
-                and task["adapter"] != "public_api_model_toy"
+                and task["adapter"] not in {"public_api_model_toy", "t3_isolation"}
                 and task["execution"].get("host") not in COMPONENT_OBJECTIVE_HOSTS):
             raise CapabilityError(["constraint_geometry protected-loss hook is unavailable for this host"])
         if context.recipe.constraint_geometry_mode == "strict_progress" and (
@@ -286,7 +286,8 @@ def task_formulation_context(candidate, task, protocol=None, *, device="cpu", ro
 PUBLIC_TRAINER_POLICY_ADAPTERS = frozenset({
     "transfer_vector", "transfer_image", "native100", "native100_continuation",
     "ring_endurance", "paired_adaptation", "clockfree_audit",
-    "word_joint", "public_api_model_toy", "transfer_behavior",
+    "word_joint", "public_api_model_toy", "transfer_behavior", "particle_interpolation",
+    "t3_isolation", "imbalance_nash",
 })
 
 
@@ -296,6 +297,14 @@ def task_policy_blockers(task, candidate):
         recipe = resolve_public_recipe(candidate)
     except CapabilityError as error:
         return error.blockers
+    if recipe.conditional_energy_weight:
+        host = task.get("execution", {}).get("host_definition", {})
+        if (task.get("adapter") != "public_api_model_toy"
+                or host.get("provider") != "benchmarks.toy_audit.api_model_ddgan"):
+            return ["conditional energy score requires an explicitly supported paired conditional host"]
+    if ((recipe.masked_mixture_weight or recipe.masked_transport_weight or recipe.imputer_component_weight)
+            and task.get("execution", {}).get("host_definition", {}).get("provider") != "benchmarks.toy_audit.api_model_misgan"):
+        return ["masked mixture/imputer objectives require the explicit MisGAN component consumer"]
     from .tier1_policy import blocked_host, is_policy_task
     policy_task = is_policy_task(task)
     if policy_task and blocked_host(task) is not None:
@@ -310,11 +319,18 @@ def task_policy_blockers(task, candidate):
     policy_two_pole = (policy_task
         and task.get('execution', {}).get('host') == 'two_pole'
         and not (recipe.kinetic_transport_weight or recipe.kinetic_transport_local_weight))
-    if consumer is not None and (consumer != 'output_marginal_v1'
+    execution = task.get('execution', {})
+    model_vae_transport = (task.get('adapter') == 'public_api_model_toy'
+        and task.get('task_cohort') == 'api_model_vae_seed0_v1'
+        and execution.get('host') in ('api-model-vae-hard', 'api-model-vae-categorical')
+        and execution.get('host_definition', {}).get('provider') == 'benchmarks.toy_audit.api_model_vae')
+    if consumer is not None and not model_vae_transport and (consumer != 'output_marginal_v1'
             or task.get('adapter') not in ('transfer_behavior', 'word_joint')
             or task.get('execution', {}).get('host') not in COMPONENT_OBJECTIVE_HOSTS
             or (task.get('task_cohort') not in COMPONENT_TRANSPORT_COHORTS and not policy_two_pole)):
         return ['unsupported explicit component transport consumer']
+    if model_vae_transport and consumer not in (None, 'output_marginal_v1'):
+        return ['unsupported explicit model VAE transport consumer']
     if (recipe.kinetic_transport_weight or recipe.kinetic_transport_local_weight) and task.get("execution", {}).get("execution_path") == "public_components" and consumer is None:
         return [f"{task.get('id', '<task>')}: frozen public_components host does not consume "
                 "Recipe kinetic transport sample-space losses; mechanism is unsupported"]
@@ -441,7 +457,29 @@ def default_registry():
     Add a supported ExtensionSpec here after implementing its public API field;
     ordinary Recipe fields require no extension declaration.
     """
-    return CapabilityRegistry()
+    reg = CapabilityRegistry()
+    for name, vtype, arg, desc in (
+        ("t1c_chart_weight", "float", "t1c_chart_weight", "Track 1B Laguerre single-chart commitment weight"),
+        ("t1c_chart_capacity", "int", "t1c_chart_capacity", "Track 1B persistent multi-batch chart bank capacity"),
+        ("t1c_halo_mult", "float", "t1c_halo_mult", "Track 1B C^1 intra-chart halo dead-zone multiplier"),
+        ("t1c_multiscale_horizon", "bool", "t1c_multiscale_horizon", "Track 1B symmetric conformal multi-scale horizon"),
+        ("t1c_grad_deconflict", "float", "t1c_grad_deconflict", "Track 1B activation-gram whitened generator polar blend"),
+        ("t1c_cond_drift_deconflict", "bool", "t1c_cond_drift_deconflict", "Track 1B exchangeable conditional fiber drift subtraction"),
+    ):
+        reg.register_extension(
+            ExtensionSpec(
+                name,
+                vtype,
+                "recipe",
+                arg,
+                desc,
+                checkpoint=f"Recipe.{arg} + critic record t1_coupling packet",
+                gradient_ownership="T1CouplingLoss / NormalizedOptimizer",
+                optimizer_binding="Recipe.make_optimizers",
+                initialization="deterministic zero-RNG online initialization",
+            )
+        )
+    return reg
 
 
 def _resolved_prior(value):
@@ -588,6 +626,7 @@ class FormulationContext:
                 "policy_controls": policy_controls(self.recipe),
                 "policy_serving": self.recipe.serve_average > 0,
                 "served_sampling": bool(self.policy_task) and policy_controls(self.recipe),
+                "secant_critic": self.recipe.effective_critic_formulation in ("t2_secant", "unified", "unified_v4", "cond_fiber"),
                 **{name: True for name in self.extension_values}}
 
     def _check_capabilities(self):

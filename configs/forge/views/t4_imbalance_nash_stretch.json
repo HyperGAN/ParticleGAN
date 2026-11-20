@@ -1,0 +1,37 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "nash_overpowered_critic_ring16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "nash_overpowered_generator_ring16"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "nash_unequal_width_hostile_imbalance"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks do not establish whole-suite screen calibration or default adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "t4_imbalance_nash_stretch",
+  "policy_change_reason": "Matched CUDA seed-0 research comparison of naive-Adam baselines and SVD-free T4Nash across three severe G/D capacity-imbalance (>600x parameter asymmetry in both D>>G and G>>D directions) and hostile non-complementary initialization tasks; retains every frozen target, architecture, initialization, update budget, cadence, clean live sampling law, and numerical gate. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

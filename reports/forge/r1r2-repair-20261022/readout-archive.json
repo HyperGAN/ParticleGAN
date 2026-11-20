@@ -1,0 +1,79 @@
+{
+  "qualification_recomputed": false,
+  "records": [
+    {
+      "cells": 14,
+      "compact_sha256": "fc346469001d5bd011c69f29a45badaffb110b6020bd4c463e7091e83f128315",
+      "original": {
+        "bytes": 1840496,
+        "ever_committed": false,
+        "git_blob_oid": "93473a3a266e03622d79dfa6469c72973937613d",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-0c965d99d82ddcae5d1d8d5a.json",
+        "sha256": "7d6e294f78078a08a622da73cfa6b2b9f7ef312d54ae1db8b01063a0d13afece"
+      },
+      "record_id": "readout-0c965d99d82ddcae5d1d8d5a"
+    },
+    {
+      "cells": 2,
+      "compact_sha256": "8426389c7a0cd7672a65eee74d8e50b339b17bc2576b1076f0575e8185835e45",
+      "original": {
+        "bytes": 14679,
+        "ever_committed": false,
+        "git_blob_oid": "d555b442bb283b2bbc85c29045b1a035e511aca8",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-15fd8ba9f7b947395f31c418.json",
+        "sha256": "328867c4061d0e11a28ee8f9520d729c684e4b277c9678b8d1c9dcd7c691fb92"
+      },
+      "record_id": "readout-15fd8ba9f7b947395f31c418"
+    },
+    {
+      "cells": 2,
+      "compact_sha256": "0af7ba7755b8f27c27a14a641d08c58e0269e5d43be69f50ac5418bad14e9594",
+      "original": {
+        "bytes": 14363,
+        "ever_committed": false,
+        "git_blob_oid": "eee94388352a10fe87c7198f03dcf72a2d86cc97",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-2b96c09667e7a4aef944ce96.json",
+        "sha256": "193df375556a3f523d44e7e254a260347645681a3000595e773b215561790ce8"
+      },
+      "record_id": "readout-2b96c09667e7a4aef944ce96"
+    },
+    {
+      "cells": 14,
+      "compact_sha256": "9ae762ce1f546ed8387a998cde25a5e5a812cd0be95ea3386d5f3d83a93a9b47",
+      "original": {
+        "bytes": 1845730,
+        "ever_committed": false,
+        "git_blob_oid": "b27fa0faeac97d9a76263008d31433ba361fff47",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-39165e761d4e5ea74a5a67d1.json",
+        "sha256": "45dc067f83528212fb4fa3da11849b5f8f6303305b42ba5adc25eb345f04e9b6"
+      },
+      "record_id": "readout-39165e761d4e5ea74a5a67d1"
+    },
+    {
+      "cells": 14,
+      "compact_sha256": "6e9310bc9ddad208dd989a8e316125d8cd004847eca4355f6b316a18d5eb450d",
+      "original": {
+        "bytes": 1843589,
+        "ever_committed": false,
+        "git_blob_oid": "7600e0567a4517607d1e49ab64b9cf8050a4749e",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-cd109ec1175f5a26582f9968.json",
+        "sha256": "78d1b013c4b9e57b30c4543e4b85654d4bd63cce763facf0c4a63bc6303bd154"
+      },
+      "record_id": "readout-cd109ec1175f5a26582f9968"
+    },
+    {
+      "cells": 2,
+      "compact_sha256": "231939ddbb4eaf8e4865c192e449b28a792b18213b189f90689899f8965d560d",
+      "original": {
+        "bytes": 14359,
+        "ever_committed": false,
+        "git_blob_oid": "3be594be38b018a7894a95d2d68f1d01555c911d",
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-e610d5af4bac226eabe47dcb.json",
+        "sha256": "f1ffe9508cf39cb2bbebcafb1de2c94b9257ff3c97c32559ce1513c47edac7ff"
+      },
+      "record_id": "readout-e610d5af4bac226eabe47dcb"
+    }
+  ],
+  "scientific_verdicts_changed": false,
+  "scope": "lossless_original_archive_with_certified_final_display_projection"
+}

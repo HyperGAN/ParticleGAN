@@ -1,0 +1,31 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "model_vae_hard"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "model_vae_categorical"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Two toy gates do not establish screen calibration or whole-suite adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "vaegan_coverage",
+  "id": "vaegan_coverage",
+  "policy_change_reason": "Matched CUDA research comparison of prior-coverage repair on existing hard and categorical VAEGAN tasks; keeps original target, architectures, priors, initialization, updates, cadence, live sampling and numerical gates. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

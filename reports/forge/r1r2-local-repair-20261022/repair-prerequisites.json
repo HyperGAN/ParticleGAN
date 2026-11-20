@@ -1,0 +1,299 @@
+{
+  "GN_actual128_empirical_sensitivity": {
+    "axes": {
+      "directions": {
+        "ns_mmd_AMS": {
+          "center_squared_error_drift": -4.0429614393564925,
+          "original_covariance_error_drift": 0.1869378029592464,
+          "radial_variance_drift": 0.06096433087924077,
+          "tangent_variance_drift": 0.31524136463387414
+        },
+        "ns_mmd_GN": {
+          "center_squared_error_drift": -0.006963616979634816,
+          "original_covariance_error_drift": -9.242402975849326e-05,
+          "radial_variance_drift": 0.000755069905698107,
+          "tangent_variance_drift": 0.0001610220409422094
+        },
+        "ns_only_AMS": {
+          "center_squared_error_drift": -0.9777072345987882,
+          "original_covariance_error_drift": 0.008205450889382007,
+          "radial_variance_drift": -0.016562590236462234,
+          "tangent_variance_drift": 0.011028592166307548
+        },
+        "ns_only_GN": {
+          "center_squared_error_drift": -0.0015166397167496232,
+          "original_covariance_error_drift": -0.0001713469620129072,
+          "radial_variance_drift": -2.1696209735254802e-05,
+          "tangent_variance_drift": -0.00026623365959653017
+        }
+      },
+      "iterations_max": 134,
+      "iterations_min": 109,
+      "maximum_relative_residual": 9.923232538623675e-05
+    },
+    "corners": {
+      "directions": {
+        "ns_mmd_AMS": {
+          "center_squared_error_drift": -3.9999185623399667,
+          "original_covariance_error_drift": 0.1917928730977932,
+          "radial_variance_drift": 0.061381794148559723,
+          "tangent_variance_drift": 0.3221317499291344
+        },
+        "ns_mmd_GN": {
+          "center_squared_error_drift": -0.006874139388862957,
+          "original_covariance_error_drift": -0.00010547589684520345,
+          "radial_variance_drift": 0.0007744463832079316,
+          "tangent_variance_drift": 0.00014544806276764054
+        },
+        "ns_only_AMS": {
+          "center_squared_error_drift": -0.9576844945401476,
+          "original_covariance_error_drift": 0.0073766081227227154,
+          "radial_variance_drift": -0.017010068099021225,
+          "tangent_variance_drift": 0.010822072820810802
+        },
+        "ns_only_GN": {
+          "center_squared_error_drift": -0.0014498294120479992,
+          "original_covariance_error_drift": -0.00017272292856776184,
+          "radial_variance_drift": -8.340613693924801e-06,
+          "tangent_variance_drift": -0.000259711689229077
+        }
+      },
+      "iterations_max": 134,
+      "iterations_min": 109,
+      "maximum_relative_residual": 9.923232538623675e-05
+    }
+  },
+  "GN_population_proxy": {
+    "axes": {
+      "GN": {
+        "center_squared_error_drift": -0.006522910987670577,
+        "original_covariance_error_drift": -0.012520200280259875,
+        "radial_variance_drift": 0.0010134784049518212,
+        "tangent_variance_drift": -0.01873971389370935
+      },
+      "iterations": 555,
+      "ordinary_AMS": {
+        "center_squared_error_drift": -3.537924769363921,
+        "original_covariance_error_drift": 0.16026532179466002,
+        "radial_variance_drift": 0.044453878456446855,
+        "tangent_variance_drift": 0.2689078884672538
+      },
+      "relative_residual": 9.601812378975185e-05
+    },
+    "corners": {
+      "GN": {
+        "center_squared_error_drift": -0.0069056686829919505,
+        "original_covariance_error_drift": -0.012323850173773031,
+        "radial_variance_drift": 0.0009730612190804759,
+        "tangent_variance_drift": -0.018345876104893178
+      },
+      "iterations": 794,
+      "ordinary_AMS": {
+        "center_squared_error_drift": -3.750018581207952,
+        "original_covariance_error_drift": 0.17117388782783544,
+        "radial_variance_drift": 0.03705801835713429,
+        "tangent_variance_drift": 0.2838379196209242
+      },
+      "relative_residual": 9.631032348765912e-05
+    }
+  },
+  "conclusion": {
+    "actual128_caveat": "MMD+GN corrects radial/center and weakly covariance but slightly expands alreadywide tangent; NS-onlyGN contracts radial",
+    "next": "Do not admit a trainedGNcomparison from this proxy alone; resolve accurate bounded runtime and allhost contracts, or select a separately justified mechanism.",
+    "rejected_saved_prerequisites": [
+      "relative local feature means weight1: centering regression",
+      "conditional first/fullcovariance moments: radial contraction and panel-sensitive centering",
+      "KDEtarget-minus-fake score transport: covariance/tangent regression after projection"
+    ],
+    "runtime_caveat": "Accurate archivedfloat64 batch solves need109-134iterations; current genericfloat32CUDA solver runtime/accuracy do not establish a complete affordable global recipe",
+    "supported_but_unqualified_hypothesis": "FixedMMD plus damped output-tangent G/prior update; ordinary critic/R1R2 preserved"
+  },
+  "diagnostic_runtime": {
+    "device": "cpu",
+    "floating_dtype": "torch.float64",
+    "historical_replay": "CPUtarget and CUDAoriginalpriorindex/Gaussian generator clones, not a model run",
+    "threads": 1
+  },
+  "historical_draw_replay": {
+    "full_actual_target_sequence_sha256": "735336a51834a6075b65ff45638dd9d44f523e667dc824d61765176a15a83b1a",
+    "historical_draws_replayed": true,
+    "historical_model_parameters_reconstructed": false,
+    "new_independent_streams": 0,
+    "prior_index_batches_replayed": 3200,
+    "prior_noise_batches_replayed": 3200,
+    "retained_generator_steps": [
+      1585,
+      1586,
+      1587,
+      1588,
+      1589,
+      1590,
+      1591,
+      1592,
+      1593,
+      1594,
+      1595,
+      1596,
+      1597,
+      1598,
+      1599,
+      1600
+    ],
+    "scope": "exact historical named-stream replay; no model/trainer replay",
+    "source_digest": "2b04f2853c511c9bcd417ef41e8fd773e97e8c67c9e057da8abdd4fef2de5f12",
+    "source_files": {
+      "benchmarks/transfer_suite/vector_tasks.py": "3ee4eb27759f61a430029c80b7772cac3dca2fb2ac84919ace0db94efca1e0b0",
+      "experiments/forge/state.py": "2eb9613f8e85c63240499307a81c5af429b23cfa1f0ed08c126630a76ed887b5",
+      "particlegan/particle_prior.py": "0220878bebea227da63abbf9f5b1ebdabdc6aea54fd2332fd2cab02ed734238f",
+      "particlegan/training.py": "1437b41865b8670544823125bade26bff1b9552b8b641d144d3a89e6cf1d45fd"
+    },
+    "stream_checkpoints": {
+      "data": {
+        "device": "cpu",
+        "final_state_sha256": "3a39c871c4c090f9b55e47494224af8164b2288af73ef63e7db60e37c9831f70",
+        "initial_state_sha256": "5f6b6f690d2c5963f4945c7af5e1cd2653b1929e9d7b971fdd2222ad648f78f6",
+        "key": "[\"data\",\"target\",\"training\",\"cpu\"]",
+        "matches_archived_terminal_state": true,
+        "seed": 2842969976240124311
+      },
+      "indices": {
+        "device": "cuda:0",
+        "final_state_sha256": "195ca24cbf618cdd6660e538b8e5721ed2be9d76d0edbd7b96d6b1328adf293c",
+        "initial_state_sha256": "aa2f89742ac1d2c95ef3379ad9ba7a080c557c66258f9dff0dabf5d85a6db3cc",
+        "key": "[\"prior\",\"latent\",\"indices\",\"cuda:0\"]",
+        "matches_archived_terminal_state": true,
+        "seed": 5876435880110660064
+      },
+      "noise": {
+        "device": "cuda:0",
+        "final_state_sha256": "db56c0f57713b92e437f825a86d3129007bde83a845031a665648566625d5bc7",
+        "initial_state_sha256": "46a0fb6a2510c83ebfa98bc289a73c096cc0fa24f40136bb998b0edecd8871e5",
+        "key": "[\"noise\",\"prior\",\"gaussian\",\"cuda:0\"]",
+        "matches_archived_terminal_state": true,
+        "seed": 939191808430552031
+      }
+    },
+    "target_batches_verified": 1600,
+    "target_rows_replayed": 204800,
+    "tensor_bundle_sha256": "adf5c549fbd1322eaab05e7b2babc4b73092c0672eb04fb617f2167643e68fe1",
+    "training_updates_added": 0
+  },
+  "negative_auxiliaries": {
+    "conditional": {
+      "axes": {
+        "center_squared_error_drift": -5463.659029485991,
+        "original_covariance_error_drift": -384.65605294739237,
+        "radial_variance_drift": -148.79491600312247,
+        "tangent_variance_drift": -625.3185982568981
+      },
+      "corners": {
+        "center_squared_error_drift": 2583.8663537128828,
+        "original_covariance_error_drift": -351.4983554301132,
+        "radial_variance_drift": -164.15727506683922,
+        "tangent_variance_drift": -580.875940912789
+      }
+    },
+    "local": {
+      "axes": {
+        "center_squared_error_drift": 25.9036324777888,
+        "original_covariance_error_drift": -0.6390419222785206,
+        "radial_variance_drift": 0.4024405096525222,
+        "tangent_variance_drift": -0.9141243509159909
+      },
+      "corners": {
+        "center_squared_error_drift": 68.27752415365897,
+        "original_covariance_error_drift": -2.207154110133864,
+        "radial_variance_drift": 0.47984298920961604,
+        "tangent_variance_drift": -3.461348444902847
+      }
+    },
+    "score": {
+      "axes": {
+        "center_squared_error_drift": -107.82854674127054,
+        "original_covariance_error_drift": 4.429995081106847,
+        "radial_variance_drift": 0.2602260892284211,
+        "tangent_variance_drift": 7.120683694102209
+      },
+      "corners": {
+        "center_squared_error_drift": -105.50794186112002,
+        "original_covariance_error_drift": 4.5358351696068615,
+        "radial_variance_drift": -0.21450776070526525,
+        "tangent_variance_drift": 7.146762314579404
+      }
+    }
+  },
+  "new_independent_random_streams": 0,
+  "qualification_input": false,
+  "raw_receipts": {
+    "GN_actual128_axes": {
+      "diagnostic_wall_seconds": 4.718662811035756,
+      "driver_sha256": "e55cc3281bfe09402fdb7b640ce3b98b58dd48b8e35f8f9c78a8a87c660dd3c8",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/gn-batch-axes.stdout.json",
+      "sha256": "1e2a96783e2e309ebb3060734a129e6b91025795f152b571dd9219f00a463f39"
+    },
+    "GN_actual128_corners": {
+      "diagnostic_wall_seconds": 4.824566906958353,
+      "driver_sha256": "e55cc3281bfe09402fdb7b640ce3b98b58dd48b8e35f8f9c78a8a87c660dd3c8",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/gn-batch-corners.stdout.json",
+      "sha256": "ac3b7fb9f02aa86e3644de4209f48c6c1edcf7582c66cf33078fedfb1d131240"
+    },
+    "GN_population_axes": {
+      "diagnostic_wall_seconds": 4.467693652026355,
+      "driver_sha256": "de2e91308210b5bc5df69127286f5c8ff7212c120dc25a3f75ef34770448a265",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/gn-force-pcg1024-axes.stdout.json",
+      "sha256": "c9522ab90390c1e60f03127385f3eba860573eecb3e6021d1691109c799d9b8f"
+    },
+    "GN_population_corners": {
+      "diagnostic_wall_seconds": 18.819422396016307,
+      "driver_sha256": "de2e91308210b5bc5df69127286f5c8ff7212c120dc25a3f75ef34770448a265",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/gn-force-pcg1024-corners.stdout.json",
+      "sha256": "ca67e2a0052c8e006f7fcfa135d09c912e66beacaf4688c957f808865233796c"
+    },
+    "conditional_axes": {
+      "diagnostic_wall_seconds": 2.843490567000117,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-conditional-axes.stdout.json",
+      "sha256": "0f34bd913b0e2b0b1c759d7217e73489964342ab5ee61d94abfe8716e93ca925"
+    },
+    "conditional_corners": {
+      "diagnostic_wall_seconds": 3.2591807920252904,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-conditional-corners.stdout.json",
+      "sha256": "decfc924e6ff614ddd94c5ea1fb12f56aa089e2395c3f60a73bbdb471078eedf"
+    },
+    "local_axes": {
+      "diagnostic_wall_seconds": 2.494136189983692,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-local-axes.stdout.json",
+      "sha256": "132a080265d9f2e1b105fcd6d5706a237c15c395dae6529e38b0d98855b2e598"
+    },
+    "local_corners": {
+      "diagnostic_wall_seconds": 2.6934577070060186,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-local-corners.stdout.json",
+      "sha256": "911bb802aff54fb8af92396ea3725fc8b924ad112ff52f205e16545d086a307f"
+    },
+    "score_axes": {
+      "diagnostic_wall_seconds": 2.4585621469886974,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-score-axes.stdout.json",
+      "sha256": "c3f15952ba83a629b20bf99540f199a46b74b06fdf00ed9e70f75f6230ea4d0d"
+    },
+    "score_corners": {
+      "diagnostic_wall_seconds": 2.742494240985252,
+      "driver_sha256": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+      "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/final-score-corners.stdout.json",
+      "sha256": "1769cbcbcb376ac2651a0a3a1bd98e29d078f0d133410dd4b8b5fe2ff5ac422b"
+    }
+  },
+  "schema_version": 1,
+  "scope": "saved_only_repair_prerequisite_summary",
+  "source_pins": {
+    "gn_batch_probe.py": "e55cc3281bfe09402fdb7b640ce3b98b58dd48b8e35f8f9c78a8a87c660dd3c8",
+    "gn_force_probe.py": "de2e91308210b5bc5df69127286f5c8ff7212c120dc25a3f75ef34770448a265",
+    "local_repair_probe.py": "1238ae9cdda01164efa08330ba98eee0bf928e76f3033d73462f65cd8ce43321",
+    "replay_training_batches.py": "d62016dd19ceb32488724de8695fcc8d18577a1e4414a99bd8dcb3de7e4ea18a",
+    "summarize_repair.py": "3974890018c78fe9d9b29998ce36b0e0ab6fadb25ae2bb80d98e94c5ac6922b3"
+  },
+  "training_updates_added": 0
+}

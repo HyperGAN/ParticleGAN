@@ -1,0 +1,25 @@
+{
+  "schema_version": 1,
+  "id": "misgan-bispf-research-v1",
+  "goal": "misgan_recovery_and_imputation",
+  "revision": 2,
+  "evidence_scope": "research_diagnostic",
+  "assignments": [
+    {
+      "task": "model_misgan_four_mode",
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1
+    }
+  ],
+  "calibration": {
+    "status": "provisional",
+    "adoption_blocker": "Scoped research diagnostic; no ordinary qualification or default adoption."
+  },
+  "eligibility": {},
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "policy_change_reason": "Independent critic histories define corrected execution v2. All coupled-state v1 measurements retain their original task/view/source; v2 quality is unmeasured and inherits no PASS."
+}

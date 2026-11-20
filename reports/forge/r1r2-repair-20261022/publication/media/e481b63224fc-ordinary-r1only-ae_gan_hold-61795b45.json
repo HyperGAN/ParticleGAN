@@ -1,0 +1,59 @@
+{
+  "display_metrics": "Saved scalar metrics; original structured metadata remains in certified evidence.",
+  "gif_sha256": "8ab443a40e61a50f13b763e3113758bc6b44419d35260341581706701f0d1824",
+  "kind": "actual_training_saved_observations_gif",
+  "observation_count": 24,
+  "observations_sha256": "89cdfe7a60a52e93363be8a4705f1564017709f3e172940152ac2bfc22eda218",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "PASS",
+  "renderer_sha256": "f1f3354cdb255c9f78899a111a25723e2058d6da4a454280fa5574aa8d158309",
+  "sampling_draws_added": 0,
+  "saved_record_selection": {
+    "added_observations": 0,
+    "kind": "exact_scored_subset_of_retained_views",
+    "retained_records": 31,
+    "source_record_indices": [
+      2,
+      3,
+      4,
+      5,
+      7,
+      8,
+      9,
+      10,
+      11,
+      13,
+      14,
+      15,
+      16,
+      17,
+      19,
+      20,
+      21,
+      22,
+      23,
+      25,
+      26,
+      27,
+      28,
+      29
+    ]
+  },
+  "schema_version": 1,
+  "selected_observation_indices": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    14,
+    17,
+    20,
+    23
+  ],
+  "source_inputs": {
+    "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/61795b4557d84d8da60cb9cc18de00d4/constraint_geometry-scored-outputs.pt": "8507f64383724718afc0b51041faaeb4d7f5818b5642330e520cbf0681c22062"
+  },
+  "task_id": "ae_gan_hold"
+}

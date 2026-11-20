@@ -320,6 +320,21 @@
       "goal": "api-toy-contract",
       "current": "reports/toy_audit/api_contract/LEADERBOARD.md",
       "description": "Sorted results of the public-API toy test contract registry."
+    },
+    {
+      "goal": "ddgan-conditional-repair-v1",
+      "current": "reports/forge/leaderboards/ddgan_conditional_repair.md",
+      "description": "Scoped strict DDGAN conditional repair study; archived negative results, no default promotion."
+    },
+    {
+      "goal": "vaegan_coverage",
+      "current": "reports/forge/leaderboards/vaegan_coverage.md",
+      "description": "Scoped hard/categorical VAEGAN coverage study under the original source and protocol."
+    },
+    {
+      "goal": "misgan-bispf-research-v1",
+      "current": "reports/forge/misgan-bispf/LEADERBOARD.md",
+      "description": "Scoped four-mode MisGAN recovery and neural imputation study; original 100-mode tasks stay separate."
     }
   ],
   "not_leaderboards": [

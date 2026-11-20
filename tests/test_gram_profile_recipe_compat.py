@@ -23,14 +23,18 @@ def test_selected_default_projection_preserves_older_full_recipe_fields():
 
 
 @pytest.mark.parametrize("profile", ["default", PROFILE])
-def test_component_applied_packet_omits_only_default_dense_profile(profile):
+def test_component_applied_packet_omits_only_later_inactive_defaults(profile):
     request = dict(protocol=dict(seed=0), candidate=dict(recipe_preset="bcap", recipe_overrides=dict(
         optimizer_family="dualnorm", optimizer_smoothing=.001, optimizer_momentum=0.,
         optimizer_svd_backend="native", optimizer_dense_profile=profile)))
     components = BehaviorComponents(request, load_tasks(ROOT)["two_pole"], device="cpu")
     expected = asdict(components.recipe)
+    for name in ("masked_mixture_weight", "masked_transport_weight", "imputer_component_weight"):
+        assert expected.pop(name) == 0.
     if profile == "default":
         expected.pop("optimizer_dense_profile")
+    for field in ("reg_real_weight", "reg_fake_weight", "joint_reconstruction_weight", "conditional_energy_weight", "conditional_energy_samples"):
+        expected.pop(field)
     applied = components.receipt()
     assert applied["recipe"] == expected
     assert set(applied["field_ownership"]["recipe_fields"]) == set(expected)

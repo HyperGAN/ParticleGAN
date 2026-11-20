@@ -1,0 +1,461 @@
+{
+  "schema": "forge_misgan_research_v1",
+  "qualification_input": false,
+  "cases": [
+    {
+      "adaptation": "New identifiable target, affine generator, categorical mask support learned from observed masks, and neural categorical amortizer; no complete real data reaches training.",
+      "batch_size": 256,
+      "default_recipe": "bispf-optimized-quintic-v1",
+      "default_steps": 1200,
+      "eval_samples": 4096,
+      "evaluation_observations": 24,
+      "forge_thresholds": [
+        [
+          "modes",
+          ">=",
+          4
+        ],
+        [
+          "hq",
+          ">=",
+          0.9
+        ],
+        [
+          "mass_tv",
+          "<=",
+          0.1
+        ],
+        [
+          "off_plane",
+          "<=",
+          0.04
+        ],
+        [
+          "mask_tv",
+          "<=",
+          0.05
+        ],
+        [
+          "imputer_observed_error",
+          "<=",
+          1e-06
+        ],
+        [
+          "imputer_accuracy",
+          ">=",
+          0.94
+        ],
+        [
+          "ambiguous_hq",
+          ">=",
+          0.9
+        ],
+        [
+          "ambiguous_mass_tv",
+          "<=",
+          0.12
+        ],
+        [
+          "ambiguous_query_coverage",
+          ">=",
+          0.9
+        ],
+        [
+          "ambiguous_std_ratio",
+          ">=",
+          0.7
+        ],
+        [
+          "ambiguous_std_ratio",
+          "<=",
+          1.3
+        ]
+      ],
+      "goal": "Learn an 8D four-mode complete distribution and the block-mask law using only incomplete rows, then learn a stochastic neural imputer whose held-out single-sensor queries cover both ambiguous branches with correct mass.",
+      "host_definition": {
+        "architecture": {
+          "critics": "64_64",
+          "generator": "affine_2_to_8",
+          "imputer": "16_64_64_64_neural_logits",
+          "mask": "categorical4_linear1"
+        },
+        "batch_size": 256,
+        "case_id": "api-model-misgan-four-mode",
+        "init_std": 0.5,
+        "num_particles": 64,
+        "provider": "benchmarks.toy_audit.api_model_misgan",
+        "recipe_fields": {
+          "conditioning": "scalar",
+          "encoder_mode": "none",
+          "model": "gan",
+          "observation_sigma": 0.08,
+          "reconstruction_weight": 1.0
+        },
+        "resources": {
+          "batch_size": 256,
+          "num_particles": 64,
+          "z_dim": 2
+        },
+        "target": {
+          "kind": "four_corner_hadamard8",
+          "masses": [
+            0.25,
+            0.25,
+            0.25,
+            0.25
+          ],
+          "means": [
+            [
+              -1.0,
+              -1.0
+            ],
+            [
+              -1.0,
+              1.0
+            ],
+            [
+              1.0,
+              -1.0
+            ],
+            [
+              1.0,
+              1.0
+            ]
+          ],
+          "sigma": 0.08
+        },
+        "z_dim": 2
+      },
+      "id": "api-model-misgan-four-mode",
+      "kind": "vector",
+      "legacy_ids": [
+        "pr196-block-recovery",
+        "pr196-block-neural-imputer"
+      ],
+      "protocol_seed": 0,
+      "provider": "api_model_misgan",
+      "sampling": "Clean live learned MoG64 R2 sigma=.025 -> learned affine 8D G_x; learned four-pattern categorical G_m. G_i neural logits on x*m,m sample a component and independent MoG noise through G_x; no component distances, ppost or oracle at inference.",
+      "scope": "Explicit four-corner sigma=.08 target with a fixed Hadamard 8x2 lift. Same four block masks and masses as original MisGAN; sensor7 sees x+y, leaving two equally probable branches at zero. Original 100-mode MLP questions remain unchanged.",
+      "terminal_observations": 5,
+      "thresholds": [
+        [
+          "modes",
+          ">=",
+          4
+        ],
+        [
+          "hq",
+          ">=",
+          0.9
+        ],
+        [
+          "mass_tv",
+          "<=",
+          0.1
+        ],
+        [
+          "off_plane",
+          "<=",
+          0.04
+        ],
+        [
+          "mask_tv",
+          "<=",
+          0.05
+        ],
+        [
+          "imputer_observed_error",
+          "<=",
+          1e-06
+        ],
+        [
+          "imputer_accuracy",
+          ">=",
+          0.94
+        ],
+        [
+          "ambiguous_hq",
+          ">=",
+          0.9
+        ],
+        [
+          "ambiguous_mass_tv",
+          "<=",
+          0.12
+        ],
+        [
+          "ambiguous_query_coverage",
+          ">=",
+          0.9
+        ],
+        [
+          "ambiguous_std_ratio",
+          ">=",
+          0.7
+        ],
+        [
+          "ambiguous_std_ratio",
+          "<=",
+          1.3
+        ]
+      ],
+      "title": "MisGAN: incomplete four-mode recovery and neural multimodal imputation"
+    }
+  ],
+  "readouts": [
+    {
+      "id": "api-model-misgan-four-mode",
+      "goal": "Learn an 8D four-mode complete distribution and the block-mask law using only incomplete rows, then learn a stochastic neural imputer whose held-out single-sensor queries cover both ambiguous branches with correct mass.",
+      "scope": "Explicit four-corner sigma=.08 target with a fixed Hadamard 8x2 lift. Same four block masks and masses as original MisGAN; sensor7 sees x+y, leaving two equally probable branches at zero. Original 100-mode MLP questions remain unchanged. Absolute task-owned MoG sigma=.025; relative calibration is bypassed. Recommended scoped recipe: bispf-misgan-transport-settle-v1",
+      "execution_status": "COMPLETE",
+      "verdict": "PASS",
+      "completed_updates": 1200,
+      "default_updates": 1200,
+      "failed_bounds": [],
+      "source_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "final_metrics": {
+        "ambiguous_hq": 0.937255859375,
+        "ambiguous_mass_tv": 0.078125,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9620333313941956,
+        "hq": 0.989013671875,
+        "imputer_accuracy": 0.97265625,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.010595705360174179,
+        "mass_tv": 0.093994140625,
+        "modes": 4,
+        "off_plane": 0.0029731420800089836
+      },
+      "gif": "media/bispf-misgan-transport-settle-v1.gif"
+    }
+  ],
+  "runs": [
+    {
+      "id": "api-model-misgan-four-mode",
+      "candidate_id": "bispf-misgan-transport-settle-v1",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 256,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "imputer_component_weight": 5.0,
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.0,
+        "lr_control": "mobility",
+        "lr_floor": 0.05,
+        "masked_transport_weight": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 0.05,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.08,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 1200,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 2
+      },
+      "runtime": {
+        "autograd_multithreading_enabled": false,
+        "cuda": "13.0",
+        "cuda_device_model": "NVIDIA RTX A6000",
+        "cudnn_benchmark": false,
+        "cudnn_tf32": false,
+        "deterministic_algorithms": true,
+        "device": "cuda:0",
+        "matmul_tf32": false,
+        "python": "3.12.13",
+        "torch": "2.14.0+cu130",
+        "torch_threads": 1
+      },
+      "source_identity": "d2b5cf8eba1f69f89321d76a0a6f7efc2cf75aba8d99e03741bc12cf8e0768de",
+      "source_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "api_receipt_sha256": "7e350d7e0b02e675dba8dc4702e45462be33cda482ffb9c2dbe790c373439b1d",
+      "gif": "media/bispf-misgan-transport-settle-v1.gif",
+      "gif_sha256": "3b9877086b8b8f225e2f41657949be728c46a6369147a54e62021a5d1fa4ce86",
+      "completed_updates": 1200,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 1200,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 1200,
+              "calls": 1200,
+              "eligible": 1200,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 1200,
+            "observations": {
+              "applied": 1200,
+              "calls": 1200,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 3600,
+              "applied_record_calls_in_window": 3600,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 1200,
+              "observed_steps_in_window": 1200,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 1200
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 1200,
+                "last": 4.508982181549072,
+                "max": 4.8249688148498535,
+                "min": 3.259047269821167,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 1200,
+                "last": 0.03972253203392029,
+                "max": 0.6015648245811462,
+                "min": 0.034096576273441315,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 1200,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "unintended_rng_deviations": 0
+      }
+    }
+  ]
+}

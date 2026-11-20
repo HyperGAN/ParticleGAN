@@ -1,0 +1,768 @@
+{
+  "attempt_ids": [
+    "0f763275b661438998a1407249e4b0c3",
+    "5fefc144f3fc48f58e489a2de22a3cd5",
+    "f376ccfc91bd4d839f1e1ccfbceec516"
+  ],
+  "candidate_id": "r4-razor-no-ns-v2",
+  "candidate_revision": "98ebd4d6b2ef69e601363653e5f94b6ae882f02187cf316d0760983d3582edad",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Reproduces 3/3 (100%) Nash imbalance sweep with strictly 0 SVD and 0 Newton-Schulz.",
+  "conclusion": "Arm 1 (-NS, v2 float32 peak_rms) on t4_imbalance_nash_stretch: 3/3 (100%) PASS (overpowered_critic hq=0.9727 eig=0.3715, overpowered_generator hq=0.8987 eig=0.3480, hostile_imbalance hq=0.9910 eig=0.5178).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "0f763275b661438998a1407249e4b0c3",
+        "5fefc144f3fc48f58e489a2de22a3cd5",
+        "f376ccfc91bd4d839f1e1ccfbceec516"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "e8d0c80a7c7c34a915c5c7484511f4adfb1c1ff4f48c880e91ffdf526cbe2d2d",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": null,
+          "value": null
+        },
+        "prediction": {
+          "satisfied": null,
+          "value": null
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "0f763275b661438998a1407249e4b0c3",
+          "producer_request_id": "fb838db52c6f3979caa82879",
+          "producer_study_id": "r4-razor-no-ns-v2-t4-nash-study",
+          "result_hash": "226e2add3c5764bf59afe48295446595d7c424b60e209467113f137833731753",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "5fefc144f3fc48f58e489a2de22a3cd5",
+          "producer_request_id": "74e908415875df3bf103e78f",
+          "producer_study_id": "r4-razor-no-ns-v2-occam-study",
+          "result_hash": "187d929f6fb4824c0655afd40e963d5160df054694f8bca00e598ccb222b1db3",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "f376ccfc91bd4d839f1e1ccfbceec516",
+          "producer_request_id": "74e908415875df3bf103e78f",
+          "producer_study_id": "r4-razor-no-ns-v2-occam-study",
+          "result_hash": "77f990ba921ed4348738e48fdb72b6a65622368d6b9a54648c0013495b059fe9",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "6d33d6c9f3251d72141ef3c624727cf6204a0f38fa77eb8982eea6a83054cefa",
+        "contract_sha256": "e8d0c80a7c7c34a915c5c7484511f4adfb1c1ff4f48c880e91ffdf526cbe2d2d",
+        "control_binding_sha256": "3283734d3980b5dc12f75a35e10aec30d7710494d7a49c92bd238e35f6490f74",
+        "policy_fingerprint": "b32987a0c46f11b7ee3220dc47d57fa88202ee852981ddd30fe1c2c006d646cb",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "a2e50c946443d39223a406616b75288dad870bb9249a4361b435b29499b1287d"
+      },
+      "study_id": "r4-razor-no-ns-v2-t4-nash-study",
+      "study_sha256": "a2e50c946443d39223a406616b75288dad870bb9249a4361b435b29499b1287d"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4_imbalance_nash_stretch",
+  "hypothesis": "Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves 3/3 PASS on t4_imbalance_nash_stretch (>500x G/D imbalance & hostile -30-logit init).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Include in final Occam report.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "0f763275b661438998a1407249e4b0c3",
+        "result_hash": "226e2add3c5764bf59afe48295446595d7c424b60e209467113f137833731753",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "5fefc144f3fc48f58e489a2de22a3cd5",
+        "result_hash": "187d929f6fb4824c0655afd40e963d5160df054694f8bca00e598ccb222b1db3",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "f376ccfc91bd4d839f1e1ccfbceec516",
+        "result_hash": "77f990ba921ed4348738e48fdb72b6a65622368d6b9a54648c0013495b059fe9",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-023ec5bb580b7f86afaa21ff",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/0f763275b661438998a1407249e4b0c3/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600,
+      "candidate_budget_seconds": 3600,
+      "id": "r4-razor-no-ns-v2-t4-nash-study"
+    },
+    "candidate": "r4-razor-no-ns-v2",
+    "competing_explanation": "If Quintic NS is required alongside realized secant trust bands for >500x Nash imbalance, r4-razor-no-ns will fail at least one t4_imbalance_nash_stretch task.",
+    "control": {
+      "candidate_id": "unified-v10",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "hq_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 0.85
+    },
+    "hypothesis": "Test whether pure-elementwise Marchenko-Pastur + peak_rms (-NS) preserves 3/3 PASS on t4_imbalance_nash_stretch (>500x G/D imbalance & hostile -30-logit init).",
+    "id": "r4-razor-no-ns-v2-t4-nash-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "hq_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 0.85
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "r4-razor-no-ns",
+          "candidate_revision": "d5093bddc53d86ea5e3f02b235a1be1ca162087651dcab0d91864b4f1547e06f"
+        },
+        "path": "reports/forge/records/readout-fcfec5e8ae1c8411f818fa8f.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4_imbalance_nash_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "r4-razor-no-ns-v2-t4-nash-study",
+  "study_sha256": "a2e50c946443d39223a406616b75288dad870bb9249a4361b435b29499b1287d",
+  "task_results": [
+    {
+      "compatibility_key": "06544c95044faad99f15eb21335a60e5638c4c41e8f8bf71c32360fc7668b289",
+      "cost": {
+        "adapter_loop_seconds": 82.14931700192392,
+        "adapter_seconds": 82.727975188056,
+        "charged_task": "nash_unequal_width_hostile_imbalance",
+        "completed_steps": 1100,
+        "device": "0",
+        "execution_seconds": 90.17897262098268,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1100,
+          "generator": 1100,
+          "prior": 1100
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 72.35754773183726,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.4097354840487242
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.012885676231235266
+            },
+            "training_updates": {
+              "calls": 1100,
+              "seconds": 71.9349265715573
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 84.13900438207202,
+        "wall_seconds": 90.17897262098268
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "component_core_covariance_error": 0.1994376741349697,
+        "component_core_covariance_errors": [
+          0.37443479895591736,
+          0.24954546988010406,
+          0.09822569787502289,
+          0.07554472982883453
+        ],
+        "component_core_eigen_ratios": [
+          0.5178033709526062,
+          0.6883782744407654,
+          0.9218790531158447,
+          0.9737136960029602
+        ],
+        "component_core_min_eigen_ratio": 0.5178033709526062,
+        "component_counts": [
+          952,
+          744,
+          1151,
+          1249
+        ],
+        "component_covariance_error": 0.2975132688879967,
+        "component_covariance_errors": [
+          0.37443479895591736,
+          0.6418478488922119,
+          0.09822569787502289,
+          0.07554472982883453
+        ],
+        "component_mass": [
+          0.232421875,
+          0.181640625,
+          0.281005859375,
+          0.304931640625
+        ],
+        "component_min_eigen_ratio": 0.5178033709526062,
+        "component_resolved": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "component_spill": [
+          0.005252100992947817,
+          0.02822580561041832,
+          0.0095569072291255,
+          0.0
+        ],
+        "covariance_error": 0.08070831745862961,
+        "finite_fraction": 1.0,
+        "hq": 0.990966796875,
+        "mass_tv": 0.0859375,
+        "max_component_spill": 0.02822580561041832,
+        "mean_error": 0.1433943510055542,
+        "min_mass_ratio": 0.7265625,
+        "resolved_core_covariance_error": 0.1994376741349697,
+        "resolved_core_min_eigen_ratio": 0.5178033709526062,
+        "resolved_max_component_spill": 0.02822580561041832,
+        "sample_count": 4096,
+        "step": 1100,
+        "sw1_normalized": 0.09420679581479807,
+        "target_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "target_scale": 2.1343955993652344
+      },
+      "raw_status": "completed",
+      "reason": "recomputed nash_unequal_width_hostile_imbalance gates (5/5 terminal checks passed)",
+      "task_id": "nash_unequal_width_hostile_imbalance"
+    },
+    {
+      "compatibility_key": "41caeb76c9cbd71d38ae8ef587907b5d5cd86782c1f9ebc6bd7fecd3dab75aef",
+      "cost": {
+        "adapter_loop_seconds": 90.08187568793073,
+        "adapter_seconds": 90.66045114281587,
+        "charged_task": "nash_overpowered_generator_ring16",
+        "completed_steps": 1600,
+        "device": "1",
+        "execution_seconds": 99.05954247806221,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 80.8653741881717,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.5162812233902514
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.020353689789772034
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 80.32873927499168
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 93.3204899081029,
+        "wall_seconds": 99.05954247806221
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "component_core_covariance_error": 0.4766187439672649,
+        "component_core_covariance_errors": [
+          0.1425265073776245,
+          0.10635196417570114,
+          0.6244858503341675,
+          1.438016414642334,
+          0.2798561751842499,
+          0.5386423468589783,
+          0.5679756999015808,
+          0.3754490911960602,
+          0.5933160185813904,
+          0.36802712082862854,
+          0.4800781011581421,
+          0.3057127892971039,
+          0.5094025135040283,
+          0.36277660727500916,
+          0.5022315979003906,
+          0.431051105260849
+        ],
+        "component_core_eigen_ratios": [
+          0.7984387278556824,
+          0.8797308206558228,
+          0.34808090329170227,
+          0.8879172205924988,
+          0.6302328705787659,
+          0.7668962478637695,
+          0.6082574129104614,
+          0.683320939540863,
+          0.41111695766448975,
+          0.5118516087532043,
+          0.35868600010871887,
+          0.5814844965934753,
+          0.34796667098999023,
+          0.7802684307098389,
+          1.0360102653503418,
+          0.43777334690093994
+        ],
+        "component_core_min_eigen_ratio": 0.34796667098999023,
+        "component_counts": [
+          256,
+          198,
+          196,
+          259,
+          301,
+          284,
+          296,
+          252,
+          279,
+          291,
+          225,
+          223,
+          241,
+          251,
+          279,
+          265
+        ],
+        "component_covariance_error": 0.789163826033473,
+        "component_covariance_errors": [
+          0.1425265073776245,
+          1.1981412172317505,
+          0.8635976910591125,
+          1.8387988805770874,
+          0.2798561751842499,
+          0.9522287249565125,
+          1.333787202835083,
+          0.5023221969604492,
+          1.194835901260376,
+          0.8832783102989197,
+          0.4800781011581421,
+          1.1111499071121216,
+          0.5499610900878906,
+          0.36277660727500916,
+          0.5022315979003906,
+          0.431051105260849
+        ],
+        "component_mass": [
+          0.0625,
+          0.04833984375,
+          0.0478515625,
+          0.063232421875,
+          0.073486328125,
+          0.0693359375,
+          0.072265625,
+          0.0615234375,
+          0.068115234375,
+          0.071044921875,
+          0.054931640625,
+          0.054443359375,
+          0.058837890625,
+          0.061279296875,
+          0.068115234375,
+          0.064697265625
+        ],
+        "component_min_eigen_ratio": 0.35868600010871887,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          0.01171875,
+          0.20202019810676575,
+          0.05612244829535484,
+          0.14671814441680908,
+          0.06976744532585144,
+          0.26056337356567383,
+          0.31418919563293457,
+          0.1785714328289032,
+          0.05734767019748688,
+          0.12027491629123688,
+          0.004444444552063942,
+          0.06278026849031448,
+          0.04149377718567848,
+          0.023904383182525635,
+          0.02867383509874344,
+          0.0
+        ],
+        "covariance_error": 0.11067792028188705,
+        "finite_fraction": 1.0,
+        "hq": 0.898681640625,
+        "hq_component_counts": [
+          253,
+          158,
+          185,
+          221,
+          280,
+          210,
+          203,
+          207,
+          263,
+          256,
+          224,
+          209,
+          231,
+          245,
+          271,
+          265
+        ],
+        "mass_tv": 0.05029296875,
+        "max_component_spill": 0.31418919563293457,
+        "mean_error": 0.05728790909051895,
+        "min_hq_mass_ratio": 0.6171875,
+        "min_mass_ratio": 0.765625,
+        "modes": 16,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.04666361080118207,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "recomputed nash_overpowered_generator_ring16 gates (5/5 terminal checks passed)",
+      "task_id": "nash_overpowered_generator_ring16"
+    },
+    {
+      "compatibility_key": "45ee54a7680c88c3586ce18c0543ecd1f671a588dcbc221b0a1ff9bb4662b0c9",
+      "cost": {
+        "adapter_loop_seconds": 89.5888880151324,
+        "adapter_seconds": 90.16664190310985,
+        "charged_task": "nash_overpowered_critic_ring16",
+        "completed_steps": 1600,
+        "device": "1",
+        "execution_seconds": 97.67006065603346,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 80.24845962808467,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.5189752329606563
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.009271609364077449
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 79.72021278575994
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 91.68708219984546,
+        "wall_seconds": 97.67006065603346
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "component_core_covariance_error": 0.336180804297328,
+        "component_core_covariance_errors": [
+          0.3748813271522522,
+          0.14896245300769806,
+          0.1887383610010147,
+          0.4455757737159729,
+          0.13410690426826477,
+          0.2696324586868286,
+          0.5958942174911499,
+          0.4359184503555298,
+          0.20010994374752045,
+          0.20985497534275055,
+          0.15360696613788605,
+          0.24546298384666443,
+          0.7551373243331909,
+          0.4084922671318054,
+          0.6166396737098694,
+          0.1958787888288498
+        ],
+        "component_core_eigen_ratios": [
+          0.6115056276321411,
+          1.0572818517684937,
+          0.7503053545951843,
+          0.3715188801288605,
+          0.8137015104293823,
+          0.6245905160903931,
+          0.7489469051361084,
+          0.43669548630714417,
+          0.7555438876152039,
+          0.7047491669654846,
+          0.7838847637176514,
+          0.7963986992835999,
+          0.8528746962547302,
+          0.44909656047821045,
+          0.6690592169761658,
+          0.756915271282196
+        ],
+        "component_core_min_eigen_ratio": 0.3715188801288605,
+        "component_counts": [
+          281,
+          337,
+          293,
+          260,
+          211,
+          219,
+          179,
+          232,
+          265,
+          309,
+          344,
+          135,
+          270,
+          207,
+          281,
+          273
+        ],
+        "component_covariance_error": 0.5628012213855982,
+        "component_covariance_errors": [
+          0.3995242714881897,
+          0.14896245300769806,
+          0.1887383610010147,
+          0.4455757737159729,
+          0.13410690426826477,
+          0.2696324586868286,
+          0.668663501739502,
+          0.4359184503555298,
+          0.44911178946495056,
+          0.7668259143829346,
+          0.15360696613788605,
+          1.5692741870880127,
+          0.9891624450683594,
+          0.4084922671318054,
+          1.781345009803772,
+          0.1958787888288498
+        ],
+        "component_mass": [
+          0.068603515625,
+          0.082275390625,
+          0.071533203125,
+          0.0634765625,
+          0.051513671875,
+          0.053466796875,
+          0.043701171875,
+          0.056640625,
+          0.064697265625,
+          0.075439453125,
+          0.083984375,
+          0.032958984375,
+          0.06591796875,
+          0.050537109375,
+          0.068603515625,
+          0.066650390625
+        ],
+        "component_min_eigen_ratio": 0.3715188801288605,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          0.024911031126976013,
+          0.005934718064963818,
+          0.0034129691775888205,
+          0.0,
+          0.0,
+          0.0,
+          0.0670391097664833,
+          0.0,
+          0.015094339847564697,
+          0.04530744254589081,
+          0.0,
+          0.08148147910833359,
+          0.08148147910833359,
+          0.0,
+          0.13523131608963013,
+          0.0036630036775022745
+        ],
+        "covariance_error": 0.08212432265281677,
+        "finite_fraction": 1.0,
+        "hq": 0.97265625,
+        "hq_component_counts": [
+          274,
+          335,
+          292,
+          260,
+          211,
+          219,
+          167,
+          232,
+          261,
+          295,
+          344,
+          124,
+          248,
+          207,
+          243,
+          272
+        ],
+        "mass_tv": 0.086181640625,
+        "max_component_spill": 0.13523131608963013,
+        "mean_error": 0.05019359663128853,
+        "min_hq_mass_ratio": 0.484375,
+        "min_mass_ratio": 0.52734375,
+        "modes": 16,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.04037560121227356,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed)",
+      "task_id": "nash_overpowered_critic_ring16"
+    }
+  ]
+}

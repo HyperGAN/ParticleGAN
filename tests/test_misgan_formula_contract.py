@@ -21,6 +21,21 @@ def fixture(case_id=CASES[0], *, family="bispf", steps=3, **overrides):
     return owner(case, recipe=recipe, batch_size=8, max_steps=steps, seed=0, device="cpu")
 
 
+@pytest.mark.parametrize("case_id", CASES)
+@pytest.mark.parametrize("field,value", [("model", "ddgan"), ("training_precision", "bf16_channels_last")])
+def test_unsupported_model_and_precision_refuse_before_optimizer_construction(monkeypatch, case_id, field, value):
+    from particlegan import Recipe
+    from benchmarks.toy_audit.api_contract import UnsupportedRecipeOverrides
+
+    def forbidden_optimizer(*args, **kwargs):
+        raise AssertionError("unsupported recipe reached optimizer construction")
+
+    monkeypatch.setattr(Recipe, "make_generator_optimizer", forbidden_optimizer)
+    monkeypatch.setattr(Recipe, "make_critic_optimizer", forbidden_optimizer)
+    with pytest.raises(UnsupportedRecipeOverrides, match=field):
+        fixture(case_id, **{field: value})
+
+
 @pytest.fixture(autouse=True)
 def one_cpu_thread():
     previous = torch.get_num_threads()

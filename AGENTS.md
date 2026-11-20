@@ -93,3 +93,4 @@ Each agent can queue experiments on the GPUs without waiting for it to be free. 
 
 ---
 develop->master PR should always exist and have a link to the up to date https://github.com/255BITS/ParticleGAN/blob/develop/reports/forge/technique-inventory.md
+master should always reflect whats in pypi

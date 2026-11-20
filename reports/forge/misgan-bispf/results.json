@@ -1,0 +1,1848 @@
+{
+  "schema": "misgan_bispf_research_results_v1",
+  "qualification_input": false,
+  "historical_100_mode_pass_credit": false,
+  "task_id": "model_misgan_four_mode",
+  "within_mode_covariance_calibration_claim": false,
+  "rows": [
+    {
+      "attempt_id": "3a5811fbd2d442cda18bb6591c9979c7",
+      "candidate_id": "bispf-misgan-transport-settle-v1",
+      "candidate_revision": "4361bc72b78e2e5cd1fe28820e168a71edf24dcce81f08516986a8666c04c04e",
+      "source_digest": "d2b5cf8eba1f69f89321d76a0a6f7efc2cf75aba8d99e03741bc12cf8e0768de",
+      "source_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "request_sha256": "01425d2b4abcd18134e600c21f581c95629fb3dc50c76ae3e9c743464af58d4b",
+      "result_sha256": "e1d5d341c91a342da0f46eef6a937233051a79b2d15dd71db64034a91d1ea612",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-transport-settle-r2/3a5811fbd2d442cda18bb6591c9979c7",
+      "paid_seconds": 447.38884347100975,
+      "study": "misgan-bispf-transport-settle-r2",
+      "api_receipt_sha256": "7e350d7e0b02e675dba8dc4702e45462be33cda482ffb9c2dbe790c373439b1d",
+      "adapter_receipt_sha256": "86733ec283536c81ce7dfe845e63a0cb5050c3411c8e73aa3e4be00c8cce8b7b",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 256,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "imputer_component_weight": 5.0,
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.0,
+        "lr_control": "mobility",
+        "lr_floor": 0.05,
+        "masked_transport_weight": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 0.05,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.08,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 1200,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 2
+      },
+      "protocol": {
+        "default_evaluation_samples": 4096,
+        "default_updates": 1200,
+        "evaluation_samples": 4096,
+        "evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "media_frames": 9,
+        "media_steps": [
+          0,
+          150,
+          300,
+          450,
+          600,
+          750,
+          900,
+          1050,
+          1200
+        ],
+        "metric_evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "metric_observations": 24,
+        "terminal_observations": 5,
+        "updates": 1200,
+        "wall_cap_seconds": 1800
+      },
+      "runtime": {
+        "autograd_multithreading_enabled": false,
+        "cuda": "13.0",
+        "cuda_device_model": "NVIDIA RTX A6000",
+        "cudnn_benchmark": false,
+        "cudnn_tf32": false,
+        "deterministic_algorithms": true,
+        "device": "cuda:0",
+        "matmul_tf32": false,
+        "python": "3.12.13",
+        "torch": "2.14.0+cu130",
+        "torch_threads": 1
+      },
+      "completed_updates": 1200,
+      "verdict": "PASS",
+      "forge_gate": "PASS",
+      "failed_bounds": [],
+      "final": {
+        "ambiguous_hq": 0.937255859375,
+        "ambiguous_mass_tv": 0.078125,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9620333313941956,
+        "hq": 0.989013671875,
+        "imputer_accuracy": 0.97265625,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.010595705360174179,
+        "mass_tv": 0.093994140625,
+        "modes": 4,
+        "off_plane": 0.0029731420800089836
+      },
+      "terminal": [
+        {
+          "step": 1000,
+          "passed": true,
+          "metrics": {
+            "ambiguous_hq": 0.931640625,
+            "ambiguous_mass_tv": 0.073486328125,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.965829074382782,
+            "hq": 0.986328125,
+            "imputer_accuracy": 0.97265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.013769533485174179,
+            "mass_tv": 0.093994140625,
+            "modes": 4,
+            "off_plane": 0.004998736083507538
+          },
+          "failed_bounds": []
+        },
+        {
+          "step": 1050,
+          "passed": true,
+          "metrics": {
+            "ambiguous_hq": 0.93359375,
+            "ambiguous_mass_tv": 0.080322265625,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9638193249702454,
+            "hq": 0.989013671875,
+            "imputer_accuracy": 0.97265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.01889648661017418,
+            "mass_tv": 0.093994140625,
+            "modes": 4,
+            "off_plane": 0.003968849778175354
+          },
+          "failed_bounds": []
+        },
+        {
+          "step": 1100,
+          "passed": true,
+          "metrics": {
+            "ambiguous_hq": 0.934326171875,
+            "ambiguous_mass_tv": 0.081787109375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9644970893859863,
+            "hq": 0.989013671875,
+            "imputer_accuracy": 0.972412109375,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.014257814735174179,
+            "mass_tv": 0.093994140625,
+            "modes": 4,
+            "off_plane": 0.0024876215029507875
+          },
+          "failed_bounds": []
+        },
+        {
+          "step": 1150,
+          "passed": true,
+          "metrics": {
+            "ambiguous_hq": 0.937255859375,
+            "ambiguous_mass_tv": 0.079345703125,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9663872122764587,
+            "hq": 0.990478515625,
+            "imputer_accuracy": 0.972412109375,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.011083986610174179,
+            "mass_tv": 0.093994140625,
+            "modes": 4,
+            "off_plane": 0.002304294379428029
+          },
+          "failed_bounds": []
+        },
+        {
+          "step": 1200,
+          "passed": true,
+          "metrics": {
+            "ambiguous_hq": 0.937255859375,
+            "ambiguous_mass_tv": 0.078125,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9620333313941956,
+            "hq": 0.989013671875,
+            "imputer_accuracy": 0.97265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.010595705360174179,
+            "mass_tv": 0.093994140625,
+            "modes": 4,
+            "off_plane": 0.0029731420800089836
+          },
+          "failed_bounds": []
+        }
+      ],
+      "passed_terminal_checks": 5,
+      "reproducibility": {
+        "batch_sequence_sha256": "82398353915e2d2559db0f3b09385beb1c313e62eb1d06d05ced56e8526b8a96",
+        "comparison_version": "toy-comparison-v3-serial-autograd",
+        "conditions": "case-owned architecture, prior, sampling, batch size, update budget and scoring cadence",
+        "historical_evidence": "original source, seed and initialization retained; no regrading",
+        "initial_models": {
+          "D": "b9c76f22f83523b1c503aff81ebb6584ee2439462ac6c0e4bdc2107fd4d5a434",
+          "G": "f704b78d042fa78e6e8aea5e6d4a10da668f4ac5ad4c0c5ea179e81f15b1cb7e",
+          "prior": "92791b345e0e07e7258682803e2a8640bbce67f9df259ec4f37f27f4337dc461"
+        },
+        "initial_state_sha256": "f18c10458bcb1177813067abe00111f194415aa9786df0931633bb786fed5e01"
+      },
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 1200,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 1200,
+              "calls": 1200,
+              "eligible": 1200,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 1200,
+            "observations": {
+              "applied": 1200,
+              "calls": 1200,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 3600,
+              "applied_record_calls_in_window": 3600,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 1200,
+              "observed_steps_in_window": 1200,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 1200
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 1200,
+                "last": 4.508982181549072,
+                "max": 4.8249688148498535,
+                "min": 3.259047269821167,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 1200,
+                "last": 0.03972253203392029,
+                "max": 0.6015648245811462,
+                "min": 0.034096576273441315,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 1200,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "unintended_rng_deviations": 0
+      },
+      "gif": {
+        "path": "../../toy_audit/api_contract/misgan_bispf/media/bispf-misgan-transport-settle-v1.gif",
+        "sha256": "3b9877086b8b8f225e2f41657949be728c46a6369147a54e62021a5d1fa4ce86",
+        "frames": 9
+      },
+      "checkpoint": {
+        "bytes": 295395,
+        "sha256": "a6112f841ca278b9b680f2efe0bc4926e4368f48079d2475e38bc8b38688c13a"
+      }
+    },
+    {
+      "attempt_id": "87717e5cd41745a0a3462c3fb1605f75",
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "candidate_revision": "a2bdf3d01a3c507b273d49bdefa1bf0707963aed72d1ed10fcca32bf82e4cf6d",
+      "source_digest": "965f882d44a532f3932080f0731df40c4feb890890e2813925dd360da7df3a7a",
+      "source_commit": "2054e69cf0046b72fdbe06edcded9c69ab55c444",
+      "request_sha256": "83a02d08dd5f464c80d357082d9918e6a036f300c760bea8b08d0c4cdf22879a",
+      "result_sha256": "9cf8e024bc8ea62ce29778a4152044777655883b2c014a56eb3ed79a78520e0f",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-snapshot-repair-r1/87717e5cd41745a0a3462c3fb1605f75",
+      "paid_seconds": 610.4327050700085,
+      "study": "misgan-bispf-baseline-r1-snapshot",
+      "api_receipt_sha256": "e74a1bad4ac6695217e768b7a887e59818e2b612290db2fc750cf3731d133501",
+      "adapter_receipt_sha256": "2d15c87bad4439721fbc89eb071061f00d1fbeb94a0b338e4a18727f1d972e34",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 256,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.08,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 1200,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 2
+      },
+      "protocol": {
+        "default_evaluation_samples": 4096,
+        "default_updates": 1200,
+        "evaluation_samples": 4096,
+        "evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "media_frames": 9,
+        "media_steps": [
+          0,
+          150,
+          300,
+          450,
+          600,
+          750,
+          900,
+          1050,
+          1200
+        ],
+        "metric_evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "metric_observations": 24,
+        "terminal_observations": 5,
+        "updates": 1200,
+        "wall_cap_seconds": 1800
+      },
+      "runtime": {
+        "autograd_multithreading_enabled": false,
+        "cuda": "13.0",
+        "cuda_device_model": "NVIDIA RTX A6000",
+        "cudnn_benchmark": false,
+        "cudnn_tf32": false,
+        "deterministic_algorithms": true,
+        "device": "cuda:0",
+        "matmul_tf32": false,
+        "python": "3.12.13",
+        "torch": "2.14.0+cu130",
+        "torch_threads": 1
+      },
+      "completed_updates": 1200,
+      "verdict": "FAIL",
+      "forge_gate": "FAIL",
+      "failed_bounds": [
+        "mass_tv=0.244141 <= 0.1 failed",
+        "last 5 post-update metric observations do not all pass"
+      ],
+      "final": {
+        "ambiguous_hq": 0.9931640625,
+        "ambiguous_mass_tv": 0.044677734375,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9851782321929932,
+        "hq": 0.99658203125,
+        "imputer_accuracy": 0.973876953125,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.0212402306497097,
+        "mass_tv": 0.244140625,
+        "modes": 4,
+        "off_plane": 0.015106378123164177
+      },
+      "terminal": [
+        {
+          "step": 1000,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.81201171875,
+            "ambiguous_mass_tv": 0.113037109375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9850913286209106,
+            "hq": 0.960693359375,
+            "imputer_accuracy": 0.97314453125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.05136718973517418,
+            "mass_tv": 0.244140625,
+            "modes": 4,
+            "off_plane": 0.010582976043224335
+          },
+          "failed_bounds": [
+            "ambiguous_hq=0.812012 >= 0.9 failed",
+            "mask_tv=0.0513672 <= 0.05 failed",
+            "mass_tv=0.244141 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1050,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.9658203125,
+            "ambiguous_mass_tv": 0.06005859375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9894461035728455,
+            "hq": 0.974853515625,
+            "imputer_accuracy": 0.97412109375,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.0449218712747097,
+            "mass_tv": 0.244140625,
+            "modes": 4,
+            "off_plane": 0.012223470024764538
+          },
+          "failed_bounds": [
+            "mass_tv=0.244141 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1100,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.989990234375,
+            "ambiguous_mass_tv": 0.154052734375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9480881690979004,
+            "hq": 0.994384765625,
+            "imputer_accuracy": 0.973388671875,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.024121087044477463,
+            "mass_tv": 0.244140625,
+            "modes": 4,
+            "off_plane": 0.009806467220187187
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.154053 <= 0.12 failed",
+            "mass_tv=0.244141 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1150,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.995849609375,
+            "ambiguous_mass_tv": 0.163818359375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.918753445148468,
+            "hq": 0.97998046875,
+            "imputer_accuracy": 0.97314453125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.081298828125,
+            "mass_tv": 0.244140625,
+            "modes": 4,
+            "off_plane": 0.01780899614095688
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.163818 <= 0.12 failed",
+            "mask_tv=0.0812988 <= 0.05 failed",
+            "mass_tv=0.244141 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1200,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.9931640625,
+            "ambiguous_mass_tv": 0.044677734375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9851782321929932,
+            "hq": 0.99658203125,
+            "imputer_accuracy": 0.973876953125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.0212402306497097,
+            "mass_tv": 0.244140625,
+            "modes": 4,
+            "off_plane": 0.015106378123164177
+          },
+          "failed_bounds": [
+            "mass_tv=0.244141 <= 0.1 failed"
+          ]
+        }
+      ],
+      "passed_terminal_checks": 0,
+      "reproducibility": {
+        "batch_sequence_sha256": "82398353915e2d2559db0f3b09385beb1c313e62eb1d06d05ced56e8526b8a96",
+        "comparison_version": "toy-comparison-v3-serial-autograd",
+        "conditions": "case-owned architecture, prior, sampling, batch size, update budget and scoring cadence",
+        "historical_evidence": "original source, seed and initialization retained; no regrading",
+        "initial_models": {
+          "D": "b9c76f22f83523b1c503aff81ebb6584ee2439462ac6c0e4bdc2107fd4d5a434",
+          "G": "f704b78d042fa78e6e8aea5e6d4a10da668f4ac5ad4c0c5ea179e81f15b1cb7e",
+          "prior": "92791b345e0e07e7258682803e2a8640bbce67f9df259ec4f37f27f4337dc461"
+        },
+        "initial_state_sha256": "77d0ed29ec86d14492ba7afad3b66079fbc3c7a02b847f4b8c0592c22ca67358"
+      },
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 1200,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 1200,
+              "calls": 1200,
+              "eligible": 1200,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 1200,
+            "observations": {
+              "applied": 1200,
+              "calls": 1200,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 3600,
+              "applied_record_calls_in_window": 3600,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 1200,
+              "observed_steps_in_window": 1200,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 1200
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 1200,
+                "last": 4.374500088840723,
+                "max": 5.372114181518555,
+                "min": 3.239837646484375,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 1200,
+                "last": 0.04260985314054414,
+                "max": 0.6124423742294312,
+                "min": 0.038097672164440155,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 1200,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "unintended_rng_deviations": 0
+      },
+      "gif": {
+        "path": "../../toy_audit/api_contract/misgan_bispf/media/bispf-optimized-quintic-v1.gif",
+        "sha256": "ff1c9e5069de1bbdf26459f57bcd498f66243a07bef4752388d3c4a92c3a1ac0",
+        "frames": 9
+      },
+      "checkpoint": {
+        "bytes": 295267,
+        "sha256": "3317bd121ad870b7088dfcbbcbc7f59449a6484bf5f1fee121e2ace81c227ad7"
+      }
+    },
+    {
+      "attempt_id": "b6c907748655490f8c681e4c78713e00",
+      "candidate_id": "bispf-misgan-observed-v1",
+      "candidate_revision": "5a3af62f0de5000d2215894277efb258ab83653b8621a86dacaadb2aef11624c",
+      "source_digest": "965f882d44a532f3932080f0731df40c4feb890890e2813925dd360da7df3a7a",
+      "source_commit": "2054e69cf0046b72fdbe06edcded9c69ab55c444",
+      "request_sha256": "897c0cd9df83a6bc3491627930f9cd562f6a0a32c2342cee5fbf548c3d1e2828",
+      "result_sha256": "5a29911015ef6e25db7cce6cc9b73c5330dc6eb380e1454790dfb67e4d79e77c",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-snapshot-repair-r1/b6c907748655490f8c681e4c78713e00",
+      "paid_seconds": 621.9163337140053,
+      "study": "misgan-bispf-observed-r1-snapshot",
+      "api_receipt_sha256": "e13dbc34b81a50bc191150a3fd9553e2999c6771364fcbfc0dd1a3e45adb2c6f",
+      "adapter_receipt_sha256": "c0f3ec9ffa9c23ad5010324d995d68e1e249a0e2461c98f042e97fa6c9c8a51e",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 256,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "masked_mixture_weight": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.08,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 1200,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 2
+      },
+      "protocol": {
+        "default_evaluation_samples": 4096,
+        "default_updates": 1200,
+        "evaluation_samples": 4096,
+        "evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "media_frames": 9,
+        "media_steps": [
+          0,
+          150,
+          300,
+          450,
+          600,
+          750,
+          900,
+          1050,
+          1200
+        ],
+        "metric_evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "metric_observations": 24,
+        "terminal_observations": 5,
+        "updates": 1200,
+        "wall_cap_seconds": 1800
+      },
+      "runtime": {
+        "autograd_multithreading_enabled": false,
+        "cuda": "13.0",
+        "cuda_device_model": "NVIDIA RTX A6000",
+        "cudnn_benchmark": false,
+        "cudnn_tf32": false,
+        "deterministic_algorithms": true,
+        "device": "cuda:0",
+        "matmul_tf32": false,
+        "python": "3.12.13",
+        "torch": "2.14.0+cu130",
+        "torch_threads": 1
+      },
+      "completed_updates": 1200,
+      "verdict": "FAIL",
+      "forge_gate": "FAIL",
+      "failed_bounds": [
+        "mass_tv=0.169678 <= 0.1 failed",
+        "last 5 post-update metric observations do not all pass"
+      ],
+      "final": {
+        "ambiguous_hq": 0.986083984375,
+        "ambiguous_mass_tv": 0.087890625,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9804561138153076,
+        "hq": 0.99853515625,
+        "imputer_accuracy": 0.969482421875,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.02133789286017418,
+        "mass_tv": 0.169677734375,
+        "modes": 4,
+        "off_plane": 0.001564770587719977
+      },
+      "terminal": [
+        {
+          "step": 1000,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.95751953125,
+            "ambiguous_mass_tv": 0.05517578125,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 1.0105050802230835,
+            "hq": 0.996337890625,
+            "imputer_accuracy": 0.973876953125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.0258789025247097,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.002952172653749585
+          },
+          "failed_bounds": [
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1050,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.96337890625,
+            "ambiguous_mass_tv": 0.185791015625,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9065133333206177,
+            "hq": 0.992431640625,
+            "imputer_accuracy": 0.973388671875,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.016162116080522537,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.0021749576553702354
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.185791 <= 0.12 failed",
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1100,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.932861328125,
+            "ambiguous_mass_tv": 0.1123046875,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9419097900390625,
+            "hq": 0.998291015625,
+            "imputer_accuracy": 0.97265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.014501955360174179,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.0033744624815881252
+          },
+          "failed_bounds": [
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1150,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.979736328125,
+            "ambiguous_mass_tv": 0.079833984375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9338603615760803,
+            "hq": 0.99609375,
+            "imputer_accuracy": 0.97412109375,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.04335938021540642,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.0030353893525898457
+          },
+          "failed_bounds": [
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1200,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.986083984375,
+            "ambiguous_mass_tv": 0.087890625,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9804561138153076,
+            "hq": 0.99853515625,
+            "imputer_accuracy": 0.969482421875,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.02133789286017418,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.001564770587719977
+          },
+          "failed_bounds": [
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        }
+      ],
+      "passed_terminal_checks": 0,
+      "reproducibility": {
+        "batch_sequence_sha256": "82398353915e2d2559db0f3b09385beb1c313e62eb1d06d05ced56e8526b8a96",
+        "comparison_version": "toy-comparison-v3-serial-autograd",
+        "conditions": "case-owned architecture, prior, sampling, batch size, update budget and scoring cadence",
+        "historical_evidence": "original source, seed and initialization retained; no regrading",
+        "initial_models": {
+          "D": "b9c76f22f83523b1c503aff81ebb6584ee2439462ac6c0e4bdc2107fd4d5a434",
+          "G": "f704b78d042fa78e6e8aea5e6d4a10da668f4ac5ad4c0c5ea179e81f15b1cb7e",
+          "prior": "92791b345e0e07e7258682803e2a8640bbce67f9df259ec4f37f27f4337dc461"
+        },
+        "initial_state_sha256": "d63d9c44fd70cfacd45382fbf8c546459538acf36dd592e00546b80d9ecaaea8"
+      },
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 1200,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 1200,
+              "calls": 1200,
+              "eligible": 1200,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 1200,
+            "observations": {
+              "applied": 1200,
+              "calls": 1200,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 3600,
+              "applied_record_calls_in_window": 3600,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 1200,
+              "observed_steps_in_window": 1200,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 1200
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 1200,
+                "last": 4.5524516105651855,
+                "max": 4.822545051574707,
+                "min": 3.2490732669830322,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 1200,
+                "last": 0.07704253494739532,
+                "max": 0.6007694005966187,
+                "min": 0.038018497795795546,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 1200,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "unintended_rng_deviations": 0
+      },
+      "gif": {
+        "path": "../../toy_audit/api_contract/misgan_bispf/media/bispf-misgan-observed-v1.gif",
+        "sha256": "5236dc82f7c80f3f63669f213c9d1cff60fcc22674277e8df7a3a172ecb60262",
+        "frames": 9
+      },
+      "checkpoint": {
+        "bytes": 295331,
+        "sha256": "e019dfdbea854e2a29a407b350c1c0b2e93a75411090dff70b73337f32675bb7"
+      }
+    },
+    {
+      "attempt_id": "4727aead52a04e3285769fe0663b6844",
+      "candidate_id": "bispf-misgan-amortized-v1",
+      "candidate_revision": "43489bc17bc07057ac6f5b53d3368f30827498bd4b1415badfcbff0202fc519e",
+      "source_digest": "965f882d44a532f3932080f0731df40c4feb890890e2813925dd360da7df3a7a",
+      "source_commit": "2054e69cf0046b72fdbe06edcded9c69ab55c444",
+      "request_sha256": "beecf9f7b8235d29a48d6268eeb5a33802ab8678363477d14edeb5c4be2d0d64",
+      "result_sha256": "dc56aff362dfdc2fe9f0720349beefe2d26c414944d8818940c749f8a727d1f2",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-snapshot-repair-r1/4727aead52a04e3285769fe0663b6844",
+      "paid_seconds": 615.7360230929917,
+      "study": "misgan-bispf-amortized-r1-snapshot",
+      "api_receipt_sha256": "065d40262cb2b1a4bd818ac01780061f328aaa0accf3b9d5b620412d6e175427",
+      "adapter_receipt_sha256": "5d54dfe412a99af9e1a2c915849c6ceba79e79cf13ac58bc010bf7295e7a90ba",
+      "recipe": {
+        "alpha_bar": [
+          1.0,
+          0.9,
+          0.5,
+          0.05,
+          0.0001
+        ],
+        "amsgrad": false,
+        "batch_size": 256,
+        "betas": [
+          0.0,
+          0.999
+        ],
+        "birth_death_feature_scale": "none",
+        "birth_death_isolation": false,
+        "birth_death_space": "data",
+        "conditioning": "scalar",
+        "constraint_geometry_mode": "direction_blend",
+        "continuous_policy": null,
+        "critic_formulation": "bispf",
+        "critic_payoff_damping": true,
+        "critic_r1_real": true,
+        "d_guard_min_steps": 200,
+        "d_guard_ratio": 0.0,
+        "d_lr_mult": 1.5,
+        "direct_particle_betas": [
+          0.0,
+          0.9
+        ],
+        "direct_particle_gain": false,
+        "distance_reduction": "sum",
+        "ema_decay": 0.0,
+        "encoder_mode": "none",
+        "imputer_component_weight": 5.0,
+        "input_noise_anneal_end": 0.1,
+        "input_noise_std": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "loss": "non_saturating",
+        "lr": 0.012,
+        "lr_anneal_start": 0.6,
+        "lr_control": "mobility",
+        "lr_floor": 1.0,
+        "masked_mixture_weight": 1.0,
+        "model": "gan",
+        "name": "bispf",
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": null,
+        "num_classes": null,
+        "num_particles": 64,
+        "observation_sigma": 0.08,
+        "optimizer_convolution": "per_offset",
+        "optimizer_convolution_rule": "quintic",
+        "optimizer_family": "dualnorm",
+        "optimizer_smoothing": 0.001,
+        "output_noise_mode": "fixed",
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "particle_birth_death": false,
+        "prior_betas": null,
+        "prior_kind": "mog",
+        "prior_lr_mult": 2.5,
+        "prior_reg": 0.01,
+        "prior_regularizer": "sbnp",
+        "reconstruction_weight": 1.0,
+        "reg_anchor_min_decay": 0.9,
+        "reg_anchor_weight": 0.0,
+        "reg_coeff": 1.0,
+        "reg_every": 1,
+        "reg_kappa": 1.0,
+        "reopen_anchor": "hold",
+        "reopen_signal": "data",
+        "routing_temperature": 0.25,
+        "row_evidence_exclude": true,
+        "row_evidence_gate": false,
+        "row_evidence_hold": true,
+        "row_evidence_hot": true,
+        "row_evidence_null": "theory",
+        "row_policy": "independent",
+        "serve_average": 0.0,
+        "sigma_rel": 0.0,
+        "standardize": false,
+        "table_release_rule": "any",
+        "total_steps": 1200,
+        "ucd_target": "class",
+        "ucd_weight": 0.02,
+        "z_dim": 2
+      },
+      "protocol": {
+        "default_evaluation_samples": 4096,
+        "default_updates": 1200,
+        "evaluation_samples": 4096,
+        "evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "media_frames": 9,
+        "media_steps": [
+          0,
+          150,
+          300,
+          450,
+          600,
+          750,
+          900,
+          1050,
+          1200
+        ],
+        "metric_evaluation_steps": [
+          0,
+          50,
+          100,
+          150,
+          200,
+          250,
+          300,
+          350,
+          400,
+          450,
+          500,
+          550,
+          600,
+          650,
+          700,
+          750,
+          800,
+          850,
+          900,
+          950,
+          1000,
+          1050,
+          1100,
+          1150,
+          1200
+        ],
+        "metric_observations": 24,
+        "terminal_observations": 5,
+        "updates": 1200,
+        "wall_cap_seconds": 1800
+      },
+      "runtime": {
+        "autograd_multithreading_enabled": false,
+        "cuda": "13.0",
+        "cuda_device_model": "NVIDIA RTX A6000",
+        "cudnn_benchmark": false,
+        "cudnn_tf32": false,
+        "deterministic_algorithms": true,
+        "device": "cuda:0",
+        "matmul_tf32": false,
+        "python": "3.12.13",
+        "torch": "2.14.0+cu130",
+        "torch_threads": 1
+      },
+      "completed_updates": 1200,
+      "verdict": "FAIL",
+      "forge_gate": "FAIL",
+      "failed_bounds": [
+        "ambiguous_mass_tv=0.143311 <= 0.12 failed",
+        "mass_tv=0.169678 <= 0.1 failed",
+        "last 5 post-update metric observations do not all pass"
+      ],
+      "final": {
+        "ambiguous_hq": 0.982666015625,
+        "ambiguous_mass_tv": 0.143310546875,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.94947350025177,
+        "hq": 0.99462890625,
+        "imputer_accuracy": 0.9716796875,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.02475586161017418,
+        "mass_tv": 0.169677734375,
+        "modes": 4,
+        "off_plane": 0.0017255248967558146
+      },
+      "terminal": [
+        {
+          "step": 1000,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.977294921875,
+            "ambiguous_mass_tv": 0.11669921875,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9801464080810547,
+            "hq": 0.993408203125,
+            "imputer_accuracy": 0.971923828125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.0256347618997097,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.002271506004035473
+          },
+          "failed_bounds": [
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1050,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.979248046875,
+            "ambiguous_mass_tv": 0.12255859375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9634383320808411,
+            "hq": 0.98828125,
+            "imputer_accuracy": 0.971923828125,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.014843758195638657,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.0022434324491769075
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.122559 <= 0.12 failed",
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1100,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.9765625,
+            "ambiguous_mass_tv": 0.149169921875,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9511920809745789,
+            "hq": 0.9970703125,
+            "imputer_accuracy": 0.970947265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.007470693439245224,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.004256448242813349
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.14917 <= 0.12 failed",
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1150,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.983154296875,
+            "ambiguous_mass_tv": 0.138427734375,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.9588276147842407,
+            "hq": 0.99609375,
+            "imputer_accuracy": 0.970947265625,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.03549804911017418,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.006477475166320801
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.138428 <= 0.12 failed",
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        },
+        {
+          "step": 1200,
+          "passed": false,
+          "metrics": {
+            "ambiguous_hq": 0.982666015625,
+            "ambiguous_mass_tv": 0.143310546875,
+            "ambiguous_query_coverage": 1.0,
+            "ambiguous_std_ratio": 0.94947350025177,
+            "hq": 0.99462890625,
+            "imputer_accuracy": 0.9716796875,
+            "imputer_observed_error": 0.0,
+            "mask_tv": 0.02475586161017418,
+            "mass_tv": 0.169677734375,
+            "modes": 4,
+            "off_plane": 0.0017255248967558146
+          },
+          "failed_bounds": [
+            "ambiguous_mass_tv=0.143311 <= 0.12 failed",
+            "mass_tv=0.169678 <= 0.1 failed"
+          ]
+        }
+      ],
+      "passed_terminal_checks": 0,
+      "reproducibility": {
+        "batch_sequence_sha256": "82398353915e2d2559db0f3b09385beb1c313e62eb1d06d05ced56e8526b8a96",
+        "comparison_version": "toy-comparison-v3-serial-autograd",
+        "conditions": "case-owned architecture, prior, sampling, batch size, update budget and scoring cadence",
+        "historical_evidence": "original source, seed and initialization retained; no regrading",
+        "initial_models": {
+          "D": "b9c76f22f83523b1c503aff81ebb6584ee2439462ac6c0e4bdc2107fd4d5a434",
+          "G": "f704b78d042fa78e6e8aea5e6d4a10da668f4ac5ad4c0c5ea179e81f15b1cb7e",
+          "prior": "92791b345e0e07e7258682803e2a8640bbce67f9df259ec4f37f27f4337dc461"
+        },
+        "initial_state_sha256": "c73cfdceeb02177ef75b650bccd7a1ecd76d273eea3e2c17adc75e159e83d844"
+      },
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 1200,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 1200,
+              "calls": 1200,
+              "eligible": 1200,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 1.0,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 1.0,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 1200,
+            "observations": {
+              "applied": 1200,
+              "calls": 1200,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 3600,
+              "applied_record_calls_in_window": 3600,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 1200,
+              "observed_steps_in_window": 1200,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "bispf": 1200
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 1200,
+                "last": 4.349598995774984,
+                "max": 4.887537002563477,
+                "min": 3.2466299533843994,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 1200,
+                "last": 0.043679901740513734,
+                "max": 0.6007183194160461,
+                "min": 0.03282399553826889,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 1200,
+                "last": 1.0,
+                "max": 1.0,
+                "min": 1.0,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "unintended_rng_deviations": 0
+      },
+      "gif": {
+        "path": "../../toy_audit/api_contract/misgan_bispf/media/bispf-misgan-amortized-v1.gif",
+        "sha256": "ba5df349b568efd92664b15efec4ceac1282cb59949c386a8b816a035aa2e49d",
+        "frames": 9
+      },
+      "checkpoint": {
+        "bytes": 295395,
+        "sha256": "0db3ae500c147ddf079b2c28e4d415d2b3d8279489d9a250e80414e99d98430b"
+      }
+    }
+  ],
+  "infrastructure_errors": [
+    {
+      "attempt_id": "64487ec746934ea9b4d1b4432bd80cfc",
+      "candidate_id": "bispf-misgan-observed-v1",
+      "candidate_revision": "48992df83c68cb39e894e44c3886b6cc5c9afab7622fd646e6807e31be9d0890",
+      "source_digest": "f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b",
+      "source_commit": "b8a25fa0951d5adde3751a84624a383719dd278d",
+      "request_sha256": "8012117f68cdc818def582e576af9c34c70dc303f9f1dbbb3121f1327f0f1f19",
+      "result_sha256": "e0c1eccc9d6d15eac25a18691cf0f86b5070b59055dbd12484a2b6651046efbb",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/64487ec746934ea9b4d1b4432bd80cfc",
+      "paid_seconds": 4.256100983999204,
+      "status": "ERROR",
+      "optimizer_updates": 0
+    },
+    {
+      "attempt_id": "a8241e9344ce4928b5fcd844d90343ef",
+      "candidate_id": "bispf-misgan-amortized-v1",
+      "candidate_revision": "f63359d1e7047c017f5b021df692b16d44630d43370e034f50e7e7da911b42d7",
+      "source_digest": "f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b",
+      "source_commit": "b8a25fa0951d5adde3751a84624a383719dd278d",
+      "request_sha256": "e83200963c27dbaa3495c9e21451142458a94b7fd07b1a9e96396f167772e812",
+      "result_sha256": "a4d0c70ad04547e61d88b8f051fd67a8387b8b971ec91d38b2f071e0254cd16d",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/a8241e9344ce4928b5fcd844d90343ef",
+      "paid_seconds": 3.855927282012999,
+      "status": "ERROR",
+      "optimizer_updates": 0
+    },
+    {
+      "attempt_id": "c7bec18356094de19ed3f89491302a59",
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "candidate_revision": "e38bd7cefae66a08dbcedb8b8b5638a644ebbfcc9d7852072497b98f85c558cd",
+      "source_digest": "f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b",
+      "source_commit": "b8a25fa0951d5adde3751a84624a383719dd278d",
+      "request_sha256": "65d2955b603d5695142269a37806bc76a906bc522d6f787368044097dcf9da56",
+      "result_sha256": "db0114098e71f016da51c2d4ad611e8f2a77f8d059be40a193497494ce655731",
+      "artifact_directory": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/c7bec18356094de19ed3f89491302a59",
+      "paid_seconds": 3.903539766004542,
+      "status": "ERROR",
+      "optimizer_updates": 0
+    }
+  ],
+  "matched_initial_models": true,
+  "matched_observed_batch_sequences": true,
+  "paid_seconds": 2307.489473380032
+}

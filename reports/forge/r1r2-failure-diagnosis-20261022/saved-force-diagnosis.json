@@ -1,0 +1,1504 @@
+{
+  "ambient_rng_unchanged": true,
+  "cohorts": {
+    "energy_amsgrad": {
+      "actual_loss_generator_multiplier": {
+        "max": 0.8066044900643012,
+        "median": 0.5118625400443164,
+        "min": 0.4418131241745626,
+        "rms": 0.5159005661002317
+      },
+      "adversarial_projected_drift": {
+        "current_frozen_denominator": {
+          "G": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -1.4044502403573487,
+              "covariance_squared_error_drift": -21.48930285007347,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -0.3856192077804766,
+              "radial_variance_drift": -0.46946846099571593,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -0.16960327385779767,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 1
+          },
+          "G_velocity": {
+            "max": 0.1025524821727051,
+            "median": -0.011475256635811561,
+            "min": -0.262002242706876,
+            "rms": 0.0649784865649331
+          },
+          "combined": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -1.4234619083891684,
+              "covariance_squared_error_drift": -21.86985366233691,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -0.3951935386384818,
+              "radial_variance_drift": -0.47788598540223376,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -0.18209148524247903,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 1
+          },
+          "prior": {
+            "covariance_improving_modes": 14,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.01901166803181977,
+              "covariance_squared_error_drift": -0.3805508122634366,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -0.009574330858005017,
+              "radial_variance_drift": -0.008417524406517747,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -0.012488211384681317,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 1,
+            "tangent_expanding_modes": 1
+          },
+          "prior_velocity": {
+            "max": 0.005545405246432657,
+            "median": -0.00044848642041790004,
+            "min": -0.006469890565499611,
+            "rms": 0.001467247001675298
+          }
+        },
+        "current_sgd": {
+          "G": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.06901709788164441,
+              "covariance_squared_error_drift": -0.9423827099853344,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -0.014883243437949443,
+              "radial_variance_drift": -0.017202736644065415,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -0.006243672751881898,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 1,
+            "tangent_expanding_modes": 2
+          },
+          "G_velocity": {
+            "max": 0.004190426068762243,
+            "median": -0.000676088988203963,
+            "min": -0.010068711758894427,
+            "rms": 0.00314201345786602
+          },
+          "combined": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.06909277037742398,
+              "covariance_squared_error_drift": -0.94400067363111,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -0.014922728757963806,
+              "radial_variance_drift": -0.017237038378535192,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -0.006293919824220411,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 1,
+            "tangent_expanding_modes": 2
+          },
+          "prior": {
+            "covariance_improving_modes": 15,
+            "mean_over_modes": {
+              "center_squared_error_drift": -7.567249577958284e-05,
+              "covariance_squared_error_drift": -0.0016179636457746686,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": -3.948532001434939e-05,
+              "radial_variance_drift": -3.4301734469758784e-05,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": -5.024707233851401e-05,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 1,
+            "tangent_expanding_modes": 1
+          },
+          "prior_velocity": {
+            "max": 1.982269185059324e-05,
+            "median": -1.790158196566215e-06,
+            "min": -3.145679262248212e-05,
+            "rms": 5.86560813369142e-06
+          }
+        },
+        "saved_momentum": {
+          "G": {
+            "covariance_improving_modes": 2,
+            "mean_over_modes": {
+              "center_squared_error_drift": 1.5095450800673818,
+              "covariance_squared_error_drift": 30.324233047587747,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": 0.5226015067497587,
+              "radial_variance_drift": 0.5958414025225616,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": 0.2807590447454946,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 14,
+            "tangent_expanding_modes": 13
+          },
+          "G_velocity": {
+            "max": 0.4284981814016076,
+            "median": 0.053812023415534434,
+            "min": -0.11253787144324838,
+            "rms": 0.1066767307863882
+          },
+          "combined": {
+            "covariance_improving_modes": 2,
+            "mean_over_modes": {
+              "center_squared_error_drift": 1.5616071335370958,
+              "covariance_squared_error_drift": 31.24561007075339,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": 0.53505867985036,
+              "radial_variance_drift": 0.5984356859201827,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": 0.3031334205286565,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 14,
+            "tangent_expanding_modes": 13
+          },
+          "prior": {
+            "covariance_improving_modes": 9,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.052062053469713744,
+              "covariance_squared_error_drift": 0.9213770231656943,
+              "original_covariance_error": 6.6335870316597605,
+              "original_covariance_error_drift": 0.012457173100601876,
+              "radial_variance_drift": 0.002594283397621714,
+              "radial_variance_ratio": 8.304912928776455,
+              "tangent_variance_drift": 0.02237437578316197,
+              "tangent_variance_ratio": 4.428914411636973
+            },
+            "radial_expanding_modes": 8,
+            "tangent_expanding_modes": 8
+          },
+          "prior_velocity": {
+            "max": 0.0811853834930665,
+            "median": 0.0,
+            "min": -0.017661750635415252,
+            "rms": 0.009502556524987249
+          }
+        }
+      },
+      "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-tier1-search-20261012/queue/r1r2-energy-distance-repair-v1/219c852ff8c345768d5cd16407b04236",
+      "checkpoint_sha256": "676740b80e7dfff7862a42b0962bfdea07b292437ec32f60efe9fb2db84c7426",
+      "critic_on_saved_fake": {
+        "gradient_norm": {
+          "max": 1.447110752828835,
+          "median": 0.33897556822291436,
+          "min": 0.00433721400084449,
+          "rms": 0.37617800058894774
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.7932653696007455,
+          "median": 0.504673604102052,
+          "min": 0.4420116906055463,
+          "rms": 0.5089363019684813
+        },
+        "score": {
+          "max": 0.23300168019410464,
+          "median": -0.018704701552795855,
+          "min": -1.3447218136770818,
+          "rms": 0.17911470315421338
+        }
+      },
+      "critic_on_target_quadrature": {
+        "gradient_norm": {
+          "max": 1.2742882075737296,
+          "median": 0.39393031688603314,
+          "min": 0.025080338365457335,
+          "rms": 0.43840139431173514
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.5965570195350542,
+          "median": 0.5129157195880539,
+          "min": 0.4421903318305066,
+          "rms": 0.5137547972942168
+        },
+        "score": {
+          "max": 0.2322774033334238,
+          "median": -0.05193719557320997,
+          "min": -0.39113966176731874,
+          "rms": 0.12972989177228325
+        }
+      },
+      "diagnostic_prior_points": 20736,
+      "executed_source": "67920d9090727bd74adbd331187f0e6f22533e48",
+      "immutable_binding": {
+        "commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "publication_git_blob": "51d853392eca4ddc90cef4fedb7baf0e4ba08423",
+        "publication_path": "reports/forge/r1r2-energy-distance-repair/publication/results.json",
+        "publication_sha256": "cb3f7b89d1677591a12dd86377d072b55cba1b95e99060b2841cdf42c418b75c",
+        "raw_matches_pinned_result": true,
+        "recipe_prior_target_architecture_optimizer_bindings_checked": true,
+        "request_sha256": "211738c6917e36c5ff9f1ac9b770e894bf289bca8c4d2b9625e12ddff1565ab5",
+        "result_sha256": "51b716db5e6a241532120c11a8ce41dd9107f58b17bdbf96e2a08691b603cfc4"
+      },
+      "learned_prior": true,
+      "manual_jvp_max_abs_error": {
+        "G": 1.1598506044485646e-09,
+        "combined": 1.4537070436304589e-09,
+        "prior": 1.2492383336278317e-09
+      },
+      "model_source_pins": {
+        "benchmarks/locked_shared/mlp.py": "928bd363b37b91ec557b82bed5c4b23cfa08eca499d6187ae3da071fcb3b2b1a",
+        "lib/toy_models.py": "70f32797882de0dc88085afcf5e05821b65eb5f248c9690818a2494225d782a3"
+      },
+      "optimizer_roles": {
+        "generator": {
+          "amsgrad": true,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 1.0,
+            "median": 0.293284246093527,
+            "min": 0.0027724713821302783,
+            "rms": 0.41527509727276557
+          },
+          "betas": [
+            0.5,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.2250410544145546,
+            "median": 0.003621616499863082,
+            "min": 9.136121582970199e-05,
+            "rms": 0.01685452559327952
+          },
+          "lr": 0.0085,
+          "saved_momentum": {
+            "max": 0.01992008462548256,
+            "median": -1.8047796856990317e-06,
+            "min": -0.0960315465927124,
+            "rms": 0.004458083241116078
+          }
+        },
+        "prior": {
+          "amsgrad": true,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 0.8501465122741705,
+            "median": 0.42812346009632607,
+            "min": 0.13389053437531645,
+            "rms": 0.4509297241648014
+          },
+          "betas": [
+            0.0,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.01087323049149945,
+            "median": 0.003731066408093432,
+            "min": 0.0011883676185246944,
+            "rms": 0.0039545387566019925
+          },
+          "lr": 0.0085,
+          "saved_momentum": {
+            "max": 0.004386276938021183,
+            "median": 0.0,
+            "min": -0.011412674561142921,
+            "rms": 0.0017984438298148072
+          }
+        }
+      },
+      "request_sha256": "211738c6917e36c5ff9f1ac9b770e894bf289bca8c4d2b9625e12ddff1565ab5",
+      "saved_panel_sha256": "6eaf89d0bddcac23caa0d1dbabc9d9df62b69fb6141184bfad18a64842560872",
+      "snapshot_files_verified": 1216,
+      "source_digest": "2b04f2853c511c9bcd417ef41e8fd773e97e8c67c9e057da8abdd4fef2de5f12",
+      "target_quadrature_points": 784,
+      "unprojected_adversarial_drift": {
+        "covariance_improving_modes": 16,
+        "mean_over_modes": {
+          "center_squared_error_drift": -1.0073430648181336,
+          "covariance_squared_error_drift": -68.75404729240206,
+          "original_covariance_error": 6.6335870316597605,
+          "original_covariance_error_drift": -2.9569228515631267,
+          "radial_variance_drift": -2.486590106818559,
+          "radial_variance_ratio": 8.304912928776455,
+          "tangent_variance_drift": -4.173346472188725,
+          "tangent_variance_ratio": 4.428914411636973
+        },
+        "radial_expanding_modes": 0,
+        "tangent_expanding_modes": 0
+      }
+    },
+    "energy_frozen_prior": {
+      "actual_loss_generator_multiplier": {
+        "max": 0.6851061829345222,
+        "median": 0.5195675858890809,
+        "min": 0.42804473801961523,
+        "rms": 0.5198239251295056
+      },
+      "adversarial_projected_drift": {
+        "current_frozen_denominator": {
+          "G": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.428165202324577,
+              "covariance_squared_error_drift": -8.961716092056696,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.3542410501837492,
+              "radial_variance_drift": -0.36808724686371297,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.40568798015522073,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "G_velocity": {
+            "max": 0.1281609679373923,
+            "median": -0.02305771785859803,
+            "min": -0.21227520163300373,
+            "rms": 0.06688738365505766
+          },
+          "combined": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.428165202324577,
+              "covariance_squared_error_drift": -8.961716092056696,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.3542410501837492,
+              "radial_variance_drift": -0.36808724686371297,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.40568798015522073,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "prior": {
+            "covariance_improving_modes": 0,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.0,
+              "covariance_squared_error_drift": 0.0,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": 0.0,
+              "radial_variance_drift": 0.0,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": 0.0,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "rms": 0.0
+          }
+        },
+        "current_sgd": {
+          "G": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.020043805646226036,
+              "covariance_squared_error_drift": -0.3584219332311722,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.014192073766293141,
+              "radial_variance_drift": -0.012314253256151802,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.017128520698857938,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "G_velocity": {
+            "max": 0.0044210027590030326,
+            "median": -0.001187775842746524,
+            "min": -0.007275362023549812,
+            "rms": 0.002968540335557559
+          },
+          "combined": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.020043805646226036,
+              "covariance_squared_error_drift": -0.3584219332311722,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.014192073766293141,
+              "radial_variance_drift": -0.012314253256151802,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.017128520698857938,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "prior": {
+            "covariance_improving_modes": 0,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.0,
+              "covariance_squared_error_drift": 0.0,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": 0.0,
+              "radial_variance_drift": 0.0,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": 0.0,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "rms": 0.0
+          }
+        },
+        "saved_momentum": {
+          "G": {
+            "covariance_improving_modes": 11,
+            "mean_over_modes": {
+              "center_squared_error_drift": 1.3280931527917663,
+              "covariance_squared_error_drift": -5.648054645773085,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.21170193573477006,
+              "radial_variance_drift": -0.20445081508076576,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.28620054421933283,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 7
+          },
+          "G_velocity": {
+            "max": 0.43885511420078166,
+            "median": 0.06292802873818469,
+            "min": -0.16370335034252126,
+            "rms": 0.11265032226288134
+          },
+          "combined": {
+            "covariance_improving_modes": 11,
+            "mean_over_modes": {
+              "center_squared_error_drift": 1.3280931527917663,
+              "covariance_squared_error_drift": -5.648054645773085,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": -0.21170193573477006,
+              "radial_variance_drift": -0.20445081508076576,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": -0.28620054421933283,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 7
+          },
+          "prior": {
+            "covariance_improving_modes": 0,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.0,
+              "covariance_squared_error_drift": 0.0,
+              "original_covariance_error": 6.096103967843009,
+              "original_covariance_error_drift": 0.0,
+              "radial_variance_drift": 0.0,
+              "radial_variance_ratio": 3.083043437446607,
+              "tangent_variance_drift": 0.0,
+              "tangent_variance_ratio": 9.260194663925454
+            },
+            "radial_expanding_modes": 0,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 0.0,
+            "median": 0.0,
+            "min": 0.0,
+            "rms": 0.0
+          }
+        }
+      },
+      "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-tier1-search-20261012/queue/r1r2-energy-prior-freeze-repair-v1/c168f1c417b04e1a9938d68b04b0556c",
+      "checkpoint_sha256": "cae963187dfca81c7bde6fb691baebc978a5b5a4196404829699a52bca719290",
+      "critic_on_saved_fake": {
+        "gradient_norm": {
+          "max": 1.246781488670045,
+          "median": 0.5485840435437561,
+          "min": 0.00252017931521763,
+          "rms": 0.5952841114709472
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.6799890941883032,
+          "median": 0.5173272240651303,
+          "min": 0.42842243948248576,
+          "rms": 0.5175288502927234
+        },
+        "score": {
+          "max": 0.2882904710217815,
+          "median": -0.06934227724924893,
+          "min": -0.7537216842085731,
+          "rms": 0.15682441170908867
+        }
+      },
+      "critic_on_target_quadrature": {
+        "gradient_norm": {
+          "max": 1.2804240489803391,
+          "median": 0.6128325375470387,
+          "min": 0.05202073530389286,
+          "rms": 0.6609500755686137
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.5987540202395173,
+          "median": 0.5181583674202183,
+          "min": 0.4284654440522795,
+          "rms": 0.5167813739268605
+        },
+        "score": {
+          "max": 0.2881148559566638,
+          "median": -0.07271672546238077,
+          "min": -0.40027620798457075,
+          "rms": 0.1372510863660341
+        }
+      },
+      "diagnostic_prior_points": 20736,
+      "executed_source": "3203c4e419cb7c2a4cd2021d2c48638980579901",
+      "immutable_binding": {
+        "commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "publication_git_blob": "5bf91a481fbccf8e13663dd41baf026588bfbd6d",
+        "publication_path": "reports/forge/r1r2-energy-prior-freeze-repair/publication/results.json",
+        "publication_sha256": "013696f61094eb8c06e9d9c41a9422270315678992f9a1a9680430c56bf7f207",
+        "raw_matches_pinned_result": true,
+        "recipe_prior_target_architecture_optimizer_bindings_checked": true,
+        "request_sha256": "9aa2aaae5582232cbd4968990bd4b9df7dd474b4ce1b7a7cca8b8631f8184590",
+        "result_sha256": "ea5628b5c69234ddbfd338e4d9bab8205b028a2683d327806f71f0b606c16abf"
+      },
+      "learned_prior": false,
+      "manual_jvp_max_abs_error": {
+        "G": 1.2836181007003233e-09,
+        "combined": 1.2712233488088032e-09,
+        "prior": 1.4702575545921803e-09
+      },
+      "model_source_pins": {
+        "benchmarks/locked_shared/mlp.py": "928bd363b37b91ec557b82bed5c4b23cfa08eca499d6187ae3da071fcb3b2b1a",
+        "lib/toy_models.py": "70f32797882de0dc88085afcf5e05821b65eb5f248c9690818a2494225d782a3"
+      },
+      "optimizer_roles": {
+        "generator": {
+          "amsgrad": true,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 1.0,
+            "median": 0.45247390535320664,
+            "min": 0.007032650595276457,
+            "rms": 0.5037156428887056
+          },
+          "betas": [
+            0.5,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.24925441180161392,
+            "median": 0.005042709099551892,
+            "min": 7.862735561029923e-05,
+            "rms": 0.020379776857108286
+          },
+          "lr": 0.0085,
+          "saved_momentum": {
+            "max": 0.04106656834483147,
+            "median": -8.978667210612912e-06,
+            "min": -0.07863951474428177,
+            "rms": 0.004670381790101333
+          }
+        }
+      },
+      "request_sha256": "9aa2aaae5582232cbd4968990bd4b9df7dd474b4ce1b7a7cca8b8631f8184590",
+      "saved_panel_sha256": "a71ca74e390eb980597c440b726fdbf184adf0b3311f0576b64ff49db963f862",
+      "snapshot_files_verified": 1216,
+      "source_digest": "2b04f2853c511c9bcd417ef41e8fd773e97e8c67c9e057da8abdd4fef2de5f12",
+      "target_quadrature_points": 784,
+      "unprojected_adversarial_drift": {
+        "covariance_improving_modes": 16,
+        "mean_over_modes": {
+          "center_squared_error_drift": -0.9097796284264684,
+          "covariance_squared_error_drift": -250.03401141368954,
+          "original_covariance_error": 6.096103967843009,
+          "original_covariance_error_drift": -9.820234750411633,
+          "radial_variance_drift": -2.0113828158789366,
+          "radial_variance_ratio": 3.083043437446607,
+          "tangent_variance_drift": -13.819426849012267,
+          "tangent_variance_ratio": 9.260194663925454
+        },
+        "radial_expanding_modes": 0,
+        "tangent_expanding_modes": 0
+      }
+    },
+    "ns_amsgrad": {
+      "actual_loss_generator_multiplier": {
+        "max": 0.5460016842183669,
+        "median": 0.5037083666484624,
+        "min": 0.4569797474504713,
+        "rms": 0.5040197487526882
+      },
+      "adversarial_projected_drift": {
+        "current_frozen_denominator": {
+          "G": {
+            "covariance_improving_modes": 8,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.8945378143191781,
+              "covariance_squared_error_drift": 0.03584371947676389,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.003101699422224574,
+              "radial_variance_drift": -0.02950030124853168,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.0017858643976802944,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 5,
+            "tangent_expanding_modes": 8
+          },
+          "G_velocity": {
+            "max": 0.13419049561624208,
+            "median": -0.006923194373395556,
+            "min": -0.1197086379927874,
+            "rms": 0.05638735361055997
+          },
+          "combined": {
+            "covariance_improving_modes": 8,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.8993338059666558,
+              "covariance_squared_error_drift": 0.02325390052706795,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.00138665481460815,
+              "radial_variance_drift": -0.029563130306458,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": -0.0008693398149436794,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 5,
+            "tangent_expanding_modes": 8
+          },
+          "prior": {
+            "covariance_improving_modes": 14,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.004795991647477738,
+              "covariance_squared_error_drift": -0.012589818949695583,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": -0.0017150446076163808,
+              "radial_variance_drift": -6.282905792632459e-05,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": -0.0026552042126239176,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 9,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 0.0038857545665382295,
+            "median": 2.9350491212076896e-05,
+            "min": -0.006130895243506156,
+            "rms": 0.0006804306427810529
+          }
+        },
+        "current_sgd": {
+          "G": {
+            "covariance_improving_modes": 7,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.014833513997683264,
+              "covariance_squared_error_drift": 0.0018838620719100834,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.0002402416293869031,
+              "radial_variance_drift": -0.000235611353553902,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.000360923730651843,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 9
+          },
+          "G_velocity": {
+            "max": 0.0019335655080113695,
+            "median": 3.2195150048087615e-07,
+            "min": -0.0015958209255460417,
+            "rms": 0.0008755136022359615
+          },
+          "combined": {
+            "covariance_improving_modes": 7,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.014850176915603731,
+              "covariance_squared_error_drift": 0.0018428511832743752,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.00023465014070550306,
+              "radial_variance_drift": -0.00023578781854117014,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.00035221255698684295,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 9
+          },
+          "prior": {
+            "covariance_improving_modes": 14,
+            "mean_over_modes": {
+              "center_squared_error_drift": -1.6662917920468324e-05,
+              "covariance_squared_error_drift": -4.1010888635709256e-05,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": -5.591488681400228e-06,
+              "radial_variance_drift": -1.7646498726856142e-07,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": -8.711173665000314e-06,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 9,
+            "tangent_expanding_modes": 2
+          },
+          "prior_velocity": {
+            "max": 1.260136483536679e-05,
+            "median": 9.861817913847316e-08,
+            "min": -1.9422968230067284e-05,
+            "rms": 2.3209845244065094e-06
+          }
+        },
+        "saved_momentum": {
+          "G": {
+            "covariance_improving_modes": 7,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.3303140422753189,
+              "covariance_squared_error_drift": 0.05698138827594115,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.009440094690476382,
+              "radial_variance_drift": -0.001916174007980415,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.01196040492228431,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 8,
+            "tangent_expanding_modes": 8
+          },
+          "G_velocity": {
+            "max": 0.029588176808825892,
+            "median": -0.015523972503878077,
+            "min": -0.09009622455169693,
+            "rms": 0.03168672542110727
+          },
+          "combined": {
+            "covariance_improving_modes": 7,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.33295372342371654,
+              "covariance_squared_error_drift": 0.059573509440503075,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.00977277021498813,
+              "radial_variance_drift": -0.0017612138001565733,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.012162454333650721,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 8,
+            "tangent_expanding_modes": 7
+          },
+          "prior": {
+            "covariance_improving_modes": 9,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.002639681148397663,
+              "covariance_squared_error_drift": 0.0025921211645618665,
+              "original_covariance_error": 1.5931846671066356,
+              "original_covariance_error_drift": 0.00033267552451173986,
+              "radial_variance_drift": 0.00015496020782383626,
+              "radial_variance_ratio": 0.29324565547352055,
+              "tangent_variance_drift": 0.000202049411366401,
+              "tangent_variance_ratio": 3.1112808649483745
+            },
+            "radial_expanding_modes": 8,
+            "tangent_expanding_modes": 6
+          },
+          "prior_velocity": {
+            "max": 0.028412708230367567,
+            "median": 0.0,
+            "min": -0.03078298075628346,
+            "rms": 0.0033265583724568287
+          }
+        }
+      },
+      "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-tier1-search-20261012/queue/r1r2-energy-distance-repair-v1/3e1e55b0f89d4a8c8cedd706dbd4e021",
+      "checkpoint_sha256": "ac391adc90c90cc3dd445b4201765163a20c1187b39c90ba954d450afc8be328",
+      "critic_on_saved_fake": {
+        "gradient_norm": {
+          "max": 0.44129222814309393,
+          "median": 0.16449823814703696,
+          "min": 0.002878955334675889,
+          "rms": 0.18849942383381857
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.545189361529259,
+          "median": 0.5007163111667193,
+          "min": 0.4569723510756614,
+          "rms": 0.5009854193306876
+        },
+        "score": {
+          "max": 0.17253734933154963,
+          "median": -0.0028738804340326662,
+          "min": -0.18125203352374686,
+          "rms": 0.07580357857137979
+        }
+      },
+      "critic_on_target_quadrature": {
+        "gradient_norm": {
+          "max": 0.48071255128838675,
+          "median": 0.17503600514381623,
+          "min": 0.004795985771679128,
+          "rms": 0.20916686228184694
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.5439591195501811,
+          "median": 0.502740291787438,
+          "min": 0.4571944524099513,
+          "rms": 0.5040861743675858
+        },
+        "score": {
+          "max": 0.17164235021859864,
+          "median": -0.011084504923647563,
+          "min": -0.17629164054119498,
+          "rms": 0.07265742650797952
+        }
+      },
+      "diagnostic_prior_points": 20736,
+      "executed_source": "67920d9090727bd74adbd331187f0e6f22533e48",
+      "immutable_binding": {
+        "commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "publication_git_blob": "51d853392eca4ddc90cef4fedb7baf0e4ba08423",
+        "publication_path": "reports/forge/r1r2-energy-distance-repair/publication/results.json",
+        "publication_sha256": "cb3f7b89d1677591a12dd86377d072b55cba1b95e99060b2841cdf42c418b75c",
+        "raw_matches_pinned_result": true,
+        "recipe_prior_target_architecture_optimizer_bindings_checked": true,
+        "request_sha256": "4d4db71ee278494e2130dd9a1b7b9933bd15b66a62085260fb0d9c28b6ebebb3",
+        "result_sha256": "1604b42244e56b7792ebea7e57ea2496e0fcf06a1c1dcbda36370d54df49cd33"
+      },
+      "learned_prior": true,
+      "manual_jvp_max_abs_error": {
+        "G": 1.1338157912543778e-09,
+        "combined": 9.9616218052212e-10,
+        "prior": 9.477836063176946e-10
+      },
+      "model_source_pins": {
+        "benchmarks/locked_shared/mlp.py": "928bd363b37b91ec557b82bed5c4b23cfa08eca499d6187ae3da071fcb3b2b1a",
+        "lib/toy_models.py": "70f32797882de0dc88085afcf5e05821b65eb5f248c9690818a2494225d782a3"
+      },
+      "optimizer_roles": {
+        "generator": {
+          "amsgrad": true,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 0.8460489771205186,
+            "median": 0.1594821177326725,
+            "min": 0.002416266104550068,
+            "rms": 0.19241589387239255
+          },
+          "betas": [
+            0.5,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.08115876924750008,
+            "median": 0.0019004759837503008,
+            "min": 0.0001434967666147907,
+            "rms": 0.008527844575442626
+          },
+          "lr": 0.0085,
+          "saved_momentum": {
+            "max": 0.006608908995985985,
+            "median": 3.060451035707956e-06,
+            "min": -0.0027466327883303165,
+            "rms": 0.00042636589486541837
+          }
+        },
+        "prior": {
+          "amsgrad": true,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 0.46162619777808633,
+            "median": 0.11623623897873767,
+            "min": 0.0029914759328845764,
+            "rms": 0.15596457176715278
+          },
+          "betas": [
+            0.0,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.007271487054776142,
+            "median": 0.0037066041529764207,
+            "min": 0.0015555643486017926,
+            "rms": 0.0039167669640690255
+          },
+          "lr": 0.0085,
+          "saved_momentum": {
+            "max": 0.004309802781790495,
+            "median": 0.0,
+            "min": -0.0029891482554376125,
+            "rms": 0.0005257834739017652
+          }
+        }
+      },
+      "request_sha256": "4d4db71ee278494e2130dd9a1b7b9933bd15b66a62085260fb0d9c28b6ebebb3",
+      "saved_panel_sha256": "2db2838d479c63cb7903c27253542dc5814a12a277393b6c4fbb0d526a2b6ebe",
+      "snapshot_files_verified": 1216,
+      "source_digest": "2b04f2853c511c9bcd417ef41e8fd773e97e8c67c9e057da8abdd4fef2de5f12",
+      "target_quadrature_points": 784,
+      "unprojected_adversarial_drift": {
+        "covariance_improving_modes": 16,
+        "mean_over_modes": {
+          "center_squared_error_drift": -0.2390491077420052,
+          "covariance_squared_error_drift": -10.833069352814203,
+          "original_covariance_error": 1.5931846671066356,
+          "original_covariance_error_drift": -1.6402272126123052,
+          "radial_variance_drift": -0.029261009768900167,
+          "radial_variance_ratio": 0.29324565547352055,
+          "tangent_variance_drift": -2.4806211676662278,
+          "tangent_variance_ratio": 3.1112808649483745
+        },
+        "radial_expanding_modes": 6,
+        "tangent_expanding_modes": 0
+      }
+    },
+    "scheduled_selected": {
+      "actual_loss_generator_multiplier": {
+        "max": 0.5579219427670304,
+        "median": 0.5110957021361795,
+        "min": 0.4418076470609708,
+        "rms": 0.5110831074011819
+      },
+      "adversarial_projected_drift": {
+        "current_frozen_denominator": {
+          "G": {
+            "covariance_improving_modes": 5,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.4198394213856013,
+              "covariance_squared_error_drift": 0.016766649863055653,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 0.003427400355389239,
+              "radial_variance_drift": -0.039971913458532356,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": -0.001887693789321077,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 3,
+            "tangent_expanding_modes": 10
+          },
+          "G_velocity": {
+            "max": 0.030266500647115648,
+            "median": -0.021053119965496116,
+            "min": -0.09673515251628487,
+            "rms": 0.03100105982441175
+          },
+          "combined": {
+            "covariance_improving_modes": 7,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.4215241178949822,
+              "covariance_squared_error_drift": 0.004691738841653515,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 0.002007602343829294,
+              "radial_variance_drift": -0.04000663682670447,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": -0.003950358650953903,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 3,
+            "tangent_expanding_modes": 10
+          },
+          "prior": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.001684696509380887,
+              "covariance_squared_error_drift": -0.012074911021402396,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": -0.001419798011559971,
+              "radial_variance_drift": -3.47233681721176e-05,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": -0.002062664861632865,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 0.0014914558967910009,
+            "median": -4.470175498364048e-05,
+            "min": -0.0017889844581894083,
+            "rms": 0.0003077433771907172
+          }
+        },
+        "current_sgd": {
+          "G": {
+            "covariance_improving_modes": 5,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.0015236214595437426,
+              "covariance_squared_error_drift": 0.00023322828962199057,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 3.262947204962356e-05,
+              "radial_variance_drift": -4.4177991736417436e-05,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": 3.900644969090387e-05,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 5,
+            "tangent_expanding_modes": 11
+          },
+          "G_velocity": {
+            "max": 7.454130272244775e-05,
+            "median": -6.390400741983049e-05,
+            "min": -0.0002881980245708131,
+            "rms": 0.00011140445048692626
+          },
+          "combined": {
+            "covariance_improving_modes": 5,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.001525088755951764,
+              "covariance_squared_error_drift": 0.00022483706522204364,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 3.1691969103201474e-05,
+              "radial_variance_drift": -4.417715948714515e-05,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": 3.7653063190513735e-05,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 5,
+            "tangent_expanding_modes": 11
+          },
+          "prior": {
+            "covariance_improving_modes": 16,
+            "mean_over_modes": {
+              "center_squared_error_drift": -1.467296408021378e-06,
+              "covariance_squared_error_drift": -8.391224399946763e-06,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": -9.375029464220834e-07,
+              "radial_variance_drift": 8.322492722993724e-10,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": -1.3533865003901182e-06,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 6,
+            "tangent_expanding_modes": 0
+          },
+          "prior_velocity": {
+            "max": 9.752564331455588e-07,
+            "median": -3.0302579437066716e-08,
+            "min": -2.3111990024144333e-06,
+            "rms": 2.92168323700245e-07
+          }
+        },
+        "saved_momentum": {
+          "G": {
+            "covariance_improving_modes": 2,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.06343488592090768,
+              "covariance_squared_error_drift": 0.5477824379177586,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 0.057170561060215695,
+              "radial_variance_drift": 0.10242167970573453,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": 0.0951899093446309,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 15,
+            "tangent_expanding_modes": 15
+          },
+          "G_velocity": {
+            "max": 0.11954374525713143,
+            "median": -0.004030999776038205,
+            "min": -0.15517366983918432,
+            "rms": 0.040291051235869825
+          },
+          "combined": {
+            "covariance_improving_modes": 2,
+            "mean_over_modes": {
+              "center_squared_error_drift": -0.06293511699660151,
+              "covariance_squared_error_drift": 0.5613966386658189,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 0.05820869290203925,
+              "radial_variance_drift": 0.10243548241911313,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": 0.0966051592779686,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 15,
+            "tangent_expanding_modes": 15
+          },
+          "prior": {
+            "covariance_improving_modes": 8,
+            "mean_over_modes": {
+              "center_squared_error_drift": 0.000499768924306186,
+              "covariance_squared_error_drift": 0.013614200748060148,
+              "original_covariance_error": 2.1117906492228244,
+              "original_covariance_error_drift": 0.001038131841823532,
+              "radial_variance_drift": 1.3802713378647668e-05,
+              "radial_variance_ratio": 0.5581666855475161,
+              "tangent_variance_drift": 0.001415249933337688,
+              "tangent_variance_ratio": 3.9220614673248684
+            },
+            "radial_expanding_modes": 9,
+            "tangent_expanding_modes": 8
+          },
+          "prior_velocity": {
+            "max": 0.01652966900725098,
+            "median": 0.0,
+            "min": -0.0148064739382586,
+            "rms": 0.002009353454872073
+          }
+        }
+      },
+      "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/recipe-owned-priors-20261010/queue/recipe-prior-refactor-selected-leaders-v1/a54bc96e82f34c9e98e7fa1f1d268a33",
+      "checkpoint_sha256": "8897396157ecb7e0daf6e9899c93c840a873a73ca0ed527312196bab2ba799cd",
+      "critic_on_saved_fake": {
+        "gradient_norm": {
+          "max": 0.6822039952661425,
+          "median": 0.2036130294526519,
+          "min": 0.003575633266746666,
+          "rms": 0.23213118347680445
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.5261954064543208,
+          "median": 0.47653564279421545,
+          "min": 0.41038930949755403,
+          "rms": 0.475308346165416
+        },
+        "score": {
+          "max": 0.36235622796444594,
+          "median": 0.09392121590462504,
+          "min": -0.10487765211767998,
+          "rms": 0.12439855192536764
+        }
+      },
+      "critic_on_target_quadrature": {
+        "gradient_norm": {
+          "max": 0.7370102003171948,
+          "median": 0.23640146465241504,
+          "min": 0.0015967956372120843,
+          "rms": 0.271393546004446
+        },
+        "hypothetical_ns_multiplier": {
+          "max": 0.5309068198840949,
+          "median": 0.4788693453577945,
+          "min": 0.4105104962572776,
+          "rms": 0.47829772842210544
+        },
+        "score": {
+          "max": 0.36185541645220537,
+          "median": 0.08454968044368873,
+          "min": -0.123785098401304,
+          "rms": 0.11650135326771939
+        }
+      },
+      "diagnostic_prior_points": 20736,
+      "executed_source": "a0493ca3c213d559523eadc76e244ec9f9c1f81f",
+      "immutable_binding": {
+        "commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "publication_git_blob": "4e86eef5744584629970b77a0ebe65b41aad1769",
+        "publication_path": "reports/forge/recipe-prior-refactor/publication/results.json",
+        "publication_sha256": "bd7f939d195c7e35f615412e4f1aced921a806f4da08ba615350e573e7b0678c",
+        "raw_matches_pinned_result": true,
+        "recipe_prior_target_architecture_optimizer_bindings_checked": true,
+        "request_sha256": "e664c10fbe4d1d922daa8aea75683858a9e0bf0238b5dfe7c963cfbdec6b91ab",
+        "result_sha256": "d5c5ce3efc347b47552afd75535d9ea8e06acdf358edb7b6e0d235a9ecdd2df2"
+      },
+      "learned_prior": true,
+      "manual_jvp_max_abs_error": {
+        "G": 1.049992759405427e-09,
+        "combined": 1.1030761304375858e-09,
+        "prior": 9.427652592313416e-10
+      },
+      "model_source_pins": {
+        "benchmarks/locked_shared/mlp.py": "928bd363b37b91ec557b82bed5c4b23cfa08eca499d6187ae3da071fcb3b2b1a",
+        "lib/toy_models.py": "70f32797882de0dc88085afcf5e05821b65eb5f248c9690818a2494225d782a3"
+      },
+      "optimizer_roles": {
+        "generator": {
+          "amsgrad": false,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "rms": 1.0
+          },
+          "betas": [
+            0.0,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.019079880527858865,
+            "median": 0.0004844852163750977,
+            "min": 3.277147990380679e-06,
+            "rms": 0.0016672793793622803
+          },
+          "lr": 0.0008500000000000001,
+          "saved_momentum": {
+            "max": 0.012806435115635395,
+            "median": -6.600508640985936e-06,
+            "min": -0.013163141906261444,
+            "rms": 0.0011730018750362732
+          }
+        },
+        "prior": {
+          "amsgrad": false,
+          "amsgrad_speed_vs_current_second_moment": {
+            "max": 1.0,
+            "median": 1.0,
+            "min": 1.0,
+            "rms": 1.0
+          },
+          "betas": [
+            0.0,
+            0.99
+          ],
+          "denominator": {
+            "max": 0.001993273610984587,
+            "median": 0.0005143456591136629,
+            "min": 2.5781782557548123e-05,
+            "rms": 0.0007164194187549929
+          },
+          "lr": 0.0008500000000000001,
+          "saved_momentum": {
+            "max": 0.004097480792552233,
+            "median": 0.0,
+            "min": -0.005105489864945412,
+            "rms": 0.0006880273960514136
+          }
+        }
+      },
+      "request_sha256": "e664c10fbe4d1d922daa8aea75683858a9e0bf0238b5dfe7c963cfbdec6b91ab",
+      "saved_panel_sha256": "874ecc14c1ab0dde54b29d50f6a1e47f9b4359bbb6c1290c83e421498317fd58",
+      "snapshot_files_verified": 1206,
+      "source_digest": "a5eafc73e4c4a995cc388b9be00bea5aec289fd35863099e369008e7def0ab14",
+      "target_quadrature_points": 784,
+      "unprojected_adversarial_drift": {
+        "covariance_improving_modes": 16,
+        "mean_over_modes": {
+          "center_squared_error_drift": -0.1678282357531292,
+          "covariance_squared_error_drift": -21.80203975429559,
+          "original_covariance_error": 2.1117906492228244,
+          "original_covariance_error_drift": -2.4346197653383257,
+          "radial_variance_drift": -0.04714994158519029,
+          "radial_variance_ratio": 0.5581666855475161,
+          "tangent_variance_drift": -3.538426828286254,
+          "tangent_variance_ratio": 3.9220614673248684
+        },
+        "radial_expanding_modes": 9,
+        "tangent_expanding_modes": 0
+      }
+    }
+  },
+  "diagnostic_wall_seconds": 4.633708356996067,
+  "limits": [
+    "Frozen endpoint only; no historical minibatches or critic refitting.",
+    "Current-force projection excludes energy auxiliary and momentum; saved-momentum projection includes stored training history.",
+    "Frozen Adam denominator is a local diagnostic, not a simulated optimizer step.",
+    "Saved momentum is previous-update history projected at the final model, not a next Adam update.",
+    "Squared covariance error drift is an analysis proxy; original covariance error drift uses the original relative-Frobenius formula with fixed labels.",
+    "Tensor evaluation uses float64 CPU; trained states and original grades retain their original runtime.",
+    "Nearest-target labels and quadrature are analysis-only; component boundaries held fixed for directional derivatives."
+  ],
+  "probe_sha256": "34fb328507a4178f76bc10a77b1b0ea18f31c7143a0bf4ad8e471d07630a1f9c",
+  "quadrature_order": 3,
+  "quadrature_sensitivity": {
+    "comparisons": {
+      "energy_amsgrad": {
+        "current_covariance_drift_sign_agrees": true,
+        "order3": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -1.4234619083891684,
+            "original_covariance_error_drift": -0.3951935386384818,
+            "radial_variance_drift": -0.47788598540223376,
+            "tangent_variance_drift": -0.18209148524247903
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 1.5616071335370958,
+            "original_covariance_error_drift": 0.53505867985036,
+            "radial_variance_drift": 0.5984356859201827,
+            "tangent_variance_drift": 0.3031334205286565
+          },
+          "unprojected": {
+            "center_squared_error_drift": -1.0073430648181336,
+            "original_covariance_error_drift": -2.9569228515631267,
+            "radial_variance_drift": -2.486590106818559,
+            "tangent_variance_drift": -4.173346472188725
+          }
+        },
+        "order5": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -1.4221570692675471,
+            "original_covariance_error_drift": -0.3972870921220563,
+            "radial_variance_drift": -0.4832512475295806,
+            "tangent_variance_drift": -0.18308858707174264
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 1.569864649846028,
+            "original_covariance_error_drift": 0.5356308856012029,
+            "radial_variance_drift": 0.5998232502223494,
+            "tangent_variance_drift": 0.3065246281149694
+          },
+          "unprojected": {
+            "center_squared_error_drift": -1.007728504092488,
+            "original_covariance_error_drift": -2.983254440061048,
+            "radial_variance_drift": -2.4939128991379653,
+            "tangent_variance_drift": -4.2156211083648145
+          }
+        }
+      },
+      "energy_frozen_prior": {
+        "current_covariance_drift_sign_agrees": true,
+        "order3": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.428165202324577,
+            "original_covariance_error_drift": -0.3542410501837492,
+            "radial_variance_drift": -0.36808724686371297,
+            "tangent_variance_drift": -0.40568798015522073
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 1.3280931527917663,
+            "original_covariance_error_drift": -0.21170193573477006,
+            "radial_variance_drift": -0.20445081508076576,
+            "tangent_variance_drift": -0.28620054421933283
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.9097796284264684,
+            "original_covariance_error_drift": -9.820234750411633,
+            "radial_variance_drift": -2.0113828158789366,
+            "tangent_variance_drift": -13.819426849012267
+          }
+        },
+        "order5": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.4587769039297894,
+            "original_covariance_error_drift": -0.345973395761394,
+            "radial_variance_drift": -0.3629483463543145,
+            "tangent_variance_drift": -0.395342669009787
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 1.354715347831991,
+            "original_covariance_error_drift": -0.1886122749223751,
+            "radial_variance_drift": -0.1966704629966827,
+            "tangent_variance_drift": -0.2626842321675108
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.9382376156896766,
+            "original_covariance_error_drift": -9.700307835834435,
+            "radial_variance_drift": -2.0364615677043334,
+            "tangent_variance_drift": -13.653080044249887
+          }
+        }
+      },
+      "ns_amsgrad": {
+        "current_covariance_drift_sign_agrees": true,
+        "order3": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.8993338059666558,
+            "original_covariance_error_drift": 0.00138665481460815,
+            "radial_variance_drift": -0.029563130306458,
+            "tangent_variance_drift": -0.0008693398149436794
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 0.33295372342371654,
+            "original_covariance_error_drift": 0.00977277021498813,
+            "radial_variance_drift": -0.0017612138001565733,
+            "tangent_variance_drift": 0.012162454333650721
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.2390491077420052,
+            "original_covariance_error_drift": -1.6402272126123052,
+            "radial_variance_drift": -0.029261009768900167,
+            "tangent_variance_drift": -2.4806211676662278
+          }
+        },
+        "order5": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.8763107105717399,
+            "original_covariance_error_drift": 0.002666718395314338,
+            "radial_variance_drift": -0.02856160762644583,
+            "tangent_variance_drift": 0.000953504004649214
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": 0.3318781860901742,
+            "original_covariance_error_drift": 0.0094142183278938,
+            "radial_variance_drift": -0.0017695441803752218,
+            "tangent_variance_drift": 0.011577036713262713
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.23412566982268734,
+            "original_covariance_error_drift": -1.6639908030497599,
+            "radial_variance_drift": -0.028088172852657453,
+            "tangent_variance_drift": -2.518095841446624
+          }
+        }
+      },
+      "scheduled_selected": {
+        "current_covariance_drift_sign_agrees": false,
+        "order3": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.4215241178949822,
+            "original_covariance_error_drift": 0.002007602343829294,
+            "radial_variance_drift": -0.04000663682670447,
+            "tangent_variance_drift": -0.003950358650953903
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": -0.06293511699660151,
+            "original_covariance_error_drift": 0.05820869290203925,
+            "radial_variance_drift": 0.10243548241911313,
+            "tangent_variance_drift": 0.0966051592779686
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.1678282357531292,
+            "original_covariance_error_drift": -2.4346197653383257,
+            "radial_variance_drift": -0.04714994158519029,
+            "tangent_variance_drift": -3.538426828286254
+          }
+        },
+        "order5": {
+          "current_frozen_denominator": {
+            "center_squared_error_drift": -0.38398941380104046,
+            "original_covariance_error_drift": -0.0015434301190673288,
+            "radial_variance_drift": -0.04030593025066716,
+            "tangent_variance_drift": -0.009042030810946122
+          },
+          "saved_momentum": {
+            "center_squared_error_drift": -0.06424407859575837,
+            "original_covariance_error_drift": 0.05920274087328565,
+            "radial_variance_drift": 0.10240369747990102,
+            "tangent_variance_drift": 0.09833274505049326
+          },
+          "unprojected": {
+            "center_squared_error_drift": -0.15783710504849874,
+            "original_covariance_error_drift": -2.5156018787380665,
+            "radial_variance_drift": -0.047258206303023506,
+            "tangent_variance_drift": -3.6605515777662463
+          }
+        }
+      }
+    },
+    "diagnostic_wall_seconds_by_final_receipt": {
+      "order3": 4.633708356996067,
+      "order5": 43.77662653900916
+    },
+    "interpretation_limits": [
+      "Orders3 and5 are integration diagnostics, not separate seed trials or proof of converged quadrature.",
+      "Axes/corners finite panels match Gaussian first/second moments but neither is the original random law.",
+      "A directional sign predicts only local frozen-model behavior and does not reject or qualify a trained recipe.",
+      "Diagnostic CPU wall times are distinct from original paid training charges; earlier debugging executions are not included."
+    ],
+    "qualification_input": false,
+    "random_draws_added": 0,
+    "raw_archives": {
+      "order3": {
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-failure-diagnosis-20261022/saved-force-order3.stdout.json",
+        "sha256": "957d7fc7c6adcd879e6180486949c50c7b6bd261c36392ebb91c9dce564613e6"
+      },
+      "order5": {
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-failure-diagnosis-20261022/saved-force-order5.stdout.json",
+        "sha256": "b6ba16a031ad0198674684debd37d9c221df71646902bbaede3820a9f4a49c83"
+      }
+    },
+    "schema_version": 1,
+    "scope": "saved_endpoint_sensitivity_summary",
+    "source_hashes": {
+      "mmd_projection_probe.py": "ded8be82b36ae93e29ffea1cd9675796e6a9ac04e828abb62ee8e495fb34f20e",
+      "saved_force_probe.py": "34fb328507a4178f76bc10a77b1b0ea18f31c7143a0bf4ad8e471d07630a1f9c",
+      "summarize_probes.py": "406ea0ee3d5f86321a81b3fa451d5699775cff4ae4d3a51fbc40efe48463207d"
+    },
+    "training_updates_added": 0
+  },
+  "qualification_input": false,
+  "random_draws_added": 0,
+  "raw_stdout_archive": "/mnt/ml7tb/ParticleGAN-forge/r1r2-failure-diagnosis-20261022/saved-force-order3.stdout.json",
+  "schema_version": 1,
+  "scope": "saved_endpoint_force_conditioning_diagnostic",
+  "torch_version": "2.14.0+cu130",
+  "training_updates_added": 0
+}

@@ -707,6 +707,11 @@ def test_tier_b_zero_tanh_smoke_evaluator():
         "prior_l2": 0.0,
     }
 
+    import math
+    steps = task["execution"]["steps"]
+    cadence = task["evaluation"].get("observations", 24)
+    schedule = sorted({math.ceil(i * steps / cadence) for i in range(1, cadence + 1)})
+
     # Passing evidence: errors well below thresholds
     live_pass = {
         "mean_abs_error": 0.001,
@@ -715,8 +720,8 @@ def test_tier_b_zero_tanh_smoke_evaluator():
         "saturated_fraction": 0.0,
         "sample_count": 4096,
     }
-    obs_pass = [{"step": i, **live_pass} for i in range(42, 1001, 42)]
-    evidence_pass = {"observations": obs_pass, "live": live_pass, "prior_policy": prior_proof, **sampling}
+    obs_pass = [{"step": i, **live_pass} for i in schedule]
+    evidence_pass = {"observations": obs_pass, "live": {"step": steps, **live_pass}, "prior_policy": prior_proof, **sampling}
     res_pass = grade_result(task, {"evidence": evidence_pass, "applied": {"recipe": recipe}})
     assert res_pass["status"] == "PASS"
 
@@ -728,8 +733,8 @@ def test_tier_b_zero_tanh_smoke_evaluator():
         "saturated_fraction": 0.1,
         "sample_count": 4096,
     }
-    obs_fail = [{"step": i, **live_fail} for i in range(42, 1001, 42)]
-    evidence_fail = {"observations": obs_fail, "live": live_fail, "prior_policy": prior_proof, **sampling}
+    obs_fail = [{"step": i, **live_fail} for i in schedule]
+    evidence_fail = {"observations": obs_fail, "live": {"step": steps, **live_fail}, "prior_policy": prior_proof, **sampling}
     res_fail = grade_result(task, {"evidence": evidence_fail, "applied": {"recipe": recipe}})
     assert res_fail["status"] == "FAIL"
 

@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "3e30b40a917042acb2bfbb22807cb663",
+    "4db649c3e6254fdf8a51a1a713ffbfa6"
+  ],
+  "candidate_id": "unified-v6",
+  "candidate_revision": "927e62f49a0a0a436a675f7fa5d6330ec2eea711a5e1091f9937bb4f7aa6febe",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v4, unified-v5, and rgdt-v3 with 0 eigh/SVD.",
+  "conclusion": "unified-v6 passed 2/2 (100%) t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x hq=0.9980 core_min_eig=0.6621; t3_iso_horizon_saddle_shift modes=4 hq=1.0000).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "3e30b40a917042acb2bfbb22807cb663",
+        "4db649c3e6254fdf8a51a1a713ffbfa6"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "c8873e25be7c90bed683a6ea7ef499dbac02309e36f0f3297062bcf129a37672",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.6621484067599505
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.6621484067599505
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "3e30b40a917042acb2bfbb22807cb663",
+          "producer_request_id": "699294a69e107dfcea72be00",
+          "producer_study_id": "unified-v6-t3-iso-study",
+          "result_hash": "7d4be1182b024a80b4b1451f9eff2347d39b7eefccf65c7abb341fed59c03314",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "4db649c3e6254fdf8a51a1a713ffbfa6",
+          "producer_request_id": "699294a69e107dfcea72be00",
+          "producer_study_id": "unified-v6-t3-iso-study",
+          "result_hash": "83a97142c2581609964d566f2e2d5266f63b6da61e6afc704544ff6fc7fbee6f",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "ed6cef9a971a3cfc58fa1d1a5e2f9ddcc1f3fc2d2c196e28cbc0f58124916995",
+        "contract_sha256": "c8873e25be7c90bed683a6ea7ef499dbac02309e36f0f3297062bcf129a37672",
+        "control_binding_sha256": "6f0d38df6cc335fe3ad808bdc06436800c801a7c74b0f4b30748935ac359b56c",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "8e278765ac35af423970b3a4c4df6e0d36d8e62834e1584edde1123bd3ac95f1"
+      },
+      "study_id": "unified-v6-t3-iso-study",
+      "study_sha256": "8e278765ac35af423970b3a4c4df6e0d36d8e62834e1584edde1123bd3ac95f1"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Unchanged global zero-SVD zero-eigh zero-autograd.grad unified-v6 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Carry forward into unified-v7.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "3e30b40a917042acb2bfbb22807cb663",
+        "result_hash": "7d4be1182b024a80b4b1451f9eff2347d39b7eefccf65c7abb341fed59c03314",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "4db649c3e6254fdf8a51a1a713ffbfa6",
+        "result_hash": "83a97142c2581609964d566f2e2d5266f63b6da61e6afc704544ff6fc7fbee6f",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-a519668412afa38c2de84f93",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/3e30b40a917042acb2bfbb22807cb663/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "unified-v6-t3-iso-study"
+    },
+    "candidate": "unified-v6",
+    "competing_explanation": "If replacing eigh with deterministic power-iteration principal-axis ordering in zero_eigh_bipartite_deficit_macro_loss or unifying with UnifiedV4EquilibratedOptimizer degrades orphan mode rescue or conformal horizon balancing, unified-v6 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Unchanged global zero-SVD zero-eigh zero-autograd.grad unified-v6 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+    "id": "unified-v6-t3-iso-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v5",
+          "candidate_revision": "0c60b814da7eadddadf0554471035b0a6104f658a1e74bc3137d8cee8adc5775"
+        },
+        "path": "reports/forge/records/readout-6cf1513bd72210a0ad6ebabb.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "unified-v6-t3-iso-study",
+  "study_sha256": "8e278765ac35af423970b3a4c4df6e0d36d8e62834e1584edde1123bd3ac95f1",
+  "task_results": [
+    {
+      "compatibility_key": "961e577b812233e0a057a500e0fe0835d4fd3ffb8a81e8790726869d5d13daf1",
+      "cost": {
+        "adapter_loop_seconds": 50.37714592483826,
+        "adapter_seconds": 50.636344561120495,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "1",
+        "eval_seconds": 0.06411605700850487,
+        "execution_seconds": 57.264146014116704,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 51.93752269214019,
+        "train_seconds": 44.84538272139616,
+        "wall_seconds": 57.264146014116704
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.5242298317371358,
+        "critic_grad_med": 5.656920052388159e-07,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 1.0,
+        "mass_tv": 0.0546875,
+        "modes": 4,
+        "pre_shift_hq": 1.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    },
+    {
+      "compatibility_key": "2cf37cda477067493da1f28a2ec72ceaa3669e7a17944e1ea4566b6344812273",
+      "cost": {
+        "adapter_loop_seconds": 48.611929506994784,
+        "adapter_seconds": 48.899356935871765,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "0",
+        "eval_seconds": 0.06244480726309121,
+        "execution_seconds": 55.508001782000065,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 50.16797305387445,
+        "train_seconds": 42.96426537516527,
+        "wall_seconds": 55.508001782000065
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.2266988860859475,
+        "core_min_eigen_ratio": 0.6621484067599505,
+        "critic_grad_med": 1.9749629132093105e-07,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 0.2229220752839416,
+        "hq": 0.998046875,
+        "mass_tv": 0.017812512814998627,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_scale_mass_8x"
+    }
+  ]
+}

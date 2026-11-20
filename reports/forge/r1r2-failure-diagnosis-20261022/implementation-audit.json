@@ -1,0 +1,43 @@
+{
+  "schema_version": 1,
+  "scope": "software_implementation_audit_not_scientific_qualification",
+  "source_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+  "conclusion": "No production correctness defect demonstrated in the inspected modern scalar R1/R2 update.",
+  "production_behavior_changed": false,
+  "source_files_sha256": {
+    "particlegan/grad_regularizers.py": "a540d05a4a992540b6a5f3b5ff7ccc11ebaf18592135b87c95638adbe68aa747",
+    "particlegan/gan_loss.py": "f73cc593aef5d7507dc1a468ee261cc186c8dbfbee3a0aad769b6e252c2c143f",
+    "particlegan/recipe_schedules.py": "b675bdc9f72224b11e9887f8ed66b1a541ffc76d80242709969cc67ac47ca46a",
+    "particlegan/training.py": "3711700bcb1700d9446fb6ced07d8d98188860ff219828ec91f49e3bb10b8344",
+    "particlegan/recipes.py": "6c818b90544a67f833f5effea36868524041ff8009960b2a9a17188df133977a",
+    "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c",
+    "experiments/forge/taskrecipes.py": "b38ca3e6f910fce01a21842191a256c213fa07b759b642fb32be094f8ec5f1ae",
+    "tests/test_r1r2_update_oracle.py": "5eab80b3f0098738f0c45be04930ce39914406252973177aaa128bcb3cb44d0d"
+  },
+  "upstream_reference_commit": "19a7ddf463fbac2bd39b4c1c73d63f1c441c7403",
+  "upstream_reference_files": [
+    "https://github.com/brownvc/R3GAN/blob/19a7ddf463fbac2bd39b4c1c73d63f1c441c7403/R3GAN/Trainer.py",
+    "https://github.com/brownvc/R3GAN/blob/19a7ddf463fbac2bd39b4c1c73d63f1c441c7403/training/training_loop.py"
+  ],
+  "verification": {
+    "command": "python -m pytest tests/test_r1r2_update_oracle.py tests/test_fixed_critic_penalties.py tests/test_recipe_schedules.py tests/test_forge_taskrecipes.py tests/test_adversarial_losses.py -q",
+    "result": "110 passed",
+    "python": "3.14.8",
+    "torch": "2.14.0+cu130",
+    "oracle_device": "cpu",
+    "oracle_dtype": "float64",
+    "protocol_seed": 0,
+    "initialization": "public deterministic_orthogonal_; G role seed 0, D role seed 1, R2 MoG seed 0",
+    "one_update_comparisons": 7,
+    "numerical_absolute_error_bound": 2e-12,
+    "numerical_relative_error_bound": 0,
+    "matched_values": ["losses", "penalty", "G/D/prior parameters", "G/D/prior gradients", "all native Adam state tensors", "LR/beta2/gamma schedules", "consumed MoG RNG states"],
+    "critic_change_during_generator_phase": "exactly zero"
+  },
+  "limitations": [
+    "Software fixture only: no scientific gate, quality experiment, leaderboard refresh or default adoption.",
+    "No new scientific training, evaluation samples or GIFs; seven tiny public trainer updates are unit-test software work.",
+    "CPU float64 oracle does not establish long-horizon CUDA quality or reproduce the upstream image model/prior/EMA protocol.",
+    "Penalty forwards are separate from adversarial forwards, so noisy or stateful critics need their own declared cohort."
+  ]
+}

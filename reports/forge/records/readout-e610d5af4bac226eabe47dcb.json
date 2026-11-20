@@ -1,0 +1,392 @@
+{
+  "attempt_ids": [
+    "51d72e84d719443e8de01c522815b0d8",
+    "f45e68ade4c7445f8de8610425231c45"
+  ],
+  "candidate_id": "r1r2-repair-r1only-20261022",
+  "candidate_revision": "704c803e0c8bf425e1c0cd673b77e0332278cd8163ca9058a95c50a2f00fbdab",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Exact b33e375 source, own acquired checkpoint bytes/state/key/revision and named consumed streams verified. Diagnostic and ordinary acquisitions have distinct evidence-use keys and paid attempts. Control/composed prefix834 and R1-only1667 imply different hold data windows by the unchanged task contract; compare original task outcomes, not a fixed-window causal hold effect.",
+  "conclusion": "Own-checkpoint acquisition and full4000-update hold PASS: all25 scheduled/restored-state checks confirmed, parent update1667, endpoint minimum token probability0.9974690675735474. No ordinary qualification credit. The NS/AMSGrad reference already passes retention; explicit reconstruction improves confidence margin but is not necessary for these gates.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "51d72e84d719443e8de01c522815b0d8",
+        "f45e68ade4c7445f8de8610425231c45"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "7ed7803cf15cce8d91dde7913e44b3cad8d9f4f29370b22d10db4c678166eb96",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.9974690675735474
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.9974690675735474
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "51d72e84d719443e8de01c522815b0d8",
+          "producer_request_id": "025931f664147b4b2fdf2812",
+          "producer_study_id": "r1r2-repair-r1only-20261022-word-retention",
+          "result_hash": "cf04085dcd8aeac25ab32df3bb73e5f1351f7ab9ed75716c2512c27581ae871f",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "f45e68ade4c7445f8de8610425231c45",
+          "producer_request_id": "025931f664147b4b2fdf2812",
+          "producer_study_id": "r1r2-repair-r1only-20261022-word-retention",
+          "result_hash": "3283a5c05f74704aa089d6ac66dac4c6647b630247b47f70a4736506a090d745",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "479312331811ee6c02f1cfe195d5012b0afc54b408bf8aa1ef90871965622e4d",
+        "contract_sha256": "7ed7803cf15cce8d91dde7913e44b3cad8d9f4f29370b22d10db4c678166eb96",
+        "control_binding_sha256": "41377f948c153811712823075bd0fadc5d388cadbe7ebd9f2dfc1f39c1eb266a",
+        "policy_fingerprint": "4228e8b82467f10ffc98298e28e2df9ce013e1f4c7ada30af9e740f842f975e0",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "76c9d495bd619e7258b90bdc6257bfeafc9b63c8e7003b17b8bb54b25d112674"
+      },
+      "study_id": "r1r2-repair-r1only-20261022-word-retention",
+      "study_sha256": "76c9d495bd619e7258b90bdc6257bfeafc9b63c8e7003b17b8bb54b25d112674"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "full_readout_archive": {
+    "bytes": 14359,
+    "ever_committed": false,
+    "git_blob_oid": "3be594be38b018a7894a95d2d68f1d01555c911d",
+    "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/archive/readouts/readout-e610d5af4bac226eabe47dcb.json",
+    "sha256": "f1ffe9508cf39cb2bbebcafb1de2c94b9257ff3c97c32559ce1513c47edac7ff"
+  },
+  "full_readout_sha256": "f1ffe9508cf39cb2bbebcafb1de2c94b9257ff3c97c32559ce1513c47edac7ff",
+  "goal": "r1r2-repair-word-retention-20261022",
+  "hypothesis": "This exact source-bound global recipe can retain its own earliest independently confirmed word acquisition through every original scheduled primary and independent confirmation check, including the exact restored state, for4000 further updates. The original word_hold evaluator and all25 paired checks are authoritative; endpoint token probability alone cannot establish retention. This diagnostic changes scheduler placement only and grants no ordinary qualification.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Close the finite three-role campaign. Keep R2; do not promote the failed global repairs. Preserve all ordinary failures and archived source identities. Require a demonstrated density or conditional-field prerequisite before another candidate.",
+  "original_source": {
+    "path": "reports/forge/attempts/51d72e84d719443e8de01c522815b0d8/result.json"
+  },
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "51d72e84d719443e8de01c522815b0d8",
+        "result_hash": "cf04085dcd8aeac25ab32df3bb73e5f1351f7ab9ed75716c2512c27581ae871f",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "f45e68ade4c7445f8de8610425231c45",
+        "result_hash": "3283a5c05f74704aa089d6ac66dac4c6647b630247b47f70a4736506a090d745",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-e610d5af4bac226eabe47dcb",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/r1r2-repair-20261022/README.md"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 24000,
+      "candidate_budget_seconds": 5220,
+      "id": "r1r2-repair-20261022"
+    },
+    "candidate": "r1r2-repair-r1only-20261022",
+    "competing_explanation": "Acquisition can pass and later collapse despite nonzero aggregate gradients. Retention is falsified by any original primary or independent confirmation failure among the restored-state+24 scheduled checks, including generation, diversity or inverse bounds; a passing endpoint scalar is insufficient. Use only the earliest confirmed same-candidate/source parent with exact model/optimizer/prior/RNG restoration, or report BLOCKED. No resampling, changed cohort, scientific retry, altered gate or promotion of failed ordinary13-task outcomes. Full reservation1200seconds/role includes900 exact-source acquisition and300 hold; expected shared acquisition reuse leaves only300 additional physical allowance perrole, but no reuse is presumed by admission.",
+    "control": {
+      "candidate_id": "r1r2-repair-control-20261022",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "minimum_reconstruction_token_probability",
+      "op": "<",
+      "phase": "final",
+      "task_id": "five_word_joint_hold",
+      "threshold": 0.9
+    },
+    "hypothesis": "This exact source-bound global recipe can retain its own earliest independently confirmed word acquisition through every original scheduled primary and independent confirmation check, including the exact restored state, for4000 further updates. The original word_hold evaluator and all25 paired checks are authoritative; endpoint token probability alone cannot establish retention. This diagnostic changes scheduler placement only and grants no ordinary qualification.",
+    "id": "r1r2-repair-r1only-20261022-word-retention",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "minimum_reconstruction_token_probability",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "five_word_joint_hold",
+      "threshold": 0.9
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "archive_commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+          "original_candidate": "r1r2-non-saturating-ams-m110-v1"
+        },
+        "path": "reports/forge/r1r2-repair-20261022/reference-origin.json",
+        "selector": [],
+        "use": "motivation_only"
+      },
+      {
+        "identity": {
+          "qualification_input": false,
+          "scope": "saved_endpoint_force_conditioning_diagnostic"
+        },
+        "path": "reports/forge/r1r2-failure-diagnosis-20261022/saved-force-diagnosis.json",
+        "selector": [],
+        "use": "motivation_only"
+      },
+      {
+        "identity": {
+          "campaign_id": "r1r2-repair-20261022",
+          "scope": "interrupted_original_source_infrastructure_evidence",
+          "unique_paid_attempts": 18
+        },
+        "path": "reports/forge/r1r2-repair-20261022/v1-infrastructure-interruption.json",
+        "selector": [],
+        "use": "motivation_only"
+      },
+      {
+        "identity": {
+          "integration_status": "PASS",
+          "scope": "isolated_frozen_source_integration_only",
+          "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175"
+        },
+        "path": "reports/forge/r1r2-repair-20261022/infra-v2-snapshot-smoke.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "r1r2-repair-word-retention-20261022"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "r1r2-repair-r1only-20261022-word-retention",
+  "study_sha256": "76c9d495bd619e7258b90bdc6257bfeafc9b63c8e7003b17b8bb54b25d112674",
+  "summary_curation": "Certified final metrics, verdicts, decision outcomes and original receipt identities retained. Full per-update evidence is archived byte-exactly outside Git. This display summary supplies no qualification replacement.",
+  "task_results": [
+    {
+      "api_version": "forge-api-v1",
+      "attempt_id": "f45e68ade4c7445f8de8610425231c45",
+      "claim_contract": {
+        "sampling_law": "task_declared",
+        "schedule": "scheduled",
+        "scoring_weights": "live"
+      },
+      "compatibility_key": "afb8de0c83a24fb35c0ab1f0a71b6717ffd9bc14ae36a6d38d8f66be9a82abb6",
+      "cost": {
+        "adapter_loop_seconds": 23.738779822015204,
+        "adapter_seconds": 24.17881855298765,
+        "charged_task": "five_word_joint_hold",
+        "completed_steps": 5667,
+        "device": "1",
+        "execution_seconds": 30.06450145400595,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "new_optimizer_updates": 4000,
+        "optimizer_updates": {
+          "discriminator": 5667,
+          "encoder": 5667,
+          "generator": 5667,
+          "prior": 5667
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 21.89220435527386,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.7572121919947676
+            },
+            "sampling": {
+              "calls": 0,
+              "seconds": 0
+            },
+            "training_updates": {
+              "calls": 4000,
+              "seconds": 21.134992163279094
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 25.271723537996877,
+        "wall_seconds": 30.06450145400595
+      },
+      "evaluator_summary": {
+        "confirmed_checks": 25,
+        "endpoint_passed": true,
+        "first_confirmed_step": 1667,
+        "observations": 25,
+        "passing_observations": 25
+      },
+      "execution_path": "public_components",
+      "final_metrics_sha256": "983b0f094bf7405b942daa8673d2f6ce7431161c2819c799df1796fac6326dea",
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_steps": 5667.0,
+        "mass_apple": 0.1826171875,
+        "mass_berry": 0.1884765625,
+        "mass_grape": 0.2236328125,
+        "mass_lemon": 0.1943359375,
+        "mass_melon": 0.2109375,
+        "mass_tv": 0.034570312500000006,
+        "minimum_reconstruction_token_probability": 0.9974690675735474,
+        "modes": 5,
+        "output_noise_added": 0.0,
+        "policy_latent_perturbation": 0.0,
+        "quality_fraction": 1.0,
+        "reconstruction_exact": 1,
+        "reconstruction_nll": 0.0007928616140735795,
+        "sample_count": 1024,
+        "served_averaged": 0.0,
+        "step": 5667
+      },
+      "raw_status": "completed",
+      "reason": "every joint generation/inverse check throughout the fixed continuation window",
+      "reasons": [
+        "every joint generation/inverse check throughout the fixed continuation window"
+      ],
+      "sampling": {
+        "eval_output_noise": "clean",
+        "sampling_contract_version": 1,
+        "sampling_law": "generated_and_paired_reconstructed_prior_without_output_noise",
+        "scoring_weights": "live"
+      },
+      "status": "PASS",
+      "task_id": "five_word_joint_hold"
+    },
+    {
+      "api_version": "forge-api-v1",
+      "attempt_id": "51d72e84d719443e8de01c522815b0d8",
+      "claim_contract": {
+        "sampling_law": "task_declared",
+        "schedule": "scheduled",
+        "scoring_weights": "live"
+      },
+      "compatibility_key": "bd488ae36f83bddccf7a40d113c6d0f45c1056afc63430849597948a445cbab8",
+      "cost": {
+        "adapter_loop_seconds": 105.51344837801298,
+        "adapter_seconds": 105.71187170100166,
+        "charged_task": "five_word_joint_smoke",
+        "completed_steps": 20001,
+        "device": "1",
+        "execution_seconds": 111.57798224402359,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "new_optimizer_updates": 20001,
+        "optimizer_updates": {
+          "discriminator": 20001,
+          "encoder": 20001,
+          "generator": 20001,
+          "prior": 20001
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 100.38445039169164,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.606622488819994
+            },
+            "sampling": {
+              "calls": 0,
+              "seconds": 0
+            },
+            "training_updates": {
+              "calls": 20001,
+              "seconds": 99.77782790287165
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 106.82723651401466,
+        "wall_seconds": 111.57798224402359
+      },
+      "evaluator_summary": {
+        "confirmed_checks": 23,
+        "endpoint_passed": true,
+        "first_confirmed_step": 1667,
+        "observations": 24,
+        "passing_observations": 23
+      },
+      "execution_path": "public_components",
+      "final_metrics_sha256": "ecd4081a4477276c77374cd96dee97391c5417deb82c7dfb0d83eabe1a5a0409",
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_steps": 20001.0,
+        "mass_apple": 0.2080078125,
+        "mass_berry": 0.1953125,
+        "mass_grape": 0.1982421875,
+        "mass_lemon": 0.2109375,
+        "mass_melon": 0.1875,
+        "mass_tv": 0.018945312500000006,
+        "minimum_reconstruction_token_probability": 0.9985988736152649,
+        "modes": 5,
+        "output_noise_added": 0.0,
+        "policy_latent_perturbation": 0.0,
+        "quality_fraction": 1.0,
+        "reconstruction_exact": 1,
+        "reconstruction_nll": 0.00037552962810110925,
+        "sample_count": 1024,
+        "served_averaged": 0.0,
+        "step": 20001
+      },
+      "raw_status": "completed",
+      "reason": "any scheduled full joint pass plus independent same-state confirmation",
+      "reasons": [
+        "any scheduled full joint pass plus independent same-state confirmation"
+      ],
+      "sampling": {
+        "eval_output_noise": "clean",
+        "sampling_contract_version": 1,
+        "sampling_law": "generated_and_paired_reconstructed_prior_without_output_noise",
+        "scoring_weights": "live"
+      },
+      "status": "PASS",
+      "task_id": "five_word_joint_smoke"
+    }
+  ]
+}

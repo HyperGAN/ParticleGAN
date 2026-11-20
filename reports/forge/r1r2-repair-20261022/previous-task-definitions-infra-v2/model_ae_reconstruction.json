@@ -1,0 +1,141 @@
+{
+  "schema_version": 1,
+  "id": "model_ae_reconstruction",
+  "description": "Reconstruct four equally weighted noisy corner Gaussians with public deterministic particle-AE routing and bounded offsets; explicit reconstruction-only objective control.",
+  "adapter": "public_api_model_toy",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "model_ae_reconstruction",
+    "steps": 1200,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "protocol": "screening",
+    "produces_state": false,
+    "host_source": "benchmarks/toy_audit/api_model_ae.py",
+    "host_definition": {
+      "provider": "benchmarks.toy_audit.api_model_ae",
+      "case_id": "api-model-ae-reconstruction",
+      "adversarial": false,
+      "num_particles": 64,
+      "z_dim": 2,
+      "batch_size": 128,
+      "hidden": 64,
+      "layers": 2,
+      "fourier": 2,
+      "init_std": 0.5,
+      "target": {
+        "kind": "gaussian_mixture",
+        "means": [
+          [
+            -1.0,
+            -1.0
+          ],
+          [
+            -1.0,
+            1.0
+          ],
+          [
+            1.0,
+            -1.0
+          ],
+          [
+            1.0,
+            1.0
+          ]
+        ],
+        "sigma": 0.08,
+        "masses": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "recipe_fields": {
+        "model": "gan",
+        "conditioning": "scalar",
+        "encoder_mode": "ae",
+        "reconstruction_weight": 1.0
+      },
+      "resources": {
+        "num_particles": 64,
+        "z_dim": 2,
+        "batch_size": 128
+      }
+    },
+    "execution_path": "public_components",
+    "recipe_fields": {
+      "model": "gan",
+      "conditioning": "scalar",
+      "encoder_mode": "ae",
+      "reconstruction_weight": 1.0
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "task_model_kernel_and_posterior_without_serving_noise",
+    "eval_output_noise": "clean",
+    "kind": "transfer_sustained",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "thresholds": [
+      [
+        "reconstruction_mse",
+        "<=",
+        0.025
+      ],
+      [
+        "reconstruction_mode_agreement",
+        ">=",
+        0.98
+      ]
+    ],
+    "scoring_weights": "live",
+    "evaluator": "benchmarks.transfer_suite.protocol:test_verdict",
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "optimizer_roles": [
+        "generator",
+        "encoder",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": false
+    },
+    "sources": {
+      "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+      "benchmarks/toy_audit/api_model_ae.py": "8919030be6eac142bb8c6f95d8672505eee90aebaa7a7a91d32bed39f4ae16b8",
+      "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+      "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+      "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+      "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 1024,
+    "cpu_threads": 1,
+    "timeout_seconds": 600,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "retained_question_ids": [
+    "api-model-ae-reconstruction"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/api-model-toys/ae.md",
+    "api_publication": "reports/toy_audit/api_contract/model_modes/publication.json"
+  }
+}

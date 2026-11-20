@@ -144,6 +144,8 @@ def task_recipe(case, recipe_name=None, recipe=None):
     # rates, losses and optimizer remain recipe-owned. Scheduled trainers bind
     # the task horizon; intentionally schedule-free trainers retain None.
     result = recipe if injected else recipe.replace(**FROZEN_RECIPE_FIELDS, total_steps=None if recipe.total_steps is None else 1200)
+    from .api_contract import validate_caller_objectives
+    validate_caller_objectives(result, provider="api_model_ae")
     if (result.row_policy != "independent" or result.row_evidence_gate
             or result.particle_birth_death or result.serve_average
             or result.constraint_geometry_mode == "strict_progress"):
@@ -181,7 +183,8 @@ class AEFixture:
                 init.deterministic_orthogonal_(model, seed=seed + offset)
         ema = None if self.recipe.effective_critic_formulation == "bispf" else deepcopy(self.D)
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.G, self.D, self.prior, encoder=self.E,
-                                                           ema_critic=ema, foreach=False, fused=False)
+                                                           ema_critic=ema, separate_encoder_groups=True,
+                                                           foreach=False, fused=False)
         self.loss = self.recipe.make_loss()
         self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=True)
         self.regularizer = self.recipe.make_prior_regularizer(prior=self.prior)

@@ -1,0 +1,214 @@
+{
+  "schema_version": 1,
+  "id": "model_vae_hard",
+  "adapter": "public_api_model_toy",
+  "description": "Can a genuine particle VAE retain the input and posterior noise while independently generating both target modes? New constrained two-mode seed-0 public-component cohort; does not reproduce or qualify historical 100-mode results. Hard routing has constant log(K) KL and biased straight-through gradients; categorical routing uses the public leave-one-out score estimator and a variable KL. A stochastic no-KL AE is not a VAE.",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "api-model-vae-hard",
+    "steps": 1200,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "protocol": "screening",
+    "produces_state": false,
+    "host_source": "benchmarks/toy_audit/api_model_vae.py",
+    "execution_path": "public_components",
+    "recipe_fields": {
+      "model": "gan",
+      "conditioning": "scalar",
+      "encoder_mode": "hard",
+      "observation_sigma": 0.03
+    },
+    "host_definition": {
+      "case_id": "api-model-vae-hard",
+      "provider": "benchmarks.toy_audit.api_model_vae",
+      "resources": {
+        "num_particles": 16,
+        "z_dim": 2,
+        "batch_size": 64
+      },
+      "target": {
+        "anchors": [
+          [
+            -1.5,
+            0.0
+          ],
+          [
+            1.5,
+            0.0
+          ]
+        ],
+        "weights": [
+          0.5,
+          0.5
+        ],
+        "sigma": 0.05
+      },
+      "architecture": {
+        "encoder": [
+          2,
+          32,
+          2
+        ],
+        "decoder": [
+          2,
+          32,
+          2
+        ],
+        "critic": [
+          2,
+          32,
+          1
+        ],
+        "activation": "LeakyReLU(.2)"
+      },
+      "initialization": "particlegan.init.deterministic_orthogonal_: E seed0, G seed1, D seed2, prior R2 seed3; isolated constructor scope seed0",
+      "sampling": "Independent uniform learned MoG prior with fixed latent sigma=.025; live decoder means and separate Gaussian likelihood draws G(z)+.03*epsilon. Reconstructions use eight posterior draws with prior-matching local Gaussian noise.",
+      "steps": 1200,
+      "eval_samples": 4096,
+      "posterior_draws_train": 2,
+      "posterior_draws_eval": 8,
+      "objective": "GAN + recipe.reconstruction_weight * observation_sigma^2 * public negative_elbo + recipe-owned prior regularization",
+      "rng_streams": [
+        "constructor",
+        "data_d",
+        "data_g",
+        "latent",
+        "prior_noise",
+        "posterior",
+        "noise",
+        "input_noise",
+        "eval",
+        "penalty"
+      ]
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "task_model_kernel_and_posterior_without_serving_noise",
+    "eval_output_noise": "clean",
+    "kind": "transfer_sustained",
+    "evaluator": "benchmarks.transfer_suite.protocol:test_verdict",
+    "thresholds": [
+      [
+        "reconstruction_mse",
+        "<=",
+        0.05
+      ],
+      [
+        "shuffle_reconstruction_ratio",
+        ">=",
+        5.0
+      ],
+      [
+        "posterior_mutual_information",
+        ">=",
+        0.3
+      ],
+      [
+        "posterior_noise_variance_ratio",
+        ">=",
+        0.8
+      ],
+      [
+        "posterior_noise_variance_ratio",
+        "<=",
+        1.2
+      ],
+      [
+        "kl_identity_error",
+        "<=",
+        1e-05
+      ],
+      [
+        "elbo_identity_error",
+        "<=",
+        0.0001
+      ],
+      [
+        "decoder_mean_hq",
+        ">=",
+        0.85
+      ],
+      [
+        "decoder_mean_mass_tv",
+        "<=",
+        0.15
+      ],
+      [
+        "decoder_mean_modes",
+        ">=",
+        2
+      ],
+      [
+        "likelihood_hq",
+        ">=",
+        0.85
+      ],
+      [
+        "likelihood_mass_tv",
+        "<=",
+        0.15
+      ],
+      [
+        "likelihood_modes",
+        ">=",
+        2
+      ]
+    ],
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "scoring_weights": "live",
+    "sources": {
+      "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+      "benchmarks/toy_audit/api_model_vae.py": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+      "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+      "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+      "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+      "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
+    },
+    "gate_policy": {
+      "id": "api-model-vae-v1",
+      "rationale": "Provisional two-mode VAE gate fixed before training; oracle and destructive scorer controls establish scope, not scientific screen calibration."
+    },
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "optimizer_roles": [
+        "encoder",
+        "generator",
+        "prior",
+        "discriminator"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true
+    },
+    "eval_samples": 4096
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 512,
+    "cpu_threads": 1,
+    "timeout_seconds": 300,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "task_cohort": "api_model_vae_seed0_v1",
+  "research_artifacts": {
+    "readout": "reports/forge/api-model-toys/vae.md",
+    "api_publication": "reports/toy_audit/api_contract/model_modes/publication.json"
+  },
+  "retained_question_ids": [
+    "api-model-vae-hard"
+  ]
+}

@@ -8,9 +8,11 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 import hashlib
+import importlib.util
 import json
 from pathlib import Path
 import re
+import shutil
 import subprocess
 import sys
 
@@ -40,13 +42,22 @@ FROZEN_F821_FALSE_POSITIVES = {
 }
 
 
+def _ruff_command() -> list[str]:
+    if importlib.util.find_spec("ruff") is not None:
+        return [sys.executable, "-m", "ruff"]
+    binary = shutil.which("ruff")
+    if binary:
+        return [binary]
+    return [sys.executable, "-m", "ruff"]
+
+
 def findings(root: Path) -> Counter:
     result = subprocess.run(
-        [sys.executable, "-m", "ruff", "check", "--select", RULES,
+        [*_ruff_command(), "check", "--select", RULES,
          "--output-format", "json", *PATHS],
         cwd=root, capture_output=True, text=True,
     )
-    if result.returncode not in (0, 1):
+    if result.returncode not in (0, 1) or not result.stdout.strip():
         raise RuntimeError(result.stderr.strip() or "Ruff failed")
     counts = Counter()
     for item in json.loads(result.stdout):

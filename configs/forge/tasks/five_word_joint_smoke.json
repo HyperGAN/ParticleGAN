@@ -127,127 +127,135 @@
     "sources": {
       "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
       "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
-      "benchmarks/toy_audit/api_images.py": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+      "benchmarks/toy_audit/api_images.py": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
       "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
       "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
       "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
+      "experiments/forge/behavior_adapters.py": "a7e07a688bfa5800f9de34dc5a116c53ca9b1e96ca339fc0a6e64794e74d8614",
       "experiments/forge/word_adapter.py": "35ee665b3fe841636952d78c252208e32da5768d5eecf1a132de6aa489fed125",
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
-      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "experiments/forge/behavior_adapters.py": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8"
+      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
     },
     "evaluator_revision": {
-      "id": "cleanup-word-adapter-imports-source-binding-v1",
-      "change": "Bind the shared word adapter after removing two duplicate imports for future execution. Only the source binding changes; task architecture, target/data law, initial prior distribution and capacity, initialization, sampling, update budget, evaluation cadence and numerical gates remain unchanged. Archived source-bound evidence retains its original task/source identity; no qualification regrade, automatic cross-source reuse or training follows.",
-      "previous_task_commit": "a1e8073ae8352d3aff25f04bb51446454e873d90",
+      "id": "pr-474-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
       "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-      "previous_task_sha256": "525f1606cafb4552db72aa08227a5adaa10bf0c80f74e361703e8b30d4ffca49",
-      "previous_task_blob": "503cdab77585903d5597d1ef0578e555164522a2",
-      "previous_source_sha256": {
-        "experiments/forge/word_adapter.py": "e3923fd7904e465375c15915f729c1de4058f1bd88f801c020932184ef074dbd"
-      },
+      "previous_task_sha256": "eca4dc3afc81bd75ff7606e584fced1293614a8992cbf76c0868b5be25864a6e",
+      "previous_task_blob": "9d16317abe6c0a3b73c05f6bc2dd91be1fd05e6e",
+      "change": "Bind future executions to integrated provider/adapter bytes. Original research task/source/seed/initialization, receipts and verdicts stay archived at the original PR head. No original attempt is relabelled or regraded.",
       "previous_revision": {
-        "id": "review-policy-source-binding-20261025",
-        "change": "Bind the review-stage particlegan/policy.py refresh for future execution: ManipulatedPrior output postprocessing in ServedModel/UpdatePolicy (identity for plain priors), the declared row_evidence_statistic trainer option (default 'sphericity' is the legacy law) and router-parameter ownership labels for manipulated priors. Plain-prior hosts execute the same operations. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts and verdicts retain their original identities; this refresh grants no reuse or pass credit.",
-        "previous_task_commit": "82f38664e4d6fb4aac67ed99d87887d6e6e4b357",
+        "id": "cleanup-word-adapter-imports-source-binding-v1",
+        "change": "Bind the shared word adapter after removing two duplicate imports for future execution. Only the source binding changes; task architecture, target/data law, initial prior distribution and capacity, initialization, sampling, update budget, evaluation cadence and numerical gates remain unchanged. Archived source-bound evidence retains its original task/source identity; no qualification regrade, automatic cross-source reuse or training follows.",
+        "previous_task_commit": "a1e8073ae8352d3aff25f04bb51446454e873d90",
         "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-        "previous_task_sha256": "fcab8508f2c609f51ff26491a28b27689152d4b69f740ed204f0821b174e55ab",
-        "previous_task_blob": "80eff285a2473a1dbdf8208fcf40c61244c08e09",
+        "previous_task_sha256": "525f1606cafb4552db72aa08227a5adaa10bf0c80f74e361703e8b30d4ffca49",
+        "previous_task_blob": "503cdab77585903d5597d1ef0578e555164522a2",
         "previous_source_sha256": {
-          "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
+          "experiments/forge/word_adapter.py": "e3923fd7904e465375c15915f729c1de4058f1bd88f801c020932184ef074dbd"
         },
         "previous_revision": {
-          "id": "mog-policy-extra-state-source-binding-v1",
-          "change": "Bind the public checkpoint validator after immutable MoG _extra_state support, additively after the upstream guarded-Gram receipt compatibility source refresh. Word hosts use particle clouds; training, numerical gates, sampling, initialization, budgets and cadence are unchanged. Original receipts and qualifications retain their prior source identity; no rerun, regrading or automatic cross-source reuse.",
-          "previous_task_commit": "364a1da2b4508a25be10d457dae3ff2e6a22a4ae",
+          "id": "review-policy-source-binding-20261025",
+          "change": "Bind the review-stage particlegan/policy.py refresh for future execution: ManipulatedPrior output postprocessing in ServedModel/UpdatePolicy (identity for plain priors), the declared row_evidence_statistic trainer option (default 'sphericity' is the legacy law) and router-parameter ownership labels for manipulated priors. Plain-prior hosts execute the same operations. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts and verdicts retain their original identities; this refresh grants no reuse or pass credit.",
+          "previous_task_commit": "82f38664e4d6fb4aac67ed99d87887d6e6e4b357",
           "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-          "previous_task_sha256": "c9bcef94a9011c35501239e4722e19847dfb8d582be8ee44d6eca4c898a0ed70",
-          "previous_task_blob": "76000f35220dd3968777e10445da1aee3ca33cfa",
+          "previous_task_sha256": "fcab8508f2c609f51ff26491a28b27689152d4b69f740ed204f0821b174e55ab",
+          "previous_task_blob": "80eff285a2473a1dbdf8208fcf40c61244c08e09",
           "previous_source_sha256": {
-            "particlegan/policy.py": "7b904bec09c4bbcfaa59b74465102489e5b45456f5725441b6538da6adf2accc"
+            "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
           },
           "previous_revision": {
-            "id": "guarded-gram-default-receipt-source-binding-v1",
-            "change": "Bind the optional guarded-Gram profile receipt compatibility update for future execution. The full effective Recipe is still validated; an unselected default optimizer_dense_profile is omitted from historical applied receipt metadata. Only current source provenance changes. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence, numerical gates and previous source-bound verdicts remain unchanged; this refresh grants no evidence reuse, pass credit or numerical-profile adoption.",
-            "previous_task_commit": "90ae663551dd0fa35749d56e1859f276a4d09587",
+            "id": "mog-policy-extra-state-source-binding-v1",
+            "change": "Bind the public checkpoint validator after immutable MoG _extra_state support, additively after the upstream guarded-Gram receipt compatibility source refresh. Word hosts use particle clouds; training, numerical gates, sampling, initialization, budgets and cadence are unchanged. Original receipts and qualifications retain their prior source identity; no rerun, regrading or automatic cross-source reuse.",
+            "previous_task_commit": "364a1da2b4508a25be10d457dae3ff2e6a22a4ae",
             "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-            "previous_task_sha256": "2b5225e4d0c6ea30698b4c6cdb374b796883f8c804ab884beaa97f74f6a1d54c",
+            "previous_task_sha256": "c9bcef94a9011c35501239e4722e19847dfb8d582be8ee44d6eca4c898a0ed70",
+            "previous_task_blob": "76000f35220dd3968777e10445da1aee3ca33cfa",
             "previous_source_sha256": {
-              "experiments/forge/behavior_adapters.py": "639d437a4621de84396dcfe6e192b8bd3ed72382bd8cde8943edba336d3cd104"
+              "particlegan/policy.py": "7b904bec09c4bbcfaa59b74465102489e5b45456f5725441b6538da6adf2accc"
             },
             "previous_revision": {
-              "id": "bispf-checkpoint-preflight-source-binding-v1",
-              "change": "Bind the current checkpoint-preflight thermal-cache isolation for future joint-word execution. Architecture, vocabulary, target/data/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts, historical policy variants and qualification verdicts retain their original identities; this refresh grants no reuse or pass credit.",
-              "previous_task_commit": "00976bc98fd8a89a0e17db5fbd0d7b0afdfe2791",
+              "id": "guarded-gram-default-receipt-source-binding-v1",
+              "change": "Bind the optional guarded-Gram profile receipt compatibility update for future execution. The full effective Recipe is still validated; an unselected default optimizer_dense_profile is omitted from historical applied receipt metadata. Only current source provenance changes. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence, numerical gates and previous source-bound verdicts remain unchanged; this refresh grants no evidence reuse, pass credit or numerical-profile adoption.",
+              "previous_task_commit": "90ae663551dd0fa35749d56e1859f276a4d09587",
               "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
-              "previous_task_sha256": "e08fb1405013d7ea1792e4536d1a93e5722348de9bfe712e3d4e8686baa0421e",
+              "previous_task_sha256": "2b5225e4d0c6ea30698b4c6cdb374b796883f8c804ab884beaa97f74f6a1d54c",
               "previous_source_sha256": {
-                "particlegan/policy.py": "f3af6679aea15e3c2693605a8d020fb175dd9afe1f48f05ca0565a33599cee4e"
+                "experiments/forge/behavior_adapters.py": "639d437a4621de84396dcfe6e192b8bd3ed72382bd8cde8943edba336d3cd104"
               },
               "previous_revision": {
-                "id": "combined-opt-in-prior-source-v1",
-                "change": "Bind the integrated proximal, Coulomb, SIGReg, moment-tether and initial-MMD public API for future execution. Only current source provenance changes; architecture, target/data/prior/sampling laws, budgets, cadence and numerical gates are unchanged. Archived source-bound evidence and verdicts are preserved.",
+                "id": "bispf-checkpoint-preflight-source-binding-v1",
+                "change": "Bind the current checkpoint-preflight thermal-cache isolation for future joint-word execution. Architecture, vocabulary, target/data/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts, historical policy variants and qualification verdicts retain their original identities; this refresh grants no reuse or pass credit.",
+                "previous_task_commit": "00976bc98fd8a89a0e17db5fbd0d7b0afdfe2791",
+                "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
+                "previous_task_sha256": "e08fb1405013d7ea1792e4536d1a93e5722348de9bfe712e3d4e8686baa0421e",
                 "previous_source_sha256": {
-                  "benchmarks/toy_audit/api_images.py": "d3fe74979d7ccea0c272386b90bd2a857c2d991cafff48a6cd4c9665e7dec30b",
-                  "experiments/forge/word_adapter.py": "bd4a3798bc8d8e3aded6dfe2db264850d42d58777ba76053452cb64b9247bf4e",
-                  "experiments/forge/word_tasks.py": "f090d5300fdf12178d5c54556c40c98f593b2796e2bb8ab91c7e81450f89ba05",
-                  "experiments/forge/behavior_adapters.py": "890f0e984e4430aa277c1df76a013d9f4ce388b5f2a0340ae54a336066d6eba1"
+                  "particlegan/policy.py": "f3af6679aea15e3c2693605a8d020fb175dd9afe1f48f05ca0565a33599cee4e"
                 },
                 "previous_revision": {
-                  "id": "opt-in-coulomb-prior-reference-v1",
-                  "change": "Bind opt-in Coulomb initial-reference and factory plumbing. Task architecture, initialized prior, target/data/sampling laws, budgets, cadence and numerical gates are unchanged. Archived evidence retains its source identity. Import the existing recipe-owned word receipt helper; training and scoring are unchanged.",
+                  "id": "combined-opt-in-prior-source-v1",
+                  "change": "Bind the integrated proximal, Coulomb, SIGReg, moment-tether and initial-MMD public API for future execution. Only current source provenance changes; architecture, target/data/prior/sampling laws, budgets, cadence and numerical gates are unchanged. Archived source-bound evidence and verdicts are preserved.",
                   "previous_source_sha256": {
-                    "benchmarks/toy_audit/api_images.py": "a79aafb643182d707796b25b2b3abec3dd3c7e452c615a7cf68274f157a778ea",
-                    "experiments/forge/behavior_adapters.py": "570b26537ca48930c49c88cc839a945ff3f4beddffadf86dd22ebe2fcb677306",
-                    "experiments/forge/word_adapter.py": "dd6c337d437637981b000f9e3f310c1c6f38010bf142ddc133f5deaccb45668e"
+                    "benchmarks/toy_audit/api_images.py": "d3fe74979d7ccea0c272386b90bd2a857c2d991cafff48a6cd4c9665e7dec30b",
+                    "experiments/forge/word_adapter.py": "bd4a3798bc8d8e3aded6dfe2db264850d42d58777ba76053452cb64b9247bf4e",
+                    "experiments/forge/word_tasks.py": "f090d5300fdf12178d5c54556c40c98f593b2796e2bb8ab91c7e81450f89ba05",
+                    "experiments/forge/behavior_adapters.py": "890f0e984e4430aa277c1df76a013d9f4ce388b5f2a0340ae54a336066d6eba1"
                   },
                   "previous_revision": {
-                    "id": "opt-in-component-objective-hooks-v1",
-                    "change": "Explicit optional transport/protected-objective hooks and current source binding. Original question, architecture, data/prior/sampling laws, update budget, cadence and all numerical gates retained. Disabled mechanisms preserve original behavior.",
-                    "original_task_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
-                    "original_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
+                    "id": "opt-in-coulomb-prior-reference-v1",
+                    "change": "Bind opt-in Coulomb initial-reference and factory plumbing. Task architecture, initialized prior, target/data/sampling laws, budgets, cadence and numerical gates are unchanged. Archived evidence retains its source identity. Import the existing recipe-owned word receipt helper; training and scoring are unchanged.",
                     "previous_source_sha256": {
-                      "benchmarks/toy_audit/api_images.py": "c1573e6e34c05302db8608982ff03819447a38b4a310a91aaf1832508c3e4336",
-                      "experiments/forge/word_adapter.py": "4aa771dd39d58e6ec7a00ab21d82f689d74638a15403e4b2d9024f67a1c57225",
-                      "experiments/forge/word_tasks.py": "71169e6164ea85ac7cda623fe08d3a52ffc352646be5c600416461bf5b5aeeac"
+                      "benchmarks/toy_audit/api_images.py": "a79aafb643182d707796b25b2b3abec3dd3c7e452c615a7cf68274f157a778ea",
+                      "experiments/forge/behavior_adapters.py": "570b26537ca48930c49c88cc839a945ff3f4beddffadf86dd22ebe2fcb677306",
+                      "experiments/forge/word_adapter.py": "dd6c337d437637981b000f9e3f310c1c6f38010bf142ddc133f5deaccb45668e"
                     },
                     "previous_revision": {
-                      "id": "five-word-acquisition-hold-split-v1",
-                      "change": "Separate acquisition from retention without changing numerical bounds, public host, prior, initialization or original schedule horizon. Historical sustained task and receipts retain their identities.",
-                      "historical_task": "five_word_joint_acquisition",
-                      "historical_task_sha256": "3a0db059c0465bcb44754ee2c817d42eec07473b84b63717ee514171192b217b",
+                      "id": "opt-in-component-objective-hooks-v1",
+                      "change": "Explicit optional transport/protected-objective hooks and current source binding. Original question, architecture, data/prior/sampling laws, update budget, cadence and all numerical gates retained. Disabled mechanisms preserve original behavior.",
+                      "original_task_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
+                      "original_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
+                      "previous_source_sha256": {
+                        "benchmarks/toy_audit/api_images.py": "c1573e6e34c05302db8608982ff03819447a38b4a310a91aaf1832508c3e4336",
+                        "experiments/forge/word_adapter.py": "4aa771dd39d58e6ec7a00ab21d82f689d74638a15403e4b2d9024f67a1c57225",
+                        "experiments/forge/word_tasks.py": "71169e6164ea85ac7cda623fe08d3a52ffc352646be5c600416461bf5b5aeeac"
+                      },
                       "previous_revision": {
-                        "change": "Bind the current shared comparison helper after project-wide disabled multithreaded autograd scheduling. Task architecture, target law, prior, named streams, update budget, sampling, cadence and numerical bounds remain unchanged. Earlier declarations and receipts retain their original source and runtime identity.",
-                        "id": "joint-word-serial-autograd-source-binding-v5",
+                        "id": "five-word-acquisition-hold-split-v1",
+                        "change": "Separate acquisition from retention without changing numerical bounds, public host, prior, initialization or original schedule horizon. Historical sustained task and receipts retain their identities.",
+                        "historical_task": "five_word_joint_acquisition",
+                        "historical_task_sha256": "3a0db059c0465bcb44754ee2c817d42eec07473b84b63717ee514171192b217b",
                         "previous_revision": {
-                          "change": "Bind the current shared public fixture and deterministic comparison helper for future execution. Forge named component initialization, numerical bounds, geometry, training budget and sampling laws remain unchanged; original receipts retain their original source binding.",
-                          "id": "public-api-reproducibility-source-binding-v4",
+                          "change": "Bind the current shared comparison helper after project-wide disabled multithreaded autograd scheduling. Task architecture, target law, prior, named streams, update budget, sampling, cadence and numerical bounds remain unchanged. Earlier declarations and receipts retain their original source and runtime identity.",
+                          "id": "joint-word-serial-autograd-source-binding-v5",
                           "previous_revision": {
-                            "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged.",
-                            "id": "explicit-equality-and-word-prior-betas-v3",
+                            "change": "Bind the current shared public fixture and deterministic comparison helper for future execution. Forge named component initialization, numerical bounds, geometry, training budget and sampling laws remain unchanged; original receipts retain their original source binding.",
+                            "id": "public-api-reproducibility-source-binding-v4",
                             "previous_revision": {
-                              "change": "Bind the current public fixture after bounded Recipe configuration API additions; retain the declared numerical bounds, task geometry and budget. Earlier evidence keeps its original source binding.",
-                              "id": "joint-word-task-source-binding-v2",
-                              "previous_api_images_sha256": "bedcb88841ef5cae8c9bfa60364bfacebbef29dea640036c1e30c4593ae71a3f"
+                              "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged.",
+                              "id": "explicit-equality-and-word-prior-betas-v3",
+                              "previous_revision": {
+                                "change": "Bind the current public fixture after bounded Recipe configuration API additions; retain the declared numerical bounds, task geometry and budget. Earlier evidence keeps its original source binding.",
+                                "id": "joint-word-task-source-binding-v2",
+                                "previous_api_images_sha256": "bedcb88841ef5cae8c9bfa60364bfacebbef29dea640036c1e30c4593ae71a3f"
+                              },
+                              "previous_source_sha256": {
+                                "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8",
+                                "benchmarks/toy_audit/api_images.py": "243190aba0c5870668a63289b771dc6f784c9460b890bc6a77e12cc2796d7184",
+                                "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97"
+                              }
                             },
                             "previous_source_sha256": {
-                              "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8",
-                              "benchmarks/toy_audit/api_images.py": "243190aba0c5870668a63289b771dc6f784c9460b890bc6a77e12cc2796d7184",
-                              "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97"
+                              "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
+                              "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+                              "benchmarks/toy_audit/api_images.py": "65d5ab6be9e80d3633922dca958a3dcd0e1b01b770e470e3c69a66654e800016",
+                              "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
+                              "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89"
                             }
                           },
                           "previous_source_sha256": {
-                            "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
-                            "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
-                            "benchmarks/toy_audit/api_images.py": "65d5ab6be9e80d3633922dca958a3dcd0e1b01b770e470e3c69a66654e800016",
-                            "benchmarks/toy_audit/definition_quality.py": "42d835ab7a0937a6c3759dd719691c721663b7857cb990405253e90f7fbd4cc9",
-                            "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89"
+                            "benchmarks/toy_audit/reproducibility.py": "bb8cf4836bf8331c1a955a1cbb532c9fa24f469f53560624972bc5a2053f5786"
                           }
-                        },
-                        "previous_source_sha256": {
-                          "benchmarks/toy_audit/reproducibility.py": "bb8cf4836bf8331c1a955a1cbb532c9fa24f469f53560624972bc5a2053f5786"
                         }
                       }
                     }
@@ -257,12 +265,27 @@
             }
           }
         }
-      }
+      },
+      "previous_source_sha256": {
+        "benchmarks/toy_audit/api_images.py": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+        "experiments/forge/behavior_adapters.py": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8"
+      },
+      "qualification_input": false
     },
     "confirmation": "independent_draw_same_state",
     "gate_policy": {
       "id": "five-word-smoke-v1",
       "rationale": "Can public joint BiGAN training acquire all five words and confidently reconstruct every paired input at one independently confirmed scheduled state? Complete all 20,001 updates."
+    },
+    "integration_source_binding": {
+      "id": "reviewed-model-prs-integration-20261109",
+      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
+      "qualification_input": false,
+      "previous_task_commit": "4a5ff6d4db831a23a7c95b5d14ce84ff73dfee06",
+      "previous_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
+      "previous_task_sha256": "8a07fce73063693f6724a0cde97bfa91054e0036721c42a98e9a6cd6f5cce674",
+      "previous_task_blob": "289ff3cfe7fc5bef663459c192bee7fd8c80971d",
+      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
     }
   },
   "resources": {

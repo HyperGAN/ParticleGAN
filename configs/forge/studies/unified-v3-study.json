@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v3-study"
+  },
+  "candidate": "unified-v3",
+  "competing_explanation": "If gating coalesced equilibrium damping by eq_gate = clamp((0.030 - res_ema) / 0.020, 0, 1) either delays 100-mode lattice settling or fails to restore fast ring16_acquisition convergence, then unified-v3 will either fail ring16_acquisition's 5-check suffix or exceed center_rms_sigma > 0.20 / max_cov_eig_ratio > 1.70 on grid100, rotated100, or staggered100.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Gating coalesced unimodal equilibrium settling (adv_w: 0.038 -> 0.008, g_floor: 0.022 -> 0.012, row_floor: 0.15 -> 0.38) smoothly by transport residual eq_gate = clamp((0.030 - res_ema) / 0.020, 0, 1) preserves unified-v1's fast 13/13 counted Tier-1 acquisition (including ring16_acquisition) while engaging full equilibrium damping and exact 2x2 complex-frame pushforward isotropy once transport settles, unlocking clean live MoG PASS across grid100, rotated100, and staggered100 alongside 6/6 vector, 4/4 discrete image, and 1D stability gates on protocol seed 0.",
+  "id": "unified-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v2",
+        "candidate_revision": "cc7a04762547d3d463c237074e80c3e24b36074c18e3ffe5d498119c475f1428"
+      },
+      "path": "reports/forge/records/readout-008837c0302469dece2d3d4a.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "unified-v1",
+        "candidate_revision": "5132650acd6bbc9f53ffa639b62b3f2aa3d35c9c6cef450e507514ca9e2d58c8"
+      },
+      "path": "reports/forge/records/readout-c2d30b8574761eb921efc868.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

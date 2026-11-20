@@ -167,6 +167,8 @@ def task_recipe(case, recipe_name=None, recipe=None):
         else:
             base = get_recipe(recipe_name)
         result = base.replace(**fields, total_steps=None if base.total_steps is None else case["default_steps"])
+    from .api_contract import validate_caller_objectives
+    validate_caller_objectives(result, provider="api_model_vae")
     if result.constraint_geometry_mode == "strict_progress":
         raise ValueError("VAE stochastic posterior has no strict_progress finite-replay contract")
     return result
@@ -200,7 +202,8 @@ class VAEFixture:
             init.deterministic_orthogonal_(module, seed=seed + offset)
         self.initial_model_hashes = {name: _hash_model(getattr(self, name)) for name in ("E", "G", "D", "prior")}
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.G, self.D, self.prior, encoder=self.E,
-                                                           ema_critic=deepcopy(self.D), foreach=False)
+                                                           ema_critic=deepcopy(self.D),
+                                                           separate_encoder_groups=True, foreach=False)
         self.penalty = self.recipe.make_critic_penalty(self.opt_d, collect_stats=True)
         self.loss = self.recipe.make_loss()
         self.prior_regularizer = self.recipe.make_prior_regularizer(prior=self.prior)

@@ -16,7 +16,7 @@ LEGACY_IDS.update("bcap-tier1-stability-" + name + "-v1" for name in
 
 
 def test_all_legacy_configuration_docs_are_valid_and_keep_original_identity():
-    assert validate_family_documentation(ROOT) == {"status": "valid", "families": 38, "tags": 12}
+    assert validate_family_documentation(ROOT) == {"status": "valid", "families": 40, "tags": 12}
     registry = load_families(ROOT)
     for name in LEGACY_IDS:
         card = read_json(ROOT / "configs/forge/ideas" / (name + ".json"))

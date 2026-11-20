@@ -1,8 +1,12 @@
 """Exercise the actual lint gate without changing repository sources."""
 import json
 from pathlib import Path
+import subprocess
 
-from scripts.check_lint import FROZEN_F821_FALSE_POSITIVES, PATHS, main
+import pytest
+
+import scripts.check_lint as check_lint
+from scripts.check_lint import FROZEN_F821_FALSE_POSITIVES, PATHS, findings, main
 
 
 def _workspace(root):
@@ -77,3 +81,16 @@ def test_frozen_false_positive_exception_cannot_hide_a_changed_source(tmp_path, 
     assert main([*args, "--update-baseline"]) == 1
     assert "new_undefined_name" in capsys.readouterr().out
     assert (tmp_path / ".ruff-baseline.json").read_bytes() == baseline
+
+
+def test_missing_ruff_or_empty_output_raises_clear_runtime_error(tmp_path, monkeypatch):
+    _workspace(tmp_path)
+    monkeypatch.setattr(
+        check_lint.subprocess,
+        "run",
+        lambda *args, **kwargs: subprocess.CompletedProcess(
+            args=args[0], returncode=1, stdout="", stderr="No module named ruff\n"
+        ),
+    )
+    with pytest.raises(RuntimeError, match="No module named ruff"):
+        findings(tmp_path)

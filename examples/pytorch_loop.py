@@ -9,7 +9,7 @@ the same update GANTrainer performs, with the control flow in your hands:
 * role-wise LR schedule: ``learning_rate_scales`` (network horizon + prior),
 * critic input noise (``InputNoise``) / generator output noise (annealed, one stream),
 * ``recipe.make_optimizers(G, D, prior, ema_critic=copy.deepcopy(D))``:
-  recipe-owned optimizers, currently optimized BISPF DualNorm with direction blending,
+  recipe-owned optimizers, currently EMPF DualNorm with direction blending,
 * sampled prior rows and protected generator loss bound before the G step,
 * ``recipe.make_critic_penalty(opt_d)``: the critic penalty, added to the
   critic loss like any other term.

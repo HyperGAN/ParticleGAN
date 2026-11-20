@@ -1,0 +1,110 @@
+{
+  "attempts": [
+    {
+      "attempt": "2c33e91963ad464f990c4ae04f365e48",
+      "terminal_states": [
+        {
+          "checkpoint_sha256": "9ba73f0ca394fb7aa6c39886989c32221da8ea085fda003b0244c4cd2b20af08",
+          "equal_row_quality": 0.99188232421875,
+          "low_usage_miss_attribution": 0.9097744226455688,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.82275390625,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "f33e11657098f35f8c59e93b4e3d8d2541d20f974993f409f1e8c0e5bb6909eb",
+          "equal_row_quality": 0.98724365234375,
+          "low_usage_miss_attribution": 0.9377990365028381,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.75,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "915443d19236e5b87ad2e681d3b9da67c2fb06f8855f4f35f6d65e516666034d",
+          "equal_row_quality": 0.98876953125,
+          "low_usage_miss_attribution": 0.9130434989929199,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.833984375,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "32d47bdf80eaf95a485bf71c8775e15960f8a570eedae175be796c74d5a1da79",
+          "equal_row_quality": 0.99237060546875,
+          "low_usage_miss_attribution": 0.9039999842643738,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.75,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "848c8866eacd58c93789915dc35e8bd740eafd53e0458bb71ba60b9b2ae39d04",
+          "equal_row_quality": 0.993408203125,
+          "low_usage_miss_attribution": 0.9351851940155029,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.8125,
+          "step": 1200
+        }
+      ]
+    },
+    {
+      "attempt": "c8e35c60cb3c4957bad3e692f469541c",
+      "terminal_states": [
+        {
+          "checkpoint_sha256": "9354a4e6ced98fc6a7be07a3521ac97ab317a800a53bb2ff578e37df35bb6fea",
+          "equal_row_quality": 0.98016357421875,
+          "low_usage_miss_attribution": 0.7015384435653687,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.6226764917373657,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "5e7fe0e6dc585101815387b48c25d478653a6e0f52334c86bbc5ddaff67c5f09",
+          "equal_row_quality": 0.97955322265625,
+          "low_usage_miss_attribution": 0.683582067489624,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.602723240852356,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "ee833659240f040003ad40e0b571915f413839fe553487df60fbe47630bc0b2d",
+          "equal_row_quality": 0.98162841796875,
+          "low_usage_miss_attribution": 0.7508305907249451,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.6101301908493042,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "4aabe20e269887ea76b30c296c8f1d088b20e20708a902f66c675d6ae53f8ed4",
+          "equal_row_quality": 0.97711181640625,
+          "low_usage_miss_attribution": 0.8106666803359985,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.6183086633682251,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "96176a1676a7e5425853c2a8723ed0d05d9e0af6cf1a574cb86f2386b60ac481",
+          "equal_row_quality": 0.98553466796875,
+          "low_usage_miss_attribution": 0.7130801677703857,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.6166453957557678,
+          "step": 1200
+        }
+      ]
+    }
+  ],
+  "optimizer_updates": 0,
+  "qualification_input": false,
+  "raw_rows_sha256": "c72b28c895527d75e3917a30771c7f5f4fe1017f4883984c328b87776f5f80bc",
+  "schema": "vaegan_saved_terminal_rows_v1",
+  "scope": "Exploratory CPU row-stratified1024draws/row and4096-input posterior panel; no CUDA gate replacement.",
+  "source_sha256": "80cdf88dcb527bc288ea2765721696e713aa11801007ba68eb93758a12ef7ee2"
+}

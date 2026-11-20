@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "r4-razor-no-secant-band-t4-nash-study"
+  },
+  "candidate": "r4-razor-no-secant-band",
+  "competing_explanation": "If Quintic polar equilibration alone suffices for >500x imbalance and hostile initialization, r4-razor-no-secant-band will still pass 3/3 t4_imbalance_nash_stretch.",
+  "control": {
+    "candidate_id": "unified-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 0.85
+  },
+  "hypothesis": "Test whether knocking out realized function-space secant trust bands breaks all three >500x Nash imbalance and hostile -30-logit init probes in t4_imbalance_nash_stretch.",
+  "id": "r4-razor-no-secant-band-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-6da9dee19abe886e7ddbe184.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

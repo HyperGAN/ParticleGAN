@@ -1,0 +1,289 @@
+{
+  "accuracy_limit_ratios": {
+    "abs_cov_trace_bias": 3.254265581521434,
+    "center_rms_sigma": 7.485651369690226,
+    "mass_tv": 2.8380000000000005,
+    "radial_ks": 10.598505574191021
+  },
+  "actual_training_gif": {
+    "observations": 34,
+    "path": "reports/forge/bispf-optimized/quality-media/grid100.gif",
+    "sha256": "1048d261931c27c3526703327e8079f37ae193e957e4b2ddd595722642f644f1",
+    "source_attempt": "e33da1416b6248d1b514ef8c650cd3f8"
+  },
+  "attempt_id": "e33da1416b6248d1b514ef8c650cd3f8",
+  "audit_status": "PASS",
+  "candidate_id": "bispf-optimized-quintic-v1",
+  "candidate_revision": "8d941696e5e05607c763bccefbcbe34694996370bb6f1b03d70f514be6273def",
+  "checkpoint_receipt": {
+    "path": "grid100/training-state.pt",
+    "sha256": "8dc9bcc8ec39a10c50899b7dce1a055aa41187498869b6cdbb6ba184fd0281db",
+    "state_sha256": "b53b967160a69b6db88999ea8e217327f3cd5be670ca1189541a37b7c9eb0e63"
+  },
+  "frozen_source_sha256": {
+    "benchmarks/toy100/accuracy.py": "ee5c62049f8cdceb3d93b6d792cbaa96c815e12b3ce79ffaed244fb15a44fed2",
+    "benchmarks/toy100/accuracy_gate.py": "e66ede95d4b80eedd832a102841c2b0a5d6d710f646bfa34dc00647dc0ab3abe",
+    "benchmarks/toy100/problems.py": "2581374d451ed9147c031dfcdfbe9e2eea83e41ba49c2b8945b6e729ede26c9d",
+    "configs/forge/tasks/grid100.json": "659d1018b4634af5a8f132461c54a70acddc2c062682f1223cb20198a6885757",
+    "experiments/forge/adapters.py": "7fd2a14725a204b3ad7c71bc5aee757aec6ed6bb0cef6c8558a110a17ad782a3",
+    "experiments/forge/api.py": "efb8b114f3a967a2e54daa6d4f831debeb06861d5ccefd89a19615cf618305b3",
+    "lib/toy_models.py": "70f32797882de0dc88085afcf5e05821b65eb5f248c9690818a2494225d782a3",
+    "particlegan/bispf.py": "19555a93c01706a6ffb898b06f98b3dca7e4cdbe0b47cbd7c222acfddfeace58",
+    "particlegan/optim/dualnorm.py": "507c7055c5cd6ee7ac7d99b854a234edc9607414089734b39eb1e022cfdd33f9",
+    "particlegan/recipes.py": "eb405669b4ec91695b148c106a3d342d9c0ae9dad2d85ff96cbf938e3a5a1621"
+  },
+  "holdout_metrics": {
+    "abs_cov_trace_bias": 0.3254265581521434,
+    "accuracy_pass": false,
+    "accuracy_score": 6.0441056313506705,
+    "all_finite": true,
+    "center_max_sigma": 2.876391904468037,
+    "center_rms_sigma": 1.4971302739380452,
+    "cov_frob_rms": 0.610159902023204,
+    "cov_trace_bias": 0.3254265581521434,
+    "frozen_pass": false,
+    "mass_tv": 0.17028000000000001,
+    "n": 100000,
+    "passed": false,
+    "precision": 0.30497,
+    "precision_gap": 0.6839210034617578,
+    "problem": "grid100",
+    "protocol": "toy100-accuracy-v1",
+    "radial_ks": 0.4239402229676409,
+    "valid_n": 100000,
+    "within_radius_n": 30497
+  },
+  "host_mechanisms": {
+    "actual_thermal_scale": "UNKNOWN_without_saved_state",
+    "critic_penalty_applied": 7000,
+    "dense_multimode_endpoint_eligible": true,
+    "eligible_convolution_groups": 0,
+    "harmonic_capture_endpoint_eligible": false,
+    "module_constructors": {
+      "SimpleMLPDiscriminator": [
+        "LeakyReLU",
+        "Linear",
+        "Sequential"
+      ],
+      "SimpleMLPGenerator": [
+        "LeakyReLU",
+        "Linear",
+        "Sequential"
+      ]
+    },
+    "quintic_delta_exercised": false,
+    "selected_objective": "non_saturating"
+  },
+  "initial_model_sha256": {
+    "discriminator": "de6b6583b0bb8fc3ddd7b0211be2d2744074dceef120ecba24618cd7a291fa01",
+    "generator": "07229cdb3ae86f0746c5de25bd61b4637020c104fbf6180c141220491a85f247",
+    "prior": "41246d315685e3e3405fe86d0ef74655a7aceed12d6a4a4d291501321e12ba6f"
+  },
+  "input_sha256": {
+    "media_receipt": "807887804aa50d5d497c67e4141c15a994a8d08b2060beb760e2efa94dc6a0be",
+    "original_readout": "50f249158118686904c8d01bf817fcf802696acbe84f0c56567cbc3cab3dedfe",
+    "quality.json": "5eb3bcf2986af87ed836c99e48e376082a3dee6ceda30bbd4c4635b3e3652cbe"
+  },
+  "named_stream_final_sha256": {
+    "[\"data\",\"target\",\"training\",\"cuda:0\"]": "6f6b0084fa0b0e8de78f282e0570952e99c0f80d4defb68f4c9bcb462cf0cc8f",
+    "[\"eval\",\"ema\",\"samples\",\"cuda:0\"]": "d47b07eea9b367b10c27d6dd425b35b0887c124d29fd9b47a17d7163ff48b8e7",
+    "[\"eval\",\"live\",\"samples\",\"cuda:0\"]": "b24e7622a63d3deed0b9cdbb446e98b989052a9946b94bb4ea2b008b74d3e0f0",
+    "[\"eval\",\"sampler\",\"samples\",\"cuda:0\"]": "67f4fe1695d60941392cab68f7e509c408a926520b4d41e4d85ed622b82f3fe6",
+    "[\"eval\",\"target\",\"reference\",\"cuda:0\"]": "d6538518c0f63d30d7b0320c19bd27b89841d2ee79ade37b4d1db03a4613a03d",
+    "[\"init\",\"discriminator\",\"construction\",\"cpu\"]": "c182b1f84ab2b301e42fbc89450e589a98ec26f1f9c8b42a74d6252622919ca4",
+    "[\"init\",\"generator\",\"construction\",\"cpu\"]": "6e6dc7587577f9448f8fbc6f75d00ab7c8eecead1d77cd915b302979b6381702",
+    "[\"init\",\"prior\",\"locations\",\"cuda:0\"]": "c6c895466da96de4600bab10450fde28cf1bc981c4a31285f8d57af83d00a44e",
+    "[\"noise\",\"critic\",\"input\",\"cuda:0\"]": "355c95213318666d7a9677e2ff87c2907ec3023569ffb4af87035311861c6ac3",
+    "[\"noise\",\"generator\",\"output\",\"cuda:0\"]": "1f94d64989ee76502af2a88845775153918ae1e747651addf4d76146b1a43602",
+    "[\"noise\",\"models\",\"stochastic_layers\",\"cuda:0\"]": "c8dbf6971343450f1cb750d68c4bc506541851a3d49a4ea0415e5f051a7496e6",
+    "[\"noise\",\"penalty\",\"training\",\"cuda:0\"]": "e22601e6f2de31d2e59093f0384bd30127a8ca6aa0267b8ff5f319f4a3480376",
+    "[\"noise\",\"prior\",\"gaussian\",\"cuda:0\"]": "238f7e13e199cd1c68980b934f7383da49ea0ca670f7b732408a006580edc5dc",
+    "[\"prior\",\"latent\",\"indices\",\"cuda:0\"]": "826b7485f709fa1b4d3226d348037d838bed099d8d694a2eb3642fbe58b531f7"
+  },
+  "optimizer_updates_added": 0,
+  "oracle_metrics": {
+    "abs_cov_trace_bias": 0.0002794449587595338,
+    "accuracy_pass": true,
+    "accuracy_score": 0.11341721050570538,
+    "all_finite": true,
+    "center_max_sigma": 0.10090990917529204,
+    "center_rms_sigma": 0.041737606908836516,
+    "cov_frob_rms": 0.05610274287219167,
+    "cov_trace_bias": 0.0002794449587595338,
+    "frozen_pass": true,
+    "mass_tv": 0.012260000000000004,
+    "n": 100000,
+    "passed": true,
+    "precision": 0.98914,
+    "precision_gap": 0.0002489965382422854,
+    "problem": "grid100",
+    "protocol": "toy100-accuracy-v1",
+    "radial_ks": 0.001514120982308409,
+    "valid_n": 100000,
+    "within_radius_n": 98914
+  },
+  "original_artifacts": {
+    "checkpoint": {
+      "original_path": "/home/martyn/dev/ParticleGAN/runs/forge/bispf-optimized-quintic-v1-quality/e33da1416b6248d1b514ef8c650cd3f8/native100/grid100/training-state.pt",
+      "sha256": "8dc9bcc8ec39a10c50899b7dce1a055aa41187498869b6cdbb6ba184fd0281db",
+      "status": "MISSING"
+    },
+    "holdout_samples": {
+      "original_path": "/home/martyn/dev/ParticleGAN/runs/forge/bispf-optimized-quintic-v1-quality/e33da1416b6248d1b514ef8c650cd3f8/native100/grid100/holdout_samples.npz",
+      "sha256": "5d6c74e8dab7700b9fd7e5d41f1199c7d91d95a9983e481bf5d3caffe8afb162",
+      "status": "MISSING"
+    }
+  },
+  "original_receipt_provenance": {
+    "canonical_result_hash": "77ec4222da7775907c8e23850f92cfa76bd27276c14966d35d8b5248f3fe6b0f",
+    "original_files": {
+      "evidence": {
+        "path": "reports/forge/attempts/e33da1416b6248d1b514ef8c650cd3f8/evidence.json",
+        "sha256": "c0de62e646a7202825412e90fd6512fb80f424d8f57899eb3ad36e7fa7daddce"
+      },
+      "request": {
+        "path": "reports/forge/attempts/e33da1416b6248d1b514ef8c650cd3f8/request.json",
+        "sha256": "6872d58d2a2b002b1de4344aa20f7e560e73fb74d1b54a50eaadeeec9b7320f8"
+      },
+      "result": {
+        "path": "reports/forge/attempts/e33da1416b6248d1b514ef8c650cd3f8/result.json",
+        "sha256": "f931cecc7c03007919dce02606899a09359bb658a925e884aa8f21b835c2efbd"
+      }
+    },
+    "source_digest": "c82ed2dc712e4c9ebda80678e453635bd8a16dc74fae1450234ed368aa956213",
+    "source_origin_commit": "d9d72d53761c898bce20102e1995fc3d899c1447"
+  },
+  "precision_shortfall": 0.66503,
+  "protocol": {
+    "evaluation": {
+      "accuracy_limits": {
+        "abs_cov_trace_bias": 0.1,
+        "center_rms_sigma": 0.2,
+        "mass_tv": 0.06,
+        "radial_ks": 0.04
+      },
+      "coverage_evaluator": "benchmarks.toy100.gate:evaluate_suite",
+      "coverage_thresholds": {
+        "all_finite": true,
+        "max_cov_eig_ratio": 1.7,
+        "max_mass_tv": 0.1,
+        "max_mode_mass": 0.02,
+        "max_radial_median_ratio": 1.4,
+        "min_cov_eig_ratio": 0.4,
+        "min_hq_mode_mass": 0.005,
+        "min_modes": 100,
+        "min_precision": 0.97,
+        "min_radial_median_ratio": 0.65,
+        "min_samples": 20000
+      },
+      "early_eval_steps": [
+        0,
+        1,
+        10,
+        25,
+        50,
+        100
+      ],
+      "eval_interval": 250,
+      "eval_output_noise": "clean",
+      "eval_samples": 20000,
+      "evaluator": "benchmarks.toy100.accuracy_gate:evaluate_suite",
+      "evaluator_revision": {
+        "added_source_members": [
+          "benchmarks/toy100/train.py",
+          "benchmarks/toy100/__main__.py",
+          "benchmarks/toy100/device.py",
+          "benchmarks/toy100/affine_replay.py",
+          "benchmarks/toy_suite.py"
+        ],
+        "change": "Bind device-correct legacy fixtures and experiment RNG preservation plus recorded-device/initializer affine replay and receipt validation. No EMA-idle hooks are adopted. Architecture, target/data/prior/serving laws, optimizer policy, budgets, cadence and numerical gates are unchanged. Archived declarations and source-bound results retain their original identities.",
+        "id": "pr399-host-device-replay-source-only-v1",
+        "previous_revision": {
+          "change": "Validate explicit CLI evaluation-noise overrides; metric kernels, thresholds, clean sampling law and budgets unchanged.",
+          "id": "native100-manifest-sampling-v2",
+          "previous_gate_sha256": "55f6ef733f0b10f4c6ac05eb5ad9d30320d807ff520ea1b41c75d2d0b41e406a"
+        },
+        "previous_source_sha256": {
+          "benchmarks/toy100/gate.py": "2ddadf56a4ccd7645c8b4e391373818b1113fb6113a9c691310fb162684058e6"
+        }
+      },
+      "holdout_samples": 100000,
+      "kind": "native_accuracy",
+      "minimum_stable_checks": 5,
+      "sampling_contract_version": 1,
+      "sampling_law": "public_prior_without_output_noise",
+      "scoring_weights": "live",
+      "sources": {
+        "benchmarks/toy100/__main__.py": "50b9d164a7aae10f8dc20684dbc7be86e5f19152d989ad1247d2a5b9335545ce",
+        "benchmarks/toy100/accuracy.py": "ee5c62049f8cdceb3d93b6d792cbaa96c815e12b3ce79ffaed244fb15a44fed2",
+        "benchmarks/toy100/accuracy_gate.py": "e66ede95d4b80eedd832a102841c2b0a5d6d710f646bfa34dc00647dc0ab3abe",
+        "benchmarks/toy100/affine_replay.py": "6850a45ad099018aaf12126b998907e6eea0471de0a28b73a74eb5cac229b6c8",
+        "benchmarks/toy100/device.py": "7fa0f53db44e8824d3497b471e9fe8db56cbf8b4e02ddf997f65beed63f81911",
+        "benchmarks/toy100/gate.py": "561717e0a6c981b20efdf4a1d41e2cf9cace0c8c619546c4bf7f52748e09fbc3",
+        "benchmarks/toy100/metrics.py": "a7fbef19082f8470eb392948da52a336a90a3e99c6b3b893343a9e75bcda9c7b",
+        "benchmarks/toy100/train.py": "d58a9a9862fbbdf31a53302fcee5d986ea4b10b5c337d901dbe51af2ca5ee649",
+        "benchmarks/toy_suite.py": "8ce629b52ed6c7a52d41e2a4d632dc296168290f4a26949c7e705c2207a2beaf"
+      }
+    },
+    "initial_prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "initializer": "deterministic_orthogonal",
+    "model": {
+      "fourier": 2,
+      "hidden": 128,
+      "layers": 3
+    },
+    "prior_reg": 0.01,
+    "prior_regularizer": "sbnp",
+    "prior_update": "learned",
+    "resources": {
+      "batch_size": 2048,
+      "num_particles": 20000,
+      "z_dim": 2
+    },
+    "sampling": {
+      "eval_output_noise": "clean",
+      "sampling_contract_version": 1,
+      "sampling_law": "public_prior_without_output_noise"
+    },
+    "seed": 0,
+    "updates": 7000
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "recipe_sha256": "60ba0af155bfe843f31fc11606a9b37d690b74be69ffd7ea4243c4b0a891541e",
+  "rng_audits": {
+    "checks": 35,
+    "unintended_deviations": 0
+  },
+  "sampling_draws_added": 0,
+  "saved_state_probe": "BLOCKED",
+  "schema": "bispf_native_failure_audit_v1",
+  "scientific_status": "FAIL",
+  "source_commit": "d9d72d53761c898bce20102e1995fc3d899c1447",
+  "source_digest": "c82ed2dc712e4c9ebda80678e453635bd8a16dc74fae1450234ed368aa956213",
+  "task_id": "grid100",
+  "terminal_summary": {
+    "mass_tv_range": [
+      0.16805,
+      0.179
+    ],
+    "passing": 0,
+    "precision_range": [
+      0.29225,
+      0.345
+    ],
+    "steps": [
+      6000,
+      6250,
+      6500,
+      6750,
+      7000
+    ],
+    "total": 5,
+    "undefined_shape_checks": 3
+  }
+}

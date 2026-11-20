@@ -7,7 +7,7 @@ import pytest
 import torch
 
 from experiments.forge.api import task_formulation_context
-from experiments.forge.model_toy_adapter import preflight, run, validate_task
+from experiments.forge.model_toy_adapter import ModelToyExecutionError, preflight, run, validate_task
 from experiments.forge.state import state_digest
 from experiments.forge.views import grade_result
 from recipe_entrypoint_compat import model_source_blockers
@@ -50,6 +50,25 @@ def test_modified_gates_or_unbound_policies_are_refused_before_spend():
     value["execution"]["recipe_fields"]["prior_regularizer"] = "vicreg"
     with pytest.raises(ValueError, match="prior policy"):
         validate_task(value)
+
+
+@pytest.mark.parametrize("status,completed", [("ERROR", 0), ("INCOMPLETE", 1), ("BLOCKED", 0)])
+def test_provider_failure_before_audit_preserves_original_cause_and_receipt(tmp_path, monkeypatch, status, completed):
+    from benchmarks.toy_audit import api_run
+    diagnostic = "API execution or metric error: FileNotFoundError: missing frozen provider declaration"
+    receipt = dict(status=status, completed_updates=completed, failed_bounds=[diagnostic])
+    def fail_before_audit(case, output, **kwargs):
+        output.mkdir(parents=True)
+        (output / "receipt.json").write_text(json.dumps(receipt))
+        return receipt
+    monkeypatch.setattr(api_run, "run_case", fail_before_audit)
+    with pytest.raises(ModelToyExecutionError) as error:
+        run({"candidate": candidate(), "protocol": {"seed": 0}}, task(), tmp_path, "cpu", execution_limit=2)
+    message = str(error.value)
+    assert diagnostic in message and f"{status} after {completed} updates" in message
+    assert str(tmp_path / "api/receipt.json") in message
+    assert json.loads((tmp_path / "api/receipt.json").read_text()) == receipt
+    assert "'audit'" not in message
 
 
 @pytest.mark.parametrize("metadata", [{"sigma_rel": .5, "standardize": False},

@@ -134,7 +134,8 @@ jobs:
           assert MoGParticlePrior(sigma=0.1).sample(2)[0].shape == (2, 4)
           assert DDGAN().steps == 4
           default = get_recipe()
-          assert DEFAULT_RECIPE == "bispf_optimized"
+          assert DEFAULT_RECIPE == "empf"
+          assert default.optimizer_dense_profile == "newton_schulz_hybrid_v1"
           assert default.optimizer_svd_backend == "batched"
           assert default.training_precision == "bf16_channels_last"
           assert default == get_recipe(DEFAULT_RECIPE)
@@ -275,7 +276,9 @@ jobs:
           import tarfile
           import zipfile
 
+          max_bytes = 1_200_000
           for wheel in Path('dist').glob('*.whl'):
+              assert wheel.stat().st_size < max_bytes, wheel.stat().st_size
               with zipfile.ZipFile(wheel) as archive:
                   names = archive.namelist()
                   roots = {name.split('/')[0] for name in names}
@@ -288,14 +291,24 @@ jobs:
               # particlegan_forge is the documented external tier API (EXPERIMENTATION.md).
               packages = {'particlegan', 'particlegan_forge'}
               assert all(root in packages or root.endswith('.dist-info') for root in roots), roots
-          research = {'reports', 'results', 'experiments', 'benchmarks', 'lib', 'configs', 'data', 'runs', 'artifacts'}
+          excluded = {
+              'tests', 'reports', 'results', 'experiments', 'benchmarks', 'lib',
+              'configs', 'data', 'runs', 'artifacts', 'docs', 'examples', 'ops', 'scripts',
+          }
+          allowed_sdist_roots = {
+              'LICENSE', 'MANIFEST.in', 'PKG-INFO', 'README.md',
+              'particlegan', 'particlegan.egg-info', 'particlegan_forge',
+              'pyproject.toml', 'setup.cfg',
+          }
           for source in Path('dist').glob('*.tar.gz'):
+              assert source.stat().st_size < max_bytes, source.stat().st_size
               with tarfile.open(source) as archive:
                   names = archive.getnames()
                   roots = {parts[1] for name in names if len(parts := name.split('/')) > 1}
                   license_path = next(name for name in names if name.count('/') == 1 and name.endswith('/LICENSE'))
                   assert archive.extractfile(license_path).read() == Path('LICENSE').read_bytes()
-              assert not roots & research, roots & research
+              assert not roots & excluded, roots & excluded
+              assert roots <= allowed_sdist_roots, roots - allowed_sdist_roots
           PY
       - name: Validate package metadata and README
         run: python -m twine check --strict dist/*

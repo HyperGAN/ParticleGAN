@@ -1,0 +1,82 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v2-study"
+  },
+  "candidate": "unified-v2",
+  "competing_explanation": "If damping Part-A adversarial weight (adv_w=0.008) and generator DualNorm floor (g_floor=0.012) while maintaining Part-B straggler condensation (row_floor=0.38) on coalesced 2..4 sub-cell modes slows initial lattice acquisition or under-corrects within-mode variance, then unified-v2 will fail to maintain center_rms_sigma <= 0.20 or max_cov_eig_ratio <= 1.70 across all 5 terminal checks on grid100, rotated100, and staggered100.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Damping Part-A adversarial slope perturbation (adv_w=0.008, g_floor=0.012) while maintaining Part-B Kantorovich row condensation (row_floor=0.38) on externally isolated 2..4 sub-cell coalesced modes eliminates both the ~0.015*sigma terminal center-RMS jitter and residual straggler-row eigenvalue elongation observed at step 6250 in unified-v1, unlocking full 5/5 terminal live MoG PASS + 100k holdout PASS across grid100, rotated100, and staggered100 (center_rms_sigma <= 0.16, abs_cov_trace_bias <= 0.05) while preserving 100% of unified-v1's Tier-1 (13/13 counted), vector (6/6), discrete image (4/4), and 1D stability passes on protocol seed 0.",
+  "id": "unified-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v1",
+        "candidate_revision": "5132650acd6bbc9f53ffa639b62b3f2aa3d35c9c6cef450e507514ca9e2d58c8"
+      },
+      "path": "reports/forge/records/readout-c2d30b8574761eb921efc868.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t1-prior-v2",
+        "candidate_revision": "bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0"
+      },
+      "path": "reports/forge/records/readout-379720b9859815defff0efaa.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v5",
+        "candidate_revision": "db973aabb86cad9c924b63dea3c57ea3ad19ccf44be6ffe8abfd9f536955bbdf"
+      },
+      "path": "reports/forge/records/readout-b87c22fbdb500d43981e839b.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-a2d41a678887a49f9ecc6aa9.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

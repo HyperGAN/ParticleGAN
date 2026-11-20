@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 def test_gaussian_animation_preserves_the_explicit_090_recipe():
     receipt = json.loads((ROOT / 'reports/readme-100gaussians/summary-current.json').read_text())
     expected = json.loads(json.dumps(get_recipe(
-        optimizer_svd_backend='native', training_precision='float32').to_dict()))
+        'bispf_optimized', optimizer_svd_backend='native', training_precision='float32').to_dict()))
     assert receipt['recipe'] == expected, 'Preserve the archived 0.9.0 illustration identity'
     assert receipt['completed_steps'] == receipt.get('execution_budget', expected['total_steps'])
     assert receipt['completed_steps'] >= expected['total_steps']
@@ -32,8 +32,8 @@ def test_readme_current_default_illustration_uses_actual_candidate_training():
     assert receipt['optimizer_updates_added'] == receipt['sampling_draws_added'] == 0
     assert hashlib.sha256((base / path).read_bytes()).hexdigest() == receipt['gif_sha256']
     assert str((base / path).relative_to(ROOT)) in (ROOT / 'README.md').read_text()
-    assert get_recipe().optimizer_svd_backend == 'batched'
-    assert get_recipe().training_precision == 'bf16_channels_last'
+    assert get_recipe('bispf_optimized').optimizer_svd_backend == 'batched'
+    assert get_recipe('bispf_optimized').training_precision == 'bf16_channels_last'
 
 
 def test_readme_animation_preserves_its_recorded_verdict_and_gif():

@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "misgan-bispf-baseline-r1-reviewed",
+  "status": "ready",
+  "candidate": "bispf-optimized-quintic-v1",
+  "control": {
+    "candidate_id": "ka2",
+    "task_map": {}
+  },
+  "hypothesis": "Retain BISPF core and distinguish incomplete-data recovery from learned multimodal conditional amortization with the frozen scorer and controls.",
+  "scope": {
+    "view": "misgan-bispf-research-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "misgan-bispf-four-mode-r1",
+    "candidate_budget_seconds": 1800,
+    "budget_seconds": 5400
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/misgan-bispf/proposal.json",
+      "selector": [],
+      "identity": {
+        "schema": "misgan_bispf_proposal_v1"
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "model_misgan_four_mode",
+    "metric": "ambiguous_hq",
+    "op": ">=",
+    "threshold": 0.9,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "model_misgan_four_mode",
+    "metric": "ambiguous_hq",
+    "op": "<",
+    "threshold": 0.9,
+    "phase": "final"
+  },
+  "competing_explanation": "The finite uniform mixture, constant normalized steps, or changing generative teacher may prevent sharp recovery or calibrated posterior branches despite observed-data likelihood and synthetic classification.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

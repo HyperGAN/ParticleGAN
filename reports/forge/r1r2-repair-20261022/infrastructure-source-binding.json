@@ -1,0 +1,256 @@
+{
+  "schema_version": 1,
+  "scope": "future_task_source_binding_only",
+  "original_commit": "92b565b09b2370ddee1133799b28d5aa3ea13083",
+  "unchanged_provider_methods_except_optimizer_construction": true,
+  "task_architecture_data_prior_initialization_budget_sampling_cadence_gates_unchanged": true,
+  "original_verdicts_preserved": true,
+  "qualification_recomputed": false,
+  "training_updates": 0,
+  "random_draws": 0,
+  "tasks": [
+    {
+      "task": "five_word_joint_acquisition",
+      "original_path": "configs/forge/tasks/five_word_joint_acquisition.json",
+      "original_sha256": "555465029beb34b943734f0472e25382d49c474bdb424b4df4042a705ccb3e30",
+      "future_sha256": "df64c1b94897c47cbf9d3baa1b1f69b358471b8c1c50d613576b91ea60c22581",
+      "original_blob": "29dfbc33bd9d76ef6dc644f29b0fb246eeb188ab",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/five_word_joint_acquisition.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_images.py"
+          ],
+          "old_sha256": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+          "new_sha256": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a"
+        }
+      ]
+    },
+    {
+      "task": "model_ae_ddgan_bimodal_chain",
+      "original_path": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "original_sha256": "400c778842aa5b4834089bbdaed4435d00bba11ab2e21c5944285b550e8f2f1f",
+      "future_sha256": "a5e14481c46eb5961335bb6eee48d12c5512f54d4c51af5bb3da4e37bb3198db",
+      "original_blob": "aa819d62d1e647bc9442e1807e4dee7336f267ec",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ae_ddgan_bimodal_chain.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ddgan.py"
+          ],
+          "old_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+          "new_sha256": "9c1b073cf4dc6ec6173290f9e812400e8901bc1aac5ecd837190fdc45bec47fb"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_ae_ddgan_gaussian_chain",
+      "original_path": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "original_sha256": "8aae454052e4f4de7c43e610d7b0df740ac955216fabb88a60aeba015efa1858",
+      "future_sha256": "874287e3fcc8b29460a66a2721de90c7c3ef4e73443392b9db4b92b926892ce5",
+      "original_blob": "a652dcb9ab72707fb2464d5dbf5571f9659f0850",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ae_ddgan_gaussian_chain.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ddgan.py"
+          ],
+          "old_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+          "new_sha256": "9c1b073cf4dc6ec6173290f9e812400e8901bc1aac5ecd837190fdc45bec47fb"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_ae_gan_multimodal",
+      "original_path": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "original_sha256": "2acb31f6444a86769333b0cd2cff1906bce8ed992c17688e64733080faf32382",
+      "future_sha256": "c4695e1dfcd90a3d3514457ba6ae1b801f27c238ac418c54f45710f73dd595ab",
+      "original_blob": "6ecfb85281292fd6200b40273d740761abb62d11",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ae_gan_multimodal.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ae.py"
+          ],
+          "old_sha256": "8919030be6eac142bb8c6f95d8672505eee90aebaa7a7a91d32bed39f4ae16b8",
+          "new_sha256": "b2d01d91751d4c27c6dd15ec95ee8bef7b09b0f51b16c562eabcb86f7eeb55ce"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_ae_reconstruction",
+      "original_path": "configs/forge/tasks/model_ae_reconstruction.json",
+      "original_sha256": "4ead437cbc6c345b2c7f0bf4ba2781a0fda8bee17ca0e24f0a8ca7d1f828eae0",
+      "future_sha256": "2ece552426debb6667c44ab6c0c7d3222587557b6dd1d9e8abc6dc6d1036c9eb",
+      "original_blob": "a901999e25b4c200e6a043dfe7f6b55615044426",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ae_reconstruction.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ae.py"
+          ],
+          "old_sha256": "8919030be6eac142bb8c6f95d8672505eee90aebaa7a7a91d32bed39f4ae16b8",
+          "new_sha256": "b2d01d91751d4c27c6dd15ec95ee8bef7b09b0f51b16c562eabcb86f7eeb55ce"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_ddgan_bimodal_chain",
+      "original_path": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "original_sha256": "f46d95b2c73b0502e522ce0ca700b7174e1fab51d90941eaca377bdb9b512d5f",
+      "future_sha256": "b4ae5be0c37dad1fc4e965989de885e7e11818d6063f9520635d6e1d46652646",
+      "original_blob": "4443b5510c4e0e94f26f9d583e8493a2a4dda989",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ddgan_bimodal_chain.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ddgan.py"
+          ],
+          "old_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+          "new_sha256": "9c1b073cf4dc6ec6173290f9e812400e8901bc1aac5ecd837190fdc45bec47fb"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_ddgan_gaussian_chain",
+      "original_path": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "original_sha256": "36d730731453065d13d32a95fe15b5dda917276bbe5d7bdc5a4777846b019577",
+      "future_sha256": "71d6ad7b9a8c97a75e37cbd1c4dd113f3951f94fd2779eae43e661f4d1cb28a9",
+      "original_blob": "f0fca04b9eace1d4c4b506990c25ed7f57cc2526",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_ddgan_gaussian_chain.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_ddgan.py"
+          ],
+          "old_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+          "new_sha256": "9c1b073cf4dc6ec6173290f9e812400e8901bc1aac5ecd837190fdc45bec47fb"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_vae_categorical",
+      "original_path": "configs/forge/tasks/model_vae_categorical.json",
+      "original_sha256": "6fea5d7391a40fbdd59d9bb8733a3562300ea4139c9b39391aeefde24f69b161",
+      "future_sha256": "3d0449073587608afd46a0931db2dc9c953989da3b613e9d47e1a65e4c593a9c",
+      "original_blob": "2fb6131183e93b6b40041b213dcea03c5513fb67",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_vae_categorical.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_vae.py"
+          ],
+          "old_sha256": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+          "new_sha256": "2204e501c32980053ed642626b4108519ad65193a166ac64e40e4baab35f3ba5"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    },
+    {
+      "task": "model_vae_hard",
+      "original_path": "configs/forge/tasks/model_vae_hard.json",
+      "original_sha256": "66d639fb56e8ea5b6abb5fd8f93a12c141af2d6ba8c60e80054afc197c5b3b1e",
+      "future_sha256": "e1c63025712b74989c0d3b4d75e2c76be6c9a548da6977a73d39fe3d9438c277",
+      "original_blob": "3bc31e0700a46260bc5af1429b0cd11fd51fbdb5",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions-infra-v2/model_vae_hard.json",
+      "changes": [
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "benchmarks/toy_audit/api_model_vae.py"
+          ],
+          "old_sha256": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+          "new_sha256": "2204e501c32980053ed642626b4108519ad65193a166ac64e40e4baab35f3ba5"
+        },
+        {
+          "path": [
+            "evaluation",
+            "sources",
+            "experiments/forge/model_toy_adapter.py"
+          ],
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "124a793a4183b799293de350bd5981d68865819b29415f2520af3246401c9347"
+        }
+      ]
+    }
+  ]
+}

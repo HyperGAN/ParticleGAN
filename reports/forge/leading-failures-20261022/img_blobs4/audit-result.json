@@ -1,0 +1,548 @@
+{
+  "audit_status": "PASS",
+  "candidate": {
+    "attempt_id": "9fd0c3e51af84b8895095f51765d84e4",
+    "canonical_result_hash": "c9762bd365a4c128e4cdc7406519ac66bd838ad70e7aed38c39d9f2ce4c0ff4a",
+    "executed_commit": "d9d72d53761c898bce20102e1995fc3d899c1447",
+    "id": "bispf-optimized-quintic-v1",
+    "revision": "8d941696e5e05607c763bccefbcbe34694996370bb6f1b03d70f514be6273def",
+    "source_digest": "c82ed2dc712e4c9ebda80678e453635bd8a16dc74fae1450234ed368aa956213"
+  },
+  "checks": {
+    "final_assigned_counts": [
+      8,
+      9,
+      2,
+      13
+    ],
+    "final_clean_counts": [
+      8,
+      6,
+      1,
+      11
+    ],
+    "first_all_modes_step": null,
+    "maximum_clean_total": 26,
+    "maximum_modes": 3,
+    "minimum_clean_per_mode": 4,
+    "minimum_total_clean": 29,
+    "observations_checked": 24,
+    "passing_observations": 0,
+    "passing_suffix": 0,
+    "required_suffix": 5
+  },
+  "effective_recipe": {
+    "alpha_bar": [
+      1.0,
+      0.9,
+      0.5,
+      0.05,
+      0.0001
+    ],
+    "amsgrad": false,
+    "batch_size": 32,
+    "betas": [
+      0.0,
+      0.999
+    ],
+    "birth_death_feature_scale": "none",
+    "birth_death_isolation": false,
+    "birth_death_space": "data",
+    "conditioning": "scalar",
+    "constraint_geometry_mode": "direction_blend",
+    "continuous_policy": null,
+    "critic_formulation": "bispf",
+    "critic_payoff_damping": true,
+    "critic_r1_real": true,
+    "d_guard_min_steps": 200,
+    "d_guard_ratio": 0.0,
+    "d_lr_mult": 1.5,
+    "direct_particle_betas": [
+      0.0,
+      0.9
+    ],
+    "direct_particle_gain": false,
+    "distance_reduction": "sum",
+    "ema_decay": 0.0,
+    "encoder_mode": "none",
+    "input_noise_anneal_end": 0.1,
+    "input_noise_std": 0.0,
+    "latent_damping_max_rate": 0.0,
+    "loss": "non_saturating",
+    "lr": 0.012,
+    "lr_anneal_start": 0.6,
+    "lr_control": "mobility",
+    "lr_floor": 1.0,
+    "model": "gan",
+    "name": "bispf",
+    "network_lr_floor": 1.0,
+    "network_lr_horizon_cap": null,
+    "num_classes": null,
+    "num_particles": 32,
+    "observation_sigma": 0.03,
+    "optimizer_convolution": "per_offset",
+    "optimizer_convolution_rule": "quintic",
+    "optimizer_family": "dualnorm",
+    "optimizer_smoothing": 0.001,
+    "output_noise_mode": "fixed",
+    "output_noise_std": 0.0,
+    "output_noise_warmup": 0.0,
+    "particle_birth_death": false,
+    "prior_betas": null,
+    "prior_kind": "particles",
+    "prior_lr_mult": 2.5,
+    "prior_reg": 0.01,
+    "prior_regularizer": "sbnp",
+    "reconstruction_weight": 1.0,
+    "reg_anchor_min_decay": 0.9,
+    "reg_anchor_weight": 0.0,
+    "reg_coeff": 1.0,
+    "reg_every": 1,
+    "reg_kappa": 1.0,
+    "reopen_anchor": "hold",
+    "reopen_signal": "data",
+    "routing_temperature": 0.25,
+    "row_evidence_exclude": true,
+    "row_evidence_gate": false,
+    "row_evidence_hold": true,
+    "row_evidence_hot": true,
+    "row_evidence_null": "theory",
+    "row_policy": "independent",
+    "serve_average": 0.0,
+    "sigma_rel": 0.0,
+    "standardize": false,
+    "table_release_rule": "any",
+    "total_steps": 600,
+    "ucd_target": "class",
+    "ucd_weight": 0.02,
+    "z_dim": 8
+  },
+  "execution_guards": {
+    "all_finite": true,
+    "hooks_exercised": true,
+    "mechanism_audit": {
+      "mechanisms": {
+        "a2": {
+          "applied": 0,
+          "calls": 0,
+          "eligible": 0,
+          "enabled": false,
+          "reason": "disabled by the declared formulation; no activation claimed",
+          "requested": false
+        },
+        "critic_anchor": {
+          "applied": 0,
+          "calls": 600,
+          "eligible": 0,
+          "enabled": false,
+          "reason": "disabled by the declared formulation; no activation claimed",
+          "requested": false
+        },
+        "critic_guard": {
+          "applied": 0,
+          "calls": 0,
+          "eligible": 0,
+          "enabled": false,
+          "reason": "disabled by the declared formulation; no activation claimed",
+          "requested": false
+        },
+        "critic_penalty": {
+          "applied": 600,
+          "calls": 600,
+          "eligible": 600,
+          "enabled": true,
+          "reason": "actual host mechanism branch applied",
+          "requested": true
+        },
+        "direct_particle_gain": {
+          "applied": 0,
+          "calls": 0,
+          "eligible": 0,
+          "enabled": false,
+          "reason": "disabled by the declared formulation; no activation claimed",
+          "requested": false
+        }
+      },
+      "schema_version": 1
+    },
+    "optimizer_updates": {
+      "discriminator": 600,
+      "generator": 600,
+      "prior": 600
+    },
+    "unintended_rng_deviations": 0
+  },
+  "initialization": {
+    "discriminator": {
+      "initial_state_sha256": "59630d01d268fc23cfda55ff5453c8d8c5aeba2e9fdac0f870abcbee76c173ce",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "network.0.bias": 6557316557419445744,
+        "network.0.weight": 7598941872679323370,
+        "network.2.bias": 2464826872297182044,
+        "network.2.weight": 7227191838683133986,
+        "network.5.bias": 7547839160032859925,
+        "network.5.weight": 2202451070175648896
+      }
+    },
+    "generator": {
+      "initial_state_sha256": "0c9a04ceee8694bdd6bda88161defa9c908470e01571f614120d062a3658aee1",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "first.bias": 733050053667104688,
+        "first.weight": 8020115496282456209,
+        "input.bias": 578494951271729118,
+        "input.weight": 2329395965692531601,
+        "output.bias": 4953908800008591931,
+        "output.weight": 4087544825091049188,
+        "second.bias": 8046475863185953859,
+        "second.weight": 379600078997348305
+      }
+    },
+    "prior": {
+      "initial_state_sha256": "04fe4ff6d0ee5e6fe3ec2cdf2bde0bd2370a660835c24939cd2ebab31f8b7647",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "z": 6640234621280078221
+      }
+    }
+  },
+  "inputs": {
+    "actual_training_gif": {
+      "path": "reports/forge/bispf-optimized/quality-media/img_blobs4.gif",
+      "saved_samples_sha256": "91f1f8e49001d8bfdb42cfb686c711001a7e349560bd3f4dc4781291e10315e3",
+      "sha256": "66da937abdd15b87224bda4907c7e5f87073bfc9ae1df336e876baae1f16c2d7"
+    },
+    "compact_receipt": {
+      "path": "reports/forge/technique-receipts/9fd0c3e51af84b8895095f51765d84e4.json",
+      "sha256": "c898c2e9ded52494e517c4e7399b298da612232fe64da322d267d8eb46a1959a"
+    },
+    "frozen_source_files": {
+      "benchmarks/transfer_suite/image_tasks.py": "4f070d0879cbaaaa076f82b4683cfe74ea9ed8d85480d1922e249444a752ce58",
+      "experiments/forge/adapters.py": "7fd2a14725a204b3ad7c71bc5aee757aec6ed6bb0cef6c8558a110a17ad782a3",
+      "particlegan/bispf.py": "19555a93c01706a6ffb898b06f98b3dca7e4cdbe0b47cbd7c222acfddfeace58",
+      "particlegan/optim/dualnorm.py": "507c7055c5cd6ee7ac7d99b854a234edc9607414089734b39eb1e022cfdd33f9",
+      "particlegan/recipes.py": "eb405669b4ec91695b148c106a3d342d9c0ae9dad2d85ff96cbf938e3a5a1621",
+      "particlegan/training.py": "f84bf044405a1ea105350a260bfc903bade9b8d464ad80eb005b0e4a307a6c2b"
+    },
+    "task_declaration": {
+      "path": "configs/forge/tasks/img_blobs4.json",
+      "sha256": "1dad4afb589ce9d342d3ab334d8dd6c25b74be2cbbc7df31f3d0a0d0ae92cacb"
+    }
+  },
+  "limits": [
+    "Counts derived from original API metric fractions, not newly evaluated pixels.",
+    "No full original envelope regrade, training or qualification update.",
+    "Saved image tensor and trained G/D checkpoints were not located; source hashes and receipts do not supply gradient evidence.",
+    "Milestones describe observations every 25 updates; intermediate acquisition/loss is unknown."
+  ],
+  "metrics": {
+    "distribution_tv": 0.1875,
+    "hq": 0.8125,
+    "mean_rmse": 0.04713716357946396,
+    "mode_fractions": [
+      0.25,
+      0.28125,
+      0.0625,
+      0.40625
+    ],
+    "modes": 3,
+    "quality_mode_fractions": [
+      0.25,
+      0.1875,
+      0.03125,
+      0.34375
+    ],
+    "step": 600
+  },
+  "original_gate": "FAIL",
+  "original_readout": {
+    "bytes": 4926714,
+    "inspected_path": "/mnt/ml7tb/ParticleGAN-forge/bispf-optimized-20261016/ordinary-quality-full-readout.json",
+    "original_path": "/home/martyn/dev/ParticleGAN/runs/forge/bispf-optimized/ordinary-quality-full-readout.json",
+    "sha256": "50f249158118686904c8d01bf817fcf802696acbe84f0c56567cbc3cab3dedfe"
+  },
+  "prior": {
+    "exception_reason": "Frozen image evaluation enumerates finite learned centers; stochastic MoG sampling requires separately calibrated measurement.",
+    "kind": "particle_cloud",
+    "learnable": true,
+    "sigma": 0.0,
+    "standardize": false
+  },
+  "prior_policy": {
+    "applicability": "latent_prior",
+    "contract": "recipe_owned_v1",
+    "eps": 0.0001,
+    "l2": 0.0,
+    "regularizer": "sbnp",
+    "target_std": 1.0,
+    "trainable_locations": true,
+    "update": "learned",
+    "weight": 0.01
+  },
+  "qualification_input": false,
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "scope": "zero_training_archived_observation_audit",
+  "selected_milestones": [
+    {
+      "assigned": [
+        8,
+        2,
+        12,
+        10
+      ],
+      "clean": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "clean_total": 0,
+      "modes": 0,
+      "passed": false,
+      "step": 25
+    },
+    {
+      "assigned": [
+        3,
+        8,
+        1,
+        20
+      ],
+      "clean": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "clean_total": 0,
+      "modes": 0,
+      "passed": false,
+      "step": 300
+    },
+    {
+      "assigned": [
+        5,
+        10,
+        1,
+        16
+      ],
+      "clean": [
+        0,
+        0,
+        0,
+        8
+      ],
+      "clean_total": 8,
+      "modes": 1,
+      "passed": false,
+      "step": 350
+    },
+    {
+      "assigned": [
+        5,
+        9,
+        2,
+        16
+      ],
+      "clean": [
+        1,
+        1,
+        0,
+        11
+      ],
+      "clean_total": 13,
+      "modes": 1,
+      "passed": false,
+      "step": 375
+    },
+    {
+      "assigned": [
+        5,
+        9,
+        2,
+        16
+      ],
+      "clean": [
+        4,
+        6,
+        0,
+        11
+      ],
+      "clean_total": 21,
+      "modes": 3,
+      "passed": false,
+      "step": 400
+    },
+    {
+      "assigned": [
+        9,
+        8,
+        2,
+        13
+      ],
+      "clean": [
+        5,
+        6,
+        1,
+        11
+      ],
+      "clean_total": 23,
+      "modes": 3,
+      "passed": false,
+      "step": 500
+    },
+    {
+      "assigned": [
+        8,
+        9,
+        2,
+        13
+      ],
+      "clean": [
+        8,
+        6,
+        1,
+        11
+      ],
+      "clean_total": 26,
+      "modes": 3,
+      "passed": false,
+      "step": 550
+    },
+    {
+      "assigned": [
+        8,
+        9,
+        2,
+        13
+      ],
+      "clean": [
+        8,
+        6,
+        1,
+        11
+      ],
+      "clean_total": 26,
+      "modes": 3,
+      "passed": false,
+      "step": 575
+    },
+    {
+      "assigned": [
+        8,
+        9,
+        2,
+        13
+      ],
+      "clean": [
+        8,
+        6,
+        1,
+        11
+      ],
+      "clean_total": 26,
+      "modes": 3,
+      "passed": false,
+      "step": 600
+    }
+  ],
+  "streams": {
+    "checkpoint_sha256": "2837063ea294cf533ca578b79753559c42ef9165d01cc8c0ae6b22a072f8044e",
+    "checkpoint_stream_state_sha256": {
+      "[\"data\",\"target\",\"training\",\"cuda:0\"]": "b86eba7d4012a66f33e4d708c747089226a5161c698e3289dce5a32a30d83947",
+      "[\"eval\",\"live\",\"enumerated_samples\",\"cuda:0\"]": "0614a849d36daec7e44214f00063111587d655d573be162a0fe3f99ecd96f181",
+      "[\"eval\",\"sampler\",\"samples\",\"cuda:0\"]": "67f4fe1695d60941392cab68f7e509c408a926520b4d41e4d85ed622b82f3fe6",
+      "[\"eval\",\"target\",\"reference\",\"cuda:0\"]": "c241199bd530cd0d419c66a810b36dd14c66e508cbdd27f4f3bb1eb61260cd82",
+      "[\"init\",\"discriminator\",\"construction\",\"cpu\"]": "b185e30c7dce6ecef279e98d0b6cad82b152c6ae33a27c1e123445ad4839cfe5",
+      "[\"init\",\"generator\",\"construction\",\"cpu\"]": "4f366a1a9494c3efb116658e77877530233073ce743bf79b43d3c6ed8001daa3",
+      "[\"init\",\"prior\",\"locations\",\"cuda:0\"]": "c6c895466da96de4600bab10450fde28cf1bc981c4a31285f8d57af83d00a44e",
+      "[\"noise\",\"critic\",\"input\",\"cuda:0\"]": "355c95213318666d7a9677e2ff87c2907ec3023569ffb4af87035311861c6ac3",
+      "[\"noise\",\"generator\",\"output\",\"cuda:0\"]": "1f94d64989ee76502af2a88845775153918ae1e747651addf4d76146b1a43602",
+      "[\"noise\",\"models\",\"stochastic_layers\",\"cuda:0\"]": "c8dbf6971343450f1cb750d68c4bc506541851a3d49a4ea0415e5f051a7496e6",
+      "[\"noise\",\"penalty\",\"training\",\"cuda:0\"]": "e22601e6f2de31d2e59093f0384bd30127a8ca6aa0267b8ff5f319f4a3480376",
+      "[\"noise\",\"prior\",\"gaussian\",\"cuda:0\"]": "941f0e41e945d71c69af5992ebb0585b2c785ce8e85ffda7f8355950d8b4ba6c",
+      "[\"prior\",\"latent\",\"indices\",\"cuda:0\"]": "a32f36a210008f43c0b6994fe98a43dbb59ee66c51f44103e1d686461e086c77"
+    },
+    "seed": 0,
+    "unintended_deviations": 0,
+    "version": "forge-rng-v1"
+  },
+  "task_contract": {
+    "contract": {
+      "adapter": "transfer_image",
+      "evaluation_sha256": "3577d52170ab9a83b176e540cab0453ee5a9e2d328d82357a2b6e2cb8e7d1f98",
+      "execution_sha256": "298972e63843ff4bc4a0975331c54a319328a146eee42c22cd9ebd04e5d008ba",
+      "host": "img_blobs4",
+      "host_adaptation": {
+        "contract": {
+          "recipe_fields": [
+            "alpha_bar",
+            "conditioning",
+            "distance_reduction",
+            "encoder_mode",
+            "model",
+            "num_classes",
+            "observation_sigma",
+            "prior_reg",
+            "reconstruction_weight",
+            "routing_temperature",
+            "ucd_target",
+            "ucd_weight"
+          ],
+          "schema_version": 1
+        },
+        "delegated_reference_values": {},
+        "host_definition": {
+          "adam_betas": [
+            0.0,
+            0.99
+          ],
+          "architecture": "transpose",
+          "batch_size": 32,
+          "ema_decay": 0.99,
+          "family": "image_conv_transpose",
+          "gradient_penalty": "b_cap",
+          "kappa": 1.25,
+          "lr_d": 0.0017,
+          "lr_g": 0.0017,
+          "modes": 4,
+          "noise_std": 0.01,
+          "particles": 32,
+          "pattern": "blobs4",
+          "penalty_coeff": 3.0,
+          "prior_weight": 0.05,
+          "split": "development",
+          "steps": 600,
+          "width": 12,
+          "z_dim": 8
+        },
+        "note": "Task adaptation never delegates prior policy or regularization under recipe_owned_v1.",
+        "owner": "frozen task resources and original host objectives",
+        "schema_version": 1,
+        "task_id": "img_blobs4"
+      },
+      "host_definition_sha256": "baffe1c2bfc2e2e078555268dae5e178764de04a4ba214e05606dd0f4624a8fa",
+      "host_profiles": {},
+      "initialization": null,
+      "prior": {
+        "exception_reason": "Frozen image evaluation enumerates finite learned centers; stochastic MoG sampling requires separately calibrated measurement.",
+        "kind": "particle_cloud",
+        "sigma": 0.0,
+        "standardize": false
+      },
+      "sampling": {
+        "eval_output_noise": "clean",
+        "sampling_contract_version": 1,
+        "sampling_law": "enumerated_prior_without_output_noise",
+        "scoring_weights": "live"
+      },
+      "steps": 600,
+      "timeout_seconds": 1800
+    },
+    "sha256": "be03bd0b19ad12740cd27187d63d49d16e112632d09b30e0ca8ae317ddc3715b"
+  },
+  "task_id": "img_blobs4",
+  "training_updates_added": 0
+}

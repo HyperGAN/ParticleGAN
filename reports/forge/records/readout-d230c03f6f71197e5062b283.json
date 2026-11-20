@@ -1,0 +1,385 @@
+{
+  "attempt_ids": [
+    "30ec0a881cee4b1781a7734c0a2c2216",
+    "31fd156fb81f485c9ca9005718a5ccce",
+    "807f249b50ef480ab5730d24ca8e2090"
+  ],
+  "candidate_id": "recipe-prior-refactor-k3p-v1",
+  "candidate_revision": "5061677552fea453f5c9bdaa7a56ba4d0549798824749017eaf6c82e5f88686f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Beats empf-v7 control (1/3 vs 0/3 PASS) with sharp non-ghosting convolutional patch shifts and lower saddle surface error (0.0768 vs 0.1529).",
+  "conclusion": "Selected k3p recipe passes interp_img_patch_shift (5/5 terminal checks: interp_rmse=0.0381, interp_peak=0.9349, midpoint_novelty=0.4269), and reaches barycenter_surface_mae=0.0768 <= 0.09 (barycenter_hq=0.6974) on saddle_barycentric, while cutting chords on sparse_arc (interp_hq=0.5606, 25/32 bins).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "30ec0a881cee4b1781a7734c0a2c2216",
+        "31fd156fb81f485c9ca9005718a5ccce",
+        "807f249b50ef480ab5730d24ca8e2090"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "6ea4334ea3baf79d1dd0320b7f2f29b661bc7d9ccde8b876088e742664b0aa4c",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 0.560606062412262
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 0.560606062412262
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "30ec0a881cee4b1781a7734c0a2c2216",
+          "producer_request_id": "60c52cc960464c8998b96cb3",
+          "producer_study_id": "particle-interp-stretch-k3p",
+          "result_hash": "9d515a669ce2337e682d53b36d11e06fb0293462bb26c27291b19bc7f003a2be",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "31fd156fb81f485c9ca9005718a5ccce",
+          "producer_request_id": "60c52cc960464c8998b96cb3",
+          "producer_study_id": "particle-interp-stretch-k3p",
+          "result_hash": "dd4a04e8ece938e8a677270185db8d50a3ffa2904b909c4e3f1b7d43efb11a42",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "807f249b50ef480ab5730d24ca8e2090",
+          "producer_request_id": "60c52cc960464c8998b96cb3",
+          "producer_study_id": "particle-interp-stretch-k3p",
+          "result_hash": "117990e7e8c20bcb49c9cd9dce0036c22f7953cc028bc3631bd45c78b84c6e0d",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "fd25b601659f5050ad8effe90d66f8a11ddc25a277fca3495c0aa98862ae1d47",
+        "contract_sha256": "6ea4334ea3baf79d1dd0320b7f2f29b661bc7d9ccde8b876088e742664b0aa4c",
+        "control_binding_sha256": "b37cbd35be6b5f43e81707d472eafc7bd8cbc27cc38dd096b69469e04bc4307d",
+        "policy_fingerprint": "34a36262d57e25f535f70f5dfe8b8c57c7c45d5f4154f2cb7f71c76de7eabadb",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "82bd1611a93eac0bc170a0d806bd94d624566754025316369186ff82adee0e6c"
+      },
+      "study_id": "particle-interp-stretch-k3p",
+      "study_sha256": "82bd1611a93eac0bc170a0d806bd94d624566754025316369186ff82adee0e6c"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "particle_interpolation_stretch",
+  "hypothesis": "Evaluate whether unchanged selected k3p recipe (recipe-prior-refactor-k3p-v1) with zero-sigma discrete ParticlePrior (no MoG smoothing) learns smooth, non-snapping latent interpolants across unseen 1D latent k-NN chords (interp_sparse_arc, interp_img_patch_shift) and 2D simplex barycenters (interp_saddle_barycentric).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Add a recipe-owned latent chord/Jacobian regularizer to bend MLP secant chords onto curved low-dimensional manifolds without MoG.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "30ec0a881cee4b1781a7734c0a2c2216",
+        "result_hash": "9d515a669ce2337e682d53b36d11e06fb0293462bb26c27291b19bc7f003a2be",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "31fd156fb81f485c9ca9005718a5ccce",
+        "result_hash": "dd4a04e8ece938e8a677270185db8d50a3ffa2904b909c4e3f1b7d43efb11a42",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "807f249b50ef480ab5730d24ca8e2090",
+        "result_hash": "117990e7e8c20bcb49c9cd9dce0036c22f7953cc028bc3631bd45c78b84c6e0d",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-d230c03f6f71197e5062b283",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "selection_claim": {
+    "claim": "Selected on Tier \u22643; holdout none: 0/0 PASS \u2014 no untuned holdout tier is declared. Tuning-tier passes are selection evidence, not independent confirmation.",
+    "configuration": "k3p--0b37e98a01e3cc7c0f4b3325b43f9e6d569de81e4f890f20942f0fc33221305c",
+    "configurations": 4,
+    "holdout_tiers": [],
+    "independent_confirmation": "not_performed",
+    "required_passed": 0,
+    "required_total": 0,
+    "search_id": "k3p-family-defaults-round1-v1",
+    "status": "none_declared",
+    "tuning_through_tier": 3
+  },
+  "source": {
+    "path": "reports/forge/attempts/30ec0a881cee4b1781a7734c0a2c2216/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 12000.0,
+      "candidate_budget_seconds": 1200.0,
+      "id": "particle-interp-stretch-v1"
+    },
+    "candidate": "recipe-prior-refactor-k3p-v1",
+    "competing_explanation": "Without MoG Gaussian kernel overlap or explicit latent topological sorting, zero-sigma discrete particles may map neighbor latent chords across unrelated output branches, cut Euclidean chords off the manifold, blend double-exposed pixel ghosts, or snap piecewise-constantly to memorized endpoints.",
+    "control": {
+      "candidate_id": "empf-v7",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "interp_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "hypothesis": "Evaluate whether unchanged selected k3p recipe (recipe-prior-refactor-k3p-v1) with zero-sigma discrete ParticlePrior (no MoG smoothing) learns smooth, non-snapping latent interpolants across unseen 1D latent k-NN chords (interp_sparse_arc, interp_img_patch_shift) and 2D simplex barycenters (interp_saddle_barycentric).",
+    "id": "particle-interp-stretch-k3p",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "interp_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "interp_sparse_arc",
+      "threshold": 0.8
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "empf-v6",
+          "candidate_revision": "2929a9ef553dde2092e0769ebdeaa03d0f6ded4ae74c07482ab71a77c601abe7"
+        },
+        "path": "reports/forge/records/readout-4aa764495c669b9247ca874b.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "particle_interpolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "particle-interp-stretch-k3p",
+  "study_sha256": "82bd1611a93eac0bc170a0d806bd94d624566754025316369186ff82adee0e6c",
+  "task_results": [
+    {
+      "compatibility_key": "931f26a84ffdd369d58610664eb5e7d6a70edf072fcdf1bf3b1b7270653b6f98",
+      "cost": {
+        "adapter_loop_seconds": 12.76827882102225,
+        "adapter_seconds": 13.466865345952101,
+        "charged_task": "interp_img_patch_shift",
+        "completed_steps": 800,
+        "device": "1",
+        "execution_seconds": 20.89978505007457,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 800,
+          "generator": 800,
+          "prior": 800
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 7.5672502958914265,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.6937464708462358
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.009394193184562027
+            },
+            "training_updates": {
+              "calls": 800,
+              "seconds": 6.864109631860629
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 15.320823061047122,
+        "wall_seconds": 20.89978505007457
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "all_pairs_interp_rmse": 0.05393530800938606,
+        "edge_count": 20,
+        "endpoint_hq": 1.0,
+        "endpoint_rmse": 0.028931286185979843,
+        "finite_fraction": 1.0,
+        "interp_hq": 0.9666666388511658,
+        "interp_peak": 0.9348772168159485,
+        "interp_rmse": 0.03811614587903023,
+        "midpoint_novelty": 0.4269459267768178,
+        "output_knn_interp_peak": 0.9426061511039734,
+        "output_knn_interp_rmse": 0.03907052427530289,
+        "quadrant_coverage": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed interp_img_patch_shift gates (5/5 terminal checks passed)",
+      "task_id": "interp_img_patch_shift"
+    },
+    {
+      "compatibility_key": "c7973b183d9d6956618ea96d96f89c1c843c4666be5875ad9d11d3b750328edf",
+      "cost": {
+        "adapter_loop_seconds": 13.980209616944194,
+        "adapter_seconds": 14.652350855059922,
+        "charged_task": "interp_saddle_barycentric",
+        "completed_steps": 800,
+        "device": "0",
+        "execution_seconds": 21.975028531975113,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 800,
+          "generator": 800,
+          "prior": 800
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 7.355193255585618,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.26462799892760813
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.008880064124241471
+            },
+            "training_updates": {
+              "calls": 800,
+              "seconds": 7.081685192533769
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 16.513369641965255,
+        "wall_seconds": 21.975028531975113
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "barycenter_hq": 0.6973684430122375,
+        "barycenter_novelty": 0.5724431259887325,
+        "barycenter_surface_mae": 0.07679623365402222,
+        "edge_midpoint_surface_mae": 0.07088115066289902,
+        "endpoint_hq": 0.75,
+        "endpoint_surface_mae": 0.06610433757305145,
+        "finite_fraction": 1.0,
+        "output_knn_barycenter_mae": 0.07828502357006073,
+        "step": 800,
+        "triangle_count": 76,
+        "xy_bins_covered": 15
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_saddle_barycentric thresholds: finite_fraction == 1.0, endpoint_surface_mae <= 0.08, barycenter_surface_mae <= 0.09, barycenter_hq >= 0.78, xy_bins_covered >= 12, barycenter_novelty >= 0.18",
+      "task_id": "interp_saddle_barycentric"
+    },
+    {
+      "compatibility_key": "c2838a80ee8d41e717b233f9edc1ffbc9af1fd6b98b6de7723788dc551f975fe",
+      "cost": {
+        "adapter_loop_seconds": 11.85784520197194,
+        "adapter_seconds": 12.559252834063955,
+        "charged_task": "interp_sparse_arc",
+        "completed_steps": 600,
+        "device": "0",
+        "execution_seconds": 19.876751150004566,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 5.315962754306383,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.12110827770084143
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.008577922126278281
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 5.186276554479264
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 14.476350435987115,
+        "wall_seconds": 19.876751150004566
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "all_pairs_interp_hq": 0.5,
+        "edge_count": 22,
+        "endpoint_arc_bins": 10,
+        "endpoint_hq": 0.8333333134651184,
+        "finite_fraction": 1.0,
+        "interp_arc_bins": 25,
+        "interp_hq": 0.560606062412262,
+        "interp_mean_dist": 0.1700161099433899,
+        "midpoint_novelty": 0.44047252567810113,
+        "output_knn_interp_hq": 0.4736842215061188,
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85",
+      "task_id": "interp_sparse_arc"
+    }
+  ]
+}

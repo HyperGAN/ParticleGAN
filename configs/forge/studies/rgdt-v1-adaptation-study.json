@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rgdt-v1-adaptation-study"
+  },
+  "candidate": "rgdt-v1",
+  "competing_explanation": "If target_shift_recovery failure across clock-free trainers stems from DualNorm optimizer inertia rather than finite-horizon unbalanced OT starvation (c_hat >> rho) after the [+1.0, 0.0] shift at step 2400, orphan-gated bipartite Monge deficit-to-surplus macro-transport will still miss the 400-step recovery deadline or disturb pre-shift mode_hold.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "The unchanged global clock-free rgdt-v1 recipe preserves stationary mode_hold and ae_gan_hold while using step-1 shock reopening plus orphan-gated bipartite Monge deficit-to-surplus macro-transport to bridge the [+1.0, 0.0] non-stationary shift on target_shift_recovery within the 400-step deadline on protocol seed 0.",
+  "id": "rgdt-v1-adaptation-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "adaptation"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

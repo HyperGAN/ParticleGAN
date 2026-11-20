@@ -1,0 +1,34 @@
+{
+  "all_complete_checkpoints": 25,
+  "all_completed_updates": 1200,
+  "all_guards_pass": true,
+  "all_initial_models_equal": true,
+  "all_metric_observations": 24,
+  "all_scientific_source_equal": true,
+  "all_target_batches_equal": true,
+  "ci_report_refresh": {
+    "qualification_regraded": false,
+    "receipt": "ci-report-refresh.json",
+    "related_tests_failed": 0,
+    "related_tests_passed": 141,
+    "scientific_results_unchanged": true
+  },
+  "default_adoption": false,
+  "failures": 4,
+  "focused_tests": {
+    "failed": 0,
+    "passed": 23
+  },
+  "gif_hashes_verified": 6,
+  "local_readout_links_verified": true,
+  "passes": 2,
+  "qualification_input": false,
+  "runs": 6,
+  "sampling_draws_added": 0,
+  "schema": "vaegan_coverage_publication_verification_v1",
+  "scorer_controls": {
+    "failed": 0,
+    "passed": 14
+  },
+  "training_updates_added": 0
+}

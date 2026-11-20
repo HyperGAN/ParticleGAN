@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "0c79365811b346e28d5e9bb67111684a",
+    "3f57e726f4e64974b01ef82041d52a46"
+  ],
+  "candidate_id": "unified-v9",
+  "candidate_revision": "a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "unified-v4/v5/v6 passed 2/2 (t3_iso_scale_mass_8x=0.6621, saddle_shift=1.0) with therm_prior = 1 - 0.80*u_log4.",
+  "conclusion": "unified-v9 scored 0/2 on t3_causal_isolation_stretch (t3_iso_scale_mass_8x core_min_eig=0.15, t3_iso_horizon_saddle_shift hq=1.0/modes=4) because removing therm_prior cooling in v7/v8/v9 left generator-free direct particle clouds (total_gen_mats==0) without step damping.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "0c79365811b346e28d5e9bb67111684a",
+        "3f57e726f4e64974b01ef82041d52a46"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "75b795a6ccf6588ffaf0b503438085505b5a48bc2c711f4e0d14d6de99ada1ad",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 0.14996483275451408
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 0.14996483275451408
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "0c79365811b346e28d5e9bb67111684a",
+          "producer_request_id": "e39b6cc950907fe67b314d72",
+          "producer_study_id": "unified-v9-t3-iso-study",
+          "result_hash": "a2862508121873b187a15c049a93bf844ee118ac959981be67add601273fdfa6",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "3f57e726f4e64974b01ef82041d52a46",
+          "producer_request_id": "e39b6cc950907fe67b314d72",
+          "producer_study_id": "unified-v9-t3-iso-study",
+          "result_hash": "b8e7dbe680aaea056eb884c5a2c0a2855983d3abc237efcc737591f69862b65d",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "21595dab30e1faa67e5dca69e37dc03c7742836c1b31a4ac125ffb2d382a5ae7",
+        "contract_sha256": "75b795a6ccf6588ffaf0b503438085505b5a48bc2c711f4e0d14d6de99ada1ad",
+        "control_binding_sha256": "6f0d38df6cc335fe3ad808bdc06436800c801a7c74b0f4b30748935ac359b56c",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "eb18c7a788eb41569765672d7af66fe1365a5e47b5e408cc4c0645268b9b89ba"
+      },
+      "study_id": "unified-v9-t3-iso-study",
+      "study_sha256": "eb18c7a788eb41569765672d7af66fe1365a5e47b5e408cc4c0645268b9b89ba"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Unchanged global zero-SVD zero-eigh zero-autograd.grad unified-v9 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Restore therm_prior cooling strictly on direct coordinate clouds (total_gen_mats==0) in unified-v10.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "0c79365811b346e28d5e9bb67111684a",
+        "result_hash": "a2862508121873b187a15c049a93bf844ee118ac959981be67add601273fdfa6",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "3f57e726f4e64974b01ef82041d52a46",
+        "result_hash": "b8e7dbe680aaea056eb884c5a2c0a2855983d3abc237efcc737591f69862b65d",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-f744f3298254b4a3c2a34a5c",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/0c79365811b346e28d5e9bb67111684a/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "unified-v9-t3-iso-study"
+    },
+    "candidate": "unified-v9",
+    "competing_explanation": "If replacing eigh with deterministic power-iteration principal-axis ordering in zero_eigh_bipartite_deficit_macro_loss or unifying with UnifiedV4EquilibratedOptimizer degrades orphan mode rescue or conformal horizon balancing, unified-v9 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Unchanged global zero-SVD zero-eigh zero-autograd.grad unified-v9 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.",
+    "id": "unified-v9-t3-iso-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v8",
+          "candidate_revision": "0483ddee4266f8710abf69313434184aa554b9b5d1e9bf5392629e4bcef127e0"
+        },
+        "path": "reports/forge/records/readout-d2e0272c97deecfb2b6b0266.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "unified-v9-t3-iso-study",
+  "study_sha256": "eb18c7a788eb41569765672d7af66fe1365a5e47b5e408cc4c0645268b9b89ba",
+  "task_results": [
+    {
+      "compatibility_key": "72c6e90ea1c477784916c1e587eb4ffbc968d8ea36061097f4127e798a804cdf",
+      "cost": {
+        "adapter_loop_seconds": 43.20763902994804,
+        "adapter_seconds": 43.453065348090604,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "0",
+        "eval_seconds": 0.05253995629027486,
+        "execution_seconds": 49.97697599302046,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 44.67083681398071,
+        "train_seconds": 37.69764750218019,
+        "wall_seconds": 49.97697599302046
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.5244061617078637,
+        "core_min_eigen_ratio": 0.14996483275451408,
+        "critic_grad_med": 6.246938824006065e-07,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 0.557707910060224,
+        "hq": 0.984375,
+        "mass_tv": 0.013906262814998627,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_scale_mass_8x thresholds: core_component_covariance_error <= 0.45, core_min_eigen_ratio >= 0.45",
+      "task_id": "t3_iso_scale_mass_8x"
+    },
+    {
+      "compatibility_key": "dafe4022a6f493255cea2595f64a41e9595bfeffd3c49d988fd459fdaab71d2c",
+      "cost": {
+        "adapter_loop_seconds": 54.91442225407809,
+        "adapter_seconds": 55.19900043588132,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "1",
+        "eval_seconds": 0.07206300855614245,
+        "execution_seconds": 61.82944624195807,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 56.4225388111081,
+        "train_seconds": 49.35146193765104,
+        "wall_seconds": 61.82944624195807
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.44529712596022697,
+        "critic_grad_med": 6.607890554732876e-07,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 1.0,
+        "mass_tv": 0.125,
+        "modes": 4,
+        "pre_shift_hq": 1.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_horizon_saddle_shift thresholds: mass_tv <= 0.12",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    }
+  ]
+}

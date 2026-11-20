@@ -1,0 +1,125 @@
+{
+  "schema": "ddgan_round1_endpoint_diagnosis_v1",
+  "attempt": "c810ca0c113a422d9da9d5353e5a524d",
+  "checkpoint_sha256": "f15de2249e2de60c569782df3fb8201f59d001e0a89a5926fa74381bce4e9600",
+  "diagnostic_draws": 0,
+  "training_updates_added": 0,
+  "last_losses": {
+    "g_gan": 0.6879572868347168,
+    "d_gan": 1.3863227367401123,
+    "critic_penalty": 1.007499849947635e-05,
+    "prior_regularization": 0.0007798266015015543,
+    "conditional_energy": 0.26295384764671326
+  },
+  "optimizer_direction_blend": {
+    "schema": 1,
+    "stats": {
+      "conflict_steps": 1448,
+      "blended_steps": 1448,
+      "pareto_stalls": 0,
+      "retained_norm_ratio_sum": 1120.465667531047,
+      "max_retained_norm_ratio": 0.8125747895277984
+    }
+  },
+  "terminal_checks": [
+    {
+      "step": 2084,
+      "metrics": {
+        "final_covariance_eigen_max": 1.0547536989740214,
+        "final_covariance_eigen_min": 0.8902103974988129,
+        "final_normalized_mean": 0.25967130573689157,
+        "final_projection_cdf": 0.11136821042732892,
+        "worst_transition_cdf": 0.15998407571762652
+      },
+      "failed_bounds": [
+        "final_normalized_mean",
+        "t1_q0_covariance_eigen_max",
+        "t1_q0_normalized_mean",
+        "t1_q0_projection_cdf",
+        "t1_q1_normalized_mean",
+        "t1_q1_projection_cdf"
+      ]
+    },
+    {
+      "step": 2188,
+      "metrics": {
+        "final_covariance_eigen_max": 1.4796008179417193,
+        "final_covariance_eigen_min": 0.9173426478289741,
+        "final_normalized_mean": 0.07458653394676192,
+        "final_projection_cdf": 0.057833716718417416,
+        "worst_transition_cdf": 0.2050456711038785
+      },
+      "failed_bounds": [
+        "final_covariance_eigen_max",
+        "t1_q0_covariance_eigen_max",
+        "t1_q0_normalized_mean",
+        "t1_q0_projection_cdf",
+        "t1_q1_covariance_eigen_max",
+        "t1_q1_projection_cdf"
+      ]
+    },
+    {
+      "step": 2292,
+      "metrics": {
+        "final_covariance_eigen_max": 1.5238371762568956,
+        "final_covariance_eigen_min": 1.103085246510508,
+        "final_normalized_mean": 0.8120512983341327,
+        "final_projection_cdf": 0.28361230846004837,
+        "worst_transition_cdf": 0.3335267127350874
+      },
+      "failed_bounds": [
+        "final_covariance_eigen_max",
+        "final_normalized_mean",
+        "final_projection_cdf",
+        "t1_q0_covariance_eigen_max",
+        "t1_q0_normalized_mean",
+        "t1_q0_projection_cdf",
+        "t1_q1_covariance_eigen_max",
+        "t1_q1_normalized_mean",
+        "t1_q1_projection_cdf",
+        "t2_q0_normalized_mean",
+        "t2_q0_projection_cdf",
+        "t2_q1_normalized_mean",
+        "t2_q1_projection_cdf"
+      ]
+    },
+    {
+      "step": 2396,
+      "metrics": {
+        "final_covariance_eigen_max": 1.334638789792288,
+        "final_covariance_eigen_min": 0.8083249712574981,
+        "final_normalized_mean": 0.34389048732565286,
+        "final_projection_cdf": 0.1596305299570624,
+        "worst_transition_cdf": 0.18428398453409955
+      },
+      "failed_bounds": [
+        "final_normalized_mean",
+        "final_projection_cdf",
+        "t1_q0_covariance_eigen_max",
+        "t1_q0_normalized_mean",
+        "t1_q0_projection_cdf",
+        "t1_q1_covariance_eigen_max",
+        "t1_q1_normalized_mean",
+        "t1_q1_projection_cdf",
+        "t2_q1_normalized_mean"
+      ]
+    },
+    {
+      "step": 2500,
+      "metrics": {
+        "final_covariance_eigen_max": 1.5562807504333844,
+        "final_covariance_eigen_min": 1.0603831000990953,
+        "final_normalized_mean": 0.21984156734291763,
+        "final_projection_cdf": 0.0937321391043966,
+        "worst_transition_cdf": 0.12894151719663072
+      },
+      "failed_bounds": [
+        "final_covariance_eigen_max",
+        "t1_q0_covariance_eigen_max",
+        "t1_q1_covariance_eigen_max",
+        "t1_q1_normalized_mean",
+        "t1_q1_projection_cdf"
+      ]
+    }
+  ]
+}

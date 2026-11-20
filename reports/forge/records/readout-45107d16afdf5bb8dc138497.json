@@ -1,0 +1,534 @@
+{
+  "attempt_ids": [
+    "0ddf10e1acba45138dfcd8be8d1b3586",
+    "7aa5ce6f71be47b7803a2a2e243428b6",
+    "b7022fb363c74f2694d75bb199afa2ba",
+    "d420fd40c4494a1fb4c87e66142fa84a"
+  ],
+  "candidate_id": "unified-v9",
+  "candidate_revision": "a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Clean A/B proof isolating m_dim<=128 as the exact boundary between 128x128 100-mode lattices and 170x256/256x256 five_word_joint_smoke.",
+  "conclusion": "unified-v9 passed clockfree_audit_measurement_v1, zero_tanh_smoke, and zero_tanh_rail_escape, while grid100 missed center_rms_sigma <= 0.20 at 0.2156 (cov_trace_bias=-0.084, precision=0.991, radial_ks=0.025) because the m_dim<=64 Tikhonov cutoff excluded grid100's 128x128 hidden layers (whereas unified-v7 passed grid100 at 0.1398, mlp16 at 0.1295, res16_scaled_tanh at 0.1020, and res16_tanh 100k holdout at 0.1310 with exact Tikhonov on 128x128).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "0ddf10e1acba45138dfcd8be8d1b3586",
+        "7aa5ce6f71be47b7803a2a2e243428b6",
+        "b7022fb363c74f2694d75bb199afa2ba",
+        "d420fd40c4494a1fb4c87e66142fa84a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "10221e61f7bbaea1dcf1db3667ac24d5b2fd7e823404cbf8a69c19cfc64e5d9f",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.0018561590695753694
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.0018561590695753694
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "0ddf10e1acba45138dfcd8be8d1b3586",
+          "producer_request_id": "34b08d30396151414d1ab92c",
+          "producer_study_id": "unified-v9-shift-diagnostic-study",
+          "result_hash": "d3596cf603a3ee61b22a6dae2c6d19b7b78edd880bf230a72e5001297aa4151b",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "7aa5ce6f71be47b7803a2a2e243428b6",
+          "producer_request_id": "34b08d30396151414d1ab92c",
+          "producer_study_id": "unified-v9-shift-diagnostic-study",
+          "result_hash": "5d23233c0b06bcb6a3705d332e7fce0f224f7083033a11dc4d601c537ffccdbf",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b7022fb363c74f2694d75bb199afa2ba",
+          "producer_request_id": "97d2215ed42b57a75681ed29",
+          "producer_study_id": "unified-v9-t4-arch-study",
+          "result_hash": "ea68fac3a025ad1a9dfc124f1ef236a3d201c68126594276541e0ee8551eb0f5",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "d420fd40c4494a1fb4c87e66142fa84a",
+          "producer_request_id": "97d2215ed42b57a75681ed29",
+          "producer_study_id": "unified-v9-t4-arch-study",
+          "result_hash": "3c881d504e77b9619203ea2f6c756e27354abad37c076df8841683bcdff4ef6e",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "6f34cbdafd26c22d74056409d6f15cd8d4b5895aafd34f41d5960053ac44ad3c",
+        "contract_sha256": "10221e61f7bbaea1dcf1db3667ac24d5b2fd7e823404cbf8a69c19cfc64e5d9f",
+        "control_binding_sha256": "a0bc40beb4007b76edce7fff2a024c1f2b525637184e3a5c032242eb4d055f73",
+        "policy_fingerprint": "c02e192d3434ebb7e656f5131e9a3d7703e521401b84296abc2963343006b5b9",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "86497e8bdc3a2153ef065570d82a9af56f4399c05dff37e0e83218b850dd802a"
+      },
+      "study_id": "unified-v9-t4-arch-study",
+      "study_sha256": "86497e8bdc3a2153ef065570d82a9af56f4399c05dff37e0e83218b850dd802a"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4-strange-architectures-v1",
+  "hypothesis": "Unchanged global clock-free zero-SVD zero-autograd.grad unified-v9 achieves 7/7 (100%) PASS on t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Raise augmented Tikhonov cutoff from <=64 to <=128 in unified-v10.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "0ddf10e1acba45138dfcd8be8d1b3586",
+        "result_hash": "d3596cf603a3ee61b22a6dae2c6d19b7b78edd880bf230a72e5001297aa4151b",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "7aa5ce6f71be47b7803a2a2e243428b6",
+        "result_hash": "5d23233c0b06bcb6a3705d332e7fce0f224f7083033a11dc4d601c537ffccdbf",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b7022fb363c74f2694d75bb199afa2ba",
+        "result_hash": "ea68fac3a025ad1a9dfc124f1ef236a3d201c68126594276541e0ee8551eb0f5",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "d420fd40c4494a1fb4c87e66142fa84a",
+        "result_hash": "3c881d504e77b9619203ea2f6c756e27354abad37c076df8841683bcdff4ef6e",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-45107d16afdf5bb8dc138497",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/0ddf10e1acba45138dfcd8be8d1b3586/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 20000,
+      "candidate_budget_seconds": 20000,
+      "id": "unified-v9-t4-arch-study"
+    },
+    "candidate": "unified-v9",
+    "competing_explanation": "If unifying Law 4 Quintic polar depth-scaling, fwAD saturation pullback, and outward column-sensitivity clamp rescue with Laws 1-3 inside unified-v9 interferes with deep vanishing-gradient or tanh rail-clamped architectures, unified-v9 will fail one or more of the 7 t4-strange-architectures-v1 gates.",
+    "control": {
+      "candidate_id": "t2-secant-v5",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "mean_abs_error",
+      "op": ">",
+      "phase": "final",
+      "task_id": "zero_tanh_rail_escape",
+      "threshold": 0.005
+    },
+    "hypothesis": "Unchanged global clock-free zero-SVD zero-autograd.grad unified-v9 achieves 7/7 (100%) PASS on t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0.",
+    "id": "unified-v9-t4-arch-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "mean_abs_error",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "zero_tanh_rail_escape",
+      "threshold": 0.005
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v8",
+          "candidate_revision": "0483ddee4266f8710abf69313434184aa554b9b5d1e9bf5392629e4bcef127e0"
+        },
+        "path": "reports/forge/records/readout-15497003b76d275b820080d8.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4-strange-architectures-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "unified-v9-t4-arch-study",
+  "study_sha256": "86497e8bdc3a2153ef065570d82a9af56f4399c05dff37e0e83218b850dd802a",
+  "task_results": [
+    {
+      "compatibility_key": "da3dc4656cb0df300c6619889de968abfcb3b1e07bd8dab5d41a3bc77395eab8",
+      "cost": {
+        "adapter_loop_seconds": 56.54403131105937,
+        "adapter_seconds": 56.9301705698017,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "execution_seconds": 63.24271871894598,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 54.38682110258378,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.014848453924059868
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.010033679194748402
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 54.36193896946497
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 58.111195696983486,
+        "wall_seconds": 63.24271871894598
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": true,
+        "terminal_passed": 1
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0018561590695753694,
+        "p99_abs_error": 0.007640994153916836,
+        "rms_error": 0.002494165673851967,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed zero_tanh_rail_escape gates (1/1 terminal checks passed)",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "d71e3fead32e3e8194ab65367d2a1e206c8f719a4fc2b1dc5372275eeb23c308",
+      "cost": {
+        "adapter_loop_seconds": 27.86652143811807,
+        "adapter_seconds": 28.27665687701665,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "execution_seconds": 34.98943018889986,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 26.868483344791457,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.014041545568034053
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.009220781503245234
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 26.845221017720178
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 29.483209526864812,
+        "wall_seconds": 34.98943018889986
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0024129549227654935,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0025870450772345066
+          },
+          "p99_abs_error": {
+            "margin": 0.012474058754742147,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.012525941245257854
+          },
+          "rms_error": {
+            "margin": 0.006565882582217455,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.003434117417782545
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0025870450772345066,
+        "p99_abs_error": 0.012525941245257854,
+        "rms_error": 0.003434117417782545,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "ff9eca253891deba5d48e44a8df09a5bd95935b5366b6ede701cb38043518dea",
+      "cost": {
+        "adapter_reported_inclusive_seconds": 2.040833070874214,
+        "adapter_seconds": 2.0866461999248713,
+        "charged_task": "clockfree_audit_measurement_v1",
+        "completed_updates": 24,
+        "component_timing": "unavailable; legacy elapsed time includes evaluation and sampling",
+        "device": "0",
+        "execution_seconds": 9.063140454003587,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.388503934023902,
+        "wall_seconds": 9.063140454003587
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "parity_comparisons": 4
+      },
+      "raw_status": "completed",
+      "reason": "declared state/horizon/cadence/restart comparisons agree; source audit bound",
+      "task_id": "clockfree_audit_measurement_v1"
+    },
+    {
+      "compatibility_key": "5cd8456c30720f404f4643bd7d315236474655eb7db663fdd7401de3aea9d2d7",
+      "cost": {
+        "adapter_loop_seconds": 460.22962345113046,
+        "adapter_seconds": 460.6014473789837,
+        "charged_task": "grid100",
+        "completed_steps": 7000,
+        "device": "1",
+        "execution_seconds": 468.89296925696544,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 449.88734975340776,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 6.782139870803803
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.06904975813813508
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 443.0361601244658
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 461.8077531589661,
+        "wall_seconds": 468.89296925696544
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.08400908053111689,
+          "accuracy_pass": false,
+          "accuracy_score": 0.8457236879149755,
+          "all_finite": true,
+          "center_max_sigma": 0.39644301398810916,
+          "center_rms_sigma": 0.2156287043273604,
+          "cov_frob_rms": 0.148870252508106,
+          "cov_trace_bias": -0.08400908053111689,
+          "frozen_pass": true,
+          "mass_tv": 0.050350000000000006,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.991,
+          "precision_gap": 0.002108996538242258,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.025019750321810585,
+          "valid_n": 20000,
+          "within_radius_n": 19820
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.07487192668437903,
+          "accuracy_pass": false,
+          "accuracy_score": 0.7243039366508021,
+          "all_finite": true,
+          "center_max_sigma": 0.39020451823928515,
+          "center_rms_sigma": 0.20119306896690012,
+          "cov_frob_rms": 0.11199763232297205,
+          "cov_trace_bias": -0.07487192668437903,
+          "frozen_pass": true,
+          "mass_tv": 0.035109999999999995,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.99188,
+          "precision_gap": 0.00298899653824225,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.022294578730330028,
+          "valid_n": 100000,
+          "within_radius_n": 99188
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.07487192668437903,
+          "accuracy_pass": false,
+          "accuracy_score": 0.7243039366508021,
+          "all_finite": true,
+          "center_max_sigma": 0.39020451823928515,
+          "center_rms_sigma": 0.20119306896690012,
+          "cov_frob_rms": 0.11199763232297205,
+          "cov_trace_bias": -0.07487192668437903,
+          "frozen_pass": true,
+          "mass_tv": 0.035109999999999995,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.99188,
+          "precision_gap": 0.00298899653824225,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.022294578730330028,
+          "valid_n": 100000,
+          "within_radius_n": 99188
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.07487192668437903,
+        "accuracy_pass": false,
+        "accuracy_score": 0.7243039366508021,
+        "all_finite": true,
+        "center_max_sigma": 0.39020451823928515,
+        "center_rms_sigma": 0.20119306896690012,
+        "cov_frob_rms": 0.11199763232297205,
+        "cov_trace_bias": -0.07487192668437903,
+        "frozen_pass": true,
+        "mass_tv": 0.035109999999999995,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.99188,
+        "precision_gap": 0.00298899653824225,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.022294578730330028,
+        "valid_n": 100000,
+        "within_radius_n": 99188
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100"
+    }
+  ]
+}

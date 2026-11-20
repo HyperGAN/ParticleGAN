@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rhbi-v4-study"
+  },
+  "candidate": "rhbi-v4",
+  "competing_explanation": "Adding thermal residual damping and balanced-Sinkhorn geodesic chord regularization could freeze multi-mode acquisition prematurely on ring16_acquisition or fail to reopen cleanly on nonstationary distribution shifts if the 5-channel Kantorovich-Hellinger thresholds are miscalibrated.",
+  "control": {
+    "candidate_id": "rhbi-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Adding AKT empirical OT 1D horizon scaling (rhbi_akt_horizon=true), slack-gain critic boost (rhbi_slack_gain=0.35), deterministic Weyl-phased balanced-Sinkhorn geodesic chord regularization with zero-mean critic gauge (rhbi_chord_weight=0.25, ebi_beta=12.0, rhbi_gamma_gauge=0.03), and an impedance-matched 5-channel Kantorovich-Hellinger thermal controller (rhbi_thermal_tau=0.084) to rhbi-v3 preserves all 27/27 Tier 1 requirements and ring16_acquisition while passing mode_hold and vector_overlap under one global clock-free, shape-gate-free recipe on protocol seed 0.",
+  "id": "rhbi-v4-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "mode_hold",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v3",
+        "candidate_revision": "1e0d674047a1212d8a18623dac1886338156658cd4808769641f83594adef0bc"
+      },
+      "path": "reports/forge/records/readout-2e0a16b47298ebbc5e33ba63.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

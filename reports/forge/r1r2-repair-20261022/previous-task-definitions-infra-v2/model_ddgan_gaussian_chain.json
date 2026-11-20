@@ -1,0 +1,312 @@
+{
+  "schema_version": 1,
+  "id": "model_ddgan_gaussian_chain",
+  "adapter": "public_api_model_toy",
+  "description": "Learn conditional reverse transitions and the final ancestral distribution through the public DDGAN API",
+  "task_cohort": "api-model-ddgan-v1",
+  "execution": {
+    "host": "api-model-ddgan-gaussian-chain",
+    "steps": 2500,
+    "initializer": "deterministic_orthogonal",
+    "protocol": "screening",
+    "produces_state": false,
+    "prior_contract": "recipe_owned_v1",
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.25,
+      "standardize": false
+    },
+    "execution_path": "public_components",
+    "recipe_fields": {
+      "model": "ddgan",
+      "encoder_mode": "none",
+      "conditioning": "scalar",
+      "num_classes": null,
+      "alpha_bar": [
+        1.0,
+        0.9,
+        0.5,
+        0.05,
+        0.0001
+      ]
+    },
+    "host_definition": {
+      "case_id": "api-model-ddgan-gaussian-chain",
+      "provider": "benchmarks.toy_audit.api_model_ddgan",
+      "resources": {
+        "num_particles": 128,
+        "z_dim": 4,
+        "batch_size": 64
+      },
+      "target": {
+        "kind": "gaussian",
+        "means": [
+          [
+            0.6000000238418579,
+            -0.3499999940395355
+          ]
+        ],
+        "variances": [
+          [
+            0.20250000059604645,
+            0.09000000357627869
+          ]
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      "networks": {
+        "generator": "MLP([xt(2),z(4),t/4],32,32,2), LeakyReLU(.2)",
+        "discriminator": "MLP([x_prev(2),xt(2),t/4],32,32,1), LeakyReLU(.2)"
+      },
+      "training_law": "independent D/G clean mixture draws, independent uniform per-row timestep 1..4; public DDGAN.forward_pair; predicted-clean G and public DDGAN.reverse with independent Gaussian eta; public adversarial loss+critic penalty+recipe prior regularization",
+      "sampling_law": "Public DDGAN [1,.9,.5,.05,.0001]; N(0,I) terminal start; fresh independent learned-MoG latent/kernel noise and Gaussian reverse noise at EVERY step; eight heldout time/observation transition panels"
+    },
+    "host_source": "benchmarks/toy_audit/api_model_ddgan.py"
+  },
+  "evaluation": {
+    "kind": "transfer_sustained",
+    "evaluator": "benchmarks.transfer_suite.protocol:test_verdict",
+    "thresholds": [
+      [
+        "final_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "final_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "final_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "final_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t1_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t1_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t1_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t1_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t1_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t1_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t1_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t1_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t2_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t2_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t2_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t2_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t2_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t2_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t2_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t2_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t3_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t3_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t3_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t3_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t3_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t3_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t3_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t3_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t4_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t4_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t4_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t4_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t4_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t4_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t4_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t4_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "panel_count",
+        "==",
+        8
+      ],
+      [
+        "samples_per_panel",
+        ">=",
+        2048
+      ]
+    ],
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "sampling_contract_version": 1,
+    "sampling_law": "task_model_kernel_and_posterior_without_serving_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "eval_samples": 2048,
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "optimizer_roles": [
+        "generator",
+        "prior",
+        "discriminator"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true
+    },
+    "sources": {
+      "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+      "benchmarks/toy_audit/api_model_ddgan.py": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+      "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+      "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+      "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+      "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 512,
+    "cpu_threads": 1,
+    "timeout_seconds": 600,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "public_components",
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "retained_question_ids": [
+    "api-model-ddgan-gaussian-chain"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/api-model-toys/ddgan.md",
+    "api_publication": "reports/toy_audit/api_contract/model_modes/publication.json"
+  }
+}

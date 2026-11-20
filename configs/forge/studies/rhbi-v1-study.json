@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 51420,
+    "candidate_budget_seconds": 51420,
+    "id": "rhbi-v1-study"
+  },
+  "candidate": "rhbi-v1",
+  "competing_explanation": "Slack-screened unbalanced Sinkhorn coupling could under-constrain outer mode tails or stall across empty valleys if local horizon screening cuts off intra-mode transport before the critic barrier tunnels surplus mass. Complete seed-0 measurement across discriminator_stability separates multi-family coverage gains from covariance or sustained-hold trade-offs.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "One global clock-free RHBI configuration (debiased slack-screened unbalanced Born-Infeld Sinkhorn transport + endpoint gradient cap + variational equilibrium cooling) executes cleanly across scalar, conditional, joint BiGAN, AE/VAE and multimodal particle/network hosts on protocol seed 0.",
+  "id": "rhbi-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "bispf-v2",
+        "candidate_revision": "96f0f8a2aee0663f0fe92e49641deb107b81201ae0efea33d9a54e24aaba8967"
+      },
+      "path": "reports/forge/records/readout-c2d279f7d47ac009ee80d771.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

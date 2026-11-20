@@ -1,0 +1,75 @@
+{
+  "schema_version": 1,
+  "id": "ddgan-repair-unconstrained-r3",
+  "status": "ready",
+  "candidate": "bispf-ddgan-energy-unconstrained-v3",
+  "control": {
+    "candidate_id": "bispf-ddgan-energy-annealed-v2",
+    "task_map": {}
+  },
+  "hypothesis": "Removing per-objective direction blending from the same low-mobility summed GAN/energy objective repairs low-noise conditional calibration while preserving the Gaussian marginal stability and genuine adversarial game.",
+  "scope": {
+    "view": "ddgan-conditional-repair-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "ddgan-conditional-repair-r3",
+    "candidate_budget_seconds": 1800,
+    "budget_seconds": 1800
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/ddgan-failure-investigation/results.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_saved_state_diagnosis_v1",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/ddgan-conditional-repair/round1-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_round1_endpoint_diagnosis_v1",
+        "diagnostic_draws": 0,
+        "training_updates_added": 0
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/ddgan-conditional-repair/round2-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_round2_endpoint_diagnosis_v1",
+        "diagnostic_draws": 0,
+        "training_updates_added": 0
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": "<=",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": ">",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "competing_explanation": "The remaining conditional error may reflect finite shared MLP capacity or insufficient conditional coverage rather than the optional per-objective constraint. A failure of this single global revision ends the declared campaign; no automatic extension or seed trial follows.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

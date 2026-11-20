@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 16,
+  "revision": 19,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -550,6 +550,110 @@
         "explanation": "reports/forge/precision-stretch/README.md#precision-stretch",
         "graduation": "Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass."
       }
+    },
+    {
+      "task": "interp_sparse_arc",
+      "qualification_tier": 1,
+      "order": 104,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 12 zero-sigma ParticlePrior locations learn a 270-degree circular arc without MoG so unseen latent k-NN chords stay on the arc without snapping?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_sparse_arc",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes chord interpolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "interp_img_patch_shift",
+      "qualification_tier": 2,
+      "order": 101,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 16 zero-sigma ParticlePrior codes learn continuous 8x8 single-patch images without MoG so unseen latent chords shift one bright patch instead of 0.5 ghosts?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_img_patch_shift",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes image latent interpolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "interp_saddle_barycentric",
+      "qualification_tier": 2,
+      "order": 102,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 24 zero-sigma ParticlePrior locations learn a curved 3D saddle sheet without MoG so unseen 2D latent triangle barycenters stay on the curved surface?",
+        "explanation": "reports/forge/particle-interpolation-stretch/README.md#interp_saddle_barycentric",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes 2D simplex interpolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "t3_iso_scale_mass_8x",
+      "qualification_tier": 1,
+      "order": 105,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can a generator-free (G=nn.Identity) zero-sigma ParticlePrior with a smooth critic (grad_med<=1.0) resolve 8x mode-width and 6x mode-mass disparity without collapsing broad-mode eigenvalues?",
+        "explanation": "reports/forge/studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes heteroscedastic scale-mass isolation while retaining every counted pass."
+      }
+    },
+    {
+      "task": "t3_iso_horizon_saddle_shift",
+      "qualification_tier": 2,
+      "order": 103,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can a generator-free (G=nn.Identity) zero-sigma ParticlePrior with a smooth critic (grad_med<=1.0) split cleanly across a step-300 42.4-sigma equidistant orthogonal mode shift in R^4?",
+        "explanation": "reports/forge/studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes beyond-horizon orthogonal saddle shift while retaining every counted pass."
+      }
+    },
+    {
+      "task": "nash_overpowered_critic_ring16",
+      "qualification_tier": 2,
+      "order": 104,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can one global recipe recover all 16 equal-mass Gaussian ring modes under >600x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and -30-logit hostile initialization?",
+        "explanation": "reports/forge/studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes severe D>>G hostile-init ring recovery while retaining every counted pass."
+      }
+    },
+    {
+      "task": "nash_overpowered_generator_ring16",
+      "qualification_tier": 2,
+      "order": 105,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can one global recipe recover all 16 equal-mass Gaussian ring modes under >540x generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-2 0.25x-gain critic) and hostile initialization?",
+        "explanation": "reports/forge/studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes severe G>>D hostile-init ring recovery while retaining every counted pass."
+      }
+    },
+    {
+      "task": "nash_unequal_width_hostile_imbalance",
+      "qualification_tier": 2,
+      "order": 106,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can one global recipe recover all 4 heteroscedastic unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and core covariances under >600x critic overcapacity and hostile initialization?",
+        "explanation": "reports/forge/studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes unequal-width hostile-imbalance recovery while retaining every counted pass."
+      }
     }
   ],
   "eligibility": {},
@@ -562,10 +666,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-15 policy, preserving all required, held, and stretch assignments. Add paired Tier 4 stretch task grid100_res16_scaled_tanh alongside unnormalized grid100_mlp16 and grid100_res16_tanh; required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Archive the exact develop revision-18 policy, preserving all required, held, diagnostic, and stretch assignments (including Theory-3 causal-isolation stretch tasks). Add three Theory 4A severe G/D capacity-imbalance and hostile non-complementary initialization stretch toys at Tier 2 (nash_overpowered_critic_ring16, nash_overpowered_generator_ring16, nash_unequal_width_hostile_imbalance); required qualification and historical numerical results are unchanged.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v15.json",
-    "policy_fingerprint": "ad156a02a8d44077d707f1324959b0b865824411ca08d9b5d5098ae7d1a69497",
-    "revision": 15
+    "archive": "configs/forge/view-history/discriminator_stability-v18.json",
+    "policy_fingerprint": "736371180d327ef8b7d8dec630fa6b0ded8f98ae29def00ab3b8f7b3af7612e7",
+    "revision": 18
   }
 }

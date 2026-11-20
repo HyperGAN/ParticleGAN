@@ -62,6 +62,23 @@ def test_family_names_cannot_mask_fixed_mechanism_changes(modern):
         validate_same_technique(modern, other)
 
 
+def test_r1r2_repair_controls_are_structural_and_default_signatures_stay_sparse(modern):
+    names = {"reg_real_weight", "reg_fake_weight", "joint_reconstruction_weight"}
+    assert not names & technique_signature(modern)["fixed_recipe_fields"].keys()
+    for name, value in (("reg_fake_weight", 0.), ("reg_real_weight", .5),
+                        ("joint_reconstruction_weight", 1.)):
+        with pytest.raises(ValueError, match=f"Recipe.{name}"):
+            validate_same_technique(modern, modern.replace(**{name: value}))
+    word = {"adapter": "word_joint", "execution": {}}
+    scalar = {"adapter": "transfer_vector", "execution": {}}
+    ae = {"adapter": "public_api_model_toy", "execution": {"host_definition": {"adversarial": False}}}
+    assert recipe_field_active("joint_reconstruction_weight", modern, task=word)
+    assert not recipe_field_active("joint_reconstruction_weight", modern, task=scalar)
+    assert recipe_field_active("reg_fake_weight", modern, task=scalar)
+    assert not recipe_field_active("reg_fake_weight", modern, task=ae)
+    assert not recipe_field_active("reg_fake_weight", Recipe.from_dict({}), task=scalar)
+
+
 def test_k3p_floor_cannot_disable_the_blended_penalty_phase():
     base = Recipe.from_dict(dict(critic_formulation="k3p", network_lr_floor=.01))
     validate_same_technique(base, base.replace(network_lr_floor=.25))

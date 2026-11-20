@@ -17,10 +17,13 @@ from .convolution_frobenius import frobenius_direction
 from .gram_polar import GRAM_DENSE_PROFILE, guarded_gram_polar
 from .gram_svd_fallback import VERSION as FALLBACK_DENSE_PROFILE, Counters, svd_fallback_polar
 
+CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
+
 
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
-    "dualnorm_D_only", "particle_rownorm_only",
+    "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
+    "r4_mp_no_ns", "r4_no_secant_band",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -28,6 +31,9 @@ _FROBENIUS_CONVOLUTION_VERSION = "per_offset_frobenius_hybrid_v1"
 _QUINTIC_CONVOLUTION_VERSION = "per_offset_quintic_hybrid_v1"
 _NEWTON_SCHULZ_VERSION = 3
 _BATCHED_SVD_VERSION = 1
+NEWTON_SCHULZ_DENSE_PROFILE = "newton_schulz_v1"
+NEWTON_SCHULZ_HYBRID_DENSE_PROFILE = "newton_schulz_hybrid_v1"
+_NEWTON_SCHULZ_DENSE_PROFILES = (NEWTON_SCHULZ_DENSE_PROFILE, NEWTON_SCHULZ_HYBRID_DENSE_PROFILE)
 
 
 def _convolution_version(rule):
@@ -249,6 +255,8 @@ def _newton_schulz_polar(matrices, *, smoothing, cache=None):
     can be material; quality qualification is separate from solver convergence.
     """
     original_shape, original_dtype = matrices.shape, matrices.dtype
+    if 0 in original_shape[-2:]:
+        return torch.zeros_like(matrices)
     value = matrices.reshape(-1, *original_shape[-2:])
     if original_dtype not in (torch.float32, torch.float64):
         value = value.float()
@@ -401,12 +409,18 @@ class NormalizedOptimizer(Optimizer):
             raise ValueError("newton_schulz requires per_offset convolution and positive smoothing")
         if svd_backend == "batched" and convolution != "per_offset":
             raise ValueError("batched SVD requires per_offset convolution")
-        if type(dense_profile) is not str or dense_profile not in ("default", GRAM_DENSE_PROFILE, FALLBACK_DENSE_PROFILE):
+        if type(dense_profile) is not str or dense_profile not in (
+                "default", GRAM_DENSE_PROFILE, FALLBACK_DENSE_PROFILE,
+                CPU_POLAR_DENSE_PROFILE, *_NEWTON_SCHULZ_DENSE_PROFILES):
             raise ValueError("unknown optimizer dense_profile")
-        if dense_profile != "default" and (family != "dualnorm" or momentum != 0
-                or smoothing != .001 or svd_backend not in ("native", "batched")):
+        if dense_profile in (GRAM_DENSE_PROFILE, FALLBACK_DENSE_PROFILE, CPU_POLAR_DENSE_PROFILE) and (
+                family != "dualnorm" or momentum != 0
+                or (dense_profile != CPU_POLAR_DENSE_PROFILE and smoothing != .001)
+                or svd_backend not in ("native", "batched")):
             raise ValueError("dense_profile requires zero-momentum full DualNorm, smoothing .001 "
                              "and native or batched SVD backend")
+        if dense_profile in _NEWTON_SCHULZ_DENSE_PROFILES and (family != "dualnorm" or smoothing <= 0):
+            raise ValueError("Newton-Schulz dense_profile requires full DualNorm and positive smoothing")
         if convolution_rule not in ("polar", "frobenius", "quintic"):
             raise ValueError("optimizer convolution rule must be polar, frobenius or quintic")
         if convolution_rule != "polar" and (
@@ -457,7 +471,14 @@ class NormalizedOptimizer(Optimizer):
             if group["algorithm"] != "dualnorm" or "dualnorm_convolution" in group:
                 continue
             for parameter in group["params"]:
-                if parameter.ndim == 2 and (parameter.dtype != torch.float32
+                if parameter.ndim != 2:
+                    continue
+                if self.dense_profile in _NEWTON_SCHULZ_DENSE_PROFILES:
+                    if (not parameter.is_floating_point()
+                            or parameter.device.type not in ("cpu", "cuda")
+                            or parameter.layout != torch.strided):
+                        raise ValueError("Newton-Schulz dense_profile requires strided floating-point CPU/CUDA parameters")
+                elif (parameter.dtype != torch.float32
                         or parameter.device.type not in ("cpu", "cuda")
                         or parameter.layout != torch.strided):
                     raise ValueError("dense_profile requires ordinary dense FP32 CPU/CUDA parameters")
@@ -522,7 +543,8 @@ class NormalizedOptimizer(Optimizer):
         # Optimizer's default pickle omits the role family, observer and native
         # Adam component; public checkpoint preflight also deep-copies us.
         return {key: value for key, value in self.__dict__.items()
-                if key not in ("_newton_graphs", "_quintic_graphs", "_dense_profile_leaf_counters")}
+                if key not in ("_newton_graphs", "_quintic_graphs",
+                               "_dense_profile_leaf_counters", "_smoothing_scalars")}
 
     @property
     def dense_profile_stats(self):
@@ -567,6 +589,11 @@ class NormalizedOptimizer(Optimizer):
     def _clear_pending(self):
         """Drop wrapper-bound per-step inputs; the base optimizer binds none."""
         self._origin_norm = None
+        if getattr(self, "_t1c_grad_deconflict", 0.0) > 0.0:
+            from .._t1_coupling.deconflict import clear_generator_deconflict_captures
+            clear_generator_deconflict_captures(
+                p for g in self.param_groups if g.get("role") == "generator" for p in g["params"]
+            )
 
     def bind_origin_sample(self, sample):
         """Bind the latest generated sample to evaluate origin proximity for velocity damping."""
@@ -704,6 +731,63 @@ class NormalizedOptimizer(Optimizer):
         origin_damping = 1.0
         if origin_norm is not None and origin_norm < 0.05:
             origin_damping = min(1.0, origin_norm / 0.05)
+        pending_cpu_polar = []
+        empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
+        unified_rec = getattr(self, "_unified_v4_record", getattr(self, "_unified_record", None))
+        if unified_rec is not None:
+            # Symmetric G + D conditional equilibrium damping for unified (prevents critic overdrive on t1_q0):
+            rgdt_th_damp = 1.0
+            rgdt_step_scale = float(getattr(unified_rec, "_step_scale", 1.0))
+        else:
+            rgdt_rec = getattr(self, "_rgdt_record", None)
+            rgdt_th = float(getattr(rgdt_rec, "_thermal_scale", 1.0))
+            has_enc_role = getattr(self, "critic", None) is None and any(
+                g.get("role") == "encoder" for g in self.param_groups
+            )
+            rgdt_th_damp = rgdt_th if (has_enc_role and rgdt_th < 1.0) else 1.0
+            rgdt_step_scale = (
+                float(getattr(rgdt_rec, "_step_scale", 1.0)) * rgdt_th_damp
+                if (getattr(self, "critic", None) is None or getattr(rgdt_rec, "rgdt_cond_initialized", False))
+                else 1.0
+            )
+        rhbi_damp = float(getattr(self, "_rhbi_step_damp", 0.0))
+        active_rec = getattr(self, "_t1c_record", None) or getattr(self, "_rhbi_record", None)
+        if rhbi_damp > 0.0:
+            rhbi_s = float(getattr(active_rec, "_thermal_scale", 1.0)) if active_rec is not None else 1.0
+            u_log = min(1.0, max(0.0, -math.log10(max(1e-6, rhbi_s)) * (1.0 / 6.0)))
+            u_log2 = u_log * u_log
+            rhbi_step_scale = 1.0 - rhbi_damp * (u_log2 * u_log2)
+        else:
+            rhbi_step_scale = 1.0
+        rhbi_cond_damp = float(getattr(self, "_rhbi_cond_step_damp", 0.0))
+        if (
+            rhbi_cond_damp > 0.0
+            and unified_rec is None
+            and getattr(self, "critic", None) is None
+            and active_rec is not None
+        ):
+            cond_init = bool(
+                getattr(active_rec, "t1c_cond_initialized", False)
+                or getattr(active_rec, "rhbi_cond_initialized", False)
+            )
+            if cond_init:
+                cond_val = (
+                    getattr(active_rec, "t1c_cond_ema", 1.0)
+                    if getattr(active_rec, "t1c_cond_initialized", False)
+                    else getattr(active_rec, "rhbi_cond_ema", 1.0)
+                )
+                r_cond_ema = max(0.0, float(cond_val))
+                u_cond = min(1.0, max(0.0, (0.028 - r_cond_ema) / 0.016))
+                s_cond = u_cond * u_cond * (3.0 - 2.0 * u_cond)
+                rhbi_step_scale *= 1.0 - rhbi_cond_damp * s_cond
+        raw_deconflict = float(getattr(self, "_t1c_grad_deconflict", 0.0))
+        if active_rec is not None:
+            disc_gate = float(getattr(active_rec, "_t1c_disc_gate", 0.0))
+            if hasattr(active_rec, "_t1c_disc_gate"):
+                active_rec._t1c_disc_gate = 0.0
+        else:
+            disc_gate = 1.0
+        t1c_deconflict_blend = raw_deconflict * disc_gate
         for group_index, group in enumerate(self.param_groups):
             algorithm, base_rate, eps = group["algorithm"], group["lr"], group["eps"]
             is_generator = group.get("role") == "generator"
@@ -713,7 +797,13 @@ class NormalizedOptimizer(Optimizer):
                     continue
                 state = self.state[parameter]
                 state["step"] = state.get("step", 0) + 1
-                rate = base_rate * (origin_damping if (is_generator and state["step"] > 80) else 1.0)
+                rate = (
+                    base_rate
+                    * empf_step_scale
+                    * rgdt_step_scale
+                    * rhbi_step_scale
+                    * (origin_damping if (is_generator and state["step"] > 80) else 1.0)
+                )
                 if algorithm == "sgda":
                     parameter.add_(gradient, alpha=-rate)
                 elif algorithm == "nsgda_global":
@@ -738,8 +828,11 @@ class NormalizedOptimizer(Optimizer):
                             else torch.arange(len(parameter), device=parameter.device))
                     selected = gradient[rows]
                     norm = selected.norm(dim=1, keepdim=True)
-                    denominator = (torch.hypot(norm, torch.full_like(norm, self.smoothing))
-                                   if self.smoothing else norm + eps)
+                    eff_smooth = self.smoothing
+                    if eff_smooth and getattr(self, "_rgdt_record", None) is not None and len(rows) > 128:
+                        eff_smooth = eff_smooth * (128.0 / float(len(rows)))
+                    denominator = (torch.hypot(norm, torch.full_like(norm, eff_smooth))
+                                   if eff_smooth else norm + eps)
                     update = selected / denominator
                     parameter.index_add_(0, rows, update, alpha=-rate)
                 elif algorithm == "dualnorm":
@@ -772,11 +865,67 @@ class NormalizedOptimizer(Optimizer):
                                       polar_factor(direction_matrix, smoothing=self.smoothing,
                                                    backend=self.svd_backend))
                             weight_matrix.add_(update, alpha=-rate * factor)
+                    elif parameter.ndim == 2 and self.dense_profile == CPU_POLAR_DENSE_PROFILE:
+                        if is_generator and t1c_deconflict_blend > 0.0 and getattr(parameter, "_t1c_last_act", None) is not None:
+                            if bool(gradient.norm() < eps) or (direction is not gradient and bool(direction.norm() < eps)):
+                                parameter._t1c_last_act = None
+                                continue
+                            from .._t1_coupling.deconflict import deconflicted_polar_step
+                            factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
+                            def _cpu_polar_fn(mat):
+                                u_c = polar_factor(mat.detach().cpu(), smoothing=self.smoothing)
+                                return u_c.to(device=mat.device, dtype=mat.dtype)
+                            update = deconflicted_polar_step(
+                                parameter, direction, _cpu_polar_fn, blend=t1c_deconflict_blend
+                            )
+                            if update is not None:
+                                parameter.add_(update, alpha=-rate * factor)
+                                continue
+                        elif hasattr(parameter, "_t1c_last_act"):
+                            parameter._t1c_last_act = None
+                        if parameter.device.type == "cpu":
+                            if float(gradient.norm()) < eps or float(direction.norm()) < eps:
+                                continue
+                            factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
+                            update = polar_factor(direction, smoothing=self.smoothing)
+                            parameter.add_(update, alpha=-rate * factor)
+                        else:
+                            pending_cpu_polar.append((parameter, gradient, direction, rate, eps))
                     elif parameter.ndim == 2:
-                        if bool(gradient.norm() < eps) or bool(direction.norm() < eps):
+                        if bool(gradient.norm() < eps) or (direction is not gradient and bool(direction.norm() < eps)):
+                            if hasattr(parameter, "_t1c_last_act"):
+                                parameter._t1c_last_act = None
                             continue
                         factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
-                        if self.dense_profile == GRAM_DENSE_PROFILE:
+                        update = None
+                        if is_generator and t1c_deconflict_blend > 0.0 and getattr(parameter, "_t1c_last_act", None) is not None:
+                            from .._t1_coupling.deconflict import deconflicted_polar_step
+                            if (
+                                self.dense_profile == NEWTON_SCHULZ_DENSE_PROFILE
+                                or (
+                                    self.dense_profile == NEWTON_SCHULZ_HYBRID_DENSE_PROFILE
+                                    and min(parameter.shape) >= 64
+                                    and max(parameter.shape) >= 128
+                                )
+                            ):
+                                def _polar_fn(mat):
+                                    if parameter.device.type == "cuda":
+                                        if not hasattr(self, "_newton_graphs"):
+                                            self._newton_graphs = _PolarGraphCache()
+                                        return _newton_schulz_polar(mat, smoothing=self.smoothing, cache=self._newton_graphs)
+                                    return _newton_schulz_polar(mat, smoothing=self.smoothing)
+                            elif self.svd_backend in ("native", "newton_schulz", "batched"):
+                                def _polar_fn(mat):
+                                    return polar_factor(mat, smoothing=self.smoothing) if self.smoothing else polar_factor(mat)
+                            else:
+                                def _polar_fn(mat):
+                                    return polar_factor(mat, smoothing=self.smoothing, backend=self.svd_backend)
+                            update = deconflicted_polar_step(
+                                parameter, direction, _polar_fn, blend=t1c_deconflict_blend
+                            )
+                        if update is not None:
+                            pass
+                        elif self.dense_profile == GRAM_DENSE_PROFILE:
                             update = guarded_gram_polar(direction, smoothing=self.smoothing)
                         elif self.dense_profile == FALLBACK_DENSE_PROFILE:
                             if not hasattr(self, "_dense_profile_leaf_counters"):
@@ -785,6 +934,17 @@ class NormalizedOptimizer(Optimizer):
                                 f"{group_index}:{parameter_index}", Counters())
                             update = svd_fallback_polar(direction, smoothing=self.smoothing,
                                                             counters=counters)
+                        elif (self.dense_profile == NEWTON_SCHULZ_DENSE_PROFILE
+                              or (self.dense_profile == NEWTON_SCHULZ_HYBRID_DENSE_PROFILE
+                                  and min(parameter.shape) >= 64
+                                  and max(parameter.shape) >= 128)):
+                            if parameter.device.type == "cuda":
+                                if not hasattr(self, "_newton_graphs"):
+                                    self._newton_graphs = _PolarGraphCache()
+                                update = _newton_schulz_polar(direction, smoothing=self.smoothing,
+                                                              cache=self._newton_graphs)
+                            else:
+                                update = _newton_schulz_polar(direction, smoothing=self.smoothing)
                         elif self.svd_backend in ("native", "newton_schulz", "batched"):
                             update = (polar_factor(direction, smoothing=self.smoothing)
                                       if self.smoothing else polar_factor(direction))
@@ -794,13 +954,77 @@ class NormalizedOptimizer(Optimizer):
                         parameter.add_(update, alpha=-rate * factor)
                     else:
                         norm = direction.norm()
-                        denominator = (torch.hypot(norm, norm.new_tensor(self.smoothing))
-                                       if self.smoothing else norm + eps)
+                        if self.smoothing:
+                            if self.dense_profile == CPU_POLAR_DENSE_PROFILE:
+                                cache = getattr(self, "_smoothing_scalars", None)
+                                if cache is None:
+                                    cache = self._smoothing_scalars = {}
+                                s_key = (norm.device, norm.dtype, self.smoothing)
+                                s_val = cache.get(s_key)
+                                if s_val is None:
+                                    s_val = cache[s_key] = norm.new_tensor(self.smoothing)
+                            else:
+                                s_val = norm.new_tensor(self.smoothing)
+                            denominator = torch.hypot(norm, s_val)
+                        else:
+                            denominator = norm + eps
                         parameter.add_(direction / denominator, alpha=-rate)
+        if pending_cpu_polar:
+            by_stream = {}
+            for item in pending_cpu_polar:
+                param = item[0]
+                by_stream.setdefault((param.device, param.dtype), []).append(item)
+            for (dev, dtype), items in by_stream.items():
+                flat_parts, slices, offset = [], [], 0
+                for param, grad, direc, rate, eps_val in items:
+                    numel = direc.numel()
+                    flat_parts.append(direc.reshape(-1))
+                    d_slice = (offset, offset + numel)
+                    offset += numel
+                    if grad is direc:
+                        g_slice = d_slice
+                    else:
+                        flat_parts.append(grad.reshape(-1))
+                        g_slice = (offset, offset + numel)
+                        offset += numel
+                    slices.append((param, d_slice, g_slice, rate, eps_val))
+                host_buf = torch.cat(flat_parts).cpu()
+                upd_parts, upd_targets = [], []
+                for param, (d0, d1), (g0, g1), rate, eps_val in slices:
+                    d_cpu = host_buf[d0:d1].view(param.shape)
+                    g_cpu = d_cpu if d0 == g0 else host_buf[g0:g1].view(param.shape)
+                    if float(g_cpu.norm()) < eps_val or float(d_cpu.norm()) < eps_val:
+                        continue
+                    factor = math.sqrt(max(1., param.shape[0] / param.shape[1]))
+                    u_cpu = polar_factor(d_cpu, smoothing=self.smoothing)
+                    upd_parts.append(u_cpu.reshape(-1))
+                    upd_targets.append((param, rate * factor))
+                if upd_parts:
+                    dev_upd = torch.cat(upd_parts).to(device=dev, dtype=dtype)
+                    u_off = 0
+                    for param, scaled_rate in upd_targets:
+                        numel = param.numel()
+                        param.add_(dev_upd[u_off:u_off + numel].view_as(param), alpha=-scaled_rate)
+                        u_off += numel
         if self._adam is not None:
-            self._adam.step()
+            if rgdt_th_damp < 1.0:
+                saved_lrs = [ag["lr"] for ag in self._adam.param_groups]
+                for ag in self._adam.param_groups:
+                    ag["lr"] = ag["lr"] * rgdt_th_damp
+                try:
+                    self._adam.step()
+                finally:
+                    for ag, lr0 in zip(self._adam.param_groups, saved_lrs):
+                        ag["lr"] = lr0
+            else:
+                self._adam.step()
         self.clear_sampled_rows()
         self._origin_norm = None
+        if t1c_deconflict_blend > 0.0:
+            from .._t1_coupling.deconflict import clear_generator_deconflict_captures
+            clear_generator_deconflict_captures(
+                p for g in self.param_groups if g.get("role") == "generator" for p in g["params"]
+            )
         if hasattr(self, "record"):
             self.record.record_step(self)
         return loss
@@ -982,38 +1206,128 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     # Materialize once: a generator must survive the role probe below, and
     # plain tensors (no group dicts) default to the generator role.
     params = list(params)
-    optimizer_class = NormalizedOptimizer
-    if critic is not None and recipe.critic_step_mode == "finite_cap":
-        from .critic_cap import CriticCapOptimizer
-        optimizer_class = CriticCapOptimizer
-    if recipe.constraint_geometry_mode == "nonascent" and critic is None:
-        from .constraint_geometry import ConstraintGeometryOptimizer
-        optimizer_class = ConstraintGeometryOptimizer
-    elif recipe.constraint_geometry_mode == "strict_progress" and critic is None:
-        from .strict_progress import StrictProgressOptimizer
-        optimizer_class = StrictProgressOptimizer
-    elif recipe.constraint_geometry_mode == "direction_blend" and critic is None:
-        from .direction_blend import DirectionBlendOptimizer
-        optimizer_class = DirectionBlendOptimizer
-    if recipe.prior_proximal_strength and recipe.prior_update == "learned" and critic is None:
-        from .prior_proximal import proximal_optimizer_class
-        if any(isinstance(group, dict) and group.get("role", "generator") in ("prior", "table")
-               for group in params):
-            optimizer_class = proximal_optimizer_class(optimizer_class)
-            options["prior_proximal_strength"] = recipe.prior_proximal_strength
-    optimizer = optimizer_class(params, family=recipe.optimizer_family,
-                                    momentum=recipe.optimizer_momentum,
-                                    smoothing=recipe.optimizer_smoothing,
-                                    convolution=recipe.optimizer_convolution,
-                                    convolution_rule=recipe.optimizer_convolution_rule,
-                                    svd_backend=recipe.optimizer_svd_backend,
-                                    dense_profile=recipe.optimizer_dense_profile, **options)
+    if recipe.optimizer_family == "t4_equil":
+        from .._t4_arch import T4EquilibratedOptimizer
+        optimizer = T4EquilibratedOptimizer(params, **options)
+    elif recipe.optimizer_family == "unified_equil":
+        from .._unified_v4 import UnifiedV4EquilibratedOptimizer
+        optimizer = UnifiedV4EquilibratedOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    elif recipe.optimizer_family == "r4_mp_no_ns":
+        from .._r4_ablation import R4MPNoNSOptimizer
+        optimizer = R4MPNoNSOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    elif recipe.optimizer_family == "r4_no_secant_band":
+        from .._r4_ablation import R4NoSecantBandOptimizer
+        optimizer = R4NoSecantBandOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    else:
+        optimizer_class = NormalizedOptimizer
+        if critic is not None and recipe.critic_step_mode == "finite_cap":
+            from .critic_cap import CriticCapOptimizer
+            optimizer_class = CriticCapOptimizer
+        if recipe.constraint_geometry_mode == "nonascent" and critic is None:
+            from .constraint_geometry import ConstraintGeometryOptimizer
+            optimizer_class = ConstraintGeometryOptimizer
+        elif recipe.constraint_geometry_mode == "strict_progress" and critic is None:
+            from .strict_progress import StrictProgressOptimizer
+            optimizer_class = StrictProgressOptimizer
+        elif recipe.constraint_geometry_mode == "direction_blend" and critic is None:
+            from .direction_blend import DirectionBlendOptimizer
+            optimizer_class = DirectionBlendOptimizer
+        if recipe.prior_proximal_strength and recipe.prior_update == "learned" and critic is None:
+            from .prior_proximal import proximal_optimizer_class
+            if any(isinstance(group, dict) and group.get("role", "generator") in ("prior", "table")
+                   for group in params):
+                optimizer_class = proximal_optimizer_class(optimizer_class)
+                options["prior_proximal_strength"] = recipe.prior_proximal_strength
+        optimizer = optimizer_class(params, family=recipe.optimizer_family,
+                                        momentum=recipe.optimizer_momentum,
+                                        smoothing=recipe.optimizer_smoothing,
+                                        convolution=recipe.optimizer_convolution,
+                                        convolution_rule=recipe.optimizer_convolution_rule,
+                                        svd_backend=recipe.optimizer_svd_backend,
+                                        dense_profile=recipe.optimizer_dense_profile, **options)
+    optimizer._rhbi_step_damp = float(getattr(recipe, "rhbi_step_damp", 0.0))
+    optimizer._rhbi_cond_step_damp = float(getattr(recipe, "rhbi_cond_step_damp", 0.0))
+    if critic is None:
+        optimizer._t1c_grad_deconflict = float(getattr(recipe, "t1c_grad_deconflict", 0.0))
     if critic is not None:
         optimizer.critic = critic
         optimizer.ema_critic = optimizer.anchor = optimizer.guard = None
         if recipe.effective_critic_formulation == "bispf":
             from ..bispf import _BISPFObserverStepRecord
             optimizer.record = _BISPFObserverStepRecord()
+        elif recipe.effective_critic_formulation == "empf":
+            from ..empf import _EMPFObserverStepRecord
+            from .._empf.critic import _attach_empf_critic_hook
+            optimizer.record = _EMPFObserverStepRecord()
+            optimizer._empf_record = optimizer.record
+            _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t2_secant":
+            from ..t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
+            optimizer.record = _T2SecantObserverStepRecord()
+            optimizer._empf_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            _attach_t2_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+            from ..rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
+            optimizer.record = _RHBIObserverStepRecord()
+            optimizer._rhbi_record = optimizer.record
+            _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified":
+            from ..unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
+            optimizer.record = _UnifiedObserverStepRecord()
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            _attach_unified_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v4":
+            from ..unified_v4 import (
+                _UnifiedV4ObserverStepRecord,
+                _attach_unified_v4_critic_hook,
+                collect_conv_layouts,
+            )
+            optimizer.record = _UnifiedV4ObserverStepRecord()
+            optimizer._unified_v4_record = optimizer.record
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
+            _attach_unified_v4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "cond_fiber":
+            from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
+            optimizer.record = _CondFiberObserverStepRecord()
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            optimizer._cond_fiber_record = optimizer.record
+            _attach_cond_fiber_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+            from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            optimizer._t1c_record = optimizer.record
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from ..t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
+            optimizer.record = _RGDTObserverStepRecord()
+            optimizer._rgdt_record = optimizer.record
+            _attach_rgdt_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t4_nash":
+            from ..t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
+            optimizer.record = _T4NashObserverStepRecord()
+            optimizer._t4_record = optimizer.record
+            _attach_t4_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
     return optimizer

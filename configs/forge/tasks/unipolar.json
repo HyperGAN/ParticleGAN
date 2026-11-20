@@ -68,64 +68,86 @@
     "minimum_stable_checks": 5,
     "scoring_weights": "live",
     "sources": {
-      "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
-      "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
       "benchmarks/locked_shared/baseline.py": "8f1f58fc9cb90159c555788e593769d50070deaa078d0637bf881cf074f6680b",
-      "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
-      "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "experiments/forge/behavior_adapters.py": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
       "benchmarks/locked_shared/hosts/unipolar.py": "c166445fa2d0b8d5a02d4cfa4464782d419064b2b2ccc4273bd372cd6e1e497c",
-      "benchmarks/toy100/device.py": "7fa0f53db44e8824d3497b471e9fe8db56cbf8b4e02ddf997f65beed63f81911"
+      "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+      "benchmarks/toy100/device.py": "7fa0f53db44e8824d3497b471e9fe8db56cbf8b4e02ddf997f65beed63f81911",
+      "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
+      "experiments/forge/behavior_adapters.py": "a7e07a688bfa5800f9de34dc5a116c53ca9b1e96ca339fc0a6e64794e74d8614",
+      "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
+      "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee"
     },
     "evaluator_revision": {
-      "id": "guarded-gram-default-receipt-source-binding-v1",
-      "change": "Bind the optional guarded-Gram profile receipt compatibility update for future execution. The full effective Recipe is still validated; an unselected default optimizer_dense_profile is omitted from historical applied receipt metadata. Only current source provenance changes. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence, numerical gates and previous source-bound verdicts remain unchanged; this refresh grants no evidence reuse, pass credit or numerical-profile adoption.",
-      "previous_task_commit": "90ae663551dd0fa35749d56e1859f276a4d09587",
+      "id": "pr-474-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
       "previous_task_path": "configs/forge/tasks/unipolar.json",
-      "previous_task_sha256": "52ed4bbf499e743c12152e91a3fda3a2e5272585a9ed56080f85433128951afe",
-      "previous_source_sha256": {
-        "experiments/forge/behavior_adapters.py": "639d437a4621de84396dcfe6e192b8bd3ed72382bd8cde8943edba336d3cd104"
-      },
+      "previous_task_sha256": "792041b77120c2245eef8f57b2a354ff9f2e59ea827c52f4feb2976f08fda0db",
+      "previous_task_blob": "77cdcf10df05d88cdd374ec3177a8ab2958a1f58",
+      "change": "Bind future executions to integrated provider/adapter bytes. Original research task/source/seed/initialization, receipts and verdicts stay archived at the original PR head. No original attempt is relabelled or regraded.",
       "previous_revision": {
-        "id": "pr399-host-device-replay-source-only-v1",
-        "change": "Bind device-correct legacy fixtures and experiment RNG preservation plus recorded-device/initializer affine replay and receipt validation. No EMA-idle hooks are adopted. Architecture, target/data/prior/serving laws, optimizer policy, budgets, cadence and numerical gates are unchanged. Archived declarations and source-bound results retain their original identities.",
+        "id": "guarded-gram-default-receipt-source-binding-v1",
+        "change": "Bind the optional guarded-Gram profile receipt compatibility update for future execution. The full effective Recipe is still validated; an unselected default optimizer_dense_profile is omitted from historical applied receipt metadata. Only current source provenance changes. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence, numerical gates and previous source-bound verdicts remain unchanged; this refresh grants no evidence reuse, pass credit or numerical-profile adoption.",
+        "previous_task_commit": "90ae663551dd0fa35749d56e1859f276a4d09587",
+        "previous_task_path": "configs/forge/tasks/unipolar.json",
+        "previous_task_sha256": "52ed4bbf499e743c12152e91a3fda3a2e5272585a9ed56080f85433128951afe",
+        "previous_source_sha256": {
+          "experiments/forge/behavior_adapters.py": "639d437a4621de84396dcfe6e192b8bd3ed72382bd8cde8943edba336d3cd104"
+        },
         "previous_revision": {
-          "id": "combined-opt-in-prior-source-v1",
-          "change": "Bind the integrated proximal, Coulomb, SIGReg, moment-tether and initial-MMD public API for future execution. Only current source provenance changes; architecture, target/data/prior/sampling laws, budgets, cadence and numerical gates are unchanged. Archived source-bound evidence and verdicts are preserved.",
-          "previous_source_sha256": {
-            "experiments/forge/behavior_adapters.py": "890f0e984e4430aa277c1df76a013d9f4ce388b5f2a0340ae54a336066d6eba1"
-          },
+          "id": "pr399-host-device-replay-source-only-v1",
+          "change": "Bind device-correct legacy fixtures and experiment RNG preservation plus recorded-device/initializer affine replay and receipt validation. No EMA-idle hooks are adopted. Architecture, target/data/prior/serving laws, optimizer policy, budgets, cadence and numerical gates are unchanged. Archived declarations and source-bound results retain their original identities.",
           "previous_revision": {
-            "id": "opt-in-coulomb-prior-reference-v1",
-            "change": "Bind opt-in Coulomb initial-reference and factory plumbing. Task architecture, initialized prior, target/data/sampling laws, budgets, cadence and numerical gates are unchanged. Archived evidence retains its source identity.",
+            "id": "combined-opt-in-prior-source-v1",
+            "change": "Bind the integrated proximal, Coulomb, SIGReg, moment-tether and initial-MMD public API for future execution. Only current source provenance changes; architecture, target/data/prior/sampling laws, budgets, cadence and numerical gates are unchanged. Archived source-bound evidence and verdicts are preserved.",
             "previous_source_sha256": {
-              "experiments/forge/behavior_adapters.py": "570b26537ca48930c49c88cc839a945ff3f4beddffadf86dd22ebe2fcb677306"
+              "experiments/forge/behavior_adapters.py": "890f0e984e4430aa277c1df76a013d9f4ce388b5f2a0340ae54a336066d6eba1"
             },
             "previous_revision": {
-              "id": "opt-in-component-objective-hooks-v1",
-              "change": "Explicit optional transport/protected-objective hooks and current source binding. Original question, architecture, data/prior/sampling laws, update budget, cadence and all numerical gates retained. Disabled mechanisms preserve original behavior.",
-              "original_task_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
-              "original_task_path": "configs/forge/tasks/unipolar.json",
-              "previous_source_sha256": {},
+              "id": "opt-in-coulomb-prior-reference-v1",
+              "change": "Bind opt-in Coulomb initial-reference and factory plumbing. Task architecture, initialized prior, target/data/sampling laws, budgets, cadence and numerical gates are unchanged. Archived evidence retains its source identity.",
+              "previous_source_sha256": {
+                "experiments/forge/behavior_adapters.py": "570b26537ca48930c49c88cc839a945ff3f4beddffadf86dd22ebe2fcb677306"
+              },
               "previous_revision": {
-                "id": "explicit-equality-and-word-prior-betas-v3",
-                "previous_source_sha256": {
-                  "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97",
-                  "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8",
-                  "benchmarks/locked_shared/baseline.py": "72ebe4ef6d3cfe28f1ab6073fc781a72b45173f3ce2a0b63040e84b27bed03cc"
-                },
-                "previous_revision": null,
-                "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged."
+                "id": "opt-in-component-objective-hooks-v1",
+                "change": "Explicit optional transport/protected-objective hooks and current source binding. Original question, architecture, data/prior/sampling laws, update budget, cadence and all numerical gates retained. Disabled mechanisms preserve original behavior.",
+                "original_task_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
+                "original_task_path": "configs/forge/tasks/unipolar.json",
+                "previous_source_sha256": {},
+                "previous_revision": {
+                  "id": "explicit-equality-and-word-prior-betas-v3",
+                  "previous_source_sha256": {
+                    "benchmarks/transfer_suite/protocol.py": "7626dd8236c0765645c304891d8fa79be0c05fd10876a0694d58db831ff2dc97",
+                    "benchmarks/locked_shared/observation.py": "04067872ce228e4702e48c440222cd2f553ffb30b10ce113a4d52101e9abd9d8",
+                    "benchmarks/locked_shared/baseline.py": "72ebe4ef6d3cfe28f1ab6073fc781a72b45173f3ce2a0b63040e84b27bed03cc"
+                  },
+                  "previous_revision": null,
+                  "change": "Correct == grading and reject unsupported operators; >= and <= numerical gates unchanged. Word fixture now honors declared prior_betas. Bind current sources for future execution only; original receipts and verdicts remain unchanged."
+                }
               }
             }
-          }
-        },
-        "previous_source_sha256": {},
-        "added_source_members": [
-          "benchmarks/locked_shared/hosts/unipolar.py",
-          "benchmarks/toy100/device.py"
-        ]
-      }
+          },
+          "previous_source_sha256": {},
+          "added_source_members": [
+            "benchmarks/locked_shared/hosts/unipolar.py",
+            "benchmarks/toy100/device.py"
+          ]
+        }
+      },
+      "previous_source_sha256": {
+        "experiments/forge/behavior_adapters.py": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8"
+      },
+      "qualification_input": false
+    },
+    "integration_source_binding": {
+      "id": "reviewed-model-prs-integration-20261109",
+      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
+      "qualification_input": false,
+      "previous_task_commit": "4a5ff6d4db831a23a7c95b5d14ce84ff73dfee06",
+      "previous_task_path": "configs/forge/tasks/unipolar.json",
+      "previous_task_sha256": "7e50dd73c64aa46fd8cf77c87b34a3d6eb6e7a1681252ad26375a8ed021e0889",
+      "previous_task_blob": "c78a89f850673faccb89192b8f51ead00bb4e612",
+      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
     }
   },
   "resources": {

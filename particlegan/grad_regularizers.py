@@ -75,6 +75,8 @@ class GradientPenalty:
     E relu(||g_f|| - kappa)²)``. Fixed arms use the v0.7.0 L2 kernels,
     without RMS rescaling, handover or EMA-anchor evaluation. Laziness
     applies to every arm. Other historical norms/methods are not supported.
+    Fixed arms optionally weight the real/fake means independently; the
+    default ``(1, 1)`` preserves their original arithmetic and forward calls.
 
     ``pen = coeff/2 * (s * A + (1 - s) * B)`` with
 
@@ -92,6 +94,9 @@ class GradientPenalty:
         arm: ``k3p`` (default), fixed squared-L2 ``a_r1r2``, or fixed
             one-sided L2 ``b_cap``. Fixed arms ignore the K3P blend/anchor.
         coeff: penalty strength.
+        real_weight: multiplier of the fixed arm's real-input term.
+        fake_weight: multiplier of the fixed arm's fake-input term. Zero skips
+            its critic forward and input autograd; ``(1, 0)`` is R1-only.
         kappa: the cap on the gradient norm.
         lazy_k: apply every k-th step with the coefficient multiplied by k.
         lr_floor: the critic LR floor f as a fraction of the peak LR, so
@@ -117,10 +122,18 @@ class GradientPenalty:
         record: Optional[CriticStepRecord] = None,
         *,
         arm: str = "k3p",
+        real_weight: float = 1.0,
+        fake_weight: float = 1.0,
     ) -> None:
         if arm not in ("k3p", "a_r1r2", "b_cap"):
             raise ValueError(f"unknown critic penalty arm: {arm!r}")
         self.arm = arm
+        for name, value in (("real_weight", real_weight), ("fake_weight", fake_weight)):
+            if type(value) not in (int, float) or not math.isfinite(value) or value < 0:
+                raise ValueError(f"{name} must be finite and nonnegative")
+        self.real_weight, self.fake_weight = float(real_weight), float(fake_weight)
+        if arm == "k3p" and (self.real_weight, self.fake_weight) != (1., 1.):
+            raise ValueError("real/fake penalty weights require a fixed arm")
         self.coeff = float(coeff)
         self.kappa = float(kappa)
         self.lazy_k = int(lazy_k)
@@ -207,18 +220,30 @@ class GradientPenalty:
         return self.penalty(D, x_real, x_fake, step, collect_stats=False, ema_critic=ema_critic)[0]
 
     def _fixed_penalty(self, D, x_real, x_fake, coefficient, collect_stats):
-        """The released v0.7.0 R1/R2 and BCap formulas, operation for operation."""
+        """Released fixed formulas, with opt-in weights on their two means."""
         squared = self.arm == "a_r1r2"
-        real_norm = self._grad_norm(D, x_real, squared=squared)
-        fake_norm = self._grad_norm(D, x_fake, squared=squared)
-        if squared:
-            real_term, fake_term = real_norm, fake_norm
-            center = 0.0
+        center = 0.0 if squared else self.kappa
+        if (self.real_weight, self.fake_weight) == (1., 1.):
+            # Keep the original graph, forward order and arithmetic exactly.
+            real_norm = self._grad_norm(D, x_real, squared=squared)
+            fake_norm = self._grad_norm(D, x_fake, squared=squared)
+            if squared:
+                real_term, fake_term = real_norm, fake_norm
+            else:
+                real_term = F.relu(real_norm - self.kappa).pow(2)
+                fake_term = F.relu(fake_norm - self.kappa).pow(2)
+            total = real_term.mean() + fake_term.mean()
         else:
-            real_term = F.relu(real_norm - self.kappa).pow(2)
-            fake_term = F.relu(fake_norm - self.kappa).pow(2)
-            center = self.kappa
-        pen = (coefficient / 2.0) * (real_term.mean() + fake_term.mean())
+            total = x_real.new_zeros(())
+            for weight, inputs in ((self.real_weight, x_real), (self.fake_weight, x_fake)):
+                if weight == 0:
+                    # An inactive term performs no critic forward, autograd or
+                    # random draw. Each caller retains its named RNG streams.
+                    continue
+                norm = self._grad_norm(D, inputs, squared=squared)
+                term = norm if squared else F.relu(norm - self.kappa).pow(2)
+                total = total + weight * term.mean()
+        pen = (coefficient / 2.0) * total
         self.record.calls += 1
         if not collect_stats:
             return pen, {}

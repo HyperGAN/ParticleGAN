@@ -1,0 +1,64 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "rhbi-v11-study"
+  },
+  "candidate": "rhbi-v11",
+  "competing_explanation": "Moderating rhbi_tail_spill_gain from 1.8 to 0.95 to restore 5+ terminal passing checkpoints on model_ae_gan_multimodal could allow thermal scale s_t to cool too early on vector_anisotropic before residual inter-mode valley bridges clear (leaving component_covariance_error > 0.85), or still disturb stationary terminal stability on mode_hold or ring16_acquisition.",
+  "control": {
+    "candidate_id": "rhbi-v9",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "model_ae_gan_multimodal",
+    "threshold": 1.0
+  },
+  "hypothesis": "Moderating the continuous-prior valley 96th-quantile precision thermal residual gain to rhbi_tail_spill_gain=0.95 alongside wide-span H_0-connected macro-simplicial settling (rhbi_simplex_macro_settle=true) under one global clock-free, schedule-free, shape-gate-free recipe restores full terminal stability on Tier 1 model_ae_gan_multimodal while converting both counted vector_anisotropic (component_covariance_error <= 0.85, sw1_normalized <= 0.18, mass_tv <= 0.15, hq >= 0.85) and stretch interp_saddle_barycentric (all 5 terminal checks PASS) with zero regressions against rhbi-v9 on protocol seed 0.",
+  "id": "rhbi-v11-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_anisotropic",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v9",
+        "candidate_revision": "9e81b5afc9298a9cea9a90952637fc73b11ca93f518c0777145ec19ce1c6efd8"
+      },
+      "path": "reports/forge/records/readout-264443fda23520da74a1fe0a.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "rhbi-v10",
+        "candidate_revision": "8d8231faadfd8398b949d80d3de4300ae193089b3b6c582912db602f040c55d5"
+      },
+      "path": "reports/forge/records/readout-a3aa33cc909a1545b2341f1c.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

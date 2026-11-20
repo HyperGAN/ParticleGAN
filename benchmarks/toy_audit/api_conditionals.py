@@ -1529,6 +1529,9 @@ class _MisGANBaseFixture:
             unsupported.append("generator_gradient_response")
         if recipe.prior_code_law != "table":
             unsupported.append("prior_code_law")
+        for name, supported in (("model", "gan"), ("training_precision", "float32")):
+            if getattr(recipe, name) != supported:
+                unsupported.append(name)
         if unsupported:
             from .api_contract import UnsupportedRecipeOverrides
             raise UnsupportedRecipeOverrides("MisGAN host cannot execute the intact recipe mechanisms: "

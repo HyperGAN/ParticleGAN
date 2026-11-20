@@ -3,6 +3,7 @@ from copy import deepcopy
 import json
 from pathlib import Path
 import subprocess
+from pr_integration_compat import before_pr_integration
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -19,7 +20,7 @@ def test_current_prior_questions_change_only_declared_ownership_and_source_bindi
          "--", "configs/forge/tasks"], cwd=ROOT, text=True).splitlines()
     for relative in paths:
         path = ROOT / relative
-        current = json.loads(path.read_text())
+        current = before_pr_integration(ROOT, json.loads(path.read_text()), relative)
         original = json.loads(subprocess.check_output(
             ["git", "show", f"{BASELINE}:{relative}"], cwd=ROOT))
         expected = deepcopy(original)

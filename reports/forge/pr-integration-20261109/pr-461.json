@@ -1,0 +1,213 @@
+{
+  "schema": "pr_develop_integration_source_binding_v1",
+  "pr": 461,
+  "date": "2026-11-09",
+  "develop": "5a905a254bf5",
+  "previous_head": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+  "training_rerun": false,
+  "qualification_results_changed": false,
+  "automatic_cross_source_reuse": false,
+  "qualification_input": false,
+  "tasks": [
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "previous_task_sha256": "658a9479776d415fa42c1343cd3fee16dfeb45d6022dc1d04d88e3c8b66657c8",
+      "previous_task_blob": "b97ebde286c809ed9b64728f8d82c994059f98bd",
+      "current_task_sha256": "dd75d7ba3afa5cac6188170fca0994487dba0347e8929c4de855e853edc8d3f0",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "previous_task_sha256": "1bf258c0eb233cb86704f1011bd02d6560f6afbe40958a1337400a61a9b9ad31",
+      "previous_task_blob": "fac87fc35e27948ee8e83f45889b18e5ada55929",
+      "current_task_sha256": "d87c7e4a387a392d50c3d6a6019d18220a160fba26a33f993b37322211f576bd",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "previous_task_sha256": "4177769a711ecf28422febc4bb9901d8bffec003097233eb1e3451171418e7ab",
+      "previous_task_blob": "db8ee09eee43dc6b71144573c1e74f935a363e25",
+      "current_task_sha256": "d1825b17d63056d14a501dc8ad99788efc3ffa6bb1d41f6764c495c4ec3986e3",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ae_reconstruction.json",
+      "previous_task_sha256": "e2fd3c3cae6a9f8060b47654c9610558f6804d880bb7f15c0a4605aabc39d72b",
+      "previous_task_blob": "f2f9df6d31d8e34adc52a476c5836e5edfb98a69",
+      "current_task_sha256": "8b6817775c3d4369ee75a40f47841e40e8edaecaf8f90fee65df5a8cb6e5276b",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "previous_task_sha256": "49748d704eadf922d0e646021ce81281561c433068be089096763e890ff63c39",
+      "previous_task_blob": "4925a4993282298178987e35cc63402bf7ae0afb",
+      "current_task_sha256": "f78ad3b7e2e8f92158144315ae3e8d856e70adae8e19bff56a75b708bcf48186",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "previous_task_sha256": "a0d5943e95c86b7ff3da700a0bffeeec516cde6aa08322d5e5bc799446221ef9",
+      "previous_task_blob": "bf7f040f12cff637e981714bc95c5b9837500345",
+      "current_task_sha256": "df4311054104584e2fe47ddbad9487ada5a161ae5a37bd4f4e08eb9a702641c5",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_vae_categorical.json",
+      "previous_task_sha256": "59a50013a0323b25fe605dc2cfbe2393e27fadaa2b238aee142f2776af93a7f2",
+      "previous_task_blob": "888ab006c8df810eea546715af4d1912944e7f62",
+      "current_task_sha256": "0062c560b1373a73b8acdb07f2206461bd2aaaba7737ebd726f74155c3a62b60",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      },
+      "execution_updates": {}
+    },
+    {
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
+      "previous_task_path": "configs/forge/tasks/model_vae_hard.json",
+      "previous_task_sha256": "fc11827633ea48f14f5e0ea94a7268f52f1645c7178b78622afd905866c07aa3",
+      "previous_task_blob": "8afd4f0d6a7e42025cc4f2d8c87399374d7c28fa",
+      "current_task_sha256": "75d8829159d32fcce79053c361ad10890c0a9d08268a5a9ffe0d0bb09aa9c7c8",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "6fce43912b821b6839786ed34ef68b9456cdbd4165daad492f228f17ae6cde7b",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      },
+      "execution_updates": {}
+    }
+  ]
+}
