@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.11.1 — 2026-11-20
+
+- **Fix autograd-hook VRAM leak in live-endpoint critic captures (PR #585).**
+  Break the closure reference cycle across all six critic hook sites (`_unified_v11`,
+  `_unified_v4`, `_unified`, `_t2_critic`, `_nash_v3`, `_minimal`) where `_live_captures`
+  entries held strong references to autograd-attached `unscaled` logit tensors via
+  `register_hook` lambdas, causing linear GPU memory growth during long training runs
+  (e.g., `920 -> 3,898 MiB` over 800 CIFAR-10 steps). Adds CPU & CUDA weakref / flat-VRAM
+  regression tests (`tests/test_unified_critic_vram_leak.py`), flattening peak VRAM to
+  `953–968 MiB` across 2,000 steps.
+- **Universal 1st-order `fwAD` Laws 2–4 and function-space equilibrated optimizer for `unified_v11` (PR #587).**
+  Fixes `unified_v11`'s 4D high-resolution image failure while preserving `0`
+  `torch.autograd.grad`, `0` `svd`/`eigh`/`pinv`, exact `179` `Recipe` fields, and untouched
+  frozen `_unified/` & `_unified_v4/` baselines:
+  - **Law 2 (`particlegan/_unified_v11/penalty.py`):** Replaces the `dim <= 1024` and
+    `dim > 1024` finite-difference image secant branches (BF16 ULP underflow at
+    `img_delta=0.02`, ReLU `O(1/delta)` kink impulses, mixed real+fake BN stat shift, and
+    6× over-strong logit gauge) with one universal 1st-order `fwAD.dual_level()` per-sample
+    Born-Infeld critic penalty (`live_endpoints_reused=True`, `eff_floor=0.0005/dim`,
+    `eff_gauge=min(gamma_gauge, 0.005)`, temporary BN `eval()` + BF16 dual-tangent cast
+    hook `_bn_dual_bf16_hook`).
+  - **Law 3 (`particlegan/_unified_v11/loss.py`, `critic.py`):** Keeps `ema_margin`,
+    `ema_data_scale`, and `ema_push_res` live across all tensor ranks without caching 4D
+    images in `_t1c_capture`, and retains `fibre_rel_blend=0.50` scalar logit-space
+    relativistic coupling (`softplus(f - r)` / `softplus(r - f)`) when `loss == "non_saturating"`
+    and pixel-space `t1c` capture is skipped (respecting explicit user `loss` overrides).
+  - **Law 4 (`particlegan/_unified_v11/critic.py`) & Universal Equilibrated Optimizer (`optimizer.py`):**
+    Removes syntactic `L_count` / `deep_gate` and `ndim != 2` / `dim > 32` generator probe
+    gates; replaces them with an element-budgeted, BN-safe generator secant probe driving
+    checkpointed envelope-tracked `_ema_func_gain` + generator-only `stiff_gate`, degree-0
+    `peak_rms` batched Tikhonov smoothing, exact `1×1` Conv2d `sqrt(out_ch / in_ch)` scaling,
+    and lifted `min(r, c) <= 512` per-singular-value Tikhonov polar.
+  - **Checkpoint compatibility note:** `UnifiedV11EquilibratedOptimizer` now checkpoints
+    `_ema_func_gain` and per-parameter `peak_rms` with strict validation and explicitly
+    rejects older `0.11.0` optimizer checkpoints rather than silently reconstructing missing
+    history.
+  - **Verified evidence (seed `0`, zero recipe overrides):** On real CIFAR-10
+    (`benchmarks.cifar_toy`, `B=128`), `unified_v11` drops FID from `2730.72 -> 458.95`
+    (`N=200`, `s800`, `TV=0.109`, best `436.99` @ `s2000`, `8.22–8.49 it/s`, `953 MiB`) and
+    `2618.93 -> 728.10` @ `s800` -> `432.43` @ `s2000` (`N=16384`, `10/10` cov,
+    `8.17–8.56 it/s`, `967 MiB`, `1.67×–2.18×` faster than `empf`). Official 7,000-step
+    100-Gaussians gate passes at `100/100` modes, `hq = 99.025%` (`+0.50%` over `0.11.0`),
+    `mode_tv = 0.0436`. Forge `discriminator_stability` Tiers 1–2 reaches `25/27` required
+    PASS (`11/11` T1, `14/16` T2 — `+1` net required gain over `0.11.0`'s `24/27`, gaining
+    `five_word_joint_hold` and `staggered100`, with `39/46` total graded PASS and 7
+    non-passes transparently disclosed: `model_ddgan_gaussian_chain`,
+    `model_ae_ddgan_gaussian_chain`, `vector_unequal_width`, `interp_sparse_arc`,
+    `interp_img_patch_shift`, `interp_saddle_barycentric`, `t3_iso_scale_mass_8x`).
+    Historical `0.11.0` Forge receipts remain untouched.
+- **Reproducible CIFAR-10 Transformer-G / ResNet-18-feature-D benchmark (PR #586).**
+  Add `benchmarks/cifar_toy/` and `tests/test_cifar_toy_benchmark.py` (registered in
+  `experiments/forge/history.py`) with SHA-256-verified frozen ImageNet ResNet-18 critic and
+  independent ResNet-34 Feature-FID/KID/coverage evaluator, pure public API, and matched
+  cross-trainer provenance digests.
+
 ## 0.11.0 — 2026-11-20
 
 - **Default Unified 4-Law research selection (`DEFAULT_RECIPE = "unified_v11"`).**
