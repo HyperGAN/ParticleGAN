@@ -92,7 +92,7 @@
       "report/toy100/shared22": 201,
       "report/toy100/simpler22": 180,
       "report/toy100/torch214-gpu-check": 10,
-      "report/toy_audit": 611,
+      "report/toy_audit": 614,
       "report/trajectory": 167,
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
@@ -112,20 +112,20 @@
       "frozen_driver": 28,
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
-      "narrative": 975,
-      "structured_evidence": 5070,
+      "narrative": 976,
+      "structured_evidence": 5071,
       "support": 1561,
       "support_artifact": 52,
       "visualization": 23,
-      "visualization_artifact": 765
+      "visualization_artifact": 766
     },
-    "files": 11855
+    "files": 11858
   },
   "coverage": {
-    "declared_count": 11855,
+    "declared_count": 11858,
     "missing": [],
     "stale": [],
-    "tracked_count": 11855,
+    "tracked_count": 11858,
     "unclassified": [],
     "valid": true
   },
@@ -79988,6 +79988,27 @@
       "family": "report/toy_audit",
       "git_blob": "6bca53fea86e6a4d79e284145428caf52a57c647",
       "path": "reports/toy_audit/paired_sources/media/swirl2-baseline-movable.png",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "d3ba3cf7f5b287d016fd5b0b346d657f653bf66f",
+      "path": "reports/toy_audit/paper-watch/bolt-critic/README.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "70b60951e2fc7fbec93dbc9cc8d359b78965540b",
+      "path": "reports/toy_audit/paper-watch/bolt-critic/summary.json",
+      "role": "structured_evidence",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "7063771a57a6f32eeb6e41d5177c7d20d9d538bc",
+      "path": "reports/toy_audit/paper-watch/bolt-critic/training.gif",
       "role": "visualization_artifact",
       "suggested_tiers": []
     },

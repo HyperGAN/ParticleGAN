@@ -3,7 +3,7 @@
 Question: does replacing ParticleGAN's critic objective with BOLT-GP (a loss
 linear in sigmoid of the raw score, with WGAN-GP applied to the raw score)
 help a learned particle prior on the paper's 25-Gaussians grid?
-Source test: [`tests/test_paperwatch_bolt_critic.py`](../../../tests/test_paperwatch_bolt_critic.py).
+Source test: [`tests/test_paperwatch_bolt_critic.py`](../../../../tests/test_paperwatch_bolt_critic.py).
 
 Cohort: CPU, one intra-op thread, ka2 recipe, 6,000 updates, batch 256,
 lambda_GP 1.0, seeds 0/1/2, shared deterministic initializer. Modes use the

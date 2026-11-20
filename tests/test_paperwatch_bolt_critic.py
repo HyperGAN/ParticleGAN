@@ -102,7 +102,7 @@ lambda_GP was tuned over 6 GPU rounds and the budget doubled once for the
 BOLT arm; the controls were not tuned.
 
 The training assertions are slow and opt-in; the mechanism checks always
-run. Report (summary.json + actual-training GIF): reports/paper-watch/bolt-critic/.
+run. Report (summary.json + actual-training GIF): reports/toy_audit/paper-watch/bolt-critic/.
 
 Run: PARTICLEGAN_RUN_PAPERWATCH=1 python -m pytest tests/test_paperwatch_bolt_critic.py
 Regenerate report: PYTHONPATH=.:tests python tests/test_paperwatch_bolt_critic.py
@@ -241,7 +241,8 @@ DEVICE = "cpu"
 SNAPSHOTS = 12          # evenly spaced post-update observations for the GIF
 SNAPSHOT_SAMPLES = 1024
 RUN_ENV = "PARTICLEGAN_RUN_PAPERWATCH"
-REPORT_DIR = Path(__file__).resolve().parents[1] / "reports" / "paper-watch" / "bolt-critic"
+REPORT_DIR = (Path(__file__).resolve().parents[1] / "reports" / "toy_audit" / "paper-watch"
+              / "bolt-critic")
 
 # The BOLT arm is an ASSISTED/DIAGNOSTIC cohort: the host swaps
 # ``trainer.loss`` and ``trainer.penalty`` by attribute assignment after the
@@ -465,7 +466,7 @@ def test_modes_recovered_counts_paper_rule():
 
 # --------------------------------------------------------------------------
 # The gauntlet result, encoded against the pinned CPU cohort
-# (reports/paper-watch/bolt-critic/summary.json). Measured (seeds 0/1/2):
+# (reports/toy_audit/paper-watch/bolt-critic/summary.json). Measured (seeds 0/1/2):
 # modes particle 25/23/25 (24.33), plain 25/25/25 (25.0), bolt 22/24/17
 # (21.0); coverage particle 0.088, plain 0.461, bolt 0.046. The GPU gauntlet
 # claimed a 25.0/25.0/25.0 tie; on CPU the BOLT arm does not reproduce it.
