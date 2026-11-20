@@ -1,4 +1,4 @@
-"""Run every collected test once across deterministic file shards."""
+"""Run every collected test once across deterministic shards."""
 from __future__ import annotations
 
 import argparse
@@ -29,7 +29,7 @@ def check_receipts(paths):
     print(f"Verified {expected} collected tests assigned exactly once across {count} shards")
 
 
-def run_shard(index, count, receipt, args):
+def run_shard(index, count, receipt, args, split_files=()):
     import pytest
 
     class Selection:
@@ -41,7 +41,8 @@ def run_shard(index, count, receipt, args):
             keep, drop = [], []
             for item in items:
                 filename = item.path.relative_to(config.rootpath).as_posix()
-                owner = int.from_bytes(hashlib.sha256(filename.encode()).digest(), "big") % count
+                key = item.name if filename in split_files else filename
+                owner = int.from_bytes(hashlib.sha256(key.encode()).digest(), "big") % count
                 (keep if owner == index else drop).append(item)
             self.collected, self.selected = len(items), len(keep)
             receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -69,6 +70,8 @@ def main(argv=None):
     run.add_argument("--index", type=int, required=True)
     run.add_argument("--count", type=int, required=True)
     run.add_argument("--receipt", type=Path, required=True)
+    run.add_argument("--split-file", action="append", default=[], metavar="PATH",
+                     help="Shard this repository-relative file by test name instead of grouping it")
     run.add_argument("pytest_args", nargs=argparse.REMAINDER)
     check = modes.add_parser("check")
     check.add_argument("receipts", nargs="+", type=Path)
@@ -81,7 +84,7 @@ def main(argv=None):
     pytest_args = args.pytest_args
     if pytest_args[:1] == ["--"]:
         pytest_args = pytest_args[1:]
-    return run_shard(args.index, args.count, args.receipt, pytest_args)
+    return run_shard(args.index, args.count, args.receipt, pytest_args, args.split_file)
 
 
 if __name__ == "__main__":
