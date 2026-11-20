@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1172. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1180. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4136,6 +4136,22 @@ Arm 4 (-coalesce-ltv): 9/16 PASS, 5 FAIL (grid100 severe Zador-Gersho collapse c
 
 [Record and receipt provenance](records/readout-04bb3c211150d5629c489b5e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v1 · readout-05bfed4a33e8ae32ff30e37e
+
+**Scope:** research_diagnostic; scientific; revision `cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16`.
+
+With 893 LOC, strictly 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz, torch._foreach in-place updates, and 100% live-endpoint secant reuse, minimal-v1 achieves <=55 ms/step on dcgan_performance_r256 across 6/6 dcgan_performance tasks under protocol seed 0 (~2x faster than unified-v10's 92.7 ms/step).
+
+**Observed:** {'PASS': 6}; wall seconds 65.142; mechanism `structural`.
+
+
+
+minimal-v1 (896 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 6/6 dcgan_performance tasks at 57.37 ms/step r256 median (1523.88 MiB peak), 36% faster than unified-v10 (89.66 ms/step) and 34% faster than cond-fiber-v1 (87.50 ms/step), just above the 55.0 ms prediction due to can_cat 2B activation memory and foreach temporary buffer allocation.
+
+**Next:** Eliminate 2B concat/foreach peak memory in bounded minimal-v2 to drop r256 below 55 ms/step and ~1370 MiB.
+
+[Record and receipt provenance](records/readout-05bfed4a33e8ae32ff30e37e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v2 · readout-05eaed46ab0e45214ae8e7b4
 
 **Scope:** current; scientific; revision `fc09c6b1f8ae77167ca31db0a4d9ef252dc9d6b92aed98e3d4b53a168ff0ac15`.
@@ -4696,6 +4712,22 @@ Ordinary discriminator_stability revision-14 re-qualification stops at Tier 1: s
 
 [Record and receipt provenance](records/readout-1d42b97bbb8f1366a766a233.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v2 · readout-1deb8069997d547690b0036c
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3_causal_isolation_stretch (t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift) under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 1}; wall seconds 100.579; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=1, mass_tv=0.1875; t3_iso_scale_mass_8x: modes=4, hq=1, mass_tv=0.013438
+
+minimal-v2 passed 1/2 t3_causal_isolation_stretch tasks: t3_iso_scale_mass_8x PASS (4/4 modes, hq=1.0000, mass_tv=0.0134, core_min_eigen_ratio=0.8505, up from 0.8117 on minimal-v1); t3_iso_horizon_saddle_shift recovered 4/4 modes and hq=1.0000 with mass_tv=0.1875 > 0.12.
+
+**Next:** Record minimal-v2 causal isolation results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-1deb8069997d547690b0036c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v8 · readout-1e8054c27ba98f19d9d9202a
 
 **Scope:** current; scientific; revision `a156b0664f8133339702d2c98bd8ff8e88ca912a2acfd320d2ea0a0bddb7d84e`.
@@ -4823,6 +4855,22 @@ unified-v7 passed t3_iso_horizon_saddle_shift (modes=4, hq=0.9609) and missed t3
 **Next:** Add exact 128/len(rows) row-count scaling to s_prior in unified-v8.
 
 [Record and receipt provenance](records/readout-228486492e2b4f2959fe621a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v1 · readout-2386a25b92b16ff30b059055
+
+**Scope:** current; scientific; revision `cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16`.
+
+Unchanged global 893-LOC zero-SVD zero-NS zero-autograd.grad minimal-v1 preserves strong multimodal, 100-mode lattice (rotated100 center_rms_sigma <= 0.18), discrete-image, vector, and conditional-fiber stability across discriminator_stability Tiers 1-2 under protocol seed 0 at ~10x fewer lines and ~2x faster r256 speed than unified-v10.
+
+**Observed:** {'FAIL': 9, 'PASS': 8}; wall seconds 1536.407; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=1, mass_tv=0.011484; ring16_acquisition: modes=16, hq=0.97241, mass_tv=0.045654
+
+minimal-v1 passed 8/17 Tier-1 discriminator_stability tasks (ae_gan_hold, clockfree_audit_measurement_v1, gaussian1d_smoke, model_ae_reconstruction, ring16_acquisition, t3_iso_scale_mass_8x, unused_token_hold, zero_tanh_smoke), stopping before Tier 2 due to 1D Burg interference on two_pole/precision_gaussian_*, deep_g triggering on multi-module AE/VAE (five_word_joint_smoke, model_vae_*), and square-layer 2x MP under-scaling.
+
+**Next:** Implement surgical 4-fix bounded minimal-v2 (<900 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 NS) to clear Tier 1 and measure full Tiers 1-2.
+
+[Record and receipt provenance](records/readout-2386a25b92b16ff30b059055.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-23a27d9f41e3d4285248abda
 
@@ -5063,6 +5111,22 @@ prediction_observed
 **Next:** review_saved_diagnostics
 
 [Record and receipt provenance](records/readout-2e0a16b47298ebbc5e33ba63.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-2f4291537e93817e412994e3
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 recovers all 16 modes on nash_overpowered_critic_ring16 and matches multimodal Nash recovery across t4_imbalance_nash_stretch under protocol seed 0.
+
+**Observed:** {'FAIL': 1, 'PASS': 2}; wall seconds 372.051; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.98584, mass_tv=0.042725; nash_overpowered_critic_ring16: modes=16, hq=0.9917, mass_tv=0.052002; nash_unequal_width_hostile_imbalance: hq=0.99683, mass_tv=0.042725
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 2/3 t4_imbalance_nash_stretch tasks: nash_overpowered_critic_ring16 (621x PASS: 16/16 modes, hq=0.9917, mass_tv=0.0520, eig=0.2159) and nash_overpowered_generator_ring16 (548x PASS: 16/16 modes, hq=0.9858, mass_tv=0.0427, eig=0.1854); nash_unequal_width_hostile_imbalance achieved hq=0.9968, mass_tv=0.0427 with resolved_core_min_eigen_ratio=0.1240 vs 0.15.
+
+**Next:** Record minimal-v2 Nash results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-2f4291537e93817e412994e3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-v1 · readout-3056c61a1d2d3386643a1367
 
@@ -6728,6 +6792,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 
 [Record and receipt provenance](records/readout-6b39d05e0c481a63f7aa8aa3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v2 · readout-6bac8895ffa14ef20dcbee75
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes clockfree_audit_measurement_v1, zero_tanh_smoke, grid100, and deep residual tanh architectures (grid100_res16_scaled_tanh center_rms_sigma <= 0.20) on t4-strange-architectures-v1 while transparently measuring the zero-NS boundary on skip-free 16-layer MLPs under protocol seed 0.
+
+**Observed:** {'FAIL': 5, 'PASS': 4}; wall seconds 3575.533; mechanism `structural`.
+
+
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) evaluated all 7/7 t4-strange-architectures-v1 tasks, passing 3/7: clockfree_audit_measurement_v1 PASS, zero_tanh_smoke PASS (mae=0.0038), and grid100 PASS (center_rms_sigma=0.0566, cov_trace_bias=-0.0053, radial_ks=0.0026, mass_tv=0.0374, precision=0.9795, frozen_pass=True). On 16-block residual tanh nets, minimal-v2 recovered 100/100 modes with ultra-sharp centers (grid100_res16_scaled_tanh center_rms_sigma=0.0471, precision=0.9914, frozen_pass=True; grid100_res16_tanh center_rms_sigma=0.0630, precision=0.9774) missing only cov_trace_bias (-0.2717/-0.2095). On skip-free 16-layer MLP (grid100_mlp16), zero-NS minimal-v2 collapsed (precision=0.0714, mass_tv=0.5782), independently confirming r4-ablation-razor's finding that Newton-Schulz is strictly irreducible on deep skip-free MLPs.
+
+**Next:** Refresh Forge history/compile, write reports/forge/studies/r4-minimal-core.md, pass all CI/lint/wheel checks, and open PR to develop.
+
+[Record and receipt provenance](records/readout-6bac8895ffa14ef20dcbee75.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v6 · readout-6bf4d676cc7a12b04a631fd2
 
 **Scope:** research_diagnostic; scientific; revision `74aa6308874a9c6492244418f9a58b0768defe2de5ca0155a583d2edd63d8ae2`.
@@ -6887,6 +6967,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-704dd415ee7878a1bbfbe7d9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-71264208cbaf820429ca4975
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery) under protocol seed 0.
+
+**Observed:** {'FAIL': 3, 'PASS': 3}; wall seconds 318.316; mechanism `structural`.
+
+
+
+minimal-v2 passed 2/4 t3-shift-recovery-diagnostic-v1 tasks: ae_gan_hold PASS (hold=0.0550) and zero_tanh_smoke PASS (mae=0.0038, rms=0.0055); mode_hold retained 8/8 modes (hq=0.8269) and zero_tanh_rail_escape reached pre-shift mae=0.0018 and post-shift mae=0.0101 / rms=0.0133.
+
+**Next:** Record minimal-v2 shift diagnostic results in reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-71264208cbaf820429ca4975.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### unified-v10 · readout-72b4701ffe3e02fae8ac8982
 
@@ -7351,6 +7447,22 @@ Frobenius convolution rule fails both width64 image gates at600 updates: stripes
 **Next:** Stop this exact Frobenius revision; do not run full performance or ordinary qualification for selection. Preserve the collapse failure and its actual-training GIFs; no outcome-based rerun, seed repeat or gate change.
 
 [Record and receipt provenance](records/readout-85a714c5fc9c0b038c400b22.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### minimal-v2 · readout-889d4d1d2b24d0a08ab4017c
+
+**Scope:** current; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 preserves strong multimodal, 100-mode lattice (rotated100 center_rms_sigma <= 0.18), discrete-image, vector, and conditional-fiber stability across discriminator_stability Tiers 1-2 under protocol seed 0 at ~10x fewer lines and ~2x faster r256 speed than unified-v10.
+
+**Observed:** {'FAIL': 7, 'PASS': 10}; wall seconds 1564.557; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+minimal-v2 passed 10/17 Tier-1 discriminator_stability tasks (up from 8/17 on minimal-v1), adding full PASS on two_pole (mean_abs=0.9616) and five_word_joint_smoke (5/5 modes, mass_tv=0.0189) alongside ae_gan_hold, clockfree_audit_measurement_v1, gaussian1d_smoke, model_ae_reconstruction, ring16_acquisition (16/16, hq=0.9839), t3_iso_scale_mass_8x (eig=0.8505), unused_token_hold, and zero_tanh_smoke.
+
+**Next:** Wait for minimal-v2-t4-arch-study to finish, conclude its readout, refresh Forge history/compile, and publish reports/forge/studies/r4-minimal-core.md.
+
+[Record and receipt provenance](records/readout-889d4d1d2b24d0a08ab4017c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v12 · readout-8a63e947313fcb7d2e62a8d2
 
@@ -9272,6 +9384,22 @@ On ordinary discriminator_stability (Rev 16) under protocol seed 0 on NVIDIA RTX
 
 [Record and receipt provenance](records/readout-d46a41a1da2da54d67d154f4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### minimal-v2 · readout-d50a87c606ed4cd8e01a42fe
+
+**Scope:** research_diagnostic; scientific; revision `56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f`.
+
+With 893 LOC, strictly 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz, torch._foreach in-place updates, and 100% live-endpoint secant reuse, minimal-v2 achieves <=55 ms/step on dcgan_performance_r256 across 6/6 dcgan_performance tasks under protocol seed 0 (~2x faster than unified-v10's 92.7 ms/step).
+
+**Observed:** {'PASS': 6}; wall seconds 66.664; mechanism `structural`.
+
+
+
+minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 6/6 dcgan_performance tasks at 55.50 ms/step r256 median (1344.84 MiB peak allocated, 1384.0 MiB reserved; 50.91 ms uncontended), cutting -179.0 MiB peak VRAM vs minimal-v1 (1523.88 MiB) and running 38% faster than unified-v10 (89.66 ms/step) and 37% faster than cond-fiber-v1 (87.50 ms/step).
+
+**Next:** Complete the 5 quality/stability minimal-v2 studies and compile final R4 Minimal Core report.
+
+[Record and receipt provenance](records/readout-d50a87c606ed4cd8e01a42fe.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rgdt-v3 · readout-d547ba37dabfc5ab66eca538
 
 **Scope:** research_diagnostic; scientific; revision `f1f2d75597e09c41083db788fa72e2447b729cbb95ad72b44f4ba4846e44844a`.
@@ -10902,4 +11030,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `ad2da218c57f24161196f852ac3a5340952b93fa0f79f3baaa640142d005c14e`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `5ec35aed6e2732a4ff20619d1cea289d2324b7a99ce70336e6d1d03711ecd28f`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

@@ -1,0 +1,675 @@
+{
+  "attempt_ids": [
+    "09f3fe33b8a244b3a10e03135b816015",
+    "4b5f50154fba4815b4ffefce25d80540",
+    "8b36632b4c7f40d3af0694e4e4abc7b2",
+    "c65b44a6058545a28edb8320da21d343",
+    "ebb83b8417e34c1293b1b2f04f1b3faf",
+    "f17ccced449141e9a18f184f24af3c94"
+  ],
+  "candidate_id": "minimal-v2",
+  "candidate_revision": "56090718a1cc6eca450e4c0cc11b1cb407bdf91c77f024c0bf08c584c04e987f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Improves zero_tanh_smoke (0.0044 -> 0.0038) and mode_hold mode retention (7/8 -> 8/8) vs minimal-v1; trails unified-v10 (5/5) on post-shift rail-escape convergence speed.",
+  "conclusion": "minimal-v2 passed 2/4 t3-shift-recovery-diagnostic-v1 tasks: ae_gan_hold PASS (hold=0.0550) and zero_tanh_smoke PASS (mae=0.0038, rms=0.0055); mode_hold retained 8/8 modes (hq=0.8269) and zero_tanh_rail_escape reached pre-shift mae=0.0018 and post-shift mae=0.0101 / rms=0.0133.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "09f3fe33b8a244b3a10e03135b816015",
+        "4b5f50154fba4815b4ffefce25d80540",
+        "8b36632b4c7f40d3af0694e4e4abc7b2",
+        "c65b44a6058545a28edb8320da21d343",
+        "ebb83b8417e34c1293b1b2f04f1b3faf",
+        "f17ccced449141e9a18f184f24af3c94"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "99802c456bd46a5658c8954704c886d8a62be467261fd747c42bb9a80c52a116",
+      "duplicate_task_ids": [
+        "zero_tanh_rail_escape",
+        "zero_tanh_smoke"
+      ],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.05504654347896576
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.05504654347896576
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "09f3fe33b8a244b3a10e03135b816015",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "efa56d89ac97d834ff123479a1cbbfcc7a5c67a6cf0447f185e8970a1e9f8b7a",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "4b5f50154fba4815b4ffefce25d80540",
+          "producer_request_id": "ef6b267b8370e725e05573df",
+          "producer_study_id": "minimal-v2-t4-arch-study",
+          "result_hash": "8aac10dc81b60005f6eb21c3dddb657540fa80bc1ab90e4139a2ffff25929dcd",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "8b36632b4c7f40d3af0694e4e4abc7b2",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "8072aa367d7cb85cbb1dd387693c47741580dcf25f72122d5f399d65453971eb",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "c65b44a6058545a28edb8320da21d343",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "c952713e9e2860fc55f6f9ddcafd6dc8486649fa4dcfa49b4957d34af7fd5074",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "ebb83b8417e34c1293b1b2f04f1b3faf",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "cb5cb8ac5ccff6568f9c70ae32063610104e2656976efc0b4e9305510392b621",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "f17ccced449141e9a18f184f24af3c94",
+          "producer_request_id": "a51dfbdac0f5e16c4e2b3685",
+          "producer_study_id": "minimal-v2-shift-diagnostic-study",
+          "result_hash": "809828eea9595447c20cc57e3cfe99c3ec4076fd911eb7769cceb6f08746e982",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "b9f35c557720f7fee0ffdcfa79ebe134788b58a8d4c8571899513de22c8fceb9",
+        "contract_sha256": "99802c456bd46a5658c8954704c886d8a62be467261fd747c42bb9a80c52a116",
+        "control_binding_sha256": "27ea38cd2d7e7838e49f9968a6b87bfb3dcf61ad9c2540f5773f718c9fe9ff8f",
+        "policy_fingerprint": "1398b8ca18b7f7a140ecfea50905272a1ef3e2aea184fb0143eedd92da79de4f",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "25c0823cf51f612d6f5f0d0440b4bf44c12f4c54697c75893d0e4bb5d8028788"
+      },
+      "study_id": "minimal-v2-shift-diagnostic-study",
+      "study_sha256": "25c0823cf51f612d6f5f0d0440b4bf44c12f4c54697c75893d0e4bb5d8028788"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3-shift-recovery-diagnostic-v1",
+  "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Record minimal-v2 shift diagnostic results in reports/forge/studies/r4-minimal-core.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "09f3fe33b8a244b3a10e03135b816015",
+        "result_hash": "efa56d89ac97d834ff123479a1cbbfcc7a5c67a6cf0447f185e8970a1e9f8b7a",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "4b5f50154fba4815b4ffefce25d80540",
+        "result_hash": "8aac10dc81b60005f6eb21c3dddb657540fa80bc1ab90e4139a2ffff25929dcd",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "8b36632b4c7f40d3af0694e4e4abc7b2",
+        "result_hash": "8072aa367d7cb85cbb1dd387693c47741580dcf25f72122d5f399d65453971eb",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "c65b44a6058545a28edb8320da21d343",
+        "result_hash": "c952713e9e2860fc55f6f9ddcafd6dc8486649fa4dcfa49b4957d34af7fd5074",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "ebb83b8417e34c1293b1b2f04f1b3faf",
+        "result_hash": "cb5cb8ac5ccff6568f9c70ae32063610104e2656976efc0b4e9305510392b621",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "f17ccced449141e9a18f184f24af3c94",
+        "result_hash": "809828eea9595447c20cc57e3cfe99c3ec4076fd911eb7769cceb6f08746e982",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-71264208cbaf820429ca4975",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/09f3fe33b8a244b3a10e03135b816015/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 7200,
+      "candidate_budget_seconds": 7200,
+      "id": "minimal-v2-shift-diagnostic-study"
+    },
+    "candidate": "minimal-v2",
+    "competing_explanation": "If pure-elementwise MinimalOptimizer or the minimal prior regularizer disrupts hold equilibria or shock reopening, minimal-v2 will fail ae_gan_hold (hold > 0.35), mode_hold, zero_tanh_smoke, or target_shift_recovery.",
+    "control": {
+      "candidate_id": "rgdt-v2",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "hold",
+      "op": ">",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery) under protocol seed 0.",
+    "id": "minimal-v2-shift-diagnostic-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "hold",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "minimal-v1",
+          "candidate_revision": "cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16"
+        },
+        "path": "reports/forge/records/readout-2386a25b92b16ff30b059055.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3-shift-recovery-diagnostic-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "minimal-v2-shift-diagnostic-study",
+  "study_sha256": "25c0823cf51f612d6f5f0d0440b4bf44c12f4c54697c75893d0e4bb5d8028788",
+  "task_results": [
+    {
+      "compatibility_key": "010f68f794ac7282bc937e27de1946c01e2490c47735787473d33f9a4e90ba11",
+      "cost": {
+        "adapter_loop_seconds": 28.40744808013551,
+        "adapter_seconds": 28.929785506101325,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "execution_seconds": 36.076421204954386,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 26.2586492637638,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.013408886501565576
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.011353899026289582
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 26.233886478235945
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 30.219001356046647,
+        "wall_seconds": 36.076421204954386
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0011904031224548818,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0038095968775451183
+          },
+          "p99_abs_error": {
+            "margin": 0.006181954964995386,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.018818045035004616
+          },
+          "rms_error": {
+            "margin": 0.004461098220199347,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.0055389017798006535
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0038095968775451183,
+        "p99_abs_error": 0.018818045035004616,
+        "rms_error": 0.0055389017798006535,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "63394fa3facdd2231277746aa4126bd6fd38b6b2c5bff6ac2a9d7d25c3bdf173",
+      "cost": {
+        "adapter_loop_seconds": 65.37069995794445,
+        "adapter_seconds": 65.84383885306306,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "execution_seconds": 72.79114609700628,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 58.36434369138442,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.01399713079445064
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.01911101955920458
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 58.331235541030765
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 67.10599594679661,
+        "wall_seconds": 72.79114609700628
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "mean_abs_error": 0.010088237933814526,
+        "p99_abs_error": 0.04139058664441109,
+        "rms_error": 0.013335560448467731,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "failed zero_tanh_rail_escape thresholds: mean_abs_error <= 0.005, rms_error <= 0.01, p99_abs_error <= 0.025",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "63394fa3facdd2231277746aa4126bd6fd38b6b2c5bff6ac2a9d7d25c3bdf173",
+      "cost": {
+        "adapter_loop_seconds": 59.82891624700278,
+        "adapter_seconds": 60.29981701611541,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "execution_seconds": 67.17915421910584,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 54.691442725248635,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.013678971445187926
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.012032893486320972
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 54.665730860317126
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 61.58957172301598,
+        "wall_seconds": 67.17915421910584
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "mean_abs_error": 0.010088237933814526,
+        "p99_abs_error": 0.04139058664441109,
+        "rms_error": 0.013335560448467731,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "failed zero_tanh_rail_escape thresholds: mean_abs_error <= 0.005, rms_error <= 0.01, p99_abs_error <= 0.025",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "010f68f794ac7282bc937e27de1946c01e2490c47735787473d33f9a4e90ba11",
+      "cost": {
+        "adapter_loop_seconds": 33.461223484016955,
+        "adapter_seconds": 33.92988604679704,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "execution_seconds": 40.974145107204095,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 29.838018900481984,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.01337291020900011
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.013241591863334179
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 29.81140439840965
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 35.228926758049056,
+        "wall_seconds": 40.974145107204095
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0011904031224548818,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0038095968775451183
+          },
+          "p99_abs_error": {
+            "margin": 0.006181954964995386,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.018818045035004616
+          },
+          "rms_error": {
+            "margin": 0.004461098220199347,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.0055389017798006535
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0038095968775451183,
+        "p99_abs_error": 0.018818045035004616,
+        "rms_error": 0.0055389017798006535,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "5260d77b43ffcff23f80a43ac6e3f08e19c64fc1370229eefd6bcdbd29ff6b9d",
+      "cost": {
+        "adapter_seconds": 8.651557588018477,
+        "charged_task": "ae_gan_hold",
+        "device": "0",
+        "execution_seconds": 15.641943478025496,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 9.968654142925516,
+        "wall_seconds": 15.641943478025496
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.292,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 73,
+          "first_pass_step": 32,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 22,
+          "passing_suffix": 22,
+          "stable_from_seconds": null,
+          "stable_from_step": 32
+        },
+        "metric_checks": {
+          "hold": {
+            "margin": 0.2949534565210342,
+            "metric": "hold",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.35,
+            "value": 0.05504654347896576
+          },
+          "recon_mse": {
+            "margin": 0.038223492167890075,
+            "metric": "recon_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.011776507832109928
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "hold": 0.05504654347896576,
+        "recon_mse": 0.011776507832109928
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "ae_gan_hold"
+    },
+    {
+      "compatibility_key": "569ce059113e279878a3631a29f80ce2b288de2e0fa6fc0ddd6d1df83a4d0b38",
+      "cost": {
+        "adapter_loop_seconds": 78.40929360408336,
+        "adapter_seconds": 78.82304331799969,
+        "charged_task": "mode_hold",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 85.653024550993,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 74.78308595018461,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.013105111895129085
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.014573777792975307
+            },
+            "training_updates": {
+              "calls": 1200,
+              "seconds": 74.75540706049651
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 80.11587072489783,
+        "wall_seconds": 85.653024550993
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 50,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 19,
+          "passing_suffix": 0,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": -0.07309570312500002,
+            "metric": "hq",
+            "op": ">=",
+            "status": "FAIL",
+            "threshold": 0.9,
+            "value": 0.826904296875
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          }
+        },
+        "passed": false,
+        "shortfall": 0.04060872395833334,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "cover": 1.0,
+        "effective_modes": 7.625482082366943,
+        "hq": 0.826904296875,
+        "modes": 8,
+        "n_modes": 8,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "mode_hold"
+    }
+  ]
+}

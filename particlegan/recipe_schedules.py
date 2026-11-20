@@ -180,6 +180,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
             optimizer.record = _NashV3ObserverStepRecord()
             _attach_nash_v3_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "minimal":
+            from .minimal import MinimalStepRecord, _attach_minimal_critic_hook
+            optimizer.record = MinimalStepRecord()
+            _attach_minimal_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

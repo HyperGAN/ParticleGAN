@@ -462,8 +462,8 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback, rgdt, unified, unified_v4, t4_arch, r4_no_pullback_iso, r4_no_coalesce_ltv, r4_no_chart_laguerre or r4_no_sat_probe")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback, rgdt, unified, unified_v4, t4_arch, r4_no_pullback_iso, r4_no_coalesce_ltv, r4_no_chart_laguerre, r4_no_sat_probe or minimal")
         for t1_name, t1_pos in (
             ("t1_pullback_weight", False),
             ("t1_iso_weight", False),
@@ -610,7 +610,7 @@ class Recipe:
                 and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber")):
             raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, unified_v4, r4_autograd_critic, or cond_fiber formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -627,11 +627,11 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, r4_autograd_critic or cond_fiber")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, r4_autograd_critic, cond_fiber or minimal")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
+        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
@@ -748,7 +748,7 @@ class Recipe:
             rgdt_val = getattr(self, rgdt_name)
             if type(rgdt_val) not in (int, float) or not math.isfinite(rgdt_val) or rgdt_val < 0:
                 raise ValueError(f"{rgdt_name} must be finite and nonnegative")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -1251,6 +1251,9 @@ class Recipe:
         if self.effective_critic_formulation == "t4_nash_v3":
             from .nash_v3 import NashV3Loss
             return NashV3Loss(labels=self.loss_labels, loss=self.loss)
+        if self.effective_critic_formulation == "minimal":
+            from .minimal import MinimalLoss
+            return MinimalLoss(labels=self.loss_labels, loss=self.loss)
         if self.effective_critic_formulation == "t2_secant":
             from .t2_critic import T2SecantGANLoss
             return T2SecantGANLoss(labels=self.loss_labels, loss=self.loss)
@@ -1332,6 +1335,8 @@ class Recipe:
             from ._r4_ablation import R4AutogradCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "cond_fiber":
             from .cond_fiber import CondFiberCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "minimal":
+            from .minimal import MinimalCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation in ("k3p", "bcap"):
             from .k3p import CriticPenalty
         else:
@@ -1341,8 +1346,17 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, r4_autograd_critic or cond_fiber")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, r4_autograd_critic, cond_fiber or minimal")
+        if self.effective_critic_formulation == "minimal":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
+                       "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta,
+                       "max_prototypes": self.t1_max_prototypes, **overrides}
+            if options["coeff"] < 0 or options["kappa"] <= 0 or options["lazy_k"] < 1 or options["ebi_beta"] <= 0:
+                raise ValueError("invalid minimal penalty options")
+            return options
         if self.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1607,6 +1621,11 @@ class Recipe:
             return CondFiberCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                        ema_critic=ema_critic,
                                        guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "minimal":
+            from .minimal import MinimalCriticOptimizer
+            return MinimalCriticOptimizer([p for p in critic.parameters() if p.requires_grad], critic=critic,
+                                          ema_critic=ema_critic,
+                                          guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
         if self.effective_critic_formulation == "k3p":
             from .k3p import K3PCriticAdam
             return K3PCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
@@ -1757,6 +1776,15 @@ class Recipe:
                            direct_betas=self.direct_particle_betas,
                            direct_gain=self.direct_particle_gain,
                            saddle_escape=(self.continuous_policy == "dv12"), **options)
+        if self.effective_critic_formulation == "minimal":
+            from .minimal import MinimalConstraintGeneratorOptimizer, MinimalGeneratorOptimizer
+            opt_cls = MinimalConstraintGeneratorOptimizer if self.constraint_geometry_mode != "none" else MinimalGeneratorOptimizer
+            return opt_cls(params, latent_table=latent_table, direct_particles=direct_particles,
+                           module_owners=module_owners, generator_module=module,
+                           latent_max_rate=self.latent_damping_max_rate,
+                           direct_betas=self.direct_particle_betas,
+                           direct_gain=self.direct_particle_gain,
+                           saddle_escape=(self.continuous_policy == "dv12"), **options)
         from .k3p import K3PGeneratorAdam
         return K3PGeneratorAdam(params, latent_table=latent_table, direct_particles=direct_particles,
                                 latent_max_rate=self.latent_damping_max_rate,
@@ -1772,7 +1800,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "r4_autograd_critic", "cond_fiber", "minimal"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -1837,6 +1865,23 @@ class Recipe:
                 reg_u.thermal_source = prior._unified_record
                 reg_u.unified_record = prior._unified_record
             return reg_u
+        if self.prior_regularizer == "minimal":
+            from .minimal import MinimalPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "max_prototypes": self.t1_max_prototypes, **overrides}
+            if prior is not None and hasattr(prior, "z"):
+                options.setdefault("bound_device", prior.z.device)
+                options.setdefault("bound_shape", tuple(prior.z.shape))
+            elif prior is not None and hasattr(prior, "device"):
+                options.setdefault("bound_device", prior.device)
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            reg_min = MinimalPriorRegularizer(reference, **options)
+            rec_min = getattr(prior, "_minimal_record", None) if prior is not None else None
+            if rec_min is not None:
+                reg_min.thermal_source = rec_min
+                reg_min.minimal_record = rec_min
+            return reg_min
         if self.prior_regularizer in ("unified_v4", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe"):
             options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
                        "eps": self.prior_reg_eps, "max_prototypes": self.t1_max_prototypes,
@@ -1944,7 +1989,7 @@ class Recipe:
             state = regularizer.state_dict()
             if state:
                 return {"prior_regularizer": state}
-        if (self.prior_regularizer in ("t1_pullback", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe")
+        if (self.prior_regularizer in ("t1_pullback", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal")
                 and self.t1_pullback_weight > 0 and regularizer is not None):
             state = regularizer.state_dict()
             if state:
@@ -1998,7 +2043,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -2223,6 +2268,19 @@ class Recipe:
                 base_prior._unified_v4_record = opt_d.record
                 base_prior._unified_record = opt_d.record
                 base_prior._t1c_record = opt_d.record
+        if self.effective_critic_formulation == "minimal" and hasattr(opt_d, "record"):
+            from .minimal import _attach_minimal_generator_hook, _collect_conv_layouts
+            opt_g._minimal_record = opt_d.record
+            opt_d._minimal_record = opt_d.record
+            if base_prior is not None:
+                base_prior._minimal_record = opt_d.record
+            if hasattr(opt_g, "_prior_param_ids"):
+                opt_g._prior_param_ids.update(id(p) for p in base_params)
+            if hasattr(opt_g, "_conv_layouts"):
+                opt_g._conv_layouts.update(_collect_conv_layouts((generator, encoder)))
+            if self.optimizer_family == "formulation" and generator is not None:
+                opt_d.record._enable_secant_probe = True
+                _attach_minimal_generator_hook(generator, opt_d.record)
         return opt_g, opt_d
 
 
@@ -2605,6 +2663,30 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     presets["cond_fiber"] = {
         **presets["unified"],
         "critic_formulation": "cond_fiber",
+    }
+    presets["minimal"] = {
+        **presets["bispf"],
+        "critic_formulation": "minimal",
+        "reg_arm": None,
+        "optimizer_family": "formulation",
+        "loss": "relativistic",
+        "lr": 0.0135,
+        "d_lr_mult": 1.25,
+        "prior_lr_mult": 2.6,
+        "ebi_beta": 8.0,
+        "prior_regularizer": "minimal",
+        "prior_reg": 0.01,
+        "lr_schedule": "cosine",
+        "lr_floor": 1.0,
+        "network_lr_floor": 1.0,
+        "training_precision": "bf16_channels_last",
+        "routing_temperature": 0.25,
+        "ucd_weight": 0.02,
+        "t1_pullback_weight": 1.5,
+        "t1_iso_weight": 0.62,
+        "t1_laguerre_lr": 0.015,
+        "t1_prior_row_lr": 0.06,
+        "t1_max_prototypes": 256,
     }
     presets["atlas"] = {**presets["e22"], "birth_death_backend": "auto",
                          "birth_death_cells": 128, "reopen_guard": "settled"}
