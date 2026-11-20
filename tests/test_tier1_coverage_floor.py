@@ -106,8 +106,8 @@ consumes a training RNG, so the trajectory and calibration are unchanged).
 ``test_actual_training_gif`` renders the observed samples beside the
 target ring, labelled with update count, live coverage and the floor/gate
 status; the last frame IS the gated endpoint sample. The file is written
-to ``$T1_COVERAGE_GIF`` when set, else to pytest's tmp dir; the committed
-copy is docs/media/t1_coverage_floor/training.gif.
+to ``$T1_COVERAGE_GIF`` when set, else to pytest's tmp dir (a generated
+artifact, not committed: every run of this module renders it afresh).
 
 Cost: the module fixture trains nine CPU runs (~2.5-5 min on CI runners),
 so the module carries the repository's ``tier1`` marker for selection
