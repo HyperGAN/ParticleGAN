@@ -1,0 +1,92 @@
+{
+  "question": "BOLT-GP critic (arXiv:2510.25609) transferred to ParticleGAN on 25-Gaussians",
+  "device": "cpu",
+  "torch_threads": 1,
+  "steps": 6000,
+  "batch": 256,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "lambda_gp": 1.0,
+  "bolt_cohort": "assisted-host-swap:bolt-loss+raw-score-gp",
+  "tuning_budget": "BOLT arm: lambda_GP tuned over 6 GPU gauntlet rounds (10, 1, 0.1, 3 at 3000 steps; 1, 2 at 6000 steps) plus a lambda_GP=0 Max-BER check, and the step budget doubled once; controls: 0 tuning rounds",
+  "arms": {
+    "particle": {
+      "cohort": "recipe:ka2",
+      "modes": [
+        25,
+        23,
+        25
+      ],
+      "coverage": [
+        0.0996,
+        0.0894,
+        0.0737
+      ],
+      "finite": [
+        true,
+        true,
+        true
+      ],
+      "precision_diagnostic": [
+        0.9712,
+        0.8759,
+        0.9702
+      ],
+      "mean_modes": 24.333,
+      "mean_coverage": 0.0876
+    },
+    "plain": {
+      "cohort": "recipe:ka2",
+      "modes": [
+        25,
+        25,
+        25
+      ],
+      "coverage": [
+        0.4565,
+        0.4802,
+        0.4453
+      ],
+      "finite": [
+        true,
+        true,
+        true
+      ],
+      "precision_diagnostic": [
+        0.2983,
+        0.3352,
+        0.2995
+      ],
+      "mean_modes": 25.0,
+      "mean_coverage": 0.4607
+    },
+    "bolt": {
+      "cohort": "assisted-host-swap:bolt-loss+raw-score-gp",
+      "modes": [
+        22,
+        24,
+        17
+      ],
+      "coverage": [
+        0.0435,
+        0.0469,
+        0.0479
+      ],
+      "finite": [
+        true,
+        true,
+        true
+      ],
+      "precision_diagnostic": [
+        0.9038,
+        0.9762,
+        0.8599
+      ],
+      "mean_modes": 21.0,
+      "mean_coverage": 0.0461
+    }
+  }
+}
