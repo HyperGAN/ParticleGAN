@@ -19,12 +19,14 @@ def task(format):
 
 def test_precision_is_optional_and_preserves_every_original_required_assignment():
     view = load_view(ROOT, "discriminator_stability")
-    v18 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v19 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v18 = json.loads((ROOT / v19["previous_revision"]["archive"]).read_text())
     v17 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
     v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     v14 = json.loads((ROOT / v15["previous_revision"]["archive"]).read_text())
-    assert [a for a in view["assignments"] if not a["task"].startswith("nash_")] == v18["assignments"]
+    assert [a for a in view["assignments"] if a["task"] != "wide_conditional_spread"] == v19["assignments"]
+    assert [a for a in v19["assignments"] if not a["task"].startswith("nash_")] == v18["assignments"]
     assert [a for a in v18["assignments"] if not a["task"].startswith("t3_iso_")] == v17["assignments"]
     assert [a for a in v17["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
     assert [a for a in v16["assignments"] if a["task"] != "grid100_res16_scaled_tanh"] == v15["assignments"]
@@ -75,6 +77,7 @@ def test_new_stretch_tasks_stay_visible_without_invalidating_archived_coverage()
         "precision_gaussian_nvfp4",
         "t3_iso_horizon_saddle_shift",
         "t3_iso_scale_mass_8x",
+        "wide_conditional_spread",
     ]
 
 

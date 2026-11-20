@@ -10,7 +10,7 @@
       "benchmark/shared": 6,
       "benchmark/smart_descent": 9,
       "benchmark/toy100": 21,
-      "benchmark/toy_audit": 97,
+      "benchmark/toy_audit": 98,
       "benchmark/transfer_suite": 88,
       "config/100gaussians": 4,
       "config/cifar_ddgan": 77,
@@ -40,7 +40,7 @@
       "experiment/toy": 3,
       "experiment/trajectory": 2,
       "experiment/transition": 7,
-      "forge_engine": 128,
+      "forge_engine": 129,
       "lrfree/feature-cells-cb64-ra": 4058,
       "report/atlas-explanation": 7,
       "report/behavioral_baseline": 32,
@@ -105,7 +105,7 @@
       "candidate_patch": 26,
       "configuration": 810,
       "driver": 405,
-      "engine_support": 128,
+      "engine_support": 129,
       "evaluator_or_audit": 324,
       "evidence_artifact": 1551,
       "frozen_candidate_implementation": 15,
@@ -114,18 +114,18 @@
       "frozen_support": 28,
       "narrative": 975,
       "structured_evidence": 5070,
-      "support": 1561,
+      "support": 1562,
       "support_artifact": 52,
       "visualization": 23,
       "visualization_artifact": 765
     },
-    "files": 11855
+    "files": 11857
   },
   "coverage": {
-    "declared_count": 11855,
+    "declared_count": 11857,
     "missing": [],
     "stale": [],
-    "tracked_count": 11855,
+    "tracked_count": 11857,
     "unclassified": [],
     "valid": true
   },
@@ -1160,6 +1160,13 @@
       "suggested_tiers": [
         1
       ]
+    },
+    {
+      "family": "benchmark/toy_audit",
+      "git_blob": "0dfa5d3868799dc963713c9c151e4c241449d54f",
+      "path": "benchmarks/toy_audit/conditional_spread.py",
+      "role": "support",
+      "suggested_tiers": []
     },
     {
       "family": "benchmark/toy_audit",
@@ -7408,14 +7415,14 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "464feb98c141bc33e8a8cbaf0cd181acc2cc1593",
+      "git_blob": "be56c16c83c7c32a05cdd49d9b50ba4a5b4f3c6d",
       "path": "experiments/forge/adapters.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
     {
       "family": "forge_engine",
-      "git_blob": "382f187ce1f89bee29ebab698394f1d501fe8c58",
+      "git_blob": "65f5a6d6230b152eeb72a6bdccad2780b80932c0",
       "path": "experiments/forge/api.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7625,6 +7632,13 @@
     },
     {
       "family": "forge_engine",
+      "git_blob": "ba093ed74fbd43651b5ce1e8cf6a292e84ffd67d",
+      "path": "experiments/forge/conditional_spread.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
       "git_blob": "4cfe348f385b343f1e242bfbf03c9013bb2e3cdb",
       "path": "experiments/forge/confidence_coherence_scores.py",
       "role": "engine_support",
@@ -7716,7 +7730,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a1d03eb507f8a06c270d47f159e3ac1d5fc3a0b0",
+      "git_blob": "20767caf050e301d2d722cad0ab07b3892856daf",
       "path": "experiments/forge/hostprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7758,7 +7772,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "86fb1d56536e523a884cabd0c7d215dbe69a55fd",
+      "git_blob": "1318c28e40b68080cc906dca2f0ab008cf8df467",
       "path": "experiments/forge/leaderboard_contract.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8038,7 +8052,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "9c01465d6d5edef476c51c053b9dbe954f476e95",
+      "git_blob": "57ad623cf9109390788dd4bb39f8872a105be1e2",
       "path": "experiments/forge/sampling.py",
       "role": "engine_support",
       "suggested_tiers": []

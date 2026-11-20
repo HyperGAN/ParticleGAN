@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2252 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **429 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2253 test/protocol rows**, **581 complete recipe/source/runtime identities**; below: **430 rows**, **11 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 429 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 430 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -374,6 +374,7 @@ Indexed: **2252 test/protocol rows**, **581 complete recipe/source/runtime ident
 | vector_unequal_width_policy_cloud_coverage_as_served_v1<br>unmeasured declaration<br>`4481df4717eb` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_as_served_v1/vector_unequal_width_policy_cloud_coverage_as_served_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | vector_unequal_width_policy_cloud_coverage_v1<br>unmeasured declaration<br>`5f39bc2f6691` | [matches](../../configs/forge/task-variants/policy_cloud_coverage_v1/vector_unequal_width_policy_cloud_coverage_v1.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | vector_unequal_width_published<br>unmeasured declaration<br>`936a9d36c124` | [matches](../../configs/forge/tasks/vector_unequal_width_published.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| wide_conditional_spread<br>unmeasured declaration<br>`13b473c26d5a` | [matches](../../configs/forge/tasks/wide_conditional_spread.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | zero_tanh_rail_escape<br>seed 0 · 2000 updates · source 2e8a97a0aa<br>`1e83747ec7ab` | [matches](../../configs/forge/tasks/zero_tanh_rail_escape.json) | 0/11 | NO INDEXED WITNESS | [BLOCKED](technique-evidence/4eaeb2e733970936d752120f26b8987bbb676615ef791ef415d1740480eae5cf.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | zero_tanh_rail_escape<br>seed 0 · 2000 updates · source 184aa7597b<br>`4e4952268d84` | [matches](../../configs/forge/tasks/zero_tanh_rail_escape.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/bddeeeace8fc3513806afd96b11b912a4628103348fd1b6083043c66a839b36f.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | zero_tanh_rail_escape<br>seed 0 · 2000 updates · source ee2635996f<br>`d8cd27e219e1` | [matches](../../configs/forge/tasks/zero_tanh_rail_escape.json) | 0/11 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/a180befb48d553f837102c12139e0987f32d714eec99f61e49ade59c99f8736c.json) |

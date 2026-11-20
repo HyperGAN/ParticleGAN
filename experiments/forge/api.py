@@ -38,7 +38,7 @@ BUILTIN_CAPABILITIES = (
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
     "residual_student", "unipolar", "cover_leftover", "mid_scale_identity",
-    "five_word_joint",
+    "five_word_joint", "wide_conditional_spread",
 })
 COMPONENT_TRANSPORT_COHORTS = frozenset({
     "conditional_transport_round5_v1", "component_output_transport_v1",

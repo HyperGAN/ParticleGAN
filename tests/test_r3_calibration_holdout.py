@@ -69,7 +69,7 @@ def test_default_recipe_and_frozen_criteria_preserved():
     criteria_path = ROOT / "configs/forge/calibration/criteria-v1.json"
     assert file_hash(criteria_path) == CRITERIA_SHA256
     ds = load_view(ROOT, "discriminator_stability")
-    assert ds["revision"] == 19
+    assert ds["revision"] == 20  # rev 20 adds only the wide_conditional_spread stretch task
     assert ds["calibration"]["status"] == "provisional"
     cf = load_view(ROOT, "clockfree_continuous")
     assert cf["revision"] == 5
