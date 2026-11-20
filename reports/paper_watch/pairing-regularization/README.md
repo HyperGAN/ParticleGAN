@@ -6,8 +6,10 @@ Source test: [`tests/test_paperwatch_pairing_regularization.py`](../../../tests/
 
 Cohort: CPU, one intra-op thread, ka2 recipe, 2,400 updates, batch 128,
 seeds 0/1/2, shared deterministic initializer. Metrics are in
-[`metrics.json`](metrics.json); [`training.gif`](training.gif) shows actual
-seed-0 samples from all three arms at 12 evenly spaced updates.
+[`summary.json`](summary.json); [`training.gif`](training.gif) shows actual
+seed-0 samples from all three arms at 12 evenly spaced updates. Its frame
+titles show a 1,024-sample coverage, which is not on the same scale as the
+4,096-sample gate metric.
 
 | Arm | Cohort | Naeem coverage (mean) | Dispersion ratio (mean, ideal 1.0) | Tuning rounds |
 | --- | --- | --- | --- | --- |

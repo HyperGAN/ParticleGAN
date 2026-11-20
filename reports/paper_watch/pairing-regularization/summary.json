@@ -1,0 +1,62 @@
+{
+  "question": "Pairing regularization (arXiv:2604.20130) transferred to ParticleGAN on an 8-Gaussian ring",
+  "device": "cpu",
+  "torch_threads": 1,
+  "steps": 2400,
+  "batch": 128,
+  "seeds": [
+    0,
+    1,
+    2
+  ],
+  "lambda_pair": 0.03,
+  "pairing_cohort": "assisted-host-hook:pairing-manipulator",
+  "tuning_budget": "pairing arm: 6 gauntlet rounds (lambda_pair and budget) before the assertions were written; controls: 0 tuning rounds",
+  "arms": {
+    "particle": {
+      "cohort": "recipe:ka2",
+      "coverage": [
+        0.1807,
+        0.2129,
+        0.2095
+      ],
+      "dispersion": [
+        0.8112,
+        0.7907,
+        0.7238
+      ],
+      "mean_coverage": 0.201,
+      "mean_dispersion": 0.7752
+    },
+    "plain": {
+      "cohort": "recipe:ka2",
+      "coverage": [
+        0.6667,
+        0.6646,
+        0.5815
+      ],
+      "dispersion": [
+        1.0516,
+        1.1537,
+        1.001
+      ],
+      "mean_coverage": 0.6376,
+      "mean_dispersion": 1.0688
+    },
+    "pairing": {
+      "cohort": "assisted-host-hook:pairing-manipulator",
+      "coverage": [
+        0.2317,
+        0.2456,
+        0.2563
+      ],
+      "dispersion": [
+        1.4547,
+        1.4806,
+        1.448
+      ],
+      "mean_coverage": 0.2445,
+      "mean_dispersion": 1.4611
+    }
+  }
+}

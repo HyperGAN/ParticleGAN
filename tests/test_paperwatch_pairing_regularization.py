@@ -54,7 +54,7 @@ ka2 recipe and budget, independent of pairing.
 
 Cohort: CPU, one intra-op thread, seeds 0/1/2 (pinned so the numbers
 reproduce). The training assertions are slow and opt-in; the mechanism
-checks always run. Report (metrics.json + actual-training GIF):
+checks always run. Report (summary.json + actual-training GIF):
 reports/paper_watch/pairing-regularization/.
 
 Run: PARTICLEGAN_RUN_PAPERWATCH=1 python -m pytest tests/test_paperwatch_pairing_regularization.py
@@ -317,7 +317,8 @@ def render_gif(results, path, seed_index=0):
                 ax.set_xticks([])
                 ax.set_yticks([])
                 ax.set_title(f"{arm}  update {fr['step']}\n"
-                             f"coverage {fr['coverage']:.3f} (goal: high)", fontsize=9)
+                             f"{SNAPSHOT_SAMPLES}-sample coverage {fr['coverage']:.3f}",
+                             fontsize=9)
             fig.suptitle(f"Pairing paper watch, seed {SEEDS[seed_index]}, CPU "
                          "(grey target, red samples; pairing = assisted host-hook cohort)",
                          fontsize=8)
@@ -328,7 +329,9 @@ def render_gif(results, path, seed_index=0):
 
 @pytest.fixture(scope="module")
 def results():
-    return run_all()
+    # One single-threaded process per (arm, seed): same numbers as a serial
+    # run, wall time of the slowest arm.
+    return run_all(processes=min(len(ARMS) * len(SEEDS), os.cpu_count() or 1))
 
 
 def _mean(rows, key):
@@ -382,7 +385,7 @@ def test_pairing_loss_falls_below_chance_as_identification_is_learned():
 
 # --------------------------------------------------------------------------
 # The gauntlet result, encoded against the pinned CPU cohort
-# (reports/paper_watch/pairing-regularization/metrics.json). The pairing arm
+# (reports/paper_watch/pairing-regularization/summary.json). The pairing arm
 # is an assisted host-hook cohort tuned over 6 rounds; the controls were not
 # tuned. Measured means (seeds 0/1/2): coverage particle 0.201, plain 0.638,
 # pairing 0.245; dispersion particle 0.775, plain 1.069, pairing 1.461.
@@ -440,7 +443,7 @@ def test_training_gif_shows_actual_observations(results, tmp_path):
 
 
 def main(argv=None):
-    """Regenerate the compact report: metrics.json + training.gif (CPU)."""
+    """Regenerate the compact report: summary.json + training.gif (CPU)."""
     import argparse
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument("--out", type=Path, default=REPORT_DIR)
@@ -448,7 +451,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     res = run_all(processes=args.processes)
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "metrics.json").write_text(json.dumps(summary(res), indent=2) + "\n")
+    (args.out / "summary.json").write_text(json.dumps(summary(res), indent=2) + "\n")
     render_gif(res, args.out / "training.gif")
     print(json.dumps(summary(res)["arms"], indent=1))
 
