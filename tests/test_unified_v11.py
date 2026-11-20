@@ -102,6 +102,50 @@ class _ToyImgDisc(nn.Module):
         return self.head(h).squeeze(-1)
 
 
+class _ToyImgBNDisc(nn.Module):
+    """4D image critic with a frozen eval() BatchNorm backbone + trainable BatchNorm head."""
+
+    def __init__(self) -> None:
+        super().__init__()
+        self.backbone = nn.Sequential(
+            nn.Conv2d(3, 8, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(8),
+            nn.ReLU(),
+        )
+        for p in self.backbone.parameters():
+            p.requires_grad_(False)
+        self.backbone.eval()
+        self.head_conv = nn.Conv2d(8, 8, kernel_size=3, stride=2, padding=1, bias=False)
+        self.head_bn = nn.BatchNorm2d(8)
+        self.head_fc = nn.Linear(8, 1)
+
+    def train(self, mode: bool = True) -> "_ToyImgBNDisc":
+        super().train(mode)
+        self.backbone.eval()
+        return self
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        h = self.backbone(x)
+        h = nn.functional.leaky_relu(self.head_bn(self.head_conv(h)), negative_slope=0.2)
+        return self.head_fc(h.mean(dim=(2, 3))).squeeze(-1)
+
+
+class _ToyImgBNGen(nn.Module):
+    """4D 3x32x32 generator with BatchNorm2d to verify BN-safe Universal Law 4 secant probe."""
+
+    def __init__(self, z_dim: int = 8) -> None:
+        super().__init__()
+        self.fc = nn.Linear(z_dim, 8 * 8 * 8)
+        self.bn = nn.BatchNorm2d(8)
+        self.deconv1 = nn.ConvTranspose2d(8, 8, kernel_size=4, stride=2, padding=1)
+        self.deconv2 = nn.ConvTranspose2d(8, 3, kernel_size=4, stride=2, padding=1)
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        h = nn.functional.silu(self.bn(self.fc(z).reshape(z.shape[0], 8, 8, 8)))
+        h = nn.functional.silu(self.deconv1(h))
+        return torch.tanh(self.deconv2(h))
+
+
 class _ToyCondGen(nn.Module):
     def __init__(self, z_dim: int = 4) -> None:
         super().__init__()
@@ -552,3 +596,113 @@ torch.save({{"g": g_c.state_dict(), "d": d_c.state_dict(), "bank": od.record.con
         ref_bank = opt_d.record.cond_fiber_bank.to_packet()
         assert ref_bank["strata"][0]["n_eff"] == resumed["bank"]["strata"][0]["n_eff"]
         assert torch.equal(ref_bank["strata"][0]["ring_x"], resumed["bank"]["strata"][0]["ring_x"])
+
+
+def test_unified_v11_universal_4d_laws_semantic_controls_and_continuation(tmp_path: Path) -> None:
+    """Semantic controls + fresh-process continuation for Universal Laws 2, 3, and 4 on 4D 3x32x32 images."""
+    torch.manual_seed(0)
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=8,
+        total_steps=20,
+        training_precision="float32",
+    )
+    g = _ToyImgBNGen(z_dim=8)
+    d = _ToyImgBNDisc()
+    p = MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.1, standardize=False)
+    init.deterministic_orthogonal_(g, seed=30)
+    init.deterministic_orthogonal_(d.head_conv, seed=31)
+    init.deterministic_orthogonal_(d.head_fc, seed=32)
+    init.deterministic_orthogonal_(p, seed=33)
+
+    frozen_mean_before = d.backbone[1].running_mean.detach().clone()
+    frozen_var_before = d.backbone[1].running_var.detach().clone()
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called in 4D unified_v11!")
+
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+    batches = [torch.randn(8, 3, 32, 32, generator=torch.Generator().manual_seed(500 + i)) for i in range(6)]
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        out = trainer.step(batches[0], collect_stats=True)
+
+    # Law 2: live endpoints reused, frozen BN strictly unchanged & eval, trainable BN restored after penalty():
+    assert out["penalty_stats"]["applied"] is True
+    assert out["penalty_stats"]["live_endpoints_reused"] is True
+    assert d.backbone[1].training is False
+    assert torch.equal(d.backbone[1].running_mean, frozen_mean_before)
+    assert torch.equal(d.backbone[1].running_var, frozen_var_before)
+    d.train()
+    assert d.head_bn.training is True and d.backbone[1].training is False
+    _ = trainer.penalty(d, batches[0], batches[1])
+    assert d.head_bn.training is True and d.backbone[1].training is False
+    assert torch.equal(d.backbone[1].running_mean, frozen_mean_before)
+    assert torch.equal(d.backbone[1].running_var, frozen_var_before)
+
+    # Law 3: margin & data-scale EMAs are live on 4D images and scalar logit coupling depends on real_logits:
+    rec_d = trainer.opt_d.record
+    assert rec_d.margin_initialized is True
+    assert rec_d.ema_data_scale > 5.0
+    loss_fn = rec.make_loss()
+    r_log = torch.tensor([1.2, 0.8, -0.3, 0.5], requires_grad=True)
+    f_log = torch.tensor([-0.4, 0.2, 0.1, -0.7], requires_grad=True)
+    g1 = loss_fn.g_loss(f_log, r_log)
+    g2 = loss_fn.g_loss(f_log, r_log + 2.0)
+    assert float(g2.item()) > float(g1.item()) + 0.25
+    ls_loss = rec.replace(loss="least_squares").make_loss()
+    assert torch.allclose(ls_loss.g_loss(f_log, r_log), 0.5 * (f_log - 1.0).square().mean())
+
+    # Law 4: generator forward hook captures element-budgeted 4D slice with BN-eval y_pre (zero shift at zero step):
+    z_probe = torch.randn(8, 8)
+    _ = g(z_probe)
+    assert rec_d._g_probe_cache is not None
+    _, p_args, p_kwargs, y_pre = rec_d._g_probe_cache
+    assert tuple(y_pre.shape) == (2, 3, 32, 32)
+    from particlegan._unified_v4.optimizer import _eval_probe_forward
+    y_post_zero_step = _eval_probe_forward(g, p_args, p_kwargs, rec_d)
+    assert y_post_zero_step is not None
+    assert float((y_post_zero_step - y_pre).abs().max().item()) == 0.0
+    rec_d._g_probe_cache = None
+
+    # Exact fresh-process continuation across 4D image + BN + Universal Laws 2/3/4:
+    for i in range(1, 3):
+        trainer.step(batches[i])
+    ckpt_path = tmp_path / "ckpt_v11_img4d.pt"
+    out_path = tmp_path / "resumed_v11_img4d.pt"
+    torch.save({"state": trainer.state_dict(), "batches": batches[3:]}, ckpt_path)
+    for i in range(3, 6):
+        trainer.step(batches[i])
+    sample_ref = trainer.sample(4)
+    d_ref = trainer.D.state_dict()
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ToyImgBNGen, _ToyImgBNDisc
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(rec, _ToyImgBNGen(8), _ToyImgBNDisc(),
+                prior=MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.1, standardize=False), seed=77)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save({{"sample": tr.sample(4), "d": tr.D.state_dict()}}, {str(out_path)!r})
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert torch.equal(sample_ref, resumed["sample"])
+    for k, v in d_ref.items():
+        assert torch.equal(v, resumed["d"][k]), f"4D D mismatch {k}"

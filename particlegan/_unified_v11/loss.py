@@ -615,16 +615,38 @@ class UnifiedV11GANLoss(GANLoss):
             parts_r = None
         return x_f, x_r, cond_f, cond_r, rec, has_cont_cond, parts_f, parts_r, captured
 
+    @staticmethod
+    def _scalar_pair_relativistic(
+        pos_logits: torch.Tensor,
+        neg_logits: torch.Tensor,
+        *,
+        detach_neg: bool = False,
+    ) -> Optional[torch.Tensor]:
+        b_p, b_n = int(pos_logits.shape[0]), int(neg_logits.shape[0])
+        if b_p != b_n or b_p < 1:
+            return None
+        p_flat = pos_logits.reshape(b_p, -1).mean(dim=1) if pos_logits.ndim > 1 else pos_logits.reshape(b_p)
+        n_src = neg_logits.detach() if detach_neg else neg_logits
+        n_flat = n_src.reshape(b_n, -1).mean(dim=1) if n_src.ndim > 1 else n_src.reshape(b_n)
+        return F.softplus(n_flat - p_flat).mean()
+
     def d_loss(self, real_logits: torch.Tensor, fake_logits: torch.Tensor) -> torch.Tensor:
         base = super().d_loss(real_logits, fake_logits)
         x_f, x_r, cond_f, cond_r, rec, has_cont_cond, _, _, captured = self._resolve_pair_parts(
             fake_logits, real_logits
         )
-        if captured and rec is not None and hasattr(rec, "observe_margin_and_scale") and not has_cont_cond:
-            rec.observe_margin_and_scale(real_logits, fake_logits, x_r, x_f)
+        if rec is not None and hasattr(rec, "observe_margin_and_scale") and not has_cont_cond:
+            if captured:
+                rec.observe_margin_and_scale(real_logits, fake_logits, x_r, x_f)
+            else:
+                rec.observe_margin_and_scale(real_logits, fake_logits)
         if self.critic_weight == 0.0 and self.fibre_rel_blend == 0.0:
             return base
         if not captured:
+            if self.loss == "non_saturating" and self.t1c.weight > 0.0 and self.fibre_rel_blend > 0.0:
+                pair_d = self._scalar_pair_relativistic(real_logits, fake_logits)
+                if pair_d is not None:
+                    return (1.0 - self.fibre_rel_blend) * base + self.fibre_rel_blend * pair_d
             return base
         if self.conditional_fibre == "slack" and has_cont_cond:
             if self.fibre_rel_blend > 0.0:
@@ -672,7 +694,12 @@ class UnifiedV11GANLoss(GANLoss):
             fake_logits, real_logits
         )
         if not captured:
-            return self.t1c.weight * super().g_loss(fake_logits, real_logits)
+            base_g = super().g_loss(fake_logits, real_logits)
+            if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
+                pair_g = self._scalar_pair_relativistic(fake_logits, real_logits, detach_neg=True)
+                if pair_g is not None:
+                    return self.t1c.weight * ((1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g)
+            return self.t1c.weight * base_g
 
         b_f = fake_logits.shape[0]
         b_r = real_logits.shape[0]
@@ -733,7 +760,12 @@ class UnifiedV11GANLoss(GANLoss):
                 rec._t1c_disc_gate = 0.0
             if rec is not None and hasattr(rec, "_simplicial_step"):
                 rec._simplicial_step = False
-            return super().g_loss(fake_logits, real_logits)
+            base_g = super().g_loss(fake_logits, real_logits)
+            if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
+                pair_g = self._scalar_pair_relativistic(fake_logits, real_logits, detach_neg=True)
+                if pair_g is not None:
+                    return self.t1c.weight * ((1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g)
+            return base_g
 
         # 3. H_0-connectedness-gated chart coupling + zero-eigh orphan macro-transport:
         allow_ell = torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False)
