@@ -1,8 +1,52 @@
 # Changelog
 
-## Unreleased
+## 0.11.0 — 2026-11-20
 
-- Publish a GitHub source release at the tested commit after PyPI publishes the new version from `master`.
+- **Default Unified 4-Law research selection (`DEFAULT_RECIPE = "unified_v11"`).**
+  Promote `unified_v11` (matching [`unified-v11`](configs/forge/ideas/unified-v11.json),
+  [`particlegan/unified_v11.py`](particlegan/unified_v11.py)) as the public default
+  trainer preset while preserving explicit `get_recipe("minimal")`, `get_recipe("empf")`
+  (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`), `get_recipe("rhbi")`
+  (`rhbi-v1`), `get_recipe("bispf_optimized")`, and `Recipe.from_dict(saved_fields)`
+  historical restoration (`particlegan/recipe_compat.py` untouched). `unified_v11`
+  runs with strictly **`0` `torch.autograd.grad`, `0` `svd`/`svdvals`, `0` `eigh`/`eigvalsh`,
+  and `0` `pinv`** across every forward, backward, penalty, transport, conditional fiber
+  bank, prior, and optimizer path, uniting all four GAN laws with fused `Z=[X,Y]` Quintic
+  Tikhonov polar equilibration, zero-`autograd.grad`/zero-`pinv` analytic `direction_blend`,
+  zero-`eigh` cyclic-Jacobi cross-batch conditional fiber operator matching, and
+  scale-invariant `k=4` density-ratio orphan macro-transport. Across `9` concluded Forge
+  studies on `NVIDIA RTX A6000` (seed `0`, see
+  [`reports/forge/studies/r4-solution-complete.md`](reports/forge/studies/r4-solution-complete.md)
+  and the [technique inventory](reports/forge/technique-inventory.md)), `unified-v11`
+  leads the canonical leaderboard at **`95/115` counted view requirements** (`27/27`
+  Tier 1, `68/78` Tier 2), **`40/69` full-suite passes** (`6` FAIL, `11` not measured,
+  `12` blocked), **`50/68` stretch view assignments**, and **`41/47` Tiers 1–2
+  `discriminator_stability` PASS** (`55/62` deduplicated unique runnable tasks PASS;
+  `90.24 ms/step` median and `1,372.60 MiB` allocated VRAM on matched 66-cell
+  `dcgan_performance_r256`, `89.19 ms/step` in `readout-1e5fb235`), including `11/11`
+  required Tier 1, `3/3` precision (`fp32`/`mxfp8`/`nvfp4`),
+  `model_ddgan_gaussian_chain`, `3/3` extreme Nash imbalance, `2/2` causal isolation, `5/5`
+  shift/rail recovery, `3/3` `7.5k` ring endurance, `6/7` 16-layer strange architectures,
+  `15/17` Tier-3 `14k` holdout (`grid100_14k` and `rotated100_14k`), and `3/4` runnable
+  Tier-4 tasks — ahead of `empf-v8` (`83/115`, `23/69`, `129.72 ms/step`) and `rhbi-v12`
+  (`83/115`, `33/69`, `590.59 ms/step`). Forge screening calibration remains provisional
+  (`BLOCKED` under
+  `criteria-v1.json`; see [`reports/forge/studies/r3-calibration-holdout.md`](reports/forge/studies/r3-calibration-holdout.md)),
+  and remaining failures (`staggered100` / `staggered100_14k`, `grid100_res16_tanh`,
+  `five_word_joint_hold`, `model_ddgan_bimodal_chain`, `model_ae_ddgan_gaussian_chain`,
+  `interp_img_patch_shift`, `interp_saddle_barycentric`, plus `12` unimplemented Tier-4
+  stretch hosts) stay explicitly disclosed.
+- **Minimal-Principle `<900`-LOC fast core (`preset="minimal"`, `particlegan/minimal.py`).**
+  Add the self-contained `899`-LOC, zero-sibling-import core (`minimal-v2`) with zero
+  `autograd.grad`, zero SVD/`eigh`/`pinv`, and zero Newton-Schulz (`55.50 ms/step` and
+  `1344.84 MiB` peak allocated VRAM on `dcgan_performance_r256`, `6/6` PASS; see
+  [`reports/forge/studies/r4-minimal-core.md`](reports/forge/studies/r4-minimal-core.md)).
+- **The Four Laws of Stable, Energy-Efficient GAN Convergence ([`docs/four-laws.md`](docs/four-laws.md)) & Occam's Razor causal ablation (Rounds 1–4).**
+  Document the four laws proved across Rounds 1–4 — Law 1 (Measure & Prior Topology: `t1_prior`, `t1_coupling`), Law 2 (First-Order Zero-`autograd.grad` Critic Geometry: `t2_secant`), Law 3 (Scale–Mass–Fiber Gauge Identifiability: `rgdt`, `cond_fiber`), and Law 4 (Function-Space Two-Player Equilibration & Depth/Rail Trust: `t4_nash`, `t4_nash_v3`, `t4_arch`) — together with unified synthesis (`unified_v4`..`unified_v11`), bounded Tier-3/Tier-4 calibration holdout audits (`r3-calibration-holdout`), and Round-4 Track 2's 8-arm Occam's Razor causal knockout study (`r4-occam-ablation-razor`, showing the four laws collapse into Two Mathematical Halves with depth-gated 2D Newton-Schulz strictly on `L > 5` skip-free MLPs while identifying redundant epicycles).
+- **Automated release pipeline from `master`.**
+  Publish new versions automatically to PyPI via Trusted Publishing on `master` merges and
+  publish a verified GitHub source release at the tested commit after PyPI succeeds
+  (`.github/workflows/release.yml`, `scripts/publish_github_source.py`).
 
 ## 0.10.1 — 2026-11-16
 

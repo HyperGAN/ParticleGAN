@@ -121,7 +121,8 @@ class _ToyCondDisc(nn.Module):
 
 
 def test_unified_v11_preset_and_frozen_baseline_invariants() -> None:
-    assert DEFAULT_RECIPE == "empf"
+    assert DEFAULT_RECIPE == "unified_v11"
+    assert get_recipe() == get_recipe("unified_v11") == get_recipe("gan")
     assert len(fields(Recipe)) == 179
 
     rec = get_recipe("unified_v11")
@@ -412,9 +413,9 @@ def test_unified_v11_fresh_process_continuation_and_import_purity(tmp_path: Path
 
         script = f"""
 import torch, particlegan
-assert particlegan.DEFAULT_RECIPE == "empf"
+assert particlegan.DEFAULT_RECIPE == "unified_v11"
 import particlegan.unified_v11
-assert particlegan.DEFAULT_RECIPE == "empf"
+assert particlegan.DEFAULT_RECIPE == "unified_v11"
 from particlegan import GANTrainer, MoGParticlePrior, Recipe
 from tests.test_unified_v11 import _DeepGen16, _ToyDisc2D
 

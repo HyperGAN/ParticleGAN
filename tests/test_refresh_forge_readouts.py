@@ -740,7 +740,7 @@ def test_live_repository_forge_readouts_are_current_and_source_clean():
     assert report["status"] == "CURRENT", json.dumps(report, indent=2, sort_keys=True)
     assert report["stale_stages"] == []
     measured = _assert_current_source_scope(report, ROOT)
-    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 60
+    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 66
     assert report["stages"]["published_scaling_performance"]["missing_cells"] == 0
     assert report["stages"]["published_scaling_performance"]["unavailable_cells"] == 0
     assert report["stages"]["published_scaling_performance"]["table_cohorts"] == 1
@@ -1515,7 +1515,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     _assert_current_source_scope(status, ROOT)
 
     perf = status["stages"]["published_scaling_performance"]
-    assert perf["complete_cells"] == 60
+    assert perf["complete_cells"] == 66
     assert perf["contended_cells"] == 0
     assert perf["unpaired_tasks"] == []
     assert perf["table_cohorts"] == 1
@@ -1529,7 +1529,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     perf_block = inv_md.split("<!-- Forge scaling performance: start -->", 1)[1].split(
         "<!-- Forge scaling performance: end -->", 1
     )[0]
-    assert perf_block.count("| clear |") == 60
+    assert perf_block.count("| clear |") == 66
     assert "| contended |" not in perf_block
 
     from experiments.forge.family_reports import _selected_cohorts, _selected_row
@@ -1546,6 +1546,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         ("bcap-pure", "BCAP", "recipe-prior-refactor-bcap-pure-v1"),
         ("empf", "EMPF", "empf-v8"),
         ("rhbi", "RHBI", "rhbi-v12"),
+        ("unified", "Unified", "unified-v11"),
         ("e22", "E22", "e22"),
     )
     assert set(selected) == {family for family, _, _ in expected_families}
@@ -1572,6 +1573,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         "| [BCAP](families/bcap-pure.md) | [`recipe-prior-refactor-bcap-pure-v1`]",
         "| [EMPF](families/empf.md) | [`empf-v8`]",
         "| [RHBI](families/rhbi.md) | [`rhbi-v12`]",
+        "| [Unified](families/unified.md) | [`unified-v11`]",
         "| [E22](families/e22.md) | [`e22`]",
     )
 
@@ -1648,7 +1650,7 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         # diagnostic grades to satisfy an all-binary/no-unknown display rule.
         assert required_tasks <= seen, (family_id, sorted(required_tasks - seen))
         for task_id in ("precision_gaussian_mxfp8", "precision_gaussian_nvfp4"):
-            if family_id not in {"empf", "rhbi"}:
+            if family_id not in {"empf", "rhbi", "unified"}:
                 assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
             else:
                 assert original_cohort["tasks"][task_id]["status"] in {"PASS", "FAIL"}

@@ -738,6 +738,7 @@
       "id": "minimal",
       "label": "Minimal",
       "rationale": "Minimal-Principle 4-Law Core (<900 LOC, zero sibling-package imports, zero torch.autograd.grad, zero SVD/eigh/pinv, zero Newton-Schulz): collapses Measure & Potential Geometry (parity-interleaved 1st-order Born-Infeld secant critic, Sinkhorn-debiased relativistic transport, ring-only zero-eigh conditional fiber operator, and rank-agnostic Laguerre-Pythagorean prior) and Function-Space Two-Player Dynamics (elementwise 1e-38 Marchenko-Pastur + peak_rms scaling and realized generator pushforward secant trust) into five compact files for fast low-VRAM scaling.",
+      "reporting_family": "unified",
       "tags": [
         "adversarial-training",
         "capped-input-gradients",

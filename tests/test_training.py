@@ -262,7 +262,8 @@ def test_step_updates_prior_restores_frozen_parameters_and_detaches_results():
     original_flags = [p.requires_grad for p in trainer.D.parameters()]
     observations = []
     handle = trainer.D.register_forward_pre_hook(
-        lambda model, inputs: observations.append((model.training, [p.requires_grad for p in model.parameters()])))
+        lambda model, inputs: observations.append(
+            (model.training, torch.is_grad_enabled(), [p.requires_grad for p in model.parameters()])))
     before = trainer.prior.z.detach().clone()
     calls = []
     result = trainer.step(torch.randn(6, 2), generator_real=lambda: calls.append(1) or torch.zeros(6, 2), collect_stats=True)
@@ -271,8 +272,9 @@ def test_step_updates_prior_restores_frozen_parameters_and_detaches_results():
     assert not torch.equal(before, trainer.prior.z)
     assert len(trainer.opt_g.param_groups) == 2
     assert [p.requires_grad for p in trainer.D.parameters()] == original_flags
-    assert all(not any(flags) for training, flags in observations if not training)
-    assert any(training for training, _ in observations)
+    assert any(not training and grad_on for training, grad_on, _ in observations)
+    assert all(not any(flags) for training, grad_on, flags in observations if not training and grad_on)
+    assert any(training for training, _, _ in observations)
     assert result["step"] == 1 and "penalty_stats" in result
     for key in ("loss_d", "loss_g", "loss_gan", "prior_regularization", "penalty"):
         assert result[key].ndim == 0 and not result[key].requires_grad

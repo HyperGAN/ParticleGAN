@@ -75,9 +75,9 @@ managed through the existing PyPI account associated with 255labs.xyz.
    The following example uses `RELEASE_SHA` set to the verified commit.
 
    ```sh
-   gh release create v0.10.1 --repo HyperGAN/ParticleGAN \
-     --target "$RELEASE_SHA" --title "ParticleGAN 0.10.1" \
-     --notes-file /tmp/particlegan-0.10.1-release-notes.md
+   gh release create v0.11.0 --repo HyperGAN/ParticleGAN \
+     --target "$RELEASE_SHA" --title "ParticleGAN 0.11.0" \
+     --notes-file /tmp/particlegan-0.11.0-release-notes.md
    ```
 
    Publishing the release triggers `release.yml`; a draft or tag push alone
@@ -94,9 +94,9 @@ managed through the existing PyPI account associated with 255labs.xyz.
 
    ```sh
    python -m venv /tmp/particlegan-release-smoke
-   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.10.1
+   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.11.0
    cd /tmp
-   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "empf"; assert Recipe.from_dict(r.to_dict()) == r'
+   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "unified_v11"; assert Recipe.from_dict(r.to_dict()) == r'
    ```
 
    Also run the prepared HyperGAN training/resume smoke using the released
