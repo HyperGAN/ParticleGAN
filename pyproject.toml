@@ -47,4 +47,5 @@ pythonpath = [".", "tests"]
 #   CUDA_VISIBLE_DEVICES=<gpu> python -m pytest -m cuda
 # (a later -m on the command line replaces this default selection).
 addopts = "-ra -m 'not cuda'"
-markers = ["cuda: requires an explicitly admitted CUDA device; deselected by default, opt in with -m cuda"]
+markers = ["cuda: requires an explicitly admitted CUDA device; deselected by default, opt in with -m cuda",
+           "slow: full-budget study rerun that reproduces a committed receipt; skipped unless PARTICLEGAN_RUN_SLOW=1"]
