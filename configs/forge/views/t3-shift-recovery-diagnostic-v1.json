@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "id": "t3-shift-recovery-diagnostic-v1",
+  "revision": 1,
+  "goal": "adaptation",
+  "evidence_scope": "research_diagnostic",
+  "policy_change_reason": "Direct diagnostic measurement of Tier 3 target_shift_recovery (with its mode_hold prerequisite) and zero_tanh_rail_escape eligibility (with its zero_tanh_smoke prerequisite) on unchanged global recipes without Tier 2 100-mode grid advancement gating. Retains every task protocol, seed, and gate; grants no ordinary qualification credit.",
+  "assignments": [
+    {
+      "task": "ae_gan_hold",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 0
+    },
+    {
+      "task": "mode_hold",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 1
+    },
+    {
+      "task": "target_shift_recovery",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 2
+    },
+    {
+      "task": "zero_tanh_smoke",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 3
+    },
+    {
+      "task": "zero_tanh_rail_escape",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 4
+    }
+  ],
+  "eligibility": {},
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  }
+}

@@ -34,6 +34,10 @@ TUNABLE_FIELDS = frozenset({
     "rhbi_thermal_shock_mu", "rhbi_settle_beta", "rhbi_fibre_rel_blend",
     "rhbi_step_damp", "rhbi_cond_ot_weight", "rhbi_simplex_weight",
     "rhbi_cvx_mu_gain", "rhbi_simplex_chart_weight", "rhbi_tail_spill_gain",
+    "rhbi_cond_step_damp",
+    "t1_pullback_weight", "t1_iso_weight", "t1_laguerre_lr", "t1_prior_row_lr",
+    "t1c_weight", "t1c_chart_weight", "t1c_halo_mult", "t1c_grad_deconflict",
+    "rgdt_macro_slack_weight", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight",
     "lr_anneal_start", "lr_floor", "network_lr_floor", "beta2_end", "beta2_anneal_end",
 })
 TASK_RECIPE_FIELDS = RESOURCE_FIELDS | {"prior_kind", "sigma_rel", "standardize"}
@@ -52,19 +56,21 @@ TECHNIQUE_RECIPE_FIELDS = frozenset({
     "birth_death_feature_scale", "birth_death_backend", "birth_death_parent_policy",
     "constraint_geometry_mode", "row_policy", "optimizer_family", "optimizer_convolution", "loss_labels", "adam_variant", "lr_schedule", "lr_decay_staircase",
     "critic_step_mode", "bispf_shape_gates", "bispf_gate_overrides", "prior_code_law", "generator_gradient_response",
-    "rhbi_self_coupling", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre", "rhbi_akt_horizon", "rhbi_akt_mode", "rhbi_settle_mode", "rhbi_cond_ot_mode", "rhbi_simplex_macro_settle",
+    "rhbi_self_coupling", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre", "rhbi_akt_horizon", "rhbi_akt_mode", "rhbi_settle_mode", "rhbi_cond_ot_mode", "rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle", "rhbi_ae_coord_whiten", "rhbi_support_completion",
+    "t1c_multiscale_horizon", "t1c_cond_drift_deconflict",
+    "rgdt_conformal_horizon",
 })
 HYPERPARAMETER_RECIPE_FIELDS = TUNABLE_FIELDS | {
     "conditional_energy_weight", "conditional_energy_samples",
     "prior_sigreg_projections", "prior_sigreg_knots",
-    "kinetic_transport_projections", "rhbi_iters",
+    "kinetic_transport_projections", "rhbi_iters", "t1c_chart_capacity",
     "ucd_weight", "alpha_bar", "ema_decay", "network_lr_horizon_cap",
     "reg_anchor_min_decay", "reg_anchor_weight", "d_guard_ratio", "d_guard_min_steps",
     "latent_damping_max_rate", "direct_particle_betas", "input_noise_std",
     "input_noise_anneal_end", "output_noise_std", "output_noise_warmup",
     "routing_temperature", "observation_sigma", "reconstruction_weight", "serve_average",
     "birth_death_cells", "birth_death_metric_rank", "birth_death_chunk",
-    "kappa_radial",
+    "kappa_radial", "t1_max_prototypes",
 }
 RECIPE_FIELD_OWNERS = {
     **dict.fromkeys(TASK_RECIPE_FIELDS, "task"),

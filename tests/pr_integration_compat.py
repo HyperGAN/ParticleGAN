@@ -104,3 +104,20 @@ def source_before_pr_integration(root, relative, member):
         task = before_pr_integration(root, task, relative)
         return task["evaluation"]["sources"][member]
     return sha256((root / member).read_bytes()).hexdigest()
+
+
+def integration_layer_ids(root, current, relative):
+    """Return the declared integration layers, newest first, without changing them.
+
+    Later source-only layers (for example ``pr-522-...-20261114``) stack over
+    earlier ones via ``previous_task_commit``; ``before_pr_integration``
+    verifies each layer's bytes and receipt. This only names the chain.
+    """
+    ids = []
+    while True:
+        _field, binding = _binding(current)
+        if binding is None:
+            return ids
+        ids.append(binding["id"])
+        current = json.loads(subprocess.check_output(
+            ["git", "show", binding["previous_task_commit"] + ":" + relative], cwd=Path(root)))

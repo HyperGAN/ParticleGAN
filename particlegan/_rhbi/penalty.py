@@ -292,6 +292,7 @@ class RHBICriticPenalty(_K3PCriticPenalty):
     """Recipe-facing RHBI critic penalty paired with ``recipe.make_critic_optimizer``."""
 
     def __init__(self, recipe, optimizer, *, output=None, collect_stats=False, **penalty_overrides) -> None:
+        from ..discriminators import BatchDistanceDiscriminator
         from ..optim.dualnorm import NormalizedOptimizer
         from ..tensorflow_adam import TensorFlowV1Adam
 
@@ -317,6 +318,9 @@ class RHBICriticPenalty(_K3PCriticPenalty):
         self._has_batchnorm = any(
             isinstance(m, torch.nn.modules.batchnorm._BatchNorm) for m in self.critic.modules()
         )
+        self._has_batch_distance = any(
+            isinstance(m, BatchDistanceDiscriminator) for m in self.critic.modules()
+        )
 
     def __call__(self, critic, x_real, x_fake, *condition, **condition_kwargs):
         from ..recipe_schedules import apply_penalty_schedule
@@ -337,6 +341,10 @@ class RHBICriticPenalty(_K3PCriticPenalty):
             not is_conditioned
             and not self._has_batchnorm
             and getattr(critic, "std", 0.0) == 0.0
+            and (
+                (not self._has_batch_distance and x_real.ndim <= 2)
+                or x_real.shape[0] <= 512
+            )
         )
 
         def live(x):

@@ -455,6 +455,61 @@ def test_policy_requires_ordered_hooks_and_completed_boundary_checkpoints():
         policy.finish_step()
 
 
+def test_caller_owned_abort_requires_validated_checkpoint_recovery():
+    from examples.e22_external_loop import update
+
+    native, external = paired_loops()
+    policy = external.policy
+    saved = policy.state_dict()
+
+    def fail():
+        raise RuntimeError("caller failure")
+
+    with torch.autograd.set_multithreading_enabled(False), pytest.raises(RuntimeError, match="caller failure"):
+        update(external, real_batch(0), generator_real=fail)
+    policy.abort_step()
+    assert policy.interrupted and policy.completed_steps == 0
+    with pytest.raises(RuntimeError, match="interrupted"):
+        policy.begin_step(real_batch(0))
+    with pytest.raises(RuntimeError, match="boundary"):
+        policy.state_dict()
+    bad = deepcopy(saved)
+    bad["completed_steps"] = -1
+    with pytest.raises(ValueError, match="step count"):
+        policy.load_state_dict(bad)
+    assert policy.interrupted
+    policy.load_state_dict(saved)
+    assert not policy.interrupted
+    assert_tree_equal(saved, policy.state_dict())
+    expected = native.step(real_batch(0), generator_real=real_batch(1))
+    policy.load_state_dict(saved)  # Restore global module RNG too.
+    with torch.autograd.set_multithreading_enabled(False):
+        actual = update(external, real_batch(0), generator_real=real_batch(1))
+    assert_tree_equal(expected, actual)
+    assert_tree_equal(native.policy.state_dict(), policy.state_dict())
+
+
+def test_failure_during_begin_cannot_look_like_an_idle_boundary(monkeypatch):
+    _, external = paired_loops()
+    policy = external.policy
+    saved = policy.state_dict()
+
+    def fail(*args):
+        raise RuntimeError("observation failure")
+
+    with monkeypatch.context() as patch:
+        patch.setattr(type(policy.controller), "observe_game", fail)
+        with pytest.raises(RuntimeError, match="observation failure"):
+            policy.begin_step(real_batch(0))
+    with pytest.raises(RuntimeError, match="boundary"):
+        policy.state_dict()
+    policy.abort_step()
+    assert policy.interrupted
+    policy.load_state_dict(saved)
+    assert not policy.interrupted
+    assert_tree_equal(saved, policy.state_dict())
+
+
 @pytest.mark.parametrize("semantics", ["conditional", "dense_soft"])
 def test_full_e22_rejects_conditioned_or_blended_row_laws_before_adding_noise(semantics):
     from particlegan import E22Policy

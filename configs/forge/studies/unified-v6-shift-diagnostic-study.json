@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "unified-v6-shift-diagnostic-study"
+  },
+  "candidate": "unified-v6",
+  "competing_explanation": "If UnifiedV4EquilibratedOptimizer or UnifiedV4PriorRegularizer alters shock reopening or hold equilibria, unified-v6 will fail ae_gan_hold, mode_hold, zero_tanh_smoke, or target_shift_recovery.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global zero-SVD zero-autograd.grad unified-v6 passes all 4 tasks in t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, and target_shift_recovery) under protocol seed 0.",
+  "id": "unified-v6-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v5",
+        "candidate_revision": "0c60b814da7eadddadf0554471035b0a6104f658a1e74bc3137d8cee8adc5775"
+      },
+      "path": "reports/forge/records/readout-3f2f0f02b8d2dfbff2b3bd0e.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

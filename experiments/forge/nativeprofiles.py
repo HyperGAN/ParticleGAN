@@ -21,6 +21,30 @@ RELEASE_PROFILE_SOURCE = "configs/toy100/release07_public_default_host.json"
 RELEASE_PROFILE_SHA256 = "aa6c8d2ab22682dfeae90e829d58c0aab8a0626aa39722cbde12156e7569894e"
 COMPONENTS = {"generator", "discriminator", "prior"}
 PLAIN_NATIVE_MODEL = {"hidden": 128, "layers": 3, "fourier": 2}
+DECLARED_DEEP_MLP16_MODEL = {"hidden": 128, "layers": 16, "fourier": 2}
+DECLARED_RES16_TANH_MODEL = {
+    "hidden": 128,
+    "layers": 16,
+    "architecture": "residual_mlp",
+    "output_activation": "tanh",
+    "tanh_scale": 5.25,
+    "fourier": 2,
+}
+DECLARED_SCALED_RES16_TANH_MODEL = {
+    "hidden": 128,
+    "layers": 16,
+    "architecture": "scaled_residual_mlp",
+    "output_activation": "tanh_rail_guard",
+    "tanh_scale": 5.25,
+    "rail_guard": 1e-4,
+    "fourier": 3,
+}
+DECLARED_NATIVE_MODELS = (
+    PLAIN_NATIVE_MODEL,
+    DECLARED_DEEP_MLP16_MODEL,
+    DECLARED_RES16_TANH_MODEL,
+    DECLARED_SCALED_RES16_TANH_MODEL,
+)
 
 
 def profile_declaration(profile_id=PROFILE_ID):
@@ -155,7 +179,8 @@ def resolve_native_spec(task, *, root=None):
             # Tasks predating explicit ownership keep the old source fallback.
             # Current declarations freeze the existing MLP and resource values.
             if "initializer" in execution or {"model", "resources"} & set(execution):
-                if canonical(execution.get("model")) != canonical(PLAIN_NATIVE_MODEL):
+                model_card = execution.get("model")
+                if not any(canonical(model_card) == canonical(allowed) for allowed in DECLARED_NATIVE_MODELS):
                     raise ValueError("native model variants require an explicit profile")
                 resources = execution.get("resources")
                 if (not isinstance(resources, dict) or set(resources) != {"num_particles", "z_dim", "batch_size"}
@@ -281,3 +306,63 @@ def build_native_models(context, spec):
     from benchmarks.toy100.native_models import native_component
     return tuple(context.construct(lambda role=role: native_component(spec[role], role=role), component=role).to(context.device)
                  for role in ("generator", "discriminator"))
+
+
+def build_declared_native_models(context, model_spec):
+    """Construct the declared native100 generator and 3-layer critic for published cards."""
+    from lib.toy_models import SimpleMLPDiscriminator, SimpleMLPGenerator
+    if canonical(model_spec) == canonical(PLAIN_NATIVE_MODEL):
+        g = context.construct(
+            lambda: SimpleMLPGenerator(context.recipe.z_dim, model_spec["hidden"], model_spec["layers"], 2),
+            component="generator",
+        )
+        d = context.construct(
+            lambda: SimpleMLPDiscriminator(2, model_spec["hidden"], model_spec["layers"], model_spec["fourier"]),
+            component="discriminator",
+        )
+        return g.to(context.device), d.to(context.device)
+    if canonical(model_spec) == canonical(DECLARED_DEEP_MLP16_MODEL):
+        g = context.construct(
+            lambda: SimpleMLPGenerator(context.recipe.z_dim, model_spec["hidden"], model_spec["layers"], 2),
+            component="generator",
+        )
+        d = context.construct(
+            lambda: SimpleMLPDiscriminator(2, model_spec["hidden"], 3, model_spec["fourier"]),
+            component="discriminator",
+        )
+        return g.to(context.device), d.to(context.device)
+    if canonical(model_spec) == canonical(DECLARED_RES16_TANH_MODEL):
+        from benchmarks.toy_audit.api_vectors import ResidualMLPGenerator
+        n_blocks = (int(model_spec["layers"]) - 2) // 2
+        scale = float(model_spec["tanh_scale"])
+        g = context.construct(
+            lambda: ResidualMLPGenerator(context.recipe.z_dim, model_spec["hidden"], n_blocks, 2, scale=scale),
+            component="generator",
+        )
+        d = context.construct(
+            lambda: SimpleMLPDiscriminator(2, model_spec["hidden"], 3, model_spec["fourier"]),
+            component="discriminator",
+        )
+        return g.to(context.device), d.to(context.device)
+    if canonical(model_spec) == canonical(DECLARED_SCALED_RES16_TANH_MODEL):
+        from benchmarks.toy_audit.api_vectors import ScaledResidualMLPGenerator
+        n_blocks = (int(model_spec["layers"]) - 2) // 2
+        scale = float(model_spec["tanh_scale"])
+        g = context.construct(
+            lambda: ScaledResidualMLPGenerator(
+                context.recipe.z_dim,
+                model_spec["hidden"],
+                n_blocks,
+                2,
+                scale=scale,
+                use_norm=True,
+                preserve_latent_norm=True,
+            ),
+            component="generator",
+        )
+        d = context.construct(
+            lambda: SimpleMLPDiscriminator(2, model_spec["hidden"], 3, model_spec["fourier"]),
+            component="discriminator",
+        )
+        return g.to(context.device), d.to(context.device)
+    raise ValueError("native model variants require an explicit profile")

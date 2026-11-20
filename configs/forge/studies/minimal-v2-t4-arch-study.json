@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "minimal-v2-t4-arch-study"
+  },
+  "candidate": "minimal-v2",
+  "competing_explanation": "Without Newton-Schulz polar orthogonalization, pure-elementwise Marchenko-Pastur + depth-trust + fwAD saturation pullback may pass residual/rail-escape/100-mode tasks while exposing the exact skip-free 16-layer MLP ceiling (grid100_mlp16) identified by r4-ablation-razor.",
+  "control": {
+    "candidate_id": "t2-secant-v5",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "grid100_res16_scaled_tanh",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global 899-LOC zero-SVD zero-NS zero-autograd.grad minimal-v2 passes clockfree_audit_measurement_v1, zero_tanh_smoke, grid100, and deep residual tanh architectures (grid100_res16_scaled_tanh center_rms_sigma <= 0.20) on t4-strange-architectures-v1 while transparently measuring the zero-NS boundary on skip-free 16-layer MLPs under protocol seed 0.",
+  "id": "minimal-v2-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "grid100_res16_scaled_tanh",
+    "threshold": 0.2
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "minimal-v1",
+        "candidate_revision": "cf7b7e985500a55a06cbe0baafcafd3815690b5f7fff246fb57c0cfda2f51c16"
+      },
+      "path": "reports/forge/records/readout-2386a25b92b16ff30b059055.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

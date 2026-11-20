@@ -54,8 +54,8 @@ def test_misgan_v2_keeps_coupled_evidence_separate_and_unmeasured():
     original_task = json.loads(originals["task"])
     task = json.loads((ROOT / archived["task_path"]).read_text())
     binding = task["evaluation"]["integration_source_binding"]
-    if binding["id"] != COMBINED_INTEGRATION:
-        # A later completed-boundary guard retains the exact combined parent.
+    while binding["id"] != COMBINED_INTEGRATION:
+        # Later completed-boundary guards (pr-520 stacked over pr-522) retain exact parents.
         assert binding["id"] in {"pr-520-audit-develop-integration-20261114",
                                   "pr-522-audit-develop-integration-20261114"}
         assert binding["qualification_input"] is False

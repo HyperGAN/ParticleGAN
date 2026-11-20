@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "2e64ca64bc9e46668cd4e886b7e9bb87",
+    "8ecc06cbd6ad4c28992858829a8c7e91"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "50db84ca0198d566cf42d136166eb598a309289b6bceee522f18eea831b7e489",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Compared with rgdt-v3 (2/2 PASS: core_min_eigen_ratio=0.5874, shift modes=4/4, mass_tv=0.1094), scalar-horizon unbalanced OT rhbi-v12 fails both tasks despite G=nn.Identity() and smooth critic_grad_med < 1e-6.",
+  "conclusion": "rhbi-v12 scores 0/2 PASS on t3_causal_isolation_stretch (t3_iso_scale_mass_8x FAIL: core_min_eigen_ratio=0.1197 < 0.45 due to scalar horizon ell_t screening broad-mode intra-mode pairs into slack; t3_iso_horizon_saddle_shift FAIL: modes=3/4, mass_tv=0.2500 > 0.12 due to rho=3.0 horizon starvation across the 42.4-sigma valley).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "2e64ca64bc9e46668cd4e886b7e9bb87",
+        "8ecc06cbd6ad4c28992858829a8c7e91"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "b176d0a1d8d964591202d6c1a9cec1f0f478fa18354e1499227ed27069fc5cff",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 0.11965452893606138
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 0.11965452893606138
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "2e64ca64bc9e46668cd4e886b7e9bb87",
+          "producer_request_id": "440a1fa04f95c2ab4139b772",
+          "producer_study_id": "t3-iso-stretch-rhbi",
+          "result_hash": "46292d9a7a712edd7d2d061bf3ab13e1f5f31715c5bf2b17187531cc92aad8a8",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "8ecc06cbd6ad4c28992858829a8c7e91",
+          "producer_request_id": "440a1fa04f95c2ab4139b772",
+          "producer_study_id": "t3-iso-stretch-rhbi",
+          "result_hash": "c66c6eb1d3802feb81f423490a773c8893278ca1dcbdb618a7800292821f8296",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "6f0d38df6cc335fe3ad808bdc06436800c801a7c74b0f4b30748935ac359b56c",
+        "contract_sha256": "b176d0a1d8d964591202d6c1a9cec1f0f478fa18354e1499227ed27069fc5cff",
+        "control_binding_sha256": "bb71dbba2e8b32e4aa4c366d3717ab8d3fcf179c0eebc8f7bb09cdfb605af43c",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "b354308a9c55a8615d1c01c5530f8946433285c98f5a9db13f668d1e1f3109f0"
+      },
+      "study_id": "t3-iso-stretch-rhbi",
+      "study_sha256": "b354308a9c55a8615d1c01c5530f8946433285c98f5a9db13f668d1e1f3109f0"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Test whether rhbi-v12 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as scalar-horizon OT isolation control proving Theory 3 orthogonality in reports/forge/studies/t3-third-piece-proof.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "2e64ca64bc9e46668cd4e886b7e9bb87",
+        "result_hash": "46292d9a7a712edd7d2d061bf3ab13e1f5f31715c5bf2b17187531cc92aad8a8",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "8ecc06cbd6ad4c28992858829a8c7e91",
+        "result_hash": "c66c6eb1d3802feb81f423490a773c8893278ca1dcbdb618a7800292821f8296",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-8a63e947313fcb7d2e62a8d2",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/2e64ca64bc9e46668cd4e886b7e9bb87/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "t3-iso-stretch-rhbi"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "If Theory 3 reduces to continuous generator topology (Theory 1) or unbounded critic sharpness (Theory 2), then scalar-horizon and 1-Lipschitz baselines will pass both generator-free smooth-critic benchmarks without conformal horizon normalization or Monge macro-transport.",
+    "control": {
+      "candidate_id": "empf-v8",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Test whether rhbi-v12 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+    "id": "t3-iso-stretch-rhbi",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "rgdt-v2",
+          "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+        },
+        "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "t3-iso-stretch-rhbi",
+  "study_sha256": "b354308a9c55a8615d1c01c5530f8946433285c98f5a9db13f668d1e1f3109f0",
+  "task_results": [
+    {
+      "compatibility_key": "021c405976612f38592180b2d6fe896375bb90db0845c089880af87c3e070a63",
+      "cost": {
+        "adapter_loop_seconds": 28.378087364835665,
+        "adapter_seconds": 28.65475479606539,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "1",
+        "eval_seconds": 0.06710694287903607,
+        "execution_seconds": 35.510807449929416,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 30.131241394905373,
+        "train_seconds": 24.139464859617874,
+        "wall_seconds": 35.510807449929416
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.38637213491337874,
+        "core_min_eigen_ratio": 0.11965452893606138,
+        "critic_grad_med": 4.893886966783612e-07,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 1.5339108186288162,
+        "hq": 0.974609375,
+        "mass_tv": 0.03664062172174454,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_scale_mass_8x thresholds: core_min_eigen_ratio >= 0.45",
+      "task_id": "t3_iso_scale_mass_8x"
+    },
+    {
+      "compatibility_key": "a392831b71918d4dfb12e639c7385de2dd87d22359c77cce35084a9dab7ab762",
+      "cost": {
+        "adapter_loop_seconds": 40.01200774521567,
+        "adapter_seconds": 40.32407624903135,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "0",
+        "eval_seconds": 0.09126057429239154,
+        "execution_seconds": 47.42450081300922,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 41.81005282490514,
+        "train_seconds": 35.64886430953629,
+        "wall_seconds": 47.42450081300922
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "core_component_covariance_error": 0.5532542195132606,
+        "critic_grad_med": 3.55589122591482e-07,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 0.921875,
+        "mass_tv": 0.25,
+        "modes": 3,
+        "pre_shift_hq": 0.96875,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "failed t3_iso_horizon_saddle_shift thresholds: modes == 4, mass_tv <= 0.12",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    }
+  ]
+}

@@ -136,7 +136,7 @@
       "experiments/forge/word_tasks.py": "79dd0d4c04989e07e168347255c0db3adc62cc5d0b657c27b9b71b0055761814",
       "particlegan/conditional_transport.py": "4ffa96e7688825b83e618edbc1f0e2a6bc1ac6fb2e3e5d04d7f27274069e24ee",
       "particlegan/kinetic_transport.py": "8922627370b55e9e6b47e4c946f94cbd23f87bf17a94c6b9410fcf3c3967c1ee",
-      "particlegan/policy.py": "cf26b093eaa5ed871b9afb1569a8105b4d339ceefa0f396573214fa2313fd571"
+      "particlegan/policy.py": "10aca7e5f5a5bf9a88ff677b7283bd7ce83e7ebd0df215bea3ae7b2f8b295f81"
     },
     "evaluator_revision": {
       "id": "pr-474-develop-integration-20261108",
@@ -280,13 +280,13 @@
     },
     "integration_source_binding": {
       "id": "pr-520-audit-develop-integration-20261114",
-      "previous_task_commit": "45e481d35f0c56ca4aae992713d55b4a1295e44d",
+      "previous_task_commit": "890d73f9787a8c54d1639965014f71ab9dac99bd",
       "previous_task_path": "configs/forge/tasks/five_word_joint_hold.json",
-      "previous_task_sha256": "4dce47dc8f0e4e76c47bdb3eedef5e334ddf5812a48d02fdee77636a721a5b52",
-      "previous_task_blob": "3308599f3d0d06c5763ed01f31eb2b5e956d19b6",
+      "previous_task_sha256": "d5c0ab001ae2b406cf88c4e8dd21f6d3a53bb9de0e70c13068561fe83a40e6c9",
+      "previous_task_blob": "d485b484eabd722c29a0f4bdfd38d467e09a610d",
       "integration_receipt": "reports/forge/software-audits/pr520-update-boundary-source-binding.json",
       "qualification_input": false,
-      "change": "Completed-update serving boundary; source-only future execution binding. Preserve all original questions, gates, source receipts and verdicts."
+      "change": "Completed-update serving boundary; source-only future execution binding stacked over the pr-522 layer. Preserve all original questions, gates, source receipts and verdicts."
     }
   },
   "resources": {

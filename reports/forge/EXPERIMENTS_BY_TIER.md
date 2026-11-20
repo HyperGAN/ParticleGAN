@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **198 tasks**; **160 assigned** to at least one view; **38 unassigned**. Showing **32/32 views**.
+Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **40/40 views**.
 
-Declared priors across the catalog: **88 MoGParticlePrior**, **110 ParticlePrior** (including **10 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -47,7 +47,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [dcgan_performance_cpu_smoke](../../configs/forge/views/dcgan_performance_cpu_smoke.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
-| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 17 | 11 required, 3 stretch, 2 diagnostic | 18 required, 2 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
+| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 19 | 11 required, 4 stretch, 2 diagnostic | 18 required, 6 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -59,11 +59,19 @@ This report follows changing declarations and published evidence; it selects no 
 | [prior-ablation-full-suite-v1](../../configs/forge/views/prior-ablation-full-suite-v1.json) | 1 | 48 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [quality_coverage](../../configs/forge/views/quality_coverage.json) | 4 | 3 required | 12 required, 7 held | 0 tasks | 0 tasks | provisional |
 | [r1r2-repair-word-retention-20261022](../../configs/forge/views/r1r2-repair-word-retention-20261022.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [r3-tier3-long-horizon-holdout-v1](../../configs/forge/views/r3-tier3-long-horizon-holdout-v1.json) | 1 | 18 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [r3-tier4-frontier-holdout-v1](../../configs/forge/views/r3-tier4-frontier-holdout-v1.json) | 1 | 16 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [r4-occam-ablation-v1](../../configs/forge/views/r4-occam-ablation-v1.json) | 1 | 16 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-k3p-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-k3p-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-ka2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-ka2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-r1r2-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-r1r2-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [recipe-prior-refactor-release07-gan-v3-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-release07-gan-v3-diagnostic-v1.json) | 1 | 23 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [selected-family-coverage-diagnostic-v1](../../configs/forge/views/selected-family-coverage-diagnostic-v1.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [t3-shift-recovery-diagnostic-v1](../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json) | 1 | 5 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json) | 1 | 8 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
+| [t4-strange-architectures-v1](../../configs/forge/views/t4-strange-architectures-v1.json) | 1 | 7 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json) | 1 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json) | 1 | 7 required | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [vaegan_coverage](../../configs/forge/views/vaegan_coverage.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 
@@ -650,7 +658,7 @@ No tasks assigned.
 
 ## discriminator_stability
 
-Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 17; goal: `discriminator_stability`.
+Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 19; goal: `discriminator_stability`.
 
 Declared calibration status: **provisional**.
 
@@ -662,7 +670,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 1: smoke
 
-11 required, 3 stretch, 2 diagnostic.
+11 required, 4 stretch, 2 diagnostic.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -682,10 +690,11 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [precision_gaussian_mxfp8](../../configs/forge/tasks/precision_gaussian_mxfp8.json) | [stretch: frontier stretch benchmark beyond the required suite](precision-stretch/README.md#precision-stretch) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-precision-gaussian) | transfer_vector / transfer_sustained | 1000 | 300 | — |
 | [precision_gaussian_nvfp4](../../configs/forge/tasks/precision_gaussian_nvfp4.json) | [stretch: frontier stretch benchmark beyond the required suite](precision-stretch/README.md#precision-stretch) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-precision-gaussian) | transfer_vector / transfer_sustained | 1000 | 300 | — |
 | [interp_sparse_arc](../../configs/forge/tasks/interp_sparse_arc.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_sparse_arc) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-sparse-arc) | particle_interpolation / interp_sparse_arc | 600 | 300 | — |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
 
 ### Tier 2: quality
 
-18 required, 2 stretch, 7 held.
+18 required, 6 stretch, 7 held.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -716,6 +725,10 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [model_ddgan_bimodal_chain](../../configs/forge/tasks/model_ddgan_bimodal_chain.json) | required | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-bimodal-chain) | public_api_model_toy / transfer_sustained | 5000 | 600 | [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) (gate) |
 | [interp_img_patch_shift](../../configs/forge/tasks/interp_img_patch_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_img_patch_shift) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-img-patch-shift) | particle_interpolation / interp_img_patch_shift | 800 | 300 | — |
 | [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | [stretch: frontier stretch benchmark beyond the required suite](particle-interpolation-stretch/README.md#interp_saddle_barycentric) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
 
 ### Tier 3: endurance
 
@@ -1401,6 +1414,163 @@ No tasks assigned.
 
 No tasks assigned.
 
+## r3-tier3-long-horizon-holdout-v1
+
+Declaration: [r3-tier3-long-horizon-holdout-v1](../../configs/forge/views/r3-tier3-long-horizon-holdout-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+18 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [two_pole](../../configs/forge/tasks/two_pole.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; fixed: {"critic": "stored_host_weights", "particles": "zeros"}; screening | [Question, results, GIFs](#experiment-two-pole) | transfer_behavior / transfer_sustained | 80 | 300 | — |
+| [unused_token_hold](../../configs/forge/tasks/unused_token_hold.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-unused-token-hold) | transfer_behavior / transfer_sustained | 200 | 300 | — |
+| [ae_gan_hold](../../configs/forge/tasks/ae_gan_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ae-gan-hold) | transfer_behavior / transfer_sustained | 250 | 300 | — |
+| [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-clockfree-audit) | clockfree_audit / clockfree_parity | 24 | 300 | — |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_smoke | 20001 | 900 | — |
+| [five_word_joint_hold](../../configs/forge/tasks/five_word_joint_hold.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_hold | 4000 | 300 | [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) (checkpoint) |
+| [mode_hold](../../configs/forge/tasks/mode_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | transfer_behavior / transfer_sustained | 1200 | 1800 | — |
+| [ring_hold](../../configs/forge/tasks/ring_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_hold | up to 7500 total | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate); group: ring_endurance (uninterrupted) |
+| [ring_extension](../../configs/forge/tasks/ring_extension.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_extension | up to 7500 total; 300 extension | 3600 | [ring_hold](../../configs/forge/tasks/ring_hold.json) (checkpoint); group: ring_endurance (uninterrupted) |
+| [target_shift_recovery](../../configs/forge/tasks/target_shift_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | paired_adaptation / paired_adaptation | 3600 | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate) |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [rotated100](../../configs/forge/tasks/rotated100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-rotated100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [staggered100](../../configs/forge/tasks/staggered100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_14k](../../configs/forge/tasks/grid100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [grid100](../../configs/forge/tasks/grid100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+| [rotated100_14k](../../configs/forge/tasks/rotated100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-rotated100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [rotated100](../../configs/forge/tasks/rotated100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+| [staggered100_14k](../../configs/forge/tasks/staggered100_14k.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100_continuation / native_accuracy | 14000 total; 7000 additional | 7200 | [staggered100](../../configs/forge/tasks/staggered100.json) (checkpoint); [clockfree_audit](../../configs/forge/tasks/clockfree_audit.json) (gate) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## r3-tier4-frontier-holdout-v1
+
+Declaration: [r3-tier4-frontier-holdout-v1](../../configs/forge/views/r3-tier4-frontier-holdout-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+16 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [misgan_block_recovery](../../configs/forge/tasks/misgan_block_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-block-recovery) | transfer_vector / misgan_block_recovery | 7000 | 1800 | — |
+| [misgan_block_neural_imputer](../../configs/forge/tasks/misgan_block_neural_imputer.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-block-neural-imputer) | transfer_vector / misgan_block_neural_imputer | 7000 | 1800 | — |
+| [ring16_bigan_continuous](../../configs/forge/tasks/ring16_bigan_continuous.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ring16-bigan-continuous) | transfer_vector / ring16_bigan_continuous | 4000 | 600 | — |
+| [misgan_mcar_p50_recovery](../../configs/forge/tasks/misgan_mcar_p50_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-mcar-p50-recovery) | transfer_vector / misgan_mcar_p50_recovery | 4000 | 1800 | — |
+| [misgan_mcar_p80_anchored](../../configs/forge/tasks/misgan_mcar_p80_anchored.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-misgan-mcar-p80-anchored) | transfer_vector / misgan_mcar_p80_anchored | 4000 | 1800 | — |
+| [pacgan_unequal_mass](../../configs/forge/tasks/pacgan_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-pacgan-unequal-mass) | transfer_vector / pacgan_unequal_mass | 3000 | 600 | — |
+| [pacgan8_grid100](../../configs/forge/tasks/pacgan8_grid100.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-pacgan8-grid100) | transfer_vector / pacgan8_grid100 | 4000 | 600 | — |
+| [alice_spiral_bigan](../../configs/forge/tasks/alice_spiral_bigan.json) | diagnostic | MoGParticlePrior (sigma=0.06) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-alice-spiral-bigan) | transfer_vector / alice_spiral_bigan | 4000 | 600 | — |
+| [infogan_anisotropic_modes](../../configs/forge/tasks/infogan_anisotropic_modes.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-infogan-anisotropic-modes) | transfer_vector / infogan_anisotropic_modes | 3500 | 600 | — |
+| [cgan_overlapping_classes](../../configs/forge/tasks/cgan_overlapping_classes.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cgan-overlapping-classes) | transfer_vector / cgan_overlapping_classes | 3000 | 600 | — |
+| [cramer_energy_overlap](../../configs/forge/tasks/cramer_energy_overlap.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cramer-energy-overlap) | transfer_vector / cramer_energy_overlap | 3000 | 600 | — |
+| [cyclegan_unpaired_constellation](../../configs/forge/tasks/cyclegan_unpaired_constellation.json) | diagnostic | MoGParticlePrior (sigma=0.08) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cyclegan-unpaired-constellation) | transfer_vector / cyclegan_unpaired_constellation | 3500 | 600 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## r4-occam-ablation-v1
+
+Declaration: [r4-occam-ablation-v1](../../configs/forge/views/r4-occam-ablation-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Fourteen surgical probes plus two prerequisite smoke tasks form a bounded single-factor knockout diagnostic view isolating irreducible Laws 1-4 mechanisms vs redundant epicycles; supplies no ordinary qualification or default-adoption credit.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+16 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [gaussian1d_smoke](../../configs/forge/tasks/gaussian1d_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_smoke | 1000 | 120 | — |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [ring16_acquisition](../../configs/forge/tasks/ring16_acquisition.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ring16-acquisition) | transfer_vector / transfer_sustained | 1600 | 300 | — |
+| [gaussian1d_stability](../../configs/forge/tasks/gaussian1d_stability.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_stability | 6000 | 600 | [gaussian1d_smoke](../../configs/forge/tasks/gaussian1d_smoke.json) (checkpoint) |
+| [vector_unequal_width](../../configs/forge/tasks/vector_unequal_width.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-width) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [vector_unequal_mass](../../configs/forge/tasks/vector_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-mass) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 600 | — |
+| [five_word_joint_smoke](../../configs/forge/tasks/five_word_joint_smoke.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-five-word-joint) | word_joint / word_smoke | 20001 | 900 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
 ## recipe-prior-refactor-k3p-diagnostic-v1
 
 Declaration: [recipe-prior-refactor-k3p-diagnostic-v1](../../configs/forge/views/recipe-prior-refactor-k3p-diagnostic-v1.json); revision 1; goal: `discriminator_stability`.
@@ -1677,6 +1847,212 @@ No tasks assigned.
 
 No tasks assigned.
 
+## t3-shift-recovery-diagnostic-v1
+
+Declaration: [t3-shift-recovery-diagnostic-v1](../../configs/forge/views/t3-shift-recovery-diagnostic-v1.json); revision 1; goal: `adaptation`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+5 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [ae_gan_hold](../../configs/forge/tasks/ae_gan_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-ae-gan-hold) | transfer_behavior / transfer_sustained | 250 | 300 | — |
+| [mode_hold](../../configs/forge/tasks/mode_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | transfer_behavior / transfer_sustained | 1200 | 1800 | — |
+| [target_shift_recovery](../../configs/forge/tasks/target_shift_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | paired_adaptation / paired_adaptation | 3600 | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate) |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t3_causal_isolation_stretch
+
+Declaration: [t3_causal_isolation_stretch](../../configs/forge/views/t3_causal_isolation_stretch.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Two Theory-1-free, Theory-2-verified causal isolation stretch probes do not establish whole-suite screen calibration or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+2 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t3_factorial_ablation
+
+Declaration: [t3_factorial_ablation](../../configs/forge/views/t3_factorial_ablation.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Bounded 8-task factorial ablation isolating RGDT Pillars 1-3 does not establish whole-suite qualification or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+8 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+| [vector_unequal_width](../../configs/forge/tasks/vector_unequal_width.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-width) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [vector_unequal_mass](../../configs/forge/tasks/vector_unequal_mass.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-unequal-mass) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [vector_anisotropic](../../configs/forge/tasks/vector_anisotropic.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-vector-anisotropic) | transfer_vector / transfer_sustained | 1200 | 1800 | — |
+| [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
+| [model_ddgan_gaussian_chain](../../configs/forge/tasks/model_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 600 | — |
+| [model_ae_ddgan_gaussian_chain](../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ae-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 180 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t4-strange-architectures-v1
+
+Declaration: [t4-strange-architectures-v1](../../configs/forge/views/t4-strange-architectures-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+7 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [clockfree_audit_measurement_v1](../../configs/forge/tasks/clockfree_audit_measurement_v1.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-clockfree-audit-measurement-v1) | clockfree_audit / clockfree_parity | 24 | 300 | — |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## t4_imbalance_nash_stretch
+
+Declaration: [t4_imbalance_nash_stretch](../../configs/forge/views/t4_imbalance_nash_stretch.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks do not establish whole-suite screen calibration or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+3 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
+| [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
 ## tier1_policy_coverage
 
 Declaration: [tier1_policy_coverage](../../configs/forge/views/tier1_policy_coverage.json); revision 1; goal: `discriminator_stability`.
@@ -1892,12 +2268,12 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | ae_gan_hold | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| ae_gan_hold | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| ae_gan_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | ae_gan_hold | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| ae_gan_hold | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| ae_gan_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -2674,8 +3050,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | cover_leftover | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | cover_leftover | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| cover_leftover | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| cover_leftover | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| cover_leftover | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| cover_leftover | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3079,17 +3455,17 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | five_word_joint_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | five_word_joint_smoke | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| five_word_joint_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3323,16 +3699,16 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | gaussian1d_smoke | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| gaussian1d_smoke | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| gaussian1d_smoke | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_smoke | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| gaussian1d_smoke | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| gaussian1d_smoke | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_stability | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | gaussian1d_stability | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| gaussian1d_stability | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| gaussian1d_stability | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| gaussian1d_stability | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| gaussian1d_stability | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3564,8 +3940,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | grid100 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | grid100 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| grid100 | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| grid100 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| grid100 | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| grid100 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3655,8 +4031,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | img_bars4 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | img_bars4 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| img_bars4 | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| img_bars4 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| img_bars4 | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| img_bars4 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3747,8 +4123,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | img_blobs4 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | img_blobs4 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| img_blobs4 | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| img_blobs4 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| img_blobs4 | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| img_blobs4 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3839,8 +4215,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | img_intensity2 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | img_intensity2 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| img_intensity2 | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| img_intensity2 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| img_intensity2 | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| img_intensity2 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -3931,8 +4307,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | img_stripes2 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | img_stripes2 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| img_stripes2 | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| img_stripes2 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| img_stripes2 | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| img_stripes2 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -4172,8 +4548,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | mid_scale_identity | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | mid_scale_identity | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| mid_scale_identity | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| mid_scale_identity | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| mid_scale_identity | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| mid_scale_identity | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -4577,8 +4953,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | mode_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | mode_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| mode_hold | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| mode_hold | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| mode_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| mode_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 | ring_extension | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
 | ring_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
 
@@ -4714,6 +5090,126 @@ Related public-API demonstrations, with their own recorded contracts:
 | Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | [api-model-misgan-four-mode](../toy_audit/api_contract/misgan_bispf/media/bispf-misgan-transport-settle-v1.gif) | Learn an 8D four-mode complete distribution and the block-mask law using only incomplete rows, then learn a stochastic neural imputer whose held-out single-sensor queries cover both ambiguous branches with correct mass. Scope: Explicit four-corner sigma=.08 target with a fixed Hadamard 8x2 lift. Same four block masks and masses as original MisGAN; sensor7 sees x+y, leaving two equally probable branches at zero. Original 100-mode MLP questions remain unchanged. Absolute task-owned MoG sigma=.025; relative calibration is bypassed. Recommended scoped recipe: bispf-misgan-transport-settle-v1 | MoGParticlePrior (sigma_rel=0) | COMPLETE / PASS; 1200/1200 updates | bispf / cuda:0 / d2b5cf8eba1f | [definition](../toy_audit/api_contract/misgan_bispf/publication.json); [readout](../toy_audit/api_contract/misgan_bispf/publication.json); [recipe and provenance](../toy_audit/api_contract/misgan_bispf/publication.json) |
+
+### Experiment: nash-overpowered-critic-ring16
+
+Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under severe critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator; >600x parameter ratio) and hostile non-complementary initialization (generator shifted to (-4.5, -4.5) against an upside-down (-3.5, -3.5) critic tilt).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.8 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 0.98 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-overpowered-critic-ring16](../toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-critic-ring16.gif) | Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under 512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator shifted to (-4.5, -4.5) against (-3.5, -3.5) upside-down critic tilt. Scope: Public API stretch variant: D >> G capacity imbalance & non-complementary initialization Nash convergence | MoGParticlePrior (sigma_rel=0.1) | COMPLETE / PASS; 1600/1600 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
+
+### Experiment: nash-overpowered-generator-ring16
+
+Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under severe generator overcapacity (512x4 2.2x-amplified generator vs tiny 32x2 Fourier-1 critic; >600x reverse parameter ratio) and hostile non-complementary initialization (generator shifted to (+4.5, -4.5) against a tilted (-3.5, +3.5) critic).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 16 |
+| hq | >= 0.72 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.12 |
+| component_core_covariance_error | <= 1.28 |
+| component_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-overpowered-generator-ring16](../toy_audit/api_contract/imbalance_nash/media/api-nash-overpowered-generator-ring16.gif) | Recover all 16 equal-mass Gaussian ring modes (R=3.0, sigma=0.10) under 512x4 2.2x-amplified generator shifted to (+4.5, -4.5) vs tiny 32x2 Fourier-2 0.25x-gain critic. Scope: Public API stretch variant: G >> D capacity imbalance & non-complementary initialization Nash convergence | MoGParticlePrior (sigma_rel=0.1) | COMPLETE / FAIL; 1600/1600 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
+
+### Experiment: nash-unequal-width-hostile-imbalance
+
+Recover all 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and component-specific core covariances under 16x critic overcapacity (512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator) and hostile non-complementary initialization at (-4.0, +4.0).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t4-imbalance-nash.md).
+
+Forge declarations: [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json).
+
+Declared Forge numerical gates and sampling:
+
+[nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| min_mass_ratio | >= 0.6 |
+| hq | >= 0.82 |
+| mass_tv | <= 0.18 |
+| sw1_normalized | <= 0.16 |
+| resolved_core_covariance_error | <= 0.65 |
+| resolved_core_min_eigen_ratio | >= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.025) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-nash-unequal-width-hostile-imbalance](../toy_audit/api_contract/imbalance_nash/media/api-nash-unequal-width-hostile-imbalance.gif) | Recover all 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}) and core covariances under 512x4 Fourier-3 critic vs 32x2 0.08x-compressed generator shifted to (-4.0, +4.0). Scope: Public API stretch variant: heteroscedastic unequal-width Nash convergence under hostile imbalance | MoGParticlePrior (sigma_rel=0.025) | COMPLETE / PASS; 1100/1100 updates | t4_nash / unrecorded / b1966a034bb4 | [definition](../toy_audit/api_contract/imbalance_nash/publication.json); [readout](../toy_audit/api_contract/imbalance_nash/publication.json); [recipe and provenance](../toy_audit/api_contract/imbalance_nash/publication.json) |
 
 ### Experiment: pacgan8-grid100
 
@@ -4903,8 +5399,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | residual_student | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | residual_student | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| residual_student | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| residual_student | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| residual_student | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| residual_student | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5032,12 +5528,12 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | ring16_acquisition | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| ring16_acquisition | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| ring16_acquisition | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | ring16_acquisition | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | MoGParticlePrior (sigma=0.1) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| ring16_acquisition | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| ring16_acquisition | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.1) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5239,8 +5735,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | rotated100 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | rotated100 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| rotated100 | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| rotated100 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| rotated100 | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| rotated100 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5412,14 +5908,94 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | staggered100 | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | staggered100 | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| staggered100 | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| staggered100 | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| staggered100 | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| staggered100 | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
 | Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | [api-staggered100](../toy_audit/api_contract/media/api-staggered100.gif) | Recover all 100 equal-weight Gaussian modes, their mass and local width, including independent density-fidelity bounds. Scope: A per-observation gate is not full-budget or sustained convergence; no historical verdict is replaced. | ParticlePrior (sigma=0) | COMPLETE / PASS; 7000/7000 updates | atlas / cpu / d9d51eff83a2 | [definition](../toy_audit/api_contract/cases.json); [readout](../toy_audit/api_contract/readout.json); [recipe and provenance](../toy_audit/api_contract/runs.json) |
+
+### Experiment: t3-iso-horizon-saddle-shift
+
+Eliminate Theory-1 continuous generator topology (G=nn.Identity(), direct 128-particle zero-sigma cloud) and verify Theory-2 critic smoothness (critic_grad_med <= 1.0) across a step-300 2->4 equidistant orthogonal mode expansion in R^4 (+-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2), sigma=0.05, 42.4-sigma valley) with a paired step-300 frozen control.
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t3-third-piece-proof.md).
+
+Forge declarations: [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json).
+
+Declared Forge numerical gates and sampling:
+
+[t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| pre_shift_hq | >= 0.92 |
+| modes | == 4 |
+| mass_tv | <= 0.12 |
+| hq | >= 0.92 |
+| frozen_control_modes | == 2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | learned_particles_and_critic_gradient |
+| Scoring weights | live |
+| Evaluation output noise | not_applied_to_measurement |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-t3-iso-horizon-saddle-shift](../toy_audit/api_contract/t3_isolation/media/api-t3-iso-horizon-saddle-shift.gif) | Transport 128 direct data-space zero-sigma ParticlePrior locations (G=nn.Identity(), 0 generator parameters) with a smooth SiLU critic (critic_grad_med <= 1.0) across a step-300 2->4 equidistant orthogonal mode expansion in R^4 (+-1.5 e_1 -> (+-1.5 e_1, +-1.5 e_2), sigma=0.05, 42.4-sigma valley) with a paired step-300 frozen control. Scope: Public API stretch variant: Theory-1-free (G=nn.Identity) & Theory-2-verified (critic_grad_med<=1.0) beyond-horizon equidistant saddle shift | ParticlePrior (sigma=0) | COMPLETE / PASS; 1000/1000 updates | rgdt / NVIDIA RTX A6000 / 1c77eada9413 | [definition](../toy_audit/api_contract/t3_isolation/publication.json); [readout](../toy_audit/api_contract/t3_isolation/publication.json); [recipe and provenance](../toy_audit/api_contract/t3_isolation/publication.json) |
+
+### Experiment: t3-iso-scale-mass-8x
+
+Eliminate Theory-1 continuous generator topology (G=nn.Identity(), direct 512-particle zero-sigma cloud) and verify Theory-2 critic smoothness (critic_grad_med <= 1.0) on a 4-mode R^2 Gaussian mixture with 8x width disparity (sigma=[0.04,0.08,0.16,0.32]) and 6x unequal mode weights (pi=[0.48,0.26,0.18,0.08]).
+
+Explanation, interpretation and reproduction: [experiment readout](studies/t3-third-piece-proof.md).
+
+Forge declarations: [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json).
+
+Declared Forge numerical gates and sampling:
+
+[t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| critic_grad_med | <= 1 |
+| modes | == 4 |
+| mass_tv | <= 0.1 |
+| hq | >= 0.94 |
+| core_component_covariance_error | <= 0.45 |
+| core_min_eigen_ratio | >= 0.45 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | learned_particles_and_critic_gradient |
+| Scoring weights | live |
+| Evaluation output noise | not_applied_to_measurement |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-t3-iso-scale-mass-8x](../toy_audit/api_contract/t3_isolation/media/api-t3-iso-scale-mass-8x.gif) | Transport 512 direct data-space zero-sigma ParticlePrior locations (G=nn.Identity(), 0 generator parameters) with a smooth SiLU critic (critic_grad_med <= 1.0) onto a 4-mode R^2 Gaussian mixture with 8x width disparity sigma=[0.04,0.08,0.16,0.32] and 6x mass disparity pi=[0.48,0.26,0.18,0.08]. Scope: Public API stretch variant: Theory-1-free (G=nn.Identity) & Theory-2-verified (critic_grad_med<=1.0) heteroscedastic scale-mass isolation | ParticlePrior (sigma=0) | COMPLETE / PASS; 800/800 updates | rgdt / NVIDIA RTX A6000 / 1c77eada9413 | [definition](../toy_audit/api_contract/t3_isolation/publication.json); [readout](../toy_audit/api_contract/t3_isolation/publication.json); [recipe and provenance](../toy_audit/api_contract/t3_isolation/publication.json) |
 
 ### Experiment: trajectory
 
@@ -5483,8 +6059,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | trajectory | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | trajectory | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| trajectory | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| trajectory | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| trajectory | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| trajectory | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5581,12 +6157,12 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | two_pole | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | FAIL | CHANGED; earlier contract | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| two_pole | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| two_pole | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | two_pole | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| two_pole | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| two_pole | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5662,8 +6238,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | unipolar | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | unipolar | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| unipolar | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| unipolar | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| unipolar | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| unipolar | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5758,12 +6334,12 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | unused_token_hold | [Atlas](../../configs/forge/ideas/atlas-particle-normal-v4.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / 6261a5458c1f / 767710fe7bd0 | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| unused_token_hold | [EMPF](../../configs/forge/ideas/empf-v7.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
+| unused_token_hold | [EMPF](../../configs/forge/ideas/empf-v8.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [K3P](../../configs/forge/ideas/recipe-prior-refactor-k3p-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 3c8a0c05c790 | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [KA2](../../configs/forge/ideas/recipe-prior-refactor-ka2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / fb4738652dc8 | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [R1/R2](../../configs/forge/ideas/recipe-prior-refactor-r1r2-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / a266b096fb60 | [source-bound receipt index](technique-inventory.json) |
 | unused_token_hold | [GAN v3 release 0.7](../../configs/forge/ideas/recipe-prior-refactor-release07-gan-v3-v1.json) | ParticlePrior (sigma=0) | PASS | CHANGED; earlier contract | cuda / a0493ca3c213 / 1accaa098064 | [source-bound receipt index](technique-inventory.json) |
-| unused_token_hold | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| unused_token_hold | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | ParticlePrior (sigma=0) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5865,8 +6441,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_anisotropic | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_anisotropic | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_anisotropic | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_anisotropic | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_anisotropic | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_anisotropic | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -5960,8 +6536,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_overlap | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_overlap | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_overlap | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_overlap | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_overlap | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_overlap | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -6055,8 +6631,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_spiral | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_spiral | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_spiral | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_spiral | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_spiral | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_spiral | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -6158,8 +6734,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_two_broad | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_two_broad | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_two_broad | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_two_broad | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_two_broad | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_two_broad | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -6265,8 +6841,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_unequal_mass | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_unequal_mass | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_unequal_mass | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_unequal_mass | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_unequal_mass | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_unequal_mass | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | PASS | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -6368,8 +6944,8 @@ Recorded Forge task outcomes (exact saved configuration/source/runtime):
 | --- | --- | --- | --- | --- | --- | --- |
 | vector_unequal_width | [BCAP dualnorm (experimental starting point)](../../configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / a0493ca3c213 / 8a6ee0b1c9ce | [source-bound receipt index](technique-inventory.json) |
 | vector_unequal_width | [BISPF](../../configs/forge/ideas/bispf-optimized-quintic-v1.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / d9d72d53761c / a5c1a7106c9f | [source-bound receipt index](technique-inventory.json) |
-| vector_unequal_width | [EMPF](../../configs/forge/ideas/empf-v7.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 3347cd63c16c / 6bb0a70f936f | [source-bound receipt index](technique-inventory.json) |
-| vector_unequal_width | [RHBI](../../configs/forge/ideas/rhbi-v11.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 5a6af3846559 / 5d64d3269823 | [source-bound receipt index](technique-inventory.json) |
+| vector_unequal_width | [EMPF](../../configs/forge/ideas/empf-v8.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 50398cb0343e / 011c04414056 | [source-bound receipt index](technique-inventory.json) |
+| vector_unequal_width | [RHBI](../../configs/forge/ideas/rhbi-v12.json) | MoGParticlePrior (sigma=0.025) | FAIL | matches; source remains frozen | cuda / 09f0f9d4c75d / 6ac008841db0 | [source-bound receipt index](technique-inventory.json) |
 
 Related public-API demonstrations, with their own recorded contracts:
 
@@ -6446,6 +7022,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `4222aab67d6de942ed8626eab3bb1f6343f1859d71321134ae16f253f5a8f5bc`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `a9a2c75dc8945ae1803d4395723a1761c8c242632b4298255589dd58ebee3d18`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `37c528a6ee9fb183c20d182accd6b8c64a96c99bb1c25285f596e1cf54f2202a`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `2265f4a5683b0ed42abab86b3e9d461ae095ae8bbc56824a618fd59b75f90375`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

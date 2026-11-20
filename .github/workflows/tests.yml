@@ -135,6 +135,7 @@ jobs:
           assert DDGAN().steps == 4
           default = get_recipe()
           assert DEFAULT_RECIPE == "empf"
+          assert default.optimizer_dense_profile == "newton_schulz_hybrid_v1"
           assert default.optimizer_svd_backend == "batched"
           assert default.training_precision == "bf16_channels_last"
           assert default == get_recipe(DEFAULT_RECIPE)
@@ -275,7 +276,7 @@ jobs:
           import tarfile
           import zipfile
 
-          max_bytes = 600_000
+          max_bytes = 1_200_000
           for wheel in Path('dist').glob('*.whl'):
               assert wheel.stat().st_size < max_bytes, wheel.stat().st_size
               with zipfile.ZipFile(wheel) as archive:

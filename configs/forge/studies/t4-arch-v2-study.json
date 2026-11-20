@@ -1,0 +1,73 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t4-arch-v2-study"
+  },
+  "candidate": "t4-arch-v2",
+  "competing_explanation": "If replacing SVD DualNorm and EMPF with SVD-free per-role Quintic Newton-Schulz trust equilibration and valley-coalesced pullback regularizer degrades ordinary shallow/autoencoder/categorical/image/vector GAN stability, then t4-arch-v2 will fail a required Tier 1 gate (e.g. ring16_acquisition > 0.85 or model_ae_gan_multimodal) or collapse across Tier 2 discriminator_stability tasks.",
+  "control": {
+    "candidate_id": "t2-secant-v5",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "One unchanged global SVD-free 1st-order clock-free recipe (t4-arch-v2) clears all 11/11 required Tier 1 gates of discriminator_stability (including ring16_acquisition <= 0.85, model_ae_gan_multimodal, model_vae_hard, five_word_joint_smoke, gaussian1d_smoke, two_pole, and zero_tanh_smoke) and executes Tier 2 discriminator_stability tasks (passing grid100, rotated100, staggered100, precision_gaussian_*, vector_*, and img_*) under protocol seed 0.",
+  "id": "t4-arch-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-arch-v1",
+        "candidate_revision": "4b40d6f2fa410d183846f22d7d8e147cdcdb01dbe6f2c549f7255d7a2cfebf0a"
+      },
+      "path": "reports/forge/records/readout-2b160a70b11093992b400283.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-a2d41a678887a49f9ecc6aa9.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t1-prior-v2",
+        "candidate_revision": "bc5f46853112229bceabcc19673d27c2246eeb0296cfa5e6116dd137348449e0"
+      },
+      "path": "reports/forge/records/readout-379720b9859815defff0efaa.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

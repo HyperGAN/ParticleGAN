@@ -1,0 +1,62 @@
+{
+  "campaign": {
+    "budget_seconds": 9600,
+    "candidate_budget_seconds": 1200,
+    "id": "t4-nash-v2-dcgan-perf-study"
+  },
+  "candidate": "t4-nash-v2",
+  "competing_explanation": "Synthetic update throughput omits data loading and image quality; isolated GPU timing, warmup, and memory receipts benchmark T4Nash's 0-SVD update energy and wall-time against DualNorm SVD/Newton-Schulz formulations (empf-v8, rhbi-v12, rgdt-v2, t2-secant).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {
+      "dcgan_performance_b64": "img_stripes2",
+      "dcgan_performance_r128": "img_stripes2",
+      "dcgan_performance_r256": "img_stripes2",
+      "dcgan_performance_r32": "img_stripes2",
+      "dcgan_performance_r64": "img_stripes2",
+      "dcgan_performance_w128": "img_stripes2"
+    }
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "hypothesis": "Verify that t4-nash-v2 preserves t4-nash-v1's 0-SVD sub-100ms 256x256 RGB DCGAN step latency and memory footprint across all 6 dcgan_performance tasks.",
+  "id": "t4-nash-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-nash-v1",
+        "candidate_revision": "122be867d881b347b08c2242f283d511f84627f507e7f8f05019403a09a0e296"
+      },
+      "path": "reports/forge/records/readout-df92d8e86cf5dd60f85f04f0.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
