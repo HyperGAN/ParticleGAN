@@ -18,9 +18,10 @@ from .._t1_coupling.critic import (
     _validate_t1c_packet,
 )
 from .._t2_critic.critic import (
-    _MAX_LIVE_CAPTURES,
+    _clear_live_capture_entries,
     _cond_signature,
     _tensor_identity_key,
+    _trim_live_captures,
 )
 from ..grad_regularizers import CriticStepRecord
 from ..k3p import K3PCriticAdam
@@ -144,21 +145,35 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
             else:
                 self.ema_margin = 0.90 * self.ema_margin + 0.10 * margin
         if x_real is not None and x_real.numel() > 0:
-            xr = x_real.detach().reshape(x_real.shape[0], -1).float()
-            sc = float(xr.square().sum(dim=-1).mean().sqrt().clamp_min(0.05).item())
-            if math.isfinite(sc):
-                self.ema_data_scale = sc if self.observed_steps == 0 else (0.95 * self.ema_data_scale + 0.05 * sc)
-            if x_fake is not None and x_fake.shape == x_real.shape:
-                xf = x_fake.detach().reshape(x_fake.shape[0], -1).float()
-                mean_gap = float((xf.mean(dim=0) - xr.mean(dim=0)).norm().item())
-                std_gap = abs(float(xf.std().item()) - float(xr.std().item()))
-                rel_gap = min(10.0, (mean_gap + 0.5 * std_gap) / max(0.05, self.ema_data_scale))
-                if math.isfinite(rel_gap):
-                    self.ema_push_res = rel_gap if self.observed_steps == 0 else (0.92 * self.ema_push_res + 0.08 * rel_gap)
+            self.observe_scale(x_real, x_fake)
+
+    @torch.no_grad()
+    def observe_scale(
+        self,
+        x_real: torch.Tensor,
+        x_fake: Optional[torch.Tensor] = None,
+    ) -> None:
+        """Update checkpointed data scale and pushforward residual EMAs."""
+        if getattr(self, "_in_penalty", False) or getattr(self, "_in_probe", False) or getattr(self, "_in_protected_probe", False):
+            return
+        if x_real is None or x_real.numel() == 0:
+            return
+        step_tag = int(getattr(self, "observed_steps", 0))
+        xr = x_real.detach().reshape(x_real.shape[0], -1).float()
+        sc = float(xr.square().sum(dim=-1).mean().sqrt().clamp_min(0.05).item())
+        if math.isfinite(sc):
+            self.ema_data_scale = sc if step_tag == 0 else (0.95 * self.ema_data_scale + 0.05 * sc)
+        if x_fake is not None and x_fake.shape == x_real.shape:
+            xf = x_fake.detach().reshape(x_fake.shape[0], -1).float()
+            mean_gap = float((xf.mean(dim=0) - xr.mean(dim=0)).norm().item())
+            std_gap = abs(float(xf.std().item()) - float(xr.std().item()))
+            rel_gap = min(10.0, (mean_gap + 0.5 * std_gap) / max(0.05, self.ema_data_scale))
+            if math.isfinite(rel_gap):
+                self.ema_push_res = rel_gap if step_tag == 0 else (0.92 * self.ema_push_res + 0.08 * rel_gap)
 
     def clear_transient_captures(self) -> None:
         if hasattr(self, "_live_captures") and self._live_captures:
-            self._live_captures.clear()
+            _clear_live_capture_entries(self._live_captures)
         self._last_probe_actual_input = None
 
     def clear_step_probes(self) -> None:
@@ -188,6 +203,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self.cond_fiber_bank.load_packet(packet["cond_fiber_bank"])
         self._t1c_disc_gate = 0.0
         self._simplicial_step = False
+        self.clear_transient_captures()
         self._live_captures = []
         self._d_probe_list = []
         self._g_probe_cache = None
@@ -347,11 +363,11 @@ def _unified_v11_critic_forward_hook(
                 rec._live_captures = captures
             c_sig = _cond_signature(args, kwargs)
             step_tag = int(getattr(rec, "observed_steps", 0))
-            entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, True]
-            unscaled.register_hook(lambda _g, _e=entry: _e.__setitem__(5, False))
+            alive = [True]
+            entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, alive]
+            raw_target.register_hook(lambda _g, _a=alive: _a.clear())
             captures.append(entry)
-            if len(captures) > _MAX_LIVE_CAPTURES:
-                del captures[: len(captures) - _MAX_LIVE_CAPTURES]
+            _trim_live_captures(captures)
 
         if (
             getattr(rec, "_enable_secant_probe", True)
@@ -423,7 +439,7 @@ def _unified_v11_generator_forward_hook(
     kwargs: Dict[str, Any],
     output: Any,
 ) -> None:
-    """Capture a detached ``B_probe <= 16`` generator slice for function-space secant trust-band regulation."""
+    """Capture a dimension-agnostic element-budgeted generator slice for function-space secant trust-band regulation."""
     rec = getattr(module, "_unified_v11_record", None)
     if (
         rec is None
@@ -441,19 +457,26 @@ def _unified_v11_generator_forward_hook(
     if (
         not isinstance(raw_out, torch.Tensor)
         or not raw_out.requires_grad
-        or raw_out.ndim != 2
+        or raw_out.ndim < 2
         or raw_out.shape[0] < 1
-        or raw_out.shape[1] > 32
     ):
         return
     import torch.autograd.forward_ad as fwAD
     if fwAD.unpack_dual(raw_out).tangent is not None:
         return
     b_full = int(raw_out.shape[0])
-    b_p = min(_PROBE_SLICE, b_full)
+    out_dim = max(1, int(raw_out[0].numel()))
+    b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // out_dim)))
     p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
     p_kwargs = {k: _slice_probe_arg(v, b_full, b_p) for k, v in kwargs.items()}
-    rec._g_probe_cache = (module, p_args, p_kwargs, raw_out.detach()[:b_p].to(dtype=torch.float32))
+    if getattr(module, "_unified_v11_gen_has_bn", False):
+        from .._unified_v4.optimizer import _eval_probe_forward
+        y_pre = _eval_probe_forward(module, p_args, p_kwargs, rec)
+        if y_pre is None:
+            return
+    else:
+        y_pre = raw_out.detach()[:b_p].to(dtype=torch.float32)
+    rec._g_probe_cache = (module, p_args, p_kwargs, y_pre)
 
 
 def _attach_unified_v11_critic_hook(critic: nn.Module | None, record: CriticStepRecord) -> None:
@@ -489,6 +512,9 @@ def _attach_unified_v11_generator_hook(generator: nn.Module | None, record: Crit
     if not isinstance(generator, nn.Module):
         return
     generator._unified_v11_record = record
+    generator._unified_v11_gen_has_bn = any(
+        isinstance(m, torch.nn.modules.batchnorm._BatchNorm) for m in generator.modules()
+    )
     if getattr(generator, "_unified_v11_gen_hook_registered", False):
         return
     generator.register_forward_hook(_unified_v11_generator_forward_hook, with_kwargs=True)

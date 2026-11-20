@@ -43,9 +43,8 @@ def _minimal_critic_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[
         if rec is not None and not rec._in_penalty and module.training and torch.is_grad_enabled() and target.requires_grad and no_ig and (x_in.ndim >= 3 or x_in[0].numel() > 8):
             skey = getattr(module, "_t2_pending_source_key", None) or _tensor_key(x_in)
             if skey is not None:
-                unsc = target.float() if target.dtype == torch.bfloat16 else target
-                entry: List[Any] = [int(rec.observed_steps), skey, _cond_signature(args, kwargs), x_in.detach(), unsc, True]
-                unsc.register_hook(lambda _g, _e=entry: _e.__setitem__(5, False)); rec._live_captures.append(entry); del rec._live_captures[:-6]
+                alive = [True]; rec._live_captures.append([int(rec.observed_steps), skey, _cond_signature(args, kwargs), x_in.detach(), target.float() if target.dtype == torch.bfloat16 else target, alive])
+                target.register_hook(lambda _g, _a=alive: _a.clear()); [e.__setitem__(slice(3, 5), [None, None]) or e[5].clear() for e in rec._live_captures[:-6]]; del rec._live_captures[:-6]
     if rec is not None and not rec._in_penalty and torch.is_grad_enabled() and rec._thermal_scale < 1.0 and isinstance(output, torch.Tensor) and output.requires_grad:
         scaled = output * rec._thermal_scale + output.detach() * (1.0 - rec._thermal_scale)
         if x_in is not None: scaled._minimal_input, scaled._minimal_record, scaled._minimal_conditioned, scaled._minimal_cond_tensors = x_in, rec, is_cond, cond_t
@@ -119,7 +118,8 @@ class MinimalStepRecord(CriticStepRecord):
         self.cond_ema = max(0.18, rc) if not self.cond_initialized else (0.99 * self.cond_ema + 0.01 * rc)
         self.cond_initialized, self._thermal_scale, self._step_scale = True, 1.0, float(1.0 - 0.85 * _smoothstep01((0.050 - max(0.0, self.cond_ema)) / 0.024))
 
-    def record_step(self, optimizer: Any) -> None: super().record_step(optimizer); self._live_captures.clear(); self._g_probe_cache = self._last_real_pair = None
+    def clear_transient_captures(self) -> None: [e.__setitem__(slice(3, 5), [None, None]) or e[5].clear() for e in self._live_captures]; self._live_captures.clear()
+    def record_step(self, optimizer: Any) -> None: super().record_step(optimizer); self.clear_transient_captures(); self._g_probe_cache = self._last_real_pair = None
 
     def state_dict(self) -> Dict[str, Any]: return {**super().state_dict(), "minimal_state": {"schema": 1, **{k: bool(getattr(self, k)) for k in _BOOL_KEYS}, **{k: float(getattr(self, "_" + k if k in ("thermal_scale", "step_scale") else k)) for k in _BOUNDS}, "cond_bank": deepcopy(self.cond_bank)}}
 
@@ -131,7 +131,7 @@ class MinimalStepRecord(CriticStepRecord):
         cb = _validate_cond_bank(pkt["cond_bank"]); super().load_state_dict(sc)
         for k in _BOOL_KEYS: setattr(self, k, pkt[k])
         for k, v in vals.items(): setattr(self, "_" + k if k in ("thermal_scale", "step_scale") else k, v)
-        self.cond_bank, self._g_probe_cache = cb, None; self._live_captures.clear()
+        self.cond_bank, self._g_probe_cache = cb, None; self.clear_transient_captures()
 
 def _collect_conv_layouts(modules: Iterable[Optional[nn.Module]]) -> Dict[int, Tuple[bool, int]]: return {id(c.weight): (isinstance(c, nn.ConvTranspose2d), int(c.groups)) for r in modules if isinstance(r, nn.Module) for c in r.modules() if isinstance(c, (nn.Conv2d, nn.ConvTranspose2d))}
 
