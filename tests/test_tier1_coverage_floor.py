@@ -99,6 +99,20 @@ Note: ``naeem_coverage`` is implemented in this file because master's
 unmerged branch. When #559 lands, switch to the lib version and delete
 the local copy.
 
+Actual-training GIF (toy-test contract, reports/toy_audit/api_contract):
+seed 0 of each arm is snapshotted every GIF_EVERY updates with the same
+separate evaluation stream as the gated endpoint (``trainer.sample`` never
+consumes a training RNG, so the trajectory and calibration are unchanged).
+``test_actual_training_gif`` renders the observed samples beside the
+target ring, labelled with update count, live coverage and the floor/gate
+status; the last frame IS the gated endpoint sample. The file is written
+to ``$T1_COVERAGE_GIF`` when set, else to pytest's tmp dir; the committed
+copy is docs/media/t1_coverage_floor/training.gif.
+
+Cost: the module fixture trains nine CPU runs (~2.5 min on CI runners),
+so the module carries the repository's ``tier1`` marker for selection
+(``-m tier1`` / ``-m 'not tier1'``); it stays in the default CI suite.
+
 Run: python -m pytest tests/test_tier1_coverage_floor.py
 """
 from __future__ import annotations
@@ -110,6 +124,8 @@ import torch
 
 from particlegan import GANTrainer, get_recipe, init
 from lib.toy_models import SimpleMLPGenerator, SimpleMLPDiscriminator
+
+pytestmark = pytest.mark.tier1
 
 
 # --------------------------------------------------------------------------
@@ -180,8 +196,15 @@ COVERAGE_FLOOR = 0.14
 # plain-control parity (grid: 0.510 vs 0.507; ring: see docstring).
 NUM_PARTICLES_SCALED = 16_384
 
+# Actual-training GIF cadence (seed 0 of each arm; observation only).
+GIF_EVERY = 200
+GIF_POINTS = 1024
+ARM_LABELS = {"particle": f"ParticleGAN ({NUM_PARTICLES} particles)",
+              "plain": "plain control (frozen Gaussian)",
+              "particle_16k": f"ParticleGAN ({NUM_PARTICLES_SCALED:,} particles)"}
 
-def run_arm(arm, seed):
+
+def run_arm(arm, seed, snapshots=False):
     torch.manual_seed(seed)
     n_particles = NUM_PARTICLES_SCALED if arm == "particle_16k" else NUM_PARTICLES
     overrides = dict(z_dim=Z_DIM, num_particles=n_particles, batch_size=BATCH,
@@ -200,23 +223,46 @@ def run_arm(arm, seed):
         init.deterministic_orthogonal_(prior)
     trainer = GANTrainer(recipe, G, D, prior=prior, seed=seed)
     data_gen = torch.Generator().manual_seed(seed + 10_000)
+    real_eval = sample_mix(N_EVAL, torch.Generator().manual_seed(777))
+
+    def observe():
+        # Same separate evaluation stream as the gated endpoint; it never
+        # touches a training RNG (GANTrainer.sample contract).
+        eval_gen = torch.Generator().manual_seed(seed + 999)
+        return trainer.sample(N_EVAL, generator=eval_gen, output_noise=False).cpu()
+
+    frames = []
+
+    def snapshot(step):
+        fake = observe()
+        frames.append({"step": step, "points": fake[:GIF_POINTS].clone(),
+                       "modes": modes_reached(fake),
+                       "coverage": naeem_coverage(real_eval, fake)})
+
     finite = True
-    for _ in range(STEPS):
+    if snapshots:
+        snapshot(0)
+    for step in range(1, STEPS + 1):
         out = trainer.step(sample_mix(BATCH, data_gen))
         if not (torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])):
             finite = False
             break
-    eval_gen = torch.Generator().manual_seed(seed + 999)
-    fake = trainer.sample(N_EVAL, generator=eval_gen, output_noise=False).cpu()
-    real_eval = sample_mix(N_EVAL, torch.Generator().manual_seed(777))
-    return {"arm": arm, "seed": seed, "finite": finite,
-            "modes": modes_reached(fake),
-            "coverage": naeem_coverage(real_eval, fake)}
+        if snapshots and step % GIF_EVERY == 0 and step != STEPS:
+            snapshot(step)
+    fake = observe()
+    row = {"arm": arm, "seed": seed, "finite": finite,
+           "modes": modes_reached(fake),
+           "coverage": naeem_coverage(real_eval, fake)}
+    if snapshots:
+        frames.append({"step": trainer.completed_steps, "points": fake[:GIF_POINTS].clone(),
+                       "modes": row["modes"], "coverage": row["coverage"]})
+        row["frames"] = frames
+    return row
 
 
 @pytest.fixture(scope="module")
 def results():
-    return {arm: [run_arm(arm, seed) for seed in SEEDS]
+    return {arm: [run_arm(arm, seed, snapshots=(seed == SEEDS[0])) for seed in SEEDS]
             for arm in ("particle", "plain", "particle_16k")}
 
 
@@ -317,3 +363,73 @@ def test_plain_control_gap_is_measured_and_recorded(results):
     print(f"\nT1-COVERAGE-GAP particle={particle_mean:.3f} "
           f"plain={plain_mean:.3f} gap={gap:+.3f} "
           f"(floor={COVERAGE_FLOOR}; gap recorded, not asserted)")
+
+
+# --------------------------------------------------------------------------
+# Actual-training GIF (toy-test contract): observed samples vs target ring.
+# --------------------------------------------------------------------------
+
+def render_training_gif(results, path):
+    import io
+
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+    arms = ("particle", "plain", "particle_16k")
+    series = {arm: results[arm][0]["frames"] for arm in arms}
+    n_frames = min(len(frames) for frames in series.values())
+    target = sample_mix(GIF_POINTS, torch.Generator().manual_seed(777))
+    images = []
+    for i in range(n_frames):
+        fig, axes = plt.subplots(1, 3, figsize=(10.5, 3.9), dpi=72)
+        for ax, arm in zip(axes, arms):
+            frame = series[arm][i]
+            ax.scatter(target[:, 0], target[:, 1], s=3, c="#b0b0b0", label="target")
+            pts = frame["points"]
+            ax.scatter(pts[:, 0], pts[:, 1], s=3, c="#d1495b", alpha=0.6, label="API samples")
+            ax.set_xlim(-3.2, 3.2)
+            ax.set_ylim(-3.2, 3.2)
+            ax.set_aspect("equal")
+            ax.set_xticks([])
+            ax.set_yticks([])
+            if arm == "particle":
+                gate = "PASS" if frame["coverage"] >= COVERAGE_FLOOR else "below floor"
+                gate = f"floor {COVERAGE_FLOOR}: {gate}"
+            else:
+                gate = "control" if arm == "plain" else "parity arm"
+            ax.set_title(f"{ARM_LABELS[arm]}\nmodes {frame['modes']}/{N_MODES}  "
+                         f"coverage {frame['coverage']:.3f}\n{gate}", fontsize=8)
+        step = series["particle"][i]["step"]
+        final = " (gated endpoint)" if i == n_frames - 1 else ""
+        fig.suptitle(f"T1 coverage floor, seed {SEEDS[0]}: update {step}/{STEPS}{final}",
+                     fontsize=10)
+        axes[0].legend(loc="lower left", fontsize=6, markerscale=3)
+        fig.tight_layout()
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).convert("P", palette=Image.Palette.ADAPTIVE, colors=64))
+    durations = [400] * (n_frames - 1) + [2500]
+    images[0].save(path, format="GIF", save_all=True, append_images=images[1:],
+                   duration=durations, loop=0, optimize=True)
+    return n_frames
+
+
+def test_actual_training_gif(results, tmp_path):
+    import os
+    from pathlib import Path
+
+    path = Path(os.environ.get("T1_COVERAGE_GIF") or tmp_path / "training.gif")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    n_frames = render_training_gif(results, path)
+    assert n_frames == STEPS // GIF_EVERY + 1
+    # The last frame is the gated endpoint itself, not a re-sample.
+    for arm in ("particle", "plain", "particle_16k"):
+        row = results[arm][0]
+        assert row["frames"][-1]["step"] == STEPS
+        assert row["frames"][-1]["coverage"] == row["coverage"]
+    assert path.stat().st_size > 1000
+    print(f"\nT1-COVERAGE-GIF {path} frames={n_frames}")
