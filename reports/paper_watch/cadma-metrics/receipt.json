@@ -1,0 +1,336 @@
+{
+ "cohort": "public-API GANTrainer, default get_recipe(total_steps), deterministic init, protocol seed 0",
+ "device": "cuda:0",
+ "gif": "goal.gif",
+ "gif_frames": 12,
+ "question": "CADMA attributes a mode-dropped public-API run's deficit to collapse (D_collapse), not D_drop",
+ "resolved_recipe": {
+  "alpha_bar": [
+   1.0,
+   0.9,
+   0.5,
+   0.05,
+   0.0001
+  ],
+  "amsgrad": false,
+  "batch_size": 2048,
+  "betas": [
+   0.0,
+   0.999
+  ],
+  "birth_death_feature_scale": "none",
+  "birth_death_isolation": false,
+  "birth_death_space": "data",
+  "conditioning": "scalar",
+  "constraint_geometry_mode": "direction_blend",
+  "continuous_policy": null,
+  "critic_formulation": "empf",
+  "critic_payoff_damping": true,
+  "critic_r1_real": true,
+  "d_guard_min_steps": 200,
+  "d_guard_ratio": 0.0,
+  "d_lr_mult": 1.5,
+  "direct_particle_betas": [
+   0.0,
+   0.9
+  ],
+  "direct_particle_gain": false,
+  "distance_reduction": "sum",
+  "ebi_beta": 6.0,
+  "ema_decay": 0.0,
+  "encoder_mode": "none",
+  "input_noise_anneal_end": 0.1,
+  "input_noise_std": 0.0,
+  "latent_damping_max_rate": 0.0,
+  "loss": "non_saturating",
+  "lr": 0.012,
+  "lr_anneal_start": 0.6,
+  "lr_control": "mobility",
+  "lr_floor": 1.0,
+  "model": "gan",
+  "name": "empf",
+  "network_lr_floor": 1.0,
+  "network_lr_horizon_cap": null,
+  "num_classes": null,
+  "num_particles": 20000,
+  "observation_sigma": 0.03,
+  "optimizer_convolution": "per_offset",
+  "optimizer_convolution_rule": "quintic",
+  "optimizer_dense_profile": "newton_schulz_hybrid_v1",
+  "optimizer_family": "dualnorm",
+  "optimizer_smoothing": 0.001,
+  "optimizer_svd_backend": "batched",
+  "output_noise_mode": "fixed",
+  "output_noise_std": 0.0,
+  "output_noise_warmup": 0.0,
+  "particle_birth_death": false,
+  "prior_betas": null,
+  "prior_kind": "particles",
+  "prior_lr_mult": 2.5,
+  "prior_reg": 0.01,
+  "prior_regularizer": "empf",
+  "reconstruction_weight": 1.0,
+  "reg_anchor_min_decay": 0.9,
+  "reg_anchor_weight": 0.0,
+  "reg_coeff": 1.0,
+  "reg_every": 1,
+  "reg_kappa": 1.0,
+  "reopen_anchor": "hold",
+  "reopen_signal": "data",
+  "routing_temperature": 0.25,
+  "row_evidence_exclude": true,
+  "row_evidence_gate": false,
+  "row_evidence_hold": true,
+  "row_evidence_hot": true,
+  "row_evidence_null": "theory",
+  "row_policy": "independent",
+  "serve_average": 0.0,
+  "sigma_rel": 0.0,
+  "standardize": true,
+  "table_release_rule": "any",
+  "total_steps": 1200,
+  "training_precision": "bf16_channels_last",
+  "ucd_target": "class",
+  "ucd_weight": 0.02,
+  "z_dim": 2
+ },
+ "rows": {
+  "collapsed": [
+   {
+    "c_cap": 0.19714285714285715,
+    "cov_raw": 0.20857142857142857,
+    "coverage": 0.1992857142857143,
+    "d_collapse": 0.7357142857142858,
+    "d_drop": 0.002142857142857141,
+    "step": 100
+   },
+   {
+    "c_cap": 0.17642857142857143,
+    "cov_raw": 0.18714285714285714,
+    "coverage": 0.17785714285714285,
+    "d_collapse": 0.77,
+    "d_drop": 0.001428571428571418,
+    "step": 200
+   },
+   {
+    "c_cap": 0.19642857142857142,
+    "cov_raw": 0.20857142857142857,
+    "coverage": 0.19857142857142857,
+    "d_collapse": 0.7242857142857143,
+    "d_drop": 0.002142857142857141,
+    "step": 300
+   },
+   {
+    "c_cap": 0.2007142857142857,
+    "cov_raw": 0.21785714285714286,
+    "coverage": 0.2042857142857143,
+    "d_collapse": 0.7092857142857143,
+    "d_drop": 0.0035714285714285865,
+    "step": 400
+   },
+   {
+    "c_cap": 0.22714285714285715,
+    "cov_raw": 0.24142857142857144,
+    "coverage": 0.23214285714285715,
+    "d_collapse": 0.7035714285714286,
+    "d_drop": 0.0050000000000000044,
+    "step": 500
+   },
+   {
+    "c_cap": 0.20785714285714285,
+    "cov_raw": 0.22214285714285714,
+    "coverage": 0.2092857142857143,
+    "d_collapse": 0.7271428571428571,
+    "d_drop": 0.0014285714285714457,
+    "step": 600
+   },
+   {
+    "c_cap": 0.21071428571428572,
+    "cov_raw": 0.2292857142857143,
+    "coverage": 0.21357142857142858,
+    "d_collapse": 0.7728571428571429,
+    "d_drop": 0.0028571428571428636,
+    "step": 700
+   },
+   {
+    "c_cap": 0.2257142857142857,
+    "cov_raw": 0.24142857142857144,
+    "coverage": 0.23142857142857143,
+    "d_collapse": 0.7114285714285714,
+    "d_drop": 0.005714285714285727,
+    "step": 800
+   },
+   {
+    "c_cap": 0.225,
+    "cov_raw": 0.24,
+    "coverage": 0.23142857142857143,
+    "d_collapse": 0.735,
+    "d_drop": 0.006428571428571422,
+    "step": 900
+   },
+   {
+    "c_cap": 0.21428571428571427,
+    "cov_raw": 0.2292857142857143,
+    "coverage": 0.22071428571428572,
+    "d_collapse": 0.67,
+    "d_drop": 0.00642857142857145,
+    "step": 1000
+   },
+   {
+    "c_cap": 0.18071428571428572,
+    "cov_raw": 0.18857142857142858,
+    "coverage": 0.18071428571428572,
+    "d_collapse": 0.7492857142857143,
+    "d_drop": 0.0,
+    "step": 1100
+   },
+   {
+    "c_cap": 0.19857142857142857,
+    "cov_raw": 0.2092857142857143,
+    "coverage": 0.1992857142857143,
+    "d_collapse": 0.7135714285714285,
+    "d_drop": 0.0007142857142857229,
+    "step": 1200
+   }
+  ],
+  "covered": [
+   {
+    "c_cap": 0.5035714285714286,
+    "cov_raw": 0.8557142857142858,
+    "coverage": 0.8135714285714286,
+    "d_collapse": 0.07714285714285714,
+    "d_drop": 0.31000000000000005,
+    "step": 100
+   },
+   {
+    "c_cap": 0.5307142857142857,
+    "cov_raw": 0.7528571428571429,
+    "coverage": 0.6935714285714286,
+    "d_collapse": 0.4142857142857143,
+    "d_drop": 0.16285714285714292,
+    "step": 200
+   },
+   {
+    "c_cap": 0.495,
+    "cov_raw": 0.72,
+    "coverage": 0.6571428571428571,
+    "d_collapse": 0.47785714285714287,
+    "d_drop": 0.16214285714285714,
+    "step": 300
+   },
+   {
+    "c_cap": 0.6064285714285714,
+    "cov_raw": 0.8035714285714286,
+    "coverage": 0.7392857142857143,
+    "d_collapse": 0.3557142857142857,
+    "d_drop": 0.1328571428571429,
+    "step": 400
+   },
+   {
+    "c_cap": 0.6042857142857143,
+    "cov_raw": 0.78,
+    "coverage": 0.7228571428571429,
+    "d_collapse": 0.3057142857142857,
+    "d_drop": 0.11857142857142855,
+    "step": 500
+   },
+   {
+    "c_cap": 0.7007142857142857,
+    "cov_raw": 0.9035714285714286,
+    "coverage": 0.84,
+    "d_collapse": 0.22285714285714286,
+    "d_drop": 0.13928571428571423,
+    "step": 600
+   },
+   {
+    "c_cap": 0.6928571428571428,
+    "cov_raw": 0.9121428571428571,
+    "coverage": 0.8435714285714285,
+    "d_collapse": 0.24142857142857144,
+    "d_drop": 0.1507142857142857,
+    "step": 700
+   },
+   {
+    "c_cap": 0.6357142857142857,
+    "cov_raw": 0.8364285714285714,
+    "coverage": 0.7771428571428571,
+    "d_collapse": 0.2914285714285714,
+    "d_drop": 0.14142857142857146,
+    "step": 800
+   },
+   {
+    "c_cap": 0.6778571428571428,
+    "cov_raw": 0.8835714285714286,
+    "coverage": 0.8207142857142857,
+    "d_collapse": 0.24357142857142858,
+    "d_drop": 0.1428571428571429,
+    "step": 900
+   },
+   {
+    "c_cap": 0.6971428571428572,
+    "cov_raw": 0.8878571428571429,
+    "coverage": 0.825,
+    "d_collapse": 0.23214285714285715,
+    "d_drop": 0.12785714285714278,
+    "step": 1000
+   },
+   {
+    "c_cap": 0.73,
+    "cov_raw": 0.9335714285714286,
+    "coverage": 0.8635714285714285,
+    "d_collapse": 0.21857142857142858,
+    "d_drop": 0.13357142857142856,
+    "step": 1100
+   },
+   {
+    "c_cap": 0.6814285714285714,
+    "cov_raw": 0.8935714285714286,
+    "coverage": 0.8242857142857143,
+    "d_collapse": 0.23285714285714285,
+    "d_drop": 0.1428571428571429,
+    "step": 1200
+   }
+  ]
+ },
+ "source_paper": "arXiv:2611.12243 (CADMA)",
+ "statistics": {
+  "gates": {
+   "c_cap_gap_gt_0.15": true,
+   "construction_valid": true,
+   "d_collapse_gap_gt_0.15": true,
+   "d_drop_collapsed_lt_covered": true
+  },
+  "terminal_means": {
+   "collapsed": {
+    "c_cap": 0.20464285714285713,
+    "cov_raw": 0.2167857142857143,
+    "coverage": 0.2080357142857143,
+    "d_collapse": 0.7169642857142857,
+    "d_drop": 0.003392857142857149
+   },
+   "covered": {
+    "c_cap": 0.6966071428571429,
+    "cov_raw": 0.8996428571428572,
+    "coverage": 0.8333928571428572,
+    "d_collapse": 0.23178571428571432,
+    "d_drop": 0.1367857142857143
+   }
+  },
+  "verdict": "PASS"
+ },
+ "task": {
+  "architecture": "MLP hidden 128x2 LeakyReLU(0.2)",
+  "check_every": 100,
+  "collapsed_training_modes": [
+   0,
+   1
+  ],
+  "k": 5,
+  "n_eval": 1400,
+  "sampler": "GANTrainer.sample (live, clean)",
+  "steps": 1200,
+  "target": "8-Gaussian ring r=2 std=0.25",
+  "terminal_window": 4
+ },
+ "torch": "2.14.1+cu130"
+}
