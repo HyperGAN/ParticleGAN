@@ -8,14 +8,14 @@ Source test: [`tests/test_paperwatch_bolt_critic.py`](../../../tests/test_paperw
 Cohort: CPU, one intra-op thread, ka2 recipe, 6,000 updates, batch 256,
 lambda_GP 1.0, seeds 0/1/2, shared deterministic initializer. Modes use the
 paper's rule: at least one of 10,000 clean samples within 0.15 of a centre.
-Metrics are in [`metrics.json`](metrics.json). [`training.gif`](training.gif)
+Metrics are in [`summary.json`](summary.json). [`training.gif`](training.gif)
 shows actual seed-0 samples from all three arms at 12 evenly spaced updates.
 
-| Arm | Cohort | Modes (mean, per seed) | Naeem coverage (mean) | Tuning |
-| --- | --- | --- | --- | --- |
-| plain NS-GAN control (frozen fresh-Gaussian prior) | recipe:ka2 | 25.0 (25/25/25) | 0.461 | none |
-| ParticleGAN control (learned 256-particle prior) | recipe:ka2 | 24.33 (25/23/25) | 0.088 | none |
-| ParticleGAN + BOLT-GP | assisted host swap | 21.0 (22/24/17) | 0.046 | 6 GPU rounds over lambda_GP, plus one doubling of the update budget |
+| Arm | Cohort | Modes (mean, per seed) | Naeem coverage (mean) | In-mode fraction (diagnostic) | Tuning |
+| --- | --- | --- | --- | --- | --- |
+| plain NS-GAN control (frozen fresh-Gaussian prior) | recipe:ka2 | 25.0 (25/25/25) | 0.461 | 0.311 | none |
+| ParticleGAN control (learned 256-particle prior) | recipe:ka2 | 24.33 (25/23/25) | 0.088 | 0.939 | none |
+| ParticleGAN + BOLT-GP | assisted host swap | 21.0 (22/24/17) | 0.046 | 0.913 | 6 GPU rounds over lambda_GP, plus one doubling of the update budget |
 
 ## Verdict
 
@@ -28,6 +28,14 @@ BOLT-GP also has the lowest coverage of the three arms, matching the GPU
 result. The plain control never collapses in this harness, while the paper
 reports about 6 of 25 modes. The paper's headline margin therefore has no
 headroom here.
+
+The plain control's 25/25 modes and high coverage come from a diffuse cloud
+over the whole grid square, not from recovering the modes. Only 31% of its
+samples fall within 3 sigma of any centre, compared with 94% for the particle
+control (see the GIF). The paper's modes rule and Naeem coverage both reward
+that cloud. The in-mode fraction is a report-only diagnostic added after the
+run and is not a declared gate. Read "plain beats particle on coverage" in
+that light.
 
 ## Scope
 

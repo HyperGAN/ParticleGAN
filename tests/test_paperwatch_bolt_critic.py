@@ -88,6 +88,9 @@ The GPU tie on modes does NOT reproduce on CPU: the two "BOLT matches
 control" claims are recorded as strict xfails (faithful FAIL), and the
 coverage loss is confirmed. CPU verdict: FAIL to transfer on modes and
 coverage at the tuned setting.
+Diagnostic (report-only, not a gate): the plain control's 25/25 modes and
+high coverage come from a diffuse cloud over the grid square -- only 31%
+of its samples lie within 3 sigma of a centre (particle 94%, bolt 91%).
 
 Scope (declared). Arm (c) is an ASSISTED/DIAGNOSTIC cohort
 (``assisted-host-swap:bolt-loss+raw-score-gp``), not recipe evidence: the
@@ -99,7 +102,7 @@ lambda_GP was tuned over 6 GPU rounds and the budget doubled once for the
 BOLT arm; the controls were not tuned.
 
 The training assertions are slow and opt-in; the mechanism checks always
-run. Report (metrics.json + actual-training GIF): reports/paper_watch/bolt-critic/.
+run. Report (summary.json + actual-training GIF): reports/paper_watch/bolt-critic/.
 
 Run: PARTICLEGAN_RUN_PAPERWATCH=1 python -m pytest tests/test_paperwatch_bolt_critic.py
 Regenerate report: PYTHONPATH=.:tests python tests/test_paperwatch_bolt_critic.py
@@ -197,6 +200,17 @@ def modes_recovered(fake, means=None):
         means = MEANS.to(fake.device)
     dists = torch.cdist(fake, means)
     return int((dists.min(dim=0).values <= MODE_RADIUS).sum().item())
+
+
+def in_mode_fraction(fake, means=None):
+    """Diagnostic precision: share of samples within 3 sigma of any centre.
+
+    Report-only (not a declared gate). Modes recovered and coverage both
+    reward a diffuse cloud; this exposes it.
+    """
+    if means is None:
+        means = MEANS.to(fake.device)
+    return (torch.cdist(fake, means).min(dim=1).values <= MODE_RADIUS).float().mean().item()
 
 
 def naeem_coverage(real, fake, k=5):
@@ -308,6 +322,7 @@ def _run_arm(arm, seed, *, steps, batch, lr, lambda_gp, device, snapshots):
             "cohort": BOLT_COHORT if arm == "bolt" else "recipe:ka2",
             "modes": modes_recovered(fake),
             "coverage": naeem_coverage(real_eval, fake_eval),
+            "precision": in_mode_fraction(fake),
             "max_abs": float(fake.abs().max()) if len(fake) else float("nan"),
             "frames": frames}
 
@@ -336,6 +351,7 @@ def summary(results):
                        "modes": [r["modes"] for r in rows],
                        "coverage": [round(r["coverage"], 4) for r in rows],
                        "finite": [r["finite"] for r in rows],
+                       "precision_diagnostic": [round(r["precision"], 4) for r in rows],
                        "mean_modes": round(_mean(rows, "modes"), 3),
                        "mean_coverage": round(_mean(rows, "coverage"), 4)}
                  for arm, rows in results.items()},
@@ -380,7 +396,9 @@ def render_gif(results, path, seed_index=0):
 
 @pytest.fixture(scope="module")
 def results():
-    return run_all()
+    # One single-threaded process per (arm, seed): same numbers as a serial
+    # run, wall time of the slowest arm.
+    return run_all(processes=min(len(ARMS) * len(SEEDS), os.cpu_count() or 1))
 
 
 def _mean(rows, key):
@@ -447,7 +465,7 @@ def test_modes_recovered_counts_paper_rule():
 
 # --------------------------------------------------------------------------
 # The gauntlet result, encoded against the pinned CPU cohort
-# (reports/paper_watch/bolt-critic/metrics.json). Measured (seeds 0/1/2):
+# (reports/paper_watch/bolt-critic/summary.json). Measured (seeds 0/1/2):
 # modes particle 25/23/25 (24.33), plain 25/25/25 (25.0), bolt 22/24/17
 # (21.0); coverage particle 0.088, plain 0.461, bolt 0.046. The GPU gauntlet
 # claimed a 25.0/25.0/25.0 tie; on CPU the BOLT arm does not reproduce it.
@@ -507,7 +525,7 @@ def test_training_gif_shows_actual_observations(results, tmp_path):
 
 
 def main(argv=None):
-    """Regenerate the compact report: metrics.json + training.gif (CPU)."""
+    """Regenerate the compact report: summary.json + training.gif (CPU)."""
     import argparse
     parser = argparse.ArgumentParser(description=main.__doc__)
     parser.add_argument("--out", type=Path, default=REPORT_DIR)
@@ -515,7 +533,7 @@ def main(argv=None):
     args = parser.parse_args(argv)
     res = run_all(processes=args.processes)
     args.out.mkdir(parents=True, exist_ok=True)
-    (args.out / "metrics.json").write_text(json.dumps(summary(res), indent=2) + "\n")
+    (args.out / "summary.json").write_text(json.dumps(summary(res), indent=2) + "\n")
     render_gif(res, args.out / "training.gif")
     print(json.dumps(summary(res)["arms"], indent=1))
 
