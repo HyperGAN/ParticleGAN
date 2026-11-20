@@ -66,8 +66,8 @@ original 3000-step budget, BOLT arm refined one knob per round):
   R6  lambda_GP=2, 6000 steps: bolt 12.0 modes (20/16/0) -- worse;
       lambda_GP=1 is the stability sweet spot in this harness.
 
-Verdict: PARTIAL transfer. At the tuned lambda_GP=1 and double the
-original budget, BOLT-GP matches both controls on modes recovered
+GPU verdict (historical): PARTIAL transfer. At the tuned lambda_GP=1 and double the
+original budget, BOLT-GP matched both controls on the GPU on modes recovered
 (25.0 vs 25.0 vs 25.0, means over 3 seeds) -- but the paper's headline
 margin cannot appear here, because the plain NS-GAN control does NOT
 collapse in this harness (25.0 modes, where the paper's toy setup gives
@@ -79,13 +79,37 @@ loss -E[h(fake)] giving vanishing concentration pressure once h is
 moderate. At the paper's own lambda_GP in {5, 10} the transfer fails
 completely in this harness (R1/R4), and near-zero lambda reproduces
 the paper's Max-BER divergence (R3, lambda_GP=0 check). The assertions
-below encode exactly these measured margins.
+below encode the CPU cohort; see the next paragraph.
 
-Run: python -m pytest tests/test_paperwatch_bolt_critic.py
+CPU cohort (current evidence; CPU, one intra-op thread, seeds 0/1/2,
+6000 steps, lambda_GP=1): modes particle 24.33 (25/23/25), plain 25.0,
+bolt 21.0 (22/24/17); coverage particle 0.088, plain 0.461, bolt 0.046.
+The GPU tie on modes does NOT reproduce on CPU: the two "BOLT matches
+control" claims are recorded as strict xfails (faithful FAIL), and the
+coverage loss is confirmed. CPU verdict: FAIL to transfer on modes and
+coverage at the tuned setting.
+
+Scope (declared). Arm (c) is an ASSISTED/DIAGNOSTIC cohort
+(``assisted-host-swap:bolt-loss+raw-score-gp``), not recipe evidence: the
+test host replaces ``trainer.loss`` and ``trainer.penalty`` by attribute
+assignment after the recipe resolved, because the recipe API declares no
+BOLT loss or raw-score GP capability. It cannot fill a recipe's
+qualification or matched-comparison cells. Tuning budgets are unequal:
+lambda_GP was tuned over 6 GPU rounds and the budget doubled once for the
+BOLT arm; the controls were not tuned.
+
+The training assertions are slow and opt-in; the mechanism checks always
+run. Report (metrics.json + actual-training GIF): reports/paper_watch/bolt-critic/.
+
+Run: PARTICLEGAN_RUN_PAPERWATCH=1 python -m pytest tests/test_paperwatch_bolt_critic.py
+Regenerate report: PYTHONPATH=.:tests python tests/test_paperwatch_bolt_critic.py
 """
 from __future__ import annotations
 
+import json
 import math
+import os
+from pathlib import Path
 
 import pytest
 import torch
@@ -196,12 +220,47 @@ LR = 2e-3
 LAMBDA_GP = 1.0
 SEEDS = (0, 1, 2)
 ARMS = ("particle", "plain", "bolt")
+# Pinned to CPU with one intra-op thread so the recorded numbers form one
+# reproducible cohort. The gauntlet in the docstring ran on an RTX A6000;
+# those GPU figures remain the historical tuning log, not this cohort.
+DEVICE = "cpu"
+SNAPSHOTS = 12          # evenly spaced post-update observations for the GIF
+SNAPSHOT_SAMPLES = 1024
+RUN_ENV = "PARTICLEGAN_RUN_PAPERWATCH"
+REPORT_DIR = Path(__file__).resolve().parents[1] / "reports" / "paper_watch" / "bolt-critic"
+
+# The BOLT arm is an ASSISTED/DIAGNOSTIC cohort: the host swaps
+# ``trainer.loss`` and ``trainer.penalty`` by attribute assignment after the
+# recipe resolved, because the recipe API has no declared BOLT-loss or
+# raw-score-GP capability. Its results are not recipe evidence and cannot
+# fill a recipe's qualification or matched-comparison cells.
+BOLT_COHORT = "assisted-host-swap:bolt-loss+raw-score-gp"
+TUNING_BUDGET = ("BOLT arm: lambda_GP tuned over 6 GPU gauntlet rounds "
+                 "(10, 1, 0.1, 3 at 3000 steps; 1, 2 at 6000 steps) plus a "
+                 "lambda_GP=0 Max-BER check, and the step budget doubled once; "
+                 "controls: 0 tuning rounds")
+
+
+
+def slow(test):
+    """Multi-minute CPU training evidence: opt-in, never run by default CI."""
+    test = pytest.mark.skipif(os.environ.get(RUN_ENV) != "1",
+                              reason=f"9 x {STEPS}-step CPU trainings; opt in with {RUN_ENV}=1")(test)
+    return pytest.mark.slow(test)
 
 
 def run_arm(arm, seed, *, steps=STEPS, batch=BATCH, lr=LR, lambda_gp=LAMBDA_GP,
-            device=None):
-    if device is None:
-        device = "cuda" if torch.cuda.is_available() else "cpu"
+            device=DEVICE, snapshots=SNAPSHOTS):
+    threads = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        return _run_arm(arm, seed, steps=steps, batch=batch, lr=lr,
+                        lambda_gp=lambda_gp, device=device, snapshots=snapshots)
+    finally:
+        torch.set_num_threads(threads)
+
+
+def _run_arm(arm, seed, *, steps, batch, lr, lambda_gp, device, snapshots):
     torch.manual_seed(seed)
     overrides = dict(z_dim=Z_DIM, num_particles=NUM_PARTICLES, batch_size=batch,
                      total_steps=steps, lr=lr)
@@ -226,26 +285,102 @@ def run_arm(arm, seed, *, steps=STEPS, batch=BATCH, lr=LR, lambda_gp=LAMBDA_GP,
         trainer.loss = BOLTLoss()
         trainer.penalty = BOLTGradientPenalty(trainer.penalty, lambda_gp=lambda_gp)
     data_gen = torch.Generator(device=device).manual_seed(seed + 10_000)
+    every = max(1, steps // snapshots) if snapshots else 0
+    frames = []
     finite = True
-    for _ in range(steps):
+    for step in range(1, steps + 1):
         out = trainer.step(sample_mix(batch, data_gen, device=device))
         if not (torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])):
             finite = False
             break
+        if every and (step % every == 0 or step == steps):
+            # A fixed generator so every frame shows the same latent draws.
+            snap_gen = torch.Generator(device=device).manual_seed(seed + 555)
+            pts = trainer.sample(SNAPSHOT_SAMPLES, generator=snap_gen,
+                                 output_noise=False).cpu()
+            frames.append({"step": step, "points": pts, "modes": modes_recovered(pts)})
     eval_gen = torch.Generator(device=device).manual_seed(seed + 999)
     fake = trainer.sample(10_000, generator=eval_gen, output_noise=False).cpu()
     fake_eval = fake[:4096]
     real_eval = sample_mix(4096, torch.Generator().manual_seed(777))
     return {"arm": arm, "seed": seed, "steps": steps, "lambda_gp": lambda_gp,
-            "finite": finite,
+            "device": device, "finite": finite,
+            "cohort": BOLT_COHORT if arm == "bolt" else "recipe:ka2",
             "modes": modes_recovered(fake),
             "coverage": naeem_coverage(real_eval, fake_eval),
-            "max_abs": float(fake.abs().max()) if len(fake) else float("nan")}
+            "max_abs": float(fake.abs().max()) if len(fake) else float("nan"),
+            "frames": frames}
+
+
+def run_all(processes=None):
+    jobs = [(arm, seed) for arm in ARMS for seed in SEEDS]
+    if processes and processes > 1:
+        import multiprocessing as mp
+        with mp.get_context("spawn").Pool(processes) as pool:
+            rows = pool.starmap(run_arm, jobs)
+    else:
+        rows = [run_arm(arm, seed) for arm, seed in jobs]
+    out = {arm: [] for arm in ARMS}
+    for row in rows:
+        out[row["arm"]].append(row)
+    return out
+
+
+def summary(results):
+    return {
+        "question": "BOLT-GP critic (arXiv:2510.25609) transferred to ParticleGAN on 25-Gaussians",
+        "device": DEVICE, "torch_threads": 1, "steps": STEPS, "batch": BATCH,
+        "seeds": list(SEEDS), "lambda_gp": LAMBDA_GP,
+        "bolt_cohort": BOLT_COHORT, "tuning_budget": TUNING_BUDGET,
+        "arms": {arm: {"cohort": rows[0]["cohort"],
+                       "modes": [r["modes"] for r in rows],
+                       "coverage": [round(r["coverage"], 4) for r in rows],
+                       "finite": [r["finite"] for r in rows],
+                       "mean_modes": round(_mean(rows, "modes"), 3),
+                       "mean_coverage": round(_mean(rows, "coverage"), 4)}
+                 for arm, rows in results.items()},
+    }
+
+
+def render_gif(results, path, seed_index=0):
+    """Actual training snapshots (one seed) of every arm over the target."""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    from matplotlib.animation import PillowWriter
+
+    rows = {arm: results[arm][seed_index] for arm in ARMS}
+    n = min(len(r["frames"]) for r in rows.values())
+    target = sample_mix(SNAPSHOT_SAMPLES, torch.Generator().manual_seed(4242))
+    fig, axes = plt.subplots(1, len(ARMS), figsize=(3.6 * len(ARMS), 4.0), dpi=72)
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    writer = PillowWriter(fps=3)
+    with writer.saving(fig, str(path), dpi=72):
+        for i in range(n):
+            for ax, arm in zip(axes, ARMS):
+                fr = rows[arm]["frames"][i]
+                ax.clear()
+                ax.scatter(target[:, 0], target[:, 1], s=2, c="0.75")
+                ax.scatter(fr["points"][:, 0], fr["points"][:, 1], s=2, c="C3")
+                ax.set_xlim(-3.5, 3.5)
+                ax.set_ylim(-3.5, 3.5)
+                ax.set_aspect("equal")
+                ax.set_xticks([])
+                ax.set_yticks([])
+                ax.set_title(f"{arm}  update {fr['step']}\nmodes {fr['modes']}/25 "
+                             f"(goal 25/25)", fontsize=9)
+            fig.suptitle(f"BOLT-GP paper watch, seed {SEEDS[seed_index]}, CPU "
+                         "(grey target, red samples; bolt = assisted host-swap cohort)",
+                         fontsize=8)
+            writer.grab_frame()
+    plt.close(fig)
+    return n
 
 
 @pytest.fixture(scope="module")
 def results():
-    return {arm: [run_arm(arm, seed) for seed in SEEDS] for arm in ARMS}
+    return run_all()
 
 
 def _mean(rows, key):
@@ -311,31 +446,79 @@ def test_modes_recovered_counts_paper_rule():
 
 
 # --------------------------------------------------------------------------
-# The gauntlet result, encoded. (Assertions finalized with measured
-# margins after the run; see module docstring.)
+# The gauntlet result, encoded against the pinned CPU cohort
+# (reports/paper_watch/bolt-critic/metrics.json). Measured (seeds 0/1/2):
+# modes particle 25/23/25 (24.33), plain 25/25/25 (25.0), bolt 22/24/17
+# (21.0); coverage particle 0.088, plain 0.461, bolt 0.046. The GPU gauntlet
+# claimed a 25.0/25.0/25.0 tie; on CPU the BOLT arm does not reproduce it.
+# Those claims are kept as strict xfails with the measured values rather
+# than loosened thresholds.
 # --------------------------------------------------------------------------
 
+CPU_FAIL = ("faithful CPU FAIL: bolt mean modes 21.0 (22/24/17) vs particle "
+            "24.33 and plain 25.0; the GPU tie at 25.0 does not reproduce")
+
+
+@slow
 def test_all_arms_stay_finite(results):
     for arm, rows in results.items():
         assert all(row["finite"] for row in rows), f"{arm} diverged to non-finite losses"
 
 
+@slow
+@pytest.mark.xfail(strict=True, reason=CPU_FAIL)
 def test_bolt_matches_or_beats_particle_control(results):
-    # Gauntlet R5: bolt 25.0 vs particle 25.0 mean modes (tie at ceiling).
+    # GPU gauntlet R5 claim: bolt 25.0 vs particle 25.0 mean modes.
     assert _mean(results["bolt"], "modes") >= _mean(results["particle"], "modes")
 
 
+@slow
+@pytest.mark.xfail(strict=True, reason=CPU_FAIL)
 def test_bolt_matches_plain_control_on_modes_at_ceiling(results):
-    # The paper's plain-GAN collapse (~6/25) does not occur in this
-    # harness: the plain control also recovers 25.0 modes, so no positive
-    # margin over it is available on this metric. BOLT-GP ties it.
+    # GPU claim: BOLT-GP ties the (non-collapsing) plain control at 25.0.
     assert _mean(results["bolt"], "modes") >= _mean(results["plain"], "modes")
 
 
+@slow
+def test_plain_control_does_not_collapse_in_this_harness(results):
+    # The paper's plain-GAN collapse (~6/25) does not occur here: the plain
+    # ka2 control recovers all 25 modes in every seed, so there is no
+    # headroom for the paper's headline margin on this metric.
+    assert [row["modes"] for row in results["plain"]] == [N_MODES] * len(SEEDS)
+
+
+@slow
 def test_bolt_coverage_gap_is_the_documented_failure(results):
     # The honest negative half of the verdict: on Naeem coverage BOLT-GP
-    # (0.048) loses to the ParticleGAN control (0.128) and the plain
-    # control (0.507). This assertion pins the measured gap so a future
-    # change that closes it has to update the verdict deliberately.
+    # (0.046) loses to the ParticleGAN control (0.088) and the plain
+    # control (0.461). This pins the measured gap so a future change that
+    # closes it has to update the verdict deliberately.
     assert _mean(results["bolt"], "coverage") < _mean(results["particle"], "coverage")
     assert _mean(results["bolt"], "coverage") < _mean(results["plain"], "coverage")
+
+
+@slow
+def test_training_gif_shows_actual_observations(results, tmp_path):
+    path = tmp_path / "training.gif"
+    frames = render_gif(results, path)
+    assert frames == SNAPSHOTS and path.stat().st_size > 0
+    for rows in results.values():
+        assert rows[0]["frames"][-1]["step"] == STEPS
+
+
+def main(argv=None):
+    """Regenerate the compact report: metrics.json + training.gif (CPU)."""
+    import argparse
+    parser = argparse.ArgumentParser(description=main.__doc__)
+    parser.add_argument("--out", type=Path, default=REPORT_DIR)
+    parser.add_argument("--processes", type=int, default=len(ARMS) * len(SEEDS))
+    args = parser.parse_args(argv)
+    res = run_all(processes=args.processes)
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "metrics.json").write_text(json.dumps(summary(res), indent=2) + "\n")
+    render_gif(res, args.out / "training.gif")
+    print(json.dumps(summary(res)["arms"], indent=1))
+
+
+if __name__ == "__main__":
+    main()
