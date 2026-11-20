@@ -617,7 +617,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             # networks (>3x function-space overshoot) smoothly lower ema_func_gain pre-step and
             # activate momentum-coherence damping via stiff_gate.
             ema_fg = float(self._ema_func_gain)
-            stiff_gate_raw = _smoothstep01((0.40 - ema_fg) / 0.20)
+            stiff_gate_raw = _smoothstep01((0.60 - ema_fg) / 0.30)
             pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
 
             applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]] = []
@@ -631,6 +631,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             ] = {}
 
             pre_gain_applied = 1.0
+            coh_vals: List[torch.Tensor] = []
             for grp in self.param_groups:
                 role = grp["role"]
                 player = self._player(role)
@@ -812,6 +813,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
                     if rate_p <= 0.0:
                         continue
+                    if track_secant:
+                        coh_vals.append(coh)
 
                     if is_conv and (p.shape[2] > 1 or p.shape[3] > 1):
                         c0, c1, kh, kw = (int(s) for s in p.shape)
@@ -914,6 +917,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             alpha_gain = 1.0
             probe_ran = False
             free_ratio = 1.0
+            step_active_probe = False
             if (
                 rec is not None
                 and applied_deltas
@@ -941,6 +945,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             alpha_gain = _band_scale(delta_d, delta_d_min, delta_d_max, alpha_max=64.0)
                             if math.isfinite(delta_d) and delta_d > 1e-12:
                                 free_ratio = (delta_d_max / delta_d) * pre_gain_applied
+                            step_active_probe = math.isfinite(delta_d) and delta_d >= 0.05
                 else:
                     probe_cache = getattr(rec, "_g_probe_cache", None)
                     rec._g_probe_cache = None
@@ -955,9 +960,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             coord_scale = max(0.05, data_scale / math.sqrt(float(out_dim)))
                             delta_rel = delta_rms / coord_scale
                             push_res = float(getattr(rec, "ema_push_res", 0.0))
-                            ema_m = float(getattr(rec, "ema_margin", 0.0)) if getattr(rec, "margin_initialized", False) else 0.0
-                            eff_res = max(push_res, min(1.5, abs(ema_m)))
-                            delta_g_max = (0.22 + 0.18 * min(1.5, eff_res)) * step_scale
+                            delta_g_max = (0.045 + 0.16 * min(1.5, push_res)) * step_scale
                             if (not is_simp) and push_res > 0.18 and s_therm > 0.10:
                                 off_gate = _smoothstep01((push_res - 0.18) / 0.25)
                                 delta_g_min = 0.012 * off_gate * step_scale
@@ -965,17 +968,24 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                                 delta_g_min = 0.0
                             alpha_gain = _band_scale(delta_rel, delta_g_min, delta_g_max, alpha_max=48.0)
                             if math.isfinite(delta_rel) and delta_rel > 1e-12:
-                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied
+                                mean_coh = float(torch.stack(coh_vals).mean().item()) if coh_vals else 1.0
+                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * max(0.05, mean_coh)
+                            step_active_probe = math.isfinite(delta_rel) and delta_rel >= 0.012
                 if alpha_gain != 1.0:
                     adj = alpha_gain - 1.0
                     for p_i, d_i in applied_deltas:
                         p_i.add_(d_i, alpha=adj)
                 if probe_ran:
-                    # Update checkpointed realized function-space conditioning EMA using the unclamped
-                    # free_ratio (no one-way ratchet: recovers smoothly to 1.0 when stiffness subsides):
-                    target_fg = max(0.05, min(1.0, free_ratio))
-                    beta_fg = 0.70 if target_fg < self._ema_func_gain else 0.90
-                    self._ema_func_gain = float(beta_fg * self._ema_func_gain + (1.0 - beta_fg) * target_fg)
+                    # Envelope-tracked function-space conditioning EMA: responds rapidly on stiffness
+                    # overshoots (alpha_gain < 1.0) and recovers slowly on well-conditioned active steps
+                    # (never bouncing upward at equilibrium on stiff 16-layer MLPs, yet no one-way ratchet):
+                    if alpha_gain < 1.0:
+                        target_fg = max(0.05, min(1.0, pre_gain_applied * alpha_gain))
+                        self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
+                    elif step_active_probe and free_ratio > 1.5:
+                        target_fg = max(0.05, min(1.0, free_ratio))
+                        if target_fg > self._ema_func_gain:
+                            self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
 
