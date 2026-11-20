@@ -88,7 +88,8 @@ Gauntlet log (all arms x seeds 0/1/2, 1,800 steps, batch 128):
   (dispersion 1.07 vs 1.17, mode-mass 0.072 vs 0.087), so it is the
   shipped configuration: the paper's SBI settings transfer as-is.
 
-Verdict: PROVEN at the paper's lambda=30, M=16. TARP beats both
+CUDA-cohort verdict (historical, diagnostic): at the paper's lambda=30,
+M=16 TARP beat both
 controls on mean coverage (+0.61 / +0.40), mean mode-mass error
 (-0.22 / -0.25) and the held-out TARP statistic (20x lower), wins
 coverage in every seed against both controls, and is consistent in a
@@ -98,15 +99,50 @@ encoded below rather than hidden: plain seed 0 posts a lower
 mode-mass error (0.025 vs 0.049) -- that seed's plain run is good,
 and TARP's claim is the mean margin plus per-seed consistency.
 Runtime: ~7 min for the nine trainings on one A6000 (the TARP arm
-draws M samples per pair per step); much slower on CPU.
+draws M samples per pair per step).
+
+CPU-cohort verdict (the one CI checks): PARTIAL. TARP's coverage win
+(every seed, +0.50 / +0.37 mean margins), mode-mass mean margins
+(-0.18 / -0.17), its own per-seed consistency and the held-out TARP
+statistic (0.0036 vs 0.062 / 0.036) reproduce. Three sub-claims do not
+and are strict xfails with the measured numbers: per-seed mode-mass wins
+over the particle control, the particle control's concentration in every
+seed, and TARP's dispersion exceeding the plain control's. The controls
+are chaotic across devices and even thread counts (CI's earlier 4-thread
+CPU run gave different control numbers), which is why the device and
+thread count are now pinned. Runtime: ~1.5 min on a 4-core CI runner.
+
+Evidence scope (read before citing): DIAGNOSTIC / ASSISTED COHORT, not
+qualification evidence. The training loop is caller-owned: hinge loss and
+hand-built Adam on G, D and the particle table, with the TARP-CvM term
+(and its frozen b(y) regressor) added by the host. The ``ka2`` recipe
+contributes only ``make_prior``; its optimizer, critic penalty, noise and
+prior policy are not executed, so no arm here is a recipe run. TARP is not
+a declared recipe capability: the repo's GANTrainer is unconditional, and
+a faithful port needs a recipe-driven paired conditional host (as the
+DDGAN conditional-energy host does with ``make_optimizers``/``make_loss``/
+``make_critic_penalty``) plus a declared recipe field and evidence
+identity. That is not a modest change, so these results stay diagnostic.
+
+Device cohorts: the gauntlet log above (rounds 1-5) was measured on CUDA
+(``cuda`` if available). Those numbers are a separate, historical CUDA
+cohort. This test now pins DEVICE to CPU with one intra-op thread so CI
+and local runs share one deterministic law; the CPU cohort's measured
+numbers and claim status are recorded beside the assertions below. A
+claim that the CPU cohort does not support is a strict xfail carrying the
+measured number, not a loosened threshold. The actual-training GIF
+(target vs the three arms at y = -0.8 / 0 / +0.8, seed 0) is written by
+``test_training_gif``; set PAPERWATCH_GIF_DIR to keep it.
 
 Run: python -m pytest tests/test_paperwatch_tarp_cvm.py
 Iteration knobs (env): TARP_STEPS, TARP_LAMBDA, TARP_M, TARP_TAU_MULT.
 """
 from __future__ import annotations
 
+import contextlib
 import math
 import os
+from pathlib import Path
 
 import pytest
 import torch
@@ -114,7 +150,7 @@ from torch import nn
 
 from particlegan import get_recipe, init
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cpu")  # pinned: thresholds are CPU-calibrated
 
 # --------------------------------------------------------------------------
 # Toy: conditional two-component mixture with closed-form truth.
@@ -395,10 +431,28 @@ TAU_MULT = float(os.environ.get("TARP_TAU_MULT", "0.05"))
 SEEDS = (0, 1, 2)
 
 
-def run_arm(arm, seed):
+FRAME_EVERY = 150
+FRAME_YS = (-0.8, 0.0, 0.8)
+FRAME_N = 300
+
+
+def _snapshot(G, prior, step):
+    """Actual generator outputs at fixed conditions; own RNG stream, so
+    recording never perturbs the training streams."""
+    gen = torch.Generator(device=DEVICE).manual_seed(31_337)
+    out = {"step": step}
+    with torch.no_grad():
+        for yv in FRAME_YS:
+            codes, _ = prior.sample(FRAME_N, generator=gen)
+            y = torch.full((FRAME_N, Y_DIM), yv, device=DEVICE)
+            out[yv] = G(codes, y).cpu()
+    return out
+
+
+def run_arm(arm, seed, frames=None):
     torch.manual_seed(seed)
-    overrides = dict(z_dim=Z_DIM, num_particles=NUM_PARTICLES,
-                     batch_size=BATCH, total_steps=STEPS, lr=LR)
+    overrides = {"z_dim": Z_DIM, "num_particles": NUM_PARTICLES,
+                 "batch_size": BATCH, "total_steps": STEPS, "lr": LR}
     if arm == "plain":
         overrides.update(prior_update="frozen",
                          prior_code_law="fresh_gaussian")
@@ -420,7 +474,9 @@ def run_arm(arm, seed):
     data_gen = torch.Generator(device=DEVICE).manual_seed(seed + 10_000)
     code_gen = torch.Generator(device=DEVICE).manual_seed(seed + 20_000)
 
-    for _ in range(STEPS):
+    for step in range(STEPS):
+        if frames is not None and step % FRAME_EVERY == 0:
+            frames.append(_snapshot(G, prior, step))
         theta, y = sample_pairs(BATCH, data_gen)
         # Critic step (hinge).
         codes_d, _ = prior.sample(BATCH, generator=code_gen)
@@ -443,6 +499,8 @@ def run_arm(arm, seed):
         loss_g.backward()
         opt_g.step()
 
+    if frames is not None:
+        frames.append(_snapshot(G, prior, STEPS))
     metrics = evaluate(G, prior, seed)
     bb, vv = (b, varsigma) if arm == "tarp" else _cached_estimate(seed)
     metrics["tarp_stat"] = heldout_tarp(G, prior, bb, vv, seed)
@@ -458,14 +516,40 @@ def _cached_estimate(seed):
     return _ESTIMATE_CACHE[seed]
 
 
+ARMS = ("particle", "plain", "tarp")
+
+
+@contextlib.contextmanager
+def single_thread():
+    """Pin intra-op threads to 1: deterministic CPU reductions, and no
+    oversubscription stalls on a loaded host. Restored afterwards."""
+    previous = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        yield
+    finally:
+        torch.set_num_threads(previous)
+
+
 def run_all():
-    return {arm: [run_arm(arm, seed) for seed in SEEDS]
-            for arm in ("particle", "plain", "tarp")}
+    """All arms x seeds; seed-0 frames are recorded for the training GIF."""
+    results, frames = {}, {}
+    for arm in ARMS:
+        frames[arm] = []
+        results[arm] = [run_arm(arm, seed, frames=frames[arm] if seed == 0 else None)
+                        for seed in SEEDS]
+    return results, frames
 
 
 @pytest.fixture(scope="module")
-def results():
-    return run_all()
+def gauntlet():
+    with single_thread():
+        return run_all()
+
+
+@pytest.fixture(scope="module")
+def results(gauntlet):
+    return gauntlet[0]
 
 
 def _mean(rows, key):
@@ -521,8 +605,27 @@ def test_point_estimate_recovers_conditional_mean():
 
 
 # --------------------------------------------------------------------------
-# The gauntlet result, encoded. Margins are the round-3 measurements with
-# headroom; see the module docstring for the full iteration log.
+# The gauntlet claims, encoded against the CPU cohort. The thresholds are
+# the original CUDA-cohort claims, unchanged. CPU cohort (DEVICE=cpu, one
+# intra-op thread, 1,800 steps, seeds 0/1/2) measured:
+#
+#   coverage      particle [0.598, 0.120, 0.246] mean 0.321
+#                 plain    [0.603, 0.348, 0.387] mean 0.446
+#                 tarp     [0.774, 0.852, 0.829] mean 0.818
+#   dispersion    particle [0.830, 0.546, 0.582] mean 0.652
+#                 plain    [0.946, 1.460, 1.440] mean 1.282
+#                 tarp     [1.038, 1.116, 1.113] mean 1.089
+#   mode-mass err particle [0.047, 0.500, 0.205] mean 0.250
+#                 plain    [0.034, 0.232, 0.467] mean 0.245
+#                 tarp     [0.073, 0.088, 0.054] mean 0.071
+#   tarp_stat     particle mean 0.062 | plain 0.036 | tarp 0.0036
+#
+# Supported on CPU: the coverage claim, the mode-mass mean margins and
+# per-seed consistency, TARP's own dispersion band, and the held-out
+# statistic. Not supported (strict xfail with the measured number): the
+# per-seed mode-mass win over the particle control (seed 0), the particle
+# control's concentration in every seed (seed 0), and TARP's mean
+# dispersion exceeding the plain control's (plain over-disperses on CPU).
 # --------------------------------------------------------------------------
 
 def test_tarp_beats_both_controls_on_coverage(results):
@@ -539,16 +642,12 @@ def test_tarp_beats_both_controls_on_coverage(results):
         assert margin >= 0.25, f"tarp-{control} coverage margin {margin:.3f}"
 
 
-def test_tarp_beats_both_controls_on_mode_mass(results):
-    # Per-seed wins against the particle control...
+def test_tarp_mode_mass_margins_and_consistency(results):
     for seed_idx in range(len(SEEDS)):
-        assert results["tarp"][seed_idx]["mode_mass_err"] \
-            < results["particle"][seed_idx]["mode_mass_err"]
-        # ...and per-seed consistency: never a collapsed seed.
+        # Per-seed consistency: never a collapsed seed.
         assert results["tarp"][seed_idx]["mode_mass_err"] <= 0.12
     # Against the plain control the claim is the mean margin plus wins
-    # in at least 2 of 3 seeds: plain seed 0 is a genuinely good run
-    # (0.025) and beats tarp seed 0 (0.049); seeds 1/2 are not close.
+    # in at least 2 of 3 seeds: plain seed 0 is a genuinely good run.
     wins = sum(results["tarp"][i]["mode_mass_err"]
                < results["plain"][i]["mode_mass_err"]
                for i in range(len(SEEDS)))
@@ -561,14 +660,34 @@ def test_tarp_beats_both_controls_on_mode_mass(results):
     assert margin_g >= 0.15, f"plain-tarp mode-mass margin {margin_g:.3f}"
 
 
-def test_tarp_relieves_intramode_concentration(results):
-    # The particle control concentrates within modes in every seed.
+@pytest.mark.xfail(strict=True, reason=(
+    "CPU cohort FAIL: seed 0 tarp mode-mass err 0.073 vs particle 0.047 "
+    "(CUDA-cohort claim: tarp wins every seed)"))
+def test_tarp_beats_particle_on_mode_mass_every_seed(results):
     for seed_idx in range(len(SEEDS)):
-        assert results["particle"][seed_idx]["dispersion"] <= 0.75
-        # TARP sits at the true spread in every seed -- relief of the
-        # concentration without scatter (bounded both sides).
+        assert results["tarp"][seed_idx]["mode_mass_err"] \
+            < results["particle"][seed_idx]["mode_mass_err"]
+
+
+def test_tarp_dispersion_at_true_spread(results):
+    # TARP sits at the true spread in every seed (bounded both sides).
+    for seed_idx in range(len(SEEDS)):
         assert 0.90 <= results["tarp"][seed_idx]["dispersion"] <= 1.25
     assert 1.00 <= _mean(results["tarp"], "dispersion") <= 1.15
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "CPU cohort FAIL: particle seed 0 dispersion 0.830 > 0.75 (seeds 1/2: "
+    "0.546 / 0.582); the control does not concentrate in every seed"))
+def test_particle_control_concentrates_every_seed(results):
+    for seed_idx in range(len(SEEDS)):
+        assert results["particle"][seed_idx]["dispersion"] <= 0.75
+
+
+@pytest.mark.xfail(strict=True, reason=(
+    "CPU cohort FAIL: tarp mean dispersion 1.089 < plain 1.282 (plain "
+    "over-disperses on CPU; CUDA-cohort claim: tarp > plain)"))
+def test_tarp_dispersion_exceeds_plain(results):
     assert _mean(results["tarp"], "dispersion") \
         > _mean(results["plain"], "dispersion")
 
@@ -581,3 +700,66 @@ def test_heldout_tarp_statistic_agrees(results):
     for control in ("particle", "plain"):
         assert _mean(results["tarp"], "tarp_stat") \
             <= 0.25 * _mean(results[control], "tarp_stat")
+
+
+# --------------------------------------------------------------------------
+# Actual-training GIF (seed 0): true conditional law vs each arm's samples
+# at fixed conditions y in FRAME_YS, on fixed axes, over training.
+# --------------------------------------------------------------------------
+
+def render_training_gif(frames, results, path):
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    import io
+
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+    gen = torch.Generator(device=DEVICE).manual_seed(5)
+    truth = {}
+    for yv in FRAME_YS:
+        y = torch.full((FRAME_N, Y_DIM), yv, device=DEVICE)
+        w = mode_weights(y)
+        pick = (torch.rand(FRAME_N, generator=gen, device=DEVICE) >= w[:, 0]).long()
+        truth[yv] = (mode_centers(y)[torch.arange(FRAME_N), pick]
+                     + SIGMA * torch.randn(FRAME_N, 2, generator=gen, device=DEVICE))
+    rows = ("target",) + ARMS
+    images = []
+    n_frames = len(frames[ARMS[0]])
+    for i in range(n_frames):
+        fig, axes = plt.subplots(len(FRAME_YS), len(rows), figsize=(8, 6), dpi=64)
+        for r, yv in enumerate(FRAME_YS):
+            for c, name in enumerate(rows):
+                ax = axes[r, c]
+                pts = truth[yv] if name == "target" else frames[name][i][yv]
+                ax.scatter(pts[:, 0], pts[:, 1], s=2, alpha=0.5)
+                ax.set_xlim(-2, 2)
+                ax.set_ylim(-1.6, 1.6)
+                ax.set_xticks([])
+                ax.set_yticks([])
+                if r == 0:
+                    title = name
+                    if name != "target" and i == n_frames - 1:
+                        title += f"\ncov {results[name][0]['coverage']:.2f}"
+                    ax.set_title(title, fontsize=8)
+                if c == 0:
+                    ax.set_ylabel(f"y={yv:+.1f}", fontsize=8)
+        fig.suptitle(f"TARP-CvM diagnostic cohort, CPU, seed 0, update "
+                     f"{frames[ARMS[0]][i]['step']}/{STEPS}", fontsize=9)
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).convert("P"))
+    images[0].save(path, save_all=True, append_images=images[1:],
+                   duration=[250] * (n_frames - 1) + [1500], loop=0)
+    return n_frames
+
+
+def test_training_gif(gauntlet, tmp_path):
+    results, frames = gauntlet
+    out = os.environ.get("PAPERWATCH_GIF_DIR")
+    path = (Path(out) if out else tmp_path) / "tarp-cvm-cpu.gif"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    assert render_training_gif(frames, results, path) == STEPS // FRAME_EVERY + 1
+    assert path.stat().st_size > 0
