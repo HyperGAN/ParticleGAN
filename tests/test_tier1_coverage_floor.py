@@ -109,7 +109,7 @@ status; the last frame IS the gated endpoint sample. The file is written
 to ``$T1_COVERAGE_GIF`` when set, else to pytest's tmp dir; the committed
 copy is docs/media/t1_coverage_floor/training.gif.
 
-Cost: the module fixture trains nine CPU runs (~2.5 min on CI runners),
+Cost: the module fixture trains nine CPU runs (~2.5-5 min on CI runners),
 so the module carries the repository's ``tier1`` marker for selection
 (``-m tier1`` / ``-m 'not tier1'``); it stays in the default CI suite.
 
@@ -155,16 +155,21 @@ def sample_mix(n, gen):
 # Metrics.
 # --------------------------------------------------------------------------
 
-def naeem_coverage(real, fake, k=5):
+def real_knn_radius(real, k=5):
+    d_rr = torch.cdist(real, real)
+    d_rr.fill_diagonal_(float("inf"))
+    return d_rr.topk(k, largest=False).values[:, -1]
+
+
+def naeem_coverage(real, fake, k=5, radius=None):
     """Fraction of real points whose kNN ball (within real) contains a fake.
 
     Naeem et al. (2020) coverage, as used by the paper-watch gauntlets
     (PRs #560/#563/#564). Self-contained copy: master's lib/toy_metrics.py
     does not carry this metric yet (see module docstring).
     """
-    d_rr = torch.cdist(real, real)
-    d_rr.fill_diagonal_(float("inf"))
-    radius = d_rr.topk(k, largest=False).values[:, -1]
+    if radius is None:
+        radius = real_knn_radius(real, k)
     d_rf = torch.cdist(real, fake)
     return (d_rf.min(dim=1).values <= radius).float().mean().item()
 
@@ -224,6 +229,7 @@ def run_arm(arm, seed, snapshots=False):
     trainer = GANTrainer(recipe, G, D, prior=prior, seed=seed)
     data_gen = torch.Generator().manual_seed(seed + 10_000)
     real_eval = sample_mix(N_EVAL, torch.Generator().manual_seed(777))
+    real_radius = real_knn_radius(real_eval)  # fixed target: compute once
 
     def observe():
         # Same separate evaluation stream as the gated endpoint; it never
@@ -237,7 +243,7 @@ def run_arm(arm, seed, snapshots=False):
         fake = observe()
         frames.append({"step": step, "points": fake[:GIF_POINTS].clone(),
                        "modes": modes_reached(fake),
-                       "coverage": naeem_coverage(real_eval, fake)})
+                       "coverage": naeem_coverage(real_eval, fake, radius=real_radius)})
 
     finite = True
     if snapshots:
@@ -252,7 +258,7 @@ def run_arm(arm, seed, snapshots=False):
     fake = observe()
     row = {"arm": arm, "seed": seed, "finite": finite,
            "modes": modes_reached(fake),
-           "coverage": naeem_coverage(real_eval, fake)}
+           "coverage": naeem_coverage(real_eval, fake, radius=real_radius)}
     if snapshots:
         frames.append({"step": trainer.completed_steps, "points": fake[:GIF_POINTS].clone(),
                        "modes": row["modes"], "coverage": row["coverage"]})
