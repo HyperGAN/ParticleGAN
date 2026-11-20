@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "rhbi-v12-study"
+  },
+  "candidate": "rhbi-v12",
+  "competing_explanation": "Expanding cross-horizon couplings under valley-gated KDE density-ratio support completion (rhbi_support_completion=true) could over-couple separated equal-mass modes on ring16_acquisition or vector_anisotropic (pushing component_covariance_error > 0.85), conditional generator step damping (rhbi_cond_step_damp=0.68) or AE coordinate whitening (rhbi_ae_coord_whiten=true) could slow Tier 1 model_ae_gan_multimodal or model_ae_reconstruction convergence, or 1D curve chart settling (rhbi_simplex_curve_settle=true) could mis-fire on 2D sheet/image interpolation tasks such as interp_saddle_barycentric or interp_img_patch_shift.",
+  "control": {
+    "candidate_id": "rhbi-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Pairing valley-gated KDE density-ratio sparse-mode support completion (rhbi_support_completion=true), coordinate-whitened conditional IMQ-CMMD fibre transport (rhbi_cond_ot_mode='diag_imq_cmmd') with conditional residual generator DualNorm step damping (rhbi_cond_step_damp=0.68) and coordinate-whitened AE reconstruction (rhbi_ae_coord_whiten=true), and intrinsic k-NN Gram PCA 1D curve manifold chart settling with Schmitt-trigger thermal-lock hysteresis (rhbi_simplex_curve_settle=true) under one global clock-free, schedule-free, shape-gate-free recipe converts counted vector_unequal_mass (component_covariance_error <= 0.85, sw1_normalized <= 0.18, mass_tv <= 0.15, hq >= 0.85, component_min_eigen_ratio >= 0.15) alongside stretch model_ae_ddgan_bimodal_chain and interp_sparse_arc with zero regressions against rhbi-v11 on protocol seed 0.",
+  "id": "rhbi-v12-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_mass",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v11",
+        "candidate_revision": "05f71faf03f06323d92bc7def373a5310d32c91bea38bf62b760725e29415f55"
+      },
+      "path": "reports/forge/records/readout-4301e02799ec0ad34cc958a1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

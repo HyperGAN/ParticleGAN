@@ -1,0 +1,62 @@
+{
+  "campaign": {
+    "budget_seconds": 9600,
+    "candidate_budget_seconds": 1200,
+    "id": "t4-nash-v1-dcgan-perf-study"
+  },
+  "candidate": "t4-nash-v1",
+  "competing_explanation": "Synthetic update throughput omits data loading and image quality; isolated GPU timing, warmup, and memory receipts benchmark T4Nash's 0-SVD update energy and wall-time against DualNorm SVD/Newton-Schulz formulations (empf-v8, rhbi-v12, rgdt-v2, t2-secant).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {
+      "dcgan_performance_b64": "img_stripes2",
+      "dcgan_performance_r128": "img_stripes2",
+      "dcgan_performance_r256": "img_stripes2",
+      "dcgan_performance_r32": "img_stripes2",
+      "dcgan_performance_r64": "img_stripes2",
+      "dcgan_performance_w128": "img_stripes2"
+    }
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "hypothesis": "Eliminating all matrix SVD and Newton-Schulz polar iterations in T4Nash (0 SVD calls, BF16 channels-last) achieves minimal per-step energy/latency and low peak VRAM across 32^2..256^2 RGB DCGAN tasks under the exact same unchanged global t4-nash-v1 recipe.",
+  "id": "t4-nash-v1-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

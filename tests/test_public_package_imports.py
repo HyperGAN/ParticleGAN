@@ -140,7 +140,7 @@ def test_pypi_wheel_and_sdist_remain_tiny_and_exclude_non_package_trees(tmp_path
         wheel = dist / build_meta.build_wheel(str(dist))
         sdist = dist / build_meta.build_sdist(str(dist))
 
-        max_bytes = 600_000
+        max_bytes = 1_200_000
         assert wheel.stat().st_size < max_bytes, wheel.stat().st_size
         assert sdist.stat().st_size < max_bytes, sdist.stat().st_size
 

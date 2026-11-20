@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t1-coupling-v3-study"
+  },
+  "candidate": "t1-coupling-v3",
+  "competing_explanation": "Raising the cross-chart rebalancing deadband to 2.8 SE gated by thermal disequilibrium (s_thermal > 0.02) could slightly delay rebalancing on moderately skewed 4-mode mixtures (e.g. vector_anisotropic), or width-heterogeneity conformal horizons could still leave residual covariance inflation on narrow-to-wide targets (vector_unequal_width).",
+  "control": {
+    "candidate_id": "t1-coupling-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "recon_mse",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.05
+  },
+  "hypothesis": "Gating piecewise Laguerre chart commitment and activation-gram gradient deconfliction on K >= 3 disconnected modes (leaving K <= 2 scalar-balanced problems strictly neutral) and raising the patch-smoothed real width-heterogeneity threshold kappa_width to 2.85 eliminates single-batch slot-swap spikes and finite-batch horizon fluctuations on ae_gan_hold and model_vae_categorical, achieving 100% Tier 1 qualification (16/16 including mxfp8, nvfp4, and interp_sparse_arc) while unlocking full Tier 2-3 evaluation on img_bars4, vector_unequal_width, grid100, and model_ddgan_gaussian_chain at 4x faster r256 conv speed than rhbi-v12.",
+  "id": "t1-coupling-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "resolved_core_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.5
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v2",
+        "candidate_revision": "7493617575999ae8b6951c7a4790df46717b997fd17976c53b062d7ea04713c5"
+      },
+      "path": "reports/forge/records/readout-77681c90f98c8fd897882945.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

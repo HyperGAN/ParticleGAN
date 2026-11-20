@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_public_default_matches_every_selected_candidate_field_except_label():
-    empf_candidate = json.loads((ROOT / "configs/forge/ideas/empf-v7.json").read_text())
+    empf_candidate = json.loads((ROOT / "configs/forge/ideas/empf-v8.json").read_text())
     actual = json.loads(json.dumps(asdict(get_recipe())))
     assert DEFAULT_RECIPE == actual["name"] == "empf"
     for field, value in empf_candidate["recipe_overrides"].items():
@@ -25,9 +25,18 @@ def test_public_default_matches_every_selected_candidate_field_except_label():
             assert actual[field] == value, field
     assert get_recipe() == get_recipe("empf")
     assert Recipe.from_dict(get_recipe().to_dict()) == get_recipe()
+    assert actual["optimizer_dense_profile"] == "newton_schulz_hybrid_v1"
     assert actual["optimizer_svd_backend"] == "batched"
     assert actual["training_precision"] == "bf16_channels_last"
-    # Explicit bispf_optimized, historical snapshot restoration, and presets keep their meaning.
+    # Explicit rhbi_optimized, bispf_optimized, historical snapshot restoration, and presets keep their meaning.
+    rhbi_candidate = json.loads((ROOT / "configs/forge/ideas/rhbi-v12.json").read_text())
+    rhbi_actual = json.loads(json.dumps(asdict(get_recipe("rhbi_optimized"))))
+    for field, value in rhbi_candidate["recipe_overrides"].items():
+        if field != "name":
+            assert rhbi_actual[field] == value, field
+    assert rhbi_actual["optimizer_dense_profile"] == "polar_cpu_v1"
+    assert rhbi_actual["optimizer_svd_backend"] == "native"
+    assert rhbi_actual["training_precision"] == "float32"
     bispf_candidate = json.loads((ROOT / "configs/forge/ideas/bispf-throughput-v1.json").read_text())
     bispf_actual = json.loads(json.dumps(asdict(get_recipe("bispf_optimized"))))
     for field, value in bispf_candidate["recipe_overrides"].items():
@@ -39,7 +48,7 @@ def test_public_default_matches_every_selected_candidate_field_except_label():
     assert get_recipe("bispf").prior_reg == .05
 
 
-@pytest.mark.parametrize("name", ["gan", "empf", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
+@pytest.mark.parametrize("name", ["gan", "rhbi_optimized", "rhbi", "empf", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
 def test_plain_fields_match_validated_recipe(name):
     assert get_recipe_fields(name) == asdict(get_recipe(name))
 

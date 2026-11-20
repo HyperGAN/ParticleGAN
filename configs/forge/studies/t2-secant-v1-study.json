@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t2-secant-v1-study"
+  },
+  "candidate": "t2-secant-v1",
+  "competing_explanation": "If finite-difference secant bounds along 1D transport chords and batch-pool pairs leave orthogonal off-manifold critic directions unbounded, then replacing 2nd-order autograd.grad(create_graph=True) with 1st-order secants will allow actual Euclidean input gradient norms to blow up (two_pole grad_med > 1.0) or break multimodal/continuation gates (ring16_acquisition, gaussian1d_stability, five_word_joint_hold).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "grad_med",
+    "op": ">",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "hypothesis": "Pure 1st-order Variational Multi-Scale Secant Born-Infeld critic regularization (reusing live D(x_real), D(x_fake) logits plus one detached Chebyshev-Weyl transport-chord probe with all-pairs Kantorovich supremum secants on low-d manifolds and Weyl-cyclic secants on images) enforces actual 1-Lipschitz critic slope (two_pole grad_med <= 1.0) and preserves discriminator_stability Tier 1-2 gates on NVIDIA RTX A6000 under protocol seed 0 without create_graph=True double-backpropagation.",
+  "id": "t2-secant-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "grad_med",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-33f7628135472eef06f0d92a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

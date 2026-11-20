@@ -112,7 +112,7 @@ def test_current_inventory_has_complete_quality_and_distinct_claim_views():
     assert len(smoke) == 11 and all(tasks[name]["adapter"] == "public_api_model_toy" for name in smoke[7:])
     assert sum(tasks[n]["execution"]["steps"] for n in smoke[1:4]) == 530
     # 0.10 restores four accuracy/settling tasks; the former hold policy is archived.
-    assert stability["revision"] == 17 and stability["previous_revision"]["revision"] == 16
+    assert stability["revision"] == 19 and stability["previous_revision"]["revision"] == 18
     assert [a["task"] for a in stability["assignments"] if a["importance"] == "diagnostic"] == [
         "ring_hold", "clockfree_audit_measurement_v1", "precision_gaussian_fp32"]
     assert next(a for a in stability["assignments"] if a["task"] == "ring_hold")["removal"]["counted_by"] == "ring_extension"
@@ -154,7 +154,7 @@ def test_default_plan_and_report_include_acquisition_smoke_without_new_views():
     assert not {"ring16_acquisition", "five_word_joint"} & {row["id"] for row in report["views"]}
     view = next(row for row in report["views"] if row["id"] == "discriminator_stability")
     smoke = next(row for row in view["tiers"] if row["qualification_tier"] == 1)
-    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 3}
+    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 4}
     reported = {row["id"]: row for row in smoke["tasks"]}
     for name, updates, timeout in (("gaussian1d_smoke", 1000, 120),
                                    ("ring16_acquisition", 1600, 300),
@@ -298,7 +298,14 @@ def test_frozen_thresholds_reference_the_declared_gate_policy_and_current_scorer
                     assert hashlib.sha256(archived_raw).hexdigest() == archived["sha256"]
                     assert original == json.loads(archived_raw)
                     assert original["evaluation"]["sources"] == {}
-                    assert task["evaluation"]["integration_source_binding"]["id"] == COMBINED_INTEGRATION
+                    # The combined layer stays in the verified chain; later
+                    # declared source-only layers may stack above it.
+                    from pr_integration_compat import INTEGRATION, integration_layer_ids
+                    layers = integration_layer_ids(ROOT, task, "configs/forge/tasks/" + task["id"] + ".json")
+                    assert COMBINED_INTEGRATION in layers
+                    later = layers[:layers.index(COMBINED_INTEGRATION)]
+                    assert all(INTEGRATION.fullmatch(layer) for layer in later)
+                    assert task["evaluation"]["integration_source_binding"]["id"] == layers[0]
                     assert task["execution"]["host_definition"]["provider"] == "benchmarks.toy_audit.api_model_misgan"
                     assert task["execution"]["execution_contract"] == receipt["version"]
                     assert receipt["corrected_execution_quality"] == "unmeasured"

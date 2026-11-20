@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "t2-secant-v1-dcgan-perf-study"
+  },
+  "candidate": "t2-secant-v1",
+  "competing_explanation": "If the extra 1st-order chord probe forward pass on BF16 channels-last Conv2d/BatchNorm2d costs nearly as much as EMPF's 2-endpoint create_graph=True double-backward pass, then dcgan_performance_r256 median update latency will remain >= 130 ms instead of dropping below 100 ms.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 130.0
+  },
+  "hypothesis": "Eliminating 2nd-order autograd.grad(..., create_graph=True) double-backpropagation via live 1st-order endpoint reuse + one 1st-order Chebyshev-Weyl chord probe reduces dcgan_performance_r256 median update time from 155.41 ms (empf-v8), 339.64 ms (bispf), 588.75 ms (rhbi-v12), and 3112.91 ms (bcap) down to <= 100.0 ms while lowering peak GPU memory on NVIDIA RTX A6000.",
+  "id": "t2-secant-v1-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 100.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

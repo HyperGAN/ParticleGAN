@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "unified-v6-dcgan-perf-study"
+  },
+  "candidate": "unified-v6",
+  "competing_explanation": "If UnifiedV4EquilibratedOptimizer batched BF16 Quintic polar orthogonalization or UnifiedV4CriticPenalty adds measurable overhead on 4D convolutional networks, dcgan_performance_r256 will exceed 95 ms/step or regress relative to unified-v3 (87.51 ms/step).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 145.0
+  },
+  "hypothesis": "With strictly 0 torch.autograd.grad calls, 0 torch.linalg.svd calls, batched BF16 5-step Quintic polar updates, and live-endpoint BF16 secant reuse, unified-v6 achieves <95 ms/step uncontended (and <145 ms/step under shared GPU load) on dcgan_performance_r256 across all 6/6 dcgan_performance tasks under protocol seed 0.",
+  "id": "unified-v6-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 95.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v5",
+        "candidate_revision": "0c60b814da7eadddadf0554471035b0a6104f658a1e74bc3137d8cee8adc5775"
+      },
+      "path": "reports/forge/records/readout-78081f9229e06098095843b8.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

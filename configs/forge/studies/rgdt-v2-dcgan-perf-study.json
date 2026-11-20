@@ -1,0 +1,62 @@
+{
+  "campaign": {
+    "budget_seconds": 9600,
+    "candidate_budget_seconds": 1200,
+    "id": "rgdt-v2-dcgan-perf-study"
+  },
+  "candidate": "rgdt-v2",
+  "competing_explanation": "Synthetic update throughput omits data loading and image quality. Warmup, isolated devices, explicit hardware receipts and completion checks constrain this energy/speed diagnostic against empf-v8, rhbi-v12, and rgdt-v1.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {
+      "dcgan_performance_b64": "img_stripes2",
+      "dcgan_performance_r128": "img_stripes2",
+      "dcgan_performance_r256": "img_stripes2",
+      "dcgan_performance_r32": "img_stripes2",
+      "dcgan_performance_r64": "img_stripes2",
+      "dcgan_performance_w128": "img_stripes2"
+    }
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "hypothesis": "Verify that rgdt-v2 preserves rgdt-v1's BF16 channels-last and Newton-Schulz hybrid DualNorm energy/speed efficiency across 32^2..256^2 RGB DCGAN tasks (~4.5x faster and ~2.5x lower GPU memory than rhbi-v12 at 256^2) under one global clock-free recipe.",
+  "id": "rgdt-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v1",
+        "candidate_revision": "aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17"
+      },
+      "path": "reports/forge/records/readout-5b5d0fc5fa0b73886c36e64f.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

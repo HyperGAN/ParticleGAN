@@ -1,0 +1,316 @@
+{
+  "attempt_ids": [
+    "175bf580e794493395dc0bd6baf79496"
+  ],
+  "candidate_id": "rhbi-v12",
+  "candidate_revision": "c8ceb0973a8346d6bf0e53ab6d9b97144d797f93ed066252b3a128a1e448c010",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Cannot unlock runnable Tier-4 architecture tasks behind the grid100 gate; trails t4-arch-v3 (4/4 runnable PASS).",
+  "conclusion": "On the untouched Tier-4 frontier holdout view (seed 0, zero tuning, 0.0s new compute), rhbi-v12 reused its compatible grid100 FAIL receipt (prec=0.2068, mass_tv=0.1294) from r3-t3-holdout-rhbi-v12-study, gating all 3 runnable 16-layer/rail Tier-4 tasks (grid100_mlp16, grid100_res16_tanh, grid100_res16_scaled_tanh), while all 12 STRETCH_VECTOR_HOSTS tasks remained explicitly preflight BLOCKED (no registered public Forge adapter).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "175bf580e794493395dc0bd6baf79496"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "45e9786652d0883e8c2a60bb4c886501403e57177f1e05c9495798d804f07d1c",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": null,
+          "value": null
+        },
+        "prediction": {
+          "satisfied": null,
+          "value": null
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "175bf580e794493395dc0bd6baf79496",
+          "producer_request_id": "879847ed7463cdc1512cfcff",
+          "producer_study_id": "r3-t3-holdout-rhbi-v12-study",
+          "result_hash": "93bdda9a22cc83a3ac87dca8aec5159e531beb53bb206ef31a2005a25f8e3cd5",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "129e48d5211f7cb989b72ad326599ec89ae5446d5dd8661a08d5c60d77fe31c9",
+        "contract_sha256": "45e9786652d0883e8c2a60bb4c886501403e57177f1e05c9495798d804f07d1c",
+        "control_binding_sha256": "6de68b9025a27571885295a5d7eefa29fc622278407cdafba9b945abb7c37cc9",
+        "policy_fingerprint": "d1c18f5412a4e72751c59f435892ff89633fdcc584c0a3ae2577ac26b0162ec3",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "8379dfd4f1d19e76d8bfc0def457df5220b10b466ba40a261fcd3379a2db84dd"
+      },
+      "study_id": "r3-t4-holdout-rhbi-v12-study",
+      "study_sha256": "8379dfd4f1d19e76d8bfc0def457df5220b10b466ba40a261fcd3379a2db84dd"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "r3-tier4-frontier-holdout-v1",
+  "hypothesis": "Audit frozen rhbi-v12 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Report grid100-gated status and explicit 12-task adapter BLOCKED boundary in reports/forge/studies/r3-calibration-holdout.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "175bf580e794493395dc0bd6baf79496",
+        "result_hash": "93bdda9a22cc83a3ac87dca8aec5159e531beb53bb206ef31a2005a25f8e3cd5",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-51a0d5590d041ce50f3ce174",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/175bf580e794493395dc0bd6baf79496/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 30000,
+      "candidate_budget_seconds": 30000,
+      "id": "r3-t4-holdout-rhbi-v12-study"
+    },
+    "candidate": "rhbi-v12",
+    "competing_explanation": "If rhbi-v12 silently bypassed missing stretch host adapters or failed its declared grid100 prerequisite contract on the unified ff9b14b78 source cohort, Tier-4 preflight or gate outcomes would deviate from frozen adapter boundaries.",
+    "control": {
+      "candidate_id": "empf-v8",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "all_finite",
+      "op": "<",
+      "phase": "final",
+      "task_id": "grid100",
+      "threshold": 1
+    },
+    "hypothesis": "Audit frozen rhbi-v12 with zero tuning under protocol seed 0 across all 15 Tier-4 frontier holdout tasks (reusing compatible grid100 evidence, executing runnable 16-layer/rail-guarded 100-mode tasks when grid100 passes, and recording explicit host-adapter BLOCKED boundaries across all 12 STRETCH_VECTOR_HOSTS tasks).",
+    "id": "r3-t4-holdout-rhbi-v12-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "all_finite",
+      "op": "==",
+      "phase": "final",
+      "task_id": "grid100",
+      "threshold": 1
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "rhbi-v12",
+          "candidate_revision": "2f133c575e3553b119ce8b3742a3d16dddb72c8cb07a4b33fbfe5ceff4e693eb"
+        },
+        "path": "reports/forge/records/readout-47591bd9555febfe3409fd0d.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "r3-tier4-frontier-holdout-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "r3-t4-holdout-rhbi-v12-study",
+  "study_sha256": "8379dfd4f1d19e76d8bfc0def457df5220b10b466ba40a261fcd3379a2db84dd",
+  "task_results": [
+    {
+      "compatibility_key": "6eda37e7f13ef38f5aa99bdad600bc43d4edd15e667d7f6c2c1542d7f8f51f25",
+      "cost": {
+        "adapter_loop_seconds": 502.618249875959,
+        "adapter_seconds": 503.02952507301234,
+        "charged_task": "grid100",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 511.13570985989645,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 488.2963962520007,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 7.933773930184543
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.07063646079041064
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 480.29198586102575
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 504.57641386496834,
+        "wall_seconds": 511.13570985989645
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.1354,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.2094,
+          "precision_gap": 0.7794910034617577,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 20000,
+          "within_radius_n": 4188
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.12944,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.20678,
+          "precision_gap": 0.7821110034617578,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 20678
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": null,
+          "accuracy_pass": false,
+          "accuracy_score": null,
+          "all_finite": true,
+          "center_max_sigma": null,
+          "center_rms_sigma": null,
+          "cov_frob_rms": null,
+          "cov_trace_bias": null,
+          "frozen_pass": false,
+          "mass_tv": 0.12944,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.20678,
+          "precision_gap": 0.7821110034617578,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": null,
+          "valid_n": 100000,
+          "within_radius_n": 20678
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": null,
+        "accuracy_pass": false,
+        "accuracy_score": null,
+        "all_finite": true,
+        "center_max_sigma": null,
+        "center_rms_sigma": null,
+        "cov_frob_rms": null,
+        "cov_trace_bias": null,
+        "frozen_pass": false,
+        "mass_tv": 0.12944,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.20678,
+        "precision_gap": 0.7821110034617578,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": null,
+        "valid_n": 100000,
+        "within_radius_n": 20678
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100"
+    }
+  ]
+}
