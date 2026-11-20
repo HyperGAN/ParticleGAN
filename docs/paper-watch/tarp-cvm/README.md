@@ -6,7 +6,8 @@ training loop and the TARP-CvM term are caller-owned (hinge + Adam host); the
 `ka2` recipe supplies only the particle prior. TARP is not a declared recipe
 capability.
 
-CPU cohort (DEVICE=cpu, 1 intra-op thread, 1,800 steps, batch 128, seeds 0/1/2):
+CPU cohort, state B (DEVICE=cpu, 1 intra-op thread, 1,800 steps, batch 128,
+seeds 0/1/2; this workstation and some CI runners):
 
 | metric | particle | plain | tarp |
 |---|---|---|---|
@@ -15,9 +16,13 @@ CPU cohort (DEVICE=cpu, 1 intra-op thread, 1,800 steps, batch 128, seeds 0/1/2):
 | mode-mass err ↓ | 0.250 | 0.245 | **0.071** |
 | held-out TARP stat ↓ | 0.062 | 0.036 | **0.0036** |
 
-Verdict: PARTIAL. Coverage, mode-mass mean margins and the held-out statistic
-reproduce; three sub-claims of the historical CUDA cohort do not (strict
-xfails with measured numbers in the test).
+Verdict: PARTIAL and partly hardware-dependent. Other CI runners reproduce a
+different state (A) of the same pinned run (tarp-plain coverage margin 0.157,
+tarp loses mode-mass to plain in all seeds). The results that hold in both
+states are TARP's per-seed coverage wins over both controls, its per-seed
+consistency, and its held-out-statistic win over particle. Claims against the
+plain control are not established on CPU (non-strict xfails). Two claims fail
+in both states (strict xfails). See the claims block in the test.
 
 ![training](tarp-cvm-cpu.gif)
 

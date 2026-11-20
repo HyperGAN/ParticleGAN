@@ -101,16 +101,19 @@ and TARP's claim is the mean margin plus per-seed consistency.
 Runtime: ~7 min for the nine trainings on one A6000 (the TARP arm
 draws M samples per pair per step).
 
-CPU-cohort verdict (the one CI checks): PARTIAL. TARP's coverage win
-(every seed, +0.50 / +0.37 mean margins), mode-mass mean margins
-(-0.18 / -0.17), its own per-seed consistency and the held-out TARP
-statistic (0.0036 vs 0.062 / 0.036) reproduce. Three sub-claims do not
-and are strict xfails with the measured numbers: per-seed mode-mass wins
-over the particle control, the particle control's concentration in every
-seed, and TARP's dispersion exceeding the plain control's. The controls
-are chaotic across devices and even thread counts (CI's earlier 4-thread
-CPU run gave different control numbers), which is why the device and
-thread count are now pinned. Runtime: ~1.5 min on a 4-core CI runner.
+CPU-cohort verdict (the one CI checks): PARTIAL, and partly
+hardware-dependent. Pinned to CPU with one thread, the run is still not
+portable across CPU microarchitectures: CI runners split into two
+reproducible states (see the claims block). In BOTH states TARP wins
+coverage in every seed against both controls (>= 0.65 each seed, margin
+>= 0.25 over particle), keeps mode-mass <= 0.12 and dispersion in
+[0.90, 1.25] in every seed, and beats the particle control's held-out
+TARP statistic by >= 4x. In both states it does NOT win mode-mass in
+every seed against particle, and the particle control does not
+concentrate in every seed (strict xfails). Everything measured against
+the plain control (coverage margin, mode-mass, dispersion, held-out
+statistic) flips with the runner, so those claims are not established on
+CPU (non-strict xfails naming both outcomes). Runtime: ~2 min on CI.
 
 Evidence scope (read before citing): DIAGNOSTIC / ASSISTED COHORT, not
 qualification evidence. The training loop is caller-owned: hinge loss and
@@ -126,11 +129,11 @@ identity. That is not a modest change, so these results stay diagnostic.
 
 Device cohorts: the gauntlet log above (rounds 1-5) was measured on CUDA
 (``cuda`` if available). Those numbers are a separate, historical CUDA
-cohort. This test now pins DEVICE to CPU with one intra-op thread so CI
-and local runs share one deterministic law; the CPU cohort's measured
-numbers and claim status are recorded beside the assertions below. A
-claim that the CPU cohort does not support is a strict xfail carrying the
-measured number, not a loosened threshold. The actual-training GIF
+cohort. This test now pins DEVICE to CPU with one intra-op thread (one
+deterministic law per CPU microarchitecture); the CPU cohort's measured
+numbers and claim status are recorded beside the assertions below. No
+threshold was loosened: unsupported claims are xfails carrying the
+measured numbers. The actual-training GIF
 (target vs the three arms at y = -0.8 / 0 / +0.8, seed 0) is written by
 ``test_training_gif``; set PAPERWATCH_GIF_DIR to keep it.
 
@@ -140,8 +143,10 @@ Iteration knobs (env): TARP_STEPS, TARP_LAMBDA, TARP_M, TARP_TAU_MULT.
 from __future__ import annotations
 
 import contextlib
+import json
 import math
 import os
+import sys
 from pathlib import Path
 
 import pytest
@@ -544,7 +549,13 @@ def run_all():
 @pytest.fixture(scope="module")
 def gauntlet():
     with single_thread():
-        return run_all()
+        out = run_all()
+    # One tail-able line per run, outside pytest capture, so each CPU
+    # state's numbers can be read from CI logs.
+    summary = {arm: {key: [round(row[key], 4) for row in rows]
+                     for key in rows[0]} for arm, rows in out[0].items()}
+    sys.__stderr__.write("[tarp-cvm-cohort] " + json.dumps(summary) + "\n")
+    return out
 
 
 @pytest.fixture(scope="module")
@@ -605,30 +616,42 @@ def test_point_estimate_recovers_conditional_mean():
 
 
 # --------------------------------------------------------------------------
-# The gauntlet claims, encoded against the CPU cohort. The thresholds are
-# the original CUDA-cohort claims, unchanged. CPU cohort (DEVICE=cpu, one
-# intra-op thread, 1,800 steps, seeds 0/1/2) measured:
+# The gauntlet claims, encoded against the CPU cohort. Thresholds are the
+# original CUDA-cohort claims, unchanged. The CPU numbers are NOT portable
+# across CPU microarchitectures: with identical code, seeds, one thread and
+# the same torch build, GitHub runners split into two reproducible states
+# (the controls are chaotic, so a last-bit matmul difference changes which
+# basin a run settles in). Both observed states are recorded:
 #
-#   coverage      particle [0.598, 0.120, 0.246] mean 0.321
-#                 plain    [0.603, 0.348, 0.387] mean 0.446
-#                 tarp     [0.774, 0.852, 0.829] mean 0.818
-#   dispersion    particle [0.830, 0.546, 0.582] mean 0.652
-#                 plain    [0.946, 1.460, 1.440] mean 1.282
-#                 tarp     [1.038, 1.116, 1.113] mean 1.089
-#   mode-mass err particle [0.047, 0.500, 0.205] mean 0.250
-#                 plain    [0.034, 0.232, 0.467] mean 0.245
-#                 tarp     [0.073, 0.088, 0.054] mean 0.071
-#   tarp_stat     particle mean 0.062 | plain 0.036 | tarp 0.0036
+#   state B (this workstation and some CI runners):
+#     coverage      particle [0.598, 0.120, 0.246] mean 0.321
+#                   plain    [0.603, 0.348, 0.387] mean 0.446
+#                   tarp     [0.774, 0.852, 0.829] mean 0.818
+#     dispersion    particle [0.830, 0.546, 0.582] mean 0.652
+#                   plain    [0.946, 1.460, 1.440] mean 1.282
+#                   tarp     [1.038, 1.116, 1.113] mean 1.089
+#     mode-mass err particle [0.047, 0.500, 0.205] mean 0.250
+#                   plain    [0.034, 0.232, 0.467] mean 0.245
+#                   tarp     [0.073, 0.088, 0.054] mean 0.071
+#     tarp_stat     particle 0.062 | plain 0.036 | tarp 0.0036
+#   state A (other CI runners; partial, from failure output):
+#     tarp-plain coverage margin 0.157; tarp mode-mass err beats plain in
+#     0 of 3 seeds; tarp_stat tarp 0.0024 vs plain 0.0068; particle
+#     dispersion seed 0 1.166; seed 2 mode-mass tarp 0.100 vs particle
+#     0.034. Each run prints a one-line `[tarp-cvm-cohort]` JSON summary to
+#     stderr so both states can be read from CI logs.
 #
-# Supported on CPU: the coverage claim, the mode-mass mean margins and
-# per-seed consistency, TARP's own dispersion band, and the held-out
-# statistic. Not supported (strict xfail with the measured number): the
-# per-seed mode-mass win over the particle control (seed 0), the particle
-# control's concentration in every seed (seed 0), and TARP's mean
-# dispersion exceeding the plain control's (plain over-disperses on CPU).
+# Claim status:
+#   * holds in both states -> plain assertion;
+#   * fails in both states -> xfail(strict=True) with the measured numbers;
+#   * hardware-dependent   -> xfail(strict=False) naming both outcomes. That
+#     claim is NOT established on CPU; it neither passes nor fails CI.
 # --------------------------------------------------------------------------
 
-def test_tarp_beats_both_controls_on_coverage(results):
+HW_DEPENDENT = "hardware-dependent on CPU (not established): "
+
+
+def test_tarp_beats_both_controls_on_coverage_every_seed(results):
     for seed_idx in range(len(SEEDS)):
         assert results["tarp"][seed_idx]["coverage"] \
             > results["particle"][seed_idx]["coverage"]
@@ -636,22 +659,35 @@ def test_tarp_beats_both_controls_on_coverage(results):
             > results["plain"][seed_idx]["coverage"]
         # Consistency neither control has: no collapsed seed.
         assert results["tarp"][seed_idx]["coverage"] >= 0.65
-    for control in ("particle", "plain"):
-        margin = _mean(results["tarp"], "coverage") \
-            - _mean(results[control], "coverage")
-        assert margin >= 0.25, f"tarp-{control} coverage margin {margin:.3f}"
+    margin = _mean(results["tarp"], "coverage") \
+        - _mean(results["particle"], "coverage")
+    assert margin >= 0.25, f"tarp-particle coverage margin {margin:.3f}"
 
 
-def test_tarp_mode_mass_margins_and_consistency(results):
+@pytest.mark.xfail(strict=False, reason=HW_DEPENDENT + (
+    "tarp-plain mean coverage margin 0.373 (state B) vs 0.157 (state A); "
+    "claim >= 0.25"))
+def test_tarp_coverage_margin_over_plain(results):
+    margin = _mean(results["tarp"], "coverage") \
+        - _mean(results["plain"], "coverage")
+    assert margin >= 0.25, f"tarp-plain coverage margin {margin:.3f}"
+
+
+def test_tarp_mode_mass_consistency(results):
+    # Per-seed consistency: never a collapsed seed.
     for seed_idx in range(len(SEEDS)):
-        # Per-seed consistency: never a collapsed seed.
         assert results["tarp"][seed_idx]["mode_mass_err"] <= 0.12
-    # Against the plain control the claim is the mean margin plus wins
-    # in at least 2 of 3 seeds: plain seed 0 is a genuinely good run.
+
+
+@pytest.mark.xfail(strict=False, reason=HW_DEPENDENT + (
+    "tarp beats plain mode-mass in 2/3 seeds with mean margins -0.179 vs "
+    "particle / -0.173 vs plain (state B); 0/3 seeds vs plain (state A, "
+    "plain margin therefore negative; particle margin unmeasured)"))
+def test_tarp_mode_mass_margins(results):
     wins = sum(results["tarp"][i]["mode_mass_err"]
                < results["plain"][i]["mode_mass_err"]
                for i in range(len(SEEDS)))
-    assert wins >= 2
+    assert wins >= 2, f"tarp beats plain mode-mass in {wins}/3 seeds"
     margin_p = _mean(results["particle"], "mode_mass_err") \
         - _mean(results["tarp"], "mode_mass_err")
     margin_g = _mean(results["plain"], "mode_mass_err") \
@@ -661,8 +697,9 @@ def test_tarp_mode_mass_margins_and_consistency(results):
 
 
 @pytest.mark.xfail(strict=True, reason=(
-    "CPU cohort FAIL: seed 0 tarp mode-mass err 0.073 vs particle 0.047 "
-    "(CUDA-cohort claim: tarp wins every seed)"))
+    "CPU FAIL in both states: tarp mode-mass err loses to particle in one "
+    "seed (state B seed 0: 0.073 vs 0.047; state A seed 2: 0.100 vs 0.034); "
+    "CUDA-cohort claim: tarp wins every seed"))
 def test_tarp_beats_particle_on_mode_mass_every_seed(results):
     for seed_idx in range(len(SEEDS)):
         assert results["tarp"][seed_idx]["mode_mass_err"] \
@@ -677,29 +714,34 @@ def test_tarp_dispersion_at_true_spread(results):
 
 
 @pytest.mark.xfail(strict=True, reason=(
-    "CPU cohort FAIL: particle seed 0 dispersion 0.830 > 0.75 (seeds 1/2: "
-    "0.546 / 0.582); the control does not concentrate in every seed"))
+    "CPU FAIL in both states: particle seed 0 dispersion 0.830 (state B) / "
+    "1.166 (state A) > 0.75; the control does not concentrate in every seed"))
 def test_particle_control_concentrates_every_seed(results):
     for seed_idx in range(len(SEEDS)):
         assert results["particle"][seed_idx]["dispersion"] <= 0.75
 
 
-@pytest.mark.xfail(strict=True, reason=(
-    "CPU cohort FAIL: tarp mean dispersion 1.089 < plain 1.282 (plain "
-    "over-disperses on CPU; CUDA-cohort claim: tarp > plain)"))
+@pytest.mark.xfail(strict=False, reason=HW_DEPENDENT + (
+    "tarp mean dispersion 1.089 < plain 1.282 in state B (plain "
+    "over-disperses); holds in state A; CUDA-cohort claim: tarp > plain"))
 def test_tarp_dispersion_exceeds_plain(results):
     assert _mean(results["tarp"], "dispersion") \
         > _mean(results["plain"], "dispersion")
 
 
-def test_heldout_tarp_statistic_agrees(results):
-    # Diagnostic only in the verdict, but it must point the same way:
-    # the regularized model's held-out credibilities are far closer to
-    # uniform than either control's.
+def test_heldout_tarp_statistic_beats_particle(results):
+    # Diagnostic only in the verdict, but it must point the same way.
     assert _mean(results["tarp"], "tarp_stat") <= 0.006
-    for control in ("particle", "plain"):
-        assert _mean(results["tarp"], "tarp_stat") \
-            <= 0.25 * _mean(results[control], "tarp_stat")
+    assert _mean(results["tarp"], "tarp_stat") \
+        <= 0.25 * _mean(results["particle"], "tarp_stat")
+
+
+@pytest.mark.xfail(strict=False, reason=HW_DEPENDENT + (
+    "held-out tarp_stat 0.0036 vs plain 0.036 (state B) but 0.0024 vs "
+    "0.0068 (state A); claim <= 0.25x plain"))
+def test_heldout_tarp_statistic_beats_plain(results):
+    assert _mean(results["tarp"], "tarp_stat") \
+        <= 0.25 * _mean(results["plain"], "tarp_stat")
 
 
 # --------------------------------------------------------------------------
