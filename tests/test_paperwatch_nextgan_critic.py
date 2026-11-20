@@ -67,18 +67,43 @@ the learned prior's diffuse within-mode spread, present with and without
 the field critic, not an effect of it. The assertions below encode exactly
 those measured margins, including the negative halves.
 
+Evidence scope (read before citing): DIAGNOSTIC / ASSISTED COHORT, not
+qualification evidence. Arms (a) and (b) run unmodified GANTrainer
+updates, but arm (c) replaces the recipe's critic phase with a caller-owned
+host loop (plain Adam on the potential, 2 critic updates, private trainer
+hooks for postprocessing): the field-regression critic is not a declared
+recipe capability. It cannot be expressed as one with modest code: the
+recipe's ``critic_formulation`` family supplies penalties added to the
+recipe's value loss inside GANTrainer's critic step, whereas NextGAN
+replaces the value loss itself, the critic step count and the critic
+optimizer. A faithful port needs its own public trainer path, declared
+delta and evidence identity before any matched comparison.
+
+Cohorts:
+  * full-budget cohort (15K updates, seeds 0/1/2, CUDA) -- the measured
+    verdict above. Opt-in with ``-m cuda`` on a GPU; it skips elsewhere
+    and is never re-run or recalibrated on another device.
+  * ``nextgan-short-cpu`` -- a separately declared reduced-budget variant
+    (SHORT_STEPS updates, protocol seed 0, CPU-pinned) that runs in CI. It
+    checks execution and support, and renders the actual-training GIF
+    (target vs the three arms over training; set PAPERWATCH_GIF_DIR to
+    keep it). It makes no transfer claim.
+
 Run: python -m pytest tests/test_paperwatch_nextgan_critic.py
+     CUDA_VISIBLE_DEVICES=<gpu> python -m pytest -m cuda tests/test_paperwatch_nextgan_critic.py
 """
 from __future__ import annotations
 
+import contextlib
 import math
+import os
+from pathlib import Path
 
 import pytest
 import torch
 from torch import nn
 
 from particlegan import GANTrainer, get_recipe, init
-
 
 # --------------------------------------------------------------------------
 # Networks: the paper's App E architecture (3 hidden layers, width 128, SiLU)
@@ -191,13 +216,26 @@ SEEDS = (0, 1, 2)
 N_EVAL = 8192
 
 
-def _device():
-    return torch.device("cuda" if torch.cuda.is_available() else "cpu")
+FULL_DEVICE = torch.device("cuda")  # the declared full-budget cohort ran on CUDA
+SHORT_DEVICE = torch.device("cpu")  # the CI variant is pinned to CPU
+FRAME_N = 1024
+
+
+def _snapshot(trainer, step, device):
+    """Actual generated samples on a dedicated RNG stream (never a training
+    stream), so recording frames does not perturb the run."""
+    gen = torch.Generator(device=device).manual_seed(4_242)
+    with torch.no_grad():
+        latent, _rows = trainer.prior.sample(FRAME_N, generator=gen)
+        fake = trainer.G(latent)
+        if getattr(trainer.prior, "postprocesses_generated", False):
+            fake = trainer.prior.postprocess_generated(fake)
+    return {"step": step, "fake": fake.detach().cpu()}
 
 
 def _build_trainer(arm, seed, steps, device):
-    overrides = dict(z_dim=Z_DIM, num_particles=NUM_PARTICLES,
-                     batch_size=BATCH, total_steps=steps, lr=LR)
+    overrides = {"z_dim": Z_DIM, "num_particles": NUM_PARTICLES,
+                     "batch_size": BATCH, "total_steps": steps, "lr": LR}
     if arm == "plain":
         overrides.update(prior_update="frozen",
                          prior_code_law="fresh_gaussian",
@@ -230,16 +268,20 @@ def _evaluate(trainer, seed, device):
     return metrics
 
 
-def _run_trainer_arm(arm, seed, steps, device):
+def _run_trainer_arm(arm, seed, steps, device, frames=None, frame_every=0):
     """Arms (a) and (b): unmodified GANTrainer updates."""
     trainer = _build_trainer(arm, seed, steps, device)
     data_gen = torch.Generator(device=device).manual_seed(seed + 10_000)
-    for _ in range(steps):
+    for step in range(steps):
+        if frames is not None and step % frame_every == 0:
+            frames.append(_snapshot(trainer, step, device))
         trainer.step(sample_mix(BATCH, data_gen, device))
+    if frames is not None:
+        frames.append(_snapshot(trainer, steps, device))
     return _evaluate(trainer, seed, device)
 
 
-def _run_nextgan_arm(seed, steps, device):
+def _run_nextgan_arm(seed, steps, device, frames=None, frame_every=0):
     """Arm (c): ParticleGAN prior/generator machinery, NextGAN critic.
 
     The trainer is constructed exactly as in arm (a) so the prior, the
@@ -261,7 +303,9 @@ def _run_nextgan_arm(seed, steps, device):
             fake = trainer._postprocess(prior, fake)
         return fake, latent, indices
 
-    for _ in range(steps):
+    for step in range(steps):
+        if frames is not None and step % frame_every == 0:
+            frames.append(_snapshot(trainer, step, device))
         # Critic phase: CRITIC_STEPS field-regression updates.
         D.train()
         for _ in range(CRITIC_STEPS):
@@ -278,7 +322,7 @@ def _run_nextgan_arm(seed, steps, device):
         try:
             D.requires_grad_(False)
             G.train()
-            fake, latent, indices = draw_fake(BATCH, grad=True)
+            fake, _latent, indices = draw_fake(BATCH, grad=True)
             loss_g = -D(fake).mean()
             if prior.z.requires_grad and (
                     recipe.prior_regularizer == "vicreg" or recipe.prior_reg > 0):
@@ -293,15 +337,17 @@ def _run_nextgan_arm(seed, steps, device):
         finally:
             for parameter, flag in zip(D.parameters(), flags):
                 parameter.requires_grad_(flag)
+    if frames is not None:
+        frames.append(_snapshot(trainer, steps, device))
     return _evaluate(trainer, seed, device)
 
 
-def run_arm(arm, seed, steps=STEPS):
-    device = _device()
+def run_arm(arm, seed, steps=STEPS, device=SHORT_DEVICE, frames=None,
+            frame_every=0):
     torch.manual_seed(seed)
     if arm == "nextgan":
-        return _run_nextgan_arm(seed, steps, device)
-    return _run_trainer_arm(arm, seed, steps, device)
+        return _run_nextgan_arm(seed, steps, device, frames, frame_every)
+    return _run_trainer_arm(arm, seed, steps, device, frames, frame_every)
 
 
 # --------------------------------------------------------------------------
@@ -380,7 +426,13 @@ def test_mode_balance_metrics_on_known_clouds():
 
 @pytest.fixture(scope="module")
 def results():
-    return {arm: [run_arm(arm, seed) for seed in SEEDS]
+    # The declared full-budget cohort: 15K updates x 3 arms x seeds 0/1/2 on
+    # CUDA (~25 min on an A6000). Its thresholds are CUDA measurements, so
+    # it is opt-in via the repo's ``cuda`` marker and never silently run on
+    # (or recalibrated for) another device.
+    if not torch.cuda.is_available():
+        pytest.skip("full-budget NextGAN cohort is a CUDA cohort; run with -m cuda")
+    return {arm: [run_arm(arm, seed, device=FULL_DEVICE) for seed in SEEDS]
             for arm in ("particle", "plain", "nextgan")}
 
 
@@ -388,6 +440,7 @@ def _mean(rows, key):
     return sum(row[key] for row in rows) / len(rows)
 
 
+@pytest.mark.cuda
 def test_nextgan_beats_particle_control_on_n_eff(results):
     # The positive half of the verdict: the field critic removes the
     # imbalance the ParticleGAN control develops at this budget, in every
@@ -402,6 +455,7 @@ def test_nextgan_beats_particle_control_on_n_eff(results):
     assert _mean(results["particle"], "n_eff") <= 7.1
 
 
+@pytest.mark.cuda
 def test_nextgan_does_not_beat_plain_control_on_n_eff(results):
     # The negative half: the plain control never imbalances in this harness
     # (it shares the KA2-stabilized trainer), so there is no collapse for
@@ -414,6 +468,7 @@ def test_nextgan_does_not_beat_plain_control_on_n_eff(results):
     assert abs(margin) <= 0.15, f"nextgan-plain N_eff margin {margin:.3f}"
 
 
+@pytest.mark.cuda
 def test_nextgan_captured_fraction_comparable(results):
     # The paper's claim is balance at EQUAL captured fraction: the NextGAN
     # arm must not buy N_eff by abandoning the modes' support.
@@ -423,6 +478,7 @@ def test_nextgan_captured_fraction_comparable(results):
         assert gap <= 0.15, f"captured gap vs {arm}: {gap:.3f}"
 
 
+@pytest.mark.cuda
 def test_particle_prior_arms_lag_on_naeem_coverage(results):
     # Both learned-prior arms -- with and without the field critic -- sit
     # far below the frozen-Gaussian arm on Naeem coverage at this budget
@@ -433,3 +489,119 @@ def test_particle_prior_arms_lag_on_naeem_coverage(results):
         - max(_mean(results["particle"], "coverage"),
               _mean(results["nextgan"], "coverage"))
     assert gap >= 0.3, f"plain-vs-particle coverage gap {gap:.3f}"
+
+
+# --------------------------------------------------------------------------
+# Scoped CI variant "nextgan-short-cpu": a separately declared reduced
+# budget (protocol seed 0, SHORT_STEPS generator updates, CPU-pinned, same
+# arms/networks/batch/evaluation). It is NOT the full-budget cohort above
+# and cannot confirm or refute the 15K claims: the docstring records that
+# the arms do not separate at short budgets. It checks that every arm
+# executes and stays on the target's support at this budget, and renders
+# the actual-training GIF.
+# --------------------------------------------------------------------------
+
+SHORT_STEPS = 1500
+SHORT_FRAME_EVERY = 100
+# Declared execution/support floors for the short variant (not transfer
+# claims). Measured (CPU, 1 thread, seed 0): captured 0.609 / 0.571 / 0.500
+# and N_eff 7.911 / 7.953 / 7.983 for particle / plain / nextgan; Naeem
+# coverage 0.075 / 0.586 / 0.068.
+SHORT_MIN_CAPTURED = 0.40
+SHORT_MIN_N_EFF = 7.5
+# At this budget the arms do not separate on N_eff (measured spread 0.072),
+# matching the full-budget log ("at 3K nothing separates").
+SHORT_MAX_N_EFF_SPREAD = 0.15
+ARMS = ("particle", "plain", "nextgan")
+
+
+@contextlib.contextmanager
+def single_thread():
+    """Pin intra-op threads to 1: deterministic CPU reductions, and no
+    oversubscription stalls on a loaded host. Restored afterwards."""
+    previous = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        yield
+    finally:
+        torch.set_num_threads(previous)
+
+
+def run_short_variant():
+    metrics, frames = {}, {}
+    for arm in ARMS:
+        frames[arm] = []
+        metrics[arm] = run_arm(arm, 0, steps=SHORT_STEPS, device=SHORT_DEVICE,
+                               frames=frames[arm],
+                               frame_every=SHORT_FRAME_EVERY)
+    return metrics, frames
+
+
+@pytest.fixture(scope="module")
+def short_results():
+    with single_thread():
+        return run_short_variant()
+
+
+def render_training_gif(frames, metrics, path):
+    """Target vs each arm's actual samples over training, fixed axes."""
+    matplotlib = pytest.importorskip("matplotlib")
+    matplotlib.use("Agg")
+    import io
+
+    import matplotlib.pyplot as plt
+    from PIL import Image
+
+    target = sample_mix(FRAME_N, torch.Generator().manual_seed(5))
+    images = []
+    for i in range(len(frames[ARMS[0]])):
+        fig, axes = plt.subplots(1, 4, figsize=(10, 3.2), dpi=72)
+        panels = [("target", target)] + [(a, frames[a][i]["fake"]) for a in ARMS]
+        for ax, (name, pts) in zip(axes, panels):
+            ax.scatter(MEANS[:, 0], MEANS[:, 1], s=30, c="none", edgecolors="k",
+                       linewidths=0.6)
+            ax.scatter(pts[:, 0], pts[:, 1], s=1.5, alpha=0.5)
+            title = name
+            if name != "target" and i == len(frames[ARMS[0]]) - 1:
+                title += f"\nN_eff {metrics[name]['n_eff']:.2f}"
+            ax.set_title(title, fontsize=8)
+            ax.set_xlim(-3, 3)
+            ax.set_ylim(-3, 3)
+            ax.set_xticks([])
+            ax.set_yticks([])
+        fig.suptitle(f"nextgan-short-cpu, seed 0, update "
+                     f"{frames[ARMS[0]][i]['step']}/{SHORT_STEPS}", fontsize=9)
+        fig.subplots_adjust(top=0.72, bottom=0.02, left=0.02, right=0.98)
+        buf = io.BytesIO()
+        fig.savefig(buf, format="png")
+        plt.close(fig)
+        buf.seek(0)
+        images.append(Image.open(buf).convert("P"))
+    images[0].save(path, save_all=True, append_images=images[1:],
+                   duration=[250] * (len(images) - 1) + [1500], loop=0)
+    return len(images)
+
+
+def test_short_variant_arms_execute_on_support(short_results):
+    metrics, _frames = short_results
+    for arm in ARMS:
+        m = metrics[arm]
+        assert all(math.isfinite(v) for v in m.values()), (arm, m)
+        assert m["captured"] >= SHORT_MIN_CAPTURED, (arm, m)
+        assert m["n_eff"] >= SHORT_MIN_N_EFF, (arm, m)
+
+
+def test_short_variant_arms_do_not_separate_on_n_eff(short_results):
+    metrics, _frames = short_results
+    values = [metrics[arm]["n_eff"] for arm in ARMS]
+    assert max(values) - min(values) <= SHORT_MAX_N_EFF_SPREAD, values
+
+
+def test_short_variant_training_gif(short_results, tmp_path):
+    metrics, frames = short_results
+    out = os.environ.get("PAPERWATCH_GIF_DIR")
+    path = (Path(out) if out else tmp_path) / "nextgan-short-cpu.gif"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    n = render_training_gif(frames, metrics, path)
+    assert n == SHORT_STEPS // SHORT_FRAME_EVERY + 1
+    assert path.stat().st_size > 0
