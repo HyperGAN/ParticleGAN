@@ -160,6 +160,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .unified_v4 import _UnifiedV4ObserverStepRecord, _attach_unified_v4_critic_hook
             optimizer.record = _UnifiedV4ObserverStepRecord()
             _attach_unified_v4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v11":
+            from .unified_v11 import _UnifiedV11ObserverStepRecord, _attach_unified_v11_critic_hook
+            optimizer.record = _UnifiedV11ObserverStepRecord()
+            _attach_unified_v11_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from .cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()
@@ -180,6 +184,10 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
             optimizer.record = _NashV3ObserverStepRecord()
             _attach_nash_v3_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "minimal":
+            from .minimal import MinimalStepRecord, _attach_minimal_critic_hook
+            optimizer.record = MinimalStepRecord()
+            _attach_minimal_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)
