@@ -547,14 +547,19 @@ def run_all():
 
 
 @pytest.fixture(scope="module")
-def gauntlet():
+def gauntlet(request):
     with single_thread():
         out = run_all()
-    # One tail-able line per run, outside pytest capture, so each CPU
-    # state's numbers can be read from CI logs.
+    # One tail-able line per run, written through pytest's terminal reporter
+    # (not captured), so each CPU state's numbers can be read from CI logs.
     summary = {arm: {key: [round(row[key], 4) for row in rows]
                      for key in rows[0]} for arm, rows in out[0].items()}
-    sys.__stderr__.write("[tarp-cvm-cohort] " + json.dumps(summary) + "\n")
+    line = "[tarp-cvm-cohort] " + json.dumps(summary)
+    reporter = request.config.pluginmanager.get_plugin("terminalreporter")
+    if reporter is not None:
+        reporter.write_line(line)
+    else:
+        sys.stderr.write(line + "\n")
     return out
 
 
