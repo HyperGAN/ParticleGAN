@@ -37,8 +37,8 @@ Publish the receipt and actual-training GIF (GPU optional):
 
     python tests/test_gini_distance_metric.py --device cuda:0
 
-The full rerun test is marked ``slow`` (deselected by default; run with
-``-m slow``). Default tests check the metric units, a short public-API
+The full rerun test is marked ``slow`` and skipped unless
+``PARTICLEGAN_RUN_SLOW=1``. Default tests check the metric units, a short public-API
 smoke run with GIF rendering, and the committed receipt's internal
 consistency.
 """
@@ -46,6 +46,7 @@ consistency.
 import argparse
 import json
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -243,6 +244,7 @@ def test_published_receipt_is_consistent():
 
 
 @pytest.mark.slow
+@pytest.mark.skipif(os.environ.get("PARTICLEGAN_RUN_SLOW") != "1", reason="full-budget rerun; set PARTICLEGAN_RUN_SLOW=1")
 def test_full_study_reproduces_receipt_verdict():
     payload = json.loads(RECEIPT.read_text())
     stats = study_statistics(_rows(run_study()))
