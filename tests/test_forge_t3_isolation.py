@@ -34,11 +34,10 @@ def _load_task(name: str) -> dict:
 
 def test_t3_isolation_view_and_tasks_preserve_discriminator_stability_v17():
     main_view = load_view(ROOT, "discriminator_stability")
-    v18 = (
-        main_view
-        if main_view["revision"] == 18
-        else json.loads((ROOT / main_view["previous_revision"]["archive"]).read_text())
-    )
+    # Walk the archived chain back to revision 18 (later revisions add other stretch tasks).
+    v18 = main_view
+    while v18["revision"] > 18:
+        v18 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
     assert main_view["revision"] >= 18
     assert v18["revision"] == 18 and v18["previous_revision"]["revision"] == 17
     stretch_map = {a["task"]: a["importance"] for a in main_view["assignments"] if a["task"] in ISO_TASKS}
