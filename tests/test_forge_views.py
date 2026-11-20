@@ -298,7 +298,14 @@ def test_frozen_thresholds_reference_the_declared_gate_policy_and_current_scorer
                     assert hashlib.sha256(archived_raw).hexdigest() == archived["sha256"]
                     assert original == json.loads(archived_raw)
                     assert original["evaluation"]["sources"] == {}
-                    assert task["evaluation"]["integration_source_binding"]["id"] == COMBINED_INTEGRATION
+                    # The combined layer stays in the verified chain; later
+                    # declared source-only layers may stack above it.
+                    from pr_integration_compat import INTEGRATION, integration_layer_ids
+                    layers = integration_layer_ids(ROOT, task, "configs/forge/tasks/" + task["id"] + ".json")
+                    assert COMBINED_INTEGRATION in layers
+                    later = layers[:layers.index(COMBINED_INTEGRATION)]
+                    assert all(INTEGRATION.fullmatch(layer) for layer in later)
+                    assert task["evaluation"]["integration_source_binding"]["id"] == layers[0]
                     assert task["execution"]["host_definition"]["provider"] == "benchmarks.toy_audit.api_model_misgan"
                     assert task["execution"]["execution_contract"] == receipt["version"]
                     assert receipt["corrected_execution_quality"] == "unmeasured"
