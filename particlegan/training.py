@@ -730,8 +730,11 @@ class GANTrainer:
                     generator_real,
                     latent,
                     indices,
-                    sigma_out,
-                    noise,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
                 )
             elif use_minimal_pb:
                 from .minimal import minimal_pullback_step
