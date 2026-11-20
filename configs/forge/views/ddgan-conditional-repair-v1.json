@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "ddgan-conditional-repair-v1",
+  "revision": 2,
+  "goal": "ddgan_conditional_repair",
+  "evidence_scope": "research_diagnostic",
+  "policy_change_reason": "LoadedGPU0 first-round bimodal attempts exhausted600s before5000updates. Preserve original attempts/gates and replace only the future diagnostic wall allowance with1200s; complete Gaussian baseline is reused if source-compatible. No ordinary qualification or quality-bound relaxation.",
+  "assignments": [
+    {
+      "task": "ddgan_repair_gaussian_chain_v1",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 0
+    },
+    {
+      "task": "ddgan_repair_bimodal_chain_wall_v2",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 1
+    }
+  ],
+  "eligibility": {},
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  }
+}

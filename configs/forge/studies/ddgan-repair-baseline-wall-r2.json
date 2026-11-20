@@ -1,0 +1,65 @@
+{
+  "schema_version": 1,
+  "id": "ddgan-repair-baseline-wall-r2",
+  "status": "ready",
+  "candidate": "bispf-optimized-quintic-v1",
+  "control": {
+    "candidate_id": "bispf-ddgan-energy-annealed-v2",
+    "task_map": {}
+  },
+  "hypothesis": "A globally smaller normalized learning rate with positive cosine terminal floors stabilizes conditional-energy DDGAN calibration while preserving its stochastic distribution objective and genuine adversarial game.",
+  "scope": {
+    "view": "ddgan-conditional-repair-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "ddgan-conditional-repair-r2",
+    "candidate_budget_seconds": 1800,
+    "budget_seconds": 3600
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/ddgan-failure-investigation/results.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_saved_state_diagnosis_v1",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/ddgan-conditional-repair/round1-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_round1_endpoint_diagnosis_v1",
+        "diagnostic_draws": 0,
+        "training_updates_added": 0
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": ">",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": "<=",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "competing_explanation": "Finite conditional capacity, adversarial gradient conflict or large normalized steps may prevent calibrated spread even when the proper auxiliary population objective is minimized by the true conditional law.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

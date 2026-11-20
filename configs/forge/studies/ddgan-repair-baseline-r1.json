@@ -1,0 +1,55 @@
+{
+  "schema_version": 1,
+  "id": "ddgan-repair-baseline-r1",
+  "status": "ready",
+  "candidate": "bispf-optimized-quintic-v1",
+  "control": {
+    "candidate_id": "bispf-ddgan-energy-v1",
+    "task_map": {}
+  },
+  "hypothesis": "A conditional energy score added to BISPF improves low-noise conditional-law calibration; the matched GPU0 selected-recipe control may retain the historical Gaussian failure.",
+  "scope": {
+    "view": "ddgan-conditional-repair-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "ddgan-conditional-repair-r1",
+    "candidate_budget_seconds": 1200,
+    "budget_seconds": 2400
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/ddgan-failure-investigation/results.json",
+      "selector": [],
+      "identity": {
+        "schema": "ddgan_saved_state_diagnosis_v1",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": ">",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "ddgan_repair_gaussian_chain_v1",
+    "metric": "worst_transition_cdf",
+    "op": "<=",
+    "threshold": 0.12,
+    "phase": "final"
+  },
+  "competing_explanation": "Finite conditional capacity, adversarial gradient conflict or large normalized steps may prevent calibrated spread even when the proper auxiliary population objective is minimized by the true conditional law.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

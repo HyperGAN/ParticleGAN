@@ -1,0 +1,54 @@
+{
+  "schema_version": 1,
+  "id": "misgan-bispf-transport-settle-r2",
+  "status": "ready",
+  "candidate": "bispf-misgan-transport-settle-v1",
+  "control": {
+    "candidate_id": "bispf-misgan-amortized-v1",
+    "task_map": {}
+  },
+  "hypothesis": "The declared composite observed-mass transport and cosine-settling repair passes all twelve unchanged MisGAN recovery and neural posterior bounds for all five terminal checks.",
+  "scope": {
+    "view": "misgan-bispf-research-v1",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "misgan-bispf-transport-settle-r2",
+    "candidate_budget_seconds": 1800,
+    "budget_seconds": 1800
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/misgan-bispf/round1-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "schema": "misgan_round1_diagnosis_v1"
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "prediction": {
+    "task_id": "model_misgan_four_mode",
+    "metric": "mass_tv",
+    "op": "<=",
+    "threshold": 0.1,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "model_misgan_four_mode",
+    "metric": "mass_tv",
+    "op": ">",
+    "threshold": 0.1,
+    "phase": "final"
+  },
+  "competing_explanation": "Quantile matching may remain too weak to move uniform component mass across modes, learned geometry may distort masked projections, or the model-trained neural posterior may remain biased. The transport+settling composite cannot isolate individual causal effects.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "prediction_observed": "review_saved_diagnostics",
+    "inconclusive": "stop_and_readout",
+    "incomplete": "request_missing_evidence"
+  }
+}

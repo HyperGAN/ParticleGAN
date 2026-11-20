@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pytest
 
+from pr_integration_compat import before_pr_integration
 from experiments.forge.pr399_scores import PINS, publications, tier_rows, family_lines
 from experiments.forge.source_bound_board import BOARD_SOURCE, validate_board
 from experiments.forge.test_performance import SUPPLEMENTAL, build_report
@@ -53,6 +54,8 @@ def test_successor_and_paired_task_semantics_match_the_recorded_ordinary_questio
         for condition in document['condition_contracts'].values():
             original = condition['task']
             declared = json.loads((ROOT / 'configs/forge/tasks' / (original['id'] + '.json')).read_text())
+            declared = before_pr_integration(
+                ROOT, declared, "configs/forge/tasks/" + original["id"] + ".json")
             assert original['execution'] == declared['execution']
             # Preserve original source and evaluator identities separately;
             # only source hashes and their revision explanations differ.

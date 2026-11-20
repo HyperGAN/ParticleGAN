@@ -1,0 +1,321 @@
+{
+  "analysis_source_sha256": "80cdf88dcb527bc288ea2765721696e713aa11801007ba68eb93758a12ef7ee2",
+  "attempts": [
+    {
+      "attempt_id": "1d92fe13cbcf4b468328b4da57fad683",
+      "candidate": "bispf-vaegan-transport-v1",
+      "final_metrics": {
+        "aggregate_effective_components": 6.969562935555377,
+        "decoder_mean_hq": 0.69482421875,
+        "decoder_mean_mass_tv": 0.30517578125,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 8.881784197001252e-16,
+        "kl_identity_error": 5.679402117486632e-07,
+        "kl_nats": 1.5238127708435059,
+        "likelihood_hq": 0.685791015625,
+        "likelihood_mass_tv": 0.314208984375,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 6.251978012661771,
+        "posterior_effective_components": 3.4860734743691393,
+        "posterior_mutual_information": 0.6927764924257156,
+        "posterior_noise_variance_ratio": 1.0033035278320312,
+        "posterior_pair_rms": 0.0999663919210434,
+        "reconstruction_mse": 0.008913063618987303,
+        "shuffle_reconstruction_ratio": 264.29580065081564,
+        "shuffled_reconstruction_mse": 2.3556852854319055
+      },
+      "raw_receipt_sha256": "3098daca693a659085702211748de62277c9052a0a81984453e9b791a61c80cd",
+      "rows": [
+        {
+          "checkpoint_sha256": "566ca74a5884a10e47601d0fa826c5490e5a66226409715540a8dbc46e775aa0",
+          "equal_row_quality": 0.671875,
+          "low_usage_miss_attribution": 0.6184895634651184,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.5731406211853027,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "57a503e47853f5c15845b430a7f6f15421ae5ef920e543b76d46edc20a0c6a67",
+          "equal_row_quality": 0.6153564453125,
+          "low_usage_miss_attribution": 0.7630910873413086,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.568723738193512,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "dfbd4fbd9b4162af1991c86d5ae8aea2e67b32a1ff700f4521654bd0377b7d22",
+          "equal_row_quality": 0.72796630859375,
+          "low_usage_miss_attribution": 0.5443122982978821,
+          "low_usage_rows": 8,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.5396581292152405,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "98560712ba4454610ba5d47d7312ee663e2abbb1bd3b7e2d92f7e4c031596497",
+          "equal_row_quality": 0.4549560546875,
+          "low_usage_miss_attribution": 0.6852183938026428,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.55949866771698,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "57fa97f54a7d6787bba6bef51ffe4e2f8c47d52b320102ccc1b272f4e992924c",
+          "equal_row_quality": 0.6971435546875,
+          "low_usage_miss_attribution": 0.962515115737915,
+          "low_usage_rows": 9,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.5580549836158752,
+          "step": 1200
+        }
+      ],
+      "source_digest": "7a7f80406f6c0fca2a8f5206e8c0c02d6a3b725de1834882afb0844bc89130ba",
+      "task": "model_vae_categorical",
+      "terminal_passes": 0,
+      "verdict": "FAIL"
+    },
+    {
+      "attempt_id": "7189bb6b75074e46a28cb04fc37a4c10",
+      "candidate": "bispf-optimized-quintic-v1",
+      "final_metrics": {
+        "aggregate_effective_components": 4.336071953676409,
+        "decoder_mean_hq": 0.99951171875,
+        "decoder_mean_mass_tv": 0.010986328125,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 7.618617292592944e-09,
+        "kl_nats": 2.7725887298583984,
+        "likelihood_hq": 0.990966796875,
+        "likelihood_mass_tv": 0.015869140625,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 1.2281236026019835,
+        "posterior_effective_components": 1.0,
+        "posterior_mutual_information": 1.466968858482225,
+        "posterior_noise_variance_ratio": 1.0009006261825562,
+        "posterior_pair_rms": 0.027291620150208473,
+        "reconstruction_mse": 0.0032676962408767834,
+        "shuffle_reconstruction_ratio": 684.3803988819515,
+        "shuffled_reconstruction_mse": 2.2363472567563063
+      },
+      "raw_receipt_sha256": "76fba2f8224423a7705dd4f2f854cad05fb46a42a1755174da20385d0f34f99f",
+      "rows": [
+        {
+          "checkpoint_sha256": "93a9bd356f5a7bdc878c99e2f0d70e2a4fc839d0a8e4e92b70494073bab7159e",
+          "equal_row_quality": 0.8145751953125,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.768798828125,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "6e4ac2da3025d92303951d5412ceea10af99347badf74e07aa9b043e2bc2cefe",
+          "equal_row_quality": 0.99212646484375,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.74755859375,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "d6d166bc2b53feb54570ab94f8a561665abc11b8cdd382d3e14b343748d41bfa",
+          "equal_row_quality": 0.64715576171875,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.747314453125,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "511beec9375748ce551ae010f2e55b7d5592a14781d53876ce20f48dad74a9f5",
+          "equal_row_quality": 0.837158203125,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 12,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.744873046875,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "fb6ffa15b8859c5b7adeaef0c6d08e1c1dc4cf84591a753e96a52064088610e0",
+          "equal_row_quality": 0.99969482421875,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 11,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.7294921875,
+          "step": 1200
+        }
+      ],
+      "source_digest": "7a7f80406f6c0fca2a8f5206e8c0c02d6a3b725de1834882afb0844bc89130ba",
+      "task": "model_vae_hard",
+      "terminal_passes": 2,
+      "verdict": "FAIL"
+    },
+    {
+      "attempt_id": "78e897878ca8442d9f5e71f4c56a79ce",
+      "candidate": "bispf-optimized-quintic-v1",
+      "final_metrics": {
+        "aggregate_effective_components": 8.69911096683117,
+        "decoder_mean_hq": 0.99951171875,
+        "decoder_mean_mass_tv": 0.05517578125,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 5.862397569611488e-07,
+        "kl_nats": 1.3025771379470825,
+        "likelihood_hq": 0.9951171875,
+        "likelihood_mass_tv": 0.05517578125,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 0.5412501256211639,
+        "posterior_effective_components": 4.349285777125546,
+        "posterior_mutual_information": 0.6932091902649273,
+        "posterior_noise_variance_ratio": 1.0033035278320312,
+        "posterior_pair_rms": 0.033437203615903854,
+        "reconstruction_mse": 0.003972520586328519,
+        "shuffle_reconstruction_ratio": 567.7478367893857,
+        "shuffled_reconstruction_mse": 2.2553899694893187
+      },
+      "raw_receipt_sha256": "cd9d0437e8bb90ce19b1fa2aed988493da8048b09672dc3102959060952677b4",
+      "rows": [
+        {
+          "checkpoint_sha256": "6896783b26706cd85467e6ea1e839994a042706e7acca6943995a09b13168003",
+          "equal_row_quality": 0.87335205078125,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 7,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.45090675354003906,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "58e012cb6ca80bc66e1f2e865efc4fe9aa5ecfe07946089f843d8d481b7531d1",
+          "equal_row_quality": 0.8409423828125,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 7,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.48859167098999023,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "0f97daa2f6f27b64433be486fd80f9dd5fbce2b4f68cfbf86f605e6c318af6d2",
+          "equal_row_quality": 0.82781982421875,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 7,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.49779245257377625,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "8c50e7e19502eb17e8116a7c909ada6bfa83eeeabf979310d4b988ac3f920ca1",
+          "equal_row_quality": 0.99884033203125,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 7,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.46125340461730957,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "d8a2d1f94a508d609c72c418412a1decacc395f785048a781f90581bd1642a7a",
+          "equal_row_quality": 0.9990234375,
+          "low_usage_miss_attribution": 1.0,
+          "low_usage_rows": 7,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.44415202736854553,
+          "step": 1200
+        }
+      ],
+      "source_digest": "7a7f80406f6c0fca2a8f5206e8c0c02d6a3b725de1834882afb0844bc89130ba",
+      "task": "model_vae_categorical",
+      "terminal_passes": 3,
+      "verdict": "FAIL"
+    },
+    {
+      "attempt_id": "f44c4f91e1d44abd86a290d3e7c299f1",
+      "candidate": "bispf-vaegan-transport-v1",
+      "final_metrics": {
+        "aggregate_effective_components": 2.0483288881040393,
+        "decoder_mean_hq": 0.837158203125,
+        "decoder_mean_mass_tv": 0.162841796875,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 3.552713678800501e-15,
+        "kl_identity_error": 7.618617292592944e-09,
+        "kl_nats": 2.7725887298583984,
+        "likelihood_hq": 0.819091796875,
+        "likelihood_mass_tv": 0.180908203125,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 18.901057317782925,
+        "posterior_effective_components": 1.0,
+        "posterior_mutual_information": 0.7170242841786351,
+        "posterior_noise_variance_ratio": 1.0009006261825562,
+        "posterior_pair_rms": 0.0854940414428711,
+        "reconstruction_mse": 0.019173336584539635,
+        "shuffle_reconstruction_ratio": 122.62186306526021,
+        "shuffled_reconstruction_mse": 2.351070253173563
+      },
+      "raw_receipt_sha256": "62f5b7b896da31431ce88a473b26a5068fd16f63088648f6b72637f7062b6eec",
+      "rows": [
+        {
+          "checkpoint_sha256": "c33d46975fec420dcb8eb80dfeef0ed966efce8daddc13343d7bc46062e52f1c",
+          "equal_row_quality": 0.5760498046875,
+          "low_usage_miss_attribution": 0.8799309134483337,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.815673828125,
+          "step": 1000
+        },
+        {
+          "checkpoint_sha256": "e08d59254e6cf5c02a57a914783d2c5e73bd629287bd07e5c5f279d18d1b8c3f",
+          "equal_row_quality": 0.712890625,
+          "low_usage_miss_attribution": 0.8905187249183655,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.832763671875,
+          "step": 1050
+        },
+        {
+          "checkpoint_sha256": "fe2e31dc369f9aa03f8d1f12e786ccbd9125228d1678284b2c1c42ac35eb715c",
+          "equal_row_quality": 0.61236572265625,
+          "low_usage_miss_attribution": 0.9184380173683167,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.83837890625,
+          "step": 1100
+        },
+        {
+          "checkpoint_sha256": "1b82109c9dbd16fbb22f426f06f128a6f61f179ec9a4b6236ce478feff82751c",
+          "equal_row_quality": 0.7862548828125,
+          "low_usage_miss_attribution": 0.9457452893257141,
+          "low_usage_rows": 13,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.8125,
+          "step": 1150
+        },
+        {
+          "checkpoint_sha256": "ff82c988ffea7a226a7f98ce98a26b1a5603cbddd8c0c18ba9797dc1cc2ce60d",
+          "equal_row_quality": 0.8455810546875,
+          "low_usage_miss_attribution": 0.7604743242263794,
+          "low_usage_rows": 14,
+          "low_usage_threshold": 0.01,
+          "posterior_prior_mass_tv": 0.869140625,
+          "step": 1200
+        }
+      ],
+      "source_digest": "7a7f80406f6c0fca2a8f5206e8c0c02d6a3b725de1834882afb0844bc89130ba",
+      "task": "model_vae_hard",
+      "terminal_passes": 0,
+      "verdict": "FAIL"
+    }
+  ],
+  "constant_rates": {
+    "critic": 0.018,
+    "encoder": 0.012,
+    "generator": 0.012,
+    "prior": 0.03
+  },
+  "optimizer_updates": 0,
+  "outcomes": "All4 full-budgetFAIL; baseline endpoints pass but last5 do not. Transport last5 all fail on both modes.",
+  "qualification_input": false,
+  "raw_rows_sha256": "da97f744fca09a04a98d0c9e679b5788ef62e275f7f298294b64e6f42b30a77c",
+  "schema": "vaegan_coverage_round1_diagnosis_v1",
+  "source_commit": "c4beb25d6"
+}

@@ -1,0 +1,1248 @@
+{
+  "actual_candidate": "r1r2-repair-control-20261022",
+  "checks": [
+    "actual NS/AMSGrad .0085 (.5,.99), sampled-prior (0,.99) recipe",
+    "snapshot verified unchanged before and after",
+    "all imported public implementation modules under frozen snapshot",
+    "finite model and optimizer state, exact role update counts, RNG deviations zero",
+    "actual public-API training GIF bytes and integration-only scope; no ordinary gate PASS"
+  ],
+  "device": "cuda:0",
+  "integration_status": "PASS",
+  "model_tasks_passed": 8,
+  "qualification_input": false,
+  "raw_artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke",
+  "raw_results_sha256": "782b4ff01eb3afcf3a815ea103a00ac045d720c2be4ecbdbee2947c66d964e09",
+  "reproduction_source": "reports/forge/r1r2-repair-20261022/infra_v2_snapshot_smoke.py",
+  "reproduction_source_sha256": "189c2b58d4488f4eb96c14bf4661b1ea119c3fc5afe6c27fa184c97d249aefbe",
+  "request_sha256": "56fc1fe659de9636020a8b3096ee8cca8623450e17c2fdc0a6583d2ab3de3537",
+  "rows": [
+    {
+      "actual_training_gif": {
+        "bytes": 352680,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_ddgan_bimodal_chain/api/goal.gif",
+        "sha256": "3856d27fe09a467cafed1fe03682345e6b0606f19bce7e7d5bf493b7d8920595"
+      },
+      "adapter_receipt_sha256": "a149a056f3b580b9c5c9e7cfb28d508150be2eab70e2c28ee8008f457e584eca",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "78704ea9ca441636262b0f8fbed1818fe3aad86a72e19a98bbedf1b3716e1926",
+      "batch_sequence_sha256": "b5e4a5b534cd49aeecaea956af362a94fe8fabf7a5ed2853e05dc99a800df670",
+      "completed_steps": 2,
+      "elapsed_seconds": 3.7091065219719894,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "7238043946f6b9f13d9f9c534c253870505ea2c11a37c6e0297f443d3d867484",
+        "encoder": "efcef2774eae78f2e8da80d98e027bbbcb3064b6082b0a748a8c6c7c35227118",
+        "generator": "b8fae6b59782adfc70d2cdedd9a9e3db213c48af8435cf87e85a78d9d77356fb",
+        "prior": "004cd2f81e195dfc4f22e5c2d37ac582f227c3c5e808b907fe60bf5982b4e30c"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_ddgan_bimodal_chain/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "948e5d092818cac206dafb939212ba4190e94c17a82407b464e0a4244b9d1755",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "00bfe259e569133dec8e2dd765d573f9a3b5d3e9def5e76810cfc0d37132da4e"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 66,
+      "status": "PASS",
+      "task_id": "model_ae_ddgan_bimodal_chain"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 399509,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_ddgan_gaussian_chain/api/goal.gif",
+        "sha256": "e0246e9bbe98ae56ee67574c15dfe88a0e73f4aa0a493155fcce1ed87093a8ab"
+      },
+      "adapter_receipt_sha256": "cab66cfe56096a3a423969287c284901f219ad35a9e31817244813fef09f4a59",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "415611297255d103465b8a6020c13ae4a02f5895ec6a4ca0189dac8d84d9987a",
+      "batch_sequence_sha256": "e2cfa65efdbd69afd6c02b5b5e14db80a8b9905a4a93605ebbbf32b09541c810",
+      "completed_steps": 2,
+      "elapsed_seconds": 2.8200469550210983,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "7238043946f6b9f13d9f9c534c253870505ea2c11a37c6e0297f443d3d867484",
+        "encoder": "efcef2774eae78f2e8da80d98e027bbbcb3064b6082b0a748a8c6c7c35227118",
+        "generator": "b8fae6b59782adfc70d2cdedd9a9e3db213c48af8435cf87e85a78d9d77356fb",
+        "prior": "004cd2f81e195dfc4f22e5c2d37ac582f227c3c5e808b907fe60bf5982b4e30c"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_ddgan_gaussian_chain/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "36da1c93d1ff42c00ce6b0090aeecafe5d1fc7beb531255391486fdc18b6db87",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "9fefe3794ccfd4fd1c7a8c9a115f7b878730d4a0bb03cc66e0d5e9a23a7f776f"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 66,
+      "status": "PASS",
+      "task_id": "model_ae_ddgan_gaussian_chain"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 134005,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_gan_multimodal/api/goal.gif",
+        "sha256": "a55c12b9017e5d29cc0907a8bedf5b75df43dc504dce4d35ca3acbf79badd1f1"
+      },
+      "adapter_receipt_sha256": "dfeae7c48d5432a7ab7220f304db260aee6c897eff6756cb9a8333284aa62d71",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "f851afd14b6d3151419e2a7712976106823d6913d9b5151b715825960602ffd0",
+      "batch_sequence_sha256": "3593765474be3024aad9fb15e35e26468663540581161ad46586c23aeb679ce5",
+      "completed_steps": 2,
+      "elapsed_seconds": 1.551473553001415,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "628b11d60904f7f5c4a1810b998648d274f7ba5928f5b077e71ec025f8775984",
+        "encoder": "0c2cf90960233a7933f7b5fc92ef0213790cea6c3d737f2e5cb4bb66b28bea41",
+        "generator": "63b42b463c89dfa8af417e259e2b90b5bf58c91076e402124462cc1c489262c0",
+        "prior": "af84abd8fcf78865e6df731bb618a83af9be9f608cee990902ad55bc50b755e8"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_gan_multimodal/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "759422a2f99eed45c772a7ee6dfdf3fa9145673bf0b943b7e3998b8102022514",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "6da50aff90b924d46ee73d577928460a301e6ff75357036364906457ecc13f97"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 67,
+      "status": "PASS",
+      "task_id": "model_ae_gan_multimodal"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 142666,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_reconstruction/api/goal.gif",
+        "sha256": "e4747ebee4feb922ba8953dd557c6e7e8701f73719e9d755108190e1dd0759d0"
+      },
+      "adapter_receipt_sha256": "8db42d44dad518e8fac9412143fc764b40c3781fa3292c8e8c34cd9c199dc27d",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "7b95d3696b0cf4addb3fed6ab1f855557e3f248e35c3a95b876afdaf16a91430",
+      "batch_sequence_sha256": "3593765474be3024aad9fb15e35e26468663540581161ad46586c23aeb679ce5",
+      "completed_steps": 2,
+      "elapsed_seconds": 1.4979593199677765,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": true,
+              "reason": "requested penalty did not apply within the frozen host budget",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": null,
+            "last_application_update": null,
+            "observations": {
+              "applied": 0,
+              "calls": 0,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 0,
+              "applied_record_calls_in_window": 0,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 0,
+              "observed_steps_in_window": 0,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {},
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 0
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 0
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 0,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "628b11d60904f7f5c4a1810b998648d274f7ba5928f5b077e71ec025f8775984",
+        "encoder": "0c2cf90960233a7933f7b5fc92ef0213790cea6c3d737f2e5cb4bb66b28bea41",
+        "generator": "63b42b463c89dfa8af417e259e2b90b5bf58c91076e402124462cc1c489262c0",
+        "prior": "af84abd8fcf78865e6df731bb618a83af9be9f608cee990902ad55bc50b755e8"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ae_reconstruction/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "d1b628338cb2ae5b3723636125e94626c395707ea6c1c25e378a1de9900dcf81",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "a53a8e2d9f968ba1dd169645d30ee3adaaeb4c73d1c22a0d59f7ed622da0b91c"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 67,
+      "status": "PASS",
+      "task_id": "model_ae_reconstruction"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 247752,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ddgan_bimodal_chain/api/goal.gif",
+        "sha256": "53c7b0223463ebb6ae13318f8ce236b0f84bcd0da4aabfbd5df332da4cfb03e6"
+      },
+      "adapter_receipt_sha256": "75c786fa5af535f824bc8f90927d1a6c3fc55da5cdcb43fe2210d93261232f33",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "cded782e9c45f5f022cd9068adfa3595a8deee57ec04b8d0cf2772f543f35df1",
+      "batch_sequence_sha256": "b5e4a5b534cd49aeecaea956af362a94fe8fabf7a5ed2853e05dc99a800df670",
+      "completed_steps": 2,
+      "elapsed_seconds": 1.9140396940056235,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 0,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "7238043946f6b9f13d9f9c534c253870505ea2c11a37c6e0297f443d3d867484",
+        "generator": "b8fae6b59782adfc70d2cdedd9a9e3db213c48af8435cf87e85a78d9d77356fb",
+        "prior": "004cd2f81e195dfc4f22e5c2d37ac582f227c3c5e808b907fe60bf5982b4e30c"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ddgan_bimodal_chain/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "fd1915fffa40aafd58c429f067cd026b621e354550f97d0c05d1ead5001cb4af",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "52be0bd531a6edbc350a2cf96392380bc8347227a2367cd29fea54ce79b19168"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 67,
+      "status": "PASS",
+      "task_id": "model_ddgan_bimodal_chain"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 281190,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ddgan_gaussian_chain/api/goal.gif",
+        "sha256": "a318eafde5afb82d68b0944e7c0c5396757f92924ce4fe531d65d05067bf44dd"
+      },
+      "adapter_receipt_sha256": "e8880525a458314b4755c4f1dce272327f17da3d5ffa6b2bb6c714e292f34adc",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "a74aeb5418ac614a6fdfd99093e048615192f4fc147a09cf4b8358f87057f80a",
+      "batch_sequence_sha256": "e2cfa65efdbd69afd6c02b5b5e14db80a8b9905a4a93605ebbbf32b09541c810",
+      "completed_steps": 2,
+      "elapsed_seconds": 2.2144000639673322,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 0,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "7238043946f6b9f13d9f9c534c253870505ea2c11a37c6e0297f443d3d867484",
+        "generator": "b8fae6b59782adfc70d2cdedd9a9e3db213c48af8435cf87e85a78d9d77356fb",
+        "prior": "004cd2f81e195dfc4f22e5c2d37ac582f227c3c5e808b907fe60bf5982b4e30c"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_ddgan_gaussian_chain/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "3067ee34e637d0c8609a691ce20c21e18acb3bdc725d1050a328b7c41d17e944",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "89b369f7164c81eb092da70f1cecc1b14e2fe558062131698464babb8f63d772"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 67,
+      "status": "PASS",
+      "task_id": "model_ddgan_gaussian_chain"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 109659,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_vae_categorical/api/goal.gif",
+        "sha256": "ba7529ca74be967edbbc43865c4559e117670b6bd9c8367593e8f4a710a71fb9"
+      },
+      "adapter_receipt_sha256": "a159469b091e1a1fc96a0b033b1b19459211dce3dbdf74bab49b8b86a93d40d6",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "4d8d5f0ee31d3eded8719906147761ac433c6f97ba030e6cbf628861363748a3",
+      "batch_sequence_sha256": "dbe1d4aa45d9e9a2a9cdeee0ab743cff694d32ee64e6e126a608dd18a04f02a1",
+      "completed_steps": 2,
+      "elapsed_seconds": 1.5520405470160767,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "a4d25e32fdda2c5c3c18bbb5ba2fbd8697def8be11aae1470ac710b09bf107ad",
+        "encoder": "d8377efc91c3ce6f15b493d1803f17cb12c144e7a0c31e87e97791ac1989e323",
+        "generator": "62dec125363d1f17e0618649ff47f8b8ed1da837e3d3b2111f68e3b35bde41aa",
+        "prior": "afed8000dbd5f9b1de23c96ebf150425e44a1c2254fec9b04db4844ceb2934b6"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_vae_categorical/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "e68dc54ef55e57275362b9f7b4247736c320f60e1b904b2ff74544cffd2eedc7",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "b2e20705be5e62407c6f974b655b0e52ce22ae30def156b987560ab57aff005b"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 68,
+      "status": "PASS",
+      "task_id": "model_vae_categorical"
+    },
+    {
+      "actual_training_gif": {
+        "bytes": 109274,
+        "path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_vae_hard/api/goal.gif",
+        "sha256": "8755ce039c9944a481e116249724cc49f2213823f6fca395cb458ade831add78"
+      },
+      "adapter_receipt_sha256": "e17ef473ff075cb4c3f007a56bb5de255cf18189cfba053fc4c9f18fa1c092d2",
+      "all_public_imports_in_frozen_snapshot": true,
+      "api_receipt_sha256": "2a236b4708cb5e20d57ecaeee81ec60a81bfd2df7b268755529a929ebacaf185",
+      "batch_sequence_sha256": "dbe1d4aa45d9e9a2a9cdeee0ab743cff694d32ee64e6e126a608dd18a04f02a1",
+      "completed_steps": 2,
+      "elapsed_seconds": 1.4574537439621054,
+      "guards": {
+        "all_finite": true,
+        "hooks_exercised": true,
+        "mechanism_audit": {
+          "mechanisms": {
+            "a2": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_anchor": {
+              "applied": 0,
+              "calls": 2,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_guard": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            },
+            "critic_penalty": {
+              "applied": 2,
+              "calls": 2,
+              "eligible": 2,
+              "enabled": true,
+              "reason": "actual host mechanism branch applied",
+              "requested": true
+            },
+            "direct_particle_gain": {
+              "applied": 0,
+              "calls": 0,
+              "eligible": 0,
+              "enabled": false,
+              "reason": "disabled by the declared formulation; no activation claimed",
+              "requested": false
+            }
+          },
+          "penalty_cadence": {
+            "application_updates_unavailable": 0,
+            "configured": {
+              "base_coefficient": 0.1,
+              "coefficient_scope": "initial_recipe_before_any_schedule",
+              "effective_coefficient": 0.1,
+              "k": 1,
+              "scheduled_end_base_coefficient": null
+            },
+            "first_application_update": 1,
+            "last_application_update": 2,
+            "observations": {
+              "applied": 2,
+              "calls": 2,
+              "skipped": 0,
+              "unavailable": 0
+            },
+            "optimizer": {
+              "applied_record_calls_end": 2,
+              "applied_record_calls_in_window": 2,
+              "applied_record_calls_start": 0,
+              "observed_steps_end": 2,
+              "observed_steps_in_window": 2,
+              "observed_steps_start": 0
+            },
+            "phase_counts": {
+              "a_r1r2": 2
+            },
+            "ranges": {
+              "ema_data_scale": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "ema_residual": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              },
+              "s_thermal": {
+                "count": 0,
+                "last": null,
+                "max": null,
+                "min": null,
+                "nonfinite": 0,
+                "unavailable": 2
+              }
+            },
+            "resets": 0,
+            "schema_version": 1,
+            "scope": "audit_window",
+            "start_reason": "attachment",
+            "update_clock": "one_based_critic_optimizer_update"
+          },
+          "schema_version": 1
+        },
+        "optimizer_updates": {
+          "discriminator": 2,
+          "encoder": 2,
+          "generator": 2,
+          "prior": 2
+        },
+        "unintended_rng_deviations": 0
+      },
+      "initial_models": {
+        "discriminator": "a4d25e32fdda2c5c3c18bbb5ba2fbd8697def8be11aae1470ac710b09bf107ad",
+        "encoder": "d8377efc91c3ce6f15b493d1803f17cb12c144e7a0c31e87e97791ac1989e323",
+        "generator": "62dec125363d1f17e0618649ff47f8b8ed1da837e3d3b2111f68e3b35bde41aa",
+        "prior": "afed8000dbd5f9b1de23c96ebf150425e44a1c2254fec9b04db4844ceb2934b6"
+      },
+      "ordinary_gate_status": "INCOMPLETE",
+      "provenance_checkpoint": {
+        "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/infra-v2-smoke/model_vae_hard/provenance",
+        "completed_steps": 2,
+        "optimizer_updates_added": 0,
+        "path": "provenance-state.pt",
+        "prerequisite_eligible": false,
+        "purpose": "provenance_only",
+        "sampling_draws_added": 0,
+        "sha256": "57421017adff2c5231f10fc9e752b48d6e0667da77d54e875efdcb6223a97ed6",
+        "state_owner": "complete provider model/optimizer/policy/RNG checkpoint",
+        "state_sha256": "99b0923a004eabd099f90578526ea5c5e12fea9c86575dcc36f00b10ee740feb"
+      },
+      "qualification_input": false,
+      "scope": "integration_demo_only",
+      "source_module_count": 68,
+      "status": "PASS",
+      "task_id": "model_vae_hard"
+    }
+  ],
+  "schema_version": 1,
+  "scope": "isolated_frozen_source_integration_only",
+  "seed": 0,
+  "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+  "stdout": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/logs/infra-v2-eight-model-smoke.log",
+  "stdout_sha256": "a7af584594684710db68e3b3ed630c8d39f9766872d32f184cda5775eab1c78b",
+  "updates_per_task": 2
+}

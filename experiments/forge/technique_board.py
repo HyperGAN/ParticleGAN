@@ -31,6 +31,23 @@ DEFAULT_LABELS = {
     "forge-no-critic-penalty": "K3P without critic penalty",
     "k3p-a2-off-native-diagnostic": "K3P without A2",
     "k3p-no-output-noise-diagnostic": "K3P without training output noise",
+    "rhbi-v1": "RHBI (v1)",
+    "rhbi-v2": "RHBI (v2)",
+    "rhbi-v3": "RHBI (v3)",
+    "rhbi-v4": "RHBI (v4)",
+    "rhbi-v5": "RHBI (v5)",
+    "rhbi-v6": "RHBI (v6)",
+    "rhbi-v7": "RHBI (v7)",
+    "rhbi-v8": "RHBI (v8)",
+    "rhbi-v9": "RHBI (v9)",
+    "rhbi-v10": "RHBI (v10)",
+    "rhbi-v11": "RHBI (v11)",
+    "rhbi-v12": "RHBI",
+    "t1-coupling-v1": "T1-Coupling (v1)",
+    "t1-coupling-v2": "T1-Coupling (v2)",
+    "t1-coupling-v3": "T1-Coupling (v3)",
+    "t1-coupling-v4": "T1-Coupling (v4)",
+    "t1-coupling-v5": "T1-Coupling (v5)",
 }
 ARCHIVED_SCOPES = ("pinned", "calibration_diagnostic", "research_diagnostic", "historical")
 

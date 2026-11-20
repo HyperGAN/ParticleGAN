@@ -1,0 +1,28 @@
+{
+  "display_metrics": "Saved scalar metrics; original structured metadata remains in certified evidence.",
+  "gif_sha256": "bdb1dd72de21483ec292e999fc51e0c9eefde8eb992216ac610d064f2ffed311",
+  "kind": "actual_training_saved_observations_gif",
+  "observation_count": 24,
+  "observations_sha256": "33feb91ae59b7bdfff3200c67a39be9eacfcce7a22f4b360b273fa24e694c23e",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "PASS",
+  "renderer_sha256": "f1f3354cdb255c9f78899a111a25723e2058d6da4a454280fa5574aa8d158309",
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "selected_observation_indices": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    14,
+    17,
+    20,
+    23
+  ],
+  "source_inputs": {
+    "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/fd22c98580984a87b62b048b3a578a69/observed-samples.pt": "e117d7272165b6bfdd7e9e0242b9a55b8d3faecf971de9a34c222ff99b72b3bf"
+  },
+  "task_id": "zero_tanh_smoke"
+}

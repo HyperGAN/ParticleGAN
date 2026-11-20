@@ -1,0 +1,494 @@
+{
+  "attempt_ids": [
+    "2c33e91963ad464f990c4ae04f365e48",
+    "c8e35c60cb3c4957bad3e692f469541c"
+  ],
+  "candidate_id": "bispf-vaegan-settle-v1",
+  "candidate_revision": "15cec064bfab5931854da2b176eb21f34230e1508407767ad76ab3f2fc721660",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matched baseline and transport-only both fail sustained gates. Scientific sources, task conditions, initial models and consumed data batches match. Delta from transport-only is exactly three schedule fields. This establishes scoped repair, not transport necessity or whole-suite/default qualification.",
+  "conclusion": "One global BISPF transport-plus-cosine-settling recipe passes both full1200-update VAEGAN tasks and all5 terminal checks, with hard/categorical passing suffixes6/9. Actual KL, input-dependent reconstruction and both independent sampling laws satisfy every unchanged bound.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "2c33e91963ad464f990c4ae04f365e48",
+        "c8e35c60cb3c4957bad3e692f469541c"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "f3bab8da82bec2826ae431129e0ac86162da8a2c9c9de47a34a3f068f8df9b1e",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.986083984375
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.986083984375
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "2c33e91963ad464f990c4ae04f365e48",
+          "producer_request_id": "8c774ad282114d1b9e790277",
+          "producer_study_id": "vaegan-coverage-settle-v1",
+          "result_hash": "e4d0bd0ffeae53efeed76e651c21f7f2c676b93b7ae8f15720a89f1779016994",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "c8e35c60cb3c4957bad3e692f469541c",
+          "producer_request_id": "8c774ad282114d1b9e790277",
+          "producer_study_id": "vaegan-coverage-settle-v1",
+          "result_hash": "33ec28383bd9abd0dc48c083c85767d72a963b700cd268c6d8746014b287dcb3",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "c64e703d233e1094fa83553fb43c1ea7b655d009d7fed5bc5204ca474b26e43a",
+        "contract_sha256": "f3bab8da82bec2826ae431129e0ac86162da8a2c9c9de47a34a3f068f8df9b1e",
+        "control_binding_sha256": "a81f85fc15f67bf5d3db42f0a8237f515fe54f2e4f28fa4d440cd3550fd2a9e2",
+        "policy_fingerprint": "c25bbc534322c46d8535e5cb62bf2fbfbe26ee4f0d92c1fc304bf1b8ae2c2f05",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "85557e9c9a6d56bed45f627c3f6a2d4a6d5fa28d3b40aa1a7b1b5d0c2ac8bdc0"
+      },
+      "study_id": "vaegan-coverage-settle-v1",
+      "study_sha256": "85557e9c9a6d56bed45f627c3f6a2d4a6d5fa28d3b40aa1a7b1b5d0c2ac8bdc0"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "vaegan_coverage",
+  "hypothesis": "A single global finite-budget cosine settling schedule repairs both unchanged VAEGAN tasks after transport-only failed; retain all adversarial, reconstruction and latent regularization objectives. This schedule comparison does not prove transport necessary.",
+  "lifecycle": "concluded",
+  "mechanism_class": "floor_constant",
+  "next_action": "Stop after6runs, retain all4 failures and2 passes. Recommend this recipe for these two declared toys; next separate causal question is schedule-only without transport. No extra seed run, continuation or promotion.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "2c33e91963ad464f990c4ae04f365e48",
+        "result_hash": "e4d0bd0ffeae53efeed76e651c21f7f2c676b93b7ae8f15720a89f1779016994",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "c8e35c60cb3c4957bad3e692f469541c",
+        "result_hash": "33ec28383bd9abd0dc48c083c85767d72a963b700cd268c6d8746014b287dcb3",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-4a3861ac6f4b3a836975d087",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/2c33e91963ad464f990c4ae04f365e48/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 600,
+      "candidate_budget_seconds": 600,
+      "id": "vaegan-coverage-round2-v1"
+    },
+    "candidate": "bispf-vaegan-settle-v1",
+    "competing_explanation": "Constant normalized update scales may sustain jitter, but poor coverage gradients or reconstruction conflict could persist even with smaller steps. Keep complete budget and all5 terminal checks; no candidate-specific gates, serving selection or per-mode recipes. Stop this revision after2 runs and inspect saved states before the sole remaining substantive repair, maximum600additional seconds.",
+    "control": {
+      "candidate_id": "bispf-vaegan-transport-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "likelihood_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "model_vae_hard",
+      "threshold": 0.85
+    },
+    "hypothesis": "A single global finite-budget cosine settling schedule repairs both unchanged VAEGAN tasks after transport-only failed; retain all adversarial, reconstruction and latent regularization objectives. This schedule comparison does not prove transport necessary.",
+    "id": "vaegan-coverage-settle-v1",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "likelihood_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "model_vae_hard",
+      "threshold": 0.85
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "schema": "vaegan_coverage_round1_diagnosis_v1"
+        },
+        "path": "reports/forge/vaegan-coverage/round1-diagnosis.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "vaegan_coverage"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "vaegan-coverage-settle-v1",
+  "study_sha256": "85557e9c9a6d56bed45f627c3f6a2d4a6d5fa28d3b40aa1a7b1b5d0c2ac8bdc0",
+  "task_results": [
+    {
+      "compatibility_key": "8f1b6df7357a86d58c2c9fd6d0146612fb42aeeba46f8d74a405dbc05bae21eb",
+      "cost": {
+        "adapter_loop_seconds": 212.25119953101967,
+        "adapter_seconds": 215.93285732198274,
+        "charged_task": "model_vae_hard",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 223.22055357601494,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "runner_seconds": 217.44408423500136,
+        "wall_seconds": 223.22055357601494
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.9583333333333334,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 1150,
+          "first_pass_step": 350,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 17,
+          "passing_suffix": 6,
+          "stable_from_seconds": null,
+          "stable_from_step": 950
+        },
+        "metric_checks": {
+          "decoder_mean_hq": {
+            "margin": 0.14121093750000002,
+            "metric": "decoder_mean_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.9912109375
+          },
+          "decoder_mean_mass_tv": {
+            "margin": 0.138525390625,
+            "metric": "decoder_mean_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.011474609375
+          },
+          "decoder_mean_modes": {
+            "margin": 0,
+            "metric": "decoder_mean_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "elbo_identity_error": {
+            "margin": 9.999999999955592e-05,
+            "metric": "elbo_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.0001,
+            "value": 4.440892098500626e-16
+          },
+          "kl_identity_error": {
+            "margin": 9.992381382707408e-06,
+            "metric": "kl_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1e-05,
+            "value": 7.618617292592944e-09
+          },
+          "likelihood_hq": {
+            "margin": 0.13608398437500002,
+            "metric": "likelihood_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.986083984375
+          },
+          "likelihood_mass_tv": {
+            "margin": 0.136083984375,
+            "metric": "likelihood_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.013916015625
+          },
+          "likelihood_modes": {
+            "margin": 0,
+            "metric": "likelihood_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "posterior_mutual_information": {
+            "margin": 0.6036531996995562,
+            "metric": "posterior_mutual_information",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.3,
+            "value": 0.9036531996995563
+          },
+          "posterior_noise_variance_ratio": {
+            "margin": 0.1990993738174438,
+            "metric": "posterior_noise_variance_ratio",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.2,
+            "value": 1.0009006261825562
+          },
+          "reconstruction_mse": {
+            "margin": 0.04528894050002673,
+            "metric": "reconstruction_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.004711059499973276
+          },
+          "shuffle_reconstruction_ratio": {
+            "margin": 468.3791590819527,
+            "metric": "shuffle_reconstruction_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 5.0,
+            "value": 473.3791590819527
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "aggregate_effective_components": 2.4686049652775797,
+        "decoder_mean_hq": 0.9912109375,
+        "decoder_mean_mass_tv": 0.011474609375,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 7.618617292592944e-09,
+        "kl_nats": 2.7725887298583984,
+        "likelihood_hq": 0.986083984375,
+        "likelihood_mass_tv": 0.013916015625,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 2.831860557153644,
+        "posterior_effective_components": 1.0,
+        "posterior_mutual_information": 0.9036531996995563,
+        "posterior_noise_variance_ratio": 1.0009006261825562,
+        "posterior_pair_rms": 0.05172229930758476,
+        "reconstruction_mse": 0.004711059499973276,
+        "shuffle_reconstruction_ratio": 473.3791590819527,
+        "shuffled_reconstruction_mse": 2.2301173844823943,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_vae_hard"
+    },
+    {
+      "compatibility_key": "ae1df6fe546e481e2c4a56a123bbd3642eda96e455b1a921a78b9ee2d113cc18",
+      "cost": {
+        "adapter_loop_seconds": 211.9715366110031,
+        "adapter_seconds": 215.5477814549813,
+        "charged_task": "model_vae_categorical",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 222.68541307901614,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "runner_seconds": 217.04934364100336,
+        "wall_seconds": 222.68541307901614
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.8333333333333334,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 1000,
+          "first_pass_step": 350,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 15,
+          "passing_suffix": 9,
+          "stable_from_seconds": null,
+          "stable_from_step": 800
+        },
+        "metric_checks": {
+          "decoder_mean_hq": {
+            "margin": 0.13559570312500002,
+            "metric": "decoder_mean_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.985595703125
+          },
+          "decoder_mean_mass_tv": {
+            "margin": 0.135595703125,
+            "metric": "decoder_mean_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.014404296875
+          },
+          "decoder_mean_modes": {
+            "margin": 0,
+            "metric": "decoder_mean_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "elbo_identity_error": {
+            "margin": 9.999999999933387e-05,
+            "metric": "elbo_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.0001,
+            "value": 6.661338147750939e-16
+          },
+          "kl_identity_error": {
+            "margin": 9.301276287111407e-06,
+            "metric": "kl_identity_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1e-05,
+            "value": 6.987237128885937e-07
+          },
+          "likelihood_hq": {
+            "margin": 0.12094726562500002,
+            "metric": "likelihood_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.85,
+            "value": 0.970947265625
+          },
+          "likelihood_mass_tv": {
+            "margin": 0.120947265625,
+            "metric": "likelihood_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.15,
+            "value": 0.029052734375
+          },
+          "likelihood_modes": {
+            "margin": 0,
+            "metric": "likelihood_modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          },
+          "posterior_mutual_information": {
+            "margin": 0.3940465845368462,
+            "metric": "posterior_mutual_information",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.3,
+            "value": 0.6940465845368462
+          },
+          "posterior_noise_variance_ratio": {
+            "margin": 0.1966964721679687,
+            "metric": "posterior_noise_variance_ratio",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.2,
+            "value": 1.0033035278320312
+          },
+          "reconstruction_mse": {
+            "margin": 0.045353415614027226,
+            "metric": "reconstruction_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.004646584385972777
+          },
+          "shuffle_reconstruction_ratio": {
+            "margin": 477.7905313917409,
+            "metric": "shuffle_reconstruction_ratio",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 5.0,
+            "value": 482.7905313917409
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "aggregate_effective_components": 5.750770418542283,
+        "decoder_mean_hq": 0.985595703125,
+        "decoder_mean_mass_tv": 0.014404296875,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 6.661338147750939e-16,
+        "kl_identity_error": 6.987237128885937e-07,
+        "kl_nats": 1.717301368713379,
+        "likelihood_hq": 0.970947265625,
+        "likelihood_mass_tv": 0.029052734375,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 1.7049343005349167,
+        "posterior_effective_components": 2.8728002390193175,
+        "posterior_mutual_information": 0.6940465845368462,
+        "posterior_noise_variance_ratio": 1.0033035278320312,
+        "posterior_pair_rms": 0.06665504723787308,
+        "reconstruction_mse": 0.004646584385972777,
+        "shuffle_reconstruction_ratio": 482.7905313917409,
+        "shuffled_reconstruction_mse": 2.243326944860363,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_vae_categorical"
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "schema_version": 1,
+  "scope": "future_task_source_binding_only",
+  "original_commit": "a61fb84f2ae1f19b585eb815513ce4ff803200b9",
+  "view": "discriminator_stability",
+  "view_revision": 14,
+  "view_sha256": "779c191dd5c87e819d6f269f01fe0ad19c9a1100c74493b0c8230301b445263a",
+  "source_path": "benchmarks/toy_audit/api_images.py",
+  "original_source_sha256": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+  "future_source_sha256": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
+  "unchanged_top_level_functions": [
+    "_case",
+    "_declarations",
+    "_join_words",
+    "_metadata",
+    "_partition",
+    "_word_metadata",
+    "build_case",
+    "conditional_problem",
+    "list_cases",
+    "oracle_controls",
+    "ordered_bank_sha256",
+    "score_case",
+    "score_words",
+    "template_bank",
+    "word_bank",
+    "word_oracle_controls"
+  ],
+  "changed_classes": [
+    "WordFixture",
+    "WordGenerator"
+  ],
+  "preserved_data_architecture_prior_initialization_budget_sampling_cadence_gates": true,
+  "original_verdicts_preserved": true,
+  "qualification_recomputed": false,
+  "training_updates": 0,
+  "random_draws": 0,
+  "tasks": [
+    {
+      "task": "five_word_joint_smoke",
+      "importance": "required",
+      "qualification_tier": 1,
+      "original_task_path": "configs/forge/tasks/five_word_joint_smoke.json",
+      "original_task_sha256": "fcab8508f2c609f51ff26491a28b27689152d4b69f740ed204f0821b174e55ab",
+      "original_task_blob": "80eff285a2473a1dbdf8208fcf40c61244c08e09",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions/five_word_joint_smoke.json",
+      "future_task_sha256": "c69f7600bdf18ad951b36be55d227e572fa0bc79fd0ee905c2395eca3567ecde",
+      "old_source_pin": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+      "new_source_pin": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
+      "changed_paths": [
+        [
+          "evaluation",
+          "sources",
+          "benchmarks/toy_audit/api_images.py"
+        ]
+      ]
+    },
+    {
+      "task": "five_word_joint_hold",
+      "importance": "required",
+      "qualification_tier": 2,
+      "original_task_path": "configs/forge/tasks/five_word_joint_hold.json",
+      "original_task_sha256": "1d5293086d009175574af7220cd2a427119523a670b7953116758307fedc4967",
+      "original_task_blob": "3ce8e0dc5b8fb6e2c40ed63f07cf8fe646eafc60",
+      "preserved_original": "reports/forge/r1r2-repair-20261022/previous-task-definitions/five_word_joint_hold.json",
+      "future_task_sha256": "8eb1a92e2ab984b8daabfa8e8e4d8f46fb30be0ae66cdc8ff2183f3eabf460a6",
+      "old_source_pin": "954572cd04d8646111f43c6aa9e5f46274e4c44d23f8d274a6c80b94f184321d",
+      "new_source_pin": "5102bd74ebf3f75a6100c4bfbe4fe788fefd4b2f2e8cb384e651523cf142e88a",
+      "changed_paths": [
+        [
+          "evaluation",
+          "sources",
+          "benchmarks/toy_audit/api_images.py"
+        ]
+      ]
+    }
+  ]
+}

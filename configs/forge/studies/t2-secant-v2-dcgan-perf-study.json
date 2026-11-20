@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "t2-secant-v2-dcgan-perf-study"
+  },
+  "candidate": "t2-secant-v2",
+  "competing_explanation": "If 8x8 pooled Chamfer scale estimation and separable Rademacher BF16 micro-secant generation save less than 8.5 ms on dcgan_performance_r256, median update time will remain > 100.0 ms as in t2-secant-v1 (108.43 ms).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 115.0
+  },
+  "hypothesis": "Pairing live 1st-order endpoint reuse and separable Rademacher BF16 micro-secants with 8x8 spatially pooled Chamfer scale tracking eliminates O(B^2 * H * W) FP32 distance overhead on 256x256 images, reducing dcgan_performance_r256 median update time from 108.43 ms (t2-secant-v1) and 173.05 ms (empf-v8) down to <= 100.0 ms on uncontended NVIDIA RTX A6000.",
+  "id": "t2-secant-v2-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 100.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v1",
+        "candidate_revision": "9ca1bac688fed042c174903f459211fa8af459109df5668a2229ae0f15b89f9e"
+      },
+      "path": "reports/forge/records/readout-fbe38229308f61967c632eba.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

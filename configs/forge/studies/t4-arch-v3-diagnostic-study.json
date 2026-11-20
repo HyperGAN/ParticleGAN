@@ -1,0 +1,73 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "t4-arch-v3-diagnostic-study"
+  },
+  "candidate": "t4-arch-v3",
+  "competing_explanation": "If coupled 2-matrix composite depth or streaming-stabilized 1D quantile OT perturbs multi-modal 2D pullback or point-mass rail escape, then t4-arch-v3 will regress one of the 7/7 passes achieved by t4-arch-v2 on t4-strange-architectures-v1.",
+  "control": {
+    "candidate_id": "t2-secant-v5",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "Unchanged global clock-free SVD-free 1st-order t4-arch-v3 retains 7/7 (100%) certified PASS on t4-strange-architectures-v1 (clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, grid100_mlp16, grid100_res16_tanh, and grid100_res16_scaled_tanh) under protocol seed 0 while supplying compatible receipts for discriminator_stability.",
+  "id": "t4-arch-v3-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-arch-v2",
+        "candidate_revision": "20c99f89eb5ed3020ea2ca92678581de5b849a9f07fe5d9c7a9dcb77c8bb22ab"
+      },
+      "path": "reports/forge/records/readout-dbdfe2dd5ef42a8be8001ddc.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t4-arch-v2",
+        "candidate_revision": "20c99f89eb5ed3020ea2ca92678581de5b849a9f07fe5d9c7a9dcb77c8bb22ab"
+      },
+      "path": "reports/forge/records/readout-e1de5ae1858206d0810866db.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-a2d41a678887a49f9ecc6aa9.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

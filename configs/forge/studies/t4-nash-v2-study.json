@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t4-nash-v2-study"
+  },
+  "candidate": "t4-nash-v2",
+  "competing_explanation": "Without per-layer orthogonal polar SVD whitening (DualNorm), Marchenko-Pastur + peak_rms scalar/row scaling cannot orthogonalize correlated multi-head hidden-feature singular spectra on tightly coupled encoder-generator or ultra-tight covariance gates (e.g. ring16_acquisition full-sample component_covariance_error <= 0.85 when 3-5 MLP bridge samples span adjacent modes).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "grad_med",
+    "op": ">",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "hypothesis": "Isolating bind_protected_losses onto T4NashConstraintGeneratorAdam resolves t4-nash-v1's split-optimizer CapabilityError on ae_gan_hold (converting BLOCKED -> PASS with zero execution errors across all 16 Tier 1 tasks) while preserving all 6 Tier 1 passes from t4-nash-v1.",
+  "id": "t4-nash-v2-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "grad_med",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t4-nash-v1",
+        "candidate_revision": "122be867d881b347b08c2242f283d511f84627f507e7f8f05019403a09a0e296"
+      },
+      "path": "reports/forge/records/readout-5c355a1f603466b488e74d42.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

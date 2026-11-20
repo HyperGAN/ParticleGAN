@@ -190,6 +190,10 @@ def _validate_measurement_contract(task):
         validate_task(task)
         fixed.update(evaluator="experiments.forge.scaling_adapter:grade", training_feedback=False,
                      qualification_input=False)
+    elif kind == "zero_tanh_smoke":
+        # The implemented point-mass adapter draws 4,096 clean live samples.
+        # This task has final bounds, without a sustained-suffix requirement.
+        fixed.update(eval_samples=4096, minimum_stable_checks=1)
     else:
         return
     for key, expected in fixed.items():
@@ -628,6 +632,40 @@ def _transfer(task, evidence):
                     metrics=live, evaluator_result=grade)
 
 
+def _zero_tanh_smoke(task, evidence):
+    """Grade the declared origin-Dirac endpoint, without adding hold gates."""
+    from benchmarks.locked_shared.baseline import score_metrics
+    from .tanh_point_mass import accepts_origin_smoke
+
+    if not accepts_origin_smoke(task, task["execution"].get("host_definition")):
+        return _verdict("BLOCKED", "only the declared origin zero_tanh_smoke host is supported")
+    evaluation = task["evaluation"]
+    count = evaluation.get("observations", 24)
+    _positive_int(count, "evaluation observations")
+    steps = task["execution"]["steps"]
+    # Match the adapter's deduplicated cadence, including tiny software runs.
+    expected = sorted({math.ceil(i * steps / count) for i in range(1, count + 1)})
+    points = evidence.get("observations", evidence.get("curve"))
+    try:
+        _curve(points, evaluation["thresholds"])
+    except ValueError as exc:
+        return _verdict("INVALID" if points else "INCOMPLETE", str(exc))
+    if [point["step"] for point in points] != expected:
+        return _verdict("INCOMPLETE", "all declared zero-tanh observation checkpoints are required")
+    live = evidence.get("live")
+    if (not isinstance(live, dict) or live.get("step") != steps
+            or any(not _finite(live.get(name)) for name, _, _ in evaluation["thresholds"])):
+        return _verdict("INCOMPLETE", "finite final live metrics at the complete update budget are required")
+    samples = evaluation.get("eval_samples", 4096)
+    if any(type(row.get("sample_count")) is not int or row["sample_count"] != samples
+           for row in [*points, live]):
+        return _verdict("INCOMPLETE", "every zero-tanh observation requires the declared sample count")
+    cells = score_metrics(live, evaluation["thresholds"])
+    passed = all(cell["status"] == "PASS" for cell in cells)
+    return _verdict("PASS" if passed else "FAIL", "recomputed the declared final zero-tanh bounds",
+                    metrics=live, evaluator_result={"passed": passed, "metrics": cells})
+
+
 def _native(task, evidence, *, diagnostic=False):
     from benchmarks.toy100.accuracy_gate import evaluate_suite
     from .artifacts import verify_artifacts
@@ -648,7 +686,8 @@ def _native(task, evidence, *, diagnostic=False):
         return _verdict("INVALID", "native artifact observation cadence differs from declared task")
     if config.get("eval_samples") != task["evaluation"]["eval_samples"]:
         return _verdict("INVALID", "native evaluation sample count differs from declared task")
-    if config.get("early_eval_steps") != task["evaluation"]["early_eval_steps"]:
+    expected_early = list(task["evaluation"].get("early_eval_steps", [0, 1, 10, 25, 50, 100]))
+    if config.get("early_eval_steps") != expected_early:
         return _verdict("INVALID", "native early observation schedule differs from declared task")
     if task["execution"].get("preserve_prefix_steps"):
         prefix = evidence.get("prefix_parity", {})
@@ -659,9 +698,37 @@ def _native(task, evidence, *, diagnostic=False):
         from .continuation import verify_native_prefix
         verify_native_prefix(task, evidence, diagnostic=diagnostic)
     grade = evaluate_suite(path, problem=problem, write=False)["problems"][problem]
+    metrics = dict(grade.get("holdout_metrics", {}) or {})
+    if "max_saturated_fraction" in task["evaluation"] and grade.get("status") != "INVALID":
+        import numpy as np
+        max_sat = float(task["evaluation"]["max_saturated_fraction"])
+        tanh_scale = float(task["execution"].get("model", {}).get("tanh_scale", 1.0))
+        rail = 0.99 * tanh_scale
+        run_dir = path / problem
+        summary = _read(run_dir / "summary.json")
+        min_stable = int(task["evaluation"].get("minimum_stable_checks", 5))
+        term_steps = list(summary.get("eval_steps", []))[-min_stable:]
+        term_sats = []
+        for s_step in term_steps:
+            with np.load(run_dir / "quality_checks" / f"step_{s_step:06d}.npz", allow_pickle=False) as archive:
+                term_sats.append(float((np.abs(archive["live"]) >= rail).mean()))
+        with np.load(run_dir / "holdout_samples.npz", allow_pickle=False) as archive:
+            holdout_sat = float((np.abs(archive["live"]) >= rail).mean())
+        metrics["saturated_fraction"] = holdout_sat
+        metrics["terminal_max_saturated_fraction"] = max(term_sats) if term_sats else holdout_sat
+        if holdout_sat > max_sat or any(val > max_sat for val in term_sats):
+            grade = {
+                **grade,
+                "status": "FAIL",
+                "passed": False,
+                "reason": (
+                    f"saturated_fraction exceeded max_saturated_fraction={max_sat} "
+                    f"(holdout={holdout_sat:.6f}, terminal_max={metrics['terminal_max_saturated_fraction']:.6f})"
+                ),
+            }
     verify_artifacts(path, manifest)
     return _verdict(grade["status"], grade["reason"],
-                    metrics=grade.get("holdout_metrics", {}), evaluator_result=grade)
+                    metrics=metrics, evaluator_result=grade)
 
 
 # Evidence identity of the ring grader. Task declarations (ring_hold,
@@ -873,6 +940,14 @@ STRETCH_EVALUATOR_KINDS = frozenset({
     "cgan_overlapping_classes",
     "cramer_energy_overlap",
     "cyclegan_unpaired_constellation",
+    "interp_sparse_arc",
+    "interp_img_patch_shift",
+    "interp_saddle_barycentric",
+    "t3_iso_scale_mass_8x",
+    "t3_iso_horizon_saddle_shift",
+    "nash_overpowered_critic_ring16",
+    "nash_overpowered_generator_ring16",
+    "nash_unequal_width_hostile_imbalance",
 })
 
 
@@ -982,6 +1057,21 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         precision = precision_grade(task, evidence)
         if precision is not None:
             return _verdict(*precision)
+    if task.get("adapter") == "particle_interpolation":
+        from .interpolation import grade as interpolation_grade
+        interp_check = interpolation_grade(task, evidence)
+        if interp_check is not None:
+            return _verdict(*interp_check)
+    if task.get("adapter") == "t3_isolation":
+        from .t3_isolation import grade as t3_isolation_grade
+        t3_check = t3_isolation_grade(task, evidence)
+        if t3_check is not None:
+            return _verdict(*t3_check)
+    if task.get("adapter") == "imbalance_nash":
+        from .imbalance_nash import grade as imbalance_nash_grade
+        nash_check = imbalance_nash_grade(task, evidence)
+        if nash_check is not None:
+            return _verdict(*nash_check)
     from .tier1_policy import is_policy_task
     if is_policy_task(task) and task["adapter"] != "clockfree_audit":
         from .tier1_policy import validate_evidence
@@ -1003,7 +1093,7 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
                "ring_hold": _ring, "ring_extension": _ring,
                "paired_adaptation": _adaptation, "clockfree_parity": _clockfree,
                "image_training_performance": performance_grade,
-               "zero_tanh_smoke": _zero_tanh,
+               "zero_tanh_smoke": _zero_tanh_smoke,
                **{kind: _stretch_thresholds for kind in STRETCH_EVALUATOR_KINDS}}
     grader = graders.get(task["evaluation"]["kind"])
     if grader is None:

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 60000,
+    "candidate_budget_seconds": 60000,
+    "id": "rhbi-v3-study"
+  },
+  "candidate": "rhbi-v3",
+  "competing_explanation": "Routing continuous-conditioned fibres directly to fibre-centered paired relativistic log-odds could weaken multi-step conditional anchoring or disturb Tier 1 AE/VAE/ring16 stability if unconditional or discrete-conditional tasks accidentally trigger the continuous-fibre branch.",
+  "control": {
+    "candidate_id": "rhbi-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Adding stateful batch-view detection in RHBICriticPenalty and fibre-centered conditional relativistic slack routing (rhbi_conditional_fibre='slack') to rhbi-v2 preserves all 11/11 Tier 1 passes (27/27 across views) and all 7 rhbi-v2 Tier 2 passes while repairing trajectory, residual_student, and model_ae_ddgan_bimodal_chain under one unchanged global clock-free recipe on protocol seed 0.",
+  "id": "rhbi-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "identity_mse",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "residual_student",
+    "threshold": 0.02
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v2",
+        "candidate_revision": "2f078423d65494cd5a7f7c15210df7d3719fa6a73ab12564142adb0b529839e2"
+      },
+      "path": "reports/forge/records/readout-44a71042e8d9d2018cfd677e.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 3,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

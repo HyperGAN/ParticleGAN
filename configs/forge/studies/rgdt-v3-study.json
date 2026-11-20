@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000.0,
+    "candidate_budget_seconds": 80000.0,
+    "id": "rgdt-v3-study"
+  },
+  "candidate": "rgdt-v3",
+  "competing_explanation": "If rgdt-v3's antipodal valley-capped Voronoi bandwidth, Poisson zero-draw screening, and symmetric DualNorm step damping introduce tradeoffs on Tier 1 gates, precision_gaussian_fp32 or ring16_acquisition will regress.",
+  "control": {
+    "candidate_id": "rgdt-v2",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Evaluate refined global clock-free rgdt-v3 across the complete 41-task discriminator_stability suite (Tiers 1-2 including stretch/held tasks) on protocol seed 0.",
+  "id": "rgdt-v3-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mass_tv",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "vector_unequal_width",
+    "threshold": 0.15
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v2",
+        "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+      },
+      "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

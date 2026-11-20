@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "rgdt-v2-shift-diagnostic-study"
+  },
+  "candidate": "rgdt-v2",
+  "competing_explanation": "If the 4 post-recovery HQ dips (min_hq=0.8523) on target_shift_recovery in rgdt-v1 were caused by MoG prior drift rather than uncooled post-recovery thermal scale, then adding the finite-batch thermal cooling deadband and surplus-partitioned explorer routing will still miss strict pass_all (81/81) or disturb stationary ae_gan_hold / mode_hold.",
+  "control": {
+    "candidate_id": "rgdt-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hold",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "hypothesis": "With finite-batch thermal cooling deadband, LOO cov90 residual, and surplus-partitioned orphan explorer routing, unchanged global clock-free rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and holds all 81/81 post-deadline checks on target_shift_recovery while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS under protocol seed 0.",
+  "id": "rgdt-v2-shift-diagnostic-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hold",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ae_gan_hold",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rgdt-v1",
+        "candidate_revision": "aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17"
+      },
+      "path": "reports/forge/records/readout-3ce5e17e85f112ed337c5c24.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t3-shift-recovery-diagnostic-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

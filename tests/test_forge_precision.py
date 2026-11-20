@@ -19,9 +19,15 @@ def task(format):
 
 def test_precision_is_optional_and_preserves_every_original_required_assignment():
     view = load_view(ROOT, "discriminator_stability")
-    v15 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v18 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
+    v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
     v14 = json.loads((ROOT / v15["previous_revision"]["archive"]).read_text())
-    assert [a for a in view["assignments"] if a["task"] != "grid100_res16_scaled_tanh"] == v15["assignments"]
+    assert [a for a in view["assignments"] if not a["task"].startswith("nash_")] == v18["assignments"]
+    assert [a for a in v18["assignments"] if not a["task"].startswith("t3_iso_")] == v17["assignments"]
+    assert [a for a in v17["assignments"] if not a["task"].startswith("interp_")] == v16["assignments"]
+    assert [a for a in v16["assignments"] if a["task"] != "grid100_res16_scaled_tanh"] == v15["assignments"]
     assert [a for a in v15["assignments"] if not a["task"].startswith("precision_gaussian_")] == v14["assignments"]
     assert [a for a in view["assignments"] if a["importance"] == "required"] == [
         a for a in v14["assignments"] if a["importance"] == "required"]
@@ -58,7 +64,18 @@ def test_new_stretch_tasks_stay_visible_without_invalidating_archived_coverage()
     coverage = check_retained_diagnostic_integrity(ROOT)
     assert coverage["current"] is True
     assert coverage["missing_by_family"] == {}
-    assert coverage["unmeasured_current_tasks"] == ["precision_gaussian_mxfp8", "precision_gaussian_nvfp4"]
+    assert coverage["unmeasured_current_tasks"] == [
+        "interp_img_patch_shift",
+        "interp_saddle_barycentric",
+        "interp_sparse_arc",
+        "nash_overpowered_critic_ring16",
+        "nash_overpowered_generator_ring16",
+        "nash_unequal_width_hostile_imbalance",
+        "precision_gaussian_mxfp8",
+        "precision_gaussian_nvfp4",
+        "t3_iso_horizon_saddle_shift",
+        "t3_iso_scale_mass_8x",
+    ]
 
 
 def test_published_preview_keeps_its_exact_original_source_and_media():

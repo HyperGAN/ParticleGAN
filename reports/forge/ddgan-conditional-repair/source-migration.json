@@ -1,0 +1,45 @@
+{
+  "schema_version": 1,
+  "source": "benchmarks/toy_audit/api_model_ddgan.py",
+  "optimizer_updates": 0,
+  "sampling_draws": 0,
+  "historical_regrading": false,
+  "tasks": [
+    {
+      "path": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "original_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+      "original_git_blob": "f0fca04b9eace1d4c4b506990c25ed7f57cc2526",
+      "original_task_file_sha256": "36d730731453065d13d32a95fe15b5dda917276bbe5d7bdc5a4777846b019577",
+      "previous_source_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+      "current_source_sha256": "ce775bb6b43459b2a8ef4a004e380ca692a7041a365bc143d8b80d7a0b5d913c",
+      "scope": "source-only forward compatibility; original archived evidence unchanged"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "original_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+      "original_git_blob": "aa819d62d1e647bc9442e1807e4dee7336f267ec",
+      "original_task_file_sha256": "400c778842aa5b4834089bbdaed4435d00bba11ab2e21c5944285b550e8f2f1f",
+      "previous_source_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+      "current_source_sha256": "ce775bb6b43459b2a8ef4a004e380ca692a7041a365bc143d8b80d7a0b5d913c",
+      "scope": "source-only forward compatibility; original archived evidence unchanged"
+    },
+    {
+      "path": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "original_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+      "original_git_blob": "a652dcb9ab72707fb2464d5dbf5571f9659f0850",
+      "original_task_file_sha256": "8aae454052e4f4de7c43e610d7b0df740ac955216fabb88a60aeba015efa1858",
+      "previous_source_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+      "current_source_sha256": "ce775bb6b43459b2a8ef4a004e380ca692a7041a365bc143d8b80d7a0b5d913c",
+      "scope": "source-only forward compatibility; original archived evidence unchanged"
+    },
+    {
+      "path": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "original_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+      "original_git_blob": "4443b5510c4e0e94f26f9d583e8493a2a4dda989",
+      "original_task_file_sha256": "f46d95b2c73b0502e522ce0ca700b7174e1fab51d90941eaca377bdb9b512d5f",
+      "previous_source_sha256": "2ca2b98fdc2797e01b8fe0142775403fdcfd638a11d7ec1663948bf7f625ee26",
+      "current_source_sha256": "ce775bb6b43459b2a8ef4a004e380ca692a7041a365bc143d8b80d7a0b5d913c",
+      "scope": "source-only forward compatibility; original archived evidence unchanged"
+    }
+  ]
+}

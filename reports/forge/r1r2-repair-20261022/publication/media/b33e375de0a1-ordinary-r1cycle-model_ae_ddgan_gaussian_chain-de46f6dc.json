@@ -1,0 +1,12 @@
+{
+  "gif_sha256": "aa79ed4f689abeddb3a07f29887efc063ef9ea31fc85825e95143e91e57b4efa",
+  "kind": "retained_original_public_api_actual_training_gif",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "FAIL",
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "source_path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/de46f6dc4edc4844b0f28bd3f037ea6b/api/goal.gif",
+  "source_sha256": "aa79ed4f689abeddb3a07f29887efc063ef9ea31fc85825e95143e91e57b4efa",
+  "task_id": "model_ae_ddgan_gaussian_chain"
+}

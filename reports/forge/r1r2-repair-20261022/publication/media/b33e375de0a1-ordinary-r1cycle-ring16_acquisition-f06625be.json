@@ -1,0 +1,28 @@
+{
+  "display_metrics": "Saved scalar metrics; original structured metadata remains in certified evidence.",
+  "gif_sha256": "e410482fba40eaa5e013146606bf9b9301553b0de37a91cda83a9c0e5e3ab3bf",
+  "kind": "actual_training_saved_observations_gif",
+  "observation_count": 96,
+  "observations_sha256": "e96ffb8d684a224b970b1923375804f93e41fddb5076f4a440cc017a9e460cd0",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "FAIL",
+  "renderer_sha256": "f1f3354cdb255c9f78899a111a25723e2058d6da4a454280fa5574aa8d158309",
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "selected_observation_indices": [
+    0,
+    12,
+    24,
+    36,
+    48,
+    59,
+    71,
+    83,
+    95
+  ],
+  "source_inputs": {
+    "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/f06625be54714f6b981dcf2b9c662503/observed-samples.pt": "e9aafe43fd28c9541e7d3454ff27eb7fe786f76fb2eb51f3ea98382c7fcd9a3b"
+  },
+  "task_id": "ring16_acquisition"
+}

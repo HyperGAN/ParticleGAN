@@ -1,0 +1,1008 @@
+{
+  "attempt_ids": [
+    "189afbf0199a4b9b88daf1082e98f5ee",
+    "49cf0f77121c4095a078b7026dedb066"
+  ],
+  "candidate_id": "bispf-ddgan-energy-annealed-v2",
+  "candidate_revision": "ae4202e9b9ea41b2007a5b37e81e695839718df0206bba202660de2124b8c8ef",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "MatchedGPU0 baseline to energy-annealed: Gaussian finalCDF0.5905 to0.0617, bimodal0.3738 to0.04497. Worst conditionalCDF remains0.19105 Gaussian and0.12724 bimodal; bimodal HQ0.93896 below0.95 and local covariance maximum1.78665 above1.5. No endpoint or marginal subgate earns taskPASS.",
+  "conclusion": "Both full-budget DDGAN tasks remain FAIL. Gaussian passes all5 final marginal checks but retains fixed t1_q0 conditional errors. Bimodal improves marginal/mode means but fails local spread/HQ and conditional terminal gates.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "189afbf0199a4b9b88daf1082e98f5ee",
+        "49cf0f77121c4095a078b7026dedb066"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "1d9b0bf8334ded0e6c2d59cefe9fe1438c5aaafa283504c736f8dcd9b036bafc",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 0.1910522697666559
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 0.1910522697666559
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "189afbf0199a4b9b88daf1082e98f5ee",
+          "producer_request_id": "e2b0c9577a22d9cb5a38b160",
+          "producer_study_id": "ddgan-repair-annealed-r2",
+          "result_hash": "ba9e5932844057481a1efcbd4614945d5f3a78ded524fa171fa12dc8426fa618",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "49cf0f77121c4095a078b7026dedb066",
+          "producer_request_id": "e2b0c9577a22d9cb5a38b160",
+          "producer_study_id": "ddgan-repair-annealed-r2",
+          "result_hash": "a8e9ab53a36087a9556924658e202d882fd888cac7f066e385940f9fd818bb89",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "4a902f631feced326bdf1715b91f38bcf9dbfa97eb01b5311665b6d742b01fa3",
+        "contract_sha256": "1d9b0bf8334ded0e6c2d59cefe9fe1438c5aaafa283504c736f8dcd9b036bafc",
+        "control_binding_sha256": "e95a8751098e7558796464a35590ddb1709e2d420eef87eb62c5f399d4b86eff",
+        "policy_fingerprint": "2faa11df4a38af9a6947b35bdc40a1c91bc489f5a0cc0e9ff7484a23d5ff417b",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "19862c767f071ce3b23b9ec105f015d99be2263aef73f575c21f557069f7d2ec"
+      },
+      "study_id": "ddgan-repair-annealed-r2",
+      "study_sha256": "19862c767f071ce3b23b9ec105f015d99be2263aef73f575c21f557069f7d2ec"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "ddgan-conditional-repair-v1",
+  "hypothesis": "A globally smaller normalized learning rate with positive cosine terminal floors stabilizes conditional-energy DDGAN calibration while preserving its stochastic distribution objective and genuine adversarial game.",
+  "lifecycle": "concluded",
+  "mechanism_class": "floor_constant",
+  "next_action": "Execute the already registered final one-field objective-geometry diagnostic: constraint_geometry_mode direction_blend to none, preserving the same summed GAN/energy/SBNP objectives, coefficients, rates, scientific source, all gates, fixed queries and complete budgets. No ordinary qualification or automatic continuation.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "189afbf0199a4b9b88daf1082e98f5ee",
+        "result_hash": "ba9e5932844057481a1efcbd4614945d5f3a78ded524fa171fa12dc8426fa618",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "49cf0f77121c4095a078b7026dedb066",
+        "result_hash": "a8e9ab53a36087a9556924658e202d882fd888cac7f066e385940f9fd818bb89",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-e2e0ab5b4a57b6aae957eec4",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/189afbf0199a4b9b88daf1082e98f5ee/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600,
+      "candidate_budget_seconds": 1800,
+      "id": "ddgan-conditional-repair-r2"
+    },
+    "candidate": "bispf-ddgan-energy-annealed-v2",
+    "competing_explanation": "Finite conditional capacity, adversarial gradient conflict or large normalized steps may prevent calibrated spread even when the proper auxiliary population objective is minimized by the true conditional law.",
+    "control": {
+      "candidate_id": "bispf-ddgan-energy-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "worst_transition_cdf",
+      "op": ">",
+      "phase": "final",
+      "task_id": "ddgan_repair_gaussian_chain_v1",
+      "threshold": 0.12
+    },
+    "hypothesis": "A globally smaller normalized learning rate with positive cosine terminal floors stabilizes conditional-energy DDGAN calibration while preserving its stochastic distribution objective and genuine adversarial game.",
+    "id": "ddgan-repair-annealed-r2",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "worst_transition_cdf",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "ddgan_repair_gaussian_chain_v1",
+      "threshold": 0.12
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "qualification_input": false,
+          "schema": "ddgan_saved_state_diagnosis_v1"
+        },
+        "path": "reports/forge/ddgan-failure-investigation/results.json",
+        "selector": [],
+        "use": "motivation_only"
+      },
+      {
+        "identity": {
+          "diagnostic_draws": 0,
+          "schema": "ddgan_round1_endpoint_diagnosis_v1",
+          "training_updates_added": 0
+        },
+        "path": "reports/forge/ddgan-conditional-repair/round1-diagnosis.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "ddgan-conditional-repair-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "ddgan-repair-annealed-r2",
+  "study_sha256": "19862c767f071ce3b23b9ec105f015d99be2263aef73f575c21f557069f7d2ec",
+  "task_results": [
+    {
+      "compatibility_key": "b0e99985812d9546da39c370e55ac506740d12f9f261f25c759b9dff324afc1e",
+      "cost": {
+        "adapter_loop_seconds": 747.4093739730015,
+        "adapter_seconds": 751.027276828012,
+        "charged_task": "ddgan_repair_bimodal_chain_wall_v2",
+        "completed_steps": 5000,
+        "device": "0",
+        "execution_seconds": 757.3384573599906,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 5000,
+          "encoder": 0,
+          "generator": 5000,
+          "prior": 5000
+        },
+        "runner_seconds": 752.4001241919759,
+        "wall_seconds": 757.3384573599906
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": null,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 0,
+          "passing_suffix": 0,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "final_covariance_eigen_max": {
+            "margin": 0.43000120507163775,
+            "metric": "final_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9699987949283622
+          },
+          "final_covariance_eigen_min": {
+            "margin": 0.15810655307044486,
+            "metric": "final_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.8081065530704449
+          },
+          "final_hq": {
+            "margin": -0.011035156249999956,
+            "metric": "final_hq",
+            "op": ">=",
+            "status": "FAIL",
+            "threshold": 0.95,
+            "value": 0.93896484375
+          },
+          "final_local_covariance_max": {
+            "margin": -0.2866494425059003,
+            "metric": "final_local_covariance_max",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 1.5,
+            "value": 1.7866494425059003
+          },
+          "final_local_covariance_min": {
+            "margin": 0.27642989475772617,
+            "metric": "final_local_covariance_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.5,
+            "value": 0.7764298947577262
+          },
+          "final_local_mean_sigma": {
+            "margin": 0.29169760533577394,
+            "metric": "final_local_mean_sigma",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.5,
+            "value": 0.20830239466422604
+          },
+          "final_mode_mass_tv": {
+            "margin": 0.1,
+            "metric": "final_mode_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.1,
+            "value": 0.0
+          },
+          "final_normalized_mean": {
+            "margin": 0.2124164399825425,
+            "metric": "final_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.037583560017457496
+          },
+          "final_projection_cdf": {
+            "margin": 0.0750305060322366,
+            "metric": "final_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.044969493967763396
+          },
+          "panel_count": {
+            "margin": 0,
+            "metric": "panel_count",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          },
+          "samples_per_panel": {
+            "margin": 0,
+            "metric": "samples_per_panel",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2048,
+            "value": 2048
+          },
+          "t1_q0_covariance_eigen_max": {
+            "margin": -1.4079835875089226,
+            "metric": "t1_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 1.4,
+            "value": 2.8079835875089225
+          },
+          "t1_q0_covariance_eigen_min": {
+            "margin": 0.3268800704277891,
+            "metric": "t1_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9768800704277891
+          },
+          "t1_q0_normalized_mean": {
+            "margin": -0.037629322796593145,
+            "metric": "t1_q0_normalized_mean",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.25,
+            "value": 0.28762932279659315
+          },
+          "t1_q0_projection_cdf": {
+            "margin": -0.0072401703054879585,
+            "metric": "t1_q0_projection_cdf",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.12,
+            "value": 0.12724017030548795
+          },
+          "t1_q1_covariance_eigen_max": {
+            "margin": -2.6408389835451334,
+            "metric": "t1_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 1.4,
+            "value": 4.040838983545133
+          },
+          "t1_q1_covariance_eigen_min": {
+            "margin": 0.2910161656547817,
+            "metric": "t1_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9410161656547817
+          },
+          "t1_q1_normalized_mean": {
+            "margin": -0.017153797389719394,
+            "metric": "t1_q1_normalized_mean",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.25,
+            "value": 0.2671537973897194
+          },
+          "t1_q1_projection_cdf": {
+            "margin": 0.030642808227890783,
+            "metric": "t1_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.08935719177210921
+          },
+          "t2_q0_covariance_eigen_max": {
+            "margin": 0.42049277868576573,
+            "metric": "t2_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9795072213142342
+          },
+          "t2_q0_covariance_eigen_min": {
+            "margin": 0.13517898341579426,
+            "metric": "t2_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.7851789834157943
+          },
+          "t2_q0_normalized_mean": {
+            "margin": 0.20366536311877914,
+            "metric": "t2_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.04633463688122087
+          },
+          "t2_q0_projection_cdf": {
+            "margin": 0.04628423657247993,
+            "metric": "t2_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.07371576342752006
+          },
+          "t2_q1_covariance_eigen_max": {
+            "margin": 0.4080760078995723,
+            "metric": "t2_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9919239921004276
+          },
+          "t2_q1_covariance_eigen_min": {
+            "margin": 0.18666672319726407,
+            "metric": "t2_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.8366667231972641
+          },
+          "t2_q1_normalized_mean": {
+            "margin": 0.1976683622910091,
+            "metric": "t2_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.052331637708990894
+          },
+          "t2_q1_projection_cdf": {
+            "margin": 0.055610343996674194,
+            "metric": "t2_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.0643896560033258
+          },
+          "t3_q0_covariance_eigen_max": {
+            "margin": 0.3507980434470066,
+            "metric": "t3_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0492019565529933
+          },
+          "t3_q0_covariance_eigen_min": {
+            "margin": 0.2957869365206859,
+            "metric": "t3_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9457869365206859
+          },
+          "t3_q0_normalized_mean": {
+            "margin": 0.17446204620776623,
+            "metric": "t3_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.07553795379223378
+          },
+          "t3_q0_projection_cdf": {
+            "margin": 0.0748949552182151,
+            "metric": "t3_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.0451050447817849
+          },
+          "t3_q1_covariance_eigen_max": {
+            "margin": 0.3616381465707357,
+            "metric": "t3_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0383618534292642
+          },
+          "t3_q1_covariance_eigen_min": {
+            "margin": 0.344304837141168,
+            "metric": "t3_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.994304837141168
+          },
+          "t3_q1_normalized_mean": {
+            "margin": 0.19047705014067057,
+            "metric": "t3_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.059522949859329426
+          },
+          "t3_q1_projection_cdf": {
+            "margin": 0.0849013048906696,
+            "metric": "t3_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.03509869510933039
+          },
+          "t4_q0_covariance_eigen_max": {
+            "margin": 0.3550705344818412,
+            "metric": "t4_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0449294655181587
+          },
+          "t4_q0_covariance_eigen_min": {
+            "margin": 0.3433134721968316,
+            "metric": "t4_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9933134721968316
+          },
+          "t4_q0_normalized_mean": {
+            "margin": 0.23011998559922647,
+            "metric": "t4_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.019880014400773527
+          },
+          "t4_q0_projection_cdf": {
+            "margin": 0.09883982102630162,
+            "metric": "t4_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.021160178973698374
+          },
+          "t4_q1_covariance_eigen_max": {
+            "margin": 0.36988155233401665,
+            "metric": "t4_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0301184476659833
+          },
+          "t4_q1_covariance_eigen_min": {
+            "margin": 0.30745602601841626,
+            "metric": "t4_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9574560260184163
+          },
+          "t4_q1_normalized_mean": {
+            "margin": 0.2343622457545546,
+            "metric": "t4_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.015637754245445376
+          },
+          "t4_q1_projection_cdf": {
+            "margin": 0.09576901029316531,
+            "metric": "t4_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.024230989706834682
+          }
+        },
+        "passed": false,
+        "shortfall": 0.07846974273853691,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "final_covariance_eigen_max": 0.9699987949283622,
+        "final_covariance_eigen_min": 0.8081065530704449,
+        "final_hq": 0.93896484375,
+        "final_local_covariance_max": 1.7866494425059003,
+        "final_local_covariance_min": 0.7764298947577262,
+        "final_local_mean_sigma": 0.20830239466422604,
+        "final_mode_mass_tv": 0.0,
+        "final_normalized_mean": 0.037583560017457496,
+        "final_projection_cdf": 0.044969493967763396,
+        "panel_count": 8,
+        "samples_per_panel": 2048,
+        "step": 5000,
+        "t1_q0_covariance_eigen_max": 2.8079835875089225,
+        "t1_q0_covariance_eigen_min": 0.9768800704277891,
+        "t1_q0_normalized_mean": 0.28762932279659315,
+        "t1_q0_projection_cdf": 0.12724017030548795,
+        "t1_q1_covariance_eigen_max": 4.040838983545133,
+        "t1_q1_covariance_eigen_min": 0.9410161656547817,
+        "t1_q1_normalized_mean": 0.2671537973897194,
+        "t1_q1_projection_cdf": 0.08935719177210921,
+        "t2_q0_covariance_eigen_max": 0.9795072213142342,
+        "t2_q0_covariance_eigen_min": 0.7851789834157943,
+        "t2_q0_normalized_mean": 0.04633463688122087,
+        "t2_q0_projection_cdf": 0.07371576342752006,
+        "t2_q1_covariance_eigen_max": 0.9919239921004276,
+        "t2_q1_covariance_eigen_min": 0.8366667231972641,
+        "t2_q1_normalized_mean": 0.052331637708990894,
+        "t2_q1_projection_cdf": 0.0643896560033258,
+        "t3_q0_covariance_eigen_max": 1.0492019565529933,
+        "t3_q0_covariance_eigen_min": 0.9457869365206859,
+        "t3_q0_normalized_mean": 0.07553795379223378,
+        "t3_q0_projection_cdf": 0.0451050447817849,
+        "t3_q1_covariance_eigen_max": 1.0383618534292642,
+        "t3_q1_covariance_eigen_min": 0.994304837141168,
+        "t3_q1_normalized_mean": 0.059522949859329426,
+        "t3_q1_projection_cdf": 0.03509869510933039,
+        "t4_q0_covariance_eigen_max": 1.0449294655181587,
+        "t4_q0_covariance_eigen_min": 0.9933134721968316,
+        "t4_q0_normalized_mean": 0.019880014400773527,
+        "t4_q0_projection_cdf": 0.021160178973698374,
+        "t4_q1_covariance_eigen_max": 1.0301184476659833,
+        "t4_q1_covariance_eigen_min": 0.9574560260184163,
+        "t4_q1_normalized_mean": 0.015637754245445376,
+        "t4_q1_projection_cdf": 0.024230989706834682,
+        "worst_transition_cdf": 0.12724017030548795
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "ddgan_repair_bimodal_chain_wall_v2"
+    },
+    {
+      "compatibility_key": "2ec5e3d16ddffd6b32874fc95ba565ce161e6d0fe65893a0ab75312f6a9defbe",
+      "cost": {
+        "adapter_loop_seconds": 461.00323236198165,
+        "adapter_seconds": 464.86874845798593,
+        "charged_task": "ddgan_repair_gaussian_chain_v1",
+        "completed_steps": 2500,
+        "device": "0",
+        "execution_seconds": 471.50062965400866,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2500,
+          "encoder": 0,
+          "generator": 2500,
+          "prior": 2500
+        },
+        "runner_seconds": 466.2495966379938,
+        "wall_seconds": 471.50062965400866
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": null,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 0,
+          "passing_suffix": 0,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "final_covariance_eigen_max": {
+            "margin": 0.38826551146703814,
+            "metric": "final_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0117344885329618
+          },
+          "final_covariance_eigen_min": {
+            "margin": 0.3404859667142036,
+            "metric": "final_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9904859667142036
+          },
+          "final_normalized_mean": {
+            "margin": 0.11517577229211295,
+            "metric": "final_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.13482422770788705
+          },
+          "final_projection_cdf": {
+            "margin": 0.058298209904850906,
+            "metric": "final_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.06170179009514909
+          },
+          "panel_count": {
+            "margin": 0,
+            "metric": "panel_count",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          },
+          "samples_per_panel": {
+            "margin": 0,
+            "metric": "samples_per_panel",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2048,
+            "value": 2048
+          },
+          "t1_q0_covariance_eigen_max": {
+            "margin": -0.07747238892915864,
+            "metric": "t1_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 1.4,
+            "value": 1.4774723889291586
+          },
+          "t1_q0_covariance_eigen_min": {
+            "margin": 0.08849793092765557,
+            "metric": "t1_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.7384979309276556
+          },
+          "t1_q0_normalized_mean": {
+            "margin": -0.36953841544440014,
+            "metric": "t1_q0_normalized_mean",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.25,
+            "value": 0.6195384154444001
+          },
+          "t1_q0_projection_cdf": {
+            "margin": -0.0710522697666559,
+            "metric": "t1_q0_projection_cdf",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.12,
+            "value": 0.1910522697666559
+          },
+          "t1_q1_covariance_eigen_max": {
+            "margin": 0.4581403106933061,
+            "metric": "t1_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9418596893066938
+          },
+          "t1_q1_covariance_eigen_min": {
+            "margin": 0.191887840426481,
+            "metric": "t1_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.841887840426481
+          },
+          "t1_q1_normalized_mean": {
+            "margin": 0.0918316921225916,
+            "metric": "t1_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.1581683078774084
+          },
+          "t1_q1_projection_cdf": {
+            "margin": 0.019884495345788344,
+            "metric": "t1_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.10011550465421165
+          },
+          "t2_q0_covariance_eigen_max": {
+            "margin": 0.36756897688863055,
+            "metric": "t2_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0324310231113694
+          },
+          "t2_q0_covariance_eigen_min": {
+            "margin": 0.19372045689172002,
+            "metric": "t2_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.84372045689172
+          },
+          "t2_q0_normalized_mean": {
+            "margin": 0.09428311067259904,
+            "metric": "t2_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.15571688932740096
+          },
+          "t2_q0_projection_cdf": {
+            "margin": 0.046831255796938254,
+            "metric": "t2_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.07316874420306174
+          },
+          "t2_q1_covariance_eigen_max": {
+            "margin": 0.39662305516721097,
+            "metric": "t2_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.003376944832789
+          },
+          "t2_q1_covariance_eigen_min": {
+            "margin": 0.2837247244663307,
+            "metric": "t2_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9337247244663307
+          },
+          "t2_q1_normalized_mean": {
+            "margin": 0.23024787877842548,
+            "metric": "t2_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.01975212122157452
+          },
+          "t2_q1_projection_cdf": {
+            "margin": 0.08906179270683068,
+            "metric": "t2_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.030938207293169318
+          },
+          "t3_q0_covariance_eigen_max": {
+            "margin": 0.3659692968797015,
+            "metric": "t3_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0340307031202984
+          },
+          "t3_q0_covariance_eigen_min": {
+            "margin": 0.2978847094669713,
+            "metric": "t3_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9478847094669713
+          },
+          "t3_q0_normalized_mean": {
+            "margin": 0.2094566738637536,
+            "metric": "t3_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.04054332613624639
+          },
+          "t3_q0_projection_cdf": {
+            "margin": 0.08829745086171792,
+            "metric": "t3_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.03170254913828208
+          },
+          "t3_q1_covariance_eigen_max": {
+            "margin": 0.3645135485487381,
+            "metric": "t3_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0354864514512618
+          },
+          "t3_q1_covariance_eigen_min": {
+            "margin": 0.3406971132758829,
+            "metric": "t3_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.990697113275883
+          },
+          "t3_q1_normalized_mean": {
+            "margin": 0.20360720105461655,
+            "metric": "t3_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.046392798945383465
+          },
+          "t3_q1_projection_cdf": {
+            "margin": 0.08850180817936998,
+            "metric": "t3_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.03149819182063002
+          },
+          "t4_q0_covariance_eigen_max": {
+            "margin": 0.36225374534445565,
+            "metric": "t4_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0377462546555443
+          },
+          "t4_q0_covariance_eigen_min": {
+            "margin": 0.344295351841054,
+            "metric": "t4_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.994295351841054
+          },
+          "t4_q0_normalized_mean": {
+            "margin": 0.23560284188911715,
+            "metric": "t4_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.014397158110882843
+          },
+          "t4_q0_projection_cdf": {
+            "margin": 0.09999552429423031,
+            "metric": "t4_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.020004475705769686
+          },
+          "t4_q1_covariance_eigen_max": {
+            "margin": 0.372846297507325,
+            "metric": "t4_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.027153702492675
+          },
+          "t4_q1_covariance_eigen_min": {
+            "margin": 0.30918119214776185,
+            "metric": "t4_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9591811921477619
+          },
+          "t4_q1_normalized_mean": {
+            "margin": 0.23267747199307143,
+            "metric": "t4_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.017322528006928576
+          },
+          "t4_q1_projection_cdf": {
+            "margin": 0.09402155616313201,
+            "metric": "t4_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.02597844383686798
+          }
+        },
+        "passed": false,
+        "shortfall": 0.05593666659201977,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "final_covariance_eigen_max": 1.0117344885329618,
+        "final_covariance_eigen_min": 0.9904859667142036,
+        "final_normalized_mean": 0.13482422770788705,
+        "final_projection_cdf": 0.06170179009514909,
+        "panel_count": 8,
+        "samples_per_panel": 2048,
+        "step": 2500,
+        "t1_q0_covariance_eigen_max": 1.4774723889291586,
+        "t1_q0_covariance_eigen_min": 0.7384979309276556,
+        "t1_q0_normalized_mean": 0.6195384154444001,
+        "t1_q0_projection_cdf": 0.1910522697666559,
+        "t1_q1_covariance_eigen_max": 0.9418596893066938,
+        "t1_q1_covariance_eigen_min": 0.841887840426481,
+        "t1_q1_normalized_mean": 0.1581683078774084,
+        "t1_q1_projection_cdf": 0.10011550465421165,
+        "t2_q0_covariance_eigen_max": 1.0324310231113694,
+        "t2_q0_covariance_eigen_min": 0.84372045689172,
+        "t2_q0_normalized_mean": 0.15571688932740096,
+        "t2_q0_projection_cdf": 0.07316874420306174,
+        "t2_q1_covariance_eigen_max": 1.003376944832789,
+        "t2_q1_covariance_eigen_min": 0.9337247244663307,
+        "t2_q1_normalized_mean": 0.01975212122157452,
+        "t2_q1_projection_cdf": 0.030938207293169318,
+        "t3_q0_covariance_eigen_max": 1.0340307031202984,
+        "t3_q0_covariance_eigen_min": 0.9478847094669713,
+        "t3_q0_normalized_mean": 0.04054332613624639,
+        "t3_q0_projection_cdf": 0.03170254913828208,
+        "t3_q1_covariance_eigen_max": 1.0354864514512618,
+        "t3_q1_covariance_eigen_min": 0.990697113275883,
+        "t3_q1_normalized_mean": 0.046392798945383465,
+        "t3_q1_projection_cdf": 0.03149819182063002,
+        "t4_q0_covariance_eigen_max": 1.0377462546555443,
+        "t4_q0_covariance_eigen_min": 0.994295351841054,
+        "t4_q0_normalized_mean": 0.014397158110882843,
+        "t4_q0_projection_cdf": 0.020004475705769686,
+        "t4_q1_covariance_eigen_max": 1.027153702492675,
+        "t4_q1_covariance_eigen_min": 0.9591811921477619,
+        "t4_q1_normalized_mean": 0.017322528006928576,
+        "t4_q1_projection_cdf": 0.02597844383686798,
+        "worst_transition_cdf": 0.1910522697666559
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "ddgan_repair_gaussian_chain_v1"
+    }
+  ]
+}

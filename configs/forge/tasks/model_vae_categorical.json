@@ -85,7 +85,9 @@
         "eval",
         "penalty"
       ]
-    }
+    },
+    "transport_consumer": "output_marginal_v1",
+    "observation_checkpoints": true
   },
   "evaluation": {
     "sampling_contract_version": 1,
@@ -164,11 +166,12 @@
     "minimum_stable_checks": 5,
     "scoring_weights": "live",
     "sources": {
-      "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
-      "benchmarks/toy_audit/api_model_vae.py": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
-      "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+      "benchmarks/toy_audit/api_contract.py": "9fbd0b57e2ff0d3009ad96c66e0eeee816f69323e03f9058e65f8ac69bf7c210",
+      "benchmarks/toy_audit/api_model_vae.py": "2126358de1963a1c18c43f159f39c32fffda49e88398b45422c6b13cd80febc0",
+      "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
       "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
-      "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+      "experiments/forge/model_toy_adapter.py": "215a2d6c358f9d746017e07646a4716d41be66af1966ecb01b14b3b6b965faab",
+      "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b",
       "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
     },
     "gate_policy": {
@@ -189,15 +192,39 @@
     },
     "eval_samples": 4096,
     "evaluator_revision": {
-      "id": "review-policy-source-binding-20261025",
-      "change": "Bind the review-stage particlegan/policy.py refresh for future execution: ManipulatedPrior output postprocessing in ServedModel/UpdatePolicy (identity for plain priors), the declared row_evidence_statistic trainer option (default 'sphericity' is the legacy law) and router-parameter ownership labels for manipulated priors. Plain-prior hosts execute the same operations. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts and verdicts retain their original identities; this refresh grants no reuse or pass credit.",
-      "previous_task_commit": "82f38664e4d6fb4aac67ed99d87887d6e6e4b357",
+      "id": "pr-461-audit-develop-integration-20261109",
+      "change": "Current audited execution sources; independent critic contract v2 where explicitly declared. No historical quality inheritance.",
+      "qualification_input": false,
+      "previous_task_commit": "25e8a78da735cf4b015b858f9756c4f2bb3d7cf1",
       "previous_task_path": "configs/forge/tasks/model_vae_categorical.json",
-      "previous_task_sha256": "6fea5d7391a40fbdd59d9bb8733a3562300ea4139c9b39391aeefde24f69b161",
-      "previous_task_blob": "2fb6131183e93b6b40041b213dcea03c5513fb67",
+      "previous_task_sha256": "59a50013a0323b25fe605dc2cfbe2393e27fadaa2b238aee142f2776af93a7f2",
+      "previous_task_blob": "888ab006c8df810eea546715af4d1912944e7f62",
+      "previous_revision": {
+        "id": "review-policy-source-binding-20261025",
+        "change": "Bind the review-stage particlegan/policy.py refresh for future execution: ManipulatedPrior output postprocessing in ServedModel/UpdatePolicy (identity for plain priors), the declared row_evidence_statistic trainer option (default 'sphericity' is the legacy law) and router-parameter ownership labels for manipulated priors. Plain-prior hosts execute the same operations. Architecture, data/target/prior/sampling laws, initialization, budgets, cadence and numerical gates are unchanged. Earlier source-bound receipts and verdicts retain their original identities; this refresh grants no reuse or pass credit.",
+        "previous_task_commit": "82f38664e4d6fb4aac67ed99d87887d6e6e4b357",
+        "previous_task_path": "configs/forge/tasks/model_vae_categorical.json",
+        "previous_task_sha256": "6fea5d7391a40fbdd59d9bb8733a3562300ea4139c9b39391aeefde24f69b161",
+        "previous_task_blob": "2fb6131183e93b6b40041b213dcea03c5513fb67",
+        "previous_source_sha256": {
+          "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
+        }
+      },
       "previous_source_sha256": {
-        "particlegan/policy.py": "4eb130cb5982c8333eec1abac6829c76b8aeea8f4ce87bc90b06b805c7dede0c"
-      }
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3"
+      },
+      "integration_receipt": "reports/forge/pr-integration-20261109/pr-461.json"
+    },
+    "integration_source_binding": {
+      "id": "reviewed-model-prs-integration-20261109",
+      "change": "Bind future executions to the reviewed combined source. Archived research retains its original source, task, gates and outcome; no quality inheritance.",
+      "qualification_input": false,
+      "previous_task_commit": "77850d36357fb4f6ec9a7c4495da9fa1fd5606b5",
+      "previous_task_path": "configs/forge/tasks/model_vae_categorical.json",
+      "previous_task_sha256": "0062c560b1373a73b8acdb07f2206461bd2aaaba7737ebd726f74155c3a62b60",
+      "previous_task_blob": "81f8f4967e88d6b2be7ee5964b54848c870f27c1",
+      "integration_receipt": "reports/forge/reviewed-pr-integration-20261109/source-binding.json"
     }
   },
   "resources": {

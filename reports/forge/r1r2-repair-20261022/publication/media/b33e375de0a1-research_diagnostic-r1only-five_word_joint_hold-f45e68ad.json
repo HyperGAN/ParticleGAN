@@ -1,0 +1,28 @@
+{
+  "display_metrics": "Saved scalar metrics; original structured metadata remains in certified evidence.",
+  "gif_sha256": "3e5d8d66a1358ad270eec987bb143c1718853677c41ec49b560eb9ce84fd8143",
+  "kind": "actual_training_saved_observations_gif",
+  "observation_count": 25,
+  "observations_sha256": "466c204c50ff5a001754f27f2430a7ec6b27785cda3d1ddbb0a39c60e0e8e232",
+  "optimizer_updates_added": 0,
+  "qualification_input": false,
+  "recorded_grade": "PASS",
+  "renderer_sha256": "f1f3354cdb255c9f78899a111a25723e2058d6da4a454280fa5574aa8d158309",
+  "sampling_draws_added": 0,
+  "schema_version": 1,
+  "selected_observation_indices": [
+    0,
+    3,
+    6,
+    9,
+    12,
+    15,
+    18,
+    21,
+    24
+  ],
+  "source_inputs": {
+    "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/f45e68ade4c7445f8de8610425231c45/observed-records.pt": "52f41caefa4e75e4a09cf2cfe648fe58fba6aae3d92ec98490d18f8db0cd1dd6"
+  },
+  "task_id": "five_word_joint_hold"
+}

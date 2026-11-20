@@ -1,0 +1,65 @@
+{
+  "schema": "misgan_four_mode_execution_contract_v2",
+  "qualification_input": false,
+  "training_rerun": false,
+  "historical_quality_inherited": false,
+  "corrected_execution_quality": "unmeasured",
+  "version": "misgan-four-mode-independent-games-v2",
+  "coupled_v1": {
+    "task": {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "configs/forge/tasks/model_misgan_four_mode.json",
+      "sha256": "f15489d35eb4e8b4aaaab674c39ec71ef485598023eba40c4eccdd0854f79e97",
+      "git_blob": "fce69a50645acef24d3bbf302fbe02f93479ffc8",
+      "archived_path": "reports/forge/misgan-bispf/archive/task-coupled-v1.json"
+    },
+    "provider": {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "benchmarks/toy_audit/api_model_misgan.py",
+      "sha256": "338889ea99e506da4265eba8977ac32af70e055cf84b1477d725b4f4b1626111",
+      "git_blob": "2a9db9c35c48a534f470b13e87f1736ee952afad"
+    },
+    "view": {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "configs/forge/views/misgan-bispf-research-v1.json",
+      "sha256": "974c6a8a68be0c0a89e745fec37bd136599d7bb036078d7cf22d50904becce8c",
+      "git_blob": "71291582dc116f549964f4f6977ec984d42f3f93",
+      "archived_path": "configs/forge/view-history/misgan-bispf-research-v1-v1.json"
+    }
+  },
+  "unchanged_research_results": [
+    {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "reports/forge/misgan-bispf/results.json",
+      "sha256": "fbcf40f2b72164e37201a59ec093f97a962e79d6f166109337a1016bf8dd7129",
+      "git_blob": "890e89a3d9a4cf17e19dfe1edc304707b788c8ca"
+    },
+    {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "reports/forge/misgan-bispf/scorer-controls.json",
+      "sha256": "fceb119032dd4b24fef4ba30c591d9896f231cbc8c693b1b554489572c195c9c",
+      "git_blob": "88515ff4c621f1f343fe62b7bd0094a6830f0e79"
+    },
+    {
+      "source_commit": "2025ca2875517cd3cdf8a91bba1ecfeebf3ba7ca",
+      "source_path": "reports/forge/misgan-bispf/round1-diagnosis.json",
+      "sha256": "699436cf025c723cb796095bf06417d0c864e410cb30c9298d7407807968dc44",
+      "git_blob": "f9df44b40fe463d476356de0dd5aa6279dd52093"
+    }
+  ],
+  "independent_v2": {
+    "provider_path": "benchmarks/toy_audit/api_model_misgan.py",
+    "provider_sha256": "be2ad80afdae20012b90d10a838c59f37271890bef87bfdbc3dfe8a92ec94e28",
+    "task_path": "configs/forge/tasks/model_misgan_four_mode.json",
+    "task_sha256": "004ef923d9539e0339315c5a7e81559c4656e7de7d2a72d338a8cdecad02324a",
+    "critic_owners": [
+      "data",
+      "mask",
+      "imputer"
+    ],
+    "shared_generator_prior_policy_anchor": "data",
+    "update_order": "summed critic backward; data, mask, imputer optimizer steps; generator/prior update",
+    "checkpoint_version": "misgan-four-mode-independent-games-v2",
+    "legacy_checkpoint_admission": "reject before live mutation"
+  }
+}

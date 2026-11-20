@@ -1,0 +1,148 @@
+{
+  "control_panel_seed": 713,
+  "results": [
+    {
+      "control": "oracle",
+      "expected": "PASS",
+      "failed_bounds": [],
+      "mode": "hard",
+      "observed": "PASS"
+    },
+    {
+      "control": "shuffled-reconstruction",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "reconstruction_mse <= 0.05 (observed 2.23565)",
+        "shuffle_reconstruction_ratio >= 5 (observed 1)",
+        "elbo_identity_error <= 0.0001 (observed 2484.03)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "missing-local-noise",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "posterior_noise_variance_ratio >= 0.8 (observed 0)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "input-independent-posterior",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "posterior_mutual_information >= 0.3 (observed 4.44089e-16)",
+        "kl_identity_error <= 1e-05 (observed 2.77259)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "collapsed-prior",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "decoder_mean_hq >= 0.85 (observed 0)",
+        "decoder_mean_mass_tv <= 0.15 (observed 1)",
+        "decoder_mean_modes >= 2 (observed 0)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "collapsed-likelihood",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "likelihood_hq >= 0.85 (observed 0)",
+        "likelihood_mass_tv <= 0.15 (observed 1)",
+        "likelihood_modes >= 2 (observed 0)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "missing-kl",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "kl_identity_error <= 1e-05 (observed 2.77259)",
+        "elbo_identity_error <= 0.0001 (observed 2.77259)"
+      ],
+      "mode": "hard",
+      "observed": "FAIL"
+    },
+    {
+      "control": "oracle",
+      "expected": "PASS",
+      "failed_bounds": [],
+      "mode": "categorical",
+      "observed": "PASS"
+    },
+    {
+      "control": "shuffled-reconstruction",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "reconstruction_mse <= 0.05 (observed 2.23565)",
+        "shuffle_reconstruction_ratio >= 5 (observed 1)",
+        "elbo_identity_error <= 0.0001 (observed 2484.03)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    },
+    {
+      "control": "missing-local-noise",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "posterior_noise_variance_ratio >= 0.8 (observed 0)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    },
+    {
+      "control": "input-independent-posterior",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "posterior_mutual_information >= 0.3 (observed 4.44089e-16)",
+        "kl_identity_error <= 1e-05 (observed 0.693147)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    },
+    {
+      "control": "collapsed-prior",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "decoder_mean_hq >= 0.85 (observed 0)",
+        "decoder_mean_mass_tv <= 0.15 (observed 1)",
+        "decoder_mean_modes >= 2 (observed 0)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    },
+    {
+      "control": "collapsed-likelihood",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "likelihood_hq >= 0.85 (observed 0)",
+        "likelihood_mass_tv <= 0.15 (observed 1)",
+        "likelihood_modes >= 2 (observed 0)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    },
+    {
+      "control": "missing-kl",
+      "expected": "FAIL",
+      "failed_bounds": [
+        "kl_identity_error <= 1e-05 (observed 0.693147)",
+        "elbo_identity_error <= 0.0001 (observed 0.693148)"
+      ],
+      "mode": "categorical",
+      "observed": "FAIL"
+    }
+  ],
+  "schema": "vaegan_existing_scorer_controls_v1",
+  "scope": "Separate frozen oracle/destructive scorer fixtures; neither training nor qualification evidence. Same controls passed before training in focused pytest suite.",
+  "scorer_source_sha256": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+  "test_source_sha256": "ffdaecd095d37280f8a38d15755bf8eb79d289e6912ec929a41349e6ccd44095",
+  "training_updates": 0
+}

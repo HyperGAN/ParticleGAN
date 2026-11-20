@@ -1,0 +1,151 @@
+{
+  "schema": "misgan_bispf_proposal_v1",
+  "source_parent": "a771841dd",
+  "protocol_seed": 0,
+  "legacy_omissions": [
+    "plain Adam instead of selected optimizer",
+    "no Born-Infeld penalty",
+    "no learned-prior updates/SBNP",
+    "uncheckpointed data/latent RNG"
+  ],
+  "primary_sources": [
+    "https://arxiv.org/abs/1902.09599",
+    "https://github.com/steveli/misgan/blob/master/src/misgan_impute.py"
+  ],
+  "task_id": "model_misgan_four_mode",
+  "new_task_scope": {
+    "provider": "benchmarks.toy_audit.api_model_misgan",
+    "case_id": "api-model-misgan-four-mode",
+    "resources": {
+      "num_particles": 64,
+      "z_dim": 2,
+      "batch_size": 256
+    },
+    "num_particles": 64,
+    "z_dim": 2,
+    "batch_size": 256,
+    "init_std": 0.5,
+    "target": {
+      "kind": "four_corner_hadamard8",
+      "means": [
+        [
+          -1.0,
+          -1.0
+        ],
+        [
+          -1.0,
+          1.0
+        ],
+        [
+          1.0,
+          -1.0
+        ],
+        [
+          1.0,
+          1.0
+        ]
+      ],
+      "sigma": 0.08,
+      "masses": [
+        0.25,
+        0.25,
+        0.25,
+        0.25
+      ]
+    },
+    "architecture": {
+      "generator": "affine_2_to_8",
+      "mask": "categorical4_linear1",
+      "imputer": "16_64_64_64_neural_logits",
+      "critics": "64_64"
+    },
+    "recipe_fields": {
+      "model": "gan",
+      "conditioning": "scalar",
+      "encoder_mode": "none",
+      "observation_sigma": 0.08,
+      "reconstruction_weight": 1.0
+    }
+  },
+  "thresholds": [
+    [
+      "modes",
+      ">=",
+      4
+    ],
+    [
+      "hq",
+      ">=",
+      0.9
+    ],
+    [
+      "mass_tv",
+      "<=",
+      0.1
+    ],
+    [
+      "off_plane",
+      "<=",
+      0.04
+    ],
+    [
+      "mask_tv",
+      "<=",
+      0.05
+    ],
+    [
+      "imputer_observed_error",
+      "<=",
+      1e-06
+    ],
+    [
+      "imputer_accuracy",
+      ">=",
+      0.94
+    ],
+    [
+      "ambiguous_hq",
+      ">=",
+      0.9
+    ],
+    [
+      "ambiguous_mass_tv",
+      "<=",
+      0.12
+    ],
+    [
+      "ambiguous_query_coverage",
+      ">=",
+      0.9
+    ],
+    [
+      "ambiguous_std_ratio",
+      ">=",
+      0.7
+    ],
+    [
+      "ambiguous_std_ratio",
+      "<=",
+      1.3
+    ]
+  ],
+  "budget": {
+    "arms": 3,
+    "updates_per_arm": 1200,
+    "scoring_checks": 24,
+    "required_terminal_checks": 5,
+    "timeout_per_arm_seconds": 1800,
+    "max_additional_revisions": 1,
+    "max_total_reservation_seconds": 7200
+  },
+  "hypotheses": [
+    "Correct recipe binding supplies a meaningful selected-BISPF baseline.",
+    "Observed masked-mixture likelihood plus categorical mask likelihood repairs missed modes without clean real labels.",
+    "Own-generator synthetic component classification makes neural conditional logits retain both ambiguous branches."
+  ],
+  "stop_rules": [
+    "Do not rerun unchanged failures or seeds.",
+    "After three initial arms allow at most one substantive declared repair, then stop and report all bounds.",
+    "No whole-suite, throughput, default-adoption or historical100-mode qualification claim."
+  ]
+}

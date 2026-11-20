@@ -1,0 +1,129 @@
+{
+  "links": "publication/results.json uses current ordinary-scoped paths. No current markdown or JSON content referenced removed aliases before cleanup.",
+  "original_grades_changed": false,
+  "rows": [
+    {
+      "archive_blob": "cba568befa9e25535f1e6d2b99bd7addbb64efb0",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-five_word_joint_smoke-4c1de877.gif",
+      "current_sha256": "6b45896f8ccd219cb733a250f6836b127f701d6df97a39de0b1e17ab7a814f54",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "6b45896f8ccd219cb733a250f6836b127f701d6df97a39de0b1e17ab7a814f54",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-five_word_joint_smoke-4c1de877.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "e6a54396fbaa15cc4a69682cc2deb7e87fb44d77",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-five_word_joint_smoke-4c1de877.json",
+      "current_sha256": "e52d33c53ea6dbb5e95d12ecfa176ea50c23c3cd41bbfe910b453f461859efdd",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "2e3b375363601016e584f45ac41051920df1ec9a09a592d7d09d980a287f2771",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-five_word_joint_smoke-4c1de877.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "b21aa5046a06f708959a87f76be7513b2c093d58",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-model_ddgan_gaussian_chain-32a62170.gif",
+      "current_sha256": "9c434ab824b9f50bbd14af2ab5d1f472a29f366a5827416f2cbd2c785124590f",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "9c434ab824b9f50bbd14af2ab5d1f472a29f366a5827416f2cbd2c785124590f",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-model_ddgan_gaussian_chain-32a62170.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "30225b10130a1d1ba74d23456470772dc3ecd0b9",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-model_ddgan_gaussian_chain-32a62170.json",
+      "current_sha256": "6d2b384ac344ba6261295bcd11f2a7da09ed39d52eda390a6d0fb5f30bc9efb2",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "6d2b384ac344ba6261295bcd11f2a7da09ed39d52eda390a6d0fb5f30bc9efb2",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-model_ddgan_gaussian_chain-32a62170.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "6ab064a9478dea3cd1a387e289a5cae2360b5fc1",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-ring16_acquisition-b6ab7bc8.gif",
+      "current_sha256": "dfc9d865325a8d3083f22380f6b1ae62ee323ec135d15af5e83668e9ad87ad24",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "dfc9d865325a8d3083f22380f6b1ae62ee323ec135d15af5e83668e9ad87ad24",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-ring16_acquisition-b6ab7bc8.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "7e9ad085a94e2b97604366e9dbd97667644c6fcd",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-ring16_acquisition-b6ab7bc8.json",
+      "current_sha256": "b59dcbc97aea3d79642dbe57bba62ad22d067c70b874fdd32bbd948acfa45f89",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "f2f2600bf4d7a90478613f365aadf923b1748a09f3c1ccbeb38ceb298f918b6a",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-ring16_acquisition-b6ab7bc8.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "922e01d8362659886051e112ff344bb3a62d5163",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-two_pole-dfce9188.gif",
+      "current_sha256": "4c3e0caba7f7dc0ac19bde5048e9ad96a0e7d188ad613873878b100d022f7cfa",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "4c3e0caba7f7dc0ac19bde5048e9ad96a0e7d188ad613873878b100d022f7cfa",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-two_pole-dfce9188.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "0c887c5d7c92879067b36c3155e2d9915be79cf9",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-two_pole-dfce9188.json",
+      "current_sha256": "1af142dac2bf2712117d83f76d4f288c684a0126b490a14934f37283312de28a",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "a8faf2fc3a4880c25305265fc7b687e5299af8c7c5f0d3f5b824b594e77a1ca9",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-two_pole-dfce9188.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "5c7150ef3a6fa3078eda4f0d6f77288d5b2ac7d1",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-unused_token_hold-95032d2d.gif",
+      "current_sha256": "35b1a314f17ea742e1253cf9e602238d2318a469e7045bcf6b39675817cb8494",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "35b1a314f17ea742e1253cf9e602238d2318a469e7045bcf6b39675817cb8494",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-unused_token_hold-95032d2d.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "3728691178399f0911347a1a645777619a168a31",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-unused_token_hold-95032d2d.json",
+      "current_sha256": "8548f5128ad6a184ee902710bb1db645dad9160255b70592db8c6763df63e41e",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "b9ae05e72c6bd8160c215d711e8a5f265952bb016732ece0a540f5bac6bffd45",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-unused_token_hold-95032d2d.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "09bf2b2dea355613e15cf4ba8fbd9f958587bca5",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-zero_tanh_smoke-eb5133cb.gif",
+      "current_sha256": "05ffe14927b1a734106ca1e8c4224740b98e6ac67478555df2fd800d27349f05",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "05ffe14927b1a734106ca1e8c4224740b98e6ac67478555df2fd800d27349f05",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-zero_tanh_smoke-eb5133cb.gif",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    },
+    {
+      "archive_blob": "2ceebf3bca21e64e9ce49d9deb16aa49159c124f",
+      "archive_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+      "current_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-ordinary-control-zero_tanh_smoke-eb5133cb.json",
+      "current_sha256": "fb2460d68c7e29c7512e99fd0e4a3720ef17432aaafa0734acf3881eff1b6216",
+      "gif_bytes_unchanged": true,
+      "original_sha256": "0a3654c09bc814053cd6311976f54171ee553b3315184e6219eaee35cf980fab",
+      "removed_path": "reports/forge/r1r2-repair-20261022/publication/media/e481b63224fc-control-zero_tanh_smoke-eb5133cb.json",
+      "sidecar_note": "Current sidecar makes ordinary evidence scope explicit and records existing verified saved-output export; original sidecar retained at archived blob."
+    }
+  ],
+  "sampling_draws_added": 0,
+  "scope": "superseded_media_alias_cleanup",
+  "training_updates_added": 0
+}

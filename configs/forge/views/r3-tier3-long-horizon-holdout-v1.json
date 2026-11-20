@@ -1,0 +1,123 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "two_pole"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "unused_token_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "ae_gan_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "clockfree_audit"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "zero_tanh_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "zero_tanh_rail_escape"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 7,
+      "qualification_tier": 1,
+      "task": "five_word_joint_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 8,
+      "qualification_tier": 1,
+      "task": "mode_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 9,
+      "qualification_tier": 1,
+      "task": "ring_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 10,
+      "qualification_tier": 1,
+      "task": "ring_extension"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 11,
+      "qualification_tier": 1,
+      "task": "target_shift_recovery"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 12,
+      "qualification_tier": 1,
+      "task": "grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 13,
+      "qualification_tier": 1,
+      "task": "rotated100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 14,
+      "qualification_tier": 1,
+      "task": "staggered100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 15,
+      "qualification_tier": 1,
+      "task": "grid100_14k"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 16,
+      "qualification_tier": 1,
+      "task": "rotated100_14k"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 17,
+      "qualification_tier": 1,
+      "task": "staggered100_14k"
+    }
+  ],
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "r3-tier3-long-horizon-holdout-v1",
+  "policy_change_reason": "Round-3 untouched Tier-3 long-horizon 14,000-update native continuation (grid100_14k, rotated100_14k, staggered100_14k), uninterrupted 7,500-step ring endurance (ring_hold, ring_extension), 4,000-step word BiGAN continuation (five_word_joint_hold), paired target_shift_recovery, zero_tanh_rail_escape, and 3-task cheap calibration smoke predicates (two_pole, unused_token_hold, ae_gan_hold) under unchanged frozen task gates and protocol seed 0. Grants no ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

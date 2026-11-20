@@ -18,7 +18,7 @@ def test_partial_constructor_fails_before_implicit_ka2_selection(overrides):
 def test_selected_default_has_no_effective_decay_or_ema():
     from particlegan.recipes import learning_rate_scales
     recipe = get_recipe()
-    assert recipe.name == "bispf_optimized"
+    assert recipe.name == "empf"
     assert recipe.ema_decay == recipe.reg_anchor_weight == 0
     for step in (0, 200, 800, 960, 1600, 7000, 14000):
         assert learning_rate_scales(step, recipe) == (1., 1.)

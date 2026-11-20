@@ -1,0 +1,27 @@
+{
+  "schema_version": 1,
+  "id": "ddgan-conditional-repair-v1",
+  "revision": 1,
+  "goal": "ddgan_conditional_repair",
+  "evidence_scope": "research_diagnostic",
+  "policy_change_reason": "User-authorized bounded conditional-law repair on unchanged plain-DDGAN Gaussian and bimodal tasks. Deeper ordinary prerequisites remain failed; these diagnostic assignments cannot fill qualification.",
+  "assignments": [
+    {
+      "task": "ddgan_repair_gaussian_chain_v1",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 0
+    },
+    {
+      "task": "ddgan_repair_bimodal_chain_v1",
+      "importance": "diagnostic",
+      "qualification_tier": 1,
+      "order": 1
+    }
+  ],
+  "eligibility": {},
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  }
+}

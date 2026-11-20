@@ -48,6 +48,13 @@ def source_audit(recipe, extensions):
              "particlegan/birth_death.py", "particlegan/feature_cells.py", "particlegan/feature_policy.py",
              "particlegan/feature_reference.py", "particlegan/latent_geometry.py", "particlegan/mean_transport.py",
              "particlegan/row_evidence.py", "particlegan/priors.py",
+             "particlegan/_t1_prior/pullback.py",
+             "particlegan/_t4_arch/optimizer.py", "particlegan/_t4_arch/pullback.py",
+             "particlegan/_unified_v4/critic.py", "particlegan/_unified_v4/loss.py",
+             "particlegan/_unified_v4/optimizer.py", "particlegan/_unified_v4/penalty.py",
+             "particlegan/_unified_v4/prior.py",
+             "particlegan/_r4_ablation/optimizer.py", "particlegan/_r4_ablation/penalty.py",
+             "particlegan/_r4_ablation/prior.py",
              "particlegan/grad_regularizers.py", "experiments/forge/clockfree.py",
              "experiments/forge/api.py", "experiments/forge/rng.py"]
     return {"source_sha256": {name: file_hash(root / name) for name in files},

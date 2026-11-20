@@ -253,6 +253,72 @@ def test_evaluator_revision_lineage_accepts_source_only_refresh_and_rejects_gate
     assert publication._evaluator_revision_reaches(ROOT, tampered_gate, ref_eval) is False
 
 
+
+@pytest.mark.parametrize('damage', [
+    'budget', 'ownership', 'sampling', 'gate', 'earlier_revision',
+    'parent_sha', 'parent_blob', 'source_pin', 'qualification_flag', 'receipt_schema',
+])
+def test_combined_source_lineage_rejects_semantic_damage_even_with_rehashed_receipt(tmp_path, monkeypatch, damage):
+    import hashlib
+    import json
+
+    relative = 'configs/forge/tasks/two_pole.json'
+    task = read_json(ROOT / relative)
+    binding = task['evaluation']['integration_source_binding']
+    assert binding['id'] == 'reviewed-model-prs-integration-20261109'
+    receipt_path = binding['integration_receipt']
+    receipt = read_json(ROOT / receipt_path)
+    row = next(row for row in receipt['tasks'] if row['previous_task_path'] == relative)
+    for source in task['evaluation']['sources']:
+        path = tmp_path / source
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.symlink_to(ROOT / source)
+    task_path = tmp_path / relative
+    task_path.parent.mkdir(parents=True, exist_ok=True)
+    task_path.write_bytes((ROOT / relative).read_bytes())
+    atomic_json(tmp_path / receipt_path, receipt)
+
+    # Keep archived Git reads exact while isolating the mutable current task
+    # and receipt. No repository file or historical receipt is rewritten.
+    original_check_output = publication.subprocess.check_output
+    def archived_git(args, **kwargs):
+        if args[:2] == ['git', 'show']:
+            kwargs['cwd'] = ROOT
+        return original_check_output(args, **kwargs)
+    monkeypatch.setattr(publication.subprocess, 'check_output', archived_git)
+    recorded = read_json(ROOT / 'reports/forge/technique-inventory.json')
+    reference = next(row['bindings']['task_contracts'] for row in recorded['rows']
+                     if row['trainer_family'] == 'k3p')
+    target = recorded['task_contracts'][reference['two_pole']]['evaluation_sha256']
+    assert publication._evaluator_revision_reaches(tmp_path, task, target)
+
+    if damage == 'budget':
+        task['execution']['steps'] += 1
+    elif damage == 'ownership':
+        task['execution']['prior_contract'] = 'task_owned'
+    elif damage == 'sampling':
+        task['evaluation']['sampling_law'] = 'different_sampler'
+    elif damage == 'gate':
+        task['evaluation']['thresholds'][0][2] = 0.99
+    elif damage == 'earlier_revision':
+        task['evaluation']['evaluator_revision']['id'] = 'unrelated_ancestry'
+    elif damage in {'parent_sha', 'parent_blob'}:
+        key = 'previous_task_sha256' if damage == 'parent_sha' else 'previous_task_blob'
+        binding[key] = row[key] = '0' * len(binding[key])
+    elif damage == 'source_pin':
+        source = next(iter(task['evaluation']['sources']))
+        task['evaluation']['sources'][source] = row['sources_after'][source] = '0' * 64
+    elif damage == 'qualification_flag':
+        receipt['qualification_input'] = True
+    else:
+        receipt['schema'] = 'unverified_source_binding'
+    raw = (json.dumps(task, indent=2) + '\n').encode()
+    task_path.write_bytes(raw)
+    row['current_task_sha256'] = hashlib.sha256(raw).hexdigest()
+    atomic_json(tmp_path / receipt_path, receipt)
+    assert publication._evaluator_revision_reaches(tmp_path, task, target) is False
+
+
 def test_candidate_roster_requires_frozen_source_and_cannot_combine_with_declaration_registration(tmp_path):
     with pytest.raises(ValueError, match='declaration roster requires exact frozen source reconstruction'):
         publication.regenerate(tmp_path, candidate_roster=['atlas-particle-normal-v4'])
@@ -334,6 +400,68 @@ def test_measured_candidates_at_source_discovers_non_study_ordinary_attempts(tmp
         tmp_path, manifests, studies, 'discriminator_stability', 'cuda'
     )
     assert measured == {'study-cand', 'non-study-cand'}
+
+
+def test_comparison_projection_accepts_newly_registered_family_and_rejects_unregistered_or_incomplete():
+    actual, projected, comparison = comparison_fixture()
+    comparison['policy']['assignments'] = [
+        {'task': 'acquire', 'qualification_tier': 1},
+        {'task': 'held', 'qualification_tier': 2},
+        {'task': 'hold', 'qualification_tier': 3},
+    ]
+    comparison['added_actual_tasks'] = ['added_tier1']
+    comparison['reference_task_contracts'] = {}
+    comparison['new_registered_families'] = ['rhbi']
+    actual['rows'][0]['bindings']['trainer_family'] = 'rhbi'
+    actual['rows'][0]['bindings']['task_contracts']['added_tier1'] = 'added-contract'
+    actual['rows'][0]['tasks'].append({'task_id': 'added_tier1', 'status': 'PASS'})
+    projected['rows'][0]['bindings']['trainer_family'] = 'rhbi'
+    projected['rows'][0]['bindings']['task_contracts']['added_tier1'] = 'added-contract'
+
+    assert publication._comparison_contracts_match(projected['rows'][0], comparison) is True
+    publication._comparison_projection(actual, projected, comparison)
+    assert any(t['task_id'] == 'added_tier1' and t['status'] == 'PASS'
+               for t in projected['rows'][0]['nonrequired_tasks'])
+
+    # Unregistered family without prior reference must fail closed.
+    unregistered = deepcopy(comparison)
+    unregistered['new_registered_families'] = []
+    assert publication._comparison_contracts_match(projected['rows'][0], unregistered) is False
+
+    # Missing required task or unexpected extra task must fail closed.
+    missing_task = deepcopy(projected['rows'][0])
+    missing_task['bindings']['task_contracts'].pop('acquire')
+    assert publication._comparison_contracts_match(missing_task, comparison) is False
+    extra_task = deepcopy(projected['rows'][0])
+    extra_task['bindings']['task_contracts']['sneaky'] = 'x'
+    assert publication._comparison_contracts_match(extra_task, comparison) is False
+
+
+def test_calibrated_grid_triad_projection_accepts_fail_and_rejects_sub097_pass():
+    actual, projected, comparison = comparison_fixture()
+    comparison['calibrated_grid_triad_tasks'] = ['held']
+    comparison['verified_evaluator_lineage'] = {'family': {'held': 'b-cal'}}
+    actual['rows'][0]['bindings']['task_contracts']['held'] = 'b-cal'
+    projected['rows'][0]['bindings']['task_contracts']['held'] = 'b-cal'
+
+    # 1. FAIL under calibrated min_precision=0.75 is strictly FAIL under Rev-9 (0.97).
+    publication._comparison_projection(deepcopy(actual), deepcopy(projected), comparison)
+
+    # 2. PASS with precision >= 0.97 satisfies Rev-9 (0.97).
+    pass_actual = deepcopy(actual)
+    pass_projected = deepcopy(projected)
+    pass_actual['rows'][0]['nonrequired_tasks'][0] = {'task_id': 'held', 'status': 'PASS', 'metrics': {'precision': 0.98}}
+    pass_projected['rows'][0]['tasks'][-1] = {'task_id': 'held', 'status': 'PASS', 'metrics': {'precision': 0.98}}
+    publication._comparison_projection(pass_actual, pass_projected, comparison)
+
+    # 3. PASS with 0.75 <= precision < 0.97 must fail closed under Rev-9 projection.
+    sub_actual = deepcopy(actual)
+    sub_projected = deepcopy(projected)
+    sub_actual['rows'][0]['nonrequired_tasks'][0] = {'task_id': 'held', 'status': 'PASS', 'metrics': {'precision': 0.82}}
+    sub_projected['rows'][0]['tasks'][-1] = {'task_id': 'held', 'status': 'PASS', 'metrics': {'precision': 0.82}}
+    with pytest.raises(ValueError, match='cannot grant Rev-9 PASS under calibrated min_precision=0.75'):
+        publication._comparison_projection(sub_actual, sub_projected, comparison)
+
 
 
 

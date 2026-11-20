@@ -1,0 +1,485 @@
+{
+  "schema_version": 1,
+  "scope": "ready_admission_preview_not_frozen_execution",
+  "training_updates": 0,
+  "queue_admission": false,
+  "shared_source_digest": "e481b63224fc2d8cf77b136ab54f06421f7ac0967e47509a63f95cfa42733464",
+  "runtime": {
+    "python": "3.14.8",
+    "implementation": "CPython",
+    "system": "Linux",
+    "machine": "x86_64",
+    "packages": {
+      "torch": "2.14.0",
+      "numpy": "2.5.3",
+      "scipy": "1.17.1"
+    }
+  },
+  "compute": {
+    "backend": "cuda",
+    "threads": 1,
+    "deterministic": true,
+    "tf32": false,
+    "autograd_multithreading_enabled": false,
+    "model": "NVIDIA RTX A6000",
+    "driver": "615.78.08",
+    "compute_capability": "8.6"
+  },
+  "view_revision": 14,
+  "roles": [
+    {
+      "role": "control",
+      "candidate": "r1r2-repair-control-20261022",
+      "study": "r1r2-repair-control-20261022-tier1",
+      "candidate_revision": "6e6d9b27bc5d44cfba28bf159016418b50c26b71235f733afe85c12f088fd414",
+      "source_digest": "e481b63224fc2d8cf77b136ab54f06421f7ac0967e47509a63f95cfa42733464",
+      "study_status": "READY",
+      "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3",
+      "study_admission": {
+        "contract_sha256": "8482beced62614f7f56d45bb503f4a3bc47958a730720423be78e17f81058936",
+        "binding_sha256": "31fe8a72de863f075710ae01300ddd4bc2440dbe1c084fc90f11833ff06efe58",
+        "control_binding_sha256": "6dc6528fc5a95f943a246239db723330bb61f37a8d324b714b84ce9b189b28c6",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "054be518ea1587c8e9e81fe538acfb508c7173d64a3810e95c559eb44e054d83",
+        "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3"
+      },
+      "full_allowance_seconds": 5220,
+      "actual_delta_fields": [
+        "amsgrad",
+        "beta2_end",
+        "betas",
+        "loss",
+        "lr_floor",
+        "lr_schedule",
+        "network_lr_floor",
+        "prior_betas",
+        "reg_coeff",
+        "reg_coeff_end"
+      ],
+      "changed_task_ids": [
+        "ae_gan_hold",
+        "clockfree_audit_measurement_v1",
+        "five_word_joint_smoke",
+        "gaussian1d_smoke",
+        "model_ae_ddgan_gaussian_chain",
+        "model_ae_gan_multimodal",
+        "model_ae_reconstruction",
+        "model_ddgan_gaussian_chain",
+        "model_vae_categorical",
+        "model_vae_hard",
+        "ring16_acquisition",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_smoke"
+      ],
+      "tasks": [
+        {
+          "task": "gaussian1d_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "gaussian1d_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "two_pole",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "two_pole",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "unused_token_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "unused_token_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ae_gan_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ae_gan_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ring16_acquisition",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ring16_acquisition",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "five_word_joint_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 900,
+          "execution_group": "five_word_joint_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "zero_tanh_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "zero_tanh_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 180,
+          "execution_group": "model_ae_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_gan_multimodal",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_gan_multimodal",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_reconstruction",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_reconstruction",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_categorical",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_categorical",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_hard",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_hard",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "clockfree_audit_measurement_v1",
+          "importance": "diagnostic",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "clockfree_audit_measurement_v1",
+          "execution_group_blockers": []
+        }
+      ]
+    },
+    {
+      "role": "r1only",
+      "candidate": "r1r2-repair-r1only-20261022",
+      "study": "r1r2-repair-r1only-20261022-tier1",
+      "candidate_revision": "20b184cd8114c98b653a6e3ce2ca3366a779aa8b78d3161551e0e34d8e114462",
+      "source_digest": "e481b63224fc2d8cf77b136ab54f06421f7ac0967e47509a63f95cfa42733464",
+      "study_status": "READY",
+      "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3",
+      "study_admission": {
+        "contract_sha256": "f534988c054b0290265d006fac530f40a11af53b665bdfbb60359b0753d2a8f3",
+        "binding_sha256": "b39dc9e92552e7b62b0924416dd0eb20d115b3798ef860f5c33643bf25ae7090",
+        "control_binding_sha256": "31fe8a72de863f075710ae01300ddd4bc2440dbe1c084fc90f11833ff06efe58",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "22ebdd55515cbadaa8c4a3f8aac24da9f5d389afcee6afdbecad550078b75504",
+        "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3"
+      },
+      "full_allowance_seconds": 5220,
+      "actual_delta_fields": [
+        "reg_fake_weight"
+      ],
+      "changed_task_ids": [
+        "ae_gan_hold",
+        "clockfree_audit_measurement_v1",
+        "five_word_joint_smoke",
+        "gaussian1d_smoke",
+        "model_ae_ddgan_gaussian_chain",
+        "model_ae_gan_multimodal",
+        "model_ddgan_gaussian_chain",
+        "model_vae_categorical",
+        "model_vae_hard",
+        "ring16_acquisition",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_smoke"
+      ],
+      "tasks": [
+        {
+          "task": "gaussian1d_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "gaussian1d_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "two_pole",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "two_pole",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "unused_token_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "unused_token_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ae_gan_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ae_gan_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ring16_acquisition",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ring16_acquisition",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "five_word_joint_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 900,
+          "execution_group": "five_word_joint_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "zero_tanh_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "zero_tanh_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 180,
+          "execution_group": "model_ae_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_gan_multimodal",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_gan_multimodal",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_reconstruction",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_reconstruction",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_categorical",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_categorical",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_hard",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_hard",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "clockfree_audit_measurement_v1",
+          "importance": "diagnostic",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "clockfree_audit_measurement_v1",
+          "execution_group_blockers": []
+        }
+      ]
+    },
+    {
+      "role": "r1cycle",
+      "candidate": "r1r2-repair-r1cycle-20261022",
+      "study": "r1r2-repair-r1cycle-20261022-tier1",
+      "candidate_revision": "218d4fa55f56749b270825b3dcac565adb5da60870e771d9782c05d8d556eefe",
+      "source_digest": "e481b63224fc2d8cf77b136ab54f06421f7ac0967e47509a63f95cfa42733464",
+      "study_status": "READY",
+      "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3",
+      "study_admission": {
+        "contract_sha256": "fd3cbf2f8d533819d4f82a0bdc406e65973fd4b513166d5d6184e69aa602e8d6",
+        "binding_sha256": "3dfbaf1caf9dbcd5c3c692c9c90541134bc1946f5e8b4cc224f6c87bd2d67df8",
+        "control_binding_sha256": "b39dc9e92552e7b62b0924416dd0eb20d115b3798ef860f5c33643bf25ae7090",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "10b1840df679fd6de676c2929396015fa902318612a63b0e326fc51569dc9119",
+        "policy_fingerprint": "51af874c96fbb02fb64b97d8dbb31ff5fe2ab19e9b4943e7ddccd64e0c22f9c3"
+      },
+      "full_allowance_seconds": 5220,
+      "actual_delta_fields": [
+        "joint_reconstruction_weight"
+      ],
+      "changed_task_ids": [
+        "five_word_joint_smoke"
+      ],
+      "tasks": [
+        {
+          "task": "gaussian1d_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "gaussian1d_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "two_pole",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "two_pole",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "unused_token_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "unused_token_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ae_gan_hold",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ae_gan_hold",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "ring16_acquisition",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "ring16_acquisition",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "five_word_joint_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 900,
+          "execution_group": "five_word_joint_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "zero_tanh_smoke",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 120,
+          "execution_group": "zero_tanh_smoke",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 180,
+          "execution_group": "model_ae_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_gan_multimodal",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_gan_multimodal",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ae_reconstruction",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ae_reconstruction",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_ddgan_gaussian_chain",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 600,
+          "execution_group": "model_ddgan_gaussian_chain",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_categorical",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_categorical",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "model_vae_hard",
+          "importance": "required",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "model_vae_hard",
+          "execution_group_blockers": []
+        },
+        {
+          "task": "clockfree_audit_measurement_v1",
+          "importance": "diagnostic",
+          "qualification_tier": 1,
+          "budget_seconds": 300,
+          "execution_group": "clockfree_audit_measurement_v1",
+          "execution_group_blockers": []
+        }
+      ]
+    }
+  ],
+  "full_tier1_allowance_seconds": 15660,
+  "campaign_cap_seconds": 24000,
+  "candidate_cap_seconds": 5220,
+  "source_binding_migration_sha256": "f24301ef3bc314be04b646bec32d764505aa6872dd9445982c0ab7311a1ec903",
+  "baseline_recipe_origin_sha256": "c5bf79534af78e696a3be43ecb7d53734c39075e0a18a4403ccbd02b2bc5750e",
+  "default_promotion": false
+}

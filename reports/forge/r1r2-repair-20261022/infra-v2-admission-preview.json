@@ -1,0 +1,196 @@
+{
+  "accounting": "Full1200 diagnostic reservation/role remains required. Ordinary acquisition and diagnostic acquisition are distinct evidence-use cohorts, even though other science is identical. Never invent reuse or remove duplicate physical cost. Queue charges actual physical attempts once; any next full allowance must also fit the remaining per-candidate cap.",
+  "additional_diagnostic_full_reservation": 3600,
+  "campaign_cap": 24000,
+  "candidate_revision_cap": 5220,
+  "new_total_full_reservation_plus_previous_paid": 19644.25248876284,
+  "ordinary_three_role_full_reservation": 15660,
+  "previous_unique_paid_seconds": 384.25248876283877,
+  "qualification_input": false,
+  "rows": [
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "3cca6de5d931b16469b0ef0fedbc0b5cb21f55b8af202a7868e94277fcef2037",
+      "full_job_reservation_seconds": 5220,
+      "required_tasks": 13,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-control-20261022-tier1-infra-v2",
+      "study_status": "READY",
+      "task_ids": [
+        "ae_gan_hold",
+        "clockfree_audit_measurement_v1",
+        "five_word_joint_smoke",
+        "gaussian1d_smoke",
+        "model_ae_ddgan_gaussian_chain",
+        "model_ae_gan_multimodal",
+        "model_ae_reconstruction",
+        "model_ddgan_gaussian_chain",
+        "model_vae_categorical",
+        "model_vae_hard",
+        "ring16_acquisition",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_smoke"
+      ],
+      "total_tasks": 14,
+      "word_smoke_compatibility_key": "36decbe0e0f7cfe5d0688af4368addcee8e29e0e7fa42a40d527108aee472d76"
+    },
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "3cca6de5d931b16469b0ef0fedbc0b5cb21f55b8af202a7868e94277fcef2037",
+      "full_job_reservation_seconds": 1200,
+      "required_tasks": 0,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-control-20261022-word-retention",
+      "study_status": "READY",
+      "task_ids": [
+        "five_word_joint_hold",
+        "five_word_joint_smoke"
+      ],
+      "total_tasks": 2,
+      "word_smoke_compatibility_key": "05226e6e4c431d45df53fa9ac0fa495f3f89c2854a6516822da2617bfda01303"
+    },
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "704c803e0c8bf425e1c0cd673b77e0332278cd8163ca9058a95c50a2f00fbdab",
+      "full_job_reservation_seconds": 5220,
+      "required_tasks": 13,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-r1only-20261022-tier1-infra-v2",
+      "study_status": "READY",
+      "task_ids": [
+        "ae_gan_hold",
+        "clockfree_audit_measurement_v1",
+        "five_word_joint_smoke",
+        "gaussian1d_smoke",
+        "model_ae_ddgan_gaussian_chain",
+        "model_ae_gan_multimodal",
+        "model_ae_reconstruction",
+        "model_ddgan_gaussian_chain",
+        "model_vae_categorical",
+        "model_vae_hard",
+        "ring16_acquisition",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_smoke"
+      ],
+      "total_tasks": 14,
+      "word_smoke_compatibility_key": "42e9cf3752adc586ab0f0901a22a0c4d84e598755bf25f4438d3906fab30d7e2"
+    },
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "704c803e0c8bf425e1c0cd673b77e0332278cd8163ca9058a95c50a2f00fbdab",
+      "full_job_reservation_seconds": 1200,
+      "required_tasks": 0,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-r1only-20261022-word-retention",
+      "study_status": "READY",
+      "task_ids": [
+        "five_word_joint_hold",
+        "five_word_joint_smoke"
+      ],
+      "total_tasks": 2,
+      "word_smoke_compatibility_key": "bd488ae36f83bddccf7a40d113c6d0f45c1056afc63430849597948a445cbab8"
+    },
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "de3afa5bb4c97c9e51a2ef66817108ca2372525aebff8200537f9df9d3328421",
+      "full_job_reservation_seconds": 5220,
+      "required_tasks": 13,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-r1cycle-20261022-tier1-infra-v2",
+      "study_status": "READY",
+      "task_ids": [
+        "ae_gan_hold",
+        "clockfree_audit_measurement_v1",
+        "five_word_joint_smoke",
+        "gaussian1d_smoke",
+        "model_ae_ddgan_gaussian_chain",
+        "model_ae_gan_multimodal",
+        "model_ae_reconstruction",
+        "model_ddgan_gaussian_chain",
+        "model_vae_categorical",
+        "model_vae_hard",
+        "ring16_acquisition",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_smoke"
+      ],
+      "total_tasks": 14,
+      "word_smoke_compatibility_key": "7084d7e955557e7f0c81e260abf34156fcc4c4f1c1f0d0fdce65a03de140ed91"
+    },
+    {
+      "blockers": [],
+      "campaign": {
+        "budget_seconds": 24000,
+        "candidate_budget_seconds": 5220,
+        "id": "r1r2-repair-20261022"
+      },
+      "candidate_revision": "de3afa5bb4c97c9e51a2ef66817108ca2372525aebff8200537f9df9d3328421",
+      "full_job_reservation_seconds": 1200,
+      "required_tasks": 0,
+      "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+      "study": "r1r2-repair-r1cycle-20261022-word-retention",
+      "study_status": "READY",
+      "task_ids": [
+        "five_word_joint_hold",
+        "five_word_joint_smoke"
+      ],
+      "total_tasks": 2,
+      "word_smoke_compatibility_key": "718e67ccdfc6266c3cadf075a8cf19b138b8054bf7de16bc965eeedae034295b"
+    }
+  ],
+  "same_source_all_six": true,
+  "scope": "read_only_ready_study_plans",
+  "word_smoke_reuse_audit": [
+    {
+      "automatic_reuse": false,
+      "diagnostic_key": "05226e6e4c431d45df53fa9ac0fa495f3f89c2854a6516822da2617bfda01303",
+      "ordinary_key": "36decbe0e0f7cfe5d0688af4368addcee8e29e0e7fa42a40d527108aee472d76",
+      "other_science_identical": true,
+      "reason": "research_diagnostic evidence_use changes compatibility key; no cross-scope substitution allowed",
+      "role": "control"
+    },
+    {
+      "automatic_reuse": false,
+      "diagnostic_key": "bd488ae36f83bddccf7a40d113c6d0f45c1056afc63430849597948a445cbab8",
+      "ordinary_key": "42e9cf3752adc586ab0f0901a22a0c4d84e598755bf25f4438d3906fab30d7e2",
+      "other_science_identical": true,
+      "reason": "research_diagnostic evidence_use changes compatibility key; no cross-scope substitution allowed",
+      "role": "r1only"
+    },
+    {
+      "automatic_reuse": false,
+      "diagnostic_key": "718e67ccdfc6266c3cadf075a8cf19b138b8054bf7de16bc965eeedae034295b",
+      "ordinary_key": "7084d7e955557e7f0c81e260abf34156fcc4c4f1c1f0d0fdce65a03de140ed91",
+      "other_science_identical": true,
+      "reason": "research_diagnostic evidence_use changes compatibility key; no cross-scope substitution allowed",
+      "role": "r1cycle"
+    }
+  ]
+}

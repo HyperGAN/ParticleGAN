@@ -1,0 +1,621 @@
+{
+  "artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/queue/r1r2-repair-20261022/32a62170283a41158410c13744709fb8",
+  "attempt": "32a62170283a41158410c13744709fb8",
+  "conclusions": [
+    "Failure includes both final ancestral sampling and both step-1 conditional panels.",
+    "High-noise reverse variance masks clean-predictor variance errors; step 1 has no reverse noise.",
+    "The saved NS output field opposes mean correction in seven of eight fixed contexts at both quadrature orders.",
+    "Stored critic momentum improves all eight alignments locally, while fresh R1+R2 and R1-only directions worsen t1_q0.",
+    "These local controls do not support declaring a D-momentum or R2-removal repair; a full matched global comparison must decide net effects."
+  ],
+  "historical_comparison": {
+    "checkpoint_sha256": "829e073d516ad7201af1429e9f796048f7321ba2b351b6ec2682ae3c349d062b",
+    "final_metrics": {
+      "covariance_eigen_max": 1.398722490869161,
+      "covariance_eigen_min": 0.5499189424785275,
+      "normalized_mean": 0.6056332609240245,
+      "projection_cdf": 0.2022633460624323
+    },
+    "limitations": "Different source, runtime and recipe; no matched successful model-native recipe was found.",
+    "original_publication_sha256": "3fe2d2f3b09d9e1c34b5dea5435e3d67a6aee30023e265acef25ffc6808fc6cd",
+    "original_verdict": "FAIL",
+    "prior_recipe": "bispf-optimized-quintic-v1",
+    "report_sha256": "04797aacd93a340062e3c1db9ddd7cc8cc822c746fcbba7efddefe4f82fd81a5",
+    "same_scientific_cohort": false,
+    "source": {
+      "files_verified": 1252,
+      "manifest_digest": "a3678967d9a293bd98cfac5909e138c19f66a27cc7cc6f5714445cd21c733413",
+      "origin_commit": "bee9f06ed21695e518c1cb702e12a385ab9389e8",
+      "scientific_source_unchanged": true
+    }
+  },
+  "limits": [
+    "Equal fixed-panel cohort is not the training context marginal.",
+    "Alignment derivatives are frozen generator/output-space diagnostics, not G parameter updates.",
+    "D directions use a fixed historical AMS denominator; no new optimizer moments or training steps.",
+    "Stored momentum is the previous update history; half_history_fresh_filter is a diagnostic mixture, not the exact next Adam update.",
+    "Fresh conditional target moments are analysis-only Gaussian laws; no analytic training targets are proposed.",
+    "No new contexts, evaluation samples, qualification gates, continuation or task tuning were introduced.",
+    "Orders 2 and 3 are deterministic integration sensitivity, not independent validation.",
+    "Small high-noise alignments are numerical point estimates, not significance claims."
+  ],
+  "original_contract": {
+    "batch_sequence_sha256": "1f64ffe0d3ad8bdebc856f5560e346aa69709a99ea0d7bec48b52edeec456fd8",
+    "batch_size": 64,
+    "completed_updates": 2500,
+    "eval_samples": 2048,
+    "initializer": "deterministic_orthogonal",
+    "observations": 24,
+    "prior": "recipe_owned_v1",
+    "recipe": {
+      "alpha_bar": [
+        1.0,
+        0.9,
+        0.5,
+        0.05,
+        0.0001
+      ],
+      "amsgrad": true,
+      "batch_size": 64,
+      "betas": [
+        0.5,
+        0.99
+      ],
+      "birth_death_feature_scale": "none",
+      "birth_death_isolation": false,
+      "birth_death_space": "data",
+      "conditioning": "scalar",
+      "continuous_policy": null,
+      "critic_formulation": "k3p",
+      "critic_payoff_damping": true,
+      "critic_r1_real": true,
+      "d_guard_min_steps": 200,
+      "d_guard_ratio": 0.0,
+      "d_lr_mult": 1.0,
+      "direct_particle_betas": [
+        0.0,
+        0.9
+      ],
+      "direct_particle_gain": false,
+      "distance_reduction": "sum",
+      "ema_decay": 0.0,
+      "encoder_mode": "none",
+      "input_noise_anneal_end": 0.1,
+      "input_noise_std": 0.0,
+      "latent_damping_max_rate": 0.0,
+      "loss": "non_saturating",
+      "lr": 0.0085,
+      "lr_anneal_start": 0.2,
+      "lr_control": "mobility",
+      "lr_floor": 1.0,
+      "lr_schedule": "constant",
+      "model": "ddgan",
+      "name": "r3gan-stacked-training-toy-v1",
+      "network_lr_floor": 1.0,
+      "network_lr_horizon_cap": null,
+      "num_classes": null,
+      "num_particles": 128,
+      "observation_sigma": 0.03,
+      "optimizer_family": "adam",
+      "output_noise_mode": "fixed",
+      "output_noise_std": 0.0,
+      "output_noise_warmup": 0.2,
+      "particle_birth_death": false,
+      "prior_betas": [
+        0.0,
+        0.99
+      ],
+      "prior_kind": "mog",
+      "prior_lr_mult": 1.0,
+      "prior_reg": 0.0,
+      "reconstruction_weight": 1.0,
+      "reg_anchor_min_decay": 0.9,
+      "reg_anchor_weight": 0.0,
+      "reg_arm": "a_r1r2",
+      "reg_coeff": 0.1,
+      "reg_every": 1,
+      "reg_kappa": 1.0,
+      "reopen_anchor": "hold",
+      "reopen_signal": "data",
+      "routing_temperature": 0.25,
+      "row_evidence_exclude": true,
+      "row_evidence_gate": false,
+      "row_evidence_hold": true,
+      "row_evidence_hot": true,
+      "row_evidence_null": "theory",
+      "row_policy": "independent",
+      "serve_average": 0.0,
+      "sigma_rel": 0.0,
+      "standardize": false,
+      "table_release_rule": "any",
+      "total_steps": 2500,
+      "ucd_target": "class",
+      "ucd_weight": 0.02,
+      "z_dim": 4
+    },
+    "sampling": "Public DDGAN [1,.9,.5,.05,.0001]; N(0,I) terminal start; fresh independent learned-MoG latent/kernel noise and Gaussian reverse noise at EVERY step; eight heldout time/observation transition panels",
+    "seed": 0,
+    "terminal_observations": 5
+  },
+  "original_endpoint": {
+    "final": {
+      "covariance_eigen_max": 1.4411540185803657,
+      "covariance_eigen_min": 0.2318280867517974,
+      "normalized_mean": 0.4336707333878356,
+      "projection_cdf": 0.320936052759796
+    },
+    "t1_q0": {
+      "covariance_eigen_max": 1.9147626038347338,
+      "covariance_eigen_min": 0.14786596807971053,
+      "normalized_mean": 1.0071867594192057,
+      "projection_cdf": 0.523952686362781
+    },
+    "t1_q1": {
+      "covariance_eigen_max": 2.065983188940191,
+      "covariance_eigen_min": 0.32789854954011577,
+      "normalized_mean": 0.3938962865821997,
+      "projection_cdf": 0.2919134565116731
+    },
+    "t2_q0": {
+      "covariance_eigen_max": 0.9830380590552944,
+      "covariance_eigen_min": 0.48409810523355656,
+      "normalized_mean": 0.46284894330806137,
+      "projection_cdf": 0.20308685711500007
+    },
+    "t2_q1": {
+      "covariance_eigen_max": 1.0444725811847502,
+      "covariance_eigen_min": 0.5411278883791639,
+      "normalized_mean": 0.24193632370244778,
+      "projection_cdf": 0.1499900516795567
+    },
+    "t3_q0": {
+      "covariance_eigen_max": 0.9634132918039293,
+      "covariance_eigen_min": 0.8568094526764223,
+      "normalized_mean": 0.34919062664482725,
+      "projection_cdf": 0.1447894487269381
+    },
+    "t3_q1": {
+      "covariance_eigen_max": 0.9955147223159513,
+      "covariance_eigen_min": 0.8620685225794409,
+      "normalized_mean": 0.10180064711875565,
+      "projection_cdf": 0.05433479288167853
+    },
+    "t4_q0": {
+      "covariance_eigen_max": 1.0333143789359507,
+      "covariance_eigen_min": 0.9913173218638576,
+      "normalized_mean": 0.1045778179371147,
+      "projection_cdf": 0.04582610237093232
+    },
+    "t4_q1": {
+      "covariance_eigen_max": 1.0165328124298376,
+      "covariance_eigen_min": 0.9531750699538487,
+      "normalized_mean": 0.04593871709015007,
+      "projection_cdf": 0.03182269956474737
+    }
+  },
+  "original_input_sha256": {
+    "api/final-state.pt": "6d5abe85ce06fc3216150f66d2c0809e6a28533900196568a8225fa470093485",
+    "api/receipt.json": "d453723aa6bb4d956b99e83530c5dd360de923eca7d70814909a38fdcdeabc59",
+    "raw-result.json": "68e3e7c6637bd4ef6ceefa151f7fff135aefd4c1c824640fb1c52eaa36a9c3f5",
+    "request.json": "4e4935055a92d2b4d7ecce4935ac91421a344c5d394b105f9f4a4599825a8c00"
+  },
+  "original_trace": {
+    "final_cdf_range": [
+      0.19923291770203033,
+      0.6228478932283604
+    ],
+    "passing_joint_observations": 0,
+    "t1_cdf_pass_counts": {
+      "q0": 0,
+      "q1": 0
+    },
+    "terminal_final_cdf": [
+      0.47607888295202017,
+      0.2770423590302783,
+      0.29214534212218546,
+      0.42485876878574563,
+      0.320936052759796
+    ]
+  },
+  "original_verdict": "FAIL",
+  "probe_sha256": "101c04af232214e13604698b0409c459c97fb3c1ceb9064509716e7b843ac8cf",
+  "quadrature": [
+    {
+      "fake_latent_points": 2048,
+      "gradient_norms": {
+        "R1": 0.0035626107596383886,
+        "R2": 0.0036427348130745607,
+        "adversarial": 0.017169570861730873,
+        "combined": 0.0218372663759832
+      },
+      "opposed_contexts": 7,
+      "order": 2,
+      "panels": [
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": -0.0007534447602358838,
+            "fresh_gradient": -0.00109975489926447,
+            "half_history_fresh_filter": -0.00047896180706819344,
+            "stored_momentum": 0.00014183128512808307
+          },
+          "clean_variance_share": [
+            1.0,
+            1.0
+          ],
+          "critic_fake_score": -0.08306049098839069,
+          "critic_real_score": -0.05496157979681175,
+          "eigenvalues": [
+            0.1508050218433128,
+            1.8213205660513796
+          ],
+          "initial_alignment": 0.015223671876582905,
+          "label": "t1_q0",
+          "normalized_mean": 1.015730594379337
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.00035769032650126474,
+            "fresh_gradient": 0.00042789748904738305,
+            "half_history_fresh_filter": 0.0003450777818942763,
+            "stored_momentum": 0.00026225807474116966
+          },
+          "clean_variance_share": [
+            1.0,
+            1.0
+          ],
+          "critic_fake_score": -0.04226379207742802,
+          "critic_real_score": -0.05209247924355151,
+          "eigenvalues": [
+            0.3327752182503916,
+            1.7729829309562002
+          ],
+          "initial_alignment": -0.004217518406585279,
+          "label": "t1_q1",
+          "normalized_mean": 0.42515950211544373
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.0003945695178403609,
+            "fresh_gradient": 0.00047718772018781526,
+            "half_history_fresh_filter": 0.000262121831417184,
+            "stored_momentum": 4.705594264655283e-05
+          },
+          "clean_variance_share": [
+            0.5739591481644513,
+            0.39778994962867215
+          ],
+          "critic_fake_score": -0.004447268280665149,
+          "critic_real_score": -0.009970220632201113,
+          "eigenvalues": [
+            0.4933377197199827,
+            1.0025604236241836
+          ],
+          "initial_alignment": -0.00149756518315225,
+          "label": "t2_q0",
+          "normalized_mean": 0.46597589311840193
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.00018246697108970192,
+            "fresh_gradient": 0.0002205336433204416,
+            "half_history_fresh_filter": 0.00015747056471727814,
+            "stored_momentum": 9.440748611411472e-05
+          },
+          "clean_variance_share": [
+            0.5739591481644513,
+            0.39778994962867215
+          ],
+          "critic_fake_score": -0.011456178559910267,
+          "critic_real_score": -0.015011053459492442,
+          "eigenvalues": [
+            0.5377167941785618,
+            0.9849174994530362
+          ],
+          "initial_alignment": -0.0017537274151286238,
+          "label": "t2_q1",
+          "normalized_mean": 0.21852736310505735
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.00039745388729648426,
+            "fresh_gradient": 0.00045724808696499765,
+            "half_history_fresh_filter": 0.0002821873849328873,
+            "stored_momentum": 0.0001071266829007771
+          },
+          "clean_variance_share": [
+            0.15953603866346086,
+            0.07822307224994791
+          ],
+          "critic_fake_score": 0.01567337643223062,
+          "critic_real_score": 0.01173898818926437,
+          "eigenvalues": [
+            0.8602737484700544,
+            0.9892744347074799
+          ],
+          "initial_alignment": -0.0020191154526100455,
+          "label": "t3_q0",
+          "normalized_mean": 0.33470257904944517
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 8.996396267234267e-05,
+            "fresh_gradient": 0.00010798868437132193,
+            "half_history_fresh_filter": 9.393897570263355e-05,
+            "stored_momentum": 7.988926703394517e-05
+          },
+          "clean_variance_share": [
+            0.15953603866346086,
+            0.07822307224994791
+          ],
+          "critic_fake_score": 0.018681655719545175,
+          "critic_real_score": 0.019237615044566718,
+          "eigenvalues": [
+            0.8688587716313422,
+            0.9900819682860457
+          ],
+          "initial_alignment": -0.0009092322514365589,
+          "label": "t3_q1",
+          "normalized_mean": 0.11242468070218117
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 9.998301815290295e-05,
+            "fresh_gradient": 0.00011294962279364216,
+            "half_history_fresh_filter": 7.412909763274752e-05,
+            "stored_momentum": 3.530857247185291e-05
+          },
+          "clean_variance_share": [
+            0.010525463064768611,
+            0.004705551585120123
+          ],
+          "critic_fake_score": 0.04015031862773996,
+          "critic_real_score": 0.03962685756401815,
+          "eigenvalues": [
+            0.99070356267246,
+            0.9992179585362365
+          ],
+          "initial_alignment": -0.0007250368141590535,
+          "label": "t4_q0",
+          "normalized_mean": 0.07915824331761195
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 5.681048136600172e-06,
+            "fresh_gradient": 7.615671529988734e-06,
+            "half_history_fresh_filter": 1.1833295494985806e-05,
+            "stored_momentum": 1.6050919459982876e-05
+          },
+          "clean_variance_share": [
+            0.010525463064768611,
+            0.004705551585120123
+          ],
+          "critic_fake_score": 0.0652052802539308,
+          "critic_real_score": 0.06442529617346665,
+          "eigenvalues": [
+            0.9910829622723667,
+            0.9994571355952465
+          ],
+          "initial_alignment": -2.540893465837876e-05,
+          "label": "t4_q1",
+          "normalized_mean": 0.03169893514773214
+        }
+      ],
+      "positive_alignment_derivatives": {
+        "R1_only_fresh": 7,
+        "fresh_gradient": 7,
+        "half_history_fresh_filter": 7,
+        "stored_momentum": 8
+      },
+      "raw_path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-ddgan-diagnosis-20261022/final-critic-field-order2.json",
+      "raw_sha256": "24235486bc3f8a1ebd2fed2ca0ec41bd2f96f9d9a4dde3d7721ce60a1d210f19",
+      "wall_seconds": 0.5276078800088726
+    },
+    {
+      "fake_latent_points": 10368,
+      "gradient_norms": {
+        "R1": 0.0035626107596383886,
+        "R2": 0.003671478022328976,
+        "adversarial": 0.01676561166729836,
+        "combined": 0.02137369193237975
+      },
+      "opposed_contexts": 7,
+      "order": 3,
+      "panels": [
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": -0.0006991121101671223,
+            "fresh_gradient": -0.0010486342834694273,
+            "half_history_fresh_filter": -0.0004534757504784504,
+            "stored_momentum": 0.00014168278251252642
+          },
+          "clean_variance_share": [
+            1.0,
+            1.0
+          ],
+          "critic_fake_score": -0.08304548153372748,
+          "critic_real_score": -0.05496157979681175,
+          "eigenvalues": [
+            0.1506636711456134,
+            1.821420841527885
+          ],
+          "initial_alignment": 0.015217856248408289,
+          "label": "t1_q0",
+          "normalized_mean": 1.0154015012845672
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.0003272849698573519,
+            "fresh_gradient": 0.00039859005385891997,
+            "half_history_fresh_filter": 0.0003309145380663559,
+            "stored_momentum": 0.00026323902227379193
+          },
+          "clean_variance_share": [
+            1.0,
+            1.0
+          ],
+          "critic_fake_score": -0.042252935261719665,
+          "critic_real_score": -0.05209247924355151,
+          "eigenvalues": [
+            0.33324466670185005,
+            1.7731905972991713
+          ],
+          "initial_alignment": -0.004231549198305443,
+          "label": "t1_q1",
+          "normalized_mean": 0.4255247154590332
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.00043875621375920977,
+            "fresh_gradient": 0.0005293622087955068,
+            "half_history_fresh_filter": 0.0002809529521979142,
+            "stored_momentum": 3.254369560032157e-05
+          },
+          "clean_variance_share": [
+            0.5739591481644513,
+            0.39778994962867215
+          ],
+          "critic_fake_score": -0.005011827299839367,
+          "critic_real_score": -0.009970220632201113,
+          "eigenvalues": [
+            0.4934897525176835,
+            1.0025043339508817
+          ],
+          "initial_alignment": -0.0014528253630853856,
+          "label": "t2_q0",
+          "normalized_mean": 0.4655258629986824
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.0001923326417297845,
+            "fresh_gradient": 0.00023426716653046918,
+            "half_history_fresh_filter": 0.00016511470519730596,
+            "stored_momentum": 9.596224386414273e-05
+          },
+          "clean_variance_share": [
+            0.5739591481644513,
+            0.39778994962867215
+          ],
+          "critic_fake_score": -0.011880058188560793,
+          "critic_real_score": -0.015011053459492442,
+          "eigenvalues": [
+            0.5377547642052831,
+            0.9843989496552542
+          ],
+          "initial_alignment": -0.0019596232761601704,
+          "label": "t2_q1",
+          "normalized_mean": 0.21843161379129514
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.0004404149857996962,
+            "fresh_gradient": 0.0004982272201936368,
+            "half_history_fresh_filter": 0.000306041623616486,
+            "stored_momentum": 0.00011385602703933509
+          },
+          "clean_variance_share": [
+            0.15953603866346086,
+            0.07822307224994791
+          ],
+          "critic_fake_score": 0.01608644301030442,
+          "critic_real_score": 0.01173898818926437,
+          "eigenvalues": [
+            0.8602876131015601,
+            0.9893106248595962
+          ],
+          "initial_alignment": -0.002158865565381518,
+          "label": "t3_q0",
+          "normalized_mean": 0.3346388930693395
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 6.333742117964332e-05,
+            "fresh_gradient": 7.648317295521316e-05,
+            "half_history_fresh_filter": 7.111004825655597e-05,
+            "stored_momentum": 6.573692355789875e-05
+          },
+          "clean_variance_share": [
+            0.15953603866346086,
+            0.07822307224994791
+          ],
+          "critic_fake_score": 0.02131829413551456,
+          "critic_real_score": 0.019237615044566718,
+          "eigenvalues": [
+            0.8688613487718387,
+            0.9900621131345709
+          ],
+          "initial_alignment": -0.0006845798478882641,
+          "label": "t3_q1",
+          "normalized_mean": 0.11247767566255905
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 0.00011632233023822749,
+            "fresh_gradient": 0.00012948871044422418,
+            "half_history_fresh_filter": 8.100074328446645e-05,
+            "stored_momentum": 3.2512776124708735e-05
+          },
+          "clean_variance_share": [
+            0.010525463064768611,
+            0.004705551585120123
+          ],
+          "critic_fake_score": 0.04077727531616754,
+          "critic_real_score": 0.03962685756401815,
+          "eigenvalues": [
+            0.9907030830691749,
+            0.9992167059269641
+          ],
+          "initial_alignment": -0.0006167964736354122,
+          "label": "t4_q0",
+          "normalized_mean": 0.07915368851341767
+        },
+        {
+          "alignment_derivative": {
+            "R1_only_fresh": 6.836419447214421e-06,
+            "fresh_gradient": 9.326561735622356e-06,
+            "half_history_fresh_filter": 1.4460186327360188e-05,
+            "stored_momentum": 1.959381091909802e-05
+          },
+          "clean_variance_share": [
+            0.010525463064768611,
+            0.004705551585120123
+          ],
+          "critic_fake_score": 0.06428060848110492,
+          "critic_real_score": 0.06442529617346665,
+          "eigenvalues": [
+            0.9910840614482144,
+            0.9994600351326628
+          ],
+          "initial_alignment": -6.389502152888036e-05,
+          "label": "t4_q1",
+          "normalized_mean": 0.0317080753473051
+        }
+      ],
+      "positive_alignment_derivatives": {
+        "R1_only_fresh": 7,
+        "fresh_gradient": 7,
+        "half_history_fresh_filter": 7,
+        "stored_momentum": 8
+      },
+      "raw_path": "/mnt/ml7tb/ParticleGAN-forge/r1r2-ddgan-diagnosis-20261022/final-critic-field-order3.json",
+      "raw_sha256": "512080b7e95664525454cf7fdf90c66d51a7c714aeaa55bd84b060642201b100",
+      "wall_seconds": 4.952468414034229
+    }
+  ],
+  "quadrature_sensitivity": {
+    "all_field_signs_agree": true,
+    "direction_sign_agreement": {
+      "R1_only_fresh": true,
+      "fresh_gradient": true,
+      "half_history_fresh_filter": true,
+      "stored_momentum": true
+    }
+  },
+  "qualification_input": false,
+  "random_draws_added": 0,
+  "regraded": false,
+  "schema": "r1r2_ddgan_saved_diagnosis_v1",
+  "source_digest": "e481b63224fc2d8cf77b136ab54f06421f7ac0967e47509a63f95cfa42733464",
+  "summary_source_sha256": "3a3361f9a2324b9ef967374c28ad74541461663cfc2ac3bc29695c7a8db85f15",
+  "training_updates_added": 0,
+  "wall_seconds": 5.480076294043101
+}

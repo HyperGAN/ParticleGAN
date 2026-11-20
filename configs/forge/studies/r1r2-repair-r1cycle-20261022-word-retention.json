@@ -1,0 +1,93 @@
+{
+  "campaign": {
+    "budget_seconds": 24000,
+    "candidate_budget_seconds": 5220,
+    "id": "r1r2-repair-20261022"
+  },
+  "candidate": "r1r2-repair-r1cycle-20261022",
+  "competing_explanation": "Acquisition can pass and later collapse despite nonzero aggregate gradients. Retention is falsified by any original primary or independent confirmation failure among the restored-state+24 scheduled checks, including generation, diversity or inverse bounds; a passing endpoint scalar is insufficient. Use only the earliest confirmed same-candidate/source parent with exact model/optimizer/prior/RNG restoration, or report BLOCKED. No resampling, changed cohort, scientific retry, altered gate or promotion of failed ordinary13-task outcomes. Full reservation1200seconds/role includes900 exact-source acquisition and300 hold; expected shared acquisition reuse leaves only300 additional physical allowance perrole, but no reuse is presumed by admission.",
+  "control": {
+    "candidate_id": "r1r2-repair-r1only-20261022",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": "<",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9
+  },
+  "hypothesis": "This exact source-bound global recipe can retain its own earliest independently confirmed word acquisition through every original scheduled primary and independent confirmation check, including the exact restored state, for4000 further updates. The original word_hold evaluator and all25 paired checks are authoritative; endpoint token probability alone cannot establish retention. This diagnostic changes scheduler placement only and grants no ordinary qualification.",
+  "id": "r1r2-repair-r1cycle-20261022-word-retention",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "archive_commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "original_candidate": "r1r2-non-saturating-ams-m110-v1"
+      },
+      "path": "reports/forge/r1r2-repair-20261022/reference-origin.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "qualification_input": false,
+        "scope": "saved_endpoint_force_conditioning_diagnostic"
+      },
+      "path": "reports/forge/r1r2-failure-diagnosis-20261022/saved-force-diagnosis.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "qualification_input": false,
+        "scope": "saved_word_atoms_and_declared_target_enumeration_only"
+      },
+      "path": "reports/forge/r1r2-failure-diagnosis-20261022/word-saturation-diagnosis.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "campaign_id": "r1r2-repair-20261022",
+        "scope": "interrupted_original_source_infrastructure_evidence",
+        "unique_paid_attempts": 18
+      },
+      "path": "reports/forge/r1r2-repair-20261022/v1-infrastructure-interruption.json",
+      "selector": [],
+      "use": "motivation_only"
+    },
+    {
+      "identity": {
+        "integration_status": "PASS",
+        "scope": "isolated_frozen_source_integration_only",
+        "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175"
+      },
+      "path": "reports/forge/r1r2-repair-20261022/infra-v2-snapshot-smoke.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r1r2-repair-word-retention-20261022"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

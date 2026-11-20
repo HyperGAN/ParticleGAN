@@ -1,0 +1,67 @@
+{
+  "schema": "misgan_infrastructure_repair_v1",
+  "optimizer_updates": 0,
+  "cancelled_shared_requests": [
+    "44f3415ab7847665f5e4cf88",
+    "7fe506e6e00bc9f354cb4350",
+    "977f5828f1b0e5031ad4402c",
+    "d4291213619e1e1a3bbedd9a",
+    "f0401fe665dec51d51654fea",
+    "fb5fa2f3182bc104e99a04d8"
+  ],
+  "reason": "Source snapshot excludes Forge declarations; replace disk-dependent provider discovery with frozen code-native definition. Preserve all pre-update errors and charges.",
+  "errors": [
+    {
+      "attempt": "c7bec18356094de19ed3f89491302a59",
+      "raw_result_path": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/c7bec18356094de19ed3f89491302a59/raw-result.json",
+      "raw_result_sha256": "084de998d75fc6cb4885470608577d8116b34ead79883c5cb27f7f6872a27bc9",
+      "status": "ERROR",
+      "cost": {
+        "adapter_seconds": 0.018227127991849557,
+        "runner_seconds": 1.4820180290262215
+      },
+      "error": {
+        "message": "[Errno 2] No such file or directory: '/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/snapshots/f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b/configs/forge/tasks/model_misgan_four_mode.json'",
+        "type": "FileNotFoundError"
+      },
+      "forge_gate": "INCOMPLETE",
+      "charged_seconds": 3.903539766004542
+    },
+    {
+      "attempt": "a8241e9344ce4928b5fcd844d90343ef",
+      "raw_result_path": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/a8241e9344ce4928b5fcd844d90343ef/raw-result.json",
+      "raw_result_sha256": "8eea557b41b5befebdc3673843eb88ecef75cf6603a2ddfd7ccdfaf3df83b1dd",
+      "status": "ERROR",
+      "cost": {
+        "adapter_seconds": 0.018422529014060274,
+        "runner_seconds": 1.5850400000053924
+      },
+      "error": {
+        "message": "[Errno 2] No such file or directory: '/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/snapshots/f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b/configs/forge/tasks/model_misgan_four_mode.json'",
+        "type": "FileNotFoundError"
+      },
+      "forge_gate": "INCOMPLETE",
+      "charged_seconds": 3.855927282012999
+    },
+    {
+      "attempt": "64487ec746934ea9b4d1b4432bd80cfc",
+      "raw_result_path": "/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/misgan-bispf-four-mode-r1/64487ec746934ea9b4d1b4432bd80cfc/raw-result.json",
+      "raw_result_sha256": "5de1966af7de5c68b7e2c62d8ceab63d1b524c294561ef7db33fcc134d72102e",
+      "status": "ERROR",
+      "cost": {
+        "adapter_seconds": 0.018047577003017068,
+        "runner_seconds": 1.732151000003796
+      },
+      "error": {
+        "message": "[Errno 2] No such file or directory: '/nvme/dev/particlegan/artifacts/misgan-bispf-20261019/queue/snapshots/f7dce716d0b9d601fe4255a70901c8a2ff81653ad441d5e23a164ab30e8d228b/configs/forge/tasks/model_misgan_four_mode.json'",
+        "type": "FileNotFoundError"
+      },
+      "forge_gate": "INCOMPLETE",
+      "charged_seconds": 4.256100983999204
+    }
+  ],
+  "repaired_reservation_seconds": 5400,
+  "previous_setup_overhead_allowance_seconds": 30,
+  "repaired_campaign_cap_seconds": 5430,
+  "total_scientific_updates_unchanged": 3600
+}

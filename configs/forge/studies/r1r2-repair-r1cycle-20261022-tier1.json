@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "id": "r1r2-repair-r1cycle-20261022-tier1",
+  "status": "ready",
+  "candidate": "r1r2-repair-r1cycle-20261022",
+  "control": {
+    "candidate_id": "r1r2-repair-r1only-20261022",
+    "task_map": {}
+  },
+  "scope": {
+    "view": "discriminator_stability",
+    "through_tier": 1,
+    "execution_backend": "cuda",
+    "cuda_model": "NVIDIA RTX A6000"
+  },
+  "campaign": {
+    "id": "r1r2-repair-20261022",
+    "candidate_budget_seconds": 5220,
+    "budget_seconds": 24000
+  },
+  "max_rounds": 1,
+  "prior_evidence": [
+    {
+      "path": "reports/forge/r1r2-repair-20261022/reference-origin.json",
+      "selector": [],
+      "identity": {
+        "archive_commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+        "original_candidate": "r1r2-non-saturating-ams-m110-v1"
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/r1r2-failure-diagnosis-20261022/saved-force-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "scope": "saved_endpoint_force_conditioning_diagnostic",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    },
+    {
+      "path": "reports/forge/r1r2-failure-diagnosis-20261022/word-saturation-diagnosis.json",
+      "selector": [],
+      "identity": {
+        "scope": "saved_word_atoms_and_declared_target_enumeration_only",
+        "qualification_input": false
+      },
+      "use": "motivation_only"
+    }
+  ],
+  "hypothesis": "The single global R1-only plus explicit joint inverse reconstruction recipe repairs the unchanged Ring16 gate through its R1 critic change while retaining confident paired word acquisition with a stable raw-logit inverse signal and every other required Tier1 pass.",
+  "prediction": {
+    "task_id": "five_word_joint_smoke",
+    "metric": "minimum_reconstruction_token_probability",
+    "op": ">=",
+    "threshold": 0.9,
+    "phase": "final"
+  },
+  "falsifier": {
+    "task_id": "five_word_joint_smoke",
+    "metric": "minimum_reconstruction_token_probability",
+    "op": "<",
+    "threshold": 0.9,
+    "phase": "final"
+  },
+  "competing_explanation": "Source/runtime changes, finite-batch geometry or generator/prior conditioning may dominate the saved critic field. Complete all13 independent runnable Tier1 tasks and clock; compare matched source-bound controls, keep every full gate, blocked cell and failure. A scalar prediction never grants qualification.",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "baseline": "bispf-optimized-quintic-v1",
+  "core": "BISPF adversarial VAEGAN with genuine KL and Gaussian reconstruction",
+  "device": "cuda:0",
+  "evaluation_samples": 4096,
+  "historical": {
+    "categorical": "PASS",
+    "hard": "FAIL",
+    "role": "motivation only, independent CPU cohort, no unchanged reruns",
+    "source": "bee9f06ed21695e518c1cb702e12a385ab9389e8"
+  },
+  "initial_round_jobs": 4,
+  "maximum_jobs": 8,
+  "maximum_reserved_seconds": 2400,
+  "maximum_rounds": 3,
+  "metric_checks": 24,
+  "primary_sources": [
+    {
+      "url": "https://proceedings.mlr.press/v48/larsen16.pdf",
+      "use": "Shared encoder/decoder GAN hybrid; pixel reconstruction D0 ablation is an explicit paper variant. No exact face-model reproduction claimed."
+    },
+    {
+      "url": "https://arxiv.org/abs/1711.01558",
+      "use": "Aggregated encoded distribution/prior mismatch motivates coverage diagnosis. Data-space projected transport repair is our inference, not an implementation of WAE."
+    }
+  ],
+  "prior_regularization_weight": 0.01,
+  "prior_regularizer": "sbnp",
+  "prior_update": "learned",
+  "round1": "bispf-vaegan-transport-v1",
+  "schema": "vaegan_bispf_coverage_protocol_v1",
+  "seed": 0,
+  "source_checkpoint_recording": "All actual observations, including all24 metric observations plus media states; complete model/optimizer/policy/all named RNG states.",
+  "steps": 1200,
+  "stopping": "Finish both independent tasks per round. Stop a failed revision; inspect saved states before next substantive mechanism. Stop after three measured recipes or all tasks pass. No seed repeats, score changes, checkpoint selection or whole-suite qualification.",
+  "terminal_checks": 5
+}

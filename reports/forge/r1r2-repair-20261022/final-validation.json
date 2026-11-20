@@ -1,0 +1,140 @@
+{
+  "acquired_checkpoint_difference_paths": [
+    "state.fixture.api_state.cpu_rng",
+    "state.fixture.api_state.cuda_rng"
+  ],
+  "actual_training_gifs": 61,
+  "campaign_cap": 24000,
+  "clock_statuses": {
+    "control": "PASS",
+    "r1cycle": "PASS",
+    "r1only": "PASS"
+  },
+  "collector_source_sha256": "bfbbae431771c4b1fe4127a750fc35ecc3efb5e30125dadecfb7664548dca41d",
+  "direct_consumed_batch_digests_match_all_three_roles_on_tasks": [
+    "gaussian1d_smoke",
+    "model_ae_ddgan_gaussian_chain",
+    "model_ae_gan_multimodal",
+    "model_ae_reconstruction",
+    "model_ddgan_gaussian_chain",
+    "model_vae_categorical",
+    "model_vae_hard"
+  ],
+  "inactive_clock_numerical_equality": true,
+  "inactive_required_numerical_and_observation_equalities": 12,
+  "initial_constructor_hash_gap": "two_pole fixed fixture retains no tensor initialization hash; its consumed data-state endpoints and inactive trajectories are separately recorded.",
+  "initial_constructor_hashes_match_all_three_roles_on_tasks": [
+    "ae_gan_hold",
+    "clockfree_audit_measurement_v1",
+    "five_word_joint_smoke",
+    "gaussian1d_smoke",
+    "model_ae_ddgan_gaussian_chain",
+    "model_ae_gan_multimodal",
+    "model_ae_reconstruction",
+    "model_ddgan_gaussian_chain",
+    "model_vae_categorical",
+    "model_vae_hard",
+    "ring16_acquisition",
+    "unused_token_hold",
+    "zero_tanh_smoke"
+  ],
+  "media_manifest_sha256": "2b534da62f8ce4b5f4e63708667f65720f8d80a1050e548176bb1f57bac873f2",
+  "ordinary_diagnostic_replay_checks": 3,
+  "ordinary_required_counts": {
+    "control": {
+      "FAIL": 3,
+      "PASS": 10
+    },
+    "r1cycle": {
+      "FAIL": 4,
+      "PASS": 9
+    },
+    "r1only": {
+      "FAIL": 4,
+      "PASS": 9
+    }
+  },
+  "own_parent_checkpoint_proofs": 3,
+  "physical_attempts": 66,
+  "qualification_input": false,
+  "raw_streams_copied": false,
+  "replay_note": "Full own-checkpoint restoration retains distinct ambient global snapshots. Actual acquired model/optimizer/consumed named-stream tensors and observed trajectories match; no cross-scope credit.",
+  "report_path": "reports/forge/r1r2-repair-20261022/publication/results.json",
+  "report_sha256": "eab4b866c0a1aace69b3c57dbf2e585be2e70540c2e65c09721866edd5b8d8d0",
+  "scope": "strict_final_original_receipt_and_saved_media_validation",
+  "status": "PASS",
+  "stdout": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/logs/collect-final.log",
+  "superseded_alias_archive": "reports/forge/r1r2-repair-20261022/media-alias-archive.json",
+  "total_unique_paid_seconds": 2201.552422651206,
+  "unrenderable_infrastructure_attempts": [
+    {
+      "attempt_id": "af246dd182814a4290bcb0bc2a2558d6",
+      "status": "INCOMPLETE",
+      "task_id": "model_ae_ddgan_gaussian_chain"
+    },
+    {
+      "attempt_id": "5af9cc5a7c4b4f0d96845699836327c6",
+      "status": "INCOMPLETE",
+      "task_id": "model_ae_gan_multimodal"
+    },
+    {
+      "attempt_id": "e7b1b21bbe9a4493b4325bbdbe78d69d",
+      "status": "INCOMPLETE",
+      "task_id": "model_ae_reconstruction"
+    },
+    {
+      "attempt_id": "eb5ab06789914bd0a0ea6a716321691b",
+      "status": "INCOMPLETE",
+      "task_id": "model_vae_categorical"
+    },
+    {
+      "attempt_id": "067fd49b5eb64231bbc99ffbc50001f4",
+      "status": "INCOMPLETE",
+      "task_id": "model_vae_hard"
+    }
+  ],
+  "word_holds": [
+    {
+      "attempt_id": "f45e68ade4c7445f8de8610425231c45",
+      "confirmed_checks": 25,
+      "endpoint_exact_inverse": 1,
+      "endpoint_mass_tv": 0.034570312500000006,
+      "endpoint_minimum_token_probability": 0.9974690675735474,
+      "endpoint_modes": 5,
+      "endpoint_quality": 1.0,
+      "endpoint_step": 5667,
+      "minimum_token_probability_over_all_primary_and_confirmations": 0.9100630283355713,
+      "own_parent_step": 1667,
+      "role": "r1only",
+      "status": "PASS"
+    },
+    {
+      "attempt_id": "92f8e7bccca54227a8cbab86252eff99",
+      "confirmed_checks": 25,
+      "endpoint_exact_inverse": 1,
+      "endpoint_mass_tv": 0.020898437500000006,
+      "endpoint_minimum_token_probability": 0.9999691247940063,
+      "endpoint_modes": 5,
+      "endpoint_quality": 1.0,
+      "endpoint_step": 4834,
+      "minimum_token_probability_over_all_primary_and_confirmations": 0.9998086094856262,
+      "own_parent_step": 834,
+      "role": "r1cycle",
+      "status": "PASS"
+    },
+    {
+      "attempt_id": "fd336640b9504d7091d5b3916e2c6ed5",
+      "confirmed_checks": 25,
+      "endpoint_exact_inverse": 1,
+      "endpoint_mass_tv": 0.020898437500000006,
+      "endpoint_minimum_token_probability": 0.9979230761528015,
+      "endpoint_modes": 5,
+      "endpoint_quality": 1.0,
+      "endpoint_step": 4834,
+      "minimum_token_probability_over_all_primary_and_confirmations": 0.9941250085830688,
+      "own_parent_step": 834,
+      "role": "control",
+      "status": "PASS"
+    }
+  ]
+}

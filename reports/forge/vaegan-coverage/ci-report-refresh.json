@@ -1,0 +1,26 @@
+{
+  "failed_head": "627ec65cf19d6c2607e92c452958c49042d91da4",
+  "failed_job": "https://github.com/255BITS/ParticleGAN/actions/runs/39361421744/job/118428392394",
+  "failure": "Committed technique-inventory.family_progress display metadata omitted the newly declared VAEGAN diagnostic view and source-binding updates.",
+  "forge_validation": "PASS",
+  "memory_status": "CURRENT",
+  "original_task_contracts_after_sha256": "f5d348c1cf25233e1a5a75e5925b5af1855c3aa8b4179858ece74c8e127021ff",
+  "original_task_contracts_before_sha256": "f5d348c1cf25233e1a5a75e5925b5af1855c3aa8b4179858ece74c8e127021ff",
+  "qualification_regraded": false,
+  "regression_test": "tests/test_forge_family_reports.py::test_committed_pages_and_every_drilldown_link_match_the_generator",
+  "related_report_tests": {
+    "failed": 0,
+    "passed": 141,
+    "scope": "Family reports, tier navigation, model publication and source-bound recall;140cases passed before manifest refresh, final freshness guard passed after refresh."
+  },
+  "repair_command": "python reports/forge/regenerate_technique_inventory.py --refresh-publication",
+  "sampling_draws_added": 0,
+  "schema": "vaegan_display_ci_repair_v1",
+  "scientific_rows_preserved": true,
+  "selected_rows_after_sha256": "61a7a1e7d00ce901daa241177299afeb14e8e54335630cf5c49db58f9be5f2df",
+  "selected_rows_before_sha256": "61a7a1e7d00ce901daa241177299afeb14e8e54335630cf5c49db58f9be5f2df",
+  "six_run_results_sha256": "9d6df31f0ab3fb5d4bfac99c7cf8b81e6e8ea4ca79ae5d8f40e2b0151d579882",
+  "targeted_test": "PASS",
+  "terminal_summary_sha256": "f465340d0dd084a10041f225c278635ae3bd0559a997dcc38c635183437d6da9",
+  "training_updates_added": 0
+}

@@ -135,6 +135,6 @@ def test_executable_inventory_retains_every_historical_question_and_pr231():
     historical = {name: case for name, case in cases.items()
                   if case["provider"] not in api_contract.MODEL_PROVIDERS and name not in gan_stretch}
     assert len(historical) == 186
-    assert len(cases) == 204  # Eight model/encoding cases and ten GAN stretch cases.
+    assert len(cases) == 205  # Eight model cases, scoped MisGAN and ten GAN stretch cases.
     assert all(case["evaluation_observations"] >= case.get("terminal_observations", 5)
                for case in cases.values())

@@ -1,0 +1,152 @@
+{
+  "schema_version": 1,
+  "scope": "inactive optional Recipe receipt compatibility; source-only task migration",
+  "source": "experiments/forge/behavior_adapters.py",
+  "source_commit": "9659abda14372fb41d6bae6f9632027c36b073fa",
+  "previous_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+  "current_source_sha256": "0020580ca76b78e3ba2f355b636d1f53a6679b05ee0784b45c3fb1eeef0f2dca",
+  "scientific_conditions_changed": false,
+  "optimizer_updates": 0,
+  "sampling_draws": 0,
+  "historical_regrading": false,
+  "tasks": [
+    {
+      "path": "configs/forge/tasks/ae_gan_hold.json",
+      "previous_git_blob": "ed11564445be34f64d98341809556df93c17d0eb",
+      "previous_task_sha256": "5ceb818cfc0914e7e5d54a69bfa06c386284ac1795e86821b7b2388b9bb997b3"
+    },
+    {
+      "path": "configs/forge/tasks/cover_leftover.json",
+      "previous_git_blob": "9c9c7d0998cefcaf9df9fcc0088114ec5206537a",
+      "previous_task_sha256": "0d0b3843b1aa7c41b25452c78f1cb5c111bfdaee680aa237eae5b88af7e28a23"
+    },
+    {
+      "path": "configs/forge/tasks/five_word_joint_hold.json",
+      "previous_git_blob": "3ce8e0dc5b8fb6e2c40ed63f07cf8fe646eafc60",
+      "previous_task_sha256": "1d5293086d009175574af7220cd2a427119523a670b7953116758307fedc4967"
+    },
+    {
+      "path": "configs/forge/tasks/five_word_joint_smoke.json",
+      "previous_git_blob": "80eff285a2473a1dbdf8208fcf40c61244c08e09",
+      "previous_task_sha256": "fcab8508f2c609f51ff26491a28b27689152d4b69f740ed204f0821b174e55ab"
+    },
+    {
+      "path": "configs/forge/tasks/mid_scale_identity.json",
+      "previous_git_blob": "53ca6af2d6fe7966d864f934511164423d3e6189",
+      "previous_task_sha256": "56b39cf22150f1c3859811e88d9475ffed0d5c359275744ecc303a06601dc2b6"
+    },
+    {
+      "path": "configs/forge/tasks/residual_student.json",
+      "previous_git_blob": "784eaa6dbf23a6dc284e9772f402aa0f90cc2e7e",
+      "previous_task_sha256": "d3589a68e35a6cec4b9d3220b5db36583a0026a37d312a24be7bb73958575784"
+    },
+    {
+      "path": "configs/forge/tasks/trajectory.json",
+      "previous_git_blob": "a46ab6cff3fed58a0b78a7ef79f930aef4c750a9",
+      "previous_task_sha256": "d2e99ebacb07255f9d6a25945862709758372ecc6daaa8d59710639ba2a8f575"
+    },
+    {
+      "path": "configs/forge/tasks/two_pole.json",
+      "previous_git_blob": "14846fe773aa0eb3a310109c81eae2641cea0ce4",
+      "previous_task_sha256": "cd15702e5708bf14e2dc8db9c188e082f424e5784de526aa2686c3fe0ec05cc9"
+    },
+    {
+      "path": "configs/forge/tasks/unipolar.json",
+      "previous_git_blob": "77cdcf10df05d88cdd374ec3177a8ab2958a1f58",
+      "previous_task_sha256": "792041b77120c2245eef8f57b2a354ff9f2e59ea827c52f4feb2976f08fda0db"
+    },
+    {
+      "path": "configs/forge/tasks/unused_token_hold.json",
+      "previous_git_blob": "07e298a635808fa9bd46f68c630074ece429e30d",
+      "previous_task_sha256": "17ceca58c8fa647563677049acabb1baa0e4eb151e08e19c47f74d5c4daf7987"
+    }
+  ],
+  "preserved_historical_tasks": [
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-ae_gan_hold.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "f82ba7a294228a8b9e0df246ab097a25dbb18a4c9a6cd7f9d37a06fe06602e53"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-cover_leftover.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "b1bdf4a55f69e0cbfcc796e644ba0d4d40ad35bf3909828f292a063bda33b992"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-five_word_joint_hold.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "bd1cc85aaa50209de1df57aa22b682f59cabdbb85458ea5d897ced9303ba6765"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-five_word_joint_smoke.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "d5424efa719b0ba86697e8946de0198809817eadbb97ae308dde3ca9f5f4864e"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-mid_scale_identity.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "16dcb708cba518c15fcde858e4ae29ce41a3706878c2669a6ea39bffa6c7f806"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-residual_student.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "e7be99879d6f853e4ce51d3bead59e46c22d96894546f53a1d6d9d58007f74d5"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-trajectory.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "0324a59479bcf443b783ce1651cf4e3d6caad9fe15f4f023f33211cb91a0e342"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-two_pole.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "2a94e0e9423abd63fa612381337c873b75037b1e5a6ed99ad1abaae7a651276d"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-unipolar.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "cb3afc433a4abd3897e75f654c1571f3b5efc3020b4faf152c6adfb7b94da938"
+    },
+    {
+      "path": "configs/forge/tasks/recipe-prior-refactor-legacy-unused_token_hold.json",
+      "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0",
+      "task_sha256": "735130a8c7e27376e96e577af53a6a9aef3cf5b9265d8590cae2247e926d3c22"
+    }
+  ],
+  "validation": {
+    "tests": [
+      "tests/test_bcap_integration_compatibility.py",
+      "tests/test_gram_profile_recipe_compat.py"
+    ],
+    "passed": 66,
+    "duration_seconds": 15.85,
+    "comparison_source_commit": "5737ade47dca89b04d338ada20667781d1f2b5df",
+    "frozen_comparator_assertions_changed": false,
+    "generated_page_guard": {
+      "passed": 1,
+      "duration_seconds": 9.19
+    },
+    "forge_validate": "PASS",
+    "forge_memory": "CURRENT"
+  },
+  "display_refresh": {
+    "before_publication_sha256": "a9fc799778fe8db318cc40d7b781f3160d7794436b1872afec14f938a92d7ebd",
+    "after_publication_sha256": "14cf42775203c61f062e9176d69ebc6ed3f36d35a03e021f57dda43927407deb",
+    "scientific_row_hashes_unchanged": true,
+    "scientific_row_counts": {
+      "rows": 9,
+      "evidence_rows": 155,
+      "archived_evidence_rows": 722
+    },
+    "selected_recipe_hashes_unchanged": true,
+    "selection_files": {
+      "configs/forge/selections/common26-display-audit-v1.json": "9283a200e5d140cebffaf83b679de3efe5b78a3fb99d6689badf616904baae3a",
+      "configs/forge/selections/family-current-v1.json": "35871846445af79feec0775aa398b3c1ad037a6aa1723cccbf56fe73bd85b7ec",
+      "configs/forge/selections/tier1-existing-configs-v1.json": "18e990f873f8315d30740124afad4acad212f6708723b58816dda72d57e224b8",
+      "configs/forge/selections/word-joint-task-v1.json": "9e1c77de1914e386eeb1032bd8cf586b4c45b99775ab71b983ee77a4d618edbb"
+    },
+    "historical_regrading": false,
+    "qualification_reuse": false,
+    "training_launched": false
+  }
+}

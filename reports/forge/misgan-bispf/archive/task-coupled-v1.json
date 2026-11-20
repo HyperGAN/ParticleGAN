@@ -1,0 +1,189 @@
+{
+  "schema_version": 1,
+  "id": "model_misgan_four_mode",
+  "description": "Learn an 8D four-mode complete distribution and the block-mask law using only incomplete rows, then learn a stochastic neural imputer whose held-out single-sensor queries cover both ambiguous branches with correct mass.",
+  "adapter": "public_api_model_toy",
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "model_misgan_four_mode",
+    "steps": 1200,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.025,
+      "standardize": false
+    },
+    "prior_contract": "recipe_owned_v1",
+    "protocol": "screening",
+    "produces_state": false,
+    "host_source": "benchmarks/toy_audit/api_model_misgan.py",
+    "host_definition": {
+      "provider": "benchmarks.toy_audit.api_model_misgan",
+      "case_id": "api-model-misgan-four-mode",
+      "resources": {
+        "num_particles": 64,
+        "z_dim": 2,
+        "batch_size": 256
+      },
+      "num_particles": 64,
+      "z_dim": 2,
+      "batch_size": 256,
+      "init_std": 0.5,
+      "target": {
+        "kind": "four_corner_hadamard8",
+        "means": [
+          [
+            -1.0,
+            -1.0
+          ],
+          [
+            -1.0,
+            1.0
+          ],
+          [
+            1.0,
+            -1.0
+          ],
+          [
+            1.0,
+            1.0
+          ]
+        ],
+        "sigma": 0.08,
+        "masses": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ]
+      },
+      "architecture": {
+        "generator": "affine_2_to_8",
+        "mask": "categorical4_linear1",
+        "imputer": "16_64_64_64_neural_logits",
+        "critics": "64_64"
+      },
+      "recipe_fields": {
+        "model": "gan",
+        "conditioning": "scalar",
+        "encoder_mode": "none",
+        "observation_sigma": 0.08,
+        "reconstruction_weight": 1.0
+      }
+    },
+    "execution_path": "public_components",
+    "recipe_fields": {
+      "model": "gan",
+      "conditioning": "scalar",
+      "encoder_mode": "none",
+      "observation_sigma": 0.08,
+      "reconstruction_weight": 1.0
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "task_model_kernel_and_posterior_without_serving_noise",
+    "eval_output_noise": "clean",
+    "kind": "transfer_sustained",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "thresholds": [
+      [
+        "modes",
+        ">=",
+        4
+      ],
+      [
+        "hq",
+        ">=",
+        0.9
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.1
+      ],
+      [
+        "off_plane",
+        "<=",
+        0.04
+      ],
+      [
+        "mask_tv",
+        "<=",
+        0.05
+      ],
+      [
+        "imputer_observed_error",
+        "<=",
+        1e-06
+      ],
+      [
+        "imputer_accuracy",
+        ">=",
+        0.94
+      ],
+      [
+        "ambiguous_hq",
+        ">=",
+        0.9
+      ],
+      [
+        "ambiguous_mass_tv",
+        "<=",
+        0.12
+      ],
+      [
+        "ambiguous_query_coverage",
+        ">=",
+        0.9
+      ],
+      [
+        "ambiguous_std_ratio",
+        ">=",
+        0.7
+      ],
+      [
+        "ambiguous_std_ratio",
+        "<=",
+        1.3
+      ]
+    ],
+    "scoring_weights": "live",
+    "evaluator": "benchmarks.transfer_suite.protocol:test_verdict",
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "optimizer_roles": [
+        "generator",
+        "prior",
+        "discriminator"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true
+    },
+    "sources": {}
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 1800,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "retained_question_ids": [
+    "pr196-block-recovery",
+    "pr196-block-neural-imputer"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/misgan-bispf/README.md",
+    "api_publication": "reports/toy_audit/api_contract/misgan_bispf/publication.json"
+  }
+}

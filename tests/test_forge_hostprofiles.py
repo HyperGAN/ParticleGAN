@@ -31,6 +31,15 @@ def native_tasks(continuation=False):
 
 
 
+
+def without_new_neutral_controls(recipe):
+    """Independent expected legacy packet; declared active values remain."""
+    result = deepcopy(recipe)
+    for name, default in (('reg_real_weight', 1.0), ('reg_fake_weight', 1.0), ('joint_reconstruction_weight', 0.0), ('conditional_energy_weight', 0.0), ('conditional_energy_samples', 8), ('masked_mixture_weight', 0.0), ('masked_transport_weight', 0.0), ('imputer_component_weight', 0.0), ('rhbi_weight', 0.0), ('rhbi_rho', 2.0), ('rhbi_tau', 2.0), ('rhbi_eps', 0.1), ('rhbi_iters', 8), ('rhbi_c_max', 20.0), ('rhbi_beta_ell', 0.1), ('rhbi_nn_quantile', 0.25), ('rhbi_critic_weight', 0.0), ('rhbi_self_coupling', 'hollow'), ('rhbi_relativistic_weight', 0.0), ('rhbi_lambda_floor', 0.0), ('rhbi_gamma_gauge', 0.0), ('rhbi_rapidity_screening', True), ('rhbi_scale_log_odds', False), ('rhbi_conditional_fibre', 'joint'), ('rhbi_akt_horizon', False), ('rhbi_akt_mode', 'sqrt'), ('rhbi_slack_gain', 0.0), ('rhbi_chord_weight', 0.0), ('rhbi_thermal_tau', 0.0), ('rhbi_thermal_shock_mu', 0.15), ('rhbi_settle_beta', 0.0), ('rhbi_settle_mode', 'residual'), ('rhbi_fibre_rel_blend', 0.0), ('rhbi_step_damp', 0.0), ('rhbi_cond_ot_weight', 0.0), ('rhbi_cond_ot_mode', 'kernel_ed'), ('rhbi_simplex_weight', 0.0), ('rhbi_cvx_mu_gain', 0.40), ('rhbi_simplex_chart_weight', 0.0), ('rhbi_tail_spill_gain', 0.0), ('rhbi_simplex_macro_settle', False), ('rhbi_simplex_curve_settle', False), ('rhbi_cond_step_damp', 0.0), ('rhbi_ae_coord_whiten', False), ('rhbi_support_completion', False), ('t1_pullback_weight', 0.0), ('t1_iso_weight', 0.60), ('t1_laguerre_lr', 0.015), ('t1_prior_row_lr', 0.06), ('t1_max_prototypes', 256), ('t1c_weight', 0.0), ('t1c_chart_capacity', 256), ('t1c_chart_weight', 0.0), ('t1c_halo_mult', 2.1), ('t1c_multiscale_horizon', False), ('t1c_grad_deconflict', 0.0), ('t1c_cond_drift_deconflict', False), ('rgdt_conformal_horizon', True), ('rgdt_macro_slack_weight', 0.0), ('rgdt_fiber_residual_weight', 0.0), ('rgdt_manifold_chart_weight', 0.0)):
+        if result.get(name, default) == default:
+            result.pop(name, None)
+    return result
+
 def bind_candidate(req):
     from dataclasses import asdict
     from experiments.forge.api import FormulationContext
@@ -525,7 +534,7 @@ def test_central_revision_helper_preserves_the_existing_planning_formula(tmp_pat
     # These later default-valued Recipe fields were absent from the original
     # packet schema. Compare to that explicit legacy formula, independently of
     # the production compatibility projector.
-    legacy_recipe = deepcopy(candidate["resolved_recipe"])
+    legacy_recipe = without_new_neutral_controls(candidate["resolved_recipe"])
     assert legacy_recipe.pop("ebi_beta") == 30.0
     assert legacy_recipe.pop("kappa_radial") == 1.0
     assert legacy_recipe.pop("generator_gradient_response") == "none"
@@ -549,7 +558,7 @@ def test_nondefault_recipe_additions_remain_in_scientific_revision(tmp_path, fie
     req["candidate"]["recipe_overrides"][field] = value
     bind_candidate(req)
     candidate = req["candidate"]
-    expected_recipe = deepcopy(candidate["resolved_recipe"])
+    expected_recipe = without_new_neutral_controls(candidate["resolved_recipe"])
     expected_recipe.pop(default_other)
     expected_recipe.pop("generator_gradient_response", None)
     assert expected_recipe[field] == value

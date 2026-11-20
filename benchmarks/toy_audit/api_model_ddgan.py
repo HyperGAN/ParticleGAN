@@ -15,7 +15,8 @@ from pathlib import Path
 import torch
 from torch import nn
 
-from particlegan import DDGAN, MoGParticlePrior, Recipe, UpdatePolicy, get_recipe, init
+from particlegan import (DDGAN, MoGParticlePrior, Recipe, UpdatePolicy,
+    conditional_energy_score, get_recipe, init)
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from experiments.forge.rng import NamedStreams
 from .reproducibility import DEFAULT_SEED, construction_rng
@@ -284,6 +285,10 @@ def task_recipe(case, recipe_name=None, recipe=None):
     else:
         result = get_recipe(recipe_name, **fields)
     from experiments.forge.api import policy_controls
+    if result.conditional_energy_weight and fields["encoder_mode"] != "none":
+        raise ValueError("conditional energy score is not bound by the AE-DDGAN reconstruction host")
+    from .api_contract import validate_caller_objectives
+    validate_caller_objectives(result, provider="api_model_ddgan")
     if (policy_controls(result) or result.row_policy != "independent" or result.input_noise_std
             or result.output_noise_std or result.kinetic_transport_weight
             or result.kinetic_transport_local_weight or result.constraint_geometry_mode == "strict_progress"):
@@ -303,7 +308,19 @@ class DDGANFixture:
 
     def extra_generator_objective(self, clean, xt, t):
         """Return (extra loss, protected losses, scalar diagnostics)."""
-        return clean.new_zeros(()), (), {}
+        if not self.recipe.conditional_energy_weight:
+            return clean.new_zeros(()), (), {}
+        k = self.recipe.conditional_energy_samples
+        # Auxiliary draws never advance the adversarial or target streams.
+        z, indices = self.prior.sample(len(clean) * k,
+            generator=self._rng("prior", "energy_latent"),
+            noise_generator=self._rng("noise", "energy_kernel"))
+        self.bind_prior_rows(indices)
+        predictions = self.G(xt.repeat_interleave(k, 0), z,
+            t.repeat_interleave(k)).reshape(len(clean), k, *clean.shape[1:])
+        score = conditional_energy_score(predictions, clean)
+        weighted = self.recipe.conditional_energy_weight * score
+        return weighted, (weighted,), {"conditional_energy": float(score.detach())}
 
     def __init__(self, case, *, device="cpu", seed=0, recipe_name=None, max_steps=None, recipe=None):
         self.case, self.seed, self.device = deepcopy(case), int(seed), torch.device(device)
@@ -331,7 +348,8 @@ class DDGANFixture:
         self.cond_post_std = post_var.sqrt().to(self.device)
         self.recipe.apply_prior_policy(self.prior)
         self.opt_g, self.opt_d = self.recipe.make_optimizers(self.G, self.D, self.prior,
-            encoder=self.E, ema_critic=None if self.recipe.effective_critic_formulation == "bispf" else deepcopy(self.D))
+            encoder=self.E, separate_encoder_groups=self.E is not None,
+            ema_critic=None if self.recipe.effective_critic_formulation == "bispf" else deepcopy(self.D))
         self.base_rates = [[group["lr"] for group in optimizer.param_groups] for optimizer in (self.opt_g, self.opt_d)]
         self.loss = self.recipe.make_loss()
         self.prior_regularizer = self.recipe.make_prior_regularizer(prior=self.prior)

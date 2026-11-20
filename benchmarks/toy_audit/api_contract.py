@@ -20,7 +20,7 @@ import torch
 from particlegan import Recipe, get_recipe
 
 
-MODEL_PROVIDERS = ("api_model_ae", "api_model_vae", "api_model_ddgan", "api_model_ae_ddgan")
+MODEL_PROVIDERS = ("api_model_ae", "api_model_vae", "api_model_ddgan", "api_model_ae_ddgan", "api_model_misgan")
 PROVIDERS = ("api_images", "api_vectors", "api_conditionals", "api_diagnostics", "api_ring16", "api_gaussian1d") + MODEL_PROVIDERS
 ROOT = Path(__file__).resolve().parents[2]
 CASE_ID = re.compile(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$")
@@ -103,6 +103,17 @@ class UnsupportedRecipeOverrides(ValueError):
     """This fixture has no declared contract for arbitrary tuning overrides."""
 
 
+def validate_caller_objectives(recipe, *, provider, kind=None):
+    """Reject an active objective unless this caller actually consumes it."""
+    if recipe.conditional_energy_weight and provider != "api_model_ddgan":
+        raise UnsupportedRecipeOverrides("conditional energy score requires the explicit DDGAN component consumer")
+    if recipe.joint_reconstruction_weight and (provider != "api_images" or kind != "word"):
+        raise UnsupportedRecipeOverrides("joint reconstruction objective requires the explicit word joint consumer")
+    if ((recipe.masked_mixture_weight or recipe.masked_transport_weight or recipe.imputer_component_weight)
+            and provider != "api_model_misgan"):
+        raise UnsupportedRecipeOverrides("masked mixture/imputer objectives require the explicit MisGAN component consumer")
+
+
 def validate_recipe_overrides(case, recipe_name, recipe_overrides):
     """Allow public tuning knobs without changing the host or sampling law."""
     from experiments.forge.configuration_search import TUNABLE_FIELDS
@@ -134,12 +145,14 @@ def build(case, *, device="cpu", seed=DEFAULT_SEED, recipe_name=None, max_steps=
     if recipe is not None:
         if case["provider"] not in (*MODEL_PROVIDERS, "api_vectors") or not isinstance(recipe, Recipe) or overrides:
             raise ValueError("resolved Recipe injection requires a supported model/vector toy without tuning overrides")
+        validate_caller_objectives(recipe, provider=case["provider"], kind=case.get("kind"))
         options["recipe"] = recipe
     with construction_rng(seed, device):
         fixture = provider.build_case(case["id"], device=device, seed=seed,
                                       recipe_name=recipe_name, max_steps=max_steps, **options)
     if not isinstance(fixture.recipe, Recipe):
         raise TypeError(f"{case['id']}: recipe must be the public particlegan.Recipe")
+    validate_caller_objectives(fixture.recipe, provider=case["provider"], kind=case.get("kind"))
     if not fixture.api_components or any(not isinstance(name, str) or not name
                                           for name in fixture.api_components):
         raise ValueError(f"{case['id']}: public API components must be identified")

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "scope": "software_checks_not_scientific_qualification",
+  "source_commit": "df196bf43dc50c166a6e77491fa5fc7a75eae323",
+  "source_digest": "b33e375de0a1e9cf754f4d0fa24e0fd216db4fec86b1b549ccb5ea2bb0e4f175",
+  "suites": [
+    {
+      "cohort": "runner_model_grading_snapshot",
+      "passed": 177,
+      "failed": 0,
+      "raw_stdout": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/logs/infra-v2-tests.log",
+      "raw_stdout_sha256": "d8eaa78cad6b50b808137d22a837cf361fb95cb806a0e7a7a43514a1598f0fc4"
+    },
+    {
+      "cohort": "r1_weighting_joint_reconstruction_update_oracle",
+      "passed": 32,
+      "failed": 0,
+      "raw_stdout": "/mnt/ml7tb/ParticleGAN-forge/r1r2-repair-20261022/logs/repair-public-api-tests.log",
+      "raw_stdout_sha256": "a3428e868e958f15029b6eb88bcb9515688784dd6fec96d17ceff8e1a6772ab8"
+    },
+    {
+      "cohort": "native_encoder_group_parity_and_provider_resume",
+      "passed": 96,
+      "failed": 0,
+      "raw_stdout": "/mnt/ml7tb/ParticleGAN-forge/r1r2-local-repair-20261022/encoder-groups-tests.log",
+      "raw_stdout_sha256": "d47e5aabb24ae3eb1051fe4de353892b95e75b4b4c558d03ad9076f2881fb2c0"
+    }
+  ],
+  "counts_are_separate_overlapping_suites": true,
+  "independent_core_review": "PASS; half-gamma/default behavior, inactive arms, raw-logit CE gradients, serialization and disabled RNG path reviewed",
+  "frozen_provider_smoke": "reports/forge/r1r2-repair-20261022/infra-v2-snapshot-smoke.json",
+  "scientific_gate_credit": false
+}

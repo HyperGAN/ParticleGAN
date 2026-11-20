@@ -1,0 +1,208 @@
+{
+  "qualification_input": false,
+  "runs": [
+    {
+      "attempt_id": "c8e35c60cb3c4957bad3e692f469541c",
+      "final_metrics": {
+        "aggregate_effective_components": 5.750770418542283,
+        "decoder_mean_hq": 0.985595703125,
+        "decoder_mean_mass_tv": 0.014404296875,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 6.661338147750939e-16,
+        "kl_identity_error": 6.987237128885937e-07,
+        "kl_nats": 1.717301368713379,
+        "likelihood_hq": 0.970947265625,
+        "likelihood_mass_tv": 0.029052734375,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 1.7049343005349167,
+        "posterior_effective_components": 2.8728002390193175,
+        "posterior_mutual_information": 0.6940465845368462,
+        "posterior_noise_variance_ratio": 1.0033035278320312,
+        "posterior_pair_rms": 0.06665504723787308,
+        "reconstruction_mse": 0.004646584385972777,
+        "shuffle_reconstruction_ratio": 482.7905313917409,
+        "shuffled_reconstruction_mse": 2.243326944860363
+      },
+      "raw_receipt_sha256": "2130c66f498add5055cbf605b8aa2cc4376a84d15ff201ed20aa67c5fa0f0807",
+      "stable_suffix": 9,
+      "task": "model_vae_categorical",
+      "terminal_bounds": {
+        "aggregate_effective_components": {
+          "max": 5.75512115728862,
+          "min": 5.690082675195913
+        },
+        "decoder_mean_hq": {
+          "max": 0.985595703125,
+          "min": 0.97607421875
+        },
+        "decoder_mean_mass_tv": {
+          "max": 0.02392578125,
+          "min": 0.014404296875
+        },
+        "decoder_mean_modes": {
+          "max": 2,
+          "min": 2
+        },
+        "elbo_identity_error": {
+          "max": 1.3322676295501878e-15,
+          "min": 0.0
+        },
+        "kl_identity_error": {
+          "max": 7.022730375005892e-07,
+          "min": 6.526342206658597e-07
+        },
+        "kl_nats": {
+          "max": 1.7273399829864502,
+          "min": 1.7162108421325684
+        },
+        "likelihood_hq": {
+          "max": 0.970947265625,
+          "min": 0.954833984375
+        },
+        "likelihood_mass_tv": {
+          "max": 0.045166015625,
+          "min": 0.029052734375
+        },
+        "likelihood_modes": {
+          "max": 2,
+          "min": 2
+        },
+        "negative_elbo_nats": {
+          "max": 2.029717827208751,
+          "min": 1.6616635491195977
+        },
+        "posterior_effective_components": {
+          "max": 2.875935086701015,
+          "min": 2.8441061208602916
+        },
+        "posterior_mutual_information": {
+          "max": 0.6940465845368462,
+          "min": 0.6934759527539929
+        },
+        "posterior_noise_variance_ratio": {
+          "max": 1.0033035278320312,
+          "min": 1.0033035278320312
+        },
+        "posterior_pair_rms": {
+          "max": 0.06955889612436295,
+          "min": 0.0660187229514122
+        },
+        "reconstruction_mse": {
+          "max": 0.004929854967935037,
+          "min": 0.004600384199849305
+        },
+        "shuffle_reconstruction_ratio": {
+          "max": 488.35215563841484,
+          "min": 452.7873072333749
+        },
+        "shuffled_reconstruction_mse": {
+          "max": 2.246953751415825,
+          "min": 2.2264611691657397
+        }
+      },
+      "verdict": "PASS"
+    },
+    {
+      "attempt_id": "2c33e91963ad464f990c4ae04f365e48",
+      "final_metrics": {
+        "aggregate_effective_components": 2.4686049652775797,
+        "decoder_mean_hq": 0.9912109375,
+        "decoder_mean_mass_tv": 0.011474609375,
+        "decoder_mean_modes": 2,
+        "elbo_identity_error": 4.440892098500626e-16,
+        "kl_identity_error": 7.618617292592944e-09,
+        "kl_nats": 2.7725887298583984,
+        "likelihood_hq": 0.986083984375,
+        "likelihood_mass_tv": 0.013916015625,
+        "likelihood_modes": 2,
+        "negative_elbo_nats": 2.831860557153644,
+        "posterior_effective_components": 1.0,
+        "posterior_mutual_information": 0.9036531996995563,
+        "posterior_noise_variance_ratio": 1.0009006261825562,
+        "posterior_pair_rms": 0.05172229930758476,
+        "reconstruction_mse": 0.004711059499973276,
+        "shuffle_reconstruction_ratio": 473.3791590819527,
+        "shuffled_reconstruction_mse": 2.2301173844823943
+      },
+      "raw_receipt_sha256": "c6c5e729f9ea59a40ce63085c9dee8834ff7bf72a9d1d89106c3b2d08c88cd50",
+      "stable_suffix": 6,
+      "task": "model_vae_hard",
+      "terminal_bounds": {
+        "aggregate_effective_components": {
+          "max": 3.622164378954664,
+          "min": 2.341723121225764
+        },
+        "decoder_mean_hq": {
+          "max": 0.9912109375,
+          "min": 0.98583984375
+        },
+        "decoder_mean_mass_tv": {
+          "max": 0.01416015625,
+          "min": 0.011474609375
+        },
+        "decoder_mean_modes": {
+          "max": 2,
+          "min": 2
+        },
+        "elbo_identity_error": {
+          "max": 4.440892098500626e-16,
+          "min": 0.0
+        },
+        "kl_identity_error": {
+          "max": 7.618617292592944e-09,
+          "min": 7.618617292592944e-09
+        },
+        "kl_nats": {
+          "max": 2.7725887298583984,
+          "min": 2.7725887298583984
+        },
+        "likelihood_hq": {
+          "max": 0.986083984375,
+          "min": 0.97119140625
+        },
+        "likelihood_mass_tv": {
+          "max": 0.02880859375,
+          "min": 0.013916015625
+        },
+        "likelihood_modes": {
+          "max": 2,
+          "min": 2
+        },
+        "negative_elbo_nats": {
+          "max": 8.15555768900466,
+          "min": 1.9517909082930016
+        },
+        "posterior_effective_components": {
+          "max": 1.0,
+          "min": 1.0
+        },
+        "posterior_mutual_information": {
+          "max": 1.2870717419086906,
+          "min": 0.8508870349696008
+        },
+        "posterior_noise_variance_ratio": {
+          "max": 1.0009006261825562,
+          "min": 1.0009006261825562
+        },
+        "posterior_pair_rms": {
+          "max": 0.056333862245082855,
+          "min": 0.05122845619916916
+        },
+        "reconstruction_mse": {
+          "max": 0.00950238691863919,
+          "min": 0.003918996815998699
+        },
+        "shuffle_reconstruction_ratio": {
+          "max": 571.9648572602293,
+          "min": 236.27744159360535
+        },
+        "shuffled_reconstruction_mse": {
+          "max": 2.2588313579666983,
+          "min": 2.2198824860586277
+        }
+      },
+      "verdict": "PASS"
+    }
+  ],
+  "schema": "vaegan_coverage_terminal_summary_v1"
+}

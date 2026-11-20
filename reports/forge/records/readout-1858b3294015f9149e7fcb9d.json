@@ -1,0 +1,300 @@
+{
+  "attempt_ids": [
+    "87717e5cd41745a0a3462c3fb1605f75"
+  ],
+  "candidate_id": "bispf-optimized-quintic-v1",
+  "candidate_revision": "a2bdf3d01a3c507b273d49bdefa1bf0707963aed72d1ed10fcca32bf82e4cf6d",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matched initial model hashes and observed-batch digest across selectedBISPF baseline, observed-only maskedlikelihood, and synthetic neural-amortization recipe. All retain BISPF core and fail unconditional mass; synthetic classification alone is not demonstrated superior.",
+  "conclusion": "Full scoped four-mode run completed1200updates/24checks and FAILed all5terminal complete gates. Endpoint generatorHQ=0.996582, massTV=0.244141, ambiguousHQ=0.993164, branchTV=0.044678. Preserve every terminal failed bound; no ordinary or historical100-mode pass credit.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "87717e5cd41745a0a3462c3fb1605f75"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "cf139607bb1d666e694b282fa34df41acbee461b7c8e3694139b93a039b65804",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.9931640625
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.9931640625
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "87717e5cd41745a0a3462c3fb1605f75",
+          "producer_request_id": "461b9a18118c36e0daef29ec",
+          "producer_study_id": "misgan-bispf-baseline-r1-snapshot",
+          "result_hash": "1d317981ef9ba3b28585353f23ff5506f9fe540c26fac7276eb7039882161f1a",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "4fcb74663dad297eb873f3b2b9beed2befb4cc3db6b2d0c4ab87bac25df3b40c",
+        "contract_sha256": "cf139607bb1d666e694b282fa34df41acbee461b7c8e3694139b93a039b65804",
+        "control_binding_sha256": "fe1a97a03befa0f1379ea295d87fae4a24eb9cb980ab7cc990b7c47f925ebf25",
+        "policy_fingerprint": "efe4123b5e81d6aed15622205f4b44ab59bedc97599cef0d277ebcffef2ebeba",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "33278ddc17f993383072390c7f5ac65747ce16a754a2880d70c33467bc9484fd"
+      },
+      "study_id": "misgan-bispf-baseline-r1-snapshot",
+      "study_sha256": "33278ddc17f993383072390c7f5ac65747ce16a754a2880d70c33467bc9484fd"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "misgan-bispf-research-v1",
+  "hypothesis": "Retain BISPF core and distinguish incomplete-data recovery from learned multimodal conditional amortization with the frozen scorer and controls.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Stop this exact revision. The sole bounded composite masked-quantile transport plus cosine-settling followup changes the failed mass/settling mechanisms while keeping the frozen task, initializer, prior, sampling and1200update protocol.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "87717e5cd41745a0a3462c3fb1605f75",
+        "result_hash": "1d317981ef9ba3b28585353f23ff5506f9fe540c26fac7276eb7039882161f1a",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-1858b3294015f9149e7fcb9d",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/87717e5cd41745a0a3462c3fb1605f75/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 5430,
+      "candidate_budget_seconds": 1810,
+      "id": "misgan-bispf-snapshot-repair-r1"
+    },
+    "candidate": "bispf-optimized-quintic-v1",
+    "competing_explanation": "The finite uniform mixture, constant normalized steps, or changing generative teacher may prevent sharp recovery or calibrated posterior branches despite observed-data likelihood and synthetic classification.",
+    "control": {
+      "candidate_id": "ka2",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "ambiguous_hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "model_misgan_four_mode",
+      "threshold": 0.9
+    },
+    "hypothesis": "Retain BISPF core and distinguish incomplete-data recovery from learned multimodal conditional amortization with the frozen scorer and controls.",
+    "id": "misgan-bispf-baseline-r1-snapshot",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "ambiguous_hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "model_misgan_four_mode",
+      "threshold": 0.9
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "schema": "misgan_bispf_proposal_v1"
+        },
+        "path": "reports/forge/misgan-bispf/proposal.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "misgan-bispf-research-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "misgan-bispf-baseline-r1-snapshot",
+  "study_sha256": "33278ddc17f993383072390c7f5ac65747ce16a754a2880d70c33467bc9484fd",
+  "task_results": [
+    {
+      "compatibility_key": "23e9ce8fe6c5b621199596dab8615f4a5e69d5a78182509e752dff0cba2028a3",
+      "cost": {
+        "adapter_loop_seconds": 601.2311750089866,
+        "adapter_seconds": 603.7345115090138,
+        "charged_task": "model_misgan_four_mode",
+        "completed_steps": 1200,
+        "device": "0",
+        "execution_seconds": 610.4327050700085,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "encoder": 0,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "runner_seconds": 605.1602646030078,
+        "wall_seconds": 610.4327050700085
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": null,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 0,
+          "passing_suffix": 0,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "ambiguous_hq": {
+            "margin": 0.09316406249999998,
+            "metric": "ambiguous_hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 0.9931640625
+          },
+          "ambiguous_mass_tv": {
+            "margin": 0.075322265625,
+            "metric": "ambiguous_mass_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.044677734375
+          },
+          "ambiguous_query_coverage": {
+            "margin": 0.09999999999999998,
+            "metric": "ambiguous_query_coverage",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "ambiguous_std_ratio": {
+            "margin": 0.3148217678070069,
+            "metric": "ambiguous_std_ratio",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.3,
+            "value": 0.9851782321929932
+          },
+          "hq": {
+            "margin": 0.09658203124999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 0.99658203125
+          },
+          "imputer_accuracy": {
+            "margin": 0.03387695312500005,
+            "metric": "imputer_accuracy",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.94,
+            "value": 0.973876953125
+          },
+          "imputer_observed_error": {
+            "margin": 1e-06,
+            "metric": "imputer_observed_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1e-06,
+            "value": 0.0
+          },
+          "mask_tv": {
+            "margin": 0.0287597693502903,
+            "metric": "mask_tv",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.0212402306497097
+          },
+          "mass_tv": {
+            "margin": -0.144140625,
+            "metric": "mass_tv",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.1,
+            "value": 0.244140625
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 4,
+            "value": 4
+          },
+          "off_plane": {
+            "margin": 0.024893621876835824,
+            "metric": "off_plane",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.04,
+            "value": 0.015106378123164177
+          }
+        },
+        "passed": false,
+        "shortfall": 0.12011718749999999,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "ambiguous_hq": 0.9931640625,
+        "ambiguous_mass_tv": 0.044677734375,
+        "ambiguous_query_coverage": 1.0,
+        "ambiguous_std_ratio": 0.9851782321929932,
+        "hq": 0.99658203125,
+        "imputer_accuracy": 0.973876953125,
+        "imputer_observed_error": 0.0,
+        "mask_tv": 0.0212402306497097,
+        "mass_tv": 0.244140625,
+        "modes": 4,
+        "off_plane": 0.015106378123164177,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_misgan_four_mode"
+    }
+  ]
+}

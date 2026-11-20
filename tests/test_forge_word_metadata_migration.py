@@ -9,6 +9,7 @@ import subprocess
 import pytest
 
 from experiments.forge.contracts import file_hash, read_json
+from pr_integration_compat import before_pr_integration, source_before_pr_integration
 from experiments.forge.decision_contracts import validate_legacy_admission
 from experiments.forge.planning import candidate_revision_for, resolve_idea
 
@@ -29,6 +30,7 @@ WORD_SOURCE_MEMBER = "experiments/forge/word_adapter.py"
 
 def _before_cleanup_word_source_refresh(current, relative):
     """Peel the source-only import cleanup, retaining the exact original card."""
+    current = before_pr_integration(ROOT, current, relative)
     revision = current["evaluation"]["evaluator_revision"]
     if revision["id"] != CLEANUP_WORD_REFRESH:
         return current, file_hash(ROOT / relative)
@@ -124,7 +126,7 @@ def _before_default_receipt_source_refresh(current, relative):
     assert revision["previous_source_sha256"] == {RECEIPT_SOURCE_MEMBER: sources[RECEIPT_SOURCE_MEMBER]}
     assert revision["previous_revision"] == previous["evaluation"]["evaluator_revision"]
     assert current["evaluation"]["sources"] == {
-        **sources, RECEIPT_SOURCE_MEMBER: file_hash(ROOT / RECEIPT_SOURCE_MEMBER)}
+        **sources, RECEIPT_SOURCE_MEMBER: source_before_pr_integration(ROOT, relative, RECEIPT_SOURCE_MEMBER)}
     restored = deepcopy(current)
     restored["evaluation"]["sources"] = sources
     restored["evaluation"]["evaluator_revision"] = revision["previous_revision"]
@@ -252,6 +254,7 @@ def test_word_cleanup_binding_changes_only_duplicate_import_source_provenance():
     for task in ("five_word_joint_smoke", "five_word_joint_hold"):
         relative = f"configs/forge/tasks/{task}.json"
         current = read_json(ROOT / relative)
+        current = before_pr_integration(ROOT, current, relative)
         assert current["evaluation"]["evaluator_revision"]["id"] == CLEANUP_WORD_REFRESH
         previous, _ = _before_cleanup_word_source_refresh(current, relative)
         assert previous["evaluation"]["sources"][WORD_SOURCE_MEMBER] == hashlib.sha256(previous_source).hexdigest()

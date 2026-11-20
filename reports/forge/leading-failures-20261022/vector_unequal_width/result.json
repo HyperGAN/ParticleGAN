@@ -1,0 +1,265 @@
+{
+  "actual_training_gif": {
+    "path": "reports/forge/bispf-optimized/quality-media/vector_unequal_width.gif",
+    "sha256": "6138ed9dc85c2939c7e8817431e9f5c37587bb54a2ffff8624aed21c716b2c28"
+  },
+  "attempt": "7d0d9f6b12354275b1be7310ca74d34b",
+  "audit_status": "PASS",
+  "candidate": "bispf-optimized-quintic-v1",
+  "candidate_revision": "8d941696e5e05607c763bccefbcbe34694996370bb6f1b03d70f514be6273def",
+  "consumed_stream_state_hashes": {
+    "[\"data\",\"target\",\"training\",\"cpu\"]": "e3d88c74d2a45b2a2dc89ff1d4907b619a73bbdd39f2d7aaa74a0ada271b2dca",
+    "[\"data\",\"target\",\"training\",\"cuda:0\"]": "3045f927f809a4d4908bc8c70834e5a1f37ab046029bd3c739b743dff9e57661",
+    "[\"eval\",\"live\",\"samples\",\"cuda:0\"]": "1067194d546695c470f7ceb2d3429ebf5100aa20d0a5b67338ff8799d3dab369",
+    "[\"eval\",\"sampler\",\"samples\",\"cuda:0\"]": "67f4fe1695d60941392cab68f7e509c408a926520b4d41e4d85ed622b82f3fe6",
+    "[\"eval\",\"target\",\"reference\",\"cuda:0\"]": "c241199bd530cd0d419c66a810b36dd14c66e508cbdd27f4f3bb1eb61260cd82",
+    "[\"init\",\"discriminator\",\"construction\",\"cpu\"]": "9bc63913a6b09c5e108ba2075f73ce257dffc4b1919c25941f26fbeec4145af3",
+    "[\"init\",\"generator\",\"construction\",\"cpu\"]": "7fe5aab126065475c69fa5c8766a474858022b220b8d7433e5c7eb08df76dd46",
+    "[\"init\",\"prior\",\"locations\",\"cuda:0\"]": "c6c895466da96de4600bab10450fde28cf1bc981c4a31285f8d57af83d00a44e",
+    "[\"noise\",\"critic\",\"input\",\"cuda:0\"]": "355c95213318666d7a9677e2ff87c2907ec3023569ffb4af87035311861c6ac3",
+    "[\"noise\",\"generator\",\"output\",\"cuda:0\"]": "1f94d64989ee76502af2a88845775153918ae1e747651addf4d76146b1a43602",
+    "[\"noise\",\"models\",\"stochastic_layers\",\"cuda:0\"]": "c8dbf6971343450f1cb750d68c4bc506541851a3d49a4ea0415e5f051a7496e6",
+    "[\"noise\",\"penalty\",\"training\",\"cuda:0\"]": "e22601e6f2de31d2e59093f0384bd30127a8ca6aa0267b8ff5f319f4a3480376",
+    "[\"noise\",\"prior\",\"gaussian\",\"cuda:0\"]": "4bdb79173bafeedeeb90175b343218558992caccfb1e7f774fb6c1752a458d49",
+    "[\"prior\",\"latent\",\"indices\",\"cuda:0\"]": "a0b49226e07f592fe36932dd116fdb33ee7bc58957e1fde22edbe653adf40a38"
+  },
+  "convolution_parameters": 0,
+  "detail": {
+    "component_1_share_of_summed_full_covariance_error": 0.9638944201414232,
+    "component_core_covariance_errors": [
+      0.8274410367012024,
+      0.6632524132728577,
+      0.4029181897640228,
+      0.1686457395553589
+    ],
+    "component_core_eigen_ratios": [
+      0.09347031265497208,
+      0.28147757053375244,
+      0.521944522857666,
+      0.9080619812011719
+    ],
+    "component_counts": [
+      1490,
+      256,
+      1695,
+      655
+    ],
+    "component_covariance_errors": [
+      0.8274410367012024,
+      37.34860610961914,
+      0.4029181897640228,
+      0.1686457395553589
+    ],
+    "component_mass": [
+      0.36376953125,
+      0.0625,
+      0.413818359375,
+      0.159912109375
+    ],
+    "component_spill": [
+      0.0,
+      0.109375,
+      0.01946902647614479,
+      0.01984732784330845
+    ],
+    "full_to_core_covariance_error_ratio": 18.78893074389929,
+    "target_mass": [
+      0.25,
+      0.25,
+      0.25,
+      0.25
+    ]
+  },
+  "effective_recipe": {
+    "batch_size": 128,
+    "d_lr_mult": 1.5,
+    "ema_decay": 0.0,
+    "loss": "non_saturating",
+    "lr": 0.012,
+    "num_particles": 256,
+    "optimizer_family": "dualnorm",
+    "optimizer_smoothing": 0.001,
+    "prior_lr_mult": 2.5,
+    "prior_reg": 0.01,
+    "prior_regularizer": "sbnp",
+    "reg_coeff": 1.0,
+    "z_dim": 4
+  },
+  "endpoint_metrics": {
+    "component_core_covariance_error": 0.5155643448233604,
+    "component_core_min_eigen_ratio": 0.09347031265497208,
+    "component_covariance_error": 9.686902768909931,
+    "component_min_eigen_ratio": 0.09347031265497208,
+    "covariance_error": 0.22530615329742432,
+    "hq": 0.98193359375,
+    "mass_tv": 0.277587890625,
+    "max_component_spill": 0.109375,
+    "mean_error": 0.3980906009674072,
+    "min_mass_ratio": 0.25,
+    "resolved_core_covariance_error": 0.5155643448233604,
+    "resolved_core_min_eigen_ratio": 0.09347031265497208,
+    "resolved_max_component_spill": 0.109375,
+    "sample_count": 4096,
+    "step": 1200,
+    "sw1_normalized": 0.2873825274476827,
+    "target_scale": 2.1343955993652344
+  },
+  "evaluated_sources": {
+    "benchmarks/locked_shared/observation.py": "bd6f9845b44f1ec2a58d445727990ba5068c7aca3b6f981cf38d738a37c4513b",
+    "benchmarks/transfer_suite/protocol.py": "99469b022b790a18a74021a6fe49424d95f535afaa220643688a1ddd7a70ab89",
+    "benchmarks/transfer_suite/vector_tasks.py": "3ee4eb27759f61a430029c80b7772cac3dca2fb2ac84919ace0db94efca1e0b0"
+  },
+  "frozen_task_sha256": "6b22881f666e4c1cdb07cf0a212711a3561300d9727466bb83334c065e7d3e26",
+  "gate_audit": [
+    {
+      "endpoint": 0.2873825274476827,
+      "endpoint_passes": false,
+      "metric": "sw1_normalized",
+      "op": "<=",
+      "passing_checks": 0,
+      "threshold": 0.18
+    },
+    {
+      "endpoint": 0.277587890625,
+      "endpoint_passes": false,
+      "metric": "mass_tv",
+      "op": "<=",
+      "passing_checks": 0,
+      "threshold": 0.15
+    },
+    {
+      "endpoint": 0.98193359375,
+      "endpoint_passes": true,
+      "metric": "hq",
+      "op": ">=",
+      "passing_checks": 20,
+      "threshold": 0.85
+    },
+    {
+      "endpoint": 9.686902768909931,
+      "endpoint_passes": false,
+      "metric": "component_covariance_error",
+      "op": "<=",
+      "passing_checks": 0,
+      "threshold": 0.85
+    },
+    {
+      "endpoint": 0.09347031265497208,
+      "endpoint_passes": false,
+      "metric": "component_min_eigen_ratio",
+      "op": ">=",
+      "passing_checks": 14,
+      "threshold": 0.15
+    }
+  ],
+  "initialization": {
+    "discriminator": {
+      "initial_state_sha256": "dfce1e190acd3e6ea14608db962b00a49bae053adf982189d5df57edf4e3a118",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "net.0.bias": 3734295931346225499,
+        "net.0.weight": 8910211641772985932,
+        "net.2.bias": 1656871869629328331,
+        "net.2.weight": 9070382962554913347,
+        "net.4.bias": 333772184539410714,
+        "net.4.weight": 3220091654461954378
+      }
+    },
+    "generator": {
+      "initial_state_sha256": "bfe1cd95c1a4b7e6832c0641ab678c1a52e9791486fe4778cd5a3b5e52288825",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "net.0.bias": 2669906441505372968,
+        "net.0.weight": 3213176745718584912,
+        "net.2.bias": 265576875384124118,
+        "net.2.weight": 5825468874490035566,
+        "net.4.bias": 6418902638380629685,
+        "net.4.weight": 3028787476376713866
+      }
+    },
+    "prior": {
+      "initial_state_sha256": "9291eccb6fa141312acf3eba12609ad0a3e0c369c3cfb70146a0dc500bc266af",
+      "initializer": "deterministic_orthogonal_named_parameters_v1",
+      "parameter_seeds": {
+        "z": 6640234621280078221
+      }
+    }
+  },
+  "limitations": [
+    "Readout audit verifies saved measurements, not unavailable tensor/checkpoint contents.",
+    "Frozen source differs from current source; no replay or causal attribution is inferred."
+  ],
+  "longest_passing_run": 0,
+  "mechanism_sources": {
+    "experiments/forge/adapters.py": {
+      "current_sha256": "04eaec8823d72177d54b6348ffd9c77bcc2971a239943f0d8b6a3cd8a73df532",
+      "frozen_sha256": "7fd2a14725a204b3ad7c71bc5aee757aec6ed6bb0cef6c8558a110a17ad782a3"
+    },
+    "particlegan/bispf.py": {
+      "current_sha256": "c97cef8942b6dc44b0f9dabab03ff25350cec37008eb6ed4aa72d62272a2d1a8",
+      "frozen_sha256": "19555a93c01706a6ffb898b06f98b3dca7e4cdbe0b47cbd7c222acfddfeace58"
+    },
+    "particlegan/optim/dualnorm.py": {
+      "current_sha256": "5b9a223c8765c5979af1e0592aad98ec0fac7bfdb6c9896f3a684d95f337107a",
+      "frozen_sha256": "507c7055c5cd6ee7ac7d99b854a234edc9607414089734b39eb1e022cfdd33f9"
+    },
+    "particlegan/particle_prior.py": {
+      "current_sha256": "0220878bebea227da63abbf9f5b1ebdabdc6aea54fd2332fd2cab02ed734238f",
+      "frozen_sha256": "0220878bebea227da63abbf9f5b1ebdabdc6aea54fd2332fd2cab02ed734238f"
+    },
+    "particlegan/recipes.py": {
+      "current_sha256": "6c818b90544a67f833f5effea36868524041ff8009960b2a9a17188df133977a",
+      "frozen_sha256": "eb405669b4ec91695b148c106a3d342d9c0ae9dad2d85ff96cbf938e3a5a1621"
+    },
+    "particlegan/training.py": {
+      "current_sha256": "3711700bcb1700d9446fb6ced07d8d98188860ff219828ec91f49e3bb10b8344",
+      "frozen_sha256": "f84bf044405a1ea105350a260bfc903bade9b8d464ad80eb005b0e4a307a6c2b"
+    }
+  },
+  "observation_count": 24,
+  "observations_sha256": "03b3fd1b2bd231bb871d9cf03f3ab1035deab84437739f255b73b503e2a79604",
+  "original_readout": {
+    "bytes": 4926714,
+    "path": "/home/martyn/dev/ParticleGAN/runs/forge/bispf-optimized/ordinary-quality-full-readout.json",
+    "sha256": "50f249158118686904c8d01bf817fcf802696acbe84f0c56567cbc3cab3dedfe"
+  },
+  "passing_checks": 0,
+  "passing_suffix": 0,
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+  "provenance_checkpoint": {
+    "prerequisite_eligible": false,
+    "purpose": "provenance_only",
+    "sha256": "b3b7103aaab1f88bd279627f123a5784145720712cac694ce4858579a1d406ba",
+    "state_sha256": "fee1d2e8d2305199c5ef7bfb0376fb6301da5614578ed5783528186dc3c6fff2"
+  },
+  "qualification_input": false,
+  "quality_publication_sha256": "5eb3bcf2986af87ed836c99e48e376082a3dee6ceda30bbd4c4635b3e3652cbe",
+  "recipe_sha256": "60ba0af155bfe843f31fc11606a9b37d690b74be69ffd7ea4243c4b0a891541e",
+  "required_terminal_checks": 5,
+  "rng_sha256": "cea6f009971f61082ee9e2dd249e5902547c670251df827f1e7984315fe75058",
+  "rng_stream_count": 14,
+  "sampling_draws_added": 0,
+  "saved_samples": {
+    "bytes": 794217,
+    "kind": "scored_vector_samples_v1",
+    "observation_count": 24,
+    "optimizer_updates_added": 0,
+    "path": "observed-samples.pt",
+    "sampling_draws_added": 0,
+    "sha256": "f1929b11c68e02266501d90dd3f961c56c23bd2bd49b7e7d2f0a7a8472a74498"
+  },
+  "schema": "bispf_existing_measurement_investigation_v1",
+  "scientific_status_unchanged": "FAIL",
+  "seed": 0,
+  "source_digest": "c82ed2dc712e4c9ebda80678e453635bd8a16dc74fae1450234ed368aa956213",
+  "source_origin_commit": "d9d72d53761c898bce20102e1995fc3d899c1447",
+  "task": "vector_unequal_width",
+  "task_contract_sha256": "6859d81a83ee76e9456c30d5bc36e930d07d28e492575e3416a22fb47516193c",
+  "updates_added": 0
+}

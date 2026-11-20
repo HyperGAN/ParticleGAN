@@ -1,0 +1,32 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "five_word_joint_hold"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Own-checkpoint word retention only; no ordinary tier qualification, source promotion or global recipe adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "r1r2-repair-word-retention-20261022",
+  "policy_change_reason": "Explicitly scoped word-retention diagnostic for the three frozen global repairs despite unrelated ordinary Tier1 failures. Reuse only exact own candidate/source acquisition, then restore its earliest independently confirmed parent; preserve all original numerical bounds, 20001/4000 budgets, schedule horizon, sampling and 24+restored-state checks. Missing own acquired parent remains BLOCKED. Ordinary13-gate outcomes remain unchanged.",
+  "ranking": {
+    "compare_compatible_cohorts": true,
+    "cost_separate": true,
+    "policy": "raw_metrics_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

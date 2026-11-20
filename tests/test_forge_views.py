@@ -112,7 +112,7 @@ def test_current_inventory_has_complete_quality_and_distinct_claim_views():
     assert len(smoke) == 11 and all(tasks[name]["adapter"] == "public_api_model_toy" for name in smoke[7:])
     assert sum(tasks[n]["execution"]["steps"] for n in smoke[1:4]) == 530
     # 0.10 restores four accuracy/settling tasks; the former hold policy is archived.
-    assert stability["revision"] == 16 and stability["previous_revision"]["revision"] == 15
+    assert stability["revision"] == 19 and stability["previous_revision"]["revision"] == 18
     assert [a["task"] for a in stability["assignments"] if a["importance"] == "diagnostic"] == [
         "ring_hold", "clockfree_audit_measurement_v1", "precision_gaussian_fp32"]
     assert next(a for a in stability["assignments"] if a["task"] == "ring_hold")["removal"]["counted_by"] == "ring_extension"
@@ -154,7 +154,7 @@ def test_default_plan_and_report_include_acquisition_smoke_without_new_views():
     assert not {"ring16_acquisition", "five_word_joint"} & {row["id"] for row in report["views"]}
     view = next(row for row in report["views"] if row["id"] == "discriminator_stability")
     smoke = next(row for row in view["tiers"] if row["qualification_tier"] == 1)
-    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 2}
+    assert smoke["counts"] == {"required": 11, "held": 0, "ranking": 0, "diagnostic": 2, "stretch": 4}
     reported = {row["id"]: row for row in smoke["tasks"]}
     for name, updates, timeout in (("gaussian1d_smoke", 1000, 120),
                                    ("ring16_acquisition", 1600, 300),
@@ -279,10 +279,42 @@ def test_frozen_thresholds_reference_the_declared_gate_policy_and_current_scorer
                 continue
             if task["adapter"] == "public_api_model_toy" and path in {
                     "benchmarks/toy_audit/api_contract.py", "benchmarks/toy_audit/api_run.py"}:
+                from pr_integration_compat import COMBINED_INTEGRATION, before_pr_integration
+                original = before_pr_integration(
+                    ROOT, task, "configs/forge/tasks/" + task["id"] + ".json")
+                if task["id"] == "model_misgan_four_mode":
+                    # This separate cohort originally declared no API source map.
+                    # Preserve that exact coupled-state task; corrected v2 gains
+                    # explicit current pins without inheriting historical quality.
+                    receipt_path = "reports/forge/pr-integration-20261109/misgan-execution-v2.json"
+                    receipt_raw = (ROOT / receipt_path).read_bytes()
+                    assert receipt_raw == subprocess.check_output([
+                        "git", "show", "ea75964cd20ed87e6f7a798e694205594b7e65a9:" + receipt_path], cwd=ROOT)
+                    receipt = json.loads(receipt_raw)
+                    archived = receipt["coupled_v1"]["task"]
+                    archived_raw = subprocess.check_output([
+                        "git", "show", archived["source_commit"] + ":" + archived["source_path"]], cwd=ROOT)
+                    assert (ROOT / archived["archived_path"]).read_bytes() == archived_raw
+                    assert hashlib.sha256(archived_raw).hexdigest() == archived["sha256"]
+                    assert original == json.loads(archived_raw)
+                    assert original["evaluation"]["sources"] == {}
+                    assert task["evaluation"]["integration_source_binding"]["id"] == COMBINED_INTEGRATION
+                    assert task["execution"]["host_definition"]["provider"] == "benchmarks.toy_audit.api_model_misgan"
+                    assert task["execution"]["execution_contract"] == receipt["version"]
+                    assert receipt["corrected_execution_quality"] == "unmeasured"
+                    assert receipt["historical_quality_inherited"] is False
+                    assert receipt["qualification_input"] is False
+                    assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest
+                    continue
                 # The original model cohort retains its exact contract bytes.
                 # Capability admission changes do not rebind that evidence.
                 frozen = archived_contract_bytes("model_toy_api_callers", path)
-                assert hashlib.sha256(frozen).hexdigest() == digest
+                assert hashlib.sha256(frozen).hexdigest() == original["evaluation"]["sources"][path]
+                if original != task:
+                    # The receipt verifies each source-only parent and every
+                    # current pin. Frozen evidence retains its archived bytes.
+                    assert hashlib.sha256((ROOT / path).read_bytes()).hexdigest() == digest
+                    continue
                 if hashlib.sha256((ROOT / path).read_bytes()).hexdigest() != digest:
                     from experiments.forge.preflight import task_preflight
                     candidate = json.loads((ROOT / "configs/forge/ideas/k3p.json").read_text())

@@ -1,0 +1,54 @@
+{
+  "campaign": {
+    "budget_seconds": 1200,
+    "candidate_budget_seconds": 600,
+    "id": "vaegan-coverage-round1-v1"
+  },
+  "candidate": "bispf-vaegan-transport-v1",
+  "competing_explanation": "Final-state low usage is associative and also occurs in the passing categorical control. Added transport could conflict with reconstruction, underfill narrow modes, or leave transient instability unchanged. Full original sustained gates decide outcomes; endpoint predictions do not replace them. No seed repeats, gate changes, task pruning or unchanged paid retries. On failure inspect saved scheduled states before at most two separately frozen substantive repairs, each at most600 seconds and two1200-update runs; whole campaign maximum2400 seconds.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "likelihood_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "model_vae_hard",
+    "threshold": 0.85
+  },
+  "hypothesis": "One global projected transport auxiliary repairs sustained independent-prior generation in hard VAEGAN while retaining the categorical positive reference; measure an exact matched CUDA baseline before causal comparison.",
+  "id": "vaegan-coverage-transport-v1",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "likelihood_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "model_vae_hard",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "record_id": "api-model-vae-failure-investigation-v1"
+      },
+      "path": "reports/forge/records/api-model-vae-failure-investigation-v1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "vaegan_coverage"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

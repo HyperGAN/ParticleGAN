@@ -18,6 +18,10 @@ from .sampling import MODEL_TOY_CLEAN, executed_receipt
 from .state import state_digest
 
 
+class ModelToyExecutionError(RuntimeError):
+    """A provider did not complete; preserve its original diagnostic receipt."""
+
+
 def definition(task):
     from benchmarks.toy_audit.api_contract import MODEL_PROVIDERS, validate_case
     host = task["execution"]["host_definition"]
@@ -56,6 +60,10 @@ def validate_task(task, *, root=None):
         expected_resources = dict(num_particles=module.PARTICLES, z_dim=module.Z_DIM, batch_size=module.BATCH)
         if any(stable_hash(host[key]) != stable_hash(case[key]) for key in ("target", "architecture")):
             raise ValueError("VAE task target or network declaration differs from the executable host")
+    elif case["provider"] == "api_model_misgan":
+        expected_resources = module.RESOURCES
+        if host != case["host_definition"]:
+            raise ValueError("MisGAN task host differs from the executable definition")
     else:
         from benchmarks.toy_audit.api_model_ddgan import RESOURCES, MixtureTarget
         expected_resources = RESOURCES
@@ -114,6 +122,7 @@ def run(request, task, output, device, *, execution_limit=None):
     observed = {"finite": True}
     handles = []
     optimizer_states = {}
+    observation_checkpoints = []
 
     def bind(fixture):
         if fixture.recipe != context.recipe:
@@ -130,6 +139,10 @@ def run(request, task, output, device, *, execution_limit=None):
                                       for role, module in owners.items() if module is not None}
         observed["fixture"] = fixture
         observed["audit"] = MechanismAudit(context.recipe, fixture.opt_d, [fixture.opt_g])
+        if task["execution"].get("observation_checkpoints", False):
+            from .observation_checkpoints import checkpoint_observer
+            fixture.observe = checkpoint_observer(fixture, output / "observation-checkpoints",
+                                                  observation_checkpoints)
 
         def hook(roles):
             def after(optimizer, args, kwargs):
@@ -162,6 +175,19 @@ def run(request, task, output, device, *, execution_limit=None):
     finally:
         for handle in handles:
             handle.remove()
+    # run_case retains provider failures in api/receipt.json, including errors
+    # before audit_fixture is called. Do not replace that cause with a missing
+    # audit/fixture KeyError or turn a partial execution into a scientific FAIL.
+    if raw.get("status") != "COMPLETE":
+        diagnostics = "; ".join(str(value) for value in raw.get("failed_bounds", []))
+        raise ModelToyExecutionError(
+            f"model provider {raw.get('status', 'UNKNOWN')} after "
+            f"{raw.get('completed_updates', 0)} updates: {diagnostics or 'no provider diagnostic'}; "
+            f"original receipt: {output / 'api/receipt.json'}")
+    if "audit" not in observed or "fixture" not in observed:
+        raise ModelToyExecutionError(
+            f"model provider completed without the required public fixture audit; "
+            f"original receipt: {output / 'api/receipt.json'}")
     rows = [{"step": row["step"], **{name: int(value) if type(value) is bool else value
                                      for name, value in row["metrics"].items()}}
             for row in raw["observations"] if row["step"] in raw["protocol"]["metric_evaluation_steps"]
@@ -189,6 +215,7 @@ def run(request, task, output, device, *, execution_limit=None):
                 "source": raw["source"], "api_run_status": raw["status"],
                 "api_run_verdict": raw["verdict"], "api_receipt_sha256": file_hash(output / "api/receipt.json"),
                 "batch_sequence_sha256": getattr(fixture, "batch_sequence_sha256", None),
+                "observation_checkpoints": observation_checkpoints,
                 "actual_training_gif": {"path": str((output / "api/goal.gif").resolve()),
                                         **raw.get("artifacts", {}).get("goal.gif", {})},
                 **executed_receipt(MODEL_TOY_CLEAN, eval_output_noise="clean")}

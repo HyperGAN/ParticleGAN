@@ -1,0 +1,40 @@
+{
+  "schema_version": 1,
+  "record_id": "r1r2-failure-diagnosis-20261022",
+  "record_type": "family_context",
+  "candidate_id": "r1r2-saved-endpoint-diagnosis",
+  "candidate_revision": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+  "trainer_family": "r1r2",
+  "evidence_scope": "saved_state_diagnostic",
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "goal": "discriminator_stability",
+  "mechanism_class": "frozen_state_force_and_implementation_audit",
+  "lifecycle": "concluded",
+  "hypothesis": "Saved public-API states and an independent software oracle distinguish R1/R2 implementation defects from density, schedule and categorical-retention failures without retraining.",
+  "conclusion": "No implementation defect or validated global recipe fix found. Original Ring16 failure is density quality despite all 16 modes. The strongest NS control has substantial critic gradients but its projected radial force contracts already narrow spread at both integration orders. Fixed-width MMD improves an output-space covariance derivative but worsens it after saved generator/prior and AMSGrad projection on both finite panels; it remains untrained. Selected word hold has 4/5 severely attenuated categorical atom gradients in float32 and float64 and no explicit reconstruction training loss. Independent G/D/learned-prior update oracle and adjacent suites: 110 tests pass. Original outcomes and the single current leaderboard remain unchanged.",
+  "next_action": "Keep MMD deferred and stop the concluded optimizer/energy/prior-freeze revisions. Treat 6400-update schedule PASS as a distinct fragile diagnostic, not a 1600-update repair. A word logit-space reconstruction intervention is only a future explicit recipe hypothesis. Require a supported generator/optimizer-aware mechanism and a fresh bounded matched campaign before any global recipe replacement.",
+  "source": {
+    "path": "reports/forge/r1r2-failure-diagnosis-20261022/README.md",
+    "sha256": "fc4fa7f3e1988cdaed3d4d862d1625c72511a10b4304a202becb3dab0020ad0a"
+  },
+  "provenance": {
+    "inspected_source_commit": "a771841dd17bd8780c03f8ebb6e34b8dfe19bc94",
+    "archived_repair_source_commit": "2cf7b0a4c796e29ace6cca12d2e553ad67211b5c",
+    "scientific_training_updates_added": 0,
+    "scientific_sampling_draws_added": 0,
+    "paid_training_attempts_added": 0,
+    "original_gates_recomputed": false,
+    "production_behavior_changed": false,
+    "software_scope": "Seven independent one-update oracle comparisons; additional existing unit tests are software verification, not scientific training or qualification.",
+    "diagnostic_scope": "Frozen original states. Deterministic integration/enumeration and float64 CPU analysis are not the original served sampling laws.",
+    "bulk_artifact_root": "/mnt/ml7tb/ParticleGAN-forge/r1r2-failure-diagnosis-20261022",
+    "diagnostic_receipts": {
+      "implementation-audit.json": "98a2df38a984f85b4f73c91b15473d6f1d1e40fafd2cb55e28adb38bcc132685",
+      "saved-force-diagnosis.json": "23a22103a807eecd2e0d09a8897758aa65fe4d51a36d9f6e4c5276d2b9238316",
+      "mmd-projection-diagnosis.json": "55b1a95082c7ad525cb668ebbfc06048cac9d2d74caf6bbd2620e92bbe805fb9",
+      "word-saturation-diagnosis.json": "0f017243fa5f81db2bf7b07c630fd5fb38f2d682df10c5d58fb579f068e5c96e"
+    }
+  },
+  "task_results": []
+}

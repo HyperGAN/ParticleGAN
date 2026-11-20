@@ -30,12 +30,23 @@ def test_base_packages_import_without_plotting_dependencies():
                     raise AssertionError('core import requested ' + fullname)
 
         sys.meta_path.insert(0, NoPlotting())
-        from particlegan import ManipulatedPrior, ParticlePrior
+        from particlegan import (
+            ManipulatedPrior,
+            NeuralComponentImputer,
+            ParticlePrior,
+            joint_reconstruction_loss,
+            masked_mixture_nll,
+            masked_quantile_transport_loss,
+        )
         from particlegan_forge import NamedStreams, TaskSpec, render_training_gif
         from particlegan_forge.__main__ import main
 
         assert get_type_hints(ParticlePrior.manipulate)['return'] is ManipulatedPrior
         assert ParticlePrior(num_particles=2).sample(1)[0].shape == (1, 4)
+        assert all(callable(fn) for fn in (
+            joint_reconstruction_loss, masked_mixture_nll,
+            masked_quantile_transport_loss, NeuralComponentImputer,
+        ))
         assert NamedStreams().generator('data').device.type == 'cpu'
         assert callable(render_training_gif) and callable(main) and TaskSpec
         assert not any(name.split('.')[0] in {'matplotlib', 'PIL'} for name in sys.modules)
@@ -97,3 +108,58 @@ def test_renderer_preserves_matplotlib_backend_and_writes_observed_frames(tmp_pa
         assert matplotlib.get_backend() == before_backend
         assert plt.get_fignums() == before_figures
     """, tmp_path / "fixture.gif")
+
+
+def test_pypi_wheel_and_sdist_remain_tiny_and_exclude_non_package_trees(tmp_path):
+    _python("""
+        from pathlib import Path
+        import shutil
+        import sys
+        import tarfile
+        import zipfile
+        import setuptools.build_meta as build_meta
+
+        root = Path.cwd()
+        stage = Path(sys.argv[1]) / "stage"
+        dist = Path(sys.argv[1]) / "dist"
+        stage.mkdir()
+        dist.mkdir()
+        for name in ("pyproject.toml", "MANIFEST.in", "README.md", "LICENSE"):
+            shutil.copy2(root / name, stage / name)
+        for pkg in ("particlegan", "particlegan_forge"):
+            shutil.copytree(root / pkg, stage / pkg)
+        for excluded in (
+            "tests", "reports", "results", "experiments", "benchmarks", "lib",
+            "configs", "data", "runs", "artifacts", "docs", "examples", "ops", "scripts",
+        ):
+            (stage / excluded).mkdir()
+            (stage / excluded / "probe.py").write_text("raise RuntimeError('should not be packaged')\\n")
+
+        import os
+        os.chdir(stage)
+        wheel = dist / build_meta.build_wheel(str(dist))
+        sdist = dist / build_meta.build_sdist(str(dist))
+
+        max_bytes = 1_200_000
+        assert wheel.stat().st_size < max_bytes, wheel.stat().st_size
+        assert sdist.stat().st_size < max_bytes, sdist.stat().st_size
+
+        with zipfile.ZipFile(wheel) as archive:
+            wheel_roots = {name.split("/")[0] for name in archive.namelist()}
+        assert all(
+            r in {"particlegan", "particlegan_forge"} or r.endswith(".dist-info")
+            for r in wheel_roots
+        ), wheel_roots
+
+        allowed_sdist_roots = {
+            "LICENSE", "MANIFEST.in", "PKG-INFO", "README.md",
+            "particlegan", "particlegan.egg-info", "particlegan_forge",
+            "pyproject.toml", "setup.cfg",
+        }
+        with tarfile.open(sdist) as archive:
+            sdist_roots = {
+                parts[1] for name in archive.getnames()
+                if len(parts := name.split("/")) > 1
+            }
+        assert sdist_roots <= allowed_sdist_roots, sdist_roots - allowed_sdist_roots
+    """, tmp_path)

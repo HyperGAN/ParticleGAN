@@ -1,0 +1,211 @@
+{
+  "schema": "pr_develop_integration_source_binding_v1",
+  "pr": 461,
+  "original_pr_head": "f4e8cc483b3d2d0738cdbfb696fa499e52f4153d",
+  "develop_head": "528807d4b26db979c8e77d0543d266514c8e14d9",
+  "training_rerun": false,
+  "qualification_results_changed": false,
+  "automatic_cross_source_reuse": false,
+  "qualification_input": false,
+  "change": "Bind future executions to integrated provider/adapter bytes. Original research task/source/seed/initialization, receipts and verdicts stay archived at the original PR head. No original attempt is relabelled or regraded.",
+  "tasks": [
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "previous_task_sha256": "840adf027b4b73e5e2f67112eed2755f65585bdb177ac61f749e9e5d11b58939",
+      "previous_task_blob": "9f77771684480486b883690ce23b944ecb922e3b",
+      "current_task_sha256": "658a9479776d415fa42c1343cd3fee16dfeb45d6022dc1d04d88e3c8b66657c8",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "b564f91834996b886d7c6d87b6d31f8baeb97c18a28e3725cdd35185a326a43c",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "previous_task_sha256": "8946cce6c276d333cc56d19053c8582711a029452337f8787c1a0253308ac26e",
+      "previous_task_blob": "45f7c6ae6bc18b2941b2ab5263a81d48e1882615",
+      "current_task_sha256": "1bf258c0eb233cb86704f1011bd02d6560f6afbe40958a1337400a61a9b9ad31",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "b564f91834996b886d7c6d87b6d31f8baeb97c18a28e3725cdd35185a326a43c",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "previous_task_sha256": "ccb2fa0cbe9eada5f6a12e94a92a93335a91f166ad309a925efae2af0a6f1515",
+      "previous_task_blob": "2b4872bc9f26a400ec5c2e850acc6b8b8a15467a",
+      "current_task_sha256": "4177769a711ecf28422febc4bb9901d8bffec003097233eb1e3451171418e7ab",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "8919030be6eac142bb8c6f95d8672505eee90aebaa7a7a91d32bed39f4ae16b8",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ae_reconstruction.json",
+      "previous_task_sha256": "99d10d8f3fcbadff3bf2a1a1c62a8e211c7d4790fb607b8fe1b4fcea976f6b20",
+      "previous_task_blob": "6b05ce5cb0dc0d49e3f5f085c0fc0cddee1104f6",
+      "current_task_sha256": "e2fd3c3cae6a9f8060b47654c9610558f6804d880bb7f15c0a4605aabc39d72b",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "8919030be6eac142bb8c6f95d8672505eee90aebaa7a7a91d32bed39f4ae16b8",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ae.py": "f0259487079a948592e5cdb918eadb97f42f982bba9abb95c60e5763e2328387",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "previous_task_sha256": "9832a4e39d652e2fdfb2fe80d0804da3cc864245487fac792471cb3bf915a506",
+      "previous_task_blob": "dc64a4e5bf40d6d4b213d454651b4310c38c85fc",
+      "current_task_sha256": "49748d704eadf922d0e646021ce81281561c433068be089096763e890ff63c39",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "b564f91834996b886d7c6d87b6d31f8baeb97c18a28e3725cdd35185a326a43c",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "previous_task_sha256": "6846eaf197367eafef409b1953f9c9f0e35627aa07c95985693465065098fd02",
+      "previous_task_blob": "0d37360a7a3fca9cdedee9866475143253ec7ebb",
+      "current_task_sha256": "a0d5943e95c86b7ff3da700a0bffeeec516cde6aa08322d5e5bc799446221ef9",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "b564f91834996b886d7c6d87b6d31f8baeb97c18a28e3725cdd35185a326a43c",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_ddgan.py": "8b86cd0e0b2307361050ec8c74d74db7042ddba0b4c68c4b2027aa7c9f232528",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_vae_categorical.json",
+      "previous_task_sha256": "b56b8f2fa767934b51c71b733bd3bfce805150c23ff1170923c1b46a6c750a04",
+      "previous_task_blob": "e805c35270819a42096ac650c8fe3a55db599268",
+      "current_task_sha256": "59a50013a0323b25fe605dc2cfbe2393e27fadaa2b238aee142f2776af93a7f2",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      }
+    },
+    {
+      "id": "pr-461-develop-integration-20261108",
+      "previous_task_commit": "528807d4b26db979c8e77d0543d266514c8e14d9",
+      "previous_task_path": "configs/forge/tasks/model_vae_hard.json",
+      "previous_task_sha256": "da062e85378f0750eb9218356f0a6330de1875e162abe13c7de4244d80ca195f",
+      "previous_task_blob": "047acc1b4a3b79a601552fe30b41d5dae20cc389",
+      "current_task_sha256": "fc11827633ea48f14f5e0ea94a7268f52f1645c7178b78622afd905866c07aa3",
+      "sources_before": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "f68de91a706fc93970d325ba1738337649aac62df84d3a0617468635b07d7ac7",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+      },
+      "sources_after": {
+        "benchmarks/toy_audit/api_contract.py": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+        "benchmarks/toy_audit/api_model_vae.py": "039d875d92757e4eadff279cb2f41656d9533a2c70561720aca48e8084f79b0b",
+        "benchmarks/toy_audit/api_run.py": "b5f1e130e6daa4cfbf172b9beb13ab1e691c8fadba59d1aec58f74368df475d3",
+        "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+        "experiments/forge/model_toy_adapter.py": "21022ea6351346589d5942617953a9ee6495ad464f719c5e726e0a1014a0fa35",
+        "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535",
+        "experiments/forge/observation_checkpoints.py": "e97ec54ee724019b39f98ee29d2fd10f1ae6e3c30c031d1437fb29f1e965060b"
+      }
+    }
+  ]
+}

@@ -1,0 +1,367 @@
+{
+  "actual_training_media": {
+    "attempt": "6141a1c953cc41189a24685cf8080743",
+    "path": "reports/forge/bispf-optimized/quality-media/gaussian1d_stability.gif",
+    "receipt": {
+      "path": "reports/forge/bispf-optimized/quality-media/gaussian1d_stability.json",
+      "sha256": "8bc6af84cc410a899ceda8483583744691c9391af7ff2dc2491bbe0c0a003872"
+    },
+    "sha256": "277a0432eedfad2c44a6c3f4bf0cb186b63317b010643ded15fc3162befcca54",
+    "status": "FAIL",
+    "task": "gaussian1d_stability"
+  },
+  "artifact_manifest": {
+    "file_count": 5,
+    "files": {
+      "frozen-state.pt": {
+        "sha256": "ebf0f358f5b05e5133569f12e39cc57d19818767a2b43d3655730f240dcf482a",
+        "size": 67567
+      },
+      "initial-state.pt": {
+        "sha256": "c3542df0df12fd549472b779e827d460b079ea797b4b39fb94393c937598a497",
+        "size": 67628
+      },
+      "observed-samples.pt": {
+        "sha256": "62322c5e2bba163b0c0e9800ceb03ed32512e731637b0388c2a5b5e32f0e0623",
+        "size": 2841428
+      },
+      "pre-shift-state.pt": {
+        "sha256": "1ed05dc9bd5624dc019ce7ca308c7f22bde214f6ee7cf03a17fa36d7c1999a6d",
+        "size": 67942
+      },
+      "state.pt": {
+        "sha256": "6fd5d5be76e5e076d6e4d4a103662477aea254904375f84915a26650d240c0ef",
+        "size": 65988
+      }
+    },
+    "schema_version": 1,
+    "sha256": "7762ed3b92953f89618716fe18ad415302f080a54a17f46a7737032540bb82e9",
+    "total_bytes": 3110553
+  },
+  "attempt": "6141a1c953cc41189a24685cf8080743",
+  "candidate": "bispf-optimized-quintic-v1",
+  "candidate_revision": "8d941696e5e05607c763bccefbcbe34694996370bb6f1b03d70f514be6273def",
+  "causal_limit": "Observation histories establish failed settling and recovery; unsupplied state/sample files prevent gradient or controller attribution.",
+  "completed_steps": 6000,
+  "continuation_updates": 5000,
+  "continuity": {
+    "diagnostic_continuation": false,
+    "frozen_completed_steps": 4000,
+    "history_reset": false,
+    "matched_frozen_draws": true,
+    "parent_candidate_revision": "8d941696e5e05607c763bccefbcbe34694996370bb6f1b03d70f514be6273def",
+    "parent_checkpoint_sha256": "58480ebca07153f4212cccf6327cd2d1ffff0db05f2ef8150bde5c76be7c41ec",
+    "parent_compatibility_key": "86e83f2ffaa4b7acab368495f7fc594471d833fee42650c86a95284ac5ffc074",
+    "parent_smoke_status": "PASS",
+    "parent_state_sha256": "79863304a0312d2d26b277d97b9bfeb161a7e2e9a5b9150fe66b61bf940ab44d",
+    "prefix_steps": 1000,
+    "restored_exactly": true
+  },
+  "data_sha256": {
+    "shift": "dd6e1f6297c495d55222ca2d114743b3da84e99efe83d48df12d7228017e39ba",
+    "stationary": "2f7028a0573a22229ad8fe98622b2beee82e5ce7231fef1910af221af65f8d7f"
+  },
+  "endpoint_failed_bounds": [
+    "cdf_ks <= 0.05"
+  ],
+  "final_metrics": {
+    "cdf_ks": 0.07031856505709322,
+    "finite_fraction": 1.0,
+    "mean": 3.027367955102818,
+    "mean_error_sigma": 0.054735910205636173,
+    "sample_count": 4096,
+    "std": 0.4382549978248519,
+    "std_ratio": 0.8765099956497038,
+    "step": 6000
+  },
+  "initial_model_hashes": {
+    "discriminator": "37a0a0258e309b13da1eda6239ad5229b1e753853b1e93d278e36b7514e72fbe",
+    "generator": "01a823b580c2f0f4dab42ab42c4d02695fca338724152107b7285fae67212ed6",
+    "prior": "63df45759d32b076d4ce340ee48c325acb1e523275134b74040023ffbae52674"
+  },
+  "new_sampling_draws": 0,
+  "new_training_updates": 0,
+  "original_readout_sha256": "50f249158118686904c8d01bf817fcf802696acbe84f0c56567cbc3cab3dedfe",
+  "original_wall_seconds": 89.60412053903565,
+  "phases": {
+    "frozen_control": {
+      "checks": 48,
+      "failing_checks_by_bound": {
+        "cdf_ks <= 0.05": 48,
+        "mean_error_sigma <= 0.2": 48
+      },
+      "first_step": 4042,
+      "last_step": 6000,
+      "longest_passing_run": 0,
+      "metric_ranges": {
+        "cdf_ks": {
+          "max": 0.7679963811994159,
+          "min": 0.7412613091082684
+        },
+        "mean_error_sigma": {
+          "max": 2.1460310819384176,
+          "min": 2.095414518757025
+        },
+        "std_ratio": {
+          "max": 0.9002335720076301,
+          "min": 0.8632506953409336
+        }
+      },
+      "passing_checks": 0,
+      "passing_steps": [],
+      "passing_suffix": 0
+    },
+    "reacquisition_window": {
+      "checks": 24,
+      "failing_checks_by_bound": {
+        "cdf_ks <= 0.05": 22,
+        "mean_error_sigma <= 0.2": 8,
+        "std_ratio <= 1.2": 2,
+        "std_ratio >= 0.8": 1
+      },
+      "first_step": 4042,
+      "last_step": 5000,
+      "longest_passing_run": 1,
+      "metric_ranges": {
+        "cdf_ks": {
+          "max": 0.25028692804366215,
+          "min": 0.033980070503796256
+        },
+        "mean_error_sigma": {
+          "max": 0.6286043865256943,
+          "min": 0.016988708754070103
+        },
+        "std_ratio": {
+          "max": 1.2325794640124794,
+          "min": 0.7501590095006824
+        }
+      },
+      "passing_checks": 2,
+      "passing_steps": [
+        4709,
+        4959
+      ],
+      "passing_suffix": 0
+    },
+    "shifted_hold": {
+      "checks": 24,
+      "failing_checks_by_bound": {
+        "cdf_ks <= 0.05": 22,
+        "mean_error_sigma <= 0.2": 12,
+        "std_ratio <= 1.2": 3,
+        "std_ratio >= 0.8": 4
+      },
+      "first_step": 5042,
+      "last_step": 6000,
+      "longest_passing_run": 1,
+      "metric_ranges": {
+        "cdf_ks": {
+          "max": 0.3386099991679121,
+          "min": 0.035170433605824114
+        },
+        "mean_error_sigma": {
+          "max": 0.6474522103671916,
+          "min": 0.008082656364422292
+        },
+        "std_ratio": {
+          "max": 2.8757420768244977,
+          "min": 0.659436380820266
+        }
+      },
+      "passing_checks": 2,
+      "passing_steps": [
+        5250,
+        5917
+      ],
+      "passing_suffix": 0
+    },
+    "stationary": {
+      "checks": 72,
+      "failing_checks_by_bound": {
+        "cdf_ks <= 0.05": 66,
+        "mean_error_sigma <= 0.2": 35,
+        "std_ratio <= 1.2": 4,
+        "std_ratio >= 0.8": 2
+      },
+      "first_step": 1042,
+      "last_step": 4000,
+      "longest_passing_run": 2,
+      "metric_ranges": {
+        "cdf_ks": {
+          "max": 0.37305253819844497,
+          "min": 0.019113701023262375
+        },
+        "mean_error_sigma": {
+          "max": 0.8297899702156428,
+          "min": 0.004149675805820152
+        },
+        "std_ratio": {
+          "max": 1.5715624768123742,
+          "min": 0.7764446534668333
+        }
+      },
+      "passing_checks": 6,
+      "passing_steps": [
+        1417,
+        1750,
+        2167,
+        2209,
+        3084,
+        3209
+      ],
+      "passing_suffix": 0
+    }
+  },
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.1,
+    "standardize": false
+  },
+  "prior_policy": {
+    "applicability": "latent_prior",
+    "contract": "recipe_owned_v1",
+    "eps": 0.0001,
+    "l2": 0.0,
+    "regularizer": "sbnp",
+    "target_std": 1.0,
+    "trainable_locations": true,
+    "update": "learned",
+    "weight": 0.01
+  },
+  "protocol_seed": 0,
+  "qualification_input": false,
+  "recorded_verdict": "FAIL",
+  "resolved_recipe": {
+    "alpha_bar": [
+      1.0,
+      0.9,
+      0.5,
+      0.05,
+      0.0001
+    ],
+    "amsgrad": false,
+    "batch_size": 128,
+    "betas": [
+      0.0,
+      0.999
+    ],
+    "birth_death_feature_scale": "none",
+    "birth_death_isolation": false,
+    "birth_death_space": "data",
+    "conditioning": "scalar",
+    "constraint_geometry_mode": "direction_blend",
+    "continuous_policy": null,
+    "critic_formulation": "bispf",
+    "critic_payoff_damping": true,
+    "critic_r1_real": true,
+    "d_guard_min_steps": 200,
+    "d_guard_ratio": 0.0,
+    "d_lr_mult": 1.5,
+    "direct_particle_betas": [
+      0.0,
+      0.9
+    ],
+    "direct_particle_gain": false,
+    "distance_reduction": "sum",
+    "ema_decay": 0.0,
+    "encoder_mode": "none",
+    "input_noise_anneal_end": 0.1,
+    "input_noise_std": 0.0,
+    "latent_damping_max_rate": 0.0,
+    "loss": "non_saturating",
+    "lr": 0.012,
+    "lr_anneal_start": 0.6,
+    "lr_control": "mobility",
+    "lr_floor": 1.0,
+    "model": "gan",
+    "name": "bispf",
+    "network_lr_floor": 1.0,
+    "network_lr_horizon_cap": null,
+    "num_classes": null,
+    "num_particles": 256,
+    "observation_sigma": 0.03,
+    "optimizer_convolution": "per_offset",
+    "optimizer_convolution_rule": "quintic",
+    "optimizer_family": "dualnorm",
+    "optimizer_smoothing": 0.001,
+    "output_noise_mode": "fixed",
+    "output_noise_std": 0.0,
+    "output_noise_warmup": 0.0,
+    "particle_birth_death": false,
+    "prior_betas": null,
+    "prior_kind": "mog",
+    "prior_lr_mult": 2.5,
+    "prior_reg": 0.01,
+    "prior_regularizer": "sbnp",
+    "reconstruction_weight": 1.0,
+    "reg_anchor_min_decay": 0.9,
+    "reg_anchor_weight": 0.0,
+    "reg_coeff": 1.0,
+    "reg_every": 1,
+    "reg_kappa": 1.0,
+    "reopen_anchor": "hold",
+    "reopen_signal": "data",
+    "routing_temperature": 0.25,
+    "row_evidence_exclude": true,
+    "row_evidence_gate": false,
+    "row_evidence_hold": true,
+    "row_evidence_hot": true,
+    "row_evidence_null": "theory",
+    "row_policy": "independent",
+    "serve_average": 0.0,
+    "sigma_rel": 0.0,
+    "standardize": false,
+    "table_release_rule": "any",
+    "total_steps": 1000,
+    "ucd_target": "class",
+    "ucd_weight": 0.02,
+    "z_dim": 2
+  },
+  "rng_audit_count": 121,
+  "schema_version": 1,
+  "scope": "retained_observation_analysis",
+  "source_commit": "d9d72d53761c898bce20102e1995fc3d899c1447",
+  "source_digest": "c82ed2dc712e4c9ebda80678e453635bd8a16dc74fae1450234ed368aa956213",
+  "source_files_sha256": {
+    "benchmarks/toy_audit/gaussian1d_quality.py": "7ec72e07c1aea87e77c85401b7e822f23d5a248ba45d718180045a1ad64ccd8b",
+    "configs/forge/tasks/gaussian1d_stability.json": "c6926e60b8cdc1cacdb11f6d8790c3064199ba659205100224d9c68fbbd72c7c",
+    "experiments/forge/gaussian_tasks.py": "536863c58e7fcc35583b1ea5c890e6fd7093802f23f58fb36dacb5bdd7054619",
+    "particlegan/bispf.py": "19555a93c01706a6ffb898b06f98b3dca7e4cdbe0b47cbd7c222acfddfeace58",
+    "particlegan/optim/dualnorm.py": "507c7055c5cd6ee7ac7d99b854a234edc9607414089734b39eb1e022cfdd33f9",
+    "particlegan/recipes.py": "eb405669b4ec91695b148c106a3d342d9c0ae9dad2d85ff96cbf938e3a5a1621"
+  },
+  "thresholds": [
+    [
+      "sample_count",
+      ">=",
+      4096
+    ],
+    [
+      "finite_fraction",
+      "==",
+      1.0
+    ],
+    [
+      "mean_error_sigma",
+      "<=",
+      0.2
+    ],
+    [
+      "std_ratio",
+      ">=",
+      0.8
+    ],
+    [
+      "std_ratio",
+      "<=",
+      1.2
+    ],
+    [
+      "cdf_ks",
+      "<=",
+      0.05
+    ]
+  ],
+  "unintended_rng_deviations": 0
+}

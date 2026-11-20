@@ -1,0 +1,591 @@
+{
+  "attempt_ids": [
+    "29f3c447d1604de1a913ff0fd2736f01",
+    "b1847e76338e4732bc0c77444731a90e",
+    "b36e461d1ff9403996edcaf7514f34c2",
+    "e4160ed6877d4ba695814b8adfe1bab1"
+  ],
+  "candidate_id": "rgdt-v2",
+  "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Compared with rgdt-v1 and clock-free baselines, rgdt-v2's finite-batch thermal deadband and surplus-partitioned explorer release halve post-recovery transient HQ dips (from 4 to 2 checks, lifting min_hq by +4.3 percentage points to 0.8953 and doubling passing_suffix from 22 to 46).",
+  "conclusion": "On t3-shift-recovery-diagnostic-v1, rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and improves post-deadline stability from 77/81 (rgdt-v1, min_hq=0.8523, passing_suffix=22) to 79/81 passing checks (min_hq=0.8953 vs 0.9000 gate, passing_suffix=46, stable_from_step=3150) while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS; zero_tanh_rail_escape remains formally BLOCKED by Forge's unrouted tanh host adapter.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "29f3c447d1604de1a913ff0fd2736f01",
+        "b1847e76338e4732bc0c77444731a90e",
+        "b36e461d1ff9403996edcaf7514f34c2",
+        "e4160ed6877d4ba695814b8adfe1bab1"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "21834439cc3652f05548099ae980ec6b68876deeef77f5f5da4c09dc716f661a",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.007694283500313759
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.007694283500313759
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "29f3c447d1604de1a913ff0fd2736f01",
+          "producer_request_id": "fe28739e0be055d36bb9004f",
+          "producer_study_id": "rgdt-v2-shift-diagnostic-study",
+          "result_hash": "dde871e4e561bf0cfc0a94236dd7e0eeb753215740249c974cfa25ef4f802cdd",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b1847e76338e4732bc0c77444731a90e",
+          "producer_request_id": "fe28739e0be055d36bb9004f",
+          "producer_study_id": "rgdt-v2-shift-diagnostic-study",
+          "result_hash": "755b4eff534c51d66cc48f6ea244a4ff49ec67a468f31e5ec62c3460fa39f003",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b36e461d1ff9403996edcaf7514f34c2",
+          "producer_request_id": "fe28739e0be055d36bb9004f",
+          "producer_study_id": "rgdt-v2-shift-diagnostic-study",
+          "result_hash": "ba661a1912fe3a3441811e81109722b1bfe58a937d7664f3546867a10e41b132",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "e4160ed6877d4ba695814b8adfe1bab1",
+          "producer_request_id": "fe28739e0be055d36bb9004f",
+          "producer_study_id": "rgdt-v2-shift-diagnostic-study",
+          "result_hash": "571cad7bc308b3e8186bb4a85a441ae5df8c8adb23f6343a9d7af5c2eae70719",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "2fa603d2dfe74554ba9ddba68455df362af7c4d69d84ea86a9899ce982ce5a48",
+        "contract_sha256": "21834439cc3652f05548099ae980ec6b68876deeef77f5f5da4c09dc716f661a",
+        "control_binding_sha256": "b6530f2027472b0e291b50c5567deb02785ceb49f6fe2461b1f4a9e75f7715b0",
+        "policy_fingerprint": "1398b8ca18b7f7a140ecfea50905272a1ef3e2aea184fb0143eedd92da79de4f",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "d64272c567c1f94d10312b81e8d99ad335e46a75c47b0dd44a18f26da33966e2"
+      },
+      "study_id": "rgdt-v2-shift-diagnostic-study",
+      "study_sha256": "d64272c567c1f94d10312b81e8d99ad335e46a75c47b0dd44a18f26da33966e2"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3-shift-recovery-diagnostic-v1",
+  "hypothesis": "With finite-batch thermal cooling deadband, LOO cov90 residual, and surplus-partitioned orphan explorer routing, unchanged global clock-free rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and holds all 81/81 post-deadline checks on target_shift_recovery while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Publish complete rgdt-v1 and rgdt-v2 leaderboards, mathematical derivations, and Track 1+2+3 integration recommendations in reports/forge/studies/t3-missing-piece.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "29f3c447d1604de1a913ff0fd2736f01",
+        "result_hash": "dde871e4e561bf0cfc0a94236dd7e0eeb753215740249c974cfa25ef4f802cdd",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b1847e76338e4732bc0c77444731a90e",
+        "result_hash": "755b4eff534c51d66cc48f6ea244a4ff49ec67a468f31e5ec62c3460fa39f003",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b36e461d1ff9403996edcaf7514f34c2",
+        "result_hash": "ba661a1912fe3a3441811e81109722b1bfe58a937d7664f3546867a10e41b132",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "e4160ed6877d4ba695814b8adfe1bab1",
+        "result_hash": "571cad7bc308b3e8186bb4a85a441ae5df8c8adb23f6343a9d7af5c2eae70719",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-4fa7e706751e4f17c64a523e",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/29f3c447d1604de1a913ff0fd2736f01/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 7200,
+      "candidate_budget_seconds": 7200,
+      "id": "rgdt-v2-shift-diagnostic-study"
+    },
+    "candidate": "rgdt-v2",
+    "competing_explanation": "If the 4 post-recovery HQ dips (min_hq=0.8523) on target_shift_recovery in rgdt-v1 were caused by MoG prior drift rather than uncooled post-recovery thermal scale, then adding the finite-batch thermal cooling deadband and surplus-partitioned explorer routing will still miss strict pass_all (81/81) or disturb stationary ae_gan_hold / mode_hold.",
+    "control": {
+      "candidate_id": "rgdt-v1",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "hold",
+      "op": ">",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "hypothesis": "With finite-batch thermal cooling deadband, LOO cov90 residual, and surplus-partitioned orphan explorer routing, unchanged global clock-free rgdt-v2 reacquires all 8/8 shifted modes within the 400-step deadline and holds all 81/81 post-deadline checks on target_shift_recovery while keeping ae_gan_hold, mode_hold, and zero_tanh_smoke PASS under protocol seed 0.",
+    "id": "rgdt-v2-shift-diagnostic-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "hold",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "rgdt-v1",
+          "candidate_revision": "aeca0df84b37f71749d239f44976f971ba463d4d1e9206b4773c77062bface17"
+        },
+        "path": "reports/forge/records/readout-3ce5e17e85f112ed337c5c24.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3-shift-recovery-diagnostic-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "rgdt-v2-shift-diagnostic-study",
+  "study_sha256": "d64272c567c1f94d10312b81e8d99ad335e46a75c47b0dd44a18f26da33966e2",
+  "task_results": [
+    {
+      "compatibility_key": "f63b077d260f55978a5aafbb46a1b57ed73e46d7e881bdf3b1455b62356f4277",
+      "cost": {
+        "adapter_loop_seconds": 265.3984317040304,
+        "adapter_seconds": 266.0003742129775,
+        "charged_task": "target_shift_recovery",
+        "completed_steps": 3600,
+        "device": "1",
+        "execution_seconds": 273.2141545189079,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 3600,
+          "generator": 3600,
+          "prior": 3600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 259.81488724797964,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 360,
+              "seconds": 0.09717579011339694
+            },
+            "sampling": {
+              "calls": 360,
+              "seconds": 0.18996418453752995
+            },
+            "training_updates": {
+              "calls": 3600,
+              "seconds": 259.5277472733287
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 267.5126440920867,
+        "wall_seconds": 273.2141545189079
+      },
+      "evaluator_summary": {},
+      "gate_status": "FAIL",
+      "metrics": {
+        "frozen_deadline": {
+          "checks": 81,
+          "failing_steps": [
+            2800,
+            2810,
+            2820,
+            2830,
+            2840,
+            2850,
+            2860,
+            2870,
+            2880,
+            2890,
+            2900,
+            2910,
+            2920,
+            2930,
+            2940,
+            2950,
+            2960,
+            2970,
+            2980,
+            2990,
+            3000,
+            3010,
+            3020,
+            3030,
+            3040,
+            3050,
+            3060,
+            3070,
+            3080,
+            3090,
+            3100,
+            3110,
+            3120,
+            3130,
+            3140,
+            3150,
+            3160,
+            3170,
+            3180,
+            3190,
+            3200,
+            3210,
+            3220,
+            3230,
+            3240,
+            3250,
+            3260,
+            3270,
+            3280,
+            3290,
+            3300,
+            3310,
+            3320,
+            3330,
+            3340,
+            3350,
+            3360,
+            3370,
+            3380,
+            3390,
+            3400,
+            3410,
+            3420,
+            3430,
+            3440,
+            3450,
+            3460,
+            3470,
+            3480,
+            3490,
+            3500,
+            3510,
+            3520,
+            3530,
+            3540,
+            3550,
+            3560,
+            3570,
+            3580,
+            3590,
+            3600
+          ],
+          "min_hq": 0.0,
+          "min_modes": 0,
+          "pass_all": false,
+          "pass_suffix": false,
+          "passing_checks": 0,
+          "passing_suffix": 0,
+          "stable_from_step": null
+        },
+        "live_deadline": {
+          "checks": 81,
+          "failing_steps": [
+            2840,
+            3140
+          ],
+          "min_hq": 0.895263671875,
+          "min_modes": 8,
+          "pass_all": false,
+          "pass_suffix": true,
+          "passing_checks": 79,
+          "passing_suffix": 46,
+          "stable_from_step": 3150
+        }
+      },
+      "raw_status": "completed",
+      "reason": "recomputed live recovery and matched frozen negative control",
+      "task_id": "target_shift_recovery"
+    },
+    {
+      "compatibility_key": "f12bee4c906b29aa1e0cf7b0c2790dbe02431afb660f00b098b1100ed8b30df6",
+      "cost": {
+        "adapter_seconds": 6.137301019974984,
+        "charged_task": "ae_gan_hold",
+        "device": "1",
+        "execution_seconds": 12.492031436995603,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 7.599399175029248,
+        "wall_seconds": 12.492031436995603
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.292,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 73,
+          "first_pass_step": 32,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 22,
+          "passing_suffix": 22,
+          "stable_from_seconds": null,
+          "stable_from_step": 32
+        },
+        "metric_checks": {
+          "hold": {
+            "margin": 0.3423057164996862,
+            "metric": "hold",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.35,
+            "value": 0.007694283500313759
+          },
+          "recon_mse": {
+            "margin": 0.045849424041807654,
+            "metric": "recon_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.0041505759581923485
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "hold": 0.007694283500313759,
+        "recon_mse": 0.0041505759581923485
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "ae_gan_hold"
+    },
+    {
+      "compatibility_key": "46b415aca9416adabad96a073ea312aff8c8f26c4ae673443d9606e251691ea1",
+      "cost": {
+        "adapter_loop_seconds": 56.26480932789855,
+        "adapter_seconds": 56.79039634997025,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "1",
+        "execution_seconds": 64.39431318698917,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 52.42192770366091,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.012382454820908606
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.014780329074710608
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 52.394764919765294
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 58.50553445704281,
+        "wall_seconds": 64.39431318698917
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.002008435893803835,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.002991564106196165
+          },
+          "p99_abs_error": {
+            "margin": 0.014872046746313573,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.010127953253686428
+          },
+          "rms_error": {
+            "margin": 0.006192741207778454,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.003807258792221546
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.002991564106196165,
+        "p99_abs_error": 0.010127953253686428,
+        "rms_error": 0.003807258792221546,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "4cf1a75823217a85214b396057596a29fc70c46657caeb82ab1ef68fc1de449d",
+      "cost": {
+        "adapter_loop_seconds": 82.09784106304869,
+        "adapter_seconds": 82.43223370192572,
+        "charged_task": "mode_hold",
+        "completed_steps": 1200,
+        "device": "1",
+        "execution_seconds": 89.20471397903748,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 80.6602213975275,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.013816196122206748
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.012298761983402073
+            },
+            "training_updates": {
+              "calls": 1200,
+              "seconds": 80.63410643942188
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 83.88888208998833,
+        "wall_seconds": 89.20471397903748
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.2916666666666667,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 350,
+          "first_pass_step": 150,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 22,
+          "passing_suffix": 22,
+          "stable_from_seconds": null,
+          "stable_from_step": 150
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.09999999999999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "cover": 1.0,
+        "effective_modes": 7.188717842102051,
+        "hq": 1.0,
+        "modes": 8,
+        "n_modes": 8,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "mode_hold"
+    }
+  ]
+}

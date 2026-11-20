@@ -29,13 +29,24 @@ TUNABLE_FIELDS = frozenset({
     "prior_reg_target_std", "prior_reg_eps", "prior_l2", "prior_proximal_strength",
     "prior_coulomb_softening", "prior_coulomb_confinement", "prior_coulomb_neighbors",
     "kinetic_transport_weight", "kinetic_transport_local_weight",
+    "rhbi_weight", "rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_critic_weight",
+    "rhbi_relativistic_weight", "rhbi_lambda_floor", "rhbi_gamma_gauge", "rhbi_slack_gain", "rhbi_chord_weight", "rhbi_thermal_tau",
+    "rhbi_thermal_shock_mu", "rhbi_settle_beta", "rhbi_fibre_rel_blend",
+    "rhbi_step_damp", "rhbi_cond_ot_weight", "rhbi_simplex_weight",
+    "rhbi_cvx_mu_gain", "rhbi_simplex_chart_weight", "rhbi_tail_spill_gain",
+    "rhbi_cond_step_damp",
+    "t1_pullback_weight", "t1_iso_weight", "t1_laguerre_lr", "t1_prior_row_lr",
+    "t1c_weight", "t1c_chart_weight", "t1c_halo_mult", "t1c_grad_deconflict",
+    "rgdt_macro_slack_weight", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight",
     "lr_anneal_start", "lr_floor", "network_lr_floor", "beta2_end", "beta2_anneal_end",
 })
 TASK_RECIPE_FIELDS = RESOURCE_FIELDS | {"prior_kind", "sigma_rel", "standardize"}
 TECHNIQUE_RECIPE_FIELDS = frozenset({
     "training_precision",
+    "masked_mixture_weight", "masked_transport_weight", "imputer_component_weight",
     "optimizer_svd_backend", "optimizer_convolution_rule", "optimizer_dense_profile",
     "prior_update", "prior_regularizer",
+    "reg_real_weight", "reg_fake_weight", "joint_reconstruction_weight",
     "name", "critic_formulation", "model", "loss", "num_classes", "conditioning", "ucd_target", "encoder_mode",
     "distance_reduction", "continuous_policy", "reg_arm", "direct_particle_gain",
     "critic_r1_real", "critic_payoff_damping", "output_noise_mode", "lr_control",
@@ -45,17 +56,21 @@ TECHNIQUE_RECIPE_FIELDS = frozenset({
     "birth_death_feature_scale", "birth_death_backend", "birth_death_parent_policy",
     "constraint_geometry_mode", "row_policy", "optimizer_family", "optimizer_convolution", "loss_labels", "adam_variant", "lr_schedule", "lr_decay_staircase",
     "critic_step_mode", "bispf_shape_gates", "bispf_gate_overrides", "prior_code_law", "generator_gradient_response",
+    "rhbi_self_coupling", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre", "rhbi_akt_horizon", "rhbi_akt_mode", "rhbi_settle_mode", "rhbi_cond_ot_mode", "rhbi_simplex_macro_settle", "rhbi_simplex_curve_settle", "rhbi_ae_coord_whiten", "rhbi_support_completion",
+    "t1c_multiscale_horizon", "t1c_cond_drift_deconflict",
+    "rgdt_conformal_horizon",
 })
 HYPERPARAMETER_RECIPE_FIELDS = TUNABLE_FIELDS | {
+    "conditional_energy_weight", "conditional_energy_samples",
     "prior_sigreg_projections", "prior_sigreg_knots",
-    "kinetic_transport_projections",
+    "kinetic_transport_projections", "rhbi_iters", "t1c_chart_capacity",
     "ucd_weight", "alpha_bar", "ema_decay", "network_lr_horizon_cap",
     "reg_anchor_min_decay", "reg_anchor_weight", "d_guard_ratio", "d_guard_min_steps",
     "latent_damping_max_rate", "direct_particle_betas", "input_noise_std",
     "input_noise_anneal_end", "output_noise_std", "output_noise_warmup",
     "routing_temperature", "observation_sigma", "reconstruction_weight", "serve_average",
     "birth_death_cells", "birth_death_metric_rank", "birth_death_chunk",
-    "kappa_radial",
+    "kappa_radial", "t1_max_prototypes",
 }
 RECIPE_FIELD_OWNERS = {
     **dict.fromkeys(TASK_RECIPE_FIELDS, "task"),
@@ -296,6 +311,15 @@ def ownership_receipt(candidate, task, resolved_recipe, protocol=None, initializ
             result[name] = _record(None, owner, "task prior-control applicability",
                                    status="not_applicable", reference_recipe_value=_json_value(value),
                                    representation=prior_binding["representation"])
+        elif name == "joint_reconstruction_weight" and task.get("adapter") != "word_joint":
+            result[name] = _record(None, owner, "task joint-inverse reconstruction applicability",
+                                   status="not_applicable", reference_recipe_value=_json_value(value))
+        elif name in {"reg_real_weight", "reg_fake_weight"} and (
+                resolved_recipe["reg_arm"] not in {"a_r1r2", "b_cap"}
+                or (task.get("adapter") == "public_api_model_toy"
+                    and execution.get("host_definition", {}).get("adversarial") is False)):
+            result[name] = _record(None, owner, "task fixed critic-penalty applicability",
+                                   status="not_applicable", reference_recipe_value=_json_value(value))
         elif name in behavior_owned:
             result[name] = _record(None, owner, "frozen behavioral host objective/component source",
                                    status="host_owned", reference_recipe_value=_json_value(value))

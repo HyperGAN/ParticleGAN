@@ -1,0 +1,338 @@
+{
+  "schema": "misgan_source_only_fingerprint_migration_v1",
+  "scientific_conditions_changed": false,
+  "original_source_commit": "b8a25fa0951d5adde3751a84624a383719dd278d",
+  "tasks": [
+    {
+      "task": "configs/forge/tasks/model_vae_hard.json",
+      "original_git_blob": "3bc31e0700a46260bc5af1429b0cd11fd51fbdb5",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "original_git_blob": "f0fca04b9eace1d4c4b506990c25ed7f57cc2526",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_vae_categorical.json",
+      "original_git_blob": "2fb6131183e93b6b40041b213dcea03c5513fb67",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "original_git_blob": "aa819d62d1e647bc9442e1807e4dee7336f267ec",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "original_git_blob": "6ecfb85281292fd6200b40273d740761abb62d11",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "original_git_blob": "a652dcb9ab72707fb2464d5dbf5571f9659f0850",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "original_git_blob": "4443b5510c4e0e94f26f9d583e8493a2a4dda989",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_reconstruction.json",
+      "original_git_blob": "a901999e25b4c200e6a043dfe7f6b55615044426",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "08a5eac1a186a22c09f47d324f69772af1f1922832383d372488ecb7091eb75d",
+          "new_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f"
+        },
+        "experiments/forge/model_toy_adapter.py": {
+          "old_sha256": "714be671402d345a7a33be0d43f18c02da0b9cd30dbbc04dc04b465fe434bd54",
+          "new_sha256": "e46729db5e954aae74ad86a26fe296acb6aeb94e57aa25110a07a2a1f368f679"
+        }
+      }
+    }
+  ],
+  "round2_source_only_migration": [
+    {
+      "task": "configs/forge/tasks/model_vae_hard.json",
+      "original_git_blob": "7f1e216cb333d4276ee5df84f747c9c821e4b665",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ddgan_gaussian_chain.json",
+      "original_git_blob": "61403baf3e55897dcd3fd669b9dc96a8afcb386f",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_vae_categorical.json",
+      "original_git_blob": "a21f6753155e184b458763430a99ccb30e827439",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_ddgan_bimodal_chain.json",
+      "original_git_blob": "46c4aec01f895d322908ec1fda5f4a68fadb31de",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_gan_multimodal.json",
+      "original_git_blob": "ef1f6994506532b6884063ef69d1f77ed8d2f48c",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_ddgan_gaussian_chain.json",
+      "original_git_blob": "64bd245ca932d9797f48b6dc70f8e89e50166d8d",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ddgan_bimodal_chain.json",
+      "original_git_blob": "1e2e510ba197882f68b9a2cdffd20578680a8685",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    },
+    {
+      "task": "configs/forge/tasks/model_ae_reconstruction.json",
+      "original_git_blob": "23a18c8722e6a2d7cd04c79b21226130343cc900",
+      "changes": {
+        "benchmarks/toy_audit/api_contract.py": {
+          "old_sha256": "2b47671abb006f9acd0467d7b0bda6b263c62547520fa364f7a902c4a2ed189f",
+          "new_sha256": "e0c49a247558d6c280e0e79193f8b768109e6b93c6323d3584f2c85096e9377a"
+        }
+      }
+    }
+  ],
+  "inactive_receipt_source_migration": [
+    {
+      "task": "configs/forge/tasks/unused_token_hold.json",
+      "original_git_blob": "07e298a635808fa9bd46f68c630074ece429e30d",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "17ceca58c8fa647563677049acabb1baa0e4eb151e08e19c47f74d5c4daf7987"
+    },
+    {
+      "task": "configs/forge/tasks/cover_leftover.json",
+      "original_git_blob": "9c9c7d0998cefcaf9df9fcc0088114ec5206537a",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "0d0b3843b1aa7c41b25452c78f1cb5c111bfdaee680aa237eae5b88af7e28a23"
+    },
+    {
+      "task": "configs/forge/tasks/residual_student.json",
+      "original_git_blob": "784eaa6dbf23a6dc284e9772f402aa0f90cc2e7e",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "d3589a68e35a6cec4b9d3220b5db36583a0026a37d312a24be7bb73958575784"
+    },
+    {
+      "task": "configs/forge/tasks/mid_scale_identity.json",
+      "original_git_blob": "53ca6af2d6fe7966d864f934511164423d3e6189",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "56b39cf22150f1c3859811e88d9475ffed0d5c359275744ecc303a06601dc2b6"
+    },
+    {
+      "task": "configs/forge/tasks/two_pole.json",
+      "original_git_blob": "14846fe773aa0eb3a310109c81eae2641cea0ce4",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "cd15702e5708bf14e2dc8db9c188e082f424e5784de526aa2686c3fe0ec05cc9"
+    },
+    {
+      "task": "configs/forge/tasks/trajectory.json",
+      "original_git_blob": "a46ab6cff3fed58a0b78a7ef79f930aef4c750a9",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "d2e99ebacb07255f9d6a25945862709758372ecc6daaa8d59710639ba2a8f575"
+    },
+    {
+      "task": "configs/forge/tasks/unipolar.json",
+      "original_git_blob": "77cdcf10df05d88cdd374ec3177a8ab2958a1f58",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "792041b77120c2245eef8f57b2a354ff9f2e59ea827c52f4feb2976f08fda0db"
+    },
+    {
+      "task": "configs/forge/tasks/ae_gan_hold.json",
+      "original_git_blob": "ed11564445be34f64d98341809556df93c17d0eb",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "5ceb818cfc0914e7e5d54a69bfa06c386284ac1795e86821b7b2388b9bb997b3"
+    },
+    {
+      "task": "configs/forge/tasks/five_word_joint_smoke.json",
+      "original_git_blob": "80eff285a2473a1dbdf8208fcf40c61244c08e09",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "fcab8508f2c609f51ff26491a28b27689152d4b69f740ed204f0821b174e55ab"
+    },
+    {
+      "task": "configs/forge/tasks/five_word_joint_hold.json",
+      "original_git_blob": "3ce8e0dc5b8fb6e2c40ed63f07cf8fe646eafc60",
+      "old_source_sha256": "efaa4654e69c6361562a65c1f8cca3e04b05e91797ed0ce3900c70986edcbfc8",
+      "new_source_sha256": "ebfe82d5d5f3283b38bda56de868a4f3f65da86df63da9bf9d89e345e77420db",
+      "original_task_commit": "21efa29ae0adabfd30eb4753f1276242370c55ed",
+      "original_task_sha256": "1d5293086d009175574af7220cd2a427119523a670b7953116758307fedc4967"
+    }
+  ],
+  "historical_legacy_task_cards_preserved": {
+    "reason": "These ten ordinary-registration legacy task cards pin historical behavior source e76b... and retain exact HEAD byte identities; only live current-source cards migrate. No archived cohort source rebind.",
+    "tasks": [
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-residual_student.json",
+        "git_blob": "f4964776299abcecc17678ca552e47f925d7278f",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-cover_leftover.json",
+        "git_blob": "d8c455fd01dfaf4ee057a6cd67a9bf902312d02f",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-two_pole.json",
+        "git_blob": "dc6d78509845326ed4e929b4a23db7deecfec7fd",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-five_word_joint_hold.json",
+        "git_blob": "2fb1e5d0f4f4e7772adce16061135abb6e6be320",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-unused_token_hold.json",
+        "git_blob": "aa474d4df0560c21af6c4270d45ebaea678c92d1",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-trajectory.json",
+        "git_blob": "ae66943dbbc95a21208f7d582df74219468cbec3",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-unipolar.json",
+        "git_blob": "c11fc0cae12f54d047eaf2bf1d5ff9e194d5b773",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-five_word_joint_smoke.json",
+        "git_blob": "89bd7fbeffd7fef5486070b951090c1bce495710",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-mid_scale_identity.json",
+        "git_blob": "92ff8410ec9434c2d0eb76e3b0295e4f92a12e2c",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      },
+      {
+        "task": "configs/forge/tasks/recipe-prior-refactor-legacy-ae_gan_hold.json",
+        "git_blob": "5ea07d95ea21924f53e377d003dcfe9498de3bb7",
+        "source_sha256": "e76b1f997a0cddd0435ef27b8a3400cf46d5f89baaf01ea82e9da44f19227af0"
+      }
+    ]
+  }
+}

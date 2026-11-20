@@ -1,0 +1,54 @@
+{
+  "campaign": {
+    "budget_seconds": 600,
+    "candidate_budget_seconds": 600,
+    "id": "vaegan-coverage-round2-v1"
+  },
+  "candidate": "bispf-vaegan-settle-v1",
+  "competing_explanation": "Constant normalized update scales may sustain jitter, but poor coverage gradients or reconstruction conflict could persist even with smaller steps. Keep complete budget and all5 terminal checks; no candidate-specific gates, serving selection or per-mode recipes. Stop this revision after2 runs and inspect saved states before the sole remaining substantive repair, maximum600additional seconds.",
+  "control": {
+    "candidate_id": "bispf-vaegan-transport-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "likelihood_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "model_vae_hard",
+    "threshold": 0.85
+  },
+  "hypothesis": "A single global finite-budget cosine settling schedule repairs both unchanged VAEGAN tasks after transport-only failed; retain all adversarial, reconstruction and latent regularization objectives. This schedule comparison does not prove transport necessary.",
+  "id": "vaegan-coverage-settle-v1",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "likelihood_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "model_vae_hard",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "schema": "vaegan_coverage_round1_diagnosis_v1"
+      },
+      "path": "reports/forge/vaegan-coverage/round1-diagnosis.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "vaegan_coverage"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -14,7 +14,7 @@ concurrency:
 jobs:
   validate-release:
     name: Check release version
-    if: github.repository == '255BITS/ParticleGAN'
+    if: github.repository == 'HyperGAN/ParticleGAN' || github.repository == '255BITS/ParticleGAN'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:

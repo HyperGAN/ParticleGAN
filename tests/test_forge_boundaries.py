@@ -78,6 +78,32 @@ def test_unknown_fields_cannot_get_a_default_owner():
         recipe_field_owner("optimizer_magic")
 
 
+def test_r1r2_repair_controls_remain_recipe_owned_with_explicit_host_applicability():
+    from experiments.forge.taskrecipes import ADAPTABLE_FIELDS
+    names = {"reg_real_weight", "reg_fake_weight", "joint_reconstruction_weight"}
+    assert all(recipe_field_owner(name) == "technique" for name in names)
+    assert not names & TUNABLE_FIELDS
+    assert not names & ADAPTABLE_FIELDS
+    word = _task("five_word_joint_smoke")
+    options = dict(reg_arm="a_r1r2", reg_real_weight=1., reg_fake_weight=0.,
+                   joint_reconstruction_weight=1.)
+    word_receipt = ownership_receipt({}, word,
+        _recipe(word, num_particles=5, z_dim=2, batch_size=256,
+                total_steps=word["execution"]["original_schedule_horizon"], **options))["recipe_fields"]
+    assert word_receipt["reg_fake_weight"]["value"] == 0.
+    assert word_receipt["joint_reconstruction_weight"]["value"] == 1.
+    assert all(word_receipt[name]["status"] == "effective" for name in names)
+    vector = _task()
+    vector_receipt = ownership_receipt({}, vector, _recipe(vector, **options))["recipe_fields"]
+    assert vector_receipt["joint_reconstruction_weight"]["value"] is None
+    assert vector_receipt["joint_reconstruction_weight"]["status"] == "not_applicable"
+    assert vector_receipt["joint_reconstruction_weight"]["reference_recipe_value"] == 1.
+    ae = _task("model_ae_reconstruction")
+    ae_receipt = ownership_receipt({}, ae,
+        _recipe(ae, num_particles=64, z_dim=2, batch_size=128, **options))["recipe_fields"]
+    assert all(ae_receipt[name]["status"] == "not_applicable" for name in names)
+
+
 def test_prior_regularization_ownership_depends_on_the_task_path():
     scalar, behavior = _task(), _task("two_pole")
     assert recipe_field_owner("prior_reg", scalar) == "hyperparameter"
