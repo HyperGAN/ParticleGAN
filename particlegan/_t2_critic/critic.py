@@ -18,6 +18,25 @@ from ..k3p import K3PCriticAdam
 
 _MAX_LIVE_CAPTURES = 6
 
+
+def _clear_live_capture_entries(entries: List[Any]) -> None:
+    """Release tensor references and backward-alive flags from live-capture entries."""
+    for entry in entries:
+        if isinstance(entry, list) and len(entry) >= 5:
+            entry[3] = None
+            entry[4] = None
+            if len(entry) >= 6 and isinstance(entry[5], list):
+                entry[5].clear()
+    entries.clear()
+
+
+def _trim_live_captures(captures: List[Any], max_entries: int = _MAX_LIVE_CAPTURES) -> None:
+    """Evict oldest live-capture entries while explicitly dropping their tensor references."""
+    if len(captures) > max_entries:
+        evict_n = len(captures) - max_entries
+        _clear_live_capture_entries(captures[:evict_n])
+        del captures[:evict_n]
+
 _T2_STATE_KEYS = frozenset({
     "schema",
     "initialized",
@@ -146,11 +165,11 @@ def _t2_critic_forward_hook(
                         rec._live_captures = captures
                     c_sig = _cond_signature(args, kwargs)
                     step_tag = int(getattr(rec, "observed_steps", 0))
-                    entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, True]
-                    unscaled.register_hook(lambda _g, _e=entry: _e.__setitem__(5, False))
+                    alive = [True]
+                    entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, alive]
+                    raw_target.register_hook(lambda _g, _a=alive: _a.clear())
                     captures.append(entry)
-                    if len(captures) > _MAX_LIVE_CAPTURES:
-                        del captures[: len(captures) - _MAX_LIVE_CAPTURES]
+                    _trim_live_captures(captures)
 
     if module.training and rec is not None and not getattr(rec, "_in_penalty", False) and torch.is_grad_enabled():
         s = float(getattr(rec, "_thermal_scale", 1.0))
@@ -257,7 +276,7 @@ class _T2RecordMixin:
 
     def clear_transient_captures(self) -> None:
         if hasattr(self, "_live_captures") and self._live_captures:
-            self._live_captures.clear()
+            _clear_live_capture_entries(self._live_captures)
         self._last_probe_actual_input = None
 
     def __deepcopy__(self, memo: Dict[int, Any]) -> Any:

@@ -28,9 +28,10 @@ from .._t1_coupling.critic import (
     _validate_t1c_packet,
 )
 from .._t2_critic.critic import (
-    _MAX_LIVE_CAPTURES,
+    _clear_live_capture_entries,
     _cond_signature,
     _tensor_identity_key,
+    _trim_live_captures,
 )
 from ..grad_regularizers import CriticStepRecord
 from ..k3p import K3PCriticAdam
@@ -83,7 +84,7 @@ class _UnifiedRecordMixin(_T1CouplingRecordMixin):
 
     def clear_transient_captures(self) -> None:
         if hasattr(self, "_live_captures") and self._live_captures:
-            self._live_captures.clear()
+            _clear_live_capture_entries(self._live_captures)
         self._last_probe_actual_input = None
 
     def _unified_packet(self) -> Dict[str, Any]:
@@ -98,6 +99,7 @@ class _UnifiedRecordMixin(_T1CouplingRecordMixin):
         self._restore_t1c_packet(t1c_sub)
         self._step_scale = float(packet["step_scale"])
         self._t1c_disc_gate = 0.0
+        self.clear_transient_captures()
         self._live_captures = []
         self._last_probe_actual_input = None
 
@@ -241,11 +243,11 @@ def _unified_critic_forward_hook(
                 rec._live_captures = captures
             c_sig = _cond_signature(args, kwargs)
             step_tag = int(getattr(rec, "observed_steps", 0))
-            entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, True]
-            unscaled.register_hook(lambda _g, _e=entry: _e.__setitem__(5, False))
+            alive = [True]
+            entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, alive]
+            raw_target.register_hook(lambda _g, _a=alive: _a.clear())
             captures.append(entry)
-            if len(captures) > _MAX_LIVE_CAPTURES:
-                del captures[: len(captures) - _MAX_LIVE_CAPTURES]
+            _trim_live_captures(captures)
 
     # 2. Apply thermal cooling to outgoing critic logits (outside penalty probes):
     modified = False
