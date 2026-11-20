@@ -36,6 +36,7 @@ from .latent_lineage import LatentLineage
 from .mean_transport import (FIT_CHUNK, INSIDE_POLICY, MEAN_POLICY, PLANNING_POLICY,
                              PROJECTION_POLICY, check_mean_diagnostics, initial_mean_diagnostics,
                              prepare_mean_witness, run_mean_phase)
+from .row_transport import prepare_copy_history
 
 __all__ = [
     "BoundedLatentGeometry", "CELL_RESOLUTION_POLICY", "FeatureCellBirthDeath",
@@ -222,6 +223,7 @@ class FeatureCellBirthDeath(FrozenFeatureReferenceBirthDeath):
 
     @torch.no_grad()
     def _move(self, trainer, child, parent):
+        history = prepare_copy_history(trainer.prior.z, trainer.opt_g, child, parent)
         self._copy_parent_rows = parent
         try:
             prior, ema = trainer.prior, trainer.ema_prior
@@ -234,13 +236,8 @@ class FeatureCellBirthDeath(FrozenFeatureReferenceBirthDeath):
                 ema_zp, ema, trainer.controller.latent_bandwidth, noise, rows=parent)
             prior.z[child] = zp+delta
             ema.z[child] = ema_zp+ema_delta
-            state = trainer.opt_g.state.get(prior.z, {})
-            for value in state.values():
-                if isinstance(value, torch.Tensor) and value.shape == prior.z.shape:
-                    value[child] = value[parent]
-            history = trainer.opt_g.latent_history
-            if history is not None:
-                history[child] = history[parent]
+            for value, source in history:
+                value[child] = source
         finally:
             self._copy_parent_rows = None
         self.lineage.register_copies(child, parent)
