@@ -7,7 +7,12 @@ from typing import Any, Dict, List, Tuple
 import torch
 from torch import nn
 
-from .._t2_critic.critic import _cond_signature, _tensor_identity_key
+from .._t2_critic.critic import (
+    _clear_live_capture_entries,
+    _cond_signature,
+    _tensor_identity_key,
+    _trim_live_captures,
+)
 from ..grad_regularizers import CriticStepRecord
 
 FROZEN_THERMAL_SCALE = 1e-4
@@ -163,11 +168,11 @@ def _nash_v3_critic_forward_hook(
                             rec._live_captures = captures
                         c_sig = _cond_signature(args, kwargs)
                         step_tag = int(getattr(rec, "observed_steps", 0))
-                        entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, True]
-                        unscaled.register_hook(lambda _g, _e=entry: _e.__setitem__(5, False))
+                        alive = [True]
+                        entry: List[Any] = [step_tag, src_key, c_sig, x_act, unscaled, alive]
+                        target.register_hook(lambda _g, _a=alive: _a.clear())
                         captures.append(entry)
-                        if len(captures) > _MAX_LIVE_CAPTURES:
-                            del captures[: len(captures) - _MAX_LIVE_CAPTURES]
+                        _trim_live_captures(captures, _MAX_LIVE_CAPTURES)
 
                 # Low-D secant probe capture for critic inversion-deficit trust band (skipped on images for speed).
                 if (
@@ -363,7 +368,8 @@ class _NashV3RecordMixin:
         self._in_probe: bool = False
 
     def clear_transient_captures(self) -> None:
-        self._live_captures = []
+        if hasattr(self, "_live_captures") and self._live_captures:
+            _clear_live_capture_entries(self._live_captures)
         self._last_probe_actual_input = None
 
     def observe_transport(self, res: float, data_scale: float, ema_decay: float = 0.92) -> None:
@@ -465,8 +471,8 @@ class _NashV3RecordMixin:
         self._last_d_logits = None
         self._d_probe_list = None
         self._g_probe_cache = None
+        self.clear_transient_captures()
         self._live_captures = []
-        self._last_probe_actual_input = None
 
     def restore_device_state(self, device: torch.device) -> None:
         if isinstance(self.proto_sum, torch.Tensor) and self.proto_sum.device != device:
@@ -481,6 +487,12 @@ class _NashV3ObserverStepRecord(_NashV3RecordMixin, CriticStepRecord):
     def __init__(self) -> None:
         super().__init__()
         self._init_nash_v3_fields()
+
+    def record_step(self, optimizer_or_lr: Any) -> None:
+        super().record_step(optimizer_or_lr)
+        self._last_d_logits = None
+        self._d_probe_list = None
+        self.clear_transient_captures()
 
     def state_dict(self) -> Dict[str, Any]:
         return {**super().state_dict(), "t4_nash_v3": self._nash_v3_packet()}
