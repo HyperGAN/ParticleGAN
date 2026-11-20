@@ -1,0 +1,768 @@
+{
+  "attempt_ids": [
+    "3968473136c14dd689a894ab9fe8035b",
+    "a0e7ad16b88f4ecaaa7ffee0133d7db4",
+    "b148cbc4d37d4b2595efc3f5d124b91b"
+  ],
+  "candidate_id": "t4-ctrl-rhbi-adam",
+  "candidate_revision": "bad5e2315654c0dc907a8309c0cfeaead79581ddab3c921cf4c73e568269a97e",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Demonstrates that RHBI's Sinkhorn-Feydy objective also requires step-space impedance conditioning under G/D imbalance (0/3 PASS on plain Adam vs 2/3 PASS for 0-SVD t4-nash-v1).",
+  "conclusion": "RHBI stripped of DualNorm polar SVD on plain Adam scores 0/3 PASS on t4_imbalance_nash_stretch: modes=4/16 (hq=0.1995) on critic_ring16, modes=2/16 (hq=0.1763, tv=0.7358) on generator_ring16, and complete off-manifold deadlock (hq=0.0000, tv=0.7500, sw1=1.8211) on unequal_width.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "3968473136c14dd689a894ab9fe8035b",
+        "a0e7ad16b88f4ecaaa7ffee0133d7db4",
+        "b148cbc4d37d4b2595efc3f5d124b91b"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "5768ef154782a6851535e876b14a61b29a72336fd7097a740fb406d9e6018f33",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_revision",
+      "observed": {
+        "falsifier": {
+          "satisfied": true,
+          "value": 4
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 4
+        }
+      },
+      "outcome": "falsified",
+      "provenance": [
+        {
+          "attempt_id": "3968473136c14dd689a894ab9fe8035b",
+          "producer_request_id": "cdfb578781d93608036be6bf",
+          "producer_study_id": "t4-ctrl-rhbi-adam-stretch-study",
+          "result_hash": "0ff5ec0c0f2c2ef6e133c6cb519f4e1992ec4f8fab030e601a30f91d175dc952",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "a0e7ad16b88f4ecaaa7ffee0133d7db4",
+          "producer_request_id": "cdfb578781d93608036be6bf",
+          "producer_study_id": "t4-ctrl-rhbi-adam-stretch-study",
+          "result_hash": "8656b88567dfb15d9a8fe7348ec9d00a49d4b9f496d81403247d7698b2a3d348",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b148cbc4d37d4b2595efc3f5d124b91b",
+          "producer_request_id": "cdfb578781d93608036be6bf",
+          "producer_study_id": "t4-ctrl-rhbi-adam-stretch-study",
+          "result_hash": "cc0c0c7781911555dae1302f734ef031058cf87f3310b2d7476676cb8157392a",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "57f3e47114e53dedb67cb67d1404ff135b6ae27c634de6d26bd91a83807cbb42",
+        "contract_sha256": "5768ef154782a6851535e876b14a61b29a72336fd7097a740fb406d9e6018f33",
+        "control_binding_sha256": "c40f5f8655dc3f683e90eecc4271590757cffd8e228a7e8f8aec6f9e3acd7fed",
+        "policy_fingerprint": "b32987a0c46f11b7ee3220dc47d57fa88202ee852981ddd30fe1c2c006d646cb",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "f9e5c94f0c553e259c56ed6ed166355e9de0ed0594a9e243ac1ab16196cdef90"
+      },
+      "study_id": "t4-ctrl-rhbi-adam-stretch-study",
+      "study_sha256": "f9e5c94f0c553e259c56ed6ed166355e9de0ed0594a9e243ac1ab16196cdef90"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t4_imbalance_nash_stretch",
+  "hypothesis": "Matched seed-0 control evaluating RHBI stripped of DualNorm polar SVD on plain Adam across the three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as naive-Adam RHBI control receipt in reports/forge/studies/t4-imbalance-nash.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "3968473136c14dd689a894ab9fe8035b",
+        "result_hash": "0ff5ec0c0f2c2ef6e133c6cb519f4e1992ec4f8fab030e601a30f91d175dc952",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "a0e7ad16b88f4ecaaa7ffee0133d7db4",
+        "result_hash": "8656b88567dfb15d9a8fe7348ec9d00a49d4b9f496d81403247d7698b2a3d348",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b148cbc4d37d4b2595efc3f5d124b91b",
+        "result_hash": "cc0c0c7781911555dae1302f734ef031058cf87f3310b2d7476676cb8157392a",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-3c557a471913d90d1f925e05",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/3968473136c14dd689a894ab9fe8035b/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 12000.0,
+      "candidate_budget_seconds": 1200.0,
+      "id": "t4-imbalance-nash-stretch-v1"
+    },
+    "candidate": "t4-ctrl-rhbi-adam",
+    "competing_explanation": "If severe >600x G/D parameter asymmetry and -30-logit hostile non-complementary initialization cause irreversible ReLU/SiLU dead zones or finite-capacity bottleneck collapse on the 32-neuron player regardless of function-space step regulation, then candidates will either stall off-manifold or collapse to <16 modes on nash_overpowered_critic_ring16 / nash_overpowered_generator_ring16.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "modes",
+      "op": "<",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 16
+    },
+    "hypothesis": "Matched seed-0 control evaluating RHBI stripped of DualNorm polar SVD on plain Adam across the three severe G/D capacity-imbalance and hostile non-complementary initialization stretch tasks.",
+    "id": "t4-ctrl-rhbi-adam-stretch-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "modes",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "nash_overpowered_critic_ring16",
+      "threshold": 16
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "empf-v8",
+          "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+        },
+        "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t4_imbalance_nash_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "t4-ctrl-rhbi-adam-stretch-study",
+  "study_sha256": "f9e5c94f0c553e259c56ed6ed166355e9de0ed0594a9e243ac1ab16196cdef90",
+  "task_results": [
+    {
+      "compatibility_key": "387317a1359ec7a97c4224fef90001223610314abb204e29b277f33a91136d02",
+      "cost": {
+        "adapter_loop_seconds": 38.321647421922535,
+        "adapter_seconds": 38.98280751495622,
+        "charged_task": "nash_overpowered_generator_ring16",
+        "completed_steps": 1600,
+        "device": "0",
+        "execution_seconds": 46.46926616388373,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 26.746516144601628,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.45382077782414854
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.02428816189058125
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 26.2684072048869
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 40.67734360601753,
+        "wall_seconds": 46.46926616388373
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 1.1299238353967667,
+        "component_core_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          2.7117905616760254,
+          1.3669908046722412,
+          1.0,
+          1.0
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          3.3070530891418457,
+          1.008296251296997,
+          0.0,
+          0.0
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          56,
+          44,
+          83,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          53,
+          1762,
+          1656,
+          364,
+          77
+        ],
+        "component_covariance_error": 28.95889687538147,
+        "component_covariance_errors": [
+          7.333220481872559,
+          50.901737213134766,
+          326.4886779785156,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          17.836376190185547,
+          24.247575759887695,
+          14.184630393981934,
+          7.417412757873535,
+          6.9327192306518555
+        ],
+        "component_mass": [
+          0.013671875,
+          0.0107421875,
+          0.020263671875,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.000244140625,
+          0.012939453125,
+          0.43017578125,
+          0.404296875,
+          0.0888671875,
+          0.018798828125
+        ],
+        "component_min_eigen_ratio": 0.0,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          1.0,
+          0.9090909361839294,
+          0.9759036302566528,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.8007945418357849,
+          0.7795893549919128,
+          1.0,
+          1.0
+        ],
+        "covariance_error": 0.8009245991706848,
+        "finite_fraction": 1.0,
+        "hq": 0.17626953125,
+        "hq_component_counts": [
+          0,
+          4,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          351,
+          365,
+          0,
+          0
+        ],
+        "mass_tv": 0.73583984375,
+        "max_component_spill": 1.0,
+        "mean_error": 0.7979996800422668,
+        "min_hq_mass_ratio": 0.0,
+        "min_mass_ratio": 0.0,
+        "modes": 2,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.6373404280066886,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_overpowered_generator_ring16 thresholds: modes == 16, hq >= 0.72, mass_tv <= 0.18, sw1_normalized <= 0.12, component_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_overpowered_generator_ring16"
+    },
+    {
+      "compatibility_key": "8e1b633489f9df1c713ff1d61e693e4ad314d2fda4e88d3972876fdbfc4f20b9",
+      "cost": {
+        "adapter_loop_seconds": 27.06661357684061,
+        "adapter_seconds": 27.680062552914023,
+        "charged_task": "nash_unequal_width_hostile_imbalance",
+        "completed_steps": 1100,
+        "device": "1",
+        "execution_seconds": 34.974212075117975,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1100,
+          "generator": 1100,
+          "prior": 1100
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 18.0164561890997,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.37971882708370686
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.012261244235560298
+            },
+            "training_updates": {
+              "calls": 1100,
+              "seconds": 17.624476117780432
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 29.342199445003644,
+        "wall_seconds": 34.974212075117975
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 1.0,
+        "component_core_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          0,
+          4096,
+          0,
+          0
+        ],
+        "component_covariance_error": 2.180528402328491,
+        "component_covariance_errors": [
+          1.0,
+          5.722113609313965,
+          1.0,
+          1.0
+        ],
+        "component_mass": [
+          0.0,
+          1.0,
+          0.0,
+          0.0
+        ],
+        "component_min_eigen_ratio": 0.0,
+        "component_resolved": [
+          true,
+          true,
+          true,
+          true
+        ],
+        "component_spill": [
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "covariance_error": 0.9710654020309448,
+        "finite_fraction": 1.0,
+        "hq": 0.0,
+        "mass_tv": 0.75,
+        "max_component_spill": 1.0,
+        "mean_error": 2.7376866340637207,
+        "min_mass_ratio": 0.0,
+        "resolved_core_covariance_error": 1.0,
+        "resolved_core_min_eigen_ratio": 0.0,
+        "resolved_max_component_spill": 1.0,
+        "sample_count": 4096,
+        "step": 1100,
+        "sw1_normalized": 1.821134425283145,
+        "target_mass": [
+          0.25,
+          0.25,
+          0.25,
+          0.25
+        ],
+        "target_scale": 2.1343955993652344
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_unequal_width_hostile_imbalance thresholds: min_mass_ratio >= 0.6, hq >= 0.82, mass_tv <= 0.18, sw1_normalized <= 0.16, resolved_core_covariance_error <= 0.65, resolved_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_unequal_width_hostile_imbalance"
+    },
+    {
+      "compatibility_key": "ee4ee0d269250e1df95b6a0bf1d75124f0c8dce5e3561a0b2db14a25702cc192",
+      "cost": {
+        "adapter_loop_seconds": 36.72853691712953,
+        "adapter_seconds": 37.34920631395653,
+        "charged_task": "nash_overpowered_critic_ring16",
+        "completed_steps": 1600,
+        "device": "1",
+        "execution_seconds": 44.904091144911945,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1600,
+          "generator": 1600,
+          "prior": 1600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 26.859010281739756,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.44836241262964904
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.01178406085819006
+            },
+            "training_updates": {
+              "calls": 1600,
+              "seconds": 26.398863808251917
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 39.05536351702176,
+        "wall_seconds": 44.904091144911945
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": false,
+        "terminal_passed": 0
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "component_core_covariance_error": 1.4521234780550003,
+        "component_core_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.9043976068496704,
+          2.102820873260498,
+          2.459545612335205,
+          2.1149747371673584,
+          1.4835796356201172,
+          1.7402547597885132,
+          2.4358890056610107,
+          1.0,
+          1.0,
+          0.8674689531326294,
+          1.1250444650650024
+        ],
+        "component_core_eigen_ratios": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.8517611026763916,
+          1.6904973983764648,
+          2.5251975059509277,
+          1.255767822265625,
+          0.6088651418685913,
+          2.2498178482055664,
+          1.5853991508483887,
+          0.0,
+          0.0,
+          0.14202211797237396,
+          0.15194405615329742
+        ],
+        "component_core_min_eigen_ratio": 0.0,
+        "component_counts": [
+          8,
+          8,
+          5,
+          1,
+          2,
+          726,
+          968,
+          260,
+          320,
+          207,
+          565,
+          207,
+          191,
+          284,
+          155,
+          189
+        ],
+        "component_covariance_error": 11.64920124411583,
+        "component_covariance_errors": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          10.333535194396973,
+          6.5453877449035645,
+          8.521140098571777,
+          6.540623188018799,
+          23.38673210144043,
+          30.126384735107422,
+          33.965885162353516,
+          13.130870819091797,
+          7.122385501861572,
+          12.02932357788086,
+          29.684951782226562
+        ],
+        "component_mass": [
+          0.001953125,
+          0.001953125,
+          0.001220703125,
+          0.000244140625,
+          0.00048828125,
+          0.17724609375,
+          0.236328125,
+          0.0634765625,
+          0.078125,
+          0.050537109375,
+          0.137939453125,
+          0.050537109375,
+          0.046630859375,
+          0.0693359375,
+          0.037841796875,
+          0.046142578125
+        ],
+        "component_min_eigen_ratio": 0.0,
+        "component_resolved": [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false
+        ],
+        "component_spill": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.7603305578231812,
+          0.6415289044380188,
+          0.9192307591438293,
+          0.6499999761581421,
+          0.966183602809906,
+          0.8548672795295715,
+          0.695652186870575,
+          1.0,
+          1.0,
+          0.9290322661399841,
+          1.0
+        ],
+        "covariance_error": 0.35359251499176025,
+        "finite_fraction": 1.0,
+        "hq": 0.199462890625,
+        "hq_component_counts": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          174,
+          347,
+          21,
+          112,
+          7,
+          82,
+          63,
+          0,
+          0,
+          11,
+          0
+        ],
+        "mass_tv": 0.387451171875,
+        "max_component_spill": 1.0,
+        "mean_error": 0.44371992349624634,
+        "min_hq_mass_ratio": 0.0,
+        "min_mass_ratio": 0.00390625,
+        "modes": 4,
+        "resolved_core_covariance_error": 0.0,
+        "resolved_core_min_eigen_ratio": 1.0,
+        "resolved_max_component_spill": 0.0,
+        "sample_count": 4096,
+        "step": 1600,
+        "sw1_normalized": 0.29588405149050306,
+        "target_mass": [
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625,
+          0.0625
+        ],
+        "target_scale": 3.0029242038726807
+      },
+      "raw_status": "completed",
+      "reason": "failed nash_overpowered_critic_ring16 thresholds: modes == 16, hq >= 0.8, mass_tv <= 0.18, sw1_normalized <= 0.12, component_core_covariance_error <= 0.98, component_core_min_eigen_ratio >= 0.15",
+      "task_id": "nash_overpowered_critic_ring16"
+    }
+  ]
+}

@@ -144,10 +144,42 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from ._empf.critic import _attach_empf_critic_hook
             optimizer.record = _EMPFObserverStepRecord()
             _attach_empf_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t2_secant":
+            from .t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
+            optimizer.record = _T2SecantObserverStepRecord()
+            _attach_t2_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified":
+            from .unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
+            optimizer.record = _UnifiedObserverStepRecord()
+            _attach_unified_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
+            from .unified_v4 import _UnifiedV4ObserverStepRecord, _attach_unified_v4_critic_hook
+            optimizer.record = _UnifiedV4ObserverStepRecord()
+            _attach_unified_v4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "cond_fiber":
+            from .cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
+            optimizer.record = _CondFiberObserverStepRecord()
+            _attach_cond_fiber_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+            from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "rgdt":
+            from .t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
+            optimizer.record = _RGDTObserverStepRecord()
+            _attach_rgdt_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t4_nash":
+            from .t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
+            optimizer.record = _T4NashObserverStepRecord()
+            _attach_t4_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "t4_nash_v3":
+            from .nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
+            optimizer.record = _NashV3ObserverStepRecord()
+            _attach_nash_v3_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

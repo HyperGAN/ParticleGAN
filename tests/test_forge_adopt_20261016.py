@@ -36,11 +36,11 @@ def test_counted_ring16_is_the_6400_update_revision_in_every_ordinary_view():
     assert tasks["ring16_acquisition_6400"]["execution"]["steps"] == 6400
 
 
-def test_revision17_is_archived_and_revision18_changes_only_the_ring16_question():
-    # Develop revision 17 is the exact base; revision 18 swaps only the ring16 question.
-    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v17.json")
+def test_revision19_is_archived_and_revision20_changes_only_the_ring16_question():
+    # Develop revision 19 is the exact base; revision 20 swaps only the ring16 question.
+    archived = read_json(ROOT / "configs/forge/view-history/discriminator_stability-v19.json")
     current = load_view(ROOT, "discriminator_stability")
-    assert archived["revision"] == 17
+    assert archived["revision"] == 19
     assert "ring16_acquisition" in {a["task"] for a in archived["assignments"]}
     projected = deepcopy(current)
     for key in ("revision", "policy_change_reason", "previous_revision"):

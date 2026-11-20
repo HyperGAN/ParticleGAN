@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "cond-fiber-v1-study"
+  },
+  "candidate": "cond-fiber-v1",
+  "competing_explanation": "If the cross-batch sufficient-statistics conditional operator bank and paired-context covariance ring either overfit outer-tail noise, destabilize paired AE reconstruction, or regress unconditional tasks, then cond-fiber-v1 will exceed t1_q0_normalized_mean > 0.45 on model_ddgan_gaussian_chain or fail model_ae_ddgan_gaussian_chain or regress Tier-1 counted tasks below 13/13.",
+  "control": {
+    "candidate_id": "unified-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "t1_q0_normalized_mean",
+    "op": ">",
+    "phase": "final",
+    "task_id": "model_ddgan_gaussian_chain",
+    "threshold": 0.45
+  },
+  "hypothesis": "Replacing single-batch OLS+RBF conditional drift estimation with a strictly clock-free, swap-invariant per-stratum cross-batch sufficient-statistics operator bank + paired-context midpoint-canceling covariance ring (cond_fiber composing on unified) achieves first-ever 38/38 PASS on model_ddgan_gaussian_chain and 42/42 PASS on model_ae_ddgan_gaussian_chain while preserving 13/13 counted Tier-1 gates and unified-v3 Tier-2 performance on protocol seed 0.",
+  "id": "cond-fiber-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "t1_q0_normalized_mean",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "model_ddgan_gaussian_chain",
+    "threshold": 0.40
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v3",
+        "candidate_revision": "f8dd4ea746c2510e0de06f76a0fb66cb1c3b2b600847d6d8ed54749c5d84c824"
+      },
+      "path": "reports/forge/records/readout-ca2ce5acd5856e8c69b00377.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

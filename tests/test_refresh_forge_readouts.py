@@ -1544,8 +1544,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         ("atlas", "Atlas", "atlas-particle-normal-v4"),
         ("bispf", "BISPF", "bispf-optimized-quintic-v1"),
         ("bcap-pure", "BCAP", "recipe-prior-refactor-bcap-pure-v1"),
-        ("empf", "EMPF", "empf-v7"),
-        ("rhbi", "RHBI", "rhbi-v11"),
+        ("empf", "EMPF", "empf-v8"),
+        ("rhbi", "RHBI", "rhbi-v12"),
         ("e22", "E22", "e22"),
     )
     assert set(selected) == {family for family, _, _ in expected_families}
@@ -1570,8 +1570,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         "| [Atlas](families/atlas.md) | [`atlas-particle-normal-v4`]",
         "| [BISPF](families/bispf.md) | [`bispf-optimized-quintic-v1`]",
         "| [BCAP](families/bcap-pure.md) | [`recipe-prior-refactor-bcap-pure-v1`]",
-        "| [EMPF](families/empf.md) | [`empf-v7`]",
-        "| [RHBI](families/rhbi.md) | [`rhbi-v11`]",
+        "| [EMPF](families/empf.md) | [`empf-v8`]",
+        "| [RHBI](families/rhbi.md) | [`rhbi-v12`]",
         "| [E22](families/e22.md) | [`e22`]",
     )
 

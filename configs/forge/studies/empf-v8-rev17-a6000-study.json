@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "empf-v8-rev17-a6000-study"
+  },
+  "candidate": "empf-v8",
+  "competing_explanation": "If five_word_joint_hold's transient continuation dip in empf-v7 stemmed from 128x128 Newton-Schulz approximation error or encoder drift independent of critic DualNorm thermal step amplitude, then extending newton_schulz_hybrid_v1 to max_dim >= 128 and cooling discrete-simplex DualNorm across [0.064, 0.084] to 0.0004 will either degrade 128-wide continuous gates (ring16_acquisition) or still drop below 0.9995 minimum reconstruction token probability on five_word_joint_hold.",
+  "control": {
+    "candidate_id": "bispf-optimized-quintic-v1",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": "<",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9995
+  },
+  "hypothesis": "Including 128x128 hidden matrices in DualNorm's guarded cubic Newton-Schulz hybrid profile (min_dim >= 64 and max_dim >= 128) while cooling unconditioned discrete-simplex DualNorm steps (ema_decay = 0.96, band [0.064, 0.084] -> 0.0004 < optimizer_smoothing) halves five_word_joint_smoke wall time, preserves all counted Tier 1 gates and gaussian1d_stability across discriminator_stability revision 17 (including zero-sigma particle interpolation stretch tasks), and eliminates post-acquisition discrete logit jitter so five_word_joint_hold passes all scheduled continuation checks with final minimum_reconstruction_token_probability >= 0.9995 on protocol seed 0.",
+  "id": "empf-v8-rev17-a6000-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "minimum_reconstruction_token_probability",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "five_word_joint_hold",
+    "threshold": 0.9995
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v7",
+        "candidate_revision": "e9cb4e9e9d26179d1fa70cf52b42cee045c9c8e67238b78e5c0c28ac0d8fda8e"
+      },
+      "path": "reports/forge/records/readout-4901963885d977da23e139ba.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

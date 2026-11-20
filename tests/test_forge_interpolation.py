@@ -34,13 +34,19 @@ def _load_task(name: str) -> dict:
 
 def test_interpolation_stretch_preserves_view_chain_and_required_assignments():
     current = load_view(ROOT, "discriminator_stability")
-    view = json.loads((ROOT / "configs/forge/view-history/discriminator_stability-v17.json").read_text())
-    assert [a for a in current["assignments"] if a["task"] in INTERP_TASKS] == [
-        a for a in view["assignments"] if a["task"] in INTERP_TASKS]
-    v16 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    view = json.loads((ROOT / current["previous_revision"]["archive"]).read_text())
+    # Revision 20 replaces only ring16_acquisition with ring16_acquisition_6400.
+    assert current["revision"] == 20 and [
+        dict(a, task="ring16_acquisition") if a["task"] == "ring16_acquisition_6400" else a
+        for a in current["assignments"]] == view["assignments"]
+    v18 = json.loads((ROOT / view["previous_revision"]["archive"]).read_text())
+    v17 = json.loads((ROOT / v18["previous_revision"]["archive"]).read_text())
+    v16 = json.loads((ROOT / v17["previous_revision"]["archive"]).read_text())
     v15 = json.loads((ROOT / v16["previous_revision"]["archive"]).read_text())
-    assert view["revision"] == 17 and view["previous_revision"]["revision"] == 16
-    assert [a for a in view["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
+    assert view["revision"] == 19 and view["previous_revision"]["revision"] == 18
+    assert [a for a in view["assignments"] if not a["task"].startswith("nash_")] == v18["assignments"]
+    assert [a for a in v18["assignments"] if not a["task"].startswith("t3_iso_")] == v17["assignments"]
+    assert [a for a in v17["assignments"] if a["task"] not in INTERP_TASKS] == v16["assignments"]
     assert [a for a in view["assignments"] if a["importance"] == "required"] == [
         a for a in v15["assignments"] if a["importance"] == "required"
     ]

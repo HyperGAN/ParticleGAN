@@ -1,0 +1,62 @@
+{
+  "campaign": {
+    "budget_seconds": 12000,
+    "candidate_budget_seconds": 1200,
+    "id": "t1-coupling-v3-dcgan-performance"
+  },
+  "candidate": "t1-coupling-v3",
+  "competing_explanation": "Synthetic update throughput omits data loading and image quality. Initialization, policy phases, thermal state and shared hardware can affect timing. Warmup, isolated devices, explicit hardware receipts and completion checks constrain this diagnostic; no scientific promotion follows.",
+  "control": {
+    "candidate_id": "t1-coupling-v3",
+    "task_map": {
+      "dcgan_performance_b64": "img_stripes2",
+      "dcgan_performance_r128": "img_stripes2",
+      "dcgan_performance_r256": "img_stripes2",
+      "dcgan_performance_r32": "img_stripes2",
+      "dcgan_performance_r64": "img_stripes2",
+      "dcgan_performance_w128": "img_stripes2"
+    }
+  },
+  "falsifier": {
+    "metric": "finite_update_fraction",
+    "op": "<",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "hypothesis": "Verify that t1-coupling-v3 retains or improves EMPF-class GPU step throughput and low VRAM across DCGAN resolutions r32..r256, batch b64, and width w128 under the exact same global recipe.",
+  "id": "t1-coupling-v3-dcgan-performance",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "finite_update_fraction",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r32",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t1-coupling-v2",
+        "candidate_revision": "7493617575999ae8b6951c7a4790df46717b997fd17976c53b062d7ea04713c5"
+      },
+      "path": "reports/forge/records/readout-b5b0255afd0d8014b7e3684e.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

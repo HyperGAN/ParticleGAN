@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 1800,
+    "id": "unified-v1-dcgan-perf-study"
+  },
+  "candidate": "unified-v1",
+  "competing_explanation": "If the unified forward hook or coupled loss/prior checks add per-step memory copies or extra forward passes on high-resolution 4D images, dcgan_performance_r256 will exceed empf-v8 step latency (155.41 ms) or allocate > 1,500 MiB.",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 150.0
+  },
+  "hypothesis": "With zero autograd.grad calls, live-endpoint BF16 reuse, 1 separable Rademacher micro-secant probe, BF16 channels_last Newton-Schulz DualNorm, and high-res pixel-Sinkhorn bypass, unified-v1 achieves < 120 ms/step (and < 95 ms/step uncontended) with ~1,308 MiB peak allocated VRAM at 256x256 across all 6 dcgan_performance benchmarks under the exact same source digest as unified-v1-study.",
+  "id": "unified-v1-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 120.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "t2-secant-v5",
+        "candidate_revision": "62d7204e82e398d6be07ef7e9c565a714699a317ab4efe0422c87674bf99e7cc"
+      },
+      "path": "reports/forge/records/readout-4edd360d71f5421c6149bd8a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

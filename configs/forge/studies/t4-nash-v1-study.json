@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 80000,
+    "candidate_budget_seconds": 80000,
+    "id": "t4-nash-v1-study"
+  },
+  "candidate": "t4-nash-v1",
+  "competing_explanation": "Without per-layer orthogonal polar SVD whitening (DualNorm), Marchenko-Pastur + peak_rms scalar/row scaling cannot orthogonalize correlated multi-head hidden-feature singular spectra on tightly coupled encoder-generator or ultra-tight covariance gates (e.g. ring16_acquisition full-sample component_covariance_error <= 0.85 when 3-5 MLP bridge samples span adjacent modes).",
+  "control": {
+    "candidate_id": "empf-v8",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "grad_med",
+    "op": ">",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "hypothesis": "Evaluate unchanged global SVD-free T4Nash (t4-nash-v1, 0 SVD/eigh/pinv/Newton-Schulz calls) across standard discriminator_stability through Tier 2 on NVIDIA RTX A6000 under protocol seed 0, testing how far pure O(params)+O(B) function-space impedance-matched Adam advances without matrix SVD orthogonalization.",
+  "id": "t4-nash-v1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "grad_med",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "two_pole",
+    "threshold": 1.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "empf-v8",
+        "candidate_revision": "75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455"
+      },
+      "path": "reports/forge/records/readout-3d6ce9a324a579c291eac043.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

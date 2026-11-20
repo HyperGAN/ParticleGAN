@@ -1,0 +1,243 @@
+{
+  "attempt_ids": [
+    "c7d1bd99751a409d86630cd50ee93258",
+    "f278f94a4dcc4727a5879b98702e3fd5"
+  ],
+  "candidate_id": "rgdt-v3",
+  "candidate_revision": "1c77eada94130f1500af589d96e3e40cc1483ad4ec75a6ae653648daf32f0aed",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Beats all three prior families (recipe-prior-refactor-bcap-pure-v1 0/2, empf-v8 0/2, rhbi-v12 0/2) under identical G=nn.Identity() zero-sigma ParticlePrior and smooth SiLU critic, establishing causal sufficiency of conformal horizon + orphan-gated Monge macro-transport.",
+  "conclusion": "rgdt-v3 achieves 2/2 PASS (5/5 sustained terminal checks on both tasks) on t3_causal_isolation_stretch under protocol seed 0: t3_iso_scale_mass_8x PASS (modes=4, mass_tv=0.0288 <= 0.10, hq=0.9668 >= 0.94, core_component_covariance_error=0.1965 <= 0.45, core_min_eigen_ratio=0.5874 >= 0.45, critic_grad_med=1.6e-7 <= 1.0) and t3_iso_horizon_saddle_shift PASS (modes=4, mass_tv=0.1094 <= 0.12, hq=0.9688 >= 0.92, pre_shift_hq=0.9609, frozen_control_modes=2).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "c7d1bd99751a409d86630cd50ee93258",
+        "f278f94a4dcc4727a5879b98702e3fd5"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "f4705b401ecd81454956d642dd936946e5d2cadc6d62562874d71e57f8ab86e9",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.5873977250955911
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.5873977250955911
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "c7d1bd99751a409d86630cd50ee93258",
+          "producer_request_id": "33175e0ac71f249d81a909e7",
+          "producer_study_id": "t3-iso-stretch-rgdt-v3",
+          "result_hash": "d5cc63752cdc0eb5db27a059cb381f25138a7419b8d7ba28e8801360f4569493",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "f278f94a4dcc4727a5879b98702e3fd5",
+          "producer_request_id": "33175e0ac71f249d81a909e7",
+          "producer_study_id": "t3-iso-stretch-rgdt-v3",
+          "result_hash": "31d5323375462c03a79837833719de0bc35550f65b4f294800894dafbefe2d23",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "9e0822f29bc0758007c6e25e7ffdf5486329dca799ff35d59fb1badf6cb82f11",
+        "contract_sha256": "f4705b401ecd81454956d642dd936946e5d2cadc6d62562874d71e57f8ab86e9",
+        "control_binding_sha256": "6f0d38df6cc335fe3ad808bdc06436800c801a7c74b0f4b30748935ac359b56c",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "91f7a3a62189b11893444c9f5c4ec231410b2c9c58b3a812c414c0a850a97043"
+      },
+      "study_id": "t3-iso-stretch-rgdt-v3",
+      "study_sha256": "91f7a3a62189b11893444c9f5c4ec231410b2c9c58b3a812c414c0a850a97043"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Test whether rgdt-v3 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Publish representative API contract supplement and training GIFs in reports/toy_audit/api_contract/t3_isolation/publication.json.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "c7d1bd99751a409d86630cd50ee93258",
+        "result_hash": "d5cc63752cdc0eb5db27a059cb381f25138a7419b8d7ba28e8801360f4569493",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "f278f94a4dcc4727a5879b98702e3fd5",
+        "result_hash": "31d5323375462c03a79837833719de0bc35550f65b4f294800894dafbefe2d23",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-c30d4a5840e8d861f62c1dcb",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/c7d1bd99751a409d86630cd50ee93258/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "t3-iso-stretch-rgdt-v3"
+    },
+    "candidate": "rgdt-v3",
+    "competing_explanation": "If Theory 3 reduces to continuous generator topology (Theory 1) or unbounded critic sharpness (Theory 2), then scalar-horizon and 1-Lipschitz baselines will pass both generator-free smooth-critic benchmarks without conformal horizon normalization or Monge macro-transport.",
+    "control": {
+      "candidate_id": "rhbi-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Test whether rgdt-v3 resolves 8x scale-mass disparity (t3_iso_scale_mass_8x) and 42.4-sigma equidistant orthogonal saddle shift (t3_iso_horizon_saddle_shift) when Theory 1 is eliminated (G=nn.Identity(), zero-sigma ParticlePrior) and Theory 2 is satisfied (critic_grad_med <= 1.0).",
+    "id": "t3-iso-stretch-rgdt-v3",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "rgdt-v2",
+          "candidate_revision": "4389bb605f8af39a2f10ebbc49c5923b95fc67db2fb07f1c677cbc07809ebedd"
+        },
+        "path": "reports/forge/records/readout-39526ee7f7d154d6eb95ee57.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "t3-iso-stretch-rgdt-v3",
+  "study_sha256": "91f7a3a62189b11893444c9f5c4ec231410b2c9c58b3a812c414c0a850a97043",
+  "task_results": [
+    {
+      "compatibility_key": "ff28c7d3bbebb40d8bd314638cd56f609f5cbed743d1800aa1c3b8a01875c662",
+      "cost": {
+        "adapter_loop_seconds": 41.742943757912144,
+        "adapter_seconds": 42.02624597703107,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "1",
+        "eval_seconds": 0.07594021805562079,
+        "execution_seconds": 49.35140855703503,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 43.53503203485161,
+        "train_seconds": 37.28644609451294,
+        "wall_seconds": 49.35140855703503
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.19654823315078235,
+        "core_min_eigen_ratio": 0.5873977250955911,
+        "critic_grad_med": 1.110027554318549e-07,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 1.4650505656813184,
+        "hq": 0.966796875,
+        "mass_tv": 0.028828121721744537,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_scale_mass_8x"
+    },
+    {
+      "compatibility_key": "aef5a1a9431446ce8803ccfeab54024fcae882f2f1aaf8332484a0053a0580f0",
+      "cost": {
+        "adapter_loop_seconds": 46.74779050494544,
+        "adapter_seconds": 47.05987784801982,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "0",
+        "eval_seconds": 0.07362995087169111,
+        "execution_seconds": 54.34910344192758,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 48.53769176709466,
+        "train_seconds": 42.28154777176678,
+        "wall_seconds": 54.34910344192758
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.4443331954826951,
+        "critic_grad_med": 5.141741894476581e-07,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 0.96875,
+        "mass_tv": 0.109375,
+        "modes": 4,
+        "pre_shift_hq": 0.9609375,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    }
+  ]
+}

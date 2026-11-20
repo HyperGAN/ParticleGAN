@@ -63,3 +63,13 @@ original scientific fingerprints. No old diagnostic result fills an ordinary cel
 ## Rebase integration, 2026-11-14
 
 Develop already uses revision 17 for interpolation stretch tasks. The ring6400 change now uses revision 18 and archives the exact revision-17 bytes. All interpolation assignments and original receipts remain unchanged. Historical references to the earlier proposed revision 17 above retain their original scope. No training or qualification regrading was performed.
+
+## Develop merge, 2026-11-20
+
+Develop has since published revision 18 (Theory-3 causal-isolation stretch tasks) and revision 19 (Theory 4A
+capacity-imbalance stretch tasks). Both stay byte for byte. The exact revision-19 bytes are archived at
+`configs/forge/view-history/discriminator_stability-v19.json`, and the ring6400 change is now revision 20. It
+swaps only `ring16_acquisition` for `ring16_acquisition_6400`. The section above that names revision 18 keeps
+its original scope. `results.json` stays tracked because it is the compact per-attempt grade receipt behind the
+leaderboard rows: 130 final-gate records with receipt SHA-256s and no per-update streams. No training or
+qualification regrading was performed.
