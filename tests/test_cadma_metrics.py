@@ -50,7 +50,7 @@ Cohorts (kept separate):
     covered arm trains on all 8 modes, a collapsed arm on modes {0, 1};
     both are evaluated against the full mixture with CADMA at every
     checkpoint. The committed receipt and actual-training GIF live in
-    reports/paper_watch/cadma-metrics/.
+    reports/toy_audit/paper_watch/cadma-metrics/.
 
 Controls are the incumbent metrics: Naeem coverage with raw (uncapped)
 kNN radii and the empirical Gini distance correlation rho_g from the
@@ -363,7 +363,7 @@ GAN_STEPS = 1200
 GAN_CHECK_EVERY = 100
 TERMINAL_WINDOW = 4
 GAN_KEYS = ("c_cap", "coverage", "d_drop", "d_collapse", "cov_raw")
-REPORT_DIR = _REPO_ROOT / "reports" / "paper_watch" / "cadma-metrics"
+REPORT_DIR = _REPO_ROOT / "reports" / "toy_audit" / "paper_watch" / "cadma-metrics"
 RECEIPT = REPORT_DIR / "receipt.json"
 GIF = REPORT_DIR / "goal.gif"
 ARMS = {"covered": ring.ALL_MODES, "collapsed": ring.COLLAPSED_MODES}
