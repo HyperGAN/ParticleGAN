@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 3600.0,
+    "id": "unified-v11-t4-nash-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If thermal-safe delta_g_min gating or fused Z=[X,Y] Quintic polar weakens Nash capacity-imbalance recovery, unified-v11 will drop below 16 modes on nash_overpowered_critic_ring16.",
+  "control": {
+    "candidate_id": "t4-ctrl-bcap-adam",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "modes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "hypothesis": "Unchanged global zero-SVD / zero-eigh / zero-pinv / zero-autograd.grad unified-v11 passes 3/3 t4_imbalance_nash_stretch tasks across >548x G/D capacity imbalance and -30-logit hostile initialization under protocol seed 0.",
+  "id": "unified-v11-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "modes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-8f0a450815d09f56bc74a678.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

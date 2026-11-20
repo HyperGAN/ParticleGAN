@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v11-t4-arch-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If unified-v11's optimizer or pullback changes regress deep 16-layer or rail-clamped architectures, unified-v11 will fail zero_tanh_rail_escape or deep 100-mode lattices.",
+  "control": {
+    "candidate_id": "t2-secant-v5",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "Unchanged global clock-free zero-SVD / zero-eigh / zero-pinv / zero-autograd.grad unified-v11 passes deep vanishing-gradient, 16-layer skip-free/residual, and tanh rail-clamped architectures on t4-strange-architectures-v1 under protocol seed 0.",
+  "id": "unified-v11-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v10",
+        "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+      },
+      "path": "reports/forge/records/readout-688bc7ed35078e19c10daf6a.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
