@@ -85,9 +85,13 @@ def test_duplicate_subscribers_share_one_job_and_one_cost(tmp_path):
     claim = q.claim(SLOTS)
     assert q.claim(SLOTS) is None
     finish(claim)
-    q.collect()
-    assert all(e["status"] == "completed" for e in q.inspect()["submissions"].values())
-    assert sum(c["spent_seconds"] for c in q.inspect()["campaigns"].values()) == 1
+    assert q.collect() == 1
+    state = q.inspect()
+    assert all(e["status"] == "completed" for e in state["submissions"].values())
+    assert sum(c["spent_seconds"] for c in state["campaigns"].values()) == 1
+    assert len(state["charges"]) == 1
+    assert q.collect() == 0
+    assert q.inspect() == state
 
 
 def test_required_infrastructure_error_is_incomplete_not_fail(tmp_path):
