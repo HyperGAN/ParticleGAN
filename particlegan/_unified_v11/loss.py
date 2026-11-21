@@ -668,6 +668,13 @@ class UnifiedV11GANLoss(GANLoss):
             return base
         if self.conditional_fibre == "calibrated" and has_cont_cond:
             return base
+        dim_d = max(1, x_r[0].numel()) if x_r.shape[0] > 0 else 0
+        if not has_cont_cond and x_r.ndim >= 2 and dim_d > 1024:
+            if self.loss == "non_saturating" and self.t1c.weight > 0.0 and self.fibre_rel_blend > 0.0:
+                pair_d = self._scalar_pair_relativistic(real_logits, fake_logits)
+                if pair_d is not None:
+                    return (1.0 - self.fibre_rel_blend) * base + self.fibre_rel_blend * pair_d
+            return base
         if self.critic_weight == 0.0:
             return base
         slack_reg = self.t1c.critic_slack_loss(
@@ -751,9 +758,9 @@ class UnifiedV11GANLoss(GANLoss):
                 return self.t1c.weight * rel_term
             return self.t1c.weight * super().g_loss(fake_logits, real_logits)
 
-        # 2. High-resolution RGB image domains (dim > 1024, e.g. 32x32..256x256 DCGAN):
+        # 2. High-dimensional domains (dim > 1024, e.g. 32x32..256x256 images or high-D 2D vectors):
         dim = max(1, x_r[0].numel()) if b_r > 0 else 0
-        if x_r.ndim >= 4 and dim > 1024:
+        if x_r.ndim >= 2 and dim > 1024:
             self.t1c._discrete_prior_step = False
             self.t1c._simplicial_active_step = False
             if rec is not None and hasattr(rec, "_t1c_disc_gate"):

@@ -545,7 +545,9 @@ class _UnifiedPenaltyKernel:
                                 total = total + self.fake_weight * self.lambda_floor * sq_f.mean()
                         if self.gamma_gauge > 0.0:
                             mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
-                            total = total + self.gamma_gauge * mean_logit.square()
+                            gauge_pen = self.gamma_gauge * mean_logit.square()
+                        else:
+                            gauge_pen = x_real.new_zeros(())
                         norm_stat = 0.5 * (norm_r.detach().mean() + norm_f.detach().mean())
                     else:
                         # High-resolution RGB images (32x32..256x256):
@@ -636,7 +638,7 @@ class _UnifiedPenaltyKernel:
                         )
                         mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
                         gauge_pen = self.gamma_gauge * mean_logit.square() if self.gamma_gauge > 0.0 else x_real.new_zeros(())
-                        total = cap_pen + floor_pen + gauge_pen
+                        total = cap_pen + floor_pen
                         norm_stat = norm_env.detach().mean()
                 finally:
                     self.record._in_penalty = False
@@ -742,14 +744,22 @@ class _UnifiedPenaltyKernel:
                 if self.gamma_gauge > 0.0:
                     d_r_mean = d_r_2d.mean()
                     d_f_mean = d_f_2d.mean()
-                    total = total + self.gamma_gauge * (0.5 * (d_r_mean + d_f_mean)).square()
+                    gauge_pen = self.gamma_gauge * (0.5 * (d_r_mean + d_f_mean)).square()
+                else:
+                    gauge_pen = x_real.new_zeros(())
 
                 norm_stat = 0.5 * (norm_r.detach().mean() + norm_f.detach().mean())
 
-            pen = 0.5 * coefficient * total
+            pen_lip = 0.5 * coefficient * total
+            pen_gauge = 0.5 * coefficient * gauge_pen
             s_therm = float(getattr(self.record, "_thermal_scale", 1.0))
-            if s_therm < 1.0 and pen.requires_grad:
-                pen = pen * s_therm + pen.detach() * (1.0 - s_therm)
+            if s_therm < 1.0:
+                if pen_lip.requires_grad:
+                    pen_lip = pen_lip * s_therm + pen_lip.detach() * (1.0 - s_therm)
+                if pen_gauge.requires_grad:
+                    s_gauge = math.sqrt(max(0.0, s_therm))
+                    pen_gauge = pen_gauge * s_gauge + pen_gauge.detach() * (1.0 - s_gauge)
+            pen = pen_lip + pen_gauge
 
             if not collect_stats:
                 return pen, {}
