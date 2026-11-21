@@ -151,6 +151,9 @@ def _lookup_t1c_capture_parts(
     logits: torch.Tensor,
     fallback_record: Any = None,
 ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Any, bool, Optional[Tuple[torch.Tensor, ...]]]:
+    if getattr(logits, "_t1c_bypassed", False):
+        r_attr = getattr(logits, "_t1c_record", None)
+        return None, None, (r_attr if r_attr is not None else fallback_record), False, None
     b = logits.shape[0] if logits.ndim >= 1 else 0
     x_attr = getattr(logits, "_t1c_input", None)
     c_attr = getattr(logits, "_t1c_cond", None)
@@ -308,12 +311,16 @@ class _T1CouplingRecordMixin:
 
     @property
     def ema_residual(self) -> float:
+        q90 = float(self.t1c_ema_q90)
+        hmax = float(self.t1c_ema_hmax)
+        spread = float(self.t1c_ema_spread)
+        underdisp_gate = min(1.0, max(0.0, -spread) / 0.03)
         return max(
             0.5 * max(0.0, float(self.t1c_ema_ed)),
             math.sqrt(max(0.0, float(self.t1c_ema_mu_sq))),
-            0.60 * abs(float(self.t1c_ema_spread)),
-            max(0.0, float(self.t1c_ema_q90)),
-            max(0.0, float(self.t1c_ema_hmax)),
+            0.60 * abs(spread),
+            max(q90, 0.60 * max(0.0, -q90) * underdisp_gate),
+            max(hmax, 0.60 * max(0.0, -hmax) * underdisp_gate),
             max(0.0, float(self.t1c_ema_tail)),
         )
 

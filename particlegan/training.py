@@ -835,9 +835,16 @@ class GANTrainer:
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
                 highres_unified_skip = (
-                    recipe.effective_critic_formulation in ("unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber")
-                    and real.ndim >= 4
-                    and real[0].numel() > 1024
+                    (
+                        recipe.effective_critic_formulation == "unified_v11"
+                        and real.ndim >= 2
+                        and real[0].numel() > 1024
+                    )
+                    or (
+                        recipe.effective_critic_formulation in ("unified", "unified_v4", "r4_autograd_critic", "cond_fiber")
+                        and real.ndim >= 4
+                        and real[0].numel() > 1024
+                    )
                 )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):

@@ -168,6 +168,14 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._enable_secant_probe: bool = True
 
     @property
+    def ema_residual(self) -> float:
+        base = super().ema_residual
+        if self.margin_initialized:
+            margin_res = max(0.0, abs(float(self.ema_margin)) - 0.80) * 0.25
+            return max(base, margin_res)
+        return base
+
+    @property
     def rgdt_cond_initialized(self) -> bool:
         return self.t1c_cond_initialized
 
@@ -432,21 +440,25 @@ def _unified_v11_critic_forward_hook(
             getattr(rec, "_enable_secant_probe", True)
             and x_first.ndim == 2
             and x_first.shape[0] >= 1
-            and x_first.shape[1] <= 32
             and len(args) == 1
             and not kwargs
         ):
             b_full = int(x_first.shape[0])
-            b_p = min(_PROBE_SLICE, b_full)
+            in_dim = max(1, int(x_first[0].numel()))
+            b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // in_dim)))
             p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
-            d_pre = raw_target.detach()[:b_p].to(dtype=torch.float32)
-            probes = getattr(rec, "_d_probe_list", None)
-            if probes is None:
-                probes = []
-                rec._d_probe_list = probes
-            probes.append((p_args, {}, d_pre))
-            if len(probes) > _MAX_D_PROBES:
-                del probes[: len(probes) - _MAX_D_PROBES]
+            if _module_needs_eval_probe_baseline(module):
+                d_pre = _eval_v11_probe_forward(module, p_args, {}, rec)
+            else:
+                d_pre = raw_target.detach()[:b_p].to(dtype=torch.float32)
+            if d_pre is not None:
+                probes = getattr(rec, "_d_probe_list", None)
+                if probes is None:
+                    probes = []
+                    rec._d_probe_list = probes
+                probes.append((p_args, {}, d_pre))
+                if len(probes) > _MAX_D_PROBES:
+                    del probes[: len(probes) - _MAX_D_PROBES]
 
     modified = False
     target = raw_target
@@ -468,12 +480,15 @@ def _unified_v11_critic_forward_hook(
 
     if (
         x_first is not None
-        and x_first.ndim >= 4
+        and x_first.ndim >= 2
         and x_first.shape[0] > 0
         and x_first[0].numel() > 1024
         and len(args) == 1
         and not kwargs
     ):
+        target._t1c_bypassed = True
+        if rec is not None:
+            target._t1c_record = rec
         return output if modified else None
 
     x_in, cond_disc, has_cont_cond, float_parts = _extract_t1c_inputs_parts(
@@ -493,7 +508,7 @@ def _unified_v11_critic_forward_hook(
 
 
 def _module_needs_eval_probe_baseline(module: nn.Module) -> bool:
-    cached = getattr(module, "_unified_v11_gen_has_bn", None)
+    cached = getattr(module, "_unified_v11_has_bn", getattr(module, "_unified_v11_gen_has_bn", None))
     if isinstance(cached, bool):
         return cached
     return any(
@@ -588,6 +603,10 @@ def _attach_unified_v11_critic_hook(critic: nn.Module | None, record: CriticStep
     critic._unified_record = record
     critic._t1c_record = record
     critic._t2_record = record
+    critic._unified_v11_has_bn = any(
+        isinstance(m, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd))
+        for m in critic.modules()
+    )
     if getattr(critic, "_unified_v11_hook_registered", False):
         return
     critic.register_forward_hook(_unified_v11_critic_forward_hook, with_kwargs=True)
