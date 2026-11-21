@@ -1,22 +1,7 @@
 name: Legacy BCap served-sample 22-toy gate
 
 on:
-  push:
-    branches: [master]
-    paths:
-      - "benchmarks/toy100/**"
-      - "benchmarks/toy_suite.py"
-      - "benchmarks/transfer_suite/**"
-      - "benchmarks/locked_shared/**"
-      - "configs/toy100/**"
-      - "particlegan/**"
-      - "lib/toy_models.py"
-      - "tests/test_toy100*.py"
-      - "tests/test_toy_suite*.py"
-      - "tests/test_legacy_noise*.py"
-      - "tests/test_legacy_recipe_schedule.py"
-      - ".github/workflows/toy100.yml"
-      - "pyproject.toml"
+  # Run this historical recipe gate explicitly when investigating BCap.
   workflow_dispatch:
 
 permissions:
@@ -25,10 +10,7 @@ permissions:
 jobs:
   trained-gate:
     name: CPU / Python 3.11 / BCap with original output-noise sampling
-    # Train only master code, including manual dispatches.
-    if: >-
-      github.event_name != 'pull_request' &&
-      github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     timeout-minutes: 75
     env:

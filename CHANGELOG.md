@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.11.2 — 2026-11-21
+
+- **Fix high-D 2D vector critic silencing, premature thermal freeze, and probe lockout in `unified_v11` (PR #591).**
+  Fixes three interacting `DEFAULT_RECIPE` (`unified_v11`) failure modes on high-dimensional
+  2D vector and sparse masked tabular domains (`[B, D]` with `D > 1024`, e.g. `[x * m, m]`)
+  while preserving `0` `torch.autograd.grad`, `0` `svd`/`eigh`/`pinv`, zero step clocks,
+  and unchanged checkpoint schemas:
+  - **Confident critic non-silencing & high-D 2D vector bypass (`_t1_coupling/primitive.py`, `_unified_v11/critic.py`, `_unified_v11/loss.py`, `training.py`):**
+    Adds an OT-scale-matched active-pair relativistic critic term in `T1CouplingLoss` when
+    `relativistic_weight == 0.0` and `tau > 0.0` so `_sinkhorn_slack` cannot extinguish
+    `∂L_G/∂d_fake` as critic margin grows (preserving exact zero Feydy bias at `tau == 0.0`),
+    extends the `dim > 1024` high-D bypass from `ndim >= 4` to `ndim >= 2` with stale-capture
+    `_t1c_bypassed` guarding, and keeps `ema_data_scale` / `ema_push_res` live on bypassed
+    2D vectors.
+  - **Prevent premature thermal freeze & cooling interactions (`_t1_coupling/critic.py`, `_unified_v11/critic.py`, `_unified_v11/prior.py`, `_unified/penalty.py`, `_unified_v11/penalty.py`):**
+    Adds spread-gated under-dispersion residual in `_T1CouplingRecordMixin.ema_residual` and
+    a critic-margin guard (`ema_margin`) in `_UnifiedV11RecordMixin.ema_residual` so collapsed
+    masked high-D inputs stay hot while genuine equilibrium cools to `1e-6`, lifts
+    `sbnp_thermal_full_max_dim` on `UnifiedV11PriorRegularizer` so `z_dim > 4` scales
+    thermally when cooled, and separates `gamma_gauge` zero-mean logit anchoring from the
+    Lipschitz penalty with `sqrt(s_therm)` scaling.
+  - **Symmetric high-D Law 4 secant probing & no `ema_func_gain` lockout (`_unified_v11/critic.py`, `_unified_v11/optimizer.py`):**
+    Removes the `dim <= 32` cap on `_d_probe_list` using the same element-budgeted slice
+    (`max(2, min(16, 8192 // in_dim))`) and BN/Dropout-safe eval baseline as generator
+    probing, and makes `free_ratio` / `step_active_probe` scale-aware in
+    `pre_gain_applied * step_scale * th_tikh * coh_eff` with `1.15 * ema_func_gain`
+    hysteresis and a `1e-4` equilibrium floor.
+- **Public Unified-v11 composite generator probe capture & RNG-safe replay (`particlegan.unified_v11`).**
+  - Export `record_unified_v11_generator_probe` (with recursive nested container/dict slicing for conditioning inputs and eval-mode baseline capture for BatchNorm/Dropout subgraphs) and `UnifiedV11EquilibratedOptimizer.set_generator_probe_parameters(...)` so composite multi-component generators (such as HyperGAN `ComponentGraph` models) can register full-graph secant probes without mutating checkpoint schemas.
+  - Preserve CPU/CUDA/Python/NumPy RNG states in addition to per-submodule `.training` modes and BatchNorm running statistics during Unified-v11 probe replay (`_eval_v11_probe_forward`).
+  - Expose transient runtime probe-consumption counters (`last_probe_consumed`, `probe_consumptions`) on `UnifiedV11EquilibratedOptimizer` without changing optimizer `state_dict()` schemas.
+- **CI integration optimization (PR #590).**
+  Reduce duplicate CI runs and balance regression shards.
+
 ## 0.11.1 — 2026-11-20
 
 - **Fix autograd-hook VRAM leak in live-endpoint critic captures (PR #585).**

@@ -90,7 +90,11 @@ class UnifiedV11PriorRegularizer(nn.Module):
         self._active_iso_above = int(base_gates.sbnp_active_iso_above)
         self._active_iso_weight = float(base_gates.sbnp_active_iso_weight)
         no_eig_gates = (
-            _dc_replace(base_gates, sbnp_active_iso_enabled=False)
+            _dc_replace(
+                base_gates,
+                sbnp_active_iso_enabled=False,
+                sbnp_thermal_full_max_dim=max(int(base_gates.sbnp_thermal_full_max_dim), 1 << 30),
+            )
             if isinstance(base_gates, BISPFGates)
             else base_gates
         )
@@ -177,6 +181,8 @@ class UnifiedV11PriorRegularizer(nn.Module):
             and d <= self.fallback.gates.sbnp_thermal_full_max_dim
             and term.requires_grad
         ):
+            term = term * s + term.detach() * (1.0 - s)
+        elif s < 1.0 and d > 4 and term.requires_grad:
             term = term * s + term.detach() * (1.0 - s)
         return out + term
 

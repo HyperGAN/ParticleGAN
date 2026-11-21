@@ -1046,8 +1046,16 @@ class T1CouplingLoss(nn.Module):
             ).sum()
             slack_rel = (p_slack_eff * F.softplus(-d_fake_tilde)).sum()
             local_critic_slack = self.relativistic_weight * slack_scale * (active_rel + slack_rel)
+        elif self.tau > 0.0:
+            active_rel = (
+                P_xy_act * (F.softplus(d_real_tilde.unsqueeze(0) - d_fake_tilde.unsqueeze(1)) - math.log(2.0))
+            ).sum()
+            local_critic_slack = (
+                -(p_slack_eff * (0.5 * self.tau * slack_scale * d_fake_tilde)).sum()
+                + (0.03 * self.tau * slack_scale) * active_rel
+            )
         else:
-            local_critic_slack = -(p_slack_eff * (0.5 * self.tau * slack_scale * d_fake_tilde)).sum()
+            local_critic_slack = d_fake_tilde.new_zeros(())
         debias_xx = -0.5 * (P_xx_eff * c_phys_xx).sum()
 
         coord_total = transport_xy + debias_xx

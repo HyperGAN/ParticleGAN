@@ -789,3 +789,402 @@ torch.save({{"sample": tr.sample(4), "d": tr.D.state_dict()}}, {str(out_path)!r}
     assert torch.equal(sample_ref, resumed["sample"])
     for k, v in d_ref.items():
         assert torch.equal(v, resumed["d"][k]), f"4D D mismatch {k}"
+
+
+def test_unified_v11_composite_generator_probe_record_replay_and_rng_preservation() -> None:
+    """Public ``record_unified_v11_generator_probe`` supports multi-input composite graphs,
+    nested conditioning dicts, RNG/mode/BN preservation, and direct consumption reporting."""
+    import random
+    import numpy as np
+    from particlegan.unified_v11 import (
+        UnifiedV11EquilibratedOptimizer,
+        UnifiedV11StepRecord,
+        bind_unified_v11_record,
+        record_unified_v11_generator_probe,
+    )
+
+    class _CompositeGen(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.shared = nn.Sequential(nn.Linear(4, 8), nn.BatchNorm1d(8), nn.ReLU())
+            self.branch_a = nn.Sequential(nn.Linear(8, 4), nn.Dropout(0.25))
+            self.branch_b = nn.Linear(8 + 2, 4)
+            self.replay_calls = 0
+
+        def forward(self, z: torch.Tensor, *, batch: dict[str, torch.Tensor]) -> torch.Tensor:
+            self.replay_calls += 1
+            # Deliberately draw from torch/python/numpy RNGs to verify probe replay restores them.
+            _ = torch.randn(1)
+            _ = random.random()
+            _ = float(np.random.rand())
+            h = self.shared(z)
+            a = self.branch_a(h)
+            b = self.branch_b(torch.cat([h, batch["cond"]], dim=-1))
+            return a + b
+
+    torch.manual_seed(11)
+    gen = _CompositeGen()
+    rec = UnifiedV11StepRecord()
+    opt = UnifiedV11EquilibratedOptimizer([{"params": list(gen.parameters()), "role": "generator", "lr": 0.01}])
+    bind_unified_v11_record(rec, opt)
+    opt._unified_v11_record = rec
+    opt.set_generator_probe_parameters(gen.parameters())
+
+    z = torch.randn(8, 4)
+    cond = torch.randn(8, 2)
+    gen.train()
+    y = gen(z, batch={"cond": cond, "ignored": torch.randn(8, 1)})
+    bn = gen.shared[1]
+    bn_mean_after_train = bn.running_mean.detach().clone()
+    bn_var_after_train = bn.running_var.detach().clone()
+    bn_tracked_after_train = bn.num_batches_tracked.detach().clone()
+
+    torch_rng_before = torch.get_rng_state()
+    py_rng_before = random.getstate()
+    np_rng_before = np.random.get_state()
+
+    captured = record_unified_v11_generator_probe(gen, (z,), {"batch": {"cond": cond}}, y, rec)
+    assert captured is True
+    assert rec._g_probe_cache is not None
+    # Capture with BN/Dropout ran eval probe without mutating RNGs, modes, or BN stats:
+    assert torch.equal(torch.get_rng_state(), torch_rng_before)
+    assert random.getstate() == py_rng_before
+    assert np.array_equal(np.random.get_state()[1], np_rng_before[1])
+    assert gen.training is True and bn.training is True
+    assert torch.equal(bn.running_mean, bn_mean_after_train)
+    assert torch.equal(bn.running_var, bn_var_after_train)
+    assert torch.equal(bn.num_batches_tracked, bn_tracked_after_train)
+
+    # Identical weights replay reproduces y_pre exactly:
+    g_mod, p_args, p_kwargs, y_pre = rec._g_probe_cache
+    from particlegan._unified_v11.critic import _eval_v11_probe_forward
+    y_same = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_same is not None
+    assert torch.allclose(y_same, y_pre, atol=1e-6, rtol=1e-6)
+
+    # Perturbing either upstream branch changes replayed output:
+    with torch.no_grad():
+        gen.branch_a[0].weight.add_(0.25)
+    y_pert_a = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_pert_a is not None and not torch.allclose(y_pert_a, y_pre, atol=1e-5)
+    with torch.no_grad():
+        gen.branch_a[0].weight.sub_(0.25)
+        gen.branch_b.weight.add_(0.25)
+    y_pert_b = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_pert_b is not None and not torch.allclose(y_pert_b, y_pre, atol=1e-5)
+    with torch.no_grad():
+        gen.branch_b.weight.sub_(0.25)
+
+    # Optimizer step consumes the probe directly and restores RNGs/modes/BN stats:
+    y_step = gen(z, batch={"cond": cond, "ignored": torch.randn(8, 1)})
+    bn_mean_after_train = bn.running_mean.detach().clone()
+    bn_var_after_train = bn.running_var.detach().clone()
+    bn_tracked_after_train = bn.num_batches_tracked.detach().clone()
+    assert record_unified_v11_generator_probe(gen, (z,), {"batch": {"cond": cond}}, y_step, rec) is True
+    torch_rng_before = torch.get_rng_state()
+    py_rng_before = random.getstate()
+    np_rng_before = np.random.get_state()
+    calls_before_step = gen.replay_calls
+    opt.zero_grad(set_to_none=True)
+    y_step.square().mean().backward()
+    opt.step()
+    assert opt.last_probe_consumed is True
+    assert opt.probe_consumptions == 1
+    assert rec._g_probe_cache is None
+    assert gen.replay_calls == calls_before_step + 1
+    assert torch.equal(torch.get_rng_state(), torch_rng_before)
+    assert random.getstate() == py_rng_before
+    assert np.array_equal(np.random.get_state()[1], np_rng_before[1])
+    assert gen.training is True and bn.training is True
+    assert torch.equal(bn.running_mean, bn_mean_after_train)
+    assert torch.equal(bn.running_var, bn_var_after_train)
+    assert torch.equal(bn.num_batches_tracked, bn_tracked_after_train)
+
+    # Checkpoint schema remains unchanged:
+    sd = opt.state_dict()
+    opt2 = UnifiedV11EquilibratedOptimizer([{"params": list(gen.parameters()), "role": "generator", "lr": 0.01}])
+    opt2.load_state_dict(sd)
+    assert opt2.last_probe_consumed is False
+    assert opt2.probe_consumptions == 0
+
+
+def test_unified_v11_t1c_confident_critic_non_silencing_and_high_d_vector_bypass() -> None:
+    """Defect 1: confident critics never self-silence under T1CouplingLoss, and 2D vectors with D > 1024 take high-D bypass."""
+    recipe = get_recipe("unified_v11", training_precision="float32")
+    loss_fn = recipe.make_loss()
+    t1c = loss_fn.t1c
+
+    torch.manual_seed(0)
+    b_sz, dim = 256, 1170
+    x_real = torch.randn(b_sz, dim) * 0.35
+    x_fake = torch.randn(b_sz, dim) * 0.15
+    grad_norms = []
+    for margin in (0.0, 0.5, 1.0, 1.8, 3.0):
+        xf = x_fake.detach().clone().requires_grad_(True)
+        d_real = torch.full((b_sz, 1), +0.5 * margin)
+        d_fake = torch.full((b_sz, 1), -0.5 * margin, requires_grad=True)
+        t1c.ell_initialized.fill_(False)
+        t1c._ell_init_py = False
+        lg, _ = t1c(xf, x_real, d_fake, d_real, record=None, allow_ell_update=True)
+        lg.backward()
+        assert d_fake.grad is not None and xf.grad is not None
+        g_norm = float(d_fake.grad.norm().item())
+        grad_norms.append(g_norm)
+        assert g_norm > 1e-3, f"Confident critic silenced at margin={margin}: ||dL/dd_fake||={g_norm:.3e}"
+        if margin >= 1.0:
+            assert g_norm > 2e-3, f"Confident critic gradient too weak at margin={margin}: {g_norm:.3e}"
+    # Stronger critic margin produces stronger (monotonically non-decreasing) generator critic gradient:
+    assert grad_norms[-1] > grad_norms[0]
+
+    # High-D 2D vector (dim > 1024) bypasses Euclidean t1c in UnifiedV11 critic hook and loss, while keeping scale EMAs live:
+    d_net = _ToyDisc2D(in_dim=dim)
+    opt_d = recipe.make_critic_optimizer(d_net)
+    pen_fn = recipe.make_critic_penalty(opt_d)
+    loss_hd = recipe.make_loss()
+    loss_hd.record = opt_d.record
+    xr_hd = torch.randn(32, dim)
+    xf_hd = torch.randn(32, dim, requires_grad=True)
+    dr_hd = d_net(xr_hd)
+    df_hd = d_net(xf_hd)
+    assert getattr(dr_hd, "_t1c_bypassed", False) is True
+    assert getattr(df_hd, "_t1c_bypassed", False) is True
+    with mock.patch.object(loss_hd.t1c, "forward", side_effect=AssertionError("High-D 2D vector must bypass Euclidean t1c")):
+        gl_hd = loss_hd.g_loss(df_hd, dr_hd.detach())
+    gl_hd.backward()
+    assert xf_hd.grad is not None and float(xf_hd.grad.norm().item()) > 0.0
+    _ = pen_fn(d_net, xr_hd, xf_hd.detach())
+    assert opt_d.record.ema_data_scale > 5.0
+
+
+def test_unified_v11_thermal_no_premature_freeze_and_cooling_interactions() -> None:
+    """Defect 2: observe_t1c_thermal never freezes on collapsed masked high-D inputs or active critic margin, and cooling interactions are clean."""
+    recipe = get_recipe("unified_v11", training_precision="float32")
+    t1c = recipe.make_loss().t1c
+
+    # 1. Repro 2: 100%-collapsed value channels with matched sparse binary masks must stay hot (never freeze to 1e-6):
+    torch.manual_seed(0)
+    b_sz, d_val, p_obs = 256, 585, 0.045
+    rec_col = UnifiedV11StepRecord()
+    s_col = 1.0
+    for _ in range(400):
+        m_r = (torch.rand(b_sz, d_val) < p_obs).float()
+        m_f = (torch.rand(b_sz, d_val) < p_obs).float()
+        x_r = torch.cat([torch.randn(b_sz, d_val) * 0.35 * m_r, m_r], dim=1)
+        x_f = torch.cat([torch.zeros(b_sz, d_val), m_f], dim=1)
+        ell = t1c._batch_ell_quantile_tensor(x_r)
+        r_ed, r_mu_sq, r_spread, r_q90, r_hmax = t1c._split_two_sample_residuals(x_f, x_r, ell=ell)
+        s_col = rec_col.observe_t1c_thermal(r_ed, r_mu_sq, r_spread, r_q90, r_hmax, tau=0.084)
+    assert rec_col.ema_residual > 0.084
+    assert s_col == 1.0
+
+    # 2. True equilibrium (P_fake == P_real) still cleanly cools to <= 1e-4:
+    torch.manual_seed(0)
+    rec_eq = UnifiedV11StepRecord()
+    s_eq = 1.0
+    for _ in range(250):
+        xr_2 = torch.randn(64, 2)
+        xf_2 = torch.randn(64, 2)
+        ell_2 = t1c._batch_ell_quantile_tensor(xr_2)
+        vals_2 = t1c._split_two_sample_residuals(xf_2, xr_2, ell=ell_2)
+        s_eq = rec_eq.observe_t1c_thermal(*vals_2, tau=0.084)
+    assert s_eq <= 1e-4
+
+    # 3. Clear critic separation (ema_margin) prevents premature cooling even if Euclidean residuals are zero:
+    rec_m = UnifiedV11StepRecord()
+    rec_m.observe_margin_and_scale(torch.full((16, 1), 1.0), torch.full((16, 1), -1.0))
+    s_m = rec_m.observe_t1c_thermal(0.0, 0.0, 0.0, 0.0, 0.0, tau=0.084)
+    assert s_m == 1.0
+
+    # 4. Compounding interaction 1: UnifiedV11PriorRegularizer thermally scales z_dim > 4 when cooled:
+    torch.manual_seed(0)
+    rec_th = UnifiedV11StepRecord()
+    prior_reg = UnifiedV11PriorRegularizer(weight=1.0)
+    prior_reg.thermal_source = rec_th
+    rows_hot = torch.randn(128, 32, requires_grad=True)
+    rec_th._thermal_scale = 1.0
+    prior_reg(rows_hot).backward()
+    g_hot = float(rows_hot.grad.norm().item())
+    rows_cold = rows_hot.detach().clone().requires_grad_(True)
+    rec_th._thermal_scale = 1e-5
+    prior_reg(rows_cold).backward()
+    g_cold = float(rows_cold.grad.norm().item())
+    assert g_hot > 0.0 and g_cold / g_hot < 1e-4
+
+    # 5. Compounding interaction 2: gamma_gauge logit anchoring scales as sqrt(s_therm) (stays active vs s_therm):
+    d_bias = nn.Sequential(nn.Linear(4, 1))
+    with torch.no_grad():
+        d_bias[0].weight.zero_()
+        d_bias[0].bias.fill_(3.0)
+    opt_db = recipe.make_critic_optimizer(d_bias)
+    pen_db = recipe.make_critic_penalty(opt_db)
+    xr4, xf4 = torch.randn(16, 4), torch.randn(16, 4)
+    opt_db.record._thermal_scale = 1.0
+    opt_db.zero_grad()
+    pen_db(d_bias, xr4, xf4).backward()
+    g_bias_hot = abs(float(d_bias[0].bias.grad.item()))
+    opt_db.record._thermal_scale = 1e-4
+    opt_db.zero_grad()
+    pen_db(d_bias, xr4, xf4).backward()
+    g_bias_cold = abs(float(d_bias[0].bias.grad.item()))
+    # sqrt(1e-4) = 1e-2, so ratio is ~1e-2 (100x stronger than linear 1e-4):
+    assert g_bias_hot > 0.0 and 0.005 < (g_bias_cold / g_bias_hot) < 0.02
+
+
+def test_unified_v11_symmetric_high_d_secant_probe_and_no_ema_func_gain_lockout() -> None:
+    """Defect 3: symmetric element-budgeted G/D secant probing for dim > 32 and no ema_func_gain lockout."""
+    from particlegan._unified_v11.critic import _attach_unified_v11_critic_hook, record_unified_v11_generator_probe
+
+    torch.manual_seed(0)
+    dim = 1170
+    d_net = nn.Linear(dim, 1)
+    g_net = nn.Linear(32, dim)
+    rec = UnifiedV11StepRecord()
+    _attach_unified_v11_critic_hook(d_net, rec)
+    _ = d_net(torch.randn(32, dim))
+    z = torch.randn(32, 32)
+    captured_g = record_unified_v11_generator_probe(g_net, (z,), {}, g_net(z), rec)
+    assert len(rec._d_probe_list) == 1
+    assert rec._d_probe_list[0][2].shape[0] == min(32, max(2, min(16, 8192 // dim)))
+    assert captured_g is True and rec._g_probe_cache is not None
+
+    # Critic optimizer consumes the high-D secant probe:
+    rec_cfg = get_recipe("unified_v11", lr=0.01, training_precision="float32")
+    opt_g, opt_d = rec_cfg.make_optimizers(g_net, d_net)
+    x_in = torch.randn(32, dim)
+    opt_d.zero_grad()
+    d_net(x_in).square().mean().backward()
+    opt_d.step()
+    assert opt_d.last_probe_consumed is True and opt_d.probe_consumptions == 1
+
+    # No ema_func_gain lockout when pre_gain_applied shrinks delta_rel below 0.012:
+    g_small = nn.Linear(4, 4)
+    d_small = _ToyDisc2D(4)
+    p_small = MoGParticlePrior(num_particles=16, z_dim=4, sigma=0.05, standardize=False)
+    rec_l = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        lr=0.01,
+        batch_size=8,
+        num_particles=16,
+        z_dim=4,
+        total_steps=20,
+        training_precision="float32",
+    )
+    tr = GANTrainer(rec_l, g_small, d_small, prior=p_small, seed=0)
+    tr.opt_g._ema_func_gain = 0.12
+    before_fg = tr.opt_g._ema_func_gain
+    for _ in range(15):
+        tr.step(torch.randn(8, 4))
+    assert tr.opt_g._ema_func_gain > before_fg, "ema_func_gain remained locked out when depressed!"
+
+    # Frozen equilibrium (s_therm = 1e-6, tiny delta_rel < 1e-4) must NOT falsely bounce ema_func_gain upward:
+    tr.opt_g._ema_func_gain = 0.25
+    tr.opt_d.record._thermal_scale = 1e-6
+    tr.opt_d.record.ema_push_res = 0.0
+    g_probe_in = torch.randn(8, 4)
+    y_pre = g_small(g_probe_in)
+    assert record_unified_v11_generator_probe(g_small, (g_probe_in,), {}, y_pre, tr.opt_d.record) is True
+    tr.opt_g.zero_grad()
+    (1e-7 * y_pre.square().mean()).backward()
+    tr.opt_g.bind_protected_from_grads()
+    tr.opt_g.set_sampled_rows(p_small.z, torch.arange(8))
+    tr.opt_g.step()
+    assert tr.opt_g._ema_func_gain <= 0.25 + 1e-9
+
+
+def test_unified_v11_e2e_synthetic_masked_tabular_mixture_fixture() -> None:
+    """End-to-end synthetic sparse masked-tabular mixture ([x * m, m], D=1170) under unified_v11."""
+    dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    torch.manual_seed(0)
+    b_sz, d_val, p_obs = 256, 585, 0.05
+    dim = 2 * d_val
+    rng = torch.Generator(device=dev).manual_seed(42)
+    mode_centers = (torch.randint(0, 2, (4, d_val), generator=rng, device=dev).float() * 2.0 - 1.0) * 0.65
+
+    def _sample_real(bs: int) -> torch.Tensor:
+        m = (torch.rand(bs, d_val, generator=rng, device=dev) < p_obs).float()
+        c = torch.randint(0, 4, (bs,), generator=rng, device=dev)
+        x_raw = mode_centers[c] + 0.15 * torch.randn(bs, d_val, generator=rng, device=dev)
+        return torch.cat([x_raw * m, m], dim=1)
+
+    class _TabGen(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.net = nn.Sequential(nn.Linear(32, 256), nn.SiLU(), nn.Linear(256, 256), nn.SiLU(), nn.Linear(256, dim))
+
+        def forward(self, z: torch.Tensor) -> torch.Tensor:
+            out = self.net(z)
+            m_prob = torch.sigmoid(out[:, d_val:])
+            return torch.cat([out[:, :d_val] * m_prob, m_prob], dim=1)
+
+    class _TabDisc(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.net = nn.Sequential(nn.Linear(dim, 256), nn.SiLU(), nn.Linear(256, 128), nn.SiLU(), nn.Linear(128, 1))
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.net(x).squeeze(-1)
+
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=b_sz,
+        num_particles=400,
+        z_dim=32,
+        total_steps=250,
+        training_precision="float32",
+    )
+    g = _TabGen().to(dev)
+    d = _TabDisc().to(dev)
+    p = MoGParticlePrior(num_particles=400, z_dim=32, sigma=0.05, standardize=False, device=dev)
+    init.deterministic_orthogonal_(g, seed=1)
+    init.deterministic_orthogonal_(d, seed=2)
+    init.deterministic_orthogonal_(p, seed=3)
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called in high-D masked-tabular fixture!")
+
+    n_steps = 220 if dev.type == "cuda" else 60
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        for _ in range(n_steps):
+            trainer.step(_sample_real(b_sz))
+
+    assert trainer.opt_d.record._thermal_scale >= 0.5
+    assert trainer.opt_d.probe_consumptions == n_steps
+    assert trainer.opt_g.probe_consumptions == n_steps
+
+    # Verify active critic gradient through g_loss on freshly generated batch:
+    z_chk, _ = p.sample(64)
+    xf_chk = g(z_chk)
+    xr_chk = _sample_real(64)
+    df_chk = d(xf_chk)
+    df_chk.retain_grad()
+    dr_chk = d(xr_chk).detach()
+    trainer.loss.g_loss(df_chk, dr_chk).backward()
+    assert df_chk.grad is not None and float(df_chk.grad.norm().item()) > 1e-2
+
+    with torch.no_grad():
+        sf = trainer.sample(512)
+        sr = _sample_real(512)
+        xv_f, m_f = sf[:, :d_val], sf[:, d_val:]
+        xv_r, m_r = sr[:, :d_val], sr[:, d_val:]
+        val_rms_f = float((xv_f.square().sum(dim=1) / m_f.sum(dim=1).clamp_min(1.0)).sqrt().mean().item())
+        val_rms_r = float((xv_r.square().sum(dim=1) / m_r.sum(dim=1).clamp_min(1.0)).sqrt().mean().item())
+        assert val_rms_f > 0.45 * val_rms_r, f"Value spread collapsed: {val_rms_f:.3f} vs {val_rms_r:.3f}"
+        scores = (xv_f @ mode_centers.T) / m_f.sum(dim=1, keepdim=True).clamp_min(1.0)
+        asg = scores.argmax(dim=1)
+        populated_modes = sum(int((asg == k).sum().item()) >= 25 for k in range(4))
+        assert populated_modes >= 3, f"Mode collapse on masked tabular fixture: counts={[int((asg == k).sum().item()) for k in range(4)]}"
+        if dev.type == "cuda":
+            assert 0.015 < float(m_f.mean().item()) < 0.15
+

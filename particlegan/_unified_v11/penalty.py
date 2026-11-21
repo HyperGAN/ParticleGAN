@@ -1,6 +1,7 @@
 """Unified-v11 1st-Order Spatial-Frame Forward-Tangent & Multi-Probe Secant Born-Infeld Critic Penalty."""
 from __future__ import annotations
 
+import math
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
 import torch
@@ -170,7 +171,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
         is_image_tensor = x_real.ndim >= 3 and self.input_domain != "continuous"
         if not is_image_tensor:
-            return super().penalty(
+            res = super().penalty(
                 live,
                 x_real,
                 x_fake,
@@ -184,6 +185,9 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                 live_rep=live_rep,
                 quantized_fprop=quantized_fprop,
             )
+            if hasattr(self.record, "observe_scale") and not getattr(self.record, "_capture_ring", None):
+                self.record.observe_scale(x_real, x_fake)
+            return res
 
         if (
             self.coeff == 0.0
@@ -321,7 +325,9 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                 if self.gamma_gauge > 0.0:
                     eff_gauge = min(self.gamma_gauge, 0.005)
                     mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
-                    total = total + eff_gauge * mean_logit.square()
+                    gauge_pen = eff_gauge * mean_logit.square()
+                else:
+                    gauge_pen = x_real.new_zeros(())
                 norm_stat = 0.5 * (norm_r.detach().mean() + norm_f.detach().mean())
             finally:
                 self.record._in_penalty = False
@@ -329,10 +335,16 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
             if hasattr(self.record, "observe_scale") and not getattr(self.record, "_capture_ring", None):
                 self.record.observe_scale(z_r, z_f)
 
-            pen = 0.5 * coefficient * total
+            pen_lip = 0.5 * coefficient * total
+            pen_gauge = 0.5 * coefficient * gauge_pen
             s_therm = float(getattr(self.record, "_thermal_scale", 1.0))
-            if s_therm < 1.0 and pen.requires_grad:
-                pen = pen * s_therm + pen.detach() * (1.0 - s_therm)
+            if s_therm < 1.0:
+                if pen_lip.requires_grad:
+                    pen_lip = pen_lip * s_therm + pen_lip.detach() * (1.0 - s_therm)
+                if pen_gauge.requires_grad:
+                    s_gauge = math.sqrt(max(0.0, s_therm))
+                    pen_gauge = pen_gauge * s_gauge + pen_gauge.detach() * (1.0 - s_gauge)
+            pen = pen_lip + pen_gauge
 
             if not collect_stats:
                 return pen, {}

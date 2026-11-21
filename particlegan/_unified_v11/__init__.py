@@ -14,6 +14,7 @@ from .critic import (
     _attach_unified_v11_critic_hook,
     _attach_unified_v11_generator_hook,
     bind_unified_v11_record,
+    record_unified_v11_generator_probe,
 )
 from .loss import (
     UnifiedV11CouplingLoss,
@@ -55,6 +56,7 @@ __all__ = [
     "collect_conv_layouts",
     "quintic_orthogonalize_2d",
     "quintic_orthogonalize_batched",
+    "record_unified_v11_generator_probe",
     "should_use_unified_v11_pullback",
     "sym_eigensplit_zero_eigh",
     "unified_v11_conditional_loss",

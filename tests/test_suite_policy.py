@@ -155,21 +155,22 @@ def test_thread_restore_survives_a_test_that_stubs_the_torch_module(monkeypatch)
     monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(set_num_threads=lambda _: None))
 
 
-def test_minimum_supported_python_ci_job_runs_pytest():
+def test_ci_runs_one_complete_regression_suite_on_minimum_python():
     workflow = yaml.safe_load((ROOT / ".github/workflows/tests.yml").read_text())
     job = workflow["jobs"]["cpu-tests"]
-    matrix = job["strategy"]["matrix"]["include"]
-    assert {(item["python"], item["shard"]) for item in matrix} == {
-        (version, shard) for version in ("3.11", "3.12") for shard in range(4)
-    }
+    matrix = job["strategy"]["matrix"]
+    assert matrix == {"shard": list(range(8))}
+    python = [step for step in job["steps"] if step.get("uses", "").startswith("actions/setup-python")]
+    assert len(python) == 1 and python[0]["with"]["python-version"] == "3.11"
     runs = [step for step in job["steps"] if "scripts/ci_pytest.py run" in step.get("run", "")]
     assert len(runs) == 1 and "if" not in runs[0]
-    assert "--count 4" in runs[0]["run"]
-    assert "${{ matrix.python }}" in runs[0]["run"]
-    # Both complete interpreter suites must feed separate release coverage checks.
+    assert "--index ${{ matrix.shard }} --count 8" in runs[0]["run"]
+    receipt = "/tmp/pytest-shard-${{ matrix.shard }}.json"
+    assert f"--receipt {receipt}" in runs[0]["run"]
     uploads = [step for step in job["steps"] if step.get("uses", "").startswith("actions/upload-artifact")]
-    assert uploads and all(step.get("if") == "always()" for step in uploads)
-    assert all("${{ matrix.python }}" in step["with"]["path"] for step in uploads)
-    checks = "\n".join(step.get("run", "") for step in workflow["jobs"]["distributions"]["steps"])
-    for version in ("3.11", "3.12"):
-        assert f"scripts/ci_pytest.py check /tmp/pytest-shards/pytest-{version}-shard-*.json" in checks
+    assert len(uploads) == 1 and uploads[0]["if"] == "always()"
+    assert uploads[0]["with"]["path"] == receipt
+    distributions = workflow["jobs"]["distributions"]
+    assert "cpu-tests" in distributions["needs"]
+    checks = [step["run"] for step in distributions["steps"] if "scripts/ci_pytest.py check" in step.get("run", "")]
+    assert checks == ["python scripts/ci_pytest.py check /tmp/pytest-shards/pytest-shard-*.json"]

@@ -41,10 +41,10 @@ from .._unified_v4.optimizer import (
     _ALLOWED_ROLES,
     _QUINTIC_COEFFS,
     _band_scale,
-    _eval_probe_forward,
     _smoothstep01,
     collect_conv_layouts,
 )
+from .critic import _eval_v11_probe_forward as _eval_probe_forward
 
 
 _EYE_CACHE: Dict[Tuple[torch.device, int, torch.dtype], torch.Tensor] = {}
@@ -392,6 +392,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._origin_norm: Optional[float] = None
         self.last_step_gain: float = 1.0
         self._ema_func_gain: float = 1.0
+        self.last_probe_consumed: bool = False
+        self.probe_consumptions: int = 0
 
         self._protected: Optional[torch.Tensor] = None
         self._protected_single: bool = False
@@ -464,6 +466,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     def set_row_scales(self, parameter: torch.Tensor, scales: torch.Tensor) -> None:
         self._row_scales[parameter] = scales.detach().to(device=parameter.device, dtype=torch.float32)
+
+    def set_generator_probe_parameters(self, parameters: Iterable[torch.Tensor]) -> None:
+        """Associate the generator secant probe with the unique trainable parameters affecting its output."""
+        self._gen_param_ids = {id(p) for p in parameters}
 
     def clear_sampled_rows(self) -> None:
         self._sampled_rows.clear()
@@ -940,12 +946,14 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             ema_m = float(getattr(rec, "ema_margin", 0.0)) if getattr(rec, "margin_initialized", False) else 0.0
                             inv_gap = min(25.0, max(0.0, -ema_m - 1.5))
                             th_d = max(0.15, math.sqrt(s_therm)) if s_therm < 1.0 else 1.0
+                            th_tikh = min(1.0, s_therm / 0.03) if s_therm < 0.03 else 1.0
                             delta_d_min = 0.12 * inv_gap * th_d
                             delta_d_max = (0.55 * step_scale + 0.20 * inv_gap) * th_d
                             alpha_gain = _band_scale(delta_d, delta_d_min, delta_d_max, alpha_max=64.0)
                             if math.isfinite(delta_d) and delta_d > 1e-12:
-                                free_ratio = (delta_d_max / delta_d) * pre_gain_applied
-                            step_active_probe = math.isfinite(delta_d) and delta_d >= 0.05
+                                free_ratio = (delta_d_max / delta_d) * pre_gain_applied * min(1.0, th_tikh / max(th_d, 1e-6))
+                            active_thresh_d = max(1e-4, 0.01 * pre_gain_applied * step_scale * min(th_d, th_tikh))
+                            step_active_probe = math.isfinite(delta_d) and delta_d >= active_thresh_d
                 else:
                     probe_cache = getattr(rec, "_g_probe_cache", None)
                     rec._g_probe_cache = None
@@ -967,10 +975,13 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             else:
                                 delta_g_min = 0.0
                             alpha_gain = _band_scale(delta_rel, delta_g_min, delta_g_max, alpha_max=48.0)
+                            th_tikh = min(1.0, s_therm / 0.03) if s_therm < 0.03 else 1.0
+                            mean_coh = float(torch.stack(coh_vals).mean().item()) if coh_vals else 1.0
+                            coh_eff = max(0.05, mean_coh)
                             if math.isfinite(delta_rel) and delta_rel > 1e-12:
-                                mean_coh = float(torch.stack(coh_vals).mean().item()) if coh_vals else 1.0
-                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * max(0.05, mean_coh)
-                            step_active_probe = math.isfinite(delta_rel) and delta_rel >= 0.012
+                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * th_tikh * coh_eff
+                            active_thresh_g = max(1e-4, 0.002 * pre_gain_applied * step_scale * th_tikh * coh_eff)
+                            step_active_probe = math.isfinite(delta_rel) and delta_rel >= active_thresh_g
                 if alpha_gain != 1.0:
                     adj = alpha_gain - 1.0
                     for p_i, d_i in applied_deltas:
@@ -982,10 +993,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     if alpha_gain < 1.0:
                         target_fg = max(0.05, min(1.0, pre_gain_applied * alpha_gain))
                         self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
-                    elif step_active_probe and free_ratio > 1.5:
-                        target_fg = max(0.05, min(1.0, free_ratio))
+                    elif step_active_probe and free_ratio > max(1.15 * self._ema_func_gain, 0.05):
+                        target_fg = max(0.05, min(1.0, 0.90 * free_ratio))
                         if target_fg > self._ema_func_gain:
-                            self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
+                            self._ema_func_gain = float(0.995 * self._ema_func_gain + 0.005 * target_fg)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
 
@@ -1034,6 +1045,9 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 stats["max_derivative_after"] = max(stats["max_derivative_after"], after_max)
 
             self.last_step_gain = float(alpha_gain)
+            self.last_probe_consumed = bool(probe_ran)
+            if probe_ran:
+                self.probe_consumptions += 1
         finally:
             self.abort_pending()
 
@@ -1161,6 +1175,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         meta = state_dict["unified_v11_equil"]
         self.last_step_gain = float(meta["last_step_gain"])
         self._ema_func_gain = float(meta["ema_func_gain"])
+        self.last_probe_consumed = False
+        self.probe_consumptions = 0
         for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
             if rows is not None and grp["algorithm"] == "unified_prior":
                 self.set_sampled_rows(grp["params"][0], rows.to(grp["params"][0].device))

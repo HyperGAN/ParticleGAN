@@ -70,7 +70,6 @@ jobs:
   checks:
     name: Test and build release
     needs: validate-release
-    if: needs.validate-release.outputs.publish == 'true'
     uses: ./.github/workflows/tests.yml
     with:
       source_ref: ${{ needs.validate-release.outputs.source_sha }}
@@ -78,6 +77,7 @@ jobs:
   publish:
     name: Publish tested distributions
     needs: [validate-release, checks]
+    if: needs.validate-release.outputs.publish == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     concurrency:
