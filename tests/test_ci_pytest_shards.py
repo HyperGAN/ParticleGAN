@@ -29,7 +29,8 @@ def test_case(value, request):
         receipt = tmp_path / f"receipt-{index}.json"
         result = subprocess.run([
             sys.executable, str(RUNNER), "run", "--index", str(index),
-            "--count", "4", "--receipt", str(receipt), "--", "-q", str(tmp_path),
+            "--count", "4", "--receipt", str(receipt), "--split-file", "test_one.py",
+            "--", "-q", str(tmp_path),
         ], cwd=tmp_path, env={**os.environ, "CI_SHARD_EXECUTED": str(marker)},
             capture_output=True, text=True, timeout=60)
         assert result.returncode == 0, result.stdout + result.stderr
@@ -38,6 +39,11 @@ def test_case(value, request):
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     module.check_receipts(receipts)
+    owners = {node: index for index, receipt in enumerate(receipts)
+              for node in json.loads(receipt.read_text())["selected_nodeids"]}
+    assert owners["test_one.py::test_case[0]"] != owners["test_one.py::test_case[1]"]
+    for name in ("two", "three"):
+        assert owners[f"test_{name}.py::test_case[0]"] == owners[f"test_{name}.py::test_case[1]"]
     executed = [json.loads(line) for line in marker.read_text().splitlines()]
     assert len(executed) == len(set(executed)) == 6
     with pytest.raises(ValueError, match="Missing or duplicate"):
