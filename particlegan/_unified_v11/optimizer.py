@@ -41,10 +41,10 @@ from .._unified_v4.optimizer import (
     _ALLOWED_ROLES,
     _QUINTIC_COEFFS,
     _band_scale,
-    _eval_probe_forward,
     _smoothstep01,
     collect_conv_layouts,
 )
+from .critic import _eval_v11_probe_forward as _eval_probe_forward
 
 
 _EYE_CACHE: Dict[Tuple[torch.device, int, torch.dtype], torch.Tensor] = {}
@@ -392,6 +392,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._origin_norm: Optional[float] = None
         self.last_step_gain: float = 1.0
         self._ema_func_gain: float = 1.0
+        self.last_probe_consumed: bool = False
+        self.probe_consumptions: int = 0
 
         self._protected: Optional[torch.Tensor] = None
         self._protected_single: bool = False
@@ -464,6 +466,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     def set_row_scales(self, parameter: torch.Tensor, scales: torch.Tensor) -> None:
         self._row_scales[parameter] = scales.detach().to(device=parameter.device, dtype=torch.float32)
+
+    def set_generator_probe_parameters(self, parameters: Iterable[torch.Tensor]) -> None:
+        """Associate the generator secant probe with the unique trainable parameters affecting its output."""
+        self._gen_param_ids = {id(p) for p in parameters}
 
     def clear_sampled_rows(self) -> None:
         self._sampled_rows.clear()
@@ -1034,6 +1040,9 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 stats["max_derivative_after"] = max(stats["max_derivative_after"], after_max)
 
             self.last_step_gain = float(alpha_gain)
+            self.last_probe_consumed = bool(probe_ran)
+            if probe_ran:
+                self.probe_consumptions += 1
         finally:
             self.abort_pending()
 
@@ -1161,6 +1170,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         meta = state_dict["unified_v11_equil"]
         self.last_step_gain = float(meta["last_step_gain"])
         self._ema_func_gain = float(meta["ema_func_gain"])
+        self.last_probe_consumed = False
+        self.probe_consumptions = 0
         for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
             if rows is not None and grp["algorithm"] == "unified_prior":
                 self.set_sampled_rows(grp["params"][0], rows.to(grp["params"][0].device))

@@ -3,6 +3,8 @@ from __future__ import annotations
 
 from collections import OrderedDict
 import math
+import random
+import sys
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
@@ -46,7 +48,64 @@ def _slice_probe_arg(val: Any, b_full: int, b_probe: int) -> Any:
         if val.ndim >= 1 and val.shape[0] == b_full:
             return val.detach()[:b_probe]
         return val.detach()
+    if isinstance(val, dict):
+        return {k: _slice_probe_arg(v, b_full, b_probe) for k, v in val.items()}
+    if isinstance(val, tuple):
+        return tuple(_slice_probe_arg(v, b_full, b_probe) for v in val)
+    if isinstance(val, list):
+        return [_slice_probe_arg(v, b_full, b_probe) for v in val]
     return val
+
+
+@torch.no_grad()
+def _eval_v11_probe_forward(
+    module: nn.Module,
+    args: Tuple[Any, ...],
+    kwargs: Dict[str, Any],
+    record: Any,
+) -> Optional[torch.Tensor]:
+    """Evaluate ``module(*args, **kwargs)`` in ``eval()`` mode without mutating RNGs, hooks, or BN buffers."""
+    modes = [(m, m.training) for m in module.modules()]
+    prev_probe = bool(getattr(record, "_in_probe", False)) if record is not None else False
+    cpu_rng = torch.get_rng_state()
+    py_rng = random.getstate()
+    np_mod = sys.modules.get("numpy")
+    np_rng = np_mod.random.get_state() if np_mod is not None and hasattr(np_mod, "random") else None
+    cuda_rng = None
+    cuda_dev = None
+    if torch.cuda.is_initialized():
+        cuda_dev = torch.cuda.current_device()
+        cuda_rng = torch.cuda.get_rng_state(cuda_dev)
+    if record is not None:
+        record._in_probe = True
+    try:
+        module.eval()
+        first_p = next(module.parameters(), None)
+        use_bf16 = (
+            first_p is not None
+            and first_p.device.type == "cuda"
+            and bool(getattr(module, "_unified_v4_bf16_autocast", False))
+        )
+        if use_bf16:
+            with torch.autocast("cuda", dtype=torch.bfloat16):
+                out = module(*args, **kwargs)
+        else:
+            out = module(*args, **kwargs)
+        target = out[0] if isinstance(out, (tuple, list)) and out else out
+        if not isinstance(target, torch.Tensor):
+            return None
+        return target.detach().to(dtype=torch.float32)
+    finally:
+        if record is not None:
+            record._in_probe = prev_probe
+        for m, flag in modes:
+            m.training = flag
+        torch.set_rng_state(cpu_rng)
+        if cuda_rng is not None and cuda_dev is not None:
+            torch.cuda.set_rng_state(cuda_rng, cuda_dev)
+        random.setstate(py_rng)
+        if np_rng is not None and np_mod is not None:
+            np_mod.random.set_state(np_rng)
 
 
 def _validate_unified_v11_packet(packet: Any) -> Dict[str, Any]:
@@ -433,6 +492,67 @@ def _unified_v11_critic_forward_hook(
     return output if modified else None
 
 
+def _module_needs_eval_probe_baseline(module: nn.Module) -> bool:
+    cached = getattr(module, "_unified_v11_gen_has_bn", None)
+    if isinstance(cached, bool):
+        return cached
+    return any(
+        isinstance(m, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd))
+        for m in module.modules()
+    )
+
+
+def record_unified_v11_generator_probe(
+    module: nn.Module,
+    args: Tuple[Any, ...],
+    kwargs: Dict[str, Any],
+    output: Any,
+    record: Any,
+    *,
+    require_module_training: bool = True,
+) -> bool:
+    """Capture an element-budgeted generator probe for Unified-v11 function-space secant regulation.
+
+    Supports single-tensor and multi-input/composite generator modules whose ``forward(*args, **kwargs)``
+    replays the full generator computation from sampled latent (and conditioning) to generated output.
+    """
+    if (
+        record is None
+        or getattr(record, "_in_probe", False)
+        or getattr(record, "_in_penalty", False)
+        or getattr(record, "_in_protected_probe", False)
+        or not getattr(record, "_enable_secant_probe", True)
+        or (require_module_training and not module.training)
+        or not torch.is_grad_enabled()
+    ):
+        return False
+    raw_out = output[0] if isinstance(output, (tuple, list)) and output else output
+    if (
+        not isinstance(raw_out, torch.Tensor)
+        or not raw_out.is_floating_point()
+        or not raw_out.requires_grad
+        or raw_out.ndim < 2
+        or raw_out.shape[0] < 1
+    ):
+        return False
+    import torch.autograd.forward_ad as fwAD
+    if fwAD.unpack_dual(raw_out).tangent is not None:
+        return False
+    b_full = int(raw_out.shape[0])
+    out_dim = max(1, int(raw_out[0].numel()))
+    b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // out_dim)))
+    p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
+    p_kwargs = {k: _slice_probe_arg(v, b_full, b_p) for k, v in kwargs.items()}
+    if _module_needs_eval_probe_baseline(module):
+        y_pre = _eval_v11_probe_forward(module, p_args, p_kwargs, record)
+        if y_pre is None:
+            return False
+    else:
+        y_pre = raw_out.detach()[:b_p].to(dtype=torch.float32)
+    record._g_probe_cache = (module, p_args, p_kwargs, y_pre)
+    return True
+
+
 def _unified_v11_generator_forward_hook(
     module: nn.Module,
     args: Tuple[Any, ...],
@@ -441,42 +561,9 @@ def _unified_v11_generator_forward_hook(
 ) -> None:
     """Capture a dimension-agnostic element-budgeted generator slice for function-space secant trust-band regulation."""
     rec = getattr(module, "_unified_v11_record", None)
-    if (
-        rec is None
-        or getattr(rec, "_in_probe", False)
-        or getattr(rec, "_in_penalty", False)
-        or getattr(rec, "_in_protected_probe", False)
-        or not getattr(rec, "_enable_secant_probe", True)
-        or not module.training
-        or not torch.is_grad_enabled()
-        or len(args) != 1
-        or bool(kwargs)
-    ):
+    if not getattr(module, "_unified_v11_allow_multi_input", False) and (len(args) != 1 or bool(kwargs)):
         return
-    raw_out = output[0] if isinstance(output, (tuple, list)) and output else output
-    if (
-        not isinstance(raw_out, torch.Tensor)
-        or not raw_out.requires_grad
-        or raw_out.ndim < 2
-        or raw_out.shape[0] < 1
-    ):
-        return
-    import torch.autograd.forward_ad as fwAD
-    if fwAD.unpack_dual(raw_out).tangent is not None:
-        return
-    b_full = int(raw_out.shape[0])
-    out_dim = max(1, int(raw_out[0].numel()))
-    b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // out_dim)))
-    p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
-    p_kwargs = {k: _slice_probe_arg(v, b_full, b_p) for k, v in kwargs.items()}
-    if getattr(module, "_unified_v11_gen_has_bn", False):
-        from .._unified_v4.optimizer import _eval_probe_forward
-        y_pre = _eval_probe_forward(module, p_args, p_kwargs, rec)
-        if y_pre is None:
-            return
-    else:
-        y_pre = raw_out.detach()[:b_p].to(dtype=torch.float32)
-    rec._g_probe_cache = (module, p_args, p_kwargs, y_pre)
+    record_unified_v11_generator_probe(module, args, kwargs, output, rec, require_module_training=True)
 
 
 def _attach_unified_v11_critic_hook(critic: nn.Module | None, record: CriticStepRecord) -> None:
@@ -507,13 +594,20 @@ def _attach_unified_v11_critic_hook(critic: nn.Module | None, record: CriticStep
     critic._unified_v11_hook_registered = True
 
 
-def _attach_unified_v11_generator_hook(generator: nn.Module | None, record: CriticStepRecord) -> None:
+def _attach_unified_v11_generator_hook(
+    generator: nn.Module | None,
+    record: CriticStepRecord,
+    *,
+    allow_multi_input: bool = False,
+) -> None:
     """Attach instance-local unified_v11 secant probe hook to ``generator``."""
     if not isinstance(generator, nn.Module):
         return
     generator._unified_v11_record = record
+    generator._unified_v11_allow_multi_input = bool(allow_multi_input)
     generator._unified_v11_gen_has_bn = any(
-        isinstance(m, torch.nn.modules.batchnorm._BatchNorm) for m in generator.modules()
+        isinstance(m, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd))
+        for m in generator.modules()
     )
     if getattr(generator, "_unified_v11_gen_hook_registered", False):
         return
@@ -583,10 +677,12 @@ __all__ = [
     "_attach_unified_v11_critic_hook",
     "_attach_unified_v11_generator_hook",
     "_cond_signature",
+    "_eval_v11_probe_forward",
     "_extract_t1c_inputs_parts",
     "_lookup_t1c_capture_parts",
     "_record_t1c_capture",
     "_tensor_identity_key",
     "_validate_unified_v11_packet",
     "bind_unified_v11_record",
+    "record_unified_v11_generator_probe",
 ]
