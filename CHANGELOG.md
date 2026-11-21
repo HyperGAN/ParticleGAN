@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Public Unified-v11 composite generator probe capture & RNG-safe replay (`particlegan.unified_v11`).**
+  - Export `record_unified_v11_generator_probe` (with recursive nested container/dict slicing for conditioning inputs and eval-mode baseline capture for BatchNorm/Dropout subgraphs) and `UnifiedV11EquilibratedOptimizer.set_generator_probe_parameters(...)` so composite multi-component generators (such as HyperGAN `ComponentGraph` models) can register full-graph secant probes without mutating checkpoint schemas.
+  - Preserve CPU/CUDA/Python/NumPy RNG states in addition to per-submodule `.training` modes and BatchNorm running statistics during Unified-v11 probe replay (`_eval_v11_probe_forward`).
+  - Expose transient runtime probe-consumption counters (`last_probe_consumed`, `probe_consumptions`) on `UnifiedV11EquilibratedOptimizer` without changing optimizer `state_dict()` schemas.
+
 ## 0.11.1 — 2026-11-20
 
 - **Fix autograd-hook VRAM leak in live-endpoint critic captures (PR #585).**

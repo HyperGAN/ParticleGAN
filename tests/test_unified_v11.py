@@ -789,3 +789,120 @@ torch.save({{"sample": tr.sample(4), "d": tr.D.state_dict()}}, {str(out_path)!r}
     assert torch.equal(sample_ref, resumed["sample"])
     for k, v in d_ref.items():
         assert torch.equal(v, resumed["d"][k]), f"4D D mismatch {k}"
+
+
+def test_unified_v11_composite_generator_probe_record_replay_and_rng_preservation() -> None:
+    """Public ``record_unified_v11_generator_probe`` supports multi-input composite graphs,
+    nested conditioning dicts, RNG/mode/BN preservation, and direct consumption reporting."""
+    import random
+    import numpy as np
+    from particlegan.unified_v11 import (
+        UnifiedV11EquilibratedOptimizer,
+        UnifiedV11StepRecord,
+        bind_unified_v11_record,
+        record_unified_v11_generator_probe,
+    )
+
+    class _CompositeGen(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.shared = nn.Sequential(nn.Linear(4, 8), nn.BatchNorm1d(8), nn.ReLU())
+            self.branch_a = nn.Sequential(nn.Linear(8, 4), nn.Dropout(0.25))
+            self.branch_b = nn.Linear(8 + 2, 4)
+            self.replay_calls = 0
+
+        def forward(self, z: torch.Tensor, *, batch: dict[str, torch.Tensor]) -> torch.Tensor:
+            self.replay_calls += 1
+            # Deliberately draw from torch/python/numpy RNGs to verify probe replay restores them.
+            _ = torch.randn(1)
+            _ = random.random()
+            _ = float(np.random.rand())
+            h = self.shared(z)
+            a = self.branch_a(h)
+            b = self.branch_b(torch.cat([h, batch["cond"]], dim=-1))
+            return a + b
+
+    torch.manual_seed(11)
+    gen = _CompositeGen()
+    rec = UnifiedV11StepRecord()
+    opt = UnifiedV11EquilibratedOptimizer([{"params": list(gen.parameters()), "role": "generator", "lr": 0.01}])
+    bind_unified_v11_record(rec, opt)
+    opt._unified_v11_record = rec
+    opt.set_generator_probe_parameters(gen.parameters())
+
+    z = torch.randn(8, 4)
+    cond = torch.randn(8, 2)
+    gen.train()
+    y = gen(z, batch={"cond": cond, "ignored": torch.randn(8, 1)})
+    bn = gen.shared[1]
+    bn_mean_after_train = bn.running_mean.detach().clone()
+    bn_var_after_train = bn.running_var.detach().clone()
+    bn_tracked_after_train = bn.num_batches_tracked.detach().clone()
+
+    torch_rng_before = torch.get_rng_state()
+    py_rng_before = random.getstate()
+    np_rng_before = np.random.get_state()
+
+    captured = record_unified_v11_generator_probe(gen, (z,), {"batch": {"cond": cond}}, y, rec)
+    assert captured is True
+    assert rec._g_probe_cache is not None
+    # Capture with BN/Dropout ran eval probe without mutating RNGs, modes, or BN stats:
+    assert torch.equal(torch.get_rng_state(), torch_rng_before)
+    assert random.getstate() == py_rng_before
+    assert np.array_equal(np.random.get_state()[1], np_rng_before[1])
+    assert gen.training is True and bn.training is True
+    assert torch.equal(bn.running_mean, bn_mean_after_train)
+    assert torch.equal(bn.running_var, bn_var_after_train)
+    assert torch.equal(bn.num_batches_tracked, bn_tracked_after_train)
+
+    # Identical weights replay reproduces y_pre exactly:
+    g_mod, p_args, p_kwargs, y_pre = rec._g_probe_cache
+    from particlegan._unified_v11.critic import _eval_v11_probe_forward
+    y_same = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_same is not None
+    assert torch.allclose(y_same, y_pre, atol=1e-6, rtol=1e-6)
+
+    # Perturbing either upstream branch changes replayed output:
+    with torch.no_grad():
+        gen.branch_a[0].weight.add_(0.25)
+    y_pert_a = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_pert_a is not None and not torch.allclose(y_pert_a, y_pre, atol=1e-5)
+    with torch.no_grad():
+        gen.branch_a[0].weight.sub_(0.25)
+        gen.branch_b.weight.add_(0.25)
+    y_pert_b = _eval_v11_probe_forward(g_mod, p_args, p_kwargs, rec)
+    assert y_pert_b is not None and not torch.allclose(y_pert_b, y_pre, atol=1e-5)
+    with torch.no_grad():
+        gen.branch_b.weight.sub_(0.25)
+
+    # Optimizer step consumes the probe directly and restores RNGs/modes/BN stats:
+    y_step = gen(z, batch={"cond": cond, "ignored": torch.randn(8, 1)})
+    bn_mean_after_train = bn.running_mean.detach().clone()
+    bn_var_after_train = bn.running_var.detach().clone()
+    bn_tracked_after_train = bn.num_batches_tracked.detach().clone()
+    assert record_unified_v11_generator_probe(gen, (z,), {"batch": {"cond": cond}}, y_step, rec) is True
+    torch_rng_before = torch.get_rng_state()
+    py_rng_before = random.getstate()
+    np_rng_before = np.random.get_state()
+    calls_before_step = gen.replay_calls
+    opt.zero_grad(set_to_none=True)
+    y_step.square().mean().backward()
+    opt.step()
+    assert opt.last_probe_consumed is True
+    assert opt.probe_consumptions == 1
+    assert rec._g_probe_cache is None
+    assert gen.replay_calls == calls_before_step + 1
+    assert torch.equal(torch.get_rng_state(), torch_rng_before)
+    assert random.getstate() == py_rng_before
+    assert np.array_equal(np.random.get_state()[1], np_rng_before[1])
+    assert gen.training is True and bn.training is True
+    assert torch.equal(bn.running_mean, bn_mean_after_train)
+    assert torch.equal(bn.running_var, bn_var_after_train)
+    assert torch.equal(bn.num_batches_tracked, bn_tracked_after_train)
+
+    # Checkpoint schema remains unchanged:
+    sd = opt.state_dict()
+    opt2 = UnifiedV11EquilibratedOptimizer([{"params": list(gen.parameters()), "role": "generator", "lr": 0.01}])
+    opt2.load_state_dict(sd)
+    assert opt2.last_probe_consumed is False
+    assert opt2.probe_consumptions == 0

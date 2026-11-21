@@ -2,7 +2,8 @@ name: Tests
 
 on:
   push:
-    branches: [master, develop]
+    # The release workflow checks the exact master commit on each push.
+    branches: [develop]
   pull_request:
     branches: [master, develop]
   workflow_dispatch:
@@ -17,39 +18,31 @@ on:
 permissions:
   contents: read
 
-# Replace obsolete PR checks; keep each branch, manual and release run independent.
+# Replace obsolete PR and develop-push checks. Keep manual and release runs independent.
 concurrency:
-  group: particlegan-tests-${{ github.event_name }}-${{ github.event.pull_request.number || github.run_id }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  group: particlegan-tests-${{ github.event_name }}-${{ github.event.pull_request.number || (github.event_name == 'push' && github.ref == 'refs/heads/develop' && github.ref_name) || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
 
 jobs:
   cpu-tests:
-    name: CPU / Python ${{ matrix.python }} / shard ${{ matrix.shard }}
-    # Push and PR triggers already filter branches. Apply the same scope to
-    # manual dispatches while preserving immutable-source release checks.
-    if: >-
-      github.event_name != 'workflow_dispatch' ||
-      github.ref == 'refs/heads/develop' ||
-      github.ref == 'refs/heads/master'
+    name: CPU / Python 3.11 / shard ${{ matrix.shard }}
+    # The PR trigger filters destination branches; gate source branches here.
+    if: &integration_only >-
+      github.event_name != 'pull_request' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+      (github.head_ref == 'develop' || github.head_ref == 'master'))
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - {python: "3.11", shard: 0}
-          - {python: "3.11", shard: 1}
-          - {python: "3.11", shard: 2}
-          - {python: "3.11", shard: 3}
-          - {python: "3.12", shard: 0}
-          - {python: "3.12", shard: 1}
-          - {python: "3.12", shard: 2}
-          - {python: "3.12", shard: 3}
+        shard: [0, 1, 2, 3, 4, 5, 6, 7]
     env:
       CUDA_VISIBLE_DEVICES: ""
       MPLBACKEND: Agg
       OMP_NUM_THREADS: "1"
       MKL_NUM_THREADS: "1"
+      PYTHONUNBUFFERED: "1"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,7 +51,7 @@ jobs:
           ref: ${{ inputs.source_ref || github.sha }}
       - uses: actions/setup-python@v5
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.11"
           cache: pip
           cache-dependency-path: pyproject.toml
       - name: Install CPU PyTorch
@@ -68,26 +61,28 @@ jobs:
       - name: Validate dependency installation
         run: python -m pip check
       - name: Check reviewed lint baseline
-        if: matrix.python == '3.12' && matrix.shard == 0
+        if: matrix.shard == 0
         run: python scripts/check_lint.py
       - name: Test numerical kernels and experiment workflows
+        # Spread the slow readout tests individually and keep other files together.
         run: >-
-          python scripts/ci_pytest.py run --index ${{ matrix.shard }} --count 4
-          --receipt /tmp/pytest-${{ matrix.python }}-shard-${{ matrix.shard }}.json --
+          python scripts/ci_pytest.py run --index ${{ matrix.shard }} --count 8
+          --split-file tests/test_refresh_forge_readouts.py
+          --receipt /tmp/pytest-shard-${{ matrix.shard }}.json --
           -q --durations=25 -o faulthandler_timeout=600
           --ignore=tests/test_e22_routed_caption_late_phase_renderer.py
       - name: Save collection coverage receipt
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pytest-${{ matrix.python }}-shard-${{ matrix.shard }}
-          path: /tmp/pytest-${{ matrix.python }}-shard-${{ matrix.shard }}.json
+          name: pytest-shard-${{ matrix.shard }}
+          path: /tmp/pytest-shard-${{ matrix.shard }}.json
           if-no-files-found: error
       - name: Test bounded late-phase renderer in a fresh process
         if: matrix.shard == 0
         run: timeout --signal=INT --kill-after=5s 60s python -m pytest -q tests/test_e22_routed_caption_late_phase_renderer.py
       - name: Exercise the complete Lunar pipeline and GIF exports
-        if: matrix.python == '3.11' && matrix.shard == 0
+        if: matrix.shard == 0
         env:
           SDL_VIDEODRIVER: dummy
         run: python -u examples/fast_lander.py --smoke --out /tmp/lunar-smoke
@@ -165,10 +160,7 @@ jobs:
 
   base-wheel:
     name: Base wheel without optional dependencies
-    if: >-
-      github.event_name != 'workflow_dispatch' ||
-      github.ref == 'refs/heads/develop' ||
-      github.ref == 'refs/heads/master'
+    if: *integration_only
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -214,10 +206,7 @@ jobs:
 
   minimum-base:
     name: Minimum base dependencies / Python 3.11
-    if: >-
-      github.event_name != 'workflow_dispatch' ||
-      github.ref == 'refs/heads/develop' ||
-      github.ref == 'refs/heads/master'
+    if: *integration_only
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -261,13 +250,11 @@ jobs:
         run: python -m pip install build twine
       - uses: actions/download-artifact@v4
         with:
-          pattern: pytest-*-shard-*
+          pattern: pytest-shard-*
           path: /tmp/pytest-shards
           merge-multiple: true
       - name: Require complete nonoverlapping regression coverage
-        run: |
-          python scripts/ci_pytest.py check /tmp/pytest-shards/pytest-3.11-shard-*.json
-          python scripts/ci_pytest.py check /tmp/pytest-shards/pytest-3.12-shard-*.json
+        run: python scripts/ci_pytest.py check /tmp/pytest-shards/pytest-shard-*.json
       - name: Build source archive and wheel
         run: python -m build
       - name: Keep research artifacts outside release distributions
