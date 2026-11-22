@@ -1525,4 +1525,371 @@ torch.save(
         _assert_tree_eq(ref_state["models"][m_name], resumed["models"][m_name], m_name)
 
 
+class _ToyDeepResBNDisc(nn.Module):
+    """Deep Pre-RMSNorm residual critic with branch-output RMSNorm for Issue-2 depth-scaling tests."""
+
+    def __init__(self, in_dim: int = 1088, hidden: int = 64, depth: int = 2) -> None:
+        super().__init__()
+        self.depth = int(depth)
+        self.inp = nn.Linear(in_dim, hidden)
+        self.in_projs = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(depth)])
+        self.out_projs = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(depth)])
+        self.head = nn.Linear(hidden, 1)
+
+    @staticmethod
+    def _rms_norm(x: torch.Tensor) -> torch.Tensor:
+        return x * torch.rsqrt(x.square().mean(dim=-1, keepdim=True) + 1e-6)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        h = nn.functional.leaky_relu(self.inp(x), negative_slope=0.2)
+        scale = 0.5 / float(max(1, self.depth))
+        for w_in, w_out in zip(self.in_projs, self.out_projs):
+            br = w_out(nn.functional.leaky_relu(w_in(self._rms_norm(h)), negative_slope=0.2))
+            h = h + scale * self._rms_norm(br)
+        return self.head(self._rms_norm(h)).squeeze(-1)
+
+
+def test_unified_v11_critic_schatten6_spectral_control_and_deep_resbn_continuation(tmp_path: Path) -> None:
+    """Issue 2 semantic controls for zero-SVD exact-deadband Schatten-6 spectral decay on 2D critic hidden weights:
+    1. Bounds runaway normalized spectral norm on square & rectangular critic weights under repeated
+       aligned Quintic-polar steps, while leaving singular values <= tau=2.0 identically untouched.
+    2. Strictly isolates generator weights, 1-row critic readouts, 1D biases, and Conv2d weights.
+    3. Cools smoothly with s_therm, does nothing on zero gradients, stays contractive under large
+       inverted-critic alpha_gain boosts, and preserves batched-vs-single and group-split parity.
+    4. Runs with 0 autograd.grad/svd/eigh/pinv and exact fresh-process checkpoint continuation on a
+       deep high-D (dim=1088) ResBN critic across active Schatten-6 steps.
+    """
+    from particlegan._unified_v11.optimizer import (
+        _CRITIC_SCHATTEN6_TAU,
+        _schatten6_spectral_decay_2d,
+        _schatten6_spectral_decay_batched,
+    )
+
+    torch.manual_seed(0)
+
+    # 1a. Repeated aligned Quintic-polar updates on square (32x32) and tall rectangular (64x16, gamma=2.0)
+    #     critic hidden matrices stay spectrally bounded near tau * lam^(-1/5) ~= 2.64 (vs > 10 unbounded):
+    w_sq = nn.Parameter(torch.eye(32))
+    w_rect = nn.Parameter(torch.zeros(64, 16))
+    with torch.no_grad():
+        w_rect[:16, :16].copy_(torch.eye(16) * 2.0)  # normalized sv == 1.0 since gamma = sqrt(64/16) = 2.0
+    opt_c = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_sq, w_rect], "role": "critic", "lr": 0.05}],
+        smoothing=0.0,
+    )
+    g_sq = -torch.eye(32)
+    g_rect = torch.zeros(64, 16)
+    g_rect[:16, :16] = -torch.eye(16)
+    for _ in range(250):
+        w_sq.grad = g_sq.clone()
+        w_rect.grad = g_rect.clone()
+        opt_c.step()
+    sv_sq = float(torch.linalg.matrix_norm(w_sq.detach(), ord=2).item())
+    sv_rect_norm = float(torch.linalg.matrix_norm(w_rect.detach(), ord=2).item()) / 2.0
+    assert 2.0 < sv_sq < 3.0, f"Square critic spectral norm not bounded properly: {sv_sq:.3f}"
+    assert 2.0 < sv_rect_norm < 3.0, f"Rect critic normalized spectral norm not bounded properly: {sv_rect_norm:.3f}"
+
+    # 1b. Exact zero-deadband below tau=2.0: any matrix with sigma_max <= tau receives identically zero decay:
+    for sig_val in (0.8, 1.5, 1.95):
+        w_sub = torch.eye(16) * sig_val
+        d_sub = _schatten6_spectral_decay_2d(w_sub, torch.tensor(0.02))
+        assert torch.equal(d_sub, torch.zeros_like(w_sub)), f"Non-zero deadband decay at sigma={sig_val}"
+    # Above tau=2.0, decay activates cleanly:
+    w_over = torch.eye(16) * 2.8
+    d_over = _schatten6_spectral_decay_2d(w_over, torch.tensor(0.02))
+    assert float(d_over.norm().item()) > 0.0 and float((w_over + d_over).norm().item()) < float(w_over.norm().item())
+
+    # 2. Strict role & shape isolation: generator 2D, critic 1-row readout, critic 1D bias, critic Conv2d
+    #    receive zero Schatten-6 decay even at 4x initial spectral scale:
+    for role, shape, is_conv in [
+        ("generator", (16, 16), False),
+        ("critic", (1, 16), False),
+        ("critic", (16,), False),
+        ("critic", (8, 8, 3, 3), True),
+        ("critic", (8, 8, 1, 1), True),
+    ]:
+        p_small = nn.Parameter(torch.randn(*shape) * 0.1)
+        p_big = nn.Parameter(p_small.detach().clone() * 40.0)
+        grad_fixed = torch.randn(*shape)
+        opt_s = UnifiedV11EquilibratedOptimizer([{"params": [p_small], "role": role, "lr": 0.02}], smoothing=0.0)
+        opt_b = UnifiedV11EquilibratedOptimizer([{"params": [p_big], "role": role, "lr": 0.02}], smoothing=0.0)
+        if is_conv:
+            opt_s._conv_layouts[id(p_small)] = (False, 1)
+            opt_b._conv_layouts[id(p_big)] = (False, 1)
+        pre_s = p_small.detach().clone()
+        pre_b = p_big.detach().clone()
+        p_small.grad = grad_fixed.clone()
+        p_big.grad = grad_fixed.clone()
+        opt_s.step()
+        opt_b.step()
+        delta_s = p_small.detach() - pre_s
+        delta_b = p_big.detach() - pre_b
+        assert torch.allclose(delta_s, delta_b, atol=1e-5, rtol=1e-5), (
+            f"Unexpected weight-dependent decay on role={role}, shape={shape}, is_conv={is_conv}"
+        )
+
+    # 3a. Thermal cooling silences Schatten-6 decay, and zero gradient applies zero decay:
+    w_hot = nn.Parameter(torch.eye(16) * 3.0)
+    w_cold = nn.Parameter(torch.eye(16) * 3.0)
+    w_zero = nn.Parameter(torch.eye(16) * 3.0)
+    rec_hot = UnifiedV11StepRecord()
+    rec_cold = UnifiedV11StepRecord()
+    rec_hot._thermal_scale = 1.0
+    rec_cold._thermal_scale = 1e-6
+    opt_hot = UnifiedV11EquilibratedOptimizer([{"params": [w_hot], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_cold = UnifiedV11EquilibratedOptimizer([{"params": [w_cold], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_zero = UnifiedV11EquilibratedOptimizer([{"params": [w_zero], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_hot._unified_v11_record = rec_hot
+    opt_cold._unified_v11_record = rec_cold
+    # Tiny orthogonal-to-eye gradient so polar step norm is identical, difference is purely Schatten-6:
+    g_orth = torch.zeros(16, 16)
+    g_orth[0, 1] = 1.0
+    w_hot.grad = g_orth.clone()
+    w_cold.grad = g_orth.clone()
+    w_zero.grad = torch.zeros(16, 16)
+    opt_hot.step()
+    opt_cold.step()
+    opt_zero.step()
+    assert float(w_hot.detach().diag().mean().item()) < 2.97, "Hot critic Schatten-6 did not contract above-tau weight"
+    assert abs(float(w_cold.detach().diag().mean().item()) - 3.0) < 1e-5, "Cooled critic Schatten-6 drifted at equilibrium"
+    assert torch.equal(w_zero.detach(), torch.eye(16) * 3.0), "Zero-gradient critic weight modified by Schatten-6"
+
+    # 3b. Inverted-critic large alpha_gain boost (alpha_gain >> 1) keeps Schatten-6 strictly contractive:
+    d_inv = nn.Sequential(nn.Linear(16, 16, bias=False), nn.Linear(16, 1, bias=False))
+    with torch.no_grad():
+        d_inv[0].weight.copy_(torch.eye(16) * 6.0)
+        d_inv[1].weight.fill_(0.1)
+    rec_inv = UnifiedV11StepRecord()
+    rec_inv.margin_initialized = True
+    rec_inv.ema_margin = -12.0  # triggers large delta_d_min -> alpha_gain >> 1.0
+    rec_inv._thermal_scale = 1.0
+    opt_inv = UnifiedV11EquilibratedOptimizer([{"params": list(d_inv.parameters()), "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_inv._unified_v11_record = rec_inv
+    opt_inv.critic = d_inv
+    x_probe = torch.randn(4, 16)
+    with torch.no_grad():
+        rec_inv._d_probe_list = [((x_probe,), {}, d_inv(x_probe))]
+    d_inv[0].weight.grad = torch.randn(16, 16) * 1e-3
+    d_inv[1].weight.grad = torch.randn(1, 16) * 1e-3
+    sv_before_inv = float(torch.linalg.matrix_norm(d_inv[0].weight.detach(), ord=2).item())
+    opt_inv.step()
+    sv_after_inv = float(torch.linalg.matrix_norm(d_inv[0].weight.detach(), ord=2).item())
+    assert opt_inv.last_step_gain > 5.0
+    assert torch.isfinite(d_inv[0].weight).all() and sv_after_inv < sv_before_inv
+
+    # 3c. Batched-vs-single parity & group-split invariance:
+    w_a = torch.randn(16, 24) * 0.8
+    w_b = torch.randn(16, 24) * 1.1
+    rates = torch.tensor([0.02, 0.015])
+    s6_batched = _schatten6_spectral_decay_batched(torch.stack([w_a, w_b], dim=0), rates)
+    s6_a = _schatten6_spectral_decay_2d(w_a, rates[0])
+    s6_b = _schatten6_spectral_decay_2d(w_b, rates[1])
+    assert torch.allclose(s6_batched[0], s6_a, atol=1e-6, rtol=1e-5)
+    assert torch.allclose(s6_batched[1], s6_b, atol=1e-6, rtol=1e-5)
+
+    p1a, p2a = nn.Parameter(w_a.clone()), nn.Parameter(w_b.clone())
+    p1b, p2b = nn.Parameter(w_a.clone()), nn.Parameter(w_b.clone())
+    ga, gb = torch.randn_like(w_a), torch.randn_like(w_b)
+    opt_one = UnifiedV11EquilibratedOptimizer([{"params": [p1a, p2a], "role": "critic", "lr": 0.02}], smoothing=0.0061)
+    opt_two = UnifiedV11EquilibratedOptimizer(
+        [{"params": [p1b], "role": "critic", "lr": 0.02}, {"params": [p2b], "role": "critic", "lr": 0.02}],
+        smoothing=0.0061,
+    )
+    p1a.grad, p2a.grad = ga.clone(), gb.clone()
+    p1b.grad, p2b.grad = ga.clone(), gb.clone()
+    opt_one.step()
+    opt_two.step()
+    assert torch.equal(p1a.detach(), p1b.detach()) and torch.equal(p2a.detach(), p2b.detach())
+
+    # 4. Zero forbidden primitives + exact fresh-process checkpoint continuation on deep ResBN critic at dim=1088:
+    dim = 1088
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=8,
+        total_steps=10,
+        training_precision="float32",
+    )
+    g = _ToyGen2D(z_dim=8, out_dim=dim)
+    d = _ToyDeepResBNDisc(in_dim=dim, hidden=32, depth=2)
+    p = MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g, seed=10)
+    init.deterministic_orthogonal_(d, seed=11)
+    init.deterministic_orthogonal_(p, seed=12)
+    # Push one critic branch weight above tau so Schatten-6 is actively contracting across the checkpoint boundary:
+    with torch.no_grad():
+        d.out_projs[0].weight.mul_(_CRITIC_SCHATTEN6_TAU + 0.8)
+
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+    batches = [torch.randn(8, dim, generator=torch.Generator().manual_seed(900 + i)) for i in range(6)]
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called during deep ResBN critic step!")
+
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        for i in range(3):
+            trainer.step(batches[i])
+
+    ckpt_path = tmp_path / "ckpt_v11_resbn_s6.pt"
+    out_path = tmp_path / "resumed_v11_resbn_s6.pt"
+    torch.save({"state": trainer.state_dict(), "batches": batches[3:]}, ckpt_path)
+    for i in range(3, 6):
+        trainer.step(batches[i])
+    sample_ref = trainer.sample(4)
+    d_ref = trainer.D.state_dict()
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ToyGen2D, _ToyDeepResBNDisc
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ToyGen2D(z_dim=8, out_dim=1088),
+    _ToyDeepResBNDisc(in_dim=1088, hidden=32, depth=2),
+    prior=MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False),
+    seed=99,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save({{"sample": tr.sample(4), "d": tr.D.state_dict()}}, {str(out_path)!r})
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert torch.equal(sample_ref, resumed["sample"])
+    for k, v in d_ref.items():
+        assert torch.equal(v, resumed["d"][k]), f"Deep ResBN D mismatch on {k}"
+
+
+def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuation(tmp_path: Path) -> None:
+    """Combined Issue 1 + Issue 2 semantic control on symmetric deep ResBN G & D at dim=1088:
+    - No false stiff_gate on steady normalized deep ResBN G (current_stiff_gate == 0.0, no momentum allocated).
+    - Coupled critic gain tracks rec._g_func_gain == opt_g._ema_func_gain while staying bounded.
+    - Exact-deadband Schatten-6 actively contracts above-tau critic branch weights with 0 forbidden primitives.
+    - Fresh-process bit-exact continuation preserves G, D, prior, g_func_gain, and ema_func_gain_ref across
+      simultaneous active Law-4 coupling and active Schatten-6 contraction.
+    """
+    from particlegan._unified_v11.optimizer import _CRITIC_SCHATTEN6_TAU
+
+    torch.manual_seed(0)
+    dim = 1088
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=8,
+        total_steps=16,
+        training_precision="float32",
+    )
+    g = _ResBNTrunkGen(z_dim=8, width=32, out_dim=dim, depth=4)
+    d = _ToyDeepResBNDisc(in_dim=dim, hidden=32, depth=4)
+    p = MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g, seed=50)
+    init.deterministic_orthogonal_(d, seed=51)
+    init.deterministic_orthogonal_(p, seed=52)
+    # Seed one critic hidden block well above the ~2.64 Schatten-6 asymptote so contraction is active alongside Law-4 coupling:
+    with torch.no_grad():
+        sv0 = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+        d.out_projs[0].weight.mul_(4.0 / max(sv0, 1e-6))
+    sv_init_over = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+    # Place G at a realistic steady normalized deep-ResBN func_gain (~0.40) so coupling is active and stiff_gate == 0:
+    trainer.opt_g._ema_func_gain = 0.42
+    trainer.opt_g._ema_func_gain_ref = 0.42
+    trainer.opt_d.record._g_func_gain = 0.42
+
+    batches = [torch.randn(8, dim, generator=torch.Generator().manual_seed(1100 + i)) for i in range(10)]
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called in combined ResBN step!")
+
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        for i in range(5):
+            trainer.step(batches[i])
+
+    # Verify Issue 1 (no false stiff_gate, active coupled g_func_gain) + Issue 2 (active spectral contraction):
+    assert trainer.opt_g.current_stiff_gate() == 0.0
+    assert all("m_unit" not in trainer.opt_g.state[param] for param in g.parameters())
+    assert trainer.opt_d.record._g_func_gain == trainer.opt_g._ema_func_gain
+    assert 0.15 < trainer.opt_d.record._g_func_gain < 0.75
+    sv_mid = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+    assert sv_mid < sv_init_over - 0.05, f"Schatten-6 failed to contract coupled deep critic: {sv_init_over:.3f} -> {sv_mid:.3f}"
+
+    ckpt_path = tmp_path / "ckpt_v11_combined_resbn.pt"
+    out_path = tmp_path / "resumed_v11_combined_resbn.pt"
+    torch.save({"state": trainer.state_dict(), "batches": batches[5:]}, ckpt_path)
+    for i in range(5, 10):
+        trainer.step(batches[i])
+    ref_sample = trainer.sample(4)
+    ref_state = trainer.state_dict()
+    ref_g_fg = trainer.opt_d.record._g_func_gain
+    ref_fg_ref = trainer.opt_g._ema_func_gain_ref
+    sv_end = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+    assert sv_end < sv_mid, f"Schatten-6 stopped contracting after checkpoint: {sv_mid:.3f} -> {sv_end:.3f}"
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ResBNTrunkGen, _ToyDeepResBNDisc
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ResBNTrunkGen(z_dim=8, width=32, out_dim=1088, depth=4),
+    _ToyDeepResBNDisc(in_dim=1088, hidden=32, depth=4),
+    prior=MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False),
+    seed=321,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save(
+    {{
+        "sample": tr.sample(4),
+        "models": tr.state_dict()["models"],
+        "g_fg": tr.opt_d.record._g_func_gain,
+        "fg_ref": tr.opt_g._ema_func_gain_ref,
+    }},
+    {str(out_path)!r},
+)
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert torch.equal(ref_sample, resumed["sample"])
+    assert resumed["g_fg"] == ref_g_fg
+    assert resumed["fg_ref"] == ref_fg_ref
+    for m_name in ("G", "D", "prior"):
+        for k, v in ref_state["models"][m_name].items():
+            if isinstance(v, torch.Tensor):
+                assert torch.equal(v, resumed["models"][m_name][k]), f"Combined continuation mismatch {m_name}.{k}"
+            else:
+                assert v == resumed["models"][m_name][k], f"Combined continuation value mismatch {m_name}.{k}"
+
+
 
