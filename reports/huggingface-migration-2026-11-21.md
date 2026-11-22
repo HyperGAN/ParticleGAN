@@ -2,7 +2,7 @@
 
 - **Date:** 2026-11-21
 - **Baseline branch / commit:** `develop` @ `8a412dcaf` (Phase 1 branched off `87d72c39b`)
-- **Status:** Phase 1 in progress — live Hugging Face repos created (`HyperGAN/particlegan-forge-evidence` Dataset, `HyperGAN/particlegan-leaderboard` Static Space)
+- **Status:** Completed on `develop` (Phases 0–4 landed across PRs #595–#599; live HF repos published)
 
 ## 1. Problem Statement & Baseline Inventory
 
@@ -185,3 +185,30 @@ Migrate in small, reviewable PRs while preserving original Git commit/blob prove
 - CI blocks any new stray `.gif`/`.npz`/`.pt`/`.html` or `> 500 KB` JSON committed under `reports/`.
 - `python -m experiments.forge artifacts inspect/hydrate` can verify and restore published archives on a fresh machine using pinned HF revisions with byte-exact SHA-256 checks.
 - External users can browse ParticleGAN's leaderboard, filter all 1,100+ recipe/test outcomes in the HF Dataset Viewer, and inspect training GIFs in `HyperGAN/particlegan-leaderboard`.
+
+---
+
+## 7. Execution Summary (Completed 2026-11-21)
+
+### Merged Pull Requests into `develop`
+- **PR #595** (`c9e3c3b7e`) — Phase 1 Forge HF tooling: `[hf]` extra in `pyproject.toml`, strictly opt-in HF hydration (`--allow-hf`) in `experiments/forge/artifact_resolver.py`, `python -m experiments.forge publish` (`experiments/forge/hf_publish.py`), CI bloat guard (`scripts/check_repo_bloat.py` + `configs/repo_bloat_allowlist.json`), and `/runs/` `.gitignore` cleanup.
+- **PR #596** (`e9321ea2c`) — Phase 1 public Static Space (`ops/hf_space/`) deployed live to [`HyperGAN/particlegan-leaderboard`](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard).
+- **PR #597** (`50b69c49c`) — Phase 2A non-Forge eviction: **2,945 files (732.38 MiB / 767.96 MB)** moved to `HyperGAN/particlegan-forge-evidence` (732 browser media/HTML files + 5 content-addressed `.tar.gz` bundles; 809 Markdown links rewritten to pinned HF revision `496272b90f1c06483db8ff1846ca5f07186d859d`; manifest at `reports/hf-migration-non-forge-2026-11-21.json`).
+- **PR #598** (`4703f38e6`) — Phase 2B + Phase 3 Forge eviction & CI `fetch-depth` optimization: **4,301 files (538.78 MB)** moved to HF (`1,775` Forge media files = 419.16 MB at `25f915a0f166e4f57a271f352a5c89447bd33c1a`; `2,526` unreferenced Forge JSONs/binaries = 119.61 MB bundled at `80fa52f27f162a3ea082670f30ddda4ee041a696`; bloat allowlist shrunk from `4,643 -> 295`; CI `.github/workflows/tests.yml` now runs `fetch-depth: 1` on shards 0–6 and pins ancestor-history tests to shard 7 via `scripts/ci_history_tests.txt`).
+- **Phase 4 Local Storage Triage & Final Publish Refresh** — 22 byte-exact SHA-256 verified historical archives (**2.489 GiB**, 40,278 members) rescued from local mirrors and uploaded to `HyperGAN/particlegan-forge-evidence` at `3cac9836b867e1a1f49050e68d64255c6a0f7e6d`, live round-trip verified via `artifact_resolver.inspect_archive(..., allow_hf=True)` across 3,269 members, full 348 GB local triage documented in [`reports/forge/local-storage-triage-2026-11-21.md`](forge/local-storage-triage-2026-11-21.md) (no local files deleted automatically), and live inventory Parquet/JSON refreshed at `77e0d12c5db94604888aa21b79d007e52d0fa1f8` (`reports/forge/publications/inventory-latest.json`).
+
+### Measured Tracked Footprint Before vs. After (`HEAD`)
+
+| Metric | Before (`8a412dcaf`) | After (`4703f38e6`) | Delta |
+| --- | ---: | ---: | ---: |
+| **Total tracked in `HEAD`** | **2,007.89 MB (25,510 files)** | **763.52 MB (18,281 files)** | **-1,244.37 MB (-62.0%), -7,229 files** |
+| `.gif` | 631.86 MB (2,195) | 56.59 MB (129) | -91.0% |
+| `.npz` | 264.40 MB (1,459) | 0.07 MB (1 test fixture) | -99.97% |
+| `.html` | 100.65 MB (37) | 0.04 MB (3) | -99.96% |
+| `.png` | 77.64 MB (425) | 6.33 MB (20) | -91.8% |
+| `.gz` | 41.81 MB (645) | 0.98 MB (25) | -97.7% |
+| `.pt` / `.zip` / `.mp4` | 42.38 MB (96) | 0.00 MB (0) | -100.0% |
+| `.json` | 756.95 MB (14,478) | 607.12 MB (11,920) | -19.8% (remaining are offline-CI-required Forge stores) |
+| Bloat allowlist entries | 4,643 | 295 | -93.6% (`4,348` locked out) |
+
+*Note on remaining ~607 MB of `.json` under `reports/forge/`*: These are the active offline-CI-required Forge evidence stores (`records/` 266.8 MB, `technique-evidence/` 81.1 MB, `technique-inventory.json` 22.7 MB, `configuration-search/` 22.6 MB, `calibration-lanes/` 15.8 MB, `technique-receipts/` 11.7 MB, etc. — itemized in `reports/forge/hf-json-archive-manifest-2026-11-21.json`). Keeping them preserves 100% offline CI pass rates across all 1,800+ tests without network dependency; further reduction is an optional future refactor if Forge's offline tests are ported to compact summary fixtures.
