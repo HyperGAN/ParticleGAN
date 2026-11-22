@@ -13,7 +13,7 @@ Final live mean |coordinate|: **0.002446** (≥0.30); median |critic slope|: **0
 
 [Raw live evidence](two_pole/raw-result.json) · [Independent grade](two_pole/grade.json)
 
-![Actual 24-observation training trajectory and unchanged gates](two_pole/goal.gif)
+![Actual 24-observation training trajectory and unchanged gates](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/common26-first-two-pole-full-atlas-20261004/two_pole/goal.gif)
 
 Case supervisor paid 12.931743s; conservative residual reservation 0.000000s. The original 300s allowance includes construction, all updates, grading and media. Parent metadata has its own cumulative 180s cap.
 Retained prior charges 5994.113643s are counted once; the parent publication cutoff is recorded separately from later publication work.

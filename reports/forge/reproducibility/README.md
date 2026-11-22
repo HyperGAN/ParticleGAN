@@ -13,7 +13,7 @@ Budget: three CPU runs, 8 updates each, one Torch thread, 20 seconds per run. Ea
 
 Reproducibility verdict: **PASS**. The short runs remain FAIL for their unchanged full training-quality gates.
 
-Actual target/output training GIFs: [K3P](k3p.gif), [KA2](ka2.gif). [Final metrics and source/runtime/artifact hashes](final-metrics.json) bind the measured execution. Raw states, arrays and progress receipts remain in the local run directory.
+Actual target/output training GIFs: [K3P](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/reproducibility/k3p.gif), [KA2](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/reproducibility/ka2.gif). [Final metrics and source/runtime/artifact hashes](final-metrics.json) bind the measured execution. Raw states, arrays and progress receipts remain in the local run directory.
 
 Use one complete global trainer configuration across the task ladder; hold each task's architecture, target law, batch size, initialization, prior, sampling and budget fixed across candidates. Fixed identity/zero or stored-weight controls and named initialization diagnostics remain explicit separate cohorts. Archived results retain their original sources and are not regraded. The [current solution leaderboard](../technique-inventory.md) retains its recorded qualifications; this control selects no winning trainer.
 

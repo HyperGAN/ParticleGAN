@@ -46,8 +46,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          # Source-bound software tests replay exact published ancestor bytes.
-          fetch-depth: 0
+          # Only shard 7 runs ancestor-history tests (scripts/ci_history_tests.txt);
+          # shards 0..6 use fast shallow checkouts (fetch-depth: 1).
+          fetch-depth: ${{ matrix.shard == 7 && 0 || 1 }}
           ref: ${{ inputs.source_ref || github.sha }}
       - uses: actions/setup-python@v5
         with:
@@ -64,10 +65,12 @@ jobs:
         if: matrix.shard == 0
         run: python scripts/check_lint.py
       - name: Test numerical kernels and experiment workflows
-        # Spread the slow readout tests individually and keep other files together.
+        # Spread the slow readout tests individually, pin ancestor-history tests to shard 7,
+        # and keep other files together.
         run: >-
           python scripts/ci_pytest.py run --index ${{ matrix.shard }} --count 8
           --split-file tests/test_refresh_forge_readouts.py
+          --pin-list 7=scripts/ci_history_tests.txt
           --receipt /tmp/pytest-shard-${{ matrix.shard }}.json --
           -q --durations=25 -o faulthandler_timeout=600
           --ignore=tests/test_e22_routed_caption_late_phase_renderer.py

@@ -15,7 +15,7 @@ eigenvalues in [.85, 1.15]; radial KS <= .075; maximum projected KS <= .06.
 The GIF's nine actual states show the target and selected generated distribution
 at updates 0, 125, 250, 375, 500, 625, 750, 875 and 1,000. **BUDGET_EXCEEDED / accepted numeric UNAVAILABLE. Byte-original raw FAIL badge is unaccepted; retained illustration only.**
 
-![BUDGET_EXCEEDED / accepted numeric UNAVAILABLE. Byte-original raw FAIL badge is unaccepted; retained illustration only.](gifs/goal.gif)
+![BUDGET_EXCEEDED / accepted numeric UNAVAILABLE. Byte-original raw FAIL badge is unaccepted; retained illustration only.](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/gaussian2d-current-c6-gpu-20261004/gifs/goal.gif)
 
 [Bound media context](gifs/goal-context.json).
 

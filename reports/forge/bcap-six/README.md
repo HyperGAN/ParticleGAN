@@ -98,9 +98,9 @@ profile is provisional; this report changes the experimental family selection,
 with public-default adoption still false.
 
 Seven [actual-training GIFs and their receipts](media/index.json) use this same
-completed recipe. The [Gaussian](media/gaussian1d_smoke.gif),
-[ring16](media/ring16_acquisition.gif), and
-[word](media/five_word_joint_smoke.gif) animations illustrate the numerical goals.
+completed recipe. The [Gaussian](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-six/media/gaussian1d_smoke.gif),
+[ring16](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-six/media/ring16_acquisition.gif), and
+[word](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-six/media/five_word_joint_smoke.gif) animations illustrate the numerical goals.
 Export disables model construction, forward calls, training and sampling, and
 uses only saved observations. The GIFs add no updates or draws and do not
 determine qualification.

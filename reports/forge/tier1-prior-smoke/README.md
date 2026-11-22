@@ -117,15 +117,15 @@ they are not another ranked leaderboard. A suffix of at least 5 is required.
 
 | Particles | Prior / sigma | Mean error / sigma | Std ratio | CDF KS | Full suffix | Smoke suffix / verdict | Actual training |
 | ---: | --- | ---: | ---: | ---: | ---: | --- | --- |
-| 256 | cloud / 0 | 0.05706 | 1.20216 | 0.09153 | 0 | 0 / FAIL | [GIF](cloud-n256-gaussian1d_acquisition.gif) |
-| 256 | MoG / 0.025 | 0.12788 | 1.05499 | 0.11428 | 0 | 1 / FAIL | [GIF](mog025-n256-gaussian1d_acquisition.gif) |
-| 256 | MoG / 0.1 | 0.01304 | 0.95739 | 0.04297 | 1 | 5 / PASS | [GIF](mog100-n256-gaussian1d_acquisition.gif) |
-| 1,024 | cloud / 0 | 0.36259 | 0.71934 | 0.22083 | 0 | 0 / FAIL | [GIF](cloud-n1024-gaussian1d_acquisition.gif) |
-| 1,024 | MoG / 0.025 | 0.40263 | 0.79160 | 0.21693 | 0 | 0 / FAIL | [GIF](mog025-n1024-gaussian1d_acquisition.gif) |
-| 1,024 | MoG / 0.1 | 0.14235 | 0.99118 | 0.11241 | 0 | 1 / FAIL | [GIF](mog100-n1024-gaussian1d_acquisition.gif) |
-| 4,096 | cloud / 0 | 0.68015 | 0.82643 | 0.32810 | 0 | 0 / FAIL | [GIF](cloud-n4096-gaussian1d_acquisition.gif) |
-| 4,096 | MoG / 0.025 | 0.28464 | 1.38785 | 0.19220 | 0 | 0 / FAIL | [GIF](mog025-n4096-gaussian1d_acquisition.gif) |
-| 4,096 | MoG / 0.1 | 0.32669 | 1.22568 | 0.12875 | 0 | 0 / FAIL | [GIF](mog100-n4096-gaussian1d_acquisition.gif) |
+| 256 | cloud / 0 | 0.05706 | 1.20216 | 0.09153 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n256-gaussian1d_acquisition.gif) |
+| 256 | MoG / 0.025 | 0.12788 | 1.05499 | 0.11428 | 0 | 1 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n256-gaussian1d_acquisition.gif) |
+| 256 | MoG / 0.1 | 0.01304 | 0.95739 | 0.04297 | 1 | 5 / PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n256-gaussian1d_acquisition.gif) |
+| 1,024 | cloud / 0 | 0.36259 | 0.71934 | 0.22083 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n1024-gaussian1d_acquisition.gif) |
+| 1,024 | MoG / 0.025 | 0.40263 | 0.79160 | 0.21693 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n1024-gaussian1d_acquisition.gif) |
+| 1,024 | MoG / 0.1 | 0.14235 | 0.99118 | 0.11241 | 0 | 1 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n1024-gaussian1d_acquisition.gif) |
+| 4,096 | cloud / 0 | 0.68015 | 0.82643 | 0.32810 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n4096-gaussian1d_acquisition.gif) |
+| 4,096 | MoG / 0.025 | 0.28464 | 1.38785 | 0.19220 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n4096-gaussian1d_acquisition.gif) |
+| 4,096 | MoG / 0.1 | 0.32669 | 1.22568 | 0.12875 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n4096-gaussian1d_acquisition.gif) |
 
 The 256-row MoG at sigma .1 is the only scalar smoke-projection PASS. Its
 five terminal CDF errors are **.06993, .06581, .04941, .10015, .04297**.
@@ -143,15 +143,15 @@ smoothing effect or establish sigma .1 as a global default.
 
 | Particles | Prior / sigma | Modes | Mass TV | HQ | Full covariance error | Full suffix | Smoke suffix / verdict | Actual training |
 | ---: | --- | ---: | ---: | ---: | ---: | ---: | --- | --- |
-| 256 | cloud / 0 | 16 | 0.05981 | 0.93042 | 11.02202 | 0 | 9 / PASS | [GIF](cloud-n256-ring16_acquisition.gif) |
-| 256 | MoG / 0.025 | 16 | 0.09302 | 0.94385 | 9.61552 | 0 | 8 / PASS | [GIF](mog025-n256-ring16_acquisition.gif) |
-| 256 | MoG / 0.1 | 16 | 0.07666 | 0.79907 | 6.67240 | 0 | 0 / FAIL | [GIF](mog100-n256-ring16_acquisition.gif) |
-| 1,024 | cloud / 0 | 16 | 0.07031 | 0.81860 | 7.47256 | 0 | 0 / FAIL | [GIF](cloud-n1024-ring16_acquisition.gif) |
-| 1,024 | MoG / 0.025 | 16 | 0.06909 | 0.80347 | 8.68836 | 0 | 0 / FAIL | [GIF](mog025-n1024-ring16_acquisition.gif) |
-| 1,024 | MoG / 0.1 | 16 | 0.05566 | 0.56128 | 8.08002 | 0 | 0 / FAIL | [GIF](mog100-n1024-ring16_acquisition.gif) |
-| 4,096 | cloud / 0 | 16 | 0.04150 | 0.59009 | 12.46360 | 0 | 0 / FAIL | [GIF](cloud-n4096-ring16_acquisition.gif) |
-| 4,096 | MoG / 0.025 | 16 | 0.04370 | 0.57910 | 9.50799 | 0 | 0 / FAIL | [GIF](mog025-n4096-ring16_acquisition.gif) |
-| 4,096 | MoG / 0.1 | 16 | 0.03711 | 0.40063 | 11.35422 | 0 | 0 / FAIL | [GIF](mog100-n4096-ring16_acquisition.gif) |
+| 256 | cloud / 0 | 16 | 0.05981 | 0.93042 | 11.02202 | 0 | 9 / PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n256-ring16_acquisition.gif) |
+| 256 | MoG / 0.025 | 16 | 0.09302 | 0.94385 | 9.61552 | 0 | 8 / PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n256-ring16_acquisition.gif) |
+| 256 | MoG / 0.1 | 16 | 0.07666 | 0.79907 | 6.67240 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n256-ring16_acquisition.gif) |
+| 1,024 | cloud / 0 | 16 | 0.07031 | 0.81860 | 7.47256 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n1024-ring16_acquisition.gif) |
+| 1,024 | MoG / 0.025 | 16 | 0.06909 | 0.80347 | 8.68836 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n1024-ring16_acquisition.gif) |
+| 1,024 | MoG / 0.1 | 16 | 0.05566 | 0.56128 | 8.08002 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n1024-ring16_acquisition.gif) |
+| 4,096 | cloud / 0 | 16 | 0.04150 | 0.59009 | 12.46360 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/cloud-n4096-ring16_acquisition.gif) |
+| 4,096 | MoG / 0.025 | 16 | 0.04370 | 0.57910 | 9.50799 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog025-n4096-ring16_acquisition.gif) |
+| 4,096 | MoG / 0.1 | 16 | 0.03711 | 0.40063 | 11.35422 | 0 | 0 / FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n4096-ring16_acquisition.gif) |
 
 All nine endpoints acquire all sixteen modes and pass mass balance. Only the
 256-row cloud and sigma-.025 MoG sustain the complete smoke projection. Their

@@ -185,9 +185,9 @@ observations. The live GIF covers only its retained 400-update prefix; it is not
 a reconstruction of the missing later samples. The initial report links the
 original full v4 failing GIF under that original evidence identity.
 
-![Fresh prefix, then live continuation: retained prefix only](media-reproduction/live.gif)
-![Restored fresh prefix: actual full training reproduction](media-reproduction/restart.gif)
-![Restored archived prefix: actual full training reproduction](media-reproduction/archive-replay.gif)
+![Fresh prefix, then live continuation: retained prefix only](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/ring16-failure/media-reproduction/live.gif)
+![Restored fresh prefix: actual full training reproduction](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/ring16-failure/media-reproduction/restart.gif)
+![Restored archived prefix: actual full training reproduction](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/ring16-failure/media-reproduction/archive-replay.gif)
 
 The [public-API driver](../../../benchmarks/toy_audit/ring16_restart.py) and frozen
 protocol reproduce the prospective experiment in a new, empty output directory.

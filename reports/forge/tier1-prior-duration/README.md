@@ -60,9 +60,9 @@ cost is separate and is not charged again.
 
 | Target / prior | Total updates | Full terminal suffix | Result | Endpoint quality | Actual training |
 | --- | ---: | ---: | --- | --- | --- |
-| Gaussian / MoG .1 | 4,000 | 0 | **FAIL** | KS 0.09594; mean error 0.27536σ; std ratio 1.74796 | [GIF](mog100-n256-gaussian1d_acquisition.gif) |
-| Ring16 / MoG 0.025 | 1,600 | 1 | **FAIL** | covariance error 0.58537; minimum eigen ratio 0.20444; HQ 0.98267 | [GIF](mog025-n256-ring16_acquisition.gif) |
-| Ring16 / MoG 0.1 | 1,600 | 6 | **PASS** | covariance error 0.51431; minimum eigen ratio 0.38370; HQ 0.93774 | [GIF](mog100-n256-ring16_acquisition.gif) |
+| Gaussian / MoG .1 | 4,000 | 0 | **FAIL** | KS 0.09594; mean error 0.27536σ; std ratio 1.74796 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog100-n256-gaussian1d_acquisition.gif) |
+| Ring16 / MoG 0.025 | 1,600 | 1 | **FAIL** | covariance error 0.58537; minimum eigen ratio 0.20444; HQ 0.98267 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog025-n256-ring16_acquisition.gif) |
+| Ring16 / MoG 0.1 | 1,600 | 6 | **PASS** | covariance error 0.51431; minimum eigen ratio 0.38370; HQ 0.93774 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog100-n256-ring16_acquisition.gif) |
 
 [Receipts and budget cuts](results.json) include resume proofs, final/terminal
 metrics, source and recipe identities, and first sustained passing windows.

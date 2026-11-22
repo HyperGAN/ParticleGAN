@@ -107,7 +107,7 @@ checkpointed stream. All neural training, sampling and context restores use CUDA
 Original CPU target generation, saved-sample scoring and media rendering remain
 explicit exceptions preserving the matched law.
 
-[Smoke GIF](smoke.gif) · [Stability GIF](stability.gif) · [Numerical curves](metrics.svg)
+[Smoke GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/gaussian-shallow/smoke.gif) · [Stability GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/gaussian-shallow/stability.gif) · [Numerical curves](metrics.svg)
 · [Provenance and archive identity](provenance.json)
 
 Raw logs/checkpoints remain local in `runs/api/gaussian-shallow-v1/` and

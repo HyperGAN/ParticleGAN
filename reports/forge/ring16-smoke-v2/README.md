@@ -8,7 +8,7 @@ and Forge's named initialization, data, training and evaluation streams.
 The [duration evidence](../tier1-prior-duration/README.md) passes all full bounds
 with six consecutive terminal passes: 16 modes, mass TV .05859, HQ .93774,
 component covariance error .51431 and minimum eigen ratio .38370.
-The [actual-training GIF](../tier1-prior-duration/mog100-n256-ring16_acquisition.gif)
+The [actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog100-n256-ring16_acquisition.gif)
 illustrates this same target, recipe, prior and sampling law.
 
 The task keeps the passing continuation's original recipe horizon of 400;

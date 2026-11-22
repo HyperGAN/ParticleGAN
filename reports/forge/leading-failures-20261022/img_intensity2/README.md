@@ -50,7 +50,7 @@ The immediate measured cause of gate failure is too few clean images, especially
 
 The [older BISPF readout](../../bispf/README.md) has the one-mode/HQ 0.5 endpoint, while the selected [quintic readout](../../bispf-optimized/README.md) preserves the same task FAIL with different numbers. The [disposition](../../test-dispositions-20261015/README.md#img_intensity2) records separate R1/R2, GAN v3 and kinetic passes with regressions on counted controls. The historical wider-network positive is `img_intensity2_residual16`, a different architecture task. BCAP convolution's four-check near pass is separate recipe evidence. None permits relabeling this result or selecting a brightness-specific recipe outside the global comparison.
 
-Actual-training illustration for **this same attempt and saved output tensor**: [GIF](../../bispf-optimized/quality-media/img_intensity2.gif), [source/media receipt](../../bispf-optimized/quality-media/img_intensity2.json). The audit verifies the GIF hash and original `observed-images.pt` hash binding. No footage is invented, no images are regenerated, and no training is added. Metrics above determine the conclusion.
+Actual-training illustration for **this same attempt and saved output tensor**: [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bispf-optimized/quality-media/img_intensity2.gif), [source/media receipt](../../bispf-optimized/quality-media/img_intensity2.json). The audit verifies the GIF hash and original `observed-images.pt` hash binding. No footage is invented, no images are regenerated, and no training is added. Metrics above determine the conclusion.
 
 ## Bounded next diagnostic and recommendation
 

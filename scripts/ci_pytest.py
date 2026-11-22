@@ -29,8 +29,31 @@ def check_receipts(paths):
     print(f"Verified {expected} collected tests assigned exactly once across {count} shards")
 
 
-def run_shard(index, count, receipt, args, split_files=()):
+def _load_pins(pin_lists, count):
+    pinned_files = {}
+    pinned_nodes = {}
+    for spec in pin_lists:
+        shard_text, sep, list_path = spec.partition("=")
+        if not sep or not shard_text.isdigit():
+            raise ValueError(f"Invalid --pin-list specification (expected SHARD=PATH): {spec}")
+        shard = int(shard_text)
+        if not 0 <= shard < count:
+            raise ValueError(f"Pinned shard {shard} out of range for count={count}")
+        for raw in Path(list_path).read_text().splitlines():
+            entry = raw.split("#", 1)[0].strip()
+            if not entry:
+                continue
+            target = pinned_nodes if "::" in entry else pinned_files
+            if entry in target and target[entry] != shard:
+                raise ValueError(f"Conflicting shard pins for {entry}")
+            target[entry] = shard
+    return pinned_files, pinned_nodes
+
+
+def run_shard(index, count, receipt, args, split_files=(), pin_lists=()):
     import pytest
+
+    pinned_files, pinned_nodes = _load_pins(pin_lists, count)
 
     class Selection:
         collected = selected = 0
@@ -41,8 +64,16 @@ def run_shard(index, count, receipt, args, split_files=()):
             keep, drop = [], []
             for item in items:
                 filename = item.path.relative_to(config.rootpath).as_posix()
-                key = item.name if filename in split_files else filename
-                owner = int.from_bytes(hashlib.sha256(key.encode()).digest(), "big") % count
+                base_node = f"{filename}::{getattr(item, 'originalname', item.name)}"
+                if item.nodeid in pinned_nodes:
+                    owner = pinned_nodes[item.nodeid]
+                elif base_node in pinned_nodes:
+                    owner = pinned_nodes[base_node]
+                elif filename in pinned_files:
+                    owner = pinned_files[filename]
+                else:
+                    key = item.name if filename in split_files else filename
+                    owner = int.from_bytes(hashlib.sha256(key.encode()).digest(), "big") % count
                 (keep if owner == index else drop).append(item)
             self.collected, self.selected = len(items), len(keep)
             receipt.parent.mkdir(parents=True, exist_ok=True)
@@ -72,6 +103,8 @@ def main(argv=None):
     run.add_argument("--receipt", type=Path, required=True)
     run.add_argument("--split-file", action="append", default=[], metavar="PATH",
                      help="Shard this repository-relative file by test name instead of grouping it")
+    run.add_argument("--pin-list", action="append", default=[], metavar="SHARD=PATH",
+                     help="Pin test files or file::function entries listed in PATH to SHARD")
     run.add_argument("pytest_args", nargs=argparse.REMAINDER)
     check = modes.add_parser("check")
     check.add_argument("receipts", nargs="+", type=Path)
@@ -84,7 +117,7 @@ def main(argv=None):
     pytest_args = args.pytest_args
     if pytest_args[:1] == ["--"]:
         pytest_args = pytest_args[1:]
-    return run_shard(args.index, args.count, args.receipt, pytest_args, args.split_file)
+    return run_shard(args.index, args.count, args.receipt, pytest_args, args.split_file, args.pin_list)
 
 
 if __name__ == "__main__":

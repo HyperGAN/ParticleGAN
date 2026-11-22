@@ -92,13 +92,13 @@ recommendation. No incomplete hold or failed endpoint was extended or repeated.
 
 The actual movies are the unchanged original training GIFs:
 
-- [Intensity 0.006375 / 1 — original PASS; study INCOMPLETE](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/da7513723838--image-develop-img_intensity2-source-transpose12.gif).
-- [Intensity 0.006375 / 2 — original and study PASS](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--image-develop-img_intensity2-source-transpose12.gif).
-- [Two broad Gaussians 0.006375 / 2 — original and study FAIL](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--api-vector-two-broad.gif).
-- [Intensity 0.0085 / 1 — original and study FAIL](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/5d4d276493d6--image-develop-img_intensity2-source-transpose12.gif).
-- [Intensity 0.0085 / 2 — original and study FAIL, recovered final metric](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/65e42a03035e--image-develop-img_intensity2-source-transpose12.gif).
+- [Intensity 0.006375 / 1 — original PASS; study INCOMPLETE](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/da7513723838--image-develop-img_intensity2-source-transpose12.gif).
+- [Intensity 0.006375 / 2 — original and study PASS](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--image-develop-img_intensity2-source-transpose12.gif).
+- [Two broad Gaussians 0.006375 / 2 — original and study FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--api-vector-two-broad.gif).
+- [Intensity 0.0085 / 1 — original and study FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/5d4d276493d6--image-develop-img_intensity2-source-transpose12.gif).
+- [Intensity 0.0085 / 2 — original and study FAIL, recovered final metric](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/65e42a03035e--image-develop-img_intensity2-source-transpose12.gif).
 
-A separate [reviewed broad-Gaussian display](../policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--api-vector-two-broad-reviewed.gif) includes the analytic projection-CDF bound in its label. It presents the same retained updates; the original movie above is unchanged.
+A separate [reviewed broad-Gaussian display](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round1-cli-recovery-v2--eb2d77fbd776/e22/0acab20ca12f--api-vector-two-broad-reviewed.gif) includes the analytic projection-CDF bound in its label. It presents the same retained updates; the original movie above is unchanged.
 
 First, middle and terminal frames from all five movies were visually reviewed.
 The intensity movies show ordered target templates above actual draws; the

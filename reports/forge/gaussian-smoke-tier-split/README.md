@@ -48,7 +48,7 @@ execution.
 The historical five-terminal acquisition remains **FAIL**. No new training
 updates were used; the budget allowed one independent draw at this prespecified
 checkpoint and no repeat. The complete original training curve and
-[actual-training GIF](../tier1-prior-smoke/mog100-n256-gaussian1d_acquisition.gif)
+[actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-smoke/mog100-n256-gaussian1d_acquisition.gif)
 retain their original source and verdict. The existing
 [duration evidence](../tier1-prior-duration/README.md) still shows instability
 through update 4,000; Tier 1 success makes no Tier 2 claim.

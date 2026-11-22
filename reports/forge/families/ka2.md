@@ -13443,7 +13443,7 @@ Recorded terminal passing observations: **21**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/bf6d669e859d4c00bda87284addca604.json)
 
-[Actual-training GIF](../tier1-completion/media/ka2/bf6d669e859d4c00bda87284addca604/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/ka2/bf6d669e859d4c00bda87284addca604/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -13581,7 +13581,7 @@ Used by: [clockfree_continuous / Tier 1](ka2.md#cohort-cuda-0d83d78027c5-clockfr
 
 [Compact metrics and receipt provenance](../technique-receipts/ce6eec65990e41269dd54b438e68625c.json)
 
-[Actual-training GIF](../tier1-completion/media/ka2/ce6eec65990e41269dd54b438e68625c/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/ka2/ce6eec65990e41269dd54b438e68625c/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
 
 Recorded clock parity diagnostics:
 
@@ -15844,7 +15844,7 @@ Recorded terminal passing observations: **5**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/764fcd21c0de4d95a8bb898609dfaa72.json)
 
-[Actual-training GIF](../tier1-completion/media/ka2/764fcd21c0de4d95a8bb898609dfaa72/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/ka2/764fcd21c0de4d95a8bb898609dfaa72/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -16370,7 +16370,7 @@ Recorded terminal passing observations: **7**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/02b97792b1e24d6f98f8931ca77cf5f6.json)
 
-[Actual-training GIF](../tier1-completion/media/ka2/02b97792b1e24d6f98f8931ca77cf5f6/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/ka2/02b97792b1e24d6f98f8931ca77cf5f6/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
@@ -16528,7 +16528,7 @@ Recorded terminal passing observations: **15**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/49dcdd59005a4413afc2145348bdfa31.json)
 
-[Actual-training GIF](../tier1-completion/media/ka2/49dcdd59005a4413afc2145348bdfa31/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/ka2/49dcdd59005a4413afc2145348bdfa31/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 

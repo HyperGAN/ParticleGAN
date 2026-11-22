@@ -7843,7 +7843,7 @@ Recorded terminal passing observations: **23**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/13e60a31e9f24e429a72e95ee3bce070.json)
 
-[Actual-training GIF](../tier1-completion/media/release07-gan-v3/13e60a31e9f24e429a72e95ee3bce070/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/release07-gan-v3/13e60a31e9f24e429a72e95ee3bce070/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -7981,7 +7981,7 @@ Used by: [clockfree_continuous / Tier 1](release07-gan-v3.md#cohort-cuda-0d83d78
 
 [Compact metrics and receipt provenance](../technique-receipts/10087734b6b3445ea5db443693bf02a0.json)
 
-[Actual-training GIF](../tier1-completion/media/release07-gan-v3/10087734b6b3445ea5db443693bf02a0/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/release07-gan-v3/10087734b6b3445ea5db443693bf02a0/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
 
 Recorded clock parity diagnostics:
 
@@ -10240,7 +10240,7 @@ Recorded terminal passing observations: **0**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/d151441783bc409aaff7320fe9789542.json)
 
-[Actual-training GIF](../tier1-completion/media/release07-gan-v3/d151441783bc409aaff7320fe9789542/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/release07-gan-v3/d151441783bc409aaff7320fe9789542/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -10766,7 +10766,7 @@ Recorded terminal passing observations: **11**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/9d71a2050db7405eb8b0fae856432e0e.json)
 
-[Actual-training GIF](../tier1-completion/media/release07-gan-v3/9d71a2050db7405eb8b0fae856432e0e/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/release07-gan-v3/9d71a2050db7405eb8b0fae856432e0e/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
@@ -10924,7 +10924,7 @@ Recorded terminal passing observations: **8**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/c02c053fc0924c3494ab8278628a6596.json)
 
-[Actual-training GIF](../tier1-completion/media/release07-gan-v3/c02c053fc0924c3494ab8278628a6596/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/release07-gan-v3/c02c053fc0924c3494ab8278628a6596/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 

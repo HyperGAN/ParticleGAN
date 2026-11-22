@@ -225,7 +225,7 @@ task-specific winner splicing or relaxed CDF bound supplies a repair.
 [Protocol](protocol.json), [compact results](results.json) and
 [artifact receipt](provenance.json) bind all consumed evidence hashes and the
 analysis source. The [duration report](../tier1-prior-duration/README.md) retains
-its original failed verdict and [actual-training GIF](../tier1-prior-duration/mog100-n256-gaussian1d_acquisition.gif).
+its original failed verdict and [actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog100-n256-gaussian1d_acquisition.gif).
 No new GIF is manufactured for this zero-update analysis. The graph below is
 derived solely from the saved numerical observations.
 

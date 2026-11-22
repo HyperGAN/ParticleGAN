@@ -258,7 +258,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### gaussian1d_stability FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-gaussian1d_stability.gif) · Prior `mog`, sigma `0.1` · Declared updates `6000` · allowance `600 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-gaussian1d_stability.gif) · Prior `mog`, sigma `0.1` · Declared updates `6000` · allowance `600 s`.
 
 **Required temporal gate**
 
@@ -284,7 +284,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### five_word_joint_hold PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-five_word_joint_hold.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `4000` · allowance `300 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-five_word_joint_hold.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `4000` · allowance `300 s`.
 
 **Required temporal gate**
 
@@ -317,7 +317,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### trajectory PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-trajectory.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-trajectory.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -347,7 +347,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### residual_student PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-residual_student.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-residual_student.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -390,7 +390,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### unipolar PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-unipolar.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-unipolar.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `400` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -431,7 +431,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### cover_leftover PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-cover_leftover.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `800` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-cover_leftover.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `800` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -476,7 +476,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### mid_scale_identity PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-mid_scale_identity.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `800` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-mid_scale_identity.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `800` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -516,7 +516,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### mode_hold FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-mode_hold.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-mode_hold.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -539,7 +539,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_two_broad PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_two_broad.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_two_broad.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -573,7 +573,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_unequal_mass FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_unequal_mass.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_unequal_mass.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -607,7 +607,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_unequal_width FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_unequal_width.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_unequal_width.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -641,7 +641,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_anisotropic FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_anisotropic.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_anisotropic.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -675,7 +675,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_overlap FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_overlap.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_overlap.gif) · Prior `mog`, sigma `0.025` · Declared updates `1200` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -698,7 +698,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### vector_spiral PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-vector_spiral.gif) · Prior `mog`, sigma `0.025` · Declared updates `1600` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-vector_spiral.gif) · Prior `mog`, sigma `0.025` · Declared updates `1600` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -721,7 +721,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### img_stripes2 PASS
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-img_stripes2.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-img_stripes2.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -743,7 +743,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### img_bars4 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-img_bars4.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-img_bars4.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -765,7 +765,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### img_blobs4 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-img_blobs4.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-img_blobs4.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -787,7 +787,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### img_intensity2 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-img_intensity2.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-img_intensity2.gif) · Prior `particle_cloud`, sigma `0.0` · Declared updates `600` · allowance `1800 s`.
 
 **Required temporal gate**
 
@@ -809,7 +809,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### grid100 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-grid100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-grid100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
 
 **Required temporal gate**
 
@@ -909,7 +909,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### rotated100 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-rotated100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-rotated100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
 
 **Required temporal gate**
 
@@ -1009,7 +1009,7 @@ Scores use six significant digits; [the numerical receipt](measurements.json) ke
 
 ### staggered100 FAIL
 
-[Actual training GIF](../bcap-default-baseline/media/candidate-staggered100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
+[Actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-default-baseline/media/candidate-staggered100.gif) · Prior `mog`, sigma `0.025` · Declared updates `7000` · allowance `3600 s`.
 
 **Required temporal gate**
 

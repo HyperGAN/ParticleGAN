@@ -90,7 +90,7 @@ qualification. [Compact receipt](software-receipt.json).
 | Fixed reference buffers unchanged | true | true | PASS |
 | Both G and D trained | true | true | PASS |
 
-![Actual public-API training after the explicit initial perturbation](training.gif)
+![Actual public-API training after the explicit initial perturbation](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/prior-moment-tether/training.gif)
 
 ## Completed starting-value search
 

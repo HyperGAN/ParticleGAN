@@ -110,7 +110,7 @@ declared paths or in the inspected mounted study tree. Thus this PR cannot
 measure the actual thermal history, per-update gradient direction or cause of
 the oscillations. Missing state is an artifact-retrieval task, not permission
 to repeat unchanged training. The existing
-[actual-training GIF](../../bispf-optimized/quality-media/gaussian1d_stability.gif)
+[actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bispf-optimized/quality-media/gaussian1d_stability.gif)
 and its [receipt](../../bispf-optimized/quality-media/gaussian1d_stability.json)
 retain this exact attempt and original observed-sample hash; metrics above
 determine the findings.

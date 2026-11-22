@@ -83,9 +83,9 @@ seconds (50.80 controller child-wall seconds); the zero-update probe took 1.27
 seconds. Reserved ceilings were 600 training seconds plus 30 probe seconds.
 There were no retries, seed changes, additional training or retention runs.
 
-![Boundary-only actual training](boundary_only.gif)
+![Boundary-only actual training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/ring16-truncation/boundary_only.gif)
 
-![Every-step actual training](every_step.gif)
+![Every-step actual training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/ring16-truncation/every_step.gif)
 
 The [media index](media-index.json) binds nine observed frames per arm to the
 exact saved sample arrays and execution commit. Rendering used those saved CUDA
