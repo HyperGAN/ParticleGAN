@@ -162,9 +162,9 @@ numerical scoring and rendering use CPU. Consumed scientific and publication
 reference streams are checkpointed in the ignored archive.
 
 Actual-training GIFs show the saved trajectories, including failures:
-[Gaussian128](b128-gaussian1d_acquisition.gif),
-[Gaussian512](b512-gaussian1d_acquisition.gif),
-[Ring128](b128-ring16_acquisition.gif), [Ring512](b512-ring16_acquisition.gif).
+[Gaussian128](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-batch-size/b128-gaussian1d_acquisition.gif),
+[Gaussian512](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-batch-size/b512-gaussian1d_acquisition.gif),
+[Ring128](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-batch-size/b128-ring16_acquisition.gif), [Ring512](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-batch-size/b512-ring16_acquisition.gif).
 
 ![Numerical quality during acquisition and stationary hold](comparison.svg)
 

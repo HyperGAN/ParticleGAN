@@ -20,7 +20,7 @@ original PASS. Its separate study verdict is **INCOMPLETE: two of five required
 later hold checks were available**. Atlas's matched run and every other observed
 configuration are linked on the primary policy board.
 
-![Original broad-mixture PASS; separate persistence INCOMPLETE](../policy-family-media/policy-family-defaults-round4-prior-balance-v1--8021a1c50c4a/e22/5376bd11b0af--api-vector-two-broad-reviewed.gif)
+![Original broad-mixture PASS; separate persistence INCOMPLETE](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/policy-family-media/policy-family-defaults-round4-prior-balance-v1--8021a1c50c4a/e22/5376bd11b0af--api-vector-two-broad-reviewed.gif)
 
 The [completion receipt](campaign-completion.json) records exact costs, source
 cohorts, unknown denominators and archived evidence. The

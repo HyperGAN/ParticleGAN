@@ -273,6 +273,6 @@ sample comparisons, final stream parity and covariance reconstruction. CPU is
 used exclusively for saved-tensor math and metadata; no neural execution occurs.
 The plot reads certified existing scalar observations and adds no scoring draw.
 Actual public-API training is illustrated by the
-[historical PASS GIF](../tier1-prior-duration/mog100-n256-ring16_acquisition.gif)
-and [current FAIL GIF](../gaussian-smoke-inventory/media/ring16_acquisition.gif),
+[historical PASS GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-prior-duration/mog100-n256-ring16_acquisition.gif)
+and [current FAIL GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/gaussian-smoke-inventory/media/ring16_acquisition.gif),
 with their original provenance preserved.

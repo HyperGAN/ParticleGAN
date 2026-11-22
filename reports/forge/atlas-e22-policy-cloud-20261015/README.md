@@ -150,10 +150,10 @@ The bold selected Atlas and E22 rows at the top of the leaderboard still show th
 
 Each tile is the attempt's own `training.gif`, written during its run from its saved scoring observations; the contact sheets only resample and tile those frames (zero optimizer updates, zero sampling draws). Shared law-independent attempts appear on the clean sheet. Provenance, source GIF hashes and frame indices are in [results.json](results.json) under `media`.
 
-- [Atlas, clean](gifs/atlas-clean.gif) (25 tests)
-- [Atlas, as served](gifs/atlas-as-served.gif) (22 tests)
-- [E22, clean](gifs/e22-clean.gif) (25 tests)
-- [E22, as served](gifs/e22-as-served.gif) (22 tests)
+- [Atlas, clean](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-e22-policy-cloud-20261015/gifs/atlas-clean.gif) (25 tests)
+- [Atlas, as served](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-e22-policy-cloud-20261015/gifs/atlas-as-served.gif) (22 tests)
+- [E22, clean](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-e22-policy-cloud-20261015/gifs/e22-clean.gif) (25 tests)
+- [E22, as served](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-e22-policy-cloud-20261015/gifs/e22-as-served.gif) (22 tests)
 
 ## Costs
 

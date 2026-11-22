@@ -112,7 +112,7 @@ and failed the stream-equality gate; its receipt remains in local logs. Moving
 the snapshot to the complete consumed state repairs the demo cursor without
 changing training outputs or the penalty.
 
-![Actual public API training](actual-training.gif)
+![Actual public API training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/prior-coulomb/actual-training.gif)
 
 The targeted suites pass **286 checks**, including formula/gradient units,
 20,000-row bounded work, finite collision handling, disabled baseline parity,

@@ -1,7 +1,7 @@
 # Proximal prior software verification
 
 The spring's public optimizer and checkpoint contracts pass **315 focused
-checks**. The short [actual-training GIF](goal.gif) and [compact measurements](final-metrics.json)
+checks**. The short [actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/prior-proximal-software/goal.gif) and [compact measurements](final-metrics.json)
 illustrate scalar output CDFs and learned prior positions for the BCAP leader
 and strength1 during genuine public `GANTrainer` updates.
 

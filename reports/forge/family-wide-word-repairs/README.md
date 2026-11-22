@@ -28,9 +28,9 @@ binds source `9d089ca777e6`, digest `2aea8c53d187`, and **17.662 paid seconds**.
 
 | Global recipe / ordinary receipt | Base LR | Movement (`>=0.3`) | Median gradient (`<=1`) | Tier 1 | Actual-training GIF |
 | --- | ---: | ---: | ---: | --- | --- |
-| [K3P](initial/k3p-global-repair-v1.json) | 0.0006 | 0.046871 | 0.004666 | 0/5; first FAIL, four UNKNOWN | [Training](media/k3p-global-repair-v1-two_pole.gif) |
-| [KA2](initial/ka2-global-repair-v1.json) | 0.0006 | 0.036330 | 0.004442 | 0/5; first FAIL, four UNKNOWN | [Training](media/ka2-global-repair-v1-two_pole.gif) |
-| [R1/R2](initial/r1r2-global-repair-v1.json) | 0.0012 | 0.039444 | 0.082594 | 0/5; first FAIL, four UNKNOWN | [Training](media/r1r2-global-repair-v1-two_pole.gif) |
+| [K3P](initial/k3p-global-repair-v1.json) | 0.0006 | 0.046871 | 0.004666 | 0/5; first FAIL, four UNKNOWN | [Training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/family-wide-word-repairs/media/k3p-global-repair-v1-two_pole.gif) |
+| [KA2](initial/ka2-global-repair-v1.json) | 0.0006 | 0.036330 | 0.004442 | 0/5; first FAIL, four UNKNOWN | [Training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/family-wide-word-repairs/media/ka2-global-repair-v1-two_pole.gif) |
+| [R1/R2](initial/r1r2-global-repair-v1.json) | 0.0012 | 0.039444 | 0.082594 | 0/5; first FAIL, four UNKNOWN | [Training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/family-wide-word-repairs/media/r1r2-global-repair-v1-two_pole.gif) |
 
 The failures reject these complete global candidates. **The word task was not
 measured**: prerequisites left 75 later cells unmeasured across the three runs,

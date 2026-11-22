@@ -431,9 +431,9 @@ The diagnostic plots show the exact .00425 Adam control and the top three
 non-Adam arms under the frozen count/hash rule, with the owner's tied dualnorm
 starting recipe substituted: tensor nSGDA .1, zero-momentum dualnorm .01 and
 prior-only .01. The original plot candidates remain recorded in the analysis. See
-[Gaussian](reports/forge/dualnorm-tier1/diagnostics/gaussian1d_acquisition.png),
-[ring](reports/forge/dualnorm-tier1/diagnostics/ring16_acquisition.png) and
-[joint words](reports/forge/dualnorm-tier1/diagnostics/five_word_joint_acquisition.png).
+[Gaussian](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/gaussian1d_acquisition.png),
+[ring](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/ring16_acquisition.png) and
+[joint words](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/five_word_joint_acquisition.png).
 Each plots relative update speed, G/E and D parameter norms, and the log spectral
 product. In joint words, the dualnorm starter's spectral-log total variation is
 4.580 versus Adam's 9.115 over the same 24 checkpoints, but it is higher than

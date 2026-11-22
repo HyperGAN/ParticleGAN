@@ -79,8 +79,8 @@ The [software validation receipt](software/validation.json) records three genuin
 public-trainer updates in each precision condition, matching initial master
 parameters and target batches, finite gradients/state and isolated RNGs. The
 receipt retains its original source commit and hashes. Actual
-training: [FP32](software/fp32.gif), [8-bit](software/mxfp8.gif),
-[4-bit](software/nvfp4.gif). These are explicitly **INCOMPLETE** prefixes of the
+training: [FP32](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/precision-stretch/software/fp32.gif), [8-bit](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/precision-stretch/software/mxfp8.gif),
+[4-bit](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/precision-stretch/software/nvfp4.gif). These are explicitly **INCOMPLETE** prefixes of the
 1,000-update tests; they establish execution/media/checkpoint behavior only.
 The [selected-family preflight](preflight.json) finds seven ready recipes and an
 E22 policy-serving contract blocker. All full-budget precision cells remain

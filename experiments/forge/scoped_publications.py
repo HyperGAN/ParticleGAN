@@ -11,16 +11,61 @@ from .views import load_view
 
 REGISTRY = Path("reports/forge/scoped-publications.json")
 SCHEMA = "forge_scoped_publications_v1"
+HF_MEDIA_MANIFEST = Path("reports/forge/hf-media-manifest-2026-11-21.json")
+HF_MEDIA_MANIFEST_SCHEMA = "forge_hf_media_manifest_v1"
+
+_HF_MANIFEST_CACHE: dict[tuple[str, int, int, int], dict] = {}
 
 
-def _relative(root, value):
+def _relative_path(root, value):
     path = Path(value)
     if path.is_absolute() or ".." in path.parts or not path.parts:
         raise ValueError("publication artifacts require repository-relative paths")
     target = (root / path).resolve()
-    if not target.is_relative_to(root.resolve()) or not target.is_file():
+    if not target.is_relative_to(root.resolve()):
         raise ValueError("publication artifact is missing or outside the repository")
     return path
+
+
+def _relative(root, value):
+    path = _relative_path(root, value)
+    if not (root / path).is_file():
+        raise ValueError("publication artifact is missing or outside the repository")
+    return path
+
+
+def _load_hf_media_manifest(root: Path) -> dict | None:
+    manifest_path = Path(root) / HF_MEDIA_MANIFEST
+    if not manifest_path.is_file():
+        return None
+    stat = manifest_path.stat()
+    cache_key = (str(manifest_path.resolve()), stat.st_ino, stat.st_mtime_ns, stat.st_size)
+    cached = _HF_MANIFEST_CACHE.get(cache_key)
+    if cached is not None:
+        return cached
+    manifest = read_json(manifest_path)
+    prefix = manifest.get("url_prefix")
+    if (manifest.get("schema") != HF_MEDIA_MANIFEST_SCHEMA
+            or not isinstance(prefix, str) or not prefix.startswith("https://")
+            or not isinstance(manifest.get("files"), dict)):
+        raise ValueError("unsupported HF media manifest")
+    _HF_MANIFEST_CACHE[cache_key] = manifest
+    return manifest
+
+
+def hf_media_url(root: Path, relative_posix: str, expected_sha256: str) -> str | None:
+    """Resolve an evicted Forge media asset to its immutable pinned HF URL offline."""
+    manifest = _load_hf_media_manifest(Path(root))
+    if manifest is None:
+        return None
+    entry = manifest["files"].get(relative_posix)
+    if entry is None:
+        return None
+    if not isinstance(entry, list) or len(entry) != 3 or entry[1] != expected_sha256:
+        raise ValueError("actual-training GIF changed after registration")
+    if not relative_posix.startswith("reports/forge/"):
+        raise ValueError("HF media manifest entry must be under reports/forge/")
+    return manifest["url_prefix"] + relative_posix[len("reports/forge/"):]
 
 
 def load_publications(root, load=None):
@@ -111,13 +156,16 @@ def load_publications(root, load=None):
         if index.get("qualification_input") is not False or not isinstance(index.get("items"), list):
             raise ValueError("unsupported actual-training media index")
         for item in index["items"]:
-            gif = _relative(root, item["gif"])
-            if file_hash(root / gif) != item["gif_sha256"]:
-                raise ValueError("actual-training GIF changed after registration")
+            gif = _relative_path(root, item["gif"])
+            if (root / gif).is_file():
+                if file_hash(root / gif) != item["gif_sha256"]:
+                    raise ValueError("actual-training GIF changed after registration")
+            elif hf_media_url(root, gif.as_posix(), item["gif_sha256"]) is None:
+                raise ValueError("publication artifact is missing or outside the repository")
             if (item.get("kind") != "actual_training_saved_observations_gif"
                     or item.get("optimizer_updates_added") != 0 or item.get("sampling_draws_added") != 0):
                 raise ValueError("media must use the recorded training observations without new execution")
-            sidecar = gif.with_suffix(".json")
+            sidecar = _relative(root, gif.with_suffix(".json").as_posix())
             if load(sidecar) != {key: value for key, value in item.items()
                                   if key not in {"family", "attempt_id", "gif"}}:
                 raise ValueError("actual-training media index differs from its provenance receipt")

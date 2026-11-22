@@ -92,7 +92,7 @@ fit some continuous distributions; failure is sensitive to the task geometry.
 
 ## What the saved curves and samples explain
 
-![Saved Gaussian, native precision and mode hold measurements](failure-curves.png)
+![Saved Gaussian, native precision and mode hold measurements](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/failure-curves.png)
 
 ### Gaussian instability begins before the target shift
 
@@ -198,7 +198,7 @@ passes stripes, and the matched lower-cap recipe passes intensity.
 
 ## Likely optimization mechanisms and their limits
 
-![Frozen critic, update and image error diagnostics](failure-mechanisms.png)
+![Frozen critic, update and image error diagnostics](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/failure-mechanisms.png)
 
 ### Native directions are useful but their scale is excessive
 
@@ -457,5 +457,5 @@ tail -F runs/software/bcap-failure-analysis/state-analysis.log
 The second script restores the saved public model classes and performs
 deterministic forward/derivative probes. It makes no optimizer step, draws no
 random samples, and writes the same [numerical receipt](failure-state-analysis.json)
-and [mechanism figure](failure-mechanisms.png) in place. Original qualification
+and [mechanism figure](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/failure-mechanisms.png) in place. Original qualification
 results and the current leaderboard remain unchanged.

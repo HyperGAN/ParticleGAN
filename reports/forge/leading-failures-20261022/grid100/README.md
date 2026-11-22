@@ -77,7 +77,7 @@ The [earlier disposition audit](../../test-dispositions-20261015/README.md#grid1
 records completed failures, longer-budget BISPF plateaus and historically passing
 noisy/fixed-particle cohorts. Those budgets and serving/prior contracts remain
 separate; neither longer training nor added evaluation noise is an authorized repair
-of this selected clean 7k cell. Its [source-bound original training GIF](../../bispf-optimized/quality-media/grid100.gif)
+of this selected clean 7k cell. Its [source-bound original training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bispf-optimized/quality-media/grid100.gif)
 and [media receipt](../../bispf-optimized/quality-media/grid100.json) illustrate the
 actual 34 saved observations, with zero new updates or sampling draws. Numerical
 metrics above determine the result. The [current inventory](../../technique-inventory.md)

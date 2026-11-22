@@ -110,7 +110,7 @@ are observed ratios rather than a certified paired ranking. Exact final matrices
 are archived for the [controls](../scaling-history/bispf-matrix-controls-v1-d0053fc17b21f7a7.json)
 and [quintic recipe](../scaling-history/bispf-matrix-quintic-v1-7c73a339487b7bfb.json).
 
-![Observed DCGAN update latency versus image resolution: optimized BISPF approaches R1/R2 while native SVD costs dominate.](resolution-scaling.png)
+![Observed DCGAN update latency versus image resolution: optimized BISPF approaches R1/R2 while native SVD costs dominate.](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bispf-optimized/resolution-scaling.png)
 
 The [vector plot](resolution-scaling.svg) and [renderer](reproduce_scaling.py)
 use the four resolution tasks only, holding batch size and width fixed. They

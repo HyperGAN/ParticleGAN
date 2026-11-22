@@ -48,7 +48,7 @@ A 2×2 corner occupies only 4/64 pixels. The global image objective may give wea
 
 The [original BISPF readout](../../bispf/README.md) retains an earlier three-mode/HQ 0.875 result. The [October 15 dispositions](../../test-dispositions-20261015/README.md#img_blobs4) document separate R1/R2 and kinetic transport passes, and several kinetic histories with four final passing checks but not the required five. Those outcomes show that numerical feasibility and sustained acquisition are separate questions; their recipe and prior identities do not establish a BISPF repair. The convolution-support report belongs to a different BCAP recipe and is not a BISPF trial.
 
-Actual-training illustration for **this same attempt and saved output tensor**: [GIF](../../bispf-optimized/quality-media/img_blobs4.gif), [source/media receipt](../../bispf-optimized/quality-media/img_blobs4.json). The audit verifies the GIF hash and original `observed-images.pt` hash binding. No footage is invented, no images are regenerated, and no training is added. Metrics above determine the conclusion.
+Actual-training illustration for **this same attempt and saved output tensor**: [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bispf-optimized/quality-media/img_blobs4.gif), [source/media receipt](../../bispf-optimized/quality-media/img_blobs4.json). The audit verifies the GIF hash and original `observed-images.pt` hash binding. No footage is invented, no images are regenerated, and no training is added. Metrics above determine the conclusion.
 
 ## Bounded next diagnostic and recommendation
 

@@ -1998,9 +1998,16 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
                           f"required: {convergence.get('minimum_stable_checks', 'unavailable')}.", ""]
             if result["receipt"]:
                 lines += [link(root, page, "Compact metrics and receipt provenance", result["receipt"]), ""]
+            from .scoped_publications import hf_media_url
             for artifact in result.get("training_media", []):
-                lines += [link(root, page, "Actual-training GIF", artifact["gif"]) +
-                          "; " + str(artifact["observation_count"]) + " saved observations; "
+                gif_path = artifact["gif"]
+                if (root / gif_path).is_file():
+                    gif_link = link(root, page, "Actual-training GIF", gif_path)
+                else:
+                    url = hf_media_url(root, gif_path, artifact["gif_sha256"])
+                    gif_link = (f"[Actual-training GIF]({url})" if url is not None
+                                else link(root, page, "Actual-training GIF", gif_path))
+                lines += [gif_link + "; " + str(artifact["observation_count"]) + " saved observations; "
                           "no new optimizer updates or sampling draws.", ""]
             if result.get("clock_audit"):
                 audit = result["clock_audit"]

@@ -10,9 +10,9 @@ two-mode results, with no whole-suite qualification or public-default change.
 
 | Global recipe | Hard VAEGAN | Categorical VAEGAN | Task passes |
 | --- | --- | --- | ---: |
-| `bispf-vaegan-settle-v1` | [PASS](media/bispf-vaegan-settle-v1-model_vae_hard.gif) (5/5 terminal; suffix 6) | [PASS](media/bispf-vaegan-settle-v1-model_vae_categorical.gif) (5/5 terminal; suffix 9) | 2/2 |
-| `bispf-optimized-quintic-v1` | [FAIL](media/bispf-optimized-quintic-v1-model_vae_hard.gif) (2/5 terminal; suffix 1) | [FAIL](media/bispf-optimized-quintic-v1-model_vae_categorical.gif) (3/5 terminal; suffix 2) | 0/2 |
-| `bispf-vaegan-transport-v1` | [FAIL](media/bispf-vaegan-transport-v1-model_vae_hard.gif) (0/5 terminal; suffix 0) | [FAIL](media/bispf-vaegan-transport-v1-model_vae_categorical.gif) (0/5 terminal; suffix 0) | 0/2 |
+| `bispf-vaegan-settle-v1` | [PASS](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-vaegan-settle-v1-model_vae_hard.gif) (5/5 terminal; suffix 6) | [PASS](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-vaegan-settle-v1-model_vae_categorical.gif) (5/5 terminal; suffix 9) | 2/2 |
+| `bispf-optimized-quintic-v1` | [FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-optimized-quintic-v1-model_vae_hard.gif) (2/5 terminal; suffix 1) | [FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-optimized-quintic-v1-model_vae_categorical.gif) (3/5 terminal; suffix 2) | 0/2 |
+| `bispf-vaegan-transport-v1` | [FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-vaegan-transport-v1-model_vae_hard.gif) (0/5 terminal; suffix 0) | [FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/vaegan-coverage/media/bispf-vaegan-transport-v1-model_vae_categorical.gif) (0/5 terminal; suffix 0) | 0/2 |
 
 All measured arms complete 1,200 updates and24 checks; the last five determine
 PASS. This table is the single current comparison for `vaegan_coverage`.

@@ -7748,7 +7748,7 @@ Recorded terminal passing observations: **16**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/01313af6d0b1452b9d9e60f95a57e1d7.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-penalty/01313af6d0b1452b9d9e60f95a57e1d7/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-penalty/01313af6d0b1452b9d9e60f95a57e1d7/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -7886,7 +7886,7 @@ Used by: [clockfree_continuous / Tier 1](k3p-no-penalty.md#cohort-cuda-0d83d7802
 
 [Compact metrics and receipt provenance](../technique-receipts/2c34e6b34c1844958037b5cc399dcfaa.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-penalty/2c34e6b34c1844958037b5cc399dcfaa/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-penalty/2c34e6b34c1844958037b5cc399dcfaa/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
 
 Recorded clock parity diagnostics:
 
@@ -10148,7 +10148,7 @@ Recorded terminal passing observations: **0**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/f4c4560d3c214491914c067adc0782fb.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-penalty/f4c4560d3c214491914c067adc0782fb/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-penalty/f4c4560d3c214491914c067adc0782fb/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -10674,7 +10674,7 @@ Recorded terminal passing observations: **0**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/d54d98951bf34e7990d47fced9234d37.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-penalty/d54d98951bf34e7990d47fced9234d37/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-penalty/d54d98951bf34e7990d47fced9234d37/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
@@ -10832,7 +10832,7 @@ Recorded terminal passing observations: **4**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/8ca22bcbde054570956f3e5c7e9d14a7.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-penalty/8ca22bcbde054570956f3e5c7e9d14a7/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-penalty/8ca22bcbde054570956f3e5c7e9d14a7/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 

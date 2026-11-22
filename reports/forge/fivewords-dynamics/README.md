@@ -211,7 +211,7 @@ difference error below 1e-10; all eight restore, expected-pair-loss and RNG chec
 pass. The supplemental t = 0/1 reconstruction endpoints match all retained
 probabilities exactly. No broad training tests are rerun for this report.
 
-The [historical goal GIF](media/archived-smoothed-truncated-serial.gif) illustrates
+The [historical goal GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/fivewords-dynamics/media/archived-smoothed-truncated-serial.gif) illustrates
 actual scored training from PR #344; [its receipt](media/receipt.json) retains that
 source identity. It is not a new probe animation. Bulk inputs, per-probe saved
 coordinates, logs and source packets remain outside Git in the local archive
