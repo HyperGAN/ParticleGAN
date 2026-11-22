@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-frob-sgd-mp-occam-study"
+  },
+  "candidate": "law4-frob-sgd-mp",
+  "competing_explanation": "If Law 4 per-layer normalization / equilibration is unnecessary for law4-frob-sgd-mp, it will match unified-v11 (16/16 PASS) across all surgical probes of r4-occam-ablation-v1.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.95
+  },
+  "hypothesis": "Evaluate law4-frob-sgd-mp (Rung 5 (Zero-State Layerwise Frobenius-Normalized SGD + MP + peak_rms + Secant Band): delta_W = -lr * sqrt(fan_out/fan_in) * G / hypot(||G||_F, s_eff), strictly O(params), 0 tensor states/param, 0 matmuls, 0 NS, 0 Adam moments.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.",
+  "id": "law4-frob-sgd-mp-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100",
+    "threshold": 0.95
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

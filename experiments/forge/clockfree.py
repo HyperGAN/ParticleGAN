@@ -58,6 +58,7 @@ def source_audit(recipe, extensions):
              "particlegan/_unified_v11/penalty.py", "particlegan/_unified_v11/prior.py",
              "particlegan/_r4_ablation/optimizer.py", "particlegan/_r4_ablation/penalty.py",
              "particlegan/_r4_ablation/prior.py",
+             "particlegan/_law4_sgd/optimizer.py",
              "particlegan/_minimal/dynamics.py", "particlegan/_minimal/geometry.py",
              "particlegan/_minimal/prior.py",
              "particlegan/grad_regularizers.py", "experiments/forge/clockfree.py",

@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1217. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1223. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4392,6 +4392,22 @@ The single global quintic convolution-rule delta preserves all 19 incumbent BISP
 
 [Evidence](../../reports/forge/bispf-optimized/README.md) · [Record](records/readout-10ed0ff3f18514315a760f4a.json)
 
+### law4-frob-sgd-mp · readout-12f988a4ce689b5994a4ea61
+
+**Scope:** research_diagnostic; scientific; revision `393f6cfa68fc24efa20d713749141df107115e31900f32324d0faf141f358315`.
+
+Evaluate law4-frob-sgd-mp (Rung 5 (Zero-State Layerwise Frobenius-Normalized SGD + MP + peak_rms + Secant Band): delta_W = -lr * sqrt(fan_out/fan_in) * G / hypot(||G||_F, s_eff), strictly O(params), 0 tensor states/param, 0 matmuls, 0 NS, 0 Adam moments.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 7, 'PASS': 9}; wall seconds 3817.023; mechanism `structural`.
+
+img_bars4: modes=4, hq=0.96875; grid100: precision=0.97237, center_rms_sigma=0.066019, mass_tv=0.03619, radial_ks=0.026325
+
+Rung 5 (law4_frob_sgd_mp: zero-state layerwise Frobenius-normalized SGD + Marchenko-Pastur sqrt(fan_out/fan_in) + degree-0 peak_rms + Law 4 secant band; strictly O(params), 0 tensor states/param, 0 matmuls, 0 NS, 0 Adam) scores 9/16 executed PASS (7 numerical FAIL, 0 NaN/ERROR/TIMEOUT, 0 prereq-gated) on r4-occam-ablation-v1. Layerwise degree-0 Frobenius-MP + secant delivers a massive leap over pure SGD (2/13, 2 NaN) and global-secant SGD (4/13): unlocks grid100 (prec=0.9724, ctr=0.0660 — 2.1x sharper than unified-v11), five_word_joint_smoke (5/5, tv=0.0189, recon=1), gaussian1d_stability (ks=0.0301 — only SGD-family arm to pass), img_bars4 (4/4 hq=0.9688), ring16 (0.9573), both >500x Nash tasks (0.9583/0.9709), gaussian1d_smoke (0.0240), and zero_tanh_smoke (0.0031). Isolates the exact mathematical gap to Quintic NS (unified-v11 16/16): Frobenius normalization is rank-preserving so it cannot rescue 16-layer skip-free rank-1 spectral collapse (grid100_mlp16 prec=0.1565) and under-steps minor singular directions on model_ddgan_gaussian_chain (t1_q0=0.8386), anisotropic vector_unequal_mass/width (hq=0.9998/0.9836), t3_iso_scale_mass_8x (4/4 hq=0.9414, eig=0.6449), t3_iso_horizon_saddle_shift (4/4 hq=0.8984), and zero_tanh_rail_escape (mae=0.0063).
+
+**Next:** Synthesize the full 6-readout causal ladder and failure-anatomy report for the swarm (@laws-and-energy, @energy-champion, @coordinator) and commit cleanly on research/law4-sgd-anatomy.
+
+[Record and receipt provenance](records/readout-12f988a4ce689b5994a4ea61.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-optimized-quintic-v1 · readout-13bb0a182066511013f5e739
 
 **Scope:** research_diagnostic; scientific; revision `62c29b5e265d2d5556010afa6e2f8c8387479ab4a3104ff2c72057b2577c19b8`.
@@ -5159,6 +5175,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 1.254
 **Next:** Stop this exact failed ordinary cohort; preserve the negative and unknown denominator. Do not rerun it, vary seeds, fill downstream gates or promote it. Calibration requires a supported bounded design, not relaxed thresholds.
 
 [Evidence](../../reports/forge/technique-receipts/33bc62d63509425e9f7237ef19ee7374.json) · [Record](records/readout-28f0c9140b4cfeef57f23dd2.json)
+
+### law4-equil-g-sgd-d · readout-294525ad76a2970a72a7caac
+
+**Scope:** research_diagnostic; scientific; revision `61f17f7ff86f19a480fbb3916aec560ad0b233800b9348dc144dc1c57b1f075e`.
+
+Evaluate law4-equil-g-sgd-d (Rung 4 (Causal Reverse Control — Equilibrated G & Prior, Pure SGD on D): keep exact unified_v11_equil on G and prior while replacing D with pure unnormalized SGD.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 12}; wall seconds 3262.118; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.97192, mass_tv=0.084961; vector_unequal_mass: hq=0.99731, mass_tv=0.10407; vector_unequal_width: hq=0.99731, mass_tv=0.12744
+
+Rung 4 (law4_equil_g_sgd_d: causal reverse control — exact unified_v11_equil on G & prior, pure unnormalized SGD on D with 0 D normalization and 0 D secant) scores 12/16 executed PASS (3 numerical FAIL, 1 NaN-explosion INCOMPLETE via FloatingPointError, 0 prereq-gated) on r4-occam-ablation-v1. Proves an extraordinary causal G-vs-D asymmetry law reversing conventional intuition: Equil-G + SGD-D (12/16) outperforms SGD-G + Equil-D (5/13) by +7 tasks and even SGD-G+secant + Equil-D (9/15) by +3 tasks! Because Law 2 Born-Infeld regularization already keeps D's potential smooth and 1-Lipschitz on balanced architectures, pure SGD on D passes grid100 (prec=0.9919, ctr=0.1204), five_word_joint_smoke (5/5, tv=0.0189, recon=1), model_ddgan_gaussian_chain (t1_q0=0.2596), zero_tanh_rail_escape (mae=0.0006), t3_iso_scale_mass_8x (eig=0.6869), img_bars4 (4/4 hq=1.0), ring16 (0.9873), vector_unequal_mass/width (0.9973), and nash_overpowered_generator (16/16 hq=0.9719). Crucially, nash_overpowered_critic_ring16 (620x D>>G) immediately explodes to NaN (FloatingPointError in 5.4s), establishing an exact 2x2 causal double dissociation with Rung 3a (where overpowered_critic PASSED 0.9783 and overpowered_generator collapsed to 8/16). Minor remaining misses under starved SGD-D: grid100_mlp16 (prec=0.9722, ctr=0.6118), gaussian1d_stability (ks=0.0201), t3_iso_horizon_saddle_shift (4/4 hq=0.9219).
+
+**Next:** Conclude Rung 5 (zero-state layerwise Frobenius-MP SGD law4-frob-sgd-mp, currently 3/3 PASS) to complete the 5-rung causal ladder.
+
+[Record and receipt provenance](records/readout-294525ad76a2970a72a7caac.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-arch-v1 · readout-2b160a70b11093992b400283
 
@@ -6871,6 +6903,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Evidence](../../) · [Record](records/readout-613fc91cba03a8c327465202.json)
+
+### law4-pure-sgd · readout-62543241e3cb64f098759ad7
+
+**Scope:** research_diagnostic; scientific; revision `ccb867e613865050d6efd3a892052b2a11d3c6cf0f8b3aef22c69bde007c31c0`.
+
+Evaluate law4-pure-sgd (Rung 1 (Pure Unnormalized SGD): replace unified_v11_equil with pure unnormalized SGD (p.add_(g, alpha=-lr)) on G, D, and sampled prior rows (keeping Laws 1-3, lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9, sparse prior masking, and zero-pinv direction_blend identical to unified-v11).) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 9, 'INCOMPLETE': 2, 'PASS': 2}; wall seconds 1760.45; mechanism `structural`.
+
+
+
+Rung 1 (law4_pure_sgd, pure unnormalized SGD at matched lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9) scores 2/13 executed PASS (9 numerical FAIL, 2 NaN-explosion INCOMPLETE via FloatingPointError, 3 prereq-gated) on r4-occam-ablation-v1 vs unified-v11 16/16 PASS. Pure SGD passes easy 2D vectors (vector_unequal_width hq=0.9990, vector_unequal_mass hq=0.9963) proving lr=0.014 is well-scaled, yet collapses on img_bars4 (0/4 modes, hq=0.0), grid100 (prec=0.1466), five_word_joint_smoke (3/5 modes, tv=0.4018), t3_iso_scale_mass_8x (1/4 modes, hq=0.1348), t3_iso_horizon_saddle_shift (0/4 modes, hq=0.0469), ring16 (hq=0.8071), gaussian1d_smoke (cdf_ks=0.0820), zero_tanh_smoke, model_ddgan_gaussian_chain (t1_q0=1.328), and immediately blows up to NaN (FloatingPointError: nonfinite public training loss) on both >500x imbalanced Nash tasks.
+
+**Next:** Compare against Rung 2 (law4-sgd-secant) to isolate whether player-level secant trust bands rescue pure SGD, and against Rungs 3-5 (asymmetric SGD-on-G, reverse control SGD-on-D, and zero-state Frob-SGD+MP).
+
+[Record and receipt provenance](records/readout-62543241e3cb64f098759ad7.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t1-coupling-v3 · readout-6265233640061013149586d5
 
@@ -9992,6 +10040,22 @@ Preregistered full7000-update grid100_affine_paired_laws_v1 FAIL; sustained cove
 
 [Record and receipt provenance](records/readout-d5a99d9470252f695a717dfc.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-sgd-secant · readout-d5c8d860e8107c9cc66729c6
+
+**Scope:** research_diagnostic; scientific; revision `179f0f4d9f0014200fb8795c30f039123f9c19b8d9f435b3c02d108944f51549`.
+
+Evaluate law4-sgd-secant (Rung 2 (Pure SGD + Global Player-Level Secant Band): wrap pure unnormalized SGD ONLY with Law 4 player-level secant trust bands (delta_g_min/max and delta_d_min/max), with zero per-layer normalization, zero MP scaling, zero NS, and zero tensor states.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 9, 'PASS': 4}; wall seconds 2569.412; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.98413, mass_tv=0.069336; t3_iso_horizon_saddle_shift: modes=0, hq=0.046875, mass_tv=0.03125
+
+Rung 2 (law4_sgd_secant: pure unnormalized SGD wrapped ONLY by Law 4 player-level secant trust bands, 0 per-layer normalization, 0 MP, 0 NS, 0 tensor states) scores 4/13 executed PASS (9 numerical FAIL, 0 INCOMPLETE/NaN, 3 prereq-gated) on r4-occam-ablation-v1. Crucial causal dissociation: global player-level secant impedance matching ALONE rescues both >500x imbalanced Nash tasks from instant NaN explosion to full 5/5 PASS (nash_overpowered_critic_ring16 16/16 hq=0.9768, nash_overpowered_generator_ring16 16/16 hq=0.9751) and rescues ring16_acquisition (16/16 hq=0.9841) plus vector_unequal_mass (hq=0.9993). However, global player-level scaling CANNOT rescue intra-player inter-layer skew, Conv2d scale skew, unnormalized sparse prior rows, or sech^2 rail attenuation: img_bars4 (0/4 modes, hq=0.0), grid100 (prec=0.4545, ctr=1.7549), five_word_joint_smoke (3/5 modes, tv=0.40), model_ddgan_gaussian_chain (t1_q0=1.328), gaussian1d_smoke (cdf_ks=0.0880), zero_tanh_smoke, t3_iso_scale_mass_8x (1/4), t3_iso_horizon_saddle_shift (0/4), and vector_unequal_width all FAIL.
+
+**Next:** Evaluate Rungs 3a/3b (asymmetric SGD on G with equilibrated D+prior) and Rung 4 (causal reverse control: equilibrated G+prior, SGD on D) and Rung 5 (zero-state Frob-SGD+MP).
+
+[Record and receipt provenance](records/readout-d5c8d860e8107c9cc66729c6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-d679f4e35d05a94463465c43
 
 **Scope:** research_diagnostic; scientific; revision `5ac663820870ccb231b7a4426a4b114ccc7502916e7bef44e56c461a4e6df487`.
@@ -10712,6 +10776,22 @@ Bounded R1/R2 Modern GAN toy-host configuration {'lr': 0.0085, 'reg_coeff': 0.1,
 
 [Evidence](../../reports/forge/technique-receipts/2a719ec706924f0ab120961cd58f7582.json) · [Record](records/readout-f0dadd320f7db48cbf5d7b20.json)
 
+### law4-sgd-g-equil-d · readout-f19a0f5cc8ffd529c09444c0
+
+**Scope:** research_diagnostic; scientific; revision `c5182838c5c5522cf9bc577ea8b0eea2aa89811cb8a951bbece6e1e3c613df7a`.
+
+Evaluate law4-sgd-g-equil-d (Rung 3a (Asymmetric Hybrid — Pure SGD on G, Equilibrated D & Prior): apply pure unnormalized SGD to G while keeping exact unified_v11_equil on D and row-normalized prior.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 8, 'PASS': 5}; wall seconds 2212.023; mechanism `structural`.
+
+grid100: precision=0.13578, mass_tv=0.03771; t3_iso_scale_mass_8x: modes=4, hq=0.96484, mass_tv=0.013906; vector_unequal_mass: hq=0.99829, mass_tv=0.078926
+
+Rung 3a (law4_sgd_g_equil_d: pure unnormalized SGD on G, exact unified_v11_equil on D and row-normalized prior, 0 G secant band, 0 G states) scores 5/13 executed PASS (8 numerical FAIL, 0 INCOMPLETE/TIMEOUT, 3 prereq-gated) on r4-occam-ablation-v1. Equilibrating D+prior rescues img_bars4 (0/4 -> 4/4 hq=1.0000 PASS), nash_overpowered_critic_ring16 (NaN -> 16/16 hq=0.9783 PASS), t3_iso_horizon_saddle_shift (0/4 -> 4/4 hq=0.9609 PASS), and vector_unequal_mass/width (hq=0.9983/0.9973 PASS) even with pure unnormalized SGD on G. However, without G secant regulation or per-layer G normalization, pure SGD on G still collapses nash_overpowered_generator_ring16 (8/16 hq=0.3672), grid100 (prec=0.1358), ring16_acquisition (14/16 hq=0.6897, D outruns unnormalized G), five_word_joint_smoke (4/5 tv=0.2172), model_ddgan_gaussian_chain (t1_q0=1.4142), t3_iso_scale_mass_8x (4/4 hq=0.9648, eig=0.4035), gaussian1d_smoke (ks=0.0718), and zero_tanh_smoke.
+
+**Next:** Evaluate Rung 3b (law4-sgd-g-secant-equil-d, adding ONLY Law 4 G secant trust band), Rung 4 (causal reverse control law4-equil-g-sgd-d), and Rung 5 (zero-state law4-frob-sgd-mp).
+
+[Record and receipt provenance](records/readout-f19a0f5cc8ffd529c09444c0.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-ka2-v1 · readout-f49e05e15c9423e6a7e9d1b0
 
 **Scope:** research_diagnostic; scientific; revision `599e3b4f3bcbc4b5667a35b1fa60d7334ddb5b3b924d88e514d11eee930db237`.
@@ -10967,6 +11047,22 @@ Arm 1 (-NS, v1) passes 3/3 (100%) on t4_imbalance_nash_stretch: overpowered_crit
 **Next:** Confirm 3/3 parity under r4-razor-no-ns-v2.
 
 [Record and receipt provenance](records/readout-fcfec5e8ae1c8411f818fa8f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-sgd-g-secant-equil-d · readout-fd14ca2051e98f707ab51fe9
+
+**Scope:** research_diagnostic; scientific; revision `94166b0fc79c4f724e4e93f8271cb04644f07d46e56f1af445acdc8623ef0449`.
+
+Evaluate law4-sgd-g-secant-equil-d (Rung 3b (Asymmetric Hybrid — Pure SGD + Law 4 G Secant Band on G, Equilibrated D & Prior): apply pure unnormalized SGD wrapped by Law 4 generator secant trust band (delta_g_min/max) on G while keeping exact unified_v11_equil on D and row-normalized prior.) across all 16 surgical probes of r4-occam-ablation-v1 under protocol seed 0 (lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9 held identical to unified-v11) to establish the exact causal SGD & G/D asymmetry ladder.
+
+**Observed:** {'FAIL': 6, 'PASS': 9}; wall seconds 3226.796; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.98145, mass_tv=0.063965
+
+Rung 3b (law4_sgd_g_secant_equil_d: pure unnormalized SGD + Law 4 G secant trust band on G, exact unified_v11_equil on D & row-normalized prior, 0 G per-layer norm, 0 G MP, 0 G NS, 0 G states) scores 9/15 executed PASS (6 numerical FAIL, 0 NaN/TIMEOUT, 1 prereq-gated grid100_mlp16) on r4-occam-ablation-v1. Adding ONLY the generator secant band to Rung 3a (5/13) flips 4 tasks to PASS: nash_overpowered_generator_ring16 (8/16 hq=0.3672 -> 16/16 hq=0.9751), ring16_acquisition (14/16 -> 16/16 hq=0.9814), gaussian1d_smoke (ks=0.0475), and zero_tanh_smoke (mae=0.0020), joining img_bars4 (4/4 hq=1.0), nash_overpowered_critic (16/16 hq=0.9648), t3_iso_horizon_saddle_shift (4/4 hq=0.9609), and vector_unequal_mass/width (0.9951/0.9998). Directly answers 'Or SGD on G if impedance mismatch isnt a problem?': YES for shallow/balanced, Conv2d 4-mode images, saddle-shift, and >500x imbalanced Nash, but NO for multi-scale/multi-module/stiff generator regimes — pure SGD on G still fails 6 tasks (grid100 prec=0.4655/ctr=1.7461 gating mlp16, five_word_joint_smoke 3/5 modes, model_ddgan_gaussian_chain t1_q0=1.4281, zero_tanh_rail_escape mae=0.0031, gaussian1d_stability ks=0.0452, t3_iso_scale_mass_8x eig=0.4035).
+
+**Next:** Conclude Rung 4 (causal reverse control law4-equil-g-sgd-d) and Rung 5 (zero-state layerwise Frobenius-MP SGD law4-frob-sgd-mp).
+
+[Record and receipt provenance](records/readout-fd14ca2051e98f707ab51fe9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-arch-v3 · readout-ff22843954240927dfd7ecc3
 
@@ -11622,4 +11718,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `3be30695d7e9fafc42d8fa46058165d800beccf74eef7a132a1b624251dcc182`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `85dc75f4eab1df8a3e31e5e7b696b6a405e4e947a4a1e6b5326b656d12de0c2c`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
