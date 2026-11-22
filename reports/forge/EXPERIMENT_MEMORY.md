@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1223. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1225. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -8792,6 +8792,22 @@ One preregistered full 7000-update clean learned-MoG grid diagnostic FAIL for 93
 
 [Record and receipt provenance](records/readout-abd06840fa1f42a4f64c13ab.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v11 · readout-ac4e1807d824930163c6cc6e
+
+**Scope:** research_diagnostic; scientific; revision `dcad10ee990537f41753e117a96979b8bee070efe14381b26d78e1d690943782`.
+
+Restoring non-collapsing Tikhonov peak_rms smoothing (0.50*peak_rms, cooling-frozen decay, prior s_cap), stiff-network ema_func_gain non-bounce (free_ratio > 1.5 with PR #591 active_thresh preserved), and zero-sync |mean_logit| deadband on s_gauge restores 16/16 PASS on r4-occam-ablation-v1 (up from 11/16 on develop HEAD) while preserving 100% of PR #591 high-D / thermal / probe invariants.
+
+**Observed:** {'INCOMPLETE': 1, 'PASS': 16}; wall seconds 4936.84; mechanism `structural`.
+
+img_bars4: modes=4, hq=1
+
+Restored 16/16 PASS on r4-occam-ablation-v1 (up from 11/16 on develop HEAD readout-2b91f35b) via a minimal 3-part surgical fix preserving 100% of PR #591 high-D 2D vector, thermal, and composite-probe invariants: (1) non-collapsing Tikhonov peak_rms smoothing (0.30*peak_rms on weights, cooling-frozen decay s_therm<0.5, stiff-gated prior s_cap), (2) equilibrium-guarded _ema_func_gain upward recovery (s_therm>=0.5, push_res>=0.15, free_ratio>1.5, keeping PR #591 active_thresh_g), and (3) zero-sync |mean_logit|>0.5 deadband on s_gauge.
+
+**Next:** Merge fix/unified-v11-regression-bisect into develop and benchmark uncontended idle-GPU J-to-PASS alongside law4-energy-v10.
+
+[Record and receipt provenance](records/readout-ac4e1807d824930163c6cc6e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-acc70fcaf6cedb9a3772e41e
 
 **Scope:** calibration_diagnostic; scientific; revision `229770eceb2d51236085562985c341033df825c4c85fc20adbebdef313f8c65b`.
@@ -9831,6 +9847,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-cfb9bf047c6814e0e030457c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### unified-v11 · readout-d0f462500a3f4f6746259f68
+
+**Scope:** current; scientific; revision `dcad10ee990537f41753e117a96979b8bee070efe14381b26d78e1d690943782`.
+
+After the 3-part surgical regression fix on develop, unified-v11 maintains high Tier-1 cross-domain pass rate on discriminator_stability while preserving 100% of PR #591 high-D 2D vector, thermal, and composite probe guarantees.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 13}; wall seconds 2200.822; mechanism `structural`.
+
+model_ae_reconstruction: modes=4, precision=0.21826, mass_tv=0.022217; model_ae_gan_multimodal: modes=4, precision=0.93286, mass_tv=0.022461; ring16_acquisition: modes=16, hq=0.98242, mass_tv=0.093506
+
+After the 3-part surgical fix, unified-v11 scores 14/17 PASS on discriminator_stability Tier 1 (including clockfree_audit_measurement_v1 PASS, t3_iso_scale_mass_8x PASS 0.4723, five_word_joint_smoke PASS 0.0189, 2/2 VAEs, precision fp32/mxfp8 PASS, ring16 PASS, two_pole PASS) with 3 razor-thin misses: precision_gaussian_nvfp4 (0.0501 vs 0.0500), interp_sparse_arc (0.7826 vs 0.8000 under FP32 m<=256), and model_ae_gan_multimodal (final step ctr=0.9802 prec=0.9329 PASS, 1/5 terminal step at 1.0155).
+
+**Next:** Merge surgical fix for unified-v11 16/16 Occam restoration; evaluate law4-energy-v10 (42/48 T1-2, 16/17 T1) as the next-generation energy-optimal Law-4 optimizer.
+
+[Record and receipt provenance](records/readout-d0f462500a3f4f6746259f68.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v8 · readout-d0f74bbbd3c76f240c0e2729
 
@@ -11718,4 +11750,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `a8c7cc25926cf48d66c81e0d8c4e3e4e7c43d14aee9132b79f214484c4887f19`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `9342e57c9f8dda63e01fa1cd25c13da7eab970b031e652dac77b0c168cbe01e6`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

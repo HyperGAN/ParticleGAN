@@ -1,20 +1,4 @@
 {
-  "schema_version": 1,
-  "policy": {
-    "scope_prefix": "reports/",
-    "banned_extensions": [
-      ".ckpt",
-      ".gif",
-      ".gz",
-      ".html",
-      ".mp4",
-      ".npz",
-      ".pt",
-      ".pth",
-      ".zip"
-    ],
-    "max_json_bytes": 512000
-  },
   "allowed_paths": [
     "reports/forge/atlas-e22-policy-cloud-20261015/records.json",
     "reports/forge/atlas-named-gpu-diagnostics-native-v3-20261003/results.json",
@@ -174,6 +158,7 @@
     "reports/forge/records/readout-c162cb8fb6ab4d55620a8693.json",
     "reports/forge/records/readout-c2d30b8574761eb921efc868.json",
     "reports/forge/records/readout-ca2ce5acd5856e8c69b00377.json",
+    "reports/forge/records/readout-d0f462500a3f4f6746259f68.json",
     "reports/forge/records/readout-d1539c52c610cf0b249ed2e5.json",
     "reports/forge/records/readout-d278a74af331d2f3b7807234.json",
     "reports/forge/records/readout-d46a41a1da2da54d67d154f4.json",
@@ -313,5 +298,21 @@
     "reports/toy_audit/media/source-five-modes.gif",
     "reports/toy_audit/paired_sources/media/affine2-baseline-movable.gif",
     "reports/toy_audit/paired_sources/media/swirl2-baseline-movable.gif"
-  ]
+  ],
+  "policy": {
+    "banned_extensions": [
+      ".ckpt",
+      ".gif",
+      ".gz",
+      ".html",
+      ".mp4",
+      ".npz",
+      ".pt",
+      ".pth",
+      ".zip"
+    ],
+    "max_json_bytes": 512000,
+    "scope_prefix": "reports/"
+  },
+  "schema_version": 1
 }

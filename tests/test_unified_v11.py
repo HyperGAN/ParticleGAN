@@ -1188,3 +1188,123 @@ def test_unified_v11_e2e_synthetic_masked_tabular_mixture_fixture() -> None:
         if dev.type == "cuda":
             assert 0.015 < float(m_f.mean().item()) < 0.15
 
+
+def test_unified_v11_regression_fixes_tikhonov_peak_rms_stiff_fg_and_gauge_deadband() -> None:
+    """Targeted regression controls for the 3-part unified_v11 regression fix:
+    1. peak_rms Tikhonov smoothing preserves full s_base=0.0061 on normal critic-scale gradients,
+       never crushes tiny high-D gradients (1e-4), freezes decay under thermal cooling (s_therm < 0.5),
+       and preserves prior s_cap row smoothing.
+    2. _ema_func_gain does not bounce upward on stiff networks (free_ratio < 1.5) while still
+       recovering smoothly on well-conditioned networks (free_ratio > 1.5) without probe lockout.
+    3. s_gauge logit-drift deadband cools well-anchored equilibrium critics linearly at s_therm
+       while retaining sqrt(s_therm) anchoring when |mean_logit| drifts far from zero.
+    """
+    torch.manual_seed(0)
+    recipe = get_recipe("unified_v11", training_precision="float32")
+
+    # 1a. Normal critic-scale gradient (sv_rms ~ 0.025) preserves full s_base=0.0061 (not 0.03*peak_rms),
+    #     while genuinely tiny gradient (sv_rms ~ 1e-4) is capped by 0.50*peak_rms so it is not crushed:
+    w_norm = nn.Linear(64, 64, bias=False)
+    w_tiny = nn.Linear(64, 64, bias=False)
+    nn.init.zeros_(w_norm.weight)
+    nn.init.zeros_(w_tiny.weight)
+    opt_norm = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_norm.weight], "role": "critic", "lr": 0.02}], smoothing=0.0061
+    )
+    opt_tiny = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_tiny.weight], "role": "critic", "lr": 0.02}], smoothing=0.0061
+    )
+    base_dir = torch.randn(64, 64)
+    base_dir = base_dir / (base_dir.norm() / 8.0)  # cur_sv_rms == 1.0
+    # Warm up peak_rms at normal critic scale (sv_rms=0.025), then step at cooled equilibrium (sv_rms=0.002):
+    w_norm.weight.grad = base_dir * 0.025
+    opt_norm.step()
+    nn.init.zeros_(w_norm.weight)
+    w_norm.weight.grad = base_dir * 0.002
+    opt_norm.step()
+    # With s_eff == s_base == 0.0061, damping is ~0.002 / hypot(0.002, 0.0061) ~= 0.31 (not ~0.94 under 0.03*peak):
+    frob_norm_eq = float(w_norm.weight.detach().norm().item())
+    full_step_frob = 0.02 * 8.0
+    assert frob_norm_eq < 0.55 * full_step_frob, f"Equilibrium critic under-damped: {frob_norm_eq:.4f} vs {full_step_frob:.4f}"
+
+    # Tiny high-D gradient (sv_rms=1e-4 << s_base=0.0061) must NOT be crushed (0.50*peak_rms -> ~0.89x full step):
+    w_tiny.weight.grad = base_dir * 1e-4
+    opt_tiny.step()
+    frob_tiny = float(w_tiny.weight.detach().norm().item())
+    assert frob_tiny > 0.70 * full_step_frob, f"Tiny high-D gradient crushed: {frob_tiny:.4f} vs {full_step_frob:.4f}"
+
+    # 1b. peak_rms freezes decay during thermal cooling (s_therm < 0.5):
+    rec_cool = UnifiedV11StepRecord()
+    rec_cool._thermal_scale = 1e-4
+    opt_norm._unified_v11_record = rec_cool
+    peak_before = float(opt_norm.state[w_norm.weight]["peak_rms"].item())
+    w_norm.weight.grad = base_dir * 1e-6
+    opt_norm.step()
+    peak_after = float(opt_norm.state[w_norm.weight]["peak_rms"].item())
+    assert peak_after == peak_before, f"peak_rms decayed during thermal cooling: {peak_before} -> {peak_after}"
+
+    # 1c. Prior row smoothing preserves equilibrium damping (0.30*peak_r reaches s_cap=0.0061 on normal prior gradients):
+    z_prior = nn.Parameter(torch.zeros(128, 2))
+    opt_p = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_prior], "role": "prior", "algorithm": "unified_prior", "lr": 0.04}],
+        smoothing=0.0061,
+    )
+    opt_p.set_sampled_rows(z_prior, torch.arange(128))
+    z_prior.grad = torch.full((128, 2), 0.02)
+    opt_p.step()
+    with torch.no_grad():
+        z_prior.zero_()
+    opt_p.set_sampled_rows(z_prior, torch.arange(128))
+    z_prior.grad = torch.full((128, 2), 1e-4)
+    opt_p.step()
+    # With peak_r=0.0283, 0.30*peak_r=0.0085 > s_cap=0.0061 -> s_p_row=0.0061 -> row_disp ~= 9.3e-4:
+    row_disp = float(z_prior.detach().norm(dim=-1).mean().item())
+    assert row_disp < 0.005, f"Prior Tikhonov row smoothing collapsed: row_disp={row_disp:.5f}"
+
+    # 2. Stiff generator (free_ratio < 1.5, e.g. delta_rel ~= 0.5 * delta_g_max at pre_gain=0.18 -> free_ratio ~= 0.36)
+    #    must NOT bounce _ema_func_gain upward out of stiff_gate:
+    from particlegan._unified_v11.critic import record_unified_v11_generator_probe
+
+    g_stiff = nn.Linear(4, 4, bias=False)
+    nn.init.eye_(g_stiff.weight)
+    rec_st = UnifiedV11StepRecord()
+    rec_st.ema_data_scale = 1.0
+    rec_st.ema_push_res = 0.0
+    opt_st = UnifiedV11EquilibratedOptimizer(
+        [{"params": list(g_stiff.parameters()), "role": "generator", "lr": 0.014}],
+        smoothing=0.0,
+    )
+    opt_st._unified_v11_record = rec_st
+    opt_st._ema_func_gain = 0.18
+    opt_st.set_generator_probe_parameters(g_stiff.parameters())
+    z_in = torch.ones(8, 4) * 2.5
+    y_st = g_stiff(z_in)
+    assert record_unified_v11_generator_probe(g_stiff, (z_in,), {}, y_st, rec_st) is True
+    opt_st.zero_grad()
+    y_st.mean().backward()
+    opt_st.step()
+    # At lr=0.014, pre_gain=0.18, delta_rel is ~0.015 (< delta_g_max=0.045, so alpha_gain==1.0),
+    # giving free_ratio ~= (0.045 / 0.015) * 0.18 ~= 0.54 < 1.5 -> ema_func_gain must stay <= 0.18:
+    assert opt_st._ema_func_gain <= 0.18 + 1e-9, f"Stiff network bounced ema_func_gain upward: {opt_st._ema_func_gain}"
+
+    # 3. Well-anchored equilibrium critic (|mean_logit| = 0.05 <= 0.5) cools pen_gauge linearly at s_therm
+    #    rather than 100x stronger sqrt(s_therm):
+    d_eq = nn.Sequential(nn.Linear(4, 1))
+    with torch.no_grad():
+        d_eq[0].weight.zero_()
+        d_eq[0].bias.fill_(0.05)
+    opt_deq = recipe.make_critic_optimizer(d_eq)
+    pen_deq = recipe.make_critic_penalty(opt_deq)
+    xr4, xf4 = torch.randn(16, 4), torch.randn(16, 4)
+    opt_deq.record._thermal_scale = 1.0
+    opt_deq.zero_grad()
+    pen_deq(d_eq, xr4, xf4).backward()
+    g_eq_hot = abs(float(d_eq[0].bias.grad.item()))
+    opt_deq.record._thermal_scale = 1e-4
+    opt_deq.zero_grad()
+    pen_deq(d_eq, xr4, xf4).backward()
+    g_eq_cold = abs(float(d_eq[0].bias.grad.item()))
+    # Linear s_therm=1e-4 scaling (ratio ~1e-4, strictly < 5e-4, NOT 1e-2 from sqrt(s_therm)):
+    assert g_eq_hot > 0.0 and (g_eq_cold / g_eq_hot) < 5e-4, f"Anchored gauge over-amplified: ratio={g_eq_cold / g_eq_hot:.3e}"
+
+
