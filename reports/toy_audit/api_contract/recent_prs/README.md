@@ -16,19 +16,19 @@ Each animation uses retained measurements and finite fixed axes. There are no in
 
 **233, spatial width 4:** all three actual clean heldout curves, plus the frozen initial code Jacobian control. Thirteen observations at updates 0, 100, …, 1,200 per arm.
 
-![Spatial code-retention width4](pr233/pr233-width4-goal.gif)
+![Spatial code-retention width4](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/recent_prs/pr233/pr233-width4-goal.gif)
 
 **233, spatial width 16:** the same protocol at the second frozen width; its favorable result does not erase width 4 or the failed real-task transfer.
 
-![Spatial code-retention width16](pr233/pr233-width16-goal.gif)
+![Spatial code-retention width16](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/recent_prs/pr233/pr233-width16-goal.gif)
 
 **234:** three actual estimator phases: fixed batch 1, fixed batch 2, and the ratio of their mean variances. Both total DV12+Gaussian and fixed-clean Gaussian controls are displayed for each owned parameter role. The 0.75 gate applies to the full generator’s total variance.
 
-![Zero-update routed variance diagnostic](pr234/pr234-goal.gif)
+![Zero-update routed variance diagnostic](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/recent_prs/pr234/pr234-goal.gif)
 
 **235:** nine actual common-judge observations at updates 0, 64, …, 512 per arm. The final clean-game bound is relative to native under four judges. DV12 diagnostic curves and intermediate regressions remain visible.
 
-![Clean G-forward common-judge training](pr235/pr235-goal.gif)
+![Clean G-forward common-judge training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/recent_prs/pr235/pr235-goal.gif)
 
 ## Reproduction through the public API
 

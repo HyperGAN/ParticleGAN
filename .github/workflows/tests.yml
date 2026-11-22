@@ -64,6 +64,9 @@ jobs:
       - name: Check reviewed lint baseline
         if: matrix.shard == 0
         run: python scripts/check_lint.py
+      - name: Check repository report bloat guard
+        if: matrix.shard == 0
+        run: python scripts/check_repo_bloat.py
       - name: Test numerical kernels and experiment workflows
         # Spread the slow readout tests individually, pin ancestor-history tests to shard 7,
         # and keep other files together.

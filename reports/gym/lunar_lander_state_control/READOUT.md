@@ -97,7 +97,7 @@ This comparison establishes that this state-only controller can learn from
 scratch; it does not isolate the benefit of pretraining, because the old
 reference also differs in encoder inputs and prior-training rules.
 
-![Paired landing outcomes and returns](control_outcomes.png)
+![Paired landing outcomes and returns](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_state_control/control_outcomes.png)
 
 ## Learning progression
 
@@ -111,7 +111,7 @@ Early action fitting did not immediately translate into successful control. The
 large improvement by update 2,500 also cautions against treating early-checkpoint
 failure as architectural impossibility. No extra budget or seed reruns were used.
 
-![Validation checkpoint curves](validation_curve.png)
+![Validation checkpoint curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_state_control/validation_curve.png)
 
 ## Better expert predictions, worse control
 
@@ -135,7 +135,7 @@ Persistence on those same expert transitions has next-state MSE**0.017384**, low
 than either G3. Auxiliary training improves the decoder substantially but does
 not yet establish a useful physics predictor relative to that simple baseline.
 
-![Expert prediction tradeoff](auxiliary_tradeoff.png)
+![Expert prediction tradeoff](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_state_control/auxiliary_tradeoff.png)
 
 ## What G3 predicts during actual flight
 

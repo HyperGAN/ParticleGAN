@@ -267,7 +267,7 @@ preserve that distinction.
 
 ## Visual demo and sharing
 
-[Open the standalone toy viewer](../reports/transition/demo/index.html) to compare
+[Open the standalone toy viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/demo/index.html) to compare
 real transitions, original sampling, synthetic composition and real-input next-state
 prediction. Select either encoder, both classes, all train/test geometries and
 five saved times. Detail views use matched axes and show consistency errors as

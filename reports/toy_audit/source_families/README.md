@@ -24,7 +24,7 @@ evaluation rows; plotting subsamples are explicitly labelled.
 
 ## 11: sign correspondence in a symmetric point plant
 
-![Actual sign-training states](media/sign.gif)
+![Actual sign-training states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/source_families/media/sign.gif)
 
 The expert is an odd clipped PD law on position/velocity. Therefore the
 transformation `(state, action) → (-state, -action)` preserves the target joint
@@ -57,7 +57,7 @@ objective and recovery under the prescribed paired game.
 
 ## 12: safe-fast landing without turning off the adversary
 
-![Actual safe-fast training states](media/landing.gif)
+![Actual safe-fast training states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/source_families/media/landing.gif)
 
 The source's four-coordinate plant has altitude, lateral position and two
 velocities. A single learned gain sets sink rate. Baseline GAN training matches
@@ -93,7 +93,7 @@ a full learned Lunar Lander or general-purpose safety result.
 
 ## 13: latent-joint adapter improves but fails its accuracy gate
 
-![Actual pretraining and finetuning states](media/native.gif)
+![Actual pretraining and finetuning states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/source_families/media/native.gif)
 
 The source first runs **250 shared reconstruction updates**. The expert action
 is `tanh(-2.2 × previous command)`; state is independently present in the record.

@@ -27,4 +27,4 @@ ID disagreement can involve nearly identical outputs; assess the error gap rathe
 
 Nearest true grid-center reference MSE: 0.000902. This is a 100-center reference, not a lower bound for a 400-center quantizer.
 
-![Reconstruction error decomposition](oracle_errors.png)
+![Reconstruction error decomposition](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/oracle_errors.png)

@@ -1,8 +1,8 @@
 # ParticleGAN Atlas and current PR155 E22: recorded convergence
 
-![Final recorded distributions and learning curves](poster.png)
+![Final recorded distributions and learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/poster.png)
 
-Watch [the GIF](atlas-vs-e22-convergence.gif) or [the MP4](atlas-vs-e22-convergence.mp4).
+Watch [the GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.gif) or [the MP4](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.mp4).
 The GIF has 153 frames over 37.86 seconds at 1600 × 1380 pixels. The MP4 repeats
 those recorded images at 24fps, with no interpolation of generated clouds.
 

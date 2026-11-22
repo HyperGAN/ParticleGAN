@@ -73,10 +73,10 @@ all selected controls and calibration, rather than isolating one cause.
 
 ## Watch learning and distribution-shift recovery
 
-![Atlas and current PR155 E22 learning the rotating 100-Gaussian distribution](visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.gif)
+![Atlas and current PR155 E22 learning the rotating 100-Gaussian distribution](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.gif)
 
-[Full-resolution MP4](visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.mp4)
-· [Poster](visualization-pr223-convergence/render/final-media-1/poster.png)
+[Full-resolution MP4](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.mp4)
+· [Poster](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/poster.png)
 · [Capture validation](visualization-pr223-convergence/closure-v1/DATA-RECEIPT.json)
 
 Fresh `rotated100` runs start from the same particles and models. The target turns 30°

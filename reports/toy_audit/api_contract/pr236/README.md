@@ -12,7 +12,7 @@ the learned GAN game.
 [Independent scientific review](scientific-review.json) ·
 [Source, metric and visual review](independent-review.json).
 
-![Actual recorded training observations and original endpoint gates](goal.gif)
+![Actual recorded training observations and original endpoint gates](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/pr236/goal.gif)
 
 The GIF contains exactly 12 recorded evaluation states at updates
 `0, 1, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500`. Its first panel shows

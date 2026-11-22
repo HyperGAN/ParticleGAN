@@ -81,7 +81,7 @@ batch 512 for grid100 and rotated100, with an explicit staggered100 batch
 command suite recipe. The [production all-problem gate](recommended/gate.json)
 passes 3/3, with five terminal live checks for each problem; its
 [leaderboard](recommended/leaderboard.md) and
-[animation](recommended/toy100-progress.gif) retain the
+[animation](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/recommended/toy100-progress.gif) retain the
 full evidence. Every production evaluation metric row and all final scored
 sample arrays match the saved passing CPU probes exactly. The
 [toy100 report index](README.md) links the aggregate result. The unchanged

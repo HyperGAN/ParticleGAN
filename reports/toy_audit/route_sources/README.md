@@ -18,8 +18,8 @@ failed-prerequisite extension, retry or budget increase.
 |---|---:|---|---|---|
 | 04 · discrete two-route trajectories | 10,000 | **BLOCKED**, 0 updates | None: source rejects CPU | Match class-conditioned route probabilities, bounded path variation, endpoints and obstacle clearance on held-out scenes. |
 | 05 · continuous two-route trajectories | 10,000 | **BLOCKED**, 0 updates | None: source rejects CPU | Match the same conditional trajectory law when training scenes vary continuously. |
-| 06 · discrete route transitions | 28,000 | **INCOMPLETE**, 599 completed iterations | [8 actual states](media/source-family-06.gif) | Learn a joint `(state, action, next_state)` law, including `next_state = state + action`. |
-| 07 · continuous route transitions | 28,000 | **INCOMPLETE**, 628 completed iterations | [8 actual states](media/source-family-07.gif) | Learn the same joint relationship from continuously varying scenes and retain it on held-out contexts. |
+| 06 · discrete route transitions | 28,000 | **INCOMPLETE**, 599 completed iterations | [8 actual states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/route_sources/media/source-family-06.gif) | Learn a joint `(state, action, next_state)` law, including `next_state = state + action`. |
+| 07 · continuous route transitions | 28,000 | **INCOMPLETE**, 628 completed iterations | [8 actual states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/route_sources/media/source-family-07.gif) | Learn the same joint relationship from continuously varying scenes and retain it on held-out contexts. |
 
 Each source reports numerical endpoint diagnostics but declares **no aggregate
 convergence acceptance gate**. The additional observer supplies diagnostics,
@@ -54,9 +54,9 @@ be a separately bound cohort.
 
 ## What the transition GIFs show
 
-![Actual discrete transition training states](media/source-family-06.gif)
+![Actual discrete transition training states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/route_sources/media/source-family-06.gif)
 
-![Actual continuous transition training states](media/source-family-07.gif)
+![Actual continuous transition training states](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/route_sources/media/source-family-07.gif)
 
 The three independent generator branches share latent code and observed
 class/geometry/time. They output state, action and next state. Each joint

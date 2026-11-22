@@ -91,7 +91,7 @@ python experiments/render_gym_transition.py --gif
 python experiments/diagnose_gym_transition.py
 ```
 
-Open [the HTML demo](../reports/gym/lunar_lander/demo/index.html) locally. It offers
+Open [the HTML demo](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander/demo/index.html) locally. It offers
 eleven recorded engine commands per fixed anchor, real/learned comparisons, and
 the shared-latent transition gallery. The [downloadable bundle](../reports/gym/lunar_lander/demo/lunar_lander_demo.zip)
 works without model checkpoints or a simulator installation.

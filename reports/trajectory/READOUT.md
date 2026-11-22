@@ -5,9 +5,9 @@ All **12 GPU runs completed successfully**: six 1k viability scouts and six
 10.72 GPU minutes. Each 10k model trained in 91–100 seconds. Both GPUs are
 free, nothing is queued, and no CIFAR or Gaussian-toy defaults were changed.
 
-Open [the interactive recipe gallery](round1/index.html), the
-[baseline viewer](round1/learned/viewer.html), or the
-[animated futures](round1/learned/futures.gif).
+Open [the interactive recipe gallery](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/round1/index.html), the
+[baseline viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/round1/learned/viewer.html), or the
+[animated futures](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/round1/learned/futures.gif).
 
 ## Results at 10k updates
 
@@ -73,7 +73,7 @@ case exposes misplaced arcs, invalid boundaries and obstacle intersections.
 The plotted gray reference paths help separate plausible-looking output from
 the specified target distribution.
 
-The baseline's [particle probe](round1/learned/particle_probe.png) supports the
+The baseline's [particle probe](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/round1/learned/particle_probe.png) supports the
 intuition that one particle can participate in multiple outputs. Holding ID 1
 at every reverse step and rerolling all Gaussian randomness yields 6 upper and
 18 lower routes, all 24 valid. ID 2 gives 19 upper / 5 lower; ID 3 gives 17 upper / 7 lower

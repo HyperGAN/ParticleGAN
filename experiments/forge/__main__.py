@@ -59,7 +59,7 @@ CLI_EPILOG = """Lifecycle command groups:
      enqueue, run, drain, queue, logs, inventory, pause, resume, cancel, retry
   4. Conclude & Maintain:
      readout, compile, abandon, supersede, promotion, retier, test-dispositions,
-     calibrate, calibration-preflight, calibration-lane, artifacts
+     calibrate, calibration-preflight, calibration-lane, artifacts, publish
 
 Note: --view and --goal are accepted interchangeably across subcommands.
 """
@@ -82,6 +82,9 @@ def parser():
         artifact.add_argument("--member", action="append", default=[], help="exact archive member; repeat to select originals")
         artifact.add_argument("--mirror", action="append", type=Path, default=[], help="mounted content-addressed mirror directory")
         artifact.add_argument("--locations", type=Path, help="local SHA-256 location/retention configuration")
+        artifact.add_argument("--allow-hf", action="store_true", help="opt in to Hugging Face archive hydration")
+        artifact.add_argument("--hf-repo", help="opt-in Hugging Face dataset repo (e.g. HyperGAN/particlegan-forge-evidence)")
+        artifact.add_argument("--hf-rev", help="pinned 40-character Hugging Face commit SHA")
         if stage == "hydrate":
             artifact.add_argument("--destination", type=Path, required=True, help="new isolated directory (must not exist)")
     original = artifact_stages.add_parser("git", help="hydrate an exact commit/path/blob original already available in Git")
@@ -90,6 +93,16 @@ def parser():
     original.add_argument("--blob", required=True)
     original.add_argument("--sha256", required=True)
     original.add_argument("--destination", type=Path, required=True)
+    pub = commands.add_parser("publish", help="export Forge inventory tables/JSON and publish to Hugging Face")
+    pub.add_argument("--inventory", action="store_true", help="export leaderboard/receipts/attempts Parquet, leaderboard JSON, and Dataset Card README")
+    pub.add_argument("--archive-card", action="append", type=Path, default=[], help="verified Forge archive card whose tarball should be uploaded to archives/sha256/")
+    pub.add_argument("--mirror", action="append", type=Path, default=[], help="local mirror directory for resolving --archive-card")
+    pub.add_argument("--locations", type=Path, help="local SHA-256 location/retention configuration for --archive-card")
+    pub.add_argument("--repo", default="HyperGAN/particlegan-forge-evidence", help="target Hugging Face dataset repo")
+    pub.add_argument("--dry-run", action="store_true", help="stage and validate all exports locally without contacting Hugging Face")
+    pub.add_argument("--output-dir", type=Path, help="optional staging directory for exported files")
+    pub.add_argument("--receipt", type=Path, help="optional output path for the publication receipt JSON")
+    pub.add_argument("--commit-message", help="optional Hugging Face commit message")
     probe = commands.add_parser("probe", help="zero-ceremony preflight/formulation sandbox probe for a candidate and task; no study required")
     probe.add_argument("candidate", help="candidate or configuration id")
     probe.add_argument("--task", required=True, help="task id to probe against")
@@ -318,7 +331,14 @@ def main(argv=None):
                                      sha256=args.sha256, destination=args.destination)
             else:
                 card = read_json(root / args.manifest)
-                options = {"members": args.member, "mirrors": args.mirror, "locations": args.locations}
+                options = {
+                    "members": args.member,
+                    "mirrors": args.mirror,
+                    "locations": args.locations,
+                    "allow_hf": args.allow_hf,
+                    "hf_repo": args.hf_repo,
+                    "hf_rev": args.hf_rev,
+                }
                 result = (inspect_archive(root, card, **options) if args.stage == "inspect"
                           else hydrate_archive(root, card, args.destination, **options))
             emit(result)
@@ -331,6 +351,22 @@ def main(argv=None):
             emit({"status": "INVALID", "message": str(error), "training_launched": False,
                   "qualification_changed": False})
             return 3
+    if args.command == "publish":
+        from .hf_publish import publish_to_hf
+        result = publish_to_hf(
+            root,
+            repo=args.repo,
+            inventory=args.inventory,
+            archive_cards=args.archive_card,
+            mirrors=args.mirror,
+            locations=args.locations,
+            dry_run=args.dry_run,
+            output_dir=args.output_dir,
+            receipt_path=args.receipt,
+            commit_message=args.commit_message,
+        )
+        emit(result)
+        return 0
     if args.command == "probe":
         from dataclasses import asdict
         from .api import task_formulation_context

@@ -21,7 +21,7 @@ independent 100,000-draw holdouts. Grid100 has all 100 modes at update 1,000,
 then becomes unstable by 1,250, before decay starts at 1,440. That failure
 rules out promoting this schedule as a shared configuration.
 
-The [combined GIF](toy100-progress.gif) renders saved live samples for all three,
+The [combined GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/accuracy-horizon/toy100-progress.gif) renders saved live samples for all three,
 including the failing grid. Optimizer traces, exact probe source, shared
 config, snapshots, terminal samples, and holdouts are included. The existing
 19 hosts have budgets no longer than 1,600, so this cap alone would leave

@@ -92,7 +92,7 @@ The last step improves substantially with training but still fails more often
 on its own chain's inputs. Earlier-step error and final-step accuracy both
 matter. Oracle substitutions are diagnostics, not deployable contenders. A final
 oracle can repair bad inputs, so high HQ after that substitution does not establish
-that earlier transitions are exact. See [56k chain probe](ucd_56k_chain/chain_probe.png).
+that earlier transitions are exact. See [56k chain probe](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/budget56k/ucd_56k_chain/chain_probe.png).
 
 The one-step DDGAN reaches 99.2% HQ at 7k, but its almost independent Gaussian
 observation makes it close to a one-shot GAN with extra randomness. The two-step
@@ -115,8 +115,8 @@ input-encoding intervention. See [diagnostics](../diagnostics/READOUT.md).
 4. Before baking in a winner, confirm on fresh seeds and a nonuniform or anisotropic
    target. The present sharpness/mass tradeoff does not select a universal winner.
 
-[Sample comparison](samples.png) · [Full table](TABLE.md) ·
-[Learning curves](curves.png) · [Three-seed 28k check](../confirm28k/TABLE.md).
+[Sample comparison](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/budget56k/samples.png) · [Full table](TABLE.md) ·
+[Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/budget56k/curves.png) · [Three-seed 28k check](../confirm28k/TABLE.md).
 
 Repeatable configs: `configs/denoising/budget56k/manifest.json`,
 `configs/denoising/diagnostics/manifest.json`, and

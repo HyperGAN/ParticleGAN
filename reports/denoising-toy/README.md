@@ -9,7 +9,7 @@ a Gaussian with matching covariance. The user selected DDGAN + UCD with Gaussian
 step noise as the working default; performance still has tradeoffs.
 
 Start with the [latest readout](budget56k/READOUT.md),
-[samples](budget56k/samples.png), [full table](budget56k/TABLE.md), and
+[samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/budget56k/samples.png), [full table](budget56k/TABLE.md), and
 [three-seed check](confirm28k/TABLE.md). The [first screen](screen_20k/READOUT.md)
 and [bcap audit](BCAP_AUDIT.md) remain available. Training source code and the
 audited recipe were unchanged during both rounds. See [RUNBOOK.md](RUNBOOK.md)
@@ -45,7 +45,7 @@ is negligible on the clean grid; noisy conditional distributions overlap much
 more. This is an empirical benchmark, not an application of a disjoint-support
 equilibrium theorem.
 
-![Analytic target and denoising posteriors](preview.png)
+![Analytic target and denoising posteriors](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/preview.png)
 
 Rows distinguish class-free and class-conditional generation. Columns distinguish
 the target distribution and three levels of observation noise. Every posterior

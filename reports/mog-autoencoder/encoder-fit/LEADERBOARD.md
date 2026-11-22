@@ -9,4 +9,4 @@ Start: bounded scout checkpoint, zero-offset MSE 0.00280830; exhaustive center o
 
 Gap closed = (initial MSE − final MSE) / (initial MSE − oracle MSE); negative values mean regression. G, particle means, and sigma are unchanged, so unconditional generation is unchanged by construction.
 
-![Learning curves](learning_curves.png)
+![Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/encoder-fit/learning_curves.png)

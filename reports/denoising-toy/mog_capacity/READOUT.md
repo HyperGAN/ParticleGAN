@@ -79,7 +79,7 @@ capacity, not evidence that DDGAN cannot exploit the extra computation.
 tail -F results/denoising/mog_capacity/*/log.txt
 ```
 
-[Learning curves](curves.png) · [Samples](samples.png) ·
+[Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/mog_capacity/curves.png) · [Samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/mog_capacity/samples.png) ·
 [Leaderboard CSV](leaderboard.csv) · [Full comparison](comparison.json) ·
 [Frozen noise intervention](noise_probe.json).
 

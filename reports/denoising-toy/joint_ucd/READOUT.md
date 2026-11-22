@@ -31,8 +31,8 @@ error and similar class accuracy. Both have overly tight cores with inflated
 full covariance from tails. Samples show similar grid fidelity and residual
 bridges. One seed and one evaluation draw do not establish equivalence.
 
-![Target and both variants](samples.png)
-![Learning curves](curves.png)
+![Target and both variants](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/joint_ucd/samples.png)
+![Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/joint_ucd/curves.png)
 
 Joint UCD removes D's explicit timestep one-hot input and produces16 logits.
 The same `(t-1)*classes+c` index selects the adversarial score and the real/fake
