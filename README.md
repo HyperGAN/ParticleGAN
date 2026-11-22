@@ -69,18 +69,20 @@ samples = trainer.sample(1024)
 
 `get_recipe()` returns the default recipe, **Unified** (`DEFAULT_RECIPE = "unified_v11"` in
 [particlegan/recipes.py](particlegan/recipes.py), matching `unified-v11`).
-It unites all four GAN laws with strictly **zero `torch.autograd.grad`, zero SVD, zero `eigh`,
-and zero `pinv`**: Law 1 streaming Laguerre-Pythagorean prototype prior & orthogonal pullback
-isometry (`prior_reg = 0.02`), Law 2 first-order Born-Infeld secant critic with zero-mean
-logit gauge (`ebi_beta = 12.0`), Law 3 scale-invariant `k=4` density-ratio orphan
-macro-transport & zero-`eigh` cross-batch conditional fiber operator bank, and Law 4 fused
-`Z=[X,Y]` Quintic Tikhonov polar equilibration with zero-`pinv` analytic `direction_blend`
-and `bf16_channels_last` conv training at constant rates.
+It is our current reference solution to all four GAN laws with strictly **zero `torch.autograd.grad`,
+zero SVD, zero `eigh`, and zero `pinv`**, pairing: for Law 1, a streaming Laguerre-Pythagorean
+prototype prior and orthogonal pullback isometry (`prior_reg = 0.02`); for Law 2, a first-order
+Born-Infeld secant critic with zero-mean logit gauge (`ebi_beta = 12.0`); for Law 3,
+scale-invariant `k=4` density-ratio orphan macro-transport and a zero-`eigh` cross-batch
+conditional fiber operator bank; and for Law 4, fused `Z=[X,Y]` Quintic Tikhonov polar
+equilibration with zero-`pinv` analytic `direction_blend` and `bf16_channels_last` conv
+training at constant rates.
 Explicit `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
 `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
 `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
 **[The Four Laws of Stable, Energy-Efficient GAN Convergence](docs/four-laws.md)** for the
-first-principles derivation and Occam's Razor ablation behind `unified_v11` and `minimal`, the
+solution-agnostic statement of the four laws, the catalog of solutions found so far (`unified_v11`,
+`minimal`, and related families), and Occam's Razor ablations, the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names) for acronyms, and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) for configuration details.
 
