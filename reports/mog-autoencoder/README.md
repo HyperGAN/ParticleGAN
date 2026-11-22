@@ -294,14 +294,14 @@ scout control, not a reproduction of the published 28k-step MoG recipe.
 
 [Frozen encoder fitting experiment](encoder-fit/README.md) · [fitting leaderboard](encoder-fit/LEADERBOARD.md)
 
-![Learning curves](learning_curves.png)
+![Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/learning_curves.png)
 
 Sample/reconstruction/latent plots:
-[bounded offset](route_bounded.png), [unrestricted offset](route_offset.png),
-[random offset](route_noise.png), [zero offset](route_zero.png),
-[100× offset gradient](route_grad100.png), [usage balancing](route_balanced.png),
-[local routing](route_local.png), [local routing + balancing](route_local_balanced.png),
-[GAN control](gan.png).
+[bounded offset](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_bounded.png), [unrestricted offset](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_offset.png),
+[random offset](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_noise.png), [zero offset](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_zero.png),
+[100× offset gradient](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_grad100.png), [usage balancing](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_balanced.png),
+[local routing](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_local.png), [local routing + balancing](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/route_local_balanced.png),
+[GAN control](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/mog-autoencoder/gan.png).
 
 Rank is lexicographic: most modes covered, highest high-quality fraction, then
 lowest sample sliced-Wasserstein-1. This privileges coverage and plausibility;

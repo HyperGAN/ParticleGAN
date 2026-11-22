@@ -57,9 +57,9 @@ The last-step oracle can correct a poor input distribution, so its high HQ is
 not evidence that earlier learned transitions are exact. Mode TV after this
 substitution is .064 at 7k and .075 at 28k, versus the .027 oracle-chain floor.
 
-[Samples](samples.png), [full metrics](TABLE.md), [learning curves](curves.png),
-[7k chain probe](old_chain/chain_probe.png),
-[28k chain probe](ucd_28k_chain/chain_probe.png).
+[Samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/diagnostics/samples.png), [full metrics](TABLE.md), [learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/diagnostics/curves.png),
+[7k chain probe](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/diagnostics/old_chain/chain_probe.png),
+[28k chain probe](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/diagnostics/ucd_28k_chain/chain_probe.png).
 
 Configs: `configs/denoising/diagnostics/manifest.json`.
 Shared progress log: `results/denoising/diagnostics.log`.

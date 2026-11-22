@@ -1,5 +1,0 @@
-<!doctype html><meta charset="utf-8"><title>Trajectory experiment gallery</title>
-<style>body{font:16px system-ui;max-width:1200px;margin:24px auto;background:#eef2f7}iframe{width:100%;height:1050px;border:0}select{padding:10px}</style>
-<h1>ParticleGAN: possible futures</h1><p>Choose a recipe, then change scene, route preference, and physical time in the viewer. Scene 4 extrapolates beyond the training geometries; scenes 1–3 interpolate.</p>
-<select id="recipe"><option value="learned">learned</option><option value="concat">concat</option><option value="gaussian">gaussian</option><option value="learned_noise">learned_noise</option><option value="one_shot">one_shot</option><option value="fixed_noise">fixed_noise</option></select><iframe id="viewer" title="Trajectory viewer"></iframe>
-<script>const r=document.getElementById('recipe'),v=document.getElementById('viewer');function show(){v.src=r.value+'/viewer.html'}r.onchange=show;show();</script>

@@ -1,8 +1,8 @@
 # Original moving-distribution observations
 
-![Final recorded comparison](rotated100-shift-comparison.png)
+![Final recorded comparison](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223/rotated100-shift-comparison.png)
 
-The [GIF](rotated100-shift-comparison.gif) compares saved **RA14** observations
+The [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223/rotated100-shift-comparison.gif) compares saved **RA14** observations
 with the **fresh RA15** recovery run of the original `rotated100` task.
 The source runs use seed 1234 and 1,500 updates, with two 30° target shifts.
 These are the actual historical source labels; the animation is not a new

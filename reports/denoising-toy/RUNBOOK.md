@@ -78,7 +78,7 @@ match the original trainer/lib/runner fingerprint and retain the audited bcap
 recipe. Historical trainer fallback stays 4096; new explicit configs use 20000.
 
 Start with **[round-two readout](budget56k/READOUT.md)** and
-[56k samples](budget56k/samples.png). Key results:
+[56k samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/budget56k/samples.png). Key results:
 
 - 28k UCD DDGAN + learned latent + Gaussian step noise: **77.8 ± 1.6% HQ**,
   100 modes in all three seeds 24001–24003, versus ~1% HQ at 7k.

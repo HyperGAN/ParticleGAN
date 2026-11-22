@@ -63,14 +63,14 @@ Keep the better joint sampler as the reference. Next, add a marginal-only baseli
 
 Plots can be regenerated from saved samples without retraining. The separate render provenance records display-code revisions; training source archives stay unchanged.
 
-[branches_joint_marginals interactive viewer](branches_joint_marginals_viewer.html)
+[branches_joint_marginals interactive viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/branches_joint_marginals_viewer.html)
 
-![branches_joint_marginals transitions](branches_joint_marginals_transitions.png)
+![branches_joint_marginals transitions](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/branches_joint_marginals_transitions.png)
 
-[branches_joint interactive viewer](branches_joint_viewer.html)
+[branches_joint interactive viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/branches_joint_viewer.html)
 
-![branches_joint transitions](branches_joint_transitions.png)
+![branches_joint transitions](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/branches_joint_transitions.png)
 
-[monolithic_joint interactive viewer](monolithic_joint_viewer.html)
+[monolithic_joint interactive viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/monolithic_joint_viewer.html)
 
-![monolithic_joint transitions](monolithic_joint_transitions.png)
+![monolithic_joint transitions](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/mog_1024/monolithic_joint_transitions.png)

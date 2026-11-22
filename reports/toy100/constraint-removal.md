@@ -9,7 +9,7 @@ a unit threshold and coefficient; those remain fixed modeling choices.
 The [exact config](../../configs/toy100/constraints_simple_regularization.json),
 [winning recipe and complete evidence](simpler22/README.md),
 [22-case leaderboard](simpler22/compatibility.md), and
-[new convergence GIF](simpler22/toy100/toy100-progress.gif) are retained.
+[new convergence GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/simpler22/toy100/toy100-progress.gif) are retained.
 Config SHA-256: `4af9863a319378b362bfb925b161d9ae8b8b07c9ecf1a452bb645570e04b99b7`.
 Training used frozen source `43d800d`. The older
 [`shared_candidate.json`](../../configs/toy100/shared_candidate.json) and

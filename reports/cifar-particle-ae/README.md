@@ -51,7 +51,7 @@ we cannot rerun 7500-update FID50k. Future rounds should retain numbered
 checkpoints. The final ranking follows the protocol, without selecting a best
 checkpoint after seeing results.
 
-![Same-count FID and reconstruction diagnostics](learning_curves.png)
+![Same-count FID and reconstruction diagnostics](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-particle-ae/learning_curves.png)
 
 ## What the encoder learned
 
@@ -85,7 +85,7 @@ Encoded offsets are not constrained to match the sampling Gaussian.
 Reconstruction grid columns: input, predicted, zero offset, Gaussian offset,
 shuffled particle. The first 16 held-out examples are fixed, not selected.
 
-![Reconstruction and ablations](bounded/recon_010000.png)
+![Reconstruction and ablations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-particle-ae/bounded/recon_010000.png)
 
 ## Generated images
 
@@ -94,11 +94,11 @@ qualitative checks, not coverage or memorization tests.
 
 GAN:
 
-![GAN samples](gan/samples_010000.png)
+![GAN samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-particle-ae/gan/samples_010000.png)
 
 Bounded particle autoencoder:
 
-![Bounded samples](bounded/samples_010000.png)
+![Bounded samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-particle-ae/bounded/samples_010000.png)
 
 The existing conditional DDGAN's FID31.56 at 10k is useful context only. Its
 labels, diffusion, architecture, prior and objective differ, so it is not the

@@ -162,3 +162,46 @@ runs/prior-coulomb/
 /runs/prior-mmd/
 /runs/test_m3/
 /TODO.md
+
+# Non-Forge legacy reports/ binaries, media, HTML galleries, arrays, and bulk
+# dumps are hosted on Hugging Face (HyperGAN/particlegan-forge-evidence) rather
+# than duplicated in Git. See reports/hf-migration-non-forge-2026-11-21.json.
+/reports/toy100/**/*.npz
+/reports/toy100/**/*.pt
+/reports/toy100/**/*.pth
+/reports/toy100/**/*.gif
+/reports/toy100/**/*.png
+/reports/toy100/**/*.mp4
+/reports/toy_audit/**/*.png
+/reports/toy_audit/**/*.npz
+/reports/toy_audit/**/*.pt
+/reports/trajectory/**/*.html
+/reports/trajectory/**/*.gif
+/reports/trajectory/**/*.png
+/reports/transition/**/*.html
+/reports/transition/**/*.png
+/reports/transition/**/*.zip
+/reports/transition/**/*.pdf
+/reports/gym/**/*.npz
+/reports/gym/**/*.html
+/reports/gym/**/*.gif
+/reports/gym/**/*.png
+/reports/gym/**/*.zip
+/reports/gym/lunar_lander/baseline/demo_data.json
+/reports/cifar-ddgan/**/*.png
+/reports/denoising-toy/**/*.png
+/reports/denoising-toy/**/*.npz
+/reports/mog-vae/**/*.npz
+/reports/mog-vae/**/*.png
+/reports/mog-autoencoder/**/*.png
+/reports/lunar_fast/**/*.gif
+/reports/lunar_fast/**/*.pt
+/reports/lunar_fast/**/*.html
+/reports/sparse-ucd/**/*.png
+/reports/e22-animation/**/*.gif
+/reports/cifar-particle-ddgan/**/*.npz
+/reports/cifar-particle-ddgan/**/*.png
+/reports/cifar-particle-ae/**/*.npz
+/reports/cifar-particle-ae/**/*.png
+/reports/atlas-explanation/**/*.png
+/reports/prior-comparison/**/*.png

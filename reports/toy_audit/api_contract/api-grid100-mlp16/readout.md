@@ -25,7 +25,7 @@
 - **Sustained Status**: `FAIL`
 
 ## Actual Training Media
-![Actual Training Observations](goal.gif)
+![Actual Training Observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/api-grid100-mlp16/goal.gif)
 
 ## Provenance & Integrity
 - **Source Commit**: `de43f22f0fb743af73f61492de84f8d7d4a01fad`

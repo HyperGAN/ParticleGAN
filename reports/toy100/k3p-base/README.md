@@ -7,7 +7,7 @@ It passes all 22 declared GPU toy gates and the measured ring hold plus
 K3P is also the package default: `get_recipe()` and `GANTrainer` train with it
 ([package guide](../../../docs/k3p.md)).
 
-![K3P convergence on three 100-Gaussian layouts](../gap-fill-20260925/k3p-100gaussians-convergence.gif)
+![K3P convergence on three 100-Gaussian layouts](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/gap-fill-20260925/k3p-100gaussians-convergence.gif)
 
 ## Results
 

@@ -11,13 +11,13 @@ These GIFs use every retained common-critic observation from the two expanded PR
 
 The fixed guided execution combines conditional and unconditional halves at guidance 3 while keeping the rotated teacher exactly reachable. It compares ordinary adapters, original routed particles, and particles with only fresh H/b initialization neutralized. At update 6400 original particles score worse than ordinary under all four critics; neutral particles score better than both. This supports initialization sensitivity in this specific fixture. At update 5120 original particles still beat ordinary under the two early critics, so the final finding does not describe every update.
 
-![Guided-pair actual training](guided_pair.gif)
+![Guided-pair actual training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/pr227_current_media/guided_pair.gif)
 
 ## What the rotated-teacher problem verifies
 
 The fixed teacher rotates the down span to a declared low-overlap basis while preserving its weight row Gram and exact reachability. It tests acquisition of that span and whether neutralizing H/b explains an original-particle disadvantage. That disadvantage is not reproduced consistently: the final ordinary and original-particle endpoint critics disagree. The failed reproduction and inapplicable gap-reduction support remain failed findings, even though neutral particles beat ordinary under all four critics at both endpoints.
 
-![Rotated-teacher actual training](rotated_teacher.gif)
+![Rotated-teacher actual training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/pr227_current_media/rotated_teacher.gif)
 
 ## Boundaries and reproduction
 

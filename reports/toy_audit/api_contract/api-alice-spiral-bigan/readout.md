@@ -1,6 +1,6 @@
 # `api-alice-spiral-bigan` — Archimedes spiral: continuous 2D manifold ALICE / BiGAN
 
-![Actual training trajectory](goal.gif)
+![Actual training trajectory](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/api-alice-spiral-bigan/goal.gif)
 
 - Legacy source identity: `develop-alice-spiral-bigan`
 - Provider: `benchmarks/toy_audit/api_ring16.py`

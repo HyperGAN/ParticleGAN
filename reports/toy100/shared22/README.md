@@ -4,7 +4,7 @@ The exact [`shared_candidate.json`](../../../configs/toy100/shared_candidate.jso
 
 The final search change was **`reg_kappa: 1.0 → 1.176`**. Every other optimizer, loss, noise, architecture-policy, and schedule setting stayed the same as the previous 20/22 candidate. Its two failures were rotated100 and residual_student. The fine bracket selected κ=1.176 after a strict ten-host screen and fresh 19-host replay; this report is a subsequent complete 22-host run, not a collection of best cases from different trials. See the [fine-bracket evidence](../shared-kappa-fine-v1.md).
 
-![Winning shared recipe on all three 100-mode problems](toy100/toy100-progress.gif)
+![Winning shared recipe on all three 100-mode problems](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/shared22/toy100/toy100-progress.gif)
 
 | Shared setting | Exact value / behavior |
 | --- | --- |
@@ -60,4 +60,4 @@ python -m benchmarks.toy_suite regrade --output reports/toy100/shared22
 
 Training source was frozen at commit `b7d9963`, with config SHA-256 `6de24743336a3ce7e922deceab91dff0688bdb28ae8f5e6ff2c8b88b9f2bec27`. Python 3.12.13 / PyTorch 2.13.0+cu126 ran on CPU. Source archives and hashes bind the native policy and all public-package files to the older-host replay; applied-noise and actual optimizer-rate receipts are checked. The complete 243-file RAM bundle was copied and SHA-256 verified into `artifacts/toy100-accuracy/production-k1176-shared22`. This review bundle contains all 211 numerical, source, log, snapshot, GIF, and regrading files; only the temporary wheel/install directories are omitted. Regrading recomputes aggregate reports from the saved samples and episodes; the initial copy hashes are retained in `retention.json`.
 
-The [original failing GIF](../accuracy-failure/rotated100/progress.gif), unsuccessful candidates, and [research comparisons](../optimizer-formulation-research.md) remain available. Research-only optimizer substitutions cannot qualify for the production gate.
+The [original failing GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/accuracy-failure/rotated100/progress.gif), unsuccessful candidates, and [research comparisons](../optimizer-formulation-research.md) remain available. Research-only optimizer substitutions cannot qualify for the production gate.
