@@ -339,6 +339,11 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     family = "unified_v11_equil"
     recipe_optimizer_family = "unified_v11_equil"
+    _SUPPORTS_ZEROSYNC_V4_TENSORS: bool = True
+
+    def _supports_zerosync_v4_tensors(self) -> bool:
+        """Non-inherited opt-in for zero-sync raw sampled rows and GPU-tensor v4 modulation/origin norm."""
+        return bool(type(self).__dict__.get("_SUPPORTS_ZEROSYNC_V4_TENSORS", False))
 
     def __init__(
         self,
@@ -455,6 +460,16 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         if not isinstance(rows, torch.Tensor):
             rows = torch.as_tensor(rows, dtype=torch.long, device=parameter.device)
         rows = rows.reshape(-1).to(dtype=torch.long, device=parameter.device)
+        if not self._supports_zerosync_v4_tensors():
+            rows = torch.unique(rows, sorted=True)
+            if rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
+                raise ValueError("sampled rows out of bounds for prior table")
+            existing = self._sampled_rows.get(parameter)
+            if existing is not None:
+                rows = torch.unique(torch.cat((existing, rows)), sorted=True)
+            self._sampled_rows[parameter] = rows
+            self._sampled_rows_unique[parameter] = rows
+            return
         if rows.device.type == "cpu" and rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
             raise ValueError("sampled rows out of bounds for prior table")
         existing = self._sampled_rows.get(parameter)
@@ -492,8 +507,13 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     def bind_origin_sample(self, sample: Optional[torch.Tensor]) -> None:
         if sample is not None and sample.ndim == 2 and sample.shape[1] == 2 and sample.numel() > 0:
-            self._origin_norm = None
-            self._origin_norm_t = sample.detach().float().norm(dim=-1).amax()
+            norm_t = sample.detach().float().norm(dim=-1).amax()
+            if self._supports_zerosync_v4_tensors():
+                self._origin_norm = None
+                self._origin_norm_t = norm_t
+            else:
+                self._origin_norm = float(norm_t.item())
+                self._origin_norm_t = None
         else:
             self._origin_norm = None
             self._origin_norm_t = None
@@ -505,10 +525,18 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         wakeup_boost: float | torch.Tensor = 1.0,
         prior_scale: float = 1.0,
     ) -> None:
-        self._v4_g_scale = g_scale.detach().float().reshape(()) if isinstance(g_scale, torch.Tensor) else float(g_scale)
-        self._v4_wakeup_boost = (
-            wakeup_boost.detach().float().reshape(()) if isinstance(wakeup_boost, torch.Tensor) else float(wakeup_boost)
-        )
+        if self._supports_zerosync_v4_tensors():
+            self._v4_g_scale = g_scale.detach().float().reshape(()) if isinstance(g_scale, torch.Tensor) else float(g_scale)
+            self._v4_wakeup_boost = (
+                wakeup_boost.detach().float().reshape(())
+                if isinstance(wakeup_boost, torch.Tensor)
+                else float(wakeup_boost)
+            )
+        else:
+            self._v4_g_scale = float(g_scale.item()) if isinstance(g_scale, torch.Tensor) else float(g_scale)
+            self._v4_wakeup_boost = (
+                float(wakeup_boost.item()) if isinstance(wakeup_boost, torch.Tensor) else float(wakeup_boost)
+            )
         self._v4_prior_scale = float(prior_scale)
 
     def bind_protected_from_grads(self) -> None:

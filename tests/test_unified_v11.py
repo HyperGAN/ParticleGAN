@@ -1471,5 +1471,34 @@ def test_unified_v11_zerosync_primitives_parity_and_cuda_sync_budget() -> None:
         ) / 5.0
         assert img_syncs <= 6.0, f"4D image CUDA sync regression: {img_syncs:.1f} syncs/step (budget <= 6)"
 
+    # 8. Subclass compatibility: legacy subclasses without _SUPPORTS_ZEROSYNC_V4_TENSORS keep deduplicated
+    #    _sampled_rows and Python-float _origin_norm / _v4_g_scale / _v4_wakeup_boost, while base & opt-in keep tensors:
+    class _LegacySubclassOpt(UnifiedV11EquilibratedOptimizer):
+        pass
+
+    class _OptInSubclassOpt(UnifiedV11EquilibratedOptimizer):
+        _SUPPORTS_ZEROSYNC_V4_TENSORS = True
+
+    p_tab = nn.Parameter(torch.randn(16, 2))
+    raw_dups = torch.tensor([3, 1, 3, 5, 1, 5], dtype=torch.long)
+    legacy_opt = _LegacySubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    legacy_opt.set_sampled_rows(p_tab, raw_dups)
+    assert torch.equal(legacy_opt._sampled_rows[p_tab], torch.tensor([1, 3, 5], dtype=torch.long))
+    legacy_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert isinstance(legacy_opt._origin_norm, float) and legacy_opt._origin_norm_t is None
+    legacy_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert type(legacy_opt._v4_g_scale) is float and abs(legacy_opt._v4_g_scale - 0.25) < 1e-6
+    assert type(legacy_opt._v4_wakeup_boost) is float and abs(legacy_opt._v4_wakeup_boost - 2.0) < 1e-6
+
+    optin_opt = _OptInSubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    optin_opt.set_sampled_rows(p_tab, raw_dups)
+    assert len(optin_opt._sampled_rows[p_tab]) == len(raw_dups)
+    assert torch.equal(optin_opt.sampled_rows_for(p_tab), torch.tensor([1, 3, 5], dtype=torch.long))
+    optin_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert optin_opt._origin_norm is None and isinstance(optin_opt._origin_norm_t, torch.Tensor)
+    optin_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert isinstance(optin_opt._v4_g_scale, torch.Tensor) and isinstance(optin_opt._v4_wakeup_boost, torch.Tensor)
+
+
 
 
