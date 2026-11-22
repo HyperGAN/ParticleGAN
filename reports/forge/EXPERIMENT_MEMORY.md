@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1217. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1227. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4344,6 +4344,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 
 [Evidence](../../) · [Record](records/readout-0df182292d888440f5fb32ce.json)
 
+### law4-muon-m · readout-0fd60717a5427bdb919697ff
+
+**Scope:** research_diagnostic; scientific; revision `e1446ec1ede1287beae9fb3d3229e5594dad62bc5112e32a39789fba910ec7e3`.
+
+Evaluate law4-muon-m (law4_muon_m) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 12}; wall seconds 4594.673; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.95703, mass_tv=0.01; nash_overpowered_critic_ring16: modes=16, hq=0.95386, mass_tv=0.085449
+
+LLM Muon-style positive Nesterov momentum (beta1=0.85, 1 state/param + 5-step Quintic NS) achieves 12/15 graded PASS (3 numerical FAIL, 1 TIMEOUT on five_word_joint_smoke under GPU contention) on r4-occam-ablation-v1. Passes gaussian1d_smoke/stability, zero_tanh_smoke/rail_escape (mae=0.001127), ring16 (hq=0.9912), vector_unequal_mass/width (core_min_eig=0.7362/0.4093), img_bars4 (4/4 hq=1.0), grid100 (prec=0.9771, ctr=0.1432), both >500x Nash tasks (hq=0.9539/0.9429), and t3_iso_horizon_saddle_shift (hq=0.9766). Fails only grid100_mlp16 (prec=0.9241, ctr=0.4114), t3_iso_scale_mass_8x (core_min_eig=0.3181), and model_ddgan_gaussian_chain (despite ultra-sharp t1_q0_mean=0.0626, eig=[0.831, 1.11]).
+
+**Next:** Wait for remaining 4 arms (adam_equil, adafactor_mp, sign_mp, lion_mp) before selecting top 1-2 performers for targeted unified-v11 failure checks.
+
+[Record and receipt provenance](records/readout-0fd60717a5427bdb919697ff.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### forge-onboarding-anchor-ablation · readout-10242573330bec1494c7602b
 
 **Scope:** current; scientific; revision `39dc1cc8e516f8127e732edea196f82243ff8cdff4ed761020f0f802a3bcaf0f`.
@@ -4856,6 +4872,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 
 [Record and receipt provenance](records/readout-1e8d4ee06e39d85dc9988963.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-optimistic-equil · readout-1f07981649bca6782c45b940
+
+**Scope:** research_diagnostic; scientific; revision `9b6c8a9afc853e5a07d31069806fb989c1604b8c792a0fdb187cd3f68838641c`.
+
+Test whether law4-optimistic-equil delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 1}; wall seconds 2517.78; mechanism `structural`.
+
+staggered100: precision=0.99225, center_rms_sigma=0.15568, mass_tv=0.03626, radial_ks=0.032277; grid100: precision=0.9928, center_rms_sigma=0.12251, mass_tv=0.03719, radial_ks=0.031605
+
+1-state Optimistic/Extragradient polar law4-optimistic-equil (lambda=0.5 + 5-step Quintic NS) achieves a full sustained + 100k holdout PASS breakthrough on staggered100 (prec=0.9922, ctr=0.1557, mass_tv=0.0363, radial_ks=0.0323), where unified-v11 fails live accuracy; grid100_res16_tanh and model_ddgan_bimodal_chain remain gate-blocked by grid100 and model_ddgan_gaussian_chain failures.
+
+**Next:** Record breakthrough readout for Law-4 synthesis.
+
+[Record and receipt provenance](records/readout-1f07981649bca6782c45b940.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### law4-energy-v3 · readout-1fd4a458888792a5734a7cb0
 
 **Scope:** research_diagnostic; scientific; revision `ce549719232084891d416d2d021a130413e92eb5205dde86dbe6ab02f7920574`.
@@ -5287,6 +5319,22 @@ prediction_observed
 **Next:** review_saved_diagnostics
 
 [Record and receipt provenance](records/readout-2e0a16b47298ebbc5e33ba63.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-sign-mp · readout-2ea657f4fe6f6625e30652ee
+
+**Scope:** research_diagnostic; scientific; revision `5b78ce055b7ca8869bfc747c7189b08b9359b12df71b717e081a9bbfbcf12adc`.
+
+Evaluate law4-sign-mp (law4_sign_mp) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 3, 'PASS': 12}; wall seconds 2704.4; mechanism `structural`.
+
+vector_unequal_width: hq=0.99805, mass_tv=0.12915
+
+Zero-state smooth SignSGD-MP (u = g / hypot(|g|, s_eff), L_infinity geometry, 0 parameter-sized state tensors, 0 NS) + MP + secant band achieves 12/15 executed PASS (3 numerical FAIL, 0 TIMEOUT, 1 prereq-gated grid100_mlp16) on r4-occam-ablation-v1, tying law4-muon-m as the top alternative optimizer and beating 1-state Lion (10/14), sublinear Adafactor (11/15), and 2-state Adam (9/15)! Passes five_word_joint_smoke (5/5, qf=1.0, tv=0.01895, recon=1, min_tok=0.9998), gaussian1d_smoke/stability (ks=0.0264), img_bars4 (4/4 hq=1.0), ring16 (hq=0.9685, eig=0.5125), vector_unequal_mass/width (eig=0.6072/0.3832), both >500x Nash tasks (hq=0.9421/0.9731), and BOTH t3_iso probes (scale_mass_8x eig=0.4993, saddle_shift hq=0.9453). Fails only grid100 (final prec=0.9930, ctr=0.0983 yet missed live suffix), model_ddgan_gaussian_chain (t1_q0_mean=0.5286), and zero_tanh_rail_escape (mae=0.00591).
+
+**Next:** Run targeted unified-v11 failure breakthrough checks (staggered100, five_word_joint_hold) on law4-sign-mp alongside law4-muon-m, law4-adam-equil, and law4-optimistic-equil.
+
+[Record and receipt provenance](records/readout-2ea657f4fe6f6625e30652ee.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### unified-v11 · readout-2eb07e97714a1da4177d5d25
 
@@ -7256,6 +7304,22 @@ nash_unequal_width_hostile_imbalance: hq=0.98022, mass_tv=0.077148; nash_overpow
 
 [Record and receipt provenance](records/readout-6f996ec256a149b2f1620f64.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-muon-m · readout-6fad0485ca0aae984afb0ac1
+
+**Scope:** research_diagnostic; scientific; revision `e1446ec1ede1287beae9fb3d3229e5594dad62bc5112e32a39789fba910ec7e3`.
+
+Test whether law4-muon-m delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 2}; wall seconds 3098.262; mechanism `structural`.
+
+staggered100: precision=0.99126, center_rms_sigma=0.16333, mass_tv=0.03671, radial_ks=0.015588; grid100: precision=0.97708, center_rms_sigma=0.14318, mass_tv=0.03909, radial_ks=0.020166
+
+1-state LLM Muon law4-muon-m (beta1=0.85 Nesterov + 5-step Quintic NS) achieves a full sustained + 100k holdout PASS breakthrough on staggered100 (prec=0.9913, ctr=0.1633, mass_tv=0.0367, radial_ks=0.0156), where unified-v11 fails live accuracy; fails grid100_res16_tanh (prec=0.9929, sat=0.0, ctr=0.2445 > 0.20); model_ddgan_bimodal_chain remains gate-blocked by model_ddgan_gaussian_chain.
+
+**Next:** Record breakthrough readout for Law-4 synthesis.
+
+[Record and receipt provenance](records/readout-6fad0485ca0aae984afb0ac1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### atlas-particle-normal-v4 · readout-7018a47a2fdd016bbe6b2658
 
 **Scope:** research_diagnostic; scientific; revision `37c1bfc115abcc2a9a529ffb799cd1af5c1dd03601b7f1b077bed51d914969fa`.
@@ -7912,6 +7976,22 @@ This technique failed the full 80-update two_pole smoke gate: {'grad_med': 0.076
 
 [Evidence](../../reports/forge/technique-receipts/299aba837ed24be8a61b0b48074fc7a1.json) · [Record](records/readout-8bfdfb8d2b1c3daf55f9b0bc.json)
 
+### law4-adam-equil · readout-8c40a844448906db37be65b9
+
+**Scope:** research_diagnostic; scientific; revision `94987cc49f71c531f05d16fcf756416fd72d64de3c8b2e9cc13b367243f6fbd9`.
+
+Evaluate law4-adam-equil (law4_adam_equil) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 6, 'INCOMPLETE': 1, 'PASS': 9}; wall seconds 4602.188; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.98486, mass_tv=0.060547; nash_overpowered_critic_ring16: modes=16, hq=0.98096, mass_tv=0.089844
+
+Homogeneous peak_rms coordinate-wise Adam + MP + secant band (beta1=0.0, beta2=0.999, 2 states/param, 0 NS) achieves 9/15 graded PASS (6 numerical FAIL, 1 contention-TIMEOUT on five_word_joint_smoke) on r4-occam-ablation-v1. Delivers ultra-sharp grid100 accuracy (prec=0.9918, ctr=0.0881, mass_tv=0.0366), img_bars4 (4/4 hq=1.0), both >500x Nash tasks (hq=0.9810/0.9834), ring16 (0.9849), vector_unequal_mass/width, and both smokes, proving coordinate-wise adaptivity excels on shallow/Conv2d tasks; however, diagonal preconditioning cannot invert rank-1 spectral collapse on 16-layer skip-free grid100_mlp16 (prec=0.2551, mass_tv=0.6309) and fails model_ddgan_gaussian_chain (t1_q0_mean=0.4945), gaussian1d_stability, zero_tanh_rail_escape, t3_iso_scale_mass_8x (eig=0.4292), and t3_iso_horizon_saddle_shift (mass_tv=0.1328).
+
+**Next:** Record readout for Law-4 synthesis; wait for Batch 3 (sign_mp, lion_mp) before selecting top performers for unified-v11 failure checks.
+
+[Record and receipt provenance](records/readout-8c40a844448906db37be65b9.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### e22 · readout-8c7a73578180c764da4f2774
 
 **Scope:** research_diagnostic; scientific; revision `18023c3dbb584aca1a699cf711da28d0f9b8c00ad81d7c9f3513318eac996e06`.
@@ -8103,6 +8183,22 @@ Completed dcgan_performance seed-0 CUDA execution for atlas-particle-normal-v4 (
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-90dc786040135b340c5005de.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-adafactor-mp · readout-92baddc3105e46e38f8e40e7
+
+**Scope:** research_diagnostic; scientific; revision `aae9f41ffa106ae64417aa0ba57e2f01035fcb705451662e789e7e62bb21d2e8`.
+
+Evaluate law4-adafactor-mp (law4_adafactor_mp) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 4216.585; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.95996, mass_tv=0.087891
+
+Sublinear-memory O(m+n) Adafactor row/col factored RMS + MP + peak_rms + secant band (0 NS) achieves 11/15 graded PASS (4 numerical FAIL, 1 contention-TIMEOUT on five_word_joint_smoke) on r4-occam-ablation-v1, strictly beating full 2-state O(mn) law4-adam-equil (9/15) with O(m+n) state! Passes grid100 (prec=0.9922, ctr=0.1218), img_bars4 (4/4 hq=1.0), both >500x Nash tasks (hq=0.9600/0.9712), ring16 (0.9810), vector_unequal_mass/width (eig=0.3916/0.4860), t3_iso_scale_mass_8x (eig=0.4668), t3_iso_horizon_saddle_shift (hq=0.9297), and both smokes. Fails only grid100_mlp16 (prec=0.1737), model_ddgan_gaussian_chain (t1_q0_mean=0.4924), gaussian1d_stability, and zero_tanh_rail_escape (mae=0.00633).
+
+**Next:** Record readout for Law-4 synthesis; wait for Batch 3 (sign_mp, lion_mp) before launching targeted unified-v11 failure checks.
+
+[Record and receipt provenance](records/readout-92baddc3105e46e38f8e40e7.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-946a921be2625c9d807c6d1f
 
@@ -8551,6 +8647,22 @@ unified-v6 passed 2/2 (100%) t3_causal_isolation_stretch tasks (t3_iso_scale_mas
 **Next:** Carry forward into unified-v7.
 
 [Record and receipt provenance](records/readout-a519668412afa38c2de84f93.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-lion-mp · readout-a5f6ceda3f96357713dde8e2
+
+**Scope:** research_diagnostic; scientific; revision `8220591cac788467f5561701eee3cd3da30f9ed4a9e7cbda24b2176e4590fb25`.
+
+Evaluate law4-lion-mp (law4_lion_mp) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 10}; wall seconds 2905.279; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.99023, mass_tv=0.088379; t3_iso_horizon_saddle_shift: modes=4, hq=0.94531, mass_tv=0.11719
+
+1-state Lion-style smooth sign momentum (beta1=0.5, beta2=0.9, 1 state/param, 0 NS) + MP + peak_rms + secant band achieves 10/14 graded PASS (4 numerical FAIL, 1 contention-TIMEOUT on five_word_joint_smoke, 1 prereq-gated grid100_mlp16) on r4-occam-ablation-v1. Passes gaussian1d_smoke/stability (ks=0.0229), zero_tanh_smoke (mae=0.00135), ring16 (hq=0.9902), vector_unequal_mass/width (hq=0.9990/0.9985, eig=0.4652/0.5904), img_bars4 (4/4 hq=1.0), both >500x Nash tasks (hq=0.9756/0.9644), and t3_iso_horizon_saddle_shift (hq=0.9453). Fails grid100 (final prec=0.9928, ctr=0.1124 yet missed live suffix), t3_iso_scale_mass_8x (eig=0.4084), model_ddgan_gaussian_chain (t1_q0_mean=0.4871), and zero_tanh_rail_escape (mae=0.00253 final yet missed check).
+
+**Next:** Record readout for Law-4 synthesis; prioritize law4-muon-m, law4-sign-mp, law4-adam-equil, and law4-optimistic-equil for targeted unified-v11 failure breakthrough checks.
+
+[Record and receipt provenance](records/readout-a5f6ceda3f96357713dde8e2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-a66096228357c6881cb90290
 
@@ -9752,6 +9864,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-cfb9bf047c6814e0e030457c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-adam-equil · readout-d0dd40dd4f4879b0076112f2
+
+**Scope:** research_diagnostic; scientific; revision `94987cc49f71c531f05d16fcf756416fd72d64de3c8b2e9cc13b367243f6fbd9`.
+
+Test whether law4-adam-equil delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 1}; wall seconds 3173.857; mechanism `structural`.
+
+grid100: precision=0.99181, center_rms_sigma=0.088073, mass_tv=0.03657, radial_ks=0.035184
+
+2-state coordinate-wise law4-adam-equil (0 NS) fails both staggered100 (holdout prec=0.9919, ctr=0.1356, missed live accuracy) and grid100_res16_tanh (prec=0.7149, ctr=1.413, sat=0.0); model_ddgan_bimodal_chain remains gate-blocked by model_ddgan_gaussian_chain.
+
+**Next:** Record breakthrough readout for Law-4 synthesis.
+
+[Record and receipt provenance](records/readout-d0dd40dd4f4879b0076112f2.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v8 · readout-d0f74bbbd3c76f240c0e2729
 
 **Scope:** research_diagnostic; scientific; revision `039950bf79df2a79cecc2ff8bc2ad3d84752723c0bfd9aa5a22dedc178e25556`.
@@ -10904,6 +11032,22 @@ Frozen BCAP smoothing=1e-5 retains 6/6 required Tier 1 passes; Tier 2 records {'
 
 [Evidence](../../reports/forge/bcap-tier2/readout.json) · [Record](records/readout-fa5fada954b7b255ec86d748.json)
 
+### law4-sign-mp · readout-faa8d2a726680bb727034259
+
+**Scope:** research_diagnostic; scientific; revision `5b78ce055b7ca8869bfc747c7189b08b9359b12df71b717e081a9bbfbcf12adc`.
+
+Test whether law4-sign-mp delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.
+
+**Observed:** {'FAIL': 3, 'PASS': 2}; wall seconds 1875.795; mechanism `structural`.
+
+staggered100: precision=0.99231, center_rms_sigma=0.14001, mass_tv=0.03519, radial_ks=0.031669; five_word_joint_hold: modes=4, mass_tv=0.21152
+
+Zero-state law4-sign-mp achieves a full sustained + 100k holdout PASS breakthrough on staggered100 (prec=0.9923, ctr=0.1400, mass_tv=0.0352, radial_ks=0.0317), where unified-v11 fails live accuracy; fails five_word_joint_hold (4/5 modes, tv=0.2115, recon=0); grid100_res16_tanh and model_ddgan_bimodal_chain remain gate-blocked by prior grid100 and model_ddgan_gaussian_chain failures.
+
+**Next:** Record breakthrough readout for Law-4 synthesis.
+
+[Record and receipt provenance](records/readout-faa8d2a726680bb727034259.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p · readout-faf4999394106140c8a2052e
 
 **Scope:** current; scientific; revision `2a97b74e933cc5199847bc89b917f6643d9fd82f8deb2a8490d29b63fba718ce`.
@@ -10967,6 +11111,22 @@ Arm 1 (-NS, v1) passes 3/3 (100%) on t4_imbalance_nash_stretch: overpowered_crit
 **Next:** Confirm 3/3 parity under r4-razor-no-ns-v2.
 
 [Record and receipt provenance](records/readout-fcfec5e8ae1c8411f818fa8f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-optimistic-equil · readout-ff204f93d79c4ac6792099ea
+
+**Scope:** research_diagnostic; scientific; revision `9b6c8a9afc853e5a07d31069806fb989c1604b8c792a0fdb187cd3f68838641c`.
+
+Evaluate law4-optimistic-equil (law4_optimistic_equil) on r4-occam-ablation-v1 (16 surgical probes, protocol seed 0, NVIDIA RTX A6000) holding Laws 1-3 identical to unified-v11 to measure whether this alternative optimizer geometry delivers quality, settling, or efficiency gains.
+
+**Observed:** {'FAIL': 6, 'INCOMPLETE': 1, 'PASS': 8}; wall seconds 3642.951; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.9126, mass_tv=0.053955; nash_overpowered_generator_ring16: modes=16, hq=0.97168, mass_tv=0.10278
+
+Optimistic/Extragradient polar (g_eff = g_t + 0.5*(g_t - g_{t-1}), 1 state/param + 5-step Quintic NS) achieves 8/14 graded PASS (6 numerical FAIL, 1 TIMEOUT on five_word_joint_smoke under GPU contention, 1 prereq-gated grid100_mlp16) on r4-occam-ablation-v1, regressing vs unified-v11. While strong on balanced/imbalanced ring16 (hq=0.9927), img_bars4 (4/4 hq=1.0), vector_unequal_mass/width, and both >500x Nash tasks (hq=0.9126/0.9717), the 2.5x stochastic minibatch gradient variance amplification of 1.5*g_t - 0.5*g_{t-1} causes terminal suffix/settling failures on grid100 (final prec=0.9928, ctr=0.1225 yet missed live suffix), gaussian1d_stability, zero_tanh_rail_escape, t3_iso_scale_mass_8x (eig=0.3929), t3_iso_horizon_saddle_shift (hq=0.9141), and model_ddgan_gaussian_chain (t1_q0_mean=0.375, eig_max=1.45).
+
+**Next:** Record readout for Law-4 synthesis; do not adopt optimistic polar as default.
+
+[Record and receipt provenance](records/readout-ff204f93d79c4ac6792099ea.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-arch-v3 · readout-ff22843954240927dfd7ecc3
 
@@ -11622,4 +11782,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `3be30695d7e9fafc42d8fa46058165d800beccf74eef7a132a1b624251dcc182`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `b99155bcb275662960949986023e539a48699f3085cba1fe2fce449fc8c9dac2`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

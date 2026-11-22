@@ -25,6 +25,8 @@ NORMALIZED_FAMILIES = (
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
     "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band",
     "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
+    "law4_adam_equil", "law4_sign_mp", "law4_lion_mp",
+    "law4_muon_m", "law4_optimistic_equil", "law4_adafactor_mp",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -1286,6 +1288,22 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     elif recipe.optimizer_family == "law4_energy_v6":
         from .._law4_energy import Law4EnergyV6Optimizer
         optimizer = Law4EnergyV6Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family in (
+        "law4_adam_equil",
+        "law4_sign_mp",
+        "law4_lion_mp",
+        "law4_muon_m",
+        "law4_optimistic_equil",
+        "law4_adafactor_mp",
+    ):
+        from .._law4_alt import LAW4_ALT_OPTIMIZER_CLASSES
+        opt_cls = LAW4_ALT_OPTIMIZER_CLASSES[recipe.optimizer_family]
+        optimizer = opt_cls(
             params,
             smoothing=float(recipe.optimizer_smoothing),
             direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),

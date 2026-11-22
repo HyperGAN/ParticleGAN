@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 15000,
+    "candidate_budget_seconds": 15000,
+    "id": "law4-muon-m-v11-breakthrough-study"
+  },
+  "candidate": "law4-muon-m",
+  "competing_explanation": "If law4-muon-m does not resolve unified-v11 remaining live-suffix/settling failures, staggered100, grid100_res16_tanh, five_word_joint_hold, and model_ddgan_bimodal_chain will remain numerical FAIL or gate-blocked.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "staggered100",
+    "threshold": 0.2
+  },
+  "hypothesis": "Test whether law4-muon-m delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.",
+  "id": "law4-muon-m-v11-breakthrough-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "staggered100",
+    "threshold": 0.2
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-muon-m",
+        "candidate_revision": "e1446ec1ede1287beae9fb3d3229e5594dad62bc5112e32a39789fba910ec7e3"
+      },
+      "path": "reports/forge/records/readout-0fd60717a5427bdb919697ff.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "law4-v11-breakthrough-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

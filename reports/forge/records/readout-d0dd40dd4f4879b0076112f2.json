@@ -1,0 +1,1117 @@
+{
+  "attempt_ids": [
+    "325769267c8240acad0982ce85f930c3",
+    "6f7cfeca2d5b4bc79b1e930be46c5853",
+    "823d9d0b2df84538afe8418a6d55fd06",
+    "e81cef0c32434065b1921d0f15ebc562",
+    "fd85437edd784f2d81ebd4f902741cfa"
+  ],
+  "candidate_id": "law4-adam-equil",
+  "candidate_revision": "94987cc49f71c531f05d16fcf756416fd72d64de3c8b2e9cc13b367243f6fbd9",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Delivers no breakthrough on any unified-v11 remaining failure task; confirms 0-NS coordinate-wise Adam cannot stabilize 16-layer residual tanh or staggered100 live suffixes.",
+  "conclusion": "2-state coordinate-wise law4-adam-equil (0 NS) fails both staggered100 (holdout prec=0.9919, ctr=0.1356, missed live accuracy) and grid100_res16_tanh (prec=0.7149, ctr=1.413, sat=0.0); model_ddgan_bimodal_chain remains gate-blocked by model_ddgan_gaussian_chain.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "325769267c8240acad0982ce85f930c3",
+        "6f7cfeca2d5b4bc79b1e930be46c5853",
+        "823d9d0b2df84538afe8418a6d55fd06",
+        "e81cef0c32434065b1921d0f15ebc562",
+        "fd85437edd784f2d81ebd4f902741cfa"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "5915567ad9365c180182ce3cf4c3008d25d15409d7cbc85e1628b8b446347ba2",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "request_missing_evidence",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.13558582954639964
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.13558582954639964
+        }
+      },
+      "outcome": "incomplete",
+      "provenance": [
+        {
+          "attempt_id": "325769267c8240acad0982ce85f930c3",
+          "producer_request_id": "db0305f612e2a12901f84ef6",
+          "producer_study_id": "law4-adam-equil-occam-study",
+          "result_hash": "73be3ce766ae3f560c7785a80bdc2b3b6faea569d7b78f86ce24131e33f8167f",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "6f7cfeca2d5b4bc79b1e930be46c5853",
+          "producer_request_id": "db0305f612e2a12901f84ef6",
+          "producer_study_id": "law4-adam-equil-occam-study",
+          "result_hash": "d9a846121f8f40eea87e1e9043e819aa5677479cca4213092fbf799ede21ea3e",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "823d9d0b2df84538afe8418a6d55fd06",
+          "producer_request_id": "db0305f612e2a12901f84ef6",
+          "producer_study_id": "law4-adam-equil-occam-study",
+          "result_hash": "d118a7e2fe84f593a3eae45ac1cfc0c27dfcd1116ebd35f19e806a7a8b9e47c7",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "e81cef0c32434065b1921d0f15ebc562",
+          "producer_request_id": "330233dfd71f9ccf5603c9f5",
+          "producer_study_id": "law4-adam-equil-v11-breakthrough-study",
+          "result_hash": "0156be201db5c05da7b91ccc653ed48c21523303a402543817c5e5de39675c77",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "fd85437edd784f2d81ebd4f902741cfa",
+          "producer_request_id": "330233dfd71f9ccf5603c9f5",
+          "producer_study_id": "law4-adam-equil-v11-breakthrough-study",
+          "result_hash": "ad3859bdeb08e0f5aaedb243607ddf6bbc9a58b5b8e70bac59a908ca35fe2909",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "70190d685ca9929fe1a838b0d49d2d44171f740d04d610c5cf857c6dc53e3837",
+        "contract_sha256": "5915567ad9365c180182ce3cf4c3008d25d15409d7cbc85e1628b8b446347ba2",
+        "control_binding_sha256": "166974ad19e6fbb4b37a0c354cddd411a4933cf469d5709f8678d65b003484d2",
+        "policy_fingerprint": "4524139a9ad6f75acc0b22e8aef76de8a60857e84cda59ebffb040a10e704254",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "32c00b88ffa2269ec104b9905fb0efe01402acb39f0dbbc8b410bb945df70740"
+      },
+      "study_id": "law4-adam-equil-v11-breakthrough-study",
+      "study_sha256": "32c00b88ffa2269ec104b9905fb0efe01402acb39f0dbbc8b410bb945df70740"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "law4-v11-breakthrough-v1",
+  "hypothesis": "Test whether law4-adam-equil delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Record breakthrough readout for Law-4 synthesis.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "325769267c8240acad0982ce85f930c3",
+        "result_hash": "73be3ce766ae3f560c7785a80bdc2b3b6faea569d7b78f86ce24131e33f8167f",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "6f7cfeca2d5b4bc79b1e930be46c5853",
+        "result_hash": "d9a846121f8f40eea87e1e9043e819aa5677479cca4213092fbf799ede21ea3e",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "823d9d0b2df84538afe8418a6d55fd06",
+        "result_hash": "d118a7e2fe84f593a3eae45ac1cfc0c27dfcd1116ebd35f19e806a7a8b9e47c7",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "e81cef0c32434065b1921d0f15ebc562",
+        "result_hash": "0156be201db5c05da7b91ccc653ed48c21523303a402543817c5e5de39675c77",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "fd85437edd784f2d81ebd4f902741cfa",
+        "result_hash": "ad3859bdeb08e0f5aaedb243607ddf6bbc9a58b5b8e70bac59a908ca35fe2909",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-d0dd40dd4f4879b0076112f2",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/325769267c8240acad0982ce85f930c3/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 15000,
+      "candidate_budget_seconds": 15000,
+      "id": "law4-adam-equil-v11-breakthrough-study"
+    },
+    "candidate": "law4-adam-equil",
+    "competing_explanation": "If law4-adam-equil does not resolve unified-v11 remaining live-suffix/settling failures, staggered100, grid100_res16_tanh, five_word_joint_hold, and model_ddgan_bimodal_chain will remain numerical FAIL or gate-blocked.",
+    "control": {
+      "candidate_id": "unified-v11",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "center_rms_sigma",
+      "op": ">",
+      "phase": "final",
+      "task_id": "staggered100",
+      "threshold": 0.2
+    },
+    "hypothesis": "Test whether law4-adam-equil delivers a breakthrough over unified-v11 on its known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) under protocol seed 0 on NVIDIA RTX A6000.",
+    "id": "law4-adam-equil-v11-breakthrough-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "center_rms_sigma",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "staggered100",
+      "threshold": 0.2
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "law4-adam-equil",
+          "candidate_revision": "94987cc49f71c531f05d16fcf756416fd72d64de3c8b2e9cc13b367243f6fbd9"
+        },
+        "path": "reports/forge/records/readout-8c40a844448906db37be65b9.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "law4-v11-breakthrough-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "law4-adam-equil-v11-breakthrough-study",
+  "study_sha256": "32c00b88ffa2269ec104b9905fb0efe01402acb39f0dbbc8b410bb945df70740",
+  "task_results": [
+    {
+      "compatibility_key": "b90a3fbf4a7b13433da42090fe7797500e399f1e93dc0772b18d36f0f5c83689",
+      "cost": {
+        "adapter_loop_seconds": 232.03991931304336,
+        "adapter_seconds": 237.31959524494596,
+        "charged_task": "model_ddgan_gaussian_chain",
+        "completed_steps": 2500,
+        "device": "1",
+        "execution_seconds": 245.46115221106447,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2500,
+          "encoder": 0,
+          "generator": 2500,
+          "prior": 2500
+        },
+        "runner_seconds": 238.8837046730332,
+        "wall_seconds": 245.46115221106447
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 2.0,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": null,
+          "first_pass_step": 1980,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 4,
+          "passing_suffix": 0,
+          "stable_from_seconds": null,
+          "stable_from_step": null
+        },
+        "metric_checks": {
+          "final_covariance_eigen_max": {
+            "margin": 0.3117621209613495,
+            "metric": "final_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0882378790386504
+          },
+          "final_covariance_eigen_min": {
+            "margin": 0.2147577184929259,
+            "metric": "final_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.8647577184929259
+          },
+          "final_normalized_mean": {
+            "margin": 0.19928805370866207,
+            "metric": "final_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.05071194629133794
+          },
+          "final_projection_cdf": {
+            "margin": 0.08201202821746822,
+            "metric": "final_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.03798797178253177
+          },
+          "panel_count": {
+            "margin": 0,
+            "metric": "panel_count",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          },
+          "samples_per_panel": {
+            "margin": 0,
+            "metric": "samples_per_panel",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2048,
+            "value": 2048
+          },
+          "t1_q0_covariance_eigen_max": {
+            "margin": 0.258228660252932,
+            "metric": "t1_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.141771339747068
+          },
+          "t1_q0_covariance_eigen_min": {
+            "margin": 0.6958731801053463,
+            "metric": "t1_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.4,
+            "value": 1.0958731801053463
+          },
+          "t1_q0_normalized_mean": {
+            "margin": -0.04453003710804221,
+            "metric": "t1_q0_normalized_mean",
+            "op": "<=",
+            "status": "FAIL",
+            "threshold": 0.45,
+            "value": 0.4945300371080422
+          },
+          "t1_q0_projection_cdf": {
+            "margin": 0.10192282900011373,
+            "metric": "t1_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.26,
+            "value": 0.15807717099988627
+          },
+          "t1_q1_covariance_eigen_max": {
+            "margin": 0.19207452074035736,
+            "metric": "t1_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.2079254792596426
+          },
+          "t1_q1_covariance_eigen_min": {
+            "margin": 0.4025060860859003,
+            "metric": "t1_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.4,
+            "value": 0.8025060860859003
+          },
+          "t1_q1_normalized_mean": {
+            "margin": 0.24990269370233845,
+            "metric": "t1_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.45,
+            "value": 0.20009730629766156
+          },
+          "t1_q1_projection_cdf": {
+            "margin": 0.15453053203709877,
+            "metric": "t1_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.26,
+            "value": 0.10546946796290124
+          },
+          "t2_q0_covariance_eigen_max": {
+            "margin": 0.5398395917090695,
+            "metric": "t2_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.8601604082909304
+          },
+          "t2_q0_covariance_eigen_min": {
+            "margin": 0.14304772384719278,
+            "metric": "t2_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.6,
+            "value": 0.7430477238471928
+          },
+          "t2_q0_normalized_mean": {
+            "margin": 0.3250423899479305,
+            "metric": "t2_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.35,
+            "value": 0.024957610052069482
+          },
+          "t2_q0_projection_cdf": {
+            "margin": 0.14981046048659213,
+            "metric": "t2_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.2,
+            "value": 0.05018953951340788
+          },
+          "t2_q1_covariance_eigen_max": {
+            "margin": 0.49787030241919006,
+            "metric": "t2_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9021296975808099
+          },
+          "t2_q1_covariance_eigen_min": {
+            "margin": 0.2557016232262944,
+            "metric": "t2_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.6,
+            "value": 0.8557016232262944
+          },
+          "t2_q1_normalized_mean": {
+            "margin": 0.25393184494474447,
+            "metric": "t2_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.35,
+            "value": 0.09606815505525552
+          },
+          "t2_q1_projection_cdf": {
+            "margin": 0.14889723240588437,
+            "metric": "t2_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.2,
+            "value": 0.05110276759411564
+          },
+          "t3_q0_covariance_eigen_max": {
+            "margin": 0.43142578434863765,
+            "metric": "t3_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9685742156513623
+          },
+          "t3_q0_covariance_eigen_min": {
+            "margin": 0.25673186603334774,
+            "metric": "t3_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9067318660333478
+          },
+          "t3_q0_normalized_mean": {
+            "margin": 0.11895028650234363,
+            "metric": "t3_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.13104971349765637
+          },
+          "t3_q0_projection_cdf": {
+            "margin": 0.047214592084080964,
+            "metric": "t3_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.07278540791591903
+          },
+          "t3_q1_covariance_eigen_max": {
+            "margin": 0.41336888126125115,
+            "metric": "t3_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 0.9866311187387488
+          },
+          "t3_q1_covariance_eigen_min": {
+            "margin": 0.2849508004117898,
+            "metric": "t3_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9349508004117898
+          },
+          "t3_q1_normalized_mean": {
+            "margin": 0.2064154338709128,
+            "metric": "t3_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.043584566129087204
+          },
+          "t3_q1_projection_cdf": {
+            "margin": 0.0877600280967526,
+            "metric": "t3_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.0322399719032474
+          },
+          "t4_q0_covariance_eigen_max": {
+            "margin": 0.36813739229276243,
+            "metric": "t4_q0_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0318626077072375
+          },
+          "t4_q0_covariance_eigen_min": {
+            "margin": 0.3426467729584298,
+            "metric": "t4_q0_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9926467729584298
+          },
+          "t4_q0_normalized_mean": {
+            "margin": 0.20892536797539465,
+            "metric": "t4_q0_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.04107463202460535
+          },
+          "t4_q0_projection_cdf": {
+            "margin": 0.09197029162082826,
+            "metric": "t4_q0_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.028029708379171736
+          },
+          "t4_q1_covariance_eigen_max": {
+            "margin": 0.37967327726232436,
+            "metric": "t4_q1_covariance_eigen_max",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 1.4,
+            "value": 1.0203267227376756
+          },
+          "t4_q1_covariance_eigen_min": {
+            "margin": 0.30523271546450437,
+            "metric": "t4_q1_covariance_eigen_min",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.65,
+            "value": 0.9552327154645044
+          },
+          "t4_q1_normalized_mean": {
+            "margin": 0.2135808761002041,
+            "metric": "t4_q1_normalized_mean",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.25,
+            "value": 0.03641912389979591
+          },
+          "t4_q1_projection_cdf": {
+            "margin": 0.08736337832156005,
+            "metric": "t4_q1_projection_cdf",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.12,
+            "value": 0.03263662167843995
+          }
+        },
+        "passed": false,
+        "shortfall": 0.0026040957373124098,
+        "status": "FAIL"
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "final_covariance_eigen_max": 1.0882378790386504,
+        "final_covariance_eigen_min": 0.8647577184929259,
+        "final_normalized_mean": 0.05071194629133794,
+        "final_projection_cdf": 0.03798797178253177,
+        "panel_count": 8,
+        "samples_per_panel": 2048,
+        "step": 2500,
+        "t1_q0_covariance_eigen_max": 1.141771339747068,
+        "t1_q0_covariance_eigen_min": 1.0958731801053463,
+        "t1_q0_normalized_mean": 0.4945300371080422,
+        "t1_q0_projection_cdf": 0.15807717099988627,
+        "t1_q1_covariance_eigen_max": 1.2079254792596426,
+        "t1_q1_covariance_eigen_min": 0.8025060860859003,
+        "t1_q1_normalized_mean": 0.20009730629766156,
+        "t1_q1_projection_cdf": 0.10546946796290124,
+        "t2_q0_covariance_eigen_max": 0.8601604082909304,
+        "t2_q0_covariance_eigen_min": 0.7430477238471928,
+        "t2_q0_normalized_mean": 0.024957610052069482,
+        "t2_q0_projection_cdf": 0.05018953951340788,
+        "t2_q1_covariance_eigen_max": 0.9021296975808099,
+        "t2_q1_covariance_eigen_min": 0.8557016232262944,
+        "t2_q1_normalized_mean": 0.09606815505525552,
+        "t2_q1_projection_cdf": 0.05110276759411564,
+        "t3_q0_covariance_eigen_max": 0.9685742156513623,
+        "t3_q0_covariance_eigen_min": 0.9067318660333478,
+        "t3_q0_normalized_mean": 0.13104971349765637,
+        "t3_q0_projection_cdf": 0.07278540791591903,
+        "t3_q1_covariance_eigen_max": 0.9866311187387488,
+        "t3_q1_covariance_eigen_min": 0.9349508004117898,
+        "t3_q1_normalized_mean": 0.043584566129087204,
+        "t3_q1_projection_cdf": 0.0322399719032474,
+        "t4_q0_covariance_eigen_max": 1.0318626077072375,
+        "t4_q0_covariance_eigen_min": 0.9926467729584298,
+        "t4_q0_normalized_mean": 0.04107463202460535,
+        "t4_q0_projection_cdf": 0.028029708379171736,
+        "t4_q1_covariance_eigen_max": 1.0203267227376756,
+        "t4_q1_covariance_eigen_min": 0.9552327154645044,
+        "t4_q1_normalized_mean": 0.03641912389979591,
+        "t4_q1_projection_cdf": 0.03263662167843995,
+        "worst_transition_cdf": 0.15807717099988627
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "model_ddgan_gaussian_chain"
+    },
+    {
+      "compatibility_key": "6feb12ca8a7a06f1b1f1ffe4fc3258dfa42a9a89713aad1262430b5b7c5046a6",
+      "cost": {
+        "charged_task": "five_word_joint_smoke",
+        "device": "1",
+        "execution_seconds": 900.2496817291249,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "wall_seconds": 900.2496817291249
+      },
+      "evaluator_summary": {},
+      "gate_status": "INCOMPLETE",
+      "raw_status": "timeout",
+      "reason": "task wall-time budget exhausted",
+      "task_id": "five_word_joint_smoke"
+    },
+    {
+      "compatibility_key": "5d035c2013f075f743befaf0534a59402c9e628525c1c6dc9ddb24233e94e6c5",
+      "cost": {
+        "adapter_loop_seconds": 744.3354607729707,
+        "adapter_seconds": 744.8880916449707,
+        "charged_task": "grid100",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 754.6827209361363,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 722.8539413211402,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 11.088410766795278
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.07976832636632025
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 711.6857622279786
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 746.4274750279728,
+        "wall_seconds": 754.6827209361363
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.09450590117543778,
+          "accuracy_pass": true,
+          "accuracy_score": 0.8274753794588792,
+          "all_finite": true,
+          "center_max_sigma": 0.3061336866386348,
+          "center_rms_sigma": 0.12534436752159106,
+          "cov_frob_rms": 0.15247079952020062,
+          "cov_trace_bias": -0.09450590117543778,
+          "frozen_pass": true,
+          "mass_tv": 0.046650000000000004,
+          "n": 20000,
+          "passed": true,
+          "precision": 0.9912,
+          "precision_gap": 0.002308996538242236,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.03842482673892733,
+          "valid_n": 20000,
+          "within_radius_n": 19824
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.0877657503902225,
+          "accuracy_pass": true,
+          "accuracy_score": 0.7017828795475964,
+          "all_finite": true,
+          "center_max_sigma": 0.276421839633193,
+          "center_rms_sigma": 0.08807296055976242,
+          "cov_frob_rms": 0.11510855936334079,
+          "cov_trace_bias": -0.0877657503902225,
+          "frozen_pass": true,
+          "mass_tv": 0.03657,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.99181,
+          "precision_gap": 0.0029189965382422356,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.035184368459573956,
+          "valid_n": 100000,
+          "within_radius_n": 99181
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.0877657503902225,
+          "accuracy_pass": true,
+          "accuracy_score": 0.7017828795475964,
+          "all_finite": true,
+          "center_max_sigma": 0.276421839633193,
+          "center_rms_sigma": 0.08807296055976242,
+          "cov_frob_rms": 0.11510855936334079,
+          "cov_trace_bias": -0.0877657503902225,
+          "frozen_pass": true,
+          "mass_tv": 0.03657,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.99181,
+          "precision_gap": 0.0029189965382422356,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.035184368459573956,
+          "valid_n": 100000,
+          "within_radius_n": 99181
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": true,
+        "problem": "grid100",
+        "reason": "sustained live accuracy and independent holdout pass",
+        "status": "PASS",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 5,
+          "status_counts": {
+            "PASS": 5
+          }
+        }
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "abs_cov_trace_bias": 0.0877657503902225,
+        "accuracy_pass": true,
+        "accuracy_score": 0.7017828795475964,
+        "all_finite": true,
+        "center_max_sigma": 0.276421839633193,
+        "center_rms_sigma": 0.08807296055976242,
+        "cov_frob_rms": 0.11510855936334079,
+        "cov_trace_bias": -0.0877657503902225,
+        "frozen_pass": true,
+        "mass_tv": 0.03657,
+        "n": 100000,
+        "passed": true,
+        "precision": 0.99181,
+        "precision_gap": 0.0029189965382422356,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.035184368459573956,
+        "valid_n": 100000,
+        "within_radius_n": 99181
+      },
+      "raw_status": "completed",
+      "reason": "sustained live accuracy and independent holdout pass",
+      "task_id": "grid100"
+    },
+    {
+      "compatibility_key": "53210fa1b2a169febd9e9400b7f3fd72cae89d9380d63c6a27097294db4dce7d",
+      "cost": {
+        "adapter_loop_seconds": 594.7965128140058,
+        "adapter_seconds": 595.2784681378398,
+        "charged_task": "staggered100",
+        "completed_steps": 7000,
+        "device": "1",
+        "execution_seconds": 603.5413474510424,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 574.2061951025389,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 7.21545979147777
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.07143444917164743
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 566.9193008618895
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 596.4810830091592,
+        "wall_seconds": 603.5413474510424
+      },
+      "evaluator_summary": {
+        "coverage_status": "PASS",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.0660894503932371,
+          "accuracy_pass": true,
+          "accuracy_score": 0.7040796586128524,
+          "all_finite": true,
+          "center_max_sigma": 0.4243711935149146,
+          "center_rms_sigma": 0.16210476782407884,
+          "cov_frob_rms": 0.14716331849054207,
+          "cov_trace_bias": -0.0660894503932371,
+          "frozen_pass": true,
+          "mass_tv": 0.04305,
+          "n": 20000,
+          "passed": true,
+          "precision": 0.9921,
+          "precision_gap": 0.003208996538242248,
+          "problem": "staggered100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.02509601165594577,
+          "valid_n": 20000,
+          "within_radius_n": 19842
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.06180889625734298,
+          "accuracy_pass": true,
+          "accuracy_score": 0.6073037972346201,
+          "all_finite": true,
+          "center_max_sigma": 0.3606371362105887,
+          "center_rms_sigma": 0.13558582954639964,
+          "cov_frob_rms": 0.10438777129983934,
+          "cov_trace_bias": -0.06180889625734298,
+          "frozen_pass": true,
+          "mass_tv": 0.035500000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.99189,
+          "precision_gap": 0.0029989965382423156,
+          "problem": "staggered100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.021661216478655432,
+          "valid_n": 100000,
+          "within_radius_n": 99189
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.06180889625734298,
+          "accuracy_pass": true,
+          "accuracy_score": 0.6073037972346201,
+          "all_finite": true,
+          "center_max_sigma": 0.3606371362105887,
+          "center_rms_sigma": 0.13558582954639964,
+          "cov_frob_rms": 0.10438777129983934,
+          "cov_trace_bias": -0.06180889625734298,
+          "frozen_pass": true,
+          "mass_tv": 0.035500000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.99189,
+          "precision_gap": 0.0029989965382423156,
+          "problem": "staggered100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.021661216478655432,
+          "valid_n": 100000,
+          "within_radius_n": 99189
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794389468916414,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11342085651107006,
+          "all_finite": true,
+          "center_max_sigma": 0.1009098996302996,
+          "center_rms_sigma": 0.041737403703950474,
+          "cov_frob_rms": 0.05610274891753917,
+          "cov_trace_bias": 0.0002794389468916414,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "staggered100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.0015147473888911245,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "staggered100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 4,
+          "status_counts": {
+            "FAIL": 1,
+            "PASS": 4
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.06180889625734298,
+        "accuracy_pass": true,
+        "accuracy_score": 0.6073037972346201,
+        "all_finite": true,
+        "center_max_sigma": 0.3606371362105887,
+        "center_rms_sigma": 0.13558582954639964,
+        "cov_frob_rms": 0.10438777129983934,
+        "cov_trace_bias": -0.06180889625734298,
+        "frozen_pass": true,
+        "mass_tv": 0.035500000000000004,
+        "n": 100000,
+        "passed": true,
+        "precision": 0.99189,
+        "precision_gap": 0.0029989965382423156,
+        "problem": "staggered100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.021661216478655432,
+        "valid_n": 100000,
+        "within_radius_n": 99189
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "staggered100"
+    },
+    {
+      "compatibility_key": "f46ac28e596073b98ccf8950f33960d6435ed9b954d8a5eef72959ef051e73d3",
+      "cost": {
+        "adapter_loop_seconds": 661.1848836559802,
+        "adapter_seconds": 661.6410826318897,
+        "charged_task": "grid100_res16_tanh",
+        "completed_steps": 7000,
+        "device": "0",
+        "execution_seconds": 669.9223186420277,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 7000,
+          "generator": 7000,
+          "prior": 7000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 655.1848857549485,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 35,
+              "seconds": 5.125356437871233
+            },
+            "sampling": {
+              "calls": 70,
+              "seconds": 0.25605810550041497
+            },
+            "training_updates": {
+              "calls": 7000,
+              "seconds": 649.8034712115768
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 662.953349386109,
+        "wall_seconds": 669.9223186420277
+      },
+      "evaluator_summary": {
+        "coverage_status": "FAIL",
+        "final_metrics": {
+          "abs_cov_trace_bias": 0.08899562275020623,
+          "accuracy_pass": false,
+          "accuracy_score": 4.113582126359391,
+          "all_finite": true,
+          "center_max_sigma": 1.8853052182144017,
+          "center_rms_sigma": 1.420274408089091,
+          "cov_frob_rms": 0.2541984310285565,
+          "cov_trace_bias": -0.08899562275020623,
+          "frozen_pass": false,
+          "mass_tv": 0.04615,
+          "n": 20000,
+          "passed": false,
+          "precision": 0.7112,
+          "precision_gap": 0.2776910034617577,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.3077533428329352,
+          "valid_n": 20000,
+          "within_radius_n": 14224
+        },
+        "holdout_ema_metrics": {
+          "abs_cov_trace_bias": 0.0883295648359913,
+          "accuracy_pass": false,
+          "accuracy_score": 4.043841645732734,
+          "all_finite": true,
+          "center_max_sigma": 1.9308077396657073,
+          "center_rms_sigma": 1.4132626292406014,
+          "cov_frob_rms": 0.2226109539465886,
+          "cov_trace_bias": -0.0883295648359913,
+          "frozen_pass": false,
+          "mass_tv": 0.03528,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.71487,
+          "precision_gap": 0.27402100346175773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.30551031153472064,
+          "valid_n": 100000,
+          "within_radius_n": 71487
+        },
+        "holdout_metrics": {
+          "abs_cov_trace_bias": 0.0883295648359913,
+          "accuracy_pass": false,
+          "accuracy_score": 4.043841645732734,
+          "all_finite": true,
+          "center_max_sigma": 1.9308077396657073,
+          "center_rms_sigma": 1.4132626292406014,
+          "cov_frob_rms": 0.2226109539465886,
+          "cov_trace_bias": -0.0883295648359913,
+          "frozen_pass": false,
+          "mass_tv": 0.03528,
+          "n": 100000,
+          "passed": false,
+          "precision": 0.71487,
+          "precision_gap": 0.27402100346175773,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.30551031153472064,
+          "valid_n": 100000,
+          "within_radius_n": 71487
+        },
+        "oracle_metrics": {
+          "abs_cov_trace_bias": 0.0002794449587595338,
+          "accuracy_pass": true,
+          "accuracy_score": 0.11341721050570538,
+          "all_finite": true,
+          "center_max_sigma": 0.10090990917529204,
+          "center_rms_sigma": 0.041737606908836516,
+          "cov_frob_rms": 0.05610274287219167,
+          "cov_trace_bias": 0.0002794449587595338,
+          "frozen_pass": true,
+          "mass_tv": 0.012260000000000004,
+          "n": 100000,
+          "passed": true,
+          "precision": 0.98914,
+          "precision_gap": 0.0002489965382422854,
+          "problem": "grid100",
+          "protocol": "toy100-accuracy-v1",
+          "radial_ks": 0.001514120982308409,
+          "valid_n": 100000,
+          "within_radius_n": 98914
+        },
+        "passed": false,
+        "problem": "grid100",
+        "reason": "coverage, sustained live accuracy, or independent holdout failed",
+        "status": "FAIL",
+        "terminal_summary": {
+          "checks": 5,
+          "passing_checks": 0,
+          "status_counts": {
+            "FAIL": 5
+          }
+        }
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "abs_cov_trace_bias": 0.0883295648359913,
+        "accuracy_pass": false,
+        "accuracy_score": 4.043841645732734,
+        "all_finite": true,
+        "center_max_sigma": 1.9308077396657073,
+        "center_rms_sigma": 1.4132626292406014,
+        "cov_frob_rms": 0.2226109539465886,
+        "cov_trace_bias": -0.0883295648359913,
+        "frozen_pass": false,
+        "mass_tv": 0.03528,
+        "n": 100000,
+        "passed": false,
+        "precision": 0.71487,
+        "precision_gap": 0.27402100346175773,
+        "problem": "grid100",
+        "protocol": "toy100-accuracy-v1",
+        "radial_ks": 0.30551031153472064,
+        "saturated_fraction": 0.0,
+        "terminal_max_saturated_fraction": 0.0,
+        "valid_n": 100000,
+        "within_radius_n": 71487
+      },
+      "raw_status": "completed",
+      "reason": "coverage, sustained live accuracy, or independent holdout failed",
+      "task_id": "grid100_res16_tanh"
+    }
+  ]
+}
