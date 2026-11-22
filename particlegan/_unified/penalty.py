@@ -547,6 +547,7 @@ class _UnifiedPenaltyKernel:
                             mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
                             gauge_pen = self.gamma_gauge * mean_logit.square()
                         else:
+                            mean_logit = x_real.new_zeros(())
                             gauge_pen = x_real.new_zeros(())
                         norm_stat = 0.5 * (norm_r.detach().mean() + norm_f.detach().mean())
                     else:
@@ -744,8 +745,10 @@ class _UnifiedPenaltyKernel:
                 if self.gamma_gauge > 0.0:
                     d_r_mean = d_r_2d.mean()
                     d_f_mean = d_f_2d.mean()
-                    gauge_pen = self.gamma_gauge * (0.5 * (d_r_mean + d_f_mean)).square()
+                    mean_logit = 0.5 * (d_r_mean + d_f_mean)
+                    gauge_pen = self.gamma_gauge * mean_logit.square()
                 else:
+                    mean_logit = x_real.new_zeros(())
                     gauge_pen = x_real.new_zeros(())
 
                 norm_stat = 0.5 * (norm_r.detach().mean() + norm_f.detach().mean())
@@ -757,7 +760,9 @@ class _UnifiedPenaltyKernel:
                 if pen_lip.requires_grad:
                     pen_lip = pen_lip * s_therm + pen_lip.detach() * (1.0 - s_therm)
                 if pen_gauge.requires_grad:
-                    s_gauge = math.sqrt(max(0.0, s_therm))
+                    g_u = ((mean_logit.detach().abs() - 0.5) / 1.0).clamp(0.0, 1.0)
+                    g_gate = g_u * g_u * (3.0 - 2.0 * g_u)
+                    s_gauge = s_therm + g_gate * (math.sqrt(max(0.0, s_therm)) - s_therm)
                     pen_gauge = pen_gauge * s_gauge + pen_gauge.detach() * (1.0 - s_gauge)
             pen = pen_lip + pen_gauge
 

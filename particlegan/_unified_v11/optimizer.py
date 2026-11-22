@@ -645,8 +645,9 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 b1, b2 = grp["betas"]
                 eps = float(grp["eps"])
                 s_base = self.smoothing * (1.0 - stiff_gate)
-                # Direct particle clouds retain scaled row smoothing matching DualNorm:
-                s_prior_base = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
+                # Direct particle clouds and shallow priors retain scaled row smoothing matching DualNorm,
+                # while stiff deep networks (stiff_gate_raw > 0) release prior smoothing in lockstep with G:
+                s_prior_base = (self.smoothing * (1.0 - stiff_gate_raw)) if self._v4_prior_scale >= 1.0 else 0.0
 
                 if player == "prior":
                     b1_eff = max(float(b1), 0.75) if self._v4_prior_scale < 1.0 else float(b1)
@@ -698,16 +699,17 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         d_norm = dir_r.norm(dim=-1, keepdim=True)
                         active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
 
-                        # Degree-0 scale-invariant peak-RMS tracking on prior rows (no GPU-CPU sync):
+                        # Degree-0 scale-invariant peak-RMS tracking on prior rows (no GPU-CPU sync, frozen during cooling):
                         cur_row_rms = d_norm.square().mean().sqrt()
                         if "peak_rms" not in st:
                             st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
-                        peak_r = torch.maximum(st["peak_rms"] * 0.9995, torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())))
+                        p_dec = 0.9995 if s_therm >= 0.5 else 1.0
+                        peak_r = torch.maximum(st["peak_rms"] * p_dec, torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())))
                         st["peak_rms"].copy_(torch.where(torch.isfinite(peak_r), peak_r, st["peak_rms"]))
 
                         if s_prior_base > 0.0:
                             s_cap = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
-                            s_p_row = torch.minimum(d_norm.new_tensor(s_cap), peak_r * 0.03)
+                            s_p_row = d_norm.new_tensor(s_cap)
                             denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
                         else:
                             denom_r = d_norm.clamp_min(1e-36)
@@ -745,19 +747,20 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     else:
                         cur_sv_rms = gf_safe.norm()
 
-                    # Degree-0 scale-invariant peak-RMS tracking (zero GPU-CPU sync, prevents vanishing-layer
-                    # and high-D small-gradient crushing while preserving equilibrium settling):
+                    # Degree-0 scale-invariant peak-RMS tracking (zero GPU-CPU sync, frozen during cooling
+                    # so equilibrium damping stays active while genuinely tiny high-D gradients are never crushed):
                     if "peak_rms" not in st:
                         st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                    p_dec = 0.9995 if s_therm >= 0.5 else 1.0
                     peak_new = torch.maximum(
-                        st["peak_rms"] * 0.9995,
+                        st["peak_rms"] * p_dec,
                         torch.where(finite, cur_sv_rms, st["peak_rms"].new_zeros(())),
                     )
                     st["peak_rms"].copy_(torch.where(finite, peak_new, st["peak_rms"]))
 
                     has_smooth = s_base > 0.0
                     s_eff_t = (
-                        torch.minimum(gf_safe.new_tensor(s_base), peak_new * 0.03)
+                        torch.minimum(gf_safe.new_tensor(s_base), peak_new * 0.30)
                         if has_smooth
                         else gf_safe.new_zeros(())
                     )
@@ -981,7 +984,12 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             if math.isfinite(delta_rel) and delta_rel > 1e-12:
                                 free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * th_tikh * coh_eff
                             active_thresh_g = max(1e-4, 0.002 * pre_gain_applied * step_scale * th_tikh * coh_eff)
-                            step_active_probe = math.isfinite(delta_rel) and delta_rel >= active_thresh_g
+                            step_active_probe = (
+                                s_therm >= 0.5
+                                and push_res >= 0.15
+                                and math.isfinite(delta_rel)
+                                and delta_rel >= active_thresh_g
+                            )
                 if alpha_gain != 1.0:
                     adj = alpha_gain - 1.0
                     for p_i, d_i in applied_deltas:
@@ -989,14 +997,14 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 if probe_ran:
                     # Envelope-tracked function-space conditioning EMA: responds rapidly on stiffness
                     # overshoots (alpha_gain < 1.0) and recovers slowly on well-conditioned active steps
-                    # (never bouncing upward at equilibrium on stiff 16-layer MLPs, yet no one-way ratchet):
+                    # while hot (never bouncing upward at equilibrium on stiff 16-layer MLPs, yet no one-way ratchet):
                     if alpha_gain < 1.0:
                         target_fg = max(0.05, min(1.0, pre_gain_applied * alpha_gain))
                         self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
-                    elif step_active_probe and free_ratio > max(1.15 * self._ema_func_gain, 0.05):
-                        target_fg = max(0.05, min(1.0, 0.90 * free_ratio))
+                    elif s_therm >= 0.5 and step_active_probe and free_ratio > 1.5:
+                        target_fg = max(0.05, min(1.0, free_ratio))
                         if target_fg > self._ema_func_gain:
-                            self._ema_func_gain = float(0.995 * self._ema_func_gain + 0.005 * target_fg)
+                            self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
 
