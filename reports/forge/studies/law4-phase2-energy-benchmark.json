@@ -1,7 +1,83 @@
 {
+  "amdahl_bottleneck_summary": {
+    "optimizer_arm": "law4-energy-v3",
+    "workloads": {
+      "dcgan_performance_r256": {
+        "cuda_stream_sync_per_step": 25.0,
+        "idle_joules_per_step": 12.56,
+        "idle_ms_per_step": 44.95,
+        "kernels_per_step": 1437,
+        "notes": "Already BF16 NHWC Tensor Core convolutions (68.1% conv fwd+bwd); next levers: amortized d_penalty, zero-sync SBNP, torch.compile/FP8.",
+        "phase_pct": {
+          "d_fwd_bwd": 41.1,
+          "d_penalty": 15.8,
+          "d_penalty_fwad": 10.1,
+          "g_fwd_bwd": 27.0,
+          "opt_d": 1.2,
+          "opt_g": 4.7,
+          "opt_g_secant": 1.5,
+          "prior_reg": 7.8
+        }
+      },
+      "five_word_joint_smoke": {
+        "cuda_stream_sync_per_step": 35.0,
+        "kernels_per_step": 1763,
+        "phase_pct": {
+          "d_fwd_bwd": 16.9,
+          "d_penalty": 14.6,
+          "g_fwd_bwd": 12.1,
+          "g_loss": 5.0,
+          "opt_d": 15.7,
+          "opt_g": 28.9,
+          "opt_ns_total": 6.7,
+          "opt_ovh_total": 37.2,
+          "prior_reg": 1.3
+        },
+        "sync_wall_pct": 44.8
+      },
+      "grid100": {
+        "cuda_stream_sync_per_step": 113.0,
+        "idle_joules_per_step": 5.1,
+        "idle_ms_per_step": 34.1,
+        "is_nonzero_calls_per_step": 16.0,
+        "item_calls_per_step": 61.0,
+        "kernels_per_step": 2326,
+        "nonzero_calls_per_step": 29.0,
+        "notes": "113 GPU-CPU pipeline flushes/step in unified_v11_pullback_step + update_quantizer burn 63.6% of wall time.",
+        "phase_pct": {
+          "d_fwd_bwd": 9.4,
+          "d_penalty": 10.9,
+          "g_bwd": 1.6,
+          "g_pullback_partA": 50.9,
+          "g_pullback_partB_laguerre": 11.6,
+          "opt_d": 9.1,
+          "opt_g": 10.9
+        },
+        "sync_wall_pct": 63.6
+      },
+      "grid100_mlp16": {
+        "cuda_stream_sync_per_step": 144.0,
+        "kernels_per_step": 2801,
+        "notes": "Fixed in law4-energy-v7..v10 via device-tensor _apply_slow_param_zerosync (-39% opt_g sync stall).",
+        "phase_pct": {
+          "d_fwd_bwd": 5.3,
+          "d_penalty": 3.9,
+          "g_bwd": 2.1,
+          "g_pullback_partA": 45.8,
+          "g_pullback_partB_laguerre": 10.6,
+          "opt_d": 5.5,
+          "opt_g": 40.7,
+          "opt_g_ns": 1.0,
+          "opt_g_slow_sync_ovh": 39.3
+        },
+        "sync_wall_pct": 68.1
+      }
+    }
+  },
   "device": "cuda:0",
   "energy_benchmark": {
     "law4-adafactor-mp": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -112,6 +188,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 39235.64800001681
       },
+      "occam_executed": 15,
+      "occam_pass": 11,
       "ring16_acquisition": {
         "avg_power_watts": 92.48969069501004,
         "first_pass_step": 234,
@@ -130,9 +208,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 5063.915999993682
-      }
+      },
+      "source_commit": "c0a08e005"
     },
     "law4-adam-equil": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -245,6 +325,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 44693.99299997091
       },
+      "occam_executed": 15,
+      "occam_pass": 9,
       "ring16_acquisition": {
         "avg_power_watts": 93.8952072044185,
         "first_pass_step": 234,
@@ -263,9 +345,164 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 5822.884999960661
+      },
+      "source_commit": "c0a08e005"
+    },
+    "law4-energy-v10": {
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "law4-energy-v10",
+        "optimizer_family": "law4_energy_v10",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 256.4240212905056,
+          "dynamic_joules_per_step": 8.449402646571528,
+          "idle_power_watts": 70.916,
+          "images_per_second": 351.62483364337567,
+          "joules_per_step": 11.679439999759197,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 583.9719999879599,
+          "peak_allocated_mib": 1219.4345703125,
+          "peak_reserved_mib": 1248.0,
+          "power_poll_watts": {
+            "max": 270.93,
+            "mean": 191.56569487750556,
+            "median": 263.986,
+            "min": 72.274,
+            "p95": 270.93
+          },
+          "step_ms": {
+            "max": 47.39993667602539,
+            "mean": 45.503043212890624,
+            "median": 45.295583724975586,
+            "min": 44.64128112792969,
+            "p95": 46.52153778076172
+          },
+          "wall_seconds": 2.277368543902412,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "disc_stab_readout": "readout-a0e3e7f6620e7476c9599d67.json",
+      "disc_stab_t1_t2_pass": 42,
+      "disc_stab_t1_t2_total": 48,
+      "grid100": {
+        "avg_power_watts": 148.73399215144272,
+        "final_center_rms_sigma": 0.11619457812371309,
+        "final_cov_frob_rms": 0.1408480676740851,
+        "final_precision": 0.988,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "law4-energy-v10",
+        "joules_per_step": 4.938996285711016,
+        "joules_to_first_pass": 4938.996285711016,
+        "joules_to_sustained_pass": 9877.992571422032,
+        "ms_per_step": 33.206909962331075,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-01a09e00e51374034f41784b.json",
+        "optimizer_family": "law4_energy_v10",
+        "peak_allocated_mib": 430.0341796875,
+        "power_poll_median_watts": 151.1055,
+        "state_bytes_per_param": 2.489323366627551,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 34572.97399997711
+      },
+      "occam_executed": 16,
+      "occam_pass": 14,
+      "ring16_acquisition": {
+        "avg_power_watts": 80.45212171719412,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "law4-energy-v10",
+        "joules_per_step": 2.3909799999929966,
+        "joules_to_first_pass": 518.8426599984803,
+        "joules_to_sustained_pass": 679.038319998011,
+        "ms_per_step": 29.71929079008987,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v10",
+        "peak_allocated_mib": 354.99951171875,
+        "power_poll_median_watts": 83.273,
+        "state_bytes_per_param": 0.0018934014957871818,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 3825.5679999887943
+      },
+      "source_commit": "e4010a035",
+      "staggered100": {
+        "avg_power_watts": 144.64507064905206,
+        "final_center_rms_sigma": 0.15281987124515206,
+        "final_cov_frob_rms": 0.14849409353237694,
+        "final_precision": 0.993,
+        "first_pass_step": 1500,
+        "first_sustained_5check_step": 2500,
+        "idea_id": "law4-energy-v10",
+        "joules_per_step": 5.787270571429815,
+        "joules_to_first_pass": 8680.905857144722,
+        "joules_to_sustained_pass": 14468.176428574538,
+        "ms_per_step": 40.01014722078772,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-a0e3e7f6620e7476c9599d67.json",
+        "optimizer_family": "law4_energy_v10",
+        "peak_allocated_mib": 430.353515625,
+        "power_poll_median_watts": 144.6365,
+        "state_bytes_per_param": 2.4896190414591555,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 40510.8940000087
       }
     },
     "law4-energy-v3": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -366,6 +603,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 35667.681999996305
       },
+      "occam_executed": 16,
+      "occam_pass": 14,
       "ring16_acquisition": {
         "avg_power_watts": 91.81421311201545,
         "first_pass_step": 217,
@@ -384,9 +623,456 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4566.565000012517
+      },
+      "source_commit": "dc941984c"
+    },
+    "law4-energy-v7": {
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "law4-energy-v7",
+        "optimizer_family": "law4_energy_v7",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 288.1925458938347,
+          "dynamic_joules_per_step": 9.003863424152376,
+          "idle_power_watts": 90.819,
+          "images_per_second": 351.069067107752,
+          "joules_per_step": 13.14688000023365,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 657.3440000116825,
+          "peak_allocated_mib": 1219.4345703125,
+          "peak_reserved_mib": 1248.0,
+          "power_poll_watts": {
+            "max": 287.55,
+            "mean": 232.63876888888888,
+            "median": 287.135,
+            "min": 89.288,
+            "p95": 287.55
+          },
+          "step_ms": {
+            "max": 46.99238586425781,
+            "mean": 45.57507766723633,
+            "median": 45.35750389099121,
+            "min": 44.95257568359375,
+            "p95": 46.424129486083984
+          },
+          "wall_seconds": 2.2809195080772042,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "grid100": {
+        "avg_power_watts": 152.4381747328706,
+        "final_center_rms_sigma": 0.1259783886603913,
+        "final_cov_frob_rms": 0.14326585971163994,
+        "final_precision": 0.9871,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "law4-energy-v7",
+        "joules_per_step": 4.912124857144696,
+        "joules_to_first_pass": 4912.124857144696,
+        "joules_to_sustained_pass": 9824.249714289392,
+        "ms_per_step": 32.22371866989748,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-d2e26497bc23a120806f8de4.json",
+        "optimizer_family": "law4_energy_v7",
+        "peak_allocated_mib": 429.7353515625,
+        "power_poll_median_watts": 154.47449999999998,
+        "state_bytes_per_param": 0.00018479676975246471,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 34384.874000012875
+      },
+      "occam_executed": 16,
+      "occam_pass": 14,
+      "ring16_acquisition": {
+        "avg_power_watts": 92.57191020128698,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "law4-energy-v7",
+        "joules_per_step": 2.692140625026077,
+        "joules_to_first_pass": 584.1945156306587,
+        "joules_to_sustained_pass": 764.5679375074059,
+        "ms_per_step": 29.081614705501124,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v7",
+        "peak_allocated_mib": 354.99951171875,
+        "power_poll_median_watts": 94.65950000000001,
+        "state_bytes_per_param": 0.0018934014957871818,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 4307.425000041723
+      },
+      "source_commit": "e4010a035",
+      "staggered100": {
+        "avg_power_watts": 146.37678825002277,
+        "final_center_rms_sigma": 0.1394332620948484,
+        "final_cov_frob_rms": 0.14880580660340895,
+        "final_precision": 0.992,
+        "first_pass_step": 1750,
+        "first_sustained_5check_step": 2750,
+        "idea_id": "law4-energy-v7",
+        "joules_per_step": 5.7494985714256766,
+        "joules_to_first_pass": 10061.622499994934,
+        "joules_to_sustained_pass": 15811.12107142061,
+        "ms_per_step": 39.2787588808486,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v7",
+        "peak_allocated_mib": 430.384765625,
+        "power_poll_median_watts": 146.161,
+        "state_bytes_per_param": 2.4896190414591555,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 40246.489999979734
+      }
+    },
+    "law4-energy-v8": {
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "law4-energy-v8",
+        "optimizer_family": "law4_energy_v8",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 286.5072373467882,
+          "dynamic_joules_per_step": 9.054403868041335,
+          "idle_power_watts": 89.272,
+          "images_per_second": 348.88164785597786,
+          "joules_per_step": 13.152580000162125,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 657.6290000081062,
+          "peak_allocated_mib": 1219.4345703125,
+          "peak_reserved_mib": 1248.0,
+          "power_poll_watts": {
+            "max": 287.954,
+            "mean": 231.38534734513274,
+            "median": 257.158,
+            "min": 94.632,
+            "p95": 287.954
+          },
+          "step_ms": {
+            "max": 48.98099136352539,
+            "mean": 45.86082443237305,
+            "median": 45.732351303100586,
+            "min": 45.01811218261719,
+            "p95": 47.248382568359375
+          },
+          "wall_seconds": 2.295331196859479,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "grid100": {
+        "avg_power_watts": 153.12435265494872,
+        "final_center_rms_sigma": 0.11373115777988009,
+        "final_cov_frob_rms": 0.13482808156495668,
+        "final_precision": 0.9913,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "law4-energy-v8",
+        "joules_per_step": 4.793674714288541,
+        "joules_to_first_pass": 4793.6747142885415,
+        "joules_to_sustained_pass": 9587.349428577083,
+        "ms_per_step": 31.305763134167396,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-11f73dac3da05456c0545672.json",
+        "optimizer_family": "law4_energy_v8",
+        "peak_allocated_mib": 429.7802734375,
+        "power_poll_median_watts": 154.756,
+        "state_bytes_per_param": 0.00018479676975246471,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 33555.72300001979
+      },
+      "occam_executed": 16,
+      "occam_pass": 13,
+      "ring16_acquisition": {
+        "avg_power_watts": 92.318017065583,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "law4-energy-v8",
+        "joules_per_step": 2.590177499987185,
+        "joules_to_first_pass": 562.0685174972192,
+        "joules_to_sustained_pass": 735.6104099963605,
+        "ms_per_step": 28.057118017895846,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v8",
+        "peak_allocated_mib": 354.99951171875,
+        "power_poll_median_watts": 93.2515,
+        "state_bytes_per_param": 0.0018934014957871818,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 4144.283999979496
+      },
+      "source_commit": "e4010a035",
+      "staggered100": {
+        "avg_power_watts": 145.33041867213097,
+        "final_center_rms_sigma": 0.14204423534821398,
+        "final_cov_frob_rms": 0.15880761992855078,
+        "final_precision": 0.9934,
+        "first_pass_step": 1750,
+        "first_sustained_5check_step": 2750,
+        "idea_id": "law4-energy-v8",
+        "joules_per_step": 5.802304285713604,
+        "joules_to_first_pass": 10154.032499998808,
+        "joules_to_sustained_pass": 15956.336785712412,
+        "ms_per_step": 39.92491275211796,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v8",
+        "peak_allocated_mib": 430.369140625,
+        "power_poll_median_watts": 145.132,
+        "state_bytes_per_param": 2.4896190414591555,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": false,
+        "total_train_joules": 40616.12999999523
+      }
+    },
+    "law4-energy-v9": {
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "law4-energy-v9",
+        "optimizer_family": "law4_energy_v9",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 280.5714925372487,
+          "dynamic_joules_per_step": 9.10316728518134,
+          "idle_power_watts": 90.102,
+          "images_per_second": 335.0828872743879,
+          "joules_per_step": 13.40944000005722,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 670.472000002861,
+          "peak_allocated_mib": 1219.4345703125,
+          "peak_reserved_mib": 1248.0,
+          "power_poll_watts": {
+            "max": 282.528,
+            "mean": 227.3252611464968,
+            "median": 274.202,
+            "min": 110.001,
+            "p95": 282.528
+          },
+          "step_ms": {
+            "max": 48.930816650390625,
+            "mean": 47.74937965393067,
+            "median": 47.56940841674805,
+            "min": 47.08534240722656,
+            "p95": 48.54886245727539
+          },
+          "wall_seconds": 2.389665442984551,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "grid100": {
+        "avg_power_watts": 144.21961949931705,
+        "final_center_rms_sigma": 0.1275661361571826,
+        "final_cov_frob_rms": 0.1418981470066599,
+        "final_precision": 0.9913,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "law4-energy-v9",
+        "joules_per_step": 5.54962728571466,
+        "joules_to_first_pass": 5549.62728571466,
+        "joules_to_sustained_pass": 11099.25457142932,
+        "ms_per_step": 38.480390566700535,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-a80857248956f75ee82b46a6.json",
+        "optimizer_family": "law4_energy_v9",
+        "peak_allocated_mib": 429.7958984375,
+        "power_poll_median_watts": 145.24,
+        "state_bytes_per_param": 0.00018479676975246471,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 38847.39100000262
+      },
+      "occam_executed": 16,
+      "occam_pass": 13,
+      "ring16_acquisition": {
+        "avg_power_watts": 90.35986992811915,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "law4-energy-v9",
+        "joules_per_step": 2.8250612500309944,
+        "joules_to_first_pass": 613.0382912567258,
+        "joules_to_sustained_pass": 802.3173950088025,
+        "ms_per_step": 31.264556404057657,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v9",
+        "peak_allocated_mib": 354.99951171875,
+        "power_poll_median_watts": 93.17150000000001,
+        "state_bytes_per_param": 0.0018934014957871818,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 4520.098000049591
+      },
+      "source_commit": "e4010a035",
+      "staggered100": {
+        "avg_power_watts": null,
+        "energy_omitted_reason": "external GPU 0 contention began during staggered100 run; deterministic convergence milestones preserved, hardware energy omitted",
+        "final_center_rms_sigma": 0.12910495999440474,
+        "final_cov_frob_rms": 0.14447206337568472,
+        "final_precision": 0.99085,
+        "first_pass_step": 1250,
+        "first_sustained_5check_step": 2250,
+        "idea_id": "law4-energy-v9",
+        "joules_per_step": null,
+        "joules_to_first_pass": null,
+        "joules_to_sustained_pass": null,
+        "ms_per_step": null,
+        "nan_step": null,
+        "optimizer_family": "law4_energy_v9",
+        "peak_allocated_mib": 430.384765625,
+        "power_poll_median_watts": null,
+        "state_bytes_per_param": 2.4896190414591555,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": null
       }
     },
     "law4-equil-g-sgd-d": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -487,6 +1173,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 35551.55400002003
       },
+      "occam_executed": 16,
+      "occam_pass": 12,
       "ring16_acquisition": {
         "avg_power_watts": 92.63973207304325,
         "first_pass_step": 217,
@@ -505,9 +1193,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4534.651999995112
-      }
+      },
+      "source_commit": "66d5bfab7"
     },
     "law4-frob-sgd-mp": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -610,6 +1300,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 37497.56299996376
       },
+      "occam_executed": 16,
+      "occam_pass": 9,
       "ring16_acquisition": {
         "avg_power_watts": 92.56758059719093,
         "first_pass_step": 250,
@@ -628,9 +1320,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4682.6740000247955
-      }
+      },
+      "source_commit": "66d5bfab7"
     },
     "law4-lion-mp": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -737,6 +1431,8 @@
         "terminal_sustained_pass": false,
         "total_train_joules": 39030.67700000107
       },
+      "occam_executed": 14,
+      "occam_pass": 10,
       "ring16_acquisition": {
         "avg_power_watts": 92.08283251452252,
         "first_pass_step": 217,
@@ -755,9 +1451,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4860.311000019312
-      }
+      },
+      "source_commit": "c0a08e005"
     },
     "law4-muon-m": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -864,6 +1562,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 42340.46999998391
       },
+      "occam_executed": 15,
+      "occam_pass": 12,
       "ring16_acquisition": {
         "avg_power_watts": 93.49545830371032,
         "first_pass_step": 234,
@@ -882,9 +1582,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 5562.376000016928
-      }
+      },
+      "source_commit": "c0a08e005"
     },
     "law4-optimistic-equil": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -991,6 +1693,8 @@
         "terminal_sustained_pass": false,
         "total_train_joules": 41679.8259999603
       },
+      "occam_executed": 14,
+      "occam_pass": 8,
       "ring16_acquisition": {
         "avg_power_watts": 94.28512427481684,
         "first_pass_step": 217,
@@ -1009,9 +1713,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 5451.999999985099
-      }
+      },
+      "source_commit": "c0a08e005"
     },
     "law4-pure-sgd": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -1110,6 +1816,8 @@
         "terminal_sustained_pass": false,
         "total_train_joules": 30917.472000017762
       },
+      "occam_executed": 13,
+      "occam_pass": 2,
       "ring16_acquisition": {
         "avg_power_watts": 92.56123331966708,
         "first_pass_step": 417,
@@ -1128,9 +1836,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": false,
         "total_train_joules": 3733.1999999433756
-      }
+      },
+      "source_commit": "66d5bfab7"
     },
     "law4-sgd-g-secant-equil-d": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -1233,6 +1943,8 @@
         "terminal_sustained_pass": false,
         "total_train_joules": 36709.67900002003
       },
+      "occam_executed": 15,
+      "occam_pass": 9,
       "ring16_acquisition": {
         "avg_power_watts": 91.78916208380907,
         "first_pass_step": 217,
@@ -1251,9 +1963,11 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4768.57800000906
-      }
+      },
+      "source_commit": "66d5bfab7"
     },
     "law4-sign-mp": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -1356,6 +2070,8 @@
         "terminal_sustained_pass": false,
         "total_train_joules": 35750.503999993205
       },
+      "occam_executed": 15,
+      "occam_pass": 12,
       "ring16_acquisition": {
         "avg_power_watts": 93.65800882902356,
         "first_pass_step": 217,
@@ -1374,9 +2090,163 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4447.025000020862
-      }
+      },
+      "source_commit": "c0a08e005"
     },
     "unified-v11": {
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v11",
+        "optimizer_family": "unified_v11_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {
+              "peak_rms": 68
+            },
+            "state_bytes_per_param": 6.095252300419927e-06,
+            "state_scalar_tensor_bytes": 68,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 68
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 80
+            },
+            "state_bytes_per_param": 6.541557204609443e-06,
+            "state_scalar_tensor_bytes": 80,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 80
+          },
+          "state_bytes_per_param": 6.3286462580938256e-06,
+          "total_state_bytes": 148,
+          "total_state_mib": 0.000141143798828125,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 275.3356063277932,
+          "dynamic_joules_per_step": 15.976273106449314,
+          "idle_power_watts": 89.749,
+          "images_per_second": 185.9685454122934,
+          "joules_per_step": 23.702339999973773,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 1185.1169999986887,
+          "peak_allocated_mib": 1147.99462890625,
+          "peak_reserved_mib": 1176.0,
+          "power_poll_watts": {
+            "max": 272.305,
+            "mean": 240.5651816037736,
+            "median": 270.385,
+            "min": 93.175,
+            "p95": 272.305
+          },
+          "step_ms": {
+            "max": 88.20646667480469,
+            "mean": 86.03605499267579,
+            "median": 85.80915069580078,
+            "min": 85.10975646972656,
+            "p95": 87.11577606201172
+          },
+          "wall_seconds": 4.304263497935608,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "grid100": {
+        "avg_power_watts": 138.05801509107079,
+        "final_center_rms_sigma": 0.12021472873682867,
+        "final_cov_frob_rms": 0.13976988539722995,
+        "final_precision": 0.98515,
+        "first_pass_step": 1250,
+        "first_sustained_5check_step": 2250,
+        "idea_id": "unified-v11",
+        "joules_per_step": 6.266617428577372,
+        "joules_to_first_pass": 7833.271785721715,
+        "joules_to_sustained_pass": 14099.889214299086,
+        "ms_per_step": 45.39118880163213,
+        "nan_step": null,
+        "official_forge_gate_status": "PASS",
+        "official_forge_readout": "readout-ac4e1807d824930163c6cc6e.json",
+        "optimizer_family": "unified_v11_equil",
+        "peak_allocated_mib": 109.2802734375,
+        "power_poll_median_watts": 138.835,
+        "state_bytes_per_param": 2.4899147162907593,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 43866.322000041604
+      },
+      "occam_executed": 16,
+      "occam_pass": 16,
+      "ring16_acquisition": {
+        "avg_power_watts": 91.26866443432328,
+        "first_pass_step": 200,
+        "first_sustained_5check_step": 267,
+        "idea_id": "unified-v11",
+        "joules_per_step": 3.37687624999322,
+        "joules_to_first_pass": 675.375249998644,
+        "joules_to_sustained_pass": 901.6259587481898,
+        "ms_per_step": 36.99929511320079,
+        "nan_step": null,
+        "optimizer_family": "unified_v11_equil",
+        "peak_allocated_mib": 34.29052734375,
+        "power_poll_median_watts": 92.6105,
+        "state_bytes_per_param": 0.0064375650856764175,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 5403.001999989152
+      },
+      "source_commit": "f396e5c64",
+      "staggered100": {
+        "avg_power_watts": 141.84522047732176,
+        "final_center_rms_sigma": 0.13631834769947435,
+        "final_cov_frob_rms": 0.14889808097844734,
+        "final_precision": 0.98945,
+        "first_pass_step": 1500,
+        "first_sustained_5check_step": 2500,
+        "idea_id": "unified-v11",
+        "joules_per_step": 6.4285927142820185,
+        "joules_to_first_pass": 9642.889071423027,
+        "joules_to_sustained_pass": 16071.481785705046,
+        "ms_per_step": 45.32117961147534,
+        "nan_step": null,
+        "optimizer_family": "unified_v11_equil",
+        "peak_allocated_mib": 109.87060546875,
+        "power_poll_median_watts": 141.917,
+        "state_bytes_per_param": 2.4899147162907593,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 45000.14899997413
+      }
+    },
+    "unified-v11-87d72c39b": {
+      "contended": false,
       "dcgan_r256": {
         "device": "cuda:0",
         "gpu_name": "NVIDIA RTX A6000",
@@ -1479,6 +2349,8 @@
         "terminal_sustained_pass": true,
         "total_train_joules": 39992.43099997938
       },
+      "occam_executed": 16,
+      "occam_pass": 11,
       "ring16_acquisition": {
         "avg_power_watts": 83.6225969450869,
         "first_pass_step": 217,
@@ -1497,11 +2369,12 @@
         "task_id": "ring16_acquisition",
         "terminal_sustained_pass": true,
         "total_train_joules": 4692.636999979615
-      }
+      },
+      "source_commit": "87d72c39b"
     }
   },
   "gpu_name": "NVIDIA RTX A6000",
   "mode": "energy-benchmark",
-  "timestamp_utc": "2026-11-22T10:59:34Z",
+  "timestamp_utc": "2026-11-22T18:14:54Z",
   "torch_version": "2.15.0+cu132"
 }

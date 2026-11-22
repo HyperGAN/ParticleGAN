@@ -27,12 +27,15 @@ import statistics
 import threading
 import time
 import os
+import sys
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional, Tuple
 
 import torch
 
 ROOT = Path(os.environ.get("PARTICLEGAN_PROFILER_ROOT", str(Path(__file__).resolve().parents[1]))).resolve()
+if str(ROOT) not in sys.path or sys.path[0] != str(ROOT):
+    sys.path.insert(0, str(ROOT))
 
 
 # ---------------------------------------------------------------------------
@@ -1222,14 +1225,15 @@ def benchmark_joules_to_pass_ring16(
         nvml.shutdown()
 
 
-def benchmark_joules_to_pass_grid100(
+def benchmark_joules_to_pass_toy100(
     idea_id: str,
+    task_id: str,
     device: torch.device,
     *,
     optimizer_family_override: Optional[str] = None,
     recipe_extra: Optional[Dict[str, Any]] = None,
 ) -> Dict[str, Any]:
-    """Run grid100 (7000 steps) measuring hardware Joules/step & Joules-to-first-PASS."""
+    """Run a native100 task (grid100 / staggered100, 7000 steps) measuring hardware Joules/step & Joules-to-PASS."""
     from benchmarks.toy_audit.reproducibility import reproducible_execution
     from benchmarks.toy100.accuracy_gate import evaluate_accuracy
     from benchmarks.toy100.metrics import evaluate_samples
@@ -1240,7 +1244,8 @@ def benchmark_joules_to_pass_grid100(
     if recipe_extra:
         idea.setdefault("recipe_overrides", {}).update(recipe_extra)
 
-    task = load_task("grid100")
+    task = load_task(task_id)
+    problem = str(task["execution"]["problem"])
     total_steps = int(task["execution"]["steps"])
     eval_interval = int(task["evaluation"]["eval_interval"])
     eval_samples = int(task["evaluation"]["eval_samples"])
@@ -1250,22 +1255,23 @@ def benchmark_joules_to_pass_grid100(
     dev_idx = device.index if (device.type == "cuda" and device.index is not None) else 0
     nvml = NVMLMonitor(dev_idx)
 
-    def _passes_grid100(draw: torch.Tensor) -> bool:
-        gate_m = evaluate_samples(draw, "grid100")
-        acc = evaluate_accuracy(draw, "grid100", gate_metrics=gate_m)
-        return bool(acc.get("passed", False))
+    def _eval_toy100(draw: torch.Tensor) -> Tuple[bool, Dict[str, Any]]:
+        gate_m = evaluate_samples(draw, problem)
+        acc = evaluate_accuracy(draw, problem, gate_metrics=gate_m)
+        return bool(acc.get("passed", False)), acc
 
     @reproducible_execution
     def _exec(*, seed: int = 0) -> Dict[str, Any]:
         del seed
-        context, trainer, g, d, _, next_batch = _build_regime_runner(idea, "grid100", device)
-        eval_stream = context.streams.generator("eval", component="live", purpose="grid100_eval")
+        context, trainer, g, d, _, next_batch = _build_regime_runner(idea, task_id, device)
+        eval_stream = context.streams.generator("eval", component="live", purpose=f"{task_id}_eval")
 
         train_j_accum = 0.0
         train_s_accum = 0.0
         pass_flags: List[Tuple[int, bool]] = []
         first_pass_step: Optional[int] = None
         first_sustained_step: Optional[int] = None
+        last_acc: Dict[str, Any] = {}
         consec = 0
         nan_step: Optional[int] = None
         power_samples: List[float] = []
@@ -1313,7 +1319,8 @@ def benchmark_joules_to_pass_grid100(
 
                 with torch.no_grad():
                     draw = trainer.sample(eval_samples, generator=eval_stream, ema=False, output_noise=False)
-                    ok = _passes_grid100(draw)
+                    ok, acc = _eval_toy100(draw)
+                last_acc = acc
                 pass_flags.append((step, ok))
                 if ok:
                     if first_pass_step is None:
@@ -1339,12 +1346,15 @@ def benchmark_joules_to_pass_grid100(
         return {
             "idea_id": idea_id,
             "optimizer_family": idea["recipe_overrides"]["optimizer_family"],
-            "task_id": "grid100",
+            "task_id": task_id,
             "steps_completed": steps_done,
             "nan_step": nan_step,
             "terminal_sustained_pass": terminal_pass,
             "first_pass_step": first_pass_step,
             "first_sustained_5check_step": first_sustained_step,
+            "final_precision": last_acc.get("precision"),
+            "final_center_rms_sigma": last_acc.get("center_rms_sigma"),
+            "final_cov_frob_rms": last_acc.get("cov_frob_rms"),
             "ms_per_step": ms_per_step,
             "avg_power_watts": avg_w,
             "power_poll_median_watts": float(statistics.median(power_samples)) if power_samples else None,
@@ -1360,6 +1370,40 @@ def benchmark_joules_to_pass_grid100(
         return _exec(seed=0)
     finally:
         nvml.shutdown()
+
+
+def benchmark_joules_to_pass_grid100(
+    idea_id: str,
+    device: torch.device,
+    *,
+    optimizer_family_override: Optional[str] = None,
+    recipe_extra: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Run grid100 (7000 steps) measuring hardware Joules/step & Joules-to-first-PASS."""
+    return benchmark_joules_to_pass_toy100(
+        idea_id,
+        "grid100",
+        device,
+        optimizer_family_override=optimizer_family_override,
+        recipe_extra=recipe_extra,
+    )
+
+
+def benchmark_joules_to_pass_staggered100(
+    idea_id: str,
+    device: torch.device,
+    *,
+    optimizer_family_override: Optional[str] = None,
+    recipe_extra: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Run staggered100 (7000 steps) measuring hardware Joules/step & Joules-to-first-PASS."""
+    return benchmark_joules_to_pass_toy100(
+        idea_id,
+        "staggered100",
+        device,
+        optimizer_family_override=optimizer_family_override,
+        recipe_extra=recipe_extra,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1380,7 +1424,10 @@ def main() -> None:
     parser.add_argument("--dcgan-tasks", nargs="*", default=["dcgan_performance_r256", "dcgan_performance_r64", "dcgan_performance_w128"])
     parser.add_argument("--energy-steps", type=int, default=50)
     parser.add_argument("--breakdown-steps", type=int, default=20)
+    parser.add_argument("--skip-r256", action="store_true")
+    parser.add_argument("--skip-ring16", action="store_true")
     parser.add_argument("--skip-grid100", action="store_true")
+    parser.add_argument("--include-staggered100", action="store_true")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -1453,18 +1500,22 @@ def main() -> None:
         for iid in idea_list:
             print(f"[energy-benchmark] Candidate: {iid}", flush=True)
             entry: Dict[str, Any] = {}
-            entry["dcgan_r256"] = profile_dcgan_task(
-                iid,
-                "dcgan_performance_r256",
-                device,
-                warmup_steps=5,
-                energy_steps=args.energy_steps,
-                breakdown_steps=0,
-                run_breakdown=False,
-            )
-            entry["ring16_acquisition"] = benchmark_joules_to_pass_ring16(iid, device)
+            if not args.skip_r256:
+                entry["dcgan_r256"] = profile_dcgan_task(
+                    iid,
+                    "dcgan_performance_r256",
+                    device,
+                    warmup_steps=5,
+                    energy_steps=args.energy_steps,
+                    breakdown_steps=0,
+                    run_breakdown=False,
+                )
+            if not args.skip_ring16:
+                entry["ring16_acquisition"] = benchmark_joules_to_pass_ring16(iid, device)
             if not args.skip_grid100:
                 entry["grid100"] = benchmark_joules_to_pass_grid100(iid, device)
+            if args.include_staggered100:
+                entry["staggered100"] = benchmark_joules_to_pass_staggered100(iid, device)
             bench_results[iid] = entry
         out_data["energy_benchmark"] = bench_results
 
