@@ -24,6 +24,7 @@ from .api import (CapabilityError, task_formulation_context, task_recipe_resourc
                   task_policy_blockers)
 from .artifacts import manifest_artifacts, save_provenance_checkpoint, verify_artifacts
 from .contracts import atomic_json, file_hash, read_json, stable_hash
+from .energy import EnergyMonitor, extract_pass_steps
 from .initialization import task_initializer
 from .mechanisms import MechanismAudit, mechanism_blockers
 from .priors import task_prior
@@ -914,13 +915,79 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
     raise CapabilityError([f"no public adapter for {adapter}; implement and validate the declared capability before training"])
 
 
+def _attach_energy_summary(
+    result: dict,
+    tasks_map: dict,
+    primary_task_id: str | None,
+    monitor: EnergyMonitor,
+    device: str,
+) -> None:
+    if not monitor.available:
+        return
+    gpu_name = None
+    if isinstance(device, str) and device.startswith("cuda") and torch.cuda.is_available():
+        try:
+            gpu_name = torch.cuda.get_device_name(torch.device(device))
+        except Exception:
+            gpu_name = None
+
+    def _attach_member(member: dict, member_task: dict | None) -> dict | None:
+        if not isinstance(member, dict):
+            return None
+        cost = member.setdefault("cost", {})
+        completed_steps = cost.get("completed_steps", cost.get("completed_updates"))
+        fp_step, sp_step = extract_pass_steps(member_task, member)
+        summary = monitor.summary(
+            completed_steps,
+            first_pass_step=fp_step,
+            sustained_pass_step=sp_step,
+            gpu_name=gpu_name,
+        )
+        if summary is not None:
+            cost["energy"] = summary
+        return summary
+
+    if "task_results" in result and isinstance(result["task_results"], dict):
+        first_summary = None
+        for name, member in result["task_results"].items():
+            member_task = tasks_map.get(name) if isinstance(tasks_map, dict) else None
+            member_summary = _attach_member(member, member_task)
+            if first_summary is None and member_summary is not None:
+                first_summary = member_summary
+        if first_summary is not None:
+            result.setdefault("cost", {})["energy"] = first_summary
+    else:
+        primary_task = tasks_map.get(primary_task_id) if isinstance(tasks_map, dict) and primary_task_id else None
+        _attach_member(result, primary_task)
+
+
 @serial_autograd()
 def run_task(request: dict, job: dict, output_dir: Path, device: str) -> dict:
-    result = normalize_adapter_costs(_dispatch_task(request, job, output_dir, device))
-    result["autograd_multithreading_enabled"] = torch.autograd.is_multithreading_enabled()
-    # Normalize the common diagnostic receipt too. The certified bulk evidence
-    # lives in separate artifact roots and is not modified by timing annotation.
-    receipt = Path(output_dir) / "adapter-receipt.json"
-    if receipt.is_file():
-        atomic_json(receipt, normalize_adapter_costs(read_json(receipt)))
-    return result
+    monitor = EnergyMonitor.for_device(device)
+    monitor.start()
+    try:
+        raw = _dispatch_task(request, job, output_dir, device)
+    finally:
+        if isinstance(device, str) and device.startswith("cuda") and torch.cuda.is_available():
+            try:
+                torch.cuda.synchronize(torch.device(device))
+            except Exception:
+                pass
+        monitor.stop()
+    try:
+        result = normalize_adapter_costs(raw)
+        result["autograd_multithreading_enabled"] = torch.autograd.is_multithreading_enabled()
+        if monitor.available:
+            tasks_map = request.get("tasks", {}) if isinstance(request, dict) else {}
+            _attach_energy_summary(result, tasks_map, job.get("task_id"), monitor, device)
+        # Normalize the common diagnostic receipt too. The certified bulk evidence
+        # lives in separate artifact roots and is not modified by timing annotation.
+        receipt = Path(output_dir) / "adapter-receipt.json"
+        if receipt.is_file():
+            receipt_doc = normalize_adapter_costs(read_json(receipt))
+            if monitor.available and isinstance(result.get("cost"), dict) and "energy" in result["cost"]:
+                receipt_doc.setdefault("cost", {})["energy"] = result["cost"]["energy"]
+            atomic_json(receipt, receipt_doc)
+        return result
+    finally:
+        monitor.shutdown()

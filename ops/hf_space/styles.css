@@ -416,6 +416,38 @@ code {
   color: var(--text-muted);
 }
 
+.kpi-card-energy {
+  border-color: var(--accent);
+}
+
+.energy-header-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.energy-filter-bar {
+  margin-bottom: 12px;
+}
+
+.energy-sub {
+  display: block;
+  font-size: 0.71rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.badge-uncontended {
+  background: var(--pass-bg);
+  color: var(--pass-fg);
+}
+
+.badge-contended {
+  background: var(--warn-bg);
+  color: var(--warn-fg);
+}
+
 /* Section Navigation */
 .section-nav {
   display: flex;

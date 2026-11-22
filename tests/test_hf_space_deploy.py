@@ -40,8 +40,26 @@ def test_index_and_app_reference_dataset_and_caveats():
     assert "HyperGAN/ParticleGAN" in html
     assert "technique-inventory.md" in html
     assert "Scientific Scope" in html
+    assert 'id="energy-section"' in html
+    assert 'id="energy-table"' in html
+    assert 'id="kpi-energy"' in html
+    for col_label in (
+        "Candidate",
+        "Suite Pass",
+        "r256 ms/step",
+        "r256 J/step",
+        "Watts",
+        "State B/param",
+        "ring16 J-to-PASS",
+        "grid100 J-to-PASS",
+        "GPU Cohort",
+        "Provenance",
+    ):
+        assert col_label in html
     assert "HyperGAN/particlegan-forge-evidence" in js
     assert "data/leaderboard.json" in js
+    assert "energy_benchmarks" in js
+    assert "J-to-PASS" in js
 
 
 def test_app_js_passes_node_syntax_check_if_available():
@@ -121,7 +139,50 @@ const sample = {
     recipe_hash: "5a885f9e0dc2",
     source_hash: "e132cf1f36af",
     wall_seconds: 12.5,
+    energy: {
+      joules_total: 4566.565,
+      joules_per_step: 2.854,
+      avg_power_watts: 91.8,
+      first_pass_step: 217,
+      sustained_pass_step: 284,
+      joules_to_first_pass: 619.34,
+      joules_to_sustained_pass: 810.56,
+      energy_backend: "nvml_energy_counter"
+    },
     gif_relpath: "media/forge/pure-bcap/media/5ea5bdbb2d71/ae_gan_hold.gif"
+  }, {
+    family_id: "unified",
+    family_label: "Unified",
+    task_id: "two_pole",
+    tier: 1,
+    role: "required",
+    views: ["discriminator_stability (Tier 1)"],
+    status: "PASS",
+    recorded_status: "PASS",
+    reason: "ok",
+    energy: null
+  }],
+  energy_benchmarks: [{
+    candidate_id: "law4-energy-v3",
+    family_id: "unified",
+    optimizer_family: "law4_energy_v3",
+    hardware_gpu: "NVIDIA RTX A6000",
+    contended: false,
+    source_commit: "0da787744",
+    source_file: "reports/forge/studies/law4-phase2-energy-benchmark.json",
+    r256_ms_per_step: 45.58,
+    r256_watts: 287.7,
+    r256_joules_per_step: 13.12,
+    state_bytes_per_param: 0.00000017,
+    ring16_first_pass_step: 217,
+    ring16_j_to_pass: 619.34,
+    grid100_first_pass_step: 1500,
+    grid100_sustained_pass_step: 2500,
+    grid100_j_to_pass: 7643.07,
+    grid100_j_to_sustained_pass: 12738.46,
+    occam_pass: 14,
+    occam_executed: 16,
+    evidence_scope: "study_energy_benchmark"
   }],
   task_definitions: [{ task_id: "ae_gan_hold", tier: 1, role: "required", summary: "Hold AE-GAN" }]
 };
@@ -135,7 +196,17 @@ assert.strictEqual(app.state.families[0].total_req, 115);
 assert.strictEqual(app.state.families[0].stretch_pass, 50);
 assert.strictEqual(app.state.families[0].stretch_total, 68);
 assert.strictEqual(app.state.families[0].full_pass, 40);
-assert.strictEqual(app.state.receipts.length, 1);
+assert.strictEqual(app.state.families[0].r256_joules_per_step, null);
+assert.strictEqual(app.state.receipts.length, 2);
+assert.strictEqual(app.state.receipts[0].energy.joules_to_first_pass, 619.34);
+assert.strictEqual(app.state.receipts[0].energy.energy_backend, "nvml_energy_counter");
+assert.strictEqual(app.state.receipts[1].energy, null);
+assert.strictEqual(app.state.energyBenchmarks.length, 1);
+assert.strictEqual(app.state.energyBenchmarks[0].candidate_id, "law4-energy-v3");
+assert.strictEqual(app.state.energyBenchmarks[0].grid100_j_to_pass, 7643.07);
+assert.strictEqual(app.state.energyBenchmarks[0].contended, false);
+assert.strictEqual(app.formatJoules(7643.07), "7,643 J");
+assert.strictEqual(app.formatJoules(null), "—");
 assert.strictEqual(
   app.hfResolveUrl(app.state.receipts[0].gif_path),
   "https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/fee560f60b75df2bb0c286ae2dfb7ec5770403a9/media/forge/pure-bcap/media/5ea5bdbb2d71/ae_gan_hold.gif"

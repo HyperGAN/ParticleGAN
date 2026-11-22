@@ -98,14 +98,20 @@
         <div class="kpi-value" id="kpi-receipts">—</div>
         <div class="kpi-sub" id="kpi-receipts-sub">Family × task entries loaded live</div>
       </article>
+      <article class="kpi-card kpi-card-energy">
+        <div class="kpi-label">Best J-to-PASS (Energy)</div>
+        <div class="kpi-value" id="kpi-energy">—</div>
+        <div class="kpi-sub" id="kpi-energy-sub">Hardware NVML · matched GPU cohorts</div>
+      </article>
     </section>
 
     <!-- Section Navigation Tabs -->
     <nav class="section-nav" aria-label="Dashboard sections">
       <a href="#leaderboard-section" class="nav-pill active">1. Selected Recipes Leaderboard</a>
-      <a href="#explorer-section" class="nav-pill">2. Task &amp; Receipt Explorer</a>
-      <a href="#gif-section" class="nav-pill">3. Training GIF Inspector</a>
-      <a href="#provenance-section" class="nav-pill">4. Provenance &amp; Links</a>
+      <a href="#energy-section" class="nav-pill">2. Energy &amp; J-to-PASS</a>
+      <a href="#explorer-section" class="nav-pill">3. Task &amp; Receipt Explorer</a>
+      <a href="#gif-section" class="nav-pill">4. Training GIF Inspector</a>
+      <a href="#provenance-section" class="nav-pill">5. Provenance &amp; Links</a>
     </nav>
 
     <!-- 1. Selected Recipes Leaderboard -->
@@ -164,7 +170,70 @@
       </div>
     </section>
 
-    <!-- 2. Task / Receipt Explorer -->
+    <!-- 2. Energy & J-to-PASS Efficiency -->
+    <section id="energy-section" class="panel" aria-labelledby="energy-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="energy-heading">Energy &amp; <code>J-to-PASS</code> Efficiency</h2>
+          <p class="panel-desc">Hardware NVML energy telemetry &amp; Joules-to-PASS across matched GPU cohorts. Click any header to sort; missing measurements stay <code>—</code> and cohorts are never mixed.</p>
+        </div>
+        <div class="energy-header-controls">
+          <div class="segmented" role="group" aria-label="Energy cohort filter">
+            <button type="button" class="seg-btn active" data-energy-filter="all">All Cohorts</button>
+            <button type="button" class="seg-btn" data-energy-filter="uncontended">Uncontended</button>
+            <button type="button" class="seg-btn" data-energy-filter="study">Study Benchmarks</button>
+            <button type="button" class="seg-btn" data-energy-filter="receipt">Forge Receipts</button>
+          </div>
+          <div class="count-pill" id="energy-count">0 benchmarks</div>
+        </div>
+      </div>
+
+      <div class="filter-bar energy-filter-bar" role="search">
+        <div class="filter-group filter-search">
+          <label for="energy-search">Filter Candidate / Optimizer / GPU</label>
+          <input id="energy-search" type="search" placeholder="candidate id, optimizer family, GPU, source file…" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="energy-table">
+          <thead>
+            <tr>
+              <th data-energy-sort="candidate_id" class="sortable sticky-col">Candidate</th>
+              <th data-energy-sort="occam_pass" class="sortable num">Suite Pass</th>
+              <th data-energy-sort="r256_ms_per_step" class="sortable num">r256 ms/step</th>
+              <th data-energy-sort="r256_joules_per_step" class="sortable num">r256 J/step</th>
+              <th data-energy-sort="r256_watts" class="sortable num">Watts</th>
+              <th data-energy-sort="state_bytes_per_param" class="sortable num">State B/param</th>
+              <th data-energy-sort="ring16_j_to_pass" class="sortable num">ring16 J-to-PASS</th>
+              <th data-energy-sort="grid100_j_to_pass" class="sortable num">grid100 J-to-PASS</th>
+              <th data-energy-sort="hardware_gpu" class="sortable">GPU Cohort</th>
+              <th data-energy-sort="evidence_scope" class="sortable">Provenance</th>
+            </tr>
+          </thead>
+          <tbody id="energy-tbody">
+            <tr><td colspan="10" class="empty-cell">Loading hardware energy benchmarks…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Selected Energy Benchmark Detail Drawer -->
+      <div id="energy-detail-card" class="detail-drawer hidden" aria-live="polite">
+        <div class="detail-drawer-head">
+          <div>
+            <h3 id="ed-title">Energy Benchmark Details</h3>
+            <p id="ed-subtitle" class="muted"></p>
+          </div>
+          <div class="detail-drawer-actions">
+            <a id="ed-source-link" class="btn btn-ghost hidden" href="#" target="_blank" rel="noopener noreferrer">Source JSON ↗</a>
+            <button id="ed-close-btn" class="btn btn-ghost" type="button" aria-label="Close energy details">✕</button>
+          </div>
+        </div>
+        <div id="ed-body" class="detail-meta-grid"></div>
+      </div>
+    </section>
+
+    <!-- 3. Task / Receipt Explorer -->
     <section id="explorer-section" class="panel" aria-labelledby="explorer-heading">
       <div class="panel-header">
         <div>
