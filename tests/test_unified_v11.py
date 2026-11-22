@@ -426,11 +426,36 @@ def test_unified_v11_deliberate_damage_and_tamper_rejection() -> None:
     with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
         trainer.load_state_dict(bad_ema_fg_missing)
 
-    for bad_val in (0.0, -0.2, 1.5, float("nan")):
+    for bad_val in (0.0, -0.2, 1.5, float("nan"), True):
         bad_ema_fg = deepcopy(good)
         bad_ema_fg["optimizers"][0]["unified_v11_equil"]["ema_func_gain"] = bad_val
         with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain"):
             trainer.load_state_dict(bad_ema_fg)
+
+        bad_ema_ref = deepcopy(good)
+        bad_ema_ref["optimizers"][0]["unified_v11_equil"]["ema_func_gain_ref"] = bad_val
+        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain_ref"):
+            trainer.load_state_dict(bad_ema_ref)
+
+        bad_g_fg = deepcopy(good)
+        bad_g_fg["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"] = bad_val
+        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|g_func_gain"):
+            trainer.load_state_dict(bad_g_fg)
+
+    bad_old_schema = deepcopy(good)
+    bad_old_schema["optimizers"][0]["unified_v11_equil"]["schema"] = 1
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
+        trainer.load_state_dict(bad_old_schema)
+
+    bad_ref_missing = deepcopy(good)
+    del bad_ref_missing["optimizers"][0]["unified_v11_equil"]["ema_func_gain_ref"]
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
+        trainer.load_state_dict(bad_ref_missing)
+
+    bad_gfg_missing = deepcopy(good)
+    del bad_gfg_missing["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"]
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|record packet"):
+        trainer.load_state_dict(bad_gfg_missing)
 
     first_state_key = next(iter(good["optimizers"][0]["state"]))
     for bad_peak in (torch.tensor(-1.0), torch.tensor([1.0]), torch.tensor(float("nan"))):
@@ -1306,5 +1331,198 @@ def test_unified_v11_regression_fixes_tikhonov_peak_rms_stiff_fg_and_gauge_deadb
     g_eq_cold = abs(float(d_eq[0].bias.grad.item()))
     # Linear s_therm=1e-4 scaling (ratio ~1e-4, strictly < 5e-4, NOT 1e-2 from sqrt(s_therm)):
     assert g_eq_hot > 0.0 and (g_eq_cold / g_eq_hot) < 5e-4, f"Anchored gauge over-amplified: ratio={g_eq_cold / g_eq_hot:.3e}"
+
+
+class _ResBNTrunkGen(nn.Module):
+    """Depth-invariant branch-normalized residual MLP with constant ~2x coherent displacement."""
+
+    def __init__(self, z_dim: int = 8, width: int = 32, out_dim: int = 8, depth: int = 4) -> None:
+        super().__init__()
+        self.depth = depth
+        self.stem = nn.Linear(z_dim, width)
+        self.blocks = nn.ModuleList(
+            [nn.ModuleDict({"ffn_in": nn.Linear(width, width), "ffn_out": nn.Linear(width, width)}) for _ in range(depth)]
+        )
+        self.head = nn.Linear(width, out_dim)
+
+    @staticmethod
+    def _rms_norm(x: torch.Tensor) -> torch.Tensor:
+        return x * torch.rsqrt(x.square().mean(dim=-1, keepdim=True) + 1e-6)
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        h = nn.functional.leaky_relu(self.stem(z), negative_slope=0.2)
+        scale = 0.5 / float(max(1, self.depth))
+        for blk in self.blocks:
+            b = blk["ffn_out"](nn.functional.leaky_relu(blk["ffn_in"](self._rms_norm(h)), negative_slope=0.2))
+            h = h + scale * self._rms_norm(b)
+        return self.head(h)
+
+
+def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: Path) -> None:
+    """Semantic controls + fresh-process continuation for coupled Law 4 gains and overshoot/drop stiff_gate."""
+    torch.manual_seed(0)
+
+    # 1. Normalized deep residual trunk at steady flat ema_func_gain (~0.40) keeps stiff_gate == 0.0
+    #    (no asymmetric beta1 momentum allocated on 2D weights), while severe overshoot or sharp drop activates it:
+    w_g = nn.Linear(16, 16, bias=False)
+    opt_g = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_g.weight], "role": "generator", "lr": 0.014}],
+        smoothing=0.0061,
+    )
+    opt_g._ema_func_gain = 0.40
+    opt_g._ema_func_gain_ref = 0.40
+    assert opt_g.current_stiff_gate() == 0.0
+    w_g.weight.grad = torch.randn_like(w_g.weight)
+    opt_g.step()
+    assert "m_unit" not in opt_g.state[w_g.weight], "False stiff_gate allocated momentum on steady flat gain!"
+
+    # Sharp stiffness drop (ema_fg falling far below slow reference) activates g_drop:
+    opt_g._ema_func_gain = 0.35
+    opt_g._ema_func_gain_ref = 0.90
+    assert opt_g.current_stiff_gate() == 1.0
+    # Severe absolute overshoot (ema_fg <= 0.07) keeps stiff_gate == 1.0 even after ref catches up:
+    opt_g._ema_func_gain = 0.07
+    opt_g._ema_func_gain_ref = 0.07
+    assert opt_g.current_stiff_gate() == 1.0
+    w_g.weight.grad = torch.randn_like(w_g.weight)
+    opt_g.step()
+    assert "m_unit" in opt_g.state[w_g.weight], "Severe overshoot failed to engage stiff_gate momentum!"
+
+    # 2. Margin-gated critic coupling scales D step by rec._g_func_gain (floored at 0.35) and releases on hostile margin:
+    grad_d = torch.randn(16, 16)
+
+    def _critic_step_norm(g_fg: float, ema_margin: float, margin_init: bool) -> float:
+        d_lin = nn.Linear(16, 16, bias=False)
+        nn.init.zeros_(d_lin.weight)
+        rec_d = UnifiedV11StepRecord()
+        rec_d._g_func_gain = g_fg
+        rec_d.ema_margin = ema_margin
+        rec_d.margin_initialized = margin_init
+        opt_d = UnifiedV11EquilibratedOptimizer(
+            [{"params": [d_lin.weight], "role": "critic", "lr": 0.02}],
+            smoothing=0.0,
+        )
+        opt_d.critic = d_lin
+        opt_d._unified_v11_record = rec_d
+        d_lin.weight.grad = grad_d.clone()
+        opt_d.step()
+        return float(d_lin.weight.detach().norm().item())
+
+    n_full = _critic_step_norm(g_fg=1.0, ema_margin=0.5, margin_init=True)
+    n_coupled = _critic_step_norm(g_fg=0.45, ema_margin=0.5, margin_init=True)
+    n_floored = _critic_step_norm(g_fg=0.10, ema_margin=0.5, margin_init=True)
+    n_hostile = _critic_step_norm(g_fg=0.45, ema_margin=-2.0, margin_init=True)
+    assert abs(n_coupled / n_full - 0.45) < 1e-4
+    assert abs(n_floored / n_full - 0.35) < 1e-4
+    assert abs(n_hostile / n_full - 1.00) < 1e-4
+
+    # 3. Pathologically stiff unnormalized 16-layer MLP (at O(1) Kaiming-like scale) engages stiff_gate protection:
+    rec_16 = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=16,
+        num_particles=32,
+        z_dim=2,
+        total_steps=40,
+        training_precision="float32",
+    )
+    g16 = _DeepGen16(2, 32, 2)
+    d16 = _ToyDisc2D(2)
+    p16 = MoGParticlePrior(num_particles=32, z_dim=2, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g16, seed=0)
+    with torch.no_grad():
+        for m in g16.modules():
+            if isinstance(m, nn.Linear):
+                m.weight.mul_(2.2)
+    init.deterministic_orthogonal_(d16, seed=1)
+    init.deterministic_orthogonal_(p16, seed=2)
+    tr16 = GANTrainer(rec_16, g16, d16, prior=p16, seed=0)
+    peak_stiff_16 = 0.0
+    for i in range(15):
+        tr16.step(torch.randn(16, 2, generator=torch.Generator().manual_seed(700 + i)))
+        peak_stiff_16 = max(peak_stiff_16, tr16.opt_g.current_stiff_gate())
+    assert peak_stiff_16 > 0.5, f"Pathological 16L MLP failed to engage stiff_gate: peak={peak_stiff_16:.3f}"
+    assert tr16.opt_d.record._g_func_gain == tr16.opt_g._ema_func_gain < 0.75
+
+    # 4. Fresh-process bit-exact continuation across active g_func_gain & ema_func_gain_ref coupling boundary:
+    rec_bn = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=16,
+        num_particles=32,
+        z_dim=8,
+        total_steps=40,
+        training_precision="float32",
+    )
+    g_bn = _ResBNTrunkGen(z_dim=8, width=32, out_dim=8, depth=4)
+    d_bn = _ToyDisc2D(8)
+    p_bn = MoGParticlePrior(num_particles=32, z_dim=8, sigma=0.1, standardize=False)
+    init.deterministic_orthogonal_(g_bn, seed=40)
+    init.deterministic_orthogonal_(d_bn, seed=41)
+    init.deterministic_orthogonal_(p_bn, seed=42)
+    tr_bn = GANTrainer(rec_bn, g_bn, d_bn, prior=p_bn, seed=0)
+    batches = [torch.randn(16, 8, generator=torch.Generator().manual_seed(800 + i)) for i in range(12)]
+    for i in range(6):
+        tr_bn.step(batches[i])
+    # Ensure coupling state is genuinely non-trivial at the checkpoint boundary:
+    tr_bn.opt_g._ema_func_gain = 0.42
+    tr_bn.opt_g._ema_func_gain_ref = 0.55
+    tr_bn.opt_d.record._g_func_gain = 0.42
+    ckpt_path = tmp_path / "ckpt_v11_law4_couple.pt"
+    out_path = tmp_path / "resumed_v11_law4_couple.pt"
+    torch.save({"state": tr_bn.state_dict(), "batches": batches[6:]}, ckpt_path)
+    for i in range(6, 12):
+        tr_bn.step(batches[i])
+    ref_state = tr_bn.state_dict()
+    ref_g_fg = tr_bn.opt_d.record._g_func_gain
+    ref_fg_ref = tr_bn.opt_g._ema_func_gain_ref
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ResBNTrunkGen, _ToyDisc2D
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ResBNTrunkGen(z_dim=8, width=32, out_dim=8, depth=4),
+    _ToyDisc2D(8),
+    prior=MoGParticlePrior(num_particles=32, z_dim=8, sigma=0.1, standardize=False),
+    seed=123,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save(
+    {{
+        "models": tr.state_dict()["models"],
+        "g_fg": tr.opt_d.record._g_func_gain,
+        "fg_ref": tr.opt_g._ema_func_gain_ref,
+    }},
+    {str(out_path)!r},
+)
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert resumed["g_fg"] == ref_g_fg
+    assert resumed["fg_ref"] == ref_fg_ref
+
+    def _assert_tree_eq(a: object, b: object, prefix: str = "") -> None:
+        if isinstance(a, torch.Tensor):
+            assert isinstance(b, torch.Tensor) and torch.equal(a, b), f"Coupled Law 4 continuation mismatch {prefix}"
+        elif isinstance(a, dict):
+            assert isinstance(b, dict) and set(a.keys()) == set(b.keys()), f"Key mismatch {prefix}"
+            for key in a:
+                _assert_tree_eq(a[key], b[key], f"{prefix}.{key}")
+        else:
+            assert a == b, f"Value mismatch {prefix}: {a!r} != {b!r}"
+
+    for m_name in ("G", "D", "prior"):
+        _assert_tree_eq(ref_state["models"][m_name], resumed["models"][m_name], m_name)
+
 
 

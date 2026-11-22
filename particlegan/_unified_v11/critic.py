@@ -39,6 +39,7 @@ _UNIFIED_V11_PACKET_KEYS = frozenset({
     "ema_data_scale",
     "ema_push_res",
     "margin_initialized",
+    "g_func_gain",
     "cond_fiber_bank",
 })
 
@@ -141,6 +142,15 @@ def _validate_unified_v11_packet(packet: Any) -> Dict[str, Any]:
         raise ValueError("invalid unified_v11 ema_push_res")
     if type(packet["margin_initialized"]) is not bool:
         raise ValueError("invalid unified_v11 margin_initialized")
+    g_func_gain = packet["g_func_gain"]
+    if (
+        isinstance(g_func_gain, bool)
+        or not isinstance(g_func_gain, (int, float))
+        or not math.isfinite(g_func_gain)
+        or float(g_func_gain) <= 0.0
+        or float(g_func_gain) > 1.0
+    ):
+        raise ValueError("invalid unified_v11 g_func_gain outside (0, 1]")
     validate_v11_bank_packet(packet["cond_fiber_bank"])
     t1c_sub = {k: packet[k] for k in _T1C_PACKET_KEYS}
     _validate_t1c_packet(t1c_sub)
@@ -159,6 +169,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self.ema_data_scale: float = 1.0
         self.ema_push_res: float = 1.0
         self.margin_initialized: bool = False
+        self._g_func_gain: float = 1.0
         self.cond_fiber_bank = UnifiedV11CondFiberBank()
         self._live_captures: List[List[Any]] = []
         self._last_probe_actual_input: Optional[torch.Tensor] = None
@@ -255,6 +266,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
             "ema_data_scale": float(self.ema_data_scale),
             "ema_push_res": float(self.ema_push_res),
             "margin_initialized": bool(self.margin_initialized),
+            "g_func_gain": float(self._g_func_gain),
             "cond_fiber_bank": self.cond_fiber_bank.to_packet(),
         }
 
@@ -267,6 +279,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self.ema_data_scale = float(packet["ema_data_scale"])
         self.ema_push_res = float(packet["ema_push_res"])
         self.margin_initialized = bool(packet["margin_initialized"])
+        self._g_func_gain = float(packet["g_func_gain"])
         self.cond_fiber_bank.load_packet(packet["cond_fiber_bank"])
         self._t1c_disc_gate = 0.0
         self._simplicial_step = False
@@ -284,6 +297,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         dup.ema_data_scale = self.ema_data_scale
         dup.ema_push_res = self.ema_push_res
         dup.margin_initialized = self.margin_initialized
+        dup._g_func_gain = self._g_func_gain
         dup.cond_fiber_bank = self.cond_fiber_bank.copy()
         dup._t1c_disc_gate = 0.0
         dup._simplicial_step = False

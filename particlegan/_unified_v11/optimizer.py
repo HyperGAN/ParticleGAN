@@ -392,6 +392,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._origin_norm: Optional[float] = None
         self.last_step_gain: float = 1.0
         self._ema_func_gain: float = 1.0
+        self._ema_func_gain_ref: float = 1.0
         self.last_probe_consumed: bool = False
         self.probe_consumptions: int = 0
 
@@ -577,6 +578,15 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             or getattr(self, "_t1c_record", None)
         )
 
+    def current_stiff_gate(self) -> float:
+        """Compute generator stiffness gate from severe overshoot or active secant-gain drop."""
+        ema_fg = float(self._ema_func_gain)
+        fg_ref = float(self._ema_func_gain_ref)
+        g_abs = _smoothstep01((0.15 - ema_fg) / 0.08)
+        fg_ratio = ema_fg / max(fg_ref, 0.05)
+        g_drop = _smoothstep01((0.68 - fg_ratio) / 0.25) * _smoothstep01((0.60 - ema_fg) / 0.15)
+        return max(g_abs, g_drop)
+
     @torch.no_grad()
     def step(self, closure: Any = None) -> Any:
         loss = None
@@ -617,14 +627,25 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 origin_damping = min(1.0, self._origin_norm / 0.05)
 
             # Universal Function-Space Conditioning (replaces syntactic L_count / deep_gate):
-            # Well-conditioned MLPs, LayerNorm Transformers, and CNNs stay at ema_func_gain ~= 1.0
-            # (pre_gain = 1.0, stiff_gate = 0.0), preserving exact G : D : prior equilibrium
-            # regardless of player matrix-count asymmetry. Pathologically stiff unnormalized deep
-            # networks (>3x function-space overshoot) smoothly lower ema_func_gain pre-step and
-            # activate momentum-coherence damping via stiff_gate.
+            # Well-conditioned MLPs, LayerNorm Transformers, CNNs, and normalized residual trunks
+            # keep stiff_gate == 0.0 at steady state. Pathologically stiff unnormalized deep networks
+            # (severe overshoot ema_fg < 0.15 or sharp drop below slow reference ema_func_gain_ref)
+            # engage momentum-coherence damping via stiff_gate, while margin-gated two-player coupling
+            # scales the critic step with rec._g_func_gain so D does not silently gain a 2-3x LR edge.
             ema_fg = float(self._ema_func_gain)
-            stiff_gate_raw = _smoothstep01((0.60 - ema_fg) / 0.30)
+            stiff_gate_raw = self.current_stiff_gate()
             pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
+
+            d_couple = 1.0
+            if is_critic_opt and rec is not None:
+                g_fg = float(getattr(rec, "_g_func_gain", 1.0))
+                g_pre = 1.0 if g_fg >= 0.75 else max(0.35, g_fg)
+                if getattr(rec, "margin_initialized", False):
+                    ema_m = float(getattr(rec, "ema_margin", 0.0))
+                    m_gate = _smoothstep01((ema_m + 1.0) / 1.0)
+                else:
+                    m_gate = 1.0
+                d_couple = (1.0 - m_gate) + m_gate * g_pre
 
             applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]] = []
             pending_dense: Dict[
@@ -662,8 +683,9 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     pre_gain_applied = pre_g
                     base_lr = float(grp["lr"]) * step_scale * self._v4_g_scale * pre_g
                 elif player == "critic":
-                    pre_gain_applied = pre_gain_base
-                    base_lr = float(grp["lr"]) * step_scale * pre_gain_base
+                    d_pre = min(pre_gain_base, d_couple)
+                    pre_gain_applied = d_pre
+                    base_lr = float(grp["lr"]) * step_scale * d_pre
                 else:
                     base_lr = float(grp["lr"]) * step_scale * self._v4_prior_scale
 
@@ -1005,6 +1027,12 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         target_fg = max(0.05, min(1.0, free_ratio))
                         if target_fg > self._ema_func_gain:
                             self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
+                    if (not is_critic_opt) and s_therm >= 0.5:
+                        self._ema_func_gain_ref = float(
+                            0.985 * self._ema_func_gain_ref + 0.015 * self._ema_func_gain
+                        )
+                if (not is_critic_opt) and rec is not None:
+                    rec._g_func_gain = float(self._ema_func_gain)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
 
@@ -1066,10 +1094,11 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
     def state_dict(self) -> Dict[str, Any]:
         result = Optimizer.state_dict(self)
         meta: Dict[str, Any] = {
-            "schema": 1,
+            "schema": 2,
             "family": self.family,
             "last_step_gain": float(self.last_step_gain),
             "ema_func_gain": float(self._ema_func_gain),
+            "ema_func_gain_ref": float(self._ema_func_gain_ref),
             "direction_blend": bool(self.direction_blend),
             "sampled_rows": [
                 self._sampled_rows.get(grp["params"][0]) if grp["algorithm"] == "unified_prior" else None
@@ -1101,14 +1130,22 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         if not isinstance(saved, dict) or set(saved) != expected_keys:
             raise ValueError("invalid UnifiedV11EquilibratedOptimizer checkpoint schema")
         meta = saved["unified_v11_equil"]
-        expected_meta_keys = {"schema", "family", "last_step_gain", "ema_func_gain", "direction_blend", "sampled_rows"}
+        expected_meta_keys = {
+            "schema",
+            "family",
+            "last_step_gain",
+            "ema_func_gain",
+            "ema_func_gain_ref",
+            "direction_blend",
+            "sampled_rows",
+        }
         if self.direction_blend:
             expected_meta_keys.add("constraint_geometry")
         if (
             not isinstance(meta, dict)
             or set(meta) != expected_meta_keys
             or type(meta["schema"]) is not int
-            or meta["schema"] != 1
+            or meta["schema"] != 2
             or meta["family"] != self.family
             or type(meta["direction_blend"]) is not bool
             or meta["direction_blend"] != self.direction_blend
@@ -1127,6 +1164,14 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             or not (0.0 < float(ema_fg) <= 1.0)
         ):
             raise ValueError("invalid UnifiedV11EquilibratedOptimizer ema_func_gain")
+        ema_fg_ref = meta["ema_func_gain_ref"]
+        if (
+            isinstance(ema_fg_ref, bool)
+            or not isinstance(ema_fg_ref, (int, float))
+            or not math.isfinite(ema_fg_ref)
+            or not (0.0 < float(ema_fg_ref) <= 1.0)
+        ):
+            raise ValueError("invalid UnifiedV11EquilibratedOptimizer ema_func_gain_ref")
         if self.direction_blend:
             cg = meta["constraint_geometry"]
             if (
@@ -1183,6 +1228,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         meta = state_dict["unified_v11_equil"]
         self.last_step_gain = float(meta["last_step_gain"])
         self._ema_func_gain = float(meta["ema_func_gain"])
+        self._ema_func_gain_ref = float(meta["ema_func_gain_ref"])
         self.last_probe_consumed = False
         self.probe_consumptions = 0
         for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
