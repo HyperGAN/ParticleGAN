@@ -593,7 +593,9 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     assert "law4_energy_v6" in NORMALIZED_FAMILIES
     torch.manual_seed(0)
 
-    # 1. Literal 0.000e+00 bit-exact parity with unified_v11_equil on 2D MLPs (incl. tiny 1e-10 gradients):
+    # 1. Literal 0.000e+00 bit-exact parity with unified_v11_equil on 2D MLPs under matched
+    #    smoothing (optimizer_smoothing=0.0). Archived law4_energy_v6 preserves pre-PR-#606
+    #    0.03 * peak_rms Tikhonov smoothing while post-PR-#606 unified_v11_equil uses 0.30 * peak_rms.
     g1 = init.deterministic_orthogonal_(_ShallowGen2D())
     d1 = init.deterministic_orthogonal_(_ShallowDisc2D())
     g2 = _ShallowGen2D()
@@ -603,6 +605,7 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     rec1 = get_recipe(
         "unified_v11",
         optimizer_family="unified_v11_equil",
+        optimizer_smoothing=0.0,
         z_dim=2,
         batch_size=8,
         num_particles=32,
@@ -614,6 +617,7 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     rec2 = get_recipe(
         "unified_v11",
         optimizer_family="law4_energy_v6",
+        optimizer_smoothing=0.0,
         z_dim=2,
         batch_size=8,
         num_particles=32,
@@ -636,6 +640,21 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
         t2.step(r, generator_real=rg)
     for p1, p2 in zip(list(g1.parameters()) + list(d1.parameters()), list(g2.parameters()) + list(d2.parameters())):
         assert torch.equal(p1, p2)
+
+    # Verify archived v6 keeps its pre-PR-#606 0.03 * peak_rms smoothing distinct from unified_v11_equil's 0.30 * peak_rms:
+    p_u11 = nn.Parameter(torch.zeros(8, 8))
+    p_v6 = nn.Parameter(torch.zeros(8, 8))
+    g_step1 = torch.randn(8, 8) * 0.01
+    g_step2 = g_step1 * 0.5
+    opt_u11_s = UnifiedV11EquilibratedOptimizer([p_u11], lr=0.014, smoothing=0.0061)
+    opt_v6_s = Law4EnergyV6Optimizer([p_v6], lr=0.014, smoothing=0.0061)
+    for g_cur in (g_step1, g_step2):
+        p_u11.grad = g_cur.clone()
+        p_v6.grad = g_cur.clone()
+        opt_u11_s.step()
+        opt_v6_s.step()
+    assert torch.isfinite(p_v6).all()
+    assert not torch.equal(p_u11, p_v6), "archived v6 must retain its 0.03*peak_rms law distinct from post-PR-#606 0.30*peak_rms"
 
     # 2. Strictly 0 Conv2d NS, 0 4D critic probes, 0 B/param non-stiff conv state, 0 forbidden primitives:
     rec_c = get_recipe(
