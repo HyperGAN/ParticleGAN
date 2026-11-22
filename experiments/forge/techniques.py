@@ -145,7 +145,13 @@ def technique_signature(value):
         mechanisms["unified_equil_optimizer"] = True
     if recipe.optimizer_family == "unified_v11_equil":
         mechanisms["unified_v11_equil_optimizer"] = True
-    if recipe.optimizer_family in {"r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6"}:
+    if recipe.optimizer_family in {
+        "r4_mp_no_ns", "r4_no_secant_band",
+        "law4_energy_v1", "law4_energy_v2", "law4_energy_v3",
+        "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
+        "law4_pure_sgd", "law4_sgd_secant", "law4_sgd_g_equil_d",
+        "law4_sgd_g_secant_equil_d", "law4_equil_g_sgd_d", "law4_frob_sgd_mp",
+    }:
         mechanisms[f"{recipe.optimizer_family}_optimizer"] = True
     if recipe.prior_regularizer in {"unified_v4", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe"} and recipe.t1_pullback_weight > 0:
         mechanisms["unified_v4_pullback"] = True
@@ -238,7 +244,13 @@ def recipe_field_active(name, value, *, task=None):
     if name == "optimizer_momentum":
         return recipe.optimizer_family in {"dualnorm", "dualnorm_D_only"}
     if name == "optimizer_smoothing":
-        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6"}
+        return recipe.optimizer_family in {
+            "dualnorm", "unified_equil", "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band",
+            "law4_energy_v1", "law4_energy_v2", "law4_energy_v3",
+            "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
+            "law4_pure_sgd", "law4_sgd_secant", "law4_sgd_g_equil_d",
+            "law4_sgd_g_secant_equil_d", "law4_equil_g_sgd_d", "law4_frob_sgd_mp",
+        }
     if name == "optimizer_convolution":
         return recipe.optimizer_family == "dualnorm"
     if name == "optimizer_convolution_rule":
