@@ -20,9 +20,26 @@ from .._t1_coupling.charts import project_transport_features
 from .._t1_coupling.critic import _lookup_t1c_capture_parts
 from .._t3_dynamics.metric import born_infeld_aligned, born_infeld_c_hat_detached, discrete_pair_mask, sinkhorn_slack
 from .._unified.loss import _zero_shrinkage_pooled_mean
-from .._unified_v4.loss import UnifiedV4CouplingLoss, _PHI1, _principal_axis_power
+from .._unified_v4.loss import UnifiedV4CouplingLoss, _PHI1
 from ..gan_loss import GANLoss
 from .bank import UnifiedV11CondFiberBank, sym_eigensplit_zero_eigh
+
+
+@torch.no_grad()
+def _principal_axis_power_zerosync(gram: torch.Tensor, iters: int = 6) -> torch.Tensor:
+    """Zero-sync deterministic power-iteration top eigenvector on symmetric PSD ``[D, D]``."""
+    d = int(gram.shape[0])
+    idx = torch.arange(1, d + 1, device=gram.device, dtype=gram.dtype)
+    v = torch.remainder(idx * _PHI1 + 0.25, 1.0) - 0.5
+    v = v / v.norm().clamp_min(1e-12)
+    for _ in range(iters):
+        gv = gram @ v
+        nrm = gv.norm()
+        v = torch.where(nrm > 1e-20, gv / nrm.clamp_min(1e-20), v)
+    nz = v.abs() > 1e-6
+    pos = torch.where(nz, torch.arange(d, device=gram.device), d)
+    first = v.index_select(0, pos.argmin().unsqueeze(0)).squeeze(0)
+    return torch.where(nz.any() & (first < 0), -v, v)
 
 
 class UnifiedV11CouplingLoss(UnifiedV4CouplingLoss):
@@ -126,10 +143,12 @@ def v11_zero_eigh_bipartite_deficit_macro_loss(
             if k_exp < 1:
                 return zero
             orph_active = (g_orph > 0.05).float()
-            if bool((orph_active > 0.0).any()):
-                d_orph_min = (d_xy + (1.0 - orph_active).unsqueeze(0) * (1e6 * med_d)).amin(dim=1)
-            else:
-                d_orph_min = d_xy.amin(dim=1)
+            has_orph = (orph_active > 0.0).any()
+            d_orph_min = torch.where(
+                has_orph,
+                (d_xy + (1.0 - orph_active).unsqueeze(0) * (1e6 * med_d)).amin(dim=1),
+                d_xy.amin(dim=1),
+            )
             score = 1.50 * s_row - 0.65 * (d_orph_min / med_d).clamp_max(4.0) + det_tie
             exp_idx = torch.sort(torch.topk(score, k=k_exp, largest=True).indices).values
 
@@ -141,7 +160,7 @@ def v11_zero_eigh_bipartite_deficit_macro_loss(
             y_mean_c = (q_marg.unsqueeze(1) * yf).sum(dim=0, keepdim=True)
             yc_c = (yf - y_mean_c) * q_marg.sqrt().unsqueeze(1)
             gram_c = (yc_c.T @ yc_c).double()
-            axis_c = _principal_axis_power(gram_c, iters=6).float()
+            axis_c = _principal_axis_power_zerosync(gram_c, iters=6).float()
             col_order = torch.argsort(yf @ axis_c)
         else:
             col_order = torch.argsort(yf[:, 0])

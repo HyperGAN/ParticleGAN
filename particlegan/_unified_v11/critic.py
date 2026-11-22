@@ -155,10 +155,14 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._step_scale: float = 1.0
         self._t1c_disc_gate: float = 0.0
         self._simplicial_step: bool = False
-        self.ema_margin: float = 0.0
-        self.ema_data_scale: float = 1.0
-        self.ema_push_res: float = 1.0
-        self.margin_initialized: bool = False
+        self._ema_margin_val: float = 0.0
+        self._ema_data_scale_val: float = 1.0
+        self._ema_push_res_val: float = 1.0
+        self._margin_initialized_val: bool = False
+        self._ema_margin_t: Optional[torch.Tensor] = None
+        self._ema_data_scale_t: Optional[torch.Tensor] = None
+        self._ema_push_res_t: Optional[torch.Tensor] = None
+        self._margin_init_t: Optional[torch.Tensor] = None
         self.cond_fiber_bank = UnifiedV11CondFiberBank()
         self._live_captures: List[List[Any]] = []
         self._last_probe_actual_input: Optional[torch.Tensor] = None
@@ -166,6 +170,87 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._g_probe_cache: Optional[Tuple[nn.Module, Tuple[Any, ...], Dict[str, Any], torch.Tensor]] = None
         self._in_probe: bool = False
         self._enable_secant_probe: bool = True
+
+    def _take_pending_ema_tensors(self) -> Tuple[List[str], List[torch.Tensor]]:
+        keys: List[str] = []
+        tens: List[torch.Tensor] = []
+        for k, attr in (
+            ("ema_margin", "_ema_margin_t"),
+            ("ema_data_scale", "_ema_data_scale_t"),
+            ("ema_push_res", "_ema_push_res_t"),
+            ("margin_initialized", "_margin_init_t"),
+        ):
+            t = getattr(self, attr, None)
+            if t is not None:
+                keys.append(k)
+                tens.append(t)
+        return keys, tens
+
+    def _apply_flushed_ema_values(self, keys: List[str], vals: List[float]) -> None:
+        for k, v in zip(keys, vals):
+            if k == "ema_margin":
+                self._ema_margin_val = float(v)
+                self._ema_margin_t = None
+            elif k == "ema_data_scale":
+                self._ema_data_scale_val = float(v)
+                self._ema_data_scale_t = None
+            elif k == "ema_push_res":
+                self._ema_push_res_val = float(v)
+                self._ema_push_res_t = None
+            elif k == "margin_initialized":
+                self._margin_initialized_val = bool(v > 0.5)
+                self._margin_init_t = None
+
+    def _flush_ema_scalars(self) -> None:
+        keys, tens = self._take_pending_ema_tensors()
+        if not tens:
+            return
+        vals = torch.stack(tens).tolist()
+        self._apply_flushed_ema_values(keys, vals)
+
+    @property
+    def ema_margin(self) -> float:
+        if self._ema_margin_t is not None:
+            self._flush_ema_scalars()
+        return self._ema_margin_val
+
+    @ema_margin.setter
+    def ema_margin(self, val: float) -> None:
+        self._ema_margin_val = float(val)
+        self._ema_margin_t = None
+
+    @property
+    def ema_data_scale(self) -> float:
+        if self._ema_data_scale_t is not None:
+            self._flush_ema_scalars()
+        return self._ema_data_scale_val
+
+    @ema_data_scale.setter
+    def ema_data_scale(self, val: float) -> None:
+        self._ema_data_scale_val = float(val)
+        self._ema_data_scale_t = None
+
+    @property
+    def ema_push_res(self) -> float:
+        if self._ema_push_res_t is not None:
+            self._flush_ema_scalars()
+        return self._ema_push_res_val
+
+    @ema_push_res.setter
+    def ema_push_res(self, val: float) -> None:
+        self._ema_push_res_val = float(val)
+        self._ema_push_res_t = None
+
+    @property
+    def margin_initialized(self) -> bool:
+        if self._margin_init_t is not None:
+            self._flush_ema_scalars()
+        return self._margin_initialized_val
+
+    @margin_initialized.setter
+    def margin_initialized(self, val: bool) -> None:
+        self._margin_initialized_val = bool(val)
+        self._margin_init_t = None
 
     @property
     def ema_residual(self) -> float:
@@ -199,18 +284,34 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         x_real: Optional[torch.Tensor] = None,
         x_fake: Optional[torch.Tensor] = None,
     ) -> None:
-        """Update checkpointed two-player critic margin, data scale, and pushforward residual EMAs."""
+        """Update checkpointed two-player critic margin, data scale, and pushforward residual EMAs (0 sync)."""
         if getattr(self, "_in_penalty", False) or getattr(self, "_in_probe", False) or getattr(self, "_in_protected_probe", False):
             return
-        r_m = float(real_logits.detach().float().mean().item())
-        f_m = float(fake_logits.detach().float().mean().item())
-        margin = max(-50.0, min(50.0, r_m - f_m))
-        if math.isfinite(margin):
-            if not self.margin_initialized:
-                self.ema_margin = margin
-                self.margin_initialized = True
-            else:
-                self.ema_margin = 0.90 * self.ema_margin + 0.10 * margin
+        dev = real_logits.device
+        r_m = real_logits.detach().float().mean().double()
+        f_m = fake_logits.detach().float().mean().double()
+        margin = (r_m - f_m).clamp(-50.0, 50.0)
+        fin_m = torch.isfinite(margin)
+
+        if self._ema_margin_t is not None and self._ema_margin_t.device == dev:
+            prev_m = self._ema_margin_t
+        else:
+            if self._ema_margin_t is not None:
+                self._flush_ema_scalars()
+            prev_m = real_logits.new_full((), self._ema_margin_val, dtype=torch.float64)
+
+        if self._margin_init_t is not None and self._margin_init_t.device == dev:
+            prev_init = self._margin_init_t
+        else:
+            if self._margin_init_t is not None:
+                self._flush_ema_scalars()
+            prev_init = real_logits.new_full((), 1.0 if self._margin_initialized_val else 0.0, dtype=torch.float64)
+
+        was_init = prev_init > 0.5
+        updated_m = torch.where(was_init, 0.90 * prev_m + 0.10 * margin, margin)
+        self._ema_margin_t = torch.where(fin_m, updated_m, prev_m)
+        self._margin_init_t = torch.where(fin_m, prev_init.new_full((), 1.0), prev_init)
+
         if x_real is not None and x_real.numel() > 0:
             self.observe_scale(x_real, x_fake)
 
@@ -220,23 +321,44 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         x_real: torch.Tensor,
         x_fake: Optional[torch.Tensor] = None,
     ) -> None:
-        """Update checkpointed data scale and pushforward residual EMAs."""
+        """Update checkpointed data scale and pushforward residual EMAs (0 sync)."""
         if getattr(self, "_in_penalty", False) or getattr(self, "_in_probe", False) or getattr(self, "_in_protected_probe", False):
             return
         if x_real is None or x_real.numel() == 0:
             return
+        dev = x_real.device
         step_tag = int(getattr(self, "observed_steps", 0))
         xr = x_real.detach().reshape(x_real.shape[0], -1).float()
-        sc = float(xr.square().sum(dim=-1).mean().sqrt().clamp_min(0.05).item())
-        if math.isfinite(sc):
-            self.ema_data_scale = sc if step_tag == 0 else (0.95 * self.ema_data_scale + 0.05 * sc)
+        sc = xr.square().sum(dim=-1).mean().sqrt().clamp_min(0.05).double()
+        fin_sc = torch.isfinite(sc)
+
+        if self._ema_data_scale_t is not None and self._ema_data_scale_t.device == dev:
+            prev_sc = self._ema_data_scale_t
+        else:
+            if self._ema_data_scale_t is not None:
+                self._flush_ema_scalars()
+            prev_sc = x_real.new_full((), self._ema_data_scale_val, dtype=torch.float64)
+
+        cand_sc = sc if step_tag == 0 else (0.95 * prev_sc + 0.05 * sc)
+        new_sc = torch.where(fin_sc, cand_sc, prev_sc)
+        self._ema_data_scale_t = new_sc
+
         if x_fake is not None and x_fake.shape == x_real.shape:
             xf = x_fake.detach().reshape(x_fake.shape[0], -1).float()
-            mean_gap = float((xf.mean(dim=0) - xr.mean(dim=0)).norm().item())
-            std_gap = abs(float(xf.std().item()) - float(xr.std().item()))
-            rel_gap = min(10.0, (mean_gap + 0.5 * std_gap) / max(0.05, self.ema_data_scale))
-            if math.isfinite(rel_gap):
-                self.ema_push_res = rel_gap if step_tag == 0 else (0.92 * self.ema_push_res + 0.08 * rel_gap)
+            mean_gap = (xf.mean(dim=0) - xr.mean(dim=0)).norm().double()
+            std_gap = (xf.std().double() - xr.std().double()).abs()
+            rel_gap = ((mean_gap + 0.5 * std_gap) / new_sc.clamp_min(0.05)).clamp_max(10.0)
+            fin_rg = torch.isfinite(rel_gap)
+
+            if self._ema_push_res_t is not None and self._ema_push_res_t.device == dev:
+                prev_pr = self._ema_push_res_t
+            else:
+                if self._ema_push_res_t is not None:
+                    self._flush_ema_scalars()
+                prev_pr = x_real.new_full((), self._ema_push_res_val, dtype=torch.float64)
+
+            cand_pr = rel_gap if step_tag == 0 else (0.92 * prev_pr + 0.08 * rel_gap)
+            self._ema_push_res_t = torch.where(fin_rg, cand_pr, prev_pr)
 
     def clear_transient_captures(self) -> None:
         if hasattr(self, "_live_captures") and self._live_captures:
