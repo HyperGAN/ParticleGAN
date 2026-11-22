@@ -1,14 +1,14 @@
 # Conditional trajectories with Particle DDGAN
 
 **Hybrid discriminator round complete:** [results and interpretation](hybrid/READOUT.md),
-[interactive comparison](hybrid/confirm_10k/index.html),
+[interactive comparison](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/hybrid/confirm_10k/index.html),
 [next-session motion handoff](hybrid/MOTION_HANDOFF.md).
 
 **Geometry × discriminator round complete:** [results and interpretation](diversity/READOUT.md),
-[interactive comparison](diversity/confirm_10k/index.html).
+[interactive comparison](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/diversity/confirm_10k/index.html).
 
 **First round complete:** [results and interpretation](READOUT.md),
-[interactive gallery](round1/index.html), [leaderboard](round1/TABLE.md).
+[interactive gallery](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/trajectory/round1/index.html), [leaderboard](round1/TABLE.md).
 
 Feature branch: `experiment/trajectory-ddgan`. CIFAR and Gaussian-toy defaults
 are unchanged. Entry point: `experiments/train_trajectory.py`; no arguments

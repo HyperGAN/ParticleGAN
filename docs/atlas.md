@@ -32,7 +32,7 @@ real support, and reopens training after an optimizer shock. Learned output
 noise, critic regularization, averaged inference, and checkpointing are already
 part of E22.
 
-![How E22 extends a GAN](../reports/atlas-explanation/e22-explained.png)
+![How E22 extends a GAN](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/atlas-explanation/e22-explained.png)
 
 [Open the vector diagram](../reports/atlas-explanation/e22-explained.svg).
 
@@ -49,7 +49,7 @@ row reallocation/cloning within that group. These are population actions after t
 ordinary GAN update. Support controls create latent codes checked through the
 generator against real-feature anchors.
 
-![What Atlas adds to E22](../reports/atlas-explanation/atlas-changes.png)
+![What Atlas adds to E22](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/atlas-explanation/atlas-changes.png)
 
 [Open the vector diagram](../reports/atlas-explanation/atlas-changes.svg).
 
@@ -93,10 +93,10 @@ actual latest-source CUDA replay. See the
 
 ### Moving distribution
 
-![Atlas and PR155 E22 learning and recovering after target rotations](../reports/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.gif)
+![Atlas and PR155 E22 learning and recovering after target rotations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.gif)
 
-[Full-resolution MP4](../reports/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.mp4)
-· [Poster](../reports/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/poster.png)
+[Full-resolution MP4](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/atlas-vs-e22-convergence.mp4)
+· [Poster](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/lrfree-search/feature-cells-cb64-ra/generalization-20260930/visualization-pr223-convergence/render/final-media-1/poster.png)
 
 The animation shows 153 actual observations per method, with an overview,
 local Gaussian zoom, and synchronized recovery curves. Target jumps hold

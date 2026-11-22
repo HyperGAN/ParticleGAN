@@ -65,7 +65,7 @@ coefficient is zero; changing earlier noise cannot directly fix that last
 denoising map. No cause for the failure is established yet, and no new model
 has been baked into the example.
 
-[Full table](TABLE.md) · [Samples](samples.png) · [Learning curves](curves.png) ·
+[Full table](TABLE.md) · [Samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/screen_20k/samples.png) · [Learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/screen_20k/curves.png) ·
 [Exact configs, timings, paired effects](comparison.json)
 
 The sample panel uses seed 24002, selected before corrected diffusion runs

@@ -5,8 +5,8 @@ These two entries were source-only in the original 109-case review. This addendu
 | Example | Declared / actual full budget | Completed pairs / last scored | Live / EMA diagnostic | GIF |
 | --- | --- | --- | --- | --- |
 | Five-word latent autoencoder demo | 20,000 / 20,001 | 20,001 / 20001 | full-budget live PASS / EMA PASS | [actual checkpoints](media/source-five-modes.gif) |
-| Single Gaussian quickstart: original batch2048 | 1,000 / 1,000 | ≥18 / 1 | TIMEOUT: incomplete evidence | [actual checkpoints](media/source-quickstart.gif) |
-| Single Gaussian quickstart: separate CPU128 profile | 1,000 / 1,000 | 1,000 / 1000 | full-budget live FAIL / EMA FAIL | [actual checkpoints](media/source-quickstart-cpu128.gif) |
+| Single Gaussian quickstart: original batch2048 | 1,000 / 1,000 | ≥18 / 1 | TIMEOUT: incomplete evidence | [actual checkpoints](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/source-quickstart.gif) |
+| Single Gaussian quickstart: separate CPU128 profile | 1,000 / 1,000 | 1,000 / 1000 | full-budget live FAIL / EMA FAIL | [actual checkpoints](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/source-quickstart-cpu128.gif) |
 
 ## Five-word interpretation
 

@@ -1,6 +1,6 @@
 # E22 convergence animation
 
-![E22 on grid100, rotated100 and staggered100](e22-100gaussians.gif)
+![E22 on grid100, rotated100 and staggered100](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/e22-animation/e22-100gaussians.gif)
 
 The [E22 configuration](../../docs/e22.md) trained on the three frozen native 100-Gaussian problems for 7,000
 updates each: seed 1234, a 20,000-row particle table, batch 2,048, an identity `nn.Linear(2, 2)` generator and

@@ -31,7 +31,7 @@ are material, even though the mode centers and core widths look much better.
 - GAN+atoms: modes **96 → 77**, SW1 **.5784 → .7595**.
 - GAN+MoG: modes **99 → 77**, SW1 **.5984 → .9025**.
 
-The [curves](curves.png) show different trajectories: DDGAN improves coverage,
+The [curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/mog_capacity_100k/curves.png) show different trajectories: DDGAN improves coverage,
 class fidelity and width slowly, while one-shot HQ stays high even as mode mass
 becomes less balanced. Thus the early 14k comparison was misleading about
 DDGAN's eventual usefulness. It still has not caught the one-shot models on HQ.
@@ -107,7 +107,7 @@ verified. Frozen baseline inference reproduced the final SW1 values within 1e-5.
 tail -F results/denoising/mog_capacity_100k/progress.log
 ```
 
-[Full tables](TABLE.md) · [Curves](curves.png) · [Samples](samples.png) ·
+[Full tables](TABLE.md) · [Curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/mog_capacity_100k/curves.png) · [Samples](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/denoising-toy/mog_capacity_100k/samples.png) ·
 [Leaderboard CSV](leaderboard.csv) · [Milestones](milestones.csv) ·
 [Comparison data](comparison.json) · [Prefix audit](prefix_audit.json).
 

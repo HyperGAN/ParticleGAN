@@ -86,7 +86,7 @@ procedure differ from this round, so the two sparse arms are the controlled
 comparison. Do not directly compare their standardized prediction errors with
 historical/full-label errors. Physical errors are retained in JSON.
 
-![Landing outcomes and paired returns](control_outcomes.png)
+![Landing outcomes and paired returns](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_sparse_action/control_outcomes.png)
 
 | Update | Probe validation landings | Probe mean return | Auxiliary validation landings | Auxiliary mean return |
 | ---: | ---: | ---: | ---: | ---: |
@@ -97,7 +97,7 @@ historical/full-label errors. Physical errors are retained in JSON.
 The default `state_probes` wins validation 20/20, return 287.96. Test scores do not
 choose the default. No extra training or subset search followed these results.
 
-![Validation progression](validation_curve.png)
+![Validation progression](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_sparse_action/validation_curve.png)
 
 ## Auxiliary training helps every held-out prediction head
 
@@ -119,7 +119,7 @@ Expert persistence successor MSE is 0.022230, still better than either learned
 G3. Auxiliary contact Brier does beat persistence 0.008183. Small-step continuous
 prediction and contact prediction therefore tell different parts of the story.
 
-![Held-out prediction improvements](auxiliary_tradeoff.png)
+![Held-out prediction improvements](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_sparse_action/auxiliary_tradeoff.png)
 
 ## Prediction on actual learner states
 

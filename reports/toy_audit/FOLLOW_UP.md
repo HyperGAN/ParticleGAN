@@ -83,8 +83,8 @@ independent analytic/held-out evaluators. Replacing a removed API by a similarly
 named method without binding its formulation would not reproduce the old arm.
 
 Historical context, **not current training evidence**:
-[circle final validation rollout](media/pr22-historical-rollout.png),
-[sprite final dream rollout](media/pr153-historical-rollout.gif).
+[circle final validation rollout](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/pr22-historical-rollout.png),
+[sprite final dream rollout](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/pr153-historical-rollout.gif).
 
 ## Historical counterexample contrasts that no longer reproduce
 

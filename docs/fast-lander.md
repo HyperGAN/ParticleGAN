@@ -27,7 +27,7 @@ training results with physical contact scoring; the separate
 preserves the earlier scoring bug and its correction without retraining.
 These measurements use the declared variant below, not stock Lunar.
 
-![Learned slow and fast flights, same world and clock](../reports/lunar_fast/comparison.gif)
+![Learned slow and fast flights, same world and clock](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/lunar_fast/comparison.gif)
 
 ## What the command trains
 

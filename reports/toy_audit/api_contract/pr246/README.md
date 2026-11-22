@@ -31,7 +31,7 @@ contrast errors/V are 1.000345118 (G16) and 0.996276603 (G64), above its 0.5
 diagnostic bound. This contrast diagnostic supplies no replacement campaign
 gate or additional training qualification.
 
-![Actual recorded training observations; original full campaign FAIL](goal.gif)
+![Actual recorded training observations; original full campaign FAIL](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/pr246/goal.gif)
 
 The three frames show only actual recorded evaluations at 0, 100 and 200 updates
 per arm. Lines connect recorded metric points. No intermediate model image

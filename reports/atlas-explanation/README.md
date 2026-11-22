@@ -3,9 +3,9 @@
 Two vector infographics explain the shared GAN loop and Atlas’s population
 controls for readers familiar with GAN basics.
 
-1. [E22 explained](e22-explained.png): trainable latent particles, generator,
+1. [E22 explained](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/atlas-explanation/e22-explained.png): trainable latent particles, generator,
    critic, adversarial gradients, and E22’s existing training feedback.
-2. [Atlas changes](atlas-changes.png): neighbor evidence versus temporary
+2. [Atlas changes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/atlas-explanation/atlas-changes.png): neighbor evidence versus temporary
    critic-feature regions, separate count/placement/support actions, and
    capability-based selection.
 

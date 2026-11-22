@@ -7,7 +7,7 @@ models within this budget. All four same-count FID5k curves improve through
 10k, without the previous direct scout's late regression.
 
 See the [leaderboard and ablations](LEADERBOARD.md), [exact protocol](PROTOCOL.md),
-[machine-readable results](leaderboard.json), and [learning curves](learning_curves.png).
+[machine-readable results](leaderboard.json), and [learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-particle-ddgan/learning_curves.png).
 
 | Model | Final FID50k ↓ | Training minutes | What it provides |
 |---|---:|---:|---|

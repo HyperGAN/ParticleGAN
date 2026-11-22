@@ -125,7 +125,7 @@ command response and recursive prediction.
   passing subtests; the GPU 1 training smoke passed. Independent checkpoint
   replay matches validation metrics within 1.2e-7 across CPU/GPU.
 
-Open the [offline demo](demo/index.html) or download the
+Open the [offline demo](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander/demo/index.html) or download the
 [demo bundle](demo/lunar_lander_demo.zip). It shows fixed recorded engine
 counterfactuals, one-step/recursive comparisons, and prior/composed transitions,
 including failures. These are checkpoint predictions and reference-controller
