@@ -78,7 +78,7 @@ with the repository's `configs/forge/` declarations.
 
 **The framework is ready to use.** The
 [final readiness audit](reports/forge/FRAMEWORK_READINESS_AUDIT.md) verifies the
-requested engineering scope. [Full CI](https://github.com/255BITS/ParticleGAN/actions/runs/36677816874)
+requested engineering scope. [Full CI](https://github.com/HyperGAN/ParticleGAN/actions/runs/36677816874)
 passed 1,807 tests and 18 subtests; the [physical two-GPU pilot](reports/forge/PHYSICAL_GPU_PILOT_READOUT.md)
 and [fresh-checkout walkthrough](reports/forge/FRESH_CHECKOUT.md) verified the
 queue, recovery, cancellation, reuse, logs and readout workflow. Use the public

@@ -42,10 +42,10 @@ open-file description for those children too. Descriptor inheritance supplements
 attempt lease and never substitutes for normal task resource checks.
 
 This is the independently verified software portion extracted from
-[PR #407](https://github.com/255BITS/ParticleGAN/pull/407). The full proposed
+[PR #407](https://github.com/HyperGAN/ParticleGAN/pull/407). The full proposed
 runner remains archived at
-[`44094c769464fcf3df6cf588f36a5c8916d4d461`](https://github.com/255BITS/ParticleGAN/tree/44094c769464fcf3df6cf588f36a5c8916d4d461),
-including its [loop design](https://github.com/255BITS/ParticleGAN/blob/44094c769464fcf3df6cf588f36a5c8916d4d461/docs/grok-build-loop.md).
+[`44094c769464fcf3df6cf588f36a5c8916d4d461`](https://github.com/HyperGAN/ParticleGAN/tree/44094c769464fcf3df6cf588f36a5c8916d4d461),
+including its [loop design](https://github.com/HyperGAN/ParticleGAN/blob/44094c769464fcf3df6cf588f36a5c8916d4d461/docs/grok-build-loop.md).
 The local cancellation receipt dated `2026-10-15T02:14:42Z` records the user's
 instruction to stop the Grok idea, zero provider requests and zero new training
 jobs. Its STOP remains in place. This extraction does not resume that work or

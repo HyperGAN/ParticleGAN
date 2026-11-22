@@ -338,7 +338,7 @@ not replace the original stationary, deadline or shifted-hold requirements.
 
 These compact receipts are display-only. They do not change scientific gates,
 recipes, selected configurations or current qualification. The earlier PR399
-paired controls remain [published separately](https://github.com/255BITS/ParticleGAN/pull/399)
+paired controls remain [published separately](https://github.com/HyperGAN/ParticleGAN/pull/399)
 and are not copied or reclassified here. References to the historical 81-attempt
 coordinator ledger include that separate history; this publication adds exactly
 fifteen unique attempts, 10 PASS / 5 FAIL, rather than importing81 new experiments.

@@ -1,6 +1,6 @@
 # BISPF: continuous vectors or categorical choices?
 
-PR [#509](https://github.com/255BITS/ParticleGAN/pull/509) lets you tell the
+PR [#509](https://github.com/HyperGAN/ParticleGAN/pull/509) lets you tell the
 BISPF **critic penalty** what its input means. It addresses two cases that
 shape alone cannot distinguish:
 
@@ -165,7 +165,7 @@ optimizer = recipe.make_critic_optimizer(critic)
 penalty = recipe.make_critic_penalty(optimizer, input_domain="continuous")
 ```
 
-PR [#508](https://github.com/255BITS/ParticleGAN/pull/508), also brought over from
+PR [#508](https://github.com/HyperGAN/ParticleGAN/pull/508), also brought over from
 `master`, makes the recipe choice explicit: use `get_recipe()` for a new run and
 `Recipe.from_dict(saved_fields)` for restoration. Partial `Recipe(...)`
 construction now raises instead of silently selecting historical defaults.

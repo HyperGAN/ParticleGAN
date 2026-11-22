@@ -100,8 +100,8 @@ def test_no_tracked_link_points_at_a_pruned_branch(repo_root):
     deleted: dict[str, str] = {}
     for record in sorted((repo_root / "reports").glob("branch-prune-*.json")):
         deleted.update(json.loads(record.read_text())["deleted"])
-    done = _git(repo_root, "grep", "-z", "-nE", r"github\.com/255BITS/ParticleGAN/(blob|tree)/")
-    link = re.compile(r"github\.com/255BITS/ParticleGAN/(?:blob|tree)/([^)\s\"'>]+)")
+    done = _git(repo_root, "grep", "-z", "-nE", r"github\.com/(HyperGAN|255BITS)/ParticleGAN/(blob|tree)/")
+    link = re.compile(r"github\.com/(?:HyperGAN|255BITS)/ParticleGAN/(?:blob|tree)/([^)\s\"'>]+)")
     stale = [
         row for row in done.stdout.decode(errors="replace").split("\n")
         for ref in link.findall(row)

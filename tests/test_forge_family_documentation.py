@@ -166,7 +166,7 @@ def test_pinned_historical_source_is_supported_and_missing_paper_is_explicit(doc
     root, publication = documented
     path = root / "configs/forge/family-documentation/bcap.json"
     data = read_json(path)
-    data.update(sources=["https://github.com/255BITS/ParticleGAN/blob/" + "a" * 40 + "/trainer.py"],
+    data.update(sources=["https://github.com/HyperGAN/ParticleGAN/blob/" + "a" * 40 + "/trainer.py"],
                 references=[])
     atomic_json(path, data)
     family = refresh(root, publication)

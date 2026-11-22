@@ -136,7 +136,7 @@ def markdown(report):
                   "from acceptance: investigate the trajectory/ring results before claiming a behavioral sweep. "
                   "Budgets, seed, thresholds and algorithms were not retuned to make this table pass.", ""]
     lines += ["Source: [conceptmod 5571213](https://github.com/HyperGAN/conceptmod/tree/5571213f5e8e129cfda45c785c3f30aad9c1d8c9/conceptmod/toys); "
-              "[ParticleGAN PR #36](https://github.com/255BITS/ParticleGAN/pull/36).",
+              "[ParticleGAN PR #36](https://github.com/HyperGAN/ParticleGAN/pull/36).",
               "", f"Runtime: Python {report['python']}; PyTorch {report['torch']}. "
               "Full precision metrics and source hashes are in `results.json`.", "",
               "CPU toy results only; no GPU or downstream application transfer is claimed.", ""]

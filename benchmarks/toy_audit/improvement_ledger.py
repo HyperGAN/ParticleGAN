@@ -223,7 +223,7 @@ def markdown(data):
     for row in data["rows"]:
         name = cell(row["name"])
         if row["pr"]:
-            name += f" · [PR{row['pr']}](https://github.com/255BITS/ParticleGAN/pull/{row['pr']})"
+            name += f" · [PR{row['pr']}](https://github.com/HyperGAN/ParticleGAN/pull/{row['pr']})"
         evidence = [cell(row["original_status"])]
         evidence += [f"[Added]({a['report']}): {cell(a['status'])}" for a in row["added_assessments"]]
         evidence += [f"[{cell(a['label'])}]({a['report']}): execution {cell(a['execution'])}; original {cell(a['original_scientific_status'])}; added {cell(a['added_gate_status'])}" for a in row["fresh_source_assessments"]]

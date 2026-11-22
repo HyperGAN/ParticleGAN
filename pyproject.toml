@@ -16,8 +16,8 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/255BITS/ParticleGAN"
-Documentation = "https://github.com/255BITS/ParticleGAN/blob/v0.11.2/docs/api.md"
+Repository = "https://github.com/HyperGAN/ParticleGAN"
+Documentation = "https://github.com/HyperGAN/ParticleGAN/blob/v0.11.2/docs/api.md"
 
 [project.optional-dependencies]
 mog = ["scipy>=1.10,<2"]

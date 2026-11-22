@@ -37,7 +37,7 @@ example, not a measured result, recommended tuning or permission to train.
 The numerical prediction is illustrative and the example stays draft.
 
 The recipe below preserves every override, capability and claim from the pure
-BCAP draft at [b509c065](https://github.com/255BITS/ParticleGAN/blob/b509c0654b91d9fce9b49374dde02ec75c1bd625/configs/forge/ideas/bcap-pure-adam-v1.json).
+BCAP draft at [b509c065](https://github.com/HyperGAN/ParticleGAN/blob/b509c0654b91d9fce9b49374dde02ec75c1bd625/configs/forge/ideas/bcap-pure-adam-v1.json).
 Plain Adam, fixed coefficient/cap/every-update BCAP, and the disabled clipping,
 A2, anchoring, direct-particle response, extra regularization and additive
 training noise are unchanged. The task owns the learned MoG conditions.

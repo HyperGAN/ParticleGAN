@@ -11,7 +11,7 @@ notes on `develop` once the release scope is chosen.
 
 ## CI
 
-[Tests](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml) runs
+[Tests](https://github.com/HyperGAN/ParticleGAN/actions/workflows/tests.yml) runs
 on pull requests targeting `develop` or `master` and pushes to those branches.
 Manual dispatches execute tests only on `develop` or `master`; dispatching on
 another branch skips the jobs. The release workflow also calls these checks

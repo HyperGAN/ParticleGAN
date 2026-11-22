@@ -2,7 +2,7 @@
 
 ![ParticleGAN — conceptual artwork of luminous particles flowing into distinct clusters](docs/media/readme/particlegan-hero.png)
 
-[![Tests](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml/badge.svg)](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml)
+[![Tests](https://github.com/HyperGAN/ParticleGAN/actions/workflows/tests.yml/badge.svg)](https://github.com/HyperGAN/ParticleGAN/actions/workflows/tests.yml)
 
 **GANs with a learnable particle prior, for PyTorch.**
 
@@ -23,7 +23,7 @@ python -m pip install particlegan           # the library (0.11.0)
 To run the examples, experiments and tests, install from source with the extras you need:
 
 ```bash
-git clone https://github.com/255BITS/ParticleGAN.git
+git clone https://github.com/HyperGAN/ParticleGAN.git
 cd ParticleGAN
 python -m pip install -e '.[dev,experiments]'   # tests plus examples/experiments (the toy100 CI job)
 python -m pip install -e '.[dev,experiments,images,lunar]'   # what the main CI test job installs
@@ -310,7 +310,7 @@ transport their parent's Adam history at half mass.
   author = {Martyn Garcia},
   title = {ParticleGAN: Learnable Priors for Stable GANs},
   year = {2025},
-  url = {https://github.com/255BITS/ParticleGAN}
+  url = {https://github.com/HyperGAN/ParticleGAN}
 }
 ```
 

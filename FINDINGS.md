@@ -124,12 +124,12 @@ canary rather than a benchmark.
 ### Reproduce
 
 Check out archive commit
-[`40e637e82`](https://github.com/255BITS/ParticleGAN/tree/40e637e82cdedb51624e6a69e3dd6926c62a1924)
+[`40e637e82`](https://github.com/HyperGAN/ParticleGAN/tree/40e637e82cdedb51624e6a69e3dd6926c62a1924)
 (round 3, 2026-08-21; an ancestor of `develop`), where every file below exists.
-[`lib/grad_regularizers.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/lib/grad_regularizers.py),
-[`experiments/train_arm.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/train_arm.py),
-[`experiments/gen_configs.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/gen_configs.py)
-and [`experiments/provenance.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/provenance.py)
+[`lib/grad_regularizers.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/lib/grad_regularizers.py),
+[`experiments/train_arm.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/train_arm.py),
+[`experiments/gen_configs.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/gen_configs.py)
+and [`experiments/provenance.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/provenance.py)
 were removed from the tree by #165 (`e0cdb036b`, 2026-09-25); the other files still exist but
 have changed since. The current package keeps only the fixed `a_r1r2` and `b_cap` arms, as
 `GradientPenalty(arm=...)` in [`particlegan/grad_regularizers.py`](particlegan/grad_regularizers.py)

@@ -92,5 +92,5 @@ useful controls and the original evidence identity.
 Each agent can queue experiments on the GPUs without waiting for it to be free. It's ok to run multiple in parallel.
 
 ---
-develop->master PR should always exist and have a link to the up to date https://github.com/255BITS/ParticleGAN/blob/develop/reports/forge/technique-inventory.md
+develop->master PR should always exist and have a link to the up to date https://github.com/HyperGAN/ParticleGAN/blob/develop/reports/forge/technique-inventory.md
 master should always reflect whats in pypi

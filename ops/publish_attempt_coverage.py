@@ -25,7 +25,7 @@ def merge_pr(root, number):
     with tempfile.NamedTemporaryFile(mode="w", suffix=".json") as payload:
         json.dump(dict(sha=run("git", "rev-parse", "HEAD", cwd=root), merge_method="merge"), payload)
         payload.flush()
-        response = json.loads(run("gh", "api", "-X", "PUT", f"repos/255BITS/ParticleGAN/pulls/{number}/merge",
+        response = json.loads(run("gh", "api", "-X", "PUT", f"repos/HyperGAN/ParticleGAN/pulls/{number}/merge",
                                   "--input", payload.name, cwd=root))
     if not response.get("merged"):
         raise RuntimeError("GitHub did not merge the completed publication: " + str(response))

@@ -6,7 +6,7 @@ learned conditional critic. It is based on merged `develop` at
 `6ec7e5788e14ea15ddc3e16ac71110458108b6a6`, including #155 and #223.
 The fixed protocol is [e22_routed_convergence_v1.json](e22_routed_convergence_v1.json).
 
-The separate [PR #224](https://github.com/255BITS/ParticleGAN/pull/224) isolates
+The separate [PR #224](https://github.com/HyperGAN/ParticleGAN/pull/224) isolates
 an unsafe generator learning-rate release using a fixed quadratic critic. That
 counterexample does not reproduce the whole learned-game convergence problem.
 This fixture uses a trained critic, two sequential token-routing sites, a shared

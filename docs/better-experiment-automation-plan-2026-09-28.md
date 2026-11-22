@@ -9,7 +9,7 @@ required additional source: PR #155 at `0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b
 
 Implementation uses the existing **`codex/tiered-experiment-qualification`**
 feature branch, based on **`develop`**, and
-[PR #221](https://github.com/255BITS/ParticleGAN/pull/221). Keep the plan and all
+[PR #221](https://github.com/HyperGAN/ParticleGAN/pull/221). Keep the plan and all
 Forge implementation in this single branch/PR, using incremental commits.
 
 **Delivery scope, clarified 2026-09-30:** build the framework for proposing,
@@ -77,7 +77,7 @@ configs, or repeated descriptions of the same run.
 
 These counts do not cover the later LR-free work. Phase A must also import
 `reports/toy100/lrfree-search/**` from the pinned
-[PR #155 source tree](https://github.com/255BITS/ParticleGAN/tree/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search):
+[PR #155 source tree](https://github.com/HyperGAN/ParticleGAN/tree/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search):
 358 tracked paths at this snapshot, including 42 Markdown and 168 JSON files.
 These are another source inventory, not 358 new experiments or counts to add
 without deduplication. Record each source revision independently and refresh the
@@ -94,7 +94,7 @@ Important foundations:
 | [Continuous probe](../benchmarks/toy100/continuous_probe.py) | Uninterrupted hold, extended training, target-shift recovery, matched frozen controls |
 | [Selected K3P declaration](../reports/toy100/current-research-base.json) | Exact formulation, complete mechanism/response/latent drivers, known passes and remaining failures |
 | [Gap-fill evidence](../reports/toy100/gap-fill-20260925/README.md) | Candidate lineage, task-level evidence, source hashes, historical cross-candidate comparison |
-| [LR-free harness and GPU pool](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/harness/README.md) | Existing submit/pool/wait tools, task fixtures, applied-rate receipts, stream-parity audits, package hashes, and result ledger; extend these instead of assuming queue infrastructure is absent |
+| [LR-free harness and GPU pool](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/harness/README.md) | Existing submit/pool/wait tools, task fixtures, applied-rate receipts, stream-parity audits, package hashes, and result ledger; extend these instead of assuming queue infrastructure is absent |
 
 The current transfer protocol already calls importance levels `tier`. The new
 cost/progression field must be named `qualification_tier`; retain importance as
@@ -821,11 +821,11 @@ Import at least these additional lineages and issues from #155:
 | Fresh-reservoir `row-em-renew` | Native 3/3; 4.4–4.8× wall time; all22 10 PASS / 4 FAIL / 8 raw ERROR; `_sigma_intrinsic_scale` parity refusal | Preserve a useful sampling diagnostic, classify it as `sampling_only_patch`, expose cost, and normalize unsupported custom hosts to BLOCKED |
 | D-tracking / floor changes | Distinct floor constants, package hashes, live and EMA results at matching checkpoints | Keep structural changes separate from tuned floors, preserve failed terminal streaks, and record the view's scoring policy |
 
-Pinned sources: [LR-free overview](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/README.md),
-[structural continuation](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/structural100/README.md),
-[sampler results and cost](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/README.md),
-[all22 receipt](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/all22-summary.json),
-[D-tracking follow-up](https://github.com/255BITS/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/bd-pair-sigma-release-plan.md).
+Pinned sources: [LR-free overview](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/README.md),
+[structural continuation](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/structural100/README.md),
+[sampler results and cost](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/README.md),
+[all22 receipt](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/all22-summary.json),
+[D-tracking follow-up](https://github.com/HyperGAN/ParticleGAN/blob/0d52b2c8b4e985a7859ef7ac7f2f0c00b510379b/reports/toy100/lrfree-search/row-em-renew/bd-pair-sigma-release-plan.md).
 
 The review additionally reports dt075's grid/staggered 14k failures after ladder
 release, EMA .995 D-tracking 3/3, and sub-0.03σ centre-error sensitivity. Their

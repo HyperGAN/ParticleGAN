@@ -3,7 +3,7 @@
 `Recipe.optimizer_smoothing` defaults to `0.0`. The named `bcap` preset selects
 `0.001` following the [completed search and owner-directed default selection](../reports/forge/bcap-tier2-search/DEFAULT_SELECTION.md).
 Set `optimizer_smoothing=0.0` explicitly for the historical unsmoothed rule.
-Positive values enable the feature examined in [PR #344](https://github.com/255BITS/ParticleGAN/pull/344).
+Positive values enable the feature examined in [PR #344](https://github.com/HyperGAN/ParticleGAN/pull/344).
 That study improved serial Gaussian acquisition but did not repair word holding
 or establish a continuous learner. Its archived receipts remain under their
 original source and gates; this feature does not promote those results.
