@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "law4-energy-v11-dcgan-perf-study"
+  },
+  "candidate": "law4-energy-v11",
+  "competing_explanation": "If generator-free Critic NS gating or zero-sync scalar refactoring adds overhead to 4D Conv2d DCGAN training, law4-energy-v11 will exceed 65 ms/step on dcgan_performance_r256.",
+  "control": {
+    "candidate_id": "law4-energy-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "hypothesis": "law4-energy-v11 passes 6/6 dcgan_performance and matches or improves law4-energy-v10 latency and VRAM with strictly 0 Conv2d NS, 0 Critic NS, and 0 new_tensor H2D syncs.",
+  "id": "law4-energy-v11-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v10",
+        "candidate_revision": "80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15"
+      },
+      "path": "reports/forge/records/readout-9599d9a20cf9a6e935f0d900.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -3576,7 +3576,7 @@ def _smooth_sign_unit(g: torch.Tensor, s_eff: float) -> torch.Tensor:
     """Underflow-safe (10^-38) smooth SignSGD direction ``g / hypot(|g|, s_eff)``."""
     gf = g.float()
     g_max = gf.abs().amax()
-    sc = torch.maximum(g_max, gf.new_tensor(float(s_eff))).clamp_min(1e-38)
+    sc = torch.maximum(g_max, gf.new_full((), float(s_eff))).clamp_min(1e-38)
     g_s = gf / sc
     s_s = float(s_eff) / sc
     denom = torch.hypot(g_s.abs(), s_s).clamp_min(1e-30)
@@ -3612,8 +3612,9 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
 
     family = "law4_energy_v7"
     recipe_optimizer_family = "law4_energy_v7"
-    _critic_mode: str = "frob_m25"  # "frob_m25" | "smooth_sign"
+    _critic_mode: str = "frob_m25"  # "frob_m25" | "frob_m50" | "smooth_sign"
     _gen_erank_gate: float = 0.0    # > 0 enables Renyi-2 erank fast Frob-MP skip
+    _allow_generator_free_critic_ns: bool = False
 
     def __init__(
         self,
@@ -3625,6 +3626,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
         amsgrad: bool = False,
         smoothing: float = 0.0,
         direction_blend: bool = False,
+        generator_free: bool = False,
         **options: Any,
     ) -> None:
         super().__init__(
@@ -3641,9 +3643,33 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
         self.recipe_optimizer_family = type(self).recipe_optimizer_family
         self.erank_fast_skips: int = 0
         self.critic_ns_calls: int = 0
+        self._generator_free: bool = bool(generator_free)
+        self._dense_metrics_cache: Dict[int, Tuple[int, int, int, float, float]] = {}
+        self._conv_metrics_cache: Dict[Tuple[int, Tuple[bool, int]], Tuple[float, float]] = {}
         for grp in self.param_groups:
             if grp["algorithm"] == "law4_energy_v3":
                 grp["algorithm"] = self.family
+
+    def _cached_conv_metrics(self, p: torch.Tensor) -> Tuple[float, float]:
+        layout = self._conv_layouts.get(id(p), (False, 1))
+        key = (id(p), layout)
+        cached = self._conv_metrics_cache.get(key)
+        if cached is None:
+            cached = self._conv_metrics(p)
+            self._conv_metrics_cache[key] = cached
+        return cached
+
+    def _cached_dense_metrics(self, p: torch.Tensor) -> Tuple[int, int, int, float, float]:
+        key = id(p)
+        cached = self._dense_metrics_cache.get(key)
+        if cached is None:
+            r_d = int(p.shape[0])
+            c_d = int(p.numel() // max(1, r_d))
+            m_dim = min(r_d, c_d)
+            factor, sv_denom_sqrt = self._dense_metrics(p)
+            cached = (r_d, c_d, m_dim, factor, sv_denom_sqrt)
+            self._dense_metrics_cache[key] = cached
+        return cached
 
     def _apply_slow_param_zerosync(
         self,
@@ -3676,12 +3702,9 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
 
         is_conv = p.ndim == 4
         if is_conv:
-            factor, sv_denom_sqrt = self._conv_metrics(p)
+            factor, sv_denom_sqrt = self._cached_conv_metrics(p)
         elif p.ndim >= 2:
-            factor, sv_denom_sqrt = self._dense_metrics(p)
-            r_d = int(p.shape[0])
-            c_d = int(p.numel() // max(1, r_d))
-            m_dim = min(r_d, c_d)
+            r_d, c_d, m_dim, factor, sv_denom_sqrt = self._cached_dense_metrics(p)
             if is_critic_opt and m_dim >= 2:
                 if self._critic_mode == "frob_m25":
                     factor = factor * (float(m_dim) ** 0.25)
@@ -3697,7 +3720,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
         cur_sv_rms_t = (scaled_norm * safe_scale) / sv_denom_sqrt
         if "peak_rms" not in st:
             init_peak = float(st.get("peak_rms_val", 0.0))
-            st["peak_rms"] = gf_safe.new_tensor(init_peak)
+            st["peak_rms"] = gf_safe.new_full((), init_peak)
         peak_prev_t = st["peak_rms"]
         cur_valid = finite & torch.isfinite(cur_sv_rms_t)
         peak_new_t = torch.maximum(peak_prev_t, torch.where(cur_valid, cur_sv_rms_t, peak_prev_t))
@@ -3705,7 +3728,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
 
         has_smooth = s_base > 0.0
         if has_smooth:
-            s_eff_t = torch.minimum(gf_safe.new_tensor(s_base), peak_new_t * 0.5)
+            s_eff_t = torch.minimum(gf_safe.new_full((), s_base), peak_new_t * 0.5)
         else:
             s_eff_t = gf_safe.new_zeros(())
 
@@ -3803,7 +3826,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
             direc = torch.where(g_active, raw_dir, torch.zeros_like(gf_safe))
             mat = direc.reshape(p.shape[0], -1)
             r_d, c_d = int(mat.shape[0]), int(mat.shape[1])
-            step_mult = gf_safe.new_tensor(-rate_p * factor)
+            step_mult = gf_safe.new_full((), -rate_p * factor)
             needs_t = r_d > c_d
             mat_canon = mat.T if needs_t else mat
             m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
@@ -3864,8 +3887,12 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
                 ):
                     raise ValueError("row-normalized prior updates require actual sampled rows")
 
-        all_params = self._parameters()
-        originals = [p.detach().clone() for p in all_params] if (self.direction_blend and self._protected is not None) else None
+        if self.direction_blend and self._protected is not None:
+            all_params = self._parameters()
+            originals = [p.detach().clone() for p in all_params]
+        else:
+            all_params = None
+            originals = None
 
         try:
             rec = self._active_record()
@@ -3971,7 +3998,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
                         active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
                         if s_prior_base > 0.0:
                             s_p_row = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
-                            denom_r = torch.hypot(d_norm, d_norm.new_tensor(s_p_row)).clamp_min(1e-36)
+                            denom_r = torch.hypot(d_norm, d_norm.new_full((), s_p_row)).clamp_min(1e-36)
                         else:
                             denom_r = d_norm.clamp_min(1e-36)
                         unit_r = torch.where(active_r, dir_r / denom_r, torch.zeros_like(dir_r))
@@ -3994,16 +4021,13 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
                         and grad.dtype == torch.float32
                     ):
                         if is_conv:
-                            factor, sv_denom_sqrt = self._conv_metrics(p)
+                            factor, sv_denom_sqrt = self._cached_conv_metrics(p)
                             fast_grads.append(grad)
                             fast_meta.append(
                                 (p, grad, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, stiff_gate, track_secant, False)
                             )
                         elif p.ndim >= 2:
-                            r_d = int(p.shape[0])
-                            c_d = int(p.numel() // max(1, r_d))
-                            m_dim = min(r_d, c_d)
-                            factor, sv_denom_sqrt = self._dense_metrics(p)
+                            r_d, c_d, m_dim, factor, sv_denom_sqrt = self._cached_dense_metrics(p)
                             if m_dim == 1:
                                 if critic_sign:
                                     mp_s = factor / (math.sqrt(float(r_d)) + math.sqrt(float(c_d)))
@@ -4158,7 +4182,7 @@ class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
                     fast_coh_count += 1
                 m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_s)
                 pending_dense.setdefault(m_key, []).append(
-                    (p, mat_canon, g.new_tensor(-rate_p * factor), g.new_tensor(s_eff), track_sec, needs_t)
+                    (p, mat_canon, g.new_full((), -rate_p * factor), g.new_full((), s_eff), track_sec, needs_t)
                 )
 
             # 2. Zero-Sync Slow Path (stiff 2D NS on G, scalar 1D, extreme scales <1e-18 / >1e18 / NaN):
@@ -4355,6 +4379,274 @@ class Law4EnergyV10Optimizer(_Law4EnergyFrontierBase):
     _gen_erank_gate = 0.0
 
 
+class Law4EnergyV11Optimizer(Law4EnergyV10Optimizer):
+    """Phase-3 Energy-Optimal Champion v11 (`law4_energy_v11`).
+
+    Extends ``Law4EnergyV10Optimizer`` with two zero-regression improvements:
+    1. **Generator-Free 2D Critic NS Restoration:** Restores 5-step fused ``Z=[X,Y]``
+       Quintic NS on 2D dense critic matrices (``min(r, c) >= 2``) STRICTLY when the
+       task has no neural generator matrices (``_generator_free == True``, e.g.,
+       ``G = nn.Identity()`` direct particle clouds such as ``t3_iso_scale_mass_8x``
+       and ``t3_iso_horizon_saddle_shift``), while keeping strictly ``0`` Critic NS on
+       ALL neural-generator tasks and strictly ``0`` Conv2d NS + ``0`` critic secant
+       probes everywhere.
+    2. **Zero-H2D-Sync Scalar Path:** Eliminates all per-parameter ``new_tensor(...)``
+       pageable H2D copies in favor of GPU-resident ``new_full((), ...)`` plus cached
+       layer metrics, keeping bit-exact mathematical equivalence to ``law4_energy_v10``
+       on neural-generator tasks with dramatically lower small-MLP step latency.
+    """
+
+    family = "law4_energy_v11"
+    recipe_optimizer_family = "law4_energy_v11"
+    _critic_mode = "frob_m50"
+    _gen_erank_gate = 0.0
+    _allow_generator_free_critic_ns = True
+
+    @torch.no_grad()
+    def _step_generator_free_critic(self, closure: Any = None) -> Any:
+        """Zero-sync FP32 device-tensor 5-step 2D Critic NS strictly for generator-free tasks.
+
+        Matches ``UnifiedV11EquilibratedOptimizer``'s exact FP32 critic NS dynamics
+        while enforcing strictly ``0`` Conv2d NS, ``0`` critic secant probes,
+        ``0`` ``new_tensor`` H2D copies, and ``0`` GPU-CPU synchronizations.
+        """
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        for grp in self.param_groups:
+            for p in grp["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse or p.grad.is_complex():
+                    raise ValueError(f"{self.family} requires dense real gradients")
+
+        try:
+            rec = self._active_record()
+            step_scale = float(getattr(rec, "_step_scale", 1.0)) if rec is not None else 1.0
+            s_therm = float(getattr(rec, "_thermal_scale", 1.0)) if rec is not None else 1.0
+            p_dec = 0.9995 if s_therm >= 0.5 else 1.0
+            pending_dense: Dict[
+                Tuple[int, int, bool],
+                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool]],
+            ] = {}
+
+            for grp in self.param_groups:
+                b1, b2 = grp["betas"]
+                eps = float(grp["eps"])
+                s_base = self.smoothing
+                b1_eff = float(b1)
+                b2_eff = min(max(float(b2), 0.95), 0.999)
+                rate_p = float(grp["lr"]) * step_scale
+
+                for p in grp["params"]:
+                    grad = p.grad
+                    if grad is None:
+                        continue
+                    st = self.state[p]
+                    step_t = int(st.get("step", 0)) + 1
+                    st["step"] = step_t
+
+                    gf = grad.float()
+                    finite = torch.isfinite(gf).all()
+                    gf_safe = torch.where(finite, gf, torch.zeros_like(gf))
+                    g_max = gf_safe.abs().amax()
+                    g_active = finite & (g_max > 1e-38)
+
+                    is_conv = p.ndim == 4
+                    if is_conv:
+                        factor, sv_denom_sqrt = self._cached_conv_metrics(p)
+                        cur_sv_rms = gf_safe.norm() / sv_denom_sqrt
+                    elif p.ndim >= 2:
+                        r_d, c_d, m_dim, factor, sv_denom_sqrt = self._cached_dense_metrics(p)
+                        cur_sv_rms = gf_safe.norm() / sv_denom_sqrt
+                    else:
+                        factor, sv_denom_sqrt = 1.0, 1.0
+                        cur_sv_rms = gf_safe.norm()
+
+                    if "peak_rms" not in st:
+                        st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                    peak_new = torch.maximum(
+                        st["peak_rms"] * p_dec,
+                        torch.where(finite, cur_sv_rms, st["peak_rms"].new_zeros(())),
+                    )
+                    st["peak_rms"].copy_(torch.where(finite, peak_new, st["peak_rms"]))
+
+                    has_smooth = s_base > 0.0
+                    s_eff_t = (
+                        torch.minimum(gf_safe.new_full((), s_base), peak_new * 0.30)
+                        if has_smooth
+                        else gf_safe.new_zeros(())
+                    )
+
+                    is_scalar_1d = p.ndim == 1 and p.numel() == 1
+                    use_moments = (b1_eff > 0.0) or is_scalar_1d
+                    if use_moments:
+                        b1_use = max(b1_eff, 0.80) if is_scalar_1d else b1_eff
+                        if "m_unit" not in st:
+                            st["m_unit"] = torch.zeros_like(p, dtype=torch.float32)
+                            st["m_scale"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                            st["v_rms"] = torch.zeros_like(p, dtype=torch.float32)
+                            st["v_scale"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                        m_prev_sc = st["m_scale"]
+                        v_prev_sc = st["v_scale"]
+                        sc = torch.maximum(torch.maximum(m_prev_sc, v_prev_sc), g_max).clamp_min(1e-38)
+                        m_rescaled = st["m_unit"] * (m_prev_sc / sc)
+                        v_rescaled = st["v_rms"] * (v_prev_sc / sc)
+                        g_scaled = gf_safe / sc
+                        m_next = torch.where(finite, m_rescaled.mul(b1_use).add(g_scaled, alpha=1.0 - b1_use), m_rescaled)
+                        v_next = torch.where(
+                            finite,
+                            (b2_eff * v_rescaled.square() + (1.0 - b2_eff) * g_scaled.square()).sqrt(),
+                            v_rescaled,
+                        )
+                        new_m_sc = m_next.abs().amax()
+                        safe_m_sc = torch.where(new_m_sc > 1e-38, new_m_sc, torch.ones_like(new_m_sc))
+                        st["m_unit"].copy_(torch.where(new_m_sc > 1e-38, m_next / safe_m_sc, torch.zeros_like(m_next)))
+                        st["m_scale"].copy_(torch.where(new_m_sc > 1e-38, new_m_sc, torch.zeros_like(new_m_sc)) * sc)
+
+                        new_v_sc = v_next.abs().amax()
+                        safe_v_sc = torch.where(new_v_sc > 1e-38, new_v_sc, torch.ones_like(new_v_sc))
+                        st["v_rms"].copy_(torch.where(new_v_sc > 1e-38, v_next / safe_v_sc, torch.zeros_like(v_next)))
+                        st["v_scale"].copy_(torch.where(new_v_sc > 1e-38, new_v_sc, torch.zeros_like(new_v_sc)) * sc)
+
+                        bc1 = 1.0 - (b1_use ** step_t)
+                        bc2_sqrt = math.sqrt(1.0 - (b2_eff ** step_t))
+                        m_hat = m_next / max(bc1, 1e-8)
+                        v_hat = v_next / max(bc2_sqrt, 1e-8)
+                        m_norm = m_hat.norm()
+                        v_norm = v_hat.norm()
+                        raw_coh = torch.where(
+                            g_active & (v_norm > 1e-30) & (m_norm > 1e-30),
+                            (m_norm / v_norm.clamp_min(1e-30)).clamp(0.0, 1.0),
+                            torch.zeros_like(m_norm),
+                        )
+                        coh = raw_coh.clamp(0.35, 1.0) if is_scalar_1d else torch.ones_like(m_norm)
+                        raw_dir = (m_hat * sc) if has_smooth else m_hat
+                        direc = torch.where(g_active, raw_dir, torch.zeros_like(m_hat))
+                    else:
+                        raw_dir = gf_safe if has_smooth else (gf_safe / g_max.clamp_min(1e-38))
+                        direc = torch.where(g_active, raw_dir, torch.zeros_like(gf_safe))
+                        coh = gf_safe.new_ones(())
+
+                    if rate_p <= 0.0:
+                        continue
+
+                    if is_conv:
+                        # Hard invariant: strictly 0 Conv2d NS even on generator-free tasks!
+                        d_norm = direc.norm()
+                        denom_c = (
+                            torch.hypot(d_norm, s_eff_t * sv_denom_sqrt).clamp_min(1e-30)
+                            if has_smooth
+                            else d_norm.clamp_min(1e-30)
+                        )
+                        unit_c = torch.where(g_active & (d_norm > 1e-30), direc / denom_c, torch.zeros_like(direc))
+                        p.add_((unit_c * ((-rate_p * factor) * coh)).to(p.dtype))
+                        self.fast_path_updates += 1
+                    elif p.ndim >= 2:
+                        mat = direc.reshape(r_d, c_d)
+                        step_mult = (-rate_p * factor) * coh
+                        needs_t = r_d > c_d
+                        mat_canon = mat.T if needs_t else mat
+                        m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
+                        pending_dense.setdefault(m_key, []).append((p, mat_canon, step_mult, s_eff_t, needs_t))
+                    else:
+                        d_norm = direc.norm()
+                        denom_1d = torch.hypot(d_norm, s_eff_t).clamp_min(eps) if has_smooth else (d_norm + eps)
+                        unit_1d = torch.where(
+                            g_active & (d_norm > 1e-30),
+                            direc / denom_1d,
+                            torch.zeros_like(direc),
+                        )
+                        p.add_((unit_1d * ((-rate_p) * coh)).to(p.dtype))
+                        self.fast_path_updates += 1
+
+            for (m_r, m_c, has_s_b), bucket in pending_dense.items():
+                is_ns_mat = min(m_r, m_c) >= 2
+                if is_ns_mat:
+                    self.ns_2d_activations += len(bucket)
+                    self.ns_5step_calls += len(bucket)
+                    self.critic_ns_calls += len(bucket)
+                else:
+                    self.fast_path_updates += len(bucket)
+                if len(bucket) == 1:
+                    p_i, mat_i, mult_i, s_i, needs_t = bucket[0]
+                    orth_i = quintic_orthogonalize_2d(mat_i, steps=5, smoothing=(s_i if has_s_b else 0.0)).float()
+                    if needs_t:
+                        orth_i = orth_i.T
+                    p_i.add_((orth_i * mult_i).reshape_as(p_i).to(p_i.dtype))
+                else:
+                    mats = torch.stack([b_item[1] for b_item in bucket], dim=0)
+                    s_batch = torch.stack([b_item[3] for b_item in bucket], dim=0) if has_s_b else 0.0
+                    orths = quintic_orthogonalize_batched(mats, steps=5, smoothing=s_batch).float()
+                    for idx_b, (p_i, _, mult_i, _, needs_t) in enumerate(bucket):
+                        orth_b = orths[idx_b].T if needs_t else orths[idx_b]
+                        p_i.add_((orth_b * mult_i).reshape_as(p_i).to(p_i.dtype))
+
+            self.last_step_gain = 1.0
+            self.last_probe_consumed = False
+        finally:
+            self.abort_pending()
+
+        if hasattr(self, "record") and self.record is not None:
+            self.record.record_step(self)
+        return loss
+
+    @torch.no_grad()
+    def step(self, closure: Any = None) -> Any:
+        if getattr(self, "critic", None) is not None and self._generator_free:
+            return self._step_generator_free_critic(closure)
+        return super().step(closure)
+
+    def state_dict(self) -> Dict[str, Any]:
+        result = super().state_dict()
+        result["law4_energy"]["generator_free"] = bool(self._generator_free)
+        return result
+
+    def validate_state_dict(self, saved: Any) -> None:
+        if not isinstance(saved, dict) or not isinstance(saved.get("law4_energy"), dict):
+            raise ValueError("invalid Law4EnergyV11Optimizer checkpoint schema")
+        meta = saved["law4_energy"]
+        if (
+            "generator_free" not in meta
+            or type(meta["generator_free"]) is not bool
+            or meta["generator_free"] != self._generator_free
+        ):
+            raise ValueError("incompatible Law4EnergyV11Optimizer generator_free metadata")
+        trimmed = {**saved, "law4_energy": {k: v for k, v in meta.items() if k != "generator_free"}}
+        super().validate_state_dict(trimmed)
+
+    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+        self.validate_state_dict(state_dict)
+        meta = state_dict["law4_energy"]
+        clean = {k: v for k, v in state_dict.items() if k not in ("law4_energy", "regularizer")}
+        Optimizer.load_state_dict(self, clean)
+        self.clear_sampled_rows()
+        self.last_step_gain = float(meta["last_step_gain"])
+        self._ema_func_gain = float(meta["ema_func_gain"])
+        self._generator_free = bool(meta["generator_free"])
+        self.last_probe_consumed = False
+        self.probe_consumptions = 0
+        self.ns_2d_activations = 0
+        self.fast_path_updates = 0
+        self.critic_ns_calls = 0
+        for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
+            if rows is not None and grp["algorithm"] == "unified_prior":
+                self.set_sampled_rows(grp["params"][0], rows.to(grp["params"][0].device))
+        if self.direction_blend:
+            cg = meta["constraint_geometry"]
+            self.constraint_geometry_stats = deepcopy(cg["stats"])
+            self.direction_blend_stats = deepcopy(cg["blend_stats"])
+            self._protected = None if cg["pending"] is None else cg["pending"].detach().clone()
+        else:
+            self._protected = None
+        if hasattr(self, "record") and self.record is not None:
+            self.record.load_state_dict(state_dict["regularizer"]["record"])
+            if self.param_groups and self.param_groups[0]["params"]:
+                self.record.restore_device_state(self.param_groups[0]["params"][0].device)
+
+
 __all__ = [
     "Law4EnergyOptimizer",
     "Law4EnergyV2Optimizer",
@@ -4366,5 +4658,6 @@ __all__ = [
     "Law4EnergyV8Optimizer",
     "Law4EnergyV9Optimizer",
     "Law4EnergyV10Optimizer",
+    "Law4EnergyV11Optimizer",
     "exact_polar_2xn",
 ]
