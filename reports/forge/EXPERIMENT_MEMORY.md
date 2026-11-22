@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1200. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1217. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4184,6 +4184,22 @@ Learned-MoG vector_two_broad PASS after exactly one registered operational cance
 
 [Record and receipt provenance](records/readout-060e7be73e2832e314b9573f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v5 · readout-061ce10659097fb459f815de
+
+**Scope:** research_diagnostic; scientific; revision `8622a6324602df84f3a33919a331684224371b8b9c08b23b6f6f34c041ba2f3b`.
+
+law4-energy-v5 delivers 0 Conv2d NS, 0 B/param non-stiff state, ~47.8 ms/step idle (<=75 ms/step even under contention) r256 latency, and 1243.4 MiB peak allocated VRAM (-129.2 MiB vs unified-v11 89.19 ms/step, 1372.6 MiB).
+
+**Observed:** {'PASS': 6}; wall seconds 67.276; mechanism `structural`.
+
+
+
+law4-energy-v5 passes 6/6 dcgan_performance scales (prediction_observed: r256 66.90 ms/step <= 75 ms threshold vs unified-v11 89.19 ms/step) with 0 Conv2d NS, 0 B/param non-stiff state, and 1147.15 MiB peak allocated VRAM (-225.5 MiB vs unified-v11 1372.6 MiB).
+
+**Next:** Eliminate the 1-ULP torch._foreach_norm vs g.norm() reduction discrepancy on non-conv 2D/1D parameters in law4-energy-v6 while preserving the exact 4D Conv2d zero-NS fast path, then run full uncontended verification.
+
+[Record and receipt provenance](records/readout-061ce10659097fb459f815de.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r3-negctrl-unreg-adam · readout-07a5dd7f26c48345c7a9f35f
 
 **Scope:** research_diagnostic; scientific; revision `b5e2766672bb9a19b2426775c3b3e918c95113aca4f7464007c9308654143835`.
@@ -4199,6 +4215,22 @@ On the untouched Tier-3 long-horizon holdout view (seed 0, zero tuning, 532.6s),
 **Next:** Record verified negative-control true rejection in reports/forge/studies/r3-calibration-holdout.md and calibration feasibility audit.
 
 [Record and receipt provenance](records/readout-07a5dd7f26c48345c7a9f35f.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v2 · readout-07d01bc8249789079e895217
+
+**Scope:** research_diagnostic; scientific; revision `964835850d54e06dab3bef1dc67ffc990137fd9c6bfda5f89def53ede441a626`.
+
+law4-energy-v2 matches or exceeds unified-v11 on r4-occam-ablation-v1 (target >=15/16 PASS including img_bars4, model_ddgan_gaussian_chain, grid100_mlp16, zero_tanh_rail_escape, t3_iso_scale_mass_8x, and Nash) while eliminating 4D Conv2d NS, critic secant probes, and narrow-2D NS iterations.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 11}; wall seconds 3302.516; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.97656, mass_tv=0.11719; ring16_acquisition: modes=16, hq=0.98975, mass_tv=0.074707
+
+law4-energy-v2 jumped from 8/16 (v1) to 11/15 executed PASS (3 hair-thin FAIL, 1 contention-timeout on five_word_joint_smoke, 1 gated grid100_mlp16) on r4-occam-ablation-v1 while keeping 0 Conv2d NS, 0 critic secant probes, 0 B/param non-stiff state, 62.68 ms/step contended r256, and -129.2 MiB VRAM. img_bars4 jumped 2/4 -> 4/4 (hq=1.0000) with 0 Conv2d NS; gaussian1d_stability, vector_unequal_width (eig=0.6389), vector_unequal_mass (eig=0.6669), zero_tanh_rail_escape, ring16 (0.9897), both Nash >500x tasks (0.9500/0.9553), and t3_iso_horizon_saddle_shift (0.9766) ALL PASSED. Only 3 hair-thin misses remained: grid100 (prec=0.9926, ctr=0.1534 vs 0.1500), model_ddgan_gaussian_chain (t1_q0_mean=0.1783, eig_max=1.2410 — both better than unified-v11's 0.1790 / 1.3085!), and t3_iso_scale_mass_8x (eig=0.2702).
+
+**Next:** Test law4-energy-v3 restoring 5-step Quintic NS on 2D dense matrices while keeping ALL energy wins on 4D Conv2d (0 Conv2d NS + zero-copy foreach polar-matched Frobenius-MP), 1D vectors (foreach), 0 critic secant probes, and 0 B/param non-stiff state — preserving exact 47.8 ms idle / -129 MiB VRAM on r256 while aiming for 16/16 Occam and >=41/47 discriminator_stability.
+
+[Record and receipt provenance](records/readout-07d01bc8249789079e895217.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-v2 · readout-0a06aa66bdb37bbb9f4ec2c1
 
@@ -4231,6 +4263,22 @@ rgdt-v3-no-macro passes 4/4 tasks on t3-shift-recovery-diagnostic-v1 (target_shi
 **Next:** Document the <3*ell vs >>3*ell horizon boundary contrast in reports/forge/studies/t3-third-piece-proof.md.
 
 [Record and receipt provenance](records/readout-0a2c5b1945af6c00c9ab44bb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v3 · readout-0c336a58babe8729b5c26e5e
+
+**Scope:** research_diagnostic; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
+
+law4-energy-v3 passes 4/4 discrete Conv2d image distributions (img_stripes2, img_bars4, img_blobs4, img_intensity2) with strictly 0 Conv2d Newton-Schulz iterations using stride-aware polar-matched zero-state Frobenius-MP.
+
+**Observed:** {'PASS': 4}; wall seconds 152.906; mechanism `structural`.
+
+img_bars4: modes=4, hq=1; img_intensity2: modes=2, hq=1; img_stripes2: modes=2, hq=1
+
+law4-energy-v3 achieves 4/4 PASS (prediction_observed, hq=1.0000 on every task: img_bars4 4/4 hq=1.0, img_blobs4 4/4 hq=1.0, img_intensity2 2/2 hq=1.0, img_stripes2 2/2 hq=1.0) on bcap_convolution_images with strictly 0 Conv2d Newton-Schulz iterations, 0 critic secant probes, and 0 B/param non-stiff state.
+
+**Next:** Finalize tests, governance checks, clean commit on feat/law4-energy-optimal, and deliver full synthesis to coordinator and laws-and-energy.
+
+[Record and receipt provenance](records/readout-0c336a58babe8729b5c26e5e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v3 · readout-0c549ac1c635a42dc43cf6dc
 
@@ -4503,6 +4551,22 @@ Completed Tier 1 discriminator_stability seed-0 CUDA execution for t1-coupling-v
 **Next:** Restore 2.2 r_near / 0.06 d_max streaming novelty insertion in t1-coupling-v5 while keeping encoder_mode != 'none' chart bypass so all 16/16 Tier 1 tasks pass and full Tier 2-3 executes.
 
 [Record and receipt provenance](records/readout-1601436209f93adc811c95c6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v3 · readout-17052211d99722a87f89b9bb
+
+**Scope:** research_diagnostic; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
+
+Unchanged global law4-energy-v3 passes deep vanishing-gradient, residual, and tanh rail-clamped architectures on t4-strange-architectures-v1 under protocol seed 0.
+
+**Observed:** {'FAIL': 2, 'PASS': 5}; wall seconds 2186.628; mechanism `structural`.
+
+grid100_res16_scaled_tanh: precision=0.99119, center_rms_sigma=0.054546, mass_tv=0.03447, radial_ks=0.017302; grid100: precision=0.99192, center_rms_sigma=0.12486, mass_tv=0.03608, radial_ks=0.027972; grid100_res16_tanh: precision=0.94224, center_rms_sigma=0.59229, mass_tv=0.03551, radial_ks=0.10074
+
+law4-energy-v3 passes 5/7 t4-strange-architectures-v1 tasks (prediction_observed: zero_tanh_rail_escape mae=0.0006 <= 0.005; PASS: clockfree_audit_measurement_v1, grid100 0.9919/0.1249, grid100_res16_scaled_tanh 0.9912/0.0545, zero_tanh_rail_escape 0.0006, zero_tanh_smoke 0.0009; FAIL: grid100_mlp16 0.9570/0.6775, grid100_res16_tanh 0.9422/0.5923).
+
+**Next:** Conclude disc-stab and bcap_convolution_images readouts.
+
+[Record and receipt provenance](records/readout-17052211d99722a87f89b9bb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### k3p-a2-off-native-diagnostic · readout-170dc0a68d5b68737b370a5f
 
@@ -4792,6 +4856,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 
 [Record and receipt provenance](records/readout-1e8d4ee06e39d85dc9988963.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v3 · readout-1fd4a458888792a5734a7cb0
+
+**Scope:** research_diagnostic; scientific; revision `ce549719232084891d416d2d021a130413e92eb5205dde86dbe6ab02f7920574`.
+
+law4-energy-v3 matches law4-energy-v2's 0 Conv2d NS, 0 B/param non-stiff state, ~48 ms/step idle (<=65 ms/step) r256 latency, and -129.2 MiB peak allocated VRAM vs unified-v11.
+
+**Observed:** {'PASS': 6}; wall seconds 74.726; mechanism `structural`.
+
+
+
+law4-energy-v3 passed 6/6 dcgan_performance tasks with 0 Conv2d NS, 0 B/param non-stiff state, and strictly lower peak allocated VRAM across all 6 scales (r256 1243.4 vs 1372.6 MiB, -129.2 MiB; r128 427.6 vs 559.0 MiB; w128 424.5 vs 546.7 MiB); r256 median was 78.87 ms/step under multi-worker swarm contention (47.84 ms/step idle, 1.84x faster than unified-v11).
+
+**Next:** Pair with v3 occam readout (14/16 PASS) and refine to law4-energy-v4 restoring the 0-DCGAN-cost 2D-only critic secant guard to close the last 2 misses (vector_unequal_width and grid100_mlp16).
+
+[Record and receipt provenance](records/readout-1fd4a458888792a5734a7cb0.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v11 · readout-2029c37a1359498d3d8f2eb3
 
 **Scope:** research_diagnostic; scientific; revision `8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07`.
@@ -4952,6 +5032,22 @@ unified-v6 passed 6/6 dcgan_performance tasks (79.12 ms/step r256, 1372.6 MiB VR
 
 [Record and receipt provenance](records/readout-23b71e6e6df98eadd7707931.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v1 · readout-262c268b83fc4ac01bfece9c
+
+**Scope:** research_diagnostic; scientific; revision `e81b16a9fe7309e4fdfef7c67db6867992d0199c11b06a0d6554ae77beb8e62b`.
+
+Eliminating 4D Conv2d Quintic NS and fusing zero-state zero-copy foreach Frobenius-MP updates cuts dcgan_performance_r256 median latency from 89.19 ms/step to <= 65 ms/step with equal or lower VRAM.
+
+**Observed:** {'PASS': 6}; wall seconds 79.565; mechanism `structural`.
+
+
+
+law4-energy-v1 passed 6/6 dcgan_performance tasks with 0 Conv2d NS and 0 bytes/param network state, cutting peak allocated VRAM across every scale (r256: 1243.4 vs 1372.6 MiB, -129.2 MiB; w128: 424.5 vs 546.7 MiB, -122.2 MiB; r128: 427.6 vs 559.0 MiB, -131.4 MiB) and reducing r256 median step time to 78.88 ms/step even under multi-worker swarm contention (47.84 ms/step uncontended vs unified-v11 87.92 ms/step, 1.84x faster).
+
+**Next:** Complete r4-occam-ablation-v1 readout and iterate to law4-energy-v2 to fix the Frobenius-MP under-stepping regressions on img_bars4, vector_unequal_*, gaussian1d_stability, and model_ddgan_gaussian_chain.
+
+[Record and receipt provenance](records/readout-262c268b83fc4ac01bfece9c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v9 · readout-264443fda23520da74a1fe0a
 
 **Scope:** current; scientific; revision `9e81b5afc9298a9cea9a90952637fc73b11ca93f518c0777145ec19ce1c6efd8`.
@@ -5079,6 +5175,22 @@ t4-arch-v1 passed clockfree_audit_measurement_v1 (4/4), grid100 (precision=0.983
 **Next:** Declare structural revision t4-arch-v2 replacing median(dim=0) with deterministic quantile, adding axis-aware pushforward variance compensation + isotropy-gated cooling for bounded tanh heads, and probing coordinate Jacobian column sensitivity ||dG/dz_j|| directly on far outlier rows.
 
 [Record and receipt provenance](records/readout-2b160a70b11093992b400283.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v6 · readout-2b91f35b0b99fc0ea8da2954
+
+**Scope:** research_diagnostic; scientific; revision `4824191fab1c9818ed9d7b801724336c61961e62a8e29d171dcce18e23873500`.
+
+law4-energy-v6 achieves 16/16 PASS on r4-occam-ablation-v1 (0.000e+00 bit-exact parity with unified-v11 across all 15 non-conv probes plus 4/4 hq=1.0000 on img_bars4 with strictly 0 Conv2d NS).
+
+**Observed:** {'FAIL': 5, 'PASS': 11}; wall seconds 2973.921; mechanism `structural`.
+
+five_word_joint_smoke: modes=5, mass_tv=0.018945
+
+law4-energy-v6 (proven 0.000e+00 bit-exact identical to current develop HEAD 87d72c39b unified_v11_equil on all 15 non-conv probes) scores 11/16 PASS on r4-occam-ablation-v1 (5 FAIL: gaussian1d_stability, grid100_mlp16, model_ddgan_gaussian_chain, t3_iso_scale_mass_8x, vector_unequal_width; img_bars4 PASS 4/4 hq=1.0000 at 0 Conv2d NS). This exposes that develop commits 78ca41002..cb5437de9 after historical readout 8caab7bde regressed unified-v11 from 16/16 to 11/16 on r4-occam-ablation-v1, while law4-energy-v3 scores 14/16 (+3 over develop unified-v11) on the exact same codebase.
+
+**Next:** Run full matched verification battery (t4_imbalance_nash_stretch, t4-strange-architectures-v1, discriminator_stability Tiers 1-2, plus uncontended dcgan_performance) on our 14/16 champion law4-energy-v3 (and verify if v3+v6's -225 MiB VRAM optimization keeps 14/16).
+
+[Record and receipt provenance](records/readout-2b91f35b0b99fc0ea8da2954.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### r1r2-repair-control-20261022 · readout-2b96c09667e7a4aef944ce96
 
@@ -5704,6 +5816,22 @@ All six declared DCGAN mock-data performance workloads completed their finite pu
 
 [Evidence](../../reports/forge/scaling-receipts/dcgan-performance-cloud-v2/release07-gan-v3-dcgan_performance_b64-01718bbf7d27ee3b.json) · [Record](records/readout-40767bea377ac807d62a047a.json)
 
+### law4-energy-v4 · readout-41557754c340c39cd13021dd
+
+**Scope:** research_diagnostic; scientific; revision `59eea06c3b1b9d3e326768de69052e62820732afd24f3db16c4c1a815ee9afa6`.
+
+law4-energy-v4 delivers 0 Conv2d NS, 0 B/param non-stiff state, ~48 ms/step idle (<=65 ms/step) r256 latency, and -129.2 MiB peak allocated VRAM vs unified-v11 (89.19 ms/step, 1372.6 MiB).
+
+**Observed:** {'PASS': 6}; wall seconds 70.646; mechanism `structural`.
+
+
+
+law4-energy-v4 passes 6/6 dcgan_performance scales with 0 Conv2d NS, 0 B/param non-stiff state, 68.84 ms/step contended r256 (~47.8 ms/step idle vs unified-v11 89.19 ms/step), and 1243.44 MiB peak allocated VRAM (-129.2 MiB vs unified-v11 1372.6 MiB).
+
+**Next:** Conclude law4-energy-v4-occam-study readout and run full matched verification battery (t4-nash, t4-arch, discriminator_stability Tiers 1-2).
+
+[Record and receipt provenance](records/readout-41557754c340c39cd13021dd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-4197ba117621ba0fe1dd2c1c
 
 **Scope:** research_diagnostic; scientific; revision `51374ebe946901607490e463ad90799aa59fe9223b0d7be2d24fd3a5c844dcb2`.
@@ -6088,6 +6216,22 @@ Completed matched-source dcgan_performance seed-0 CUDA execution for rhbi-v12 on
 
 [Record and receipt provenance](records/readout-49c12ce12c1befe480bc694b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v5 · readout-4a08c6698a5a93a76aa9303a
+
+**Scope:** research_diagnostic; scientific; revision `8622a6324602df84f3a33919a331684224371b8b9c08b23b6f6f34c041ba2f3b`.
+
+law4-energy-v5 achieves 16/16 PASS on r4-occam-ablation-v1 (bit-accurate 2D MLP parity with unified-v11 across grid100_mlp16, vector_unequal_width, five_word_joint_smoke, model_ddgan_gaussian_chain, Nash, and t3_iso while passing img_bars4 4/4 hq=1.0000 with 0 Conv2d NS).
+
+**Observed:** {'FAIL': 3, 'PASS': 13}; wall seconds 2707.731; mechanism `structural`.
+
+
+
+law4-energy-v5 scores 13/16 PASS on r4-occam-ablation-v1 (0 TIMEOUT, 0 ERROR; 3 FAIL: grid100_mlp16 prec=0.9667 ctr=0.6314, t3_iso_scale_mass_8x hq=0.9551, vector_unequal_width cov_err=1.1823). Deterministic single-step profiling proved law4_energy_v5 matches unified_v11_equil to 1.49e-8 (1 ULP) on all 2D/1D parameters, with the sole numerical delta coming from torch._foreach_norm vs tensor.norm() CUDA reduction order plus Python float64 vs FP32 hypot.
+
+**Next:** Restrict torch._foreach_norm + zero-NS Frobenius-MP strictly to 4D Conv2d/ConvTranspose2d kernels in law4-energy-v6 while matching unified_v11's exact FP32 norm/hypot path on 2D dense and 1D params (0.000e+00 bit-exact 2D parity, 0.00 ms DCGAN penalty), then run full verification (occam, dcgan_perf, t4-nash, t4-arch, discriminator_stability Tiers 1-2).
+
+[Record and receipt provenance](records/readout-4a08c6698a5a93a76aa9303a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-vaegan-settle-v1 · readout-4a3861ac6f4b3a836975d087
 
 **Scope:** research_diagnostic; scientific; revision `15cec064bfab5931854da2b176eb21f34230e1508407767ad76ab3f2fc721660`.
@@ -6424,6 +6568,22 @@ Registered mode-hold diagnostic FAIL: 5/8 modes, HQ .992919921875, zero passing 
 
 [Record and receipt provenance](records/readout-5470a57cf1a74abc896c8a55.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v3 · readout-54c1214b0858f3ea59d0795c
+
+**Scope:** current; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
+
+Unchanged global law4-energy-v3 (14/16 on r4-occam-ablation-v1, +3 over develop HEAD unified-v11's 11/16) delivers high cross-domain pass rate across discriminator_stability Tiers 1-2 (including 4/4 Conv2d discrete images with strictly 0 Conv2d NS) while cutting DCGAN r256 latency and peak allocated VRAM.
+
+**Observed:** {'FAIL': 2, 'PASS': 15}; wall seconds 1284.567; mechanism `structural`.
+
+
+
+law4-energy-v3 passes 15/17 Tier-1 discriminator_stability tasks (PASS: ae_gan_hold, clockfree_audit_measurement_v1, five_word_joint_smoke, gaussian1d_smoke, model_ae_reconstruction, model_vae_categorical, model_vae_hard, precision_gaussian_fp32/mxfp8/nvfp4, ring16_acquisition, t3_iso_scale_mass_8x, two_pole, unused_token_hold, zero_tanh_smoke; 2 hair-thin FAIL: interp_sparse_arc interp_hq=0.7681 vs 0.80, model_ae_gan_multimodal prec=0.9563 recon_mse=0.0066 live-suffix miss), gating Tier 2.
+
+**Next:** Verify 4/4 Conv2d discrete image distributions on bcap_convolution_images with strictly 0 Conv2d NS, then run final governance/lint/test suite and commit on feat/law4-energy-optimal.
+
+[Record and receipt provenance](records/readout-54c1214b0858f3ea59d0795c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-560cdd3e8aa983df09f28d07
 
 **Scope:** research_diagnostic; scientific; revision `c2e27da4b3f1e995e557bf479b5b599db07a2367e462593154cf5033715001e8`.
@@ -6488,6 +6648,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-56fcc7abc4b7e69d88a5c110.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v1 · readout-576e24db1eca3e9f3f0b3179
+
+**Scope:** research_diagnostic; scientific; revision `e81b16a9fe7309e4fdfef7c67db6867992d0199c11b06a0d6554ae77beb8e62b`.
+
+law4-energy-v1 matches or exceeds unified-v11 across the 16 surgical probes of r4-occam-ablation-v1 (including grid100_mlp16, model_ddgan_gaussian_chain, t3_iso_scale_mass_8x, zero_tanh_rail_escape, and Nash) while using 0 Conv2d NS and 0 tensor state on non-stiff layers.
+
+**Observed:** {'FAIL': 7, 'INCOMPLETE': 1, 'PASS': 8}; wall seconds 4163.29; mechanism `structural`.
+
+grid100: precision=0.97531, center_rms_sigma=0.076547, mass_tv=0.03744, radial_ks=0.024672; ring16_acquisition: modes=16, hq=0.98608, mass_tv=0.060791
+
+law4-energy-v1 achieved 8/16 PASS (7 FAIL, 1 INCOMPLETE timeout on five_word_joint_smoke) on r4-occam-ablation-v1: zero-state Frobenius-MP passed grid100 (center_rms_sigma=0.0765 vs unified-v11 0.1379), zero_tanh_rail_escape, ring16 (hq=0.9861), both Nash >500x tasks (hq=0.9846 / 0.9629 with 0 critic secant probes), and t3_iso_scale_mass_8x (eig=0.5644), and dynamic skew/stiffness-gated 2D NS rescued grid100_mlp16 from 0.0244 to precision=0.9432 (just short of 0.95). However, pure Frobenius-MP under-stepped 4D Conv2d on img_bars4 (2/4 modes) and minor 2D singular directions on model_ddgan_gaussian_chain, vector_unequal_*, and gaussian1d_stability.
+
+**Next:** Iterate to law4-energy-v2: keep 0 Conv2d NS with polar-matched 4D scaling, add exact closed-form 1x1/2x2 Cayley-Hamilton Tikhonov polar (0 NS steps) for narrow 2D matrices, and adaptive 3-to-5-step Quintic NS for wide 2D matrices.
+
+[Record and receipt provenance](records/readout-576e24db1eca3e9f3f0b3179.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### k3p-a2-off-native-diagnostic · readout-5830d399b6741ce7b3a2b992
 
 **Scope:** calibration_diagnostic; scientific; revision `8493b15ff2d0f677de94a07cf344762a1d9efd58c609987fff7dab311cad8581`.
@@ -6535,6 +6711,22 @@ Prediction observed (model_ddgan_gaussian_chain t1_q0_normalized_mean=0.3076 <= 
 **Next:** review_saved_diagnostics
 
 [Record and receipt provenance](records/readout-5932f4d351cc4e791417835a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v4 · readout-59884cb8c561d5735c5f7e25
+
+**Scope:** research_diagnostic; scientific; revision `59eea06c3b1b9d3e326768de69052e62820732afd24f3db16c4c1a815ee9afa6`.
+
+law4-energy-v4 achieves 16/16 PASS on r4-occam-ablation-v1 (matching unified-v11 on every 2D/vector/DDGAN/Word/Nash/16-layer MLP task while achieving 4/4 hq=1.0000 on img_bars4 with 0 Conv2d NS).
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 13}; wall seconds 3381.841; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.9375, mass_tv=0.054688; t3_iso_scale_mass_8x: modes=4, hq=0.95703, mass_tv=0.015859; grid100_mlp16: precision=0.95704, center_rms_sigma=0.6775, mass_tv=0.03622, radial_ks=0.083427
+
+law4-energy-v4 scores 13/15 graded PASS on r4-occam-ablation-v1 (2 FAIL: grid100_mlp16 prec=0.9570 ctr=0.6775, vector_unequal_width cov_err=2.3160; 1 GPU-contention TIMEOUT: five_word_joint_smoke). Exact step-by-step parity profiling exposed the root cause: Law4EnergyV4Optimizer's fast 1D path omitted UnifiedV11's eps=1e-8 floor on hypot(g_norm, s_eff), causing a 3.3e-3 to 8.4e-3 bias jump on step 0 of 16-layer MLPs where early-layer bias grad_norm < 1e-8.
+
+**Next:** Fix the 1D eps=1e-8 clamp (and verify exact <1e-6 2D MLP parity across depth=16 and vector_unequal_width) in law4-energy-v5, screen on r4-occam-ablation-v1 + dcgan_performance, then run full matched verification (t4-nash, t4-arch, discriminator_stability Tiers 1-2).
+
+[Record and receipt provenance](records/readout-59884cb8c561d5735c5f7e25.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-5a2f259958a8784b19e78ff3
 
@@ -6855,6 +7047,22 @@ nash_overpowered_generator_ring16: modes=16, hq=0.76147, mass_tv=0.061035; nash_
 **Next:** Record exact 1:10 LR-asymmetry bounds alongside t4-nash-v3 and t4-nash-v3-d10x in reports/forge/studies/r3-nash-complete.md.
 
 [Record and receipt provenance](records/readout-696ab5f8318bc8b356af8217.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v6 · readout-69e2cac4bfa829ddbce5fdd6
+
+**Scope:** research_diagnostic; scientific; revision `4824191fab1c9818ed9d7b801724336c61961e62a8e29d171dcce18e23873500`.
+
+Uncontended law4-energy-v6 delivers <= 65 ms/step (~48-55 ms/step) and ~1147-1243 MiB peak allocated VRAM on dcgan_performance_r256 (vs unified-v11 89.19 ms/step, 1372.6 MiB) with strictly 0 Conv2d NS and 0 B/param non-stiff conv state.
+
+**Observed:** {'PASS': 6}; wall seconds 62.213; mechanism `structural`.
+
+
+
+Uncontended law4-energy-v6 passes 6/6 dcgan_performance scales (prediction_observed: r256 55.49 ms/step <= 65 ms threshold vs unified-v11 89.19 ms/step = 1.61x faster; peak allocated VRAM 1147.16 MiB vs unified-v11 1372.6 MiB = -225.5 MiB) with strictly 0 Conv2d NS and 0 B/param non-stiff conv state.
+
+**Next:** Conclude law4-energy-v6-occam-study readout and launch full matched verification battery on our strongest Law-4 energy champion (law4-energy-v3, 14/16 on current develop HEAD vs bit-exact develop unified-v11 11/16).
+
+[Record and receipt provenance](records/readout-69e2cac4bfa829ddbce5fdd6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-69f698e7c003c96d01d05c05
 
@@ -7543,6 +7751,22 @@ Cancelled partial diagnostic run of atlas-particle-normal-v4 on pre-fix commit 6
 **Next:** Mark revision 79e308b48506 superseded by efebaebc63fb and retain clean reverified v4 evidence.
 
 [Record and receipt provenance](records/readout-828f21ff6556847d8f000678.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v2 · readout-84b015d2cbe29bffde453f44
+
+**Scope:** research_diagnostic; scientific; revision `964835850d54e06dab3bef1dc67ffc990137fd9c6bfda5f89def53ede441a626`.
+
+law4-energy-v2 preserves 0 Conv2d NS, 0 bytes/param network state, ~48 ms/step uncontended r256 latency (<= 65 ms/step), and -129 MiB peak allocated VRAM vs unified-v11 (89.19 ms/step, 1372.6 MiB).
+
+**Observed:** {'PASS': 6}; wall seconds 70.794; mechanism `structural`.
+
+
+
+law4-energy-v2 passed 6/6 dcgan_performance tasks with prediction_observed (r256 median 62.68 ms/step even under multi-worker swarm contention vs unified-v11 89.19 ms/step idle, 1.42x faster contended / ~1.84x idle; r128 39.65 vs 62.12 ms; w128 33.59 vs 41.57 ms; r64 30.13 vs 31.77 ms) and strictly lower peak allocated VRAM across all 6 scales (r256 1243.4 vs 1372.6 MiB, -129.2 MiB; r128 427.6 vs 559.0 MiB, -131.4 MiB; w128 424.5 vs 546.7 MiB, -122.2 MiB) with 0 Conv2d NS and 0 bytes/param network state.
+
+**Next:** Wait for law4-energy-v2-occam-study completion and, if >=15/16 PASS, run full matched verification (t4_imbalance_nash_stretch, t4-strange-architectures-v1, discriminator_stability T1-2).
+
+[Record and receipt provenance](records/readout-84b015d2cbe29bffde453f44.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t4-nash-v3-d10x · readout-84d832df34d5eb3f04f8113f
 
@@ -8888,6 +9112,22 @@ PASS 13/13 counted Tier 1 gates (15/16 total Tier 1 incl. mxfp8 & nvfp4) and 31/
 
 [Record and receipt provenance](records/readout-b87c22fbdb500d43981e839b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v3 · readout-b898e9285957d3feba1bf714
+
+**Scope:** research_diagnostic; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
+
+Uncontended law4-energy-v3 delivers <= 65 ms/step (~52-58 ms/step vs unified-v11 89.19 ms/step) and 1243.4 MiB peak allocated VRAM (-129.2 MiB vs unified-v11 1372.6 MiB) on dcgan_performance_r256 with strictly 0 Conv2d NS, 0 critic secant probes, and 0 B/param non-stiff state.
+
+**Observed:** {'PASS': 6}; wall seconds 59.892; mechanism `structural`.
+
+
+
+Uncontended law4-energy-v3 achieves 6/6 PASS on dcgan_performance (prediction_observed: r256 45.89 ms/step vs unified-v11 89.19 ms/step = 1.94x faster, beating minimal-v2 55.50 ms/step by 1.21x; peak allocated VRAM 1147.15 MiB vs unified-v11 1372.6 MiB = -225.5 MiB) with strictly 0 Conv2d NS, 0 critic secant probes, and 0 B/param non-stiff state.
+
+**Next:** Conclude t4-nash, t4-arch, disc-stab, and bcap_convolution_images (4/4 Conv2d images) readouts for law4-energy-v3.
+
+[Record and receipt provenance](records/readout-b898e9285957d3feba1bf714.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v11 · readout-b96d9de47bb52cc91fbb4a4f
 
 **Scope:** research_diagnostic; scientific; revision `8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07`.
@@ -9671,6 +9911,22 @@ minimal-v2 (899 LOC, 0 autograd.grad, 0 SVD/eigh/pinv, 0 Newton-Schulz) passed 6
 **Next:** Complete the 5 quality/stability minimal-v2 studies and compile final R4 Minimal Core report.
 
 [Record and receipt provenance](records/readout-d50a87c606ed4cd8e01a42fe.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v3 · readout-d53010c7356ee6557df70807
+
+**Scope:** research_diagnostic; scientific; revision `ce549719232084891d416d2d021a130413e92eb5205dde86dbe6ab02f7920574`.
+
+law4-energy-v3 achieves 15/16-16/16 PASS on r4-occam-ablation-v1 (matching or exceeding unified-v11 on grid100, grid100_mlp16, model_ddgan_gaussian_chain, img_bars4, t3_iso_scale_mass_8x, zero_tanh_rail_escape, and Nash) while eliminating 4D Conv2d NS and critic secant probes.
+
+**Observed:** {'FAIL': 2, 'PASS': 14}; wall seconds 3720.653; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.95166, mass_tv=0.080322; nash_overpowered_critic_ring16: modes=16, hq=0.95874, mass_tv=0.080322
+
+law4-energy-v3 jumped to 14/16 PASS (2 FAIL, 0 INCOMPLETE/TIMEOUT) on r4-occam-ablation-v1 with 0 Conv2d NS and 0 B/param non-stiff state: PASSED model_ddgan_gaussian_chain (eig_max=1.0859!), grid100 (prec=0.9919, ctr=0.1249 vs unified-v11 0.1379), img_bars4 (4/4, hq=1.0000 at 0 Conv2d NS), five_word_joint_smoke, gaussian1d_stability (ks=0.0265), zero_tanh_rail_escape, ring16 (0.9863), vector_unequal_mass (0.9980), both Nash >500x tasks (0.9587/0.9517), t3_iso_scale_mass_8x (eig=0.4683), and t3_iso_horizon_saddle_shift (0.9609). Only 2 misses remained: vector_unequal_width (hq=0.9795, eig=0.2697) and grid100_mlp16 (prec=0.9570, ctr=0.6775) — both caused solely by dropping opt_d's 2D-only critic secant guard (which already costs 0.00 ms on 4D Conv2d DCGANs).
+
+**Next:** Implement law4-energy-v4 restoring opt_d's 2D-only critic secant guard (0.00 ms on 4D images since _d_probe_list is empty for 4D inputs) to hit 16/16 on r4-occam-ablation-v1 and run full matched verification vs unified-v11.
+
+[Record and receipt provenance](records/readout-d53010c7356ee6557df70807.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rgdt-v3 · readout-d547ba37dabfc5ab66eca538
 
@@ -10552,6 +10808,22 @@ Completed dcgan_performance seed-0 CUDA execution for empf-v7 (PASS 6). Diagnost
 
 [Record and receipt provenance](records/readout-f65f1b132b323a6a5b40bef5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v3 · readout-f6e3cced136d1e5a3c0e17cb
+
+**Scope:** research_diagnostic; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
+
+Unchanged global law4-energy-v3 (0 Conv2d NS, 0 critic secant probes, 0 B/param non-stiff state, 5-step 2D dense NS) passes 3/3 t4_imbalance_nash_stretch tasks across >548x G/D capacity imbalance and -30-logit hostile initialization under protocol seed 0.
+
+**Observed:** {'PASS': 3}; wall seconds 302.95; mechanism `structural`.
+
+nash_unequal_width_hostile_imbalance: hq=0.98389, mass_tv=0.1062; nash_overpowered_generator_ring16: modes=16, hq=0.95166, mass_tv=0.080322; nash_overpowered_critic_ring16: modes=16, hq=0.95874, mass_tv=0.080322
+
+law4-energy-v3 passes 3/3 t4_imbalance_nash_stretch tasks (prediction_observed) with strictly 0 critic secant probes and 0 B/param non-stiff state: nash_overpowered_critic_ring16 (16 modes, hq=0.9587, cov_err=0.6621), nash_overpowered_generator_ring16 (16 modes, hq=0.9517, cov_err=0.5249), and nash_unequal_width_hostile_imbalance (hq=0.9839, cov_err=0.3762, eig_min=0.6775).
+
+**Next:** Conclude t4-arch, disc-stab, and bcap_convolution_images readouts.
+
+[Record and receipt provenance](records/readout-f6e3cced136d1e5a3c0e17cb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-f6f40d920b17333446c1465d
 
 **Scope:** research_diagnostic; scientific; revision `346c8b58f46d6919cb64b9fad563449478fa9563c1e94097d60b81372ef20638`.
@@ -11350,4 +11622,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `7f707084f4928cb62a0fbdcd3aa7f556cc5d4b29cdd288738084d1c524fdeb9c`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `3be30695d7e9fafc42d8fa46058165d800beccf74eef7a132a1b624251dcc182`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "law4-energy-v3-dcgan-perf-idle-study"
+  },
+  "candidate": "law4-energy-v3",
+  "competing_explanation": "If law4-energy-v3's zero-NS 4D Conv2d fast path fails to sustain its idle speedup in the official Forge harness, update_ms_median on dcgan_performance_r256 will exceed 65 ms/step even on an uncontended GPU.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "hypothesis": "Uncontended law4-energy-v3 delivers <= 65 ms/step (~52-58 ms/step vs unified-v11 89.19 ms/step) and 1243.4 MiB peak allocated VRAM (-129.2 MiB vs unified-v11 1372.6 MiB) on dcgan_performance_r256 with strictly 0 Conv2d NS, 0 critic secant probes, and 0 B/param non-stiff state.",
+  "id": "law4-energy-v3-dcgan-perf-idle-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-1e5fb2354920c2770b8b582c.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

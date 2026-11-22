@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-energy-v6-occam-study"
+  },
+  "candidate": "law4-energy-v6",
+  "competing_explanation": "If 0 Conv2d NS degrades img_bars4 or any regime of r4-occam-ablation-v1, law4-energy-v6 will score below 16/16.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "hypothesis": "law4-energy-v6 achieves 16/16 PASS on r4-occam-ablation-v1 (0.000e+00 bit-exact parity with unified-v11 across all 15 non-conv probes plus 4/4 hq=1.0000 on img_bars4 with strictly 0 Conv2d NS).",
+  "id": "law4-energy-v6-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

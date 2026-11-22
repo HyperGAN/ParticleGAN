@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "law4-energy-v4-dcgan-perf-study"
+  },
+  "candidate": "law4-energy-v4",
+  "competing_explanation": "If restoring the 2D-only critic secant probe adds overhead on 4D Conv2d DCGAN training, law4-energy-v4 will exceed 65 ms/step on dcgan_performance_r256.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "hypothesis": "law4-energy-v4 delivers 0 Conv2d NS, 0 B/param non-stiff state, ~48 ms/step idle (<=65 ms/step) r256 latency, and -129.2 MiB peak allocated VRAM vs unified-v11 (89.19 ms/step, 1372.6 MiB).",
+  "id": "law4-energy-v4-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-1e5fb2354920c2770b8b582c.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

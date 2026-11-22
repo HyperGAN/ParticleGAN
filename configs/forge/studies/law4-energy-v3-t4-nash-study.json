@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000.0,
+    "candidate_budget_seconds": 3600.0,
+    "id": "law4-energy-v3-t4-nash-study"
+  },
+  "candidate": "law4-energy-v3",
+  "competing_explanation": "If omitting the critic logit secant probe weakens extreme hostile capacity-imbalance Nash recovery, law4-energy-v3 will fail nash_unequal_width_hostile_imbalance or drop below 16 modes on nash_overpowered_critic_ring16.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "modes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "hypothesis": "Unchanged global law4-energy-v3 (0 Conv2d NS, 0 critic secant probes, 0 B/param non-stiff state, 5-step 2D dense NS) passes 3/3 t4_imbalance_nash_stretch tasks across >548x G/D capacity imbalance and -30-logit hostile initialization under protocol seed 0.",
+  "id": "law4-energy-v3-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "modes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-2eb07e97714a1da4177d5d25.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

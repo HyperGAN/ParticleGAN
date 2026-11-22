@@ -510,14 +510,14 @@ class Recipe:
         if (type(self.optimizer_smoothing) not in (int, float)
                 or not math.isfinite(self.optimizer_smoothing) or self.optimizer_smoothing < 0):
             raise ValueError("optimizer_smoothing must be finite and nonnegative")
-        if self.optimizer_smoothing and self.optimizer_family not in ("dualnorm", "unified_equil", "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band"):
-            raise ValueError("optimizer_smoothing requires optimizer_family='dualnorm', 'unified_equil', 'unified_v11_equil', 'r4_mp_no_ns' or 'r4_no_secant_band'")
+        if self.optimizer_smoothing and self.optimizer_family not in ("dualnorm", "unified_equil", "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6"):
+            raise ValueError("optimizer_smoothing requires optimizer_family='dualnorm', 'unified_equil', 'unified_v11_equil', 'r4_mp_no_ns', 'r4_no_secant_band', 'law4_energy_v1', 'law4_energy_v2', 'law4_energy_v3', 'law4_energy_v4', 'law4_energy_v5' or 'law4_energy_v6'")
         if self.constraint_geometry_mode not in ("none", "nonascent", "strict_progress", "direction_blend"):
             raise ValueError("constraint_geometry_mode must be none, nonascent, strict_progress or direction_blend")
         if self.constraint_geometry_mode != "none":
-            if self.optimizer_family == "unified_v11_equil":
+            if self.optimizer_family in ("unified_v11_equil", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6"):
                 if self.constraint_geometry_mode != "direction_blend" or self.optimizer_momentum:
-                    raise ValueError("unified_v11_equil constraint_geometry supports only zero-momentum direction_blend")
+                    raise ValueError(f"{self.optimizer_family} constraint_geometry supports only zero-momentum direction_blend")
             elif self.optimizer_family != "dualnorm" or self.optimizer_momentum:
                 raise ValueError("constraint_geometry requires zero-momentum full DualNorm")
         if self.critic_step_mode not in ("none", "finite_cap"):

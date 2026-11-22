@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "law4-energy-v5-dcgan-perf-study"
+  },
+  "candidate": "law4-energy-v5",
+  "competing_explanation": "If exact 1D FP32 division or 2D-only critic secant guard adds measurable DCGAN overhead, law4-energy-v5 will exceed 75 ms/step on dcgan_performance_r256 or exceed unified-v11 peak VRAM.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 75.0
+  },
+  "hypothesis": "law4-energy-v5 delivers 0 Conv2d NS, 0 B/param non-stiff state, ~47.8 ms/step idle (<=75 ms/step even under contention) r256 latency, and 1243.4 MiB peak allocated VRAM (-129.2 MiB vs unified-v11 89.19 ms/step, 1372.6 MiB).",
+  "id": "law4-energy-v5-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 75.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-1e5fb2354920c2770b8b582c.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

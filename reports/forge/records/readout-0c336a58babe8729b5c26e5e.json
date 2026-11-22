@@ -1,0 +1,593 @@
+{
+  "attempt_ids": [
+    "730f708fe7fe4868a9c604b8cd268028",
+    "9d119f3575b14fe0aea56183cec77e71",
+    "9f44396f7604409d875996f2fcaa2fcf",
+    "b81245b49c27412689dabd768c2a0d5a"
+  ],
+  "candidate_id": "law4-energy-v3",
+  "candidate_revision": "80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v11's perfect 4/4 hq=1.0000 across all 4 Conv2d discrete image distributions while eliminating 100% of Conv2d Quintic NS (cutting DCGAN r256 latency from 89.19 to 45.89 ms/step = 1.94x faster and peak VRAM from 1372.6 to 1147.15 MiB = -225.5 MiB).",
+  "conclusion": "law4-energy-v3 achieves 4/4 PASS (prediction_observed, hq=1.0000 on every task: img_bars4 4/4 hq=1.0, img_blobs4 4/4 hq=1.0, img_intensity2 2/2 hq=1.0, img_stripes2 2/2 hq=1.0) on bcap_convolution_images with strictly 0 Conv2d Newton-Schulz iterations, 0 critic secant probes, and 0 B/param non-stiff state.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "730f708fe7fe4868a9c604b8cd268028",
+        "9d119f3575b14fe0aea56183cec77e71",
+        "9f44396f7604409d875996f2fcaa2fcf",
+        "b81245b49c27412689dabd768c2a0d5a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "fb9de37f23730211ff838b256439b35555a115bf396b47ad7c664924de09fb64",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 1.0
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 1.0
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "730f708fe7fe4868a9c604b8cd268028",
+          "producer_request_id": "68a7774a48e912988ee6b678",
+          "producer_study_id": "law4-energy-v3-conv-images-study",
+          "result_hash": "14bfd3aceb7101fdfc7045f04685ec50b4b49365798587c4bcb239fc9637d4e0",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9d119f3575b14fe0aea56183cec77e71",
+          "producer_request_id": "68a7774a48e912988ee6b678",
+          "producer_study_id": "law4-energy-v3-conv-images-study",
+          "result_hash": "80d2c83d44c2e626441387e6ffc54d20d1dd1bd8be5d042156ac37a9bbf50a70",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9f44396f7604409d875996f2fcaa2fcf",
+          "producer_request_id": "68a7774a48e912988ee6b678",
+          "producer_study_id": "law4-energy-v3-conv-images-study",
+          "result_hash": "aeab46ad0bb5d00f05f0784aadb84f2cb4d4ab57acf9ea0b39a5e8c162da51ee",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "b81245b49c27412689dabd768c2a0d5a",
+          "producer_request_id": "68a7774a48e912988ee6b678",
+          "producer_study_id": "law4-energy-v3-conv-images-study",
+          "result_hash": "a148c25dc6204a0410365a4366f7548224bc1b54dc604a9ade043320178ca918",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "f83bded24dc35fa2c412c34207cbbadc90037ff857c62157ea6e33580227c9e7",
+        "contract_sha256": "fb9de37f23730211ff838b256439b35555a115bf396b47ad7c664924de09fb64",
+        "control_binding_sha256": "b7f033aa3bb96568f5e558686e5d961e47928386f8d57f326c294d37743cd3d6",
+        "policy_fingerprint": "fdd48ac4c3069a08a53aa1b66f550282e3656b8c7f8ba94aeb1826ad6a768538",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "6d2b03ce9f94300060f0a7dd49fec25340cde5915e3374c8a3d0b9840eb94f3c"
+      },
+      "study_id": "law4-energy-v3-conv-images-study",
+      "study_sha256": "6d2b03ce9f94300060f0a7dd49fec25340cde5915e3374c8a3d0b9840eb94f3c"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "bcap_convolution_images",
+  "hypothesis": "law4-energy-v3 passes 4/4 discrete Conv2d image distributions (img_stripes2, img_bars4, img_blobs4, img_intensity2) with strictly 0 Conv2d Newton-Schulz iterations using stride-aware polar-matched zero-state Frobenius-MP.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Finalize tests, governance checks, clean commit on feat/law4-energy-optimal, and deliver full synthesis to coordinator and laws-and-energy.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "730f708fe7fe4868a9c604b8cd268028",
+        "result_hash": "14bfd3aceb7101fdfc7045f04685ec50b4b49365798587c4bcb239fc9637d4e0",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9d119f3575b14fe0aea56183cec77e71",
+        "result_hash": "80d2c83d44c2e626441387e6ffc54d20d1dd1bd8be5d042156ac37a9bbf50a70",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9f44396f7604409d875996f2fcaa2fcf",
+        "result_hash": "aeab46ad0bb5d00f05f0784aadb84f2cb4d4ab57acf9ea0b39a5e8c162da51ee",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "b81245b49c27412689dabd768c2a0d5a",
+        "result_hash": "a148c25dc6204a0410365a4366f7548224bc1b54dc604a9ade043320178ca918",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-0c336a58babe8729b5c26e5e",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/730f708fe7fe4868a9c604b8cd268028/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 7200,
+      "candidate_budget_seconds": 7200,
+      "id": "law4-energy-v3-conv-images-study"
+    },
+    "candidate": "law4-energy-v3",
+    "competing_explanation": "If eliminating 4D Conv2d Newton-Schulz degrades spatial feature learning across discrete Conv2d image distributions, law4-energy-v3 will score below 4/4 on bcap_convolution_images or below 0.9 hq on img_stripes2.",
+    "control": {
+      "candidate_id": "unified-v11",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "hq",
+      "op": "<",
+      "phase": "final",
+      "task_id": "img_stripes2",
+      "threshold": 0.9
+    },
+    "hypothesis": "law4-energy-v3 passes 4/4 discrete Conv2d image distributions (img_stripes2, img_bars4, img_blobs4, img_intensity2) with strictly 0 Conv2d Newton-Schulz iterations using stride-aware polar-matched zero-state Frobenius-MP.",
+    "id": "law4-energy-v3-conv-images-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "hq",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "img_stripes2",
+      "threshold": 0.9
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v11",
+          "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+        },
+        "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "bcap_convolution_images"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "law4-energy-v3-conv-images-study",
+  "study_sha256": "6d2b03ce9f94300060f0a7dd49fec25340cde5915e3374c8a3d0b9840eb94f3c",
+  "task_results": [
+    {
+      "compatibility_key": "fb5f47a9983a7c855c3882c501e2fa0de4f290bc3432f0a8b64a814049ba008b",
+      "cost": {
+        "adapter_loop_seconds": 40.12608424620703,
+        "adapter_seconds": 40.642043735831976,
+        "charged_task": "img_bars4",
+        "completed_steps": 600,
+        "device": "1",
+        "execution_seconds": 47.351848324993625,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 37.92610204219818,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.09382045106031
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.015502339927479625
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 37.81677925121039
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 41.87574249715544,
+        "wall_seconds": 47.351848324993625
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.5416666666666666,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 325,
+          "first_pass_step": 225,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 16,
+          "passing_suffix": 16,
+          "stable_from_seconds": null,
+          "stable_from_step": 225
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.09999999999999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 4,
+            "value": 4
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "distribution_tv": 0.03125,
+        "hq": 1.0,
+        "mean_rmse": 0.008303412236273289,
+        "mode_fractions": [
+          0.21875,
+          0.28125,
+          0.25,
+          0.25
+        ],
+        "modes": 4,
+        "quality_mode_fractions": [
+          0.21875,
+          0.28125,
+          0.25,
+          0.25
+        ],
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "img_bars4"
+    },
+    {
+      "compatibility_key": "011834351a600bf218fb3b4736bfeb481417a467e8b413aaa47f1df9dd59860c",
+      "cost": {
+        "adapter_loop_seconds": 40.502089464105666,
+        "adapter_seconds": 40.97255162498914,
+        "charged_task": "img_intensity2",
+        "completed_steps": 600,
+        "device": "1",
+        "execution_seconds": 47.421040900982916,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 38.205036881612614,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.1111228009685874
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.017661967780441046
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 38.076252112863585
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 42.16457102098502,
+        "wall_seconds": 47.421040900982916
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.5,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 300,
+          "first_pass_step": 200,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 17,
+          "passing_suffix": 17,
+          "stable_from_seconds": null,
+          "stable_from_step": 200
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.09999999999999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "distribution_tv": 0.125,
+        "hq": 1.0,
+        "mean_rmse": 0.010589673183858395,
+        "mode_fractions": [
+          0.625,
+          0.375
+        ],
+        "modes": 2,
+        "quality_mode_fractions": [
+          0.625,
+          0.375
+        ],
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "img_intensity2"
+    },
+    {
+      "compatibility_key": "5064fdaeef1b4c366f13dd623b24c9f96177e6d920263deff2d62e1d479d2b62",
+      "cost": {
+        "adapter_loop_seconds": 22.795683386037126,
+        "adapter_seconds": 23.190216975985095,
+        "charged_task": "img_stripes2",
+        "completed_steps": 600,
+        "device": "0",
+        "execution_seconds": 29.989813236054033,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 22.422559768659994,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.020254585426300764
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.010256399167701602
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 22.39204878406599
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 24.533531948924065,
+        "wall_seconds": 29.989813236054033
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.5,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 300,
+          "first_pass_step": 200,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 17,
+          "passing_suffix": 17,
+          "stable_from_seconds": null,
+          "stable_from_step": 200
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.09999999999999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 2,
+            "value": 2
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "distribution_tv": 0.0625,
+        "hq": 1.0,
+        "mean_rmse": 0.002391596557572484,
+        "mode_fractions": [
+          0.5625,
+          0.4375
+        ],
+        "modes": 2,
+        "quality_mode_fractions": [
+          0.5625,
+          0.4375
+        ],
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "img_stripes2"
+    },
+    {
+      "compatibility_key": "9fba675341630095320566bbba9b5ee69c7033b0a759314f216466d5a1c9ed7f",
+      "cost": {
+        "adapter_loop_seconds": 21.100946757942438,
+        "adapter_seconds": 21.478346785064787,
+        "charged_task": "img_blobs4",
+        "completed_steps": 600,
+        "device": "0",
+        "execution_seconds": 28.14303427701816,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 600,
+          "generator": 600,
+          "prior": 600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 20.753952713683248,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.01932745357044041
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.009932283777743578
+            },
+            "training_updates": {
+              "calls": 600,
+              "seconds": 20.724692976335064
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 22.83185486495495,
+        "wall_seconds": 28.14303427701816
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.5833333333333334,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 350,
+          "first_pass_step": 250,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 15,
+          "passing_suffix": 15,
+          "stable_from_seconds": null,
+          "stable_from_step": 250
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.09999999999999998,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 1.0
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 4,
+            "value": 4
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "distribution_tv": 0.03125,
+        "hq": 1.0,
+        "mean_rmse": 0.004707378335297108,
+        "mode_fractions": [
+          0.28125,
+          0.25,
+          0.21875,
+          0.25
+        ],
+        "modes": 4,
+        "quality_mode_fractions": [
+          0.28125,
+          0.25,
+          0.21875,
+          0.25
+        ],
+        "step": 600
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "img_blobs4"
+    }
+  ]
+}
