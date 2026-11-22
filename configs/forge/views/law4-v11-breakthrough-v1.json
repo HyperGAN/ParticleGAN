@@ -1,0 +1,61 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "staggered100"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 2,
+      "qualification_tier": 1,
+      "task": "grid100_res16_tanh"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 3,
+      "qualification_tier": 1,
+      "task": "five_word_joint_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 4,
+      "qualification_tier": 1,
+      "task": "five_word_joint_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 5,
+      "qualification_tier": 1,
+      "task": "model_ddgan_gaussian_chain"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 6,
+      "qualification_tier": 1,
+      "task": "model_ddgan_bimodal_chain"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Targeted diagnostic breakthrough screen over unified-v11 remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) plus their exact prerequisite tasks for evidence reuse; supplies no ordinary qualification credit.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "law4-v11-breakthrough-v1",
+  "policy_change_reason": "Targeted protocol-seed-0 Law-4 alternative-optimizer breakthrough diagnostic over unified-v11 known remaining failure tasks (staggered100, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain) with prerequisite reuse from r4-occam-ablation-v1.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}
