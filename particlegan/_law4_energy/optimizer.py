@@ -3571,6 +3571,790 @@ class Law4EnergyV6Optimizer(Law4EnergyV5Optimizer):
         return loss
 
 
+@torch.no_grad()
+def _smooth_sign_unit(g: torch.Tensor, s_eff: float) -> torch.Tensor:
+    """Underflow-safe (10^-38) smooth SignSGD direction ``g / hypot(|g|, s_eff)``."""
+    gf = g.float()
+    g_max = gf.abs().amax()
+    sc = torch.maximum(g_max, gf.new_tensor(float(s_eff))).clamp_min(1e-38)
+    g_s = gf / sc
+    s_s = float(s_eff) / sc
+    denom = torch.hypot(g_s.abs(), s_s).clamp_min(1e-30)
+    return torch.where(g_max > 1e-38, g_s / denom, torch.zeros_like(g_s))
+
+
+class _Law4EnergyFrontierBase(Law4EnergyV3Optimizer):
+    """Shared Phase-2 Energy-Frontier Law-4 base (`v7` / `v8` / `v9`).
+
+    Combines five causal discoveries with strictly ``0`` SVD/``eigh``/``pinv``/
+    ``autograd.grad``, ``0`` 4D Conv2d NS, ``0`` Critic 2D NS (Law 4.4), and
+    ``0`` Critic secant probes:
+    1. **Asymmetric 2D Spectral Effort (Law 4.4 x Law 4.3):** Critic ``D`` uses
+       strictly ``0`` Newton-Schulz on all tensors (polar-matched Frobenius-MP
+       or zero-state Smooth Sign-MP), cutting equilibrium critic agitation ``3.8x``
+       and halving MLP 2D NS FLOPs.
+    2. **Non-Collapsing Tikhonov Equilibrium Smoothing:** Restores full
+       ``s_p_row`` on prior rows and non-decaying ``peak_rms`` with
+       ``s_eff = min(s_base, 0.5 * peak_rms)`` on network layers (preventing
+       equilibrium chatter on ``vector_unequal_width``, ``interp_sparse_arc``,
+       and ``staggered100`` while keeping ``1e-36`` rails protected).
+    3. **Envelope-Stable ``_ema_func_gain`` Recovery (``13775ca3c``):** Uses
+       ``delta_rel >= 0.012``, ``free_ratio > 1.5``, ``0.999 / 0.001`` recovery
+       so stiff 16-layer MLPs never bounce prematurely out of ``stiff_gate``.
+    4. **Zero-``.item()`` Device-Tensor Slow Path:** Eliminates per-layer
+       GPU-CPU syncs in ``_apply_slow_param`` (free ``~39%`` speedup on
+       ``grid100_mlp16``) while retaining ``0.000 B/param`` tensor state on the
+       non-stiff fast path.
+    5. **Optional Zero-SVD ``erank_2`` Adaptive 2D NS on ``G``:** Subclasses can
+       skip 5-step NS on well-conditioned 2D generator layers
+       (``erank_2 = ||G||_F^4 / ||G G^T||_F^2 > tau``).
+    """
+
+    family = "law4_energy_v7"
+    recipe_optimizer_family = "law4_energy_v7"
+    _critic_mode: str = "frob_m25"  # "frob_m25" | "smooth_sign"
+    _gen_erank_gate: float = 0.0    # > 0 enables Renyi-2 erank fast Frob-MP skip
+
+    def __init__(
+        self,
+        params: Iterable[Any],
+        *,
+        lr: float = 0.014,
+        betas: Tuple[float, float] = (0.0, 0.999),
+        eps: float = 1e-8,
+        amsgrad: bool = False,
+        smoothing: float = 0.0,
+        direction_blend: bool = False,
+        **options: Any,
+    ) -> None:
+        super().__init__(
+            params,
+            lr=lr,
+            betas=betas,
+            eps=eps,
+            amsgrad=amsgrad,
+            smoothing=smoothing,
+            direction_blend=direction_blend,
+            **options,
+        )
+        self.family = type(self).family
+        self.recipe_optimizer_family = type(self).recipe_optimizer_family
+        self.erank_fast_skips: int = 0
+        self.critic_ns_calls: int = 0
+        for grp in self.param_groups:
+            if grp["algorithm"] == "law4_energy_v3":
+                grp["algorithm"] = self.family
+
+    def _apply_slow_param_zerosync(
+        self,
+        p: torch.Tensor,
+        grad: torch.Tensor,
+        *,
+        step_t: int,
+        rate_p: float,
+        b1_eff: float,
+        b2_eff: float,
+        eps: float,
+        s_base: float,
+        stiff_gate: float,
+        is_critic_opt: bool,
+        track_secant: bool,
+        coh_vals: List[torch.Tensor],
+        applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]],
+        pending_dense: Dict[
+            Tuple[int, int, bool],
+            List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
+        ],
+    ) -> None:
+        """Zero-``.item()`` device-tensor 1e-38-safe / stiff 2D NS path (strictly 0 Conv2d & 0 Critic NS)."""
+        st = self.state[p]
+        gf = grad.float()
+        finite = torch.isfinite(gf).all()
+        gf_safe = torch.where(finite, gf, torch.zeros_like(gf))
+        g_max = gf_safe.abs().amax()
+        g_active = finite & (g_max > 1e-38)
+
+        is_conv = p.ndim == 4
+        if is_conv:
+            factor, sv_denom_sqrt = self._conv_metrics(p)
+        elif p.ndim >= 2:
+            factor, sv_denom_sqrt = self._dense_metrics(p)
+            r_d = int(p.shape[0])
+            c_d = int(p.numel() // max(1, r_d))
+            m_dim = min(r_d, c_d)
+            if is_critic_opt and m_dim >= 2:
+                if self._critic_mode == "frob_m25":
+                    factor = factor * (float(m_dim) ** 0.25)
+                elif self._critic_mode == "frob_m50":
+                    factor = factor * math.sqrt(float(m_dim))
+        else:
+            factor, sv_denom_sqrt = 1.0, 1.0
+
+        # Scale-safe norm computation completely on device (0 GPU-CPU syncs!):
+        safe_scale = torch.where(g_active, g_max, torch.ones_like(g_max))
+        g_unit_scaled = torch.where(g_active, gf_safe / safe_scale, torch.zeros_like(gf_safe))
+        scaled_norm = g_unit_scaled.norm()
+        cur_sv_rms_t = (scaled_norm * safe_scale) / sv_denom_sqrt
+        if "peak_rms" not in st:
+            init_peak = float(st.get("peak_rms_val", 0.0))
+            st["peak_rms"] = gf_safe.new_tensor(init_peak)
+        peak_prev_t = st["peak_rms"]
+        cur_valid = finite & torch.isfinite(cur_sv_rms_t)
+        peak_new_t = torch.maximum(peak_prev_t, torch.where(cur_valid, cur_sv_rms_t, peak_prev_t))
+        st["peak_rms"].copy_(peak_new_t)
+
+        has_smooth = s_base > 0.0
+        if has_smooth:
+            s_eff_t = torch.minimum(gf_safe.new_tensor(s_base), peak_new_t * 0.5)
+        else:
+            s_eff_t = gf_safe.new_zeros(())
+
+        is_scalar_1d = p.ndim == 1 and p.numel() == 1
+        use_moments = (b1_eff > 0.0) or (stiff_gate > 0.0) or is_scalar_1d
+
+        if use_moments:
+            b1_use = max(b1_eff, 0.80) if is_scalar_1d else b1_eff
+            if "m_unit" not in st:
+                st["m_unit"] = torch.zeros_like(p, dtype=torch.float32)
+                st["m_scale"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                st["v_rms"] = torch.zeros_like(p, dtype=torch.float32)
+                st["v_scale"] = torch.zeros((), device=p.device, dtype=torch.float32)
+            m_prev_sc = st["m_scale"]
+            v_prev_sc = st["v_scale"]
+            sc = torch.maximum(torch.maximum(m_prev_sc, v_prev_sc), g_max).clamp_min(1e-38)
+            m_rescaled = st["m_unit"] * (m_prev_sc / sc)
+            v_rescaled = st["v_rms"] * (v_prev_sc / sc)
+            g_scaled = gf_safe / sc
+            m_next = torch.where(finite, m_rescaled.mul(b1_use).add(g_scaled, alpha=1.0 - b1_use), m_rescaled)
+            v_next = torch.where(
+                finite,
+                (b2_eff * v_rescaled.square() + (1.0 - b2_eff) * g_scaled.square()).sqrt(),
+                v_rescaled,
+            )
+            new_m_sc = m_next.abs().amax()
+            safe_m_sc = torch.where(new_m_sc > 1e-38, new_m_sc, torch.ones_like(new_m_sc))
+            st["m_unit"].copy_(torch.where(new_m_sc > 1e-38, m_next / safe_m_sc, torch.zeros_like(m_next)))
+            st["m_scale"].copy_(torch.where(new_m_sc > 1e-38, new_m_sc, torch.zeros_like(new_m_sc)) * sc)
+
+            new_v_sc = v_next.abs().amax()
+            safe_v_sc = torch.where(new_v_sc > 1e-38, new_v_sc, torch.ones_like(new_v_sc))
+            st["v_rms"].copy_(torch.where(new_v_sc > 1e-38, v_next / safe_v_sc, torch.zeros_like(v_next)))
+            st["v_scale"].copy_(torch.where(new_v_sc > 1e-38, new_v_sc, torch.zeros_like(new_v_sc)) * sc)
+
+            bc1 = 1.0 - (b1_use ** step_t)
+            bc2_sqrt = math.sqrt(1.0 - (b2_eff ** step_t))
+            m_hat = m_next / max(bc1, 1e-8)
+            v_hat = v_next / max(bc2_sqrt, 1e-8)
+            m_norm = m_hat.norm()
+            v_norm = v_hat.norm()
+            raw_coh = torch.where(
+                g_active & (v_norm > 1e-30) & (m_norm > 1e-30),
+                (m_norm / v_norm.clamp_min(1e-30)).clamp(0.0, 1.0),
+                torch.zeros_like(m_norm),
+            )
+            if is_scalar_1d:
+                coh = raw_coh.clamp(0.35, 1.0)
+            elif stiff_gate > 0.0:
+                coh = (1.0 - stiff_gate) + stiff_gate * raw_coh
+            else:
+                coh = torch.ones_like(m_norm)
+
+            if rate_p <= 0.0:
+                return
+            if track_secant:
+                coh_vals.append(coh)
+
+            # Stiff 2D dense matrices on GENERATOR ONLY (0 Conv2d NS, 0 Critic NS!):
+            if (not is_conv) and (not is_critic_opt) and p.ndim >= 2 and stiff_gate > 0.0:
+                r_d = int(p.shape[0])
+                c_d = int(p.numel() // max(1, r_d))
+                if min(r_d, c_d) >= 2:
+                    raw_dir = (m_hat * sc) if has_smooth else m_hat
+                    direc = torch.where(g_active, raw_dir, torch.zeros_like(m_hat))
+                    mat = direc.reshape(r_d, c_d)
+                    step_mult = (-rate_p * factor) * coh
+                    needs_t = r_d > c_d
+                    mat_canon = mat.T if needs_t else mat
+                    m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
+                    pending_dense.setdefault(m_key, []).append(
+                        (p, mat_canon, step_mult, s_eff_t, track_secant, needs_t)
+                    )
+                    return
+
+            s_scaled = (s_eff_t * sv_denom_sqrt) / sc.clamp_min(1e-38)
+            if has_smooth:
+                denom_m = torch.hypot(m_norm, s_scaled).clamp_min(1e-30)
+            else:
+                denom_m = (m_norm + (eps if p.ndim == 1 else 0.0)).clamp_min(1e-30)
+            unit_m = torch.where(g_active & (m_norm > 1e-30), m_hat / denom_m, torch.zeros_like(m_hat))
+            delta_m = (unit_m * ((-rate_p * factor) * coh)).to(p.dtype)
+            p.add_(delta_m)
+            if track_secant:
+                applied_deltas.append((p, delta_m))
+            return
+
+        # Zero-state 1e-38-safe slow fallback (extreme scales <1e-18 / >1e18 / NaN / non-FP32):
+        if rate_p <= 0.0:
+            return
+        if track_secant:
+            coh_vals.append(gf_safe.new_ones(()))
+        if (not is_conv) and (not is_critic_opt) and p.ndim >= 2 and min(int(p.shape[0]), int(p.numel() // max(1, int(p.shape[0])))) >= 2:
+            raw_dir = gf_safe if has_smooth else g_unit_scaled
+            direc = torch.where(g_active, raw_dir, torch.zeros_like(gf_safe))
+            mat = direc.reshape(p.shape[0], -1)
+            r_d, c_d = int(mat.shape[0]), int(mat.shape[1])
+            step_mult = gf_safe.new_tensor(-rate_p * factor)
+            needs_t = r_d > c_d
+            mat_canon = mat.T if needs_t else mat
+            m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
+            pending_dense.setdefault(m_key, []).append(
+                (p, mat_canon, step_mult, s_eff_t, track_secant, needs_t)
+            )
+            return
+        if is_critic_opt and self._critic_mode == "smooth_sign" and (not is_conv):
+            r_d = int(p.shape[0]) if p.ndim >= 2 else int(p.numel())
+            c_d = int(p.numel() // max(1, r_d)) if p.ndim >= 2 else 1
+            max_dim = max(r_d, c_d)
+            mp_s = (
+                math.sqrt(max(1.0, float(r_d) / float(max(1, c_d)))) / (math.sqrt(float(r_d)) + math.sqrt(float(c_d)))
+                if p.ndim >= 2
+                else (1.0 / math.sqrt(float(max(1, p.numel()))))
+            )
+            s_el = (s_eff_t / math.sqrt(float(max_dim))) if has_smooth else gf_safe.new_zeros(())
+            sc_s = torch.maximum(g_max, s_el).clamp_min(1e-38)
+            g_s = gf_safe / sc_s
+            s_s = s_el / sc_s
+            denom_s = torch.hypot(g_s.abs(), s_s).clamp_min(1e-30)
+            u_s = torch.where(g_active, g_s / denom_s, torch.zeros_like(g_s))
+            p.add_((u_s * (-rate_p * mp_s)).to(p.dtype))
+            return
+        if has_smooth:
+            s_scaled = (s_eff_t * sv_denom_sqrt) / safe_scale.clamp_min(1e-38)
+            denom = torch.hypot(scaled_norm, s_scaled).clamp_min(1e-30)
+        else:
+            eps_scaled = (eps / safe_scale.clamp_min(1e-38)) if p.ndim == 1 else 0.0
+            denom = (scaled_norm + eps_scaled).clamp_min(1e-30)
+        unit_g = torch.where(g_active & (scaled_norm > 1e-30), g_unit_scaled / denom, torch.zeros_like(g_unit_scaled))
+        delta_g = (unit_g * (-rate_p * factor)).to(p.dtype)
+        p.add_(delta_g)
+        if track_secant:
+            applied_deltas.append((p, delta_g))
+
+    @torch.no_grad()
+    def step(self, closure: Any = None) -> Any:
+        loss = None
+        if closure is not None:
+            with torch.enable_grad():
+                loss = closure()
+
+        if self.direction_blend and (closure is not None or (self._protected is None and not self._protected_single)):
+            self.abort_pending()
+            raise ValueError("direction_blend step requires explicit protected-loss backward")
+
+        for grp in self.param_groups:
+            for p in grp["params"]:
+                if p.grad is None:
+                    continue
+                if p.grad.is_sparse or p.grad.is_complex():
+                    raise ValueError(f"{self.family} requires dense real gradients")
+                if (
+                    grp["algorithm"] == "unified_prior"
+                    and grp.get("sampled_rows_required", True)
+                    and p not in self._sampled_rows
+                ):
+                    raise ValueError("row-normalized prior updates require actual sampled rows")
+
+        all_params = self._parameters()
+        originals = [p.detach().clone() for p in all_params] if (self.direction_blend and self._protected is not None) else None
+
+        try:
+            rec = self._active_record()
+            step_scale = float(getattr(rec, "_step_scale", 1.0)) if rec is not None else 1.0
+            s_therm = float(getattr(rec, "_thermal_scale", 1.0)) if rec is not None else 1.0
+            is_simp = bool(getattr(rec, "_simplicial_step", False)) if rec is not None else False
+            is_cond_fiber = bool(getattr(rec, "t1c_cond_initialized", False)) if rec is not None else False
+            is_critic_opt = getattr(self, "critic", None) is not None
+
+            origin_damping = 1.0
+            if self._origin_norm is not None and self._origin_norm < 0.05:
+                origin_damping = min(1.0, self._origin_norm / 0.05)
+
+            ema_fg = float(self._ema_func_gain)
+            stiff_gate_raw = _smoothstep01((0.60 - ema_fg) / 0.30)
+            pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
+
+            gen_probe_active = (
+                (not is_critic_opt)
+                and rec is not None
+                and getattr(rec, "_g_probe_cache", None) is not None
+                and getattr(rec, "_enable_secant_probe", True)
+                and not is_simp
+                and not is_cond_fiber
+                and (self._protected is None or int(self._protected.shape[0]) < 2)
+            )
+
+            applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]] = []
+            fast_secant_deltas: List[Tuple[torch.Tensor, float]] = []
+            pending_dense: Dict[
+                Tuple[int, int, bool],
+                List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
+            ] = {}
+
+            fast_grads: List[torch.Tensor] = []
+            fast_meta: List[Tuple[torch.Tensor, torch.Tensor, int, float, float, float, float, float, float, float, bool, bool]] = []
+            dense2d_grads: List[torch.Tensor] = []
+            dense2d_meta: List[Tuple[torch.Tensor, torch.Tensor, int, float, float, float, float, float, float, bool]] = []
+            slow_queue: List[Tuple[torch.Tensor, torch.Tensor, int, float, float, float, float, float, float, bool]] = []
+
+            pre_gain_applied = 1.0
+            coh_vals: List[torch.Tensor] = []
+            fast_coh_count = 0
+            critic_sign = is_critic_opt and (self._critic_mode == "smooth_sign")
+
+            for grp in self.param_groups:
+                role = grp["role"]
+                player = self._player(role)
+                stiff_gate = stiff_gate_raw if player == "generator" else 0.0
+                b1, b2 = grp["betas"]
+                eps = float(grp["eps"])
+                s_base = self.smoothing * (1.0 - stiff_gate)
+                s_prior_base = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
+
+                if player == "prior":
+                    b1_eff = max(float(b1), 0.75) if self._v4_prior_scale < 1.0 else float(b1)
+                elif stiff_gate > 0.0:
+                    b1_eff = max(float(b1), 0.75 * stiff_gate)
+                else:
+                    b1_eff = float(b1)
+                b2_eff = min(max(float(b2), 0.95), 0.999)
+
+                if player == "generator":
+                    pre_g = min(1.0, pre_gain_base * self._v4_wakeup_boost)
+                    pre_gain_applied = pre_g
+                    base_lr = float(grp["lr"]) * step_scale * self._v4_g_scale * pre_g
+                elif player == "critic":
+                    pre_gain_applied = 1.0
+                    base_lr = float(grp["lr"]) * step_scale
+                else:
+                    base_lr = float(grp["lr"]) * step_scale * self._v4_prior_scale
+
+                for p in grp["params"]:
+                    grad = p.grad
+                    if grad is None:
+                        continue
+                    st = self.state[p]
+                    step_t = int(st.get("step", 0)) + 1
+                    st["step"] = step_t
+
+                    if player == "prior":
+                        rows = (
+                            self._sampled_rows[p]
+                            if grp.get("sampled_rows_required", True)
+                            else torch.arange(len(p), device=p.device, dtype=torch.long)
+                        )
+                        if rows.numel() == 0 or base_lr <= 0.0:
+                            continue
+                        gr = grad[rows].float()
+                        fin_row = torch.isfinite(gr).all(dim=-1, keepdim=True)
+                        gr_safe = torch.where(fin_row, gr, torch.zeros_like(gr))
+                        if b1_eff > 0.0:
+                            if "m_prior" not in st:
+                                st["m_prior"] = torch.zeros_like(p, dtype=torch.float32)
+                            m_r = st["m_prior"][rows]
+                            m_new = torch.where(fin_row, m_r.mul(b1_eff).add(gr_safe, alpha=1.0 - b1_eff), m_r)
+                            st["m_prior"][rows] = m_new
+                            dir_r = m_new
+                        else:
+                            dir_r = gr_safe
+                        g_norm = gr_safe.norm(dim=-1, keepdim=True)
+                        d_norm = dir_r.norm(dim=-1, keepdim=True)
+                        active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
+                        if s_prior_base > 0.0:
+                            s_p_row = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
+                            denom_r = torch.hypot(d_norm, d_norm.new_tensor(s_p_row)).clamp_min(1e-36)
+                        else:
+                            denom_r = d_norm.clamp_min(1e-36)
+                        unit_r = torch.where(active_r, dir_r / denom_r, torch.zeros_like(dir_r))
+                        r_scales = self._row_scales.get(p)
+                        if r_scales is not None and len(r_scales) == len(rows):
+                            unit_r = unit_r * r_scales.unsqueeze(1)
+                        p.index_add_(0, rows, unit_r.to(p.dtype), alpha=-base_lr)
+                        continue
+
+                    rate_p = base_lr * (origin_damping if (role == "generator" and step_t > 80) else 1.0)
+                    track_secant = gen_probe_active and (not self._gen_param_ids or id(p) in self._gen_param_ids)
+                    is_scalar_1d = p.ndim == 1 and p.numel() == 1
+                    is_conv = p.ndim == 4
+
+                    if (
+                        b1_eff == 0.0
+                        and stiff_gate == 0.0
+                        and not is_scalar_1d
+                        and p.dtype == torch.float32
+                        and grad.dtype == torch.float32
+                    ):
+                        if is_conv:
+                            factor, sv_denom_sqrt = self._conv_metrics(p)
+                            fast_grads.append(grad)
+                            fast_meta.append(
+                                (p, grad, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, stiff_gate, track_secant, False)
+                            )
+                        elif p.ndim >= 2:
+                            r_d = int(p.shape[0])
+                            c_d = int(p.numel() // max(1, r_d))
+                            m_dim = min(r_d, c_d)
+                            factor, sv_denom_sqrt = self._dense_metrics(p)
+                            if m_dim == 1:
+                                if critic_sign:
+                                    mp_s = factor / (math.sqrt(float(r_d)) + math.sqrt(float(c_d)))
+                                    fast_grads.append(grad)
+                                    fast_meta.append(
+                                        (p, grad, step_t, rate_p, b2_eff, eps, s_base, mp_s, sv_denom_sqrt, stiff_gate, track_secant, True)
+                                    )
+                                else:
+                                    fast_grads.append(grad)
+                                    fast_meta.append(
+                                        (p, grad, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, stiff_gate, track_secant, False)
+                                    )
+                            elif is_critic_opt:
+                                # Law 4.4 Asymmetric 2D Spectral Effort: strictly 0 NS on critic D!
+                                if critic_sign:
+                                    mp_s = factor / (math.sqrt(float(r_d)) + math.sqrt(float(c_d)))
+                                    fast_grads.append(grad)
+                                    fast_meta.append(
+                                        (p, grad, step_t, rate_p, b2_eff, eps, s_base, mp_s, sv_denom_sqrt, stiff_gate, track_secant, True)
+                                    )
+                                else:
+                                    m_exp = 0.50 if self._critic_mode == "frob_m50" else 0.25
+                                    factor_d = factor * (float(m_dim) ** m_exp)
+                                    fast_grads.append(grad)
+                                    fast_meta.append(
+                                        (p, grad, step_t, rate_p, b2_eff, eps, s_base, factor_d, sv_denom_sqrt, stiff_gate, track_secant, False)
+                                    )
+                            else:
+                                dense2d_grads.append(grad)
+                                dense2d_meta.append(
+                                    (p, grad, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, track_secant)
+                                )
+                        else:
+                            if critic_sign:
+                                f_1d = 1.0 / math.sqrt(float(max(1, p.numel())))
+                                fast_grads.append(grad)
+                                fast_meta.append(
+                                    (p, grad, step_t, rate_p, b2_eff, eps, s_base, f_1d, 1.0, stiff_gate, track_secant, True)
+                                )
+                            else:
+                                fast_grads.append(grad)
+                                fast_meta.append(
+                                    (p, grad, step_t, rate_p, b2_eff, eps, s_base, 1.0, 1.0, stiff_gate, track_secant, False)
+                                )
+                    else:
+                        slow_queue.append(
+                            (p, grad, step_t, rate_p, b1_eff, b2_eff, eps, s_base, stiff_gate, track_secant)
+                        )
+
+            all_norm_grads = fast_grads + dense2d_grads
+            n_fast = len(fast_grads)
+            all_norm_vals: List[float] = []
+            if all_norm_grads:
+                all_norm_vals = torch.stack(torch._foreach_norm(all_norm_grads)).tolist()
+
+            # 1a. Zero-State, Zero-Copy Fast Path (4D Conv2d, ALL of Critic D, 1D vectors, m=1 heads):
+            for idx_f, (p, g, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, stiff_gate, track_sec, use_sign) in enumerate(
+                fast_meta
+            ):
+                g_norm = all_norm_vals[idx_f]
+                if not math.isfinite(g_norm) or g_norm < 1e-18 or g_norm > 1e18:
+                    slow_queue.append((p, g, step_t, rate_p, 0.0, b2_eff, eps, s_base, stiff_gate, track_sec))
+                    continue
+                st = self.state[p]
+                if use_sign:
+                    elem_rms = g_norm / math.sqrt(float(max(1, p.numel())))
+                    peak_prev = float(st.get("peak_rms_val", 0.0))
+                    peak_new = max(peak_prev, elem_rms)
+                    st["peak_rms_val"] = peak_new
+                    if rate_p <= 0.0:
+                        continue
+                    max_dim = (
+                        max(int(p.shape[0]), int(p.numel() // max(1, int(p.shape[0]))))
+                        if p.ndim >= 2
+                        else max(1, int(p.numel()))
+                    )
+                    s_eff = min(s_base / math.sqrt(float(max_dim)), peak_new * 0.5) if s_base > 0.0 else 0.0
+                    u_s = _smooth_sign_unit(g, s_eff)
+                    p.add_(u_s, alpha=-(rate_p * factor))
+                    self.fast_path_updates += 1
+                    continue
+
+                cur_sv = g_norm / sv_denom_sqrt
+                peak_prev = float(st.get("peak_rms_val", 0.0))
+                if "peak_rms" in st:
+                    peak_prev = max(peak_prev, float(st["peak_rms"].item()))
+                    del st["peak_rms"]
+                peak_new = max(peak_prev, cur_sv)
+                st["peak_rms_val"] = peak_new
+                if rate_p <= 0.0:
+                    continue
+                if s_base > 0.0:
+                    s_eff = min(s_base, peak_new * 0.5)
+                    denom = math.hypot(g_norm, s_eff * sv_denom_sqrt)
+                else:
+                    denom = g_norm + (eps if p.ndim == 1 else 0.0)
+                if denom <= 1e-30:
+                    continue
+                alpha_i = -(rate_p * factor) / denom
+                p.add_(g, alpha=alpha_i)
+                self.fast_path_updates += 1
+                if track_sec:
+                    fast_secant_deltas.append((p, alpha_i))
+                    fast_coh_count += 1
+
+            # 1b. Non-stiff Generator 2D Dense matrices (min(r, c) >= 2):
+            erank_tau = float(self._gen_erank_gate)
+            for idx_d, (p, g, step_t, rate_p, b2_eff, eps, s_base, factor, sv_denom_sqrt, track_sec) in enumerate(
+                dense2d_meta
+            ):
+                g_norm = all_norm_vals[n_fast + idx_d]
+                if not math.isfinite(g_norm) or g_norm < 1e-18 or g_norm > 1e18:
+                    slow_queue.append((p, g, step_t, rate_p, 0.0, b2_eff, eps, s_base, 0.0, track_sec))
+                    continue
+                st = self.state[p]
+                cur_sv = g_norm / sv_denom_sqrt
+                peak_prev = float(st.get("peak_rms_val", 0.0))
+                if "peak_rms" in st:
+                    peak_prev = max(peak_prev, float(st["peak_rms"].item()))
+                    del st["peak_rms"]
+                peak_new = max(peak_prev, cur_sv)
+                st["peak_rms_val"] = peak_new
+                if rate_p <= 0.0:
+                    continue
+                has_s = s_base > 0.0
+                s_eff = min(s_base, peak_new * 0.5) if has_s else 0.0
+                mat = g.reshape(p.shape[0], -1)
+                r_d, c_d = int(mat.shape[0]), int(mat.shape[1])
+                needs_t = r_d > c_d
+                mat_canon = mat.T if needs_t else mat
+
+                # Optional zero-SVD Renyi-2 effective rank gate (erank_2 = ||G||_F^4 / ||G G^T||_F^2):
+                if erank_tau > 0.0:
+                    gram = mat_canon @ mat_canon.T
+                    gram_f2 = float(gram.square().sum().item())
+                    frob4 = (g_norm * g_norm) ** 2
+                    erank2 = frob4 / max(gram_f2, 1e-38)
+                    if erank2 > erank_tau:
+                        denom = math.hypot(g_norm, s_eff * sv_denom_sqrt) if has_s else g_norm
+                        if denom > 1e-30:
+                            m_boost = float(min(r_d, c_d)) ** 0.25
+                            alpha_i = -(rate_p * factor * m_boost) / denom
+                            p.add_(g, alpha=alpha_i)
+                            self.fast_path_updates += 1
+                            self.erank_fast_skips += 1
+                            if track_sec:
+                                fast_secant_deltas.append((p, alpha_i))
+                                fast_coh_count += 1
+                        continue
+
+                if track_sec:
+                    fast_coh_count += 1
+                m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_s)
+                pending_dense.setdefault(m_key, []).append(
+                    (p, mat_canon, g.new_tensor(-rate_p * factor), g.new_tensor(s_eff), track_sec, needs_t)
+                )
+
+            # 2. Zero-Sync Slow Path (stiff 2D NS on G, scalar 1D, extreme scales <1e-18 / >1e18 / NaN):
+            for p, g, step_t, rate_p, b1_eff, b2_eff, eps, s_base, stiff_gate, track_sec in slow_queue:
+                self._apply_slow_param_zerosync(
+                    p,
+                    g,
+                    step_t=step_t,
+                    rate_p=rate_p,
+                    b1_eff=b1_eff,
+                    b2_eff=b2_eff,
+                    eps=eps,
+                    s_base=s_base,
+                    stiff_gate=stiff_gate,
+                    is_critic_opt=is_critic_opt,
+                    track_secant=track_sec,
+                    coh_vals=coh_vals,
+                    applied_deltas=applied_deltas,
+                    pending_dense=pending_dense,
+                )
+
+            # 3. Batched 5-step fused Z=[X,Y] Quintic NS strictly for Generator 2D dense matrices:
+            for (_, _, has_s_b), bucket in pending_dense.items():
+                self.ns_2d_activations += len(bucket)
+                self.ns_5step_calls += len(bucket)
+                if is_critic_opt:
+                    self.critic_ns_calls += len(bucket)
+                if len(bucket) == 1:
+                    p_i, mat_i, mult_i, s_i, trk_i, needs_t = bucket[0]
+                    orth_i = quintic_orthogonalize_2d(mat_i, steps=5, smoothing=(s_i if has_s_b else 0.0)).float()
+                    if needs_t:
+                        orth_i = orth_i.T
+                    if trk_i:
+                        delta_i = (orth_i * mult_i).reshape_as(p_i).to(p_i.dtype)
+                        p_i.add_(delta_i)
+                        applied_deltas.append((p_i, delta_i))
+                    else:
+                        p_i.add_((orth_i * mult_i).reshape_as(p_i).to(p_i.dtype))
+                else:
+                    mats = torch.stack([b_item[1] for b_item in bucket], dim=0)
+                    s_batch = torch.stack([b_item[3] for b_item in bucket], dim=0) if has_s_b else 0.0
+                    orths = quintic_orthogonalize_batched(mats, steps=5, smoothing=s_batch).float()
+                    for idx_b, (p_i, _, mult_i, _, trk_i, needs_t) in enumerate(bucket):
+                        orth_b = orths[idx_b].T if needs_t else orths[idx_b]
+                        if trk_i:
+                            delta_i = (orth_b * mult_i).reshape_as(p_i).to(p_i.dtype)
+                            p_i.add_(delta_i)
+                            applied_deltas.append((p_i, delta_i))
+                        else:
+                            p_i.add_((orth_b * mult_i).reshape_as(p_i).to(p_i.dtype))
+
+            # 4. Law 4 Generator-Only Secant Trust Band with envelope-stable 13775ca3c ema_func_gain recovery:
+            alpha_gain = 1.0
+            probe_ran = False
+            free_ratio = 1.0
+            step_active_probe = False
+            if gen_probe_active and (fast_secant_deltas or applied_deltas):
+                probe_cache = getattr(rec, "_g_probe_cache", None)
+                rec._g_probe_cache = None
+                if probe_cache is not None:
+                    g_mod, p_args, p_kwargs, y_pre = probe_cache
+                    y_post = _eval_probe_forward(g_mod, p_args, p_kwargs, rec)
+                    if y_post is not None and y_post.shape == y_pre.shape:
+                        probe_ran = True
+                        out_dim = max(1, int(y_pre[0].numel()))
+                        delta_rms = float((y_post - y_pre).square().mean().sqrt().item())
+                        data_scale = float(getattr(rec, "ema_data_scale", 1.0))
+                        coord_scale = max(0.05, data_scale / math.sqrt(float(out_dim)))
+                        delta_rel = delta_rms / coord_scale
+                        push_res = float(getattr(rec, "ema_push_res", 0.0))
+                        delta_g_max = (0.045 + 0.16 * min(1.5, push_res)) * step_scale
+                        if (not is_simp) and push_res > 0.18 and s_therm > 0.10:
+                            off_gate = _smoothstep01((push_res - 0.18) / 0.25)
+                            delta_g_min = 0.012 * off_gate * step_scale
+                        else:
+                            delta_g_min = 0.0
+                        alpha_gain = _band_scale(delta_rel, delta_g_min, delta_g_max, alpha_max=48.0)
+                        total_coh_n = fast_coh_count + len(coh_vals)
+                        if total_coh_n > 0:
+                            slow_coh_sum = float(torch.stack(coh_vals).sum().item()) if coh_vals else 0.0
+                            mean_coh = (float(fast_coh_count) + slow_coh_sum) / float(total_coh_n)
+                        else:
+                            mean_coh = 1.0
+                        coh_eff = max(0.05, mean_coh)
+                        if math.isfinite(delta_rel) and delta_rel > 1e-12:
+                            free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * coh_eff
+                        step_active_probe = math.isfinite(delta_rel) and delta_rel >= 0.012
+                if alpha_gain != 1.0:
+                    adj = alpha_gain - 1.0
+                    for p_i, alpha_i in fast_secant_deltas:
+                        if p_i.grad is not None:
+                            p_i.add_(p_i.grad, alpha=adj * alpha_i)
+                    for p_i, d_i in applied_deltas:
+                        p_i.add_(d_i, alpha=adj)
+                if probe_ran:
+                    if alpha_gain < 1.0:
+                        target_fg = max(0.05, min(1.0, pre_gain_applied * alpha_gain))
+                        self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
+                    elif step_active_probe and free_ratio > 1.5:
+                        target_fg = max(0.05, min(1.0, free_ratio))
+                        if target_fg > self._ema_func_gain:
+                            self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
+            elif rec is not None and not is_critic_opt:
+                rec._g_probe_cache = None
+
+            # 5. Strictly Zero-pinv Analytic Non-Ascent Projection on multi-objective conflict steps:
+            if self.direction_blend and originals is not None and self._protected is not None:
+                normals = self._protected.double()
+                displacement = torch.cat([(p - old).reshape(-1) for p, old in zip(all_params, originals)])
+                disp64 = displacement.double()
+                before = normals @ disp64
+                stats = self.constraint_geometry_stats
+                blend = self.direction_blend_stats
+                projected = False
+                if bool((before > 0.0).any()):
+                    blend["conflict_steps"] += 1
+                    a_nrm = normals.norm(dim=1)
+                    a_unit = normals[a_nrm > 0] / a_nrm[a_nrm > 0, None]
+                    possible = int(a_unit.shape[0]) == 0 or float(a_unit.mean(dim=0).norm().item()) > 1e-12
+                    direction = (
+                        zero_pinv_project_nonascent(displacement, normals)
+                        if possible
+                        else torch.zeros_like(displacement)
+                    )
+                    blend["blended_steps" if possible else "pareto_stalls"] += 1
+                    offset = 0
+                    for p, old in zip(all_params, originals):
+                        size = p.numel()
+                        p.copy_(old + direction[offset : offset + size].view_as(p) if possible else old)
+                        offset += size
+                    applied64 = (
+                        torch.cat([(p - old).reshape(-1) for p, old in zip(all_params, originals)]).double()
+                        if possible
+                        else torch.zeros_like(disp64)
+                    )
+                    projected = not torch.equal(applied64, disp64)
+                    disp_nrm = float(disp64.norm().item())
+                    ratio = float(applied64.norm().item()) / disp_nrm if disp_nrm > 0.0 else 0.0
+                    blend["retained_norm_ratio_sum"] += ratio
+                    blend["max_retained_norm_ratio"] = max(blend["max_retained_norm_ratio"], ratio)
+                    after_max = float((normals @ applied64).max().item())
+                else:
+                    after_max = float(before.max().item())
+                stats["steps"] += 1
+                stats["projected_steps"] += int(projected)
+                stats["max_derivative_before"] = max(stats["max_derivative_before"], float(before.max().item()))
+                stats["max_derivative_after"] = max(stats["max_derivative_after"], after_max)
+
+            self.last_step_gain = float(alpha_gain)
+            self.last_probe_consumed = bool(probe_ran)
+            if probe_ran:
+                self.probe_consumptions += 1
+        finally:
+            self.abort_pending()
+
+        if hasattr(self, "record") and self.record is not None:
+            self.record.record_step(self)
+        return loss
+
+
+class Law4EnergyV7Optimizer(_Law4EnergyFrontierBase):
+    """Phase-2 Energy-Frontier v7 (`law4_energy_v7`): Asymmetric 0-NS Critic Frob-MP + 5-Step 2D Polar G."""
+
+    family = "law4_energy_v7"
+    recipe_optimizer_family = "law4_energy_v7"
+    _critic_mode = "frob_m25"
+    _gen_erank_gate = 0.0
+
+
+class Law4EnergyV8Optimizer(_Law4EnergyFrontierBase):
+    """Phase-2 Energy-Frontier v8 (`law4_energy_v8`): Zero-SVD ``erank_2``-Gated 2D NS on G + 0-NS Critic Frob-MP."""
+
+    family = "law4_energy_v8"
+    recipe_optimizer_family = "law4_energy_v8"
+    _critic_mode = "frob_m25"
+    _gen_erank_gate = 1.6
+
+
+class Law4EnergyV9Optimizer(_Law4EnergyFrontierBase):
+    """Phase-2 Energy-Frontier v9 (`law4_energy_v9`): Asymmetric 0-NS Critic Smooth Sign-MP + 5-Step 2D Polar G."""
+
+    family = "law4_energy_v9"
+    recipe_optimizer_family = "law4_energy_v9"
+    _critic_mode = "smooth_sign"
+    _gen_erank_gate = 0.0
+
+
+class Law4EnergyV10Optimizer(_Law4EnergyFrontierBase):
+    """Phase-2 Energy-Frontier Champion v10 (`law4_energy_v10`): Exact Polar-Frobenius-Matched 0-NS Critic (``sqrt(m)``) + 5-Step 2D Polar G."""
+
+    family = "law4_energy_v10"
+    recipe_optimizer_family = "law4_energy_v10"
+    _critic_mode = "frob_m50"
+    _gen_erank_gate = 0.0
+
+
 __all__ = [
     "Law4EnergyOptimizer",
     "Law4EnergyV2Optimizer",
@@ -3578,5 +4362,9 @@ __all__ = [
     "Law4EnergyV4Optimizer",
     "Law4EnergyV5Optimizer",
     "Law4EnergyV6Optimizer",
+    "Law4EnergyV7Optimizer",
+    "Law4EnergyV8Optimizer",
+    "Law4EnergyV9Optimizer",
+    "Law4EnergyV10Optimizer",
     "exact_polar_2xn",
 ]

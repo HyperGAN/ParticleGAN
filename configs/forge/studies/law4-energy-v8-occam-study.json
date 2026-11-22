@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-energy-v8-occam-study"
+  },
+  "candidate": "law4-energy-v8",
+  "competing_explanation": "If eliminating 2D NS on critic D or adapting 2D NS on G degrades rank-1 deep MLPs or conditional fibers, law4-energy-v8 will drop below 0.97 precision on grid100_mlp16 or fail r4-occam-ablation-v1 probes.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.97
+  },
+  "hypothesis": "law4-energy-v8 achieves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Critic NS, 0 Conv2d NS, and lower J-to-PASS than law4-energy-v3.",
+  "id": "law4-energy-v8-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.97
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

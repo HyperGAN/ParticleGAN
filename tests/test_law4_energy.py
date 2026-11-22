@@ -22,6 +22,10 @@ from particlegan._law4_energy import (
     Law4EnergyV4Optimizer,
     Law4EnergyV5Optimizer,
     Law4EnergyV6Optimizer,
+    Law4EnergyV7Optimizer,
+    Law4EnergyV8Optimizer,
+    Law4EnergyV9Optimizer,
+    Law4EnergyV10Optimizer,
     exact_polar_2xn,
 )
 from particlegan._law4_energy import optimizer as energy_opt_mod
@@ -690,3 +694,194 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     opt_v5 = Law4EnergyV5Optimizer([nn.Parameter(torch.zeros(4, 4))], lr=0.014, smoothing=0.0061)
     with pytest.raises(ValueError):
         opt_v5.load_state_dict(sd_g)
+
+
+
+@pytest.mark.parametrize(
+    ("family", "cls"),
+    [
+        ("law4_energy_v7", Law4EnergyV7Optimizer),
+        ("law4_energy_v8", Law4EnergyV8Optimizer),
+        ("law4_energy_v9", Law4EnergyV9Optimizer),
+        ("law4_energy_v10", Law4EnergyV10Optimizer),
+    ],
+)
+def test_law4_energy_v7_v8_v9_asymmetric_zero_critic_ns_zero_conv_ns_and_checkpoint(
+    family: str,
+    cls: type,
+) -> None:
+    assert family in NORMALIZED_FAMILIES
+    torch.manual_seed(0)
+
+    # 1. 2D MLP GAN: strictly 0 Critic NS, 0 Critic secant probes, 0 forbidden primitives, 0 non-stiff tensor state!
+    rec = get_recipe(
+        "unified_v11",
+        optimizer_family=family,
+        z_dim=2,
+        batch_size=16,
+        num_particles=32,
+        prior_kind="mog",
+        sigma_rel=0.1,
+        prior_reg=0.0,
+        total_steps=6,
+    )
+    g = init.deterministic_orthogonal_(_ShallowGen2D())
+    d = init.deterministic_orthogonal_(_ShallowDisc2D())
+    trainer = GANTrainer(rec, g, d, max_steps=6)
+    assert isinstance(trainer.opt_g, cls)
+    assert isinstance(trainer.opt_d, cls)
+
+    real = torch.randn(16, 2)
+    real_g = torch.randn(16, 2)
+    with (
+        mock.patch.object(torch.linalg, "svd", _forbid),
+        mock.patch.object(torch.linalg, "svdvals", _forbid),
+        mock.patch.object(torch.linalg, "eigh", _forbid),
+        mock.patch.object(torch.linalg, "eigvalsh", _forbid),
+        mock.patch.object(torch.linalg, "pinv", _forbid),
+        mock.patch.object(torch.autograd, "grad", _forbid),
+    ):
+        for _ in range(3):
+            trainer.step(real, generator_real=real_g)
+
+    assert trainer.opt_d.ns_2d_activations == 0
+    assert trainer.opt_d.critic_ns_calls == 0
+    assert trainer.opt_d.probe_consumptions == 0
+    assert trainer.opt_g.probe_consumptions == 3
+    for opt in (trainer.opt_g, trainer.opt_d):
+        for grp in opt.param_groups:
+            if grp["role"] in ("prior", "table"):
+                continue
+            for p in grp["params"]:
+                if p.numel() > 1:
+                    st = opt.state.get(p, {})
+                    assert not any(isinstance(v, torch.Tensor) for v in st.values())
+
+    # 2. Conv2d GAN: strictly 0 Conv2d NS on both G and D!
+    rec_c = get_recipe(
+        "unified_v11",
+        optimizer_family=family,
+        z_dim=8,
+        batch_size=8,
+        num_particles=32,
+        prior_kind="mog",
+        sigma_rel=0.1,
+        prior_reg=0.0,
+        total_steps=4,
+    )
+    gc = init.deterministic_orthogonal_(_ConvGen(z_dim=8))
+    dc = init.deterministic_orthogonal_(_ConvDisc())
+    tc = GANTrainer(rec_c, gc, dc, max_steps=4)
+    called_shapes = []
+    orig_2d = energy_opt_mod.quintic_orthogonalize_2d
+    orig_b = energy_opt_mod.quintic_orthogonalize_batched
+
+    def spy_2d(mat, *a, **kw):
+        called_shapes.append(tuple(mat.shape))
+        return orig_2d(mat, *a, **kw)
+
+    def spy_b(mats, *a, **kw):
+        called_shapes.append(tuple(mats.shape))
+        return orig_b(mats, *a, **kw)
+
+    with (
+        mock.patch.object(energy_opt_mod, "quintic_orthogonalize_2d", side_effect=spy_2d),
+        mock.patch.object(energy_opt_mod, "quintic_orthogonalize_batched", side_effect=spy_b),
+    ):
+        tc.step(torch.randn(8, 3, 8, 8), generator_real=torch.randn(8, 3, 8, 8))
+    assert tc.opt_d.ns_2d_activations == 0
+    assert all(len(s) == 2 and s == (8, 128) for s in called_shapes)
+
+    # 3. Checkpoint round-trip & cross-family rejection:
+    sd_g = trainer.opt_g.state_dict()
+    sd_d = trainer.opt_d.state_dict()
+    trainer.opt_g.load_state_dict(sd_g)
+    trainer.opt_d.load_state_dict(sd_d)
+    opt_v3 = Law4EnergyV3Optimizer([nn.Parameter(torch.zeros(4, 4))], lr=0.014, smoothing=0.0061)
+    with pytest.raises(ValueError, match="metadata"):
+        opt_v3.load_state_dict(sd_g)
+
+
+def test_law4_energy_v8_erank2_gate_and_v7_fresh_process_continuation(tmp_path: Path) -> None:
+    torch.manual_seed(0)
+    # 1. Verify erank_2 gate skips NS on well-conditioned (identity-like) 2D grad, escalates on rank-1 grad:
+    w_iso = nn.Parameter(torch.randn(16, 16))
+    w_r1 = nn.Parameter(torch.randn(16, 16))
+    opt = Law4EnergyV8Optimizer([w_iso, w_r1], lr=0.014, smoothing=0.0061)
+    w_iso.grad = torch.eye(16) + 0.05 * torch.randn(16, 16)
+    u = torch.randn(16, 1)
+    v = torch.randn(1, 16)
+    w_r1.grad = u @ v
+    called = []
+    orig_2d = energy_opt_mod.quintic_orthogonalize_2d
+
+    def spy_2d(mat, *a, **kw):
+        called.append(tuple(mat.shape))
+        return orig_2d(mat, *a, **kw)
+
+    with (
+        mock.patch.object(energy_opt_mod, "quintic_orthogonalize_2d", side_effect=spy_2d),
+        mock.patch.object(energy_opt_mod, "quintic_orthogonalize_batched", _forbid),
+    ):
+        opt.step()
+    assert opt.erank_fast_skips == 1
+    assert opt.ns_5step_calls == 1
+    assert called == [(16, 16)]
+
+    # 2. Fresh-process bit-exact continuation for law4_energy_v7 across stiffness boundary (device-tensor peak_rms!):
+    ckpt_path = tmp_path / "v7_ckpt.pt"
+    out_full = tmp_path / "v7_full.json"
+    out_cont = tmp_path / "v7_cont.json"
+    script = """
+import json, sys, torch
+from torch import nn
+from particlegan import GANTrainer, get_recipe, init
+
+mode, ckpt_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+
+class Gen(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 24), nn.SiLU(), nn.Linear(24, 2))
+    def forward(self, z): return self.net(z)
+
+class Disc(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))
+    def forward(self, x): return self.net(x).squeeze(-1)
+
+torch.manual_seed(0)
+torch.use_deterministic_algorithms(True)
+rec = get_recipe("unified_v11", optimizer_family="law4_energy_v7", z_dim=2, batch_size=16, num_particles=64, total_steps=10)
+g = init.deterministic_orthogonal_(Gen())
+d = init.deterministic_orthogonal_(Disc())
+trainer = GANTrainer(rec, g, d, max_steps=10)
+data_gen = torch.Generator().manual_seed(123)
+batches = [(torch.randn(16, 2, generator=data_gen), torch.randn(16, 2, generator=data_gen)) for _ in range(8)]
+
+if mode == "full":
+    for idx, (r, rg) in enumerate(batches):
+        if idx == 3:
+            trainer.opt_g._ema_func_gain = 0.35
+            torch.save(trainer.state_dict(), ckpt_path)
+        trainer.step(r, generator_real=rg)
+else:
+    trainer.load_state_dict(torch.load(ckpt_path, weights_only=False))
+    for r, rg in batches[3:]:
+        trainer.step(r, generator_real=rg)
+
+with open(out_path, "w") as f:
+    json.dump({
+        "g": [p.detach().tolist() for p in g.parameters()],
+        "d": [p.detach().tolist() for p in d.parameters()],
+        "ema_fg": trainer.opt_g._ema_func_gain,
+    }, f)
+"""
+    script_path = tmp_path / "run_v7_cont.py"
+    script_path.write_text(script)
+    repo_root = str(Path(__file__).resolve().parents[1])
+    env = {**os.environ, "PYTHONPATH": repo_root + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else "")}
+    subprocess.run([sys.executable, str(script_path), "full", str(ckpt_path), str(out_full)], check=True, env=env)
+    subprocess.run([sys.executable, str(script_path), "resume", str(ckpt_path), str(out_cont)], check=True, env=env)
+    assert json.loads(out_full.read_text()) == json.loads(out_cont.read_text())

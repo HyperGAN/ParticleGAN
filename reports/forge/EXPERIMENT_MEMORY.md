@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1217. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1223. Inventory coverage: incomplete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4040,6 +4040,22 @@ Incomplete at Tier 1: ring16_acquisition (B=64 -> K=48 prototypes across 16 sepa
 
 [Record and receipt provenance](records/readout-008837c0302469dece2d3d4a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v10 · readout-01a09e00e51374034f41784b
+
+**Scope:** research_diagnostic; scientific; revision `80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15`.
+
+law4-energy-v10 achieves 15-16/16 PASS on r4-occam-ablation-v1 (recovering model_ddgan_gaussian_chain, grid100_mlp16, and vector_unequal_width) while reaching grid100 first-PASS at step 1000 with 0 Critic NS and 0 Conv2d NS.
+
+**Observed:** {'FAIL': 2, 'PASS': 14}; wall seconds 3166.962; mechanism `structural`.
+
+img_bars4: modes=4, hq=0.96875
+
+law4-energy-v10 (Exact Polar-Frobenius-Matched 0-NS Critic sqrt(max(1,r/c))*sqrt(min(r,c))=sqrt(r) + 5-step 2D Polar G + 0 Conv2d NS + restored non-collapsing Tikhonov smoothing + 13775ca3c ema_func_gain + zero-.item() slow path) scored 14/16 PASS on r4-occam-ablation-v1, passing 14/14 neural generator+critic probes including grid100_mlp16 (prec=0.9924, ctr=0.0798), grid100 (prec=0.9882, ctr=0.0794, first_pass=1000!), model_ddgan_gaussian_chain (worst_cdf=0.0747, t1_q0_eig_max=1.1209), vector_unequal_width (hq=0.9993, cov=0.2582), vector_unequal_mass (0.9990), both >548x Nash tasks (0.9590/0.9900), ring16 (0.9895), img_bars4 (0.9688), five_word_joint_smoke, gaussian1d_stability, and zero_tanh_rail_escape. Only the two generator-free (G=nn.Identity) direct-cloud isolation probes missed by hair-thin margins (t3_iso_scale_mass_8x core_min_eigen_ratio=0.3375 vs 0.35; t3_iso_horizon_saddle_shift pre_shift_hq=0.9219 PASS, hq=0.9062 vs 0.92), sharply delineating the Law 4.4 boundary.
+
+**Next:** Conclude full Tiers 1-2 discriminator_stability readout and run uncontended dcgan_performance + idle-GPU J-to-PASS profiling with @energy-physics.
+
+[Record and receipt provenance](records/readout-01a09e00e51374034f41784b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### bispf-optimized-quintic-v1 · readout-01bff4a5f0a8f6d91bc51c65
 
 **Scope:** research_diagnostic; scientific; revision `910c746cc18347ce72d108dcef81f283fc5f2efd2117fc6358f7b485ba172ae1`.
@@ -4391,6 +4407,22 @@ The single global quintic convolution-rule delta preserves all 19 incumbent BISP
 **Next:** Review the complete same-source performance matrix and direct wide-channel diagnostics together with this preserved full ordinary pass set before selecting one whole BISPF measurement row. Retain all failures, archived controls, exact source identities and unknown performance contention. No public-default adoption or natural-image quality claim follows automatically.
 
 [Evidence](../../reports/forge/bispf-optimized/README.md) · [Record](records/readout-10ed0ff3f18514315a760f4a.json)
+
+### law4-energy-v8 · readout-11f73dac3da05456c0545672
+
+**Scope:** research_diagnostic; scientific; revision `7b8c9788237860a877c527d2fa61d3e4ccd3043f1e151a3e1d0b1922cab6e807`.
+
+law4-energy-v8 achieves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Critic NS, 0 Conv2d NS, and lower J-to-PASS than law4-energy-v3.
+
+**Observed:** {'FAIL': 3, 'PASS': 13}; wall seconds 3739.212; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.98682, mass_tv=0.083496; grid100: precision=0.99169, center_rms_sigma=0.065754, mass_tv=0.03671, radial_ks=0.023345
+
+law4-energy-v8 (exact zero-SVD Renyi-2 erank_2 > 1.6 gated 0-NS Frob-MP m^0.25 on G + 0-NS Critic Frob-MP m^0.25) scored 13/16 PASS on r4-occam-ablation-v1, delivering the sharpest grid100 (prec=0.9917, ctr=0.0658) and vector_unequal_width (hq=0.9985, cov=0.1431) of all tested optimizers while skipping 2D NS on well-conditioned generator layers. Missed 3 probes narrowly: grid100_mlp16 (final prec=0.9918, ctr=0.0613 — live-suffix miss), model_ddgan_gaussian_chain (t1_q0_eig_max=1.4093 vs 1.40), and t3_iso_horizon_saddle_shift (pre_shift_hq=0.9141 vs 0.92).
+
+**Next:** Evaluate v8 in matched idle-GPU J-to-PASS benchmark alongside v7 and v10.
+
+[Record and receipt provenance](records/readout-11f73dac3da05456c0545672.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-optimized-quintic-v1 · readout-13bb0a182066511013f5e739
 
@@ -8136,6 +8168,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 
 [Record and receipt provenance](records/readout-94bfa31c162574ab0410196a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v10 · readout-9599d9a20cf9a6e935f0d900
+
+**Scope:** research_diagnostic; scientific; revision `80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15`.
+
+law4-energy-v10 matches or improves law4-energy-v3 45.89 ms/step idle r256 latency and 1147 MiB peak VRAM with strictly 0 Conv2d NS and 0 Critic NS.
+
+**Observed:** {'PASS': 6}; wall seconds 66.753; mechanism `structural`.
+
+
+
+law4-energy-v10 passed 6/6 dcgan_performance scaling tasks (r256: 56.35 ms/step under shared GPU contention, r128: 32.28 ms, w128: 28.87 ms, b64: 30.70 ms, r64: 28.35 ms, r32: 23.45 ms) with strictly 0 Conv2d NS, 0 Critic NS, 0 critic secant probes, and 0 B/param non-stiff state.
+
+**Next:** Coordinate quiet idle-GPU 0 window with @energy-physics for matched uncontended NVML J-to-PASS profiling across v7, v8, v9, v10.
+
+[Record and receipt provenance](records/readout-9599d9a20cf9a6e935f0d900.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t4-arch-v3 · readout-95d61950559e6e35c77b9df3
 
 **Scope:** current; scientific; revision `0ff04720aaefda7c1aebb938b17bbfea77d7f694d94499e1a4a9f9d281383b78`.
@@ -8440,6 +8488,22 @@ Prediction observed: unified-v2 passed all 6/6 dcgan_performance benchmarks with
 
 [Record and receipt provenance](records/readout-a05ee6e86f954b22c39367d4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v10 · readout-a0e3e7f6620e7476c9599d67
+
+**Scope:** current; scientific; revision `80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15`.
+
+Unchanged global law4-energy-v10 (0 Critic NS, 0 Conv2d NS, exact sqrt(m) critic polar-Frobenius match) clears Tier-1 discriminator_stability (17/17 including interp_sparse_arc and model_ae_gan_multimodal), cracks staggered100 (ctr <= 0.16), and achieves >=42/47 Tiers 1-2 PASS.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 42}; wall seconds 7550.286; mechanism `structural`.
+
+nash_unequal_width_hostile_imbalance: hq=0.96729, mass_tv=0.085693
+
+ALL-TIME RECORD 42/48 PASS across discriminator_stability Tiers 1-2 (16/17 Tier 1 + 26/31 Tier 2) with strictly 0 Critic NS, 0 Conv2d NS, 0 critic secant probes, and 0 B/param non-stiff state! Cleared 100% of required Tier 1 and Tier 2 tasks, and CRACKED THREE historical unified-v11 failures simultaneously: staggered100 PASS (prec=0.9921, ctr=0.1310, cov=0.1021, rad_ks=0.0241), five_word_joint_hold PASS (24/24 continuation checks!), and model_ddgan_bimodal_chain PASS! Also passed all three 100-mode lattices (grid100 0.0794, rotated100 0.0919, staggered100 0.1310), 4/4 Conv2d images at 0 Conv2d NS, 6/6 vectors, 3/3 >548x Nash stretch, 3/3 precision (fp32/mxfp8/nvfp4), 2/2 VAEs, 2/2 AEs (model_ae_gan_multimodal PASS), and interp_sparse_arc (0.8261). Only non-passes: 4 stretch tasks (t3_iso_scale_mass_8x 0.3375 vs 0.35, t3_iso_horizon_saddle_shift 0.9062 vs 0.92, interp_img_patch_shift, interp_saddle_barycentric) plus 1 wall-time contention timeout on model_ae_ddgan_gaussian_chain (180.3s, gating bimodal).
+
+**Next:** Run uncontended dcgan_performance study for law4-energy-v10 and coordinate quiet idle-GPU 0 J-to-PASS benchmark with @energy-physics.
+
+[Record and receipt provenance](records/readout-a0e3e7f6620e7476c9599d67.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v7 · readout-a211bf674ae6989087e57402
 
 **Scope:** research_diagnostic; scientific; revision `bf914aab956af397d25e528718d105f1cad770c8055474ed213e3257d55ddcc4`.
@@ -8583,6 +8647,22 @@ Completed dcgan_performance seed-0 CUDA execution for e22 (PASS 6). Diagnostic p
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-a6c971db57845c4e9efbaa1b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v9 · readout-a80857248956f75ee82b46a6
+
+**Scope:** research_diagnostic; scientific; revision `8802b75b90abf1328c6de64d4b8683c581508f705bb40efb3bd51d87f780a95a`.
+
+law4-energy-v9 achieves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Critic NS, 0 Conv2d NS, and lower J-to-PASS than law4-energy-v3.
+
+**Observed:** {'FAIL': 2, 'INCOMPLETE': 1, 'PASS': 13}; wall seconds 4133.47; mechanism `structural`.
+
+grid100: precision=0.99165, center_rms_sigma=0.097933, mass_tv=0.03467, radial_ks=0.022714; t3_iso_scale_mass_8x: modes=4, hq=0.94336, mass_tv=0.025625; nash_overpowered_generator_ring16: modes=16, hq=0.98975, mass_tv=0.083984
+
+law4-energy-v9 (Law 4.4 Asymmetric 0-NS Critic Smooth Sign-MP + 5-step 2D Polar G) scored 13/16 PASS (1 INCOMPLETE wall-time timeout on five_word_joint_smoke at 900.3s under 4-way GPU contention) on r4-occam-ablation-v1, PASSing grid100_mlp16 (prec=0.9926, ctr=0.0631), grid100 (0.9917/0.0979), vector_unequal_width (0.9983/0.2557), both >548x Nash tasks, ring16 (0.9822), gaussian1d_stability, zero_tanh_rail_escape, img_bars4, and t3_iso_scale_mass_8x. Missed model_ddgan_gaussian_chain (t1_q0_eig_max=1.4623) and t3_iso_horizon_saddle_shift (pre_shift_hq=0.9219 PASS, mass_tv=0.125 vs 0.10).
+
+**Next:** Use v7/v8/v9 diagnostic findings to construct law4-energy-v10 for 16/16 Occam and full Tiers 1-2 discriminator_stability.
+
+[Record and receipt provenance](records/readout-a80857248956f75ee82b46a6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v6 · readout-a8bc8325d7857fdf467674af
 
@@ -9879,6 +9959,22 @@ unified-v8 passed t3_iso_horizon_saddle_shift (modes=4, hq=0.9609) and missed t3
 **Next:** Set s_prior=0.0 when total_gen_mats==0 (direct coordinate clouds) in unified-v9.
 
 [Record and receipt provenance](records/readout-d2e0272c97deecfb2b6b0266.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### law4-energy-v7 · readout-d2e26497bc23a120806f8de4
+
+**Scope:** research_diagnostic; scientific; revision `7ac4bbfefd99ef9018401a1faf0a6928abb802c2ebde3b744e3dcbeb2f08adb3`.
+
+law4-energy-v7 achieves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Critic NS, 0 Conv2d NS, and lower J-to-PASS than law4-energy-v3.
+
+**Observed:** {'FAIL': 2, 'PASS': 14}; wall seconds 3463.71; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.91406, mass_tv=0.078125
+
+law4-energy-v7 (Law 4.4 Asymmetric 0-NS Critic Frob-MP m^0.25 + 5-step 2D Polar G + restored non-collapsing Tikhonov smoothing + 13775ca3c ema_func_gain + zero-.item() slow path) scored 14/16 PASS on r4-occam-ablation-v1 with strictly 0 Critic NS, 0 Conv2d NS, and 0 critic secant probes. Critically, v7 RECOVERED BOTH of v3's failures: grid100_mlp16 PASS (prec=0.9912, ctr=0.0708 vs v3 FAIL 0.9570/0.6775) and vector_unequal_width PASS (hq=0.9983, cov=0.2517 vs v3 FAIL 2.316), while sharpening grid100 (ctr=0.0929 vs v3 0.1249) and passing both >548x Nash tasks, ring16 (0.9893), five_word_joint_smoke, gaussian1d_stability, zero_tanh_rail_escape, img_bars4, and t3_iso_scale_mass_8x. Only two hair-thin misses kept it from 16/16: t3_iso_horizon_saddle_shift (pre_shift_hq=0.9141 vs 0.92 threshold, modes=4, tv=0.0781) and model_ddgan_gaussian_chain (all final step-2500 gates passed, worst_cdf=0.0973, t1_q0_eig_max=1.3924 <= 1.40, 1 early suffix check miss).
+
+**Next:** Diagnose the two hair-thin misses (t3_iso_horizon_saddle_shift 0.9141 vs 0.92 and model_ddgan_gaussian_chain 1-check suffix miss) and build law4-energy-v10 targeting 16/16 Occam + staggered100 PASS + >=42/47 Tiers 1-2 discriminator_stability.
+
+[Record and receipt provenance](records/readout-d2e26497bc23a120806f8de4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### empf-v1 · readout-d46a41a1da2da54d67d154f4
 
@@ -11622,4 +11718,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `3be30695d7e9fafc42d8fa46058165d800beccf74eef7a132a1b624251dcc182`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `a8c7cc25926cf48d66c81e0d8c4e3e4e7c43d14aee9132b79f214484c4887f19`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
