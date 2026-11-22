@@ -9,6 +9,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 import hashlib
 import json
+import math
 from pathlib import Path
 import re
 import subprocess
@@ -75,6 +76,433 @@ def _git_head_commit(root: Path) -> str | None:
         return sha if sha else None
     except (OSError, subprocess.CalledProcessError):
         return None
+
+
+def _git_file_last_commit(root: Path, rel_path: str) -> str | None:
+    try:
+        sha = subprocess.check_output(
+            ["git", "log", "-n", "1", "--format=%H", "--", rel_path],
+            cwd=root,
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return sha if sha else None
+    except (OSError, subprocess.CalledProcessError):
+        return None
+
+
+def _opt_float(value) -> float | None:
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return None
+    f = float(value)
+    return f if math.isfinite(f) else None
+
+
+def _opt_int(value) -> int | None:
+    if isinstance(value, bool) or not isinstance(value, int):
+        return None
+    return int(value)
+
+
+def _opt_str(value) -> str | None:
+    if not isinstance(value, str):
+        return None
+    text = value.strip()
+    return text if text else None
+
+
+def _opt_bool(value) -> bool | None:
+    return value if isinstance(value, bool) else None
+
+
+def _load_idea_meta(root: Path, cache: dict[str, dict | None], candidate_id: str) -> dict | None:
+    if not candidate_id:
+        return None
+    if candidate_id in cache:
+        return cache[candidate_id]
+    path = root / "configs/forge/ideas" / f"{candidate_id}.json"
+    if path.is_file():
+        try:
+            cache[candidate_id] = read_json(path)
+        except Exception:
+            cache[candidate_id] = None
+    else:
+        cache[candidate_id] = None
+    return cache[candidate_id]
+
+
+def _resolve_candidate_family(
+    root: Path,
+    candidate_id: str,
+    cand_to_family: dict[str, str],
+    idea_cache: dict[str, dict | None],
+) -> str | None:
+    if candidate_id in cand_to_family:
+        return cand_to_family[candidate_id]
+    idea = _load_idea_meta(root, idea_cache, candidate_id)
+    if isinstance(idea, dict):
+        return _opt_str(idea.get("trainer_family"))
+    return None
+
+
+def _resolve_candidate_optimizer_family(
+    root: Path,
+    candidate_id: str,
+    idea_cache: dict[str, dict | None],
+) -> str | None:
+    idea = _load_idea_meta(root, idea_cache, candidate_id)
+    if isinstance(idea, dict):
+        overrides = idea.get("recipe_overrides")
+        if isinstance(overrides, dict):
+            return _opt_str(overrides.get("optimizer_family"))
+    return None
+
+
+def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -> dict:
+    """Extract nullable hardware energy telemetry from a receipt's ``cost`` dict.
+
+    Historical receipts without ``cost["energy"]`` remain strictly ``None`` across
+    all energy fields and are never fabricated.
+    """
+    empty = {
+        "joules_total": None,
+        "joules_per_step": None,
+        "avg_power_watts": None,
+        "first_pass_step": None,
+        "sustained_pass_step": None,
+        "joules_to_first_pass": None,
+        "joules_to_sustained_pass": None,
+        "energy_backend": None,
+        "gpu_name": None,
+        "contended": None,
+    }
+    energy = cost.get("energy") if isinstance(cost, dict) else None
+    if not isinstance(energy, dict):
+        return empty
+
+    joules_total = _opt_float(energy.get("joules_total"))
+    joules_per_step = _opt_float(energy.get("joules_per_step"))
+    avg_power_watts = _opt_float(energy.get("avg_power_watts"))
+    if joules_total is None and joules_per_step is None and avg_power_watts is None:
+        return empty
+
+    steps = _opt_int(cost.get("completed_steps"))
+    if joules_per_step is None and joules_total is not None and steps is not None and steps > 0:
+        joules_per_step = joules_total / float(steps)
+
+    fp_step = _opt_int(energy.get("first_pass_step"))
+    sp_step = _opt_int(energy.get("sustained_pass_step"))
+    if isinstance(evaluator_summary, dict):
+        conv = evaluator_summary.get("convergence")
+        if isinstance(conv, dict):
+            if fp_step is None:
+                fp_step = _opt_int(conv.get("first_pass_step"))
+            if sp_step is None:
+                sp_step = _opt_int(
+                    conv.get("confirmed_step")
+                    if conv.get("confirmed_step") is not None
+                    else conv.get("stable_from_step")
+                )
+
+    j_fp = _opt_float(energy.get("joules_to_first_pass"))
+    if j_fp is None and joules_per_step is not None and fp_step is not None:
+        j_fp = joules_per_step * float(fp_step)
+
+    j_sp = _opt_float(energy.get("joules_to_sustained_pass"))
+    if j_sp is None and joules_per_step is not None and sp_step is not None:
+        j_sp = joules_per_step * float(sp_step)
+
+    return {
+        "joules_total": joules_total,
+        "joules_per_step": joules_per_step,
+        "avg_power_watts": avg_power_watts,
+        "first_pass_step": fp_step,
+        "sustained_pass_step": sp_step,
+        "joules_to_first_pass": j_fp,
+        "joules_to_sustained_pass": j_sp,
+        "energy_backend": _opt_str(energy.get("energy_backend")),
+        "gpu_name": _opt_str(energy.get("gpu_name")),
+        "contended": _opt_bool(energy.get("contended")),
+    }
+
+
+def _readout_occam_counts(root: Path, readout_name: str | None) -> tuple[int | None, int | None, str | None]:
+    if not isinstance(readout_name, str) or not readout_name.strip():
+        return None, None, None
+    path = root / "reports/forge/records" / readout_name.strip()
+    if not path.is_file():
+        return None, None, None
+    try:
+        doc = read_json(path)
+    except Exception:
+        return None, None, None
+    prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+    src_commit = _opt_str(prov.get("source_origin_commit")) or _opt_str(doc.get("source_commit"))
+    task_results = doc.get("task_results")
+    if not isinstance(task_results, list) or not task_results:
+        return None, None, src_commit
+    executed_statuses = {"PASS", "FAIL", "INCOMPLETE", "INVALID", "ERROR", "TIMEOUT"}
+    passed = sum(
+        1 for tr in task_results
+        if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) == "PASS"
+    )
+    executed = sum(
+        1 for tr in task_results
+        if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) in executed_statuses
+    )
+    return (passed if executed > 0 else None), (executed if executed > 0 else None), src_commit
+
+
+def _infer_contended(entry: dict, doc: dict, r256: dict) -> bool | None:
+    for container in (entry, r256, doc):
+        if isinstance(container, dict) and isinstance(container.get("contended"), bool):
+            return container["contended"]
+    util_before = r256.get("gpu_util_before") if isinstance(r256, dict) else None
+    if (
+        isinstance(util_before, (list, tuple))
+        and len(util_before) >= 1
+        and isinstance(util_before[0], (int, float))
+        and not isinstance(util_before[0], bool)
+    ):
+        return bool(util_before[0] > 5)
+    return None
+
+
+def _collect_study_energy_rows(
+    root: Path,
+    cand_to_family: dict[str, str],
+    idea_cache: dict[str, dict | None],
+) -> list[dict]:
+    rows: list[dict] = []
+    studies_dir = root / "reports/forge/studies"
+    if not studies_dir.is_dir():
+        return rows
+
+    for study_file in sorted(studies_dir.glob("*energy-benchmark*.json")):
+        try:
+            doc = read_json(study_file)
+        except Exception:
+            continue
+        if not isinstance(doc, dict):
+            continue
+        rel_source = f"reports/forge/studies/{study_file.name}"
+        file_commit = (
+            _opt_str(doc.get("source_commit"))
+            or _opt_str(doc.get("git_commit"))
+            or _git_file_last_commit(root, rel_source)
+        )
+        default_gpu = _opt_str(doc.get("gpu_name"))
+        default_scope = _opt_str(doc.get("evidence_scope")) or "study_energy_benchmark"
+
+        bench_map = doc.get("energy_benchmark")
+        if isinstance(bench_map, dict):
+            for candidate_id in sorted(bench_map):
+                entry = bench_map[candidate_id]
+                if not isinstance(entry, dict):
+                    continue
+                r256 = entry.get("dcgan_r256") if isinstance(entry.get("dcgan_r256"), dict) else {}
+                ring16 = entry.get("ring16_acquisition") if isinstance(entry.get("ring16_acquisition"), dict) else {}
+                grid100 = entry.get("grid100") if isinstance(entry.get("grid100"), dict) else {}
+                staggered100 = entry.get("staggered100") if isinstance(entry.get("staggered100"), dict) else {}
+
+                sustained = (
+                    r256.get("sustained_uninstrumented")
+                    if isinstance(r256.get("sustained_uninstrumented"), dict)
+                    else {}
+                )
+                step_ms_obj = sustained.get("step_ms") if isinstance(sustained.get("step_ms"), dict) else {}
+                r256_ms = _opt_float(step_ms_obj.get("median"))
+                if r256_ms is None:
+                    r256_ms = _opt_float(step_ms_obj.get("mean"))
+                if r256_ms is None:
+                    r256_ms = _opt_float(r256.get("ms_per_step"))
+
+                power_poll = (
+                    sustained.get("power_poll_watts")
+                    if isinstance(sustained.get("power_poll_watts"), dict)
+                    else {}
+                )
+                r256_watts = _opt_float(sustained.get("avg_power_watts_from_energy"))
+                if r256_watts is None:
+                    r256_watts = _opt_float(power_poll.get("median"))
+                if r256_watts is None:
+                    r256_watts = _opt_float(r256.get("avg_power_watts"))
+
+                r256_j = _opt_float(sustained.get("joules_per_step"))
+                if r256_j is None:
+                    r256_j = _opt_float(r256.get("joules_per_step"))
+
+                opt_state = r256.get("optimizer_state") if isinstance(r256.get("optimizer_state"), dict) else {}
+                state_bpp = _opt_float(opt_state.get("state_bytes_per_param"))
+                if state_bpp is None:
+                    state_bpp = _opt_float(grid100.get("state_bytes_per_param"))
+                if state_bpp is None:
+                    state_bpp = _opt_float(entry.get("state_bytes_per_param"))
+
+                opt_family = (
+                    _opt_str(r256.get("optimizer_family"))
+                    or _opt_str(grid100.get("optimizer_family"))
+                    or _opt_str(ring16.get("optimizer_family"))
+                    or _opt_str(entry.get("optimizer_family"))
+                    or _resolve_candidate_optimizer_family(root, candidate_id, idea_cache)
+                )
+
+                ro_pass, ro_exec, ro_commit = _readout_occam_counts(root, grid100.get("official_forge_readout"))
+                occam_pass = _opt_int(entry.get("occam_pass"))
+                occam_executed = _opt_int(entry.get("occam_executed"))
+                if occam_pass is None:
+                    occam_pass = ro_pass
+                if occam_executed is None:
+                    occam_executed = ro_exec
+
+                src_commit = _opt_str(entry.get("source_commit")) or ro_commit or file_commit
+                gpu = _opt_str(r256.get("gpu_name")) or _opt_str(entry.get("hardware_gpu")) or default_gpu
+                contended = _infer_contended(entry, doc, r256)
+                scope = _opt_str(entry.get("evidence_scope")) or default_scope
+
+                rows.append(
+                    {
+                        "candidate_id": str(candidate_id),
+                        "family_id": _opt_str(entry.get("family_id"))
+                        or _resolve_candidate_family(root, candidate_id, cand_to_family, idea_cache),
+                        "optimizer_family": opt_family,
+                        "hardware_gpu": gpu,
+                        "contended": contended,
+                        "source_commit": src_commit,
+                        "source_file": rel_source,
+                        "r256_ms_per_step": r256_ms,
+                        "r256_watts": r256_watts,
+                        "r256_joules_per_step": r256_j,
+                        "state_bytes_per_param": state_bpp,
+                        "ring16_first_pass_step": _opt_int(ring16.get("first_pass_step")),
+                        "ring16_j_to_pass": _opt_float(ring16.get("joules_to_first_pass")),
+                        "grid100_first_pass_step": _opt_int(grid100.get("first_pass_step")),
+                        "grid100_sustained_pass_step": _opt_int(
+                            grid100.get("first_sustained_5check_step")
+                            if grid100.get("first_sustained_5check_step") is not None
+                            else grid100.get("sustained_pass_step")
+                        ),
+                        "grid100_j_to_pass": _opt_float(grid100.get("joules_to_first_pass")),
+                        "grid100_j_to_sustained_pass": _opt_float(grid100.get("joules_to_sustained_pass")),
+                        "staggered100_first_pass_step": _opt_int(staggered100.get("first_pass_step")),
+                        "staggered100_j_to_pass": _opt_float(staggered100.get("joules_to_first_pass")),
+                        "occam_pass": occam_pass,
+                        "occam_executed": occam_executed,
+                        "evidence_scope": scope,
+                    }
+                )
+        elif isinstance(doc.get("benchmarks"), list):
+            for entry in doc["benchmarks"]:
+                if not isinstance(entry, dict) or not _opt_str(entry.get("candidate_id")):
+                    continue
+                candidate_id = str(entry["candidate_id"]).strip()
+                rows.append(
+                    {
+                        "candidate_id": candidate_id,
+                        "family_id": _opt_str(entry.get("family_id"))
+                        or _resolve_candidate_family(root, candidate_id, cand_to_family, idea_cache),
+                        "optimizer_family": _opt_str(entry.get("optimizer_family"))
+                        or _resolve_candidate_optimizer_family(root, candidate_id, idea_cache),
+                        "hardware_gpu": _opt_str(entry.get("hardware_gpu")) or default_gpu,
+                        "contended": _opt_bool(entry.get("contended")),
+                        "source_commit": _opt_str(entry.get("source_commit")) or file_commit,
+                        "source_file": rel_source,
+                        "r256_ms_per_step": _opt_float(entry.get("r256_ms_per_step")),
+                        "r256_watts": _opt_float(entry.get("r256_watts")),
+                        "r256_joules_per_step": _opt_float(entry.get("r256_joules_per_step")),
+                        "state_bytes_per_param": _opt_float(entry.get("state_bytes_per_param")),
+                        "ring16_first_pass_step": _opt_int(entry.get("ring16_first_pass_step")),
+                        "ring16_j_to_pass": _opt_float(entry.get("ring16_j_to_pass")),
+                        "grid100_first_pass_step": _opt_int(entry.get("grid100_first_pass_step")),
+                        "grid100_sustained_pass_step": _opt_int(entry.get("grid100_sustained_pass_step")),
+                        "grid100_j_to_pass": _opt_float(entry.get("grid100_j_to_pass")),
+                        "grid100_j_to_sustained_pass": _opt_float(entry.get("grid100_j_to_sustained_pass")),
+                        "staggered100_first_pass_step": _opt_int(entry.get("staggered100_first_pass_step")),
+                        "staggered100_j_to_pass": _opt_float(entry.get("staggered100_j_to_pass")),
+                        "occam_pass": _opt_int(entry.get("occam_pass")),
+                        "occam_executed": _opt_int(entry.get("occam_executed")),
+                        "evidence_scope": _opt_str(entry.get("evidence_scope")) or default_scope,
+                    }
+                )
+    return rows
+
+
+def _collect_receipt_energy_rows(
+    root: Path,
+    receipt_energy_entries: list[dict],
+    cand_to_family: dict[str, str],
+    idea_cache: dict[str, dict | None],
+) -> list[dict]:
+    """Aggregate Forge technique receipts carrying ``cost.energy`` without mixing cohorts."""
+    grouped: dict[tuple, dict] = {}
+    for item in receipt_energy_entries:
+        candidate_id = item["candidate_id"]
+        key = (
+            candidate_id,
+            item["source_commit"],
+            item["source_digest"],
+            item["gpu_name"],
+            item["contended"],
+            item["evidence_scope"],
+        )
+        row = grouped.get(key)
+        if row is None:
+            row = {
+                "candidate_id": candidate_id,
+                "family_id": _resolve_candidate_family(root, candidate_id, cand_to_family, idea_cache),
+                "optimizer_family": _resolve_candidate_optimizer_family(root, candidate_id, idea_cache),
+                "hardware_gpu": item["gpu_name"],
+                "contended": item["contended"],
+                "source_commit": item["source_commit"],
+                "source_file": item["receipt_file"],
+                "r256_ms_per_step": None,
+                "r256_watts": None,
+                "r256_joules_per_step": None,
+                "state_bytes_per_param": None,
+                "ring16_first_pass_step": None,
+                "ring16_j_to_pass": None,
+                "grid100_first_pass_step": None,
+                "grid100_sustained_pass_step": None,
+                "grid100_j_to_pass": None,
+                "grid100_j_to_sustained_pass": None,
+                "staggered100_first_pass_step": None,
+                "staggered100_j_to_pass": None,
+                "occam_pass": None,
+                "occam_executed": None,
+                "evidence_scope": item["evidence_scope"] or "forge_receipt_energy",
+                "_source_digest": item["source_digest"],
+                "_attempt_ids": set(),
+            }
+            grouped[key] = row
+        row["_attempt_ids"].add(item["attempt_id"])
+        task_id = item["task_id"]
+        if task_id == "dcgan_performance_r256":
+            if row["r256_joules_per_step"] is None:
+                row["r256_joules_per_step"] = item["joules_per_step"]
+            if row["r256_watts"] is None:
+                row["r256_watts"] = item["avg_power_watts"]
+            if row["r256_ms_per_step"] is None and item["wall_seconds"] is not None and item["completed_steps"]:
+                row["r256_ms_per_step"] = 1000.0 * item["wall_seconds"] / float(item["completed_steps"])
+        elif task_id == "ring16_acquisition":
+            if row["ring16_first_pass_step"] is None:
+                row["ring16_first_pass_step"] = item["first_pass_step"]
+            if row["ring16_j_to_pass"] is None:
+                row["ring16_j_to_pass"] = item["joules_to_first_pass"]
+        elif task_id == "grid100":
+            if row["grid100_first_pass_step"] is None:
+                row["grid100_first_pass_step"] = item["first_pass_step"]
+            if row["grid100_sustained_pass_step"] is None:
+                row["grid100_sustained_pass_step"] = item["sustained_pass_step"]
+            if row["grid100_j_to_pass"] is None:
+                row["grid100_j_to_pass"] = item["joules_to_first_pass"]
+            if row["grid100_j_to_sustained_pass"] is None:
+                row["grid100_j_to_sustained_pass"] = item["joules_to_sustained_pass"]
+        elif task_id == "staggered100":
+            if row["staggered100_first_pass_step"] is None:
+                row["staggered100_first_pass_step"] = item["first_pass_step"]
+            if row["staggered100_j_to_pass"] is None:
+                row["staggered100_j_to_pass"] = item["joules_to_first_pass"]
+    return [grouped[k] for k in sorted(grouped, key=lambda item: tuple("" if x is None else str(x) for x in item))]
 
 
 def _gif_to_media_relpath(gif_path: str | None) -> str | None:
@@ -257,6 +685,206 @@ def build_inventory_exports(
     task_defs = _collect_task_definitions(progress, full_suite_names)
     task_def_by_id = {d["task_id"]: d for d in task_defs}
 
+    cand_to_family: dict[str, str] = {}
+    for family, cohort in selected:
+        sel_row = _selected_row(publication, cohort)
+        cid = sel_row.get("candidate_id") or family.get("benchmark_configuration", {}).get("candidate_id") or ""
+        if cid:
+            cand_to_family[str(cid)] = family["id"]
+    idea_cache: dict[str, dict | None] = {}
+
+    # Receipts table from reports/forge/technique-receipts/*.json
+    receipt_rows: list[dict] = []
+    receipt_energy_by_attempt_task: dict[tuple[str, str], dict] = {}
+    receipt_energy_entries: list[dict] = []
+    receipts_dir = root / "reports/forge/technique-receipts"
+    if receipts_dir.is_dir():
+        for rec_file in sorted(receipts_dir.glob("*.json")):
+            doc = read_json(rec_file)
+            attempt_id = str(doc.get("attempt_id") or rec_file.stem)
+            provenance = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+            canonical_hash = str(provenance.get("canonical_result_hash") or "")
+            source_commit = provenance.get("source_origin_commit")
+            source_digest = provenance.get("source_digest")
+            receipt_rel = f"reports/forge/technique-receipts/{rec_file.name}"
+            task_results = doc.get("task_results") or []
+            if not task_results:
+                receipt_rows.append(
+                    {
+                        "attempt_id": attempt_id,
+                        "request_id": str(doc.get("request_id") or ""),
+                        "campaign_id": str(doc.get("campaign_id") or ""),
+                        "candidate_id": str(doc.get("candidate_id") or ""),
+                        "candidate_revision": str(doc.get("candidate_revision") or ""),
+                        "evidence_scope": str(doc.get("evidence_scope") or ""),
+                        "attempt_status": str(doc.get("attempt_status") or ""),
+                        "task_id": "",
+                        "status": str(doc.get("attempt_status") or "UNKNOWN"),
+                        "gate_status": "",
+                        "raw_status": "",
+                        "reason": str(doc.get("note") or ""),
+                        "compatibility_key": "",
+                        "execution_path": "",
+                        "device": "",
+                        "wall_seconds": None,
+                        "completed_steps": None,
+                        "joules_total": None,
+                        "joules_per_step": None,
+                        "avg_power_watts": None,
+                        "first_pass_step": None,
+                        "sustained_pass_step": None,
+                        "joules_to_first_pass": None,
+                        "joules_to_sustained_pass": None,
+                        "energy_backend": None,
+                        "canonical_result_hash": canonical_hash,
+                        "source_commit": str(source_commit) if source_commit is not None else None,
+                        "source_digest": str(source_digest) if source_digest is not None else None,
+                        "sampling_law": None,
+                        "eval_output_noise": None,
+                        "metrics_json": "{}",
+                        "media_gif_relpath": None,
+                        "receipt_file": receipt_rel,
+                    }
+                )
+            for tr in task_results:
+                if not isinstance(tr, dict):
+                    continue
+                task_id = str(tr.get("task_id") or "")
+                cost = tr.get("cost") if isinstance(tr.get("cost"), dict) else {}
+                sampling = tr.get("sampling") if isinstance(tr.get("sampling"), dict) else {}
+                wall_sec = cost.get("wall_seconds")
+                steps = cost.get("completed_steps")
+                metrics_obj = tr.get("metrics") if isinstance(tr.get("metrics"), dict) else {}
+                eval_summary = tr.get("evaluator_summary") if isinstance(tr.get("evaluator_summary"), dict) else None
+                energy_info = _extract_receipt_energy(cost, eval_summary)
+                has_energy = (
+                    energy_info["joules_total"] is not None
+                    or energy_info["joules_per_step"] is not None
+                    or energy_info["avg_power_watts"] is not None
+                )
+                wall_float = float(wall_sec) if isinstance(wall_sec, (int, float)) and not isinstance(wall_sec, bool) else None
+                steps_int = int(steps) if isinstance(steps, int) and not isinstance(steps, bool) else None
+                if has_energy:
+                    receipt_energy_by_attempt_task[(attempt_id, task_id)] = dict(energy_info)
+                    receipt_energy_entries.append(
+                        {
+                            "attempt_id": attempt_id,
+                            "candidate_id": str(doc.get("candidate_id") or ""),
+                            "task_id": task_id,
+                            "evidence_scope": str(doc.get("evidence_scope") or ""),
+                            "source_commit": str(source_commit) if source_commit is not None else None,
+                            "source_digest": str(source_digest) if source_digest is not None else None,
+                            "wall_seconds": wall_float,
+                            "completed_steps": steps_int,
+                            "receipt_file": receipt_rel,
+                            **energy_info,
+                        }
+                    )
+                receipt_rows.append(
+                    {
+                        "attempt_id": attempt_id,
+                        "request_id": str(doc.get("request_id") or ""),
+                        "campaign_id": str(doc.get("campaign_id") or ""),
+                        "candidate_id": str(doc.get("candidate_id") or ""),
+                        "candidate_revision": str(doc.get("candidate_revision") or ""),
+                        "evidence_scope": str(doc.get("evidence_scope") or ""),
+                        "attempt_status": str(doc.get("attempt_status") or ""),
+                        "task_id": task_id,
+                        "status": str(tr.get("status") or ""),
+                        "gate_status": str(tr.get("gate_status") or ""),
+                        "raw_status": str(tr.get("raw_status") or ""),
+                        "reason": str(tr.get("reason") or ""),
+                        "compatibility_key": str(tr.get("compatibility_key") or ""),
+                        "execution_path": str(tr.get("execution_path") or ""),
+                        "device": str(cost.get("device") or tr.get("device") or ""),
+                        "wall_seconds": wall_float,
+                        "completed_steps": steps_int,
+                        "joules_total": energy_info["joules_total"],
+                        "joules_per_step": energy_info["joules_per_step"],
+                        "avg_power_watts": energy_info["avg_power_watts"],
+                        "first_pass_step": energy_info["first_pass_step"],
+                        "sustained_pass_step": energy_info["sustained_pass_step"],
+                        "joules_to_first_pass": energy_info["joules_to_first_pass"],
+                        "joules_to_sustained_pass": energy_info["joules_to_sustained_pass"],
+                        "energy_backend": energy_info["energy_backend"],
+                        "canonical_result_hash": canonical_hash,
+                        "source_commit": str(source_commit) if source_commit is not None else None,
+                        "source_digest": str(source_digest) if source_digest is not None else None,
+                        "sampling_law": str(sampling.get("sampling_law")) if sampling.get("sampling_law") is not None else None,
+                        "eval_output_noise": str(sampling.get("eval_output_noise")) if sampling.get("eval_output_noise") is not None else None,
+                        "metrics_json": json.dumps(metrics_obj, sort_keys=True, separators=(",", ":")),
+                        "media_gif_relpath": media_by_attempt_task.get((attempt_id, task_id)),
+                        "receipt_file": receipt_rel,
+                    }
+                )
+
+    study_energy_rows = _collect_study_energy_rows(root, cand_to_family, idea_cache)
+    receipt_energy_rows_raw = _collect_receipt_energy_rows(root, receipt_energy_entries, cand_to_family, idea_cache)
+    energy_public_keys = (
+        "candidate_id",
+        "family_id",
+        "optimizer_family",
+        "hardware_gpu",
+        "contended",
+        "source_commit",
+        "source_file",
+        "r256_ms_per_step",
+        "r256_watts",
+        "r256_joules_per_step",
+        "state_bytes_per_param",
+        "ring16_first_pass_step",
+        "ring16_j_to_pass",
+        "grid100_first_pass_step",
+        "grid100_sustained_pass_step",
+        "grid100_j_to_pass",
+        "grid100_j_to_sustained_pass",
+        "staggered100_first_pass_step",
+        "staggered100_j_to_pass",
+        "occam_pass",
+        "occam_executed",
+        "evidence_scope",
+    )
+    energy_rows: list[dict] = [
+        {k: row.get(k) for k in energy_public_keys}
+        for row in (*study_energy_rows, *receipt_energy_rows_raw)
+    ]
+
+    def _match_family_energy(
+        candidate_id: str,
+        backend: str,
+        source_digest: str,
+        source_origin_commit: str,
+        cohort_attempt_ids: set[str],
+    ) -> tuple[float | None, float | None, float | None]:
+        """Match energy summary strictly within the same candidate/backend/source cohort."""
+        if not candidate_id or backend != "cuda":
+            return None, None, None
+        matched_r256: float | None = None
+        matched_ring16: float | None = None
+        matched_grid100: float | None = None
+        for row in (*receipt_energy_rows_raw, *study_energy_rows):
+            if row.get("candidate_id") != candidate_id:
+                continue
+            if row.get("contended") is True:
+                continue
+            row_attempts = row.get("_attempt_ids") or set()
+            row_digest = row.get("_source_digest")
+            row_commit = row.get("source_commit")
+            provenance_match = bool(
+                (cohort_attempt_ids and row_attempts and (cohort_attempt_ids & row_attempts))
+                or (source_digest and row_digest and row_digest == source_digest)
+                or (source_origin_commit and row_commit and row_commit == source_origin_commit)
+            )
+            if not provenance_match:
+                continue
+            if matched_r256 is None and row.get("r256_joules_per_step") is not None:
+                matched_r256 = row["r256_joules_per_step"]
+            if matched_ring16 is None and row.get("ring16_j_to_pass") is not None:
+                matched_ring16 = row["ring16_j_to_pass"]
+            if matched_grid100 is None and row.get("grid100_j_to_pass") is not None:
+                matched_grid100 = row["grid100_j_to_pass"]
+        return matched_r256, matched_ring16, matched_grid100
+
     leaderboard_rows: list[dict] = []
     families_json: list[dict] = []
     family_tasks_json: list[dict] = []
@@ -329,6 +957,18 @@ def build_inventory_exports(
         anchor = cohort.get("anchor") or ""
         family_page = family.get("page") or ""
 
+        cohort_tasks = cohort.get("tasks", {})
+        cohort_attempt_ids = {
+            str(aid)
+            for cell in cohort_tasks.values()
+            if isinstance(cell, dict)
+            for aid in (cell.get("attempt_id"), (cell.get("run_attempt") or {}).get("attempt_id"))
+            if aid
+        }
+        fam_r256_j, fam_ring16_j, fam_grid100_j = _match_family_energy(
+            candidate_id, backend, source_digest, source_origin_commit, cohort_attempt_ids
+        )
+
         families_json.append(
             {
                 "id": fam_id,
@@ -349,6 +989,9 @@ def build_inventory_exports(
                 "qualification_note": qual_note,
                 "tuning_budget": tuning_budget,
                 "holdout_claim": holdout_text,
+                "r256_joules_per_step": fam_r256_j,
+                "ring16_j_to_pass": fam_ring16_j,
+                "grid100_j_to_pass": fam_grid100_j,
                 "tiers": tiers_dict,
                 "total_view_requirements": total_dict,
                 "full_suite": {
@@ -439,12 +1082,14 @@ def build_inventory_exports(
                 "stretch_tier4_total": stretch_tier_buckets["4"]["total"],
                 "stretch_total_pass": stretch_total_bucket["pass"],
                 "stretch_total": stretch_total_bucket["total"],
+                "r256_joules_per_step": fam_r256_j,
+                "ring16_j_to_pass": fam_ring16_j,
+                "grid100_j_to_pass": fam_grid100_j,
                 "tuning_budget": tuning_budget,
                 "holdout_claim": holdout_text,
             }
         )
 
-        cohort_tasks = cohort.get("tasks", {})
         all_task_ids = sorted(set(task_def_by_id) | set(cohort_tasks))
         for task_id in all_task_ids:
             cell = cohort_tasks.get(task_id, {})
@@ -477,6 +1122,19 @@ def build_inventory_exports(
             wall_seconds = None
             if isinstance(cost_dict, dict) and isinstance(cost_dict.get("wall_seconds"), (int, float)):
                 wall_seconds = float(cost_dict["wall_seconds"])
+            cell_energy = None
+            if isinstance(cost_dict, dict):
+                extracted = _extract_receipt_energy(cost_dict)
+                if (
+                    extracted["joules_total"] is not None
+                    or extracted["joules_per_step"] is not None
+                    or extracted["avg_power_watts"] is not None
+                ):
+                    cell_energy = extracted
+            if cell_energy is None and attempt_id:
+                rec_energy = receipt_energy_by_attempt_task.get((str(attempt_id), task_id))
+                if rec_energy is not None:
+                    cell_energy = dict(rec_energy)
             family_tasks_json.append(
                 {
                     "family_id": fam_id,
@@ -493,91 +1151,11 @@ def build_inventory_exports(
                     "recipe_hash": recipe_sha,
                     "source_hash": source_digest,
                     "wall_seconds": wall_seconds,
+                    "energy": cell_energy,
                     "metrics_summary": _compact_metrics_summary(cell),
                     "gif_relpath": gif_relpath,
                 }
             )
-
-    # Receipts table from reports/forge/technique-receipts/*.json
-    receipt_rows: list[dict] = []
-    receipts_dir = root / "reports/forge/technique-receipts"
-    if receipts_dir.is_dir():
-        for rec_file in sorted(receipts_dir.glob("*.json")):
-            doc = read_json(rec_file)
-            attempt_id = str(doc.get("attempt_id") or rec_file.stem)
-            provenance = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
-            canonical_hash = str(provenance.get("canonical_result_hash") or "")
-            source_commit = provenance.get("source_origin_commit")
-            source_digest = provenance.get("source_digest")
-            task_results = doc.get("task_results") or []
-            if not task_results:
-                receipt_rows.append(
-                    {
-                        "attempt_id": attempt_id,
-                        "request_id": str(doc.get("request_id") or ""),
-                        "campaign_id": str(doc.get("campaign_id") or ""),
-                        "candidate_id": str(doc.get("candidate_id") or ""),
-                        "candidate_revision": str(doc.get("candidate_revision") or ""),
-                        "evidence_scope": str(doc.get("evidence_scope") or ""),
-                        "attempt_status": str(doc.get("attempt_status") or ""),
-                        "task_id": "",
-                        "status": str(doc.get("attempt_status") or "UNKNOWN"),
-                        "gate_status": "",
-                        "raw_status": "",
-                        "reason": str(doc.get("note") or ""),
-                        "compatibility_key": "",
-                        "execution_path": "",
-                        "device": "",
-                        "wall_seconds": None,
-                        "completed_steps": None,
-                        "canonical_result_hash": canonical_hash,
-                        "source_commit": str(source_commit) if source_commit is not None else None,
-                        "source_digest": str(source_digest) if source_digest is not None else None,
-                        "sampling_law": None,
-                        "eval_output_noise": None,
-                        "metrics_json": "{}",
-                        "media_gif_relpath": None,
-                        "receipt_file": f"reports/forge/technique-receipts/{rec_file.name}",
-                    }
-                )
-            for tr in task_results:
-                if not isinstance(tr, dict):
-                    continue
-                task_id = str(tr.get("task_id") or "")
-                cost = tr.get("cost") if isinstance(tr.get("cost"), dict) else {}
-                sampling = tr.get("sampling") if isinstance(tr.get("sampling"), dict) else {}
-                wall_sec = cost.get("wall_seconds")
-                steps = cost.get("completed_steps")
-                metrics_obj = tr.get("metrics") if isinstance(tr.get("metrics"), dict) else {}
-                receipt_rows.append(
-                    {
-                        "attempt_id": attempt_id,
-                        "request_id": str(doc.get("request_id") or ""),
-                        "campaign_id": str(doc.get("campaign_id") or ""),
-                        "candidate_id": str(doc.get("candidate_id") or ""),
-                        "candidate_revision": str(doc.get("candidate_revision") or ""),
-                        "evidence_scope": str(doc.get("evidence_scope") or ""),
-                        "attempt_status": str(doc.get("attempt_status") or ""),
-                        "task_id": task_id,
-                        "status": str(tr.get("status") or ""),
-                        "gate_status": str(tr.get("gate_status") or ""),
-                        "raw_status": str(tr.get("raw_status") or ""),
-                        "reason": str(tr.get("reason") or ""),
-                        "compatibility_key": str(tr.get("compatibility_key") or ""),
-                        "execution_path": str(tr.get("execution_path") or ""),
-                        "device": str(cost.get("device") or tr.get("device") or ""),
-                        "wall_seconds": float(wall_sec) if isinstance(wall_sec, (int, float)) else None,
-                        "completed_steps": int(steps) if isinstance(steps, int) and not isinstance(steps, bool) else None,
-                        "canonical_result_hash": canonical_hash,
-                        "source_commit": str(source_commit) if source_commit is not None else None,
-                        "source_digest": str(source_digest) if source_digest is not None else None,
-                        "sampling_law": str(sampling.get("sampling_law")) if sampling.get("sampling_law") is not None else None,
-                        "eval_output_noise": str(sampling.get("eval_output_noise")) if sampling.get("eval_output_noise") is not None else None,
-                        "metrics_json": json.dumps(metrics_obj, sort_keys=True, separators=(",", ":")),
-                        "media_gif_relpath": media_by_attempt_task.get((attempt_id, task_id)),
-                        "receipt_file": f"reports/forge/technique-receipts/{rec_file.name}",
-                    }
-                )
 
     # Attempts table from reports/forge/attempt-coverage.json
     attempt_rows: list[dict] = []
@@ -646,18 +1224,22 @@ def build_inventory_exports(
             "removed_assignments": len(removed_assignments),
             "removed_distinct_tests": int(removed_distinct),
             "receipt_rows": len(receipt_rows),
+            "receipts_with_energy": len(receipt_energy_entries),
+            "energy_benchmark_rows": len(energy_rows),
             "attempt_coverage": attempt_summary,
         },
         "caveats": list(SCIENTIFIC_CAVEATS),
         "families": families_json,
         "tasks": family_tasks_json,
         "task_definitions": task_defs,
+        "energy_benchmarks": energy_rows,
     }
 
     return {
         "leaderboard_rows": leaderboard_rows,
         "receipt_rows": receipt_rows,
         "attempt_rows": attempt_rows,
+        "energy_rows": energy_rows,
         "leaderboard_json": leaderboard_payload,
         "git_commit": git_commit,
         "generated_at": timestamp,
@@ -739,6 +1321,9 @@ def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[P
             ("stretch_tier4_total", pa.int64()),
             ("stretch_total_pass", pa.int64()),
             ("stretch_total", pa.int64()),
+            ("r256_joules_per_step", pa.float64()),
+            ("ring16_j_to_pass", pa.float64()),
+            ("grid100_j_to_pass", pa.float64()),
             ("tuning_budget", pa.string()),
             ("holdout_claim", pa.string()),
         ]
@@ -763,6 +1348,14 @@ def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[P
             ("device", pa.string()),
             ("wall_seconds", pa.float64()),
             ("completed_steps", pa.int64()),
+            ("joules_total", pa.float64()),
+            ("joules_per_step", pa.float64()),
+            ("avg_power_watts", pa.float64()),
+            ("first_pass_step", pa.int64()),
+            ("sustained_pass_step", pa.int64()),
+            ("joules_to_first_pass", pa.float64()),
+            ("joules_to_sustained_pass", pa.float64()),
+            ("energy_backend", pa.string()),
             ("canonical_result_hash", pa.string()),
             ("source_commit", pa.string()),
             ("source_digest", pa.string()),
@@ -793,6 +1386,33 @@ def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[P
         ]
     )
 
+    energy_schema = pa.schema(
+        [
+            ("candidate_id", pa.string()),
+            ("family_id", pa.string()),
+            ("optimizer_family", pa.string()),
+            ("hardware_gpu", pa.string()),
+            ("contended", pa.bool_()),
+            ("source_commit", pa.string()),
+            ("source_file", pa.string()),
+            ("r256_ms_per_step", pa.float64()),
+            ("r256_watts", pa.float64()),
+            ("r256_joules_per_step", pa.float64()),
+            ("state_bytes_per_param", pa.float64()),
+            ("ring16_first_pass_step", pa.int64()),
+            ("ring16_j_to_pass", pa.float64()),
+            ("grid100_first_pass_step", pa.int64()),
+            ("grid100_sustained_pass_step", pa.int64()),
+            ("grid100_j_to_pass", pa.float64()),
+            ("grid100_j_to_sustained_pass", pa.float64()),
+            ("staggered100_first_pass_step", pa.int64()),
+            ("staggered100_j_to_pass", pa.float64()),
+            ("occam_pass", pa.int64()),
+            ("occam_executed", pa.int64()),
+            ("evidence_scope", pa.string()),
+        ]
+    )
+
     data_dir = staging_dir / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     written: dict[str, tuple[Path, int]] = {}
@@ -800,6 +1420,7 @@ def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[P
         ("data/leaderboard.parquet", exports["leaderboard_rows"], leaderboard_schema),
         ("data/receipts.parquet", exports["receipt_rows"], receipts_schema),
         ("data/attempts.parquet", exports["attempt_rows"], attempts_schema),
+        ("data/energy.parquet", exports.get("energy_rows", []), energy_schema),
     ):
         cols = {field.name: [row.get(field.name) for row in rows] for field in schema}
         table = pa.Table.from_pydict(cols, schema=schema)
@@ -838,11 +1459,15 @@ def render_dataset_card(exports: dict, *, repo: str = DEFAULT_HF_REPO) -> str:
         "    data_files:",
         "      - split: train",
         "        path: data/attempts.parquet",
+        "  - config_name: energy",
+        "    data_files:",
+        "      - split: train",
+        "        path: data/energy.parquet",
         "---",
         "",
         "# ParticleGAN Forge Evidence & Benchmarks",
         "",
-        "Public benchmark tables, training media, and content-addressed execution archives for "
+        "Public benchmark tables, hardware GPU energy & `J-to-PASS` telemetry, training media, and content-addressed execution archives for "
         "[HyperGAN/ParticleGAN](https://github.com/HyperGAN/ParticleGAN).",
         "",
         f"- **Source Git commit:** `{short_commit}` (`{git_commit}`)",
@@ -855,15 +1480,22 @@ def render_dataset_card(exports: dict, *, repo: str = DEFAULT_HF_REPO) -> str:
         f"- **Stretch view assignments:** {summary['stretch_assignments']} "
         f"({summary['stretch_distinct_tests']} distinct stretch tests)",
         f"- **Published technique receipts:** {summary['receipt_rows']}",
+        f"- **Hardware NVML energy & `J-to-PASS` rows:** {summary.get('energy_benchmark_rows', 0)}",
         "",
         "## Dataset Tables",
         "",
         "| Config | File | Description |",
         "| --- | --- | --- |",
-        "| `leaderboard` | `data/leaderboard.parquet` | Selected recipes per family with Tier 1–4 counts, full-suite 69-test counts, stretch counts, and tuning-budget disclosures. |",
-        "| `receipts` | `data/receipts.parquet` | Flattened per-task Forge technique receipts with status, gate metrics, runtime cost, and source provenance. |",
+        "| `leaderboard` | `data/leaderboard.parquet` | Selected recipes per family with Tier 1–4 counts, full-suite 69-test counts, stretch counts, matched nullable energy summaries (`r256_joules_per_step`, `ring16_j_to_pass`, `grid100_j_to_pass`), and tuning-budget disclosures. |",
+        "| `receipts` | `data/receipts.parquet` | Flattened per-task Forge technique receipts with status, gate metrics, runtime cost, nullable hardware NVML energy telemetry (`joules_total`, `joules_per_step`, `avg_power_watts`, `joules_to_first_pass`, `joules_to_sustained_pass`), and source provenance. |",
         "| `attempts` | `data/attempts.parquet` | Attempt coverage records across distinct recipe/test pairs. |",
-        "| *(Space payload)* | `data/leaderboard.json` | Structured JSON consumed by the [HyperGAN/particlegan-leaderboard](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard) Static Space. |",
+        "| `energy` | `data/energy.parquet` | Hardware NVML energy & `J-to-PASS` (Joules-to-PASS) benchmarks across matched GPU cohorts (committed study benchmarks and energy-instrumented Forge receipts), with GPU model, contention flag, optimizer state footprint, and source provenance. |",
+        "| *(Space payload)* | `data/leaderboard.json` | Structured JSON (including `energy_benchmarks`) consumed by the [HyperGAN/particlegan-leaderboard](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard) Static Space. |",
+        "",
+        "## Hardware Energy & `J-to-PASS` Telemetry",
+        "",
+        "- **`J-to-PASS` (Joules-to-PASS)** measures cumulative hardware GPU energy (via NVML `nvmlDeviceGetTotalEnergyConsumption` millijoule counters, with power-polling fallback) required for a candidate to reach its first passing evaluation (`joules_to_first_pass`) and sustained passing criterion (`joules_to_sustained_pass`).",
+        "- Historical receipts collected before NVML telemetry retain `null` across all energy columns; missing hardware measurements are never fabricated or back-filled across incompatible source commits or GPU cohorts.",
         "",
         "## Scientific Scope & Caveats",
         "",

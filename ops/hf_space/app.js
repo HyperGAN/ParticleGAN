@@ -48,15 +48,22 @@
       heldAssignments: null,
       removedTests: null,
       removedAssignments: null,
+      energyBenchmarkRows: 0,
+      receiptsWithEnergy: 0,
       caveats: [],
     },
     families: [],
     receipts: [],
+    energyBenchmarks: [],
     taskDefinitions: new Map(),
     selectedFamilyId: null,
     selectedReceiptKey: null,
+    selectedEnergyKey: null,
     lbMode: "all",
     lbSort: { key: "total_pass", dir: "desc" },
+    energySort: { key: "grid100_j_to_pass", dir: "asc" },
+    energyFilter: "all",
+    energySearch: "",
     expSort: { key: "tier", dir: "asc" },
     expFilters: {
       family: "",
@@ -110,6 +117,35 @@
   function toInt(value, fallback = 0) {
     const n = Number(value);
     return Number.isFinite(n) ? n : fallback;
+  }
+
+  function toNullableNum(value) {
+    if (value == null || value === "" || typeof value === "boolean") return null;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function formatNum(value, digits = 2, suffix = "") {
+    if (value == null || !Number.isFinite(value)) return "—";
+    const formatted = value >= 1000
+      ? value.toLocaleString("en-US", { minimumFractionDigits: digits, maximumFractionDigits: digits })
+      : value.toFixed(digits);
+    return suffix ? `${formatted}${suffix}` : formatted;
+  }
+
+  function formatJoules(value) {
+    if (value == null || !Number.isFinite(value)) return "—";
+    if (value >= 1000) {
+      return `${value.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })} J`;
+    }
+    return `${value.toFixed(1)} J`;
+  }
+
+  function formatStateBpp(value) {
+    if (value == null || !Number.isFinite(value)) return "—";
+    if (value === 0) return "0";
+    if (value < 0.001) return value.toExponential(1);
+    return value.toFixed(value < 0.1 ? 4 : 2);
   }
 
   function normalizeStatus(rawStatus) {
@@ -297,8 +333,81 @@
       stretch_pass: stretchPass,
       stretch_total: stretchTotal,
       stretchNotes,
+      r256_joules_per_step: toNullableNum(rawFam.r256_joules_per_step),
+      ring16_j_to_pass: toNullableNum(rawFam.ring16_j_to_pass),
+      grid100_j_to_pass: toNullableNum(rawFam.grid100_j_to_pass),
       tuning: rawFam.tuning_budget || rawFam.qualification_note || "",
       raw: rawFam,
+    };
+  }
+
+  function normalizeEnergyObj(rawEnergy) {
+    if (!rawEnergy || typeof rawEnergy !== "object") return null;
+    const joulesTotal = toNullableNum(rawEnergy.joules_total);
+    const joulesPerStep = toNullableNum(rawEnergy.joules_per_step);
+    const avgPowerWatts = toNullableNum(rawEnergy.avg_power_watts);
+    const firstPassStep = toNullableNum(rawEnergy.first_pass_step);
+    const sustainedPassStep = toNullableNum(rawEnergy.sustained_pass_step);
+    const joulesToFirstPass = toNullableNum(rawEnergy.joules_to_first_pass);
+    const joulesToSustainedPass = toNullableNum(rawEnergy.joules_to_sustained_pass);
+    const energyBackend = rawEnergy.energy_backend ? String(rawEnergy.energy_backend) : null;
+    const gpuName = rawEnergy.gpu_name ? String(rawEnergy.gpu_name) : null;
+    const contended = typeof rawEnergy.contended === "boolean" ? rawEnergy.contended : null;
+    if (
+      joulesTotal == null &&
+      joulesPerStep == null &&
+      avgPowerWatts == null &&
+      joulesToFirstPass == null &&
+      joulesToSustainedPass == null
+    ) {
+      return null;
+    }
+    return {
+      joules_total: joulesTotal,
+      joules_per_step: joulesPerStep,
+      avg_power_watts: avgPowerWatts,
+      first_pass_step: firstPassStep,
+      sustained_pass_step: sustainedPassStep,
+      joules_to_first_pass: joulesToFirstPass,
+      joules_to_sustained_pass: joulesToSustainedPass,
+      energy_backend: energyBackend,
+      gpu_name: gpuName,
+      contended,
+    };
+  }
+
+  function normalizeEnergyBenchmark(rawRow, idx) {
+    const candidateId = String(rawRow.candidate_id || rawRow.id || `candidate-${idx}`);
+    const sourceFile = String(rawRow.source_file || "");
+    const sourceCommit = rawRow.source_commit ? String(rawRow.source_commit) : "";
+    const hardwareGpu = rawRow.hardware_gpu ? String(rawRow.hardware_gpu) : "";
+    const evidenceScope = String(rawRow.evidence_scope || "study_energy_benchmark");
+    const contended = typeof rawRow.contended === "boolean" ? rawRow.contended : null;
+    return {
+      key: `${candidateId}::${hardwareGpu}::${sourceCommit}::${sourceFile}::${idx}`,
+      candidate_id: candidateId,
+      family_id: rawRow.family_id ? String(rawRow.family_id) : "",
+      optimizer_family: rawRow.optimizer_family ? String(rawRow.optimizer_family) : "",
+      hardware_gpu: hardwareGpu,
+      contended,
+      source_commit: sourceCommit,
+      source_file: sourceFile,
+      r256_ms_per_step: toNullableNum(rawRow.r256_ms_per_step),
+      r256_watts: toNullableNum(rawRow.r256_watts),
+      r256_joules_per_step: toNullableNum(rawRow.r256_joules_per_step),
+      state_bytes_per_param: toNullableNum(rawRow.state_bytes_per_param),
+      ring16_first_pass_step: toNullableNum(rawRow.ring16_first_pass_step),
+      ring16_j_to_pass: toNullableNum(rawRow.ring16_j_to_pass),
+      grid100_first_pass_step: toNullableNum(rawRow.grid100_first_pass_step),
+      grid100_sustained_pass_step: toNullableNum(rawRow.grid100_sustained_pass_step),
+      grid100_j_to_pass: toNullableNum(rawRow.grid100_j_to_pass),
+      grid100_j_to_sustained_pass: toNullableNum(rawRow.grid100_j_to_sustained_pass),
+      staggered100_first_pass_step: toNullableNum(rawRow.staggered100_first_pass_step),
+      staggered100_j_to_pass: toNullableNum(rawRow.staggered100_j_to_pass),
+      occam_pass: toNullableNum(rawRow.occam_pass),
+      occam_executed: toNullableNum(rawRow.occam_executed),
+      evidence_scope: evidenceScope,
+      raw: rawRow,
     };
   }
 
@@ -331,6 +440,7 @@
       task_sha256: String(rawItem.task_sha256 || ""),
       attempt_id: String(rawItem.attempt_id || ""),
       wall_seconds: typeof rawItem.wall_seconds === "number" ? rawItem.wall_seconds : null,
+      energy: normalizeEnergyObj(rawItem.energy || (rawItem.cost && rawItem.cost.energy) || rawItem),
       cohort: String(rawItem.cohort || (fam && fam.cohortAnchor) || ""),
       gif_path: gifPath,
       metrics: rawItem.metrics || rawItem.metrics_summary || null,
@@ -383,6 +493,8 @@
     meta.removedTests = summary.removed_distinct_tests ?? summary.removed_tests ?? null;
     meta.removedAssignments = summary.removed_assignments ?? null;
     meta.receiptRowsTotal = summary.receipt_rows ?? null;
+    meta.energyBenchmarkRows = summary.energy_benchmark_rows ?? null;
+    meta.receiptsWithEnergy = summary.receipts_with_energy ?? 0;
     meta.backfillAttempted = attemptCov.attempted ?? summary.backfill_attempted ?? null;
     meta.backfillTotal = attemptCov.total ?? summary.backfill_total ?? null;
     meta.caveats = Array.isArray(raw.caveats) ? raw.caveats : Array.isArray(summary.caveats) ? summary.caveats : [];
@@ -456,9 +568,17 @@
       meta.stretchAssignments = Math.max(...families.map((f) => f.stretch_total), 0) || null;
     }
 
+    // Energy benchmarks (optional array in leaderboard.json)
+    const rawEnergy = Array.isArray(raw.energy_benchmarks) ? raw.energy_benchmarks : [];
+    const energyBenchmarks = rawEnergy.map((row, idx) => normalizeEnergyBenchmark(row, idx));
+    if (meta.energyBenchmarkRows == null) {
+      meta.energyBenchmarkRows = energyBenchmarks.length;
+    }
+
     state.raw = raw;
     state.families = families;
     state.receipts = receipts;
+    state.energyBenchmarks = energyBenchmarks;
     state.taskDefinitions = taskDefinitions;
   }
 
@@ -543,6 +663,33 @@
     $("kpi-receipts-sub").textContent = m.backfillAttempted != null && m.backfillTotal != null
       ? `${distinctTasks} tasks · backfill ${m.backfillAttempted}/${m.backfillTotal} attempts`
       : `${distinctTasks} tasks · ${gifCount} with published GIFs`;
+
+    const uncontendedEnergy = state.energyBenchmarks.filter((row) => row.contended !== true);
+    const pool = uncontendedEnergy.length > 0 ? uncontendedEnergy : state.energyBenchmarks;
+    const withGrid = pool.filter((row) => row.grid100_j_to_pass != null);
+    const withRing = pool.filter((row) => row.ring16_j_to_pass != null);
+    const withR256 = pool.filter((row) => row.r256_joules_per_step != null);
+    if (withGrid.length > 0) {
+      const bestGrid = [...withGrid].sort((a, b) => a.grid100_j_to_pass - b.grid100_j_to_pass)[0];
+      const bestR256 = withR256.length > 0
+        ? [...withR256].sort((a, b) => a.r256_joules_per_step - b.r256_joules_per_step)[0]
+        : null;
+      $("kpi-energy").textContent = formatJoules(bestGrid.grid100_j_to_pass);
+      $("kpi-energy-sub").textContent = `${bestGrid.candidate_id} (grid100)` +
+        (bestR256 ? ` · min r256 ${formatNum(bestR256.r256_joules_per_step, 2)} J/step` : "") +
+        ` · ${state.energyBenchmarks.length} cohort rows`;
+    } else if (withRing.length > 0) {
+      const bestRing = [...withRing].sort((a, b) => a.ring16_j_to_pass - b.ring16_j_to_pass)[0];
+      $("kpi-energy").textContent = formatJoules(bestRing.ring16_j_to_pass);
+      $("kpi-energy-sub").textContent = `${bestRing.candidate_id} (ring16) · ${state.energyBenchmarks.length} cohort rows`;
+    } else if (withR256.length > 0) {
+      const bestR256 = [...withR256].sort((a, b) => a.r256_joules_per_step - b.r256_joules_per_step)[0];
+      $("kpi-energy").textContent = `${formatNum(bestR256.r256_joules_per_step, 2)} J/step`;
+      $("kpi-energy-sub").textContent = `${bestR256.candidate_id} (r256) · ${state.energyBenchmarks.length} cohort rows`;
+    } else {
+      $("kpi-energy").textContent = "—";
+      $("kpi-energy-sub").textContent = "Hardware NVML · no energy rows loaded";
+    }
 
     if (m.caveats && m.caveats.length > 0) {
       $("caveat-list").innerHTML = m.caveats.map((c) => `<li>${escapeHtml(c)}</li>`).join("");
@@ -641,8 +788,190 @@
     if (fam.holdoutClaim) {
       items.push(["Selection vs Holdout", fam.holdoutClaim]);
     }
+    if (fam.r256_joules_per_step != null || fam.ring16_j_to_pass != null || fam.grid100_j_to_pass != null) {
+      items.push([
+        "Matched Hardware Energy",
+        [
+          fam.r256_joules_per_step != null ? `r256 ${formatNum(fam.r256_joules_per_step, 2)} J/step` : null,
+          fam.ring16_j_to_pass != null ? `ring16 ${formatJoules(fam.ring16_j_to_pass)}` : null,
+          fam.grid100_j_to_pass != null ? `grid100 ${formatJoules(fam.grid100_j_to_pass)}` : null,
+        ]
+          .filter(Boolean)
+          .join(" · "),
+      ]);
+    }
 
     $("fd-body").innerHTML = items
+      .map(
+        ([label, val]) => `
+        <div class="meta-box">
+          <div class="meta-box-label">${escapeHtml(label)}</div>
+          <div class="meta-box-value">${escapeHtml(val)}</div>
+        </div>`
+      )
+      .join("");
+  }
+
+  /* ---------- Energy & J-to-PASS Efficiency ---------- */
+
+  function getFilteredEnergyBenchmarks() {
+    const q = state.energySearch.trim().toLowerCase();
+    return state.energyBenchmarks.filter((row) => {
+      if (state.energyFilter === "uncontended" && row.contended !== false) return false;
+      if (state.energyFilter === "study" && !row.evidence_scope.includes("study")) return false;
+      if (state.energyFilter === "receipt" && row.evidence_scope.includes("study")) return false;
+      if (q) {
+        const hay = `${row.candidate_id} ${row.family_id} ${row.optimizer_family} ${row.hardware_gpu} ${row.source_file} ${row.evidence_scope} ${row.source_commit}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+  }
+
+  function renderEnergyTable() {
+    const table = $("energy-table");
+    const tbody = $("energy-tbody");
+    if (!table || !tbody) return;
+
+    table.querySelectorAll("thead th.sortable").forEach((th) => {
+      th.classList.remove("sort-asc", "sort-desc");
+      if (th.dataset.energySort === state.energySort.key) {
+        th.classList.add(state.energySort.dir === "asc" ? "sort-asc" : "sort-desc");
+      }
+    });
+
+    const filtered = getFilteredEnergyBenchmarks();
+    const numericKeys = new Set([
+      "occam_pass",
+      "r256_ms_per_step",
+      "r256_joules_per_step",
+      "r256_watts",
+      "state_bytes_per_param",
+      "ring16_j_to_pass",
+      "grid100_j_to_pass",
+    ]);
+
+    const sorted = [...filtered].sort((a, b) => {
+      const k = state.energySort.key;
+      const dir = state.energySort.dir === "asc" ? 1 : -1;
+      const va = a[k];
+      const vb = b[k];
+      if (numericKeys.has(k)) {
+        const aMissing = va == null || !Number.isFinite(va);
+        const bMissing = vb == null || !Number.isFinite(vb);
+        if (aMissing && bMissing) return a.candidate_id.localeCompare(b.candidate_id);
+        if (aMissing) return 1;
+        if (bMissing) return -1;
+        if (va !== vb) return (va - vb) * dir;
+        return a.candidate_id.localeCompare(b.candidate_id);
+      }
+      const cmp = String(va ?? "").localeCompare(String(vb ?? "")) * dir;
+      return cmp !== 0 ? cmp : a.candidate_id.localeCompare(b.candidate_id);
+    });
+
+    $("energy-count").textContent = `${sorted.length} / ${state.energyBenchmarks.length} benchmarks`;
+
+    if (sorted.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="10" class="empty-cell">No hardware energy benchmark rows match the current filter.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = sorted
+      .map((row) => {
+        const selectedCls = state.selectedEnergyKey === row.key ? "selected-row" : "";
+        const suiteHtml =
+          row.occam_pass != null && row.occam_executed != null
+            ? ratioCellHtml(row.occam_pass, row.occam_executed)
+            : `<span class="muted">—</span>`;
+        const ringSub = row.ring16_first_pass_step != null ? `step ${row.ring16_first_pass_step}` : "";
+        const gridSubs = [];
+        if (row.grid100_first_pass_step != null) gridSubs.push(`step ${row.grid100_first_pass_step}`);
+        if (row.grid100_j_to_sustained_pass != null) gridSubs.push(`sust ${formatJoules(row.grid100_j_to_sustained_pass)}`);
+        const contendBadge =
+          row.contended === false
+            ? `<span class="badge badge-uncontended">uncontended</span>`
+            : row.contended === true
+            ? `<span class="badge badge-contended">contended</span>`
+            : `<span class="badge badge-muted">unknown</span>`;
+        const sourceLink = row.source_file
+          ? `<a href="${escapeHtml(githubBlobUrl(row.source_file, row.source_commit || null))}" target="_blank" rel="noopener noreferrer" onclick="event.stopPropagation()"><code>${escapeHtml(row.source_file.split("/").pop())}</code></a>`
+          : "—";
+        const commitPill = row.source_commit ? `<code>${escapeHtml(shortHash(row.source_commit, 8))}</code>` : "";
+
+        return `
+          <tr class="clickable ${selectedCls}" data-energy-key="${escapeHtml(row.key)}">
+            <td class="family-cell">
+              <div class="family-name">${escapeHtml(row.candidate_id)}</div>
+              <div class="family-meta">
+                ${row.optimizer_family ? `<code>${escapeHtml(row.optimizer_family)}</code>` : ""}
+                ${row.family_id ? `<span class="badge badge-muted">${escapeHtml(row.family_id)}</span>` : ""}
+              </div>
+            </td>
+            <td class="num">${suiteHtml}</td>
+            <td class="num">${row.r256_ms_per_step != null ? `${formatNum(row.r256_ms_per_step, 2)} ms` : "—"}</td>
+            <td class="num"><strong>${row.r256_joules_per_step != null ? `${formatNum(row.r256_joules_per_step, 2)} J` : "—"}</strong></td>
+            <td class="num">${row.r256_watts != null ? `${formatNum(row.r256_watts, 1)} W` : "—"}</td>
+            <td class="num"><code>${escapeHtml(formatStateBpp(row.state_bytes_per_param))}</code></td>
+            <td class="num">
+              <div class="ratio-main">${escapeHtml(formatJoules(row.ring16_j_to_pass))}</div>
+              ${ringSub ? `<span class="energy-sub">${escapeHtml(ringSub)}</span>` : ""}
+            </td>
+            <td class="num">
+              <div class="ratio-main">${escapeHtml(formatJoules(row.grid100_j_to_pass))}</div>
+              ${gridSubs.length ? `<span class="energy-sub">${escapeHtml(gridSubs.join(" · "))}</span>` : ""}
+            </td>
+            <td>
+              <div>${escapeHtml(row.hardware_gpu || "—")}</div>
+              <div style="margin-top:3px">${contendBadge}</div>
+            </td>
+            <td>
+              <div><span class="badge badge-required">${escapeHtml(row.evidence_scope)}</span></div>
+              <div class="family-meta">${sourceLink} ${commitPill}</div>
+            </td>
+          </tr>
+        `;
+      })
+      .join("");
+  }
+
+  function renderEnergyDetail() {
+    const card = $("energy-detail-card");
+    if (!card) return;
+    const row = state.energyBenchmarks.find((item) => item.key === state.selectedEnergyKey);
+    if (!row) {
+      card.classList.add("hidden");
+      return;
+    }
+    card.classList.remove("hidden");
+    $("ed-title").textContent = `${row.candidate_id} · Energy Telemetry`;
+    $("ed-subtitle").textContent = `${row.optimizer_family || "—"} · ${row.hardware_gpu || "GPU unrecorded"} · ${row.evidence_scope}`;
+    const srcBtn = $("ed-source-link");
+    if (row.source_file) {
+      srcBtn.href = githubBlobUrl(row.source_file, row.source_commit || null);
+      srcBtn.classList.remove("hidden");
+    } else {
+      srcBtn.classList.add("hidden");
+    }
+
+    const items = [
+      ["Candidate / Family", `${row.candidate_id}${row.family_id ? ` (${row.family_id})` : ""}`],
+      ["Optimizer Family", row.optimizer_family || "—"],
+      ["GPU Cohort", `${row.hardware_gpu || "—"} · ${row.contended === false ? "uncontended" : row.contended === true ? "contended" : "contention unknown"}`],
+      ["r256 Step Cost", `${row.r256_ms_per_step != null ? `${formatNum(row.r256_ms_per_step, 2)} ms/step` : "—"} · ${row.r256_joules_per_step != null ? `${formatNum(row.r256_joules_per_step, 2)} J/step` : "—"} · ${row.r256_watts != null ? `${formatNum(row.r256_watts, 1)} W` : "—"}`],
+      ["Optimizer State Footprint", row.state_bytes_per_param != null ? `${formatStateBpp(row.state_bytes_per_param)} B/param` : "—"],
+      ["ring16 J-to-PASS", row.ring16_j_to_pass != null ? `${formatJoules(row.ring16_j_to_pass)} (first pass @ step ${row.ring16_first_pass_step ?? "—"})` : "—"],
+      ["grid100 J-to-PASS (First)", row.grid100_j_to_pass != null ? `${formatJoules(row.grid100_j_to_pass)} (@ step ${row.grid100_first_pass_step ?? "—"})` : "—"],
+      ["grid100 J-to-Sustained PASS", row.grid100_j_to_sustained_pass != null ? `${formatJoules(row.grid100_j_to_sustained_pass)} (@ step ${row.grid100_sustained_pass_step ?? "—"})` : "—"],
+      ...(row.staggered100_j_to_pass != null
+        ? [["staggered100 J-to-PASS", `${formatJoules(row.staggered100_j_to_pass)} (@ step ${row.staggered100_first_pass_step ?? "—"})`]]
+        : []),
+      ["Suite Pass (Occam)", row.occam_pass != null && row.occam_executed != null ? `${row.occam_pass} / ${row.occam_executed}` : "— (not in committed readout)"],
+      ["Source Commit", row.source_commit || "—"],
+      ["Source File", row.source_file || "—"],
+      ["Evidence Scope", row.evidence_scope || "—"],
+    ];
+
+    $("ed-body").innerHTML = items
       .map(
         ([label, val]) => `
         <div class="meta-box">
@@ -771,6 +1100,25 @@
       ["Wall Time", r.wall_seconds != null ? `${r.wall_seconds.toFixed(2)} s` : "—"],
       ["Reason / Coverage", r.reason || (def && def.summary) || "—"],
     ];
+    if (r.energy) {
+      const e = r.energy;
+      const j2pParts = [];
+      if (e.joules_to_first_pass != null) {
+        j2pParts.push(`First: ${formatJoules(e.joules_to_first_pass)}${e.first_pass_step != null ? ` (@ step ${e.first_pass_step})` : ""}`);
+      }
+      if (e.joules_to_sustained_pass != null) {
+        j2pParts.push(`Sustained: ${formatJoules(e.joules_to_sustained_pass)}${e.sustained_pass_step != null ? ` (@ step ${e.sustained_pass_step})` : ""}`);
+      }
+      metaPairs.push(["J-to-PASS", j2pParts.length > 0 ? j2pParts.join(" · ") : "—"]);
+      metaPairs.push(["Energy / Step", e.joules_per_step != null ? `${formatNum(e.joules_per_step, 3)} J/step` : "—"]);
+      metaPairs.push(["Avg Power", e.avg_power_watts != null ? `${formatNum(e.avg_power_watts, 1)} W` : "—"]);
+      metaPairs.push([
+        "Total Energy / Backend",
+        `${e.joules_total != null ? formatJoules(e.joules_total) : "—"}${e.energy_backend ? ` · ${e.energy_backend}` : ""}`,
+      ]);
+    } else {
+      metaPairs.push(["Hardware Energy (J-to-PASS)", "— (not measured)"]);
+    }
     if (def && def.re_entry_rule) {
       metaPairs.push(["Re-entry Rule", def.re_entry_rule]);
     }
@@ -984,6 +1332,8 @@
     renderKpis();
     renderLeaderboard();
     renderFamilyDetail();
+    renderEnergyTable();
+    renderEnergyDetail();
     populateFilterOptions();
     renderExplorer();
     renderReceiptDetail();
@@ -1117,6 +1467,60 @@
       renderExplorer();
       $("explorer-section").scrollIntoView({ behavior: "smooth" });
     });
+
+    // Energy & J-to-PASS controls
+    document.querySelectorAll("[data-energy-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll("[data-energy-filter]").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.energyFilter = btn.dataset.energyFilter;
+        renderEnergyTable();
+      });
+    });
+
+    const energySearch = $("energy-search");
+    if (energySearch) {
+      energySearch.addEventListener("input", (e) => {
+        state.energySearch = e.target.value;
+        renderEnergyTable();
+      });
+    }
+
+    const energyTable = $("energy-table");
+    if (energyTable) {
+      energyTable.querySelectorAll("thead th.sortable").forEach((th) => {
+        th.addEventListener("click", () => {
+          const key = th.dataset.energySort;
+          if (state.energySort.key === key) {
+            state.energySort.dir = state.energySort.dir === "asc" ? "desc" : "asc";
+          } else {
+            state.energySort = { key, dir: key === "occam_pass" ? "desc" : "asc" };
+          }
+          renderEnergyTable();
+        });
+      });
+    }
+
+    const energyTbody = $("energy-tbody");
+    if (energyTbody) {
+      energyTbody.addEventListener("click", (e) => {
+        const tr = e.target.closest("tr[data-energy-key]");
+        if (!tr) return;
+        const key = tr.dataset.energyKey;
+        state.selectedEnergyKey = state.selectedEnergyKey === key ? null : key;
+        renderEnergyTable();
+        renderEnergyDetail();
+      });
+    }
+
+    const edClose = $("ed-close-btn");
+    if (edClose) {
+      edClose.addEventListener("click", () => {
+        state.selectedEnergyKey = null;
+        renderEnergyTable();
+        renderEnergyDetail();
+      });
+    }
 
     // Explorer filters
     $("filter-family").addEventListener("change", (e) => {
@@ -1273,10 +1677,13 @@
       normalizeDataset,
       normalizeFamily,
       normalizeReceipt,
+      normalizeEnergyBenchmark,
+      normalizeEnergyObj,
       normalizeStatus,
       normalizeRole,
       normalizeGifPath,
       hfResolveUrl,
+      formatJoules,
     };
   }
 })();
