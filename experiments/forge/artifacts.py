@@ -4,6 +4,44 @@ from __future__ import annotations
 import hashlib
 import json
 from pathlib import Path, PurePosixPath
+import re
+
+HF_REPO_PATTERN = re.compile(r"^[A-Za-z0-9._-]+/[A-Za-z0-9._-]+$")
+HF_REVISION_PATTERN = re.compile(r"^[0-9a-f]{40}$")
+HF_REPO_TYPES = frozenset({"dataset", "model", "space"})
+
+
+def validate_hf_locator(locator: dict) -> dict:
+    """Validate and normalize a pinned Hugging Face artifact locator."""
+    if not isinstance(locator, dict):
+        raise ValueError("HF locator must be a JSON object")
+    repo = locator.get("repo")
+    if not isinstance(repo, str) or not HF_REPO_PATTERN.fullmatch(repo) or ".." in repo:
+        raise ValueError(f"invalid HF repo id: {repo!r}")
+    path = locator.get("path")
+    if not isinstance(path, str) or not path or "\\" in path:
+        raise ValueError(f"unsafe HF artifact path: {path!r}")
+    posix = PurePosixPath(path)
+    if posix.is_absolute() or any(part in {".", "..", ""} for part in path.rstrip("/").split("/")):
+        raise ValueError(f"unsafe HF artifact path: {path!r}")
+    revision = locator.get("revision")
+    if revision is not None and (not isinstance(revision, str) or not HF_REVISION_PATTERN.fullmatch(revision)):
+        raise ValueError("HF revision must be a 40-character lowercase hexadecimal commit SHA")
+    repo_type = locator.get("repo_type", "dataset")
+    if repo_type not in HF_REPO_TYPES:
+        raise ValueError(f"unsupported HF repo_type: {repo_type!r}")
+    normalized = {"repo": repo, "path": posix.as_posix(), "repo_type": repo_type}
+    if revision is not None:
+        normalized["revision"] = revision
+    return normalized
+
+
+def hf_locator(repo: str, path: str, *, revision: str | None = None, repo_type: str = "dataset") -> dict:
+    """Construct a validated Hugging Face artifact locator."""
+    payload = {"repo": repo, "path": path, "repo_type": repo_type}
+    if revision is not None:
+        payload["revision"] = revision
+    return validate_hf_locator(payload)
 
 
 def _digest(files):

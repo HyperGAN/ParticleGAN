@@ -278,3 +278,124 @@ def test_corrupt_original_location_does_not_hide_verified_mirror(tmp_path, origi
     corrupt.write_bytes(b"bad original")
     card["archive"]["path"] = str(corrupt)
     assert inspect_archive(tmp_path, card, mirrors=[mirror])["status"] == "AVAILABLE"
+
+
+def test_hf_locator_is_offline_by_default_and_never_calls_hub(tmp_path, original_archive, monkeypatch):
+    import huggingface_hub
+
+    card, _, _, _ = original_archive
+    card["hf"] = {
+        "repo": "HyperGAN/particlegan-forge-evidence",
+        "revision": "b" * 40,
+        "path": f"archives/sha256/{card['archive']['sha256']}.tar.gz",
+    }
+
+    def forbid_network(**kwargs):
+        raise AssertionError(f"unexpected HF network call while offline: {kwargs}")
+
+    monkeypatch.delenv("PARTICLEGAN_FORGE_HF_REPO", raising=False)
+    monkeypatch.delenv("PARTICLEGAN_FORGE_HF_REV", raising=False)
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", forbid_network)
+    with pytest.raises(ArtifactError, match="allow-hf") as error:
+        inspect_archive(tmp_path, card)
+    assert error.value.status == "MISSING"
+
+
+def test_hf_opt_in_hydrates_from_card_locator_and_caches_verified_tarball(tmp_path, original_archive, monkeypatch):
+    import huggingface_hub
+
+    card, payloads, _, mirrored = original_archive
+    rev = "c" * 40
+    hf_path = f"archives/sha256/{card['archive']['sha256']}.tar.gz"
+    card["hf"] = {
+        "repo": "HyperGAN/particlegan-forge-evidence",
+        "revision": rev,
+        "path": hf_path,
+    }
+    calls = []
+
+    def fake_download(*, repo_id, filename, repo_type="dataset", revision=None):
+        calls.append((repo_id, filename, repo_type, revision))
+        return str(mirrored)
+
+    monkeypatch.delenv("PARTICLEGAN_FORGE_HF_REPO", raising=False)
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    root = tmp_path / "checkout"
+    root.mkdir()
+    output = tmp_path / "hydrated"
+    receipt = hydrate_archive(root, card, output, allow_hf=True)
+    assert receipt["status"] == "HYDRATED"
+    assert calls == [("HyperGAN/particlegan-forge-evidence", hf_path, "dataset", rev)]
+    cached = root / "runs/forge/artifacts/sha256" / f"{card['archive']['sha256']}.tar.gz"
+    assert cached.is_file()
+    assert receipt["archive_path"] == str(cached)
+    for row in receipt["files"]:
+        assert (output / row["path"]).read_bytes() == payloads[row["path"]]
+    # Second inspection hits local cache without any additional HF call.
+    assert inspect_archive(root, card, allow_hf=True)["status"] == "AVAILABLE"
+    assert len(calls) == 1
+
+
+def test_hf_opt_in_constructs_path_from_cli_repo_and_rev_or_env(tmp_path, original_archive, monkeypatch, capsys):
+    import huggingface_hub
+
+    card, _, _, mirrored = original_archive
+    rev = "d" * 40
+    expected_path = f"archives/sha256/{card['archive']['sha256']}.tar.gz"
+    calls = []
+
+    def fake_download(*, repo_id, filename, repo_type="dataset", revision=None):
+        calls.append((repo_id, filename, repo_type, revision))
+        return str(mirrored)
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", fake_download)
+    root = tmp_path / "cli-checkout"
+    root.mkdir()
+    manifest = root / "archive.json"
+    manifest.write_text(json.dumps(card))
+    rc = main([
+        "--root", str(root), "artifacts", "inspect", "archive.json",
+        "--hf-repo", "HyperGAN/particlegan-forge-evidence", "--hf-rev", rev,
+    ])
+    assert rc == 0
+    assert json.loads(capsys.readouterr().out)["status"] == "AVAILABLE"
+    assert calls == [("HyperGAN/particlegan-forge-evidence", expected_path, "dataset", rev)]
+
+    # Env var opt-in on a fresh root
+    root_env = tmp_path / "env-checkout"
+    root_env.mkdir()
+    monkeypatch.setenv("PARTICLEGAN_FORGE_HF_REPO", "HyperGAN/particlegan-forge-evidence")
+    monkeypatch.setenv("PARTICLEGAN_FORGE_HF_REV", rev)
+    assert inspect_archive(root_env, card)["status"] == "AVAILABLE"
+    assert len(calls) == 2
+
+
+def test_hf_corrupt_download_is_rejected_without_polluting_cache(tmp_path, original_archive, monkeypatch):
+    import huggingface_hub
+
+    card, _, _, _ = original_archive
+    corrupt = tmp_path / "corrupt-remote.tar.gz"
+    corrupt.write_bytes(b"corrupted remote bytes")
+
+    monkeypatch.setattr(huggingface_hub, "hf_hub_download", lambda **kwargs: str(corrupt))
+    root = tmp_path / "corrupt-checkout"
+    root.mkdir()
+    with pytest.raises(ArtifactError, match="checksum/size mismatch") as error:
+        hydrate_archive(
+            root, card, tmp_path / "out",
+            allow_hf=True, hf_repo="HyperGAN/particlegan-forge-evidence", hf_rev="e" * 40,
+        )
+    assert error.value.status == "INVALID"
+    cached = root / "runs/forge/artifacts/sha256" / f"{card['archive']['sha256']}.tar.gz"
+    assert not cached.exists()
+    assert not (tmp_path / "out").exists()
+
+
+def test_hf_invalid_revision_is_rejected(tmp_path, original_archive):
+    card, _, _, _ = original_archive
+    with pytest.raises(ArtifactError, match="40-character") as error:
+        inspect_archive(
+            tmp_path, card, allow_hf=True,
+            hf_repo="HyperGAN/particlegan-forge-evidence", hf_rev="main",
+        )
+    assert error.value.status == "INVALID"
