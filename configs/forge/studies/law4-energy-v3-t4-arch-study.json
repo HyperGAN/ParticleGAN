@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-energy-v3-t4-arch-study"
+  },
+  "candidate": "law4-energy-v3",
+  "competing_explanation": "If law4-energy-v3 regresses deep vanishing-gradient or rail-clamped architectures, it will fail zero_tanh_rail_escape or deep 100-mode lattices.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "Unchanged global law4-energy-v3 passes deep vanishing-gradient, residual, and tanh rail-clamped architectures on t4-strange-architectures-v1 under protocol seed 0.",
+  "id": "law4-energy-v3-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-b96d9de47bb52cc91fbb4a4f.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

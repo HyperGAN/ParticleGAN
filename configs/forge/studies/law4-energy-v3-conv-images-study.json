@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 7200,
+    "candidate_budget_seconds": 7200,
+    "id": "law4-energy-v3-conv-images-study"
+  },
+  "candidate": "law4-energy-v3",
+  "competing_explanation": "If eliminating 4D Conv2d Newton-Schulz degrades spatial feature learning across discrete Conv2d image distributions, law4-energy-v3 will score below 4/4 on bcap_convolution_images or below 0.9 hq on img_stripes2.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "img_stripes2",
+    "threshold": 0.9
+  },
+  "hypothesis": "law4-energy-v3 passes 4/4 discrete Conv2d image distributions (img_stripes2, img_bars4, img_blobs4, img_intensity2) with strictly 0 Conv2d Newton-Schulz iterations using stride-aware polar-matched zero-state Frobenius-MP.",
+  "id": "law4-energy-v3-conv-images-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "img_stripes2",
+    "threshold": 0.9
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bcap_convolution_images"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -140,5 +140,6 @@ Per repository standards, passing software tests or leading screening does not m
 - [Research Glossary & Ownership Rules](../RESEARCH_GLOSSARY.md)
 - [Round-4 Solution-Complete Study (`unified_v11`)](../reports/forge/studies/r4-solution-complete.md)
 - [Round-4 Occam's Razor Ablation Study](../reports/forge/studies/r4-occam-ablation-razor.md)
+- [Law-4 Optimizer Laws, Causal SGD Anatomy & Energy Study (`law4-energy-v3`)](../reports/forge/studies/law4-optimizer-laws.md)
 - [Round-4 Minimal `<900`-LOC Core Study (`minimal`)](../reports/forge/studies/r4-minimal-core.md)
 - [Round-3 Calibration & Holdout Audit](../reports/forge/studies/r3-calibration-holdout.md)

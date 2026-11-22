@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-energy-v2-occam-study"
+  },
+  "candidate": "law4-energy-v2",
+  "competing_explanation": "If polar-matched 4D Conv2d Frobenius-MP, exact 1x1/2x2 Cayley-Hamilton polar, and adaptive 3-to-5-step 2D Quintic NS lose accuracy vs unified-v11's unconditional 5-step NS, law4-energy-v2 will regress on img_bars4, model_ddgan_gaussian_chain, grid100_mlp16, or vector_unequal_*.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "hypothesis": "law4-energy-v2 matches or exceeds unified-v11 on r4-occam-ablation-v1 (target >=15/16 PASS including img_bars4, model_ddgan_gaussian_chain, grid100_mlp16, zero_tanh_rail_escape, t3_iso_scale_mass_8x, and Nash) while eliminating 4D Conv2d NS, critic secant probes, and narrow-2D NS iterations.",
+  "id": "law4-energy-v2-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
