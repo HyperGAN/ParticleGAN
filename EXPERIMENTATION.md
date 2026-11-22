@@ -58,6 +58,10 @@ sections below describe.
 - For a new research question or host, follow the
   [experiment creation guide](docs/forge-new-experiment.md). It has worked ring and
   joint BiGAN examples, scorer controls, registration and artifact publication.
+- To drain missing Forge cache cells in parallel on Google Colab GPUs (with automatic
+  GPU right-sizing, decentralized branch-merge catch-up, crash-proof VM teardown, and
+  local Hugging Face publication), see the
+  [Colab Forge catch-up guide](docs/forge-colab-catchup.md).
 
 Register ordinary new questions as required Tier 1 tasks in the existing
 `discriminator_stability` view, or assign frontier/extra-credit/optional questions

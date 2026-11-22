@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 14400,
+    "candidate_budget_seconds": 7200,
+    "id": "colab-l4-starter-rhbi-v12-t1"
+  },
+  "candidate": "rhbi-v12",
+  "competing_explanation": "If the NVIDIA L4 / PyTorch 2.14+cu130 Colab cohort or NVML observer telemetry perturbs deterministic execution or degrades convergence relative to the RTX A6000 baseline, rhbi-v12 will fail Tier-1 ring16_acquisition (component_covariance_error > 0.85) or counted Tier-1 gates.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "component_covariance_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "hypothesis": "Unchanged global rhbi-v12 reproduces its Tier-1 discriminator_stability qualification on a matched NVIDIA L4 Colab cohort under protocol seed 0 while recording native hardware NVML energy and J-to-PASS telemetry (ring16_acquisition component_covariance_error <= 0.85).",
+  "id": "colab-l4-starter-rhbi-v12-t1",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "component_covariance_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "ring16_acquisition",
+    "threshold": 0.85
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "rhbi-v11",
+        "candidate_revision": "05f71faf03f06323d92bc7def373a5310d32c91bea38bf62b760725e29415f55"
+      },
+      "path": "reports/forge/records/readout-4301e02799ec0ad34cc958a1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA L4",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
