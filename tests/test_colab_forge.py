@@ -204,3 +204,48 @@ def test_ingest_tarball_rejects_traversal(tmp_path: Path):
 
     with pytest.raises(ValueError, match="Unsafe archive member"):
         cf.ingest_tarball(tmp_path, tar_path, project_receipts=False, register_submissions=False)
+
+
+def test_ephemeral_catchup_study_passes_forge_validator(tmp_path: Path):
+    from experiments.forge.studies import validate_study
+
+    unit = cf.CatchupUnit(
+        unit_id="bispf-l4-12345678",
+        candidate_id="bispf-optimized-quintic-v1",
+        view_id="discriminator_stability",
+        through_tier=2,
+        gpu="L4",
+        tasks=["precision_gaussian_fp32", "nash_overpowered_critic_ring16"],
+        is_full_view_slice=False,
+        estimated_seconds=600.0,
+    )
+    view_file, study_file, study_id = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit, tmp_path)
+    assert view_file is not None and view_file.is_file()
+    assert study_file.is_file()
+    study_doc = json.loads(study_file.read_text(encoding="utf-8"))
+    assert study_doc["id"] == study_id
+    validate_study(study_doc)
+    # Also verify prior_evidence file exists and matches declared identity
+    pe = study_doc["prior_evidence"][0]
+    target = json.loads((cf.REPO_ROOT / pe["path"]).read_text(encoding="utf-8"))
+    for key, expected in pe["identity"].items():
+        assert target.get(key) == expected
+
+
+def test_ephemeral_view_includes_transitive_dependencies(tmp_path: Path):
+    unit = cf.CatchupUnit(
+        unit_id="empf-l4-dep12345",
+        candidate_id="empf-v8",
+        view_id="discriminator_stability",
+        through_tier=2,
+        gpu="L4",
+        tasks=["model_ae_ddgan_bimodal_chain"],
+        is_full_view_slice=False,
+        estimated_seconds=1800.0,
+    )
+    view_file, _study_file, _sid = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit, tmp_path)
+    assert view_file is not None
+    vdoc = json.loads(view_file.read_text(encoding="utf-8"))
+    assigned = {a["task"] for a in vdoc["assignments"]}
+    assert "model_ae_ddgan_bimodal_chain" in assigned
+    assert "model_ae_ddgan_gaussian_chain" in assigned
