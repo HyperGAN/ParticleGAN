@@ -273,7 +273,8 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                 # Universal 1st-order forward-AD probe across ALL image spatial dimensions (8x8..256x256):
                 # 1 interleaved half-real/half-fake batch (BN in eval -> zero cross-sample BN leakage).
                 if not is_conditioned and b_r == b_f and b_r >= 2:
-                    parity = ((torch.arange(b_f, device=x_real.device) + int(phi * 1024.0)) % 2) == 0
+                    shift = int(phi * 1024.0) & 1
+                    parity = ((torch.arange(b_f, device=x_real.device) + shift) % 2) == 0
                     mask_nd = parity.reshape((b_f,) + (1,) * (x_real.ndim - 1))
                     x_probe = torch.where(mask_nd, z_r, z_f)
                     sq_mix = self._eval_image_fwad_sq(
@@ -286,8 +287,12 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                         critic_module=critic_module,
                         quantized_fprop=quantized_fprop,
                     )
-                    sq_r_raw = sq_mix[parity]
-                    sq_f_raw = sq_mix[~parity]
+                    if shift == 0:
+                        sq_r_raw = sq_mix[0::2]
+                        sq_f_raw = sq_mix[1::2]
+                    else:
+                        sq_r_raw = sq_mix[1::2]
+                        sq_f_raw = sq_mix[0::2]
                 else:
                     sq_r_raw = self._eval_image_fwad_sq(
                         live,

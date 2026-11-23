@@ -1323,6 +1323,198 @@ def test_unified_v11_regression_fixes_tikhonov_peak_rms_stiff_fg_and_gauge_deadb
     assert g_eq_hot > 0.0 and (g_eq_cold / g_eq_hot) < 5e-4, f"Anchored gauge over-amplified: ratio={g_eq_cold / g_eq_hot:.3e}"
 
 
+def test_unified_v11_zerosync_primitives_parity_and_cuda_sync_budget() -> None:
+    """Phase 3 zero-sync exact mathematical parity (CPU+CUDA) and strict CUDA sync-count regression guards."""
+    from particlegan._stats import median_offdiag
+    from particlegan._unified_v4.loss import _principal_axis_power
+    from particlegan._unified_v11.loss import _principal_axis_power_zerosync
+    from particlegan._unified_v11.prior import _median_offdiag_zerosync
+
+    torch.manual_seed(0)
+    # 1. Exact bit-for-bit parity of zero-sync off-diagonal median & power-iteration eigenvector:
+    for m in (2, 3, 4, 7, 16, 64):
+        mat = torch.randn(m, m).abs()
+        assert torch.equal(_median_offdiag_zerosync(mat), median_offdiag(mat))
+    for d in (2, 3, 8, 32):
+        a = torch.randn(d, d)
+        g_mat = a.T @ a
+        assert torch.equal(_principal_axis_power_zerosync(g_mat, iters=6), _principal_axis_power(g_mat, iters=6))
+
+    # 2. Exact parity of zero-sync SBNP fallback in UnifiedV11PriorRegularizer.forward:
+    for use_ref in (False, True):
+        for z_dim in (2, 8, 32):
+            prior_ref = ParticlePrior(num_particles=64, z_dim=z_dim) if use_ref else None
+            if prior_ref is not None:
+                from particlegan.moment_tether import capture_initial_moments
+                capture_initial_moments(prior_ref)
+            reg_v11 = UnifiedV11PriorRegularizer(reference=prior_ref, weight=1.0)
+            rec = UnifiedV11StepRecord()
+            reg_v11.thermal_source = rec
+            for s_th in (1.0, 0.25, 1e-5):
+                rec._thermal_scale = s_th
+                rows_a = torch.randn(64, z_dim, requires_grad=True)
+                rows_b = rows_a.detach().clone().requires_grad_(True)
+                val_zs = reg_v11._sbnp_fallback_zerosync(rows_a)
+                val_ref = reg_v11.fallback(rows_b)
+                assert torch.allclose(val_zs, val_ref, atol=1e-6, rtol=1e-6)
+                val_zs.backward()
+                val_ref.backward()
+                assert rows_a.grad is not None and rows_b.grad is not None
+                assert torch.allclose(rows_a.grad, rows_b.grad, atol=1e-6, rtol=1e-6)
+
+    # 3. Exact parity of lazy GPU EMA record flushing & checkpoint/deepcopy round-trip:
+    rec_em = UnifiedV11StepRecord()
+    rl = torch.tensor([1.5, 0.5, 2.0, -0.5])
+    fl = torch.tensor([-0.2, 0.1, 0.3, -0.6])
+    xr = torch.randn(8, 4)
+    xf = torch.randn(8, 4)
+    rec_em.observe_margin_and_scale(rl, fl, xr, xf)
+    rec_em.observed_steps = 1
+    rec_em.observe_margin_and_scale(rl * 0.5, fl * 0.5, xr * 1.2, xf * 0.8)
+    m1 = max(-50.0, min(50.0, float(rl.mean().item()) - float(fl.mean().item())))
+    m2 = max(-50.0, min(50.0, float((rl * 0.5).mean().item()) - float((fl * 0.5).mean().item())))
+    assert rec_em.margin_initialized is True
+    assert abs(rec_em.ema_margin - (0.90 * m1 + 0.10 * m2)) < 1e-12
+    dup = deepcopy(rec_em)
+    assert dup.ema_margin == rec_em.ema_margin
+    assert dup.ema_data_scale == rec_em.ema_data_scale
+    assert dup.ema_push_res == rec_em.ema_push_res
+
+    # 4. Zero-sync duplicate-row deduplication in UnifiedV11EquilibratedOptimizer prior group:
+    z_a = nn.Parameter(torch.randn(32, 4))
+    z_b = nn.Parameter(z_a.detach().clone())
+    grad_z = torch.randn(32, 4)
+    z_a.grad = grad_z.clone()
+    z_b.grad = grad_z.clone()
+    opt_a = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_a], "role": "prior", "algorithm": "unified_prior", "lr": 0.04, "betas": (0.8, 0.99)}],
+        smoothing=0.0061,
+    )
+    opt_b = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_b], "role": "prior", "algorithm": "unified_prior", "lr": 0.04, "betas": (0.8, 0.99)}],
+        smoothing=0.0061,
+    )
+    dup_idx = torch.tensor([5, 1, 5, 12, 1, 0, 12, 5], dtype=torch.long)
+    uniq_idx = torch.unique(dup_idx, sorted=True)
+    opt_a.set_sampled_rows(z_a, dup_idx)
+    opt_b.set_sampled_rows(z_b, uniq_idx)
+    assert torch.equal(opt_a.sampled_rows_for(z_a), uniq_idx)
+    opt_a.step()
+    opt_b.step()
+    assert torch.allclose(z_a, z_b, atol=1e-6, rtol=1e-6)
+    assert torch.allclose(opt_a.state[z_a]["m_prior"], opt_b.state[z_b]["m_prior"], atol=1e-6, rtol=1e-6)
+    assert torch.allclose(opt_a.state[z_a]["peak_rms"], opt_b.state[z_b]["peak_rms"], atol=1e-6, rtol=1e-6)
+
+    # 5. Zero-sync quantizer maintenance (uncovered replacement + dead-slot Gersho split) invariants:
+    reg_q = UnifiedV11PriorRegularizer(max_prototypes=16)
+    reg_q.update_quantizer(torch.randn(32, 2))
+    # Force dead slot + Gersho split + uncovered point:
+    reg_q.proto_w[0] = 0.0
+    reg_q.proto_w = reg_q.proto_w / reg_q.proto_w.sum()
+    reg_q.update_quantizer(torch.randn(32, 2))
+    far_batch = torch.randn(32, 2)
+    far_batch[0] = torch.tensor([100.0, -100.0])
+    reg_q.update_quantizer(far_batch)
+    sd_q = reg_q.state_dict()
+    reg_q2 = UnifiedV11PriorRegularizer(max_prototypes=16)
+    reg_q2.load_state_dict(sd_q)
+    assert torch.equal(reg_q2.proto_c, reg_q.proto_c)
+    assert torch.equal(reg_q2.v_push, reg_q.v_push)
+
+    # 6. CUDA sync-count regression guards (pullback <= 14 syncs/step vs ~115 before; 4D image <= 6 vs ~60 before):
+    if torch.cuda.is_available():
+        dev = torch.device("cuda:0")
+        rec_pb = get_recipe(
+            "unified_v11",
+            prior_kind="mog",
+            standardize=False,
+            batch_size=32,
+            num_particles=64,
+            z_dim=2,
+            total_steps=40,
+            training_precision="float32",
+        )
+        tr_pb = GANTrainer(
+            rec_pb,
+            _ToyGen2D(2, 2).to(dev),
+            _ToyDisc2D(2).to(dev),
+            prior=MoGParticlePrior(num_particles=64, z_dim=2, sigma=0.05, standardize=False, device=dev),
+            seed=0,
+        )
+        for _ in range(12):
+            tr_pb.step(torch.randn(32, 2, device=dev))
+        torch.cuda.synchronize(dev)
+        with torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
+        ) as prof_pb:
+            for _ in range(5):
+                tr_pb.step(torch.randn(32, 2, device=dev))
+        torch.cuda.synchronize(dev)
+        pb_syncs = sum(
+            int(e.count) for e in prof_pb.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
+        ) / 5.0
+        assert pb_syncs <= 16.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 16)"
+
+        rec_img = get_recipe(
+            "unified_v11",
+            prior_kind="particles",
+            sigma_rel=0.0,
+            batch_size=8,
+            num_particles=32,
+            z_dim=8,
+            total_steps=30,
+            training_precision="float32",
+        )
+        tr_img = GANTrainer(
+            rec_img,
+            _ToyImgBNGen(8).to(dev),
+            _ToyImgBNDisc().to(dev),
+            prior=ParticlePrior(num_particles=32, z_dim=8, device=dev),
+            seed=0,
+        )
+        for _ in range(6):
+            tr_img.step(torch.randn(8, 3, 32, 32, device=dev))
+        torch.cuda.synchronize(dev)
+        with torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
+        ) as prof_img:
+            for _ in range(5):
+                tr_img.step(torch.randn(8, 3, 32, 32, device=dev))
+        torch.cuda.synchronize(dev)
+        img_syncs = sum(
+            int(e.count) for e in prof_img.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
+        ) / 5.0
+        assert img_syncs <= 6.0, f"4D image CUDA sync regression: {img_syncs:.1f} syncs/step (budget <= 6)"
+
+    # 8. Subclass compatibility: legacy subclasses without _SUPPORTS_ZEROSYNC_V4_TENSORS keep deduplicated
+    #    _sampled_rows and Python-float _origin_norm / _v4_g_scale / _v4_wakeup_boost, while base & opt-in keep tensors:
+    class _LegacySubclassOpt(UnifiedV11EquilibratedOptimizer):
+        pass
+
+    class _OptInSubclassOpt(UnifiedV11EquilibratedOptimizer):
+        _SUPPORTS_ZEROSYNC_V4_TENSORS = True
+
+    p_tab = nn.Parameter(torch.randn(16, 2))
+    raw_dups = torch.tensor([3, 1, 3, 5, 1, 5], dtype=torch.long)
+    legacy_opt = _LegacySubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    legacy_opt.set_sampled_rows(p_tab, raw_dups)
+    assert torch.equal(legacy_opt._sampled_rows[p_tab], torch.tensor([1, 3, 5], dtype=torch.long))
+    legacy_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert isinstance(legacy_opt._origin_norm, float) and legacy_opt._origin_norm_t is None
+    legacy_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert type(legacy_opt._v4_g_scale) is float and abs(legacy_opt._v4_g_scale - 0.25) < 1e-6
+    assert type(legacy_opt._v4_wakeup_boost) is float and abs(legacy_opt._v4_wakeup_boost - 2.0) < 1e-6
+
+    optin_opt = _OptInSubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    optin_opt.set_sampled_rows(p_tab, raw_dups)
+    assert len(optin_opt._sampled_rows[p_tab]) == len(raw_dups)
+    assert torch.equal(optin_opt.sampled_rows_for(p_tab), torch.tensor([1, 3, 5], dtype=torch.long))
+    optin_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert optin_opt._origin_norm is None and isinstance(optin_opt._origin_norm_t, torch.Tensor)
+    optin_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert isinstance(optin_opt._v4_g_scale, torch.Tensor) and isinstance(optin_opt._v4_wakeup_boost, torch.Tensor)
+
+
 class _ResBNTrunkGen(nn.Module):
     """Depth-invariant branch-normalized residual MLP with constant ~2x coherent displacement."""
 
@@ -1875,6 +2067,5 @@ torch.save(
                 assert torch.equal(v, resumed["models"][m_name][k]), f"Combined continuation mismatch {m_name}.{k}"
             else:
                 assert v == resumed["models"][m_name][k], f"Combined continuation value mismatch {m_name}.{k}"
-
 
 
