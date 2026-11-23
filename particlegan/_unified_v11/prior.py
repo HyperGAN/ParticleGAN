@@ -707,10 +707,15 @@ class UnifiedV11PriorRegularizer(nn.Module):
                 is_b = idx_k == b_t
                 wa = self.proto_w.index_select(0, a_1).squeeze(0)
                 wb = self.proto_w.index_select(0, b_1).squeeze(0)
-                wtot = (wa + wb).clamp_min(1e-12)
+                wtot64 = (wa.double() + wb.double()).clamp_min(1e-12)
+                wtot = wtot64.float()
                 ca = self.proto_c.index_select(0, a_1)
                 cb = self.proto_c.index_select(0, b_1)
-                self.proto_c = torch.where((do_merge & is_a).unsqueeze(1), (wa * ca + wb * cb) / wtot, self.proto_c)
+                self.proto_c = torch.where(
+                    (do_merge & is_a).unsqueeze(1),
+                    (wa * ca + wb * cb) * (1.0 / wtot64).float(),
+                    self.proto_c,
+                )
                 self.proto_w = torch.where(do_merge & is_a, wtot, self.proto_w)
                 self.proto_w = torch.where(do_merge & is_b, self.proto_w.new_zeros(()), self.proto_w)
                 wf_sum = self.w_fake_ema.index_select(0, a_1).squeeze(0) + self.w_fake_ema.index_select(0, b_1).squeeze(0)
@@ -1316,7 +1321,7 @@ def unified_v11_pullback_step(
                     reg.v_push = torch.where(hit_k.unsqueeze(1), 0.88 * reg.v_push + 0.12 * mean_vp_k, reg.v_push)
                 t_tr1 = sc_sub2.detach().float().square().clamp_min(1e-10).view(m_iso, 1, 1)
                 iso_frob_i = ((Sigma_push2.detach().float() / t_tr1) - eye2.float()).square().sum(dim=(1, 2)).sqrt()
-                cur_frob64 = (0.60 * iso_frob_i.mean() + 0.40 * torch.quantile(iso_frob_i, 0.92)).double()
+                cur_frob64 = 0.60 * iso_frob_i.mean().double() + 0.40 * torch.quantile(iso_frob_i, 0.92).double()
                 iso_err_coal64 = 0.92 * prev_iso_err64 + 0.08 * cur_frob64.clamp_max(5.0)
                 iso_err_next64 = torch.where(has_multicell_coal_t, iso_err_coal64, iso_err_std64)
                 reg._iso_err_ema_t = torch.where(is_point_t, prev_iso_err64, iso_err_next64)
@@ -1376,22 +1381,24 @@ def unified_v11_pullback_step(
     )
 
     with torch.no_grad():
-        eq_gate_t = ((0.030 - res_ema_f) / 0.020).clamp(0.0, 1.0)
-        adv_w_t = torch.where(
+        eq_gate64 = ((0.030 - res_ema64) / 0.020).clamp(0.0, 1.0)
+        adv_w64 = torch.where(
             has_multicell_coal_t,
-            0.038 * (1.0 - eq_gate_t) + 0.008 * eq_gate_t,
-            res_ema_f.new_full((), 0.15),
+            0.038 * (1.0 - eq_gate64) + 0.008 * eq_gate64,
+            res_ema64.new_full((), 0.15),
         )
-        g_floor_t = torch.where(
+        g_floor64 = torch.where(
             has_multicell_coal_t,
-            0.022 * (1.0 - eq_gate_t) + 0.012 * eq_gate_t,
-            res_ema_f.new_full((), 0.04),
+            0.022 * (1.0 - eq_gate64) + 0.012 * eq_gate64,
+            res_ema64.new_full((), 0.04),
         )
-        row_floor_t = torch.where(
+        row_floor64 = torch.where(
             has_multicell_coal_t,
-            0.15 * (1.0 - eq_gate_t) + 0.38 * eq_gate_t,
-            res_ema_f.new_full((), 0.15),
+            0.15 * (1.0 - eq_gate64) + 0.38 * eq_gate64,
+            res_ema64.new_full((), 0.15),
         )
+        adv_w_t = adv_w64.float()
+        row_floor_t = row_floor64.float()
 
     loss_g = (
         adv_w_t.to(loss_gan.dtype) * loss_gan
@@ -1459,13 +1466,13 @@ def unified_v11_pullback_step(
 
     # Keep generator active when boundary tanh modes still exhibit high relative isometry distortion:
     with torch.no_grad():
-        iso_err_f = reg._get_iso_err_ema_t(yr.device).float()
-        iso_gate_t = ((iso_err_f - 0.22) / 0.45).clamp(0.0, 1.0)
-        g_scale_norm = torch.maximum(
-            g_floor_t,
-            torch.minimum(res_ema_f.new_full((), 1.0), torch.maximum(res_ema_f / 0.10, 0.28 * iso_gate_t)),
+        iso_err64 = reg._get_iso_err_ema_t(yr.device)
+        iso_gate64 = ((iso_err64 - 0.22) / 0.45).clamp(0.0, 1.0)
+        g_scale_norm64 = torch.maximum(
+            g_floor64,
+            torch.minimum(res_ema64.new_full((), 1.0), torch.maximum(res_ema64 / 0.10, 0.28 * iso_gate64)),
         )
-        g_scale_t = torch.where(is_point_t | (scale_ratio_t < 0.60), res_ema_f.new_full((), 1.0), g_scale_norm)
+        g_scale_t = torch.where(is_point_t | (scale_ratio_t < 0.60), res_ema64.new_full((), 1.0), g_scale_norm64)
 
     if isinstance(trainer.opt_g, UnifiedV11EquilibratedOptimizer):
         trainer.opt_g.bind_v4_modulation(g_scale=g_scale_t, wakeup_boost=wakeup_boost_t, prior_scale=1.0)
