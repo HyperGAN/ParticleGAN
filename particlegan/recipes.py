@@ -64,7 +64,7 @@ except (ImportError, ValueError):
     pass
 
 # Promote a registered trainer preset here; model-family factories inherit it.
-DEFAULT_RECIPE = "unified_v11"
+DEFAULT_RECIPE = "unified_v12"
 
 
 def _reject_table_storage_owners(table, tensors):
@@ -2443,8 +2443,19 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"unified_v11"`` is the selected Unified 4-Law research default
-    (``DEFAULT_RECIPE``, matching ``unified-v11``): strictly zero-``autograd.grad``,
+    ``"unified_v12"`` is the selected Unified 4-Law research default
+    (``DEFAULT_RECIPE``, matching ``unified-v12``): preserves Laws 1–3
+    (``critic_formulation="unified_v11"``, ``prior_regularizer="unified_v11"``,
+    zero ``autograd.grad``, zero SVD/``eigh``/``pinv``) and pairs them with
+    ``UnifiedV12Optimizer`` (``optimizer_family="unified_v12_equil"``:
+    zero-state polar-matched 4D Conv2d Frobenius-MP, Law 4.4 asymmetric
+    0-NS 2D critic with generator-free 2D NS fallback, CountSketch spectral
+    preconditioning on stiff deep 2D generators, and exact ``float64``-reciprocal
+    zero-sync fast-path equilibration) plus ``bf16_channels_last`` conv training
+    at constant learning rates (``lr=0.014``, ``d_lr_mult=1.5``,
+    ``prior_lr_mult=2.9``, ``prior_reg=0.02``, ``ebi_beta=12.0``).
+    ``"unified_v11"`` retains the explicit 0.11.x Unified 4-Law preset
+    (matching ``unified-v11``): strictly zero-``autograd.grad``,
     zero-SVD, zero-``eigh``, zero-``pinv`` unification of the four GAN laws
     (Law 1 streaming Laguerre-Pythagorean prototype prior & orthogonal pullback
     isometry, Law 2 first-order Born-Infeld secant critic with zero-mean gauge,

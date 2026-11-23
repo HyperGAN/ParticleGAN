@@ -115,7 +115,8 @@ def _forbid(*_args: object, **_kwargs: object) -> None:
 
 def test_unified_v12_registration_and_recipe_invariants() -> None:
     assert "unified_v12_equil" in NORMALIZED_FAMILIES
-    assert DEFAULT_RECIPE == "unified_v11"
+    assert DEFAULT_RECIPE == "unified_v12"
+    assert get_recipe() == get_recipe("unified_v12") == get_recipe("gan")
     assert len(fields(Recipe)) == 179
 
     rec = get_recipe("unified_v12")
