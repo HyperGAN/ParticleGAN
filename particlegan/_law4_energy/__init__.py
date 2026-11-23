@@ -30,6 +30,7 @@ from .optimizer import (
     Law4EnergyV8Optimizer,
     Law4EnergyV9Optimizer,
     Law4EnergyV10Optimizer,
+    Law4EnergyV11Optimizer,
     exact_polar_2xn,
 )
 
@@ -44,5 +45,6 @@ __all__ = [
     "Law4EnergyV8Optimizer",
     "Law4EnergyV9Optimizer",
     "Law4EnergyV10Optimizer",
+    "Law4EnergyV11Optimizer",
     "exact_polar_2xn",
 ]

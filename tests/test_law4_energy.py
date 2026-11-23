@@ -26,6 +26,7 @@ from particlegan._law4_energy import (
     Law4EnergyV8Optimizer,
     Law4EnergyV9Optimizer,
     Law4EnergyV10Optimizer,
+    Law4EnergyV11Optimizer,
     exact_polar_2xn,
 )
 from particlegan._law4_energy import optimizer as energy_opt_mod
@@ -592,7 +593,9 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     assert "law4_energy_v6" in NORMALIZED_FAMILIES
     torch.manual_seed(0)
 
-    # 1. Literal 0.000e+00 bit-exact parity with unified_v11_equil on 2D MLPs (incl. tiny 1e-10 gradients):
+    # 1. Literal 0.000e+00 bit-exact parity with unified_v11_equil on 2D MLPs under matched
+    #    smoothing (optimizer_smoothing=0.0). Archived law4_energy_v6 preserves pre-PR-#606
+    #    0.03 * peak_rms Tikhonov smoothing while post-PR-#606 unified_v11_equil uses 0.30 * peak_rms.
     g1 = init.deterministic_orthogonal_(_ShallowGen2D())
     d1 = init.deterministic_orthogonal_(_ShallowDisc2D())
     g2 = _ShallowGen2D()
@@ -602,6 +605,7 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     rec1 = get_recipe(
         "unified_v11",
         optimizer_family="unified_v11_equil",
+        optimizer_smoothing=0.0,
         z_dim=2,
         batch_size=8,
         num_particles=32,
@@ -613,6 +617,7 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
     rec2 = get_recipe(
         "unified_v11",
         optimizer_family="law4_energy_v6",
+        optimizer_smoothing=0.0,
         z_dim=2,
         batch_size=8,
         num_particles=32,
@@ -635,6 +640,21 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
         t2.step(r, generator_real=rg)
     for p1, p2 in zip(list(g1.parameters()) + list(d1.parameters()), list(g2.parameters()) + list(d2.parameters())):
         assert torch.equal(p1, p2)
+
+    # Verify archived v6 keeps its pre-PR-#606 0.03 * peak_rms smoothing distinct from unified_v11_equil's 0.30 * peak_rms:
+    p_u11 = nn.Parameter(torch.zeros(8, 8))
+    p_v6 = nn.Parameter(torch.zeros(8, 8))
+    g_step1 = torch.randn(8, 8) * 0.01
+    g_step2 = g_step1 * 0.5
+    opt_u11_s = UnifiedV11EquilibratedOptimizer([p_u11], lr=0.014, smoothing=0.0061)
+    opt_v6_s = Law4EnergyV6Optimizer([p_v6], lr=0.014, smoothing=0.0061)
+    for g_cur in (g_step1, g_step2):
+        p_u11.grad = g_cur.clone()
+        p_v6.grad = g_cur.clone()
+        opt_u11_s.step()
+        opt_v6_s.step()
+    assert torch.isfinite(p_v6).all()
+    assert not torch.equal(p_u11, p_v6), "archived v6 must retain its 0.03*peak_rms law distinct from post-PR-#606 0.30*peak_rms"
 
     # 2. Strictly 0 Conv2d NS, 0 4D critic probes, 0 B/param non-stiff conv state, 0 forbidden primitives:
     rec_c = get_recipe(
@@ -704,6 +724,7 @@ def test_law4_energy_v6_bit_exact_2d_parity_zero_conv_ns_and_checkpoint() -> Non
         ("law4_energy_v8", Law4EnergyV8Optimizer),
         ("law4_energy_v9", Law4EnergyV9Optimizer),
         ("law4_energy_v10", Law4EnergyV10Optimizer),
+        ("law4_energy_v11", Law4EnergyV11Optimizer),
     ],
 )
 def test_law4_energy_v7_v8_v9_asymmetric_zero_critic_ns_zero_conv_ns_and_checkpoint(
@@ -885,3 +906,196 @@ with open(out_path, "w") as f:
     subprocess.run([sys.executable, str(script_path), "full", str(ckpt_path), str(out_full)], check=True, env=env)
     subprocess.run([sys.executable, str(script_path), "resume", str(ckpt_path), str(out_cont)], check=True, env=env)
     assert json.loads(out_full.read_text()) == json.loads(out_cont.read_text())
+
+
+def test_law4_energy_v11_generator_free_critic_ns_parity_zerosync_and_continuation(tmp_path: Path) -> None:
+    assert "law4_energy_v11" in NORMALIZED_FAMILIES
+    assert DEFAULT_RECIPE == "unified_v11"
+    torch.manual_seed(0)
+
+    # 1. Bit-exact parity between law4_energy_v10 and law4_energy_v11 on neural-generator tasks (0 Critic NS, 0 new_tensor):
+    g1 = init.deterministic_orthogonal_(_ShallowGen2D())
+    d1 = init.deterministic_orthogonal_(_ShallowDisc2D())
+    g2 = _ShallowGen2D()
+    d2 = _ShallowDisc2D()
+    g2.load_state_dict(g1.state_dict())
+    d2.load_state_dict(d1.state_dict())
+    rec10 = get_recipe(
+        "unified_v11",
+        optimizer_family="law4_energy_v10",
+        z_dim=2,
+        batch_size=16,
+        num_particles=32,
+        prior_kind="mog",
+        sigma_rel=0.1,
+        prior_reg=0.0,
+        total_steps=6,
+    )
+    rec11 = get_recipe(
+        "unified_v11",
+        optimizer_family="law4_energy_v11",
+        z_dim=2,
+        batch_size=16,
+        num_particles=32,
+        prior_kind="mog",
+        sigma_rel=0.1,
+        prior_reg=0.0,
+        total_steps=6,
+    )
+    torch.manual_seed(11)
+    t10 = GANTrainer(rec10, g1, d1, max_steps=6)
+    torch.manual_seed(11)
+    t11 = GANTrainer(rec11, g2, d2, max_steps=6)
+    assert t11.opt_d._generator_free is False
+    for step_i in range(4):
+        torch.manual_seed(300 + step_i)
+        r = torch.randn(16, 2)
+        rg = torch.randn(16, 2)
+        torch.manual_seed(400 + step_i)
+        t10.step(r, generator_real=rg)
+        torch.manual_seed(400 + step_i)
+        t11.step(r, generator_real=rg)
+    for p1, p2 in zip(list(g1.parameters()) + list(d1.parameters()), list(g2.parameters()) + list(d2.parameters())):
+        assert torch.equal(p1, p2)
+    assert t11.opt_d.critic_ns_calls == 0
+    assert t11.opt_d.ns_2d_activations == 0
+    assert t11.opt_d.probe_consumptions == 0
+
+    # Zero new_tensor() calls inside Law4EnergyV11Optimizer.step() (no pageable H2D copies!):
+    with mock.patch.object(torch.Tensor, "new_tensor", _forbid):
+        for p in g2.parameters():
+            p.grad = torch.randn_like(p)
+        for p in d2.parameters():
+            p.grad = torch.randn_like(p)
+        t11.prior.z.grad = torch.randn_like(t11.prior.z)
+        t11.opt_g.set_sampled_rows(t11.prior.z, torch.arange(4))
+        t11.opt_d.step()
+        t11.opt_g.bind_protected_from_grads()
+        t11.opt_g.step()
+
+    # 2. Generator-free (G = nn.Identity) restores 2D Critic NS strictly, still 0 Conv2d NS & 0 critic secant probes:
+    from particlegan import ParticlePrior
+
+    rec_gf = get_recipe(
+        "unified_v11",
+        optimizer_family="law4_energy_v11",
+        z_dim=4,
+        batch_size=16,
+        num_particles=32,
+        prior_kind="particles",
+        prior_reg=0.0,
+        total_steps=6,
+    )
+    g_id = nn.Identity()
+    d_gf = init.deterministic_orthogonal_(_ShallowDisc2D(in_dim=4))
+    prior_gf = ParticlePrior(num_particles=32, z_dim=4, learnable=True)
+    opt_g_gf, opt_d_gf = rec_gf.make_optimizers(g_id, d_gf, prior_gf)
+    assert isinstance(opt_d_gf, Law4EnergyV11Optimizer)
+    assert opt_d_gf._generator_free is True
+    for p in d_gf.parameters():
+        p.grad = torch.randn_like(p)
+    with (
+        mock.patch.object(torch.linalg, "svd", _forbid),
+        mock.patch.object(torch.linalg, "eigh", _forbid),
+        mock.patch.object(torch.linalg, "pinv", _forbid),
+        mock.patch.object(torch.autograd, "grad", _forbid),
+        mock.patch.object(torch.Tensor, "new_tensor", _forbid),
+    ):
+        opt_d_gf.step()
+    assert opt_d_gf.critic_ns_calls == 1  # Linear(4, 24) uses 5-step NS; head Linear(24, 1) stays m=1 fast path!
+    assert opt_d_gf.probe_consumptions == 0
+
+    # 3. Checkpoint tamper & generator_free mode mismatch & cross-family (v10 <-> v11) rejection:
+    sd_gf = opt_d_gf.state_dict()
+    assert sd_gf["law4_energy"]["generator_free"] is True
+    opt_d_gf.load_state_dict(sd_gf)
+
+    # Reject loading generator_free=True checkpoint into neural-generator (generator_free=False) optimizer:
+    d_neural = init.deterministic_orthogonal_(_ShallowDisc2D(in_dim=4))
+    _, opt_d_neural = rec_gf.make_optimizers(_ShallowGen2D(z_dim=4, out_dim=4), d_neural, ParticlePrior(32, 4, learnable=True))
+    assert opt_d_neural._generator_free is False
+    with pytest.raises(ValueError, match="generator_free"):
+        opt_d_neural.load_state_dict(sd_gf)
+
+    # Reject cross-family v10 <-> v11 checkpoints:
+    sd_v10 = t10.opt_d.state_dict()
+    with pytest.raises(ValueError):
+        t11.opt_d.load_state_dict(sd_v10)
+    with pytest.raises(ValueError):
+        t10.opt_d.load_state_dict(t11.opt_d.state_dict())
+
+    # 4. Fresh-process bit-exact continuation for law4_energy_v11 (both neural G stiffness boundary & generator-free):
+    ckpt_path = tmp_path / "v11_ckpt.pt"
+    out_full = tmp_path / "v11_full.json"
+    out_cont = tmp_path / "v11_cont.json"
+    script = """
+import json, sys, torch
+from torch import nn
+from particlegan import GANTrainer, get_recipe, init
+
+mode, ckpt_path, out_path = sys.argv[1], sys.argv[2], sys.argv[3]
+
+class Gen(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 24), nn.SiLU(), nn.Linear(24, 2))
+    def forward(self, z): return self.net(z)
+
+class Disc(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.net = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))
+    def forward(self, x): return self.net(x).squeeze(-1)
+
+torch.manual_seed(0)
+torch.use_deterministic_algorithms(True)
+rec = get_recipe("unified_v11", optimizer_family="law4_energy_v11", z_dim=2, batch_size=16, num_particles=64, total_steps=10)
+g = init.deterministic_orthogonal_(Gen())
+d = init.deterministic_orthogonal_(Disc())
+trainer = GANTrainer(rec, g, d, max_steps=10)
+data_gen = torch.Generator().manual_seed(123)
+batches = [(torch.randn(16, 2, generator=data_gen), torch.randn(16, 2, generator=data_gen)) for _ in range(8)]
+
+if mode == "full":
+    for idx, (r, rg) in enumerate(batches):
+        if idx == 3:
+            trainer.opt_g._ema_func_gain = 0.35
+            torch.save(trainer.state_dict(), ckpt_path)
+        trainer.step(r, generator_real=rg)
+else:
+    trainer.load_state_dict(torch.load(ckpt_path, weights_only=False))
+    for r, rg in batches[3:]:
+        trainer.step(r, generator_real=rg)
+
+with open(out_path, "w") as f:
+    json.dump({
+        "g": [p.detach().tolist() for p in g.parameters()],
+        "d": [p.detach().tolist() for p in d.parameters()],
+        "ema_fg": trainer.opt_g._ema_func_gain,
+    }, f)
+"""
+    script_path = tmp_path / "run_v11_cont.py"
+    script_path.write_text(script)
+    repo_root = str(Path(__file__).resolve().parents[1])
+    env = {**os.environ, "PYTHONPATH": repo_root + (os.pathsep + os.environ["PYTHONPATH"] if os.environ.get("PYTHONPATH") else "")}
+    subprocess.run([sys.executable, str(script_path), "full", str(ckpt_path), str(out_full)], check=True, env=env)
+    subprocess.run([sys.executable, str(script_path), "resume", str(ckpt_path), str(out_cont)], check=True, env=env)
+    assert json.loads(out_full.read_text()) == json.loads(out_cont.read_text())
+
+    # 5. Clock-free audit on law4_energy_v11:
+    from experiments.forge.clockfree import run_clockfree, verify_probe
+
+    repo_p = Path(__file__).resolve().parents[1]
+    task = json.loads((repo_p / "configs/forge/tasks/clockfree_audit.json").read_text())
+    cand = json.loads((repo_p / "configs/forge/ideas/law4-energy-v11.json").read_text())
+    audit_res = run_clockfree(
+        {"candidate": cand, "protocol": {"seed": 0}},
+        task,
+        tmp_path / "clockfree_v11",
+        "cpu",
+    )
+    comparisons, audit = verify_probe(task, audit_res["evidence"])
+    assert audit["unexplained_clock_dependencies"] == []
+    assert len(comparisons) == 4
+    assert all(item["reference_sha256"] == item["changed_sha256"] for item in comparisons)
+
