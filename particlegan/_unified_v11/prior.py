@@ -1118,8 +1118,9 @@ def unified_v11_pullback_step(
 
         c_scale = d_xp_route.mean().clamp_min(1e-5)
         prev_res64 = reg._get_res_ema_t(yr.device)
-        eps_s_t = (0.25 * prev_res64.float()).clamp(0.010, 0.06)
-        L_xp = -(d_xp_route / c_scale) / eps_s_t
+        # Match PyTorch CUDA float-scalar division ``x / float(eps_s)`` bit-for-bit with 0 syncs:
+        eps_s_t64 = (0.25 * prev_res64).clamp(0.010, 0.06)
+        L_xp = -(d_xp_route / c_scale) * (1.0 / eps_s_t64).float()
         log_a = -math.log(float(b))
         log_b = torch.log(reg.proto_w.clamp_min(1e-12))
         u = torch.zeros(b, device=yr.device, dtype=torch.float32)
