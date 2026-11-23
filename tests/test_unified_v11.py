@@ -432,25 +432,15 @@ def test_unified_v11_deliberate_damage_and_tamper_rejection() -> None:
         with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain"):
             trainer.load_state_dict(bad_ema_fg)
 
-        bad_ema_ref = deepcopy(good)
-        bad_ema_ref["optimizers"][0]["unified_v11_equil"]["ema_func_gain_ref"] = bad_val
-        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain_ref"):
-            trainer.load_state_dict(bad_ema_ref)
-
         bad_g_fg = deepcopy(good)
         bad_g_fg["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"] = bad_val
         with pytest.raises(ValueError, match="invalid checkpoint optimizer state|g_func_gain"):
             trainer.load_state_dict(bad_g_fg)
 
-    bad_old_schema = deepcopy(good)
-    bad_old_schema["optimizers"][0]["unified_v11_equil"]["schema"] = 1
+    bad_schema = deepcopy(good)
+    bad_schema["optimizers"][0]["unified_v11_equil"]["schema"] = 99
     with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
-        trainer.load_state_dict(bad_old_schema)
-
-    bad_ref_missing = deepcopy(good)
-    del bad_ref_missing["optimizers"][0]["unified_v11_equil"]["ema_func_gain_ref"]
-    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
-        trainer.load_state_dict(bad_ref_missing)
+        trainer.load_state_dict(bad_schema)
 
     bad_gfg_missing = deepcopy(good)
     del bad_gfg_missing["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"]
@@ -1362,33 +1352,29 @@ def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: 
     """Semantic controls + fresh-process continuation for coupled Law 4 gains and overshoot/drop stiff_gate."""
     torch.manual_seed(0)
 
-    # 1. Normalized deep residual trunk at steady flat ema_func_gain (~0.40) keeps stiff_gate == 0.0
-    #    (no asymmetric beta1 momentum allocated on 2D weights), while severe overshoot or sharp drop activates it:
+    # 1. Normalized deep residual trunk at ema_func_gain >= 0.18 (e.g. ~0.30-0.40) keeps stiff_gate == 0.0
+    #    (no asymmetric beta1 momentum allocated on 2D weights), while severe overshoot (<= 0.11) activates 1.0:
     w_g = nn.Linear(16, 16, bias=False)
     opt_g = UnifiedV11EquilibratedOptimizer(
         [{"params": [w_g.weight], "role": "generator", "lr": 0.014}],
         smoothing=0.0061,
     )
-    opt_g._ema_func_gain = 0.40
-    opt_g._ema_func_gain_ref = 0.40
+    opt_g._ema_func_gain = 0.25
     assert opt_g.current_stiff_gate() == 0.0
     w_g.weight.grad = torch.randn_like(w_g.weight)
     opt_g.step()
-    assert "m_unit" not in opt_g.state[w_g.weight], "False stiff_gate allocated momentum on steady flat gain!"
+    assert "m_unit" not in opt_g.state[w_g.weight], "False stiff_gate allocated momentum on normalized gain!"
 
-    # Sharp stiffness drop (ema_fg falling far below slow reference) activates g_drop:
-    opt_g._ema_func_gain = 0.35
-    opt_g._ema_func_gain_ref = 0.90
-    assert opt_g.current_stiff_gate() == 1.0
-    # Severe absolute overshoot (ema_fg <= 0.07) keeps stiff_gate == 1.0 even after ref catches up:
-    opt_g._ema_func_gain = 0.07
-    opt_g._ema_func_gain_ref = 0.07
+    # Severe absolute overshoot (ema_fg <= 0.11, e.g. 16L MLP) activates stiff_gate == 1.0:
+    opt_g._ema_func_gain = 0.10
     assert opt_g.current_stiff_gate() == 1.0
     w_g.weight.grad = torch.randn_like(w_g.weight)
     opt_g.step()
     assert "m_unit" in opt_g.state[w_g.weight], "Severe overshoot failed to engage stiff_gate momentum!"
 
-    # 2. Margin-gated critic coupling scales D step by rec._g_func_gain (floored at 0.35) and releases on hostile margin:
+    # 2. Bandpass positive-margin critic coupling scales D step by rec._g_func_gain (down to 0.12)
+    #    only in the on-manifold critic-dominance band (0.30 <= ema_margin <= 1.10), releasing to 1.0
+    #    at equilibrium (ema_margin <= 0.08), hostile margin (< 0), and off-manifold collapse (>= 1.40):
     grad_d = torch.randn(16, 16)
 
     def _critic_step_norm(g_fg: float, ema_margin: float, margin_init: bool) -> float:
@@ -1410,13 +1396,20 @@ def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: 
 
     n_full = _critic_step_norm(g_fg=1.0, ema_margin=0.5, margin_init=True)
     n_coupled = _critic_step_norm(g_fg=0.45, ema_margin=0.5, margin_init=True)
-    n_floored = _critic_step_norm(g_fg=0.10, ema_margin=0.5, margin_init=True)
+    n_deep_coupled = _critic_step_norm(g_fg=0.14, ema_margin=0.5, margin_init=True)
+    n_floored = _critic_step_norm(g_fg=0.05, ema_margin=0.5, margin_init=True)
+    n_eq_rel = _critic_step_norm(g_fg=0.20, ema_margin=0.01, margin_init=True)
     n_hostile = _critic_step_norm(g_fg=0.45, ema_margin=-2.0, margin_init=True)
+    n_collapse_rel = _critic_step_norm(g_fg=0.30, ema_margin=2.0, margin_init=True)
     assert abs(n_coupled / n_full - 0.45) < 1e-4
-    assert abs(n_floored / n_full - 0.35) < 1e-4
+    assert abs(n_deep_coupled / n_full - 0.14) < 1e-4
+    assert abs(n_floored / n_full - 0.12) < 1e-4
+    assert abs(n_eq_rel / n_full - 1.00) < 1e-4
     assert abs(n_hostile / n_full - 1.00) < 1e-4
+    assert abs(n_collapse_rel / n_full - 1.00) < 1e-4
 
-    # 3. Pathologically stiff unnormalized 16-layer MLP (at O(1) Kaiming-like scale) engages stiff_gate protection:
+    # 3. Pathologically stiff unnormalized 16-layer MLP (at O(1) Kaiming-like scale) engages stiff_gate protection
+    #    and blends published rec._g_func_gain smoothly toward 1.0 so D never starves:
     rec_16 = get_recipe(
         "unified_v11",
         prior_kind="mog",
@@ -1434,18 +1427,20 @@ def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: 
     with torch.no_grad():
         for m in g16.modules():
             if isinstance(m, nn.Linear):
-                m.weight.mul_(2.2)
+                m.weight.mul_(2.6)
     init.deterministic_orthogonal_(d16, seed=1)
     init.deterministic_orthogonal_(p16, seed=2)
     tr16 = GANTrainer(rec_16, g16, d16, prior=p16, seed=0)
     peak_stiff_16 = 0.0
-    for i in range(15):
+    for i in range(20):
         tr16.step(torch.randn(16, 2, generator=torch.Generator().manual_seed(700 + i)))
         peak_stiff_16 = max(peak_stiff_16, tr16.opt_g.current_stiff_gate())
     assert peak_stiff_16 > 0.5, f"Pathological 16L MLP failed to engage stiff_gate: peak={peak_stiff_16:.3f}"
-    assert tr16.opt_d.record._g_func_gain == tr16.opt_g._ema_func_gain < 0.75
+    g_stiff_16 = tr16.opt_g.current_stiff_gate()
+    expected_g_fg = (1.0 - g_stiff_16) * tr16.opt_g._ema_func_gain + g_stiff_16
+    assert abs(tr16.opt_d.record._g_func_gain - expected_g_fg) < 1e-6
 
-    # 4. Fresh-process bit-exact continuation across active g_func_gain & ema_func_gain_ref coupling boundary:
+    # 4. Fresh-process bit-exact continuation across active g_func_gain coupling boundary:
     rec_bn = get_recipe(
         "unified_v11",
         prior_kind="mog",
@@ -1468,7 +1463,6 @@ def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: 
         tr_bn.step(batches[i])
     # Ensure coupling state is genuinely non-trivial at the checkpoint boundary:
     tr_bn.opt_g._ema_func_gain = 0.42
-    tr_bn.opt_g._ema_func_gain_ref = 0.55
     tr_bn.opt_d.record._g_func_gain = 0.42
     ckpt_path = tmp_path / "ckpt_v11_law4_couple.pt"
     out_path = tmp_path / "resumed_v11_law4_couple.pt"
@@ -1477,7 +1471,6 @@ def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: 
         tr_bn.step(batches[i])
     ref_state = tr_bn.state_dict()
     ref_g_fg = tr_bn.opt_d.record._g_func_gain
-    ref_fg_ref = tr_bn.opt_g._ema_func_gain_ref
 
     script = f"""
 import torch
@@ -1501,7 +1494,6 @@ torch.save(
     {{
         "models": tr.state_dict()["models"],
         "g_fg": tr.opt_d.record._g_func_gain,
-        "fg_ref": tr.opt_g._ema_func_gain_ref,
     }},
     {str(out_path)!r},
 )
@@ -1509,7 +1501,6 @@ torch.save(
     subprocess.run([sys.executable, "-c", script], check=True)
     resumed = torch.load(out_path, weights_only=False)
     assert resumed["g_fg"] == ref_g_fg
-    assert resumed["fg_ref"] == ref_fg_ref
 
     def _assert_tree_eq(a: object, b: object, prefix: str = "") -> None:
         if isinstance(a, torch.Tensor):
@@ -1780,11 +1771,9 @@ def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuatio
     - No false stiff_gate on steady normalized deep ResBN G (current_stiff_gate == 0.0, no momentum allocated).
     - Coupled critic gain tracks rec._g_func_gain == opt_g._ema_func_gain while staying bounded.
     - Exact-deadband Schatten-6 actively contracts above-tau critic branch weights with 0 forbidden primitives.
-    - Fresh-process bit-exact continuation preserves G, D, prior, g_func_gain, and ema_func_gain_ref across
+    - Fresh-process bit-exact continuation preserves G, D, prior, and g_func_gain across
       simultaneous active Law-4 coupling and active Schatten-6 contraction.
     """
-    from particlegan._unified_v11.optimizer import _CRITIC_SCHATTEN6_TAU
-
     torch.manual_seed(0)
     dim = 1088
     rec = get_recipe(
@@ -1812,7 +1801,6 @@ def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuatio
     trainer = GANTrainer(rec, g, d, prior=p, seed=0)
     # Place G at a realistic steady normalized deep-ResBN func_gain (~0.40) so coupling is active and stiff_gate == 0:
     trainer.opt_g._ema_func_gain = 0.42
-    trainer.opt_g._ema_func_gain_ref = 0.42
     trainer.opt_d.record._g_func_gain = 0.42
 
     batches = [torch.randn(8, dim, generator=torch.Generator().manual_seed(1100 + i)) for i in range(10)]
@@ -1835,7 +1823,7 @@ def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuatio
     assert trainer.opt_g.current_stiff_gate() == 0.0
     assert all("m_unit" not in trainer.opt_g.state[param] for param in g.parameters())
     assert trainer.opt_d.record._g_func_gain == trainer.opt_g._ema_func_gain
-    assert 0.15 < trainer.opt_d.record._g_func_gain < 0.75
+    assert 0.18 < trainer.opt_d.record._g_func_gain < 0.75
     sv_mid = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
     assert sv_mid < sv_init_over - 0.05, f"Schatten-6 failed to contract coupled deep critic: {sv_init_over:.3f} -> {sv_mid:.3f}"
 
@@ -1847,7 +1835,6 @@ def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuatio
     ref_sample = trainer.sample(4)
     ref_state = trainer.state_dict()
     ref_g_fg = trainer.opt_d.record._g_func_gain
-    ref_fg_ref = trainer.opt_g._ema_func_gain_ref
     sv_end = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
     assert sv_end < sv_mid, f"Schatten-6 stopped contracting after checkpoint: {sv_mid:.3f} -> {sv_end:.3f}"
 
@@ -1874,7 +1861,6 @@ torch.save(
         "sample": tr.sample(4),
         "models": tr.state_dict()["models"],
         "g_fg": tr.opt_d.record._g_func_gain,
-        "fg_ref": tr.opt_g._ema_func_gain_ref,
     }},
     {str(out_path)!r},
 )
@@ -1883,7 +1869,6 @@ torch.save(
     resumed = torch.load(out_path, weights_only=False)
     assert torch.equal(ref_sample, resumed["sample"])
     assert resumed["g_fg"] == ref_g_fg
-    assert resumed["fg_ref"] == ref_fg_ref
     for m_name in ("G", "D", "prior"):
         for k, v in ref_state["models"][m_name].items():
             if isinstance(v, torch.Tensor):
