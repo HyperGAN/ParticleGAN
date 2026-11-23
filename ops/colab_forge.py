@@ -908,7 +908,7 @@ def build_ephemeral_catchup_bundle(
             effective_through_tier = len(orig_tiers)
             remapped = [
                 {
-                    **{k: v for k, v in a.items() if k not in ("hold", "removal")},
+                    **{k: v for k, v in a.items() if k not in ("hold", "removal", "stretch")},
                     "qualification_tier": tier_map[int(a.get("qualification_tier", 1))],
                     # Ephemeral catch-up views are non-qualifying; marking slice tasks
                     # required guarantees every compressed tier is non-empty.
@@ -920,7 +920,7 @@ def build_ephemeral_catchup_bundle(
             effective_through_tier = 1
             remapped = [
                 {
-                    **{k: v for k, v in a.items() if k not in ("hold", "removal")},
+                    **{k: v for k, v in a.items() if k not in ("hold", "removal", "stretch")},
                     "qualification_tier": 1,
                     "importance": "required",
                 }
@@ -945,12 +945,13 @@ def build_ephemeral_catchup_bundle(
     # Pick first task for a valid study contract metric anchor
     anchor_task = unit.tasks[0]
     budget_s = max(3600, int(unit.estimated_seconds * 2.5))
+    control_cid = "rhbi-v12" if unit.candidate_id == "unified-v11" else "unified-v11"
     study_doc = {
         "schema_version": 1,
         "id": study_id,
         "status": "ready",
         "candidate": unit.candidate_id,
-        "control": {"candidate_id": "unified-v11", "task_map": {}},
+        "control": {"candidate_id": control_cid, "task_map": {}},
         "campaign": {
             "id": study_id,
             "budget_seconds": budget_s,

@@ -4,7 +4,7 @@
   "files": {
     "README.md": {
       "bytes": 3966,
-      "sha256": "302bfe555a1163f565c2c5fb763bc289060189ba41eca16f91b9f27f78f8bb0b"
+      "sha256": "515a1700acb8e15b570ef1a37f4facd7a409a48e46d3f4a4dc80da7232b0dd69"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,14 +12,14 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 10187,
-      "rows": 35,
-      "sha256": "01d8945471517e9a1720c90bdb8e790db5a88fa55e50be15b5f73eceb75bff0c"
+      "bytes": 10474,
+      "rows": 44,
+      "sha256": "689cbea240eaaf96ed3b41aea0144c3b69eab8c6aa29cc6d0c54615e684dbc5f"
     },
     "data/leaderboard.json": {
-      "bytes": 1234812,
+      "bytes": 1242865,
       "families": 11,
-      "sha256": "b7224038078c9f5fb7fc5557a564a4a628d6f72d0606b7debcc8a1edeae8a816",
+      "sha256": "3d29938f3704336c4f0a76c290666364fa84a143d3729fe843b9f15c8e405c1d",
       "tasks": 1293
     },
     "data/leaderboard.parquet": {
@@ -28,15 +28,15 @@
       "sha256": "0012b072ce22ca730c4aa5a04dab9879853ebe628cbd57b9120e23510f9d8ceb"
     },
     "data/receipts.parquet": {
-      "bytes": 582417,
-      "rows": 3138,
-      "sha256": "6bac0158c08e1fd4e1060bf1984545d210a61f569546015880cf9fe35bdbd1a6"
+      "bytes": 595882,
+      "rows": 3187,
+      "sha256": "d60dca939a1d3b30955fd5bbe7778d926bfd557dea57fd2b39b5d4adf78776a5"
     }
   },
-  "git_source_commit": "61ac455774e5b4bb959446188737f071f9042b40",
-  "hf_revision": "51444a198c481962a7c67dcaeaf7d1cae5440a78",
+  "git_source_commit": "1c17d2822c1bcf03c8b59dfe3c90b214ef7e6ca2",
+  "hf_revision": "c0c109b79da94df760a60f273114321cc96e816e",
   "inventory": true,
-  "published_at": "2026-11-23T06:46:32Z",
+  "published_at": "2026-11-23T08:41:45Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",
