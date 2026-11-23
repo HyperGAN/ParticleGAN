@@ -1406,6 +1406,302 @@ def benchmark_joules_to_pass_staggered100(
     )
 
 
+def benchmark_joules_to_pass_grid100_mlp16(
+    idea_id: str,
+    device: torch.device,
+    *,
+    optimizer_family_override: Optional[str] = None,
+    recipe_extra: Optional[Dict[str, Any]] = None,
+) -> Dict[str, Any]:
+    """Run grid100_mlp16 (7000 steps) measuring hardware Joules/step & Joules-to-first-PASS."""
+    return benchmark_joules_to_pass_toy100(
+        idea_id,
+        "grid100_mlp16",
+        device,
+        optimizer_family_override=optimizer_family_override,
+        recipe_extra=recipe_extra,
+    )
+
+
+def benchmark_joules_to_pass_five_word_joint_smoke(
+    idea_id: str,
+    device: torch.device,
+    *,
+    optimizer_family_override: Optional[str] = None,
+    recipe_extra: Optional[Dict[str, Any]] = None,
+    max_steps_override: Optional[int] = None,
+) -> Dict[str, Any]:
+    """Run five_word_joint_smoke (20,001 steps) measuring hardware Joules/step & Joules-to-first-PASS."""
+    from benchmarks.toy_audit.api_images import WordFixture
+    from benchmarks.toy_audit.reproducibility import reproducible_execution
+    from experiments.forge.api import task_formulation_context
+    from experiments.forge.word_tasks import bounds as word_bounds, schedule as word_schedule
+
+    idea = deepcopy(load_idea(idea_id))
+    if optimizer_family_override is not None:
+        idea.setdefault("recipe_overrides", {})["optimizer_family"] = optimizer_family_override
+    if recipe_extra:
+        idea.setdefault("recipe_overrides", {}).update(recipe_extra)
+
+    task = load_task("five_word_joint_smoke")
+    total_steps = int(max_steps_override if max_steps_override is not None else task["execution"]["steps"])
+    checkpoints = set(word_schedule(int(task["execution"]["steps"])))
+
+    dev_idx = device.index if (device.type == "cuda" and device.index is not None) else 0
+    nvml = NVMLMonitor(dev_idx)
+
+    @reproducible_execution
+    def _exec(*, seed: int = 0) -> Dict[str, Any]:
+        del seed
+        context = task_formulation_context(idea, task, {"seed": 0}, device=str(device))
+        fixture = WordFixture(
+            device=device,
+            seed=0,
+            recipe_name=None,
+            max_steps=int(task["execution"]["steps"]),
+            components=context,
+        )
+        generated = context.streams.generator("eval", component="live", purpose="generated_words")
+        reconstructed = context.streams.generator("eval", component="live", purpose="paired_reconstruction")
+        confirmed = context.streams.generator("eval", component="live", purpose="word_confirmation")
+        confirmed_recon = context.streams.generator("eval", component="live", purpose="word_reconstruction_confirmation")
+
+        train_j_accum = 0.0
+        train_s_accum = 0.0
+        first_pass_step: Optional[int] = None
+        first_confirmed_step: Optional[int] = None
+        passing_checks = 0
+        confirmed_checks = 0
+        last_metrics: Dict[str, Any] = {}
+        nan_step: Optional[int] = None
+        power_samples: List[float] = []
+
+        if device.type == "cuda":
+            torch.cuda.reset_peak_memory_stats(device)
+            torch.cuda.synchronize(device)
+
+        chunk_e0 = nvml.total_energy_joules()
+        chunk_t0 = time.perf_counter()
+        for step in range(1, total_steps + 1):
+            try:
+                res = fixture.step()
+            except FloatingPointError:
+                _sync_cuda(device)
+                chunk_t1 = time.perf_counter()
+                chunk_e1 = nvml.total_energy_joules()
+                train_s_accum += (chunk_t1 - chunk_t0)
+                if chunk_e0 is not None and chunk_e1 is not None and chunk_e1 >= chunk_e0:
+                    train_j_accum += (chunk_e1 - chunk_e0)
+                nan_step = step
+                break
+            if step % 100 == 0:
+                w = nvml.power_watts()
+                if w is not None:
+                    power_samples.append(w)
+            if isinstance(res, dict) and any(isinstance(v, float) and not math.isfinite(v) for v in res.values()):
+                _sync_cuda(device)
+                chunk_t1 = time.perf_counter()
+                chunk_e1 = nvml.total_energy_joules()
+                train_s_accum += (chunk_t1 - chunk_t0)
+                if chunk_e0 is not None and chunk_e1 is not None and chunk_e1 >= chunk_e0:
+                    train_j_accum += (chunk_e1 - chunk_e0)
+                nan_step = step
+                break
+
+            if step in checkpoints:
+                _sync_cuda(device)
+                chunk_t1 = time.perf_counter()
+                chunk_e1 = nvml.total_energy_joules()
+                train_s_accum += (chunk_t1 - chunk_t0)
+                if chunk_e0 is not None and chunk_e1 is not None and chunk_e1 >= chunk_e0:
+                    train_j_accum += (chunk_e1 - chunk_e0)
+
+                obs = fixture.observe(n=1024, generator=generated, reconstruction_generator=reconstructed)
+                conf = fixture.observe(n=1024, generator=confirmed, reconstruction_generator=confirmed_recon)
+                for r in (obs, conf):
+                    r["metrics"]["reconstruction_exact"] = int(r["metrics"]["reconstruction_exact"])
+                last_metrics = obs["metrics"]
+                ok_obs = not word_bounds(obs["metrics"])
+                ok_conf = ok_obs and (not word_bounds(conf["metrics"]))
+                if ok_obs:
+                    passing_checks += 1
+                    if first_pass_step is None:
+                        first_pass_step = step
+                if ok_conf:
+                    confirmed_checks += 1
+                    if first_confirmed_step is None:
+                        first_confirmed_step = step
+
+                _sync_cuda(device)
+                chunk_e0 = nvml.total_energy_joules()
+                chunk_t0 = time.perf_counter()
+
+        _sync_cuda(device)
+        if nan_step is None and total_steps not in checkpoints:
+            chunk_t1 = time.perf_counter()
+            chunk_e1 = nvml.total_energy_joules()
+            train_s_accum += (chunk_t1 - chunk_t0)
+            if chunk_e0 is not None and chunk_e1 is not None and chunk_e1 >= chunk_e0:
+                train_j_accum += (chunk_e1 - chunk_e0)
+
+        steps_done = nan_step if nan_step is not None else total_steps
+        ms_per_step = 1000.0 * train_s_accum / float(max(1, steps_done))
+        j_per_step = train_j_accum / float(max(1, steps_done)) if nvml.available else None
+        avg_w = (train_j_accum / train_s_accum) if (nvml.available and train_s_accum > 0) else None
+        state_info = optimizer_state_summary(fixture)
+        peak_mib = float(torch.cuda.max_memory_allocated(device)) / float(2**20) if device.type == "cuda" else 0.0
+
+        return {
+            "idea_id": idea_id,
+            "optimizer_family": idea["recipe_overrides"]["optimizer_family"],
+            "task_id": "five_word_joint_smoke",
+            "steps_completed": steps_done,
+            "nan_step": nan_step,
+            "confirmed_pass": first_confirmed_step is not None,
+            "first_pass_step": first_pass_step,
+            "first_confirmed_step": first_confirmed_step,
+            "passing_checks": passing_checks,
+            "confirmed_checks": confirmed_checks,
+            "final_modes": last_metrics.get("modes"),
+            "final_quality_fraction": last_metrics.get("quality_fraction"),
+            "final_mass_tv": last_metrics.get("mass_tv"),
+            "ms_per_step": ms_per_step,
+            "avg_power_watts": avg_w,
+            "power_poll_median_watts": float(statistics.median(power_samples)) if power_samples else None,
+            "joules_per_step": j_per_step,
+            "joules_to_first_pass": (
+                j_per_step * first_confirmed_step
+                if (j_per_step is not None and first_confirmed_step is not None)
+                else None
+            ),
+            "total_train_joules": train_j_accum if nvml.available else None,
+            "peak_allocated_mib": peak_mib,
+            "state_bytes_per_param": state_info["state_bytes_per_param"],
+        }
+
+    try:
+        return _exec(seed=0)
+    finally:
+        nvml.shutdown()
+
+
+def audit_cuda_syncs(
+    idea_id: str,
+    task_id: str,
+    device: torch.device,
+    *,
+    warmup_steps: int = 10,
+    trace_steps: int = 5,
+) -> Dict[str, Any]:
+    """Count exact per-step GPU-CPU syncs & top file:line call sites via PyTorch sync debug mode."""
+    import collections
+    import linecache
+    import traceback
+    import warnings
+    from benchmarks.toy_audit.reproducibility import reproducible_execution
+
+    idea = deepcopy(load_idea(idea_id))
+
+    @reproducible_execution
+    def _exec(*, seed: int = 0) -> Dict[str, Any]:
+        del seed
+        if task_id.startswith("dcgan_performance_"):
+            task = load_task(task_id)
+            ctx, trainer, g, d, spec = _build_dcgan_trainer(idea, task, device, total_steps=warmup_steps + trace_steps * 3 + 5)
+            c_rng = ctx.streams.generator("data", component="critic", purpose="training")
+            g_rng = ctx.streams.generator("data", component="generator", purpose="training")
+            shape = (spec["batch_size"], 3, spec["image_size"], spec["image_size"])
+            real_buf = torch.empty(shape, device=device).uniform_(-1.0, 1.0, generator=c_rng)
+            real_g_buf = torch.empty(shape, device=device).uniform_(-1.0, 1.0, generator=g_rng)
+
+            def _step(_s: int) -> None:
+                trainer.step(real_buf, generator_real=real_g_buf)
+        elif task_id == "five_word_joint_smoke":
+            from benchmarks.toy_audit.api_images import WordFixture
+            from experiments.forge.api import task_formulation_context
+
+            task = load_task(task_id)
+            ctx = task_formulation_context(idea, task, {"seed": 0}, device=str(device))
+            fixture = WordFixture(
+                device=device,
+                seed=0,
+                recipe_name=None,
+                max_steps=int(task["execution"]["steps"]),
+                components=ctx,
+            )
+
+            def _step(_s: int) -> None:
+                fixture.step()
+        else:
+            ctx, trainer, g, d, task, next_batch = _build_regime_runner(idea, task_id, device)
+
+            def _step(s: int) -> None:
+                trainer.step(next_batch(s))
+
+        for i in range(warmup_steps):
+            _step(i + 1)
+        _sync_cuda(device)
+
+        counts: Dict[Tuple[str, str, str], int] = collections.Counter()
+        orig_warn = warnings.showwarning
+
+        def _repo_frame(tb: List[traceback.FrameSummary]) -> Tuple[str, str, str]:
+            frames = []
+            for f in tb:
+                fn = f.filename
+                for pfx in ("particlegan/", "experiments/", "benchmarks/"):
+                    idx = fn.find(pfx)
+                    if idx >= 0:
+                        frames.append((f"{fn[idx:]}:{f.lineno}", f.name, linecache.getline(fn, f.lineno).strip()))
+                        break
+            if not frames:
+                return ("<external>:0", "", "")
+            inner = frames[-1]
+            caller = f"{frames[-2][0]}({frames[-2][1]})" if len(frames) >= 2 else ""
+            return (inner[0], f"{inner[1]} <- {caller}" if caller else inner[1], inner[2])
+
+        def _hook(msg: Any, category: Any, filename: Any, lineno: Any, file: Any = None, line: Any = None) -> None:
+            if "synchronizing CUDA" in str(msg):
+                counts[_repo_frame(traceback.extract_stack()[:-1])] += 1
+                return
+            orig_warn(msg, category, filename, lineno, file, line)
+
+        warnings.showwarning = _hook
+        warnings.simplefilter("always", UserWarning)
+        torch.cuda.set_sync_debug_mode(1)
+        try:
+            for i in range(trace_steps):
+                _step(warmup_steps + i + 1)
+        finally:
+            torch.cuda.set_sync_debug_mode(0)
+            warnings.showwarning = orig_warn
+
+        _sync_cuda(device)
+        t0 = time.perf_counter()
+        for i in range(trace_steps * 2):
+            _step(warmup_steps + trace_steps + i + 1)
+        _sync_cuda(device)
+        ms_per_step = 1000.0 * (time.perf_counter() - t0) / float(trace_steps * 2)
+
+        by_file: Dict[str, float] = collections.Counter()
+        top_sites = []
+        for (loc, fn, code), cnt in counts.most_common(20):
+            per_step = float(cnt) / float(trace_steps)
+            by_file[loc.split(":")[0]] += per_step
+            top_sites.append({"per_step": per_step, "location": loc, "func": fn, "code": code})
+
+        return {
+            "idea_id": idea_id,
+            "task_id": task_id,
+            "syncs_per_step": float(sum(counts.values())) / float(trace_steps),
+            "uninstrumented_ms_per_step": ms_per_step,
+            "by_file": dict(sorted(by_file.items(), key=lambda kv: -kv[1])),
+            "top_sites": top_sites,
+        }
+
+    return _exec(seed=0)
+
+
 # ---------------------------------------------------------------------------
 # CLI Entrypoint
 # ---------------------------------------------------------------------------
@@ -1415,19 +1711,26 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Law 4 Optimizer Energy, Latency & Mechanistic Profiler")
     parser.add_argument(
         "--mode",
-        choices=("dcgan-profile", "mechanistic", "energy-benchmark", "phase1"),
+        choices=("dcgan-profile", "mechanistic", "energy-benchmark", "phase1", "sync-audit"),
         required=True,
     )
     parser.add_argument("--device", default="cuda:0")
     parser.add_argument("--idea", default="unified-v11")
-    parser.add_argument("--ideas", nargs="*", default=None, help="Idea IDs for energy-benchmark")
+    parser.add_argument("--ideas", nargs="*", default=None, help="Idea IDs for energy-benchmark / sync-audit")
     parser.add_argument("--dcgan-tasks", nargs="*", default=["dcgan_performance_r256", "dcgan_performance_r64", "dcgan_performance_w128"])
+    parser.add_argument(
+        "--sync-tasks",
+        nargs="*",
+        default=["grid100", "grid100_mlp16", "dcgan_performance_r256", "five_word_joint_smoke"],
+    )
     parser.add_argument("--energy-steps", type=int, default=50)
     parser.add_argument("--breakdown-steps", type=int, default=20)
     parser.add_argument("--skip-r256", action="store_true")
     parser.add_argument("--skip-ring16", action="store_true")
     parser.add_argument("--skip-grid100", action="store_true")
     parser.add_argument("--include-staggered100", action="store_true")
+    parser.add_argument("--include-grid100-mlp16", action="store_true")
+    parser.add_argument("--include-five-word", action="store_true")
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
@@ -1516,8 +1819,27 @@ def main() -> None:
                 entry["grid100"] = benchmark_joules_to_pass_grid100(iid, device)
             if args.include_staggered100:
                 entry["staggered100"] = benchmark_joules_to_pass_staggered100(iid, device)
+            if args.include_grid100_mlp16:
+                entry["grid100_mlp16"] = benchmark_joules_to_pass_grid100_mlp16(iid, device)
+            if args.include_five_word:
+                entry["five_word_joint_smoke"] = benchmark_joules_to_pass_five_word_joint_smoke(iid, device)
             bench_results[iid] = entry
         out_data["energy_benchmark"] = bench_results
+
+    if args.mode == "sync-audit":
+        idea_list = args.ideas or [args.idea]
+        sync_results: Dict[str, Any] = {}
+        for iid in idea_list:
+            sync_results[iid] = {}
+            for tid in args.sync_tasks:
+                print(f"[sync-audit] {iid} on {tid}...", flush=True)
+                res = audit_cuda_syncs(iid, tid, device)
+                sync_results[iid][tid] = res
+                print(
+                    f"  -> {tid}: {res['syncs_per_step']:.1f} syncs/step, {res['uninstrumented_ms_per_step']:.2f} ms/step",
+                    flush=True,
+                )
+        out_data["sync_audit"] = sync_results
 
     out_path = Path(args.output)
     out_path.parent.mkdir(parents=True, exist_ok=True)
