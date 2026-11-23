@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v12-t4-arch-study"
+  },
+  "candidate": "unified-v12",
+  "competing_explanation": "If the prime-67 CountSketch closed-loop Period-2 Flip-Bifurcation controller and monotonic PR #612 stiff_gate fail to eliminate the period-2 breathing limit cycle on grid100_res16_tanh, or regress another strange architecture, unified-v12 will fail grid100_res16_tanh or score below 7/7 on t4-strange-architectures-v1.",
+  "control": {
+    "candidate_id": "law4-energy-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global unified-v12 achieves 7/7 PASS on t4-strange-architectures-v1 by resolving law4-energy-v11's grid100_res16_tanh period-2 flip bifurcation (center_rms_sigma <= 0.25 with 100k holdout PASS) while preserving all 6 other strange-architecture gates.",
+  "id": "unified-v12-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.25
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v11",
+        "candidate_revision": "5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9"
+      },
+      "path": "reports/forge/records/readout-33d5dc6aafae554b7d9433af.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
