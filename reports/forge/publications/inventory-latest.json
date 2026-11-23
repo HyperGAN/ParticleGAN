@@ -4,7 +4,7 @@
   "files": {
     "README.md": {
       "bytes": 3966,
-      "sha256": "382d781881d4966c20e5750f640a1f57899c23522c639eb9622a1f257af9c78a"
+      "sha256": "e8e2d6dcf69ad784960eb12ddb865f8f29cb2ef45d8538c9fce06fa92d7a1e98"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,31 +12,31 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 9170,
-      "rows": 17,
-      "sha256": "2bdf4d698e659e5d6ffd80ef3e3c4f5b89e481ca3a2093d84b9fcc5e0c337f54"
+      "bytes": 10011,
+      "rows": 29,
+      "sha256": "38daa5770b02b4604cb9dc3d9d797504e29fcdff3aed5f1d5b7a31df0755e4f2"
     },
     "data/leaderboard.json": {
-      "bytes": 1218474,
+      "bytes": 1229448,
       "families": 11,
-      "sha256": "d6fe93e70f32b8f462ed5ca64c1207c51532a428eacec3f9185dbc00e0122d28",
+      "sha256": "9952ecd9a41d150bcc2d60673b2906c5781b8e89a5e18bd70d9a1078ca4aa23a",
       "tasks": 1293
     },
     "data/leaderboard.parquet": {
-      "bytes": 27339,
+      "bytes": 27341,
       "rows": 11,
-      "sha256": "c3389a23527d9ec4300c8c12d1fa84265732007f52cef7e2e586ce12e8d328eb"
+      "sha256": "0012b072ce22ca730c4aa5a04dab9879853ebe628cbd57b9120e23510f9d8ceb"
     },
     "data/receipts.parquet": {
-      "bytes": 533659,
-      "rows": 2954,
-      "sha256": "87d94da2e886f46de8405e45273e57da3bead0e19051fa0432fd344f5d075431"
+      "bytes": 572914,
+      "rows": 3092,
+      "sha256": "356620d13cc1e6bf88e26273bd6c57ab7a60c06f0390857f08ad4289035371cd"
     }
   },
-  "git_source_commit": "bb5142b397fa3a5e5f08ff95b6e3f0f608842934",
-  "hf_revision": "28a209b126d99b25d6a5555277ea231aba1d018e",
+  "git_source_commit": "56661f473e57f396d41dd459cc1271289379c726",
+  "hf_revision": "3616b47156480d5c0cd6d4f6e350ed94dd9d96e0",
   "inventory": true,
-  "published_at": "2026-11-22T18:28:53Z",
+  "published_at": "2026-11-23T05:27:46Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",

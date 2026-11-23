@@ -683,12 +683,30 @@ def compute_catchup_plan(
                 missing_by_gpu.setdefault(target_gpu, []).append((tid, timeout_s))
 
         for target_gpu, task_pairs in sorted(missing_by_gpu.items()):
-            for start in range(0, len(task_pairs), max(1, max_tasks_per_unit)):
-                chunk = task_pairs[start : start + max(1, max_tasks_per_unit)]
+            # Separate dependency-chained tasks from independent tasks so a prerequisite chain
+            # never delays or shares a slice with unrelated independent tasks.
+            indep_pairs = [
+                (t, s)
+                for t, s in task_pairs
+                if not (all_tasks[t].get("dependencies") or (all_tasks[t].get("execution") or {}).get("continuation_of"))
+            ]
+            dep_pairs = [
+                (t, s)
+                for t, s in task_pairs
+                if (all_tasks[t].get("dependencies") or (all_tasks[t].get("execution") or {}).get("continuation_of"))
+            ]
+            buckets = [
+                indep_pairs[start : start + max(1, max_tasks_per_unit)]
+                for start in range(0, len(indep_pairs), max(1, max_tasks_per_unit))
+            ] + [[pair] for pair in dep_pairs]
+            for chunk in buckets:
+                if not chunk:
+                    continue
                 chunk_tids = [t for t, _ in chunk]
                 est_s = sum(s for _, s in chunk)
                 is_full = (
                     len(missing_by_gpu) == 1
+                    and len(buckets) == 1
                     and len(chunk_tids) == len(all_view_task_ids)
                     and set(chunk_tids) == set(all_view_task_ids)
                     and only_set is None
@@ -850,9 +868,10 @@ def build_ephemeral_catchup_bundle(
 
     Never writes into the local repository's `configs/forge/` directory.
     """
-    from experiments.forge.views import load_view
+    from experiments.forge.views import load_tasks, load_view
 
     view = load_view(root, unit.view_id)
+    all_tasks = load_tasks(root)
     cuda_model = COLAB_GPU_SPECS[unit.gpu]["cuda_model"]
     exec_backend = "cpu" if unit.gpu == "cpu" else "cuda"
 
@@ -860,17 +879,40 @@ def build_ephemeral_catchup_bundle(
     effective_view_id = unit.view_id
     if not unit.is_full_view_slice:
         effective_view_id = f"colab-catchup-{unit.unit_id}"
+        # Transitively include prerequisite tasks so Forge's view validator accepts
+        # dependency-chained tasks (e.g. five_word_joint_hold -> five_word_joint_smoke).
         wanted = set(unit.tasks)
+        frontier = list(wanted)
+        has_deps = False
+        while frontier:
+            tid = frontier.pop()
+            tcard = all_tasks.get(tid) or {}
+            deps = list(tcard.get("dependencies") or [])
+            cont = (tcard.get("execution") or {}).get("continuation_of")
+            if cont:
+                deps.append(cont)
+            for dep in deps:
+                dep_id = dep.get("task") if isinstance(dep, dict) else dep
+                if isinstance(dep_id, str) and dep_id:
+                    has_deps = True
+                    if dep_id not in wanted:
+                        wanted.add(dep_id)
+                        frontier.append(dep_id)
         subset_assignments = [a for a in view.get("assignments", []) if a["task"] in wanted]
-        # Re-map tiers cleanly within through_tier so Forge admits every missing task directly
         ephemeral_view = {
-            **{k: v for k, v in view.items() if k not in ("id", "assignments", "revision")},
+            **{
+                k: v
+                for k, v in view.items()
+                if k not in ("id", "assignments", "revision", "previous_revision", "revision_reason")
+            },
             "id": effective_view_id,
             "revision": 1,
             "assignments": [
                 {
                     **a,
-                    "qualification_tier": min(int(a.get("qualification_tier", 1)), unit.through_tier),
+                    # Keep original relative tiers when prerequisites exist; flatten to tier 1
+                    # for independent slices so one sibling FAIL never blocks measuring peers.
+                    "qualification_tier": int(a.get("qualification_tier", 1)) if has_deps else 1,
                 }
                 for a in subset_assignments
             ],
@@ -916,7 +958,17 @@ def build_ephemeral_catchup_bundle(
             "op": "<",
             "threshold": 0.0,
         },
-        "prior_evidence": [],
+        "prior_evidence": [
+            {
+                "path": "configs/forge/selections/family-current-v1.json",
+                "selector": [],
+                "identity": {
+                    "scope": "whole_candidate_family_current",
+                    "default_adoption": False,
+                },
+                "use": "motivation_only",
+            }
+        ],
         "max_rounds": 1,
         "scope": {
             "view": effective_view_id,
@@ -1426,6 +1478,8 @@ def execute_work_units(
     ingest_lock = threading.Lock()
     results: list[dict[str, Any]] = []
     ingested: list[dict[str, Any]] = []
+    started_by_gpu: dict[str, int] = {gpu: 0 for gpu in gpu_keys}
+    worker_errors: list[dict[str, str]] = []
 
     def _worker_loop(slot_idx: int, worker_name: str, gpu: str) -> None:
         if slot_idx > 0 and stagger_seconds > 0:
@@ -1444,7 +1498,15 @@ def execute_work_units(
         )
         q = by_gpu[gpu]
         try:
-            worker.start()
+            try:
+                worker.start()
+            except (RuntimeError, OSError, ValueError) as err:
+                with ingest_lock:
+                    worker_errors.append({"worker": worker_name, "gpu": gpu, "stage": "start", "error": str(err)})
+                worker._log(f"Worker startup skipped/failed (other active workers will drain the queue): {err}")
+                return
+            with ingest_lock:
+                started_by_gpu[gpu] = started_by_gpu.get(gpu, 0) + 1
             while True:
                 try:
                     unit = q.get_nowait()
@@ -1472,6 +1534,10 @@ def execute_work_units(
                                 project_receipts=project_receipts,
                             )
                             ingested.append(ing)
+                except (RuntimeError, OSError, ValueError, tarfile.TarError, json.JSONDecodeError) as err:
+                    with ingest_lock:
+                        worker_errors.append({"worker": worker_name, "gpu": gpu, "stage": f"unit:{unit.unit_id}", "error": str(err)})
+                    worker._log(f"Unit {unit.unit_id} errored: {err}")
                 finally:
                     q.task_done()
         finally:
@@ -1481,6 +1547,9 @@ def execute_work_units(
         futs = [pool.submit(_worker_loop, i, name, gpu) for i, (name, gpu) in enumerate(worker_plan)]
         for fut in as_completed(futs):
             fut.result()
+
+    if not results and worker_errors:
+        raise RuntimeError(f"All Colab workers failed to start/run: {worker_errors[:3]}")
 
     if compile_memory:
         subprocess.run([sys.executable, "-m", "experiments.forge", "compile", "--summaries-only"], cwd=root, check=True)
@@ -1497,6 +1566,8 @@ def execute_work_units(
         "run_dir": str(run_dir),
         "branch_sync": branch_sync,
         "workers_used": worker_plan,
+        "started_by_gpu": started_by_gpu,
+        "worker_errors": worker_errors,
         "units_executed": len(results),
         "results": results,
         "ingested": ingested,
