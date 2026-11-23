@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "unified-v12-dcgan-perf-study"
+  },
+  "candidate": "unified-v12",
+  "competing_explanation": "If PR #612 coupling, zero-sync v4 tensor opt-in, or the prime-67 flip controller adds overhead to 4D Conv2d DCGAN training, unified-v12 will exceed 65 ms/step on dcgan_performance_r256.",
+  "control": {
+    "candidate_id": "law4-energy-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "hypothesis": "Unchanged global unified-v12 passes 6/6 dcgan_performance and matches or improves law4-energy-v11 latency and energy with strictly 0 Conv2d NS, 0 Critic NS, 0 critic probes, 0 new_tensor H2D copies, and _SUPPORTS_ZEROSYNC_V4_TENSORS=True.",
+  "id": "unified-v12-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 45.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v11",
+        "candidate_revision": "5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9"
+      },
+      "path": "reports/forge/records/readout-bc0352d17785c6afcfeafd00.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

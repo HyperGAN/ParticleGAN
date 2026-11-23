@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v12-disc-stab-study"
+  },
+  "candidate": "unified-v12",
+  "competing_explanation": "If role-level conditional-fiber K=2 Triangle-Inequality compensation fails to resolve model_ae_ddgan_gaussian_chain or regresses another multi-objective or Tier-1/Tier-2 task, unified-v12 will exceed 0.20 t1_q0_projection_cdf on model_ae_ddgan_gaussian_chain or score below 46/48 on discriminator_stability Tiers 1-2.",
+  "control": {
+    "candidate_id": "law4-energy-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "t1_q0_projection_cdf",
+    "op": ">",
+    "phase": "final",
+    "task_id": "model_ae_ddgan_gaussian_chain",
+    "threshold": 0.2
+  },
+  "hypothesis": "Unchanged global unified-v12 achieves >=46/48 PASS across discriminator_stability Tiers 1-2 (17/17 Tier 1 = 100%, 18/18 Tier-2 required = 100%) by cracking both model_ae_ddgan_gaussian_chain (t1_q0_projection_cdf <= 0.20) and model_ae_ddgan_bimodal_chain while keeping all 1-objective and unconditional tasks bit-exact to law4-energy-v11.",
+  "id": "unified-v12-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "t1_q0_projection_cdf",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "model_ae_ddgan_gaussian_chain",
+    "threshold": 0.2
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v11",
+        "candidate_revision": "5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9"
+      },
+      "path": "reports/forge/records/readout-0b7cd7995a0a857bb250cf14.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
