@@ -517,18 +517,21 @@ their execution without inserting a schedule. Their policy hooks use that
 external allowance without changing the formulation.
 
 `get_recipe()` constructs the selected **Unified** 4-Law research recipe
-(`DEFAULT_RECIPE = "unified_v11"`, matching `unified-v11`): non-saturating loss
+(`DEFAULT_RECIPE = "unified_v12"`, matching `unified-v12`): non-saturating loss
 augmented with Sinkhorn-debiased relativistic transport, scale-invariant `k=4`
 density-ratio orphan macro-transport, and a zero-`eigh` cyclic-Jacobi conditional
 fiber bank (`UnifiedV11GANLoss`), first-order Born-Infeld secant critic penalty
 (`UnifiedV11CriticPenalty`, `ebi_beta=12.0`, zero `torch.autograd.grad`, zero-mean
-logit gauge), `UnifiedV11EquilibratedOptimizer` (`unified_v11_equil`, fused
-`Z=[X,Y]` Quintic Tikhonov polar with zero SVD/`pinv`, `bf16_channels_last`,
-smoothing `.0061`), zero-`autograd.grad`/zero-`pinv` analytic direction blending,
-and constant G/E, D and prior rates `.014`, `.021` and `.0406`. `GANTrainer` binds
+logit gauge), `UnifiedV12Optimizer` (`unified_v12_equil`, zero-state polar-matched
+4D Conv2d Frobenius-MP with `0` Conv2d NS, Law 4.4 asymmetric `0`-NS 2D critic with
+generator-free 2D NS fallback, CountSketch spectral preconditioning on stiff deep 2D
+generators, zero SVD/`eigh`/`pinv`, `bf16_channels_last`, smoothing `.0061`),
+zero-`autograd.grad`/zero-`pinv` analytic direction blending, and constant G/E, D and
+prior rates `.014`, `.021` and `.0406`. `GANTrainer` binds
 sampled rows and the protected adversarial objective automatically. Additive
 training noise, EMA serving and KA2 interventions are disabled. Unified prior
-regularization has weight `.02`.
+regularization has weight `.02`. Explicit `get_recipe("unified_v11")` retains the
+0.11.x `UnifiedV11EquilibratedOptimizer` (`unified_v11_equil`) preset.
 See [the selected settings and evidence](#recipes-and-defaults).
 
 `get_recipe("ka2")` retains **KA2** ([details](ka2.md)): Rp logistic, the KA2
@@ -983,7 +986,7 @@ Transport weights remain zero, `critic_step_mode="none"`, and
 `optimizer_svd_backend="native"`. Use
 `get_recipe("bcap", constraint_geometry_mode="none")` for the earlier winning
 DualNorm recipe. Pin `trainer="bcap"` on a model family to select these settings;
-the shared default is Unified (`unified_v11`). `Recipe()` and partial constructors are
+the shared default is Unified (`unified_v12`). `Recipe()` and partial constructors are
 disabled. Use `get_recipe()` for new runs and `Recipe.from_dict(saved_fields)` for checkpoint restoration.
 Each setting can be overridden explicitly.
 `optimizer_svd_backend="newton_schulz"` selects a separate numerical backend
@@ -1074,9 +1077,9 @@ second derivatives use explicit straight-through quantizer surrogates. The
 defines the format/scaling rules, higher-precision operations, gates and native
 validation still needed. Existing precision settings and recipes are unchanged.
 
-Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"unified_v11"`
-default selects `training_precision="bf16_channels_last"` with zero-SVD Quintic Tikhonov
-equilibration, while explicit `"rhbi_optimized"` uses `optimizer_svd_backend="native"`,
+Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"unified_v12"`
+default and explicit `"unified_v11"` select `training_precision="bf16_channels_last"` with
+zero-SVD Law-4 equilibration, while explicit `"rhbi_optimized"` uses `optimizer_svd_backend="native"`,
 `optimizer_dense_profile="polar_cpu_v1"` and `training_precision="float32"`):
 
 ```python
@@ -1268,9 +1271,10 @@ examples, gradient caveats, DDGAN integration and measured evidence.
 ## Recipes and defaults
 
 ```python
-get_recipe(**overrides)        # Current default: Unified 4-Law (DEFAULT_RECIPE = "unified_v11").
+get_recipe(**overrides)        # Current default: Unified 4-Law v12 (DEFAULT_RECIPE = "unified_v12").
 get_recipe("gan", **overrides) # Named components, current shared hyperparameters.
-get_recipe("unified_v11", **overrides) # Selected Unified 4-Law zero-SVD/zero-eigh/zero-autograd recipe.
+get_recipe("unified_v12", **overrides) # Selected energy-optimal Unified 4-Law zero-SVD/zero-eigh/zero-autograd recipe.
+get_recipe("unified_v11", **overrides) # Explicit 0.11.x Unified 4-Law zero-SVD/zero-eigh/zero-autograd recipe.
 get_recipe("minimal", **overrides) # Compact <900-LOC zero-NS fast core (minimal-v2).
 get_recipe("empf", **overrides) # Explicit EMPF/DualNorm/newton_schulz_hybrid_v1 recipe (empf-v8).
 get_recipe("rhbi_optimized", **overrides) # Explicit RHBI/DualNorm/polar_cpu_v1 recipe (rhbi-v12).
@@ -1297,22 +1301,27 @@ To promote a future registered trainer preset, change this single line in
 [`particlegan/recipes.py`](../particlegan/recipes.py):
 
 ```python
-DEFAULT_RECIPE = "unified_v11"
+DEFAULT_RECIPE = "unified_v12"
 ```
 
 The selector affects `get_recipe()`, `get_recipe("gan")` and all model-family
 recipes. Explicit presets and `Recipe.from_dict(saved_fields)` remain independent of
 it. Save resolved recipes, rather than resolving the current default when
 resuming. The selected recipe matches the complete
-[`unified-v11` candidate](../configs/forge/ideas/unified-v11.json)
-(`95/115` counted view requirements, `40/69` fixed-suite passes, `50/68` stretch view
-assignments, `41/47` Tiers 1–2 `discriminator_stability` PASS, and `55/62` deduplicated
-unique runnable tasks PASS across 9 studies in [`r4-solution-complete.md`](../reports/forge/studies/r4-solution-complete.md),
-[The Four Laws](four-laws.md),
-and the [technique inventory](../reports/forge/technique-inventory.md)); it is an
-owner-directed research selection and adds no accepted calibration (`BLOCKED`),
-full Tier 2/3 qualification, untouched holdout confirmation, universal
-architecture or natural-image quality claim. Explicit `get_recipe("minimal")`
+[`unified-v12` candidate](../configs/forge/ideas/unified-v12.json)
+(`18/18` untouched Tier-3/14k holdouts PASS, `46/48` Tiers 1–2 `discriminator_stability`
+PASS with `29/29` required PASS and `2/2` combined AE-DDGAN PASS, `16/16` Occam, `6/6`
+`dcgan_performance` at `39.22 ms/step` / `11.37 J/step` idle NVML `r256`, documented in
+[`law4-energy-champion.md`](../reports/forge/studies/law4-energy-champion.md),
+[The Four Laws](four-laws.md), and the
+[technique inventory](../reports/forge/technique-inventory.md)); explicit
+`get_recipe("unified_v11")` retains the complete
+[`unified-v11` candidate](../configs/forge/ideas/unified-v11.json) (`95/115` counted view
+requirements, `40/69` fixed-suite passes, `50/68` stretch view assignments, `41/47` Tiers 1–2
+`discriminator_stability` PASS in [`r4-solution-complete.md`](../reports/forge/studies/r4-solution-complete.md)).
+The selection is an owner-directed research default and adds no accepted calibration
+(`BLOCKED`), full Tier 2/3 qualification, universal architecture, or natural-image quality
+claim. Explicit `get_recipe("minimal")`
 retains the `<900`-LOC zero-Newton-Schulz fast core (`minimal-v2`),
 `get_recipe("empf")` retains the `empf-v8` preset (`83/115` counted view requirements,
 `23/69` fixed-suite passes), `get_recipe("rhbi_optimized")`
@@ -1381,8 +1390,9 @@ and fields are rejected. Restore a complete saved configuration with
 
 | Name | Components and dimensions |
 | --- | --- |
-| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise (inherits `DEFAULT_RECIPE = "unified_v11"`) |
-| `unified_v11` | Selected Unified 4-Law research default (`unified-v11`); zero `autograd.grad`, zero SVD/`eigh`/`pinv`, fused Quintic Tikhonov equilibration, zero-`pinv` analytic `direction_blend`, zero-`eigh` conditional fiber bank, `ebi_beta=12`, `prior_reg=.02`, and constant rates |
+| `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise (inherits `DEFAULT_RECIPE = "unified_v12"`) |
+| `unified_v12` | Selected energy-optimal Unified 4-Law research default (`unified-v12`); zero `autograd.grad`, zero SVD/`eigh`/`pinv`, `unified_v12_equil` (0 Conv2d NS, Law 4.4 0-NS 2D critic + generator-free fallback, CountSketch stiff-generator preconditioning), zero-`pinv` analytic `direction_blend`, zero-`eigh` conditional fiber bank, `ebi_beta=12`, `prior_reg=.02`, and constant rates |
+| `unified_v11` | Explicit 0.11.x Unified 4-Law preset (`unified-v11`); zero `autograd.grad`, zero SVD/`eigh`/`pinv`, fused Quintic Tikhonov equilibration, zero-`pinv` analytic `direction_blend`, zero-`eigh` conditional fiber bank, `ebi_beta=12`, `prior_reg=.02`, and constant rates |
 | `minimal` | Compact `<900`-LOC zero-Newton-Schulz fast core (`minimal-v2`); elementwise MP equilibration and parity-interleaved 1st-order secant critic |
 | `empf` | Explicit EMPF preset (`empf-v8`); online *e-means* prototype bank, settling Born-Infeld penalty, DualNorm (`newton_schulz_hybrid_v1`), optimized convolution filter, direction blending, EMPF prior `.01` and constant rates |
 | `rhbi_optimized` | Explicit optimized RHBI preset (`rhbi-v12`); `RHBIGANLoss` + `RHBICriticPenalty` (`ebi_beta=12`), DualNorm (`polar_cpu_v1`, `native` SVD, `float32`), direction blending, SBNP `.02` and constant rates |
@@ -1471,10 +1481,10 @@ opt_g, opt_d = recipe.make_optimizers(G, D, prior)
 | `z_dim`, `num_particles` | `2`, `20_000` |
 | `prior_kind`, `sigma_rel`, `standardize` | `particles`, `0`, `True` (standardize applies only to MoG) |
 | `lr`, `d_lr_mult`, `prior_lr_mult` | `.014`, `1.5`, `2.9` |
-| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `unified_v11_equil`, `0`, `.0061` |
+| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `unified_v12_equil`, `0`, `.0061` |
 | `optimizer_dense_profile`, `training_precision` | `default`, `bf16_channels_last` |
 | `optimizer_convolution`, `optimizer_svd_backend` | `none`, `native` |
-| `optimizer_convolution_rule` | `polar` (unused by `unified_v11_equil` fused Quintic Tikhonov polar) |
+| `optimizer_convolution_rule` | `polar` (unused by `unified_v12_equil`) |
 | `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `None`, `None` (role overrides inherit shared betas) |
 | `eps`, `d_eps`, `prior_eps` | `1e-8`, `None`, `None` (role overrides inherit shared epsilon) |
 | `adam_variant`, `loss_labels` | `pytorch`, `(0,1,1)` |
@@ -1525,7 +1535,7 @@ The previous K3P critic replays through
 `benchmarks.legacy.recipe` ([K3P](k3p.md#replaying-k3p)).
 
 The following loop and Adam controller descriptions use the explicit KA2 recipe.
-The default Unified recipe (`"unified_v11"`) and explicit `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below.
+The default Unified recipe (`"unified_v12"`) and explicit `"unified_v11"`, `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below.
 
 When binding G and E to `UpdatePolicy`, pass `separate_encoder_groups=True`.
 Native Adam then uses distinct homogeneous generator and encoder groups with

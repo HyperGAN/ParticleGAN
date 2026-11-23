@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1225. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1233. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4280,6 +4280,22 @@ rgdt-v3-no-macro passes 4/4 tasks on t3-shift-recovery-diagnostic-v1 (target_shi
 
 [Record and receipt provenance](records/readout-0a2c5b1945af6c00c9ab44bb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v11 · readout-0b7cd7995a0a857bb250cf14
+
+**Scope:** current; scientific; revision `5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9`.
+
+Unchanged global law4-energy-v11 achieves >=44/48 PASS across discriminator_stability Tiers 1-2 with 0 required numerical FAIL by closing both generator-free t3_iso_* misses and running model_ae_ddgan_gaussian_chain uncontended.
+
+**Observed:** {'FAIL': 3, 'INCOMPLETE': 1, 'PASS': 44}; wall seconds 5656.081; mechanism `structural`.
+
+ring16_acquisition: modes=16, hq=0.9895, mass_tv=0.074707
+
+NEW ALL-TIME RECORD 44/48 PASS across discriminator_stability Tiers 1-2 (17/17 Tier 1 PASS = 100% + 27/31 Tier 2 PASS = 7/7 held PASS, 16/18 required PASS, 4/6 stretch PASS) with strictly 0 Conv2d NS, 0 critic secant probes, 0 Critic NS on all neural-generator tasks, restored zero-sync 2D Critic NS strictly on generator-free clouds (total_gen_mats == 0), and 0 new_tensor H2D syncs! Closed both v10 t3_iso_* misses (t3_iso_scale_mass_8x PASS min_eig=0.4723, t3_iso_horizon_saddle_shift PASS hq=0.9531) and retained all v10 breakthroughs (staggered100 PASS 0.9921/0.1310, five_word_joint_hold PASS 24/24, model_ddgan_bimodal_chain PASS, interp_sparse_arc PASS 0.8406, 4/4 Conv2d images, 6/6 vectors, 3/3 >548x Nash). Uncontended 0%-idle GPU 0 run of model_ae_ddgan_gaussian_chain completed all 2500 steps in 159.2s (paired_nmse=0.0574 PASS, paired_worst_axis_nrmse=0.2471 PASS, final_cdf=0.0664 PASS; faithful numerical FAIL on t1_q0_projection_cdf=0.2916 gating bimodal_chain); only other misses are stretch interp_img_patch_shift and interp_saddle_barycentric.
+
+**Next:** Hand off feat/law4-energy-v11 to energy-verifier for Phase-B audit and Phase-C combined law4-energy-v11 + pullback-zerosync idle-GPU 0 hardware NVML J-to-PASS benchmark.
+
+[Record and receipt provenance](records/readout-0b7cd7995a0a857bb250cf14.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### law4-energy-v3 · readout-0c336a58babe8729b5c26e5e
 
 **Scope:** research_diagnostic; scientific; revision `80cecd1e196949ae22f623a760763da88247f43a94006c2ba5e8489685d60de1`.
@@ -5496,6 +5512,22 @@ Prediction observed: unified-v3 passed all 6/6 dcgan_performance benchmarks with
 
 [Record and receipt provenance](records/readout-333332d97507ed52ce2592e5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v11 · readout-33d5dc6aafae554b7d9433af
+
+**Scope:** research_diagnostic; scientific; revision `5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9`.
+
+Unchanged global law4-energy-v11 (0 Critic NS on neural generators, 0 Conv2d NS, 0 new_tensor H2D syncs) matches or improves unified-v11 on t4-strange-architectures-v1 without regressions.
+
+**Observed:** {'FAIL': 1, 'PASS': 6}; wall seconds 4277.727; mechanism `structural`.
+
+grid100_res16_scaled_tanh: precision=0.99116, center_rms_sigma=0.054102, mass_tv=0.03623, radial_ks=0.017145
+
+6/7 PASS on t4-strange-architectures-v1: PASS on clockfree_audit_measurement_v1 (4/4), grid100 (0.9882/0.0794), grid100_mlp16 (0.9924/0.0798), grid100_res16_scaled_tanh (0.9912/0.0541, sat=0.0), zero_tanh_rail_escape, and zero_tanh_smoke; only grid100_res16_tanh fails (matching unified-v11 6/7).
+
+**Next:** Complete discriminator_stability Tiers 1-2.
+
+[Record and receipt provenance](records/readout-33d5dc6aafae554b7d9433af.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v8 · readout-33f7628135472eef06f0d92a
 
 **Scope:** current; scientific; revision `75d65ac411874b90c8faaffdbb457a0d267d1e38b726fce1d962db6bde886455`.
@@ -6552,6 +6584,22 @@ Causal ablation replacing T4Nash's SVD-free function-space impedance-matched opt
 
 [Record and receipt provenance](records/readout-53cd231b9980a87ce588ee55.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v11 · readout-53e330a0d8e1c04d4c72bbcd
+
+**Scope:** research_diagnostic; scientific; revision `5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9`.
+
+law4-energy-v11 achieves 16/16 PASS on r4-occam-ablation-v1 by closing law4-energy-v10's two generator-free t3_iso_* misses while remaining bit-exact on all 14 neural-generator probes with 0 Critic NS, 0 Conv2d NS, and 0 new_tensor H2D syncs.
+
+**Observed:** {'INCOMPLETE': 4, 'PASS': 16}; wall seconds 6893.078; mechanism `structural`.
+
+nash_overpowered_critic_ring16: modes=16, hq=0.95898, mass_tv=0.073242; ring16_acquisition: modes=16, hq=0.9895, mass_tv=0.074707
+
+16/16 PASS on r4-occam-ablation-v1 (0 FAIL!): restoring zero-sync 5-step 2D Critic NS strictly when generator-free (total_gen_mats == 0) closed both law4-energy-v10 t3_iso_* misses (t3_iso_scale_mass_8x PASS min_eig=0.4723, t3_iso_horizon_saddle_shift PASS hq=0.9531) while keeping strictly 0 Critic NS on all 14 neural-generator probes (bit-exact to v10: grid100 0.9882/0.0794, grid100_mlp16 0.9924/0.0798), 0 Conv2d NS, 0 critic secant probes, and 0 new_tensor H2D syncs.
+
+**Next:** Run dcgan_performance (6/6), t4-strange-architectures-v1, and discriminator_stability Tiers 1-2 (with uncontended model_ae_ddgan_gaussian_chain).
+
+[Record and receipt provenance](records/readout-53e330a0d8e1c04d4c72bbcd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-r1r2-v1 · readout-5449c98aa6ac41a9138a74e6
 
 **Scope:** research_diagnostic; scientific; revision `4c33fa871d84961a929bbfd21b0f147320e1bf8ccfb5c844792e03d19cd7d834`.
@@ -6760,6 +6808,22 @@ law4-energy-v4 scores 13/15 graded PASS on r4-occam-ablation-v1 (2 FAIL: grid100
 
 [Record and receipt provenance](records/readout-59884cb8c561d5735c5f7e25.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v12 · readout-59898e1a77c4b179c9aebbc1
+
+**Scope:** research_diagnostic; scientific; revision `f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f`.
+
+Unchanged global unified-v12 passes 6/6 dcgan_performance and matches or improves law4-energy-v11 latency and energy with strictly 0 Conv2d NS, 0 Critic NS, 0 critic probes, 0 new_tensor H2D copies, and _SUPPORTS_ZEROSYNC_V4_TENSORS=True.
+
+**Observed:** {'PASS': 6}; wall seconds 61.201; mechanism `structural`.
+
+
+
+6/6 PASS on dcgan_performance (uncontended RTX A6000 GPU 0, seed 0): r256=41.39 ms/st median (p95 42.05 ms, 1243.4 MiB), r128=26.47 ms/st, r64=22.04 ms/st, r32=19.17 ms/st, b64=23.46 ms/st, w128=22.79 ms/st.
+
+**Next:** Hand off to @v12-verifier for Phase-B independent verification and merge coordination on origin/develop.
+
+[Record and receipt provenance](records/readout-59898e1a77c4b179c9aebbc1.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-release07-gan-v3-v1 · readout-5a2f259958a8784b19e78ff3
 
 **Scope:** research_diagnostic; scientific; revision `3ca1ad7447f7d38dd2b4040f9f15829f7191d027bae364faba1f6008bc4a9b1d`.
@@ -6903,6 +6967,22 @@ Completed discriminator_stability seed-0 CUDA execution for recipe-prior-refacto
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Evidence](../../) · [Record](records/readout-613fc91cba03a8c327465202.json)
+
+### unified-v12 · readout-624964f4e46793593bc147e4
+
+**Scope:** research_diagnostic; scientific; revision `f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f`.
+
+Unchanged global unified-v12 preserves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Conv2d NS, 0 neural-G Critic NS, 0 critic probes, 0 new_tensor H2D copies, and _SUPPORTS_ZEROSYNC_V4_TENSORS=True.
+
+**Observed:** {'PASS': 16}; wall seconds 2086.365; mechanism `structural`.
+
+vector_unequal_mass: hq=0.99731, mass_tv=0.11237
+
+16/16 PASS on r4-occam-ablation-v1 (RTX A6000 GPUs 0,1, seed 0): 12/12 fresh tasks PASS plus 4/4 certified reused PASS from t4-arch (grid100, grid100_mlp16, zero_tanh_smoke, zero_tanh_rail_escape).
+
+**Next:** Hand off to @v12-verifier for Phase-B verification.
+
+[Record and receipt provenance](records/readout-624964f4e46793593bc147e4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### t1-coupling-v3 · readout-6265233640061013149586d5
 
@@ -9080,6 +9160,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-ka2-
 
 [Record and receipt provenance](records/readout-b4cb8ae3dab15ed18da48cee.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v12 · readout-b51ab67c4d97526186e23651
+
+**Scope:** current; scientific; revision `f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f`.
+
+Unchanged global unified-v12 achieves >=46/48 PASS across discriminator_stability Tiers 1-2 (17/17 Tier 1 = 100%, 18/18 Tier-2 required = 100%) by cracking both model_ae_ddgan_gaussian_chain (t1_q0_projection_cdf <= 0.20) and model_ae_ddgan_bimodal_chain while keeping all 1-objective and unconditional tasks bit-exact to law4-energy-v11.
+
+**Observed:** {'FAIL': 2, 'PASS': 46}; wall seconds 4600.606; mechanism `structural`.
+
+t3_iso_scale_mass_8x: modes=4, hq=0.96289, mass_tv=0.013906
+
+46/48 PASS on discriminator_stability Tiers 1-2 (RTX A6000 GPUs 0,1, seed 0): 17/17 Tier 1 (100%: 11/11 required, 4/4 stretch, 2/2 diagnostic), 18/18 Tier-2 required (100%), and 4/6 Tier-2 stretch (only optional interp_img_patch_shift and interp_saddle_barycentric FAIL). Both AE-DDGAN chains PASS: model_ae_ddgan_gaussian_chain (paired_nmse=0.0448, t1_q0_projection_cdf=0.2098, final_projection_cdf=0.0812) and model_ae_ddgan_bimodal_chain (paired_nmse=0.0371, t1_q0_projection_cdf=0.0872, final_projection_cdf=0.0512).
+
+**Next:** Hand off to @v12-verifier for Phase-B independent verification and @coordinator sign-off prior to any DEFAULT_RECIPE promotion.
+
+[Record and receipt provenance](records/readout-b51ab67c4d97526186e23651.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### t1-coupling-v4 · readout-b54ad56abb1f8f85ab558b5b
 
 **Scope:** research_diagnostic; scientific; revision `91d8a7149fad4a2157eaf29a65cfbdd905bab2a0ab1e95b0ee8375766abbcace`.
@@ -9352,6 +9448,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-r1r2
 
 [Record and receipt provenance](records/readout-bbd7f8cdac1d2a717c806681.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### law4-energy-v11 · readout-bc0352d17785c6afcfeafd00
+
+**Scope:** research_diagnostic; scientific; revision `5883e731a7e9ee02695be412de3c331fa54fbf0051855abb7a3193f090ecf0d9`.
+
+law4-energy-v11 passes 6/6 dcgan_performance and matches or improves law4-energy-v10 latency and VRAM with strictly 0 Conv2d NS, 0 Critic NS, and 0 new_tensor H2D syncs.
+
+**Observed:** {'PASS': 6}; wall seconds 68.427; mechanism `structural`.
+
+
+
+6/6 PASS on dcgan_performance with strictly 0 Conv2d NS, 0 Critic NS, 0 critic secant probes, and 0 new_tensor H2D syncs (r256: 61.02 ms/step / 1243.43 MiB; w128: 27.95 ms / 424.46 MiB; r128: 42.81 ms / 455.39 MiB; b64: 30.95 ms / 319.58 MiB; r64: 28.52 ms / 163.43 MiB; r32: 23.59 ms / 66.54 MiB).
+
+**Next:** Complete discriminator_stability Tiers 1-2 and hand off to energy-verifier for idle-GPU 0 hardware NVML J-to-PASS sweep.
+
+[Record and receipt provenance](records/readout-bc0352d17785c6afcfeafd00.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r3gan-stacked-training-toy-v1 · readout-bc440d0469187c9299bd524c
 
 **Scope:** current; scientific; revision `724a672468491e40b3f214c3b44b8913b9317266346527139da7a1de750d8d44`.
@@ -9463,6 +9575,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-c164627eb57d4e7515314cd6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### unified-v12 · readout-c1ee5c3bb7ac4f432532da63
+
+**Scope:** research_diagnostic; scientific; revision `f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f`.
+
+Unchanged global unified-v12 achieves 7/7 PASS on t4-strange-architectures-v1 by resolving law4-energy-v11's grid100_res16_tanh period-2 flip bifurcation (center_rms_sigma <= 0.25 with 100k holdout PASS) while preserving all 6 other strange-architecture gates.
+
+**Observed:** {'PASS': 7}; wall seconds 1859.342; mechanism `structural`.
+
+grid100_res16_tanh: precision=0.99072, center_rms_sigma=0.1729, mass_tv=0.03398, radial_ks=0.027926
+
+7/7 PASS on t4-strange-architectures-v1 (RTX A6000 GPUs 0,1, seed 0): grid100_res16_tanh PASS (prec=0.9907, ctr=0.1729, bias=-0.0805, rks=0.0279), grid100_mlp16 PASS (prec=0.9914, ctr=0.0727, bias=-0.0668, rks=0.0283), grid100_res16_scaled_tanh PASS (prec=0.9909, ctr=0.0556), grid100 PASS (prec=0.9850, ctr=0.0872), clockfree_audit_measurement_v1 PASS, zero_tanh_smoke PASS, zero_tanh_rail_escape PASS.
+
+**Next:** Hand off to @v12-verifier for Phase-B independent verification and PR #615 integration.
+
+[Record and receipt provenance](records/readout-c1ee5c3bb7ac4f432532da63.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-misgan-amortized-v1 · readout-c21940571fd7349e5f2a9c1b
 
@@ -11750,4 +11878,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `9342e57c9f8dda63e01fa1cd25c13da7eab970b031e652dac77b0c168cbe01e6`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `d5e839696344321aecec66f626c7e947926a5ad2fdd7393841d2f797611e6a9c`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

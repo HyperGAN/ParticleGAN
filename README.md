@@ -17,7 +17,7 @@ critic penalty and prior regularizer.
 Requires Python 3.11+. PyTorch and NumPy are installed as dependencies.
 
 ```bash
-python -m pip install particlegan           # the library (0.11.0)
+python -m pip install particlegan           # the library (0.12.0)
 ```
 
 To run the examples, experiments and tests, install from source with the extras you need:
@@ -67,22 +67,24 @@ for _ in range(recipe.total_steps):
 samples = trainer.sample(1024)
 ```
 
-`get_recipe()` returns the default recipe, **Unified** (`DEFAULT_RECIPE = "unified_v11"` in
-[particlegan/recipes.py](particlegan/recipes.py), matching `unified-v11`).
-It is our current reference solution to all four GAN laws with strictly **zero `torch.autograd.grad`,
+`get_recipe()` returns the default recipe, **Unified** (`DEFAULT_RECIPE = "unified_v12"` in
+[particlegan/recipes.py](particlegan/recipes.py), matching `unified-v12`).
+It is our current energy-optimal reference solution to all four GAN laws with strictly **zero `torch.autograd.grad`,
 zero SVD, zero `eigh`, and zero `pinv`**, pairing: for Law 1, a streaming Laguerre-Pythagorean
 prototype prior and orthogonal pullback isometry (`prior_reg = 0.02`); for Law 2, a first-order
 Born-Infeld secant critic with zero-mean logit gauge (`ebi_beta = 12.0`); for Law 3,
 scale-invariant `k=4` density-ratio orphan macro-transport and a zero-`eigh` cross-batch
-conditional fiber operator bank; and for Law 4, fused `Z=[X,Y]` Quintic Tikhonov polar
-equilibration with zero-`pinv` analytic `direction_blend` and `bf16_channels_last` conv
-training at constant rates.
-Explicit `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
+conditional fiber operator bank; and for Law 4, `UnifiedV12Optimizer` (`unified_v12_equil`:
+zero-state polar-matched 4D Conv2d Frobenius-MP with `0` Conv2d NS, Law 4.4 asymmetric `0`-NS
+2D critic with generator-free 2D NS fallback, CountSketch spectral preconditioning on stiff deep
+2D generators, zero-`pinv` analytic `direction_blend`, and `bf16_channels_last` conv training at
+constant rates).
+Explicit `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
 `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
 `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
 **[The Four Laws of Stable, Energy-Efficient GAN Convergence](docs/four-laws.md)** for the
-solution-agnostic statement of the four laws, the catalog of solutions found so far (`unified_v11`,
-`minimal`, and related families), and Occam's Razor ablations, the
+solution-agnostic statement of the four laws, the catalog of solutions found so far (`unified_v12`,
+`unified_v11`, `minimal`, and related families), and Occam's Razor ablations, the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names) for acronyms, and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) for configuration details.
 
@@ -117,22 +119,29 @@ What the evidence does and does not show today:
 
 - **The default is a research selection, not a qualified winner.** In the
   [technique inventory](reports/forge/technique-inventory.md) and
-  [Round-4 solution-complete study](reports/forge/studies/r4-solution-complete.md),
-  the selected Unified recipe (`unified-v11`, `DEFAULT_RECIPE = "unified_v11"`) leads
-  screening at **`95/115` counted view requirements** (`27/27` Tier 1, `68/78` Tier 2),
-  **`40/69` full-suite passes** (`6` FAIL, `11` not measured, `12` blocked), **`50/68`
-  stretch view assignments**, and **`41/47` Tiers 1–2 `discriminator_stability` PASS**
-  (`55/62` deduplicated unique runnable tasks PASS across 9 studies; `90.24 ms/step` median
-  and `1,372.60 MiB` allocated VRAM on matched 66-cell `dcgan_performance_r256`) — ahead of
-  `rhbi_optimized` (`rhbi-v12`, `83/115`, `33/69`, `590.59 ms/step`), `empf` (`empf-v8`,
-  `83/115`, `23/69`, `129.72 ms/step`), and `bispf_optimized` (`81/115`, `18/69`), while
-  `get_recipe("minimal")` offers an `899`-LOC zero-Newton-Schulz fast core (`55.50 ms/step`
-  on `r256`). Forge's screening calibration remains provisional (`BLOCKED` under
-  `criteria-v1.json`; see [r3-calibration-holdout](reports/forge/studies/r3-calibration-holdout.md)),
-  Tier 2/3 full-tier qualification is incomplete, and remaining failures (`staggered100` /
-  `staggered100_14k`, `grid100_res16_tanh`, `five_word_joint_hold`,
-  `model_ddgan_bimodal_chain`, `model_ae_ddgan_gaussian_chain`, `interp_img_patch_shift`,
-  `interp_saddle_barycentric`, plus `12` unimplemented Tier-4 stretch hosts) stay visible.
+  [Law-4 optimizer & energy studies](reports/forge/studies/law4-energy-champion.md),
+  the promoted **`unified_v12`** default (`DEFAULT_RECIPE = "unified_v12"`, matching
+  `unified-v12`) sweeps **`18/18` (`100%`) untouched Tier-3/14k holdouts**
+  (`r3-tier3-long-horizon-holdout-v1`, vs post-PR-#612 `unified-v11` `16/18`), reaches
+  **`46/48` Tiers 1–2 `discriminator_stability` PASS** (`17/17` T1 + `29/31` T2,
+  **`29/29` required = `100%`**, plus **`2/2` combined AE-DDGAN PASS**), **`16/16`**
+  `r4-occam-ablation-v1`, and **`6/6` `dcgan_performance`** at **`39.22 ms/step` /
+  `11.37 J/step`** on strictly idle RTX A6000 `r256` (**`1.87×` faster / `-45.8%` J/step**
+  vs post-PR-#612+#615 `unified-v11` `73.21 ms / 20.96 J`; **`2.19×` faster / `-52.0%` J/step**
+  vs pre-Phase-3 `unified-v11`, plus **`-26.3%` to `-78.8%` lower hardware `J-to-PASS`** on
+  `ring16`, `grid100`, and `five_word_joint_smoke`). On the committed historical
+  [technique inventory](reports/forge/technique-inventory.md) family table, the Unified family
+  (`unified-v11` pin) leads screening at **`95/115` counted view requirements** (`27/27` Tier 1,
+  `68/78` Tier 2), **`40/69` full-suite passes**, and **`50/68` stretch view assignments** — ahead
+  of `rhbi_optimized` (`rhbi-v12`, `83/115`, `33/69`), `empf` (`empf-v8`, `83/115`, `23/69`), and
+  `bispf_optimized` (`81/115`, `18/69`), while `get_recipe("minimal")` offers an `899`-LOC
+  zero-Newton-Schulz fast core (`55.50 ms/step` on `r256`). Forge's screening calibration remains
+  provisional (`BLOCKED` under `criteria-v1.json`; see
+  [r3-calibration-holdout](reports/forge/studies/r3-calibration-holdout.md)), Tier 2/3 full-tier
+  qualification is incomplete, and remaining non-passes (`interp_img_patch_shift`,
+  `interp_saddle_barycentric`, combined 1-ULP step-`6250` `modes=99` dip on `grid100_res16_tanh`
+  despite `100k` holdout PASS and `7/7` standalone `t4-arch`, plus `12` unimplemented Tier-4
+  stretch hosts) stay visible.
 - **Controlled prior comparison** ([matched prior ablation, 2026-10-25](reports/prior-ablation-2026-10-25/README.md)).
   Each arm changes only the prior policy. Architecture, data, budget, seed 0 and
   the initial table are the same. These are one-seed diagnostics with no
@@ -170,11 +179,11 @@ What the evidence does and does not show today:
 
 ### The 100-Gaussian animations
 
-The lead [`100gaussians.gif`](100gaussians.gif) shows actual training of the current **0.11.0 default** (`get_recipe()` = `unified_v11`) on the Forge `grid100` `MoGParticlePrior(20000, σ=0.025, standardize=False)` cohort; the other two animations retain their archived 0.9.1 and opt-in E22 identities.
+The lead [`100gaussians.gif`](100gaussians.gif) retains its recorded **0.11.0** Unified (`get_recipe("unified_v11")`) training run on the Forge `grid100` `MoGParticlePrior(20000, σ=0.025, standardize=False)` cohort; the other two animations retain their archived 0.9.1 and opt-in E22 identities.
 
 | Animation | Recipe | What it shows | Pass/fail metric | Result |
 | --- | --- | --- | --- | --- |
-| [`100gaussians.gif`](100gaussians.gif) | **0.11.0 default** (`get_recipe()` = `unified_v11`) with the Forge `grid100` task prior (`MoGParticlePrior(20000, σ=0.025, standardize=False)`). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 7,000 updates (live weights, clean sampling, 260.5 s on RTX A6000). | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **PASS**: 100/100 modes, `hq` 98.52% (5/5 terminal checks 98.52%–99.39%), Mode TV `0.04555`, Sliced W1 `0.08353`, core width ratio `0.957` ([receipt](reports/readme-100gaussians/README.md#current-default); archived 0.9.0 `ParticlePrior` FAIL retained [here](reports/readme-100gaussians/README.md#archived-090-default-particleprior-cohort)) |
+| [`100gaussians.gif`](100gaussians.gif) | **Archived 0.11.0 default** (`get_recipe("unified_v11")`) with the Forge `grid100` task prior (`MoGParticlePrior(20000, σ=0.025, standardize=False)`). | 100-Gaussian grid, public deterministic initialization, protocol seed 0, 7,000 updates (live weights, clean sampling, 260.5 s on RTX A6000). | All 100 modes with ≥10 samples within 3σ, **and** `hq` (share of samples within 3σ) ≥ 0.95, at each of 5 terminal checks. | **PASS**: 100/100 modes, `hq` 98.52% (5/5 terminal checks 98.52%–99.39%), Mode TV `0.04555`, Sliced W1 `0.08353`, core width ratio `0.957` ([receipt](reports/readme-100gaussians/README.md#current-default); archived 0.9.0 `ParticlePrior` FAIL retained [here](reports/readme-100gaussians/README.md#archived-090-default-particleprior-cohort)) |
 | [stripes GIF](reports/forge/bispf-throughput/media/bispf-throughput-v1/img_stripes2.gif) | **Archived 0.9.1 default** (`get_recipe("bispf_optimized")`, batched SVD, BF16/channels-last) | Fixed 600-update `img_stripes2` image task | The task's declared Forge gate, including all required modes | **PASS** ([readout](reports/forge/bispf-throughput/README.md)) |
 | [E22 GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/e22-animation/e22-100gaussians.gif) | **Not the default.** Opt-in preset `get_recipe("e22", ...)` with an identity `nn.Linear(2, 2)` generator, a 20,000-row table, batch 2,048 and seed 1234 | Grid, rotated and staggered 100-Gaussian layouts, 7,000 updates each | Native gates: worst live precision over the last 5 checks ≥ 0.97 and worst centre error ≤ 0.20σ | **PASS** on all three layouts (precision .9822–.9851); the animation draws reach `hq` 98.3–98.6% ([E22 results](docs/e22.md#results), [animation](reports/e22-animation/README.md)). In the Forge suite, E22 is 0/115: its policy cohort is blocked or incompatible with the current task definitions. |
 
@@ -202,13 +211,13 @@ qualification and review of the winner. The
 acquisition, settling, endurance and recovery required again.
 
 **Changing the default.** A promotion changes one line in
-[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "unified_v11"`.
+[particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "unified_v12"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
-`get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
+`get_recipe("unified_v11")`, `get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
 `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
 `get_recipe("ka2")` remain available. This is the owner-selected research default;
 Forge calibration remains provisional (`BLOCKED`), Tier 2/3 qualification is incomplete,
-and untouched holdout confirmation remains open.
+and untouched multi-seed/natural-image confirmation remains open.
 
 **0.9.1 throughput.** Version 0.9.1 made the faster BISPF execution policy the
 default, and kept explicit historical settings and saved-recipe restoration (see the

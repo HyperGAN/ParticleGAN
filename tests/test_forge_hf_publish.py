@@ -51,14 +51,30 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert v3["grid100_j_to_sustained_pass"] == pytest.approx(12738.457857, rel=1e-4)
     assert v3["occam_pass"] == 14 and v3["occam_executed"] == 16
 
-    # Verify historical receipts without cost.energy stay strictly null (never fabricated).
+    # Verify historical receipts without cost.energy stay strictly null (never fabricated),
+    # while energy-instrumented receipts export valid positive hardware NVML telemetry.
+    with_energy = [row for row in exports["receipt_rows"] if row["joules_total"] is not None]
+    without_energy = [row for row in exports["receipt_rows"] if row["joules_total"] is None]
+    assert without_energy
     assert all(
-        row["joules_total"] is None
-        and row["joules_per_step"] is None
+        row["joules_per_step"] is None
         and row["joules_to_first_pass"] is None
         and row["energy_backend"] is None
-        for row in exports["receipt_rows"]
+        for row in without_energy
     )
+    assert all(
+        row["joules_total"] >= 0.0 and isinstance(row["energy_backend"], str) and row["energy_backend"]
+        for row in with_energy
+    )
+    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully.
+    v12 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "unified-v12")
+    assert v12["optimizer_family"] == "unified_v12_equil"
+    assert v12["family_id"] == "unified"
+    assert v12["contended"] is False
+    assert v12["r256_joules_per_step"] == pytest.approx(11.36602, rel=1e-4)
+    assert v12["ring16_j_to_pass"] == pytest.approx(462.5188, rel=1e-4)
+    assert v12["grid100_j_to_pass"] == pytest.approx(4512.9094, rel=1e-4)
+    assert v12["occam_pass"] == 16 and v12["occam_executed"] == 16
 
     # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")

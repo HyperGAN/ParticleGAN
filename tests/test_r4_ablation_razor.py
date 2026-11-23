@@ -36,8 +36,8 @@ def _unified_v4_recipe(**overrides) -> Recipe:
 
 
 def test_r4_ablation_contract_preserves_default_and_recipe_fields():
-    """Verify DEFAULT_RECIPE == 'unified_v11' and exact 179 Recipe fields."""
-    assert DEFAULT_RECIPE == "unified_v11"
+    """Verify DEFAULT_RECIPE == 'unified_v12' and exact 179 Recipe fields."""
+    assert DEFAULT_RECIPE == "unified_v12"
     assert len(fields(Recipe)) == 179
     view_path = Path(__file__).resolve().parents[1] / "configs/forge/views/r4-occam-ablation-v1.json"
     view = json.loads(view_path.read_text(encoding="utf-8"))

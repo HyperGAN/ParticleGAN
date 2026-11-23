@@ -85,7 +85,7 @@ class _ToyCondDisc(nn.Module):
 
 
 def test_unified_preset_validation_and_default_recipe_invariant() -> None:
-    assert DEFAULT_RECIPE == "unified_v11"
+    assert DEFAULT_RECIPE == "unified_v12"
     rec = get_recipe("unified")
     assert rec.critic_formulation == "unified"
     assert rec.effective_critic_formulation == "unified"
@@ -361,9 +361,9 @@ def test_unified_fresh_process_continuation_and_import_purity(tmp_path: Path, mo
     script = f"""
 import torch
 import particlegan
-assert particlegan.DEFAULT_RECIPE == "unified_v11"
+assert particlegan.DEFAULT_RECIPE == "unified_v12"
 import particlegan.unified
-assert particlegan.DEFAULT_RECIPE == "unified_v11"
+assert particlegan.DEFAULT_RECIPE == "unified_v12"
 from particlegan import GANTrainer, MoGParticlePrior, ParticlePrior, Recipe
 from tests.test_unified_recipe import _ToyGen2D, _ToyDisc2D, _ToyImgGen, _ToyImgDisc
 
