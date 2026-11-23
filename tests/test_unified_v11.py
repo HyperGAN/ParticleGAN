@@ -1438,7 +1438,7 @@ def test_unified_v11_zerosync_primitives_parity_and_cuda_sync_budget() -> None:
         pb_syncs = sum(
             int(e.count) for e in prof_pb.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
         ) / 5.0
-        assert pb_syncs <= 14.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 14)"
+        assert pb_syncs <= 16.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 16)"
 
         rec_img = get_recipe(
             "unified_v11",

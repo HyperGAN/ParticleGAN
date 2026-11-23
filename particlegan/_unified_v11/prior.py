@@ -1507,31 +1507,21 @@ def unified_v11_pullback_step(
     # --- PART B: Kantorovich-Laguerre Mass-Balanced Island Condensation + Outward Dead-Clamp Recovery ---
     prior_reg_diag = loss_gan.new_zeros(())
     if can_condense_table and base_prior.z.requires_grad and float(recipe.t1_prior_row_lr) > 0.0:
+        u_rows = torch.unique(indices)
         g_flags = [p.requires_grad for p in trainer.G.parameters()]
         try:
             for p in trainer.G.parameters():
                 p.requires_grad_(False)
 
-            if gen_has_bn:
-                sorted_idx = torch.unique(indices)
-                n_slots = len(sorted_idx)
-                is_first = torch.ones(n_slots, device=indices.device, dtype=torch.bool)
-            else:
-                sorted_idx, _ = torch.sort(indices)
-                n_slots = b
-                is_first = torch.ones(n_slots, device=indices.device, dtype=torch.bool)
-                if n_slots > 1:
-                    is_first[1:] = sorted_idx[1:] != sorted_idx[:-1]
-            w_u = is_first.float()
-            n_u_t = is_first.sum()
-            n_eff_t = n_u_t.clamp_min(1).float()
+            n_u = len(u_rows)
+            n_eff = float(n_u)
             active_part_b = ~is_point_t
 
-            c_u = (base_prior.means() if isinstance(base_prior, MoGParticlePrior) else base_prior.z)[sorted_idx]
+            c_u = (base_prior.means() if isinstance(base_prior, MoGParticlePrior) else base_prior.z)[u_rows]
             x_u = trainer._postprocess(
                 trainer.prior,
                 trainer._generate(trainer.G, c_u, 0.0, noise),
-            ).reshape(n_slots, -1)
+            ).reshape(n_u, -1)
 
             with torch.no_grad():
                 xu_det = x_u.detach().float()
@@ -1539,15 +1529,15 @@ def unified_v11_pullback_step(
                 d2_up = torch.cdist(xu_det, c_bar_all, p=2.0).square()
                 k_star = (d2_up - psi_eff.unsqueeze(0)).argmin(dim=1)
 
-                w_hard_u = (w_u.unsqueeze(1) * w_mat_all[k_star]).sum(dim=0) / n_eff_t
+                w_hard_u = w_mat_all[k_star].mean(dim=0)
                 new_w_fake = 0.88 * reg.w_fake_ema + 0.12 * w_hard_u
                 reg.w_fake_ema = torch.where(active_part_b, new_w_fake, reg.w_fake_ema)
                 w_feedback = 0.35 * w_hard_u + 0.65 * reg.w_fake_ema
 
                 k_float = float(len(reg.proto_c))
                 tv_now_t = 0.5 * (reg.proto_w - reg.w_fake_ema).abs().sum()
-                tv_floor_t = 0.35 * torch.sqrt(k_float / (n_eff_t * 8.0).clamp_min(1.0))
-                psi_gate_t = ((tv_now_t - tv_floor_t) / tv_floor_t.clamp_min(0.08)).clamp(0.0, 1.0)
+                tv_floor = 0.35 * math.sqrt(k_float / max(n_eff * 8.0, 1.0))
+                psi_gate_t = ((tv_now_t - tv_floor) / max(0.08, tv_floor)).clamp(0.0, 1.0)
 
                 eta_scale = min(3.0, max(0.35, float(recipe.t1_laguerre_lr) * k_float))
                 r_mac_sq = r_macro_safe.square()
@@ -1561,11 +1551,13 @@ def unified_v11_pullback_step(
 
                 c_bar_u = c_bar_all[k_star]
                 coal_u = has_multicell_coal_t & multicell_coal[k_star]
-                xi_u = _deterministic_box_muller(sorted_idx, dim, torch.float32).to(yr.device)
+                xi_u = _deterministic_box_muller(u_rows, dim, torch.float32).to(yr.device)
                 cid_u = comp_rep[k_star]
-                cnt_u = torch.zeros(k_proto, device=yr.device, dtype=torch.float32).scatter_add_(0, cid_u, w_u)
+                cnt_u = torch.zeros(k_proto, device=yr.device, dtype=torch.float32).scatter_add_(
+                    0, cid_u, ones_b[:n_u]
+                )
                 xi_u_sum = torch.zeros((k_proto, dim), device=yr.device, dtype=torch.float32).index_add_(
-                    0, cid_u, xi_u * w_u.unsqueeze(1)
+                    0, cid_u, xi_u
                 )
                 xi_u_mean = torch.where(
                     cnt_u.unsqueeze(1) >= 2.0,
@@ -1582,23 +1574,14 @@ def unified_v11_pullback_step(
                 )
 
             sq_u = (x_u - c_target).square().sum(dim=-1)
-            w_u_dt = w_u.to(x_u.dtype)
-            n_eff_dt = n_eff_t.to(x_u.dtype)
-            loss_mu_condense = (w_u_dt * (torch.sqrt((0.4 * sc_u).square() + sq_u) - 0.4 * sc_u)).sum() / n_eff_dt
+            loss_mu_condense = (torch.sqrt((0.4 * sc_u).square() + sq_u) - 0.4 * sc_u).mean()
 
-            mu_raw_u = base_prior.z[sorted_idx]
-            if has_sigma:
-                w_u_col_z = w_u.to(mu_raw_u.dtype).unsqueeze(1)
-                n_eff_z = n_eff_t.to(mu_raw_u.dtype)
-                mu_mean = (w_u_col_z * mu_raw_u).sum(dim=0, keepdim=True) / n_eff_z
-                mu_c = mu_raw_u - mu_mean
-                mu_std = ((w_u_col_z * mu_c.square()).sum(dim=0) / n_eff_z + 1e-6).sqrt()
+            mu_raw_u = base_prior.z[u_rows]
+            if has_sigma and n_u >= 2:
+                mu_c = mu_raw_u - mu_raw_u.mean(dim=0, keepdim=True)
+                mu_std = (mu_c.square().mean(dim=0) + 1e-6).sqrt()
                 iso_ema_dt = reg._get_iso_ema_t(yr.device).to(mu_std.dtype)
-                loss_mu_iso = torch.where(
-                    n_u_t >= 2,
-                    F.relu(iso_ema_dt - mu_std).square().mean(),
-                    x_u.new_zeros(()),
-                )
+                loss_mu_iso = F.relu(iso_ema_dt - mu_std).square().mean()
             else:
                 loss_mu_iso = x_u.new_zeros(())
 
@@ -1616,19 +1599,26 @@ def unified_v11_pullback_step(
                 reg.rows_initialized = True
 
             with torch.no_grad():
-                g_rows = (base_prior.z.grad[sorted_idx] * n_eff_t.to(base_prior.z.dtype)).clone()
+                g_rows = (base_prior.z.grad[u_rows] * n_eff).clone()
                 base_prior.z.grad.zero_()
                 dist_i = sq_u.detach().sqrt().unsqueeze(1)
                 part_scale = (dist_i / (1.5 * sc_u.unsqueeze(1))).clamp(0.02, 1.2)
 
-                # Coordinatewise outward column-sensitivity clamp rescue (0 sync, 0 autograd.grad):
-                far_mask_1d = is_first & (dist_u > (2.8 * math.sqrt(float(dim)) * sc_u.float()))
+                # Coordinatewise outward column-sensitivity clamp rescue (rescues single- and multi-axis
+                # dead-clamped outer latent shells on tanh_rail_guard with strictly 0 autograd.grad!):
+                far_mask_1d = dist_u > (2.8 * math.sqrt(float(dim)) * sc_u.float())
                 d_z_u = c_u.shape[1]
-                if d_z_u <= 8:
-                    c_det = c_u.detach()
-                    out_sgn = torch.where(c_det >= 0.0, 1.0, -1.0)
+                if d_z_u <= 8 and bool(far_mask_1d.any()):
+                    far_idx = torch.nonzero(far_mask_1d, as_tuple=False).squeeze(-1)
+                    in_idx = torch.nonzero(~far_mask_1d, as_tuple=False).squeeze(-1)[:64]
+                    if in_idx.numel() < 4:
+                        in_idx = torch.arange(min(64, n_u), device=c_u.device, dtype=torch.long)
+                    probe_idx = torch.cat([far_idx, in_idx], dim=0)
+                    c_probe = c_u[probe_idx].detach()
+                    x_probe = xu_det[probe_idx]
+                    out_sgn = torch.where(c_probe >= 0.0, 1.0, -1.0)
                     eye_z = torch.eye(d_z_u, device=c_u.device, dtype=c_u.dtype)
-                    c_pert = (c_det.unsqueeze(1) + (1e-3 * out_sgn).unsqueeze(2) * eye_z.unsqueeze(0)).reshape(
+                    c_pert = (c_probe.unsqueeze(1) + (1e-3 * out_sgn).unsqueeze(2) * eye_z.unsqueeze(0)).reshape(
                         -1, d_z_u
                     )
                     x_pert = (
@@ -1637,44 +1627,46 @@ def unified_v11_pullback_step(
                             trainer._generate(trainer.G, c_pert, 0.0, noise),
                         )
                         .float()
-                        .reshape(n_slots, d_z_u, dim)
+                        .reshape(len(probe_idx), d_z_u, dim)
                     )
-                    col_sens = (x_pert - xu_det.unsqueeze(1)).norm(dim=-1) / 1e-3
-                    in_cand = is_first & (~far_mask_1d)
-                    in_sel = in_cand & (in_cand.to(torch.int64).cumsum(0) <= 64)
-                    fb_sel = is_first & (is_first.to(torch.int64).cumsum(0) <= 64)
-                    eff_in = torch.where(in_sel.sum() < 4, fb_sel, in_sel)
-                    n_eff_in = eff_in.sum().clamp_min(1)
-                    s_for_q = torch.where(eff_in.unsqueeze(1), col_sens, col_sens.new_full((), float("inf")))
-                    s_sorted, _ = torch.sort(s_for_q, dim=0)
-                    q_idx = torch.stack(((n_eff_in - 1) // 2, n_eff_in // 2))
-                    s_ref_col = s_sorted.index_select(0, q_idx).mean(dim=0, keepdim=True).clamp_min(1e-6)
-                    dead_far = far_mask_1d.unsqueeze(1) & (col_sens < (0.04 * s_ref_col))
-                    mu_ref = (eff_in.float().unsqueeze(1) * c_det.float()).sum(dim=0, keepdim=True) / n_eff_in.float()
-                    z_far = mu_raw_u.detach()
-                    g_mag = torch.maximum(
-                        g_rows.float().norm(dim=-1, keepdim=True),
-                        torch.ones_like(z_far[:, :1], dtype=torch.float32),
-                    )
-                    inward_grad = (torch.sign(z_far.float() - mu_ref) * g_mag).to(g_rows.dtype)
-                    g_rows = torch.where(dead_far, inward_grad, g_rows)
-                    any_dead_far = dead_far.any(dim=1, keepdim=True)
-                    part_scale = torch.where(any_dead_far, torch.ones_like(part_scale), part_scale)
+                    col_sens = (x_pert - x_probe.unsqueeze(1)).norm(dim=-1) / 1e-3
+                    s_far = col_sens[: len(far_idx)]
+                    s_in = col_sens[len(far_idx) :]
+                    s_ref_col = torch.quantile(s_in, 0.5, dim=0, keepdim=True).clamp_min(1e-6)
+                    dead_far = s_far < (0.04 * s_ref_col)
+                    if bool(dead_far.any()):
+                        mu_ref = c_u[in_idx].detach().mean(dim=0, keepdim=True)
+                        z_far = mu_raw_u[far_idx].detach()
+                        gu_far = g_rows[far_idx]
+                        g_mag = torch.maximum(
+                            gu_far.float().norm(dim=-1, keepdim=True),
+                            torch.ones_like(z_far[:, :1], dtype=torch.float32),
+                        )
+                        inward_grad = (torch.sign(z_far - mu_ref).float() * g_mag).to(g_rows.dtype)
+                        g_rows[far_idx] = torch.where(dead_far, inward_grad, gu_far)
+                        any_dead_far = dead_far.any(dim=1).unsqueeze(1)
+                        part_scale[far_idx] = torch.where(
+                            any_dead_far, torch.ones_like(part_scale[far_idx]), part_scale[far_idx]
+                        )
 
-                w_u_col = (w_u * active_part_b.float()).to(base_prior.z.dtype).unsqueeze(1)
-                m_prev = reg.row_m[sorted_idx]
-                v_prev = reg.row_v[sorted_idx]
-                n_prev = reg.row_n[sorted_idx]
+                m_prev = reg.row_m[u_rows]
+                v_prev = reg.row_v[u_rows]
+                n_prev = reg.row_n[u_rows]
                 m = m_prev * 0.80 + 0.20 * g_rows
                 v = v_prev * 0.80 + 0.20 * g_rows.square().sum(dim=-1, keepdim=True)
                 n = n_prev + 1.0
-                reg.row_m.index_add_(0, sorted_idx, (m - m_prev) * w_u_col)
-                reg.row_v.index_add_(0, sorted_idx, (v - v_prev) * w_u_col)
-                reg.row_n.index_add_(0, sorted_idx, w_u_col)
+                reg.row_m[u_rows] = torch.where(active_part_b, m, m_prev)
+                reg.row_v[u_rows] = torch.where(active_part_b, v, v_prev)
+                reg.row_n[u_rows] = torch.where(active_part_b, n, n_prev)
                 bc = 1.0 - (0.80 ** n)
                 step_vec = (m / bc) / ((v / bc).sqrt() + 1e-5)
-                step_alpha = (-float(recipe.t1_prior_row_lr)) * row_settle_t.to(base_prior.z.dtype)
-                base_prior.z.index_add_(0, sorted_idx, (step_vec * part_scale * w_u_col) * step_alpha)
+                row_scale = (row_settle_t * active_part_b.float()).to(base_prior.z.dtype)
+                base_prior.z.index_add_(
+                    0,
+                    u_rows,
+                    (step_vec * part_scale) * row_scale,
+                    alpha=-float(recipe.t1_prior_row_lr),
+                )
         finally:
             for p, flag in zip(trainer.G.parameters(), g_flags):
                 p.requires_grad_(flag)
