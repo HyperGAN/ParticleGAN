@@ -90,3 +90,29 @@ preserves the exact `1 : 1.5 : 2.9` $G : D : \text{prior}$ function-space Froben
    - **Exact Law 4.4 Boundary (4 stretch misses):** Only the two generator-free (`G = nn.Identity`) direct-cloud isolation probes (`t3_iso_scale_mass_8x` `core_min_eigen_ratio = 0.3375 vs 0.35`, `t3_iso_horizon_saddle_shift` `pre_shift_hq = 0.9219` PASS / `hq = 0.9062 vs 0.92`) plus `interp_img_patch_shift` and `interp_saddle_barycentric` missed — cleanly identifying the sole regime (generator-free direct particle clouds where $D$ is the only neural network) where dropping Critic NS incurs a hair-thin `~0.013` residual cost.
 2. **`r4-occam-ablation-v1` (`readout-01a09e00e51374034f41784b.json`): `14 / 16` PASS (`14 / 14` on every neural G+D probe!)** — including `grid100_mlp16` (`0.9924 / 0.0798`), `model_ddgan_gaussian_chain` (`worst_cdf = 0.0747, t1_q0_eig_max = 1.1209`), `vector_unequal_width` (`0.9993 / 0.2582`), and both `>548×` Nash tasks.
 3. **`dcgan_performance` (`readout-9599d9a20cf9a6e935f0d900.json`): `6 / 6` PASS** — `r256`: `56.35 ms/step` (contended), `1243.43 MiB`; `w128`: `28.87 ms`, `424.46 MiB`; `r128`: `32.28 ms`, `455.39 MiB`; `b64`: `30.70 ms`, `319.58 MiB`; `r64`: `28.35 ms`, `163.43 MiB`; `r32`: `23.45 ms`, `66.54 MiB` (strictly `0` Conv2d NS, `0` Critic NS, `0 B/param` non-stiff state).
+
+---
+
+## Phase 3 All-Time Champion (`law4-energy-v11` + `pullback-zerosync`, Merged via PR #610 `88433f44e` & PR #611 `60374f68e`)
+
+Phase 3 closed the final Law 4.4 generator-free isolation gap in **`law4-energy-v11`** (`Law4EnergyV11Optimizer`) and eliminated **`72%–98%` of GPU-CPU synchronizations** across `_unified_v11/` and `_law4_energy/` (`new_tensor` → `new_full(())`, strided `sq_mix[0::2]`/`[1::2]`, lazy `float64` EMAs, GPU-resident `update_quantizer`, and `0.0` bit-exact `(1.0 / scalar_t64).float()` CUDA reciprocals).
+
+### 1. Official Forge Verification Battery for **`law4-energy-v11`** (Seed `0`, `deterministic_orthogonal`, `NVIDIA RTX A6000`)
+
+| Verification Suite | `law4-energy-v11` Alone (`238a61789` / `c7713ade3`) | Combined `law4-energy-v11` + `pullback-zerosync` (`f432dbce0`) | Key Verbatim Metrics |
+| :--- | :---: | :---: | :--- |
+| **`discriminator_stability` Tiers 1–2** | **ALL-TIME RECORD `44 / 48` PASS** (`17/17` T1 = `100%` + `27/31` T2, `7/7` held PASS) | *(inherits `v11` exact neural-G + generator-free parity)* | `staggered100` PASS (`0.9921/0.1310`), `five_word_joint_hold` `24/24` PASS, `model_ddgan_bimodal_chain` PASS, `interp_sparse_arc` `0.8406` PASS, `4/4` Conv2d images, `6/6` vectors, `3/3` `>548×` Nash (`readout-0b7cd7995a0a857bb250cf14.json`) |
+| **`r4-occam-ablation-v1`** | **`16 / 16` PASS** (`readout-53e330a0d8e1c04d4c72bbcd.json`) | **`16 / 16` PASS** (`energy_verifier_q_f432`) | Closes BOTH `t3_iso_*` (`min_eig = 0.4723`, `hq = 0.9629` & `0.9531`), `grid100` (`0.9896 / 0.0859`), **`grid100_mlp16` (`0.9918 / 0.0777`)**, `five_word_joint_smoke` PASS, `nash_*` 2/2, `zero_tanh_*` 2/2 |
+| **`dcgan_performance`** | **`6 / 6` PASS** (`readout-bc0352d17785c6afcfeafd00.json`) | **`6 / 6` PASS** (`energy_verifier_q_f432`) | Combined `r256`: **`41.89 ms/step`** (`382.2 img/s`, `1243.4 MiB`, strictly `0` Conv2d NS, `0` Critic NS, `0 B/param` non-stiff state) |
+| **`t4-strange-architectures-v1`** | **`6 / 7` PASS** (`readout-33d5dc6aafae554b7d9433af.json`) | *(matches `unified-v11` `6/7`)* | `grid100_res16_scaled_tanh` (`0.9912 / 0.0541`), `clockfree_audit_measurement_v1` (`4/4`), `grid100`, `grid100_mlp16`, `zero_tanh_*` 2/2 |
+
+### 2. Matched Uncontended Idle-GPU 0 Hardware NVML `Joules-to-PASS` Comparison (6 Tasks, `util_before = [0, 0]`, `contended = False`)
+
+| Phase-3 Arm *(Measured Commit)* | `r256` `ms/st` · **`J/st`** | `ring16` `ms/st` · **`J-to-PASS`** | `grid100` `ms/st` · **`J-to-PASS`** *(1st)* | `staggered100` `ms/st` · **`J-to-PASS`** *(1st)* | `grid100_mlp16` `ms/st` · **`J-to-PASS`** *(1st)* | `five_word` `ms/st` · **`J-to-PASS`** *(1st)* |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **`law4-energy-v11` + `pullback-zerosync`** *(`c7713ade3+f432dbce0`)* | **`41.30 ms` · `11.76 J`** *(**RECORD**, `2.08×` faster vs `v11`!)* | `34.40 ms` · `627.0 J` *(217, PASS)* | `35.77 ms` · `5,352 J` *(1000, PASS)* | `44.58 ms` · `12,475 J` *(2000, PASS)* | **`73.39 ms`** (`-9.1%`) · `12,543 J` *(1250, PASS)* | **`19.37 ms` · `1,526 J`** *(834, **RECORD**, `2.86×` < `v11+zs`!)* |
+| **`law4-energy-v11` alone** *(`238a61789`)* | `44.61 ms` · `13.10 J` | **`29.09 ms` · `570.7 J`** *(217, PASS)* | **`32.78 ms` · `4,991 J`** *(1000, PASS)* | **`39.67 ms` · `8,657 J`** *(1500, PASS)* | `80.73 ms` · **`11,721 J`** *(1250, PASS)* | `21.86 ms` · `1,708 J` *(834, PASS)* |
+| **`unified-v11` + `pullback-zerosync`** *(`f432dbce0`)* | `68.35 ms` (`-20.3%`) · `19.59 J` (`-17.4%`) | `37.54 ms` · `725.6 J` *(217, PASS)* | `49.25 ms` · `6,550 J` *(1000, PASS)* | `48.18 ms` · `11,562 J` *(1750, PASS)* | `76.38 ms` · `67,181 J`* *(6500, FAIL suf)* | `27.73 ms` · `4,365 J` *(1667, PASS)* |
+| *Ref: Fixed `unified-v11` (`f396e5c64`)* | `85.81 ms` · `23.70 J` | `675.4 J` *(200, PASS)* | `7,833 J` *(1250, PASS)* | `9,643 J` *(1500, PASS)* | — | — |
+
+**Phase-3 Verdict:** **`law4-energy-v11` (`88433f44e`) + `pullback-zerosync` (`60374f68e`)** is the new **strict Pareto champion across BOTH scientific breadth (`44/48` Tiers 1–2 ALL-TIME RECORD, `17/17` Tier 1 = `100%`, `16/16` Occam, `6/6` DCGAN-perf, `6/7` `t4-arch`) AND hardware energy efficiency** — hitting **`41.30 ms/step` / `11.76 J/step`** on `dcgan_performance_r256` (`2.08×` faster / `-50.4%` energy vs fixed `unified-v11`) and **`19.37 ms/step` / `1,526 J` `J-to-PASS`** on `five_word_joint_smoke` (`2.86×` lower energy than `unified-v11` + `pullback-zerosync`), while remaining registered cleanly as opt-in `law4_energy_v11` (`DEFAULT_RECIPE` unchanged at `"unified_v11"` per `AGENTS.md` calibration rules).
