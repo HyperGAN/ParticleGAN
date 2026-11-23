@@ -1453,7 +1453,7 @@ def test_unified_v11_zerosync_primitives_parity_and_cuda_sync_budget() -> None:
         pb_syncs = sum(
             int(e.count) for e in prof_pb.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
         ) / 5.0
-        assert pb_syncs <= 16.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 16)"
+        assert pb_syncs <= 14.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 14)"
 
         rec_img = get_recipe(
             "unified_v11",
@@ -2067,5 +2067,158 @@ torch.save(
                 assert torch.equal(v, resumed["models"][m_name][k]), f"Combined continuation mismatch {m_name}.{k}"
             else:
                 assert v == resumed["models"][m_name][k], f"Combined continuation value mismatch {m_name}.{k}"
+
+
+def test_unified_v11_pullback_fastpath_exact_parity_and_mog_sigma_cache() -> None:
+    """Phase 4 pullback/penalty fastpath bit-exact parity + MoGParticlePrior.set_sigma zero-sync mutation safety."""
+    import math
+    from particlegan._unified.penalty import _UnifiedPenaltyKernel
+    from particlegan._unified.prior import _compute_pythagorean_smoothed_cells
+    from particlegan._unified_v11.penalty import _UnifiedV11PenaltyKernel
+    from particlegan._unified_v11.prior import (
+        _compute_pythagorean_smoothed_cells_fast,
+        _quantile_1d_fast,
+        _sinkhorn_barycenter_fast,
+    )
+
+    torch.manual_seed(0)
+
+    # 1. _quantile_1d_fast matches torch.quantile bit-for-bit on float32 and float64:
+    for dtype in (torch.float32, torch.float64):
+        for n in (1, 2, 16, 96, 256, 2048):
+            vec = torch.randn(n, dtype=dtype) * 5.0
+            for q in (0.0, 0.25, 0.35, 0.5, 0.92, 1.0):
+                got = _quantile_1d_fast(vec, q)
+                ref = torch.quantile(vec, q)
+                assert torch.equal(got, ref), f"quantile mismatch n={n} q={q} dtype={dtype}: {got} != {ref}"
+
+    # 2. _compute_pythagorean_smoothed_cells_fast matches _compute_pythagorean_smoothed_cells bit-for-bit:
+    for k in (1, 2, 16, 64):
+        proto_c = torch.randn(k, 2) * 0.4
+        proto_var = torch.rand(k).clamp_min(1e-3) * 0.05
+        proto_w = torch.rand(k).clamp_min(1e-3)
+        proto_w = proto_w / proto_w.sum()
+        got_t = _compute_pythagorean_smoothed_cells_fast(proto_c, proto_var, proto_w)
+        ref_t = _compute_pythagorean_smoothed_cells(proto_c, proto_var, proto_w)
+        for idx, (a, b) in enumerate(zip(got_t, ref_t)):
+            assert torch.equal(a, b), f"pythagorean cells mismatch k={k} output={idx}"
+
+    # 3. _sinkhorn_barycenter_fast matches logsumexp Sinkhorn across benign and stiff Born-Infeld costs:
+    for scale in (10.0, 250.0):
+        b_n, k_n = 128, 32
+        L = -torch.rand(b_n, k_n) * scale
+        log_a = -math.log(float(b_n))
+        w = torch.rand(k_n).clamp_min(1e-3)
+        w = w / w.sum()
+        log_b = torch.log(w)
+        c_bar = torch.randn(k_n, 2)
+        got_y = _sinkhorn_barycenter_fast(L, log_a, log_b, c_bar, b_n, torch.float32)
+        u = torch.zeros(b_n, dtype=torch.float32)
+        v = torch.zeros(k_n, dtype=torch.float32)
+        for _ in range(10):
+            v = log_b - torch.logsumexp(L + u.unsqueeze(1), dim=0)
+            u = log_a - torch.logsumexp(L + v.unsqueeze(0), dim=1)
+        P = torch.exp(L + u.unsqueeze(1) + v.unsqueeze(0))
+        rp = (float(b_n) * P).clamp_min(0.0)
+        rp = rp / rp.sum(dim=1, keepdim=True).clamp_min(1e-12)
+        ref_y = rp @ c_bar
+        assert torch.allclose(got_y, ref_y, atol=1e-6, rtol=1e-6), f"sinkhorn diff scale={scale}"
+
+    # 4. _UnifiedV11PenaltyKernel._build_geodesic_chord matches _UnifiedPenaltyKernel on cold and warm ell:
+    xr = torch.randn(64, 2)
+    xf = torch.randn(64, 2)
+    rec_a = UnifiedV11StepRecord()
+    rec_b = UnifiedV11StepRecord()
+    ker_v11 = _UnifiedV11PenaltyKernel(record=rec_a)
+    ker_ref = _UnifiedPenaltyKernel(record=rec_b)
+    chord_a, phi_a = ker_v11._build_geodesic_chord(xr, xf, is_conditioned=False)
+    chord_b, phi_b = ker_ref._build_geodesic_chord(xr, xf, is_conditioned=False)
+    assert phi_a == phi_b
+    assert torch.allclose(chord_a, chord_b, atol=1e-6, rtol=1e-6)
+    rec_a.t1c_ell_initialized = True
+    rec_a.t1c_ell_ema = 0.25
+    rec_a._t1c_ell_t = torch.tensor(0.25, dtype=torch.float64)
+    rec_b.t1c_ell_initialized = True
+    rec_b.t1c_ell_ema = 0.25
+    chord_a2, phi_a2 = ker_v11._build_geodesic_chord(xr, xf, is_conditioned=False)
+    chord_b2, phi_b2 = ker_ref._build_geodesic_chord(xr, xf, is_conditioned=False)
+    assert phi_a2 == phi_b2
+    assert torch.allclose(chord_a2, chord_b2, atol=1e-6, rtol=1e-6)
+
+    # 5. MoGParticlePrior.set_sigma & _cached_sigma_float zero-sync fast path + strict mutation safety:
+    p_src = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=False)
+    p_dst = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=False)
+    with mock.patch.object(torch.Tensor, "item", side_effect=AssertionError("unexpected .item() sync on cached sigma")):
+        assert abs(p_src._cached_sigma_float() - float(torch.tensor(0.05, dtype=torch.float32))) == 0.0
+        p_dst.set_sigma(p_src.sigma)
+        assert p_dst._noise_enabled is True
+    # In-place buffer mutation invalidates cache immediately:
+    with torch.no_grad():
+        p_src.sigma.fill_(0.0)
+    assert p_src._cached_sigma_float() == 0.0
+    p_dst.set_sigma(p_src.sigma)
+    assert p_dst._noise_enabled is False and p_dst._cached_sigma_float() == 0.0
+    with torch.no_grad():
+        p_src.sigma.fill_(-1.0)
+    with pytest.raises(ValueError, match="nonnegative"):
+        p_dst.set_sigma(p_src.sigma)
+    # Replacing .data (data_ptr change without _version bump) also invalidates cache:
+    p_src.set_sigma(0.1)
+    p_src.sigma.data = torch.tensor(-2.0)
+    with pytest.raises(ValueError, match="nonnegative"):
+        p_dst.set_sigma(p_src.sigma)
+    # load_state_dict refreshes cache cleanly:
+    p_src.set_sigma(0.15)
+    p_dst.load_state_dict(p_src.state_dict())
+    assert abs(p_dst._cached_sigma_float() - float(torch.tensor(0.15, dtype=torch.float32))) == 0.0
+    assert p_dst._noise_enabled is True
+
+    # 6. _prepare_batched_highd_tangent_plans & _penalty_highd_batched exact parity (both concat & non-concat):
+    from particlegan._t1_coupling.primitive import T1CouplingLoss
+    from particlegan._t2_critic.penalty import _prepare_spatial_tangent_plan
+    from particlegan._unified_v4.loss import _principal_axis_power
+    from particlegan._unified_v11.loss import UnifiedV11CouplingLoss, _principal_axis_power_zerosync
+    from particlegan._unified_v11.penalty import _prepare_batched_highd_tangent_plans
+
+    xr_hi = torch.randn(32, 32)
+    xf_hi = torch.randn(32, 32)
+    xc_hi = torch.randn(32, 32)
+    u_bat, k_bat, w_bat = _prepare_batched_highd_tangent_plans(torch.stack((xr_hi, xf_hi, xc_hi), dim=0), 0.37)
+    for idx_s, (x_s, salt) in enumerate(((xr_hi, 1), (xf_hi, 2), (xc_hi, 3))):
+        u_ref, recon_ref = _prepare_spatial_tangent_plan(x_s, 0.37, salt=salt)
+        assert torch.equal(u_bat[idx_s], u_ref)
+        tau_s = torch.rand(32)
+        sq_bat = 32.0 * (w_bat[idx_s] * tau_s[k_bat[idx_s]]).sum(dim=1)
+        assert torch.allclose(sq_bat, recon_ref(tau_s), atol=1e-6, rtol=1e-6)
+    disc_hi = nn.Sequential(nn.Linear(32, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    for concat_flag in (False, True):
+        ka = _UnifiedV11PenaltyKernel(record=UnifiedV11StepRecord())
+        kb = _UnifiedPenaltyKernel(record=UnifiedV11StepRecord())
+        pa, _ = ka.penalty(disc_hi, xr_hi, xf_hi, step=1, can_concat_batches=concat_flag)
+        pb, _ = kb.penalty(disc_hi, xr_hi, xf_hi, step=1, can_concat_batches=concat_flag)
+        assert torch.allclose(pa, pb, atol=1e-6, rtol=1e-6)
+
+    # 7. UnifiedV11CouplingLoss._sinkhorn_slack bit-exact parity vs T1CouplingLoss._sinkhorn_slack:
+    c_hat_s = torch.rand(32, 32) * 15.0
+    dr_s = torch.randn(32)
+    dc_s = torch.randn(32)
+    assert torch.allclose(
+        UnifiedV11CouplingLoss()._sinkhorn_slack(c_hat_s, dr_s, dc_s),
+        T1CouplingLoss()._sinkhorn_slack(c_hat_s, dr_s, dc_s),
+        atol=1e-6,
+        rtol=1e-6,
+    )
+
+    # 8. _principal_axis_power_zerosync handles zero, rank-1, tiny, and PSD symmetric matrices identically:
+    for d_p in (2, 16):
+        u_r1 = torch.randn(d_p, 1)
+        for mat_p in (torch.zeros(d_p, d_p), torch.eye(d_p) * 1e-25, u_r1 @ u_r1.T):
+            v_ref = _principal_axis_power(mat_p, iters=6)
+            v_zs = _principal_axis_power_zerosync(mat_p, iters=6)
+            assert torch.allclose(v_zs, v_ref, atol=1e-6, rtol=1e-6)
+            v_ns = _principal_axis_power_zerosync(mat_p, iters=6, canonicalize_sign=False)
+            assert abs(float((v_ns * (mat_p @ v_ns)).sum()) - float((v_ref * (mat_p @ v_ref)).sum())) <= 1e-6
+
+
 
 

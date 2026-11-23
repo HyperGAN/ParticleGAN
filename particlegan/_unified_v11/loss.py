@@ -25,25 +25,102 @@ from ..gan_loss import GANLoss
 from .bank import UnifiedV11CondFiberBank, sym_eigensplit_zero_eigh
 
 
+_POWER_INIT_CACHE: Dict[Tuple[int, torch.device, torch.dtype], Tuple[torch.Tensor, torch.Tensor]] = {}
+
+
+def _get_power_init_helpers(d: int, device: torch.device, dtype: torch.dtype) -> Tuple[torch.Tensor, torch.Tensor]:
+    key = (d, device, dtype)
+    cached = _POWER_INIT_CACHE.get(key)
+    if cached is None:
+        idx = torch.arange(1, d + 1, device=device, dtype=dtype)
+        v0 = torch.remainder(idx * _PHI1 + 0.25, 1.0) - 0.5
+        v0 = (v0 / v0.norm().clamp_min(1e-12)).unsqueeze(1)
+        idx0 = torch.arange(d, device=device)
+        cached = (v0, idx0)
+        if len(_POWER_INIT_CACHE) < 64:
+            _POWER_INIT_CACHE[key] = cached
+    return cached
+
+
 @torch.no_grad()
-def _principal_axis_power_zerosync(gram: torch.Tensor, iters: int = 6) -> torch.Tensor:
+def _principal_axis_power_zerosync(
+    gram: torch.Tensor,
+    iters: int = 6,
+    *,
+    canonicalize_sign: bool = True,
+) -> torch.Tensor:
     """Zero-sync deterministic power-iteration top eigenvector on symmetric PSD ``[D, D]``."""
     d = int(gram.shape[0])
-    idx = torch.arange(1, d + 1, device=gram.device, dtype=gram.dtype)
-    v = torch.remainder(idx * _PHI1 + 0.25, 1.0) - 0.5
-    v = v / v.norm().clamp_min(1e-12)
-    for _ in range(iters):
-        gv = gram @ v
-        nrm = gv.norm()
-        v = torch.where(nrm > 1e-20, gv / nrm.clamp_min(1e-20), v)
+    v0_col, idx0 = _get_power_init_helpers(d, gram.device, gram.dtype)
+    if iters <= 0:
+        v = v0_col.squeeze(1)
+    else:
+        # For any symmetric G, ||G v_t|| is monotonically non-decreasing in t (Cauchy-Schwarz),
+        # so checking ||G v_0|| > 1e-20 once is mathematically equivalent to per-iteration checks.
+        gv = torch.mm(gram, v0_col)
+        nrm0 = gv.norm()
+        active = nrm0 > 1e-20
+        v_col = gv / nrm0.clamp_min(1e-20)
+        for _ in range(iters - 1):
+            gv = torch.mm(gram, v_col)
+            v_col = gv / gv.norm().clamp_min(1e-20)
+        v = torch.where(active, v_col, v0_col).squeeze(1)
+    if not canonicalize_sign:
+        return v
     nz = v.abs() > 1e-6
-    pos = torch.where(nz, torch.arange(d, device=gram.device), d)
+    pos = torch.where(nz, idx0, d)
     first = v.index_select(0, pos.argmin().unsqueeze(0)).squeeze(0)
     return torch.where(nz.any() & (first < 0), -v, v)
 
 
 class UnifiedV11CouplingLoss(UnifiedV4CouplingLoss):
     """Zero-`eigvalsh` / zero-`svdvals` coupling primitive for Unified-v11."""
+
+    @torch.no_grad()
+    def _sinkhorn_slack(
+        self,
+        c_hat: torch.Tensor,
+        d_row: torch.Tensor,
+        d_col: torch.Tensor,
+        hollow: bool = False,
+        pair_mask: Optional[torch.Tensor] = None,
+    ) -> torch.Tensor:
+        """Bit-exact 1-buffer in-place Sinkhorn-slack fastpath (eliminates 2*iters logsumexp allocations)."""
+        if hollow or pair_mask is not None or self.iters < 1:
+            return super()._sinkhorn_slack(c_hat, d_row, d_col, hollow=hollow, pair_mask=pair_mask)
+        b_r, b_c = c_hat.shape
+        energy = self._screening_energy(c_hat)
+        L = c_hat.new_zeros((b_r + 1, b_c + 1), dtype=torch.float32)
+        L[:b_r, :b_c] = -energy / self.eps
+        L[:b_r, b_c] = (-0.5 * self.rho + 0.5 * self.tau * d_row.float()) / self.eps
+        L[b_r, :b_c] = (-0.5 * self.rho - 0.5 * self.tau * d_col.float()) / self.eps
+
+        log_row = L.new_full((b_r + 1,), -math.log(max(1, b_r)))
+        log_row[b_r] = math.log(2.0)
+        log_col = L.new_full((b_c + 1,), -math.log(max(1, b_c)))
+        log_col[b_c] = math.log(2.0)
+
+        buf = torch.empty_like(L)
+        m0 = L.amax(dim=0, keepdim=True)
+        torch.sub(L, m0, out=buf)
+        buf.exp_()
+        v = log_col - (m0.squeeze(0) + buf.sum(dim=0).log_())
+        torch.add(L, v.unsqueeze(0), out=buf)
+        m1 = buf.amax(dim=1, keepdim=True)
+        buf.sub_(m1).exp_()
+        u = log_row - (m1.squeeze(1) + buf.sum(dim=1).log_())
+        for _ in range(self.iters - 1):
+            torch.add(L, u.unsqueeze(1), out=buf)
+            m0 = buf.amax(dim=0, keepdim=True)
+            buf.sub_(m0).exp_()
+            v = log_col - (m0.squeeze(0) + buf.sum(dim=0).log_())
+            torch.add(L, v.unsqueeze(0), out=buf)
+            m1 = buf.amax(dim=1, keepdim=True)
+            buf.sub_(m1).exp_()
+            u = log_row - (m1.squeeze(1) + buf.sum(dim=1).log_())
+        torch.add(L, u.unsqueeze(1), out=buf)
+        buf.add_(v.unsqueeze(0)).exp_()
+        return buf.to(c_hat.dtype)
 
 
 def v11_zero_eigh_bipartite_deficit_macro_loss(
