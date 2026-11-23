@@ -246,6 +246,31 @@ def test_ephemeral_view_includes_transitive_dependencies(tmp_path: Path):
     view_file, _study_file, _sid = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit, tmp_path)
     assert view_file is not None
     vdoc = json.loads(view_file.read_text(encoding="utf-8"))
-    assigned = {a["task"] for a in vdoc["assignments"]}
+    assigned = {a["task"]: a["qualification_tier"] for a in vdoc["assignments"]}
     assert "model_ae_ddgan_bimodal_chain" in assigned
     assert "model_ae_ddgan_gaussian_chain" in assigned
+    assert set(assigned.values()) == {1}
+
+    # Also verify Tier-4 held task (grid100_mlp16) produces a valid contiguous required Tier-1+ view
+    from experiments.forge.views import load_tasks, validate_view
+
+    all_tasks = load_tasks(cf.REPO_ROOT)
+    for tid in ("model_ae_ddgan_bimodal_chain", "grid100_mlp16", "zero_tanh_rail_escape", "ring_extension"):
+        unit_chk = cf.CatchupUnit(
+            unit_id=f"chk-{tid[:12]}",
+            candidate_id="unified-v11",
+            view_id="discriminator_stability",
+            through_tier=4,
+            gpu="L4",
+            tasks=[tid],
+            is_full_view_slice=False,
+            estimated_seconds=3600.0,
+        )
+        vf, sf, _sid = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit_chk, tmp_path)
+        assert vf is not None
+        vdoc_chk = json.loads(vf.read_text(encoding="utf-8"))
+        sdoc_chk = json.loads(sf.read_text(encoding="utf-8"))
+        validate_view(vdoc_chk, all_tasks)
+        tiers = {a["qualification_tier"] for a in vdoc_chk["assignments"]}
+        assert tiers == set(range(1, len(tiers) + 1))
+        assert sdoc_chk["scope"]["through_tier"] == len(tiers)

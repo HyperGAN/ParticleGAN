@@ -899,6 +899,33 @@ def build_ephemeral_catchup_bundle(
                         wanted.add(dep_id)
                         frontier.append(dep_id)
         subset_assignments = [a for a in view.get("assignments", []) if a["task"] in wanted]
+        if has_deps:
+            # Compress distinct original tiers onto contiguous 1..K so Forge's
+            # "empty required tier: qualification tiers must be contiguous from Tier 1"
+            # check always passes while strictly preserving parent-before-child gates.
+            orig_tiers = sorted({int(a.get("qualification_tier", 1)) for a in subset_assignments})
+            tier_map = {orig: idx + 1 for idx, orig in enumerate(orig_tiers)}
+            effective_through_tier = len(orig_tiers)
+            remapped = [
+                {
+                    **{k: v for k, v in a.items() if k not in ("hold", "removal")},
+                    "qualification_tier": tier_map[int(a.get("qualification_tier", 1))],
+                    # Ephemeral catch-up views are non-qualifying; marking slice tasks
+                    # required guarantees every compressed tier is non-empty.
+                    "importance": "required",
+                }
+                for a in subset_assignments
+            ]
+        else:
+            effective_through_tier = 1
+            remapped = [
+                {
+                    **{k: v for k, v in a.items() if k not in ("hold", "removal")},
+                    "qualification_tier": 1,
+                    "importance": "required",
+                }
+                for a in subset_assignments
+            ]
         ephemeral_view = {
             **{
                 k: v
@@ -907,18 +934,12 @@ def build_ephemeral_catchup_bundle(
             },
             "id": effective_view_id,
             "revision": 1,
-            "assignments": [
-                {
-                    **a,
-                    # Keep original relative tiers when prerequisites exist; flatten to tier 1
-                    # for independent slices so one sibling FAIL never blocks measuring peers.
-                    "qualification_tier": int(a.get("qualification_tier", 1)) if has_deps else 1,
-                }
-                for a in subset_assignments
-            ],
+            "assignments": remapped,
         }
         view_file = out_dir / f"{effective_view_id}.view.json"
         view_file.write_text(json.dumps(ephemeral_view, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    else:
+        effective_through_tier = unit.through_tier
 
     study_id = f"colab-catchup-{unit.unit_id}"
     # Pick first task for a valid study contract metric anchor
@@ -972,7 +993,7 @@ def build_ephemeral_catchup_bundle(
         "max_rounds": 1,
         "scope": {
             "view": effective_view_id,
-            "through_tier": unit.through_tier,
+            "through_tier": effective_through_tier,
             "execution_backend": exec_backend,
             **({"cuda_model": cuda_model} if cuda_model else {}),
         },
