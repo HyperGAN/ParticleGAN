@@ -96,7 +96,7 @@ The fixture passes its declared mechanism gate. It supplies software evidence;
 its artificial displacement, smaller architecture and 64-update budget cannot
 qualify a Forge task or establish Gaussian target quality.
 
-![Actual training: initial-location and generated-output observations](goal.gif)
+![Actual training: initial-location and generated-output observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/prior-mmd/goal.gif)
 
 The [gradient probe](gradient-probe.json) suggests starting positive strengths
 `.1, 1, 10`. At the fixture's declared initial displacement, unweighted maximum

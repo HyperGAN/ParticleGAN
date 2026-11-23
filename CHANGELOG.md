@@ -1,5 +1,57 @@
 # Changelog
 
+## 0.12.0 — 2026-11-23
+
+- **Promote `unified_v12` (`DEFAULT_RECIPE = "unified_v12"`) as the energy-optimal 4-Law research default (PR #615, PR #620).**
+  Preserves Laws 1–3 (`critic_formulation="unified_v11"`, `prior_regularizer="unified_v11"`,
+  strictly `0` `torch.autograd.grad`, `0` `svd`/`eigh`/`pinv`, exact `179` `Recipe` fields,
+  and explicit `get_recipe("unified_v11")` byte-identically) while introducing:
+  - **Energy-optimal Law-4 optimizer (`particlegan/_unified_v12/`, `optimizer_family="unified_v12_equil"`, PR #620):**
+    Replaces redundant 4D Conv2d Newton–Schulz with zero-state (`0.0000 B/param`)
+    polar-matched Frobenius-MP (`torch._foreach_norm` + in-place updates), applies Law 4.4
+    asymmetric `0`-NS 2D critic equilibration with automatic generator-free 2D NS fallback
+    (`0` critic secant probes), adds CountSketch spectral preconditioning on stiff deep 2D
+    generators, and opts into `_SUPPORTS_ZEROSYNC_V4_TENSORS = True` with strict schema-bound
+    checkpoint continuation (`tests/test_unified_v12.py`).
+  - **Zero-sync pullback fast-path (`particlegan/_unified_v11/`, PR #615):**
+    Eliminates redundant dual-branch `torch.where` work in `unified_v11_pullback_step` and
+    `update_quantizer` via single-batched control-flag syncs (`3.0` syncs/step on `r256` and
+    `five_word_joint_smoke`; `12.0` syncs/step on `grid100` and `grid100_mlp16`) while
+    preserving float64-reciprocal CUDA parity.
+  - **Verified evidence (seed `0`, `deterministic_orthogonal`, strictly idle RTX A6000 NVML):**
+    - **All-time record breadth:** **`18/18` (`100%`)** on untouched
+      `r3-tier3-long-horizon-holdout-v1` (vs post-PR-#612 `unified-v11` `16/18`: passes
+      `grid100_14k`, `rotated100_14k`, `staggered100`, `staggered100_14k`, `ring_extension`,
+      `five_word_joint_hold`, `target_shift_recovery`, `zero_tanh_rail_escape`),
+      **`46/48`** Tiers 1–2 `discriminator_stability` PASS (`17/17` T1 + `29/31` T2,
+      **`29/29` required = `100%`**, `readout-5002641a64ddaa91f1fc3b87.json`), **`2/2`
+      combined AE-DDGAN PASS** (`model_ae_ddgan_gaussian_chain` `paired_nmse=0.0480`,
+      `t1_q0_cdf=0.2227`; `model_ae_ddgan_bimodal_chain` `paired_nmse=0.0313`,
+      `t1_q0_cdf=0.1278`), **`16/16`** `r4-occam-ablation-v1`, **`6/6`** `dcgan_performance`
+      (`r256 = 39.76 ms/step` median, `1,243.9 MiB`).
+    - **Hardware NVML `Joules-to-PASS` (`util_before=[0,0]`, [`law4-phase2-energy-benchmark.json`](reports/forge/studies/law4-phase2-energy-benchmark.json)):**
+      `dcgan_performance_r256` **`39.22 ms/step` / `11.37 J/step`** (`1.87×` faster,
+      **`-45.8%`** J/st vs matched post-PR-#612+#615 `unified-v11` `73.21 ms / 20.96 J`;
+      `2.19×` faster / **`-52.0%`** J/st vs pre-Phase-3 fixed `unified-v11` `85.81 ms / 23.70 J`),
+      `ring16_acquisition` **`462.5 J`** (`-26.3%`), `grid100` **`4,512.9 J`** (`-36.3%`),
+      `five_word_joint_smoke` **`1,398.9 J`** (`17.67 ms/step`, **`-78.8%` / `4.72×` less J**),
+      and `staggered100` **`10,743.4 J`** (live-suffix PASS vs `unified-v11` FAIL).
+    - **Transparent scope & trade-off disclosures:** Forge screening calibration remains
+      provisional (`BLOCKED` under `criteria-v1.json`); `unified_v12` is an owner-directed
+      research default selection. Standalone `t4-strange-architectures-v1` passes **`7/7`**
+      (`readout-731e752ff3c4f97e29a84145.json`); combined with PR #615's float64
+      `shock_t64`/`tv_now64` restoration, `grid100_res16_tanh` passes the `100k` independent
+      holdout (`prec=0.9831, ctr=0.1224, score=0.6562, sat=0.0`) and `4/5` terminal checks
+      with a 1-ULP step-`6250` `modes=99` dip (`6/7` combined). On `grid100_mlp16`, CountSketch
+      adds `+3.1%` per-step time (`75.96` vs `73.69 ms/step`, both PASS).
+- **CI & Forge evidence hygiene fixes.**
+  - Preserve strict null-energy checks on historical receipts without `cost.energy` while
+    validating non-null NVML `joules_total` / `energy_backend` on energy-instrumented Forge
+    receipts (`tests/test_forge_hf_publish.py`).
+  - Read archived `precision-stretch` preview GIFs via `git show <source_commit>:<path>` when
+    evicted from the working tree (`tests/test_forge_precision.py`), and refresh compiled
+    Forge reports (`ops.refresh_forge_readouts --reports-only`).
+
 ## 0.11.2 — 2026-11-21
 
 - **Fix high-D 2D vector critic silencing, premature thermal freeze, and probe lockout in `unified_v11` (PR #591).**

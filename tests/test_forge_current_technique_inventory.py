@@ -1979,7 +1979,9 @@ def test_original_completion_cohorts_rebuild_every_scientific_row_without_raw_lo
                              "sha256": file_hash(tmp_path / original_media)}
         atomic_json(tmp_path / scoped_registry, registry)
         assert file_hash(tmp_path / scoped_registry) == original["scoped_registry_sha256"]
-        from experiments.forge.scoped_publications import load_publications
+        from experiments.forge.scoped_publications import HF_MEDIA_MANIFEST, load_publications
+        if (ROOT / HF_MEDIA_MANIFEST).is_file():
+            shutil.copyfile(ROOT / HF_MEDIA_MANIFEST, tmp_path / HF_MEDIA_MANIFEST)
         assert load_publications(tmp_path) == load_publications(
             ROOT, load=lambda path: registry if path == scoped_registry else read_json(ROOT / path))
     # This private checkout reconstructs the original completed publication.

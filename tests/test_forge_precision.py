@@ -87,7 +87,16 @@ def test_published_preview_keeps_its_exact_original_source_and_media():
         assert hashlib.sha256(original).hexdigest() == expected
     for prefix in saved["prefixes"]:
         assert prefix["quality_status"] == "INCOMPLETE"
-        assert hashlib.sha256((ROOT / prefix["gif"]["path"]).read_bytes()).hexdigest() == prefix["gif"]["sha256"]
+        gif_path = ROOT / prefix["gif"]["path"]
+        gif_bytes = (
+            gif_path.read_bytes()
+            if gif_path.is_file()
+            else subprocess.check_output(
+                ["git", "show", saved["source_commit"] + ":" + prefix["gif"]["path"]],
+                cwd=ROOT,
+            )
+        )
+        assert hashlib.sha256(gif_bytes).hexdigest() == prefix["gif"]["sha256"]
 
 
 @pytest.mark.parametrize("family", ["atlas", "bcap-pure", "bispf", "e22", "k3p", "ka2", "r1r2", "release07-gan-v3"])

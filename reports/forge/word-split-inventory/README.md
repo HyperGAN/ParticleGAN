@@ -70,9 +70,9 @@ not depend on the grade. Export added zero optimizer updates and zero sampling
 draws; numerical evidence determines the verdicts. Bulk checkpoints, arrays,
 stdout and event streams live in the byte-verified archive named and hashed by
 the readout, outside Git.
-The [word smoke](media/five_word_joint_smoke.gif),
-[Gaussian smoke](media/gaussian1d_smoke.gif) and
-[ring16 acquisition](media/ring16_acquisition.gif) illustrate those measured goals.
+The [word smoke](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-split-inventory/media/five_word_joint_smoke.gif),
+[Gaussian smoke](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-split-inventory/media/gaussian1d_smoke.gif) and
+[ring16 acquisition](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-split-inventory/media/ring16_acquisition.gif) illustrate those measured goals.
 
 The generic inventory launcher refused saved-configuration admission before
 training because it did not attach a bounded registration. The reproduction

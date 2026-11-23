@@ -192,3 +192,67 @@ def test_markdown_rebinding_preserves_receipt_links_and_remote_urls(tmp_path):
     assert "../retained.gif?download=1#frame" in rebound
     assert "[Receipt](actual.json)" in rebound
     assert "[Remote](https://example.com/a.gif)" in rebound
+
+
+def test_hf_media_manifest_resolves_evicted_scoped_gif_offline_and_rejects_hash_drift(tmp_path):
+    from experiments.forge.scoped_publications import (
+        HF_MEDIA_MANIFEST,
+        HF_MEDIA_MANIFEST_SCHEMA,
+        REGISTRY,
+        SCHEMA,
+        hf_media_url,
+        load_publications,
+    )
+
+    gif_rel = "reports/forge/pure-bcap/media/abc123/two_pole.gif"
+    gif_sha = hashlib.sha256(b"GIF89a-evicted-bytes").hexdigest()
+    prefix = "https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/" + ("a" * 40) + "/media/forge/"
+    manifest = {
+        "schema": HF_MEDIA_MANIFEST_SCHEMA,
+        "url_prefix": prefix,
+        "files": {gif_rel: [20, gif_sha, "b" * 40]},
+    }
+    manifest_path = tmp_path / HF_MEDIA_MANIFEST
+    manifest_path.parent.mkdir(parents=True, exist_ok=True)
+    manifest_path.write_text(json.dumps(manifest))
+
+    assert hf_media_url(tmp_path, gif_rel, gif_sha) == prefix + "pure-bcap/media/abc123/two_pole.gif"
+    with pytest.raises(ValueError, match="changed after registration"):
+        hf_media_url(tmp_path, gif_rel, "0" * 64)
+
+    sidecar = tmp_path / Path(gif_rel).with_suffix(".json")
+    sidecar.parent.mkdir(parents=True, exist_ok=True)
+    receipt = {
+        "kind": "actual_training_saved_observations_gif",
+        "optimizer_updates_added": 0,
+        "sampling_draws_added": 0,
+        "gif_sha256": gif_sha,
+        "task_id": "two_pole",
+        "recorded_grade": "PASS",
+    }
+    sidecar.write_text(json.dumps(receipt))
+    index_path = tmp_path / "reports/forge/media-index.json"
+    index_bytes = json.dumps({
+        "qualification_input": False,
+        "items": [{**receipt, "family": "bcap-pure", "attempt_id": "att-1", "gif": gif_rel}],
+    }).encode()
+    index_path.write_bytes(index_bytes)
+    registry_path = tmp_path / REGISTRY
+    registry_path.write_text(json.dumps({
+        "schema": SCHEMA,
+        "qualification_input": False,
+        "cohorts": [],
+        "media": {
+            "path": "reports/forge/media-index.json",
+            "sha256": hashlib.sha256(index_bytes).hexdigest(),
+        },
+    }))
+
+    loaded = load_publications(tmp_path)
+    assert ("bcap-pure", "two_pole", "att-1") in loaded["media"]
+
+    # Tampering manifest hash fails closed offline.
+    manifest["files"][gif_rel][1] = "1" * 64
+    manifest_path.write_text(json.dumps(manifest))
+    with pytest.raises(ValueError, match="changed after registration"):
+        load_publications(tmp_path)

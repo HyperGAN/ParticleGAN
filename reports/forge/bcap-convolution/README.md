@@ -100,8 +100,8 @@ repeats or tuning runs.
 All **96 already-scored sample sets** reproduce their numerical metrics offline,
 with exact discrete quantities and floating-point tolerance for CPU/GPU RMSE.
 The actual-training GIFs show all 32 clean outputs and target templates:
-[stripes](media/img_stripes2.gif), [bars](media/img_bars4.gif),
-[blobs](media/img_blobs4.gif), [intensity](media/img_intensity2.gif).
+[stripes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-convolution/media/img_stripes2.gif), [bars](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-convolution/media/img_bars4.gif),
+[blobs](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-convolution/media/img_blobs4.gif), [intensity](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-convolution/media/img_intensity2.gif).
 [Renderer receipts](media/index.json) bind saved observations and GIF hashes.
 Rendering prohibits learned-model construction, forward calls, training and
 sampling; it adds zero optimizer updates or sampling draws. Images are not

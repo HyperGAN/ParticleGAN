@@ -6,9 +6,9 @@ Native Source: 9da0e927a0a4242ee813ceb0340e9fee70ccdc40 / 00c19ef01f68e3222888a9
 
 | Native geometry | Execution / accepted joint gate | Coverage suffix / minimum; confirmed step | Final-five checks; holdout | Paid seconds | Saved goal media |
 | --- | --- | --- | --- | --- | --- |
-| grid100: 10×10 unit lattice | completed / PASS | 5/5; confirmed 7000 | 5/5 terminal reads; 100,000-sample holdout PASS | 946.207055 | [GIF](receipts/native/grid100/goal.gif) · [extracted final frame](receipts/native/grid100/goal-final.png) |
-| rotated100: the same lattice at 25° | completed / PASS | 26/5; confirmed 1750 | 5/5 terminal reads; 100,000-sample holdout PASS | 922.925795 | [GIF](receipts/native/rotated100/goal.gif) · [extracted final frame](receipts/native/rotated100/goal-final.png) |
-| staggered100: alternating ±0.25 shifts, row spacing 0.85 | completed / PASS | 24/5; confirmed 2250 | 5/5 terminal reads; 100,000-sample holdout PASS | 913.334815 | [GIF](receipts/native/staggered100/goal.gif) · [extracted final frame](receipts/native/staggered100/goal-final.png) |
+| grid100: 10×10 unit lattice | completed / PASS | 5/5; confirmed 7000 | 5/5 terminal reads; 100,000-sample holdout PASS | 946.207055 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/grid100/goal.gif) · [extracted final frame](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/grid100/goal-final.png) |
+| rotated100: the same lattice at 25° | completed / PASS | 26/5; confirmed 1750 | 5/5 terminal reads; 100,000-sample holdout PASS | 922.925795 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/rotated100/goal.gif) · [extracted final frame](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/rotated100/goal-final.png) |
+| staggered100: alternating ±0.25 shifts, row spacing 0.85 | completed / PASS | 24/5; confirmed 2250 | 5/5 terminal reads; 100,000-sample holdout PASS | 913.334815 | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/staggered100/goal.gif) · [extracted final frame](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/staggered100/goal-final.png) |
 
 All three targets have 100 equally weighted Gaussian modes with standard deviation 0.03. The question is whether the learned served clouds cover all 100 modes with correct per-mode mass, centers and local shape under the same unchanged 13 requirements. Visible mode coverage alone cannot certify PASS. The requirements include precision≥0.97, minimum high-quality mode mass≥0.005, coverage mass TV≤0.10, maximum mass≤0.02, covariance eigenvalue ratios0.40–1.70, radial median ratios0.65–1.40, and stricter accuracy mass TV≤0.06, center RMS≤0.20 target sigmas, absolute covariance-trace bias≤0.10 and radial KS≤0.04. Exact stored scalars and original consumer decisions are linked in [results.json](results.json).
 
@@ -71,13 +71,13 @@ The verified earlier native seed-1234 receipts record all three noisy primary ru
 
 **grid100**
 
-![grid100: retained served clouds approaching the 100 target modes](receipts/native/grid100/goal.gif)
+![grid100: retained served clouds approaching the 100 target modes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/grid100/goal.gif)
 
 **rotated100**
 
-![rotated100: retained served clouds approaching the 100 target modes](receipts/native/rotated100/goal.gif)
+![rotated100: retained served clouds approaching the 100 target modes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/rotated100/goal.gif)
 
 **staggered100**
 
-![staggered100: retained served clouds approaching the 100 target modes](receipts/native/staggered100/goal.gif)
+![staggered100: retained served clouds approaching the 100 target modes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-native-restoration-checkpoint-20261005/receipts/native/staggered100/goal.gif)
 

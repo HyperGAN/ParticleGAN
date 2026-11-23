@@ -1,5 +1,0 @@
-{
- "written": "2026-09-29 11:43 (E19a natives known; E22 = E19 + the duplicate guard only: CPU test shows an identical trajectory when the guard does not fire; no E22 run has started)",
- "candidate": "pkg-E22 with overrides-E22.json (= overrides-E19.json), native gates 7k",
- "forecast": "each E22 native run reproduces the E19a run exactly (same verdict, same last-5 precision and centre to the printed digits): probability .92 per cell (the residual: GPU nondeterminism outside the harness's deterministic mode, or a duplicate-rich reservoir in a native run, which has never been observed: iso_dup_skips would be > 0)"
-}

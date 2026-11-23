@@ -23,7 +23,9 @@ CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
-    "unified_v11_equil", "r4_mp_no_ns", "r4_no_secant_band",
+    "unified_v11_equil", "unified_v12_equil", "r4_mp_no_ns", "r4_no_secant_band",
+    "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
+    "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11",
 )
 _ROLES = {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
 _CONVOLUTION_VERSION = "per_offset_polar_v1"
@@ -1240,6 +1242,102 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
         optimizer = R4NoSecantBandOptimizer(
             params,
             smoothing=float(recipe.optimizer_smoothing),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v1":
+        from .._law4_energy import Law4EnergyOptimizer
+        optimizer = Law4EnergyOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v2":
+        from .._law4_energy import Law4EnergyV2Optimizer
+        optimizer = Law4EnergyV2Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v3":
+        from .._law4_energy import Law4EnergyV3Optimizer
+        optimizer = Law4EnergyV3Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v4":
+        from .._law4_energy import Law4EnergyV4Optimizer
+        optimizer = Law4EnergyV4Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v5":
+        from .._law4_energy import Law4EnergyV5Optimizer
+        optimizer = Law4EnergyV5Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v6":
+        from .._law4_energy import Law4EnergyV6Optimizer
+        optimizer = Law4EnergyV6Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v7":
+        from .._law4_energy import Law4EnergyV7Optimizer
+        optimizer = Law4EnergyV7Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v8":
+        from .._law4_energy import Law4EnergyV8Optimizer
+        optimizer = Law4EnergyV8Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v9":
+        from .._law4_energy import Law4EnergyV9Optimizer
+        optimizer = Law4EnergyV9Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v10":
+        from .._law4_energy import Law4EnergyV10Optimizer
+        optimizer = Law4EnergyV10Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "law4_energy_v11":
+        from .._law4_energy import Law4EnergyV11Optimizer
+        optimizer = Law4EnergyV11Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "unified_v12_equil":
+        from .._unified_v12 import UnifiedV12Optimizer
+        optimizer = UnifiedV12Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
             **options,
         )
     else:

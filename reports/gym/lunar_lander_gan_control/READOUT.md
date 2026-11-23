@@ -64,7 +64,7 @@ prior LR 100×, and EMA 0.995. Joint D has width 256 and marginal critics width 
 All sources, optimizer details, coefficients, scalers, and data hashes are frozen
 in `protocol.json` and the archived training artifacts.
 
-![Adversarial objectives throughout training](adversarial_training.png)
+![Adversarial objectives throughout training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_gan_control/adversarial_training.png)
 
 Loss scales differ with the number of critics. These curves show training
 behavior; landing outcomes select checkpoints. Tests isolate GAN gradients to
@@ -101,7 +101,7 @@ training. A boolean label alone cannot admit a checkpoint.
 These intervals describe finite evaluation worlds, not training-run or label-
 subset variation. There were no seed-only repetitions or post-result sweeps.
 
-![GAN-only outcomes](control_outcomes.png)
+![GAN-only outcomes](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_gan_control/control_outcomes.png)
 
 | Update | Joint validation landings | Joint return | Marginals validation landings | Marginals return |
 | ---: | ---: | ---: | ---: | ---: |
@@ -109,7 +109,7 @@ subset variation. There were no seed-only repetitions or post-result sweeps.
 | 1000 | 1/20 | -173.45 | 3/20 | -125.98 |
 | 2500 | 13/20 | 150.59 | 9/20 | 41.40 |
 
-![Validation checkpoint curves](validation_curve.png)
+![Validation checkpoint curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_gan_control/validation_curve.png)
 
 ## Prediction and sample quality
 
@@ -126,7 +126,7 @@ control. Persistence continuous successor MSE is 0.022230, better than either
 G3; both learned contact Brier scores beat persistence 0.008183. Prediction
 quality on expert states remains a secondary diagnostic.
 
-![Expert action and successor errors](auxiliary_tradeoff.png)
+![Expert action and successor errors](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_gan_control/auxiliary_tradeoff.png)
 
 Posthoc joint-distribution scoring generates one complete record per each of
 those same 2,444 expert terrain contexts, with matched prior/contact RNG streams:

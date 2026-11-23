@@ -25,11 +25,55 @@ Lookup uses these locations, in order:
 
 Every location must match the committed archive digest and declared byte count.
 A corrupt location cannot supply evidence; lookup can continue to another valid
-location. Mirrors are user-configured local or mounted storage. There is no
-implicit network transfer, credential discovery, guessed remote bucket, or
-automatic Git fetch. Obtain the exact archive from existing storage and place
-it at one of these locations. A hash identifies bytes; it does not promise that
-the archive exists.
+location. Mirrors are user-configured local or mounted storage. By default,
+there is no implicit network transfer, credential discovery, guessed remote
+bucket, or automatic Git fetch. Obtain the exact archive from existing storage
+and place it at one of these locations, or explicitly opt into Hugging Face
+hydration below. A hash identifies bytes; it does not promise that the archive
+exists.
+
+### Opt-in Hugging Face hydration
+
+Remote Hugging Face downloads are strictly opt-in and never occur unless you
+pass `--allow-hf`, pass `--hf-repo <owner/repo>`, or set
+`PARTICLEGAN_FORGE_HF_REPO`. Local candidates (cache, card path, `--locations`,
+and `--mirror`) are always checked first; if a verified local copy exists, no
+network request is made.
+
+When opted in and no verified local copy is found, the resolver locates the
+archive using either:
+
+- An optional `hf` locator committed in the archive card:
+  ```json
+  {
+    "hf": {
+      "repo": "HyperGAN/particlegan-forge-evidence",
+      "revision": "<40-char-commit-sha>",
+      "path": "archives/sha256/<64-char-sha256>.tar.gz"
+    }
+  }
+  ```
+- Or explicit `--hf-repo <owner/repo>` (and optional pinned `--hf-rev <40-char-sha>`,
+  or `PARTICLEGAN_FORGE_HF_REPO` / `PARTICLEGAN_FORGE_HF_REV`), which resolves
+  `archives/sha256/<64-char-sha256>.tar.gz`.
+
+The downloaded archive is streamed into `<checkout>/runs/forge/artifacts/sha256/<SHA-256>.tar.gz`
+and verified against the committed SHA-256 digest, declared byte size, tar
+path/type safety checks, and declared per-member hashes before any file is
+cached or extracted. Corrupt remote downloads are rejected as `INVALID` and
+never written to the local cache or destination.
+
+```sh
+# Opt-in HF hydration using a card's pinned hf locator (or --hf-repo/--hf-rev):
+python -m experiments.forge artifacts hydrate \
+  reports/forge/family-winner-round1/phase1-archive.json \
+  --allow-hf \
+  --hf-repo HyperGAN/particlegan-forge-evidence \
+  --hf-rev <40-char-commit-sha> \
+  --destination runs/forge/hydrated/phase1-originals
+```
+
+Requires the optional `hf` extra (`pip install 'particlegan[hf]'`).
 
 In particular, the published first-round `/ml2/hypergan/...` archives are
 unavailable on this machine. The resolver reports `MISSING` until a real copy is

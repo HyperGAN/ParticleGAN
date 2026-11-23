@@ -130,8 +130,8 @@ inverse protection is needed, as suggested by the earlier word-dynamics work.
 
 The sole current [leaderboard](../technique-inventory.md) and all previous
 qualification counts remain unchanged. Actual-training illustrations from the
-original runs are available for [mode hold](../bcap-prior-search/covariance/media/configuration-ec49f810ceed/mode_hold.gif)
-and [word hold](../bcap-prior-search/covariance/media/configuration-ec49f810ceed/five_word_joint_hold.gif).
+original runs are available for [mode hold](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-prior-search/covariance/media/configuration-ec49f810ceed/mode_hold.gif)
+and [word hold](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-prior-search/covariance/media/configuration-ec49f810ceed/five_word_joint_hold.gif).
 
 ## Reproduce
 

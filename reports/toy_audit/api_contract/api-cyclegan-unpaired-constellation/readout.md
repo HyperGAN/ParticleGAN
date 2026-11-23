@@ -33,5 +33,5 @@ Whereas one-sided adversarial translation suffers from many-to-one mode collapse
 
 ## Artifacts
 
-- [`goal.gif`](goal.gif) (`539,814` bytes, 9 frames across steps `0..3500`)
+- [`goal.gif`](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/api-cyclegan-unpaired-constellation/goal.gif) (`539,814` bytes, 9 frames across steps `0..3500`)
 - [`receipt.json`](receipt.json) (`schema: "particlegan_api_toy_run_v1"`)

@@ -318,7 +318,7 @@ def markdown(report):
         "| --- | --- | --- | --- | --- |",
     ]
     for case in report["cases"]:
-        origin = f"[PR{case['pr']}](https://github.com/255BITS/ParticleGAN/pull/{case['pr']})" if case.get("pr") else "develop"
+        origin = f"[PR{case['pr']}](https://github.com/HyperGAN/ParticleGAN/pull/{case['pr']})" if case.get("pr") else "develop"
         statuses = "; ".join(f"{i+1}: {a['historical']['status']} → {a['revised']['status']}" for i,a in enumerate(case["arms"]))
         values = "; ".join(f"{i+1}: {a['final']['hq']:.3f} / {a['final']['finite_template_tv']:.3f}" for i,a in enumerate(case["arms"]))
         failures = "; ".join(f"{i+1}: {', '.join(a['failure_components']) if a['failure_components'] else 'none'}" for i,a in enumerate(case["arms"]))

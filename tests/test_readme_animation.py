@@ -8,18 +8,18 @@ from particlegan import get_recipe
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_gaussian_animation_preserves_the_current_default_recipe():
+def test_gaussian_animation_preserves_the_archived_011_unified_v11_recipe():
     receipt = json.loads((ROOT / 'reports/readme-100gaussians/summary-current.json').read_text())
-    default = get_recipe()
+    archived_default = get_recipe('unified_v11')
     prior = receipt['prior']
-    expected = json.loads(json.dumps(default.replace(
+    expected = json.loads(json.dumps(archived_default.replace(
         prior_kind=prior['kind'] if prior['kind'] == 'mog' else 'particles',
         sigma_rel=0.0,
         standardize=prior['standardize'],
         num_particles=prior['num_particles'],
     ).to_dict()))
-    assert receipt['default_recipe'] == default.name == 'unified_v11'
-    assert receipt['recipe'] == expected, 'Current README illustration must match get_recipe() + declared task prior'
+    assert receipt['default_recipe'] == archived_default.name == 'unified_v11'
+    assert receipt['recipe'] == expected, 'Preserve the archived 0.11.0 unified_v11 illustration identity'
     assert prior == {
         'kind': 'mog',
         'class_name': 'MoGParticlePrior',

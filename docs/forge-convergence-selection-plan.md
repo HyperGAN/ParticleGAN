@@ -2,7 +2,7 @@
 
 Status: proposed implementation plan, based on develop `81402d6b` (2026-10-02).
 
-Implementation update: [PLAN #249](https://github.com/255BITS/ParticleGAN/pull/249)
+Implementation update: [PLAN #249](https://github.com/HyperGAN/ParticleGAN/pull/249)
 is merged. Bounded whole-config progression and the separate public-policy
 capacity/acquisition/hold path have executed a
 [60-configuration screen](../reports/forge/family-winner-round1/README.md).
@@ -122,7 +122,7 @@ serving law with each candidate. The winning defaults must resolve through the
 public factory to the exact qualified configuration, with no silent fallback or
 per-toy tuning. Freeze the choice, then obtain the separately reserved confirmation,
 accepted calibration and registered robustness evidence before adopting it for
-the [0.9.0 release integration](https://github.com/255BITS/ParticleGAN/pull/247).
+the [0.9.0 release integration](https://github.com/HyperGAN/ParticleGAN/pull/247).
 
 Reuse exact compatible evidence. Do not repeat an unchanged failed revision,
 vary only seeds, or launch a candidate whose required capabilities are missing.

@@ -3,7 +3,7 @@
 ## PR merged; next direction is a Gym environment (2026-09-20 local)
 
 User explicitly requested PR/merge and winner defaults. Completed PR #9:
-https://github.com/255BITS/ParticleGAN/pull/9
+https://github.com/HyperGAN/ParticleGAN/pull/9
 Merged into master as d2a6450985282047d2d27c36eb80ff9f5200f8c9; feature commit
 6bd80e8030ccd6dccb58f6e9fd3ed1432918eeee. Local checkout is now master at that
 merge, matching origin/master. The old feature branch remains available.

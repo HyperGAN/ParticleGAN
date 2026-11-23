@@ -1918,10 +1918,12 @@ def _sync_tracked_worktree_edits(src_root: Path, dst_root: Path) -> None:
         if not rel:
             continue
         src_file = src_root / rel
+        dst_file = dst_root / rel
         if src_file.is_file():
-            dst_file = dst_root / rel
             dst_file.parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(src_file, dst_file)
+        elif not src_file.exists() and dst_file.is_file():
+            dst_file.unlink()
 
 
 def _readout_workstation_envelope_fixture():

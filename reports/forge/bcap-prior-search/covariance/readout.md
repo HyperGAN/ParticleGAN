@@ -45,8 +45,8 @@ certificates, original result/adapter-receipt/request/log hashes, complete
 observation-list hashes, suffix observation hashes and the discriminating
 step's score/target. The source, runtime, compute profile, resolved recipe,
 initializer tensor receipt and actual prior policy are checked. The
-[candidate's actual training GIF](media/configuration-ec49f810ceed/mode_hold.gif)
-and [control GIF](media/control/mode_hold.gif) illustrate the measured task.
+[candidate's actual training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-prior-search/covariance/media/configuration-ec49f810ceed/mode_hold.gif)
+and [control GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-prior-search/covariance/media/control/mode_hold.gif) illustrate the measured task.
 
 ## Word hold still loses mandatory checks
 

@@ -11,7 +11,7 @@ notes on `develop` once the release scope is chosen.
 
 ## CI
 
-[Tests](https://github.com/255BITS/ParticleGAN/actions/workflows/tests.yml) runs
+[Tests](https://github.com/HyperGAN/ParticleGAN/actions/workflows/tests.yml) runs
 on pull requests targeting `develop` or `master` and pushes to those branches.
 Manual dispatches execute tests only on `develop` or `master`; dispatching on
 another branch skips the jobs. The release workflow also calls these checks
@@ -94,9 +94,9 @@ managed through the existing PyPI account associated with 255labs.xyz.
 
    ```sh
    python -m venv /tmp/particlegan-release-smoke
-   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.11.0
+   /tmp/particlegan-release-smoke/bin/python -m pip install particlegan==0.12.0
    cd /tmp
-   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "unified_v11"; assert Recipe.from_dict(r.to_dict()) == r'
+   /tmp/particlegan-release-smoke/bin/python -c 'from particlegan import DEFAULT_RECIPE, get_recipe, Recipe; r = get_recipe(); assert DEFAULT_RECIPE == "unified_v12"; assert Recipe.from_dict(r.to_dict()) == r'
    ```
 
    Also run the prepared HyperGAN training/resume smoke using the released

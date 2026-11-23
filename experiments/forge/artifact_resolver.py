@@ -2,6 +2,9 @@
 
 Only committed archive cards and explicit pinned Git identities are trusted.
 Mirrors are mounted local directories, addressed by the archive SHA-256.
+Hugging Face hydration is strictly opt-in (--allow-hf / --hf-repo /
+PARTICLEGAN_FORGE_HF_REPO) and always verifies SHA-256, byte count, tar safety,
+and declared member hashes before extraction.
 """
 from __future__ import annotations
 
@@ -15,6 +18,7 @@ import subprocess
 import tarfile
 import tempfile
 
+from .artifacts import validate_hf_locator
 from .contracts import file_lock
 
 
@@ -82,8 +86,117 @@ def archive_spec(card):
         _invalid("invalid archive byte count")
     if not isinstance(archive.get("path"), str):
         _invalid("archive location must be a path")
-    return {"path": archive["path"], "sha256": _sha(archive.get("sha256")), "bytes": size,
-            "members": declared, "source_commit": source_commit}
+    digest = _sha(archive.get("sha256"))
+    raw_hf = card.get("hf")
+    if raw_hf is None and isinstance(archive, dict):
+        raw_hf = archive.get("hf")
+    hf = None
+    if raw_hf is not None:
+        if not isinstance(raw_hf, dict):
+            _invalid("archive card hf locator must be an object")
+        hf_input = dict(raw_hf)
+        hf_input.setdefault("path", f"archives/sha256/{digest}.tar.gz")
+        try:
+            hf = validate_hf_locator(hf_input)
+        except ValueError as error:
+            _invalid(str(error))
+    return {"path": archive["path"], "sha256": digest, "bytes": size,
+            "members": declared, "source_commit": source_commit, "hf": hf}
+
+
+def _resolve_hf_locator(spec, *, allow_hf=False, hf_repo=None, hf_rev=None):
+    env_repo = os.environ.get("PARTICLEGAN_FORGE_HF_REPO") or None
+    env_rev = os.environ.get("PARTICLEGAN_FORGE_HF_REV") or None
+    if not (allow_hf or hf_repo or env_repo):
+        return None
+    card_hf = spec.get("hf")
+    default_path = f"archives/sha256/{spec['sha256']}.tar.gz"
+    if hf_repo:
+        same_repo = card_hf is not None and card_hf["repo"] == hf_repo
+        locator = {
+            "repo": hf_repo,
+            "path": card_hf["path"] if same_repo else default_path,
+            "repo_type": card_hf.get("repo_type", "dataset") if same_repo else "dataset",
+        }
+        revision = hf_rev or (card_hf.get("revision") if same_repo else None) or env_rev
+    elif card_hf is not None:
+        locator = {
+            "repo": card_hf["repo"],
+            "path": card_hf["path"],
+            "repo_type": card_hf.get("repo_type", "dataset"),
+        }
+        revision = hf_rev or card_hf.get("revision") or env_rev
+    elif env_repo:
+        locator = {"repo": env_repo, "path": default_path, "repo_type": "dataset"}
+        revision = hf_rev or env_rev
+    else:
+        return None
+    if revision is not None:
+        locator["revision"] = revision
+    try:
+        return validate_hf_locator(locator)
+    except ValueError as error:
+        _invalid(str(error))
+
+
+def _download_from_hf(root: Path, spec: dict, locator: dict) -> Path:
+    """Download a content-addressed archive from Hugging Face into local cache."""
+    try:
+        from huggingface_hub import hf_hub_download
+    except ImportError as error:
+        raise ArtifactError(
+            "MISSING",
+            "huggingface_hub is required for opt-in HF hydration; install with `pip install 'particlegan[hf]'`",
+        ) from error
+    cache_dir = Path(root) / "runs/forge/artifacts/sha256"
+    target = cache_dir / f"{spec['sha256']}.tar.gz"
+    cache_dir.mkdir(parents=True, exist_ok=True)
+    with file_lock(cache_dir / f".{spec['sha256']}.hf-download.lock"):
+        if target.is_file():
+            digest = hashlib.sha256()
+            size = 0
+            with target.open("rb") as existing:
+                for chunk in iter(lambda: existing.read(1024 * 1024), b""):
+                    digest.update(chunk)
+                    size += len(chunk)
+            if digest.hexdigest() == spec["sha256"] and (spec["bytes"] is None or size == spec["bytes"]):
+                return target
+        try:
+            kwargs = {
+                "repo_id": locator["repo"],
+                "filename": locator["path"],
+                "repo_type": locator.get("repo_type", "dataset"),
+            }
+            if locator.get("revision") is not None:
+                kwargs["revision"] = locator["revision"]
+            downloaded = Path(hf_hub_download(**kwargs))
+        except Exception as error:
+            raise ArtifactError(
+                "MISSING",
+                f"failed to download archive {spec['sha256']} from Hugging Face "
+                f"{locator['repo']} ({locator['path']}): {error}",
+            ) from error
+        fd, tmp_name = tempfile.mkstemp(prefix=f".{spec['sha256']}-", suffix=".tar.gz", dir=cache_dir)
+        tmp_path = Path(tmp_name)
+        try:
+            digest = hashlib.sha256()
+            size = 0
+            with downloaded.open("rb") as src, os.fdopen(fd, "wb") as dst:
+                for chunk in iter(lambda: src.read(1024 * 1024), b""):
+                    digest.update(chunk)
+                    dst.write(chunk)
+                    size += len(chunk)
+            if digest.hexdigest() != spec["sha256"] or (spec["bytes"] is not None and size != spec["bytes"]):
+                tmp_path.unlink(missing_ok=True)
+                _invalid(
+                    f"archive checksum/size mismatch downloaded from HF {locator['repo']}:{locator['path']}; "
+                    f"expected SHA-256 {spec['sha256']}"
+                )
+            tmp_path.replace(target)
+        except BaseException:
+            tmp_path.unlink(missing_ok=True)
+            raise
+    return target
 
 
 def _locations(root, spec, mirrors, locations):
@@ -109,46 +222,64 @@ def _locations(root, spec, mirrors, locations):
 
 
 @contextmanager
-def _verified_archive(root, card, mirrors=(), locations=None):
+def _open_verified_path(path: Path, spec: dict, retention: dict):
+    # Hold one descriptor across verification and extraction (no path-swap race).
+    with path.open("rb") as stream:
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+        if digest.hexdigest() != spec["sha256"] or (spec["bytes"] is not None and stream.tell() != spec["bytes"]):
+            yield None
+            return
+        stream.seek(0)
+        try:
+            with tarfile.open(fileobj=stream, mode="r:*") as bundle:
+                entries = {}
+                for member in bundle.getmembers():
+                    name = _relative(member.name)
+                    if name in entries or not (member.isfile() or member.isdir()):
+                        _invalid(f"duplicate or nonregular archive member: {name}")
+                    entries[name] = member
+                for name in entries:
+                    for parent in PurePosixPath(name).parents:
+                        if parent.as_posix() in entries and entries[parent.as_posix()].isfile():
+                            _invalid(f"archive member has a file as its parent: {name}")
+                missing = set(spec["members"]) - set(entries)
+                if missing:
+                    _invalid(f"archive omits declared members: {sorted(missing)[:5]}")
+                yield spec, path, bundle, entries, retention
+        except tarfile.TarError as error:
+            _invalid(f"invalid tar archive: {error}")
+
+
+@contextmanager
+def _verified_archive(root, card, mirrors=(), locations=None, *, allow_hf=False, hf_repo=None, hf_rev=None):
     spec = archive_spec(card)
     candidates, retention = _locations(Path(root), spec, mirrors, locations)
     failures = []
     for path in candidates:
         if not path.is_file():
             continue
-        # Hold one descriptor across verification and extraction (no path-swap race).
-        with path.open("rb") as stream:
-            digest = hashlib.sha256()
-            for chunk in iter(lambda: stream.read(1024 * 1024), b""):
-                digest.update(chunk)
-            if digest.hexdigest() != spec["sha256"] or (spec["bytes"] is not None and stream.tell() != spec["bytes"]):
+        with _open_verified_path(path, spec, retention) as verified:
+            if verified is None:
                 failures.append(str(path))
                 continue
-            stream.seek(0)
-            try:
-                with tarfile.open(fileobj=stream, mode="r:*") as bundle:
-                    entries = {}
-                    for member in bundle.getmembers():
-                        name = _relative(member.name)
-                        if name in entries or not (member.isfile() or member.isdir()):
-                            _invalid(f"duplicate or nonregular archive member: {name}")
-                        entries[name] = member
-                    for name in entries:
-                        for parent in PurePosixPath(name).parents:
-                            if parent.as_posix() in entries and entries[parent.as_posix()].isfile():
-                                _invalid(f"archive member has a file as its parent: {name}")
-                    missing = set(spec["members"]) - set(entries)
-                    if missing:
-                        _invalid(f"archive omits declared members: {sorted(missing)[:5]}")
-                    yield spec, path, bundle, entries, retention
-                    return
-            except tarfile.TarError as error:
-                _invalid(f"invalid tar archive: {error}")
+            yield verified
+            return
+    hf_locator_spec = _resolve_hf_locator(spec, allow_hf=allow_hf, hf_repo=hf_repo, hf_rev=hf_rev)
+    if hf_locator_spec is not None:
+        downloaded = _download_from_hf(Path(root), spec, hf_locator_spec)
+        with _open_verified_path(downloaded, spec, retention) as verified:
+            if verified is None:
+                failures.append(str(downloaded))
+            else:
+                yield verified
+                return
     if failures:
         _invalid(f"archive checksum/size mismatch at {failures}; expected SHA-256 {spec['sha256']}")
     raise ArtifactError("MISSING", f"archive {spec['sha256']} is unavailable; configure --mirror <directory> "
-                        f"containing sha256/{spec['sha256']}.tar.gz or --locations <JSON>. Checked: "
-                        + ", ".join(str(p) for p in candidates))
+                        f"containing sha256/{spec['sha256']}.tar.gz, --locations <JSON>, or opt-in --allow-hf / "
+                        f"--hf-repo <owner/repo>. Checked: " + ", ".join(str(p) for p in candidates))
 
 
 def _selection(spec, entries, members):
@@ -181,9 +312,11 @@ def _receipt(spec, archive_path, retention, files):
             "training_launched": False, "qualification_changed": False}
 
 
-def inspect_archive(root, card, *, members=(), mirrors=(), locations=None):
-    """Verify archive and selected member bytes; no writes or Git fetching."""
-    with _verified_archive(root, card, mirrors, locations) as (spec, path, bundle, entries, retention):
+def inspect_archive(root, card, *, members=(), mirrors=(), locations=None,
+                    allow_hf=False, hf_repo=None, hf_rev=None):
+    """Verify archive and selected member bytes; offline unless HF is opted in."""
+    with _verified_archive(root, card, mirrors, locations,
+                           allow_hf=allow_hf, hf_repo=hf_repo, hf_rev=hf_rev) as (spec, path, bundle, entries, retention):
         names = _selection(spec, entries, members)
         files = []
         for name in names:
@@ -213,9 +346,11 @@ def _destination(destination):
             staging.rename(destination)
 
 
-def hydrate_archive(root, card, destination, *, members=(), mirrors=(), locations=None):
+def hydrate_archive(root, card, destination, *, members=(), mirrors=(), locations=None,
+                    allow_hf=False, hf_repo=None, hf_rev=None):
     """Restore originals into a new isolated directory; never overwrite a checkout."""
-    with _verified_archive(root, card, mirrors, locations) as (spec, path, bundle, entries, retention):
+    with _verified_archive(root, card, mirrors, locations,
+                           allow_hf=allow_hf, hf_repo=hf_repo, hf_rev=hf_rev) as (spec, path, bundle, entries, retention):
         names = _selection(spec, entries, members)
         files = []
         with _destination(destination) as staging:

@@ -134,6 +134,13 @@ def main():
                                    else grade_result(task, raw))
                 result["status"] = result["grade"]["status"]
                 result["reason"] = "; ".join(result["grade"].get("reasons", []))
+                raw_energy = cost.get("energy") if isinstance(cost, dict) else None
+                if isinstance(raw_energy, dict):
+                    from experiments.forge.energy import enrich_energy_summary, extract_pass_steps
+                    fp_step, sp_step = extract_pass_steps(task, raw, result["grade"])
+                    result["energy"] = enrich_energy_summary(
+                        raw_energy, first_pass_step=fp_step, sustained_pass_step=sp_step
+                    )
                 result["raw_sha256"] = __import__("hashlib").sha256((directory / "raw.json").read_bytes()).hexdigest()
                 # The renderer reads saved observations only; it does not sample
                 # a model or alter the scientific grade.

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "law4-energy-v11-t4-arch-study"
+  },
+  "candidate": "law4-energy-v11",
+  "competing_explanation": "If law4-energy-v11 regresses deep 16-layer skip-free/residual or tanh rail-clamped architectures, it will fail zero_tanh_rail_escape or deep 100-mode lattices on t4-strange-architectures-v1.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "mean_abs_error",
+    "op": ">",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "hypothesis": "Unchanged global law4-energy-v11 (0 Critic NS on neural generators, 0 Conv2d NS, 0 new_tensor H2D syncs) matches or improves unified-v11 on t4-strange-architectures-v1 without regressions.",
+  "id": "law4-energy-v11-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "mean_abs_error",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "zero_tanh_rail_escape",
+    "threshold": 0.005
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v10",
+        "candidate_revision": "80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15"
+      },
+      "path": "reports/forge/records/readout-01a09e00e51374034f41784b.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

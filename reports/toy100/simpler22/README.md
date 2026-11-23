@@ -2,7 +2,7 @@
 
 The exact [`constraints_simple_regularization.json`](../../../configs/toy100/constraints_simple_regularization.json) passes all 22 frozen toys in one fresh production-runner replay. It replaces the previous discriminator cap 1.176 and coefficient 6 with **1 and 1**, and removes the particle VICReg penalty (`prior_reg=0`). Every other optimizer, noise, schedule, model, resource, seed, and accuracy-gate setting is unchanged. This simplifies regularization; it does not eliminate every hyperparameter.
 
-![Simpler shared recipe: recorded live convergence](toy100/toy100-progress.gif)
+![Simpler shared recipe: recorded live convergence](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy100/simpler22/toy100/toy100-progress.gif)
 
 | Setting | Exact recipe |
 | --- | --- |

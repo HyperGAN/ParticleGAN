@@ -40,10 +40,10 @@ Keep the better joint sampler as the reference. Next, add a marginal-only baseli
 
 Plots can be regenerated from saved samples without retraining. The separate render provenance records display-code revisions; training source archives stay unchanged.
 
-[monolithic interactive viewer](monolithic_viewer.html)
+[monolithic interactive viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/monolithic_viewer.html)
 
-![monolithic transitions](monolithic_transitions.png)
+![monolithic transitions](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/monolithic_transitions.png)
 
-[branches interactive viewer](branches_viewer.html)
+[branches interactive viewer](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/branches_viewer.html)
 
-![branches transitions](branches_transitions.png)
+![branches transitions](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/transition/branches_transitions.png)

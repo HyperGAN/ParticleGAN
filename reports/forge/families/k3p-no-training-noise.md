@@ -7756,7 +7756,7 @@ Recorded terminal passing observations: **23**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/9daa17b88d3949438b8cb9887e64b442.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-training-noise/9daa17b88d3949438b8cb9887e64b442/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-training-noise/9daa17b88d3949438b8cb9887e64b442/ae_gan_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
@@ -7894,7 +7894,7 @@ Used by: [clockfree_continuous / Tier 1](k3p-no-training-noise.md#cohort-cuda-0d
 
 [Compact metrics and receipt provenance](../technique-receipts/39568145a2a24c5291060e6ab48b23a8.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-training-noise/39568145a2a24c5291060e6ab48b23a8/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-training-noise/39568145a2a24c5291060e6ab48b23a8/clockfree_audit_measurement_v1.gif); 4 saved observations; no new optimizer updates or sampling draws.
 
 Recorded clock parity diagnostics:
 
@@ -10155,7 +10155,7 @@ Recorded terminal passing observations: **0**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/06e5d0bec7fb43d283699ffe8b5ed989.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-training-noise/06e5d0bec7fb43d283699ffe8b5ed989/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-training-noise/06e5d0bec7fb43d283699ffe8b5ed989/ring16_acquisition.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -10681,7 +10681,7 @@ Recorded terminal passing observations: **0**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/09504ecb601543ba80058d46bc456757.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-training-noise/09504ecb601543ba80058d46bc456757/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-training-noise/09504ecb601543ba80058d46bc456757/two_pole.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
@@ -10839,7 +10839,7 @@ Recorded terminal passing observations: **11**; required: 5.
 
 [Compact metrics and receipt provenance](../technique-receipts/37c259fdac504f92b4636d50e94d9461.json)
 
-[Actual-training GIF](../tier1-completion/media/k3p-no-training-noise/37c259fdac504f92b4636d50e94d9461/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
+[Actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/tier1-completion/media/k3p-no-training-noise/37c259fdac504f92b4636d50e94d9461/unused_token_hold.gif); 24 saved observations; no new optimizer updates or sampling draws.
 
 Recorded conditions: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 

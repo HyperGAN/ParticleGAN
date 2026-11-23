@@ -52,7 +52,7 @@ Backfill coverage: **1109/1109 distinct recipe/test pairs attempted (selected an
 | [BISPF](families/bispf.md) | 18 | **11** | 40 | 0 | 33: 0 PASS, 7 FAIL, 26 not measured | 69 | no registered configuration search; 19 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [EMPF](families/empf.md) | 23 | **17** | 13 | 16 blocked | 33: 0 PASS, 12 FAIL, 5 not measured, 16 other | 69 | no registered configuration search; 8 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [RHBI](families/rhbi.md) | 33 | **7** | 13 | 16 blocked | 33: 10 PASS, 2 FAIL, 5 not measured, 16 other | 69 | no registered configuration search; 12 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
-| [Unified](families/unified.md) | 40 | **6** | 11 | 12 blocked | 33: 15 PASS, 2 FAIL, 4 not measured, 12 other | 69 | no registered configuration search; 22 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
+| [Unified](families/unified.md) | 40 | **6** | 11 | 12 blocked | 33: 15 PASS, 2 FAIL, 4 not measured, 12 other | 69 | no registered configuration search; 34 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [Atlas](families/atlas.md) | 8 | **6** | 49 | 6 blocked | 33: 0 PASS, 0 FAIL, 27 not measured, 6 other | 69 | no registered configuration search; 5 declared candidate cards; selected recipe declared directly (no selecting search in its lineage) |
 | [E22](families/e22.md) | 0 | **0** | 40 | 29 blocked | 33: 0 PASS, 0 FAIL, 26 not measured, 7 other | 69 | untuned: no registered configuration search; 1 declared candidate card; selected recipe declared directly (no selecting search in its lineage) |
 | [GAN v3 release 0.7](families/release07-gan-v3.md) | 5 | **2** | 62 | 0 | 33: 0 PASS, 0 FAIL, 33 not measured | 69 | 10 registered searches (16 grid configurations); 8 declared candidate cards; selected recipe descends from `release07-gan-v3-mog-family-defaults-round1-v1` (tuned on Tier ≤3) |
@@ -619,5 +619,5 @@ After any view revision (for example a held or removed test), always add `--refr
 
 [Experiments, criteria and tier assignments](EXPERIMENTS_BY_TIER.md) · [Complete numerical publication and provenance](technique-inventory.json)
 
-Publication input digest `43a11185d7dafe54cc9b1f6d3e33ae458a25fd562860686fcef8afd53c5a8c58`.
+Publication input digest `d0ce4ca705c46ba42fe31b9a1d08535d53f985503fa881ef530e348eb29c4623`.
 [Performance by test and complete recipe](test-performance.md): compatible passes, failures, execution errors and missing witnesses, with sortable evidence drill-down.

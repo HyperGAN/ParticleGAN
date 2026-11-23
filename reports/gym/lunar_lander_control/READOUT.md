@@ -13,7 +13,7 @@ The original prototype landed none. Both learned arms used the same initializati
 | Joint three-generator | 2,500 | 7 | 12 | 74.87 | 26.48 |
 | Original prototype | original 1,000 | 0 | 0 | −374.53 | −430.87 |
 
-![Held-out landing rates and episode returns](control_outcomes.png)
+![Held-out landing rates and episode returns](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_control/control_outcomes.png)
 
 The 95% Wilson landing-rate intervals are 92.9–100% for imitation and the
 expert, 14.3–37.4% for joint, and 0–7.1% for the original. These intervals describe
@@ -72,7 +72,7 @@ in both arms; their separate leaderboard rows reuse the same test evaluation.
 | 1,000 | 9/20 | 135.70 | 0/20 | −28.58 |
 | 2,500 | 20/20 | 294.32 | 7/20 | 112.88 |
 
-![Validation checkpoint curves](validation_curve.png)
+![Validation checkpoint curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/gym/lunar_lander_control/validation_curve.png)
 
 The joint arm is still improving at the final checkpoint. This budget does not
 establish its asymptotic performance. It does establish that, at matched updates,

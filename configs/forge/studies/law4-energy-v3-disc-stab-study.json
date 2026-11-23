@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "law4-energy-v3-disc-stab-study"
+  },
+  "candidate": "law4-energy-v3",
+  "competing_explanation": "If eliminating 4D Conv2d Quintic NS and critic secant probes degrades discrete Conv2d images or cross-domain stability, law4-energy-v3 will score below unified-v11 on discriminator_stability Tiers 1-2 or regress rotated100 accuracy.",
+  "control": {
+    "candidate_id": "unified-v11",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.25
+  },
+  "hypothesis": "Unchanged global law4-energy-v3 (14/16 on r4-occam-ablation-v1, +3 over develop HEAD unified-v11's 11/16) delivers high cross-domain pass rate across discriminator_stability Tiers 1-2 (including 4/4 Conv2d discrete images with strictly 0 Conv2d NS) while cutting DCGAN r256 latency and peak allocated VRAM.",
+  "id": "law4-energy-v3-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "rotated100",
+    "threshold": 0.18
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

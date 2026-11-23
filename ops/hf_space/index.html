@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="auto">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ParticleGAN · Forge Benchmark Leaderboard</title>
+  <meta name="description" content="Interactive Forge benchmark leaderboard, task receipt explorer, and training GIF inspector for HyperGAN/ParticleGAN.">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">⚛</span>
+        <div>
+          <h1 class="brand-title">ParticleGAN <span class="brand-sep">/</span> Forge Leaderboard</h1>
+          <p class="brand-subtitle">Deterministic GAN &amp; learnable particle-prior benchmark evidence</p>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <nav class="quick-links" aria-label="External provenance links">
+          <a id="link-github" href="https://github.com/HyperGAN/ParticleGAN" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+          <a id="link-inventory" href="https://github.com/HyperGAN/ParticleGAN/blob/develop/reports/forge/technique-inventory.md" target="_blank" rel="noopener noreferrer">technique-inventory.md ↗</a>
+          <a id="link-problems" href="https://github.com/HyperGAN/ParticleGAN/blob/develop/reports/forge/problems.md" target="_blank" rel="noopener noreferrer">problems.md ↗</a>
+          <a id="link-hf-dataset" href="https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence" target="_blank" rel="noopener noreferrer">HF Dataset ↗</a>
+        </nav>
+        <div class="topbar-controls">
+          <button id="btn-refresh" class="btn btn-ghost" type="button" title="Reload live data from Hugging Face">↻ Refresh</button>
+          <button id="btn-theme" class="btn btn-ghost" type="button" aria-label="Toggle color theme" title="Switch theme">◐ Auto</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="provenance-bar">
+      <div class="container provenance-inner" id="provenance-bar">
+        <span class="prov-item"><span class="prov-label">Dataset</span> <a id="prov-dataset" href="https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence" target="_blank" rel="noopener noreferrer">HyperGAN/particlegan-forge-evidence</a></span>
+        <span class="prov-item"><span class="prov-label">HF Revision</span> <code id="prov-hf-rev">loading…</code></span>
+        <span class="prov-item"><span class="prov-label">Git Source</span> <code id="prov-git-commit">loading…</code></span>
+        <span class="prov-item"><span class="prov-label">View</span> <code id="prov-view">loading…</code></span>
+        <span class="prov-item"><span class="prov-label">Updated</span> <span id="prov-updated">—</span></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main-content">
+    <!-- Loading / Error Banner -->
+    <section id="status-banner" class="status-banner" aria-live="polite">
+      <span class="spinner" aria-hidden="true"></span>
+      <span id="status-message">Loading live leaderboard data from Hugging Face…</span>
+    </section>
+
+    <!-- Scientific Caveats Banner -->
+    <section class="caveat-banner" aria-labelledby="caveats-heading">
+      <div class="caveat-header">
+        <span class="caveat-icon" aria-hidden="true">⚠</span>
+        <h2 id="caveats-heading">Scientific Scope &amp; Calibration Caveats</h2>
+      </div>
+      <p id="caveat-primary">
+        Counts describe <strong>screening and selection evidence only</strong>. Scientific superiority or public-default adoption requires report-bound accepted calibration and independently frozen confirmation evidence; software repairs grant neither, and unmeasured confirmation remains unmeasured.
+      </p>
+      <ul class="caveat-list" id="caveat-list">
+        <li><strong>Unequal tuning budgets:</strong> Rows with different registered searches or candidate card counts are not equally tuned comparisons.</li>
+        <li><strong>Distinct non-pass outcomes:</strong> <code>not_run</code>, <code>blocked</code>, <code>incompatible</code>, and <code>error</code> outcomes are never collapsed into numerical <code>FAIL</code> and earn no pass credit.</li>
+        <li><strong>Ordinary vs. diagnostic scope:</strong> Assisted, recipe-adapted, or separate diagnostic runs remain archived under their original identity and never replace an ordinary selected-cohort grade.</li>
+      </ul>
+    </section>
+
+    <!-- Overview KPIs -->
+    <section class="kpi-grid" id="kpi-grid" aria-label="Benchmark overview KPIs">
+      <article class="kpi-card">
+        <div class="kpi-label">Selected Families</div>
+        <div class="kpi-value" id="kpi-families">—</div>
+        <div class="kpi-sub" id="kpi-families-sub">One exact selected recipe per family</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Counted View Requirements</div>
+        <div class="kpi-value" id="kpi-view-reqs">—</div>
+        <div class="kpi-sub" id="kpi-view-reqs-sub">Across declared view tiers (incl. shared tests)</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Full-Suite Fixed List</div>
+        <div class="kpi-value" id="kpi-full-suite">—</div>
+        <div class="kpi-sub" id="kpi-full-suite-sub">Non-shrinking denominator · failures included</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Stretch Benchmarks</div>
+        <div class="kpi-value" id="kpi-stretch">—</div>
+        <div class="kpi-sub" id="kpi-stretch-sub">Frontier &amp; optional tasks · same protocol</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Held &amp; Removed Tests</div>
+        <div class="kpi-value" id="kpi-held">—</div>
+        <div class="kpi-sub" id="kpi-held-sub">Excluded from tier totals · visible in full-suite</div>
+      </article>
+      <article class="kpi-card">
+        <div class="kpi-label">Recorded Receipts / GIFs</div>
+        <div class="kpi-value" id="kpi-receipts">—</div>
+        <div class="kpi-sub" id="kpi-receipts-sub">Family × task entries loaded live</div>
+      </article>
+      <article class="kpi-card kpi-card-energy">
+        <div class="kpi-label">Best J-to-PASS (Energy)</div>
+        <div class="kpi-value" id="kpi-energy">—</div>
+        <div class="kpi-sub" id="kpi-energy-sub">Hardware NVML · matched GPU cohorts</div>
+      </article>
+    </section>
+
+    <!-- Section Navigation Tabs -->
+    <nav class="section-nav" aria-label="Dashboard sections">
+      <a href="#leaderboard-section" class="nav-pill active">1. Selected Recipes Leaderboard</a>
+      <a href="#energy-section" class="nav-pill">2. Energy &amp; J-to-PASS</a>
+      <a href="#explorer-section" class="nav-pill">3. Task &amp; Receipt Explorer</a>
+      <a href="#gif-section" class="nav-pill">4. Training GIF Inspector</a>
+      <a href="#provenance-section" class="nav-pill">5. Provenance &amp; Links</a>
+    </nav>
+
+    <!-- 1. Selected Recipes Leaderboard -->
+    <section id="leaderboard-section" class="panel" aria-labelledby="leaderboard-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="leaderboard-heading">Selected Recipes Leaderboard</h2>
+          <p class="panel-desc">Click any column header to sort. Select a family row to inspect recipe provenance or filter receipts.</p>
+        </div>
+        <div class="segmented" role="group" aria-label="Leaderboard column group">
+          <button type="button" class="seg-btn active" data-lb-mode="all">All Columns</button>
+          <button type="button" class="seg-btn" data-lb-mode="tiers">Tier Reqs (1–4)</button>
+          <button type="button" class="seg-btn" data-lb-mode="full">Full-Suite (69)</button>
+          <button type="button" class="seg-btn" data-lb-mode="stretch">Stretch</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="leaderboard-table">
+          <thead>
+            <tr>
+              <th data-sort="label" class="sortable sticky-col">Family / Selected Recipe</th>
+              <th data-sort="tier1_pass" data-col-group="tiers" class="sortable num">Tier 1</th>
+              <th data-sort="tier2_pass" data-col-group="tiers" class="sortable num">Tier 2</th>
+              <th data-sort="tier3_pass" data-col-group="tiers" class="sortable num">Tier 3</th>
+              <th data-sort="tier4_pass" data-col-group="tiers" class="sortable num">Tier 4</th>
+              <th data-sort="total_pass" data-col-group="tiers" class="sortable num">Total View Reqs</th>
+              <th data-sort="full_pass" data-col-group="full" class="sortable num">Full PASS</th>
+              <th data-sort="full_fail" data-col-group="full" class="sortable num">Full FAIL</th>
+              <th data-sort="full_not_measured" data-col-group="full" class="sortable num">Not Measured</th>
+              <th data-sort="full_other" data-col-group="full" class="sortable num">Other</th>
+              <th data-sort="stretch_pass" data-col-group="stretch" class="sortable num">Stretch PASS</th>
+              <th data-sort="tuning" data-col-group="full">Tuning &amp; Qualification</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody">
+            <tr><td colspan="12" class="empty-cell">Loading selected recipes…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Selected Family Detail Bar -->
+      <div id="family-detail-card" class="detail-drawer hidden" aria-live="polite">
+        <div class="detail-drawer-head">
+          <div>
+            <h3 id="fd-title">Family Details</h3>
+            <p id="fd-subtitle" class="muted"></p>
+          </div>
+          <div class="detail-drawer-actions">
+            <button id="fd-filter-btn" class="btn btn-primary" type="button">Filter Explorer to Family</button>
+            <a id="fd-page-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener noreferrer">Family Report ↗</a>
+            <button id="fd-close-btn" class="btn btn-ghost" type="button" aria-label="Close family details">✕</button>
+          </div>
+        </div>
+        <div id="fd-body" class="detail-meta-grid"></div>
+      </div>
+    </section>
+
+    <!-- 2. Energy & J-to-PASS Efficiency -->
+    <section id="energy-section" class="panel" aria-labelledby="energy-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="energy-heading">Energy &amp; <code>J-to-PASS</code> Efficiency</h2>
+          <p class="panel-desc">Hardware NVML energy telemetry &amp; Joules-to-PASS across matched GPU cohorts. Click any header to sort; missing measurements stay <code>—</code> and cohorts are never mixed.</p>
+        </div>
+        <div class="energy-header-controls">
+          <div class="segmented" role="group" aria-label="Energy cohort filter">
+            <button type="button" class="seg-btn active" data-energy-filter="all">All Cohorts</button>
+            <button type="button" class="seg-btn" data-energy-filter="uncontended">Uncontended</button>
+            <button type="button" class="seg-btn" data-energy-filter="study">Study Benchmarks</button>
+            <button type="button" class="seg-btn" data-energy-filter="receipt">Forge Receipts</button>
+          </div>
+          <div class="count-pill" id="energy-count">0 benchmarks</div>
+        </div>
+      </div>
+
+      <div class="filter-bar energy-filter-bar" role="search">
+        <div class="filter-group filter-search">
+          <label for="energy-search">Filter Candidate / Optimizer / GPU</label>
+          <input id="energy-search" type="search" placeholder="candidate id, optimizer family, GPU, source file…" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="energy-table">
+          <thead>
+            <tr>
+              <th data-energy-sort="candidate_id" class="sortable sticky-col">Candidate</th>
+              <th data-energy-sort="occam_pass" class="sortable num">Suite Pass</th>
+              <th data-energy-sort="r256_ms_per_step" class="sortable num">r256 ms/step</th>
+              <th data-energy-sort="r256_joules_per_step" class="sortable num">r256 J/step</th>
+              <th data-energy-sort="r256_watts" class="sortable num">Watts</th>
+              <th data-energy-sort="state_bytes_per_param" class="sortable num">State B/param</th>
+              <th data-energy-sort="ring16_j_to_pass" class="sortable num">ring16 J-to-PASS</th>
+              <th data-energy-sort="grid100_j_to_pass" class="sortable num">grid100 J-to-PASS</th>
+              <th data-energy-sort="hardware_gpu" class="sortable">GPU Cohort</th>
+              <th data-energy-sort="evidence_scope" class="sortable">Provenance</th>
+            </tr>
+          </thead>
+          <tbody id="energy-tbody">
+            <tr><td colspan="10" class="empty-cell">Loading hardware energy benchmarks…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Selected Energy Benchmark Detail Drawer -->
+      <div id="energy-detail-card" class="detail-drawer hidden" aria-live="polite">
+        <div class="detail-drawer-head">
+          <div>
+            <h3 id="ed-title">Energy Benchmark Details</h3>
+            <p id="ed-subtitle" class="muted"></p>
+          </div>
+          <div class="detail-drawer-actions">
+            <a id="ed-source-link" class="btn btn-ghost hidden" href="#" target="_blank" rel="noopener noreferrer">Source JSON ↗</a>
+            <button id="ed-close-btn" class="btn btn-ghost" type="button" aria-label="Close energy details">✕</button>
+          </div>
+        </div>
+        <div id="ed-body" class="detail-meta-grid"></div>
+      </div>
+    </section>
+
+    <!-- 3. Task / Receipt Explorer -->
+    <section id="explorer-section" class="panel" aria-labelledby="explorer-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="explorer-heading">Task &amp; Receipt Explorer</h2>
+          <p class="panel-desc">Inspect individual recorded family × task outcomes, exact contract hashes, and blocker reasons.</p>
+        </div>
+        <div class="count-pill" id="explorer-count">0 results</div>
+      </div>
+
+      <div class="filter-bar" role="search">
+        <div class="filter-group">
+          <label for="filter-family">Family</label>
+          <select id="filter-family">
+            <option value="">All families</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-tier">Tier</label>
+          <select id="filter-tier">
+            <option value="">All tiers</option>
+            <option value="1">Tier 1</option>
+            <option value="2">Tier 2</option>
+            <option value="3">Tier 3</option>
+            <option value="4">Tier 4</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-status">Status</label>
+          <select id="filter-status">
+            <option value="">All statuses</option>
+            <option value="PASS">PASS</option>
+            <option value="FAIL">FAIL</option>
+            <option value="blocked">blocked</option>
+            <option value="not_run">not_run</option>
+            <option value="incompatible">incompatible</option>
+            <option value="error">error</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-role">Role</label>
+          <select id="filter-role">
+            <option value="">All roles</option>
+            <option value="required">required</option>
+            <option value="stretch">stretch</option>
+            <option value="held">held</option>
+            <option value="removed">removed</option>
+            <option value="diagnostic">diagnostic</option>
+          </select>
+        </div>
+        <div class="filter-group filter-search">
+          <label for="filter-search">Search</label>
+          <input id="filter-search" type="search" placeholder="task id, family, recipe, reason, hash…" autocomplete="off">
+        </div>
+        <div class="filter-group filter-check">
+          <label class="checkbox-label">
+            <input id="filter-has-gif" type="checkbox">
+            <span>Has GIF</span>
+          </label>
+        </div>
+        <div class="filter-group filter-reset">
+          <button id="btn-reset-filters" class="btn btn-ghost" type="button">Reset</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table class="data-table" id="explorer-table">
+          <thead>
+            <tr>
+              <th data-exp-sort="task_id" class="sortable">Task</th>
+              <th data-exp-sort="family_label" class="sortable">Family</th>
+              <th data-exp-sort="tier" class="sortable num">Tier</th>
+              <th data-exp-sort="role" class="sortable">Role</th>
+              <th data-exp-sort="status" class="sortable">Status</th>
+              <th>Reason / Summary</th>
+              <th>Provenance</th>
+              <th class="num">Inspect</th>
+            </tr>
+          </thead>
+          <tbody id="explorer-tbody">
+            <tr><td colspan="8" class="empty-cell">Loading receipts…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="table-footer" id="explorer-pagination">
+        <span id="explorer-page-info" class="muted"></span>
+        <div class="pagination-actions">
+          <button id="btn-show-more" class="btn btn-ghost hidden" type="button">Show 100 more</button>
+          <button id="btn-show-all" class="btn btn-ghost hidden" type="button">Show all</button>
+        </div>
+      </div>
+
+      <!-- Receipt Detail Inspector -->
+      <div id="receipt-detail-card" class="detail-drawer hidden" aria-live="polite">
+        <div class="detail-drawer-head">
+          <div>
+            <h3 id="rd-title">Receipt Details</h3>
+            <p id="rd-subtitle" class="muted"></p>
+          </div>
+          <div class="detail-drawer-actions">
+            <button id="rd-open-gif-btn" class="btn btn-primary" type="button">Compare in GIF Inspector</button>
+            <button id="rd-close-btn" class="btn btn-ghost" type="button" aria-label="Close receipt details">✕</button>
+          </div>
+        </div>
+        <div id="rd-body"></div>
+      </div>
+    </section>
+
+    <!-- 3. Training GIF Inspector / Side-by-Side Comparison -->
+    <section id="gif-section" class="panel" aria-labelledby="gif-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="gif-heading">Training GIF Inspector &amp; Side-by-Side Comparison</h2>
+          <p class="panel-desc">Actual saved training observations streamed directly from <code>HyperGAN/particlegan-forge-evidence</code>. Tasks without a published GIF display their receipt status cleanly.</p>
+        </div>
+        <div class="segmented" role="group" aria-label="GIF inspector layout">
+          <button type="button" class="seg-btn active" data-gif-layout="compare">Side-by-Side</button>
+          <button type="button" class="seg-btn" data-gif-layout="grid">All Families Grid</button>
+        </div>
+      </div>
+
+      <div class="gif-controls">
+        <div class="filter-group gif-task-select">
+          <label for="gif-task">Task</label>
+          <select id="gif-task"></select>
+        </div>
+        <div class="filter-group" id="gif-left-group">
+          <label for="gif-family-left">Left Family</label>
+          <select id="gif-family-left"></select>
+        </div>
+        <div class="filter-group gif-swap-group" id="gif-swap-group">
+          <button id="btn-swap-gif" class="btn btn-ghost" type="button" title="Swap left and right families">⇄ Swap</button>
+        </div>
+        <div class="filter-group" id="gif-right-group">
+          <label for="gif-family-right">Right Family</label>
+          <select id="gif-family-right"></select>
+        </div>
+        <div class="filter-group filter-check">
+          <label class="checkbox-label">
+            <input id="gif-only-available" type="checkbox">
+            <span>Only tasks with GIFs</span>
+          </label>
+        </div>
+      </div>
+
+      <div id="gif-task-meta" class="gif-task-meta"></div>
+
+      <div id="gif-stage" class="gif-stage gif-stage-compare">
+        <div class="empty-cell">Select a task to inspect training GIFs.</div>
+      </div>
+    </section>
+
+    <!-- 4. Provenance & Raw Sources -->
+    <section id="provenance-section" class="panel" aria-labelledby="provenance-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="provenance-heading">Provenance &amp; Verification</h2>
+          <p class="panel-desc">This static Space renders derived publication views from Hugging Face without altering or rescoring any recorded receipt.</p>
+        </div>
+      </div>
+      <div class="provenance-grid" id="provenance-grid"></div>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>HyperGAN / ParticleGAN · MIT License · Static Space (zero backend)</span>
+      <span>Data source: <a id="footer-data-url" href="https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/data/leaderboard.json" target="_blank" rel="noopener noreferrer">data/leaderboard.json ↗</a></span>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

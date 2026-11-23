@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "law4-energy-v11-disc-stab-study"
+  },
+  "candidate": "law4-energy-v11",
+  "competing_explanation": "If generator-free Critic NS gating or zero-sync scalar refactoring regresses Tier-1/Tier-2 tasks or fails staggered100 sustained hold, law4-energy-v11 will score below 44/48 or exceed 0.18 center_rms_sigma on staggered100.",
+  "control": {
+    "candidate_id": "law4-energy-v10",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "staggered100",
+    "threshold": 0.18
+  },
+  "hypothesis": "Unchanged global law4-energy-v11 achieves >=44/48 PASS across discriminator_stability Tiers 1-2 with 0 required numerical FAIL by closing both generator-free t3_iso_* misses and running model_ae_ddgan_gaussian_chain uncontended.",
+  "id": "law4-energy-v11-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "staggered100",
+    "threshold": 0.16
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v10",
+        "candidate_revision": "80098d3d611c93680c397e049a93bc453ca7e7329a47bee1b2cba52cbc7e4a15"
+      },
+      "path": "reports/forge/records/readout-a0e3e7f6620e7476c9599d67.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

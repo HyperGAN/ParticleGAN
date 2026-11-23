@@ -81,7 +81,7 @@ def quintic_orthogonalize_2d(
     else:
         s_val = float(smoothing)
         has_smooth = s_val > 0.0
-        s_ten = x_f32.new_tensor(s_val) if has_smooth else None
+        s_ten = x_f32.new_full((), s_val) if has_smooth else None
     max_abs = x_f32.abs().amax()
     finite_mat = torch.isfinite(x_f32).all()
     if has_smooth and s_ten is not None and min(r_dim, c_dim) <= 512:
@@ -246,6 +246,92 @@ def quintic_orthogonalize_batched(
     return out.to(orig_dtype)
 
 
+_CRITIC_SCHATTEN6_LAM = 0.25
+_CRITIC_SCHATTEN6_TAU = 2.0
+_CRITIC_SCHATTEN6_BAND = 0.25
+
+
+@torch.no_grad()
+def _schatten6_spectral_decay_2d(
+    w_canon: torch.Tensor,
+    rate_scale: torch.Tensor,
+    *,
+    lam: float = _CRITIC_SCHATTEN6_LAM,
+    tau: float = _CRITIC_SCHATTEN6_TAU,
+) -> torch.Tensor:
+    """Zero-SVD, zero-sync, exact-deadband Schatten-6 spectral decay for canonical 2D matrix (``m <= n``).
+
+    Expects ``w_canon`` already normalized by its RMS-to-RMS aspect gain ``gamma = sqrt(max(1, r / c))``.
+    Uses the scale-invariant Schatten ratio ``rho_est = (||gram^4||_F / ||gram^2||_F)**(1/4) <= sigma_max / tau``
+    with a smooth deadband gate ``smoothstep01((rho_est - 1) / 0.25)``:
+      - Whenever ``sigma_max(w_canon) <= tau``, ``rho_est <= 1.0`` and the displacement is **identically zero**
+        (zero perturbation to healthy critics and branch-RMSNorm conditioning).
+      - When runaway singular values exceed ``tau``, the quintic ``(W_hat W_hat^T)^2 W_hat`` wall activates
+        smoothly and caps coherent growth at ``tau * lam**(-1/5) ~= 2.64`` (unconditionally clamped at ``0.25``).
+    """
+    m_dim = int(w_canon.shape[0])
+    w_hat = w_canon.float() / tau
+    work_dtype = torch.bfloat16 if (w_canon.is_cuda and m_dim >= 64) else torch.float32
+    wb = w_hat.to(dtype=work_dtype)
+    gram = wb @ wb.T
+    gram2 = gram @ gram
+    g2_f = gram2.float()
+    s_g2 = g2_f.abs().amax().clamp_min(1e-30)
+    g2_scaled = g2_f / s_g2
+    g2_u = g2_scaled.to(dtype=work_dtype)
+    g4_u = (g2_u @ g2_u).float()
+    rho_est = ((g4_u.norm() / g2_scaled.norm().clamp_min(1e-12)) * s_g2).clamp_min(0.0).pow(0.25)
+    t_gate = ((rho_est - 1.0) / _CRITIC_SCHATTEN6_BAND).clamp(0.0, 1.0)
+    gate = t_gate * t_gate * (3.0 - 2.0 * t_gate)
+
+    w5 = (gram2 @ wb).float()
+    w_norm = w_hat.norm().clamp_min(1e-12)
+    c_norm = w5.norm()
+    ratio = (c_norm / w_norm).clamp_min(1e-6)
+    raw_step = (lam / tau) * rate_scale * gate
+    eff_step = torch.minimum(raw_step, 0.25 / ratio)
+    out = -w5 * (eff_step * tau)
+    finite_ok = torch.isfinite(out).all() & torch.isfinite(eff_step) & (gate > 0.0)
+    return torch.where(finite_ok, out, torch.zeros_like(out))
+
+
+@torch.no_grad()
+def _schatten6_spectral_decay_batched(
+    w_canons: torch.Tensor,
+    rate_scales: torch.Tensor,
+    *,
+    lam: float = _CRITIC_SCHATTEN6_LAM,
+    tau: float = _CRITIC_SCHATTEN6_TAU,
+) -> torch.Tensor:
+    """Batched zero-SVD, zero-sync, exact-deadband Schatten-6 spectral decay for ``[B, m, n]`` (``m <= n``)."""
+    b_sz, m_dim = int(w_canons.shape[0]), int(w_canons.shape[1])
+    w_hat = w_canons.float() / tau
+    work_dtype = torch.bfloat16 if (w_canons.is_cuda and m_dim >= 64) else torch.float32
+    wb = w_hat.to(dtype=work_dtype)
+    gram = torch.bmm(wb, wb.transpose(1, 2))
+    gram2 = torch.bmm(gram, gram)
+    g2_f = gram2.float()
+    s_g2 = g2_f.abs().amax(dim=(1, 2), keepdim=True).clamp_min(1e-30)
+    g2_scaled = g2_f / s_g2
+    g2_u = g2_scaled.to(dtype=work_dtype)
+    g4_u = torch.bmm(g2_u, g2_u).float()
+    g2_n = g2_scaled.flatten(1).norm(dim=1).view(b_sz, 1, 1).clamp_min(1e-12)
+    g4_n = g4_u.flatten(1).norm(dim=1).view(b_sz, 1, 1)
+    rho_est = ((g4_n / g2_n) * s_g2).clamp_min(0.0).pow(0.25)
+    t_gate = ((rho_est - 1.0) / _CRITIC_SCHATTEN6_BAND).clamp(0.0, 1.0)
+    gate = t_gate * t_gate * (3.0 - 2.0 * t_gate)
+
+    w5 = torch.bmm(gram2, wb).float()
+    w_norm = w_hat.flatten(1).norm(dim=1).view(b_sz, 1, 1).clamp_min(1e-12)
+    c_norm = w5.flatten(1).norm(dim=1).view(b_sz, 1, 1)
+    ratio = (c_norm / w_norm).clamp_min(1e-6)
+    raw_step = (lam / tau) * rate_scales.view(b_sz, 1, 1) * gate
+    eff_step = torch.minimum(raw_step, 0.25 / ratio)
+    out = -w5 * (eff_step * tau)
+    finite_ok = torch.isfinite(out).all(dim=(1, 2), keepdim=True) & torch.isfinite(eff_step) & (gate > 0.0)
+    return torch.where(finite_ok, out, torch.zeros_like(out))
+
+
 @torch.no_grad()
 def zero_pinv_project_nonascent(displacement: torch.Tensor, normals: torch.Tensor) -> torch.Tensor:
     """Exact nearest displacement with ``a_i . d <= 0`` for 1 or 2 constraints (`0` `torch.linalg.pinv`)."""
@@ -339,6 +425,11 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     family = "unified_v11_equil"
     recipe_optimizer_family = "unified_v11_equil"
+    _SUPPORTS_ZEROSYNC_V4_TENSORS: bool = True
+
+    def _supports_zerosync_v4_tensors(self) -> bool:
+        """Non-inherited opt-in for zero-sync raw sampled rows and GPU-tensor v4 modulation/origin norm."""
+        return bool(type(self).__dict__.get("_SUPPORTS_ZEROSYNC_V4_TENSORS", False))
 
     def __init__(
         self,
@@ -387,9 +478,11 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._conv_layouts: Dict[int, Tuple[bool, int]] = {}
         self._gen_param_ids: set[int] = set()
         self._v4_wakeup_boost: float = 1.0
-        self._v4_g_scale: float = 1.0
+        self._v4_g_scale: float | torch.Tensor = 1.0
         self._v4_prior_scale: float = 1.0
         self._origin_norm: Optional[float] = None
+        self._origin_norm_t: Optional[torch.Tensor] = None
+        self._sampled_rows_unique: Dict[torch.Tensor, torch.Tensor] = {}
         self.last_step_gain: float = 1.0
         self._ema_func_gain: float = 1.0
         self.last_probe_consumed: bool = False
@@ -452,16 +545,38 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
     def set_sampled_rows(self, parameter: torch.Tensor, rows: torch.Tensor) -> None:
         if not isinstance(rows, torch.Tensor):
             rows = torch.as_tensor(rows, dtype=torch.long, device=parameter.device)
-        rows = torch.unique(rows.reshape(-1).to(dtype=torch.long, device=parameter.device), sorted=True)
-        if rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
+        rows = rows.reshape(-1).to(dtype=torch.long, device=parameter.device)
+        if not self._supports_zerosync_v4_tensors():
+            rows = torch.unique(rows, sorted=True)
+            if rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
+                raise ValueError("sampled rows out of bounds for prior table")
+            existing = self._sampled_rows.get(parameter)
+            if existing is not None:
+                rows = torch.unique(torch.cat((existing, rows)), sorted=True)
+            self._sampled_rows[parameter] = rows
+            self._sampled_rows_unique[parameter] = rows
+            return
+        if rows.device.type == "cpu" and rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
             raise ValueError("sampled rows out of bounds for prior table")
         existing = self._sampled_rows.get(parameter)
         if existing is not None:
-            rows = torch.unique(torch.cat((existing, rows)), sorted=True)
+            rows = torch.cat((existing, rows))
         self._sampled_rows[parameter] = rows
+        self._sampled_rows_unique.pop(parameter, None)
+
+    def _resolve_unique_sampled_rows(self, parameter: torch.Tensor) -> Optional[torch.Tensor]:
+        cached = self._sampled_rows_unique.get(parameter)
+        if cached is not None:
+            return cached
+        raw = self._sampled_rows.get(parameter)
+        if raw is None:
+            return None
+        uniq = torch.unique(raw, sorted=True)
+        self._sampled_rows_unique[parameter] = uniq
+        return uniq
 
     def sampled_rows_for(self, parameter: torch.Tensor) -> Optional[torch.Tensor]:
-        rows = self._sampled_rows.get(parameter)
+        rows = self._resolve_unique_sampled_rows(parameter)
         return None if rows is None else rows.detach().clone()
 
     def set_row_scales(self, parameter: torch.Tensor, scales: torch.Tensor) -> None:
@@ -473,23 +588,41 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
 
     def clear_sampled_rows(self) -> None:
         self._sampled_rows.clear()
+        self._sampled_rows_unique.clear()
         self._row_scales.clear()
 
     def bind_origin_sample(self, sample: Optional[torch.Tensor]) -> None:
         if sample is not None and sample.ndim == 2 and sample.shape[1] == 2 and sample.numel() > 0:
-            self._origin_norm = float(sample.detach().float().norm(dim=-1).amax().item())
+            norm_t = sample.detach().float().norm(dim=-1).amax()
+            if self._supports_zerosync_v4_tensors():
+                self._origin_norm = None
+                self._origin_norm_t = norm_t
+            else:
+                self._origin_norm = float(norm_t.item())
+                self._origin_norm_t = None
         else:
             self._origin_norm = None
+            self._origin_norm_t = None
 
     def bind_v4_modulation(
         self,
         *,
-        g_scale: float = 1.0,
-        wakeup_boost: float = 1.0,
+        g_scale: float | torch.Tensor = 1.0,
+        wakeup_boost: float | torch.Tensor = 1.0,
         prior_scale: float = 1.0,
     ) -> None:
-        self._v4_g_scale = float(g_scale)
-        self._v4_wakeup_boost = float(wakeup_boost)
+        if self._supports_zerosync_v4_tensors():
+            self._v4_g_scale = g_scale.detach().float().reshape(()) if isinstance(g_scale, torch.Tensor) else float(g_scale)
+            self._v4_wakeup_boost = (
+                wakeup_boost.detach().float().reshape(())
+                if isinstance(wakeup_boost, torch.Tensor)
+                else float(wakeup_boost)
+            )
+        else:
+            self._v4_g_scale = float(g_scale.item()) if isinstance(g_scale, torch.Tensor) else float(g_scale)
+            self._v4_wakeup_boost = (
+                float(wakeup_boost.item()) if isinstance(wakeup_boost, torch.Tensor) else float(wakeup_boost)
+            )
         self._v4_prior_scale = float(prior_scale)
 
     def bind_protected_from_grads(self) -> None:
@@ -562,6 +695,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._v4_g_scale = 1.0
         self._v4_prior_scale = 1.0
         self._origin_norm = None
+        self._origin_norm_t = None
         self._protected = None
         self._protected_single = False
 
@@ -576,6 +710,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             or getattr(self, "record", None)
             or getattr(self, "_t1c_record", None)
         )
+
+    def current_stiff_gate(self) -> float:
+        """Compute generator stiffness gate for genuine severe function-space overshoot (>5.5x)."""
+        return _smoothstep01((0.18 - float(self._ema_func_gain)) / 0.07)
 
     @torch.no_grad()
     def step(self, closure: Any = None) -> Any:
@@ -613,30 +751,50 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             is_critic_opt = getattr(self, "critic", None) is not None
 
             origin_damping = 1.0
-            if self._origin_norm is not None and self._origin_norm < 0.05:
+            origin_damping_t: Optional[torch.Tensor] = None
+            if self._origin_norm_t is not None:
+                origin_damping_t = (self._origin_norm_t / 0.05).clamp_max(1.0)
+            elif self._origin_norm is not None and self._origin_norm < 0.05:
                 origin_damping = min(1.0, self._origin_norm / 0.05)
 
             # Universal Function-Space Conditioning (replaces syntactic L_count / deep_gate):
-            # Well-conditioned MLPs, LayerNorm Transformers, and CNNs stay at ema_func_gain ~= 1.0
-            # (pre_gain = 1.0, stiff_gate = 0.0), preserving exact G : D : prior equilibrium
-            # regardless of player matrix-count asymmetry. Pathologically stiff unnormalized deep
-            # networks (>3x function-space overshoot) smoothly lower ema_func_gain pre-step and
-            # activate momentum-coherence damping via stiff_gate.
+            # Well-conditioned MLPs, LayerNorm Transformers, CNNs, and normalized residual trunks
+            # keep stiff_gate == 0.0 (ema_fg >= 0.18). Pathologically stiff unnormalized deep networks
+            # (>5.5x overshoot, ema_fg < 0.18 -> full 1.0 at <= 0.11) engage momentum-coherence damping
+            # via stiff_gate, while bandpass positive-margin coupling scales D with rec._g_func_gain
+            # when the critic dominates on-manifold without starving equilibrium or stiff 16L MLPs.
             ema_fg = float(self._ema_func_gain)
-            stiff_gate_raw = _smoothstep01((0.60 - ema_fg) / 0.30)
+            stiff_gate_raw = self.current_stiff_gate()
             pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
+
+            d_couple = 1.0
+            if is_critic_opt and rec is not None:
+                g_fg = float(getattr(rec, "_g_func_gain", 1.0))
+                g_pre = 1.0 if g_fg >= 0.75 else max(0.12, g_fg)
+                if getattr(rec, "margin_initialized", False):
+                    ema_m = float(getattr(rec, "ema_margin", 0.0))
+                    # Couple D to G only in the on-manifold critic-dominance band (0.08 < ema_margin < 1.40):
+                    # releases to 1.0 at equilibrium/inverted margin (<= 0.08) and off-manifold collapse (>= 1.40):
+                    m_gate = _smoothstep01((ema_m - 0.08) / 0.22) * _smoothstep01((1.40 - ema_m) / 0.30)
+                else:
+                    m_gate = 0.0
+                d_couple = (1.0 - m_gate) + m_gate * g_pre
 
             applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]] = []
             pending_dense: Dict[
                 Tuple[int, int, bool],
                 List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
             ] = {}
+            pending_s6: Dict[
+                Tuple[int, int],
+                List[Tuple[torch.Tensor, float, bool, torch.Tensor]],
+            ] = {}
             pending_conv: Dict[
                 Tuple[int, int, int, int, bool, int, bool],
                 List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool]],
             ] = {}
 
-            pre_gain_applied = 1.0
+            pre_gain_applied: float | torch.Tensor = 1.0
             coh_vals: List[torch.Tensor] = []
             for grp in self.param_groups:
                 role = grp["role"]
@@ -645,8 +803,9 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 b1, b2 = grp["betas"]
                 eps = float(grp["eps"])
                 s_base = self.smoothing * (1.0 - stiff_gate)
-                # Direct particle clouds retain scaled row smoothing matching DualNorm:
-                s_prior_base = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
+                # Direct particle clouds and shallow priors retain scaled row smoothing matching DualNorm,
+                # while stiff deep networks (stiff_gate_raw > 0) release prior smoothing in lockstep with G:
+                s_prior_base = (self.smoothing * (1.0 - stiff_gate_raw)) if self._v4_prior_scale >= 1.0 else 0.0
 
                 if player == "prior":
                     b1_eff = max(float(b1), 0.75) if self._v4_prior_scale < 1.0 else float(b1)
@@ -656,13 +815,23 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     b1_eff = float(b1)
                 b2_eff = min(max(float(b2), 0.95), 0.999)
 
+                base_lr_t: Optional[torch.Tensor] = None
                 if player == "generator":
-                    pre_g = min(1.0, pre_gain_base * self._v4_wakeup_boost)
+                    if isinstance(self._v4_wakeup_boost, torch.Tensor):
+                        pre_g: float | torch.Tensor = (pre_gain_base * self._v4_wakeup_boost).clamp_max(1.0)
+                    else:
+                        pre_g = min(1.0, pre_gain_base * float(self._v4_wakeup_boost))
                     pre_gain_applied = pre_g
-                    base_lr = float(grp["lr"]) * step_scale * self._v4_g_scale * pre_g
+                    lr_step = float(grp["lr"]) * step_scale
+                    if isinstance(self._v4_g_scale, torch.Tensor) or isinstance(pre_g, torch.Tensor):
+                        base_lr = lr_step
+                        base_lr_t = (lr_step * self._v4_g_scale) * pre_g if lr_step > 0.0 else None
+                    else:
+                        base_lr = lr_step * float(self._v4_g_scale) * float(pre_g)
                 elif player == "critic":
-                    pre_gain_applied = pre_gain_base
-                    base_lr = float(grp["lr"]) * step_scale * pre_gain_base
+                    d_pre = min(pre_gain_base, d_couple)
+                    pre_gain_applied = d_pre
+                    base_lr = float(grp["lr"]) * step_scale * d_pre
                 else:
                     base_lr = float(grp["lr"]) * step_scale * self._v4_prior_scale
 
@@ -675,12 +844,70 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     st["step"] = step_t
 
                     if player == "prior":
+                        r_scales = self._row_scales.get(p)
+                        sampled_req = bool(grp.get("sampled_rows_required", True))
+                        if base_lr <= 0.0:
+                            continue
+                        if sampled_req and r_scales is None:
+                            raw_rows = self._sampled_rows[p]
+                            if raw_rows.numel() == 0:
+                                continue
+                            sorted_r, _ = torch.sort(raw_rows)
+                            n_raw = int(sorted_r.shape[0])
+                            is_first = torch.ones(n_raw, device=p.device, dtype=torch.bool)
+                            if n_raw > 1:
+                                is_first[1:] = sorted_r[1:] != sorted_r[:-1]
+                            n_unique_t = is_first.sum()
+                            w_u_col = is_first.float().unsqueeze(1)
+                            gr = grad[sorted_r].float()
+                            fin_row = torch.isfinite(gr).all(dim=-1, keepdim=True)
+                            gr_safe = torch.where(fin_row, gr, torch.zeros_like(gr))
+                            if b1_eff > 0.0:
+                                if "m_prior" not in st:
+                                    st["m_prior"] = torch.zeros_like(p, dtype=torch.float32)
+                                m_prev = st["m_prior"][sorted_r]
+                                m_new = torch.where(fin_row, m_prev.mul(b1_eff).add(gr_safe, alpha=1.0 - b1_eff), m_prev)
+                                st["m_prior"].index_add_(0, sorted_r, (m_new - m_prev) * w_u_col)
+                                dir_r = m_new
+                            else:
+                                dir_r = gr_safe
+                            g_norm = gr_safe.norm(dim=-1, keepdim=True)
+                            d_norm = dir_r.norm(dim=-1, keepdim=True)
+                            active_r = is_first.unsqueeze(1) & fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
+
+                            cur_row_rms = ((d_norm.square() * w_u_col).sum() / n_unique_t.clamp_min(1).float()).sqrt()
+                            if "peak_rms" not in st:
+                                st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                            p_dec = 0.9995 if s_therm >= 0.5 else 1.0
+                            peak_r = torch.maximum(
+                                st["peak_rms"] * p_dec,
+                                torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())),
+                            )
+                            st["peak_rms"].copy_(torch.where(torch.isfinite(peak_r), peak_r, st["peak_rms"]))
+
+                            if s_prior_base > 0.0:
+                                s_p_row = torch.where(
+                                    n_unique_t > 128,
+                                    (s_prior_base * 128.0) / n_unique_t.clamp_min(1).float(),
+                                    d_norm.new_full((), s_prior_base),
+                                )
+                                denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
+                            else:
+                                denom_r = d_norm.clamp_min(1e-36)
+                            unit_r = torch.where(
+                                active_r,
+                                dir_r / denom_r,
+                                torch.zeros_like(dir_r),
+                            )
+                            p.index_add_(0, sorted_r, unit_r.to(p.dtype), alpha=-base_lr)
+                            continue
+
                         rows = (
-                            self._sampled_rows[p]
-                            if grp.get("sampled_rows_required", True)
+                            self._resolve_unique_sampled_rows(p)
+                            if sampled_req
                             else torch.arange(len(p), device=p.device, dtype=torch.long)
                         )
-                        if rows.numel() == 0 or base_lr <= 0.0:
+                        if rows is None or rows.numel() == 0:
                             continue
                         gr = grad[rows].float()
                         fin_row = torch.isfinite(gr).all(dim=-1, keepdim=True)
@@ -698,16 +925,17 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         d_norm = dir_r.norm(dim=-1, keepdim=True)
                         active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
 
-                        # Degree-0 scale-invariant peak-RMS tracking on prior rows (no GPU-CPU sync):
+                        # Degree-0 scale-invariant peak-RMS tracking on prior rows (no GPU-CPU sync, frozen during cooling):
                         cur_row_rms = d_norm.square().mean().sqrt()
                         if "peak_rms" not in st:
                             st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
-                        peak_r = torch.maximum(st["peak_rms"] * 0.9995, torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())))
+                        p_dec = 0.9995 if s_therm >= 0.5 else 1.0
+                        peak_r = torch.maximum(st["peak_rms"] * p_dec, torch.where(torch.isfinite(cur_row_rms), cur_row_rms, st["peak_rms"].new_zeros(())))
                         st["peak_rms"].copy_(torch.where(torch.isfinite(peak_r), peak_r, st["peak_rms"]))
 
                         if s_prior_base > 0.0:
                             s_cap = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
-                            s_p_row = torch.minimum(d_norm.new_tensor(s_cap), peak_r * 0.03)
+                            s_p_row = d_norm.new_full((), s_cap)
                             denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
                         else:
                             denom_r = d_norm.clamp_min(1e-36)
@@ -716,13 +944,18 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             dir_r / denom_r,
                             torch.zeros_like(dir_r),
                         )
-                        r_scales = self._row_scales.get(p)
                         if r_scales is not None and len(r_scales) == len(rows):
                             unit_r = unit_r * r_scales.unsqueeze(1)
                         p.index_add_(0, rows, unit_r.to(p.dtype), alpha=-base_lr)
                         continue
 
-                    rate_p = base_lr * (origin_damping if (role == "generator" and step_t > 80) else 1.0)
+                    use_od_t = origin_damping_t is not None and role == "generator" and step_t > 80
+                    if base_lr_t is not None:
+                        rate_p_val: float | torch.Tensor = (base_lr_t * origin_damping_t) if use_od_t else base_lr_t
+                    elif use_od_t:
+                        rate_p_val = base_lr * origin_damping_t
+                    else:
+                        rate_p_val = base_lr * (origin_damping if (role == "generator" and step_t > 80) else 1.0)
                     track_secant = is_critic_opt or (not self._gen_param_ids or id(p) in self._gen_param_ids)
 
                     gf = grad.float()
@@ -745,19 +978,20 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     else:
                         cur_sv_rms = gf_safe.norm()
 
-                    # Degree-0 scale-invariant peak-RMS tracking (zero GPU-CPU sync, prevents vanishing-layer
-                    # and high-D small-gradient crushing while preserving equilibrium settling):
+                    # Degree-0 scale-invariant peak-RMS tracking (zero GPU-CPU sync, frozen during cooling
+                    # so equilibrium damping stays active while genuinely tiny high-D gradients are never crushed):
                     if "peak_rms" not in st:
                         st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
+                    p_dec = 0.9995 if s_therm >= 0.5 else 1.0
                     peak_new = torch.maximum(
-                        st["peak_rms"] * 0.9995,
+                        st["peak_rms"] * p_dec,
                         torch.where(finite, cur_sv_rms, st["peak_rms"].new_zeros(())),
                     )
                     st["peak_rms"].copy_(torch.where(finite, peak_new, st["peak_rms"]))
 
                     has_smooth = s_base > 0.0
                     s_eff_t = (
-                        torch.minimum(gf_safe.new_tensor(s_base), peak_new * 0.03)
+                        torch.minimum(gf_safe.new_full((), s_base), peak_new * 0.30)
                         if has_smooth
                         else gf_safe.new_zeros(())
                     )
@@ -817,7 +1051,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         direc = torch.where(g_active, raw_dir, torch.zeros_like(gf_safe))
                         coh = gf_safe.new_ones(())
 
-                    if rate_p <= 0.0:
+                    if base_lr <= 0.0:
                         continue
                     if track_secant:
                         coh_vals.append(coh)
@@ -828,7 +1062,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         out_ch = c1 * groups_c if is_trans else c0
                         in_ch = c0 if is_trans else c1 * groups_c
                         factor = math.sqrt(float(out_ch) / float(max(1, in_ch))) / float(kh * kw)
-                        step_mult = (-rate_p * factor) * coh
+                        step_mult = (-rate_p_val * factor) * coh
                         pending_conv.setdefault((c0, c1, kh, kw, is_trans, groups_c, has_smooth), []).append(
                             (p, direc, step_mult, s_eff_t, track_secant)
                         )
@@ -844,13 +1078,28 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             factor = math.sqrt(float(out_ch) / float(max(1, in_ch)))
                         else:
                             factor = math.sqrt(max(1.0, float(r_d) / float(max(1, c_d))))
-                        step_mult = (-rate_p * factor) * coh
+                        step_mult = (-rate_p_val * factor) * coh
                         needs_t = r_d > c_d
                         mat_canon = mat.T if needs_t else mat
                         m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
                         pending_dense.setdefault(m_key, []).append(
                             (p, mat_canon, step_mult, s_eff_t, track_secant, needs_t)
                         )
+                        if (player == "critic") and (not is_conv) and (p.ndim == 2) and (min(r_d, c_d) >= 2):
+                            s6_rate_val = rate_p_val * s_therm
+                            s6_rate_t = (
+                                s6_rate_val.to(device=gf_safe.device, dtype=gf_safe.dtype)
+                                if isinstance(s6_rate_val, torch.Tensor)
+                                else gf_safe.new_full((), float(s6_rate_val))
+                            )
+                            s6_rate_i = torch.where(
+                                g_active,
+                                s6_rate_t,
+                                gf_safe.new_zeros(()),
+                            )
+                            pending_s6.setdefault((int(mat_canon.shape[0]), int(mat_canon.shape[1])), []).append(
+                                (p, factor, needs_t, s6_rate_i)
+                            )
                     else:
                         d_norm = direc.norm()
                         if has_smooth:
@@ -862,7 +1111,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             direc / denom_1d,
                             torch.zeros_like(direc),
                         )
-                        delta_1d = (unit_1d * ((-rate_p) * coh)).to(p.dtype)
+                        delta_1d = (unit_1d * ((-rate_p_val) * coh)).to(p.dtype)
                         p.add_(delta_1d)
                         if track_secant:
                             applied_deltas.append((p, delta_1d))
@@ -871,9 +1120,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 if len(bucket) == 1:
                     p_i, mat_i, mult_i, s_i, trk_i, needs_t = bucket[0]
                     orth_i = quintic_orthogonalize_2d(mat_i, steps=5, smoothing=(s_i if has_s_b else 0.0)).float()
+                    disp_i = orth_i * mult_i
                     if needs_t:
-                        orth_i = orth_i.T
-                    delta_i = (orth_i * mult_i).reshape_as(p_i).to(p_i.dtype)
+                        disp_i = disp_i.T
+                    delta_i = disp_i.reshape_as(p_i).to(p_i.dtype)
                     p_i.add_(delta_i)
                     if trk_i:
                         applied_deltas.append((p_i, delta_i))
@@ -882,8 +1132,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                     s_batch = torch.stack([b_item[3] for b_item in bucket], dim=0) if has_s_b else 0.0
                     orths = quintic_orthogonalize_batched(mats, steps=5, smoothing=s_batch).float()
                     for idx_b, (p_i, _, mult_i, _, trk_i, needs_t) in enumerate(bucket):
-                        orth_b = orths[idx_b].T if needs_t else orths[idx_b]
-                        delta_i = (orth_b * mult_i).reshape_as(p_i).to(p_i.dtype)
+                        disp_b = orths[idx_b] * mult_i
+                        if needs_t:
+                            disp_b = disp_b.T
+                        delta_i = disp_b.reshape_as(p_i).to(p_i.dtype)
                         p_i.add_(delta_i)
                         if trk_i:
                             applied_deltas.append((p_i, delta_i))
@@ -942,7 +1194,19 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                                 sq_diffs.append((d_post.reshape(-1) - d_pre.reshape(-1)).square().mean())
                         if sq_diffs:
                             probe_ran = True
-                            delta_d = float(torch.stack(sq_diffs).mean().sqrt().item())
+                            delta_d_t = torch.stack(sq_diffs).mean().sqrt().double()
+                            ema_keys, ema_tens = (
+                                rec._take_pending_ema_tensors()
+                                if hasattr(rec, "_take_pending_ema_tensors")
+                                else ([], [])
+                            )
+                            if ema_tens and ema_tens[0].device == delta_d_t.device:
+                                vals_d = torch.stack([delta_d_t, *ema_tens]).tolist()
+                                delta_d = float(vals_d[0])
+                                rec._apply_flushed_ema_values(ema_keys, vals_d[1:])
+                            else:
+                                delta_d = float(delta_d_t.item())
+                            pre_gain_f = float(pre_gain_applied)
                             ema_m = float(getattr(rec, "ema_margin", 0.0)) if getattr(rec, "margin_initialized", False) else 0.0
                             inv_gap = min(25.0, max(0.0, -ema_m - 1.5))
                             th_d = max(0.15, math.sqrt(s_therm)) if s_therm < 1.0 else 1.0
@@ -951,8 +1215,8 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                             delta_d_max = (0.55 * step_scale + 0.20 * inv_gap) * th_d
                             alpha_gain = _band_scale(delta_d, delta_d_min, delta_d_max, alpha_max=64.0)
                             if math.isfinite(delta_d) and delta_d > 1e-12:
-                                free_ratio = (delta_d_max / delta_d) * pre_gain_applied * min(1.0, th_tikh / max(th_d, 1e-6))
-                            active_thresh_d = max(1e-4, 0.01 * pre_gain_applied * step_scale * min(th_d, th_tikh))
+                                free_ratio = (delta_d_max / delta_d) * pre_gain_f * min(1.0, th_tikh / max(th_d, 1e-6))
+                            active_thresh_d = max(1e-4, 0.01 * pre_gain_f * step_scale * min(th_d, th_tikh))
                             step_active_probe = math.isfinite(delta_d) and delta_d >= active_thresh_d
                 else:
                     probe_cache = getattr(rec, "_g_probe_cache", None)
@@ -963,7 +1227,35 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                         if y_post is not None and y_post.shape == y_pre.shape:
                             probe_ran = True
                             out_dim = max(1, int(y_pre[0].numel()))
-                            delta_rms = float((y_post - y_pre).square().mean().sqrt().item())
+                            delta_rms_t = (y_post - y_pre).square().mean().sqrt().double()
+                            mean_coh_t = (
+                                torch.stack(coh_vals).mean().double()
+                                if coh_vals
+                                else delta_rms_t.new_full((), 1.0)
+                            )
+                            has_pg_t = isinstance(pre_gain_applied, torch.Tensor)
+                            ema_keys, ema_tens = (
+                                rec._take_pending_ema_tensors()
+                                if hasattr(rec, "_take_pending_ema_tensors")
+                                else ([], [])
+                            )
+                            batch_g: List[torch.Tensor] = [delta_rms_t, mean_coh_t]
+                            if has_pg_t:
+                                batch_g.append(pre_gain_applied.to(device=delta_rms_t.device, dtype=torch.float64))
+                            can_pack_ema = bool(ema_tens) and all(t.device == delta_rms_t.device for t in ema_tens)
+                            if can_pack_ema:
+                                batch_g.extend(ema_tens)
+                            vals_g = torch.stack(batch_g).tolist()
+                            delta_rms = float(vals_g[0])
+                            mean_coh = float(vals_g[1])
+                            off_g = 2
+                            if has_pg_t:
+                                pre_gain_f = float(vals_g[off_g])
+                                off_g += 1
+                            else:
+                                pre_gain_f = float(pre_gain_applied)
+                            if can_pack_ema:
+                                rec._apply_flushed_ema_values(ema_keys, vals_g[off_g:])
                             data_scale = float(getattr(rec, "ema_data_scale", 1.0))
                             coord_scale = max(0.05, data_scale / math.sqrt(float(out_dim)))
                             delta_rel = delta_rms / coord_scale
@@ -976,12 +1268,16 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                                 delta_g_min = 0.0
                             alpha_gain = _band_scale(delta_rel, delta_g_min, delta_g_max, alpha_max=48.0)
                             th_tikh = min(1.0, s_therm / 0.03) if s_therm < 0.03 else 1.0
-                            mean_coh = float(torch.stack(coh_vals).mean().item()) if coh_vals else 1.0
                             coh_eff = max(0.05, mean_coh)
                             if math.isfinite(delta_rel) and delta_rel > 1e-12:
-                                free_ratio = (delta_g_max / delta_rel) * pre_gain_applied * th_tikh * coh_eff
-                            active_thresh_g = max(1e-4, 0.002 * pre_gain_applied * step_scale * th_tikh * coh_eff)
-                            step_active_probe = math.isfinite(delta_rel) and delta_rel >= active_thresh_g
+                                free_ratio = (delta_g_max / delta_rel) * pre_gain_f * th_tikh * coh_eff
+                            active_thresh_g = max(1e-4, 0.002 * pre_gain_f * step_scale * th_tikh * coh_eff)
+                            step_active_probe = (
+                                s_therm >= 0.5
+                                and push_res >= 0.15
+                                and math.isfinite(delta_rel)
+                                and delta_rel >= active_thresh_g
+                            )
                 if alpha_gain != 1.0:
                     adj = alpha_gain - 1.0
                     for p_i, d_i in applied_deltas:
@@ -989,16 +1285,66 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
                 if probe_ran:
                     # Envelope-tracked function-space conditioning EMA: responds rapidly on stiffness
                     # overshoots (alpha_gain < 1.0) and recovers slowly on well-conditioned active steps
-                    # (never bouncing upward at equilibrium on stiff 16-layer MLPs, yet no one-way ratchet):
+                    # while hot (never bouncing upward at equilibrium on stiff 16-layer MLPs, yet no one-way ratchet):
                     if alpha_gain < 1.0:
-                        target_fg = max(0.05, min(1.0, pre_gain_applied * alpha_gain))
+                        raw_fg = pre_gain_f * alpha_gain
+                        if (not is_critic_opt) and stiff_gate_raw > 0.0 and s_therm >= 0.5:
+                            raw_fg = min(raw_fg, free_ratio)
+                        target_fg = max(0.05, min(1.0, raw_fg))
                         self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
-                    elif step_active_probe and free_ratio > max(1.15 * self._ema_func_gain, 0.05):
-                        target_fg = max(0.05, min(1.0, 0.90 * free_ratio))
+                    elif (
+                        (not is_critic_opt)
+                        and stiff_gate_raw > 0.0
+                        and s_therm >= 0.5
+                        and free_ratio < self._ema_func_gain
+                    ):
+                        # Unmask true Jacobian stiffness when stiff_gate coherence damping shrinks
+                        # delta_rel below delta_g_max so ema_func_gain cannot stall inside the ramp:
+                        target_fg = max(0.05, min(1.0, free_ratio))
+                        self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
+                    elif s_therm >= 0.5 and step_active_probe and free_ratio > 1.5:
+                        target_fg = max(0.05, min(1.0, free_ratio))
                         if target_fg > self._ema_func_gain:
-                            self._ema_func_gain = float(0.995 * self._ema_func_gain + 0.005 * target_fg)
+                            self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
+                if (not is_critic_opt) and rec is not None:
+                    # Publish effective non-stiff generator gain: blends smoothly to 1.0 whenever
+                    # stiff_gate is active so D never starves on pathologically stiff generators:
+                    g_stiff_post = self.current_stiff_gate()
+                    rec._g_func_gain = float((1.0 - g_stiff_post) * self._ema_func_gain + g_stiff_post)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
+
+            # Zero-SVD batched Schatten-6 (quintic) spectral decay on 2D critic hidden weights:
+            # runs post-secant-band with alpha capped at <= 1.0 so the internal 0.25 stability
+            # contraction clamp is inviolable even during inverted-critic recovery (alpha_gain >> 1),
+            # while remaining before direction_blend non-ascent projection.
+            if pending_s6:
+                s6_alpha = min(1.0, float(alpha_gain))
+                for bucket_s6 in pending_s6.values():
+                    if len(bucket_s6) == 1:
+                        p_i, fac_i, needs_t, s6r_i = bucket_s6[0]
+                        w_norm_m = p_i.float() / fac_i
+                        wc_i = w_norm_m.T if needs_t else w_norm_m
+                        s6_i = _schatten6_spectral_decay_2d(wc_i, s6r_i * s6_alpha) * fac_i
+                        if needs_t:
+                            s6_i = s6_i.T
+                        p_i.add_(s6_i.to(p_i.dtype))
+                    else:
+                        w_list = []
+                        r_list = []
+                        for p_i, fac_i, needs_t, s6r_i in bucket_s6:
+                            w_norm_m = p_i.float() / fac_i
+                            w_list.append(w_norm_m.T if needs_t else w_norm_m)
+                            r_list.append(s6r_i * s6_alpha)
+                        s6_batch = _schatten6_spectral_decay_batched(
+                            torch.stack(w_list, dim=0),
+                            torch.stack(r_list, dim=0),
+                        )
+                        for idx_b, (p_i, fac_i, needs_t, _) in enumerate(bucket_s6):
+                            disp_s6 = s6_batch[idx_b] * fac_i
+                            if needs_t:
+                                disp_s6 = disp_s6.T
+                            p_i.add_(disp_s6.to(p_i.dtype))
 
             # Strictly Zero-`pinv` Analytic Non-Ascent Projection on multi-objective conflict steps
             # (preserves per-group learning-rate scales such as low-LR VAE priors without Euclidean blowup):
@@ -1064,7 +1410,7 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
             "ema_func_gain": float(self._ema_func_gain),
             "direction_blend": bool(self.direction_blend),
             "sampled_rows": [
-                self._sampled_rows.get(grp["params"][0]) if grp["algorithm"] == "unified_prior" else None
+                self.sampled_rows_for(grp["params"][0]) if grp["algorithm"] == "unified_prior" else None
                 for grp in self.param_groups
             ],
         }
@@ -1093,7 +1439,14 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         if not isinstance(saved, dict) or set(saved) != expected_keys:
             raise ValueError("invalid UnifiedV11EquilibratedOptimizer checkpoint schema")
         meta = saved["unified_v11_equil"]
-        expected_meta_keys = {"schema", "family", "last_step_gain", "ema_func_gain", "direction_blend", "sampled_rows"}
+        expected_meta_keys = {
+            "schema",
+            "family",
+            "last_step_gain",
+            "ema_func_gain",
+            "direction_blend",
+            "sampled_rows",
+        }
         if self.direction_blend:
             expected_meta_keys.add("constraint_geometry")
         if (

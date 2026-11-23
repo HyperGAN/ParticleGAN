@@ -165,8 +165,8 @@ class _ToyCondDisc(nn.Module):
 
 
 def test_unified_v11_preset_and_frozen_baseline_invariants() -> None:
-    assert DEFAULT_RECIPE == "unified_v11"
-    assert get_recipe() == get_recipe("unified_v11") == get_recipe("gan")
+    assert DEFAULT_RECIPE == "unified_v12"
+    assert get_recipe() == get_recipe("unified_v12") == get_recipe("gan")
     assert len(fields(Recipe)) == 179
 
     rec = get_recipe("unified_v11")
@@ -426,11 +426,26 @@ def test_unified_v11_deliberate_damage_and_tamper_rejection() -> None:
     with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
         trainer.load_state_dict(bad_ema_fg_missing)
 
-    for bad_val in (0.0, -0.2, 1.5, float("nan")):
+    for bad_val in (0.0, -0.2, 1.5, float("nan"), True):
         bad_ema_fg = deepcopy(good)
         bad_ema_fg["optimizers"][0]["unified_v11_equil"]["ema_func_gain"] = bad_val
         with pytest.raises(ValueError, match="invalid checkpoint optimizer state|ema_func_gain"):
             trainer.load_state_dict(bad_ema_fg)
+
+        bad_g_fg = deepcopy(good)
+        bad_g_fg["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"] = bad_val
+        with pytest.raises(ValueError, match="invalid checkpoint optimizer state|g_func_gain"):
+            trainer.load_state_dict(bad_g_fg)
+
+    bad_schema = deepcopy(good)
+    bad_schema["optimizers"][0]["unified_v11_equil"]["schema"] = 99
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|metadata"):
+        trainer.load_state_dict(bad_schema)
+
+    bad_gfg_missing = deepcopy(good)
+    del bad_gfg_missing["optimizers"][1]["regularizer"]["record"]["unified_v11"]["g_func_gain"]
+    with pytest.raises(ValueError, match="invalid checkpoint optimizer state|record packet"):
+        trainer.load_state_dict(bad_gfg_missing)
 
     first_state_key = next(iter(good["optimizers"][0]["state"]))
     for bad_peak in (torch.tensor(-1.0), torch.tensor([1.0]), torch.tensor(float("nan"))):
@@ -540,9 +555,9 @@ def test_unified_v11_fresh_process_continuation_and_import_purity(tmp_path: Path
 
         script = f"""
 import torch, particlegan
-assert particlegan.DEFAULT_RECIPE == "unified_v11"
+assert particlegan.DEFAULT_RECIPE == "unified_v12"
 import particlegan.unified_v11
-assert particlegan.DEFAULT_RECIPE == "unified_v11"
+assert particlegan.DEFAULT_RECIPE == "unified_v12"
 from particlegan import GANTrainer, MoGParticlePrior, Recipe
 from tests.test_unified_v11 import _DeepGen16, _ToyDisc2D
 
@@ -1187,4 +1202,1023 @@ def test_unified_v11_e2e_synthetic_masked_tabular_mixture_fixture() -> None:
         assert populated_modes >= 3, f"Mode collapse on masked tabular fixture: counts={[int((asg == k).sum().item()) for k in range(4)]}"
         if dev.type == "cuda":
             assert 0.015 < float(m_f.mean().item()) < 0.15
+
+
+def test_unified_v11_regression_fixes_tikhonov_peak_rms_stiff_fg_and_gauge_deadband() -> None:
+    """Targeted regression controls for the 3-part unified_v11 regression fix:
+    1. peak_rms Tikhonov smoothing preserves full s_base=0.0061 on normal critic-scale gradients,
+       never crushes tiny high-D gradients (1e-4), freezes decay under thermal cooling (s_therm < 0.5),
+       and preserves prior s_cap row smoothing.
+    2. _ema_func_gain does not bounce upward on stiff networks (free_ratio < 1.5) while still
+       recovering smoothly on well-conditioned networks (free_ratio > 1.5) without probe lockout.
+    3. s_gauge logit-drift deadband cools well-anchored equilibrium critics linearly at s_therm
+       while retaining sqrt(s_therm) anchoring when |mean_logit| drifts far from zero.
+    """
+    torch.manual_seed(0)
+    recipe = get_recipe("unified_v11", training_precision="float32")
+
+    # 1a. Normal critic-scale gradient (sv_rms ~ 0.025) preserves full s_base=0.0061 (not 0.03*peak_rms),
+    #     while genuinely tiny gradient (sv_rms ~ 1e-4) is capped by 0.50*peak_rms so it is not crushed:
+    w_norm = nn.Linear(64, 64, bias=False)
+    w_tiny = nn.Linear(64, 64, bias=False)
+    nn.init.zeros_(w_norm.weight)
+    nn.init.zeros_(w_tiny.weight)
+    opt_norm = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_norm.weight], "role": "critic", "lr": 0.02}], smoothing=0.0061
+    )
+    opt_tiny = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_tiny.weight], "role": "critic", "lr": 0.02}], smoothing=0.0061
+    )
+    base_dir = torch.randn(64, 64)
+    base_dir = base_dir / (base_dir.norm() / 8.0)  # cur_sv_rms == 1.0
+    # Warm up peak_rms at normal critic scale (sv_rms=0.025), then step at cooled equilibrium (sv_rms=0.002):
+    w_norm.weight.grad = base_dir * 0.025
+    opt_norm.step()
+    nn.init.zeros_(w_norm.weight)
+    w_norm.weight.grad = base_dir * 0.002
+    opt_norm.step()
+    # With s_eff == s_base == 0.0061, damping is ~0.002 / hypot(0.002, 0.0061) ~= 0.31 (not ~0.94 under 0.03*peak):
+    frob_norm_eq = float(w_norm.weight.detach().norm().item())
+    full_step_frob = 0.02 * 8.0
+    assert frob_norm_eq < 0.55 * full_step_frob, f"Equilibrium critic under-damped: {frob_norm_eq:.4f} vs {full_step_frob:.4f}"
+
+    # Tiny high-D gradient (sv_rms=1e-4 << s_base=0.0061) must NOT be crushed (0.50*peak_rms -> ~0.89x full step):
+    w_tiny.weight.grad = base_dir * 1e-4
+    opt_tiny.step()
+    frob_tiny = float(w_tiny.weight.detach().norm().item())
+    assert frob_tiny > 0.70 * full_step_frob, f"Tiny high-D gradient crushed: {frob_tiny:.4f} vs {full_step_frob:.4f}"
+
+    # 1b. peak_rms freezes decay during thermal cooling (s_therm < 0.5):
+    rec_cool = UnifiedV11StepRecord()
+    rec_cool._thermal_scale = 1e-4
+    opt_norm._unified_v11_record = rec_cool
+    peak_before = float(opt_norm.state[w_norm.weight]["peak_rms"].item())
+    w_norm.weight.grad = base_dir * 1e-6
+    opt_norm.step()
+    peak_after = float(opt_norm.state[w_norm.weight]["peak_rms"].item())
+    assert peak_after == peak_before, f"peak_rms decayed during thermal cooling: {peak_before} -> {peak_after}"
+
+    # 1c. Prior row smoothing preserves equilibrium damping (0.30*peak_r reaches s_cap=0.0061 on normal prior gradients):
+    z_prior = nn.Parameter(torch.zeros(128, 2))
+    opt_p = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_prior], "role": "prior", "algorithm": "unified_prior", "lr": 0.04}],
+        smoothing=0.0061,
+    )
+    opt_p.set_sampled_rows(z_prior, torch.arange(128))
+    z_prior.grad = torch.full((128, 2), 0.02)
+    opt_p.step()
+    with torch.no_grad():
+        z_prior.zero_()
+    opt_p.set_sampled_rows(z_prior, torch.arange(128))
+    z_prior.grad = torch.full((128, 2), 1e-4)
+    opt_p.step()
+    # With peak_r=0.0283, 0.30*peak_r=0.0085 > s_cap=0.0061 -> s_p_row=0.0061 -> row_disp ~= 9.3e-4:
+    row_disp = float(z_prior.detach().norm(dim=-1).mean().item())
+    assert row_disp < 0.005, f"Prior Tikhonov row smoothing collapsed: row_disp={row_disp:.5f}"
+
+    # 2. Stiff generator (free_ratio < 1.5, e.g. delta_rel ~= 0.5 * delta_g_max at pre_gain=0.18 -> free_ratio ~= 0.36)
+    #    must NOT bounce _ema_func_gain upward out of stiff_gate:
+    from particlegan._unified_v11.critic import record_unified_v11_generator_probe
+
+    g_stiff = nn.Linear(4, 4, bias=False)
+    nn.init.eye_(g_stiff.weight)
+    rec_st = UnifiedV11StepRecord()
+    rec_st.ema_data_scale = 1.0
+    rec_st.ema_push_res = 0.0
+    opt_st = UnifiedV11EquilibratedOptimizer(
+        [{"params": list(g_stiff.parameters()), "role": "generator", "lr": 0.014}],
+        smoothing=0.0,
+    )
+    opt_st._unified_v11_record = rec_st
+    opt_st._ema_func_gain = 0.18
+    opt_st.set_generator_probe_parameters(g_stiff.parameters())
+    z_in = torch.ones(8, 4) * 2.5
+    y_st = g_stiff(z_in)
+    assert record_unified_v11_generator_probe(g_stiff, (z_in,), {}, y_st, rec_st) is True
+    opt_st.zero_grad()
+    y_st.mean().backward()
+    opt_st.step()
+    # At lr=0.014, pre_gain=0.18, delta_rel is ~0.015 (< delta_g_max=0.045, so alpha_gain==1.0),
+    # giving free_ratio ~= (0.045 / 0.015) * 0.18 ~= 0.54 < 1.5 -> ema_func_gain must stay <= 0.18:
+    assert opt_st._ema_func_gain <= 0.18 + 1e-9, f"Stiff network bounced ema_func_gain upward: {opt_st._ema_func_gain}"
+
+    # 3. Well-anchored equilibrium critic (|mean_logit| = 0.05 <= 0.5) cools pen_gauge linearly at s_therm
+    #    rather than 100x stronger sqrt(s_therm):
+    d_eq = nn.Sequential(nn.Linear(4, 1))
+    with torch.no_grad():
+        d_eq[0].weight.zero_()
+        d_eq[0].bias.fill_(0.05)
+    opt_deq = recipe.make_critic_optimizer(d_eq)
+    pen_deq = recipe.make_critic_penalty(opt_deq)
+    xr4, xf4 = torch.randn(16, 4), torch.randn(16, 4)
+    opt_deq.record._thermal_scale = 1.0
+    opt_deq.zero_grad()
+    pen_deq(d_eq, xr4, xf4).backward()
+    g_eq_hot = abs(float(d_eq[0].bias.grad.item()))
+    opt_deq.record._thermal_scale = 1e-4
+    opt_deq.zero_grad()
+    pen_deq(d_eq, xr4, xf4).backward()
+    g_eq_cold = abs(float(d_eq[0].bias.grad.item()))
+    # Linear s_therm=1e-4 scaling (ratio ~1e-4, strictly < 5e-4, NOT 1e-2 from sqrt(s_therm)):
+    assert g_eq_hot > 0.0 and (g_eq_cold / g_eq_hot) < 5e-4, f"Anchored gauge over-amplified: ratio={g_eq_cold / g_eq_hot:.3e}"
+
+
+def test_unified_v11_zerosync_primitives_parity_and_cuda_sync_budget() -> None:
+    """Phase 3 zero-sync exact mathematical parity (CPU+CUDA) and strict CUDA sync-count regression guards."""
+    from particlegan._stats import median_offdiag
+    from particlegan._unified_v4.loss import _principal_axis_power
+    from particlegan._unified_v11.loss import _principal_axis_power_zerosync
+    from particlegan._unified_v11.prior import _median_offdiag_zerosync
+
+    torch.manual_seed(0)
+    # 1. Exact bit-for-bit parity of zero-sync off-diagonal median & power-iteration eigenvector:
+    for m in (2, 3, 4, 7, 16, 64):
+        mat = torch.randn(m, m).abs()
+        assert torch.equal(_median_offdiag_zerosync(mat), median_offdiag(mat))
+    for d in (2, 3, 8, 32):
+        a = torch.randn(d, d)
+        g_mat = a.T @ a
+        assert torch.equal(_principal_axis_power_zerosync(g_mat, iters=6), _principal_axis_power(g_mat, iters=6))
+
+    # 2. Exact parity of zero-sync SBNP fallback in UnifiedV11PriorRegularizer.forward:
+    for use_ref in (False, True):
+        for z_dim in (2, 8, 32):
+            prior_ref = ParticlePrior(num_particles=64, z_dim=z_dim) if use_ref else None
+            if prior_ref is not None:
+                from particlegan.moment_tether import capture_initial_moments
+                capture_initial_moments(prior_ref)
+            reg_v11 = UnifiedV11PriorRegularizer(reference=prior_ref, weight=1.0)
+            rec = UnifiedV11StepRecord()
+            reg_v11.thermal_source = rec
+            for s_th in (1.0, 0.25, 1e-5):
+                rec._thermal_scale = s_th
+                rows_a = torch.randn(64, z_dim, requires_grad=True)
+                rows_b = rows_a.detach().clone().requires_grad_(True)
+                val_zs = reg_v11._sbnp_fallback_zerosync(rows_a)
+                val_ref = reg_v11.fallback(rows_b)
+                assert torch.allclose(val_zs, val_ref, atol=1e-6, rtol=1e-6)
+                val_zs.backward()
+                val_ref.backward()
+                assert rows_a.grad is not None and rows_b.grad is not None
+                assert torch.allclose(rows_a.grad, rows_b.grad, atol=1e-6, rtol=1e-6)
+
+    # 3. Exact parity of lazy GPU EMA record flushing & checkpoint/deepcopy round-trip:
+    rec_em = UnifiedV11StepRecord()
+    rl = torch.tensor([1.5, 0.5, 2.0, -0.5])
+    fl = torch.tensor([-0.2, 0.1, 0.3, -0.6])
+    xr = torch.randn(8, 4)
+    xf = torch.randn(8, 4)
+    rec_em.observe_margin_and_scale(rl, fl, xr, xf)
+    rec_em.observed_steps = 1
+    rec_em.observe_margin_and_scale(rl * 0.5, fl * 0.5, xr * 1.2, xf * 0.8)
+    m1 = max(-50.0, min(50.0, float(rl.mean().item()) - float(fl.mean().item())))
+    m2 = max(-50.0, min(50.0, float((rl * 0.5).mean().item()) - float((fl * 0.5).mean().item())))
+    assert rec_em.margin_initialized is True
+    assert abs(rec_em.ema_margin - (0.90 * m1 + 0.10 * m2)) < 1e-12
+    dup = deepcopy(rec_em)
+    assert dup.ema_margin == rec_em.ema_margin
+    assert dup.ema_data_scale == rec_em.ema_data_scale
+    assert dup.ema_push_res == rec_em.ema_push_res
+
+    # 4. Zero-sync duplicate-row deduplication in UnifiedV11EquilibratedOptimizer prior group:
+    z_a = nn.Parameter(torch.randn(32, 4))
+    z_b = nn.Parameter(z_a.detach().clone())
+    grad_z = torch.randn(32, 4)
+    z_a.grad = grad_z.clone()
+    z_b.grad = grad_z.clone()
+    opt_a = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_a], "role": "prior", "algorithm": "unified_prior", "lr": 0.04, "betas": (0.8, 0.99)}],
+        smoothing=0.0061,
+    )
+    opt_b = UnifiedV11EquilibratedOptimizer(
+        [{"params": [z_b], "role": "prior", "algorithm": "unified_prior", "lr": 0.04, "betas": (0.8, 0.99)}],
+        smoothing=0.0061,
+    )
+    dup_idx = torch.tensor([5, 1, 5, 12, 1, 0, 12, 5], dtype=torch.long)
+    uniq_idx = torch.unique(dup_idx, sorted=True)
+    opt_a.set_sampled_rows(z_a, dup_idx)
+    opt_b.set_sampled_rows(z_b, uniq_idx)
+    assert torch.equal(opt_a.sampled_rows_for(z_a), uniq_idx)
+    opt_a.step()
+    opt_b.step()
+    assert torch.allclose(z_a, z_b, atol=1e-6, rtol=1e-6)
+    assert torch.allclose(opt_a.state[z_a]["m_prior"], opt_b.state[z_b]["m_prior"], atol=1e-6, rtol=1e-6)
+    assert torch.allclose(opt_a.state[z_a]["peak_rms"], opt_b.state[z_b]["peak_rms"], atol=1e-6, rtol=1e-6)
+
+    # 5. Zero-sync quantizer maintenance (uncovered replacement + dead-slot Gersho split) invariants:
+    reg_q = UnifiedV11PriorRegularizer(max_prototypes=16)
+    reg_q.update_quantizer(torch.randn(32, 2))
+    # Force dead slot + Gersho split + uncovered point:
+    reg_q.proto_w[0] = 0.0
+    reg_q.proto_w = reg_q.proto_w / reg_q.proto_w.sum()
+    reg_q.update_quantizer(torch.randn(32, 2))
+    far_batch = torch.randn(32, 2)
+    far_batch[0] = torch.tensor([100.0, -100.0])
+    reg_q.update_quantizer(far_batch)
+    sd_q = reg_q.state_dict()
+    reg_q2 = UnifiedV11PriorRegularizer(max_prototypes=16)
+    reg_q2.load_state_dict(sd_q)
+    assert torch.equal(reg_q2.proto_c, reg_q.proto_c)
+    assert torch.equal(reg_q2.v_push, reg_q.v_push)
+
+    # 6. CUDA sync-count regression guards (pullback <= 14 syncs/step vs ~115 before; 4D image <= 6 vs ~60 before):
+    if torch.cuda.is_available():
+        dev = torch.device("cuda:0")
+        rec_pb = get_recipe(
+            "unified_v11",
+            prior_kind="mog",
+            standardize=False,
+            batch_size=32,
+            num_particles=64,
+            z_dim=2,
+            total_steps=40,
+            training_precision="float32",
+        )
+        tr_pb = GANTrainer(
+            rec_pb,
+            _ToyGen2D(2, 2).to(dev),
+            _ToyDisc2D(2).to(dev),
+            prior=MoGParticlePrior(num_particles=64, z_dim=2, sigma=0.05, standardize=False, device=dev),
+            seed=0,
+        )
+        for _ in range(12):
+            tr_pb.step(torch.randn(32, 2, device=dev))
+        torch.cuda.synchronize(dev)
+        with torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
+        ) as prof_pb:
+            for _ in range(5):
+                tr_pb.step(torch.randn(32, 2, device=dev))
+        torch.cuda.synchronize(dev)
+        pb_syncs = sum(
+            int(e.count) for e in prof_pb.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
+        ) / 5.0
+        assert pb_syncs <= 14.0, f"Pullback CUDA sync regression: {pb_syncs:.1f} syncs/step (budget <= 14)"
+
+        rec_img = get_recipe(
+            "unified_v11",
+            prior_kind="particles",
+            sigma_rel=0.0,
+            batch_size=8,
+            num_particles=32,
+            z_dim=8,
+            total_steps=30,
+            training_precision="float32",
+        )
+        tr_img = GANTrainer(
+            rec_img,
+            _ToyImgBNGen(8).to(dev),
+            _ToyImgBNDisc().to(dev),
+            prior=ParticlePrior(num_particles=32, z_dim=8, device=dev),
+            seed=0,
+        )
+        for _ in range(6):
+            tr_img.step(torch.randn(8, 3, 32, 32, device=dev))
+        torch.cuda.synchronize(dev)
+        with torch.profiler.profile(
+            activities=[torch.profiler.ProfilerActivity.CPU, torch.profiler.ProfilerActivity.CUDA]
+        ) as prof_img:
+            for _ in range(5):
+                tr_img.step(torch.randn(8, 3, 32, 32, device=dev))
+        torch.cuda.synchronize(dev)
+        img_syncs = sum(
+            int(e.count) for e in prof_img.key_averages() if e.key in ("cudaStreamSynchronize", "cudaDeviceSynchronize")
+        ) / 5.0
+        assert img_syncs <= 6.0, f"4D image CUDA sync regression: {img_syncs:.1f} syncs/step (budget <= 6)"
+
+    # 8. Subclass compatibility: legacy subclasses without _SUPPORTS_ZEROSYNC_V4_TENSORS keep deduplicated
+    #    _sampled_rows and Python-float _origin_norm / _v4_g_scale / _v4_wakeup_boost, while base & opt-in keep tensors:
+    class _LegacySubclassOpt(UnifiedV11EquilibratedOptimizer):
+        pass
+
+    class _OptInSubclassOpt(UnifiedV11EquilibratedOptimizer):
+        _SUPPORTS_ZEROSYNC_V4_TENSORS = True
+
+    p_tab = nn.Parameter(torch.randn(16, 2))
+    raw_dups = torch.tensor([3, 1, 3, 5, 1, 5], dtype=torch.long)
+    legacy_opt = _LegacySubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    legacy_opt.set_sampled_rows(p_tab, raw_dups)
+    assert torch.equal(legacy_opt._sampled_rows[p_tab], torch.tensor([1, 3, 5], dtype=torch.long))
+    legacy_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert isinstance(legacy_opt._origin_norm, float) and legacy_opt._origin_norm_t is None
+    legacy_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert type(legacy_opt._v4_g_scale) is float and abs(legacy_opt._v4_g_scale - 0.25) < 1e-6
+    assert type(legacy_opt._v4_wakeup_boost) is float and abs(legacy_opt._v4_wakeup_boost - 2.0) < 1e-6
+
+    optin_opt = _OptInSubclassOpt([{"params": [p_tab], "role": "prior", "algorithm": "unified_prior"}], lr=0.01)
+    optin_opt.set_sampled_rows(p_tab, raw_dups)
+    assert len(optin_opt._sampled_rows[p_tab]) == len(raw_dups)
+    assert torch.equal(optin_opt.sampled_rows_for(p_tab), torch.tensor([1, 3, 5], dtype=torch.long))
+    optin_opt.bind_origin_sample(torch.tensor([[0.01, 0.0], [0.02, 0.0]]))
+    assert optin_opt._origin_norm is None and isinstance(optin_opt._origin_norm_t, torch.Tensor)
+    optin_opt.bind_v4_modulation(g_scale=torch.tensor(0.25), wakeup_boost=torch.tensor(2.0), prior_scale=1.0)
+    assert isinstance(optin_opt._v4_g_scale, torch.Tensor) and isinstance(optin_opt._v4_wakeup_boost, torch.Tensor)
+
+
+class _ResBNTrunkGen(nn.Module):
+    """Depth-invariant branch-normalized residual MLP with constant ~2x coherent displacement."""
+
+    def __init__(self, z_dim: int = 8, width: int = 32, out_dim: int = 8, depth: int = 4) -> None:
+        super().__init__()
+        self.depth = depth
+        self.stem = nn.Linear(z_dim, width)
+        self.blocks = nn.ModuleList(
+            [nn.ModuleDict({"ffn_in": nn.Linear(width, width), "ffn_out": nn.Linear(width, width)}) for _ in range(depth)]
+        )
+        self.head = nn.Linear(width, out_dim)
+
+    @staticmethod
+    def _rms_norm(x: torch.Tensor) -> torch.Tensor:
+        return x * torch.rsqrt(x.square().mean(dim=-1, keepdim=True) + 1e-6)
+
+    def forward(self, z: torch.Tensor) -> torch.Tensor:
+        h = nn.functional.leaky_relu(self.stem(z), negative_slope=0.2)
+        scale = 0.5 / float(max(1, self.depth))
+        for blk in self.blocks:
+            b = blk["ffn_out"](nn.functional.leaky_relu(blk["ffn_in"](self._rms_norm(h)), negative_slope=0.2))
+            h = h + scale * self._rms_norm(b)
+        return self.head(h)
+
+
+def test_unified_v11_law4_two_player_coupling_and_stiff_gate_controls(tmp_path: Path) -> None:
+    """Semantic controls + fresh-process continuation for coupled Law 4 gains and overshoot/drop stiff_gate."""
+    torch.manual_seed(0)
+
+    # 1. Normalized deep residual trunk at ema_func_gain >= 0.18 (e.g. ~0.30-0.40) keeps stiff_gate == 0.0
+    #    (no asymmetric beta1 momentum allocated on 2D weights), while severe overshoot (<= 0.11) activates 1.0:
+    w_g = nn.Linear(16, 16, bias=False)
+    opt_g = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_g.weight], "role": "generator", "lr": 0.014}],
+        smoothing=0.0061,
+    )
+    opt_g._ema_func_gain = 0.25
+    assert opt_g.current_stiff_gate() == 0.0
+    w_g.weight.grad = torch.randn_like(w_g.weight)
+    opt_g.step()
+    assert "m_unit" not in opt_g.state[w_g.weight], "False stiff_gate allocated momentum on normalized gain!"
+
+    # Severe absolute overshoot (ema_fg <= 0.11, e.g. 16L MLP) activates stiff_gate == 1.0:
+    opt_g._ema_func_gain = 0.10
+    assert opt_g.current_stiff_gate() == 1.0
+    w_g.weight.grad = torch.randn_like(w_g.weight)
+    opt_g.step()
+    assert "m_unit" in opt_g.state[w_g.weight], "Severe overshoot failed to engage stiff_gate momentum!"
+
+    # 2. Bandpass positive-margin critic coupling scales D step by rec._g_func_gain (down to 0.12)
+    #    only in the on-manifold critic-dominance band (0.30 <= ema_margin <= 1.10), releasing to 1.0
+    #    at equilibrium (ema_margin <= 0.08), hostile margin (< 0), and off-manifold collapse (>= 1.40):
+    grad_d = torch.randn(16, 16)
+
+    def _critic_step_norm(g_fg: float, ema_margin: float, margin_init: bool) -> float:
+        d_lin = nn.Linear(16, 16, bias=False)
+        nn.init.zeros_(d_lin.weight)
+        rec_d = UnifiedV11StepRecord()
+        rec_d._g_func_gain = g_fg
+        rec_d.ema_margin = ema_margin
+        rec_d.margin_initialized = margin_init
+        opt_d = UnifiedV11EquilibratedOptimizer(
+            [{"params": [d_lin.weight], "role": "critic", "lr": 0.02}],
+            smoothing=0.0,
+        )
+        opt_d.critic = d_lin
+        opt_d._unified_v11_record = rec_d
+        d_lin.weight.grad = grad_d.clone()
+        opt_d.step()
+        return float(d_lin.weight.detach().norm().item())
+
+    n_full = _critic_step_norm(g_fg=1.0, ema_margin=0.5, margin_init=True)
+    n_coupled = _critic_step_norm(g_fg=0.45, ema_margin=0.5, margin_init=True)
+    n_deep_coupled = _critic_step_norm(g_fg=0.14, ema_margin=0.5, margin_init=True)
+    n_floored = _critic_step_norm(g_fg=0.05, ema_margin=0.5, margin_init=True)
+    n_eq_rel = _critic_step_norm(g_fg=0.20, ema_margin=0.01, margin_init=True)
+    n_hostile = _critic_step_norm(g_fg=0.45, ema_margin=-2.0, margin_init=True)
+    n_collapse_rel = _critic_step_norm(g_fg=0.30, ema_margin=2.0, margin_init=True)
+    assert abs(n_coupled / n_full - 0.45) < 1e-4
+    assert abs(n_deep_coupled / n_full - 0.14) < 1e-4
+    assert abs(n_floored / n_full - 0.12) < 1e-4
+    assert abs(n_eq_rel / n_full - 1.00) < 1e-4
+    assert abs(n_hostile / n_full - 1.00) < 1e-4
+    assert abs(n_collapse_rel / n_full - 1.00) < 1e-4
+
+    # 3. Pathologically stiff unnormalized 16-layer MLP (at O(1) Kaiming-like scale) engages stiff_gate protection
+    #    and blends published rec._g_func_gain smoothly toward 1.0 so D never starves:
+    rec_16 = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=16,
+        num_particles=32,
+        z_dim=2,
+        total_steps=40,
+        training_precision="float32",
+    )
+    g16 = _DeepGen16(2, 32, 2)
+    d16 = _ToyDisc2D(2)
+    p16 = MoGParticlePrior(num_particles=32, z_dim=2, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g16, seed=0)
+    with torch.no_grad():
+        for m in g16.modules():
+            if isinstance(m, nn.Linear):
+                m.weight.mul_(2.6)
+    init.deterministic_orthogonal_(d16, seed=1)
+    init.deterministic_orthogonal_(p16, seed=2)
+    tr16 = GANTrainer(rec_16, g16, d16, prior=p16, seed=0)
+    peak_stiff_16 = 0.0
+    for i in range(20):
+        tr16.step(torch.randn(16, 2, generator=torch.Generator().manual_seed(700 + i)))
+        peak_stiff_16 = max(peak_stiff_16, tr16.opt_g.current_stiff_gate())
+    assert peak_stiff_16 > 0.5, f"Pathological 16L MLP failed to engage stiff_gate: peak={peak_stiff_16:.3f}"
+    g_stiff_16 = tr16.opt_g.current_stiff_gate()
+    expected_g_fg = (1.0 - g_stiff_16) * tr16.opt_g._ema_func_gain + g_stiff_16
+    assert abs(tr16.opt_d.record._g_func_gain - expected_g_fg) < 1e-6
+
+    # 4. Fresh-process bit-exact continuation across active g_func_gain coupling boundary:
+    rec_bn = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=16,
+        num_particles=32,
+        z_dim=8,
+        total_steps=40,
+        training_precision="float32",
+    )
+    g_bn = _ResBNTrunkGen(z_dim=8, width=32, out_dim=8, depth=4)
+    d_bn = _ToyDisc2D(8)
+    p_bn = MoGParticlePrior(num_particles=32, z_dim=8, sigma=0.1, standardize=False)
+    init.deterministic_orthogonal_(g_bn, seed=40)
+    init.deterministic_orthogonal_(d_bn, seed=41)
+    init.deterministic_orthogonal_(p_bn, seed=42)
+    tr_bn = GANTrainer(rec_bn, g_bn, d_bn, prior=p_bn, seed=0)
+    batches = [torch.randn(16, 8, generator=torch.Generator().manual_seed(800 + i)) for i in range(12)]
+    for i in range(6):
+        tr_bn.step(batches[i])
+    # Ensure coupling state is genuinely non-trivial at the checkpoint boundary:
+    tr_bn.opt_g._ema_func_gain = 0.42
+    tr_bn.opt_d.record._g_func_gain = 0.42
+    ckpt_path = tmp_path / "ckpt_v11_law4_couple.pt"
+    out_path = tmp_path / "resumed_v11_law4_couple.pt"
+    torch.save({"state": tr_bn.state_dict(), "batches": batches[6:]}, ckpt_path)
+    for i in range(6, 12):
+        tr_bn.step(batches[i])
+    ref_state = tr_bn.state_dict()
+    ref_g_fg = tr_bn.opt_d.record._g_func_gain
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ResBNTrunkGen, _ToyDisc2D
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ResBNTrunkGen(z_dim=8, width=32, out_dim=8, depth=4),
+    _ToyDisc2D(8),
+    prior=MoGParticlePrior(num_particles=32, z_dim=8, sigma=0.1, standardize=False),
+    seed=123,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save(
+    {{
+        "models": tr.state_dict()["models"],
+        "g_fg": tr.opt_d.record._g_func_gain,
+    }},
+    {str(out_path)!r},
+)
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert resumed["g_fg"] == ref_g_fg
+
+    def _assert_tree_eq(a: object, b: object, prefix: str = "") -> None:
+        if isinstance(a, torch.Tensor):
+            assert isinstance(b, torch.Tensor) and torch.equal(a, b), f"Coupled Law 4 continuation mismatch {prefix}"
+        elif isinstance(a, dict):
+            assert isinstance(b, dict) and set(a.keys()) == set(b.keys()), f"Key mismatch {prefix}"
+            for key in a:
+                _assert_tree_eq(a[key], b[key], f"{prefix}.{key}")
+        else:
+            assert a == b, f"Value mismatch {prefix}: {a!r} != {b!r}"
+
+    for m_name in ("G", "D", "prior"):
+        _assert_tree_eq(ref_state["models"][m_name], resumed["models"][m_name], m_name)
+
+
+class _ToyDeepResBNDisc(nn.Module):
+    """Deep Pre-RMSNorm residual critic with branch-output RMSNorm for Issue-2 depth-scaling tests."""
+
+    def __init__(self, in_dim: int = 1088, hidden: int = 64, depth: int = 2) -> None:
+        super().__init__()
+        self.depth = int(depth)
+        self.inp = nn.Linear(in_dim, hidden)
+        self.in_projs = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(depth)])
+        self.out_projs = nn.ModuleList([nn.Linear(hidden, hidden) for _ in range(depth)])
+        self.head = nn.Linear(hidden, 1)
+
+    @staticmethod
+    def _rms_norm(x: torch.Tensor) -> torch.Tensor:
+        return x * torch.rsqrt(x.square().mean(dim=-1, keepdim=True) + 1e-6)
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        h = nn.functional.leaky_relu(self.inp(x), negative_slope=0.2)
+        scale = 0.5 / float(max(1, self.depth))
+        for w_in, w_out in zip(self.in_projs, self.out_projs):
+            br = w_out(nn.functional.leaky_relu(w_in(self._rms_norm(h)), negative_slope=0.2))
+            h = h + scale * self._rms_norm(br)
+        return self.head(self._rms_norm(h)).squeeze(-1)
+
+
+def test_unified_v11_critic_schatten6_spectral_control_and_deep_resbn_continuation(tmp_path: Path) -> None:
+    """Issue 2 semantic controls for zero-SVD exact-deadband Schatten-6 spectral decay on 2D critic hidden weights:
+    1. Bounds runaway normalized spectral norm on square & rectangular critic weights under repeated
+       aligned Quintic-polar steps, while leaving singular values <= tau=2.0 identically untouched.
+    2. Strictly isolates generator weights, 1-row critic readouts, 1D biases, and Conv2d weights.
+    3. Cools smoothly with s_therm, does nothing on zero gradients, stays contractive under large
+       inverted-critic alpha_gain boosts, and preserves batched-vs-single and group-split parity.
+    4. Runs with 0 autograd.grad/svd/eigh/pinv and exact fresh-process checkpoint continuation on a
+       deep high-D (dim=1088) ResBN critic across active Schatten-6 steps.
+    """
+    from particlegan._unified_v11.optimizer import (
+        _CRITIC_SCHATTEN6_TAU,
+        _schatten6_spectral_decay_2d,
+        _schatten6_spectral_decay_batched,
+    )
+
+    torch.manual_seed(0)
+
+    # 1a. Repeated aligned Quintic-polar updates on square (32x32) and tall rectangular (64x16, gamma=2.0)
+    #     critic hidden matrices stay spectrally bounded near tau * lam^(-1/5) ~= 2.64 (vs > 10 unbounded):
+    w_sq = nn.Parameter(torch.eye(32))
+    w_rect = nn.Parameter(torch.zeros(64, 16))
+    with torch.no_grad():
+        w_rect[:16, :16].copy_(torch.eye(16) * 2.0)  # normalized sv == 1.0 since gamma = sqrt(64/16) = 2.0
+    opt_c = UnifiedV11EquilibratedOptimizer(
+        [{"params": [w_sq, w_rect], "role": "critic", "lr": 0.05}],
+        smoothing=0.0,
+    )
+    g_sq = -torch.eye(32)
+    g_rect = torch.zeros(64, 16)
+    g_rect[:16, :16] = -torch.eye(16)
+    for _ in range(250):
+        w_sq.grad = g_sq.clone()
+        w_rect.grad = g_rect.clone()
+        opt_c.step()
+    sv_sq = float(torch.linalg.matrix_norm(w_sq.detach(), ord=2).item())
+    sv_rect_norm = float(torch.linalg.matrix_norm(w_rect.detach(), ord=2).item()) / 2.0
+    assert 2.0 < sv_sq < 3.0, f"Square critic spectral norm not bounded properly: {sv_sq:.3f}"
+    assert 2.0 < sv_rect_norm < 3.0, f"Rect critic normalized spectral norm not bounded properly: {sv_rect_norm:.3f}"
+
+    # 1b. Exact zero-deadband below tau=2.0: any matrix with sigma_max <= tau receives identically zero decay:
+    for sig_val in (0.8, 1.5, 1.95):
+        w_sub = torch.eye(16) * sig_val
+        d_sub = _schatten6_spectral_decay_2d(w_sub, torch.tensor(0.02))
+        assert torch.equal(d_sub, torch.zeros_like(w_sub)), f"Non-zero deadband decay at sigma={sig_val}"
+    # Above tau=2.0, decay activates cleanly:
+    w_over = torch.eye(16) * 2.8
+    d_over = _schatten6_spectral_decay_2d(w_over, torch.tensor(0.02))
+    assert float(d_over.norm().item()) > 0.0 and float((w_over + d_over).norm().item()) < float(w_over.norm().item())
+
+    # 2. Strict role & shape isolation: generator 2D, critic 1-row readout, critic 1D bias, critic Conv2d
+    #    receive zero Schatten-6 decay even at 4x initial spectral scale:
+    for role, shape, is_conv in [
+        ("generator", (16, 16), False),
+        ("critic", (1, 16), False),
+        ("critic", (16,), False),
+        ("critic", (8, 8, 3, 3), True),
+        ("critic", (8, 8, 1, 1), True),
+    ]:
+        p_small = nn.Parameter(torch.randn(*shape) * 0.1)
+        p_big = nn.Parameter(p_small.detach().clone() * 40.0)
+        grad_fixed = torch.randn(*shape)
+        opt_s = UnifiedV11EquilibratedOptimizer([{"params": [p_small], "role": role, "lr": 0.02}], smoothing=0.0)
+        opt_b = UnifiedV11EquilibratedOptimizer([{"params": [p_big], "role": role, "lr": 0.02}], smoothing=0.0)
+        if is_conv:
+            opt_s._conv_layouts[id(p_small)] = (False, 1)
+            opt_b._conv_layouts[id(p_big)] = (False, 1)
+        pre_s = p_small.detach().clone()
+        pre_b = p_big.detach().clone()
+        p_small.grad = grad_fixed.clone()
+        p_big.grad = grad_fixed.clone()
+        opt_s.step()
+        opt_b.step()
+        delta_s = p_small.detach() - pre_s
+        delta_b = p_big.detach() - pre_b
+        assert torch.allclose(delta_s, delta_b, atol=1e-5, rtol=1e-5), (
+            f"Unexpected weight-dependent decay on role={role}, shape={shape}, is_conv={is_conv}"
+        )
+
+    # 3a. Thermal cooling silences Schatten-6 decay, and zero gradient applies zero decay:
+    w_hot = nn.Parameter(torch.eye(16) * 3.0)
+    w_cold = nn.Parameter(torch.eye(16) * 3.0)
+    w_zero = nn.Parameter(torch.eye(16) * 3.0)
+    rec_hot = UnifiedV11StepRecord()
+    rec_cold = UnifiedV11StepRecord()
+    rec_hot._thermal_scale = 1.0
+    rec_cold._thermal_scale = 1e-6
+    opt_hot = UnifiedV11EquilibratedOptimizer([{"params": [w_hot], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_cold = UnifiedV11EquilibratedOptimizer([{"params": [w_cold], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_zero = UnifiedV11EquilibratedOptimizer([{"params": [w_zero], "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_hot._unified_v11_record = rec_hot
+    opt_cold._unified_v11_record = rec_cold
+    # Tiny orthogonal-to-eye gradient so polar step norm is identical, difference is purely Schatten-6:
+    g_orth = torch.zeros(16, 16)
+    g_orth[0, 1] = 1.0
+    w_hot.grad = g_orth.clone()
+    w_cold.grad = g_orth.clone()
+    w_zero.grad = torch.zeros(16, 16)
+    opt_hot.step()
+    opt_cold.step()
+    opt_zero.step()
+    assert float(w_hot.detach().diag().mean().item()) < 2.97, "Hot critic Schatten-6 did not contract above-tau weight"
+    assert abs(float(w_cold.detach().diag().mean().item()) - 3.0) < 1e-5, "Cooled critic Schatten-6 drifted at equilibrium"
+    assert torch.equal(w_zero.detach(), torch.eye(16) * 3.0), "Zero-gradient critic weight modified by Schatten-6"
+
+    # 3b. Inverted-critic large alpha_gain boost (alpha_gain >> 1) keeps Schatten-6 strictly contractive:
+    d_inv = nn.Sequential(nn.Linear(16, 16, bias=False), nn.Linear(16, 1, bias=False))
+    with torch.no_grad():
+        d_inv[0].weight.copy_(torch.eye(16) * 6.0)
+        d_inv[1].weight.fill_(0.1)
+    rec_inv = UnifiedV11StepRecord()
+    rec_inv.margin_initialized = True
+    rec_inv.ema_margin = -12.0  # triggers large delta_d_min -> alpha_gain >> 1.0
+    rec_inv._thermal_scale = 1.0
+    opt_inv = UnifiedV11EquilibratedOptimizer([{"params": list(d_inv.parameters()), "role": "critic", "lr": 0.02}], smoothing=0.0)
+    opt_inv._unified_v11_record = rec_inv
+    opt_inv.critic = d_inv
+    x_probe = torch.randn(4, 16)
+    with torch.no_grad():
+        rec_inv._d_probe_list = [((x_probe,), {}, d_inv(x_probe))]
+    d_inv[0].weight.grad = torch.randn(16, 16) * 1e-3
+    d_inv[1].weight.grad = torch.randn(1, 16) * 1e-3
+    sv_before_inv = float(torch.linalg.matrix_norm(d_inv[0].weight.detach(), ord=2).item())
+    opt_inv.step()
+    sv_after_inv = float(torch.linalg.matrix_norm(d_inv[0].weight.detach(), ord=2).item())
+    assert opt_inv.last_step_gain > 5.0
+    assert torch.isfinite(d_inv[0].weight).all() and sv_after_inv < sv_before_inv
+
+    # 3c. Batched-vs-single parity & group-split invariance:
+    w_a = torch.randn(16, 24) * 0.8
+    w_b = torch.randn(16, 24) * 1.1
+    rates = torch.tensor([0.02, 0.015])
+    s6_batched = _schatten6_spectral_decay_batched(torch.stack([w_a, w_b], dim=0), rates)
+    s6_a = _schatten6_spectral_decay_2d(w_a, rates[0])
+    s6_b = _schatten6_spectral_decay_2d(w_b, rates[1])
+    assert torch.allclose(s6_batched[0], s6_a, atol=1e-6, rtol=1e-5)
+    assert torch.allclose(s6_batched[1], s6_b, atol=1e-6, rtol=1e-5)
+
+    p1a, p2a = nn.Parameter(w_a.clone()), nn.Parameter(w_b.clone())
+    p1b, p2b = nn.Parameter(w_a.clone()), nn.Parameter(w_b.clone())
+    ga, gb = torch.randn_like(w_a), torch.randn_like(w_b)
+    opt_one = UnifiedV11EquilibratedOptimizer([{"params": [p1a, p2a], "role": "critic", "lr": 0.02}], smoothing=0.0061)
+    opt_two = UnifiedV11EquilibratedOptimizer(
+        [{"params": [p1b], "role": "critic", "lr": 0.02}, {"params": [p2b], "role": "critic", "lr": 0.02}],
+        smoothing=0.0061,
+    )
+    p1a.grad, p2a.grad = ga.clone(), gb.clone()
+    p1b.grad, p2b.grad = ga.clone(), gb.clone()
+    opt_one.step()
+    opt_two.step()
+    assert torch.equal(p1a.detach(), p1b.detach()) and torch.equal(p2a.detach(), p2b.detach())
+
+    # 4. Zero forbidden primitives + exact fresh-process checkpoint continuation on deep ResBN critic at dim=1088:
+    dim = 1088
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=8,
+        total_steps=10,
+        training_precision="float32",
+    )
+    g = _ToyGen2D(z_dim=8, out_dim=dim)
+    d = _ToyDeepResBNDisc(in_dim=dim, hidden=32, depth=2)
+    p = MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g, seed=10)
+    init.deterministic_orthogonal_(d, seed=11)
+    init.deterministic_orthogonal_(p, seed=12)
+    # Push one critic branch weight above tau so Schatten-6 is actively contracting across the checkpoint boundary:
+    with torch.no_grad():
+        d.out_projs[0].weight.mul_(_CRITIC_SCHATTEN6_TAU + 0.8)
+
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+    batches = [torch.randn(8, dim, generator=torch.Generator().manual_seed(900 + i)) for i in range(6)]
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called during deep ResBN critic step!")
+
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        for i in range(3):
+            trainer.step(batches[i])
+
+    ckpt_path = tmp_path / "ckpt_v11_resbn_s6.pt"
+    out_path = tmp_path / "resumed_v11_resbn_s6.pt"
+    torch.save({"state": trainer.state_dict(), "batches": batches[3:]}, ckpt_path)
+    for i in range(3, 6):
+        trainer.step(batches[i])
+    sample_ref = trainer.sample(4)
+    d_ref = trainer.D.state_dict()
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ToyGen2D, _ToyDeepResBNDisc
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ToyGen2D(z_dim=8, out_dim=1088),
+    _ToyDeepResBNDisc(in_dim=1088, hidden=32, depth=2),
+    prior=MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False),
+    seed=99,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save({{"sample": tr.sample(4), "d": tr.D.state_dict()}}, {str(out_path)!r})
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert torch.equal(sample_ref, resumed["sample"])
+    for k, v in d_ref.items():
+        assert torch.equal(v, resumed["d"][k]), f"Deep ResBN D mismatch on {k}"
+
+
+def test_unified_v11_combined_deep_resbn_law4_coupling_and_schatten6_continuation(tmp_path: Path) -> None:
+    """Combined Issue 1 + Issue 2 semantic control on symmetric deep ResBN G & D at dim=1088:
+    - No false stiff_gate on steady normalized deep ResBN G (current_stiff_gate == 0.0, no momentum allocated).
+    - Coupled critic gain tracks rec._g_func_gain == opt_g._ema_func_gain while staying bounded.
+    - Exact-deadband Schatten-6 actively contracts above-tau critic branch weights with 0 forbidden primitives.
+    - Fresh-process bit-exact continuation preserves G, D, prior, and g_func_gain across
+      simultaneous active Law-4 coupling and active Schatten-6 contraction.
+    """
+    torch.manual_seed(0)
+    dim = 1088
+    rec = get_recipe(
+        "unified_v11",
+        prior_kind="mog",
+        standardize=False,
+        batch_size=8,
+        num_particles=16,
+        z_dim=8,
+        total_steps=16,
+        training_precision="float32",
+    )
+    g = _ResBNTrunkGen(z_dim=8, width=32, out_dim=dim, depth=4)
+    d = _ToyDeepResBNDisc(in_dim=dim, hidden=32, depth=4)
+    p = MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False)
+    init.deterministic_orthogonal_(g, seed=50)
+    init.deterministic_orthogonal_(d, seed=51)
+    init.deterministic_orthogonal_(p, seed=52)
+    # Seed one critic hidden block well above the ~2.64 Schatten-6 asymptote so contraction is active alongside Law-4 coupling:
+    with torch.no_grad():
+        sv0 = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+        d.out_projs[0].weight.mul_(4.0 / max(sv0, 1e-6))
+    sv_init_over = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+
+    trainer = GANTrainer(rec, g, d, prior=p, seed=0)
+    # Place G at a realistic steady normalized deep-ResBN func_gain (~0.40) so coupling is active and stiff_gate == 0:
+    trainer.opt_g._ema_func_gain = 0.42
+    trainer.opt_d.record._g_func_gain = 0.42
+
+    batches = [torch.randn(8, dim, generator=torch.Generator().manual_seed(1100 + i)) for i in range(10)]
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("Forbidden autograd.grad or spectral decomposition called in combined ResBN step!")
+
+    with (
+        mock.patch("torch.autograd.grad", side_effect=_forbid),
+        mock.patch("torch.linalg.svd", side_effect=_forbid),
+        mock.patch("torch.linalg.svdvals", side_effect=_forbid),
+        mock.patch("torch.linalg.eigh", side_effect=_forbid),
+        mock.patch("torch.linalg.eigvalsh", side_effect=_forbid),
+        mock.patch("torch.linalg.pinv", side_effect=_forbid),
+    ):
+        for i in range(5):
+            trainer.step(batches[i])
+
+    # Verify Issue 1 (no false stiff_gate, active coupled g_func_gain) + Issue 2 (active spectral contraction):
+    assert trainer.opt_g.current_stiff_gate() == 0.0
+    assert all("m_unit" not in trainer.opt_g.state[param] for param in g.parameters())
+    assert trainer.opt_d.record._g_func_gain == trainer.opt_g._ema_func_gain
+    assert 0.18 < trainer.opt_d.record._g_func_gain < 0.75
+    sv_mid = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+    assert sv_mid < sv_init_over - 0.05, f"Schatten-6 failed to contract coupled deep critic: {sv_init_over:.3f} -> {sv_mid:.3f}"
+
+    ckpt_path = tmp_path / "ckpt_v11_combined_resbn.pt"
+    out_path = tmp_path / "resumed_v11_combined_resbn.pt"
+    torch.save({"state": trainer.state_dict(), "batches": batches[5:]}, ckpt_path)
+    for i in range(5, 10):
+        trainer.step(batches[i])
+    ref_sample = trainer.sample(4)
+    ref_state = trainer.state_dict()
+    ref_g_fg = trainer.opt_d.record._g_func_gain
+    sv_end = float(torch.linalg.matrix_norm(d.out_projs[0].weight.detach(), ord=2).item())
+    assert sv_end < sv_mid, f"Schatten-6 stopped contracting after checkpoint: {sv_mid:.3f} -> {sv_end:.3f}"
+
+    script = f"""
+import torch
+from particlegan import GANTrainer, MoGParticlePrior, Recipe
+from tests.test_unified_v11 import _ResBNTrunkGen, _ToyDeepResBNDisc
+
+pl = torch.load({str(ckpt_path)!r}, weights_only=False)
+state = pl["state"]
+rec = Recipe.from_dict(state["recipe"])
+tr = GANTrainer(
+    rec,
+    _ResBNTrunkGen(z_dim=8, width=32, out_dim=1088, depth=4),
+    _ToyDeepResBNDisc(in_dim=1088, hidden=32, depth=4),
+    prior=MoGParticlePrior(num_particles=16, z_dim=8, sigma=0.05, standardize=False),
+    seed=321,
+)
+tr.load_state_dict(state)
+for b in pl["batches"]:
+    tr.step(b)
+torch.save(
+    {{
+        "sample": tr.sample(4),
+        "models": tr.state_dict()["models"],
+        "g_fg": tr.opt_d.record._g_func_gain,
+    }},
+    {str(out_path)!r},
+)
+"""
+    subprocess.run([sys.executable, "-c", script], check=True)
+    resumed = torch.load(out_path, weights_only=False)
+    assert torch.equal(ref_sample, resumed["sample"])
+    assert resumed["g_fg"] == ref_g_fg
+    for m_name in ("G", "D", "prior"):
+        for k, v in ref_state["models"][m_name].items():
+            if isinstance(v, torch.Tensor):
+                assert torch.equal(v, resumed["models"][m_name][k]), f"Combined continuation mismatch {m_name}.{k}"
+            else:
+                assert v == resumed["models"][m_name][k], f"Combined continuation value mismatch {m_name}.{k}"
+
+
+def test_unified_v11_pullback_fastpath_exact_parity_and_mog_sigma_cache() -> None:
+    """Phase 4 pullback/penalty fastpath bit-exact parity + MoGParticlePrior.set_sigma zero-sync mutation safety."""
+    import math
+    from particlegan._unified.penalty import _UnifiedPenaltyKernel
+    from particlegan._unified.prior import _compute_pythagorean_smoothed_cells
+    from particlegan._unified_v11.penalty import _UnifiedV11PenaltyKernel
+    from particlegan._unified_v11.prior import (
+        _compute_pythagorean_smoothed_cells_fast,
+        _quantile_1d_fast,
+        _sinkhorn_barycenter_fast,
+    )
+
+    torch.manual_seed(0)
+
+    # 1. _quantile_1d_fast matches torch.quantile bit-for-bit on float32 and float64:
+    for dtype in (torch.float32, torch.float64):
+        for n in (1, 2, 16, 96, 256, 2048):
+            vec = torch.randn(n, dtype=dtype) * 5.0
+            for q in (0.0, 0.25, 0.35, 0.5, 0.92, 1.0):
+                got = _quantile_1d_fast(vec, q)
+                ref = torch.quantile(vec, q)
+                assert torch.equal(got, ref), f"quantile mismatch n={n} q={q} dtype={dtype}: {got} != {ref}"
+
+    # 2. _compute_pythagorean_smoothed_cells_fast matches _compute_pythagorean_smoothed_cells bit-for-bit:
+    for k in (1, 2, 16, 64):
+        proto_c = torch.randn(k, 2) * 0.4
+        proto_var = torch.rand(k).clamp_min(1e-3) * 0.05
+        proto_w = torch.rand(k).clamp_min(1e-3)
+        proto_w = proto_w / proto_w.sum()
+        got_t = _compute_pythagorean_smoothed_cells_fast(proto_c, proto_var, proto_w)
+        ref_t = _compute_pythagorean_smoothed_cells(proto_c, proto_var, proto_w)
+        for idx, (a, b) in enumerate(zip(got_t, ref_t)):
+            assert torch.equal(a, b), f"pythagorean cells mismatch k={k} output={idx}"
+
+    # 3. _sinkhorn_barycenter_fast matches logsumexp Sinkhorn across benign and stiff Born-Infeld costs:
+    for scale in (10.0, 250.0):
+        b_n, k_n = 128, 32
+        L = -torch.rand(b_n, k_n) * scale
+        log_a = -math.log(float(b_n))
+        w = torch.rand(k_n).clamp_min(1e-3)
+        w = w / w.sum()
+        log_b = torch.log(w)
+        c_bar = torch.randn(k_n, 2)
+        got_y = _sinkhorn_barycenter_fast(L, log_a, log_b, c_bar, b_n, torch.float32)
+        u = torch.zeros(b_n, dtype=torch.float32)
+        v = torch.zeros(k_n, dtype=torch.float32)
+        for _ in range(10):
+            v = log_b - torch.logsumexp(L + u.unsqueeze(1), dim=0)
+            u = log_a - torch.logsumexp(L + v.unsqueeze(0), dim=1)
+        P = torch.exp(L + u.unsqueeze(1) + v.unsqueeze(0))
+        rp = (float(b_n) * P).clamp_min(0.0)
+        rp = rp / rp.sum(dim=1, keepdim=True).clamp_min(1e-12)
+        ref_y = rp @ c_bar
+        assert torch.allclose(got_y, ref_y, atol=1e-6, rtol=1e-6), f"sinkhorn diff scale={scale}"
+
+    # 4. _UnifiedV11PenaltyKernel._build_geodesic_chord matches _UnifiedPenaltyKernel on cold and warm ell:
+    xr = torch.randn(64, 2)
+    xf = torch.randn(64, 2)
+    rec_a = UnifiedV11StepRecord()
+    rec_b = UnifiedV11StepRecord()
+    ker_v11 = _UnifiedV11PenaltyKernel(record=rec_a)
+    ker_ref = _UnifiedPenaltyKernel(record=rec_b)
+    chord_a, phi_a = ker_v11._build_geodesic_chord(xr, xf, is_conditioned=False)
+    chord_b, phi_b = ker_ref._build_geodesic_chord(xr, xf, is_conditioned=False)
+    assert phi_a == phi_b
+    assert torch.allclose(chord_a, chord_b, atol=1e-6, rtol=1e-6)
+    rec_a.t1c_ell_initialized = True
+    rec_a.t1c_ell_ema = 0.25
+    rec_a._t1c_ell_t = torch.tensor(0.25, dtype=torch.float64)
+    rec_b.t1c_ell_initialized = True
+    rec_b.t1c_ell_ema = 0.25
+    chord_a2, phi_a2 = ker_v11._build_geodesic_chord(xr, xf, is_conditioned=False)
+    chord_b2, phi_b2 = ker_ref._build_geodesic_chord(xr, xf, is_conditioned=False)
+    assert phi_a2 == phi_b2
+    assert torch.allclose(chord_a2, chord_b2, atol=1e-6, rtol=1e-6)
+
+    # 5. MoGParticlePrior.set_sigma & _cached_sigma_float zero-sync fast path + strict mutation safety:
+    p_src = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=False)
+    p_dst = MoGParticlePrior(num_particles=16, z_dim=2, sigma=0.05, standardize=False)
+    with mock.patch.object(torch.Tensor, "item", side_effect=AssertionError("unexpected .item() sync on cached sigma")):
+        assert abs(p_src._cached_sigma_float() - float(torch.tensor(0.05, dtype=torch.float32))) == 0.0
+        p_dst.set_sigma(p_src.sigma)
+        assert p_dst._noise_enabled is True
+    # In-place buffer mutation invalidates cache immediately:
+    with torch.no_grad():
+        p_src.sigma.fill_(0.0)
+    assert p_src._cached_sigma_float() == 0.0
+    p_dst.set_sigma(p_src.sigma)
+    assert p_dst._noise_enabled is False and p_dst._cached_sigma_float() == 0.0
+    with torch.no_grad():
+        p_src.sigma.fill_(-1.0)
+    with pytest.raises(ValueError, match="nonnegative"):
+        p_dst.set_sigma(p_src.sigma)
+    # Replacing .data (data_ptr change without _version bump) also invalidates cache:
+    p_src.set_sigma(0.1)
+    p_src.sigma.data = torch.tensor(-2.0)
+    with pytest.raises(ValueError, match="nonnegative"):
+        p_dst.set_sigma(p_src.sigma)
+    # load_state_dict refreshes cache cleanly:
+    p_src.set_sigma(0.15)
+    p_dst.load_state_dict(p_src.state_dict())
+    assert abs(p_dst._cached_sigma_float() - float(torch.tensor(0.15, dtype=torch.float32))) == 0.0
+    assert p_dst._noise_enabled is True
+
+    # 6. _prepare_batched_highd_tangent_plans & _penalty_highd_batched exact parity (both concat & non-concat):
+    from particlegan._t1_coupling.primitive import T1CouplingLoss
+    from particlegan._t2_critic.penalty import _prepare_spatial_tangent_plan
+    from particlegan._unified_v4.loss import _principal_axis_power
+    from particlegan._unified_v11.loss import UnifiedV11CouplingLoss, _principal_axis_power_zerosync
+    from particlegan._unified_v11.penalty import _prepare_batched_highd_tangent_plans
+
+    xr_hi = torch.randn(32, 32)
+    xf_hi = torch.randn(32, 32)
+    xc_hi = torch.randn(32, 32)
+    u_bat, k_bat, w_bat = _prepare_batched_highd_tangent_plans(torch.stack((xr_hi, xf_hi, xc_hi), dim=0), 0.37)
+    for idx_s, (x_s, salt) in enumerate(((xr_hi, 1), (xf_hi, 2), (xc_hi, 3))):
+        u_ref, recon_ref = _prepare_spatial_tangent_plan(x_s, 0.37, salt=salt)
+        assert torch.equal(u_bat[idx_s], u_ref)
+        tau_s = torch.rand(32)
+        sq_bat = 32.0 * (w_bat[idx_s] * tau_s[k_bat[idx_s]]).sum(dim=1)
+        assert torch.allclose(sq_bat, recon_ref(tau_s), atol=1e-6, rtol=1e-6)
+    disc_hi = nn.Sequential(nn.Linear(32, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    for concat_flag in (False, True):
+        ka = _UnifiedV11PenaltyKernel(record=UnifiedV11StepRecord())
+        kb = _UnifiedPenaltyKernel(record=UnifiedV11StepRecord())
+        pa, _ = ka.penalty(disc_hi, xr_hi, xf_hi, step=1, can_concat_batches=concat_flag)
+        pb, _ = kb.penalty(disc_hi, xr_hi, xf_hi, step=1, can_concat_batches=concat_flag)
+        assert torch.allclose(pa, pb, atol=1e-6, rtol=1e-6)
+
+    # 7. UnifiedV11CouplingLoss._sinkhorn_slack bit-exact parity vs T1CouplingLoss._sinkhorn_slack:
+    c_hat_s = torch.rand(32, 32) * 15.0
+    dr_s = torch.randn(32)
+    dc_s = torch.randn(32)
+    assert torch.allclose(
+        UnifiedV11CouplingLoss()._sinkhorn_slack(c_hat_s, dr_s, dc_s),
+        T1CouplingLoss()._sinkhorn_slack(c_hat_s, dr_s, dc_s),
+        atol=1e-6,
+        rtol=1e-6,
+    )
+
+    # 8. _principal_axis_power_zerosync handles zero, rank-1, tiny, and PSD symmetric matrices identically:
+    for d_p in (2, 16):
+        u_r1 = torch.randn(d_p, 1)
+        for mat_p in (torch.zeros(d_p, d_p), torch.eye(d_p) * 1e-25, u_r1 @ u_r1.T):
+            v_ref = _principal_axis_power(mat_p, iters=6)
+            v_zs = _principal_axis_power_zerosync(mat_p, iters=6)
+            assert torch.allclose(v_zs, v_ref, atol=1e-6, rtol=1e-6)
+            v_ns = _principal_axis_power_zerosync(mat_p, iters=6, canonicalize_sign=False)
+            assert abs(float((v_ns * (mat_p @ v_ns)).sum()) - float((v_ref * (mat_p @ v_ref)).sum())) <= 1e-6
+
+
+
 

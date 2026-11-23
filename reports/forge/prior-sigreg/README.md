@@ -97,7 +97,7 @@ Gaussian target. Its prior objective passes; generated density is displayed
 without claiming a generator fidelity gate. The [compact receipt](receipt.json)
 records the resolved recipe, initial law, gates, initializer hashes and GIF hash.
 
-![Actual public-API training](training.gif)
+![Actual public-API training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/prior-sigreg/training.gif)
 
 ```sh
 PYTHONPATH=. python -u reports/forge/prior-sigreg/demo.py \

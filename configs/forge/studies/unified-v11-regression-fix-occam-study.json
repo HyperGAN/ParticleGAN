@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v11-regression-fix-occam-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If the 3-part surgical fix (peak_rms 0.50 + cooling-frozen decay + prior s_cap, ema_func_gain free_ratio > 1.5 stiff non-bounce, and zero-sync |mean_logit| > 0.5 deadband on s_gauge) leaves any regression unresolved, unified-v11 will score below 16/16 on r4-occam-ablation-v1.",
+  "control": {
+    "candidate_id": "law4-energy-v6",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "precision",
+    "op": "<",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "hypothesis": "Restoring non-collapsing Tikhonov peak_rms smoothing (0.50*peak_rms, cooling-frozen decay, prior s_cap), stiff-network ema_func_gain non-bounce (free_ratio > 1.5 with PR #591 active_thresh preserved), and zero-sync |mean_logit| deadband on s_gauge restores 16/16 PASS on r4-occam-ablation-v1 (up from 11/16 on develop HEAD) while preserving 100% of PR #591 high-D / thermal / probe invariants.",
+  "id": "unified-v11-regression-fix-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "precision",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "grid100_mlp16",
+    "threshold": 0.95
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "law4-energy-v6",
+        "candidate_revision": "4824191fab1c9818ed9d7b801724336c61961e62a8e29d171dcce18e23873500"
+      },
+      "path": "reports/forge/records/readout-2b91f35b0b99fc0ea8da2954.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

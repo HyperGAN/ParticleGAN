@@ -33,7 +33,7 @@ and confirmation KS were 0.027592 and 0.028274, mean errors were 0.002316 and
 0.002853 target standard deviations, and standard-deviation ratios were
 0.929425 and 0.931786; both draws contained 4,096 finite samples.
 Its terminal KS was 0.073502, so this acquisition success makes no retention
-claim. [The actual-training GIF](media/gaussian1d_smoke.gif) uses only the saved
+claim. [The actual-training GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/gaussian-smoke-inventory/v2-interruption/media/gaussian1d_smoke.gif) uses only the saved
 scored observations from that original v2 attempt; its
 [render receipt](media/gaussian1d_smoke.json) records zero additional updates or
 sampling draws. Numerical gates, rather than the animation, establish PASS.

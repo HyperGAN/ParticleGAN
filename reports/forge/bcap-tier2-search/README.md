@@ -31,34 +31,34 @@ For the selected recipe, word hold passes all **25 primary and independent confi
 
 | Selected recipe task | Recorded gate | Actual saved-training GIF |
 | --- | --- | --- |
-| gaussian1d_smoke | PASS | [GIF](media/gaussian1d_smoke.gif) |
-| two_pole | PASS | [GIF](media/two_pole.gif) |
-| unused_token_hold | PASS | [GIF](media/unused_token_hold.gif) |
-| ae_gan_hold | PASS | [GIF](media/ae_gan_hold.gif) |
-| ring16_acquisition | PASS | [GIF](media/ring16_acquisition.gif) |
-| five_word_joint_smoke | PASS | [GIF](media/five_word_joint_smoke.gif) |
-| clockfree_audit_measurement_v1 | PASS | [GIF](media/clockfree_audit_measurement_v1.gif) |
-| gaussian1d_stability | FAIL | [GIF](media/gaussian1d_stability.gif) |
-| five_word_joint_hold | PASS | [GIF](media/five_word_joint_hold.gif) |
-| trajectory | FAIL | [GIF](media/trajectory.gif) |
-| residual_student | FAIL | [GIF](media/residual_student.gif) |
-| unipolar | PASS | [GIF](media/unipolar.gif) |
-| cover_leftover | PASS | [GIF](media/cover_leftover.gif) |
-| mid_scale_identity | PASS | [GIF](media/mid_scale_identity.gif) |
-| mode_hold | FAIL | [GIF](media/mode_hold.gif) |
-| vector_two_broad | PASS | [GIF](media/vector_two_broad.gif) |
-| vector_unequal_mass | FAIL | [GIF](media/vector_unequal_mass.gif) |
-| vector_unequal_width | FAIL | [GIF](media/vector_unequal_width.gif) |
-| vector_anisotropic | FAIL | [GIF](media/vector_anisotropic.gif) |
-| vector_overlap | FAIL | [GIF](media/vector_overlap.gif) |
-| vector_spiral | PASS | [GIF](media/vector_spiral.gif) |
-| img_stripes2 | PASS | [GIF](media/img_stripes2.gif) |
-| img_bars4 | FAIL | [GIF](media/img_bars4.gif) |
-| img_blobs4 | FAIL | [GIF](media/img_blobs4.gif) |
-| img_intensity2 | FAIL | [GIF](media/img_intensity2.gif) |
-| grid100 | FAIL | [GIF](media/grid100.gif) |
-| rotated100 | FAIL | [GIF](media/rotated100.gif) |
-| staggered100 | FAIL | [GIF](media/staggered100.gif) |
+| gaussian1d_smoke | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/gaussian1d_smoke.gif) |
+| two_pole | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/two_pole.gif) |
+| unused_token_hold | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/unused_token_hold.gif) |
+| ae_gan_hold | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/ae_gan_hold.gif) |
+| ring16_acquisition | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/ring16_acquisition.gif) |
+| five_word_joint_smoke | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/five_word_joint_smoke.gif) |
+| clockfree_audit_measurement_v1 | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/clockfree_audit_measurement_v1.gif) |
+| gaussian1d_stability | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/gaussian1d_stability.gif) |
+| five_word_joint_hold | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/five_word_joint_hold.gif) |
+| trajectory | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/trajectory.gif) |
+| residual_student | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/residual_student.gif) |
+| unipolar | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/unipolar.gif) |
+| cover_leftover | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/cover_leftover.gif) |
+| mid_scale_identity | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/mid_scale_identity.gif) |
+| mode_hold | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/mode_hold.gif) |
+| vector_two_broad | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_two_broad.gif) |
+| vector_unequal_mass | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_unequal_mass.gif) |
+| vector_unequal_width | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_unequal_width.gif) |
+| vector_anisotropic | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_anisotropic.gif) |
+| vector_overlap | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_overlap.gif) |
+| vector_spiral | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/vector_spiral.gif) |
+| img_stripes2 | PASS | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/img_stripes2.gif) |
+| img_bars4 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/img_bars4.gif) |
+| img_blobs4 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/img_blobs4.gif) |
+| img_intensity2 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/img_intensity2.gif) |
+| grid100 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/grid100.gif) |
+| rotated100 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/rotated100.gif) |
+| staggered100 | FAIL | [GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/bcap-tier2-search/media/staggered100.gif) |
 
 The [media receipt](media-receipt.json) and [index](media/index.json) bind these 28 GIFs to this one complete configuration. Rendering constructs no models, adds no training updates or sampling draws, and never substitutes a better-looking candidate. Image metric audits recompute the original retained samples; spiral media show its actual saved training measurements.
 

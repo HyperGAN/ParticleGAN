@@ -10,9 +10,9 @@ This separately admitted run is **PASS**. It uses the original `ae_gan_hold` tas
 
 The coverage metric checks whether samples reach both anchors. It does not establish balanced mode weights or a correct density within either mode. The test has a distinct purpose from the native 100-mode geometry tests: reconstruction and unconditional coverage must coexist through the public AE and update-policy interfaces.
 
-![Original AE goal GIF](goal.gif)
+![Original AE goal GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-ae-sourceguard-checkpoint-20261005/goal.gif)
 
-![Original scored step250 frame](goal-final.png)
+![Original scored step250 frame](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-ae-sourceguard-checkpoint-20261005/goal-final.png)
 
 The goal visualization compares the two target anchors with generated and reconstructed points through training. Any displayed final image comes from the same original child artifact. Media illustrates the task; the independent numerical certificate determines the verdict.
 

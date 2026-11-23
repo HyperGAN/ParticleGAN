@@ -345,6 +345,16 @@ class MoGParticlePrior(ParticlePrior):
             return self.z
         return (self.z - self.z.mean(0)) / (self.z.std(0) + 1e-6)
 
+    def _cached_sigma_float(self) -> float:
+        """Return ``float(self.sigma)`` with 0 CUDA syncs when the buffer has not been mutated."""
+        cached = getattr(self.sigma, "_mog_sigma_cache", None)
+        sig_key = (self.sigma._version, self.sigma.data_ptr(), self.sigma.dtype)
+        if cached is not None and cached[:3] == sig_key:
+            return cached[3]
+        val = float(self.sigma.detach().item())
+        self.sigma._mog_sigma_cache = (*sig_key, val)
+        return val
+
     @torch.no_grad()
     def set_sigma(self, sigma):
         """Explicitly replace the shared fixed scale, e.g. after optional calibration.
@@ -352,12 +362,38 @@ class MoGParticlePrior(ParticlePrior):
         Use this instead of mutating the buffer so zero-noise RNG behavior stays
         in sync. Optimizers never update sigma.
         """
-        sigma = _nonnegative_scalar(sigma, "sigma")
-        value = self.sigma.new_tensor(sigma)
-        if not torch.isfinite(value):
+        if isinstance(sigma, torch.Tensor):
+            if sigma.ndim != 0 or sigma.is_complex() or sigma.dtype == torch.bool:
+                raise ValueError("sigma must be a finite, nonnegative scalar")
+            cached = getattr(sigma, "_mog_sigma_cache", None)
+            if (
+                cached is not None
+                and cached[:3] == (sigma._version, sigma.data_ptr(), self.sigma.dtype)
+                and sigma.dtype == self.sigma.dtype
+                and math.isfinite(cached[3])
+                and cached[3] >= 0.0
+            ):
+                rounded = cached[3]
+                self_cached = getattr(self.sigma, "_mog_sigma_cache", None)
+                self_key = (self.sigma._version, self.sigma.data_ptr(), self.sigma.dtype)
+                if self_cached is None or self_cached[:3] != self_key or self_cached[3] != rounded:
+                    self.sigma.fill_(rounded)
+                    self_key = (self.sigma._version, self.sigma.data_ptr(), self.sigma.dtype)
+                self._noise_enabled = rounded > 0.0
+                self.sigma._mog_sigma_cache = (*self_key, rounded)
+                return
+            sigma_f = float(sigma.detach().item())
+            if not math.isfinite(sigma_f) or sigma_f < 0.0:
+                raise ValueError("sigma must be a finite, nonnegative scalar")
+        else:
+            sigma_f = _nonnegative_scalar(sigma, "sigma")
+        cpu_val = torch.tensor(sigma_f, dtype=self.sigma.dtype)
+        if not bool(torch.isfinite(cpu_val)):
             raise ValueError("sigma must be finite in the prior dtype")
-        self.sigma.copy_(value)
-        self._noise_enabled = bool(self.sigma > 0)
+        rounded = float(cpu_val.item())
+        self.sigma.fill_(rounded)
+        self._noise_enabled = rounded > 0.0
+        self.sigma._mog_sigma_cache = (self.sigma._version, self.sigma.data_ptr(), self.sigma.dtype, rounded)
 
     def forward(self, idx, generator=None, *, eps=None):
         """Draw from the indexed components; use means()[idx] for centers only.
@@ -421,7 +457,12 @@ class MoGParticlePrior(ParticlePrior):
             state_dict[key] = state
         super()._load_from_state_dict(state_dict, prefix, local_metadata, strict,
                                      missing_keys, unexpected_keys, error_msgs)
-        self._noise_enabled = bool(self.sigma > 0)
+        loaded_val = float(self.sigma.detach().item())
+        self._noise_enabled = loaded_val > 0.0
+        if math.isfinite(loaded_val) and loaded_val >= 0.0:
+            self.sigma._mog_sigma_cache = (self.sigma._version, self.sigma.data_ptr(), self.sigma.dtype, loaded_val)
+        elif hasattr(self.sigma, "_mog_sigma_cache"):
+            delattr(self.sigma, "_mog_sigma_cache")
 
 
 class GaussianPrior(nn.Module):

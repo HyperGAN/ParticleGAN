@@ -51,7 +51,7 @@ particle gain is also inactive. Synthetic public-component probes check fidelity
 and do not demonstrate activation in these training runs.
 
 Actual saved training observations illustrate the same acquisition/inverse goal:
-[K3P GIF](media/k3p.gif), [KA2 GIF](media/ka2.gif), [R1/R2 GIF](media/r1r2.gif).
+[K3P GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-root-cause/media/k3p.gif), [KA2 GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-root-cause/media/ka2.gif), [R1/R2 GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/word-root-cause/media/r1r2.gif).
 The [media receipts](media/receipts.json) bind each nine-frame GIF to its stored
 observation hash and frame updates. Rendering used Python 3.12 separately from
 the Python 3.14 scientific runtime, with zero updates or new sampling draws.

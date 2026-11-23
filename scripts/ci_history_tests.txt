@@ -1,0 +1,35 @@
+# Tests that require ancestor Git commits or blobs (fetch-depth: 0).
+# Pinned to CI shard 7 in .github/workflows/tests.yml so shards 0..6 can use
+# fast shallow checkouts (fetch-depth: 1).
+#
+# Each entry is either a repository-relative test file or a file::function node.
+
+# Archived log-archive.json blob verification against ancestor commits
+tests/e2e/test_repository_hygiene.py
+
+# Archived Forge software contract replay (git show / git archive on pinned commits)
+tests/test_archived_forge_contracts.py
+tests/test_bcap_component_source_cohorts.py
+tests/test_bcap_default_baseline.py
+tests/test_bcap_integration_compatibility.py
+tests/test_critic_balance_runner.py
+tests/test_forge_comparison_policy.py
+tests/test_forge_current_technique_inventory.py
+tests/test_forge_family_reports.py
+tests/test_forge_precision.py
+tests/test_forge_views.py
+tests/test_forge_word_metadata_migration.py
+tests/test_generator_step_runner.py
+tests/test_legacy_host_cuda_harness.py
+tests/test_pr399_scores.py
+tests/test_pr_integration_source_binding.py
+tests/test_publication_integrity.py
+tests/test_recipe_prior_task_migration.py
+tests/test_routed_generator_batch_identity.py
+tests/test_tier1_batch_size.py
+
+# Only these tests in test_refresh_forge_readouts.py read ancestor Git commits/blobs;
+# the rest stay split across all shards.
+tests/test_refresh_forge_readouts.py::test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates_cache_on_task_change
+tests/test_refresh_forge_readouts.py::test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidate_task_edits
+tests/test_refresh_forge_readouts.py::test_live_repository_forge_readouts_are_current_and_source_clean

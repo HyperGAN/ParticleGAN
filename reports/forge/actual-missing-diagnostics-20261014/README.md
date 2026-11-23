@@ -13,7 +13,7 @@ The blanket Forge policy guard rejected the original image calls before construc
 | Atlas | PASS | FAIL | FAIL | FAIL | 1/4 |
 | E22 | PASS | FAIL | FAIL | FAIL | 1/4 |
 
-[Actual image trajectories](image-diagnostics.gif) show every scored output and the target templates. These runs retain the public policy's selected serving state. The ordinary image cards demand live weights, so these measurements are displayed as diagnostics rather than silently replacing that contract. No policy, noise, averaging or row control was disabled to make the tests run.
+[Actual image trajectories](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/actual-missing-diagnostics-20261014/image-diagnostics.gif) show every scored output and the target templates. These runs retain the public policy's selected serving state. The ordinary image cards demand live weights, so these measurements are displayed as diagnostics rather than silently replacing that contract. No policy, noise, averaging or row control was disabled to make the tests run.
 
 Atlas's [original 19/19 CUDA result](../../develop-gates-20261001/README.md) remains valid under its original hosts and noisy sampling law. The current ordinary row's incompatibility labels do not mean that Atlas has never run or cannot learn these problems.
 
@@ -33,7 +33,7 @@ The four new strict audits completed all 24 updates and failed because changing 
 
 The leaderboard now treats those proven-runnable clock tasks as not run in the original runtime, with their actual FAIL results in the diagnostic rows. A static clock dependency no longer labels them incompatible merely because they cannot pass the clock-free claim.
 
-BCAP acquired the required 200-check ring window at update 3,729, then failed its hold at update 3,760. The other four ring producers exhausted the 4,800 settling checks at update 6,000 without acquiring the required window. Every paired target-shift run completed all 3,600 updates and failed its original recovery criterion. [Actual recorded learning curves](deeper-diagnostics.gif) use the saved measurements, with no additional training or sampling.
+BCAP acquired the required 200-check ring window at update 3,729, then failed its hold at update 3,760. The other four ring producers exhausted the 4,800 settling checks at update 6,000 without acquiring the required window. Every paired target-shift run completed all 3,600 updates and failed its original recovery criterion. [Actual recorded learning curves](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/actual-missing-diagnostics-20261014/deeper-diagnostics.gif) use the saved measurements, with no additional training or sampling.
 
 The original native continuation adapter was invoked for each of the 15 candidate/task pairs. Its own-checkpoint check refused every start. Supplying a fictional PASS, restarting a continuation from initialization, or changing the test would not be an unchanged execution; none was done.
 
@@ -49,7 +49,7 @@ The existing selected-cloud two-pole adapter was incorrectly rejected by inherit
 | E22 Ring16 acquisition | 1,600 | Same checkpoint hashing ERROR / INCOMPLETE after all 96 observations. Final component covariance error 1.139007 exceeds the 0.85 bound. |
 | E22 policy clock audit | 24 | FAIL on the actual clock/state comparisons. |
 
-[Actual saved policy observations](policy-diagnostics.gif) show the two-pole, Gaussian and Ring16 trajectories without adding updates or draws.
+[Actual saved policy observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/actual-missing-diagnostics-20261014/policy-diagnostics.gif) show the two-pole, Gaussian and Ring16 trajectories without adding updates or draws.
 
 The saved Gaussian checkpoint passes the existing `finite_policy_state` health check. Its export error is a serialization problem, not evidence that the learned tensors are nonfinite. The original error receipts are preserved; no missing attestation was fabricated and no error was converted into a qualified pass.
 

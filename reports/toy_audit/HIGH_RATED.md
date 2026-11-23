@@ -40,7 +40,7 @@ clouds visible in a fixed, preselected mode zoom. Thus this is evidence for
 the declared noisy served distribution, not a clean-sampler pass or a public
 default qualification.
 
-![Atlas grid100 training](media/atlas-grid100.gif)
+![Atlas grid100 training](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/atlas-grid100.gif)
 
 Sources: [native evaluator](../../benchmarks/toy100/metrics.py),
 [accuracy evaluator](../../benchmarks/toy100/accuracy.py),
@@ -103,7 +103,7 @@ This is a strong causal **controller unit fixture**. It does not establish
 that a trained critic reaches this snapshot or that the complete Atlas
 reopen guard/row/birth-death system fails.
 
-![Constructed controller counterexample](media/pr224.gif)
+![Constructed controller counterexample](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/media/pr224.gif)
 
 Source: [PR224](https://github.com/255BITS/ParticleGAN/pull/224).
 

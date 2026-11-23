@@ -178,7 +178,7 @@ def main():
     if supplement:
         problems[6:6]=["[PR226/227 addendum](PR226_PR227.md) adds two retained-evidence reviews on pinned develop `6ec7e578`; their cohort remains separate from the original `4b16312e` runs.",""]
     for c in cases:
-        source=f"[{c['origin']}](https://github.com/255BITS/ParticleGAN/pull/{c['pr']})" if c.get("pr") else c["origin"]
+        source=f"[{c['origin']}](https://github.com/HyperGAN/ParticleGAN/pull/{c['pr']})" if c.get("pr") else c["origin"]
         media=f"[GIF]({c['media']})" if c.get("media") else "[Source review; no fresh GIF](EXISTING_FAMILIES.md)" if c["status"]=="SOURCE REVIEW ONLY" else "**Missing: execution blocked**"
         question=c["verifies"].replace("|",r"\|")
         problems.append(f"| {c['rating']} | {c['name']} · {source} | {question} | {c['status']} | {media} |")
@@ -199,7 +199,7 @@ def main():
         else:scope="Method, initialization, controller or diagnostic on existing toys";action="No additional independent toy distribution found in added/modified Python paths and PR scope. See the existing problem-family explanations."
         inventory.append(dict(number=n,title=r["title"],url=r["url"],head_sha=r["headRefOid"],base_sha=r["baseRefOid"],base=r["baseRefName"],scope=scope,
                               action=action,python_files=r["code_files"],complete_local_diff=r["complete_local_diff"]))
-        lines.append(f"| [{n}](https://github.com/255BITS/ParticleGAN/pull/{n}) {r['title'].replace('|','/')} | {scope} | {action} | `{r['headRefOid'][:12]}` |")
+        lines.append(f"| [{n}](https://github.com/HyperGAN/ParticleGAN/pull/{n}) {r['title'].replace('|','/')} | {scope} | {action} | `{r['headRefOid'][:12]}` |")
     if supplement:
         lines.extend(["", "## PR226/227 supplemental review", "",
                       "Added after the original 134-PR snapshot. Exact proposal heads and develop base `6ec7e578` are preserved separately; training artifacts were reused without retraining. See [the review](PR226_PR227.md).", "",

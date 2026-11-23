@@ -29,7 +29,7 @@
 - **Sustained Status**: `PASS` (`21 / 24` post-update observations passed continuously from update `584` through `3500`)
 
 ## Actual Training Media
-![Actual Training Observations](goal.gif)
+![Actual Training Observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/api_contract/api-infogan-anisotropic-modes/goal.gif)
 
 ## Provenance & Integrity
 - **Source Commit**: `9fc54fab90a7d6da39db274b651dbf824fc3929a`

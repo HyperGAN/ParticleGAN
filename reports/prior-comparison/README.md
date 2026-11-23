@@ -56,7 +56,7 @@ learned table adds 80,000 trainable scalars, so total capacity is not matched.
 
 ## Training curves
 
-![All nine training runs](curves.png)
+![All nine training runs](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/prior-comparison/curves.png)
 
 Each color is a prior and each line style a seed. Coverage and HQ use 20,000
 samples per checkpoint; periodic sliced W1 uses 4,096 samples and 128 projections.

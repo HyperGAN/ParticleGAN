@@ -62,7 +62,7 @@ exact, and the maximum final G difference between Adam variants is
 `0.0006936814655116308`. The training/checkpoint checks took `.157` seconds on
 the recorded CPU environment. Raw checkpoints and observations stay local.
 
-![Actual public-API training, target and both Adam variants](implementation-training.gif)
+![Actual public-API training, target and both Adam variants](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/hypergan-search-audit/implementation-training.gif)
 
 ## Validation
 

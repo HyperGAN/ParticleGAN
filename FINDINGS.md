@@ -124,12 +124,12 @@ canary rather than a benchmark.
 ### Reproduce
 
 Check out archive commit
-[`40e637e82`](https://github.com/255BITS/ParticleGAN/tree/40e637e82cdedb51624e6a69e3dd6926c62a1924)
+[`40e637e82`](https://github.com/HyperGAN/ParticleGAN/tree/40e637e82cdedb51624e6a69e3dd6926c62a1924)
 (round 3, 2026-08-21; an ancestor of `develop`), where every file below exists.
-[`lib/grad_regularizers.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/lib/grad_regularizers.py),
-[`experiments/train_arm.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/train_arm.py),
-[`experiments/gen_configs.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/gen_configs.py)
-and [`experiments/provenance.py`](https://github.com/255BITS/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/provenance.py)
+[`lib/grad_regularizers.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/lib/grad_regularizers.py),
+[`experiments/train_arm.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/train_arm.py),
+[`experiments/gen_configs.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/gen_configs.py)
+and [`experiments/provenance.py`](https://github.com/HyperGAN/ParticleGAN/blob/40e637e82cdedb51624e6a69e3dd6926c62a1924/experiments/provenance.py)
 were removed from the tree by #165 (`e0cdb036b`, 2026-09-25); the other files still exist but
 have changed since. The current package keeps only the fixed `a_r1r2` and `b_cap` arms, as
 `GradientPenalty(arm=...)` in [`particlegan/grad_regularizers.py`](particlegan/grad_regularizers.py)
@@ -431,9 +431,9 @@ The diagnostic plots show the exact .00425 Adam control and the top three
 non-Adam arms under the frozen count/hash rule, with the owner's tied dualnorm
 starting recipe substituted: tensor nSGDA .1, zero-momentum dualnorm .01 and
 prior-only .01. The original plot candidates remain recorded in the analysis. See
-[Gaussian](reports/forge/dualnorm-tier1/diagnostics/gaussian1d_acquisition.png),
-[ring](reports/forge/dualnorm-tier1/diagnostics/ring16_acquisition.png) and
-[joint words](reports/forge/dualnorm-tier1/diagnostics/five_word_joint_acquisition.png).
+[Gaussian](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/gaussian1d_acquisition.png),
+[ring](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/ring16_acquisition.png) and
+[joint words](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/dualnorm-tier1/diagnostics/five_word_joint_acquisition.png).
 Each plots relative update speed, G/E and D parameter norms, and the log spectral
 product. In joint words, the dualnorm starter's spectral-log total variation is
 4.580 versus Adam's 9.115 over the same 24 checkpoints, but it is higher than

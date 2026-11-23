@@ -34,9 +34,9 @@ Peak actual concurrent training was one. The external coordinator initially coun
 
 The GIFs use retained observations or saved clock-branch states only. Export added zero optimizer updates and zero sampling draws. The error-run sampler captions describe the declared law and do not stand in for a completed sampler attestation.
 
-- [Gaussian observations](gifs/gaussian1d_acquisition.gif)
-- [Ring16 observations](gifs/ring16_acquisition.gif)
-- [Clock parity and learned-state movement](gifs/clockfree_audit.gif)
+- [Gaussian observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-compatible-coverage-20261013/gifs/gaussian1d_acquisition.gif)
+- [Ring16 observations](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-compatible-coverage-20261013/gifs/ring16_acquisition.gif)
+- [Clock parity and learned-state movement](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/atlas-compatible-coverage-20261013/gifs/clockfree_audit.gif)
 - [Media provenance](media.json)
 
 ## Inventory and next work

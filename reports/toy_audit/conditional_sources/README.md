@@ -4,8 +4,8 @@ Four formerly source-only entries now have one bounded exact-source attempt each
 
 | Entry | Original budget | Execution / completed pairs | Original source gate | Added live / EMA | Training GIF |
 | --- | --- | --- | --- | --- | --- |
-| Sparse mixed identity symbols | 5,000 | TIMEOUT / ≥3,236 | INCOMPLETE | INCOMPLETE / INCOMPLETE | [actual checkpoints](media/source-family-00.gif) |
-| Sparse mixed split symbols | 5,000 | TIMEOUT / ≥2,099 | INCOMPLETE | INCOMPLETE / INCOMPLETE | [actual checkpoints](media/source-family-01.gif) |
+| Sparse mixed identity symbols | 5,000 | TIMEOUT / ≥3,236 | INCOMPLETE | INCOMPLETE / INCOMPLETE | [actual checkpoints](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/conditional_sources/media/source-family-00.gif) |
+| Sparse mixed split symbols | 5,000 | TIMEOUT / ≥2,099 | INCOMPLETE | INCOMPLETE / INCOMPLETE | [actual checkpoints](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/toy_audit/conditional_sources/media/source-family-01.gif) |
 | Analytic denoising grid, one class | 28,000 | BLOCKED / ≥0 | NO_FROZEN_GATE | BLOCKED / BLOCKED | none: source prerequisite blocks training |
 | Analytic denoising grid, four classes | 7,000 | BLOCKED / ≥0 | NO_FROZEN_GATE | BLOCKED / BLOCKED | none: source prerequisite blocks training |
 

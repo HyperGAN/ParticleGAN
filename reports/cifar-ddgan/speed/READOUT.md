@@ -112,10 +112,10 @@ or broad epsilon search is proposed in this session.
 
 ## Reports and configurations
 
-- [CIFAR scout leaderboard](TABLE.md) and [quality/speed plot](scout_quality_speed.png).
+- [CIFAR scout leaderboard](TABLE.md) and [quality/speed plot](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-ddgan/speed/scout_quality_speed.png).
 - [Toy 1k screen](toys_1k/TABLE.md), [toy 10k screen](toys_10k/TABLE.md),
   [native 56k confirmations](toys_56k/TABLE.md),
-  and [one-shot shape comparison](one_shot_10k_shape.png).
+  and [one-shot shape comparison](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/496272b90f1c06483db8ff1846ca5f07186d859d/media/cifar-ddgan/speed/one_shot_10k_shape.png).
 - `configs/cifar_ddgan/speed_*` contain full, reproducible CIFAR YAMLs.
 - `configs/speed_100gaussians_*` and `configs/speed_denoising_*` contain toy YAMLs.
 - `runs/` contains exported configurations, metrics, certificates and figures.

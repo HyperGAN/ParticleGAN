@@ -119,6 +119,8 @@ def classify(path: str) -> dict[str, Any]:
     elif root == "configs":
         if len(parts) > 1 and (parts[1] in CONFIG_FAMILIES or parts[1].startswith("speed_")):
             family = "config/" + parts[1]
+        elif len(parts) == 2 and parts[1] == "repo_bloat_allowlist.json":
+            family = "config/repo_guard"
     elif root == "experiments":
         name = p.stem
         domain = next((x for x in ("cifar", "denoising", "mog", "gym", "sparse",

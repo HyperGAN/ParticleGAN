@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 30000,
+    "candidate_budget_seconds": 30000,
+    "id": "unified-v11-regression-fix-tier1-study"
+  },
+  "candidate": "unified-v11",
+  "competing_explanation": "If the surgical regression fix leaves Tier-1 cross-domain regressions on discriminator_stability (such as interp_sparse_arc or model_ae_gan_multimodal), unified-v11 will score below 17/17 on Tier 1.",
+  "control": {
+    "candidate_id": "law4-energy-v3",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "interp_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.8
+  },
+  "hypothesis": "After the 3-part surgical regression fix on develop, unified-v11 maintains high Tier-1 cross-domain pass rate on discriminator_stability while preserving 100% of PR #591 high-D 2D vector, thermal, and composite probe guarantees.",
+  "id": "unified-v11-regression-fix-tier1-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "interp_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.8
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v11",
+        "candidate_revision": "8ec9b4cd0e385b82d24068c07e450b3229942a7796271fb9da2ca27c5006bc07"
+      },
+      "path": "reports/forge/records/readout-fc5b67a767e57d748f460610.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

@@ -113,12 +113,12 @@ currently runs on `master`, so this `develop` PR has no CI jobs.
 Metrics determine the result. These small BISPF GIFs illustrate the actual
 initial, warmup and final training states for each numerical execution test:
 
-- [32×32](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r32.gif)
-- [64×64](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r64.gif)
-- [128×128](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r128.gif)
-- [256×256](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r256.gif)
-- [Batch 64](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_b64.gif)
-- [Base width 128](../scaling-media/dcgan-performance-cloud-v2/dcgan_performance_w128.gif)
+- [32×32](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r32.gif)
+- [64×64](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r64.gif)
+- [128×128](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r128.gif)
+- [256×256](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_r256.gif)
+- [Batch 64](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_b64.gif)
+- [Base width 128](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/25f915a0f166e4f57a271f352a5c89447bd33c1a/media/forge/scaling-media/dcgan-performance-cloud-v2/dcgan_performance_w128.gif)
 
 Every run also retains its own GIF, full checkpoint, named RNG states, timing
 trace and stdout in the local artifact archive. Compact receipt provenance

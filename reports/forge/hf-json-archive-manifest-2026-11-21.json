@@ -1,0 +1,237 @@
+{
+  "archive": {
+    "bytes": 24563178,
+    "file_count": 2527,
+    "hf_repo": "HyperGAN/particlegan-forge-evidence",
+    "hf_revision": "80fa52f27f162a3ea082670f30ddda4ee041a696",
+    "path": "archives/sha256/87b9ea82ca929195d780dd6ee6b94cb215841ec0922719152aae9e463f2fd79a.tar.gz",
+    "sha256": "87b9ea82ca929195d780dd6ee6b94cb215841ec0922719152aae9e463f2fd79a",
+    "uncompressed_bytes": 119765890
+  },
+  "date": "2026-11-21",
+  "evicted_by_directory": {
+    "atlas-named-gpu-diagnostics-native-v4b-20261004": {
+      "bytes": 944460,
+      "files": 1
+    },
+    "attempts": {
+      "bytes": 29851269,
+      "files": 134
+    },
+    "bcap-default-baseline": {
+      "bytes": 1472127,
+      "files": 71
+    },
+    "bcap-prior-search": {
+      "bytes": 24528877,
+      "files": 362
+    },
+    "bcap-tier2-search": {
+      "bytes": 6272566,
+      "files": 51
+    },
+    "common26-first-two-pole-full-atlas-20261004": {
+      "bytes": 106881,
+      "files": 1
+    },
+    "dualnorm-pacing-v2": {
+      "bytes": 883711,
+      "files": 181
+    },
+    "dualnorm-tier1": {
+      "bytes": 424249,
+      "files": 283
+    },
+    "gaussian-smoke-inventory": {
+      "bytes": 2055973,
+      "files": 41
+    },
+    "k3p-global-tier1-v2": {
+      "bytes": 1309705,
+      "files": 54
+    },
+    "k3p-global-tier1-v3": {
+      "bytes": 1945498,
+      "files": 58
+    },
+    "pr223-native3-first-invalid-20261004": {
+      "bytes": 1479846,
+      "files": 1
+    },
+    "pr223-native3-repaired-20261004": {
+      "bytes": 1570267,
+      "files": 1
+    },
+    "pr223-original-full-retest-prefix5-20261004": {
+      "bytes": 1477858,
+      "files": 1
+    },
+    "pr223-original-full-retest-stopped17-20261004": {
+      "bytes": 1545101,
+      "files": 1
+    },
+    "r1r2-repair-20261022": {
+      "bytes": 1841003,
+      "files": 82
+    },
+    "routed-cuda-scorer-control-20261004": {
+      "bytes": 1840839,
+      "files": 5
+    },
+    "scaling-receipts": {
+      "bytes": 35651978,
+      "files": 813
+    },
+    "supplemental": {
+      "bytes": 3268754,
+      "files": 372
+    },
+    "word-half-base-20261004": {
+      "bytes": 1143885,
+      "files": 13
+    }
+  },
+  "evicted_bytes": 119614847,
+  "evicted_file_count": 2526,
+  "hf_repo": "HyperGAN/particlegan-forge-evidence",
+  "hf_revision": "80fa52f27f162a3ea082670f30ddda4ee041a696",
+  "retained_heavy_json_audit": {
+    "atlas-current-gpu-diagnostics-native-v2-20261003": {
+      "bytes": 1005330,
+      "files": 38,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "atlas-named-gpu-diagnostics-native-v3-20261003": {
+      "bytes": 1034885,
+      "files": 14,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "attempt-coverage.json": {
+      "bytes": 2936760,
+      "files": 1,
+      "reason": "Selected/research attempt registry read by family_reports.py, research_tiers.py, and test_refresh_forge_readouts.py."
+    },
+    "bcap-develop-integration": {
+      "bytes": 1545242,
+      "files": 69,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "bcap-three-phase": {
+      "bytes": 1067884,
+      "files": 47,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "calibration-lanes": {
+      "bytes": 15827126,
+      "files": 18,
+      "reason": "All 18 calibration-lane JSONs are hashed in compilation.json and read by calibration_lane.py tests."
+    },
+    "common26-full-original-diagnostic-20261005": {
+      "bytes": 1525828,
+      "files": 76,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "configuration-search": {
+      "bytes": 22569041,
+      "files": 134,
+      "reason": "All 134 search manifests are hashed in compilation.json and normalized by publication_memory.py."
+    },
+    "continuous-baseline-20261003": {
+      "bytes": 1405387,
+      "files": 13,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "dualnorm-pacing-v2": {
+      "bytes": 2117542,
+      "files": 6,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "dualnorm-tier1": {
+      "bytes": 5807862,
+      "files": 7,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "family-winner-round1": {
+      "bytes": 2532086,
+      "files": 34,
+      "reason": "Hashed in compilation.json and read by publication_memory.py."
+    },
+    "gaussian-smoke-inventory": {
+      "bytes": 1785420,
+      "files": 2,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "history-sources.json": {
+      "bytes": 3283308,
+      "files": 1,
+      "reason": "Historical import manifest hashed in compilation.json and checked by test_leaderboard_index.py."
+    },
+    "publication-records.json": {
+      "bytes": 5959048,
+      "files": 1,
+      "reason": "Compiled publication memory materialization verified by forge compile --check."
+    },
+    "pure-bcap": {
+      "bytes": 1692533,
+      "files": 230,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "recipe-prior-refactor": {
+      "bytes": 2026307,
+      "files": 183,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "records": {
+      "bytes": 266767197,
+      "files": 699,
+      "reason": "Every record JSON is hashed in compilation.json input_hashes and read by forge compile/recall/board and test_refresh_forge_readouts.py."
+    },
+    "research-catalog": {
+      "bytes": 7011424,
+      "files": 9,
+      "reason": "Pinned by SHA-256 in experiments/forge/atlas_catalog_scores.py (SCORE_PINS) and read by family_reports.py."
+    },
+    "scaling-receipts": {
+      "bytes": 3809496,
+      "files": 74,
+      "reason": "66 active receipts (3.50 MB) referenced by scaling-performance.json; 813 superseded receipts (35.65 MB) were evicted."
+    },
+    "supplemental/pr155-current-archive-v1/delta-classification.json": {
+      "bytes": 151043,
+      "files": 1,
+      "reason": "Pinned_by manifest referenced by reports/leaderboard-index.json and verified by tests/test_leaderboard_index.py."
+    },
+    "technique-evidence": {
+      "bytes": 81067679,
+      "files": 42,
+      "reason": "All 42 snapshots are hashed in compilation.json and technique-inventory.json; read by regenerate_technique_inventory.py and test_forge_current_technique_inventory.py."
+    },
+    "technique-inventory.json": {
+      "bytes": 22667011,
+      "files": 1,
+      "reason": "Primary compiled leaderboard JSON; read by family_reports.py, refresh_forge_readouts.py, and all Forge inventory tests."
+    },
+    "technique-receipts": {
+      "bytes": 11731699,
+      "files": 2952,
+      "reason": "All 2,952 compact receipts are hashed in compilation.json and read by family_reports.py and scoped_publications.py."
+    },
+    "test-performance-evidence": {
+      "bytes": 9180647,
+      "files": 19,
+      "reason": "Read by test_performance.py, pr399_scores.py, and test_forge_test_performance.py."
+    },
+    "tier1-completion": {
+      "bytes": 1004688,
+      "files": 78,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    },
+    "word-root-cause": {
+      "bytes": 1209464,
+      "files": 39,
+      "reason": "Referenced by Forge manifests, configs, or offline unit tests."
+    }
+  },
+  "schema": "forge_hf_json_archive_manifest_v1",
+  "source_commit": "87d72c39b9f79c2d9702897c2d7d693afb2a236d"
+}
