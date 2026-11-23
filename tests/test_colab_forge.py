@@ -255,7 +255,14 @@ def test_ephemeral_view_includes_transitive_dependencies(tmp_path: Path):
     from experiments.forge.views import load_tasks, validate_view
 
     all_tasks = load_tasks(cf.REPO_ROOT)
-    for tid in ("model_ae_ddgan_bimodal_chain", "grid100_mlp16", "zero_tanh_rail_escape", "ring_extension"):
+    for tid in (
+        "model_ae_ddgan_bimodal_chain",
+        "grid100_mlp16",
+        "grid100_res16_scaled_tanh",
+        "nash_overpowered_critic_ring16",
+        "zero_tanh_rail_escape",
+        "ring_extension",
+    ):
         unit_chk = cf.CatchupUnit(
             unit_id=f"chk-{tid[:12]}",
             candidate_id="unified-v11",
