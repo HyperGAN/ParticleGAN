@@ -139,7 +139,6 @@ _NO_EMA_FORMULATIONS = frozenset({
     "r4_autograd_critic",
     "cond_fiber",
     "minimal",
-    "axiom",
 })
 
 _CASE_TO_KIND = {spec["case_id"]: kind for kind, spec in HOST_DEFINITIONS.items()}
@@ -822,13 +821,6 @@ def _bind_formulation_record(
     elif eff == "unified_v11":
         from particlegan.unified_v11 import bind_unified_v11_record
         bind_unified_v11_record(record, loss_fn, prior_reg_fn)
-        if prior_reg_fn is not None and getattr(prior_reg_fn, "_bound_device", None) is None and generator is not None:
-            g_dev = next((p.device for p in generator.parameters()), None)
-            if g_dev is not None:
-                prior_reg_fn._bound_device = g_dev
-    elif eff == "axiom":
-        from particlegan.axiom import bind_axiom_record
-        bind_axiom_record(record, loss_fn, prior_reg_fn)
         if prior_reg_fn is not None and getattr(prior_reg_fn, "_bound_device", None) is None and generator is not None:
             g_dev = next((p.device for p in generator.parameters()), None)
             if g_dev is not None:

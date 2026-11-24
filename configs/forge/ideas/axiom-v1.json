@@ -1,7 +1,5 @@
 {
   "api_changes": [
-    "benchmarks/toy_audit/api_bytegan.py",
-    "benchmarks/toy_audit/api_t3_isolation.py",
     "experiments/forge/api.py",
     "experiments/forge/clockfree.py",
     "experiments/forge/techniques.py",
@@ -14,6 +12,7 @@
     "particlegan/_axiom/transport.py",
     "particlegan/axiom.py",
     "particlegan/optim/dualnorm.py",
+    "particlegan/recipe_schedules.py",
     "particlegan/recipes.py",
     "particlegan/training.py"
   ],
@@ -260,6 +259,5 @@
     "learned_locations",
     "named_rng"
   ],
-  "schema_version": 3,
-  "trainer_family": "axiom"
+  "schema_version": 3
 }

@@ -747,23 +747,6 @@
         "optimizer-interventions",
         "selectable-loss"
       ]
-    },
-    {
-      "candidates": [
-        "axiom-v1"
-      ],
-      "canonical_candidate": "axiom-v1",
-      "id": "axiom",
-      "label": "Axiom",
-      "rationale": "First-Principles Canonical 4-Law Family (<=2,500 LOC, zero sibling-package imports, zero SVD/eigh/pinv, strictly clock-free): combines Law 1 (mass-conserving GPU-resident Laguerre quantizer, per-cell relative-deficit duals, exact unbiased LTV, central finite-offset pullback covariance isometry), Law 2+4.5 (compute-regime-dispatched exact RoR for d<=16/quantized critics and Weyl-phase sub-batch dense-Rademacher fwAD interleaved R1+R2 with detached-EMA linear-R1 zero Jensen bias, dimension-independent mu_D=0.005 floor, and swap-invariant gauge), Law 3A+3B ((1-g_conn)-gated k=3 Voronoi conformal horizons, dead-zone-free orphan macro-transport, FP64 small-M simplicial geometry, GPU-vectorized argsort atomic bijection + BiGAN inverse, and float64 FIFO-ring zero-eigh conditional fiber operator bank), and Law 4.1-4.5 (IEEE-754 mantissa-exponent degree-0 norm, log-Winsorized scale + unconditional continuous step-cosine/log2_damp settling, role-agnostic bounded Frobenius-to-spectral scaling + compound-witness FP32 Tikhonov NS, 3-kernel contiguous foreach fast path, verified 2-4-step stratified p95 pushforward trust, and closed-form zero-pinv direction_blend).",
-      "tags": [
-        "adversarial-training",
-        "capped-input-gradients",
-        "constant-learning-rate",
-        "critic-gradient-penalty",
-        "optimizer-interventions",
-        "selectable-loss"
-      ]
     }
   ],
   "historical_families": [
