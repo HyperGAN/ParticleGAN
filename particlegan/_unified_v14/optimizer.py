@@ -904,31 +904,38 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                                 dir_r = m_new
                             else:
                                 dir_r = gr_safe
+                            g_raw_norm = gr_safe.norm(dim=-1, keepdim=True)
                             g_max_r = gr_safe.abs().amax(dim=-1, keepdim=True)
-                            g_ok_r = g_max_r > 1e-38
-                            g_sc_r = torch.where(g_ok_r, g_max_r, torch.ones_like(g_max_r))
-                            g_norm = (gr_safe / g_sc_r).norm(dim=-1, keepdim=True) * torch.where(
-                                g_ok_r, g_max_r, torch.zeros_like(g_max_r)
+                            g_ext_r = (g_max_r > 1e-38) & ((g_max_r < 1e-18) | (g_max_r > 1e18))
+                            g_sc_r = torch.where(g_ext_r, g_max_r, torch.ones_like(g_max_r))
+                            g_norm = torch.where(
+                                g_ext_r,
+                                (gr_safe / g_sc_r).norm(dim=-1, keepdim=True) * g_sc_r,
+                                g_raw_norm,
                             )
                             if b1_eff > 0.0:
+                                d_raw_norm = dir_r.norm(dim=-1, keepdim=True)
                                 d_max_r = dir_r.abs().amax(dim=-1, keepdim=True)
-                                d_ok_r = d_max_r > 1e-38
-                                d_sc_r = torch.where(d_ok_r, d_max_r, torch.ones_like(d_max_r))
-                                d_norm = (dir_r / d_sc_r).norm(dim=-1, keepdim=True) * torch.where(
-                                    d_ok_r, d_max_r, torch.zeros_like(d_max_r)
+                                d_ext_r = (d_max_r > 1e-38) & ((d_max_r < 1e-18) | (d_max_r > 1e18))
+                                d_sc_r = torch.where(d_ext_r, d_max_r, torch.ones_like(d_max_r))
+                                d_norm = torch.where(
+                                    d_ext_r,
+                                    (dir_r / d_sc_r).norm(dim=-1, keepdim=True) * d_sc_r,
+                                    d_raw_norm,
                                 )
                             else:
                                 d_norm = g_norm
                             active_r = is_first.unsqueeze(1) & fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
 
+                            cur_row_rms_raw = ((d_norm.square() * w_u_col).sum() / n_unique_t.clamp_min(1).float()).sqrt()
                             d_u = torch.where(is_first.unsqueeze(1), d_norm, torch.zeros_like(d_norm))
                             d_u_max = d_u.amax()
-                            d_u_ok = torch.isfinite(d_u_max) & (d_u_max > 1e-38)
-                            safe_d_u = torch.where(d_u_ok, d_u_max, d_u_max.new_ones(()))
+                            d_u_ext = torch.isfinite(d_u_max) & (d_u_max > 1e-38) & ((d_u_max < 1e-18) | (d_u_max > 1e18))
+                            safe_d_u = torch.where(d_u_ext, d_u_max, d_u_max.new_ones(()))
                             cur_row_rms = torch.where(
-                                d_u_ok,
+                                d_u_ext,
                                 ((d_u / safe_d_u).square().sum() / n_unique_t.clamp_min(1).float()).sqrt() * safe_d_u,
-                                d_u_max.new_zeros(()),
+                                cur_row_rms_raw,
                             )
                             if "peak_rms" not in st:
                                 st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
@@ -944,7 +951,7 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                                     (s_prior_base * 128.0) / n_unique_t.clamp_min(1).float(),
                                     d_norm.new_full((), s_prior_base),
                                 )
-                                s_p_row = torch.minimum(s_p_row, peak_r * 0.30)
+                                s_p_row = torch.minimum(s_p_row, peak_r * 2.0)
                                 denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
                             else:
                                 denom_r = d_norm.clamp_min(1e-36)
@@ -971,30 +978,37 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                             dir_r = m_new
                         else:
                             dir_r = gr_safe
+                        g_raw_norm = gr_safe.norm(dim=-1, keepdim=True)
                         g_max_r = gr_safe.abs().amax(dim=-1, keepdim=True)
-                        g_ok_r = g_max_r > 1e-38
-                        g_sc_r = torch.where(g_ok_r, g_max_r, torch.ones_like(g_max_r))
-                        g_norm = (gr_safe / g_sc_r).norm(dim=-1, keepdim=True) * torch.where(
-                            g_ok_r, g_max_r, torch.zeros_like(g_max_r)
+                        g_ext_r = (g_max_r > 1e-38) & ((g_max_r < 1e-18) | (g_max_r > 1e18))
+                        g_sc_r = torch.where(g_ext_r, g_max_r, torch.ones_like(g_max_r))
+                        g_norm = torch.where(
+                            g_ext_r,
+                            (gr_safe / g_sc_r).norm(dim=-1, keepdim=True) * g_sc_r,
+                            g_raw_norm,
                         )
                         if b1_eff > 0.0:
+                            d_raw_norm = dir_r.norm(dim=-1, keepdim=True)
                             d_max_r = dir_r.abs().amax(dim=-1, keepdim=True)
-                            d_ok_r = d_max_r > 1e-38
-                            d_sc_r = torch.where(d_ok_r, d_max_r, torch.ones_like(d_max_r))
-                            d_norm = (dir_r / d_sc_r).norm(dim=-1, keepdim=True) * torch.where(
-                                d_ok_r, d_max_r, torch.zeros_like(d_max_r)
+                            d_ext_r = (d_max_r > 1e-38) & ((d_max_r < 1e-18) | (d_max_r > 1e18))
+                            d_sc_r = torch.where(d_ext_r, d_max_r, torch.ones_like(d_max_r))
+                            d_norm = torch.where(
+                                d_ext_r,
+                                (dir_r / d_sc_r).norm(dim=-1, keepdim=True) * d_sc_r,
+                                d_raw_norm,
                             )
                         else:
                             d_norm = g_norm
                         active_r = fin_row & (g_norm > 1e-36) & (d_norm > 1e-36)
 
+                        cur_row_rms_raw = d_norm.square().mean().sqrt()
                         d_u_max = d_norm.amax()
-                        d_u_ok = torch.isfinite(d_u_max) & (d_u_max > 1e-38)
-                        safe_d_u = torch.where(d_u_ok, d_u_max, d_u_max.new_ones(()))
+                        d_u_ext = torch.isfinite(d_u_max) & (d_u_max > 1e-38) & ((d_u_max < 1e-18) | (d_u_max > 1e18))
+                        safe_d_u = torch.where(d_u_ext, d_u_max, d_u_max.new_ones(()))
                         cur_row_rms = torch.where(
-                            d_u_ok,
+                            d_u_ext,
                             (d_norm / safe_d_u).square().mean().sqrt() * safe_d_u,
-                            d_u_max.new_zeros(()),
+                            cur_row_rms_raw,
                         )
                         if "peak_rms" not in st:
                             st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
@@ -1006,7 +1020,7 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
 
                         if s_prior_base > 0.0:
                             s_cap = s_prior_base * (128.0 / float(len(rows))) if len(rows) > 128 else s_prior_base
-                            s_p_row = torch.minimum(d_norm.new_full((), s_cap), peak_r * 0.30)
+                            s_p_row = torch.minimum(d_norm.new_full((), s_cap), peak_r * 2.0)
                             denom_r = torch.hypot(d_norm, s_p_row).clamp_min(1e-36)
                         else:
                             denom_r = d_norm.clamp_min(1e-36)

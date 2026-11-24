@@ -167,13 +167,13 @@ def test_unified_v14_prior_degree0_scale_invariance_zerosync_and_fallback(
 
     z_ref, pk_ref = _run(1e-5)
     assert pk_ref > 0.0
-    # Verify sampled prior rows actually moved (4 i.i.d. random steps of lr=0.04 => ~0.075, vs <0.001 frozen):
+    # Verify sampled prior rows actually moved (under k=2.0, active gain 1/sqrt(5)~=0.447 => ~0.035 vs <0.001 frozen):
     eval_rows = torch.arange(num_particles) if path_mode == "fallback_all_rows" else uniq_rows
     mean_disp = float((z_ref[eval_rows] - z_init[eval_rows]).norm(dim=-1).mean().item())
-    assert mean_disp > 0.05, f"Prior unexpectedly frozen on {path_mode} (beta1={beta1}): mean_disp={mean_disp:.6f}"
+    assert mean_disp > 0.025, f"Prior unexpectedly frozen on {path_mode} (beta1={beta1}): mean_disp={mean_disp:.6f}"
 
-    # Trajectory degree-0 invariance across orders of magnitude below s_cap / k (~0.01):
-    for scale in (1e-3, 1e-7, 1e-12, 1e-25):
+    # Trajectory degree-0 invariance across orders of magnitude below s_cap / k (s_cap / 2.0 ~= 1.7e-3):
+    for scale in (1e-4, 1e-7, 1e-12, 1e-25):
         z_sc, pk_sc = _run(scale)
         assert pk_sc > 0.0
         assert torch.allclose(z_sc, z_ref, atol=1e-5, rtol=1e-5), (
@@ -181,7 +181,7 @@ def test_unified_v14_prior_degree0_scale_invariance_zerosync_and_fallback(
             f"max_diff={(z_sc - z_ref).abs().max().item():.3e}"
         )
 
-    # Normal low-D equilibrium settling preserved when peak_r * 0.30 >= s_cap (mirrors PR #606 control):
+    # Normal low-D equilibrium settling preserved when peak_r * 2.0 >= s_cap (mirrors PR #606 control):
     z_eq = nn.Parameter(torch.zeros(128, 2))
     opt_eq = UnifiedV14Optimizer(
         [{"params": [z_eq], "role": "prior", "lr": 0.04, "sampled_rows_required": path_mode != "fallback_all_rows"}],
@@ -193,7 +193,7 @@ def test_unified_v14_prior_degree0_scale_invariance_zerosync_and_fallback(
     elif path_mode == "fallback_row_scales":
         opt_eq.set_sampled_rows(z_eq, rows_128)
         opt_eq.set_row_scales(z_eq, torch.ones(128))
-    z_eq.grad = torch.full((128, 2), 0.02)  # peak_r = 0.02828 -> 0.30*peak_r = 0.00848 > 0.0061
+    z_eq.grad = torch.full((128, 2), 0.02)  # peak_r = 0.02828 -> 2.0*peak_r = 0.05657 > 0.0061
     opt_eq.step()
     with torch.no_grad():
         z_eq.zero_()
@@ -206,6 +206,52 @@ def test_unified_v14_prior_degree0_scale_invariance_zerosync_and_fallback(
     opt_eq.step()
     row_disp = float(z_eq.detach().norm(dim=-1).mean().item())
     assert row_disp < 0.005, f"Prior equilibrium damping collapsed on {path_mode}: row_disp={row_disp:.5f}"
+
+    # Bit-exact normal-scale parity with UnifiedV12Optimizer when peak_r * 2.0 >= s_cap (zero 1-ULP guard drift!):
+    z_v14_n = nn.Parameter(z_init.clone())
+    z_v12_n = nn.Parameter(z_init.clone())
+    opt_v14_n = UnifiedV14Optimizer(
+        [
+            {
+                "params": [z_v14_n],
+                "role": "prior",
+                "lr": 0.04,
+                "betas": (beta1, 0.999),
+                "sampled_rows_required": path_mode != "fallback_all_rows",
+            }
+        ],
+        smoothing=0.0061,
+    )
+    opt_v12_n = UnifiedV12Optimizer(
+        [
+            {
+                "params": [z_v12_n],
+                "role": "prior",
+                "lr": 0.04,
+                "betas": (beta1, 0.999),
+                "sampled_rows_required": path_mode != "fallback_all_rows",
+            }
+        ],
+        smoothing=0.0061,
+    )
+    for g in base_grads:
+        g_norm_scale = g * 0.05  # cur_row_rms ~= 0.20 >> s_cap / 2.0 -> s_p_row == s_cap bit-exact
+        z_v14_n.grad = g_norm_scale.clone()
+        z_v12_n.grad = g_norm_scale.clone()
+        if path_mode == "zerosync":
+            opt_v14_n.set_sampled_rows(z_v14_n, raw_rows)
+            opt_v12_n.set_sampled_rows(z_v12_n, raw_rows)
+        elif path_mode == "fallback_row_scales":
+            opt_v14_n.set_sampled_rows(z_v14_n, uniq_rows)
+            opt_v14_n.set_row_scales(z_v14_n, row_scales)
+            opt_v12_n.set_sampled_rows(z_v12_n, uniq_rows)
+            opt_v12_n.set_row_scales(z_v12_n, row_scales)
+        opt_v14_n.step()
+        opt_v12_n.step()
+    assert torch.equal(z_v14_n.detach(), z_v12_n.detach()), (
+        f"Normal-scale prior update drifted from bit-exact v12 parity on {path_mode} (beta1={beta1})"
+    )
+    assert torch.equal(opt_v14_n.state[z_v14_n]["peak_rms"], opt_v12_n.state[z_v12_n]["peak_rms"])
 
 
 @pytest.mark.parametrize("scale", [1e-5, 0.05])
@@ -316,7 +362,24 @@ def test_unified_v14_prior_edge_cases_zero_nan_inf_and_smoothing_zero_limit(use_
         assert torch.equal(z1.detach()[r_dead], z1_orig[r_dead])
     for r_live in (1, 5):
         disp_r = float((z1.detach()[r_live] - z1_orig[r_live]).norm().item())
-        assert disp_r > 0.03, f"Active row {r_live} under-moved: {disp_r}"
+        assert disp_r > 0.015, f"Active row {r_live} under-moved: {disp_r}"
+
+    # Finite 1e30 extreme-scale row updates cleanly via guarded amax rescaling without FP32 overflow:
+    z_big = nn.Parameter(z1_orig.clone())
+    opt_big = UnifiedV14Optimizer(
+        [{"params": [z_big], "role": "prior", "lr": 0.04, "sampled_rows_required": not use_fallback}],
+        smoothing=0.0061,
+    )
+    g_big = torch.zeros(16, 4)
+    g_big[1] = torch.tensor([1e30, -2e30, 0.5e30, 1.5e30])
+    if not use_fallback:
+        opt_big.set_sampled_rows(z_big, torch.tensor([0, 1, 1, 5], dtype=torch.long))
+    z_big.grad = g_big
+    opt_big.step()
+    assert torch.isfinite(z_big.detach()).all()
+    assert torch.isfinite(opt_big.state[z_big]["peak_rms"])
+    assert float(opt_big.state[z_big]["peak_rms"].item()) > 1e29
+    assert float((z_big.detach()[1] - z1_orig[1]).norm().item()) == pytest.approx(0.04, rel=1e-5)
 
     # Finite 3e38 overflow-norm row (||[3e38]*4|| = 6e38 > FLT_MAX -> inf) must not produce NaN or poison peak_rms:
     pk_before_ovf = float(opt1.state[z1]["peak_rms"].item())
@@ -388,21 +451,21 @@ def test_unified_v14_prior_peak_rms_live_semantic_control(use_fallback: bool) ->
     eval_rows = torch.arange(num_p) if use_fallback else rows
     disp_v14 = float(z_v14.detach()[eval_rows].norm(dim=-1).mean().item())
     disp_v12 = float(z_v12.detach()[eval_rows].norm(dim=-1).mean().item())
-    # v14 moves at lr / sqrt(1 + 0.30^2) ~= 0.03831, whereas v12 is crushed by s_cap (~1.3e-4):
-    assert disp_v14 > 0.036, f"v14 prior crushed: {disp_v14:.6f}"
+    # v14 moves at lr / sqrt(1 + 2.0^2) ~= 0.01789, whereas v12 is crushed by s_cap (~1.3e-4):
+    assert disp_v14 > 0.017, f"v14 prior crushed: {disp_v14:.6f}"
     assert disp_v12 < 0.0005, f"Expected v12 control to exhibit prior freeze: {disp_v12:.6f}"
-    assert disp_v14 / max(disp_v12, 1e-12) > 100.0
+    assert disp_v14 / max(disp_v12, 1e-12) > 80.0
 
     # 2. Deliberate state perturbation proves st["peak_rms"] is live (not dead code!):
     with torch.no_grad():
         z_v14.zero_()
-        opt_v14.state[z_v14]["peak_rms"].fill_(1e-3)  # 100x higher peak_rms -> s_p_row = 3e-4 >> 1e-5
+        opt_v14.state[z_v14]["peak_rms"].fill_(1e-3)  # 100x higher peak_rms -> s_p_row = 2e-3 >> 1e-5
     if not use_fallback:
         opt_v14.set_sampled_rows(z_v14, rows)
     z_v14.grad = g_small.clone()
     opt_v14.step()
     disp_damped = float(z_v14.detach()[eval_rows].norm(dim=-1).mean().item())
-    assert disp_damped < 0.05 * disp_v14, (
+    assert disp_damped < 0.02 * disp_v14, (
         f"Perturbing peak_rms failed to damp prior update (dead-code check failed): {disp_damped:.6f} vs {disp_v14:.6f}"
     )
 
