@@ -471,15 +471,83 @@ def audit_code_complexity(root: pathlib.Path = ROOT) -> Dict[str, Any]:
 
     # Check surviving Round-4 Occam redundant epicycles in _unified_v11 / _unified_v12 + unified-v12.json
     prior_src = (root / "particlegan" / "_unified_v11" / "prior.py").read_text(encoding="utf-8")
+    opt12_src = (root / "particlegan" / "_unified_v12" / "optimizer.py").read_text(encoding="utf-8")
+    opt12_tree = ast.parse(opt12_src)
     v12_idea = _load_json(root / "configs" / "forge" / "ideas" / "unified-v12.json")
     v12_recipe = v12_idea.get("recipe_overrides") or {}
+
+    # Real AST / source checks on _unified_v12/optimizer.py (no hardcoded booleans)
+    has_d_probe = "_d_probe" in opt12_src
+    parent_of: Dict[ast.AST, ast.AST] = {}
+    for parent in ast.walk(opt12_tree):
+        for child in ast.iter_child_nodes(parent):
+            parent_of[child] = parent
+
+    is_conv_if_nodes = [
+        node
+        for node in ast.walk(opt12_tree)
+        if isinstance(node, ast.If)
+        and isinstance(node.test, ast.Name)
+        and node.test.id == "is_conv"
+    ]
+    conv_uses_cached_metrics = any(
+        "_cached_conv_metrics" in ast.unparse(node.body)
+        for node in is_conv_if_nodes
+    )
+    conv_branches_call_ns = any(
+        any(tok in ast.unparse(node.body) for tok in ("quintic_orthogonalize", "pending_dense", "dense2d_grads"))
+        for node in is_conv_if_nodes
+    )
+
+    def _is_descendant_of(node: ast.AST, stmts: List[ast.stmt]) -> bool:
+        targets = set(stmts)
+        cur: Optional[ast.AST] = node
+        while cur is not None:
+            if cur in targets:
+                return True
+            cur = parent_of.get(cur)
+        return False
+
+    def _ns_enqueue_excludes_conv(call_node: ast.Call) -> bool:
+        cur: Optional[ast.AST] = call_node
+        while cur is not None:
+            if isinstance(cur, ast.For) and "dense2d_meta" in ast.unparse(cur.iter):
+                # Fed exclusively by dense2d_grads.append(), which is itself checked below.
+                return True
+            if isinstance(cur, ast.If):
+                test_src = ast.unparse(cur.test)
+                if test_src == "is_conv" and _is_descendant_of(call_node, cur.orelse):
+                    return True
+                if "not is_conv" in test_src and _is_descendant_of(call_node, cur.body):
+                    return True
+            cur = parent_of.get(cur)
+        return False
+
+    ns_enqueue_calls = [
+        node
+        for node in ast.walk(opt12_tree)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and (
+            (isinstance(node.func.value, ast.Name) and node.func.value.id == "pending_dense" and node.func.attr == "setdefault")
+            or (isinstance(node.func.value, ast.Name) and node.func.value.id == "dense2d_grads" and node.func.attr == "append")
+        )
+    ]
+    all_ns_enqueues_exclude_conv = bool(ns_enqueue_calls) and all(
+        _ns_enqueue_excludes_conv(c) for c in ns_enqueue_calls
+    )
     epicycles = {
         "radon_hurwitz_dz4_branch_in_prior": "dim == 2 and d_z == 4" in prior_src,
         "fwad_generator_probe_w_sat_pt_in_prior": "_fwad_generator_probe(" in prior_src and "w_sat_pt" in prior_src,
         "conformal_horizon_flag_enabled_in_v12_idea": bool(v12_recipe.get("rgdt_conformal_horizon")),
         "multiscale_horizon_flag_enabled_in_v12_idea": bool(v12_recipe.get("t1c_multiscale_horizon")),
-        "critic_secant_dropped_in_v12_optimizer": True,
-        "conv2d_ns_dropped_in_v12_optimizer": True,
+        "critic_secant_dropped_in_v12_optimizer": not has_d_probe,
+        "conv2d_ns_dropped_in_v12_optimizer": (
+            len(is_conv_if_nodes) >= 3
+            and conv_uses_cached_metrics
+            and (not conv_branches_call_ns)
+            and all_ns_enqueues_exclude_conv
+        ),
     }
 
     return {
@@ -497,6 +565,57 @@ def audit_code_complexity(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         "sibling_package_imports": sibling_imports,
         "surviving_occam_epicycles": epicycles,
     }
+
+
+def audit_non_progression_readout_metrics(root: pathlib.Path = ROOT) -> Dict[str, Any]:
+    """Programmatically verify exact pass/total counts and key cited metrics in non-progression readouts."""
+    records_dir = root / "reports" / "forge" / "records"
+
+    def _task(rec: Dict[str, Any], tid: str) -> Dict[str, Any]:
+        return [t for t in rec["task_results"] if t["task_id"] == tid][0]
+
+    def _counts(rec: Dict[str, Any]) -> Tuple[int, int]:
+        trs = rec["task_results"]
+        return sum(1 for t in trs if t["gate_status"] == "PASS"), len(trs)
+
+    checks: Dict[str, Any] = {}
+    specs = [
+        ("t1-prior-v2", "readout-379720b9859815defff0efaa.json", None),
+        ("t1-coupling-v5", "readout-b87c22fbdb500d43981e839b.json", "img_bars4"),
+        ("t2-secant-v5", "readout-a2d41a678887a49f9ecc6aa9.json", None),
+        ("cond-fiber-v1", "readout-5932f4d351cc4e791417835a.json", "model_ddgan_gaussian_chain"),
+        ("unified-v11_disc_stab", "readout-fc5b67a767e57d748f460610.json", "model_ddgan_gaussian_chain"),
+        ("unified-v11_t3_iso", "readout-d1e36bf514f755e46b333e6d.json", None),
+        ("unified-v11_t4_nash", "readout-2eb07e97714a1da4177d5d25.json", None),
+        ("unified-v11_t3_shift", "readout-2029c37a1359498d3d8f2eb3.json", None),
+        ("unified-v11_t4_arch", "readout-b96d9de47bb52cc91fbb4a4f.json", None),
+        ("t4-nash-v3_nash", "readout-6f996ec256a149b2f1620f64.json", None),
+        ("t4-arch-v3_diag", "readout-dc890b704514d91effb156a6.json", "grid100_mlp16"),
+        ("t4-arch-v3_t3_holdout", "readout-ff22843954240927dfd7ecc3.json", None),
+        ("rgdt-v3_t3_iso", "readout-c30d4a5840e8d861f62c1dcb.json", None),
+        ("r4_arm1_no_ns", "readout-690dd40a4221b390d8680e43.json", "grid100_mlp16"),
+        ("r4_arm2_no_secant", "readout-4e2fd695306a5dd6fd222e62.json", "nash_overpowered_generator_ring16"),
+        ("r4_arm4_no_coalesce", "readout-04bb3c211150d5629c489b5e.json", "grid100"),
+        ("r4_arm5_no_laguerre", "readout-b27b26896bd137e2e701ce2d.json", "grid100"),
+        ("r4_arm7_autograd", "readout-b96faf85499b1dbe9dce102e.json", "t3_iso_scale_mass_8x"),
+        ("r4_arm8_no_sat_probe", "readout-453cc0e86ed3223a21d247c3.json", "zero_tanh_rail_escape"),
+    ]
+    for label, fname, tid in specs:
+        rec = _load_json(records_dir / fname)
+        p_cnt, tot = _counts(rec)
+        entry: Dict[str, Any] = {
+            "file": fname,
+            "candidate_id": rec.get("candidate_id"),
+            "pass_count": p_cnt,
+            "total_count": tot,
+        }
+        if tid is not None:
+            tr = _task(rec, tid)
+            entry["task_id"] = tid
+            entry["task_status"] = tr["gate_status"]
+            entry["metrics"] = tr.get("metrics") or {}
+        checks[label] = entry
+    return checks
 
 
 def audit_p8_tuning_and_unseen(root: pathlib.Path = ROOT) -> Dict[str, Any]:
@@ -587,9 +706,31 @@ def audit_p8_tuning_and_unseen(root: pathlib.Path = ROOT) -> Dict[str, Any]:
                     }
                 )
 
+    # Exact programmatic overlap of r3-tier3-long-horizon-holdout-v1 with active screening views
+    def _vtasks(rel: str) -> set[str]:
+        view = _load_json(root / rel)
+        return {str(a.get("task") or a.get("task_id") or a.get("id")) for a in view.get("assignments", [])}
+
+    t3_tasks = _vtasks("configs/forge/views/r3-tier3-long-horizon-holdout-v1.json")
+    core_screen = (
+        _vtasks("configs/forge/view-history/discriminator_stability-v19.json")
+        | _vtasks("configs/forge/views/t4-strange-architectures-v1.json")
+        | _vtasks("configs/forge/views/r4-occam-ablation-v1.json")
+    )
+    shift_screen = _vtasks("configs/forge/views/t3-shift-recovery-diagnostic-v1.json")
+    tier3_holdout_overlap = {
+        "total_tasks": len(t3_tasks),
+        "overlap_core_screening_count": len(t3_tasks & core_screen),
+        "overlap_core_screening_tasks": sorted(t3_tasks & core_screen),
+        "remaining_after_core_screening": sorted(t3_tasks - core_screen),
+        "overlap_including_shift_count": len(t3_tasks & (core_screen | shift_screen)),
+        "remaining_after_core_and_shift": sorted(t3_tasks - (core_screen | shift_screen)),
+    }
+
     cal = _load_json(root / "reports" / "forge" / "calibration" / "r3-calibration-holdout.json")
     return {
         "lineage_tuning_budgets": budget_summary,
+        "tier3_holdout_overlap": tier3_holdout_overlap,
         "calibration_adoption": cal.get("adoption"),
         "calibration_blockers": cal.get("calibration_blockers"),
         "bytegan_unseen_results": bytegan_summary,
@@ -847,6 +988,7 @@ def run_full_audit(root: pathlib.Path = ROOT, profile_gpu: bool = False, device:
         "links_and_readouts": audit_four_laws_links(root),
         "unified_v12_audit": audit_unified_v12_receipts(root),
         "progression_table": audit_progression_table(root),
+        "non_progression_metrics": audit_non_progression_readout_metrics(root),
         "code_complexity": audit_code_complexity(root),
         "p8_qualification_and_unseen": audit_p8_tuning_and_unseen(root),
     }

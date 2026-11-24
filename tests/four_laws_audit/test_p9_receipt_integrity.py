@@ -17,6 +17,7 @@ if str(ROOT) not in sys.path:
 from scripts.four_laws_audit.p9_verify_receipts import (  # noqa: E402
     audit_code_complexity,
     audit_four_laws_links,
+    audit_non_progression_readout_metrics,
     audit_p8_tuning_and_unseen,
     audit_progression_table,
     audit_unified_v12_receipts,
@@ -185,12 +186,78 @@ def test_code_complexity_and_surviving_occam_epicycles() -> None:
     assert pm["unified-v12_effective_direct"]["loc"] > 8500
     assert pm["unified-v12_effective_direct"]["total_branches"] > 1000
 
-    # Surviving Round-4 Occam redundant epicycles in unified-v12
+    # Surviving Round-4 Occam redundant epicycles in unified-v12 (and AST-verified drops)
     ep = cc["surviving_occam_epicycles"]
     assert ep["radon_hurwitz_dz4_branch_in_prior"] is True
     assert ep["fwad_generator_probe_w_sat_pt_in_prior"] is True
     assert ep["conformal_horizon_flag_enabled_in_v12_idea"] is True
     assert ep["multiscale_horizon_flag_enabled_in_v12_idea"] is True
+    assert ep["critic_secant_dropped_in_v12_optimizer"] is True
+    assert ep["conv2d_ns_dropped_in_v12_optimizer"] is True
+
+    # Exact bank.py LOC verified (745 LOC)
+    assert len((ROOT / "particlegan/_unified_v11/bank.py").read_text().splitlines()) == 745
+
+
+def test_non_progression_readout_metrics_and_tier3_holdout_overlap() -> None:
+    """Programmatically verify key cited non-progression readout metrics and exact Tier-3 holdout overlap."""
+    np_m = audit_non_progression_readout_metrics(ROOT)
+    assert (np_m["t1-prior-v2"]["pass_count"], np_m["t1-prior-v2"]["total_count"]) == (29, 42)
+    assert (np_m["t1-coupling-v5"]["pass_count"], np_m["t1-coupling-v5"]["total_count"]) == (31, 44)
+    assert np_m["t1-coupling-v5"]["metrics"]["modes"] == 4
+    assert np_m["t1-coupling-v5"]["metrics"]["hq"] == pytest.approx(0.96875, abs=1e-4)
+    assert np_m["t1-coupling-v5"]["metrics"]["distribution_tv"] == pytest.approx(0.15625, abs=1e-4)
+    assert (np_m["cond-fiber-v1"]["pass_count"], np_m["cond-fiber-v1"]["total_count"]) == (40, 47)
+    assert (np_m["unified-v11_disc_stab"]["pass_count"], np_m["unified-v11_disc_stab"]["total_count"]) == (41, 47)
+    assert np_m["unified-v11_disc_stab"]["metrics"]["t1_q0_normalized_mean"] == pytest.approx(0.1790, abs=1e-3)
+    assert np_m["unified-v11_disc_stab"]["metrics"]["t1_q0_covariance_eigen_max"] == pytest.approx(1.3085, abs=1e-3)
+    assert (np_m["unified-v11_t3_iso"]["pass_count"], np_m["unified-v11_t3_iso"]["total_count"]) == (2, 2)
+    assert (np_m["unified-v11_t4_nash"]["pass_count"], np_m["unified-v11_t4_nash"]["total_count"]) == (3, 3)
+    assert (np_m["unified-v11_t3_shift"]["pass_count"], np_m["unified-v11_t3_shift"]["total_count"]) == (5, 5)
+    assert (np_m["unified-v11_t4_arch"]["pass_count"], np_m["unified-v11_t4_arch"]["total_count"]) == (6, 7)
+    assert (np_m["t4-arch-v3_diag"]["pass_count"], np_m["t4-arch-v3_diag"]["total_count"]) == (7, 7)
+    assert np_m["t4-arch-v3_diag"]["metrics"]["precision"] == pytest.approx(0.9814, abs=1e-3)
+    assert (np_m["r4_arm5_no_laguerre"]["pass_count"], np_m["r4_arm5_no_laguerre"]["total_count"]) == (7, 15)
+    assert np_m["r4_arm5_no_laguerre"]["metrics"]["precision"] == pytest.approx(0.2827, abs=1e-3)
+    assert (np_m["r4_arm4_no_coalesce"]["pass_count"], np_m["r4_arm4_no_coalesce"]["total_count"]) == (9, 15)
+    assert np_m["r4_arm4_no_coalesce"]["metrics"]["center_rms_sigma"] == pytest.approx(0.5312, abs=1e-3)
+    assert np_m["r4_arm2_no_secant"]["metrics"]["hq"] == pytest.approx(0.2522, abs=1e-3)
+    assert np_m["r4_arm1_no_ns"]["metrics"]["precision"] == pytest.approx(0.0244, abs=1e-3)
+    assert np_m["r4_arm7_autograd"]["metrics"]["core_min_eigen_ratio"] == pytest.approx(0.5313, abs=1e-3)
+    assert np_m["r4_arm8_no_sat_probe"]["metrics"]["mean_abs_error"] == pytest.approx(0.0026, abs=1e-3)
+
+    # Verify exact staggered100 metric in readout-b51ab67c
+    b51 = json.loads((ROOT / "reports/forge/records/readout-b51ab67c4d97526186e23651.json").read_text())
+    s100 = [t for t in b51["task_results"] if t["task_id"] == "staggered100"][0]
+    assert s100["metrics"]["precision"] == pytest.approx(0.9909, abs=1e-3)
+    assert s100["metrics"]["center_rms_sigma"] == pytest.approx(0.0618, abs=1e-3)
+
+    # Exact Tier-3 holdout overlap with active screening views (13/18 core, 14/18 incl. shift)
+    ov = audit_p8_tuning_and_unseen(ROOT)["tier3_holdout_overlap"]
+    assert ov["total_tasks"] == 18
+    assert ov["overlap_core_screening_count"] == 13
+    assert ov["overlap_core_screening_tasks"] == [
+        "ae_gan_hold",
+        "five_word_joint_hold",
+        "five_word_joint_smoke",
+        "grid100",
+        "mode_hold",
+        "ring_extension",
+        "ring_hold",
+        "rotated100",
+        "staggered100",
+        "two_pole",
+        "unused_token_hold",
+        "zero_tanh_rail_escape",
+        "zero_tanh_smoke",
+    ]
+    assert ov["overlap_including_shift_count"] == 14
+    assert ov["remaining_after_core_and_shift"] == [
+        "clockfree_audit",
+        "grid100_14k",
+        "rotated100_14k",
+        "staggered100_14k",
+    ]
 
 
 def test_p8_governance_calibration_and_unseen_failures() -> None:
