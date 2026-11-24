@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v13-disc-stab-study"
+  },
+  "candidate": "unified-v13",
+  "competing_explanation": "If feydy_atomic falsely triggers on continuous, discrete-image, word, or conditional-diffusion tasks or alters optimization dynamics on non-atomic targets, unified-v13 will regress at least one Tier-1 or Tier-2 discriminator_stability task that unified-v12 passes.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global unified-v13 (rhbi_self_coupling='feydy_atomic') solves bytegan_hypercube8 (256/256 valid unique bytes) while preserving all Tier 1 and Tier 2 discriminator_stability passes of unchanged unified-v12 control with zero regressions.",
+  "id": "unified-v13-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
