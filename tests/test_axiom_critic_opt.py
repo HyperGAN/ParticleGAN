@@ -1068,3 +1068,55 @@ def test_optimizer_review_regressions_large_conv_spill_dead_prefix_and_tensor_mo
     assert math.isclose(float(p_s.detach().norm().item()), 0.04 * expected_mult, rel_tol=1e-4)
     assert math.isclose(float(p_2.detach().norm().item()), 0.04 * expected_mult * math.sqrt(4.0), rel_tol=1e-4)
 
+
+def test_axiom_v3_ror_wall_peak_rms_cooling_and_prior_momentum() -> None:
+    torch.manual_seed(0)
+
+    # 1) RoR exact-deadband C^1 wall: identically 0 below kappa, strictly active above kappa (with chord term)
+    c_lin = nn.Linear(4, 1, bias=False)
+    xr, xf = torch.randn(8, 4), torch.randn(8, 4)
+    with torch.no_grad():
+        c_lin.weight.fill_(0.2)  # ||grad_x D|| = sqrt(4 * 0.04) = 0.4 < kappa = 1.0
+    r_lo = AxiomStepRecord()
+    k_lo = AxiomPenaltyKernel(record=r_lo, coeff=1.0, kappa=1.0, lambda_floor=0.005, gamma_gauge=0.0)
+    p_lo, s_lo = k_lo.penalty(c_lin, xr, xf, collect_stats=True)
+    assert s_lo["regime"] == "ror" and math.isclose(float(p_lo.item()), 0.5 * 0.005 * 0.16, rel_tol=1e-5)
+
+    with torch.no_grad():
+        c_lin.weight.fill_(1.0)  # ||grad_x D|| = 2.0 > kappa = 1.0 -> cap_tot = (1 + 0.75 + 0.25) * (2 - 1)^2 = 2.0
+    r_hi = AxiomStepRecord()
+    k_hi = AxiomPenaltyKernel(record=r_hi, coeff=1.0, kappa=1.0, lambda_floor=0.005, gamma_gauge=0.0)
+    p_hi, _ = k_hi.penalty(c_lin, xr, xf, collect_stats=True)
+    assert math.isclose(float(p_hi.item()), 0.5 * (2.0 + 0.005 * 4.0), rel_tol=1e-4)
+
+    # 2) Zero-deadband degree-0 Peak-RMS Tikhonov: parity between foreach fast path & scalar slow path
+    p_fast = nn.Parameter(torch.zeros(4, 3, 3, 3))
+    p_slow = nn.Parameter(torch.zeros(4, 3, 3, 3))
+    opt_f = AxiomOptimizer([p_fast], lr=0.05)
+    opt_s = AxiomOptimizer([p_slow], lr=0.05)
+    opt_s._run_foreach_fast = lambda items, **kw: list(items)  # type: ignore[method-assign]
+    for t in range(12):
+        g = torch.randn_like(p_fast) * (1.0 if t < 4 else 0.1)
+        p_fast.grad, p_slow.grad = g.clone(), g.clone()
+        opt_f.step()
+        opt_s.step()
+    assert torch.allclose(p_fast, p_slow, rtol=1e-5, atol=1e-6)
+
+    # 3) Calibrated thermal cooling s_cool & prior settling momentum (b1_eff >= 0.75 when prior_scale < 1)
+    p_c = nn.Parameter(torch.zeros(8))
+    rec_c = AxiomStepRecord()
+    rec_c.thermal_scale = 0.0061  # s_cool = 0.0061 / hypot(0.0061, 0.0061) = 1 / sqrt(2)
+    opt_c = AxiomOptimizer([p_c], lr=0.04, record=rec_c)
+    p_c.grad = torch.ones_like(p_c)
+    opt_c.step()
+    assert math.isclose(float(p_c.detach().norm().item()), 0.04 / math.sqrt(2.0), rel_tol=1e-4)
+
+    tab = nn.Parameter(torch.zeros(6, 4))
+    opt_pr = AxiomOptimizer([{"params": [tab], "lr": 0.05, "role": "prior", "betas": (0.0, 0.999)}])
+    tab.grad = torch.ones_like(tab)
+    opt_pr.set_sampled_rows(tab, torch.tensor([0, 1]))
+    opt_pr.bind_axiom_modulation(prior_scale=0.5)
+    opt_pr.step()
+    assert "m_prior" in opt_pr.state[tab], "Prior settling momentum must engage when prior_scale < 1.0"
+
+
