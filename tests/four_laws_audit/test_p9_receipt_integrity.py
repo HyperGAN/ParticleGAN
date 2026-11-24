@@ -290,11 +290,26 @@ def test_p8_governance_calibration_and_unseen_failures() -> None:
     assert p8["lineage_tuning_budgets"]["law4_energy_opt"]["declared_cards"] == 11
     assert p8["lineage_tuning_budgets"]["unified_v1_v12"]["concluded_readouts"] >= 60
 
-    # Post-freeze unseen ByteGAN tasks: 0/2 PASS across unified-v12 (and all 5 families)
+    # Post-freeze unseen ByteGAN tasks: historical 0/2 PASS across unified-v12 (and all 5 families)
     v12_bg = [r for r in p8["bytegan_unseen_results"] if r["candidate_id"] == "unified-v12"]
     assert len(v12_bg) == 2
     assert all(r["gate_status"] == "FAIL" for r in v12_bg)
     assert all(r["gate_status"] == "FAIL" for r in p8["bytegan_unseen_results"])
+
+    # PR #644 opt-in unified-v13 (feydy_atomic) tracked separately from v1..v12 lineage and preserved intact
+    assert p8["lineage_tuning_budgets"]["unified_v13_plus"]["declared_cards"] >= 1
+    assert p8["lineage_tuning_budgets"]["unified_v13_plus"]["studies"] >= 3
+    bg13 = p8["bytegan_v13_study"]
+    assert bg13 is not None
+    assert bg13["recommendation"]["default_recipe_changed"] is False
+    assert bg13["recommendation"]["family_selection_changed"] is False
+    assert bg13["totals"]["matched_regression_bit_exact_zero_diff"] == 41
+    assert bg13["totals"]["matched_regression_tasks"] == 41
+    assert bg13["bytegan"]["bytegan_hypercube8"]["unified-v13"]["gate_status"] == "PASS"
+    assert bg13["bytegan"]["bytegan_hypercube8"]["unified-v13"]["final_metrics"]["valid_unique_bytes"] == 256
+    assert bg13["bytegan"]["bytegan_bigan_dictionary"]["unified-v13"]["gate_status"] == "PASS"
+    assert bg13["bytegan"]["bytegan_bigan_dictionary"]["unified-v13"]["final_metrics"]["valid_unique_bytes"] == 256
+    assert bg13["bytegan"]["bytegan_bigan_dictionary"]["unified-v13"]["final_metrics"]["recon_valid_exact_bytes"] == 256
 
     # Cross-GPU / host-transfer brittleness on NVIDIA L4
     l4_fail_tasks = {r["task_id"] for r in p8["unified_v12_l4_non_pass"] if r["gate_status"] == "FAIL"}
