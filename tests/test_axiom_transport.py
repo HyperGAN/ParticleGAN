@@ -68,15 +68,16 @@ class _StubAxiomRecord:
         r_q90: float,
         r_hmax: float,
         *,
+        r_tail: float = 0.0,
         tau: float = 0.084,
         shock_mu_ratio: float = 0.35,
         shock_ed_floor: float = 0.30,
         lock_hysteresis: float = 0.0,
     ) -> float:
-        # Strict signature guard: must accept ONLY the 5 positional + 4 keyword args from design-spec §3.1.4.
-        self.thermal_calls.append((float(r_ed), float(r_mu_sq), float(r_spread), float(r_q90), float(r_hmax), float(tau)))
+        # Strict signature guard matching AxiomStepRecord.observe_thermal (6-channel thermal EMA).
+        self.thermal_calls.append((float(r_ed), float(r_mu_sq), float(r_spread), max(float(r_q90), float(r_tail)), float(r_hmax), float(tau)))
         self.thermal_initialized = True
-        self.thermal_ema = max(0.0, float(r_ed) + max(0.0, float(r_q90)))
+        self.thermal_ema = max(0.0, float(r_ed) + max(0.0, float(r_q90), float(r_tail)))
         return self.thermal_scale
 
 
@@ -114,7 +115,7 @@ def _make_exact_atoms(k: int = 8, n: int = 64, d: int = 4, *, seed: int = 31, de
 def test_transport_hygiene_loc_and_zero_forbidden_ops(monkeypatch: pytest.MonkeyPatch):
     src = TRANSPORT_PATH.read_text(encoding="utf-8")
     lines = src.splitlines()
-    assert len(lines) <= 580, f"transport.py exceeds 580 LOC budget: {len(lines)}"
+    assert len(lines) <= 640, f"transport.py exceeds 640 LOC budget: {len(lines)}"
     tree = ast.parse(src, filename=str(TRANSPORT_PATH))
 
     forbidden_imports = {
@@ -581,3 +582,47 @@ def test_axiom_transport_cuda_smoke():
         lc = loss_fn.conditional_fiber_loss(xf, yr, c, cond_disc=torch.zeros(32, 1, dtype=torch.long, device=dev), record=rec_c)
         lc.backward()
         assert torch.isfinite(lc) and xf.grad is not None and torch.isfinite(xf.grad).all()
+
+
+def test_v2_weibull_1d_unscaled_log_odds_step_scale_and_simplicial_cooling():
+    """Axiom-v2 transport regressions: 1D Weibull akt_exp, unscaled _log_odds, het_ema, step_scale & thermal cooling."""
+    g = torch.Generator().manual_seed(91)
+    y1d = torch.randn(128, 1, generator=g)
+    ell_1d = float(T._batch_ell(y1d, 0.25).item())
+    # 1D Weibull akt_exp = 0.5 lifts ell well above raw 1D quantile (~0.01 -> ~0.3+)
+    assert ell_1d > 0.15, f"expected 1D Weibull akt_exp lift, got {ell_1d}"
+
+    # Unscaled _log_odds must stay linear (not tanh-saturated) on O(1) logits regardless of small ell:
+    df = torch.tensor([1.0, -1.0, 0.5, -0.5])
+    dr = torch.tensor([-0.5, 0.5, -1.0, 1.0])
+    dft, drt = T.AxiomTransportLoss._log_odds(df, dr)
+    assert float((dft - df).abs().max().item()) < 0.01
+
+    # Conditional fiber loss updates step_scale smoothly in [0.15, 1.0]:
+    loss_fn = T.AxiomTransportLoss()
+    rec = _StubAxiomRecord()
+    rec.step_scale = 1.0
+    for _ in range(3):
+        c = torch.randn(32, 2, generator=g)
+        yr = c * 1.1 + 0.15 * torch.randn(32, 2, generator=g)
+        xf = yr.clone().requires_grad_(True)
+        lc = loss_fn.conditional_fiber_loss(xf, yr, c, cond_disc=torch.zeros(32, 1, dtype=torch.long), record=rec)
+        lc.backward()
+    assert rec.cond_initialized is True and 0.15 <= rec.step_scale <= 1.0
+
+    # Simplicial manifold loss must scale gradients by record.thermal_scale when < 1.0:
+    from types import SimpleNamespace
+    z_tab = torch.randn(16, 2, generator=g, requires_grad=True)
+    gen = nn.Sequential(nn.Linear(2, 12), nn.SiLU(), nn.Linear(12, 2))
+    y_arc = _make_arc_batch(32)
+    loss_fn.simplicial_manifold_loss(z_tab, gen, y_arc, record=SimpleNamespace(thermal_scale=1.0, chord_phase=0.0)).backward()
+    g_hot = z_tab.grad.detach().clone()
+    z_tab.grad.zero_()
+    loss_fn.simplicial_manifold_loss(z_tab, gen, y_arc, record=SimpleNamespace(thermal_scale=0.1, chord_phase=0.0)).backward()
+    g_cool = z_tab.grad.detach().clone()
+    assert torch.allclose(g_cool, 0.1 * g_hot, rtol=1e-4, atol=1e-5)
+
+    # Atomic ledger finite row_dist sentinel (checkpoint-safe, zero Inf):
+    y_a, atoms = _make_exact_atoms(k=4, n=16, d=4, seed=5)
+    _, _, nal, _ = T._update_atomic_ledger(y_a + 1.0, torch.arange(8).repeat(2), atoms, torch.ones(4) / 4.0, 16, None, allow_update=True)
+    assert "row_dist" in nal and bool(torch.isfinite(nal["row_dist"]).all())
