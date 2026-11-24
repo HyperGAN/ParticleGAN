@@ -2904,7 +2904,11 @@ Execution guards: finite state = True; optimizer roles = generator, encoder, pri
 
 No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
 
-No related published API training GIF. This task retains its own declared numerical audit.
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-bytegan-bigan-dictionary](../toy_audit/api_contract/bytegan/media/api-bytegan-bigan-dictionary.gif) | Learn a joint BiGAN (G(z), E(x), D(x, z)) over 256 zero-sigma ParticlePrior codes on {-1, +1}^8 with exact 256-byte generation, exact canonical reconstruction G(E(x))==x, and 1-to-1 encoder particle indexing. Scope: Public API stretch variant: joint BiGAN bidirectional 256-byte dictionary over zero-sigma ParticlePrior | ParticlePrior (sigma=0) | COMPLETE / FAIL; 6000/6000 updates; valid_particle_fraction == 1.0, valid_unique_bytes == 256, rms_bit_error <= 0.12, recon_valid_exact_bytes == 256, recon_rms_bit_error <= 0.12, encoder_particle_bijection_bytes == 256 | unified-v12 / cuda:1 / 57443bbe93c3 | [definition](../toy_audit/api_contract/bytegan/publication.json); [readout](../toy_audit/api_contract/bytegan/publication.json); [recipe and provenance](../toy_audit/api_contract/bytegan/publication.json) |
 
 ### Experiment: bytegan-hypercube8
 
@@ -2937,7 +2941,11 @@ Execution guards: finite state = True; optimizer roles = generator, discriminato
 
 No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
 
-No related published API training GIF. This task retains its own declared numerical audit.
+Related public-API demonstrations, with their own recorded contracts:
+
+| Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
+| --- | --- | --- | --- | --- | --- |
+| [api-bytegan-hypercube8](../toy_audit/api_contract/bytegan/media/api-bytegan-hypercube8.gif) | Learn all 256 uniform uint8 bytes on {-1, +1}^8 with an exact-capacity zero-sigma ParticlePrior (256 particles, z_dim=8) in a crisp 1-to-1 bijection without collisions or barycentric ghosts. Scope: Public API stretch variant: exact-capacity zero-sigma ParticlePrior 256-byte hypercube bijection | ParticlePrior (sigma=0) | COMPLETE / FAIL; 4000/4000 updates; valid_particle_fraction == 1.0, valid_unique_bytes == 256 | unified-v12 / cuda:0 / 57443bbe93c3 | [definition](../toy_audit/api_contract/bytegan/publication.json); [readout](../toy_audit/api_contract/bytegan/publication.json); [recipe and provenance](../toy_audit/api_contract/bytegan/publication.json) |
 
 ### Experiment: cgan-overlapping-classes
 
@@ -7162,4 +7170,4 @@ The wider question review also links standalone experiments outside the Forge ti
 
 Declaration input digest: `f7b625ce9e54d8bf8ed60ef4e33d3534e91df8af7e9328b147dc0bc5bbe70658`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `82b53813a07e6d403c21a682405f8acea8a584ac9f0071aa15bb8e3c316f646b`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `538feddc53137a7468c1aab29819f9ec48140c7248a6c0f4a6340fb1aaebd6d5`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

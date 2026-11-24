@@ -94,7 +94,7 @@
       "report/toy100/shared22": 32,
       "report/toy100/simpler22": 30,
       "report/toy100/torch214-gpu-check": 6,
-      "report/toy_audit": 210,
+      "report/toy_audit": 213,
       "report/trajectory": 94,
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
@@ -114,19 +114,19 @@
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
       "narrative": 976,
-      "structured_evidence": 4412,
+      "structured_evidence": 4413,
       "support": 1567,
       "support_artifact": 14,
       "visualization": 23,
-      "visualization_artifact": 68
+      "visualization_artifact": 70
     },
-    "files": 8924
+    "files": 8927
   },
   "coverage": {
-    "declared_count": 8924,
+    "declared_count": 8927,
     "missing": [],
     "stale": [],
-    "tracked_count": 8924,
+    "tracked_count": 8927,
     "unclassified": [],
     "valid": true
   },
@@ -4827,7 +4827,7 @@
     },
     {
       "family": "config/repo_guard",
-      "git_blob": "19a567ce4a54549a74a019a1af15ccfaf4930f1d",
+      "git_blob": "f6f5ab34deba207d6bf025ddb4803767bbac3399",
       "path": "configs/repo_bloat_allowlist.json",
       "role": "configuration",
       "suggested_tiers": []
@@ -7469,14 +7469,14 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a545f3597444a886ca19aa3fa1c390d9424ca4af",
+      "git_blob": "14d0d0f575739e6160cef34242b39071a010079c",
       "path": "experiments/forge/adapters.py",
       "role": "engine_support",
       "suggested_tiers": []
     },
     {
       "family": "forge_engine",
-      "git_blob": "382f187ce1f89bee29ebab698394f1d501fe8c58",
+      "git_blob": "4afbe371455158c7300c11387f81bf51797a8fbe",
       "path": "experiments/forge/api.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7539,7 +7539,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "4d5bfc8d6fc3cf4db7cdbc3c14809cd4030234d2",
+      "git_blob": "c5048564ac3571d0379099ce2aec92463340b688",
       "path": "experiments/forge/boundaries.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7798,7 +7798,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "a1d03eb507f8a06c270d47f159e3ac1d5fc3a0b0",
+      "git_blob": "357e437b32c077bd0516b2d2dd282e0903f5f91c",
       "path": "experiments/forge/hostprofiles.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7840,7 +7840,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "86fb1d56536e523a884cabd0c7d215dbe69a55fd",
+      "git_blob": "260d7829ad06d69cca1a97d0316cbd29210f51cb",
       "path": "experiments/forge/leaderboard_contract.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8120,7 +8120,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "9c01465d6d5edef476c51c053b9dbe954f476e95",
+      "git_blob": "560bd243b31ae00aaf46853159cf5756425552ec",
       "path": "experiments/forge/sampling.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8253,7 +8253,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "ea88cb53c87a691c3490231efe4e36fade478dc1",
+      "git_blob": "ece038f6c047fe785280ee2e4a09930abb07c9a6",
       "path": "experiments/forge/techniques.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8337,7 +8337,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "7ccdb129137d4cc365b49de8a876e7386fae76da",
+      "git_blob": "c6edebf8848720affeb4e408e242c9699fa14852",
       "path": "experiments/forge/views.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -59588,6 +59588,27 @@
       "family": "report/toy_audit",
       "git_blob": "4af3ab828da78da8c390e9f5373744c2579676d3",
       "path": "reports/toy_audit/api_contract/binding-review.json",
+      "role": "structured_evidence",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "98d3638500cedf827dc911e062cd2f7a408e756c",
+      "path": "reports/toy_audit/api_contract/bytegan/media/api-bytegan-bigan-dictionary.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "da2e30c49f292ba36b236ced6a7c0e74e06c55f2",
+      "path": "reports/toy_audit/api_contract/bytegan/media/api-bytegan-hypercube8.gif",
+      "role": "visualization_artifact",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/toy_audit",
+      "git_blob": "45c30e052195e561519c46b62a81be14f4b2f862",
+      "path": "reports/toy_audit/api_contract/bytegan/publication.json",
       "role": "structured_evidence",
       "suggested_tiers": []
     },
