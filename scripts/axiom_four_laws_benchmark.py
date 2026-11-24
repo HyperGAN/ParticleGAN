@@ -49,7 +49,7 @@ from particlegan._axiom.critic import AxiomStepRecord, _attach_axiom_generator_h
 from particlegan._axiom.optimizer import AxiomOptimizer, fp32_tikhonov_ns_2d
 from particlegan._axiom.prior import AxiomPriorRegularizer, allocate_deficit_quotas, coalesce_pythagorean_ltv
 from particlegan._minimal import dynamics as minimal_dynamics
-from particlegan._minimal.dynamics import MinimalGeneratorOptimizer
+from particlegan._minimal.dynamics import MinimalGeneratorOptimizer, MinimalStepRecord
 from particlegan._minimal.prior import MinimalPriorRegularizer, _coalesce_isolated
 from particlegan._t1_coupling.charts import laguerre_hard_commitment
 from particlegan._unified_v11.critic import UnifiedV11StepRecord, _attach_unified_v11_generator_hook
@@ -732,6 +732,13 @@ def _run_trust_probe_step(
         rec.margin_initialized = True
         opt_g.record = opt_g._unified_v11_record = rec
         _attach_unified_v11_generator_hook(gen_mod, rec)
+    elif preset == "minimal":
+        rec = getattr(opt_d, "record", None)
+        if rec is not None:
+            rec.ema_data_scale = float(data_scale)
+            rec.ema_residual = float(push_res)
+            rec.initialized = True
+            opt_g._minimal_record = rec
     else:
         rec = None
 
@@ -843,10 +850,14 @@ def run_suite3_law41_43_p4() -> Dict[str, Any]:
         rec_v11 = UnifiedV11StepRecord()
         rec_v11.observe_scale(x_sc)
         cs_v11 = max(0.05, float(rec_v11.ema_data_scale) / math.sqrt(2.0))
+        rec_min = MinimalStepRecord()
+        rec_min.observe_transport(0.5, float(x_sc.square().sum(-1).mean().sqrt().item()))
+        cs_min = max(0.05, float(rec_min.ema_data_scale) / math.sqrt(2.0))
         coord_homog[f"{c:.0e}"] = {
             "true_coord_rms": c,
             "axiom_ratio": cs_ax / c,
             "v12_v13_ratio": cs_v11 / c,
+            "minimal_ratio": cs_min / c,
         }
 
     # 3C: Rare 1.6% tail-mode capture (B=128, indices 126..127 are a 2-sample rare tail cluster with ||z|| = 6.0)

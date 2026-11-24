@@ -24,8 +24,8 @@
 | **1C. Law 4.2 (P0): Rank-1 `128x128` NS (`s=0`)** | $\sigma_2 / \sigma_1$ (`< 1e-3`), $\sigma_1$ (`~1.0`) | **1.29e-5 / 1.124** (**PASS**) | 0.4484 / 6.823 (FAIL) | 0.4484 / 6.823 (FAIL) | N/A (0 NS) | exact polar |
 | **2A. Law 4.4 (P1): 24-Decade Scale Invariance** | `max_diff` on `[1e-12, 1e12]` (`< 1e-5`) | **1.19e-7** (**PASS**) | 0.326 (FAIL) | 0.326 (FAIL) | 0.176 (FAIL) | 0.606 (FAIL) |
 | **2B–D. Law 4.4 (P1): Rail + Spike + Chatter** | `rail(1e6)` / `spike(1e-6)` / `chatter` | **2.0e-5 / 2.3e-4 / 0.001** (**PASS**) | 0.015 / 3.02 / 1.00 (FAIL) | 0.015 / 3.02 / 1.00 (FAIL) | 0.0 / 2.93 / 1.00 (FAIL) | 6.85 / 3.54 / 1.00 (FAIL) |
-| **3A. Law 4.1 (P4): Verified Trust (`tanh` / `cubic` / `16L`)** | Worst `p95 / d_max` (`<= 1.0x`) | **0.54x / 0.00x / 0.54x** (**PASS**) | 5.00x / 10.24x / 1.15x (FAIL) | 5.00x / 10.24x / 1.15x (FAIL) | 4.98x / 224.3x / 0.89x (FAIL) | 5.00x / 0.00x / 4.16x (FAIL) |
-| **3B–C. Law 4.3 (P4): `coord_scale` + `1.6%` Tail** | `1e-4` ratio (`1.0x`) / Tail captured | **1.000x / True** (**PASS**) | 500.0x / False (FAIL) | 500.0x / False (FAIL) | N/A / False (FAIL) | N/A / False (FAIL) |
+| **3A. Law 4.1 (P4): Verified Trust (`tanh` / `cubic` / `16L`)** | Worst `p95 / d_max` (`<= 1.0x`) | **0.54x / 0.00x / 0.54x** (**PASS**) | 5.00x / 10.24x / 1.15x (FAIL) | 5.00x / 10.24x / 1.15x (FAIL) | 5.00x / 301.0x / 1.01x (FAIL) | 5.00x / 0.00x / 4.16x (FAIL) |
+| **3B–C. Law 4.3 (P4): `coord_scale` + `1.6%` Tail** | `1e-4` ratio (`1.0x`) / Tail captured | **1.000x / True** (**PASS**) | 500.0x / False (FAIL) | 500.0x / False (FAIL) | 500.0x / False (FAIL) | N/A / False (FAIL) |
 | **4A. Law 2 (P6): Below-$\kappa$ Unbiasedness (`d=24`)** | `MC / Exact` loss (`~1.0x`) & grad cos | **1.07x / cos 0.990** (**PASS**) | 1423.3x / cos 0.993 (FAIL) | 1423.3x / cos 0.993 (FAIL) | 0.65x / cos 0.536 (FAIL) | 0.004x / vanishes (FAIL) |
 | **4B. Law 2 (P6): Dim-Indep $\mu_D > 0$ (`2D` vs `256^2`)** | `eff_r256 / eff_2d` (`~1.0x`) | **1.06x** (`2.65e-3`) (**PASS**) | 3.60e-3 (`278x` dilute, FAIL) | 3.60e-3 (`278x` dilute, FAIL) | 1953x blowup (FAIL) | 7.09e-3 (`3.5e-15`, FAIL) |
 | **5A–C. Law 1 (P7): Mass, LTV, Gauge & $B_f < K$** | `wf_err` / `LTV(M,S)` / `B<K` | **0.0 / (1.00, 1.00) / 36/36** (**PASS**) | 0.119 / (0.27, 0.81) / 0/36 (FAIL) | 0.119 / (0.27, 0.81) / 0/36 (FAIL) | 0.119 / false-10x / $\psi=0.8$ (FAIL) | N/A (no atlas) |
@@ -109,12 +109,12 @@ Tests execute each recipe's actual generator hook and optimizer trust path with 
 | **`axiom`** | **0.54x (`4` bt)** (**PASS**) | **1.00, 0.0025x** (**PASS**) | **0.54x (`2` bt)** (**PASS**) | **1.000 / 1.000 / 1.000 / 1.000** (**PASS**) | **True, 0.25x, 0.400** (**PASS**) |
 | `unified_v12` | 5.00x (`0` bt) (FAIL) | 16.00, **10.24x** (FAIL) | 1.15x (`0` bt) (FAIL) | **500.0 / 50.0** / 1.000 / 1.000 (FAIL) | False, 2.65x, 4.243 (FAIL) |
 | `unified_v13` | 5.00x (`0` bt) (FAIL) | 16.00, **10.24x** (FAIL) | 1.15x (`0` bt) (FAIL) | **500.0 / 50.0** / 1.000 / 1.000 (FAIL) | False, 2.65x, 4.243 (FAIL) |
-| `minimal` | 4.98x (`0` bt) (FAIL) | 63.11, **224.34x** (FAIL) | 0.89x (`0` bt) | N/A (no probe) | False, 1.20x, 1.915 (FAIL) |
+| `minimal` | 5.00x (`0` bt) (FAIL) | 69.61, **300.96x** (FAIL) | 1.01x (`0` bt) (FAIL) | **500.0 / 50.0** / 1.000 / 1.000 (FAIL) | False, 1.20x, 1.915 (FAIL) |
 | `rhbi` | 5.00x (`0` bt) (FAIL) | 1.00, 0.0025x | 4.16x (`0` bt) (FAIL) | N/A (no probe) | False, 2.65x, 4.243 (FAIL) |
 
 **Takeaway:**
-- **Zero post-rescale violations:** Axiom's 4-step verified backtracking achieves `p95/d_max = 0.54x <= 1.0` on both the saturating `tanh` cliff (`v12`/`v13` violate by `5.00x`) and the 16-layer `tanh` MLP (`v12`/`v13` violate by `1.15x`, `rhbi` by `4.16x`). Removing upward `delta_g_min` amplification prevents `v12`/`v13`'s `10.24x` (`alpha=16.0`) and `minimal`'s `224.34x` superlinear cubic overshoots.
-- **Exact scale homogeneity:** Removing `v12`'s hardcoded `max(0.05, ...)` floor yields `1.000000x` `coord_scale` fidelity across `[1e-4, 1e4]` (vs `50x`–`500x` distortion in `v12`/`v13`).
+- **Zero post-rescale violations:** Axiom's 4-step verified backtracking achieves `p95/d_max = 0.54x <= 1.0` on both the saturating `tanh` cliff (`v12`/`v13`/`minimal`/`rhbi` violate by `5.00x`) and the 16-layer `tanh` MLP (`v12`/`v13` violate by `1.15x`, `minimal` by `1.01x`, `rhbi` by `4.16x`). Removing upward `delta_g_min` amplification prevents `v12`/`v13`'s `10.24x` (`alpha=16.0`) and `minimal`'s `300.96x` (`alpha=69.61`) superlinear cubic overshoots.
+- **Exact scale homogeneity:** Removing the hardcoded `max(0.05, ...)` floor shared by `v12`/`v13` and `minimal` yields `1.000000x` `coord_scale` fidelity across `[1e-4, 1e4]` (vs `50x`–`500x` distortion in `v12`/`v13`/`minimal`).
 - **Stratified `p95` tail capture:** On `B=128` with a 2-sample (`1.56%`) rare tail cluster at indices `126..127`, Axiom's 32-sample stratified hook (`16` uniform + `16` top-norm) captures both tail points (`2/32 = 6.25% > 5%`), triggers `1` backtrack (`alpha = 0.094`), cuts `rms/d_max` from `2.65x` to `0.25x`, and shrinks worst-sample jump by **10.6x** (`4.243 -> 0.400`), whereas `v12`/`v13`'s prefix `[:16]` probe misses the tail completely (`alpha = 1.0`, `max = 4.243`). Note: because `torch.quantile(..., 0.95)` over 32 probe points interpolates indices `29` and `30`, a single isolated point (`1/128 = 0.78%`) is captured in the probe set (`probe_captured_tail=True`) but sits above the 95th percentile (`1/32 = 3.1% < 5%`); any tail cluster with `>= 2` samples (`>= 1.6%` of `B=128`) is actively clamped.
 
 ---
@@ -141,7 +141,7 @@ Tests execute each recipe's actual generator hook and optimizer trust path with 
 
 ### 5A–C. Prototype Atlas Invariants
 
-| Preset | 5A Shock `|sum(w_fake_ema)-1|` | 5A `|sum(proto_w)-1|` | 5B Gersho Merge LTV | 5B Split LTV | 5B `10x` False Merge | 5B Post-Coal `|mean(psi)|` | 5C $B_f < K$ Starved Allocated (`of 36`) |
+| Preset | 5A Shock `abs(sum(w_fake_ema)-1)` | 5A `abs(sum(proto_w)-1)` | 5B Gersho Merge LTV | 5B Split LTV | 5B `10x` False Merge | 5B Post-Coal `abs(mean(psi))` | 5C $B_f < K$ Starved Allocated (`of 36`) |
 |---|---:|---:|---:|---:|---|---:|---:|
 | **`axiom`** | **0.00e+00** (**PASS**) | **1.19e-7** | **1.0000** (**PASS**) | **1.0000** (**PASS**) | **False** | **1.99e-8** | **36 / 36** (`0` perm err) |
 | `unified_v12` | 0.1187 (FAIL) | 1.79e-7 | 0.2667 (-73.3% FAIL) | 0.8100 (-19.0% FAIL) | False | — | 0 / 36 (legacy `36` evicted) |
