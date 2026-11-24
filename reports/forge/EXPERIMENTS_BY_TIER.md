@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **203 tasks**; **165 assigned** to at least one view; **38 unassigned**. Showing **40/40 views**.
+Catalog: **205 tasks**; **167 assigned** to at least one view; **38 unassigned**. Showing **41/41 views**.
 
-Declared priors across the catalog: **91 MoGParticlePrior**, **112 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **91 MoGParticlePrior**, **114 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -43,11 +43,12 @@ This report follows changing declarations and published evidence; it selects no 
 | [bispf_fastpath_quality](../../configs/forge/views/bispf_fastpath_quality.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [bispf_throughput_endurance](../../configs/forge/views/bispf_throughput_endurance.json) | 2 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [bispf_throughput_small](../../configs/forge/views/bispf_throughput_small.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [bytegan_stretch](../../configs/forge/views/bytegan_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [clockfree_continuous](../../configs/forge/views/clockfree_continuous.json) | 5 | 4 required | 12 required, 7 held | 6 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [dcgan_performance_cpu_smoke](../../configs/forge/views/dcgan_performance_cpu_smoke.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
-| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 19 | 11 required, 4 stretch, 2 diagnostic | 18 required, 6 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 10 stretch, 5 held | provisional |
+| [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 20 | 11 required, 4 stretch, 2 diagnostic | 18 required, 7 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 11 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
@@ -475,6 +476,45 @@ No tasks assigned.
 
 No tasks assigned.
 
+## bytegan_stretch
+
+Declaration: [bytegan_stretch](../../configs/forge/views/bytegan_stretch.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Two zero-sigma 256-byte codebook stretch toys do not establish whole-suite screen calibration or default adoption.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+2 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [bytegan_hypercube8](../../configs/forge/tasks/bytegan_hypercube8.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-hypercube8) | bytegan / bytegan_hypercube8 | 4000 | 600 | — |
+| [bytegan_bigan_dictionary](../../configs/forge/tasks/bytegan_bigan_dictionary.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-bigan-dictionary) | bytegan_bigan / bytegan_bigan_dictionary | 6000 | 900 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
 ## clockfree_continuous
 
 Declaration: [clockfree_continuous](../../configs/forge/views/clockfree_continuous.json); revision 5; goal: `clockfree_continuous`.
@@ -658,7 +698,7 @@ No tasks assigned.
 
 ## discriminator_stability
 
-Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 19; goal: `discriminator_stability`.
+Declaration: [discriminator_stability](../../configs/forge/views/discriminator_stability.json); revision 20; goal: `discriminator_stability`.
 
 Declared calibration status: **provisional**.
 
@@ -694,7 +734,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 2: quality
 
-18 required, 6 stretch, 7 held.
+18 required, 7 stretch, 7 held.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -729,6 +769,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
 | [nash_overpowered_generator_ring16](../../configs/forge/tasks/nash_overpowered_generator_ring16.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-generator-ring16) | imbalance_nash / nash_overpowered_generator_ring16 | 1600 | 300 | — |
 | [nash_unequal_width_hostile_imbalance](../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) | [stretch: frontier stretch benchmark beyond the required suite](studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-unequal-width-hostile-imbalance) | imbalance_nash / nash_unequal_width_hostile_imbalance | 1100 | 300 | — |
+| [bytegan_hypercube8](../../configs/forge/tasks/bytegan_hypercube8.json) | [stretch: frontier stretch benchmark beyond the required suite](bytegan-stretch/README.md#bytegan_hypercube8) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-hypercube8) | bytegan / bytegan_hypercube8 | 4000 | 600 | — |
 
 ### Tier 3: endurance
 
@@ -742,7 +783,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 
 ### Tier 4: stress_and_formulations
 
-10 stretch, 5 held. Nothing here is counted while these tasks are held, so this tier's status is HELD: it neither passes nor stops later tiers.
+11 stretch, 5 held. Nothing here is counted while these tasks are held, so this tier's status is HELD: it neither passes nor stops later tiers.
 
 | Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
@@ -761,6 +802,7 @@ Tier 4, the highest tier, has only held tasks, so while they are held this view 
 | [cramer_energy_overlap](../../configs/forge/tasks/cramer_energy_overlap.json) | [stretch: frontier stretch benchmark beyond the required suite](test-dispositions-20261015/README.md#unresolved) | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cramer-energy-overlap) | transfer_vector / cramer_energy_overlap | 3000 | 600 | — |
 | [cyclegan_unpaired_constellation](../../configs/forge/tasks/cyclegan_unpaired_constellation.json) | [stretch: frontier stretch benchmark beyond the required suite](test-dispositions-20261015/README.md#unresolved) | MoGParticlePrior (sigma=0.08) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-cyclegan-unpaired-constellation) | transfer_vector / cyclegan_unpaired_constellation | 3500 | 600 | — |
 | [grid100_res16_scaled_tanh](../../configs/forge/tasks/grid100_res16_scaled_tanh.json) | [stretch: frontier stretch benchmark beyond the required suite](test-dispositions-20261015/README.md#unresolved) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [bytegan_bigan_dictionary](../../configs/forge/tasks/bytegan_bigan_dictionary.json) | [stretch: frontier stretch benchmark beyond the required suite](bytegan-stretch/README.md#bytegan_bigan_dictionary) | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-bigan-dictionary) | bytegan_bigan / bytegan_bigan_dictionary | 6000 | 900 | — |
 
 ## formulation_comparison
 
@@ -2827,6 +2869,75 @@ Related public-API demonstrations, with their own recorded contracts:
 | Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | [api-model-vae-hard](../toy_audit/api_contract/model_modes/media/api-model-vae-hard.gif) | Can a genuine particle VAE retain the input and posterior noise while independently generating both target modes? Scope: New constrained two-mode seed-0 public-component cohort; does not reproduce or qualify historical 100-mode results. Hard routing has constant log(K) KL and biased straight-through gradients; categorical routing uses the public leave-one-out score estimator and a variable KL. A stochastic no-KL AE is not a VAE. | MoGParticlePrior (sigma_rel=0) | COMPLETE / FAIL; 1200/1200 updates; last 5 post-update metric observations do not all pass | bispf / cpu / 48177d41bb0b | [definition](../toy_audit/api_contract/model_modes/publication.json); [readout](../toy_audit/api_contract/model_modes/publication.json); [recipe and provenance](../toy_audit/api_contract/model_modes/publication.json) |
+
+### Experiment: bytegan-bigan-dictionary
+
+Learn a bidirectional 1-to-1 discrete byte dictionary over all 256 canonical uint8 bytes on {-1, +1}^8 with a joint BiGAN (G(z), E(x), D(x, z)) and 256 zero-sigma ParticlePrior codes, achieving exact forward generation, exact byte reconstruction G(E(x)), and exact 1-to-1 encoder-to-particle indexing across five final clean live checks.
+
+Explanation, interpretation and reproduction: [experiment readout](bytegan-stretch/README.md).
+
+Forge declarations: [bytegan_bigan_dictionary](../../configs/forge/tasks/bytegan_bigan_dictionary.json).
+
+Declared Forge numerical gates and sampling:
+
+[bytegan_bigan_dictionary](../../configs/forge/tasks/bytegan_bigan_dictionary.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| valid_particle_fraction | == 1 |
+| valid_unique_bytes | == 256 |
+| rms_bit_error | <= 0.12 |
+| recon_valid_exact_bytes | == 256 |
+| recon_rms_bit_error | <= 0.12 |
+| encoder_particle_bijection_bytes | == 256 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, encoder, prior, discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | generated_and_paired_reconstructed_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: bytegan-hypercube8
+
+Learn all 256 canonical uint8 bytes (0..255) encoded on the 8-bit binary hypercube {-1, +1}^8 using 256 zero-sigma ParticlePrior codes in an exact 1-to-1 bijection without collisions, barycentric ghosts, or amplitude blowup across five final clean live checks.
+
+Explanation, interpretation and reproduction: [experiment readout](bytegan-stretch/README.md).
+
+Forge declarations: [bytegan_hypercube8](../../configs/forge/tasks/bytegan_hypercube8.json).
+
+Declared Forge numerical gates and sampling:
+
+[bytegan_hypercube8](../../configs/forge/tasks/bytegan_hypercube8.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| valid_particle_fraction | == 1 |
+| valid_unique_bytes | == 256 |
+| rms_bit_error | <= 0.12 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | ParticlePrior (sigma=0) |
+| Sampling law | enumerated_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
 
 ### Experiment: cgan-overlapping-classes
 
@@ -7049,6 +7160,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `a5b81003d7b5d81fe89d9f8cb61d3c1929606ac3c8958182871f686192f371de`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `f7b625ce9e54d8bf8ed60ef4e33d3534e91df8af7e9328b147dc0bc5bbe70658`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `2b8634aa1885641d96c4c44c2db641bdf64982d844a00be66bddf8f27024b478`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `82b53813a07e6d403c21a682405f8acea8a584ac9f0071aa15bb8e3c316f646b`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

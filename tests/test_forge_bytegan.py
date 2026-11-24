@@ -24,7 +24,7 @@ from benchmarks.toy_audit.api_bytegan import (
     score_bytegan_bigan_dictionary,
     score_bytegan_hypercube8,
 )
-import experiments.forge.api as forge_api
+from experiments.forge.adapters import adapter_preflight, run_task
 from experiments.forge.bytegan import (
     ADAPTER_TO_KIND,
     BYTEGAN_KINDS,
@@ -37,6 +37,7 @@ from experiments.forge.planning import load_idea
 from experiments.forge.priors import prior_code_path, prior_noise_sigma
 from experiments.forge.state import state_digest
 from experiments.forge.trainer_families import current_family_candidates
+from experiments.forge.views import grade_result, load_tasks, load_view, view_fingerprint
 from particlegan import ParticlePrior, unwrap_prior
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -127,49 +128,6 @@ def _make_task(kind: str) -> dict:
     if is_bigan:
         task["task_cohort"] = "component_output_transport_v1"
     return task
-
-
-@pytest.fixture(autouse=True)
-def _pre_merge_api_wiring(monkeypatch):
-    """Bridge Forge API wiring when running in an isolated pre-merge worktree.
-
-    Once ``forge-wiring`` lands ``bytegan``/``bytegan_bigan`` directly in
-    ``experiments/forge/api.py``, this fixture becomes a complete no-op so all
-    tests exercise the real shared registry without patching.
-    """
-    if "bytegan_bigan_dictionary" in forge_api.COMPONENT_OBJECTIVE_HOSTS:
-        return
-
-    monkeypatch.setattr(
-        forge_api,
-        "COMPONENT_OBJECTIVE_HOSTS",
-        forge_api.COMPONENT_OBJECTIVE_HOSTS | {"bytegan_bigan_dictionary"},
-    )
-    monkeypatch.setattr(
-        forge_api,
-        "PUBLIC_TRAINER_POLICY_ADAPTERS",
-        forge_api.PUBLIC_TRAINER_POLICY_ADAPTERS | {"bytegan", "bytegan_bigan"},
-    )
-
-    orig_resources = forge_api.task_recipe_resources
-
-    def _patched_resources(task):
-        if task.get("adapter") in {"bytegan", "bytegan_bigan"}:
-            return deepcopy(task["execution"]["host_definition"]["resources"])
-        return orig_resources(task)
-
-    monkeypatch.setattr(forge_api, "task_recipe_resources", _patched_resources)
-
-    orig_policy_blockers = forge_api.task_policy_blockers
-
-    def _patched_policy_blockers(task, candidate):
-        if task.get("adapter") == "bytegan_bigan" and task.get("execution", {}).get("transport_consumer") == "output_marginal_v1":
-            proxy = deepcopy(task)
-            proxy["adapter"] = "word_joint"
-            return orig_policy_blockers(proxy, candidate)
-        return orig_policy_blockers(task, candidate)
-
-    monkeypatch.setattr(forge_api, "task_policy_blockers", _patched_policy_blockers)
 
 
 def test_oracle_positive_and_destructive_negative_controls():
@@ -534,5 +492,71 @@ def test_short_software_prefixes_render_gifs_isolate_rng_and_grade_fail_closed(t
             wrong_contract["bytegan_contract"]["sigma"] = 0.025
             verdict_wrong = bytegan_grade(original, wrong_contract)
             assert verdict_wrong is not None and verdict_wrong[0] == "INVALID"
+    finally:
+        torch.set_num_threads(old)
+
+
+def test_view_chain_bytegan_stretch_and_adapters_dispatch(tmp_path):
+    view = load_view(ROOT, "discriminator_stability")
+    assert view["revision"] == 20
+    prev = view["previous_revision"]
+    assert prev["revision"] == 19
+    assert prev["archive"] == "configs/forge/view-history/discriminator_stability-v19.json"
+    v19 = json.loads((ROOT / prev["archive"]).read_text())
+    assert view_fingerprint(v19) == prev["policy_fingerprint"]
+    assert [a for a in view["assignments"] if not a["task"].startswith("bytegan_")] == v19["assignments"]
+    assert [a for a in view["assignments"] if a["importance"] == "required"] == [
+        a for a in v19["assignments"] if a["importance"] == "required"
+    ]
+
+    bytegan_assignments = {a["task"]: a for a in view["assignments"] if a["task"].startswith("bytegan_")}
+    assert set(bytegan_assignments) == {"bytegan_hypercube8", "bytegan_bigan_dictionary"}
+    assert (
+        bytegan_assignments["bytegan_hypercube8"]["qualification_tier"],
+        bytegan_assignments["bytegan_hypercube8"]["order"],
+        bytegan_assignments["bytegan_hypercube8"]["importance"],
+    ) == (2, 107, "stretch")
+    assert (
+        bytegan_assignments["bytegan_bigan_dictionary"]["qualification_tier"],
+        bytegan_assignments["bytegan_bigan_dictionary"]["order"],
+        bytegan_assignments["bytegan_bigan_dictionary"]["importance"],
+    ) == (4, 15, "stretch")
+
+    diag_view = load_view(ROOT, "bytegan_stretch")
+    assert diag_view["evidence_scope"] == "research_diagnostic"
+    assert diag_view["revision"] == 1
+    assert [(a["task"], a["qualification_tier"], a["importance"]) for a in diag_view["assignments"]] == [
+        ("bytegan_hypercube8", 1, "diagnostic"),
+        ("bytegan_bigan_dictionary", 1, "diagnostic"),
+    ]
+
+    tasks = load_tasks(ROOT)
+    old = torch.get_num_threads()
+    torch.set_num_threads(1)
+    try:
+        for kind in ("bytegan_hypercube8", "bytegan_bigan_dictionary"):
+            original = tasks[kind]
+            assert adapter_preflight(original, CANDIDATE, root=ROOT) == []
+            ctx = bytegan_context({"candidate": CANDIDATE, "protocol": {"seed": 0}}, original, "cpu", root=ROOT)
+            jrw_status = ctx.receipt()["field_ownership"]["recipe_fields"]["joint_reconstruction_weight"]["status"]
+            assert jrw_status == ("effective" if kind == "bytegan_bigan_dictionary" else "not_applicable")
+
+            prefix = deepcopy(original)
+            prefix["id"] += "-software-prefix"
+            prefix["execution"]["steps"] = 3
+            prefix["execution"]["host_definition"]["steps"] = 3
+            prefix["evaluation"]["observations"] = 3
+            request = {"candidate": CANDIDATE, "protocol": {"seed": 0}, "tasks": {prefix["id"]: prefix}}
+            out_dir = tmp_path / kind
+            raw = run_task(request, {"task_id": prefix["id"]}, out_dir, "cpu")
+            assert raw["cost"]["completed_steps"] == 3
+            assert raw["evidence"]["guards"]["unintended_rng_deviations"] == 0
+            assert raw["evidence"]["guards"]["all_finite"] is True
+            assert (out_dir / "goal.gif").stat().st_size > 100
+            assert grade_result(original, raw)["gate_status"] == "INCOMPLETE"
+
+            wrong = deepcopy(raw)
+            wrong["evidence"]["bytegan_contract"]["sigma"] = 0.025
+            assert grade_result(original, wrong)["gate_status"] == "INVALID"
     finally:
         torch.set_num_threads(old)

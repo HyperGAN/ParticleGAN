@@ -64,7 +64,7 @@ Generated from one selected configuration per runtime. Recorded verdicts retain 
 
 Runtime: **cuda**. Selected configuration: [halloween-optimizer-loss-v1](../../../configs/forge/ideas/halloween-optimizer-loss-v1.json).
 
-Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 19, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
+Recorded qualification: **tier 0**, discriminator_stability revision 9. Other view rows below are navigation over recorded task evidence, not recomputed qualification. Their counts follow the declared view revisions (adaptation 4, clockfree_continuous 5, discriminator_stability 20, formulation_comparison 3, host_profile_transfer 6, quality_coverage 4); the recorded qualification keeps discriminator_stability revision 9 until new ordinary evidence is registered.
 
 <details>
 <summary>Configuration, source and runtime provenance</summary>
@@ -81,7 +81,7 @@ Selection: historical_incumbent. Current-source pre-run whole candidate choice i
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
 | [adaptation](halloween.md#cohort-cuda-c195899a64af-adaptation) | [0/3 (3 not run)](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-1) | [0/12 (12 not run)](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2) | [0/1 (1 not run)](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-4) | [0/16 (16 not run)](halloween.md#cohort-cuda-c195899a64af-adaptation) | [0/7 (7 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
 | [clockfree_continuous](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous) | [0/4 (4 not run)](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-1) | [0/12 (12 not run)](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2) | [0/6 (6 not run)](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-4) | [0/22 (22 not run)](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous) | [0/7 (7 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
-| [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/11 (11 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [0/30 (30 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/33 (33 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
+| [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/11 (11 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | [0/18 (18 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | [0/1 (1 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | [0/30 (30 not run)](halloween.md#cohort-cuda-c195899a64af-discriminator_stability) | [0/35 (35 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
 | [formulation_comparison](halloween.md#cohort-cuda-c195899a64af-formulation_comparison) | [0/3 (3 not run)](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-1) | [0/12 (12 not run)](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2) | [0/1 (1 not run)](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-4) | [0/16 (16 not run)](halloween.md#cohort-cuda-c195899a64af-formulation_comparison) | [0/7 (7 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
 | [host_profile_transfer](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer) | [0/3 (3 not run)](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-1) | [0/12 (12 not run)](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2) | [0/1 (1 not run)](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-4) | [0/16 (16 not run)](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer) | [0/7 (7 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
 | [quality_coverage](halloween.md#cohort-cuda-c195899a64af-quality_coverage) | [0/3 (3 not run)](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-1) | [0/12 (12 not run)](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | [0/0](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-3) | [0/0](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-4) | [0/15 (15 not run)](halloween.md#cohort-cuda-c195899a64af-quality_coverage) | [0/7 (7 not run)](halloween.md#cohort-cuda-c195899a64af-held) |
@@ -156,6 +156,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
+| [bytegan_hypercube8](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_hypercube8) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | recorded definition unavailable |
 | [img_bars4](halloween.md#cohort-cuda-c195899a64af-experiment-img_bars4) | [adaptation](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_blobs4](halloween.md#cohort-cuda-c195899a64af-experiment-img_blobs4) | [adaptation](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
 | [img_intensity2](halloween.md#cohort-cuda-c195899a64af-experiment-img_intensity2) | [adaptation](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | changed since run |
@@ -211,6 +212,7 @@ Held at this tier (measured and shown, not counted):
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [alice_spiral_bigan](halloween.md#cohort-cuda-c195899a64af-experiment-alice_spiral_bigan) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | recorded definition unavailable |
+| [bytegan_bigan_dictionary](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_bigan_dictionary) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | recorded definition unavailable |
 | [cgan_overlapping_classes](halloween.md#cohort-cuda-c195899a64af-experiment-cgan_overlapping_classes) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | recorded definition unavailable |
 | [cramer_energy_overlap](halloween.md#cohort-cuda-c195899a64af-experiment-cramer_energy_overlap) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | recorded definition unavailable |
 | [cyclegan_unpaired_constellation](halloween.md#cohort-cuda-c195899a64af-experiment-cyclegan_unpaired_constellation) | [discriminator_stability](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | recorded definition unavailable |
@@ -238,6 +240,7 @@ These tests keep running and keep this recipe's recorded result, but they do not
 | [precision_gaussian_mxfp8](halloween.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_mxfp8) | [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format MXFP8 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [precision_gaussian_nvfp4](halloween.md#cohort-cuda-c195899a64af-experiment-precision_gaussian_nvfp4) | [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | Can one unchanged family recipe learn the scalar Gaussian with Blackwell-format NVFP4 software-reference training arithmetic? | Consider counted status only after native parity, independent calibration and a global recipe that retains every counted pass. |
 | [t3_iso_scale_mass_8x](halloween.md#cohort-cuda-c195899a64af-experiment-t3_iso_scale_mass_8x) | [discriminator_stability / Tier 1](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-1) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | Can a generator-free (G=nn.Identity) zero-sigma ParticlePrior with a smooth critic (grad_med<=1.0) resolve 8x mode-width and 6x mode-mass disparity without collapsing broad-mode eigenvalues? | Consider counted status only after independent calibration and one global recipe that passes heteroscedastic scale-mass isolation while retaining every counted pass. |
+| [bytegan_hypercube8](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_hypercube8) | [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | Can 256 zero-sigma ParticlePrior codes learn all 256 uint8 bytes on {-1, +1}^8 in an exact 1-to-1 bijection without collisions or barycentric ghosts? | Consider counted status only after independent calibration and one global recipe that passes 256-byte bijection while retaining every counted pass. |
 | [img_bars4](halloween.md#cohort-cuda-c195899a64af-experiment-img_bars4) | [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_bars4) | Four bar pictures: BCAP and BISPF draw clean bars but only 2 of the 4. R1/R2 and GAN v3 pass it but fail Tier 1 tests and img_stripes2; under the current declarations no recipe passes both bars4 and stripes2. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_blobs4](halloween.md#cohort-cuda-c195899a64af-experiment-img_blobs4) | [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_blobs4) | Four corner-blob pictures: BCAP covers 2 corners (24/32 clean), BISPF 3 (28/32); the test needs all 4 corners and 29/32 clean. Every recipe passing its current declaration fails or cannot run Tier 1 tests. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
 | [img_intensity2](halloween.md#cohort-cuda-c195899a64af-experiment-img_intensity2) | [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#img_intensity2) | Two brightness levels: BCAP draws both but 10 of 32 pictures are off in brightness; BISPF collapses to one level. The three recipes passing its current declaration fail Tier 1 tests that BCAP and BISPF pass. | Count again when one global recipe has an ordinary PASS on this unchanged declaration and, with the same configuration, still passes img_stripes2 and every other counted Tier 1 and Tier 2 test. |
@@ -253,6 +256,7 @@ These tests keep running and keep this recipe's recorded result, but they do not
 | [vector_unequal_width](halloween.md#cohort-cuda-c195899a64af-experiment-vector_unequal_width) | [adaptation / Tier 2](halloween.md#cohort-cuda-c195899a64af-adaptation-tier-2), [clockfree_continuous / Tier 2](halloween.md#cohort-cuda-c195899a64af-clockfree_continuous-tier-2), [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2), [formulation_comparison / Tier 2](halloween.md#cohort-cuda-c195899a64af-formulation_comparison-tier-2), [host_profile_transfer / Tier 2](halloween.md#cohort-cuda-c195899a64af-host_profile_transfer-tier-2), [quality_coverage / Tier 2](halloween.md#cohort-cuda-c195899a64af-quality_coverage-tier-2) | UNKNOWN | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_width) | Equal shares, very different widths: BCAP and BISPF get the shares wrong (mass TV 0.29 and 0.25; limit 0.15). Perfect samples pass 200/200 runs. Cell-moment passers fail counted tests; round-5 balanced assignment fails only held tests but never ran most of the counted suite. | Count again when one global recipe (one recipe hash and source, seed 0, the public initializer and one runtime) passes this test under its unchanged declaration and also passes every counted Tier 1 and Tier 2 test, including ring16_acquisition and mode_hold. Round 5 shows it trades off against vector_unequal_mass, so the two will likely return together. |
 | [zero_tanh_rail_escape](halloween.md#cohort-cuda-c195899a64af-experiment-zero_tanh_rail_escape) | [discriminator_stability / Tier 3](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-3) | UNKNOWN | [held: no recipe has passed its current declaration](../test-dispositions-20261015/README.md#unresolved) | Dynamic target shift (+0.90, -0.90) -> (0.0, 0.0) rail escape with 400-update deadline held pending passing recipe. | Count again when one global recipe passes zero_tanh_rail_escape under its unchanged declaration and satisfies all Tier 1-3 requirements. |
 | [alice_spiral_bigan](halloween.md#cohort-cuda-c195899a64af-experiment-alice_spiral_bigan) | [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | ALICE cycle-consistent BiGAN (G, E, D_xz) on a 1D curved spiral manifold in 2D testing cycle reconstruction. | — |
+| [bytegan_bigan_dictionary](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_bigan_dictionary) | [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | Can a joint BiGAN (G, E, D) with 256 zero-sigma ParticlePrior codes learn a bidirectional 1-to-1 byte dictionary over {-1, +1}^8 with exact generation, byte reconstruction, and particle indexing? | Consider counted status only after independent calibration and one global recipe that passes bidirectional 256-byte dictionary lookup while retaining every counted pass. |
 | [cgan_overlapping_classes](halloween.md#cohort-cuda-c195899a64af-experiment-cgan_overlapping_classes) | [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | Mirza-Osindero concat vs Miyato-Koyama projection cGAN on 4 overlapping annular rings testing class separability. | — |
 | [cramer_energy_overlap](halloween.md#cohort-cuda-c195899a64af-experiment-cramer_energy_overlap) | [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | Bellemare CramerGAN 16D critic embedding with surrogate energy potential on a tight 25-mode 5x5 Gaussian grid. | — |
 | [cyclegan_unpaired_constellation](halloween.md#cohort-cuda-c195899a64af-experiment-cyclegan_unpaired_constellation) | [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4) | UNKNOWN | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | Unpaired CycleGAN/DiscoGAN dual generators and cycle-consistency on rotated and scaled 8-mode constellations. | — |
@@ -583,6 +587,43 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-c195899a64af-bytegan_stretch"></a>
+
+## bytegan_stretch
+
+**bytegan_stretch — revision 1**. [View declaration](../../../configs/forge/views/bytegan_stretch.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do not establish whole-suite screen calibration or default adoption.
+
+<a name="cohort-cuda-c195899a64af-bytegan_stretch-tier-1"></a>
+
+### Tier 1
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [bytegan_hypercube8](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [bytegan_bigan_dictionary](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+<a name="cohort-cuda-c195899a64af-bytegan_stretch-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-bytegan_stretch-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-bytegan_stretch-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-c195899a64af-clockfree_continuous"></a>
 
 ## clockfree_continuous
@@ -775,9 +816,9 @@ No experiments assigned.
 
 ## discriminator_stability
 
-**discriminator_stability — revision 19**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
+**discriminator_stability — revision 20**. [View declaration](../../../configs/forge/views/discriminator_stability.json).
 
-Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **4 / 13 / 1 / 15**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
+Qualification requires every required experiment to pass, with all lower tiers and task dependencies passed first. Required counts (Tier 1 / 2 / 3 / 4): **11 / 18 / 1 / 0**. Held counts (measured and shown, not counted): **4 / 14 / 1 / 16**. Its highest tier, Tier 4, has only held tests, so while they are held the view never shows PASS: a recipe that passes every counted tier gets HELD.
 
 Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provisional and require bounded calibration before scientific default adoption. Archived task declarations and gates retain their original identities.
 
@@ -842,6 +883,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [nash_overpowered_critic_ring16](halloween.md#cohort-cuda-c195899a64af-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | UNKNOWN | recorded definition unavailable |
 | [nash_overpowered_generator_ring16](halloween.md#cohort-cuda-c195899a64af-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | UNKNOWN | recorded definition unavailable |
 | [nash_unequal_width_hostile_imbalance](halloween.md#cohort-cuda-c195899a64af-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | UNKNOWN | recorded definition unavailable |
+| [bytegan_hypercube8](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-c195899a64af-discriminator_stability-tier-3"></a>
 
@@ -874,6 +916,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [cramer_energy_overlap](halloween.md#cohort-cuda-c195899a64af-experiment-cramer_energy_overlap) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | recorded definition unavailable |
 | [cyclegan_unpaired_constellation](halloween.md#cohort-cuda-c195899a64af-experiment-cyclegan_unpaired_constellation) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | recorded definition unavailable |
 | [grid100_res16_scaled_tanh](halloween.md#cohort-cuda-c195899a64af-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | recorded definition unavailable |
+| [bytegan_bigan_dictionary](halloween.md#cohort-cuda-c195899a64af-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | recorded definition unavailable |
 
 <a name="cohort-cuda-c195899a64af-formulation_comparison"></a>
 
@@ -2176,6 +2219,69 @@ Current pass criteria:
 Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; weights unbound; output noise clean.
+
+<a name="cohort-cuda-c195899a64af-experiment-bytegan_bigan_dictionary"></a>
+
+### bytegan_bigan_dictionary
+
+**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [bytegan_stretch / Tier 1](halloween.md#cohort-cuda-c195899a64af-bytegan_stretch-tier-1) · [discriminator_stability / Tier 4](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-4).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| valid_particle_fraction | == 1 |
+| valid_unique_bytes | == 256 |
+| rms_bit_error | <= 0.12 |
+| recon_valid_exact_bytes | == 256 |
+| recon_rms_bit_error | <= 0.12 |
+| encoder_particle_bijection_bytes | == 256 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, encoder, prior, discriminator; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 6000 updates; timeout 900 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); generated_and_paired_reconstructed_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../bytegan-stretch/README.md)
+
+<a name="cohort-cuda-c195899a64af-experiment-bytegan_hypercube8"></a>
+
+### bytegan_hypercube8
+
+**bytegan_hypercube8: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_hypercube8.json).
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [bytegan_stretch / Tier 1](halloween.md#cohort-cuda-c195899a64af-bytegan_stretch-tier-1) · [discriminator_stability / Tier 2](halloween.md#cohort-cuda-c195899a64af-discriminator_stability-tier-2).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| valid_particle_fraction | == 1 |
+| valid_unique_bytes | == 256 |
+| rms_bit_error | <= 0.12 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 4000 updates; timeout 600 seconds.
+
+Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../bytegan-stretch/README.md)
 
 <a name="cohort-cuda-c195899a64af-experiment-cgan_overlapping_classes"></a>
 

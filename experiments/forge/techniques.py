@@ -223,7 +223,7 @@ def recipe_field_active(name, value, *, task=None):
     recipe = _recipe(value)
     execution = {} if task is None else task.get("execution", {})
     if name == "joint_reconstruction_weight":
-        return task is None or task.get("adapter") == "word_joint"
+        return task is None or task.get("adapter") in {"word_joint", "bytegan_bigan"}
     if name in {"reg_real_weight", "reg_fake_weight"}:
         return recipe.reg_arm in {"a_r1r2", "b_cap"} and not (
             task is not None and task.get("adapter") == "public_api_model_toy"

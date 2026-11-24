@@ -311,7 +311,7 @@ def ownership_receipt(candidate, task, resolved_recipe, protocol=None, initializ
             result[name] = _record(None, owner, "task prior-control applicability",
                                    status="not_applicable", reference_recipe_value=_json_value(value),
                                    representation=prior_binding["representation"])
-        elif name == "joint_reconstruction_weight" and task.get("adapter") != "word_joint":
+        elif name == "joint_reconstruction_weight" and task.get("adapter") not in {"word_joint", "bytegan_bigan"}:
             result[name] = _record(None, owner, "task joint-inverse reconstruction applicability",
                                    status="not_applicable", reference_recipe_value=_json_value(value))
         elif name in {"reg_real_weight", "reg_fake_weight"} and (

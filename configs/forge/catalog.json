@@ -11,7 +11,7 @@
       "benchmark/shared": 6,
       "benchmark/smart_descent": 9,
       "benchmark/toy100": 21,
-      "benchmark/toy_audit": 97,
+      "benchmark/toy_audit": 98,
       "benchmark/transfer_suite": 88,
       "config/100gaussians": 4,
       "config/cifar_ddgan": 77,
@@ -22,6 +22,7 @@
       "config/mog": 86,
       "config/mog_vae": 27,
       "config/prior_ablation_cifar": 3,
+      "config/repo_guard": 1,
       "config/sparse": 181,
       "config/speed_100gaussians_10k": 4,
       "config/speed_100gaussians_1k": 4,
@@ -41,7 +42,7 @@
       "experiment/toy": 3,
       "experiment/trajectory": 2,
       "experiment/transition": 7,
-      "forge_engine": 130,
+      "forge_engine": 131,
       "lrfree/feature-cells-cb64-ra": 4042,
       "report/atlas-explanation": 5,
       "report/behavioral_baseline": 32,
@@ -98,8 +99,7 @@
       "report/transfer_suite": 341,
       "report/transfer_suite/anisotropic_core_metric": 2,
       "report/transfer_suite/silu_rare_collapse": 4,
-      "report/transition": 39,
-      "unclassified": 1
+      "report/transition": 39
     },
     "by_role": {
       "analysis": 75,
@@ -107,7 +107,7 @@
       "candidate_patch": 26,
       "configuration": 811,
       "driver": 407,
-      "engine_support": 130,
+      "engine_support": 131,
       "evaluator_or_audit": 324,
       "frozen_candidate_implementation": 15,
       "frozen_driver": 28,
@@ -115,22 +115,20 @@
       "frozen_support": 28,
       "narrative": 976,
       "structured_evidence": 4412,
-      "support": 1566,
+      "support": 1567,
       "support_artifact": 14,
       "visualization": 23,
       "visualization_artifact": 68
     },
-    "files": 8922
+    "files": 8924
   },
   "coverage": {
-    "declared_count": 8922,
+    "declared_count": 8924,
     "missing": [],
     "stale": [],
-    "tracked_count": 8922,
-    "unclassified": [
-      "configs/repo_bloat_allowlist.json"
-    ],
-    "valid": false
+    "tracked_count": 8924,
+    "unclassified": [],
+    "valid": true
   },
   "excluded_prefixes": [
     "configs/forge/",
@@ -938,6 +936,13 @@
       "family": "benchmark/toy_audit",
       "git_blob": "7427fdc9a10bedf8fb07a0b1dc24b4add816e6ea",
       "path": "benchmarks/toy_audit/__init__.py",
+      "role": "support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "benchmark/toy_audit",
+      "git_blob": "47360492f0d0d99dc2c83f41a8e0f62d00abeeac",
+      "path": "benchmarks/toy_audit/api_bytegan.py",
       "role": "support",
       "suggested_tiers": []
     },
@@ -4821,7 +4826,7 @@
       "suggested_tiers": []
     },
     {
-      "family": "unclassified",
+      "family": "config/repo_guard",
       "git_blob": "19a567ce4a54549a74a019a1af15ccfaf4930f1d",
       "path": "configs/repo_bloat_allowlist.json",
       "role": "configuration",
@@ -7541,6 +7546,13 @@
     },
     {
       "family": "forge_engine",
+      "git_blob": "4c28e3ae926c22e42eab925e2923bf5dae213785",
+      "path": "experiments/forge/bytegan.py",
+      "role": "engine_support",
+      "suggested_tiers": []
+    },
+    {
+      "family": "forge_engine",
       "git_blob": "879c714e231e8cc0908ffc238d7ec160b57c6d10",
       "path": "experiments/forge/cadence_report.py",
       "role": "engine_support",
@@ -7779,7 +7791,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "b4898eae5f88fc738bb92cf6da2ff71b8e92db37",
+      "git_blob": "2523b218b96e9f6930b5e3b09c5d4d5cf95d8928",
       "path": "experiments/forge/history.py",
       "role": "engine_support",
       "suggested_tiers": []

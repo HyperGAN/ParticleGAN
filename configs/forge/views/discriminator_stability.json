@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "discriminator_stability",
-  "revision": 19,
+  "revision": 20,
   "goal": "discriminator_stability",
   "assignments": [
     {
@@ -654,6 +654,32 @@
         "explanation": "reports/forge/studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance",
         "graduation": "Consider counted status only after independent calibration and one global recipe that passes unequal-width hostile-imbalance recovery while retaining every counted pass."
       }
+    },
+    {
+      "task": "bytegan_hypercube8",
+      "qualification_tier": 2,
+      "order": 107,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can 256 zero-sigma ParticlePrior codes learn all 256 uint8 bytes on {-1, +1}^8 in an exact 1-to-1 bijection without collisions or barycentric ghosts?",
+        "explanation": "reports/forge/bytegan-stretch/README.md#bytegan_hypercube8",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes 256-byte bijection while retaining every counted pass."
+      }
+    },
+    {
+      "task": "bytegan_bigan_dictionary",
+      "qualification_tier": 4,
+      "order": 15,
+      "importance": "stretch",
+      "stretch": {
+        "schema": "forge_stretch_v1",
+        "reason": "frontier",
+        "summary": "Can a joint BiGAN (G, E, D) with 256 zero-sigma ParticlePrior codes learn a bidirectional 1-to-1 byte dictionary over {-1, +1}^8 with exact generation, byte reconstruction, and particle indexing?",
+        "explanation": "reports/forge/bytegan-stretch/README.md#bytegan_bigan_dictionary",
+        "graduation": "Consider counted status only after independent calibration and one global recipe that passes bidirectional 256-byte dictionary lookup while retaining every counted pass."
+      }
     }
   ],
   "eligibility": {},
@@ -666,10 +692,10 @@
     "compare_compatible_cohorts": true,
     "cost_separate": true
   },
-  "policy_change_reason": "Archive the exact develop revision-18 policy, preserving all required, held, diagnostic, and stretch assignments (including Theory-3 causal-isolation stretch tasks). Add three Theory 4A severe G/D capacity-imbalance and hostile non-complementary initialization stretch toys at Tier 2 (nash_overpowered_critic_ring16, nash_overpowered_generator_ring16, nash_unequal_width_hostile_imbalance); required qualification and historical numerical results are unchanged.",
+  "policy_change_reason": "Archive the exact develop revision-19 policy, preserving all required, held, diagnostic, and prior stretch assignments. Add two zero-sigma 256-particle discrete byte codebook stretch toys: bytegan_hypercube8 (Tier 2 stretch) and bytegan_bigan_dictionary (Tier 4 stretch); required qualification and historical numerical results are unchanged.",
   "previous_revision": {
-    "archive": "configs/forge/view-history/discriminator_stability-v18.json",
-    "policy_fingerprint": "736371180d327ef8b7d8dec630fa6b0ded8f98ae29def00ab3b8f7b3af7612e7",
-    "revision": 18
+    "archive": "configs/forge/view-history/discriminator_stability-v19.json",
+    "policy_fingerprint": "6e4fc1ea423a461c5b370788afa6eb54d47eb96d1b9a9ea22d78dc2f60039542",
+    "revision": 19
   }
 }

@@ -1,0 +1,31 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "bytegan_hypercube8"
+    },
+    {
+      "importance": "diagnostic",
+      "order": 1,
+      "qualification_tier": 1,
+      "task": "bytegan_bigan_dictionary"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Two zero-sigma 256-byte codebook stretch toys do not establish whole-suite screen calibration or default adoption.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "bytegan_stretch",
+  "policy_change_reason": "Matched CUDA research diagnostic comparison of unchanged family recipes across the two zero-sigma 256-particle discrete byte codebook stretch tasks (bytegan_hypercube8 and bytegan_bigan_dictionary); retains every frozen target, architecture, initialization, update budget, cadence, live sampling law, and numerical gate. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

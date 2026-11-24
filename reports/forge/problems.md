@@ -48,6 +48,8 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 | [Interpolate unseen latent k-NN chords along a 270-degree circular arc from 12 zero-sigma particles without MoG](problems.md#interp_sparse_arc) | Train 12 discrete zero-sigma `ParticlePrior` locations and an MLP generator on a 2D circular arc (`R = 2.0`, `sigma = 0.03`) under protocol seed 0 so both endpoints (`endpoint_hq >= 0.85`) and unseen latent k-NN chords (`interp_hq >= 0.80`, `interp_arc_bins >= 22`, `midpoint_novelty >= 0.20`) stay on the curved manifold across five final live checks. | Selected recorded PASS: RHBI, Unified. |
 | [Translate a sharp 2x2 patch smoothly across unseen latent chords in 8x8 images from 16 zero-sigma particles](problems.md#interp_img_patch_shift) | Train 16 zero-sigma `ParticlePrior` codes (`z_dim = 4`) and a `residual_upsample` convolutional generator on continuous single-patch 8x8 images so unseen latent k-NN chords render single sharp shifted patches (`interp_rmse <= 0.10`, `interp_peak >= 0.78`, `midpoint_novelty >= 0.18`, `quadrant_coverage == 4`) rather than 0.5-peak pixel double exposures. | Selected recorded PASS: RHBI. |
 | [Interpolate unseen 2D latent triangle barycenters across a curved 3D saddle sheet from 24 zero-sigma particles](problems.md#interp_saddle_barycentric) | Train 24 zero-sigma `ParticlePrior` locations (`z_dim = 2`) and a 3D-output MLP generator on $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y)$ so unseen 2D latent k-NN triangle barycenters stay on the curved surface (`barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78`, `xy_bins_covered >= 12`, `barycenter_novelty >= 0.18`) across five final live checks. | Selected recorded PASS: RHBI. |
+| [Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook](problems.md#bytegan_hypercube8) | Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
+| [Learn a bidirectional 1-to-1 256-byte dictionary over {-1, +1}^8 with a joint BiGAN](problems.md#bytegan_bigan_dictionary) | Train a joint BiGAN `(G(z), E(x), D(x, z))` with 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) over `public_components` so forward generation forms an exact 256-byte bijection (`valid_unique_bytes == 256`, `rms_bit_error <= 0.12`), round-trip reconstruction `G(E(x))` recovers every canonical byte (`recon_valid_exact_bytes == 256`, `recon_rms_bit_error <= 0.12`), and the encoder indexes all 256 distinct particles 1-to-1 (`encoder_particle_bijection_bytes == 256`) across five final clean live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 
 <a name="gaussian1d_stability"></a>
 
@@ -1401,3 +1403,73 @@ Test: `interp_saddle_barycentric` · Held for qualification; included in full-su
 **Recommendation from the dated diagnosis.** Stabilize late-step live-iterate fluctuations and test recipe-owned 2D simplex interior supervision so `atlas` and `release07-gan-v3` hold `barycenter_hq >= 0.78` across all five terminal checks.
 
 Evidence: [Particle interpolation stretch report and 9-family table](particle-interpolation-stretch/README.md#interp_saddle_barycentric) · [Atlas diagnostic stretch readout receipt](records/readout-669ead9699347bdcc998eb81.json) · [GAN v3 release 0.7 diagnostic stretch readout receipt](records/readout-e838608cfd803f50b58f4e21.json) · [Task declaration](../../configs/forge/tasks/interp_saddle_barycentric.json).
+
+
+<a name="bytegan_hypercube8"></a>
+
+## Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook
+
+Test: `bytegan_hypercube8` · Held for qualification; included in full-suite results.
+
+**What it tests.** Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks.
+
+**Historical diagnosis (2026-10-15).** Exact-capacity discrete codebook learning (256 particles for 256 equiprobable corners of an 8-dimensional hypercube) has zero slack for collisions, orphan corners, faint-sign barycentric ghosts, or amplitude blowup. No ordinary selected-family full-budget CUDA measurement has been registered yet.
+
+**Historical passer evidence.** Not measured in ordinary selected cohorts (`UNKNOWN`); pending matched CUDA diagnostic stretch runs.
+
+- No compatible full-budget passing configuration is recorded yet; analytic bijection and destructive collision/ghost/amplitude-blowup oracle controls validate the scorer.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-bytegan_hypercube8) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-bytegan_hypercube8) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [NOT MEASURED](families/unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) |
+| [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [NOT MEASURED](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-bytegan_hypercube8) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [K3P](families/k3p.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/k3p.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+| [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
+
+**Recommendation from the dated diagnosis.** Measure unchanged global family recipes on the `bytegan_stretch` diagnostic view under protocol seed 0 and diagnose whether failures stem from particle collisions, orphan modes, or bit-amplitude drift.
+
+Evidence: [ByteGAN stretch benchmark protocol and status](bytegan-stretch/README.md#bytegan_hypercube8) · [Task declaration](../../configs/forge/tasks/bytegan_hypercube8.json).
+
+
+<a name="bytegan_bigan_dictionary"></a>
+
+## Learn a bidirectional 1-to-1 256-byte dictionary over {-1, +1}^8 with a joint BiGAN
+
+Test: `bytegan_bigan_dictionary` · Held for qualification; included in full-suite results.
+
+**What it tests.** Train a joint BiGAN `(G(z), E(x), D(x, z))` with 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) over `public_components` so forward generation forms an exact 256-byte bijection (`valid_unique_bytes == 256`, `rms_bit_error <= 0.12`), round-trip reconstruction `G(E(x))` recovers every canonical byte (`recon_valid_exact_bytes == 256`, `recon_rms_bit_error <= 0.12`), and the encoder indexes all 256 distinct particles 1-to-1 (`encoder_particle_bijection_bytes == 256`) across five final clean live checks.
+
+**Historical diagnosis (2026-10-15).** Simultaneously satisfying exact 256-mode forward generation, exact identity-preserving byte reconstruction without permutation swaps, and 1-to-1 encoder-to-particle indexing (ruling out particle-cloud bypass) tests discrete joint BiGAN scalability 51x beyond `five_word_joint_smoke`. No ordinary selected-family full-budget CUDA measurement has been registered yet.
+
+**Historical passer evidence.** Not measured in ordinary selected cohorts (`UNKNOWN`); pending matched CUDA diagnostic stretch runs.
+
+- No compatible full-budget passing configuration is recorded yet; analytic bijection, swapped-reconstruction, and encoder-bypass oracle controls validate the scorer.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-bytegan_bigan_dictionary) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-bytegan_bigan_dictionary) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [NOT MEASURED](families/unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) |
+| [Atlas](families/atlas.md#cohort-cuda-bc3debd3fa5e) | [NOT MEASURED](families/atlas.md#cohort-cuda-bc3debd3fa5e-experiment-bytegan_bigan_dictionary) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [K3P](families/k3p.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/k3p.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [KA2](families/ka2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/ka2.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+| [R1/R2](families/r1r2.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/r1r2.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
+
+**Recommendation from the dated diagnosis.** Measure unchanged global family recipes on the `bytegan_stretch` diagnostic view under protocol seed 0 and separate forward codebook coverage failures from inverse reconstruction and encoder-particle alignment failures.
+
+Evidence: [ByteGAN stretch benchmark protocol and status](bytegan-stretch/README.md#bytegan_bigan_dictionary) · [Task declaration](../../configs/forge/tasks/bytegan_bigan_dictionary.json).

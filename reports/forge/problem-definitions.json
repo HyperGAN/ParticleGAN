@@ -792,6 +792,50 @@
           "path": "configs/forge/tasks/interp_saddle_barycentric.json"
         }
       ]
+    },
+    {
+      "task": "bytegan_hypercube8",
+      "title": "Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook",
+      "intent": "Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks.",
+      "problem": "Exact-capacity discrete codebook learning (256 particles for 256 equiprobable corners of an 8-dimensional hypercube) has zero slack for collisions, orphan corners, faint-sign barycentric ghosts, or amplitude blowup. No ordinary selected-family full-budget CUDA measurement has been registered yet.",
+      "pass_summary": "Not measured in ordinary selected cohorts (`UNKNOWN`); pending matched CUDA diagnostic stretch runs.",
+      "passers": [
+        "No compatible full-budget passing configuration is recorded yet; analytic bijection and destructive collision/ghost/amplitude-blowup oracle controls validate the scorer."
+      ],
+      "next_step": "Measure unchanged global family recipes on the `bytegan_stretch` diagnostic view under protocol seed 0 and diagnose whether failures stem from particle collisions, orphan modes, or bit-amplitude drift.",
+      "evidence": [
+        {
+          "label": "ByteGAN stretch benchmark protocol and status",
+          "path": "reports/forge/bytegan-stretch/README.md",
+          "anchor": "bytegan_hypercube8"
+        },
+        {
+          "label": "Task declaration",
+          "path": "configs/forge/tasks/bytegan_hypercube8.json"
+        }
+      ]
+    },
+    {
+      "task": "bytegan_bigan_dictionary",
+      "title": "Learn a bidirectional 1-to-1 256-byte dictionary over {-1, +1}^8 with a joint BiGAN",
+      "intent": "Train a joint BiGAN `(G(z), E(x), D(x, z))` with 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) over `public_components` so forward generation forms an exact 256-byte bijection (`valid_unique_bytes == 256`, `rms_bit_error <= 0.12`), round-trip reconstruction `G(E(x))` recovers every canonical byte (`recon_valid_exact_bytes == 256`, `recon_rms_bit_error <= 0.12`), and the encoder indexes all 256 distinct particles 1-to-1 (`encoder_particle_bijection_bytes == 256`) across five final clean live checks.",
+      "problem": "Simultaneously satisfying exact 256-mode forward generation, exact identity-preserving byte reconstruction without permutation swaps, and 1-to-1 encoder-to-particle indexing (ruling out particle-cloud bypass) tests discrete joint BiGAN scalability 51x beyond `five_word_joint_smoke`. No ordinary selected-family full-budget CUDA measurement has been registered yet.",
+      "pass_summary": "Not measured in ordinary selected cohorts (`UNKNOWN`); pending matched CUDA diagnostic stretch runs.",
+      "passers": [
+        "No compatible full-budget passing configuration is recorded yet; analytic bijection, swapped-reconstruction, and encoder-bypass oracle controls validate the scorer."
+      ],
+      "next_step": "Measure unchanged global family recipes on the `bytegan_stretch` diagnostic view under protocol seed 0 and separate forward codebook coverage failures from inverse reconstruction and encoder-particle alignment failures.",
+      "evidence": [
+        {
+          "label": "ByteGAN stretch benchmark protocol and status",
+          "path": "reports/forge/bytegan-stretch/README.md",
+          "anchor": "bytegan_bigan_dictionary"
+        },
+        {
+          "label": "Task declaration",
+          "path": "configs/forge/tasks/bytegan_bigan_dictionary.json"
+        }
+      ]
     }
   ]
 }
