@@ -173,7 +173,7 @@ Let $D_\psi: \mathbb{R}^d \to \mathbb{R}$ be a differentiable (or almost-everywh
 - **Median-chord Lipschitz illusion (P2-C4):** Evaluating only the median slope across `128` interpolation chords (`critic_grad_med <= 1.0`) passes an analytic $C^\infty$ critic at `med = 0.05` while $\max\|\nabla D\| = 1000.05$, passes `SmoothSiLUCritic` at `0.206` with `ref_max = 136.36`, passes live 200-step `bcap`/`rgdt` fixtures at `0.697`/`0.635` while `grid_max = 1.521`/`1.448`, and passes dead critics (`1.1e-7..7.2e-7`) delivering no transport signal.
 - **One-sided upper cap cannot rescue lower depth contraction (P5 Exp 3a):** On a 16-layer skip-free critic whose Jacobian contracts to $\|\nabla_x D\| \approx 4.94\times 10^{-7}$, both concave BI and EBI are `< 1e-10` and strictly downward-pulling; Law 2 bounds *upper* slope explosion but cannot replace spectral conditioning (Law 4.2).
 - **Pure upper-bound cap ($\mu_D = 0$) leaves rotational limit cycles (P3):** `GradientPenalty(arm="b_cap")` ($\mu_D = 0.0$) and `UnifiedV11CriticPenalty(lambda_floor=0)` ($\mu_D = 6.46\times 10^{-7}$) satisfy Law 2's slope bound yet supply zero normal-direction rotational dissipation, causing zero-momentum games to orbit indefinitely unless Law 4.5 provides contraction another way.
-- **High-resolution floor dilution & remaining `r256` bottleneck (P3, P9):** In `_unified_v11/penalty.py:682–687`, `lambda_floor = 0.0005 / dim` shrinks to `2.54 × 10^{-9}` at `256×256×3`; meanwhile `d_penalty` remains the `#1` non-backbone `r256` compute cost (`5.37 ms`, `13.3%` of total step, `55.4%` of non-backbone time).
+- **High-resolution floor dilution & remaining `r256` bottleneck (P3, P9):** In `_unified_v11/penalty.py:682–687`, `self.lambda_floor` (`0.005`) gates an image branch whose effective hardcoded image floor `0.0005 / dim` shrinks to `2.54 × 10^{-9}` at `256×256×3`; meanwhile `d_penalty` remains the `#1` non-backbone `r256` compute cost (`5.37 ms`, `13.3%` of total step, `55.4%` of non-backbone time).
 
 #### Operational Criteria
 
@@ -445,18 +445,18 @@ The four levels are **not** four hermetically sealed, orthogonal axioms. Our aud
 
 ```mermaid
 flowchart LR
-    L1["Law 1: Representational Geometry\n(Support Topology & Isoperimetric Cliff)"]
-    L2["Law 2: Potential Geometry\n(Slope Cap, Mixed 2nd Deriv., Gauge)"]
-    L3A["Law 3A: Spatial Metric &\nNon-Local Coupling (W1 Ray / Horizon)"]
-    L3B["Law 3B: Conditional Fiber\n(Drift-Variance & Sparse Strata)"]
-    L4["Law 4: Functional & Game Dynamics\n(4.1-4.5 Realization, Spectral, Control, Scale, Game)"]
+    L1["Law 1: Representational Geometry (Support Topology & Isoperimetric Cliff)"]
+    L2["Law 2: Potential Geometry (Slope Cap, Mixed 2nd Deriv., Gauge)"]
+    L3A["Law 3A: Spatial Metric & Non-Local Coupling (W1 Ray / Horizon)"]
+    L3B["Law 3B: Conditional Fiber (Drift-Variance & Sparse Strata)"]
+    L4["Law 4: Functional & Game Dynamics (4.1-4.5 Realization, Spectral, Control, Scale, Game)"]
 
-    L1 -->|"Leak 1: Non-local valley coupling\n& _conformal_local_horizons"| L3A
-    L1 -->|"Leak 2: Direct OT t1c injects\nJ_GG > 0 & masks deep-D collapse"| L4
-    L2 -->|"Leak 3 (CRITICAL): R1/BI mu_D > 0\nsets J_DD in Law 4.5 game Jacobian"| L4
-    L2 -.->|"Leak 4: RoF/RoR Jensen & gauge\nshifts multi-scale coupling"| L3A
-    L3A -->|"Leak 5: Data-space residual r_OT\nsupplies Law 4.4 settling signal"| L4
-    L3B -.->|"Orthogonal statistical obstruction:\npersists under exact W2 Brenier oracle"| L3A
+    L1 -->|"Leak 1: Valley coupling & _conformal_local_horizons"| L3A
+    L1 -->|"Leak 2: Direct OT t1c injects J_GG > 0 & masks deep-D collapse"| L4
+    L2 -->|"Leak 3 (CRITICAL): R1/BI mu_D > 0 sets J_DD in Law 4.5 Jacobian"| L4
+    L2 -.->|"Leak 4: RoF/RoR Jensen & gauge shift multi-scale coupling"| L3A
+    L3A -->|"Leak 5: Data-space residual r_OT supplies Law 4.4 settling signal"| L4
+    L3B -.->|"Orthogonal statistical obstruction: persists under W2 Brenier oracle"| L3A
 ```
 
 - **Cross-law compensation (and its danger as an experimental confounder):** Strong mechanisms at one level can mask catastrophic failures at another. In P5's `Regime B2` (`3L G + 16L D` on `ring16`), ParticleGAN's direct Laguerre–Sinkhorn OT pullback (`Law 1 / 3A`) bypassed the collapsed 16-layer critic completely, producing `16/16, hq = 0.979–0.986` across all five optimizer arms (`0.007` spread) — completely hiding the `0.619` spread exposed once the direct-OT crutch was removed in pure adversarial `Regime B1a`! Similarly, low-D `t1c` injects $J_{GG} \succ 0$ into Law 4.5, masking weak critic dissipation (`lambda_floor = 0.005`) on low-D Forge benchmarks while leaving high-D images (`dim > 1024`, where `t1c` turns off and `lambda_floor` shrinks to `2.54e-9`) unassisted.
@@ -499,7 +499,7 @@ To reason concretely about where energy is actually spent — and where naive sa
 
 | # | Energy Category | Physical / Algorithmic Source | Concrete Audit Evidence (`P0–P9` & PR #644) |
 | :-: | :--- | :--- | :--- |
-| **1** | **Per-iteration compute & memory movement** | Neural forward/backward FLOPs, activation traffic, static board idle power vs. dynamic active power (`J/step`) | On idle RTX A6000 `r256`, `unified-v12` uses `11.20 J/st` total (`8.34 J/st` dyn) vs. `18.86 J/st` (`11.45 J` dyn) for `v11`; switching `rhbi-v12` `FP32 -> BF16 CL` alone cuts `-26.6%` J/st (`87.24 -> 64.05 J/st`). Note idle-power drift (`68.2–116.7 W`) inverted `law4-energy-v10` (`8.45 J` dyn) vs. `v12` (`8.68 J` dyn) (P9). |
+| **1** | **Per-iteration compute & memory movement** | Neural forward/backward FLOPs, activation traffic, static board idle power vs. dynamic active power (`J/step`) | On idle RTX A6000 `r256`, `unified-v12` uses `11.20 J/st` total (`8.34 J/st` dyn) vs. `18.86 J/st` (`11.45 J` dyn) for `v11`; switching `rhbi-v12` `FP32 -> BF16 CL` alone cuts `-26.6%` J/st (`87.24 -> 64.05 J/st`). Across the Phase-2 benchmark, board idle power drifted `68.15–116.74 W` (`68.15 W` on `v12` vs. `70.92 W` on `law4-energy-v10`), and subtracting idle power inverted the total-vs-dynamic ranking (`v12`: `11.37` tot / `8.68` dyn vs. `v10`: `11.68` tot / `8.45` dyn, P9). |
 | **2** | **Energy to equivalent quality (`J-to-Q`)** | Total integrated Joules until sustained quality threshold $Q$ (`J-to-PASS` / `J-to-FID`) | Lower `r256` `J/step` does **not** guarantee lower `J-to-Q`: `unified-v12` wins `4.72×` on `five_word_joint_smoke` (`1,399` vs. `6,602 J`) and `-36.3%` on `grid100`, yet spends **more** `J-to-PASS` than `v11` on `grid100_mlp16` (`12,781` vs. `9,808 J`) and more than `law4-energy-v10` on `staggered100` (`10,743` vs. `8,681 J`) (P9). On `bytegan_hypercube8`, `unified-v13` cuts energy `3.39×` vs. failing `v12` (`15,432` vs. `52,355 J`, PR #644). |
 | **3** | **Unstable-dynamics waste** | Limit-cycle orbiting, Kreiss transient overshoots, momentum-amplified divergence, equilibrium chatter | Positive momentum ($\beta_1 = 0.85..0.90$) shrinks stable step size `82×–190×` on rotational modes; $\rho=500$ Kreiss transients amplify `381×` before contraction acts (P3). |
 | **4** | **Representational compensation waste** | Over-parameterized generators fighting a topologically mismatched unimodal prior | `82`-param $G$ + adaptive Laguerre MoG beats `33,666`-param unimodal $G$ (`410×` more params) by `111×` ghost mass & faster convergence (step `400`, P7 Exp 3). |
@@ -544,13 +544,13 @@ The table below strictly separates **committed Forge `readout-*.json` receipts**
 
 | Candidate | Direct LOC *(Merged `develop`)* | Precision (`r256`) | `autograd.grad` | SVD/`eigh`/`pinv` | `disc_stab` (T1–2) | `precision` (`fp32/mx8/nv4`) | `ddgan_gauss` | `t4_nash` | `t3_iso` | `t3_shift` | `t4_arch` | `ByteGAN` (2 tasks) | Committed `r256` (`ms` · `MiB`) |
 | :--- | ---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| **`unified-v13`** *(opt-in PR #644)* | `8,579` *(+`451` `atomic.py`)* | `bf16_cl` | **0** | **0** | `44/48`\* *(`47/51` total study)* | **`3/3`** | **`PASS`** *(bimodal FAIL\*)* | **`3/3`** | **`2/2`** | — | — | **`2/2` PASS** | **`39.94`** · `1147.6` *(solo GPU 0 study)* |
+| **`unified-v13`** *(opt-in PR #644)* | `8,579` *(+`780` `_t1_coupling/`, incl. `451` `atomic.py`)* | `bf16_cl` | **0** | **0** | `44/48`\* *(`47/51` total study)* | **`3/3`** | **`PASS`** *(bimodal FAIL\*)* | **`3/3`** | **`2/2`** | — | — | **`2/2` PASS** | **`39.94`** · `1147.6` *(solo GPU 0 study)* |
 | **`unified-v12`** *(`DEFAULT_RECIPE`)* | **`8,579`** *(`8,564` pre-#644)* | `bf16_cl` | **0** | **0** | **`46/48`** *(29/29 req, `b51ab67c`)* | **`3/3`** | **`PASS`** *(+2/2 AE-DDGAN\*)* | **`3/3`** | **`2/2`** | — *(uncomm.)* | **`7/7`** *(`c1ee5c3b`)* | **`0/2` FAIL** | **`41.39`** · `1243.4` *(`59898e1a`)* |
 | **`unified-v11`** *(0.11.x explicit)* | `7,091` *(`7,076` pre-#644)* | `bf16_cl` | **0** | **0** | `41/47` *(`fc5b67a7`)* | `3/3` | `PASS` | `3/3` | `2/2` | `5/5` | `6/7` | — | `89.19` · `1372.6` |
 | `unified-v10` | `4,313` | `bf16_cl` | 0 | 0 | `40/46` | `2/3` | `FAIL` | `3/3` | `1/2` | `5/5` | `6/7` | — | `89.66` · `1372.6` |
 | `cond-fiber-v1` *(+`_unified`)* | `4,261` | `bf16_cl` | 0 | `eigh`+SVD | `40/47` *(`5932f4d3`)* | `3/3` | `PASS` | — | — | — | — | — | `87.50` · `1308.4` |
 | `t4-nash-v3` | `3,028` | `bf16_cl` | 0 | 0 | `33/46` | — | `FAIL` | `3/3` | — | — | — | — | **`39.68`** · `1372.9` |
-| **`minimal-v2`** (`preset="minimal"`) | **`899`** | `bf16_cl` | **0** | **0** *(0 NS)* | `10/17` T1 | `0/3` | — | `2/3` | `1/2` | `2/4` *(u)* | `3/7` *(u)* | — | `55.50` *(shared)* · `1344.8` |
+| **`minimal-v2`** (`preset="minimal"`) | **`899`** | `bf16_cl` | **0** | **0** *(0 NS)* | `10/17` T1 | `0/3` | — | `2/3` | `1/2` | `2/4` *(uniq., incomp.)* | `3/7` *(uniq., incomp.)* | — | `55.50` *(shared)* · `1344.8` |
 | `empf-v8` *(0.10.1 default)* | `1,972` | `bf16_cl` | Yes | Yes | `24/41` | — | — | — | `0/2` | — | — | `0/2` FAIL | `130.13` · `1435.4` |
 | `rhbi-v12` *(0.10.0 default)* | `3,114` | **`float32`**\* | Yes | Yes | `34/41` | — | — | — | `0/2` | — | — | `0/2` FAIL | `588.75`\* · `3750.6`\* |
 
