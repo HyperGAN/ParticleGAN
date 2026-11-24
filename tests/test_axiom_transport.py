@@ -307,6 +307,10 @@ def test_law3a_atomic_gate_hamilton_d06_and_gpu_argsort_ledger():
     assert T.compute_discrete_atomic_gate(y_five) == 1.0
     # Persistent-chart fallback when batch has 0 duplicates (unique atoms subset)
     assert T.compute_discrete_atomic_gate(atoms_byte[:32], charts=atoms_byte, radii=torch.full((256,), 1e-6)) == 1.0
+    # Single point-mass (K=1, zero diameter) MUST return 0.0 unless >=4 sharp charts already exist
+    pt_mass = torch.full((32, 8), 0.7)
+    assert T.compute_discrete_atomic_gate(pt_mass) == 0.0
+    assert T.compute_discrete_atomic_gate(atoms_byte[:1].expand(32, 8), charts=atoms_byte, radii=torch.full((256,), 1e-6)) == 1.0
     # Must be identically 0.0 on all continuous curved manifolds & noisy MoGs (sigma >= 1e-3)
     assert T.compute_discrete_atomic_gate(_make_arc_batch(64)) == 0.0
     assert T.compute_discrete_atomic_gate(_make_saddle_batch(64)) == 0.0
@@ -343,6 +347,23 @@ def test_law3a_atomic_gate_hamilton_d06_and_gpu_argsort_ledger():
     p5 = torch.tensor([3, 0, 4, 1, 2])
     _, _, ledger5_p, _ = T._update_atomic_ledger(xf64, rows64, atoms5[p5], w5[p5], 64, ledger5, allow_update=False)
     assert torch.allclose(ledger5_p["row_target"], ledger5["row_target"]), "Ledger re-anchoring broke under chart permutation"
+
+    # Re-anchoring priority: surviving-chart resident (rd_anchor==0) beats vanished-chart orphan (rd_anchor>0) even when neither is in current batch
+    surv_charts = torch.tensor([[0.0, 0.0], [10.0, 0.0]])
+    prev_led = {
+        "row_chart": torch.tensor([0, 1, 0], dtype=torch.long),
+        "row_target": torch.tensor([[3.0, 0.0], [0.0, 0.0], [10.0, 0.0]]),  # row 0 orphaned from vanished [3,0]; row 1 sits on [0,0]
+    }
+    _, _, pruned_led, _ = T._update_atomic_ledger(
+        torch.tensor([[10.0, 0.0]]), torch.tensor([2]), surv_charts, torch.tensor([0.3, 0.7]), 3, prev_led, allow_update=True,
+    )
+    # Quotas for M=3, w=[0.3, 0.7] are strictly [1, 2]; neither row 0 nor row 1 is in batch -> resident row 1 MUST keep chart 0 and orphan row 0 MUST be released!
+    assert int(pruned_led["row_chart"][1].item()) == 0 and int(pruned_led["row_chart"][0].item()) == -1
+
+    # _atomic_match bounds guard: out-of-range or mismatched batch rows return None cleanly (no IndexError)
+    loss_guard = T.AxiomTransportLoss()
+    assert loss_guard._atomic_match(y_five, y_five, _StubAxiomRecord(), torch.randn(16, 2), torch.full((64,), 99), True) is None
+    assert loss_guard._atomic_match(y_five, y_five, _StubAxiomRecord(), torch.randn(16, 2), torch.arange(8), True) is None
 
     # ByteGAN M=256, K=256 exact 256/256 bijection
     w256 = torch.ones(256) / 256.0

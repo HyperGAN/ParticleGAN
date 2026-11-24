@@ -171,13 +171,13 @@ def compute_discrete_atomic_gate(y_cf: torch.Tensor, *, charts: Optional[torch.T
     """Annular-gap duplicate purity gate: 1.0 on exact discrete atoms, 0.0 on interp_* & noisy MoGs."""
     if y_cf.shape[0] < 8: return 0.0
     d = _cdist_s(y_cf); dm = float(d.amax().item())
-    if dm <= 1e-12: return 1.0
-    nn_d, tol = d.fill_diagonal_(float("inf")).amin(1), 1e-6 * dm; na = int((nn_d <= tol).sum().item())
-    if na >= 2:
-        sep = d[d > tol]
-        if sep.numel() == 0: return 1.0
-        ntol = max(10.0 * tol, 0.25 * float(torch.quantile(sep, 0.05).item()))
-        u = min(1.0, max(0.0, (na / float(na + int(((nn_d > tol) & (nn_d < ntol)).sum().item())) - 0.70) / 0.20)); return u * u * (3.0 - 2.0 * u)
+    if dm > 1e-12:
+        nn_d, tol = d.fill_diagonal_(float("inf")).amin(1), 1e-6 * dm; na = int((nn_d <= tol).sum().item())
+        if na >= 2:
+            sep = d[d > tol]
+            if sep.numel() > 0:
+                ntol = max(10.0 * tol, 0.25 * float(torch.quantile(sep, 0.05).item()))
+                u = min(1.0, max(0.0, (na / float(na + int(((nn_d > tol) & (nn_d < ntol)).sum().item())) - 0.70) / 0.20)); return u * u * (3.0 - 2.0 * u)
     if charts is not None and charts.shape[0] >= 4:
         cf = charts.detach().to(device=y_cf.device, dtype=torch.float32); mnn = float(torch.quantile(_cdist_s(cf, diag_inf=True).amin(1), 0.50).item())
         if mnn > 1e-8 and float(torch.quantile(_cdist_s(y_cf, cf).amin(1), 0.75).item()) / mnn < 1e-3 and (radii is None or float(torch.quantile(radii.float(), 0.75).item()) / mnn < 1e-3): return 1.0
@@ -205,12 +205,14 @@ def _update_atomic_ledger(xf: torch.Tensor, rows: torch.Tensor, charts: torch.Te
     nn_cc = _cdist_s(cf, diag_inf=True).amin(1).clamp_min(1e-6) if k >= 2 else torch.ones((k,), device=dev)
     ok = prev is not None and isinstance(prev.get("row_chart"), torch.Tensor) and prev["row_chart"].numel() == m_tot and prev["row_target"].shape == (m_tot, cf.shape[1])
     rc, rt = (prev["row_chart"].to(device=dev, dtype=torch.long).clone(), prev["row_target"].to(device=dev, dtype=torch.float32).clone()) if ok else (torch.full((m_tot,), -1, dtype=torch.long, device=dev), torch.zeros((m_tot, cf.shape[1]), dtype=torch.float32, device=dev))
-    if bool((rc >= 0).any()): ia = torch.nonzero(rc >= 0, as_tuple=False).squeeze(-1); rc[ia] = _cdist_s(rt[ia], cf).argmin(1); rt[ia] = cf[rc[ia]]
+    rd_anchor = torch.full((m_tot,), float("inf"), device=dev)
+    if bool((rc >= 0).any()):
+        ia = torch.nonzero(rc >= 0, as_tuple=False).squeeze(-1); rc[ia] = _cdist_s(rt[ia], cf).argmin(1); rd_anchor[ia] = (rt[ia] - cf[rc[ia]]).norm(dim=1); rt[ia] = cf[rc[ia]]
     rl = rows.detach().reshape(-1).long().to(dev); ur, inv = torch.unique(rl, sorted=True, return_inverse=True)
     fpos = torch.full((ur.numel(),), b, dtype=torch.long, device=dev).scatter_reduce_(0, inv, torch.arange(b, device=dev), reduce="amin", include_self=True)
     d_xc = _cdist_s(xf32[fpos], cf); quotas = _hamilton_quotas(m_tot, weights.to(dev), active_scores=-d_xc.amin(0))
     if allow_update:
-        rd = torch.where(rc >= 0, (rt - cf[rc.clamp_min(0)]).norm(dim=1), torch.full((m_tot,), float("inf"), device=dev)); hc = rc[ur] >= 0
+        rd, hc = rd_anchor, rc[ur] >= 0
         if bool(hc.any()): rd[ur[hc]] = d_xc[hc, rc[ur[hc]]]
         aid = torch.nonzero(rc >= 0, as_tuple=False).squeeze(-1)
         if aid.numel() > 0:
@@ -390,6 +392,7 @@ class AxiomTransportLoss(nn.Module):
         db, ie = 0.5 * (ff.detach().double().mean() + rf.double().mean()), 1.0 / ell.detach().double().clamp_min(1e-6)
         return c_max * torch.tanh(((ff.double() - db) * ie).to(ff.dtype) / c_max), c_max * torch.tanh(((rf.double() - db) * ie).to(rf.dtype) / c_max)
     def _atomic_match(self, fx: torch.Tensor, rx: torch.Tensor, record: Any, ptab: torch.Tensor, brows: torch.Tensor, can_mut: bool) -> Optional[Tuple[torch.Tensor, torch.Tensor, Dict[str, Any], float]]:
+        if ptab.ndim != 2 or brows.ndim != 1 or brows.shape[0] != fx.shape[0] or bool((brows < 0).any()) or bool((brows >= ptab.shape[0]).any()): return None
         charts, wr, rads, ncs = _update_charts(rx.detach().float(), getattr(record, "chart_state", None), max_charts=self.chart_capacity, allow_update=can_mut)
         if compute_discrete_atomic_gate(rx.detach(), charts=charts, radii=rads) <= 0.5 or charts.shape[0] < 2: return None
         tk, nn_cc, nal, r_fwd = _update_atomic_ledger(fx.detach(), brows, charts, wr, int(ptab.shape[0]), getattr(record, "atomic_ledger", None), allow_update=can_mut)
