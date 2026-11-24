@@ -219,10 +219,12 @@ Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`1
 
 ## 4. Formal Claim Audit: 10-Category Taxonomy & 8-Point Rubric
 
-### Claim 1 — Sufficiency of the Four Laws as Stated in `docs/four-laws.md`
-- **Classification:** **Falsified claim** (as sufficient conditions); **Necessary condition under stated assumptions** / **Engineering heuristic** (as partial design principles).
-- **1. Precise formulation:** Does satisfying Laws 1–4 as stated in `docs/four-laws.md` (unimodal/topologically matched support, bounded critic slope $\|\nabla_x D\|_2 \le \kappa$ with zero-mean logit gauge, identifiable local scale/fiber, and bounded realized function-space displacement + degree-0 conditioning + $\beta_1 = 0$) guarantee convergence to Nash equilibrium?
-- **2. Assumptions:** Smooth differentiable two-player minimax game ($F(\theta,\psi) = (\nabla_\theta \mathcal{L}_G, \nabla_\psi \mathcal{L}_D)$), pure adversarial objective ($J_{GG} = 0$ at equilibrium), Law 2 realized strictly as stated ($\|\nabla_x D\| \le \kappa$ inactive in the interior $\|\nabla_x D\| < \kappa$).
+Each distinct claim is assigned **one primary classification** from the 10-category taxonomy (`reports/four-laws-audit/README.md`) and evaluated against the full 8-point rubric.
+
+### Claim P3-1 — Sufficiency of the Four Laws as Currently Stated in `docs/four-laws.md`
+- **Classification:** **Falsified claim**
+- **1. Precise formulation:** Satisfying all four operational laws as written in `docs/four-laws.md` (unimodal/topologically matched support, bounded critic slope $\|\nabla_x D\|_2 \le \kappa$ with zero-mean logit gauge, identifiable local scale/fiber, and bounded realized function-space displacement + degree-0 conditioning + $\beta_1 = 0$) guarantees convergence to Nash equilibrium.
+- **2. Assumptions:** Smooth differentiable two-player minimax game ($F(\theta,\psi) = (\nabla_\theta \mathcal{L}_G, \nabla_\psi \mathcal{L}_D)$), pure adversarial objective ($J_{GG} = 0$ at equilibrium), Law 2 realized strictly as stated ($\|\nabla_x D\| \le \kappa$ inactive on $\|\nabla_x D\| < \kappa$).
 - **3. Existing supporting evidence:** High Forge screening pass rates of `unified_v11` (`55/62`) and `unified_v12` (`46/48` T1–2), which implicitly rely on undocumented `lambda_floor = 0.005`, 1:1 alternation, and low-D non-adversarial `t1c` transport.
 - **4. Potential counterexamples:** Explicit Counterexamples `A1` (2D bounded 1-Lipschitz Dirac-GAN), `A2` (codimension-1 manifold Gaussian with default `non_saturating` loss), `A3` (full Gaussian with `hinge` loss), and `B` (nonlinear 2D MLP with actual `UnifiedV12Optimizer` + `b_cap` or `unified_v11(lambda_floor=0)`).
 - **5. Minimal falsification experiment:** Run 2D Dirac-GAN (`A1`) with $D_\psi(x) = \tanh(\|\psi\|)\frac{\psi^\top}{\|\psi\|} x + b$, `gamma_gauge = 0.03`, and `UnifiedV12Optimizer` for 2,500 steps: `maxLip < 1.0`, `ema_fg = 1.0`, `stiff = 0.0`, yet `r_tail = 0.205` (non-convergent limit cycle).
@@ -230,49 +232,82 @@ Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`1
 - **7. Computational verification:** Verified in `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`, `test_counterexample_a2_manifold_nonsat_logistic_normal_limit_cycle`, and `test_counterexample_b_nonlinear_mlp_actual_particlegan_unified_v12`.
 - **8. Confidence & remaining uncertainty:** **Very High (Proven counterexample).** Uncertainty remains only on whether high-res `r256` Conv2d GANs ($d = 196{,}608$, where `t1c` is off and `lambda_floor = 2.54e-9`) experience slow normal-direction limit cycles over long horizons (`> 50k` steps).
 
-### Claim 2 — Law 2's Statement ("Bound $\|\nabla_x D\|_2 \le \kappa$ + Zero-Mean Gauge") Damps Critic Rotational Eigenvalues (`docs/four-laws.md:49, 89`)
-- **Classification:** **Falsified claim** (for Law 2's *statement*); **Empirically supported causal mechanism** / **Proven mathematical result** (specifically for zero-centered quadratic curvature $\nabla^2_{\psi\psi} \mathcal{R}\big|_0 \succ 0$ in `minimal` Born–Infeld and `unified_v11`/`v12`'s undocumented `lambda_floor`).
-- **1. Precise formulation:** `docs/four-laws.md:89` asserts *"Once Law 2 damps critic rotational eigenvalues..."* while `docs/four-laws.md:49` defines Law 2 strictly as $\|\nabla_x D\|_2 \le \kappa$ plus fixed additive logit gauge.
+### Claim P3-2a — Law 2's Statement ("Bound $\|\nabla_x D\|_2 \le \kappa$ + Zero-Mean Gauge") Damps Critic Rotational Eigenvalues (`docs/four-laws.md:49, 89`)
+- **Classification:** **Falsified claim**
+- **1. Precise formulation:** `docs/four-laws.md:89` asserts *"Once Law 2 damps critic rotational eigenvalues..."* while `docs/four-laws.md:49` defines Law 2 strictly as $\|\nabla_x D\|_2 \le \kappa$ plus an anchored zero-mean logit gauge.
 - **2. Assumptions:** Critic has interior Nash equilibrium $D^* \equiv 0$ ($\|\nabla_x D^*\|_2 = 0 < \kappa$).
-- **3. Existing supporting evidence:** `minimal` and `unified_v11`/`v12` converge stably across Forge without extragradient; however, the causal mechanism is not the Lipschitz inequality $\|\nabla_x D\| \le \kappa$ but the zero-centered quadratic derivative at $g = 0$.
+- **3. Existing supporting evidence:** None for an upper-bound-only cap; existing Forge passes are confounded by `minimal`'s Born–Infeld quadratic bottom and `unified_v11`/`v12`'s undocumented `lambda_floor = 0.005`.
 - **4. Potential counterexamples:** Any exact 1-Lipschitz constraint (`b_cap`, spectral norm, `tanh` slope parametrization) or steep softplus cap (`unified_v11` with `lambda_floor = 0`) has $\mu_D \le 6.5 \times 10^{-7}$, failing to damp rotational eigenvalues; zero-mean gauge (`gamma_gauge = 0.03`) damps only the constant bias $b$, not $\nabla_x D$.
-- **5. Minimal falsification experiment:** Compare `UnifiedV11CriticPenalty(lambda_floor=0.0)` vs `UnifiedV11CriticPenalty(lambda_floor=0.005)` vs `MinimalCriticPenalty` via exact local Hessian evaluation (`audit_particlegan_penalties`) and on `A1`/`B`.
+- **5. Minimal falsification experiment:** Evaluate local Hessian curvature of `GradientPenalty(arm="b_cap")` and `UnifiedV11CriticPenalty(lambda_floor=0.0)` at $w=0$, then run Counterexample `A1` and `B`.
 - **6. Relevant prior research:** Mescheder et al. (ICML 2018, R1/R2 zero-centered gradient penalties vs WGAN-GP 1-centered penalty); Roth et al. (NeurIPS 2017); Nagarajan & Kolter (NeurIPS 2017).
-- **7. Computational verification:** Verified in `test_particlegan_law2_penalty_local_curvature_gap` (`0.0` vs `6.46e-7` vs `0.010` vs `1.080`) and Counterexamples `A1`/`A2`/`B`.
+- **7. Computational verification:** Verified in `test_particlegan_law2_penalty_local_curvature_gap` (`b_cap = 0.0`, `v11_no_floor = 6.46e-7`, `d2R/db2 = 0.030`) and Counterexamples `A1`/`A2`/`B`.
 - **8. Confidence & remaining uncertainty:** **Very High (Proven mathematically and verified directly on ParticleGAN code).**
 
-### Claim 3 — Law 4.1 (`delta_g_max` Realized Pushforward Trust Band) Stabilizes Minimax Game Dynamics (`docs/four-laws.md:85, 92`; `law4-optimizer-laws.md:203`)
-- **Classification:** **Necessary condition under stated assumptions** (for preventing non-normal transient explosion under $\rho \gg 1$); **Falsified claim** (as a *sufficient* condition for Nash convergence — stated as *"necessary and sufficient"* in [`law4-optimizer-laws.md:203`](../forge/studies/law4-optimizer-laws.md#L203)!).
-- **1. Precise formulation:** Regulating realized pushforward displacement $\delta_G \le \delta_{g,\max}$ bounds non-normal transient amplification ($\mathcal{K}(M) \sim \Theta(\rho)$) and prevents finite-time blowup, but cannot make purely imaginary game eigenvalues contract.
-- **2. Assumptions:** Linearized game Jacobian $J_F(\mu_D, \omega, \rho)$ with capacity mismatch $\rho \gg 1$; $\alpha_G > 0$ acts as a positive scalar multiplier on $\Delta\theta$.
-- **3. Existing supporting evidence:** `t4-nash-v3`, `law4-sgd-secant`, and `r4-razor-no-secant-band` prove `delta_g_max` is load-bearing on `>500×` imbalanced Forge tasks (`readout-d5c8d860`, `readout-4e2fd695`) — *all of which also had `lambda_floor > 0`, 1:1 alternation, and `t1c` transport active!*
-- **4. Potential counterexamples:** Counterexamples `A1` (`sim_gd_trust`, `2,849/3,000` active clamps $\implies r_{\text{tail}} = 0.314$; `alt_gd`, `2,517` clamps $\implies r_{\text{tail}} = 0.190$) and `A2` (`2,770` clamps $\implies$ normal RMS `0.233`).
-- **5. Minimal falsification experiment:** Actively clamp `delta_g_max = 0.004` on 2D bounded Dirac-GAN (`mu_d = 0`): divergence (`1.467`) is converted into a persistent bounded limit cycle (`0.314`), NOT convergence.
-- **6. Relevant prior research:** Trefethen & Embree (*Spectra and Pseudospectra*, 2005 — Kreiss Matrix Theorem); Heusel et al. (NeurIPS 2017 — TTUR); Mescheder et al. (ICML 2018).
-- **7. Computational verification:** Verified in `test_non_normality_and_kreiss_transient_amplification` (`381.4×` transient blowup at $\rho = 500$ despite $\rho(M) = 0.9798$) and `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`.
-- **8. Confidence & remaining uncertainty:** **Very High (Proven mathematically and verified empirically).**
+### Claim P3-2b — Zero-Centered Quadratic Critic Curvature ($\mu_D = \partial^2 \mathcal{R}/\partial w^2\big|_0 > 0$) Supplies Rotational Dissipation in `minimal` and `unified_v11`/`v12`
+- **Classification:** **Proven mathematical result**
+- **1. Precise formulation:** Any critic penalty with strictly positive interior curvature $\mu_D = \nabla^2_{\psi\psi}\mathcal{R}\big|_{D=0} \succ 0$ on normal directions shifts the equilibrium game-Jacobian eigenvalues into the open right half-plane ($\operatorname{Re}(\lambda_\pm) = \mu_D / 2 > 0$). In ParticleGAN, this mechanism is supplied by `minimal`'s Born–Infeld bottom ($\frac{\sqrt{1+\beta g^2}-1}{\beta} \approx \frac{1}{2}g^2$, $\mu_D = 1.0803$) and `unified_v11`/`v12`'s undocumented `lambda_floor = 0.005` ($\mu_D = 0.0100$ in low-D).
+- **2. Assumptions:** Linearized game around $D^* \equiv 0$ with nonzero normal-direction interaction $\omega > 0$ and compatible update rule (e.g., 1:1 alternation or $\eta < \mu_D/\omega^2$ under simultaneous Euler GD).
+- **3. Existing supporting evidence:** Monotonic 4-rung collapse of rotational oscillation across `b_cap` $\to$ `v11_no_floor` $\to$ `v11_default` $\to$ `minimal_born_infeld` in Counterexamples `A1`, `A2`, `A3`, and `B`, plus Forge stability of `minimal` and `unified_v11`/`v12`.
+- **4. Potential counterexamples:** Excessive $\mu_D$ slows normal-variance alignment (`std_n = 0.047–0.059` on `minimal_born_infeld` in `B`); conversely, `0.0005 / dim = 2.54e-9` on `r256` makes `v11`/`v12`'s floor negligible in high-D.
+- **5. Minimal falsification experiment:** Toggle `lambda_floor` from `0.0` to `0.005` or swap `b_cap` for `MinimalCriticPenalty` on `A1` and `B` holding all other components fixed.
+- **6. Relevant prior research:** Mescheder et al. (ICML 2018, Theorems 4.1 & 4.2 on R1/R2 local convergence); Roth et al. (NeurIPS 2017).
+- **7. Computational verification:** Verified in `test_particlegan_law2_penalty_local_curvature_gap`, `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`, and `test_counterexample_b_nonlinear_mlp_actual_particlegan_unified_v12`.
+- **8. Confidence & remaining uncertainty:** **Very High (Proven linear theorem + direct code verification).**
 
-### Claim 4 — Alternating vs. Simultaneous Updates Under Weak Critic Dissipation (Unstated Prerequisite of `particlegan/training.py`)
-- **Classification:** **Proven mathematical result** (Theorem 1).
+### Claim P3-3a — Law 4.1 (`delta_g_max` Trust Band) Is Sufficient to Stabilize Minimax Dynamics (`law4-optimizer-laws.md:203`)
+- **Classification:** **Falsified claim**
+- **1. Precise formulation:** [`law4-optimizer-laws.md:203`](../forge/studies/law4-optimizer-laws.md#L203) claims regulating realized function-space displacement into $[\delta_{g,\min}, \delta_{g,\max}]$ is *"necessary and sufficient"* to stabilize imbalanced two-player minimax games.
+- **2. Assumptions:** Purely adversarial minimax game with $\mu_D = 0$; isotropic positive scalar rescaling $\Delta\theta \mapsto \alpha_G \Delta\theta$ ($\alpha_G > 0$).
+- **3. Existing supporting evidence:** Forge Nash passes (`t4-nash-v3`, `law4-sgd-secant`, `readout-d5c8d860`) all operated *with* `lambda_floor > 0`, 1:1 alternation, and `t1c` transport active, confounding sufficiency.
+- **4. Potential counterexamples:** Counterexamples `A1` (`sim_gd_trust`, `2,849/3,000` active clamps $\implies r_{\text{tail}} = 0.314$; `alt_gd`, `2,517` clamps $\implies r_{\text{tail}} = 0.190$) and `A2` (`2,770` clamps $\implies$ normal RMS `0.233`).
+- **5. Minimal falsification experiment:** Actively clamp `delta_g_max = 0.004` on 2D bounded Dirac-GAN (`mu_d = 0`): divergence (`1.467`) converts into a persistent bounded limit cycle (`0.314`), NOT convergence.
+- **6. Relevant prior research:** Mescheder et al. (ICML 2018); Balduzzi et al. (ICML 2018).
+- **7. Computational verification:** Verified in `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`.
+- **8. Confidence & remaining uncertainty:** **Very High (Proven by isotropic scaling invariance of imaginary spectrum + explicit active-clamping counterexample).**
+
+### Claim P3-3b — Law 4.1 (`delta_g_max` / Impedance Matching) Controls Non-Normal Kreiss Transient Amplification (`docs/four-laws.md:85, 92`)
+- **Classification:** **Proven mathematical result**
+- **1. Precise formulation:** Under capacity/gain mismatch $\rho \gg 1$, the linearized game Jacobian $J_F(\mu_D, \omega, \rho)$ retains identical contracting eigenvalues yet suffers departure from normality $\Theta(\rho^2)$, eigenvector conditioning $\kappa(V) = \Theta(\rho)$, and finite-time transient amplification $\sup_k \|M^k\|_2 = \Theta(\rho)$ governed by the Kreiss Matrix Theorem. Inter-player impedance matching ($\rho \to 1$) and realized displacement clamping eliminate this transient blowup.
+- **2. Assumptions:** Linearized non-normal two-player Jacobian $J_F$ with $\rho(M) < 1$ and $\rho \gg 1$ (or defective Jordan coupling).
+- **3. Existing supporting evidence:** `t4-nash-v3` and `law4-sgd-secant` (`readout-d5c8d860`) convert instant `<2s` `NaN` explosions at `548×–620×` capacity mismatch into `5/5` sustained PASS, while removing `delta_g_max` (`readout-4e2fd695`) collapses `548×` `overpowered_generator`.
+- **4. Potential counterexamples:** Does not cure asymptotic rotational instability when $\mu_D = 0$ (see Claim P3-3a).
+- **5. Minimal falsification experiment:** Sweep $\rho \in \{1, 10, 100, 500\}$ at fixed $\mu_D = 0.5, \eta = 0.1$ ($\rho(M) = 0.97980$ constant) and measure $\sup_k \|M^k\|_2$ and $\mathcal{K}(M)$.
+- **6. Relevant prior research:** Trefethen & Embree (*Spectra and Pseudospectra*, 2005 — Kreiss Matrix Theorem); Heusel et al. (NeurIPS 2017 — TTUR).
+- **7. Computational verification:** Verified in `test_non_normality_and_kreiss_transient_amplification` (`1.02×` at $\rho=1$ vs `381.42×` at $\rho=500$, plus `92.90×` on shifted Jordan block).
+- **8. Confidence & remaining uncertainty:** **Very High (Exact theorem + direct numerical verification).**
+
+### Claim P3-4 — Alternating vs. Simultaneous Updates Under Weak Critic Dissipation (Unstated Prerequisite of `particlegan/training.py`)
+- **Classification:** **Proven mathematical result**
 - **1. Precise formulation:** On $J_F(\mu_D, \omega)$, 1:1 alternating D-then-G GD satisfies $\det(M_{\text{alt}}) = 1 - \eta_D \mu_D$, giving neutral stability ($\rho = 1$) at $\mu_D = 0$ and strict contraction ($\rho = \sqrt{1 - \eta_D \mu_D} < 1$) for small $\eta_G$ at ANY $\mu_D > 0$, whereas simultaneous Euler GD requires $\eta < \mu_D / \omega^2$.
 - **2. Assumptions:** Linearized 2-player game with $\eta_G \eta_D \omega^2 < 4 - 2\eta_D \mu_D$ and $0 < \eta_D \mu_D < 1$.
 - **3. Existing supporting evidence:** [`particlegan/training.py:678–696`](../../particlegan/training.py#L678-L696) hardcodes 1:1 alternating D-then-G updates across all Forge studies; `docs/four-laws.md` omits update order completely.
-- **4. Potential counterexamples:** Fails to converge when $\mu_D = 0$ ($\det = 1$, perpetual ellipse) or when $\eta_G \eta_D \omega^2 > 4$ (flip bifurcation) or when $\beta_1 > 0$ is added!
+- **4. Potential counterexamples:** Fails to converge when $\mu_D = 0$ ($\det = 1$, perpetual ellipse), when $\eta_G \eta_D \omega^2 > 4$ (flip bifurcation), or when positive momentum $\beta_1 > 0$ is added.
 - **5. Minimal falsification experiment:** Compare simultaneous vs alternating GD at $\mu_D = 0.01$ (`v11`/`v12` exact `lambda_floor = 0.005`) and $\eta_G = 0.014, \eta_D = 0.021$: $\rho_{\text{sim}} = 1.000042 > 1$ (diverges) vs $\rho_{\text{alt}} = 0.999895 < 1$ (contracts).
 - **6. Relevant prior research:** Bailey, Gidel & Piliouras (COLT 2020, *Finite Regret and Cycles with Fixed Step-Size via Alternating Gradient Descent-Ascent*); Zhang et al. (ICML 2022).
 - **7. Computational verification:** Verified to `1e-12` precision in `test_symmetric_antisymmetric_and_sim_vs_alt_exact` and empirically on Counterexample `B` (`sim=True` breaks `lip_max = 1.432` and inflates `|E[D]|` `3.4×` vs `sim=False`).
 - **8. Confidence & remaining uncertainty:** **Very High (Exact theorem).**
 
-### Claim 5 — Law 4.5: Positive Momentum Penalizes Minimax Games & Zero-Momentum Dominates Optimistic Extragradient (`docs/four-laws.md:89`; `law4-optimizer-laws.md:135, 223–226`)
-- **Classification:** **Proven mathematical result** (for positive momentum $\beta_1 > 0$ destabilizing underdamped rotation, Theorem 2); **Necessary condition under stated assumptions** / **Empirical correlation** (for zero-momentum beating OGDA — holds ONLY when $\mu_D > 0$ + noisy minibatches, and existing Forge ablation confounded OGDA by testing $\lambda = 0.5$!).
-- **1. Precise formulation:** (a) By Theorem 2, positive momentum $\beta_1 > 0$ collapses simultaneous stability ceiling $\eta_{\max}$ by $(1-\beta_1)^2/(1+\beta_1)$ on underdamped rotation and unconditionally destabilizes undamped alternating games; (b) Zero-momentum ($\beta_1 = 0$) beats OGDA ONLY when explicit dissipation $\mu_D > 0$ already stabilizes rotation so OGDA's $(1+\lambda)^2 + \lambda^2$ stochastic variance inflation dominates; (c) At $\mu_D = 0$, $\beta_1 = 0$ fails while classical OGDA ($\lambda = 1.0$) and negative momentum ($\beta_1 < 0$) converge!
-- **2. Assumptions:** Linearized underdamped game $\omega \gg \gamma \ge 0$; i.i.d. minibatch noise with variance $\sigma_g^2$.
-- **3. Existing supporting evidence:** `law4-optimizer-laws.md` (`14/16` zero-momentum `v3` > `12/15` Muon $\beta_1=0.85$ > `8/14` `law4-optimistic-equil` $\lambda=0.5$), plus Counterexample `A1`/`B` (`Adam b1=0.9` explodes to `r_tail = 2.289`; `UnifiedV12 b1=0.9` breaks `lip_max = 2.370`).
-- **4. Potential counterexamples:** (i) Undamped deterministic game (`A1`, $\mu_D = 0$): `OGDA(lam=1.0)` converges (`r_tail = 0.0085`) while zero-momentum `UnifiedV12` (`0.2049`), `alt_gd` (`0.2606`), and `OGDA(lam=0.5)` (`0.2457`) all fail! (ii) Negative momentum $\beta_1 = -0.5$ stabilizes undamped alternating games ($\rho = 0.999956 < 1$) and expands $\eta_{\max}$ by $4.5\times$!
-- **5. Minimal falsification experiment:** Run `A1` ($\mu_D = 0$) comparing `beta1 = 0.0`, `beta1 = 0.9`, `OGDA(lam = 0.5)`, and `OGDA(lam = 1.0)`.
-- **6. Relevant prior research:** Polyak (1964); Gidel, Hemmat, Pezeshki, Le Priol, Huang, Lacoste-Julien & Mitliagkas (ICLR 2019, *Negative Momentum for Improved Game Dynamics*); Daskalakis, Ilyas, Syrgkanis & Zeng (ICLR 2018, *Training GANs with Optimism*); Mokhtari, Ozdaglar & Pattathil (AISTATS 2020).
+### Claim P3-5a — Positive Momentum ($\beta_1 > 0$) Destabilizes Underdamped Rotation & OGDA $\lambda = 0.5$ Sits on the Neutral Boundary
+- **Classification:** **Proven mathematical result**
+- **1. Precise formulation:** (i) By Theorem 2 (Schur–Cohn), simultaneous Heavy-Ball momentum has exact ceiling $\eta_{\max}(\beta_1;\gamma,\omega) = \frac{2\gamma(1+\beta_1)(1-\beta_1)^2}{\gamma^2(1-\beta_1)^2 + \omega^2(1+\beta_1)^2}$, collapsing by $(1-\beta_1)^2/(1+\beta_1)$ (`82.2×` at $\beta_1=0.85$, `190×` at $\beta_1=0.90$) when $\omega \gg \gamma$, and alternating GD with $\beta_1 > 0$ unconditionally diverges at $\mu_D = 0$; (ii) By Theorem 3, simultaneous OGDA satisfies $|z_1|^2 = 1 + (1 - 2\lambda)\eta^2\omega^2 + O(\eta^4)$ at $\mu_D = 0$, so $\lambda = 0.5$ (`law4-optimistic-equil`) sits on the exact $O(\eta^2)$ neutral boundary ($\rho > 1$) whereas classical $\lambda = 1.0$ strictly contracts ($\rho < 1$).
+- **2. Assumptions:** Linearized 2-player game with $\lambda(J_F) = \gamma \pm i\omega$, $\beta_1 \in (-1, 1)$, small $\eta$.
+- **3. Existing supporting evidence:** Exact match to `law4-optimizer-laws.md` degradation of `Muon` ($\beta_1=0.85$) and `law4-optimistic-equil` ($\lambda=0.5$), plus Counterexamples `A1` (`Adam b1=0.9` explodes to `2.289`) and `B` (`UnifiedV12 b1=0.9` breaks `lip_max = 2.370`).
+- **4. Potential counterexamples:** For pure potential optimization ($\omega = 0$), positive momentum *increases* $\eta_{\max} = 2(1+\beta_1)/\gamma$ (Polyak 1964); negative momentum $\beta_1 < 0$ *stabilizes* undamped alternating games ($\rho < 1$).
+- **5. Minimal falsification experiment:** Verify companion-matrix spectral radius at $0.98\,\eta_{\max}$ vs $1.02\,\eta_{\max}$ across $\beta_1 \in [-0.5, 0.9]$, and compare `OGDA(lam=0.5)` vs `OGDA(lam=1.0)` on `A1` ($\mu_D = 0$).
+- **6. Relevant prior research:** Polyak (1964); Gidel et al. (ICLR 2019, *Negative Momentum for Improved Game Dynamics*); Daskalakis et al. (ICLR 2018); Mokhtari, Ozdaglar & Pattathil (AISTATS 2020).
 - **7. Computational verification:** Verified in `test_schur_cohn_momentum_stability_and_alternating_destabilization`, `test_ogda_neutral_boundary_and_noise_tradeoff`, and `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`.
-- **8. Confidence & remaining uncertainty:** **Very High (Exact Schur–Cohn & OGDA proofs).** Open empirical question: whether moderate negative momentum ($\beta_1 \in [-0.3, -0.1]$) or low-variance Extragradient improves high-res `r256` Conv2d training where `lambda_floor = 2.54e-9`.
+- **8. Confidence & remaining uncertainty:** **Very High (Exact closed-form theorems).**
+
+### Claim P3-5b — Law 4.5 Zero-Momentum Dominance Over Optimistic Extragradient (`docs/four-laws.md:89`; `law4-optimizer-laws.md:223–226`)
+- **Classification:** **Necessary condition under stated assumptions**
+- **1. Precise formulation:** Zero-momentum ($\beta_1 = 0$) outperforms optimistic extrapolation ($\lambda > 0$) **only under the stated joint preconditions** that (a) explicit critic dissipation ($\mu_D > 0$) plus 1:1 alternation already keep rotational modes inside the unit disk, and (b) stochastic minibatch gradient variance $\sigma_g^2 > 0$ dominates so OGDA's $(1+\lambda)^2 + \lambda^2$ variance inflation ($5.0\times$ at $\lambda = 1.0$) harms terminal settling.
+- **2. Assumptions:** $\mu_D > 0$ (from Law 2's equilibrium curvature), 1:1 alternating updates, i.i.d. minibatch gradient noise $\sigma_g^2 > 0$.
+- **3. Existing supporting evidence:** `law4-optimizer-laws.md` (`law4-energy-v3` `14/16` > `law4-optimistic-equil` `8/14`), though the Forge ablation confounded OGDA by testing $\lambda = 0.5$ rather than $\lambda = 1.0$.
+- **4. Potential counterexamples:** When $\mu_D = 0$ (Counterexample `A1`), the ranking **reverses completely**: zero-momentum `UnifiedV12` (`r_tail = 0.205`) and `alt_gd` (`0.261`) fail to converge, while classical `OGDA(lam=1.0)` converges (`0.0085`).
+- **5. Minimal falsification experiment:** Sweep $\mu_D \in \{0.0, 0.01, 1.0\}$ and minibatch noise $\sigma_g \in \{0, 0.1\}$ comparing $\beta_1 = 0$, $\beta_1 = -0.3$, and `OGDA(lam=1.0)`.
+- **6. Relevant prior research:** Gidel et al. (ICLR 2019); Daskalakis et al. (ICLR 2018); Chavdarova et al. (NeurIPS 2019, *Reducing Noise in GAN Training with Variance Reduced Extragradient*).
+- **7. Computational verification:** Verified in `test_ogda_neutral_boundary_and_noise_tradeoff` and `test_counterexample_a1_dirac_2d_all_four_laws_fails_without_dissipation`.
+- **8. Confidence & remaining uncertainty:** **High.** Open empirical question: whether low-variance negative momentum ($\beta_1 \in [-0.3, -0.1]$) or variance-reduced extragradient improves high-res `r256` Conv2d training where `lambda_floor = 2.54e-9`.
 
 ---
 
