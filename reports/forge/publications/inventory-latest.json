@@ -4,7 +4,7 @@
   "files": {
     "README.md": {
       "bytes": 3966,
-      "sha256": "6700d23526feebd7b93ac0948044e5235923a7662223a739198985285689d1bd"
+      "sha256": "8e09c43c43ab96104a52dcaa8df5644c5aa19ef501e470561142549dc6c2c3e5"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,31 +12,31 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 10827,
-      "rows": 57,
-      "sha256": "7c5ea5589d41541cf66eb3150abcf092bc830c46902788ed1c66c4cffd2d6400"
+      "bytes": 11016,
+      "rows": 60,
+      "sha256": "f602f4a1f7278ca64281f64a73266308b9ad6155d843455cbc0abfddc4be8ac9"
     },
     "data/leaderboard.json": {
-      "bytes": 1254497,
+      "bytes": 1257361,
       "families": 11,
-      "sha256": "81c628878bb23072b0c25b9fa2ebb931f565ae9d064c4034fa1f7c6aff60dbec",
+      "sha256": "2f09ce4249a7423b563c3422a54a51178f45993525565df5f98abb9e72f2a2c2",
       "tasks": 1293
     },
     "data/leaderboard.parquet": {
       "bytes": 27341,
       "rows": 11,
-      "sha256": "0012b072ce22ca730c4aa5a04dab9879853ebe628cbd57b9120e23510f9d8ceb"
+      "sha256": "c0101ef0f2a0f967f7e96e1e60a9a1232566f2ac9e928abf9beecc195c7581c2"
     },
     "data/receipts.parquet": {
-      "bytes": 675598,
-      "rows": 3501,
-      "sha256": "752580d12f230e01e034c302a358b56173c42f59289f5bde06c2b9d890d18463"
+      "bytes": 687318,
+      "rows": 3562,
+      "sha256": "f1ed0182cacab9775ffbbfa37aa74939828bef403bb1796f3c86392865c17d32"
     }
   },
-  "git_source_commit": "9e337c7d6a346372643089fda96b7d082811ec7b",
-  "hf_revision": "7150bb9dff167998cafd1ca2c2b18bd3cdccb202",
+  "git_source_commit": "988d5d9b398db4d7ac877c2c04b584ce19b6ad6e",
+  "hf_revision": "f6d2a130bd3b9ce82347f76b241e31be99a33850",
   "inventory": true,
-  "published_at": "2026-11-23T23:37:12Z",
+  "published_at": "2026-11-24T01:02:25Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",
