@@ -407,6 +407,7 @@ def test_emulated_linear_fwad_unsupported_while_ror_succeeds() -> None:
         assert layer.weight.grad is not None and torch.isfinite(layer.weight.grad).all()
 
 
+@pytest.mark.cuda
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA required for BF16 BN dual & Flash SDPA checks")
 def test_cuda_bn_bf16_dual_hook_and_sdpa_backend_boundaries() -> None:
     """Verify DCGAN BF16 fwAD fails without _bn_dual_bf16_hook, succeeds with it, and Flash SDPA blocks both fwAD & RoR."""

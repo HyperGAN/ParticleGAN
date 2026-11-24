@@ -9,6 +9,12 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from .._bispf.thermal import _publish_thermal
+from .atomic import (
+    compute_discrete_atomic_gate,
+    match_inverse_atomic_targets,
+    split_joint_table_pair,
+    update_atomic_ledger,
+)
 from .charts import (
     compute_chart_valley_gate,
     deconflicted_chart_routing,
@@ -118,8 +124,11 @@ class T1CouplingLoss(nn.Module):
             "feydy",
             "feydy_unique",
             "feydy_discrete",
+            "feydy_atomic",
         ):
-            raise ValueError("self_coupling must be 'hollow', 'feydy', 'feydy_unique', or 'feydy_discrete'")
+            raise ValueError(
+                "self_coupling must be 'hollow', 'feydy', 'feydy_unique', 'feydy_discrete', or 'feydy_atomic'"
+            )
 
         self.weight = float(weight)
         self.rho = float(rho)
@@ -603,6 +612,38 @@ class T1CouplingLoss(nn.Module):
 
     @staticmethod
     @torch.no_grad()
+    def _record_prev_charts(record: Any) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor]]:
+        if record is None or not bool(getattr(record, "chart_initialized", False)):
+            return None, None
+        csum = getattr(record, "chart_sum", None)
+        ccnt = getattr(record, "chart_count", None)
+        csq = getattr(record, "chart_sq_dev", None)
+        if csum is None or ccnt is None or csq is None or csum.shape[0] == 0:
+            return None, None
+        denom = ccnt.detach().float().clamp_min(1e-8)
+        charts = csum.detach().float() / denom.unsqueeze(1)
+        radii = (csq.detach().float() / denom).clamp_min(1e-12).sqrt()
+        return charts, radii
+
+    @torch.no_grad()
+    def _compute_manifold_gates_eff(
+        self,
+        y_flat: torch.Tensor,
+        *,
+        record: Any = None,
+    ) -> Tuple[float, float, float, torch.Tensor]:
+        g_conn, g_macro, q90_y_u, y_scale = self._compute_manifold_gates(y_flat)
+        if self.self_coupling == "feydy_atomic" and (g_conn > 0.0 or g_macro > 0.0):
+            prev_c, prev_r = self._record_prev_charts(record)
+            g_atom = compute_discrete_atomic_gate(y_flat, charts=prev_c, radii=prev_r)
+            if g_atom > 0.0:
+                scale_a = 1.0 - float(g_atom)
+                g_conn = float(g_conn * scale_a)
+                g_macro = float(g_macro * scale_a)
+        return g_conn, g_macro, q90_y_u, y_scale
+
+    @staticmethod
+    @torch.no_grad()
     def _compute_curve_gate(y_flat: torch.Tensor, g_conn: float) -> float:
         b_r = y_flat.shape[0]
         if g_conn <= 1e-4 or b_r < 12:
@@ -784,7 +825,7 @@ class T1CouplingLoss(nn.Module):
             and cond_real is None
             and b_r >= 4
         ):
-            _, g_macro_fwd, _, _ = self._compute_manifold_gates(y_proj.detach())
+            _, g_macro_fwd, _, _ = self._compute_manifold_gates_eff(y_proj.detach(), record=record)
             if g_macro_fwd > 1e-4:
                 defer_thermal = True
 
@@ -804,6 +845,8 @@ class T1CouplingLoss(nn.Module):
         chart_targets: Optional[torch.Tensor] = None
         chart_halos: Optional[torch.Tensor] = None
         w_valley_chart = 0.0
+        atomic_active_fwd = False
+        r_atomic_fwd = 0.0
 
         g_conn_fwd = 0.0
         if self.chart_weight > 0.0 and uncond_pair and b_f >= 4 and b_r >= 4:
@@ -822,6 +865,12 @@ class T1CouplingLoss(nn.Module):
             rec_cfm = getattr(record, "chart_fake_mass", None) if record is not None else None
             rec_phase = float(getattr(record, "revival_phase", 0.0)) if record is not None else 0.0
             rec_revs = int(getattr(record, "revivals", 0)) if record is not None else 0
+
+            g_atom_fwd = 0.0
+            if self.self_coupling == "feydy_atomic":
+                y_cf_pre = project_chart_features(y_real.detach(), max_spatial=self.max_spatial)
+                prev_c_pre, prev_r_pre = self._record_prev_charts(record)
+                g_atom_fwd = compute_discrete_atomic_gate(y_cf_pre, charts=prev_c_pre, radii=prev_r_pre)
 
             if can_mutate or rec_csum is None or rec_ccnt is None or rec_csq is None or rec_cfm is None:
                 (
@@ -845,6 +894,7 @@ class T1CouplingLoss(nn.Module):
                     rec_revs,
                     max_charts=self.chart_capacity,
                     max_spatial=self.max_spatial,
+                    allow_dead_revival=(g_atom_fwd <= 0.5),
                 )
             else:
                 y_cf_tmp = project_chart_features(y_real.detach(), max_spatial=self.max_spatial)
@@ -866,33 +916,87 @@ class T1CouplingLoss(nn.Module):
 
             y_cf_det = project_chart_features(y_real.detach(), max_spatial=self.max_spatial)
             x_cf_det = project_chart_features(x_fake.detach(), max_spatial=self.max_spatial)
-            g_conn_fwd, _, _, _ = self._compute_manifold_gates(y_cf_det)
+            g_conn_fwd, _, _, _ = self._compute_manifold_gates_eff(y_cf_det, record=record)
             w_valley_raw = compute_chart_valley_gate(y_cf_det, charts_c, ell_chart, self.rho)
             # Connected curved manifolds (e.g. circular arcs / saddle sheets) have g_conn -> 1
             # even when Euclidean chords cut across ambient space; gate strictly by (1 - g_conn).
             w_valley_chart = float(w_valley_raw * (1.0 - g_conn_fwd))
+            if g_atom_fwd > 0.5:
+                w_valley_chart = max(w_valley_chart, float(g_atom_fwd))
             if can_mutate and record is not None:
                 record._t1c_disc_gate = float(w_valley_chart) if charts_c.shape[0] >= 3 else 0.0
             s_th_cur = float(getattr(record, "_thermal_scale", 1.0)) if record is not None else 1.0
-            (
-                chart_targets,
-                chart_halos,
-                chart_route_weight,
-                absent_shield,
-                next_fm,
-            ) = deconflicted_chart_routing(
-                x_cf_det,
-                charts_c,
-                w_real_c,
-                radii_c,
-                batch_real_cnt,
-                cur_fm,
-                ell_chart,
-                w_valley=w_valley_chart,
-                halo_mult=self.halo_mult,
-                s_thermal=s_th_cur,
-                allow_update=can_mutate,
+
+            prior_table_act = getattr(record, "_active_prior_table", None) if record is not None else None
+            batch_rows_act = getattr(record, "_active_batch_rows", None) if record is not None else None
+            use_atomic_ledger = (
+                self.self_coupling == "feydy_atomic"
+                and g_atom_fwd > 0.5
+                and charts_c.shape[0] >= 3
+                and prior_table_act is not None
+                and batch_rows_act is not None
+                and isinstance(prior_table_act, torch.Tensor)
+                and isinstance(batch_rows_act, torch.Tensor)
+                and prior_table_act.ndim == 2
+                and batch_rows_act.ndim == 1
+                and int(batch_rows_act.shape[0]) == b_f
             )
+            if use_atomic_ledger:
+                assert prior_table_act is not None and batch_rows_act is not None and record is not None
+                (
+                    atomic_tgt_idx,
+                    _nn_cc_a,
+                    next_rc,
+                    next_rd,
+                    next_rt,
+                    r_atomic_fwd,
+                ) = update_atomic_ledger(
+                    x_cf_det,
+                    batch_rows_act,
+                    int(prior_table_act.shape[0]),
+                    charts_c,
+                    w_real_c,
+                    getattr(record, "atomic_row_chart", None),
+                    getattr(record, "atomic_row_dist", None),
+                    getattr(record, "atomic_row_target", None),
+                    allow_update=can_mutate,
+                )
+                if can_mutate and hasattr(record, "update_atomic_ledger_state"):
+                    record.update_atomic_ledger_state(next_rc, next_rd, next_rt)
+                chart_targets = charts_c[atomic_tgt_idx]
+                chart_halos = torch.zeros(b_f, device=x_cf_det.device, dtype=torch.float32)
+                chart_route_weight = torch.full(
+                    (b_f,), float(g_atom_fwd), device=x_cf_det.device, dtype=torch.float32
+                )
+                absent_shield = (
+                    (batch_real_cnt <= 0.0).to(dtype=torch.float32)[atomic_tgt_idx] * float(g_atom_fwd)
+                )
+                k_a = int(charts_c.shape[0])
+                batch_fk_a = F.one_hot(atomic_tgt_idx, num_classes=k_a).to(dtype=torch.float32).sum(dim=0) / float(
+                    max(1, b_f)
+                )
+                next_fm = (0.90 * cur_fm.float() + 0.10 * batch_fk_a) if can_mutate else cur_fm.float()
+                atomic_active_fwd = True
+            else:
+                (
+                    chart_targets,
+                    chart_halos,
+                    chart_route_weight,
+                    absent_shield,
+                    next_fm,
+                ) = deconflicted_chart_routing(
+                    x_cf_det,
+                    charts_c,
+                    w_real_c,
+                    radii_c,
+                    batch_real_cnt,
+                    cur_fm,
+                    ell_chart,
+                    w_valley=w_valley_chart,
+                    halo_mult=self.halo_mult,
+                    s_thermal=s_th_cur,
+                    allow_update=can_mutate,
+                )
             if can_mutate and record is not None and hasattr(record, "update_charts"):
                 d_scale = float(y_cf_det.abs().amax().clamp_min(1e-6).item())
                 record.update_charts(
@@ -1008,7 +1112,7 @@ class T1CouplingLoss(nn.Module):
         )
         use_hollow = self.self_coupling == "hollow"
         dedup_xx = self.self_coupling == "feydy_unique" or (
-            self.self_coupling == "feydy_discrete" and discrete_step
+            self.self_coupling in ("feydy_discrete", "feydy_atomic") and discrete_step
         )
         eff_mask_xx = mask_xx
         if dedup_xx and b_f > 1:
@@ -1190,6 +1294,8 @@ class T1CouplingLoss(nn.Module):
                             yy_loo_nn = d_yy_t.masked_fill(~off_yy, float("inf")).amin(dim=1)
                             prec_tail = torch.quantile(xy_row_nn, 0.96) - torch.quantile(yy_loo_nn, 0.96)
                             r_tail = float((wv_tail * float(self.tail_spill_gain) * prec_tail / denom_ed).item())
+                if atomic_active_fwd:
+                    r_tail = max(r_tail, float(r_atomic_fwd))
                 s_obs = record.observe_t1c_thermal(
                     r_ed,
                     r_mu_sq,
@@ -1278,6 +1384,145 @@ class T1CouplingLoss(nn.Module):
         slack_fake = (P_xy_row_slack * F.softplus(d_bar - f_flat)).sum()
         slack_real = (P_xy_col_slack * F.softplus(r_flat - d_bar)).sum()
         loss = self.weight * (active_rel + slack_fake + slack_real)
+
+        if self.self_coupling == "feydy_atomic" and record is not None and cond_fake is None and cond_real is None:
+            grad_enabled_j = torch.is_grad_enabled()
+            in_probe_j = bool(getattr(record, "_in_protected_probe", False))
+            can_mutate_j = bool(allow_ell_update and grad_enabled_j and not in_probe_j)
+            prior_table_j = getattr(record, "_active_prior_table", None)
+            batch_rows_j = getattr(record, "_active_batch_rows", None)
+            split = split_joint_table_pair(x_fake, y_real, prior_table_j, batch_rows_j)
+            if split is not None:
+                fake_x, _fake_z, real_x, real_z = split
+                prev_c_j, prev_r_j = self._record_prev_charts(record)
+                g_atom_j = compute_discrete_atomic_gate(real_x.detach(), charts=prev_c_j, radii=prev_r_j)
+                if g_atom_j > 0.5:
+                    rec_csum = getattr(record, "chart_sum", None)
+                    rec_ccnt = getattr(record, "chart_count", None)
+                    rec_csq = getattr(record, "chart_sq_dev", None)
+                    rec_cfm = getattr(record, "chart_fake_mass", None)
+                    rec_phase = float(getattr(record, "revival_phase", 0.0))
+                    rec_revs = int(getattr(record, "revivals", 0))
+                    if can_mutate_j or rec_csum is None or rec_ccnt is None or rec_csq is None or rec_cfm is None:
+                        (
+                            charts_j,
+                            w_real_j,
+                            _radii_j,
+                            _b_cnt_j,
+                            next_sum_j,
+                            next_cnt_j,
+                            next_sq_j,
+                            cur_fm_j,
+                            next_phase_j,
+                            next_revs_j,
+                        ) = update_streaming_charts(
+                            real_x.detach(),
+                            rec_csum,
+                            rec_ccnt,
+                            rec_csq,
+                            rec_cfm,
+                            rec_phase,
+                            rec_revs,
+                            max_charts=self.chart_capacity,
+                            max_spatial=self.max_spatial,
+                            allow_dead_revival=False,
+                        )
+                    else:
+                        charts_j = rec_csum.to(device=real_x.device, dtype=torch.float32) / rec_ccnt.to(
+                            device=real_x.device, dtype=torch.float32
+                        ).clamp_min(1e-8).unsqueeze(1)
+                        w_real_j = rec_ccnt.to(device=real_x.device, dtype=torch.float32)
+                        w_real_j = w_real_j / w_real_j.sum().clamp_min(1e-8)
+                        next_sum_j, next_cnt_j, next_sq_j = rec_csum, rec_ccnt, rec_csq
+                        cur_fm_j = rec_cfm.to(device=real_x.device, dtype=torch.float32)
+                        next_phase_j, next_revs_j = rec_phase, rec_revs
+
+                    if charts_j.shape[0] >= 3:
+                        assert prior_table_j is not None and batch_rows_j is not None
+                        (
+                            tgt_k_j,
+                            nn_cc_j,
+                            next_rc_j,
+                            next_rd_j,
+                            next_rt_j,
+                            r_fwd_j,
+                        ) = update_atomic_ledger(
+                            fake_x.detach(),
+                            batch_rows_j,
+                            int(prior_table_j.shape[0]),
+                            charts_j,
+                            w_real_j,
+                            getattr(record, "atomic_row_chart", None),
+                            getattr(record, "atomic_row_dist", None),
+                            getattr(record, "atomic_row_target", None),
+                            allow_update=can_mutate_j,
+                        )
+                        if can_mutate_j:
+                            if hasattr(record, "update_atomic_ledger_state"):
+                                record.update_atomic_ledger_state(next_rc_j, next_rd_j, next_rt_j)
+                            if hasattr(record, "update_charts"):
+                                k_j = int(charts_j.shape[0])
+                                bfk_j = F.one_hot(tgt_k_j, num_classes=k_j).to(dtype=torch.float32).sum(dim=0) / float(
+                                    max(1, b_f)
+                                )
+                                next_fm_j = 0.90 * cur_fm_j.float() + 0.10 * bfk_j
+                                d_scale_j = float(real_x.detach().abs().amax().clamp_min(1e-6).item())
+                                record.update_charts(
+                                    next_sum_j, next_cnt_j, next_sq_j, next_fm_j, next_phase_j, next_revs_j, d_scale_j
+                                )
+
+                        ell_x_j = (0.15 * torch.median(nn_cc_j)).clamp_min(1e-4).to(dtype=fake_x.dtype)
+                        c_tgt_j = charts_j[tgt_k_j].detach().to(dtype=fake_x.dtype)
+                        l_fwd_j = self._born_infeld_aligned_fp32(fake_x, c_tgt_j, ell_x_j).mean()
+
+                        inv_z_tgt, has_inv, ell_z_j, inv_margin = match_inverse_atomic_targets(
+                            real_x.detach(),
+                            real_z.detach(),
+                            charts_j,
+                            next_rt_j,
+                            prior_table_j.detach(),
+                        )
+                        if bool(has_inv.any()):
+                            bi_inv = self._born_infeld_aligned_fp32(
+                                real_z, inv_z_tgt.to(dtype=real_z.dtype), ell_z_j.to(dtype=real_z.dtype)
+                            )
+                            w_inv_m = has_inv.to(dtype=bi_inv.dtype)
+                            l_inv_j = (w_inv_m * bi_inv).sum() / w_inv_m.sum().clamp_min(1.0)
+                            with torch.no_grad():
+                                inv_d = (real_z.detach().float() - inv_z_tgt.detach().float()).norm(dim=-1)
+                                inv_rel = (inv_d / inv_margin.clamp_min(1e-4)).clamp_max(10.0)
+                                r_inv_crisp = 1.6 * float(inv_rel[has_inv].mean().item())
+                                inv_unsettled = bool((inv_rel[has_inv] > 0.12).any().item()) or (
+                                    not bool(has_inv.all().item())
+                                )
+                                r_inv_cov = 0.20 if inv_unsettled else 0.0
+                        else:
+                            l_inv_j = real_z.new_zeros(())
+                            r_inv_crisp = 0.0
+                            r_inv_cov = 0.25
+
+                        if can_mutate_j and self.thermal_tau > 0.0 and hasattr(record, "observe_t1c_thermal"):
+                            r_joint = max(float(r_fwd_j), r_inv_crisp, r_inv_cov)
+                            s_obs_j = record.observe_t1c_thermal(
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                0.0,
+                                self.thermal_tau,
+                                shock_mu_ratio=self.thermal_shock_mu,
+                                r_tail=r_joint,
+                            )
+                            _publish_thermal(record, x_fake.device, s_obs_j)
+
+                        w_cb = max(float(self.chart_weight), 1.0)
+                        cb_loss = self.weight * w_cb * (l_fwd_j + l_inv_j)
+                        s_therm_j = float(getattr(record, "_thermal_scale", 1.0))
+                        if s_therm_j < 1.0 and cb_loss.requires_grad:
+                            cb_loss = cb_loss * s_therm_j + cb_loss.detach() * (1.0 - s_therm_j)
+                        if s_therm_j < 1.0 and loss.requires_grad and not getattr(d_fake, "_t1c_thermally_scaled", False):
+                            loss = loss * s_therm_j + loss.detach() * (1.0 - s_therm_j)
+                        loss = loss + cb_loss
 
         if not return_metrics:
             return loss, {}
@@ -1560,7 +1805,7 @@ class T1CouplingLoss(nn.Module):
         g_conn = 0.0
         q90_y_u = 0.1
         if b_r >= 4:
-            g_conn_m, g_macro_m, q90_m, y_scale = self._compute_manifold_gates(y_flat)
+            g_conn_m, g_macro_m, q90_m, y_scale = self._compute_manifold_gates_eff(y_flat, record=record)
             if g_conn_m <= 1e-4:
                 # Theory 1 disconnected-target screen: when Vietoris-Rips H_0
                 # persistence indicates disconnected target components (or an

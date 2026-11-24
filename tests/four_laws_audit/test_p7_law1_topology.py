@@ -287,9 +287,19 @@ def test_invariant4_pullback_isometry_and_fastpath_parity_and_syncs() -> None:
     assert iso["single_step_psi_max_diff"] < 1e-5
     assert iso["single_step_prior_z_max_diff"] < 1e-5
     assert iso["single_step_g_param_max_diff"] < 1e-5
-    # Large sync reduction (~5x), YET strictly nonzero syncs (falsifying literal "zero-sync pullback"!)
-    assert iso["v11_pullback_only_syncs"] < 0.35 * iso["v4_pullback_only_syncs"]
-    assert iso["v11_pullback_only_syncs"] >= 4
+    # Large sync reduction (~5x), YET strictly nonzero syncs (falsifying literal "zero-sync pullback"!).
+    # On CPU, _count_host_syncs(cpu) also intercepts 11 identical non-pullback CPU optimizer calls
+    # on both v4 and v11 (9 Adam state["step"].item() calls + 2 set_sampled_rows bounds-check bools),
+    # yielding 51 vs 19 on CPU vs 40 vs 8 on CUDA (exact same 32-sync pullback reduction).
+    cpu_opt_offset = 11 if device.type == "cpu" else 0
+    v11_pb_syncs = iso["v11_pullback_only_syncs"] - cpu_opt_offset
+    v4_pb_syncs = iso["v4_pullback_only_syncs"] - cpu_opt_offset
+    assert v11_pb_syncs < 0.35 * v4_pb_syncs
+    assert v11_pb_syncs >= 4
+    assert (iso["v4_pullback_only_syncs"] - iso["v11_pullback_only_syncs"]) >= 25
+    bench = fp["full_pullback_step_bench"]
+    assert bench["unified_v11"]["host_syncs_per_step_total"] < 0.35 * bench["unified_v4"]["host_syncs_per_step_total"]
+    assert bench["unified_v12"]["host_syncs_per_step_total"] < 0.35 * bench["unified_v4"]["host_syncs_per_step_total"]
 
 
 # ---------------------------------------------------------------------------
@@ -299,7 +309,9 @@ def test_invariant4_pullback_isometry_and_fastpath_parity_and_syncs() -> None:
 def test_nonadversarial_division_of_labor_breaks_jacobian_cliff_and_ghost_mass() -> None:
     """Verify Law 1 holds WITHOUT adversarial training: 82-param tiny G + adaptive prior beats 33k-param G + N(0,I)."""
     device = torch.device("cuda:1" if torch.cuda.is_available() and torch.cuda.device_count() > 1 else ("cuda:0" if torch.cuda.is_available() else "cpu"))
-    res = run_exp3_nonadversarial_division_of_labor(device, steps=500, batch_size=256, eval_every=250)
+    # Evaluate only at step 500 (unused intermediate step-250 2048x2048 Sinkhorn evals are skipped for CPU CI speed;
+    # training trajectory and final metrics are bit-identical because eval uses an isolated local RNG).
+    res = run_exp3_nonadversarial_division_of_labor(device, steps=500, batch_size=256, eval_every=500)
 
     arm_a = res["arms"]["arm_a_fixed_unimodal"]
     arm_b = res["arms"]["arm_b_fixed_mismatched_4mode"]

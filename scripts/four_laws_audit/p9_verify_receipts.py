@@ -647,7 +647,8 @@ def audit_p8_tuning_and_unseen(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         "t3_rgdt": lambda s: s.startswith("rgdt"),
         "t4_arch_nash": lambda s: s.startswith(("t4-arch", "t4-nash", "t4-ctrl")),
         "cond_fiber": lambda s: s.startswith("cond-fiber"),
-        "unified_v1_v12": lambda s: s.startswith("unified-v"),
+        "unified_v1_v12": lambda s: bool(re.search(r"(?:^|[-_])unified-v(?:[1-9]|1[0-2])(?:$|[-_])", s)),
+        "unified_v13_plus": lambda s: bool(re.search(r"(?:^|[-_])unified-v(?:1[3-9]|[2-9]\d)(?:$|[-_])", s)),
         "r4_razor_minimal": lambda s: s.startswith(("r4-razor", "minimal-")),
         "law4_energy_opt": lambda s: s.startswith("law4-"),
     }
@@ -727,6 +728,17 @@ def audit_p8_tuning_and_unseen(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         "remaining_after_core_and_shift": sorted(t3_tasks - (core_screen | shift_screen)),
     }
 
+    bg_v13_path = root / "reports" / "forge" / "studies" / "unified-bytegan-bijection.json"
+    bytegan_v13_study: Optional[Dict[str, Any]] = None
+    if bg_v13_path.is_file():
+        bg13 = _load_json(bg_v13_path)
+        bytegan_v13_study = {
+            "study_id": bg13.get("study_id"),
+            "totals": bg13.get("totals"),
+            "recommendation": bg13.get("recommendation"),
+            "bytegan": bg13.get("bytegan"),
+        }
+
     cal = _load_json(root / "reports" / "forge" / "calibration" / "r3-calibration-holdout.json")
     return {
         "lineage_tuning_budgets": budget_summary,
@@ -734,6 +746,7 @@ def audit_p8_tuning_and_unseen(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         "calibration_adoption": cal.get("adoption"),
         "calibration_blockers": cal.get("calibration_blockers"),
         "bytegan_unseen_results": bytegan_summary,
+        "bytegan_v13_study": bytegan_v13_study,
         "unified_v12_l4_transfer_counts": l4_counts,
         "unified_v12_l4_non_pass": sorted(l4_non_pass, key=lambda x: (x["gate_status"], x["task_id"])),
     }

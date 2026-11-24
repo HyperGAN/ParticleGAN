@@ -546,6 +546,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         if not isinstance(rows, torch.Tensor):
             rows = torch.as_tensor(rows, dtype=torch.long, device=parameter.device)
         rows = rows.reshape(-1).to(dtype=torch.long, device=parameter.device)
+        rec = getattr(self, "_unified_v11_record", None)
+        if rec is not None:
+            rec._active_prior_table = parameter
+            rec._active_batch_rows = rows.detach()
         if not self._supports_zerosync_v4_tensors():
             rows = torch.unique(rows, sorted=True)
             if rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(parameter)).any())):
@@ -590,6 +594,10 @@ class UnifiedV11EquilibratedOptimizer(Optimizer):
         self._sampled_rows.clear()
         self._sampled_rows_unique.clear()
         self._row_scales.clear()
+        rec = getattr(self, "_unified_v11_record", None)
+        if rec is not None:
+            rec._active_prior_table = None
+            rec._active_batch_rows = None
 
     def bind_origin_sample(self, sample: Optional[torch.Tensor]) -> None:
         if sample is not None and sample.ndim == 2 and sample.shape[1] == 2 and sample.numel() > 0:
