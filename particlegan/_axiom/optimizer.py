@@ -258,7 +258,7 @@ class AxiomOptimizer(Optimizer):
         damp_p = self._log2_damp_t if (self._log2_damp_t is not None and self._log2_damp_t.device == dev) else torch.full((), self._log2_damp_val, dtype=torch.float64, device=dev)
         rho_n = rho_p
         if net_grads and (fls := [_flat_nocopy(g.detach()) for g in net_grads if g.numel() > 0]):
-            rows = [fl[:_SKETCH_DIM] for fl in fls if fl.numel() >= _SKETCH_DIM] or [torch.cat((fl.float(), fl.new_zeros(_SKETCH_DIM - int(fl.numel()), dtype=torch.float32)), dim=0) for fl in fls]
+            rows = [fl[::max(1, int(fl.numel()) // _SKETCH_DIM)][:_SKETCH_DIM] for fl in fls if fl.numel() >= _SKETCH_DIM] or [torch.cat((fl.float(), fl.new_zeros(_SKETCH_DIM - int(fl.numel()), dtype=torch.float32)), dim=0) for fl in fls]
             bm = torch.stack(rows, dim=0).float(); bm = torch.where(torch.isfinite(bm).all(dim=1, keepdim=True), bm, torch.zeros_like(bm))
             bm = torch.where(bm.abs().amax(dim=1, keepdim=True) < 1e-30, bm * 18446744073709551616.0, bm)
             bmax = bm.abs().amax(dim=1, keepdim=True); bu = bm / bmax.clamp_min(1e-37)
@@ -312,16 +312,16 @@ class AxiomOptimizer(Optimizer):
         ur = torch.where(ok, u_row * torch.rsqrt(1.0 + (s_rel.float() * torch.exp2((ref_n - l2).clamp(-30.0, 30.0))).square()), torch.zeros_like(u_row))
         p.index_add_(0, ridx, (ur * r_sc.unsqueeze(1) if (r_sc is not None and len(r_sc) == len(ridx)) else ur).to(p.dtype), alpha=-base_lr)
 
-    def _run_foreach_fast(self, items: List[Tuple[torch.Tensor, torch.Tensor, float, float, float]], *,
+    def _run_foreach_fast(self, items: List[Tuple[torch.Tensor, torch.Tensor, float, float, float, bool]], *,
                           rho_p: torch.Tensor, c_osc: torch.Tensor, s_rel: torch.Tensor,
-                          g_mult: float | torch.Tensor, is_gen: List[bool]) -> List[Tuple[torch.Tensor, torch.Tensor, float, float, float]]:
+                          g_mult: float | torch.Tensor) -> List[Tuple[torch.Tensor, torch.Tensor, float, float, float, bool]]:
         params, grads = [it[0] for it in items], [it[1] for it in items]
         dev, key, lr_key, c = params[0].device, tuple(id(p) for p in params), tuple(it[2] for it in items), self._fast_cache
         if c is None or c["key"] != key or c["device"] != dev:
             self._flush_fast_cache()
-            self._fast_cache = c = {"key": key, "device": dev, "params": params, "lr_key": lr_key, "numel": sum(p.numel() for p in params),
+            self._fast_cache = c = {"key": key, "device": dev, "params": params, "lr_key": lr_key,
                                     "lrs": torch.tensor(lr_key, dtype=torch.float64, device=dev), "factors": torch.tensor([it[3] for it in items], dtype=torch.float64, device=dev),
-                                    "half_l2": torch.tensor([it[4] for it in items], dtype=torch.float64, device=dev), "is_gen": torch.tensor(is_gen, dtype=torch.bool, device=dev),
+                                    "half_l2": torch.tensor([it[4] for it in items], dtype=torch.float64, device=dev), "is_gen": torch.tensor([it[5] for it in items], dtype=torch.bool, device=dev),
                                     "log2_ref": torch.tensor([float(self.state[p].get("log2_ref", 0.0)) for p in params], dtype=torch.float64, device=dev),
                                     "log2_init": torch.tensor([bool(self.state[p].get("log2_init", False)) for p in params], dtype=torch.bool, device=dev)}
         elif c["lr_key"] != lr_key: c["lr_key"], c["lrs"] = lr_key, torch.tensor(lr_key, dtype=torch.float64, device=dev)
@@ -331,7 +331,7 @@ class AxiomOptimizer(Optimizer):
         dl = (lt - rp).clamp(-1.0, 1.0); rn = torch.where(ok, torch.where(ip, torch.where((rho_p >= 0.0) | (dl > 0.0), rp + 0.05 * dl, rp), lt), rp)
         c["log2_ref"].copy_(rn); c["log2_init"].copy_(ip | ok)
         sc = torch.where(ok, -(lrs * c["factors"] * c_osc * torch.rsqrt(1.0 + (s_rel * torch.exp2((rn - lt).clamp(-30.0, 30.0))).square())) / sn, torch.zeros_like(norms)).float()
-        if (dev.type == "cpu" or c["numel"] <= 262_144) and not bool(ok.all().item()):
+        if not bool(ok.all().item()):
             ml = ok.tolist()
             if (keep := [i for i, b in enumerate(ml) if b]):
                 torch._foreach_addcmul_([params[i] for i in keep], [grads[i] for i in keep], [sc[i] for i in keep]); self.fast_path_steps += 1
@@ -410,11 +410,12 @@ class AxiomOptimizer(Optimizer):
                 return loss
             pyth = self._two_obj_pyth() if (is_cf and self.direction_blend and self._protected is not None and int(self._protected.shape[0]) == 2) else {}
             ema_fg = float(self._ema_func_gain); pg_b = 1.0 if ema_fg >= 0.75 else ema_fg
-            pre_g = (pg_b * self._mod_wakeup_boost).clamp_max(1.0) if isinstance(self._mod_wakeup_boost, torch.Tensor) else min(1.0, pg_b * float(self._mod_wakeup_boost))
-            g_mult: float | torch.Tensor = self._mod_g_scale * pre_g
+            pre_g = (pg_b * self._mod_wakeup_boost.to(ref_dev)).clamp_max(1.0) if isinstance(self._mod_wakeup_boost, torch.Tensor) else min(1.0, pg_b * float(self._mod_wakeup_boost))
+            g_sc = self._mod_g_scale.to(ref_dev) if isinstance(self._mod_g_scale, torch.Tensor) else self._mod_g_scale
+            g_mult: float | torch.Tensor = g_sc * pre_g
             gen_probe = ((not is_crit) and rec is not None and getattr(rec, "_g_probe_cache", None) is not None and getattr(rec, "_enable_secant_probe", True)
                          and not is_simp and not is_cf and (self._protected is None or int(self._protected.shape[0]) < 2))
-            fast_it, fast_gen, d2_it, slow_it, tracked = [], [], [], [], []
+            fast_it, d2_it, slow_it, tracked = [], [], [], []
             for grp in self.param_groups:
                 is_pr, is_gr, b1 = grp["algorithm"] == "axiom_prior", grp["role"] not in ("critic", "prior", "table"), float(grp["betas"][0])
                 blr = float(grp["lr"]) * step_scale * (self._mod_prior_scale if is_pr else 1.0)
@@ -426,10 +427,10 @@ class AxiomOptimizer(Optimizer):
                         if gen_probe and (not self._gen_param_ids or id(p) in self._gen_param_ids): tracked.append((p, p.detach().clone()))
                         fac, hl2, rd, cd, md = self._param_metrics(p)
                         if p.ndim != 4 and p.ndim >= 2 and md >= 2: d2_it.append((p, g, lr_p, fac, hl2, rd, cd, md, b1, is_gr))
-                        elif (not gen_probe) and b1 == 0.0 and p.dtype == torch.float32 and g.dtype == torch.float32: fast_it.append((p, g, lr_p, fac, hl2)); fast_gen.append(is_gr)
+                        elif (not gen_probe) and b1 == 0.0 and p.dtype == torch.float32 and g.dtype == torch.float32: fast_it.append((p, g, lr_p, fac, hl2, is_gr))
                         else: slow_it.append((p, g, lr_p, fac, hl2, b1, is_gr, None))
             rho_p, rho_n, c_osc, s_rel = self._update_step_cosine(net_grads, ref_dev)
-            if fast_it: slow_it.extend((p, g, lr_p, fac, hl2, 0.0, not is_crit, None) for p, g, lr_p, fac, hl2 in self._run_foreach_fast(fast_it, rho_p=rho_p, c_osc=c_osc, s_rel=s_rel, g_mult=g_mult, is_gen=fast_gen))
+            if fast_it: slow_it.extend((p, g, lr_p, fac, hl2, 0.0, is_gr, None) for p, g, lr_p, fac, hl2, is_gr in self._run_foreach_fast(fast_it, rho_p=rho_p, c_osc=c_osc, s_rel=s_rel, g_mult=g_mult))
             if slow_it or d2_it:
                 rp_f, rn_f, cosc_f, srel_f = float(rho_p.item()), float(rho_n.item()), float(c_osc.item()), float(s_rel.item())
                 if any(x[7] is None for x in slow_it): self._flush_fast_cache(); self._fast_cache = None

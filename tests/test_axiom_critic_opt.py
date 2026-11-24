@@ -987,3 +987,79 @@ def test_conv2d_r256_speed_and_fast_path_sanity() -> None:
             opt_d.step()
         assert pen_fn.last_stats["regime"] == "fwad"
         assert opt_d.ns_2d_activations == 0 and opt_d.fast_path_steps == 3
+
+
+def test_optimizer_review_regressions_large_conv_spill_dead_prefix_and_tensor_mod() -> None:
+    torch.manual_seed(0)
+    dev = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    # (a) >262K 4D Conv2d (524,288 params): escapes 1e-22 / 1e20 AND stays finite/unchanged on Inf / NaN
+    conv = nn.Conv2d(128, 256, 4, stride=2, padding=1, bias=False).to(dev)
+    assert conv.weight.numel() == 524_288
+    opt_big = AxiomOptimizer(conv.parameters(), lr=0.01, conv_layouts=collect_conv_layouts((conv,)))
+    for scale in (1e-22, 1e20):
+        w0 = conv.weight.detach().clone()
+        conv.weight.grad = torch.ones_like(conv.weight) * scale
+        opt_big.step()
+        delta = (conv.weight.detach() - w0).norm().item()
+        assert torch.isfinite(conv.weight).all() and delta > 0.0, f"Large Conv2d deadlocked at scale={scale}"
+    for bad_val in (float("inf"), float("nan")):
+        w0 = conv.weight.detach().clone()
+        conv.weight.grad = torch.full_like(conv.weight, bad_val)
+        opt_big.step()
+        assert torch.isfinite(conv.weight).all() and torch.equal(conv.weight.detach(), w0), (
+            f"Large Conv2d corrupted weights on {bad_val} grad"
+        )
+
+    # (b) Dead-prefix chatter damping: rows [:2, :] dead (0), rows [2:, :] chattering +1/-1
+    w_dp = nn.Parameter(torch.zeros(64, 64, device=dev))
+    opt_dp = AxiomOptimizer([w_dp], lr=0.05)
+    for t in range(40):
+        g = torch.zeros_like(w_dp)
+        g[2:, :] = 1.0 if t % 2 == 0 else -1.0
+        w_dp.grad = g
+        opt_dp.step()
+    assert opt_dp.ema_step_cos < -0.5 and opt_dp.log2_damp < -1.0, (
+        f"Dead-prefix chatter missed: cos={opt_dp.ema_step_cos}, log2_damp={opt_dp.log2_damp}"
+    )
+
+    # (c) Mixed [critic, generator] fast-path spill preserves per-group is_gr (g_scale applies ONLY to generator)
+    p_crit = nn.Parameter(torch.zeros(8, device=dev))
+    p_gen = nn.Parameter(torch.zeros(8, device=dev))
+    opt_mix = AxiomOptimizer(
+        [{"params": [p_crit], "lr": 0.05, "role": "critic"}, {"params": [p_gen], "lr": 0.05, "role": "generator"}]
+    )
+    opt_mix.bind_axiom_modulation(g_scale=0.25)
+    p_crit.grad = torch.ones_like(p_crit) * 1e-22
+    p_gen.grad = torch.ones_like(p_gen) * 1e-22
+    opt_mix.step()
+    d_crit = float(p_crit.detach().norm().item())
+    d_gen = float(p_gen.detach().norm().item())
+    assert math.isclose(d_crit, 0.05, rel_tol=1e-4), f"Critic group wrongly scaled: {d_crit}"
+    assert math.isclose(d_gen, 0.05 * 0.25, rel_tol=1e-4), f"Generator group missing g_scale: {d_gen}"
+
+    # (d) 0-D tensor g_scale & wakeup_boost via bind_axiom_modulation across fast, slow, and 2D paths
+    p_f = nn.Parameter(torch.zeros(8, device=dev))
+    p_s = nn.Parameter(torch.zeros(8, device=dev))
+    p_2 = nn.Parameter(torch.zeros(4, 4, device=dev))
+    opt_mod = AxiomOptimizer(
+        [
+            {"params": [p_f], "lr": 0.04, "role": "generator"},
+            {"params": [p_s], "lr": 0.04, "role": "generator", "betas": (0.5, 0.999)},
+            {"params": [p_2], "lr": 0.04, "role": "generator"},
+        ]
+    )
+    opt_mod._ema_func_gain = 0.5  # ensures wakeup_boost enters pre_g = min(1.0, 0.5 * 1.5) = 0.75
+    opt_mod.bind_axiom_modulation(
+        g_scale=torch.tensor(0.5, device=dev),
+        wakeup_boost=torch.tensor(1.5, device=dev),
+    )
+    p_f.grad = torch.ones_like(p_f)
+    p_s.grad = torch.ones_like(p_s)
+    p_2.grad = torch.eye(4, device=dev)
+    opt_mod.step()
+    expected_mult = 0.5 * 0.75  # g_scale * min(1, ema_func_gain * wakeup_boost)
+    assert math.isclose(float(p_f.detach().norm().item()), 0.04 * expected_mult, rel_tol=1e-4)
+    assert math.isclose(float(p_s.detach().norm().item()), 0.04 * expected_mult, rel_tol=1e-4)
+    assert math.isclose(float(p_2.detach().norm().item()), 0.04 * expected_mult * math.sqrt(4.0), rel_tol=1e-4)
+
