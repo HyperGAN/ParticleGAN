@@ -1,21 +1,35 @@
 """Paired sampling stays separate from required clean scoring and training RNG."""
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 
+import numpy as np
 import pytest
 import torch
 from torch import nn
 
+from benchmarks.toy100.accuracy_evidence import AccuracyEvidence
+from benchmarks.toy100.problems import sample_real
+from experiments.forge import adapters
 from experiments.forge.api import FormulationContext
 from experiments.forge.mechanisms import MechanismAudit, mechanism_blockers
-from experiments.forge.paired_sampling import DECLARATION, FIELD, add_output_noise, paired_sampling_blockers
-from experiments.forge.nativeprofiles import (RELEASE_PROFILE_ID, build_native_models,
-    native_host_initialization, native_profile_blockers, resolve_native_spec)
+from experiments.forge.nativeprofiles import (
+    RELEASE_PROFILE_ID,
+    build_native_models,
+    native_host_initialization,
+    native_profile_blockers,
+    resolve_native_spec,
+)
+from experiments.forge.paired_sampling import (
+    DECLARATION,
+    FIELD,
+    PairedOutputNoiseEvidence,
+    add_output_noise,
+    paired_sampling_blockers,
+)
 from experiments.forge.sampling import task_blockers
 from experiments.forge.state import state_digest
 from particlegan.training import output_noise_std
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -102,3 +116,141 @@ def test_fixed_penalty_mechanisms_never_claim_a_k3p_anchor(arm):
     assert "probe" not in anchor
     assert receipt["mechanisms"]["critic_penalty"]["applied"] == 1
     assert mechanism_blockers(receipt) == []
+
+
+def test_paired_output_noise_evidence_preserves_receipt_law_and_keeps_toy100_guard_strict(tmp_path):
+    context = FormulationContext(recipe_overrides={
+        "num_particles": 12, "z_dim": 2, "batch_size": 4, "total_steps": 5,
+        "output_noise_std": .029, "output_noise_warmup": 0.,
+    })
+    trainer = context.build_trainer(nn.Linear(2, 2), nn.Linear(2, 1))
+    steps = [0, 1, 2, 3, 4, 5]
+    config = {
+        "problem": "grid100", "steps": 5, "device": "cpu", "seed": 0,
+        "eval_interval": 1, "early_eval_steps": steps, "eval_samples": 64,
+        "snapshot_samples": 32, "eval_output_noise": "clean",
+    }
+    reference = sample_real("grid100", 64, generator=torch.Generator().manual_seed(11))
+
+    # Semantic control: frozen toy100 AccuracyEvidence still rejects undeclared string laws.
+    with pytest.raises(ValueError, match="eval_output_noise must be a boolean or a declared sampling law"):
+        AccuracyEvidence({**config, "eval_output_noise": "public_recipe_schedule"},
+                         tmp_path / "strict", steps, reference)
+
+    clean_dir = tmp_path / "clean"
+    clean_dir.mkdir()
+    clean_holdout = {
+        "live": np.zeros((100_000, 2), dtype=np.float32),
+        "ema": np.ones((100_000, 2), dtype=np.float32),
+        "target": sample_real("grid100", 100_000, generator=torch.Generator().manual_seed(12)).numpy(),
+    }
+    np.savez_compressed(clean_dir / "holdout_samples.npz", **clean_holdout)
+    clean_summary = {
+        "status": "complete", "problem": "grid100", "config": config,
+        "eval_output_noise": "clean", "budget_steps": 5, "completed_steps": 5,
+        "eval_steps": steps, "snapshot_steps": steps, "final_samples_file": "final_samples.npz",
+        "accuracy": {"protocol": "toy100-accuracy-v1", "check_steps": steps[-5:],
+                     "sample_count": 64, "holdout_samples": 100_000},
+    }
+
+    before_trainer = state_digest(trainer.state_dict())
+    before_streams = context.streams.audit()
+    before_global_rng = torch.get_rng_state().clone()
+    paired = PairedOutputNoiseEvidence(context, config, tmp_path / "paired-output-noise", steps, reference)
+    for step in steps:
+        for model in ("live", "ema"):
+            paired.observe(step, model, reference, float(step))
+    receipt = paired.finish(clean_summary, clean_dir)
+
+    paired_dir = tmp_path / "paired-output-noise" / "grid100"
+    written_config = json.loads((paired_dir / "config.json").read_text())
+    written_summary = json.loads((paired_dir / "summary.json").read_text())
+    assert written_config["eval_output_noise"] == "public_recipe_schedule"
+    assert written_config[FIELD] == DECLARATION
+    assert written_summary["eval_output_noise"] == "public_recipe_schedule"
+    assert written_summary["config"] == written_config
+    assert receipt["declaration"] == DECLARATION
+    assert receipt["qualification_reuse"] is False
+    assert receipt["holdout_output_noise_std"] == pytest.approx(.029)
+    with np.load(paired_dir / "holdout_samples.npz") as holdout:
+        assert not np.array_equal(holdout["live"], clean_holdout["live"])
+        assert not np.array_equal(holdout["ema"], clean_holdout["ema"])
+        np.testing.assert_array_equal(holdout["target"], clean_holdout["target"])
+    assert state_digest(trainer.state_dict()) == before_trainer
+    assert torch.equal(torch.get_rng_state(), before_global_rng)
+    bindings = context.streams.manifest()["bindings"]
+    allowed = [key for key, value in bindings.items() if value["family"] == "eval"]
+    assert context.streams.compare(before_streams, context.streams.audit(), allowed=allowed)["unintended_rng_deviations"] == 0
+
+
+@pytest.mark.parametrize("task_id", [
+    "grid100_release07_cloud_named_v1",
+    "grid100_affine_paired_laws_v1",
+])
+def test_paired_native100_tasks_validate_and_start_through_adapter(tmp_path, monkeypatch, task_id):
+    task = json.loads((ROOT / "configs/forge/tasks" / f"{task_id}.json").read_text())
+    candidate = {
+        "id": "bcap-regression-probe",
+        "recipe_preset": "bcap",
+        "recipe_overrides": {},
+        "claim_contract": {"sampling_law": "task_declared"},
+    }
+    assert task_blockers(task) == []
+    assert paired_sampling_blockers(task) == []
+    assert native_profile_blockers(task, candidate) == []
+    assert resolve_native_spec(task) is not None
+
+    class _StopAtFirstTrainStep(RuntimeError):
+        pass
+
+    monkeypatch.setattr(adapters._Run, "step", lambda self, real: (_ for _ in ()).throw(_StopAtFirstTrainStep()))
+    frozen = {
+        "candidate": candidate,
+        "candidate_revision": "unit-regression",
+        "protocol": {"seed": 0},
+        "tasks": {task_id: task},
+        "jobs": [{"task_id": task_id, "compatibility_key": "unit-regression"}],
+    }
+    with pytest.raises(_StopAtFirstTrainStep):
+        adapters.run_task(frozen, {"task_id": task_id}, tmp_path, "cpu")
+
+    clean_dir = tmp_path / "native100" / "grid100"
+    paired_dir = tmp_path / "native100" / "paired-output-noise" / "grid100"
+    assert json.loads((clean_dir / "config.json").read_text())["eval_output_noise"] == "clean"
+    paired_cfg = json.loads((paired_dir / "config.json").read_text())
+    assert paired_cfg["eval_output_noise"] == "public_recipe_schedule"
+    assert paired_cfg[FIELD] == DECLARATION
+    paired_events = [json.loads(line) for line in (paired_dir / "events.jsonl").read_text().splitlines()]
+    assert [(row["step"], row["model"]) for row in paired_events] == [(0, "live"), (0, "ema")]
+
+
+def test_native_adapter_completes_paired_output_noise_diagnostic_end_to_end(tmp_path):
+    task = json.loads((ROOT / "configs/forge/tasks/grid100.json").read_text())
+    task["id"] = "grid100_paired_smoke"
+    task["execution"]["steps"] = 2
+    task["execution"]["resources"].update(num_particles=12, batch_size=4)
+    task["evaluation"].update(
+        eval_interval=1, early_eval_steps=[0, 1, 2], eval_samples=64,
+        **{FIELD: deepcopy(DECLARATION)},
+    )
+    frozen = {
+        "candidate": {
+            "id": "bcap-paired-smoke",
+            "recipe_preset": "bcap",
+            "recipe_overrides": {"output_noise_std": .02, "output_noise_warmup": 0.},
+            "claim_contract": {"sampling_law": "task_declared"},
+        },
+        "candidate_revision": "unit-paired-smoke",
+        "protocol": {"seed": 0},
+        "tasks": {task["id"]: task},
+        "jobs": [{"task_id": task["id"], "compatibility_key": "unit-paired-smoke"}],
+    }
+    raw = adapters.run_task(frozen, {"task_id": task["id"]}, tmp_path, "cpu")
+    assert raw["evidence"]["eval_output_noise"] == "clean"
+    assert raw["evidence"]["guards"]["unintended_rng_deviations"] == 0
+    paired = raw["evidence"]["paired_sampling_diagnostic"]
+    assert paired["declaration"] == DECLARATION
+    assert paired["qualification_reuse"] is False
+    assert paired["holdout_output_noise_std"] == pytest.approx(.02)
+    paired_dir = Path(raw["evidence"]["artifact_root"]) / "paired-output-noise" / "grid100"
+    assert json.loads((paired_dir / "summary.json").read_text())["eval_output_noise"] == "public_recipe_schedule"
