@@ -4,16 +4,16 @@ The required task retains its clean/live verdict. These additional artifacts
 use the unchanged frozen evaluators, never supply another reference cell, and
 draw only from separately named evaluation streams.
 """
-from copy import deepcopy
 import json
+from copy import deepcopy
 from pathlib import Path
 
 import numpy as np
 import torch
 
 from particlegan.training import output_noise_std
-from .contracts import atomic_json
 
+from .contracts import atomic_json
 
 FIELD = "paired_output_noise_diagnostic"
 DECLARATION = {"version": 1, "sampling_law": "public_recipe_scheduled_output_noise",
@@ -49,7 +49,12 @@ class PairedOutputNoiseEvidence:
         self.output = Path(output) / config["problem"]
         (self.output / "snapshots").mkdir(parents=True)
         atomic_json(self.output / "config.json", self.config)
-        self.accuracy = AccuracyEvidence(self.config, self.output, steps, reference)
+        # PairedOutputNoiseEvidence owns paired holdout noise via
+        # clean_output/holdout_samples.npz and only delegates terminal
+        # quality_checks recording to AccuracyEvidence.observe(). Pass
+        # toy100's boolean switch while keeping the named policy in receipts.
+        self.accuracy = AccuracyEvidence(
+            {**self.config, "eval_output_noise": True}, self.output, steps, reference)
         self.target = reference.detach().cpu().numpy()
         self.sigmas = {}
         self.final = {}
@@ -80,8 +85,8 @@ class PairedOutputNoiseEvidence:
 
     def finish(self, clean_summary, clean_output):
         from benchmarks.toy100.accuracy import evaluate_accuracy
-        from benchmarks.toy100.gate import evaluate_suite as coverage_suite
         from benchmarks.toy100.accuracy_gate import evaluate_suite as accuracy_suite
+        from benchmarks.toy100.gate import evaluate_suite as coverage_suite
         if self.accuracy.pending:
             raise RuntimeError("incomplete paired terminal evidence")
         np.savez_compressed(self.output / "final_samples.npz", **self.arrays, target=self.target)
