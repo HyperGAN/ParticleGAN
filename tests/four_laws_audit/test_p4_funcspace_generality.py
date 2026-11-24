@@ -33,12 +33,16 @@ def test_exp0_particlegan_band_scale_non_c1_and_oneshot_failures() -> None:
     assert sup["oneshot_alpha"] > 5.0
     assert sup["overshoot_vs_delta_max"] > 10.0
 
-    # 4. Probe budgets and coord_scale 0.05 floor break output-scale invariance on images & tiny scales
-    assert res["probe_budgets"]["vec_2d_scale1"] == 16
-    assert res["probe_budgets"]["img_64x64x3"] == 2
-    assert res["probe_budgets"]["img_256x256x3"] == 2
-    assert res["coord_scale_floor"]["img_256x256x3"]["distortion_factor"] > 20.0
-    assert res["coord_scale_floor"]["vec_2d_tiny1e-3"]["distortion_factor"] > 50.0
+    # 4. Probe budgets and real observe_scale() + coord_scale 0.05 floor:
+    # Unit-RMS RGB images have ema_data_scale ~ sqrt(d) -> 1.0x (no floor distortion!),
+    # while tiny per-coord RMS (1e-3) hits the 0.05 floor with exact 50x distortion.
+    assert res["probe_budgets"]["vec_2d_rms1"] == 16
+    assert res["probe_budgets"]["img_64x64x3_rms1"] == 2
+    assert res["probe_budgets"]["img_256x256x3_rms1"] == 2
+    assert math.isclose(res["coord_scale_floor"]["img_256x256x3_rms1"]["distortion_factor"], 1.0, rel_tol=1e-4)
+    assert math.isclose(res["coord_scale_floor"]["img_64x64x3_rms1"]["distortion_factor"], 1.0, rel_tol=1e-4)
+    assert math.isclose(res["coord_scale_floor"]["vec_2d_rms1e-3"]["distortion_factor"], 50.0, rel_tol=1e-4)
+    assert math.isclose(res["coord_scale_floor"]["img_256x256x3_rms1e-3"]["distortion_factor"], 50.0, rel_tol=1e-4)
 
     # 5. IEEE-754 1e-38 dynamic scaling rescues 1e-24 gradient where FP32 Adam underflows to 0
     u38 = res["dynamic_1e38_underflow_check"]
@@ -71,13 +75,24 @@ def test_exp1_reparameterization_scaling_laws_and_non_equivalence_to_natural_gra
     assert hr["muon_ns"]["1000"]["step1_delta_f"] / hr["muon_ns"]["1"]["step1_delta_f"] > 4e2
     assert hr["muon_ns"]["1000"]["final_mse_100"] > 1000.0 * hr["muon_ns"]["1"]["final_mse_100"]
 
-    # LARS and undamped Gauss-Newton are invariant in BOTH ||Delta f|| AND W1/W2 layer balance
+    # LARS is strictly alpha^0-invariant in BOTH ||Delta f|| AND W1/W2 layer balance
     assert math.isclose(hr["lars"]["1"]["step1_delta_f"], hr["lars"]["1000"]["step1_delta_f"], rel_tol=1e-4)
     assert math.isclose(hr["lars"]["1"]["step1_w1_over_w2_ratio"], hr["lars"]["1000"]["step1_w1_over_w2_ratio"], rel_tol=1e-4)
     assert math.isclose(hr["lars"]["1"]["final_mse_100"], hr["lars"]["1000"]["final_mse_100"], rel_tol=1e-3)
-    assert hr["exact_gn_undamped"]["1000"]["step1_w1_over_w2_ratio"] > 0.30
+    # Undamped pinv(J) is NOT strictly alpha^0-invariant on homogeneous ReLU nets because rank(J) <= P - H:
+    # at B=128 (overdetermined 512x384), H=32 symmetries leave rank <= 352; at B=16, pinv(J) freezes W1' completely!
+    gn_rd = res["gn_rank_deficiency"]
+    assert gn_rd["numerical_rank_1e-6"] <= gn_rd["n_params"] - gn_rd["n_hidden_symmetries"]
+    assert gn_rd["sv_353_first_symmetry_zero"] < 1e-6
+    assert gn_rd["b16_pinv_w1_over_w2"]["1"] > 0.1
+    assert gn_rd["b16_pinv_w1_over_w2"]["1000"] < 1e-5
+    assert not math.isclose(
+        hr["exact_gn_undamped"]["1"]["step1_w1_over_w2_ratio"],
+        hr["exact_gn_undamped"]["1000"]["step1_w1_over_w2_ratio"],
+        rel_tol=1e-2,
+    )
     assert hr["exact_gn_undamped"]["1000"]["final_mse_100"] < 1e-5
-    # Isotropic damped GN breaks layer balance even while keeping ||Delta f|| bounded
+    # Isotropic damped GN breaks layer balance severely even while keeping ||Delta f|| bounded
     assert hr["exact_gn_damped"]["1000"]["step1_w1_over_w2_ratio"] < 1e-5
 
     # Scalar realized trust bounds ||Delta f|| <= 0.10 and prevents divergence,
@@ -88,8 +103,10 @@ def test_exp1_reparameterization_scaling_laws_and_non_equivalence_to_natural_gra
         assert hr[arm]["1000"]["final_mse_100"] < 0.02
         assert hr[arm]["1000"]["step1_w1_over_w2_ratio"] < 1e-5
 
-    # External output-gain scaling (gamma=1000): LARS breaks (>500x blowup), LARS+realized_trust stays <= 0.10
+    # External output-gain scaling (gamma=1000): SGD realized scales as gamma^5 (~10^5 per 10x),
+    # LARS & Muon-NS scale as gamma^1 (>500x blowup), while +realized_trust stays <= 0.10
     eg = res["external_output_gain"]
+    assert eg["sgd"]["1000"]["step1_delta_f"] / eg["sgd"]["100"]["step1_delta_f"] > 5e4
     assert eg["lars"]["1000"]["step1_delta_f"] / eg["lars"]["1"]["step1_delta_f"] > 500.0
     assert eg["muon_ns"]["1000"]["step1_delta_f"] / eg["muon_ns"]["1"]["step1_delta_f"] > 500.0
     assert eg["lars+realized_trust"]["1000"]["step1_delta_f"] <= 0.101
@@ -121,16 +138,21 @@ def test_exp2_nonlinearity_gap_jvp_vs_oneshot_vs_backtracking() -> None:
         assert row["oneshot_violation_ratio"] > 2.5
         assert row["backtrack_actual_disp"] <= 0.201
 
-    # Tanh rail jump & bilinear small-weight saddle: JVP is blind (delta_lin < delta_max -> alpha=1), realized jumps >> delta_max
+    # Tanh rail jump & bilinear small-weight saddle: JVP is blind (delta_lin < delta_max -> alpha=1),
+    # realized jumps >> delta_max, while both one-shot secant and backtracking enforce <= delta_max (with over-damping!)
     rj = res["tanh_rail_jump"]
     assert rj["delta_lin_jvp"] < 1e-4
-    assert rj["delta_real"] > 0.4
+    assert rj["jvp_trust_alpha"] == 1.0
+    assert rj["jvp_trust_actual_disp"] > 0.4
     assert rj["gamma_real_over_lin"] > 1e4
+    assert rj["oneshot_actual_disp"] < 0.05  # Superlinear over-damping on rail jump
+    assert rj["backtrack_actual_disp"] <= rj["delta_max"] + 1e-5
 
     bs = res["bilinear_saddle_jvp_blindness"]
     assert bs["delta_lin_jvp"] < bs["delta_max"]
     assert bs["jvp_trust_alpha"] == 1.0
     assert bs["jvp_trust_actual_disp"] > 3.0 * bs["delta_max"]
+    assert bs["oneshot_actual_disp"] <= bs["delta_max"] + 1e-5
     assert bs["backtrack_actual_disp"] <= bs["delta_max"] + 1e-5
 
 

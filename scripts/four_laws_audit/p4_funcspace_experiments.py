@@ -40,6 +40,7 @@ from torch.func import functional_call, jacrev, jvp
 from particlegan._minimal.dynamics import _mp_scale as minimal_mp_scale
 from particlegan._t4_nash.optim import _impedance_normalized_direction
 from particlegan._unified_v4.optimizer import _QUINTIC_COEFFS, _band_scale
+from particlegan._unified_v11.critic import UnifiedV11StepRecord
 from particlegan._unified_v11.optimizer import quintic_orthogonalize_2d
 from particlegan._unified_v12.optimizer import UnifiedV12Optimizer
 from particlegan.init import deterministic_orthogonal_
@@ -302,23 +303,33 @@ def run_exp0_code_audit(device: torch.device) -> Dict[str, Any]:
     alpha_sup_amp = _band_scale(d_sup_1, 0.05, d_max, alpha_max=48.0)
     d_sup_after_amp = 0.005 * (alpha_sup_amp ** 3)
 
-    # 3. coord_scale floor distortion and probe budget b_p
+    # 3. Real UnifiedV11StepRecord.observe_scale() + coord_scale floor audit & probe budget b_p
+    # observe_scale computes full Euclidean L2 RMS sqrt(E[||x||_2^2]).clamp_min(0.05) = sqrt(d)*coord_rms,
+    # so unit-RMS RGB images have ema_data_scale ~ sqrt(d) -> coord_scale = 1.0 (0 floor distortion!),
+    # whereas tiny per-coordinate scales (coord_rms < 0.05) hit the 0.05 floor in critic.py:343 & optimizer.py:1260.
     probe_budgets = {}
     coord_scale_ratios = {}
-    for label, out_dim, data_scale in [
-        ("vec_2d_scale1", 2, 1.0),
-        ("vec_2d_tiny1e-3", 2, 1e-3),
-        ("img_64x64x3", 64 * 64 * 3, 1.0),
-        ("img_256x256x3", 256 * 256 * 3, 1.0),
+    for label, shape, coord_rms in [
+        ("vec_2d_rms1", (16, 2), 1.0),
+        ("vec_2d_rms1e-3", (16, 2), 1e-3),
+        ("img_64x64x3_rms1", (4, 3, 64, 64), 1.0),
+        ("img_256x256x3_rms1", (4, 3, 256, 256), 1.0),
+        ("img_256x256x3_rms1e-3", (4, 3, 256, 256), 1e-3),
     ]:
+        out_dim = math.prod(shape[1:])
         b_p = min(64, max(2, min(16, 8192 // out_dim)))
-        true_coord = data_scale / math.sqrt(float(out_dim))
-        clamped_coord = max(0.05, true_coord)
+        x_const = torch.full(shape, coord_rms, device=device, dtype=torch.float32)
+        rec = UnifiedV11StepRecord()
+        rec.observe_scale(x_const)
+        obs_data_scale = float(rec.ema_data_scale)
+        clamped_coord = max(0.05, obs_data_scale / math.sqrt(float(out_dim)))
         probe_budgets[label] = b_p
         coord_scale_ratios[label] = {
-            "true_coord_scale": true_coord,
+            "out_dim": out_dim,
+            "true_coord_rms": coord_rms,
+            "observed_ema_data_scale": obs_data_scale,
             "clamped_coord_scale": clamped_coord,
-            "distortion_factor": clamped_coord / true_coord,
+            "distortion_factor": clamped_coord / coord_rms,
         }
 
     # 4. Dynamic 1e-38 scaling in UnifiedV12Optimizer vs torch.optim.Adam on 1e-24 gradient
@@ -597,9 +608,33 @@ def run_exp1_reparameterization(device: torch.device) -> Dict[str, Any]:
             per_g[str(int(g_val))] = {"alpha": alpha_g, "step1_delta_f": disp}
         external_gain_results[arm_name] = per_g
 
+    # Verify rank deficiency of homogeneous ReLU Jacobian (H=32 exact neuron scaling symmetries => rank <= P - H)
+    # and underdetermined pinv(J) layer-freeze at B=16 (n_out=64 < rank(J_2)=128)
+    x_over = torch.randn(128, 8, device=device)
+    net_rank = _init_reparam_net(1.0, device, seed=0)
+    j_over = _jacobian_matrix(net_rank, x_over)  # [512, 384]
+    sv_over = torch.linalg.svdvals(j_over)
+    gn_rank_deficiency = {
+        "n_params": int(j_over.shape[1]),
+        "n_hidden_symmetries": 32,
+        "n_out_overdet": int(j_over.shape[0]),
+        "numerical_rank_1e-6": int((sv_over > 1e-6).sum().item()),
+        "sv_352_last_nonzero": float(sv_over[351].item()),
+        "sv_353_first_symmetry_zero": float(sv_over[352].item()),
+    }
+    x_b16, y_b16 = x_train[:16], y_train[:16]
+    gn_b16_ratios = {}
+    for a in (1.0, 1000.0):
+        net_b16 = _init_reparam_net(a, device, seed=0)
+        d_b16 = _exact_gauss_newton_delta(net_b16, x_b16, y_b16, 0.10, damping=0.0)
+        c1_b16, c2_b16 = _layer_functional_contributions(net_b16, x_b16, d_b16[0], d_b16[1])
+        gn_b16_ratios[str(int(a))] = c1_b16 / max(c2_b16, 1e-30)
+    gn_rank_deficiency["b16_pinv_w1_over_w2"] = gn_b16_ratios
+
     return {
         "max_initial_equiv_error": equiv_err,
         "homogeneous_reparam": reparam_results,
+        "gn_rank_deficiency": gn_rank_deficiency,
         "external_output_gain": external_gain_results,
     }
 
@@ -796,6 +831,12 @@ def run_exp2_nonlinearity_gap(device: torch.device) -> Dict[str, Any]:
     ds_rail = _compute_base_deltas(rp, rg, "adam", 10.0, {}, 1)
     rail_d_lin = _jvp_rms_displacement(rail_net, x_probe, ds_rail)
     rail_d_real = _realized_rms_displacement(rail_net, x_probe, base_rail, ds_rail, 1.0)
+    rail_jvp_alpha = min(1.0, delta_max / max(rail_d_lin, 1e-12)) if rail_d_lin > delta_max else 1.0
+    rail_jvp_post = _realized_rms_displacement(rail_net, x_probe, base_rail, ds_rail, rail_jvp_alpha)
+    rail_sec_alpha, _, rail_sec_post = _oneshot_secant_trust(rail_net, x_probe, base_rail, ds_rail, delta_max)
+    rail_bt_alpha, rail_bt_post, rail_bt_evals = _backtrack_realized_trust(
+        rail_net, x_probe, base_rail, ds_rail, delta_max
+    )
 
     # Bilinear small-weight saddle witness: f(x) = W2 W1 x with ||W|| ~ 1e-3.
     # JVP sees only O(1e-3) linear terms (accepts alpha=1.0!), while Delta W2 @ Delta W1 x explodes O(1)!
@@ -807,6 +848,7 @@ def run_exp2_nonlinearity_gap(device: torch.device) -> Dict[str, Any]:
     bi_d_real = _realized_rms_displacement(bilin_net, x_probe, base_bi, bi_deltas, 1.0)
     bi_jvp_alpha = min(1.0, delta_max / max(bi_d_lin, 1e-12)) if bi_d_lin > delta_max else 1.0
     bi_jvp_post = _realized_rms_displacement(bilin_net, x_probe, base_bi, bi_deltas, bi_jvp_alpha)
+    bi_sec_alpha, _, bi_sec_post = _oneshot_secant_trust(bilin_net, x_probe, base_bi, bi_deltas, delta_max)
     bi_bt_alpha, bi_bt_post, bi_bt_evals = _backtrack_realized_trust(bilin_net, x_probe, base_bi, bi_deltas, delta_max)
 
     return {
@@ -814,9 +856,17 @@ def run_exp2_nonlinearity_gap(device: torch.device) -> Dict[str, Any]:
         "deep_mlp16_train": mlp_train_results,
         "saturating_tanh_resnet16_sweep": resnet_sweep,
         "tanh_rail_jump": {
+            "delta_max": delta_max,
             "delta_lin_jvp": rail_d_lin,
             "delta_real": rail_d_real,
             "gamma_real_over_lin": rail_d_real / max(rail_d_lin, 1e-12),
+            "jvp_trust_alpha": rail_jvp_alpha,
+            "jvp_trust_actual_disp": rail_jvp_post,
+            "oneshot_alpha": rail_sec_alpha,
+            "oneshot_actual_disp": rail_sec_post,
+            "backtrack_alpha": rail_bt_alpha,
+            "backtrack_actual_disp": rail_bt_post,
+            "backtrack_evals": rail_bt_evals,
         },
         "bilinear_saddle_jvp_blindness": {
             "delta_max": delta_max,
@@ -825,6 +875,8 @@ def run_exp2_nonlinearity_gap(device: torch.device) -> Dict[str, Any]:
             "gamma_real_over_lin": bi_d_real / max(bi_d_lin, 1e-12),
             "jvp_trust_alpha": bi_jvp_alpha,
             "jvp_trust_actual_disp": bi_jvp_post,
+            "oneshot_alpha": bi_sec_alpha,
+            "oneshot_actual_disp": bi_sec_post,
             "backtrack_alpha": bi_bt_alpha,
             "backtrack_actual_disp": bi_bt_post,
             "backtrack_evals": bi_bt_evals,
@@ -1753,12 +1805,18 @@ def _print_summary(res: Dict[str, Any]) -> None:
             f"({row['oneshot_violation_ratio']:.2f}x) post_bt={row['backtrack_actual_disp']:.4f}"
         )
     rj = e2["tanh_rail_jump"]
-    print(f"  Tanh rail jump: lin={rj['delta_lin_jvp']:.3e} real={rj['delta_real']:.4f} Gamma={rj['gamma_real_over_lin']:.2e}")
+    print(
+        f"  Tanh rail jump: lin={rj['delta_lin_jvp']:.3e} real={rj['delta_real']:.4f} "
+        f"Gamma={rj['gamma_real_over_lin']:.2e} | jvp_post={rj['jvp_trust_actual_disp']:.4f} "
+        f"sec_post={rj['oneshot_actual_disp']:.5f} (a={rj['oneshot_alpha']:.4f}) "
+        f"bt_post={rj['backtrack_actual_disp']:.5f} (evals={rj['backtrack_evals']})"
+    )
     bs = e2["bilinear_saddle_jvp_blindness"]
     print(
         f"  Bilinear saddle: lin={bs['delta_lin_jvp']:.3e} real={bs['delta_real']:.4f} "
         f"Gamma={bs['gamma_real_over_lin']:.1f} | jvp_alpha={bs['jvp_trust_alpha']:.2f} "
-        f"jvp_post={bs['jvp_trust_actual_disp']:.4f} vs bt_post={bs['backtrack_actual_disp']:.4f}"
+        f"jvp_post={bs['jvp_trust_actual_disp']:.4f} sec_post={bs['oneshot_actual_disp']:.5f} "
+        f"bt_post={bs['backtrack_actual_disp']:.5f} (evals={bs['backtrack_evals']})"
     )
 
     e3 = res["exp3_transformer_attention"]
