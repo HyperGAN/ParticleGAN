@@ -113,14 +113,6 @@ def _apply_mom(st: Dict[str, Any], p: torch.Tensor, gu: torch.Tensor, b1: float)
     mu, ms = st.setdefault("m_unit", torch.zeros_like(p, dtype=torch.float32)), st.setdefault("m_scale", torch.zeros((), device=p.device, dtype=torch.float32))
     gu, _, _ = mantissa_exponent_normalize(b1 * mu + (1.0 - b1) * gu); mu.copy_(gu); ms.fill_(1.0); return gu
 
-def _estimate_r_eff(mc: torch.Tensor, v_pow: torch.Tensor, md: int) -> Tuple[torch.Tensor, torch.Tensor]:
-    br = mc[mc.square().sum(dim=1).argmax()]
-    v = torch.where((mc @ v_pow).norm() > 1e-12, v_pow, torch.where(br.norm() > 0.0, br / br.norm().clamp_min(1e-30), v_pow))
-    for _ in range(2):
-        u = mc @ v; u = torch.where(u.norm() > 0.0, u / u.norm().clamp_min(1e-30), u)
-        vn = mc.T @ u; v = torch.where(vn.norm() > 0.0, vn / vn.norm().clamp_min(1e-30), v)
-    return (1.0 / (mc @ v).square().sum().clamp_min(1.0 / float(md))).clamp(1.0, float(md)), v
-
 class AxiomOptimizer(Optimizer):
     """Law 4.1-4.5 role-agnostic scale-invariant equilibrated optimizer."""
     family = recipe_optimizer_family = "axiom"
@@ -269,7 +261,7 @@ class AxiomOptimizer(Optimizer):
                 rho_n = torch.where(sk_ok, 0.90 * rho_p + 0.10 * (sk_now * prev_sk).sum().double().clamp(-1.0, 1.0), rho_p)
             self._prev_step_sketch = torch.where(sk_ok, sk_now, prev_sk if prev_sk is not None else sk_now)
         if self._ss_coef is None or self._ss_coef[0].device != dev:
-            self._ss_coef = (torch.tensor([-1.0 / 0.45, 1.0 / 0.45, -1.0 / 0.50], dtype=torch.float64, device=dev), torch.tensor([-0.10 / 0.45, -0.15 / 0.45, 0.05 / 0.50], dtype=torch.float64, device=dev))
+            self._ss_coef = (torch.tensor([-1.0 / 0.35, 1.0 / 0.35, -1.0 / 0.45], dtype=torch.float64, device=dev), torch.tensor([-0.45 / 0.35, 0.15 / 0.35, -0.15 / 0.45], dtype=torch.float64, device=dev))
         u3 = (rho_n * self._ss_coef[0] + self._ss_coef[1]).clamp_(0.0, 1.0); g3 = u3 * u3 * (3.0 - 2.0 * u3)
         log2_d = (damp_p - 0.08 * g3[0] + 0.12 * g3[1]).clamp(-10.0, 0.0); self._ema_step_cos_t, self._log2_damp_t = rho_n, log2_d
         return rho_p, rho_n, torch.exp2(log2_d), float(self.smoothing) * g3[2]
@@ -291,7 +283,7 @@ class AxiomOptimizer(Optimizer):
         return {pid: (min(2.0, max(1.0, (math.sqrt(a2) + math.sqrt(b2)) / math.sqrt(max(a2 + b2 + 2.0 * dt, 1e-36)))) if (a2 > 1e-24 and b2 > 1e-24) else 1.0)
                 for r, pids in rp.items() for a2, b2, dt in (acc[r],) for pid in pids}
 
-    def _step_prior(self, p: torch.Tensor, grad: torch.Tensor, grp: Dict[str, Any], *, base_lr: float, b1: float, s_rel: torch.Tensor, rho_p: torch.Tensor) -> None:
+    def _step_prior(self, p: torch.Tensor, grad: torch.Tensor, grp: Dict[str, Any], *, base_lr: float, b1: float, s_rel: torch.Tensor, rho_p: float) -> None:
         if base_lr <= 0.0: return
         st, r_sc, req = self.state[p], self._row_scales.get(p), bool(grp.get("sampled_rows_required", True))
         if req and r_sc is None:
@@ -308,7 +300,8 @@ class AxiomOptimizer(Optimizer):
             mp = st.setdefault("m_prior", torch.zeros_like(p, dtype=torch.float32)); mpv = mp[ridx]
             dr = torch.where(fin, mpv.mul(b1).add(dr, alpha=1.0 - b1), mpv); mp.index_add_(0, ridx, (dr - mpv) * rmask.float())
         u_row, l2, ok0 = _me_unit_rows(dr); ok = rmask & ok0; nok = ok.float().sum()
-        ref_n = _update_l2_ref(st, float(((l2 * ok.float()).sum() / nok.clamp_min(1.0)).item()), float(rho_p.item())) if bool((nok > 0).item()) else float(st.get("log2_ref", 0.0))
+        n_ok, mean_l2 = torch.stack((nok.double(), ((l2 * ok.float()).sum() / nok.clamp_min(1.0)).double())).tolist()
+        ref_n = _update_l2_ref(st, float(mean_l2), float(rho_p)) if n_ok > 0.0 else float(st.get("log2_ref", 0.0))
         ur = torch.where(ok, u_row * torch.rsqrt(1.0 + (s_rel.float() * torch.exp2((ref_n - l2).clamp(-30.0, 30.0))).square()), torch.zeros_like(u_row))
         p.index_add_(0, ridx, (ur * r_sc.unsqueeze(1) if (r_sc is not None and len(r_sc) == len(ridx)) else ur).to(p.dtype), alpha=-base_lr)
 
@@ -426,36 +419,41 @@ class AxiomOptimizer(Optimizer):
                     elif lr_p > 0.0:
                         if gen_probe and (not self._gen_param_ids or id(p) in self._gen_param_ids): tracked.append((p, p.detach().clone()))
                         fac, hl2, rd, cd, md = self._param_metrics(p)
-                        if p.ndim != 4 and p.ndim >= 2 and md >= 2: d2_it.append((p, g, lr_p, fac, hl2, rd, cd, md, b1, is_gr))
+                        if p.ndim == 2 and md >= 2: d2_it.append((p, g, lr_p, fac, hl2, rd, cd, b1, is_gr))
                         elif (not gen_probe) and b1 == 0.0 and p.dtype == torch.float32 and g.dtype == torch.float32: fast_it.append((p, g, lr_p, fac, hl2, is_gr))
                         else: slow_it.append((p, g, lr_p, fac, hl2, b1, is_gr, None))
             rho_p, rho_n, c_osc, s_rel = self._update_step_cosine(net_grads, ref_dev)
             if fast_it: slow_it.extend((p, g, lr_p, fac, hl2, 0.0, is_gr, None) for p, g, lr_p, fac, hl2, is_gr in self._run_foreach_fast(fast_it, rho_p=rho_p, c_osc=c_osc, s_rel=s_rel, g_mult=g_mult))
             if slow_it or d2_it:
-                rp_f, rn_f, cosc_f, srel_f = float(rho_p.item()), float(rho_n.item()), float(c_osc.item()), float(s_rel.item())
-                if any(x[7] is None for x in slow_it): self._flush_fast_cache(); self._fast_cache = None
-                for p, g, lr_p, fac, hl2, b1, is_gr, pgrp in slow_it:
-                    if pgrp is not None: self._step_prior(p, g, pgrp, base_lr=lr_p, b1=b1, s_rel=s_rel, rho_p=rho_p)
-                    elif bool((res := mantissa_exponent_normalize(g))[2].item()):
-                        gu, lt = _apply_mom(self.state[p], p, res[0], b1), float(res[1].item()) - hl2; rn = _update_l2_ref(self.state[p], lt, rp_f)
-                        p.add_((gu * (-(((lr_p * g_mult) if is_gr else lr_p) * fac) * cosc_f / math.sqrt(1.0 + (srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))) ** 2))).to(p.dtype))
-                prep, m2_l2 = [], []
-                for p, g, lr_p, fac, hl2, rd, cd, md, b1, is_gr in d2_it:
-                    gu, l2n, ok = mantissa_exponent_normalize(g)
-                    if not bool(ok.item()): continue
-                    st, lt = self.state[p], float(l2n.item()) - hl2; gu, rn, nt = _apply_mom(st, p, gu, b1), _update_l2_ref(st, lt, rp_f), rd > cd
-                    mc = gu.reshape(rd, cd).T if nt else gu.reshape(rd, cd); nd = int(mc.shape[1])
-                    if "v_pow" not in st or tuple(st["v_pow"].shape) != (nd,):
-                        v0 = torch.cos((torch.arange(nd, device=p.device, dtype=torch.float32) + 0.5) * 2.399963229728653); st["v_pow"] = v0 / v0.norm().clamp_min(1e-30)
-                    reff_t, v_new = _estimate_r_eff(mc, st["v_pow"], md); st["v_pow"].copy_(v_new)
-                    if md >= 4: m2_l2.append(lt)
-                    prep.append((p, mc, nt, lr_p, fac, md, lt, rn, float(reff_t.item()), is_gr))
-                sv = sorted(m2_l2); skew = (sv[-1] - (sv[len(sv) // 2] if len(sv) % 2 else 0.5 * (sv[len(sv) // 2 - 1] + sv[len(sv) // 2]))) if len(sv) >= 3 else 0.0
-                wit, ns_b = ((len(sv) >= 3 and skew > 2.0) or (ema_fg < 0.70) or (rn_f < -0.35)), {}
-                for p, mc, nt, lr_p, fac, md, lt, rn, reff, is_gr in prep:
-                    rate, rs = ((lr_p * g_mult) if is_gr else lr_p), srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))
-                    if reff < 1.25 and md >= 4 and wit: ns_b.setdefault((int(mc.shape[0]), int(mc.shape[1])), []).append((p, mc, nt, rate * fac * cosc_f, rs))
-                    else: p.add_(((mc.T if nt else mc) * (-(rate * fac * min(math.sqrt(float(md)), 2.0 * math.sqrt(reff)) * cosc_f / math.sqrt(1.0 + rs * rs)))).reshape_as(p).to(p.dtype))
+                s_vec: List[torch.Tensor] = [rho_p.double(), c_osc.double(), s_rel.double()]
+                if isinstance(g_mult, torch.Tensor): s_vec.append(g_mult.to(ref_dev, dtype=torch.float64).reshape(()))
+                slow_norm, d2_norm = [], []
+                for x in slow_it:
+                    if x[7] is None:
+                        gu, l2n, ok = mantissa_exponent_normalize(x[1]); slow_norm.append((x, gu))
+                        s_vec.extend((ok.to(ref_dev, dtype=torch.float64), l2n.to(ref_dev, dtype=torch.float64)))
+                for x in d2_it:
+                    gu, l2n, ok = mantissa_exponent_normalize(x[1]); d2_norm.append((x, gu))
+                    s_vec.extend((ok.to(ref_dev, dtype=torch.float64), l2n.to(ref_dev, dtype=torch.float64)))
+                sv = torch.stack(s_vec).tolist()
+                rp_f, cosc_f, srel_f = float(sv[0]), float(sv[1]), float(sv[2])
+                idx_s, gm_f = (4, float(sv[3])) if isinstance(g_mult, torch.Tensor) else (3, float(g_mult))
+                if slow_norm: self._flush_fast_cache(); self._fast_cache = None
+                for x in slow_it:
+                    if x[7] is not None: self._step_prior(x[0], x[1], x[7], base_lr=x[2], b1=x[5], s_rel=s_rel, rho_p=rp_f)
+                for (p, _, lr_p, fac, hl2, b1, is_gr, _), gu in slow_norm:
+                    ok_v, l2_v = sv[idx_s] > 0.5, float(sv[idx_s + 1]); idx_s += 2
+                    if not ok_v: continue
+                    gu, lt = _apply_mom(self.state[p], p, gu, b1), l2_v - hl2; rn = _update_l2_ref(self.state[p], lt, rp_f)
+                    p.add_((gu * (-(((lr_p * gm_f) if is_gr else lr_p) * fac) * cosc_f / math.sqrt(1.0 + (srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))) ** 2))).to(p.dtype))
+                ns_b: Dict[Tuple[int, int], List[Tuple[torch.Tensor, torch.Tensor, bool, float, float]]] = {}
+                for (p, _, lr_p, fac, hl2, rd, cd, b1, is_gr), gu in d2_norm:
+                    ok_v, l2_v = sv[idx_s] > 0.5, float(sv[idx_s + 1]); idx_s += 2
+                    if not ok_v: continue
+                    st, lt = self.state[p], l2_v - hl2; gu, rn, nt = _apply_mom(st, p, gu, b1), _update_l2_ref(st, lt, rp_f), rd > cd
+                    mc = gu.reshape(rd, cd).T if nt else gu.reshape(rd, cd)
+                    rate, rs = ((lr_p * gm_f) if is_gr else lr_p), srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))
+                    ns_b.setdefault((int(mc.shape[0]), int(mc.shape[1])), []).append((p, mc, nt, rate * fac * cosc_f, rs))
                 for bkt in ns_b.values():
                     self.ns_2d_activations += len(bkt); mats = torch.stack([b[1] for b in bkt], dim=0)
                     orths = fp32_tikhonov_ns_batched(mats, steps=5, rel_smooth=torch.tensor([b[4] for b in bkt], dtype=torch.float32, device=mats.device)).float()
