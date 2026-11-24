@@ -38,7 +38,7 @@ BUILTIN_CAPABILITIES = (
 COMPONENT_OBJECTIVE_HOSTS = frozenset({
     "two_pole", "unused_token_hold", "ae_gan_hold", "trajectory",
     "residual_student", "unipolar", "cover_leftover", "mid_scale_identity",
-    "five_word_joint",
+    "five_word_joint", "bytegan_bigan_dictionary",
 })
 COMPONENT_TRANSPORT_COHORTS = frozenset({
     "conditional_transport_round5_v1", "component_output_transport_v1",
@@ -124,7 +124,7 @@ def task_recipe_resources(task):
         return {"num_particles": LOCKED_SHARED.n_particles, "z_dim": 4, "batch_size": 128}
     if adapter in {"native100", "native100_continuation"} and "native_profile" in execution:
         return deepcopy(execution["host_definition"]["resources"])
-    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation", "t3_isolation", "imbalance_nash"}:
+    if adapter in {"word_joint", "public_api_model_toy", "particle_interpolation", "t3_isolation", "imbalance_nash", "bytegan", "bytegan_bigan"}:
         return deepcopy(execution["host_definition"]["resources"])
     return deepcopy(execution.get("resources", {}))
 
@@ -169,6 +169,13 @@ def task_recipe_overrides(candidate, task):
         overrides.update(
             COMPONENT_HOST_BOUNDARY_OVERRIDES,
             input_noise_std=0.5,
+            total_steps=execution.get("original_schedule_horizon", execution["steps"]),
+        )
+        return overrides
+    if task["adapter"] == "bytegan_bigan" and not is_policy_task(task):
+        overrides = host_recipe_overrides(bound, execution, task_recipe_resources(task))
+        overrides.update(
+            COMPONENT_HOST_BOUNDARY_OVERRIDES,
             total_steps=execution.get("original_schedule_horizon", execution["steps"]),
         )
         return overrides
@@ -230,7 +237,7 @@ def task_formulation_context(candidate, task, protocol=None, *, device="cpu", ro
     overrides = task_recipe_overrides(candidate, task)
     is_encoder = overrides.get("encoder_mode", "none") != "none"
     is_model_toy = task.get("adapter") == "public_api_model_toy"
-    is_clean_word = task.get("adapter") == "word_joint" and not is_policy_task(task)
+    is_clean_word = task.get("adapter") in {"word_joint", "bytegan_bigan"} and not is_policy_task(task)
     is_clean_behavior = (task.get("adapter") == "transfer_behavior"
                          and task.get("execution", {}).get("host") != "mode_hold"
                          and not is_policy_task(task))
@@ -287,7 +294,7 @@ PUBLIC_TRAINER_POLICY_ADAPTERS = frozenset({
     "transfer_vector", "transfer_image", "native100", "native100_continuation",
     "ring_endurance", "paired_adaptation", "clockfree_audit",
     "word_joint", "public_api_model_toy", "transfer_behavior", "particle_interpolation",
-    "t3_isolation", "imbalance_nash",
+    "t3_isolation", "imbalance_nash", "bytegan", "bytegan_bigan",
 })
 
 
@@ -325,7 +332,7 @@ def task_policy_blockers(task, candidate):
         and execution.get('host') in ('api-model-vae-hard', 'api-model-vae-categorical')
         and execution.get('host_definition', {}).get('provider') == 'benchmarks.toy_audit.api_model_vae')
     if consumer is not None and not model_vae_transport and (consumer != 'output_marginal_v1'
-            or task.get('adapter') not in ('transfer_behavior', 'word_joint')
+            or task.get('adapter') not in ('transfer_behavior', 'word_joint', 'bytegan_bigan')
             or task.get('execution', {}).get('host') not in COMPONENT_OBJECTIVE_HOSTS
             or (task.get('task_cohort') not in COMPONENT_TRANSPORT_COHORTS and not policy_two_pole)):
         return ['unsupported explicit component transport consumer']

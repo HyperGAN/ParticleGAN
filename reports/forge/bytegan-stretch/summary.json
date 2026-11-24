@@ -1,0 +1,1228 @@
+{
+  "campaign_id": "bytegan-stretch-diag-v1",
+  "cuda_model": "NVIDIA RTX A6000",
+  "evidence_scope": "research_diagnostic",
+  "families": [
+    {
+      "candidate_id": "unified-v12",
+      "family": "unified",
+      "status": "COMPLETE",
+      "sustained_passes": 0,
+      "tasks": {
+        "bytegan_bigan_dictionary": {
+          "attempt_id": "bed502cf044784ef79579d82282bcd54",
+          "completed_steps": 6000,
+          "declared_steps": 6000,
+          "device": "cuda:1",
+          "energy": {
+            "avg_power_watts": 87.478119082944,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 1.9454833333318433,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 11672.89999999106,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12",
+            "recon_valid_exact_bytes == 256",
+            "recon_rms_bit_error <= 0.12",
+            "encoder_particle_bijection_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 67,
+            "encoder_cycle_match_bytes": 91,
+            "encoder_nearest_dist_mean": 2.071922956454501,
+            "encoder_particle_bijection_bytes": 154,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 1.99609375,
+            "mass_tv": 0.26171875,
+            "max_bit_error": 2.082179069519043,
+            "mean_abs_bit": 0.9857109785079956,
+            "min_bit_margin": 0.008696287870407104,
+            "orphan_count": 86,
+            "recon_max_bit_error": 4.934728622436523,
+            "recon_rms_bit_error": 0.8635170459747314,
+            "recon_sign_exact_bytes": 80,
+            "recon_valid_exact_bytes": 0,
+            "rms_bit_error": 0.15045329928398132,
+            "step": 6000,
+            "unique_bytes": 189,
+            "valid_collision_count": 48,
+            "valid_particle_fraction": 0.8515625,
+            "valid_unique_bytes": 170
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "b0a60833bdb29340208c66778c6f37208587083866598b9dab7309c02a937449",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 6000,
+              "encoder": 6000,
+              "generator": 6000,
+              "prior": 6000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 5750,
+              "value": 59
+            },
+            "encoder_cycle_match_bytes": {
+              "step": 5000,
+              "value": 104
+            },
+            "encoder_nearest_dist_mean": {
+              "step": 500,
+              "value": 1.6958073976061712
+            },
+            "encoder_particle_bijection_bytes": {
+              "step": 5500,
+              "value": 169
+            },
+            "mass_tv": {
+              "step": 5750,
+              "value": 0.234375
+            },
+            "max_bit_error": {
+              "step": 4500,
+              "value": 1.9872946739196777
+            },
+            "min_bit_margin": {
+              "step": 1250,
+              "value": 0.24124416708946228
+            },
+            "orphan_count": {
+              "step": 5750,
+              "value": 75
+            },
+            "recon_max_bit_error": {
+              "step": 500,
+              "value": 2.4652743339538574
+            },
+            "recon_rms_bit_error": {
+              "step": 1250,
+              "value": 0.7003257274627686
+            },
+            "recon_sign_exact_bytes": {
+              "step": 1250,
+              "value": 110
+            },
+            "recon_valid_exact_bytes": {
+              "step": 2250,
+              "value": 2
+            },
+            "rms_bit_error": {
+              "step": 5000,
+              "value": 0.13573430478572845
+            },
+            "unique_bytes": {
+              "step": 5750,
+              "value": 197
+            },
+            "valid_particle_fraction": {
+              "step": 5000,
+              "value": 0.91796875
+            },
+            "valid_unique_bytes": {
+              "step": 5750,
+              "value": 181
+            }
+          },
+          "recipe_sha256": "1a2a9c6f9bc50783c8177f896a13151e1e86e6d11e58a9094cefb509f69f0148",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 133.516
+        },
+        "bytegan_hypercube8": {
+          "attempt_id": "3e4c169ae033679ef392330be11f74d0",
+          "completed_steps": 4000,
+          "declared_steps": 4000,
+          "device": "cuda:0",
+          "energy": {
+            "avg_power_watts": 101.32297922391089,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 4.715093499999494,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 18860.373999997973,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 102,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 0.35546875,
+            "mass_tv": 0.384765625,
+            "max_bit_error": 0.9699568748474121,
+            "mean_abs_bit": 0.9814029335975647,
+            "min_bit_margin": 0.030043113976716995,
+            "orphan_count": 117,
+            "rms_bit_error": 0.0875067263841629,
+            "step": 4000,
+            "unique_bytes": 154,
+            "valid_collision_count": 80,
+            "valid_particle_fraction": 0.85546875,
+            "valid_unique_bytes": 139
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "58b770adab192b4fa28fea709baf665f45963e190310cba6beb9db83f3d277ae",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 4000,
+              "generator": 4000,
+              "prior": 4000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 334,
+              "value": 102
+            },
+            "mass_tv": {
+              "step": 167,
+              "value": 0.369140625
+            },
+            "max_bit_error": {
+              "step": 2000,
+              "value": 0.9698413014411926
+            },
+            "min_bit_margin": {
+              "step": 2000,
+              "value": 0.030158724635839462
+            },
+            "orphan_count": {
+              "step": 334,
+              "value": 117
+            },
+            "rms_bit_error": {
+              "step": 500,
+              "value": 0.0874636173248291
+            },
+            "unique_bytes": {
+              "step": 334,
+              "value": 154
+            },
+            "valid_particle_fraction": {
+              "step": 334,
+              "value": 0.85546875
+            },
+            "valid_unique_bytes": {
+              "step": 334,
+              "value": 139
+            }
+          },
+          "recipe_sha256": "9c1539f7fbd9eaba9373eb4908a1ecd30930f7e4e6edf0908406e852503f5182",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 186.243
+        }
+      }
+    },
+    {
+      "candidate_id": "rhbi-v12",
+      "family": "rhbi",
+      "status": "COMPLETE",
+      "sustained_passes": 0,
+      "tasks": {
+        "bytegan_bigan_dictionary": {
+          "attempt_id": "c90769ebb540021ffc53ffa14dcb1d3e",
+          "completed_steps": 6000,
+          "declared_steps": 6000,
+          "device": "cuda:1",
+          "energy": {
+            "avg_power_watts": 114.44082778609673,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 3.274489166667064,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 19646.935000002384,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12",
+            "recon_valid_exact_bytes == 256",
+            "recon_rms_bit_error <= 0.12",
+            "encoder_particle_bijection_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 53,
+            "encoder_cycle_match_bytes": 119,
+            "encoder_nearest_dist_mean": 1.969352557573937,
+            "encoder_particle_bijection_bytes": 170,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 1.61328125,
+            "mass_tv": 0.23828125,
+            "max_bit_error": 2.0146470069885254,
+            "mean_abs_bit": 0.9933302402496338,
+            "min_bit_margin": 0.0003668852150440216,
+            "orphan_count": 90,
+            "recon_max_bit_error": 3.6600584983825684,
+            "recon_rms_bit_error": 0.6967136859893799,
+            "recon_sign_exact_bytes": 104,
+            "recon_valid_exact_bytes": 1,
+            "rms_bit_error": 0.1813756227493286,
+            "step": 6000,
+            "unique_bytes": 203,
+            "valid_collision_count": 32,
+            "valid_particle_fraction": 0.7734375,
+            "valid_unique_bytes": 166
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "39d1d27db99ac42e90dc4794dbc6ebef5eb3b3a36efb4efea382a17bd8df1d8c",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 6000,
+              "encoder": 6000,
+              "generator": 6000,
+              "prior": 6000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 5250,
+              "value": 47
+            },
+            "encoder_cycle_match_bytes": {
+              "step": 5500,
+              "value": 154
+            },
+            "encoder_nearest_dist_mean": {
+              "step": 2250,
+              "value": 1.6223114416416315
+            },
+            "encoder_particle_bijection_bytes": {
+              "step": 5250,
+              "value": 186
+            },
+            "mass_tv": {
+              "step": 5500,
+              "value": 0.197265625
+            },
+            "max_bit_error": {
+              "step": 3250,
+              "value": 1.919175386428833
+            },
+            "min_bit_margin": {
+              "step": 500,
+              "value": 0.23896585404872894
+            },
+            "orphan_count": {
+              "step": 5000,
+              "value": 73
+            },
+            "recon_max_bit_error": {
+              "step": 3500,
+              "value": 2.5562572479248047
+            },
+            "recon_rms_bit_error": {
+              "step": 1500,
+              "value": 0.5860075354576111
+            },
+            "recon_sign_exact_bytes": {
+              "step": 1500,
+              "value": 164
+            },
+            "recon_valid_exact_bytes": {
+              "step": 3500,
+              "value": 4
+            },
+            "rms_bit_error": {
+              "step": 5250,
+              "value": 0.13270477950572968
+            },
+            "unique_bytes": {
+              "step": 5250,
+              "value": 209
+            },
+            "valid_particle_fraction": {
+              "step": 2500,
+              "value": 0.87890625
+            },
+            "valid_unique_bytes": {
+              "step": 5000,
+              "value": 183
+            }
+          },
+          "recipe_sha256": "4617f4db99920db4e60573a126ccf33a65d518ef5c07cb532fbbe7db6f286817",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 171.797
+        },
+        "bytegan_hypercube8": {
+          "attempt_id": "f0da77675508004719a98d20704d51eb",
+          "completed_steps": 4000,
+          "declared_steps": 4000,
+          "device": "cuda:0",
+          "energy": {
+            "avg_power_watts": 138.4675584278941,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 7.69310474999994,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 30772.41899999976,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 131,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 0.32421875,
+            "mass_tv": 0.505859375,
+            "max_bit_error": 2.1767120361328125,
+            "mean_abs_bit": 0.9942501783370972,
+            "min_bit_margin": 0.28285643458366394,
+            "orphan_count": 133,
+            "rms_bit_error": 0.10414401441812515,
+            "step": 4000,
+            "unique_bytes": 125,
+            "valid_collision_count": 126,
+            "valid_particle_fraction": 0.97265625,
+            "valid_unique_bytes": 123
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "9c4eb33209a84786c8bb77a950c6cecf9e1caec443b2b1c7c497b28259316cd5",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 4000,
+              "generator": 4000,
+              "prior": 4000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 1667,
+              "value": 130
+            },
+            "mass_tv": {
+              "step": 1667,
+              "value": 0.478515625
+            },
+            "max_bit_error": {
+              "step": 3667,
+              "value": 1.981799840927124
+            },
+            "min_bit_margin": {
+              "step": 1500,
+              "value": 0.4622959792613983
+            },
+            "orphan_count": {
+              "step": 3500,
+              "value": 133
+            },
+            "rms_bit_error": {
+              "step": 3834,
+              "value": 0.09387466311454773
+            },
+            "unique_bytes": {
+              "step": 1667,
+              "value": 126
+            },
+            "valid_particle_fraction": {
+              "step": 3500,
+              "value": 0.97265625
+            },
+            "valid_unique_bytes": {
+              "step": 3500,
+              "value": 123
+            }
+          },
+          "recipe_sha256": "e4943cf184f95da7e49acfbb99d2c84bbc6adfb339151ec9a28f3420abf53ed0",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 222.319
+        }
+      }
+    },
+    {
+      "candidate_id": "bispf-optimized-quintic-v1",
+      "family": "bispf",
+      "status": "COMPLETE",
+      "sustained_passes": 0,
+      "tasks": {
+        "bytegan_bigan_dictionary": {
+          "attempt_id": "6ae06bd2fb280c03f4365506d4b1773f",
+          "completed_steps": 6000,
+          "declared_steps": 6000,
+          "device": "cuda:1",
+          "energy": {
+            "avg_power_watts": 138.31242638111237,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 8.11992133333534,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 48719.52800001204,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12",
+            "recon_valid_exact_bytes == 256",
+            "recon_rms_bit_error <= 0.12",
+            "encoder_particle_bijection_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 197,
+            "encoder_cycle_match_bytes": 23,
+            "encoder_nearest_dist_mean": 2.989539958571508,
+            "encoder_particle_bijection_bytes": 147,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 1.61328125,
+            "mass_tv": 0.7265625,
+            "max_bit_error": 2.0294647216796875,
+            "mean_abs_bit": 1.0032743215560913,
+            "min_bit_margin": 0.05753925442695618,
+            "orphan_count": 197,
+            "recon_max_bit_error": 6.649242401123047,
+            "recon_rms_bit_error": 1.6147465705871582,
+            "recon_sign_exact_bytes": 21,
+            "recon_valid_exact_bytes": 2,
+            "rms_bit_error": 0.16968299448490143,
+            "step": 6000,
+            "unique_bytes": 59,
+            "valid_collision_count": 175,
+            "valid_particle_fraction": 0.9140625,
+            "valid_unique_bytes": 59
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "b83d0ad026b82ce0515f96b45700837f48e04f0ecef1ab82eddc2d31c97727e1",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 6000,
+              "encoder": 6000,
+              "generator": 6000,
+              "prior": 6000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 2750,
+              "value": 196
+            },
+            "encoder_cycle_match_bytes": {
+              "step": 4250,
+              "value": 33
+            },
+            "encoder_nearest_dist_mean": {
+              "step": 1000,
+              "value": 2.133886806880475
+            },
+            "encoder_particle_bijection_bytes": {
+              "step": 4000,
+              "value": 150
+            },
+            "mass_tv": {
+              "step": 750,
+              "value": 0.49609375
+            },
+            "max_bit_error": {
+              "step": 6000,
+              "value": 2.0294647216796875
+            },
+            "min_bit_margin": {
+              "step": 4000,
+              "value": 0.5304187536239624
+            },
+            "orphan_count": {
+              "step": 5000,
+              "value": 196
+            },
+            "recon_max_bit_error": {
+              "step": 1500,
+              "value": 4.919720649719238
+            },
+            "recon_rms_bit_error": {
+              "step": 1000,
+              "value": 1.3456966876983643
+            },
+            "recon_sign_exact_bytes": {
+              "step": 4250,
+              "value": 34
+            },
+            "recon_valid_exact_bytes": {
+              "step": 4000,
+              "value": 7
+            },
+            "rms_bit_error": {
+              "step": 5750,
+              "value": 0.16844521462917328
+            },
+            "unique_bytes": {
+              "step": 2750,
+              "value": 60
+            },
+            "valid_particle_fraction": {
+              "step": 5750,
+              "value": 0.921875
+            },
+            "valid_unique_bytes": {
+              "step": 5000,
+              "value": 60
+            }
+          },
+          "recipe_sha256": "acbb16e9ee8752943f97e38a9a4aa8478b0201c7cb93a06085735fbefcdfd0fe",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 352.342
+        },
+        "bytegan_hypercube8": {
+          "attempt_id": "1d8a7f15d16baa66ab629a029381e236",
+          "completed_steps": 4000,
+          "declared_steps": 4000,
+          "device": "cuda:0",
+          "energy": {
+            "avg_power_watts": 143.1477260850587,
+            "contended": true,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 7.102561999998986,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 28410.247999995947,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12"
+          ],
+          "final_metrics": {
+            "collision_count": 195,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 0.9296875,
+            "mass_tv": 0.76171875,
+            "max_bit_error": 2.0274887084960938,
+            "mean_abs_bit": 1.0158100128173828,
+            "min_bit_margin": 0.13142497837543488,
+            "orphan_count": 201,
+            "rms_bit_error": 0.12328788638114929,
+            "step": 4000,
+            "unique_bytes": 61,
+            "valid_collision_count": 189,
+            "valid_particle_fraction": 0.953125,
+            "valid_unique_bytes": 55
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "0c304b20f1cfa516c2ec6dcc63c84ba37ffcaf741a8dfb395aa5c81af6e4b184",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 4000,
+              "generator": 4000,
+              "prior": 4000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 4000,
+              "value": 195
+            },
+            "mass_tv": {
+              "step": 167,
+              "value": 0.546875
+            },
+            "max_bit_error": {
+              "step": 2500,
+              "value": 2.0250051021575928
+            },
+            "min_bit_margin": {
+              "step": 3000,
+              "value": 0.7669012546539307
+            },
+            "orphan_count": {
+              "step": 2834,
+              "value": 201
+            },
+            "rms_bit_error": {
+              "step": 4000,
+              "value": 0.12328788638114929
+            },
+            "unique_bytes": {
+              "step": 4000,
+              "value": 61
+            },
+            "valid_particle_fraction": {
+              "step": 2834,
+              "value": 0.96484375
+            },
+            "valid_unique_bytes": {
+              "step": 2834,
+              "value": 55
+            }
+          },
+          "recipe_sha256": "154298ac9b53ae82a8a8315a17c3098d54b0db8211f209d46a5ce3963095b1fc",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 198.553
+        }
+      }
+    },
+    {
+      "candidate_id": "empf-v8",
+      "family": "empf",
+      "status": "COMPLETE",
+      "sustained_passes": 0,
+      "tasks": {
+        "bytegan_bigan_dictionary": {
+          "attempt_id": "2f2c5ea41ed0f6fd3b13b118368d6944",
+          "completed_steps": 6000,
+          "declared_steps": 6000,
+          "device": "cuda:1",
+          "energy": {
+            "avg_power_watts": 140.79651523156613,
+            "contended": true,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 6.360956000000239,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 38165.73600000143,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12",
+            "recon_valid_exact_bytes == 256",
+            "recon_rms_bit_error <= 0.12",
+            "encoder_particle_bijection_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 122,
+            "encoder_cycle_match_bytes": 69,
+            "encoder_nearest_dist_mean": 3.7895170081131457,
+            "encoder_particle_bijection_bytes": 160,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 2.02734375,
+            "mass_tv": 0.45703125,
+            "max_bit_error": 4.01699161529541,
+            "mean_abs_bit": 1.0237891674041748,
+            "min_bit_margin": 0.06209452450275421,
+            "orphan_count": 150,
+            "recon_max_bit_error": 7.567520618438721,
+            "recon_rms_bit_error": 1.2643117904663086,
+            "recon_sign_exact_bytes": 58,
+            "recon_valid_exact_bytes": 0,
+            "rms_bit_error": 0.19942361116409302,
+            "step": 6000,
+            "unique_bytes": 134,
+            "valid_collision_count": 84,
+            "valid_particle_fraction": 0.7421875,
+            "valid_unique_bytes": 106
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "715d92d2ef78c305761cae2ca00623ce96e5071df6957980bf57447c7fed8a25",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 6000,
+              "encoder": 6000,
+              "generator": 6000,
+              "prior": 6000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 6000,
+              "value": 122
+            },
+            "encoder_cycle_match_bytes": {
+              "step": 6000,
+              "value": 69
+            },
+            "encoder_nearest_dist_mean": {
+              "step": 750,
+              "value": 2.6689719213692644
+            },
+            "encoder_particle_bijection_bytes": {
+              "step": 6000,
+              "value": 160
+            },
+            "mass_tv": {
+              "step": 5500,
+              "value": 0.44921875
+            },
+            "max_bit_error": {
+              "step": 4250,
+              "value": 2.0186290740966797
+            },
+            "min_bit_margin": {
+              "step": 4000,
+              "value": 0.24279141426086426
+            },
+            "orphan_count": {
+              "step": 5750,
+              "value": 149
+            },
+            "recon_max_bit_error": {
+              "step": 1000,
+              "value": 4.5055251121521
+            },
+            "recon_rms_bit_error": {
+              "step": 1000,
+              "value": 1.1250475645065308
+            },
+            "recon_sign_exact_bytes": {
+              "step": 4000,
+              "value": 59
+            },
+            "recon_valid_exact_bytes": {
+              "step": 750,
+              "value": 1
+            },
+            "rms_bit_error": {
+              "step": 4250,
+              "value": 0.1777219921350479
+            },
+            "unique_bytes": {
+              "step": 6000,
+              "value": 134
+            },
+            "valid_particle_fraction": {
+              "step": 2250,
+              "value": 0.83984375
+            },
+            "valid_unique_bytes": {
+              "step": 5750,
+              "value": 107
+            }
+          },
+          "recipe_sha256": "96e8e755bab390c7e6d175b856fc31a8aee83d85ea8502c50548967aecdeb0e0",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 271.15
+        },
+        "bytegan_hypercube8": {
+          "attempt_id": "1066459f5f49ded9b927157853b12620",
+          "completed_steps": 4000,
+          "declared_steps": 4000,
+          "device": "cuda:0",
+          "energy": {
+            "avg_power_watts": 120.54818427573089,
+            "contended": false,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 4.654761500000953,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 18619.046000003815,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 216,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 0.078125,
+            "mass_tv": 0.84375,
+            "max_bit_error": 2.0631120204925537,
+            "mean_abs_bit": 0.981622040271759,
+            "min_bit_margin": 0.880513072013855,
+            "orphan_count": 218,
+            "rms_bit_error": 0.11160100996494293,
+            "step": 4000,
+            "unique_bytes": 40,
+            "valid_collision_count": 214,
+            "valid_particle_fraction": 0.984375,
+            "valid_unique_bytes": 38
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "3bf9c7e3b012750298a49302cbf10bde7009d17e42b34dc92a06b44687eafd81",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 4000,
+              "generator": 4000,
+              "prior": 4000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 2834,
+              "value": 216
+            },
+            "mass_tv": {
+              "step": 3500,
+              "value": 0.84375
+            },
+            "max_bit_error": {
+              "step": 2667,
+              "value": 2.0443451404571533
+            },
+            "min_bit_margin": {
+              "step": 4000,
+              "value": 0.880513072013855
+            },
+            "orphan_count": {
+              "step": 3500,
+              "value": 218
+            },
+            "rms_bit_error": {
+              "step": 3834,
+              "value": 0.111575186252594
+            },
+            "unique_bytes": {
+              "step": 2834,
+              "value": 40
+            },
+            "valid_particle_fraction": {
+              "step": 3500,
+              "value": 0.984375
+            },
+            "valid_unique_bytes": {
+              "step": 3500,
+              "value": 38
+            }
+          },
+          "recipe_sha256": "0a2f2740916eec9b108fd4fd1be2320abd10cdeeeeb424a3a761562dd9eb16ea",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 154.558
+        }
+      }
+    },
+    {
+      "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
+      "family": "bcap-dualnorm",
+      "status": "COMPLETE",
+      "sustained_passes": 0,
+      "tasks": {
+        "bytegan_bigan_dictionary": {
+          "attempt_id": "b52ddece67150bb9f2f183a74a483bc6",
+          "completed_steps": 6000,
+          "declared_steps": 6000,
+          "device": "cuda:1",
+          "energy": {
+            "avg_power_watts": 127.03712751482655,
+            "contended": true,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 4.178171666664382,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 25069.02999998629,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_particle_fraction == 1.0",
+            "valid_unique_bytes == 256",
+            "rms_bit_error <= 0.12",
+            "recon_valid_exact_bytes == 256",
+            "recon_rms_bit_error <= 0.12",
+            "encoder_particle_bijection_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 59,
+            "encoder_cycle_match_bytes": 160,
+            "encoder_nearest_dist_mean": 2.130326331675682,
+            "encoder_particle_bijection_bytes": 183,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 1.671875,
+            "mass_tv": 0.236328125,
+            "max_bit_error": 2.2522809505462646,
+            "mean_abs_bit": 1.0114508867263794,
+            "min_bit_margin": 0.5299076437950134,
+            "orphan_count": 81,
+            "recon_max_bit_error": 3.302950382232666,
+            "recon_rms_bit_error": 0.7369529008865356,
+            "recon_sign_exact_bytes": 135,
+            "recon_valid_exact_bytes": 1,
+            "rms_bit_error": 0.19416648149490356,
+            "step": 6000,
+            "unique_bytes": 197,
+            "valid_collision_count": 40,
+            "valid_particle_fraction": 0.83984375,
+            "valid_unique_bytes": 175
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "8bf5397067f2e1cf194a49716d5846aec3fa48713021b20874c362ef1e0d09ce",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 6000,
+              "encoder": 6000,
+              "generator": 6000,
+              "prior": 6000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 5500,
+              "value": 58
+            },
+            "encoder_cycle_match_bytes": {
+              "step": 4750,
+              "value": 163
+            },
+            "encoder_nearest_dist_mean": {
+              "step": 3000,
+              "value": 1.7690767738139255
+            },
+            "encoder_particle_bijection_bytes": {
+              "step": 4750,
+              "value": 186
+            },
+            "mass_tv": {
+              "step": 6000,
+              "value": 0.236328125
+            },
+            "max_bit_error": {
+              "step": 2000,
+              "value": 2.027911901473999
+            },
+            "min_bit_margin": {
+              "step": 4500,
+              "value": 0.552351713180542
+            },
+            "orphan_count": {
+              "step": 4250,
+              "value": 76
+            },
+            "recon_max_bit_error": {
+              "step": 3000,
+              "value": 2.8652641773223877
+            },
+            "recon_rms_bit_error": {
+              "step": 2750,
+              "value": 0.6685187220573425
+            },
+            "recon_sign_exact_bytes": {
+              "step": 4500,
+              "value": 150
+            },
+            "recon_valid_exact_bytes": {
+              "step": 2750,
+              "value": 2
+            },
+            "rms_bit_error": {
+              "step": 1500,
+              "value": 0.14848242700099945
+            },
+            "unique_bytes": {
+              "step": 5500,
+              "value": 198
+            },
+            "valid_particle_fraction": {
+              "step": 4250,
+              "value": 0.8984375
+            },
+            "valid_unique_bytes": {
+              "step": 4250,
+              "value": 180
+            }
+          },
+          "recipe_sha256": "514ec378475986d6687e79e19ac98f243f76cb7feeb8b9f13b4dee137ab59258",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 197.413
+        },
+        "bytegan_hypercube8": {
+          "attempt_id": "af0c39a0b0a7db3ea2dc4c150973fde6",
+          "completed_steps": 4000,
+          "declared_steps": 4000,
+          "device": "cuda:0",
+          "energy": {
+            "avg_power_watts": 121.85635709991193,
+            "contended": true,
+            "energy_backend": "nvml_energy_counter",
+            "first_pass_step": null,
+            "gpu_name": "NVIDIA RTX A6000",
+            "joules_per_step": 5.136215750001371,
+            "joules_to_first_pass": null,
+            "joules_to_sustained_pass": null,
+            "joules_total": 20544.863000005484,
+            "sustained_pass_step": null
+          },
+          "final_failed_bounds": [
+            "valid_unique_bytes == 256"
+          ],
+          "final_metrics": {
+            "collision_count": 213,
+            "finite_fraction": 1.0,
+            "latent_nn_hamming_mean": 0.07421875,
+            "mass_tv": 0.83203125,
+            "max_bit_error": 0.10350978374481201,
+            "mean_abs_bit": 1.0246970653533936,
+            "min_bit_margin": 0.896490216255188,
+            "orphan_count": 213,
+            "rms_bit_error": 0.03410125523805618,
+            "step": 4000,
+            "unique_bytes": 43,
+            "valid_collision_count": 213,
+            "valid_particle_fraction": 1.0,
+            "valid_unique_bytes": 43
+          },
+          "gate_status": "FAIL",
+          "gif_sha256": "4ac9a7f0962ff0cd88ea6553605eed7f654ffa9bfa8c108928e876cdb5848c69",
+          "gpu_name": "NVIDIA RTX A6000",
+          "guards": {
+            "all_finite": true,
+            "hooks_exercised": true,
+            "optimizer_updates": {
+              "discriminator": 4000,
+              "generator": 4000,
+              "prior": 4000
+            },
+            "unintended_rng_deviations": 0
+          },
+          "observations_count": 24,
+          "peak_metrics": {
+            "collision_count": {
+              "step": 2000,
+              "value": 213
+            },
+            "mass_tv": {
+              "step": 167,
+              "value": 0.74609375
+            },
+            "max_bit_error": {
+              "step": 4000,
+              "value": 0.10350978374481201
+            },
+            "min_bit_margin": {
+              "step": 2667,
+              "value": 0.8996179103851318
+            },
+            "orphan_count": {
+              "step": 2167,
+              "value": 213
+            },
+            "rms_bit_error": {
+              "step": 2667,
+              "value": 0.032409414649009705
+            },
+            "unique_bytes": {
+              "step": 2000,
+              "value": 43
+            },
+            "valid_particle_fraction": {
+              "step": 2167,
+              "value": 1.0
+            },
+            "valid_unique_bytes": {
+              "step": 2167,
+              "value": 43
+            }
+          },
+          "recipe_sha256": "1d5b8d523620fc46b6842487f4dbf0b4c613adb64b76c7af9a8362d3a8ae96ba",
+          "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+          "source_identity": "57443bbe93c397e172f54a1a0604859f58fd498e9c24f6f007258eda2da97952",
+          "terminal_passes": 0,
+          "terminal_window_size": 5,
+          "total_passing_checks": 0,
+          "wall_seconds": 168.678
+        }
+      }
+    }
+  ],
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "schema": "forge_bytegan_stretch_summary_v1",
+  "schema_version": 1,
+  "seed": 0,
+  "source_commit": "ab0da6c53ffade352103856eaba21053b878aee7",
+  "tasks": [
+    "bytegan_hypercube8",
+    "bytegan_bigan_dictionary"
+  ],
+  "view": "bytegan_stretch"
+}

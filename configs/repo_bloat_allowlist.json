@@ -1,4 +1,20 @@
 {
+  "schema_version": 1,
+  "policy": {
+    "scope_prefix": "reports/",
+    "banned_extensions": [
+      ".ckpt",
+      ".gif",
+      ".gz",
+      ".html",
+      ".mp4",
+      ".npz",
+      ".pt",
+      ".pth",
+      ".zip"
+    ],
+    "max_json_bytes": 512000
+  },
   "allowed_paths": [
     "reports/forge/atlas-e22-policy-cloud-20261015/records.json",
     "reports/forge/atlas-named-gpu-diagnostics-native-v3-20261003/results.json",
@@ -235,6 +251,8 @@
     "reports/toy100/overnight-20260925/results/fa8c03203f67832818b9d972544b771b0ec7a5fd812776bcf48044a38cb9906a.json.gz",
     "reports/toy100/shared22/toy100/grid100/source.tar.gz",
     "reports/toy_audit/api_contract/api-grid100-res16-scaled-tanh/goal.gif",
+    "reports/toy_audit/api_contract/bytegan/media/api-bytegan-bigan-dictionary.gif",
+    "reports/toy_audit/api_contract/bytegan/media/api-bytegan-hypercube8.gif",
     "reports/toy_audit/api_contract/cases.json",
     "reports/toy_audit/api_contract/five_word_joint/goal.gif",
     "reports/toy_audit/api_contract/five_word_smoke_hold/media/five_word_joint_hold.gif",
@@ -300,21 +318,5 @@
     "reports/toy_audit/media/source-five-modes.gif",
     "reports/toy_audit/paired_sources/media/affine2-baseline-movable.gif",
     "reports/toy_audit/paired_sources/media/swirl2-baseline-movable.gif"
-  ],
-  "policy": {
-    "banned_extensions": [
-      ".ckpt",
-      ".gif",
-      ".gz",
-      ".html",
-      ".mp4",
-      ".npz",
-      ".pt",
-      ".pth",
-      ".zip"
-    ],
-    "max_json_bytes": 512000,
-    "scope_prefix": "reports/"
-  },
-  "schema_version": 1
+  ]
 }

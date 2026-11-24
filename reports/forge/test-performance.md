@@ -28,10 +28,10 @@ One row is **one test under one exact protocol**. One column is a complete recip
 
 ## Selected-recipe matrix
 
-Indexed: **2313 test/protocol rows**, **583 complete recipe/source/runtime identities**; below: **490 rows**, **12 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
+Indexed: **2315 test/protocol rows**, **583 complete recipe/source/runtime identities**; below: **492 rows**, **12 selected identities**. PASS counts recipes with any compatible passing receipt; MIXED keeps all disagreeing outcomes. Counts are recipe cells, not independent runs or summed view requirements.
 
 <details>
-<summary>Open all 490 selected-protocol rows and their exact recipe identities</summary>
+<summary>Open all 492 selected-protocol rows and their exact recipe identities</summary>
 
 | Recipe | Full identity |
 | --- | --- |
@@ -57,6 +57,8 @@ Indexed: **2313 test/protocol rows**, **583 complete recipe/source/runtime ident
 | alice_spiral_bigan<br>seed 0 · 4000 updates · source e132cf1f36<br>`4685c1ecabb3` | [matches](../../configs/forge/tasks/alice_spiral_bigan.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/115a45668a8a5dfdfea1bd161dfb86a1b4208eadf51c962f4cf1162c689992e2.json) |
 | alice_spiral_bigan<br>seed 0 · 4000 updates · source 184aa7597b<br>`57dc3bffebcb` | [matches](../../configs/forge/tasks/alice_spiral_bigan.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/bddeeeace8fc3513806afd96b11b912a4628103348fd1b6083043c66a839b36f.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | alice_spiral_bigan<br>seed 0 · 4000 updates · source ee2635996f<br>`68b46c1d5955` | [matches](../../configs/forge/tasks/alice_spiral_bigan.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/a180befb48d553f837102c12139e0987f32d714eec99f61e49ade59c99f8736c.json) | NOT RUN |
+| bytegan_bigan_dictionary<br>unmeasured declaration<br>`6d5f21eb5f40` | [matches](../../configs/forge/tasks/bytegan_bigan_dictionary.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
+| bytegan_hypercube8<br>unmeasured declaration<br>`962af0f6e257` | [matches](../../configs/forge/tasks/bytegan_hypercube8.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
 | cgan_overlapping_classes<br>seed 0 · 3000 updates · source e132cf1f36<br>`7e832fade4af` | [matches](../../configs/forge/tasks/cgan_overlapping_classes.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/115a45668a8a5dfdfea1bd161dfb86a1b4208eadf51c962f4cf1162c689992e2.json) |
 | cgan_overlapping_classes<br>seed 0 · 3000 updates · source ee2635996f<br>`d302e92a9511` | [matches](../../configs/forge/tasks/cgan_overlapping_classes.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/a180befb48d553f837102c12139e0987f32d714eec99f61e49ade59c99f8736c.json) | NOT RUN |
 | cgan_overlapping_classes<br>seed 0 · 3000 updates · source 184aa7597b<br>`e69af84389e8` | [matches](../../configs/forge/tasks/cgan_overlapping_classes.json) | 0/12 | NO INDEXED WITNESS | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | [BLOCKED](technique-evidence/bddeeeace8fc3513806afd96b11b912a4628103348fd1b6083043c66a839b36f.json) | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN | NOT RUN |
