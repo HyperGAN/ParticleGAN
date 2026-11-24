@@ -5,19 +5,26 @@ Frobenius-MP + generator-free 2D Critic NS restoration + 0 critic secant probes 
 0 B/param non-stiff state + 0 ``new_tensor`` H2D copies + ``0.50 * peak_rms``
 degree-0 Tikhonov smoothing) with:
 1. **PR #612 Deep-Residual Coupling & Closed-Loop Period-2 Flip-Bifurcation Control:**
-   - Pure monotonic overshoot ``current_stiff_gate() = smoothstep01((0.60 - ema_fg) / 0.30)``
-     with ``coh`` unmasking and preserved prior particle smoothing ``s_prior_base = smoothing``.
+   - Floor-overshoot + sustained-period-2-flip ``current_stiff_gate() = max(smoothstep01((0.056 - ema_fg) / 0.006), smoothstep01((0.60 - ema_fg) / 0.30) * smoothstep01((-ema_flip_cos - 0.50) / 0.15))``
+     with PR #612 ``coh`` unmasking (active strictly when ``stiff_gate_raw > 0``), decoupled
+     generator Tikhonov fade ``s_base = smoothing * (1 - max(stiff_gate, smoothstep01((0.30 - ema_fg) / 0.12)))``,
+     and ``s_therm >= 0.5`` recovery guard: prevents false stiffness momentum activation and
+     Tikhonov double-damping on normalized deep ResBN trunks while engaging cleanly on
+     ``grid100_res16_tanh`` & ``grid100_mlp16``.
    - Zero-B/param (268 B total), prime-67 CountSketch closed-loop Period-2
      Flip-Bifurcation controller: activates ONLY when ``ema_fg < 0.60 and s_therm >= 0.5``
-     (``0.000 ms`` on DCGAN and healthy networks; ``0.000`` false triggers on deep ResBN
-     where 0-NS Frob-MP critic keeps ``ema_fg == 1.0``). Uses symmetric ``0.90 / 0.10``
+     (``0.000 ms`` on DCGAN and healthy networks). Uses symmetric ``0.90 / 0.10``
      EMA and constant ``flip_thresh = 0.45`` deadband to drive period-2 flipping networks
-     smoothly down to equilibrium (solving ``grid100_res16_tanh`` while preserving
-     ``grid100_mlp16`` deterministically).
-   - Natural 0-NS Frobenius-MP Critic Spectral Control: 0-NS ``sqrt(m)`` Frobenius-MP
-     inherently bounds deep ResBN critic singular values (``max_sv ~ 2.2-2.4``) and keeps
-     deep ResBN ``ema_fg == 1.0`` without Schatten-6 decay or critic-throttling ``d_couple``
-     (eliminating extra critic GEMMs and preserving DCGAN speed/energy).
+     smoothly down to equilibrium.
+   - Zero-sync bandpass critic-dominance coupling ``d_couple`` reading ``rec._g_func_gain``
+     when ``g_fg < 0.75`` inside ``0.28 < ema_margin < 1.40`` (piggybacked on the single
+     existing ``torch._foreach_norm`` transfer; ``0.000 ms`` on DCGAN and healthy networks
+     where ``g_fg >= 0.75``, and identically ``1.0`` near equilibrium ``ema_margin <= 0.28``).
+   - Zero-state exact-deadband batched Schatten-6 spectral ceiling on 2D critic hidden weights
+     (``p.ndim == 2 and min(r, c) >= 2``, ``tau = 2.0, lam = 0.25``): prevents runaway 0-NS
+     Frobenius-MP critic singular-value growth on deep ResBN (``D_max_s1 <= ~2.4`` through 10k
+     updates) while keeping ``0 B/param`` state, exact ``0.0`` deadband below ``tau = 2.0``,
+     and ``0.000 ms`` overhead on 4D Conv2d DCGANs.
 2. **Zero-Sync V4 Tensor Opt-In (``_SUPPORTS_ZEROSYNC_V4_TENSORS = True``):**
    - Zero-sync ``sort + is_first`` sampled-row deduplication for particle priors.
    - GPU-resident ``_origin_norm_t``, ``_v4_g_scale``, and ``_v4_wakeup_boost`` packed
@@ -46,6 +53,8 @@ from .._unified_v4.optimizer import _band_scale, _smoothstep01
 from .._unified_v11.critic import _eval_v11_probe_forward as _eval_probe_forward
 from .._unified_v11.optimizer import (
     UnifiedV11EquilibratedOptimizer,
+    _schatten6_spectral_decay_2d,
+    _schatten6_spectral_decay_batched,
     quintic_orthogonalize_2d,
     quintic_orthogonalize_batched,
     zero_pinv_project_nonascent,
@@ -120,8 +129,18 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                 grp["algorithm"] = self.family
 
     def current_stiff_gate(self) -> float:
-        """Pure monotonic stiffness gate (0.0 at ema_fg >= 0.60, 1.0 at ema_fg <= 0.30)."""
-        return _smoothstep01((0.60 - float(self._ema_func_gain)) / 0.30)
+        """Floor-overshoot or sustained period-2 flip stiffness gate (0.0 on healthy & ResBN trunks).
+
+        - Floor overshoot branch: ``0.0`` at ``ema_fg >= 0.056``, ``1.0`` at ``ema_fg <= 0.050``
+          (engages only when secant trust-band damping pins ``ema_fg`` at its 0.05 floor).
+        - Period-2 flip branch: ``0.0`` whenever ``ema_fg >= 0.60`` or ``ema_flip_cos >= -0.50``
+          (identically ``0.0`` on normalized deep ResBN trunks), ramping smoothly to ``1.0`` under
+          sustained period-2 gradient sign reversal (``ema_flip_cos <= -0.65`` and ``ema_fg <= 0.30``).
+        """
+        ema_fg = float(self._ema_func_gain)
+        g_abs = _smoothstep01((0.056 - ema_fg) / 0.006)
+        g_flip = _smoothstep01((0.60 - ema_fg) / 0.30) * _smoothstep01((-float(self._ema_flip_cos) - 0.50) / 0.15)
+        return max(g_abs, g_flip)
 
     def _update_period2_flip_feedback(self, *, s_therm: float) -> None:
         """Zero-B/param (268 B total) prime-67 CountSketch closed-loop Period-2 Flip-Bifurcation controller.
@@ -300,6 +319,9 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
             Tuple[int, int, bool],
             List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
         ],
+        pending_s6: Optional[
+            Dict[Tuple[int, int], List[Tuple[torch.Tensor, float, bool, torch.Tensor]]]
+        ] = None,
     ) -> None:
         """Zero-sync device-tensor 1e-38-safe / stiff 2D NS path (strictly 0 Conv2d & 0 neural-G Critic NS)."""
         st = self.state[p]
@@ -417,6 +439,25 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
             p.add_(delta_m)
             if track_secant:
                 applied_deltas.append((p, delta_m))
+            if (
+                pending_s6 is not None
+                and is_critic_role
+                and (not is_conv)
+                and p.ndim == 2
+                and m_dim >= 2
+                and s_therm > 0.0
+            ):
+                s6_rate_val = rate_p * s_therm
+                s6_rate_t = (
+                    s6_rate_val.to(device=gf_safe.device, dtype=gf_safe.dtype)
+                    if isinstance(s6_rate_val, torch.Tensor)
+                    else gf_safe.new_full((), float(s6_rate_val))
+                )
+                needs_t_s6 = r_d > c_d
+                key_s6 = (c_d, r_d) if needs_t_s6 else (r_d, c_d)
+                pending_s6.setdefault(key_s6, []).append(
+                    (p, aspect_factor, needs_t_s6, torch.where(g_active, s6_rate_t, gf_safe.new_zeros(())))
+                )
             return
 
         # Zero-state 1e-38-safe slow fallback (extreme scales <1e-18 / >1e18 / NaN / non-FP32):
@@ -451,6 +492,25 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
         p.add_(delta_g)
         if track_secant:
             applied_deltas.append((p, delta_g))
+        if (
+            pending_s6 is not None
+            and is_critic_role
+            and (not is_conv)
+            and p.ndim == 2
+            and m_dim >= 2
+            and s_therm > 0.0
+        ):
+            s6_rate_val = rate_p * s_therm
+            s6_rate_t = (
+                s6_rate_val.to(device=gf_safe.device, dtype=gf_safe.dtype)
+                if isinstance(s6_rate_val, torch.Tensor)
+                else gf_safe.new_full((), float(s6_rate_val))
+            )
+            needs_t_s6 = r_d > c_d
+            key_s6 = (c_d, r_d) if needs_t_s6 else (r_d, c_d)
+            pending_s6.setdefault(key_s6, []).append(
+                (p, aspect_factor, needs_t_s6, torch.where(g_active, s6_rate_t, gf_safe.new_zeros(())))
+            )
 
     @torch.no_grad()
     def _step_generator_free_critic(self, closure: Any = None) -> Any:
@@ -701,6 +761,25 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
             stiff_gate_raw = self.current_stiff_gate()
             pre_gain_base = 1.0 if ema_fg >= 0.75 else ema_fg
 
+            # PR #612 bandpass on-manifold two-player critic coupling (zero extra syncs: 0 ops when g_fg >= 0.75,
+            # piggybacked on the single existing foreach-norm transfer when g_fg < 0.75):
+            d_couple_f: float = 1.0
+            d_couple_g_pre: float = 1.0
+            d_couple_pending: bool = False
+            if is_critic_opt and rec is not None:
+                g_fg = float(getattr(rec, "_g_func_gain", 1.0))
+                if g_fg < 0.75:
+                    d_couple_g_pre = max(0.12, g_fg)
+                    if (
+                        getattr(rec, "_ema_margin_t", None) is not None
+                        or getattr(rec, "_margin_init_t", None) is not None
+                    ):
+                        d_couple_pending = True
+                    elif getattr(rec, "margin_initialized", False):
+                        ema_m = float(getattr(rec, "ema_margin", 0.0))
+                        m_gate = _smoothstep01((ema_m - 0.28) / 0.22) * _smoothstep01((1.40 - ema_m) / 0.30)
+                        d_couple_f = (1.0 - m_gate) + m_gate * d_couple_g_pre
+
             # Strictly 0 critic secant probes; generator secant trust band active on non-simplicial/non-2-loss:
             gen_probe_active = (
                 (not is_critic_opt)
@@ -724,6 +803,10 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
             pending_dense: Dict[
                 Tuple[int, int, bool],
                 List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
+            ] = {}
+            pending_s6: Dict[
+                Tuple[int, int],
+                List[Tuple[torch.Tensor, float, bool, torch.Tensor]],
             ] = {}
 
             # Fast-path queues (batched into ONE torch._foreach_norm + ONE packed sync with v4 tensor scalars):
@@ -759,7 +842,8 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                 stiff_gate = stiff_gate_raw if player == "generator" else 0.0
                 b1, b2 = grp["betas"]
                 eps = float(grp["eps"])
-                s_base = self.smoothing * (1.0 - stiff_gate)
+                fg_damp = _smoothstep01((0.30 - ema_fg) / 0.12) if player == "generator" else 0.0
+                s_base = self.smoothing * (1.0 - max(stiff_gate, fg_damp))
                 s_prior_base = self.smoothing if self._v4_prior_scale >= 1.0 else 0.0
 
                 if player == "prior":
@@ -1016,6 +1100,8 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                 ref_dev = all_norm_grads[0].device
                 extra_t: List[torch.Tensor] = []
                 idx_gs = idx_pg = idx_od = -1
+                dc_ema_keys: List[str] = []
+                idx_dc_ema = -1
                 if isinstance(self._v4_g_scale, torch.Tensor):
                     idx_gs = len(norms) + len(extra_t)
                     extra_t.append(self._v4_g_scale.to(device=ref_dev, dtype=torch.float32))
@@ -1025,6 +1111,13 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                 if origin_damping_t is not None:
                     idx_od = len(norms) + len(extra_t)
                     extra_t.append(origin_damping_t.to(device=ref_dev, dtype=torch.float32))
+                if d_couple_pending and rec is not None and hasattr(rec, "_take_pending_ema_tensors"):
+                    dc_keys_cand, dc_tens_cand = rec._take_pending_ema_tensors()
+                    if dc_tens_cand and all(t.device == ref_dev for t in dc_tens_cand):
+                        idx_dc_ema = len(norms) + len(extra_t)
+                        dc_ema_keys = dc_keys_cand
+                        for t_e in dc_tens_cand:
+                            extra_t.append(t_e.to(device=ref_dev, dtype=torch.float32))
                 packed = torch.stack((*norms, *extra_t)).tolist()
                 all_norm_vals = packed[: len(norms)]
                 if idx_gs >= 0:
@@ -1034,6 +1127,23 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                     pre_gain_applied = v4_pre_g_f
                 if idx_od >= 0:
                     od_f = float(packed[idx_od])
+                if idx_dc_ema >= 0 and rec is not None:
+                    rec._apply_flushed_ema_values(
+                        dc_ema_keys,
+                        [float(v) for v in packed[idx_dc_ema : idx_dc_ema + len(dc_ema_keys)]],
+                    )
+                    if getattr(rec, "margin_initialized", False):
+                        ema_m = float(getattr(rec, "ema_margin", 0.0))
+                        m_gate = _smoothstep01((ema_m - 0.28) / 0.22) * _smoothstep01((1.40 - ema_m) / 0.30)
+                        d_couple_f = (1.0 - m_gate) + m_gate * d_couple_g_pre
+                    d_couple_pending = False
+
+            if d_couple_pending and rec is not None:
+                if getattr(rec, "margin_initialized", False):
+                    ema_m = float(getattr(rec, "ema_margin", 0.0))
+                    m_gate = _smoothstep01((ema_m - 0.28) / 0.22) * _smoothstep01((1.40 - ema_m) / 0.30)
+                    d_couple_f = (1.0 - m_gate) + m_gate * d_couple_g_pre
+                d_couple_pending = False
 
             gen_v4_mult_f = (
                 (v4_g_scale_f * v4_pre_g_f)
@@ -1061,7 +1171,11 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                         )
                     )
                     continue
-                rate_p = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else 1.0) * (od_f if apply_od else 1.0)
+                rate_p = (
+                    lr_p_no_v4
+                    * (gen_v4_mult_f if is_gen_v4 else (d_couple_f if is_critic_role else 1.0))
+                    * (od_f if apply_od else 1.0)
+                )
                 st = self.state[p]
                 cur_sv = g_norm / sv_denom_sqrt
                 peak_prev = float(st.get("peak_rms_val", 0.0))
@@ -1082,6 +1196,12 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                 alpha_i = -(rate_p * factor) / denom
                 p.add_(g, alpha=alpha_i)
                 self.fast_path_updates += 1
+                if is_critic_role and p.ndim == 2 and m_dim >= 2 and s_therm > 0.0:
+                    needs_t_s6 = r_d > c_d
+                    key_s6 = (c_d, r_d) if needs_t_s6 else (r_d, c_d)
+                    pending_s6.setdefault(key_s6, []).append(
+                        (p, aspect_factor, needs_t_s6, g.new_full((), rate_p * s_therm))
+                    )
                 if track_sec:
                     fast_secant_deltas.append((p, alpha_i))
                     fast_coh_count += 1
@@ -1135,7 +1255,7 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                         rate_val = rate_val * (origin_damping_t if origin_damping_t is not None else origin_damping)
                     rate_pos = lr_p_no_v4 > 0.0
                 else:
-                    base_r = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else 1.0)
+                    base_r = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else (d_couple_f if is_critic_role else 1.0))
                     if apply_od and origin_damping_t is not None and od_f is None:
                         rate_val = base_r * origin_damping_t
                         rate_pos = base_r > 0.0
@@ -1160,6 +1280,7 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                     coh_vals=coh_vals,
                     applied_deltas=applied_deltas,
                     pending_dense=pending_dense,
+                    pending_s6=pending_s6,
                 )
 
             # 3. Batched 5-step fused Z=[X,Y] Quintic NS strictly for Generator 2D dense matrices:
@@ -1259,9 +1380,15 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                         p_i.add_(d_i, alpha=adj)
                 if probe_ran:
                     if alpha_gain < 1.0:
-                        target_fg = max(0.05, min(1.0, pre_gain_f * alpha_gain))
+                        raw_fg = pre_gain_f * alpha_gain
+                        if stiff_gate_raw > 0.0 and s_therm >= 0.5:
+                            raw_fg = min(raw_fg, free_ratio)
+                        target_fg = max(0.05, min(1.0, raw_fg))
                         self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
-                    elif step_active_probe and free_ratio > 1.5:
+                    elif stiff_gate_raw > 0.0 and s_therm >= 0.5 and free_ratio < self._ema_func_gain:
+                        target_fg = max(0.05, min(1.0, free_ratio))
+                        self._ema_func_gain = float(0.70 * self._ema_func_gain + 0.30 * target_fg)
+                    elif s_therm >= 0.5 and step_active_probe and free_ratio > 1.5:
                         target_fg = max(0.05, min(1.0, free_ratio))
                         if target_fg > self._ema_func_gain:
                             self._ema_func_gain = float(0.999 * self._ema_func_gain + 0.001 * target_fg)
@@ -1270,6 +1397,35 @@ class UnifiedV14Optimizer(UnifiedV11EquilibratedOptimizer):
                     rec._g_func_gain = float((1.0 - g_stiff_post) * self._ema_func_gain + g_stiff_post)
             elif rec is not None and not is_critic_opt:
                 rec._g_probe_cache = None
+
+            # 4b. Zero-state, zero-SVD exact-deadband batched Schatten-6 spectral ceiling on 2D critic hidden weights
+            # (strictly 0 layers / 0.000 ms on 4D Conv2d DCGANs; identically 0.0 below tau=2.0):
+            if pending_s6:
+                for bucket_s6 in pending_s6.values():
+                    if len(bucket_s6) == 1:
+                        p_i, fac_i, needs_t, s6r_i = bucket_s6[0]
+                        w_norm_m = p_i.float() / fac_i
+                        wc_i = w_norm_m.T if needs_t else w_norm_m
+                        s6_i = _schatten6_spectral_decay_2d(wc_i, s6r_i) * fac_i
+                        if needs_t:
+                            s6_i = s6_i.T
+                        p_i.add_(s6_i.to(p_i.dtype))
+                    else:
+                        w_list = []
+                        r_list = []
+                        for p_i, fac_i, needs_t, s6r_i in bucket_s6:
+                            w_norm_m = p_i.float() / fac_i
+                            w_list.append(w_norm_m.T if needs_t else w_norm_m)
+                            r_list.append(s6r_i)
+                        s6_batch = _schatten6_spectral_decay_batched(
+                            torch.stack(w_list, dim=0),
+                            torch.stack(r_list, dim=0),
+                        )
+                        for idx_b, (p_i, fac_i, needs_t, _) in enumerate(bucket_s6):
+                            disp_s6 = s6_batch[idx_b] * fac_i
+                            if needs_t:
+                                disp_s6 = disp_s6.T
+                            p_i.add_(disp_s6.to(p_i.dtype))
 
             # 5. Strictly Zero-pinv Analytic Non-Ascent Projection on multi-objective conflict steps:
             if self.direction_blend and originals is not None and self._protected is not None and all_params is not None:
