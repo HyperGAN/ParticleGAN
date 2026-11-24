@@ -419,6 +419,33 @@ def _audit_mass_conservation() -> Dict[str, Any]:
             "k_final": int(reg.proto_c.shape[0]),
         }
 
+    # 1b) MinimalPriorRegularizer single-outlier shock in a populated cell (K=8):
+    # At K=64 above, 8 co-located shock points inflate proto_var[assign] at _minimal/prior.py:62 before L66,
+    # suppressing teleportation (max_w_fake_ema_sum_err = 0.0). With 1 outlier in a populated cell (b_cnt >= 5),
+    # _minimal/prior.py:70 actually fires and breaks sum(w_fake_ema) == 1.0!
+    rng_min = torch.Generator(device="cpu").manual_seed(0)
+    c4_min = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]])
+    reg_min_k8 = MinimalPriorRegularizer(max_prototypes=8)
+    max_w_err_mk8, min_w_mk8 = 0.0, float("inf")
+    for _ in range(15):
+        idx_m = torch.randint(0, 4, (128,), generator=rng_min)
+        reg_min_k8.update_quantizer(c4_min[idx_m] + 0.05 * torch.randn(128, 2, generator=rng_min))
+        max_w_err_mk8 = max(max_w_err_mk8, abs(float(reg_min_k8.proto_w.sum().item()) - 1.0))
+        min_w_mk8 = min(min_w_mk8, float(reg_min_k8.proto_w.min().item()))
+    idx_m = torch.randint(0, 4, (127,), generator=rng_min)
+    y_min_shock = torch.cat([c4_min[idx_m] + 0.05 * torch.randn(127, 2, generator=rng_min), torch.tensor([[80.0, 80.0]])], dim=0)
+    reg_min_k8.update_quantizer(y_min_shock)
+    max_w_err_mk8 = max(max_w_err_mk8, abs(float(reg_min_k8.proto_w.sum().item()) - 1.0))
+    min_w_mk8 = min(min_w_mk8, float(reg_min_k8.proto_w.min().item()))
+    wf_mk8 = float(reg_min_k8.w_fake_ema.sum().item())
+    results["minimal_single_outlier_k8"] = {
+        "max_proto_w_sum_err": max_w_err_mk8,
+        "min_proto_w": min_w_mk8,
+        "max_w_fake_ema_sum_err": abs(wf_mk8 - 1.0),
+        "final_w_fake_ema_sum": wf_mk8,
+        "k_final": int(reg_min_k8.proto_c.shape[0]),
+    }
+
     # 2) T4ArchPriorRegularizer (dynamic atlas with birth, merge, prune; force cap hit with max_prototypes=4)
     reg_t4 = T4ArchPriorRegularizer(max_prototypes=4)
     max_w_err_t4, min_w_t4, max_wf_err_t4 = 0.0, float("inf"), 0.0
@@ -1029,21 +1056,28 @@ def _audit_pullback_isometry_and_fastpath(device: torch.device) -> Dict[str, Any
     sinkhorn_max_diff = float((y_ot_fast - y_ot_ref).abs().max().item())
 
     # 20-step update_quantizer parity (UnifiedV4PriorRegularizer vs UnifiedV11PriorRegularizer) on grid100
-    reg_v4_q = UnifiedV4PriorRegularizer(max_prototypes=256)
-    reg_v11_q = UnifiedV11PriorRegularizer(max_prototypes=256)
-    g_data = torch.Generator(device=device).manual_seed(0)
-    for _ in range(20):
-        yr_g = sample_100gaussians(256, device, generator=g_data)
-        reg_v4_q.update_quantizer(yr_g)
-        reg_v11_q.update_quantizer(yr_g)
-    quant_c_diff = float((reg_v11_q.proto_c - reg_v4_q.proto_c).abs().max().item())
-    quant_v_diff = float((reg_v11_q.proto_var - reg_v4_q.proto_var).abs().max().item())
-    quant_w_diff = float((reg_v11_q.proto_w - reg_v4_q.proto_w).abs().max().item())
+    # Run under deterministic algorithms so GPU parity diffs are bit-reproducible across repeated runs.
+    prev_det = torch.are_deterministic_algorithms_enabled()
+    prev_warn = torch.is_deterministic_algorithms_warn_only_enabled()
+    torch.use_deterministic_algorithms(True, warn_only=True)
+    try:
+        reg_v4_q = UnifiedV4PriorRegularizer(max_prototypes=256)
+        reg_v11_q = UnifiedV11PriorRegularizer(max_prototypes=256)
+        g_data = torch.Generator(device=device).manual_seed(0)
+        for _ in range(20):
+            yr_g = sample_100gaussians(256, device, generator=g_data)
+            reg_v4_q.update_quantizer(yr_g)
+            reg_v11_q.update_quantizer(yr_g)
+        quant_c_diff = float((reg_v11_q.proto_c - reg_v4_q.proto_c).abs().max().item())
+        quant_v_diff = float((reg_v11_q.proto_var - reg_v4_q.proto_var).abs().max().item())
+        quant_w_diff = float((reg_v11_q.proto_w - reg_v4_q.proto_w).abs().max().item())
 
-    # 2) Full GANTrainer pullback step parity & EXACT host-sync count (unified_v4 vs unified_v11/v12) on grid100
-    sync_bench: Dict[str, Any] = {}
-    with torch.enable_grad():
-        sync_bench = _benchmark_v4_vs_v11_pullback_step(device)
+        # 2) Full GANTrainer pullback step parity & EXACT host-sync count (unified_v4 vs unified_v11/v12) on grid100
+        sync_bench: Dict[str, Any] = {}
+        with torch.enable_grad():
+            sync_bench = _benchmark_v4_vs_v11_pullback_step(device)
+    finally:
+        torch.use_deterministic_algorithms(prev_det, warn_only=prev_warn)
 
     return {
         "linear_probe_accuracy": {

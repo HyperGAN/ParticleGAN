@@ -121,6 +121,13 @@ def test_multimode_isoperimetric_and_grid100_poincare_bounds() -> None:
     assert l_grid100_p99 > 104.0  # > 86x larger than adaptive MoG affine L = 0.03 / 0.025 = 1.20!
     assert math.isclose(normal_cdf(0.0), 0.5, abs_tol=1e-15)
 
+    # Verify exact Mills-ratio multi-mode asymptotic: L ~ sqrt(2 ln M) / (2 ln(1/(1 - alpha))) * Delta
+    m_big = 10 ** 8
+    for alpha in (0.5, 0.1, 0.01):
+        exact = multimode_lip_lower_bound_isoperimetric(1.0, m_big, alpha)
+        mills_asymp = math.sqrt(2.0 * math.log(m_big)) / (2.0 * math.log(1.0 / (1.0 - alpha)))
+        assert math.isclose(exact, mills_asymp, rel_tol=0.05)
+
 
 # ---------------------------------------------------------------------------
 # 2. Invariant 1: Mass Conservation (proto_w EXACT vs w_fake_ema VIOLATED)
@@ -129,7 +136,7 @@ def test_multimode_isoperimetric_and_grid100_poincare_bounds() -> None:
 def test_invariant1_mass_conservation_and_w_fake_ema_violation() -> None:
     res = _audit_mass_conservation()
     # Real mass proto_w / w_real is EXACT (up to FP32 ~1e-6) across all 7 implementations
-    for key in ("t1_prior", "unified", "unified_v11", "minimal", "t4_arch_cap4", "empf_emeans"):
+    for key in ("t1_prior", "unified", "unified_v11", "minimal", "minimal_single_outlier_k8", "t4_arch_cap4", "empf_emeans"):
         assert res[key]["max_proto_w_sum_err"] < 1e-5
         assert res[key]["min_proto_w"] >= 0.0
     assert res["t1_coupling_charts"]["max_w_real_sum_err"] < 1e-5
@@ -138,6 +145,7 @@ def test_invariant1_mass_conservation_and_w_fake_ema_violation() -> None:
     # VIOLATION: w_fake_ema / w_fake mass conservation is broken on uncovered-mode teleportation!
     for key in ("t1_prior", "unified", "unified_v11"):
         assert res[key]["max_w_fake_ema_sum_err"] > 0.01
+    assert res["minimal_single_outlier_k8"]["max_w_fake_ema_sum_err"] > 0.05
     assert res["t4_arch_cap4"]["max_w_fake_sum_err"] > 0.05
     # VIOLATION (intentional in-basin design): chart_fake_mass drops below 1.0 when fakes sit in valleys
     assert res["t1_coupling_charts"]["fake_mass_sum_after_valley"] < 0.95
