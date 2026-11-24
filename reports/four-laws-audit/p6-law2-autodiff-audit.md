@@ -129,7 +129,7 @@ Let $g = \nabla_x D_\theta(x) \in \mathbb{R}^d \setminus \{0\}$, $s = \|g\|_2^2 
    $$\frac{\|\mathbb{E}[\nabla_\theta \phi_\beta(\hat{s})]\|_2}{\|\nabla_\theta \phi_\beta(s)\|_2} < 1, \qquad \lim_{\beta s \to \infty} \frac{\mathbb{E}[T/\sqrt{1+\beta s T}]}{1/\sqrt{1+\beta s}} = \mathbb{E}[\sqrt{T}] = \begin{cases} \sqrt{2/\pi} \approx 0.7979 & (K=1\text{ dense, }-20.2\%), \\ 2/\pi \approx 0.6366 & (K=1\text{ 2-way sep., rank-1, }-36.3\%). \end{cases}$$
    In addition, for **Rademacher** probes on anisotropic $g$ (unequal $|g_i|$), $\mathbb{E}[\nabla_g \phi_\beta(\hat{s})]$ is **not even collinear with $g$**: $\phi_\beta'((g^\top \epsilon)^2)$ down-weights sign alignments where minor entries reinforce the dominant entry, systematically rotating the expected gradient away from $g$ (verified at **`13.30°`** by exact $2^4$ enumeration on $g = [2.0, 0.4, 0.4, 0.4]$!).
 2. **Convex-on-Cap EBI Squared Softplus $h_{\beta,\kappa}(s) = [\operatorname{softplus}_\beta(\sqrt{s} - \kappa)]^2$ (`unified_v11`/`v12`, `t2_secant`, `unified`):**
-   Write $h(s) = g(\sqrt{s})$ with $g(r) = \operatorname{sp}_\beta(r-\kappa)^2$. Then $h''(s) = \frac{r g''(r) - g'(r)}{4 r^3}$. In the hinge limit $\beta \to \infty$, $h_{\infty,\kappa}(s) = (\sqrt{s} - \kappa)_+^2$ has $h''(s) = \frac{\kappa}{2} s^{-3/2} > 0$ for $\sqrt{s} > \kappa$ and $0$ for $\sqrt{s} < \kappa$ — **globally convex on $[0, \infty)$**! For finite $\beta \in [6, 12]$ and $\kappa = 1$, $h_{\beta,\kappa}(s)$ is strictly convex across the entire active cap and transition region ($r > 1/\beta \approx 0.083$). Consequently, Jensen's inequality reverses sign:
+   Write $h(s) = g(\sqrt{s})$ with $g(r) = \operatorname{sp}_\beta(r-\kappa)^2$. Then $h''(s) = \frac{r g''(r) - g'(r)}{4 r^3}$. In the hinge limit $\beta \to \infty$, $h_{\infty,\kappa}(s) = (\sqrt{s} - \kappa)_+^2$ has $h''(s) = \frac{\kappa}{2} s^{-3/2} > 0$ for $\sqrt{s} > \kappa$ and $0$ for $\sqrt{s} < \kappa$ — **globally convex on $[0, \infty)$**! For finite $\beta \in [6, 12]$ and $\kappa = 1$, $g(r) \approx \beta^{-2} e^{2\beta(r-\kappa)}$ for $r \ll \kappa$, so $r g''(r) - g'(r) \approx 2\beta(2\beta r - 1)g(r)$ crosses zero at $r^\star \approx \frac{1}{2\beta}$ (exact numerical zeros of $h''_{\beta,1}$: $r^\star = 0.04167$ for $\beta = 12$ and $r^\star = 0.08359$ for $\beta = 6$), making $h_{\beta,\kappa}(s)$ strictly convex across the entire active cap and transition region ($r > r^\star \approx \frac{1}{2\beta}$). Consequently, Jensen's inequality reverses sign:
    $$\mathbb{E}\big[h_{\beta,\kappa}(\hat{s})\big] > h_{\beta,\kappa}(s) \qquad (\text{strictly positive over-penalization!}),$$
    causing severe **false cap triggering below $\kappa$** ($\mathbb{P}(\sqrt{\hat{s}} > \kappa) = \mathbb{P}(|Z| > \kappa / r) = 21.1\%$ at $r = 0.8 < \kappa = 1.0$, inflating expected penalty `1,015×` and expected gradient `275.8×`!), even while the logged `mean_grad_norm` $\mathbb{E}[\sqrt{\hat{s}}] < \sqrt{s}$ (`0.798 r`) is **strictly negatively biased**.
 
@@ -207,12 +207,14 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 
 | $\beta$ | True $r$ | Probes $K$ | $\mathbb{E}[\hat{s}]/s$ | Loss Jensen Bias *(exact $\chi_1^2$)* | Grad Magnitude Bias *(exact $\chi_1^2$)* | Loss Rel. Std |
 | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
-| `1` | `1.0` | `1` | `0.9935` | **`-14.78%`** *(`-14.41%`)* | **`-20.39%`** *(`-20.11%`)* | `0.975` |
-| `1` | `1.0` | `4` / `32` | `0.9954` / `0.9990` | `-5.02%` / `-0.73%` | `-7.06%` / `-1.02%` | `0.560` / `0.210` |
+| `1` | `0.5` | `1` / `4` / `32` | `0.9936` / `0.9996` / `0.9990` | **`-7.86%`** *(`-7.39%`)* / `-2.22%` / `-0.39%` | **`-12.65%`** *(`-12.28%`)* / `-3.86%` / `-0.61%` | `1.170` / `0.643` / `0.233` |
+| `1` | `1.0` | `1` / `4` / `32` | `0.9935` / `0.9954` / `0.9990` | **`-14.78%`** *(`-14.41%`)* / `-5.02%` / `-0.73%` | **`-20.39%`** *(`-20.11%`)* / `-7.06%` / `-1.02%` | `0.975` / `0.560` / `0.210` |
 | `1` | `2.0` | `1` / `4` / `32` | `1.0054` / `0.9956` / `1.0007` | **`-19.10%`** *(`-19.54%`)* / `-6.71%` / `-0.84%` | **`-22.45%`** *(`-22.83%`)* / `-7.59%` / `-0.95%` | `0.818` / `0.476` / `0.179` |
 | `1` | `5.0` | `1` / `4` / `32` | `0.9993` / `1.0001` / `0.9988` | **`-21.42%`** *(`-21.46%`)* / `-6.69%` / `-0.95%` | **`-21.66%`** *(`-21.66%`)* / `-6.42%` / `-0.89%` | `0.697` / `0.403` / `0.148` |
+| `8` (`minimal`) | `0.5` | `1` / `4` / `32` | `0.9952` / `1.0062` / `1.0011` | **`-17.56%`** *(`-17.42%`)* / `-5.31%` / `-0.71%` | **`-22.23%`** *(`-22.17%`)* / `-7.03%` / `-0.94%` | `0.884` / `0.521` / `0.194` |
 | `8` (`minimal`) | `1.0` | `1` / `4` / `32` | `0.9861` / `1.0024` / `1.0008` | **`-21.50%`** *(`-20.78%`)* / `-6.55%` / `-0.85%` | **`-23.26%`** *(`-22.63%`)* / `-6.86%` / `-0.87%` | `0.756` / `0.444` / `0.165` |
 | `8` (`minimal`) | `2.0` | `1` / `4` / `32` | `0.9917` / `0.9977` / `0.9986` | **`-21.79%`** *(`-21.48%`)* / `-6.76%` / `-0.95%` | **`-21.78%`** *(`-21.45%`)* / `-6.43%` / `-0.88%` | `0.684` / `0.395` / `0.144` |
+| `8` (`minimal`) | `5.0` | `1` / `4` / `32` | `1.0057` / `1.0019` / `1.0030` | **`-21.04%`** *(`-21.00%`)* / `-6.12%` / `-0.66%` | **`-20.53%`** *(`-20.35%`)* / `-5.84%` / `-0.63%` | `0.644` / `0.361` / `0.133` |
 
 - **Exact $2^4 = 16$ Rademacher Directional Distortion ($d=4$, $g = [2.0, 0.4, 0.4, 0.4]$, $\beta=1$):** Exact $\nabla_g \phi = [0.8544, 0.1709, 0.1709, 0.1709]$ vs. exact Rademacher expectation $\mathbb{E}[\nabla_g \phi(\hat{s})] = [0.8616, 0.0506, 0.0506, 0.0506]$ — a **`13.30°` directional rotation** (`cos = 0.9732`) suppressing minor gradient components by **`3.38×`**!
 
@@ -265,19 +267,25 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 | **`32²`** | **`unified_v11_fwAD_bf16`** | `100.0%` | **`0`** (`0.000%`) | `0.00` | `0.056` | **`+0.9964`** | **`1.013×`** |
 | `32²` | `t2_micro_secant_fp32` (`0.02`) | `100.0%` | `92` (`0.020%`) | `0.00` | `0.727` | `+0.0538` | `18.58×` |
 | `32²` | `t2_micro_secant_bf16` (`0.02`) | **`24.83%`** | `311` (`0.068%`) | **`0.62`** | `5.334` | **`+0.0064`** | **`254.8×`** |
+| `32²` | `minimal_micro_secant_fp32` (`1e-5`) | `100.0%` | `1` (`0.000%`) | `0.00` | `189.7` | **`+0.0160`** | **`37,976×`** |
 | `32²` | `minimal_micro_secant_bf16` (`1e-5`) | **`0.05%`** | `3` (`0.001%`) | **`1.00`** | `1.000` | **`0.0000`** | **`0.000×`** *(dead)* |
 | **`64²`** | **`unified_v11_fwAD_bf16`** | `100.0%` | **`0`** (`0.000%`) | `0.00` | `0.075` | **`+0.9941`** | **`0.976×`** |
 | `64²` | `t2_micro_secant_fp32` (`0.02`) | `100.0%` | `251` (`0.013%`) | `0.00` | `1.633` | `+0.0155` | `102.3×` |
 | `64²` | `t2_micro_secant_bf16` (`0.02`) | **`14.82%`** | `1,164` (`0.059%`) | **`0.44`** | `19.63` | **`-0.0020`** | **`2,103×`** |
+| `64²` | `minimal_micro_secant_fp32` (`1e-5`) | `100.0%` | `10` (`0.001%`) | `0.00` | `712.0` | **`+0.0009`** | **`1.33 × 10⁷×`** |
 | `64²` | `minimal_micro_secant_bf16` (`1e-5`) | **`0.02%`** | `11` (`0.001%`) | **`0.94`** | `9,923` | **`-0.0014`** | **`7.76 × 10⁸×`** |
 | **`128²`** | **`unified_v11_fwAD_bf16`** | `100.0%` | **`0`** (`0.000%`) | `0.00` | `0.094` | **`+0.9920`** | **`1.017×`** |
 | `128²` | `t2_micro_secant_fp32` (`0.02`) | `100.0%` | `639` (`0.008%`) | `0.00` | `3.131` | `+0.0059` | `305.3×` |
 | `128²` | `t2_micro_secant_bf16` (`0.02`) | **`8.49%`** | `3,788` (`0.047%`) | `0.25` | `39.75` | **`-0.0016`** | **`9,315×`** |
+| `128²` | `minimal_micro_secant_fp32` (`1e-5`) | `100.0%` | `35` (`0.000%`) | `0.00` | `2,518` | **`+0.0011`** | **`1.24 × 10⁸×`** |
+| `128²` | `minimal_micro_secant_bf16` (`1e-5`) | **`0.01%`** | `41` (`0.001%`) | **`0.56`** | `40,996` | **`+0.0021`** | **`9.90 × 10⁹×`** |
 | **`256²`** | **`unified_v11_fwAD_bf16`** | `100.0%` | **`0`** (`0.000%`) | `0.00` | `0.150` | **`+0.9869`** | **`1.065×`** |
 | `256²` | `t2_micro_secant_fp32` (`0.02`) | `100.0%` | `1,734` (`0.005%`) | `0.00` | `8.671` | **`-0.0003`** | **`2,617×`** |
 | `256²` | `t2_micro_secant_bf16` (`0.02`) | **`4.80%`** | **`11,881`** (`0.037%`) | **`0.56`** | `146.6` | **`-0.0017`** | **`87,478×`** |
 | `256²` | `minimal_micro_secant_fp32` (`1e-5`) | **`49.96%`** | `103` (`0.000%`) | `0.00` | `8,858` | **`+0.0000`** | **`3.69 × 10⁹×`** |
 | `256²` | `minimal_micro_secant_bf16` (`1e-5`) | **`0.01%`** | `163` (`0.001%`) | **`0.81`** | `153,157` | **`+0.0012`** | **`6.74 × 10¹⁰×`** |
+
+*(All `20/20` executed rows reported verbatim; note that `minimal_micro_secant_fp32` already explodes `37,976× -> 1.24 × 10⁸×` at `32²`–`128²` even at `100%` pixel survival because `1–35` LeakyReLU flips are amplified by `1 / 1e-5 = 10⁵`!)*
 
 #### (c) Transport-Chord & Cyclic-Roll Secants
 - **Symmetric-flank cancellation** ($D(x) = -\alpha \|x\|_2^2$, pairs $\pm e_1$): `s_chord == 0.0` identically across $\alpha \in \{1, 10, 100\}$ while `fwAD` recovers exact true slopes `{2.0, 20.0, 200.0}`.
@@ -438,7 +446,7 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 - **Classification:** **Falsified claim**
 1. **Precise formulation:** Generalization in [`docs/four-laws.md:43,51,113`](../../docs/four-laws.md#L43) implying `fwAD` is uniformly superior to RoR in compute/VRAM and compatible with low-precision and general architectures.
 2. **Assumptions:** Assumes 1-probe `fwAD` has negligible dispatch overhead, exact basis is cheap, and PyTorch `fwAD` has universal operator coverage.
-3. **Existing supporting evidence:** Valid **only** in the compute-bound high-resolution Conv2d regime ($K=1$, $\ge 128^2$) and for avoiding Flash-incompatible ops? No — even on Flash SDPA, `fwAD` fails too!
+3. **Existing supporting evidence:** Valid **only** in the compute-bound high-resolution Conv2d regime ($K=1$, $\ge 128^2$); `fwAD` does not even unlock Flash/MemEff SDPA, where both `fwAD` and `RoR` fail.
 4. **Potential counterexamples (all verified in Exp 4A–4C):**
    - **All GPU MLPs ($d \in [2, 1024]$, $B=256$, FP32):** Exact RoR (`1.32–1.59 ms`) beats BOTH `fwAD_1probe` (`2.38–2.78 ms`, `1.66×–2.05×` slower) AND `fwAD_exact_basis` (`1.98×` slower at $d=2$, `125.4×` slower / `104.6×` VRAM at $d=1024$)!
    - **Low-res Conv2d (`32²`, `64²`) at matched sample count:** `fwAD1_both` is `1.6×–1.9×` slower than `RoR_eval`.
