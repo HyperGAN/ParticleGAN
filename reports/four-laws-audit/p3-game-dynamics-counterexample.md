@@ -175,6 +175,7 @@ Every counterexample below explicitly satisfies all four operational laws as for
 | **Actual `UnifiedV12Optimizer`** | **`v11` `softplus` (no floor)** | **`0.20252`** | **`0.3373`** | **`0.5474`** | `0` | `1.000` / `0.000` | **FAIL: `softplus` is flat!** |
 | **Actual `UnifiedV12Optimizer`** | **Hidden `lambda_floor=0.005`** | **`0.01340`** | `0.0221` | `0.5319` | `0` | `1.000` / `0.000` | **CONVERGES (`15.3×` drop)** |
 | **Actual `UnifiedV12Optimizer`** | **True Born–Infeld (`minimal`)** | **`0.00594`** | `0.0098` | `0.2794` | `0` | `1.000` / `0.000` | **CONVERGES (`34.5×` drop)** |
+| Alternating 1:1 GD | Hidden `lambda_floor=0.005` | `0.18711` | `0.2667` | `0.4370` | `0` | — | Slow Theorem-1 decay ($0.999895^{3000} \approx 0.73$) |
 | Alternating 1:1 GD | True Born–Infeld (`minimal`) | **`0.00000`** | `0.0000` | `0.2599` | `0` | — | **EXACT CONVERGENCE** |
 | OGDA ($\lambda = 0.5$, Forge value) | None ($\mu_D = 0$) | **`0.24573`** | `0.2677` | `0.3716` | `0` | — | **FAIL ($2\lambda=1$ neutral!)** |
 | **OGDA ($\lambda = 1.0$, Daskalakis)** | **None ($\mu_D = 0$)** | **`0.00852`** | `0.0095` | `0.3598` | `0` | — | **CONVERGES AT $\mu_D = 0$!** |
@@ -189,14 +190,23 @@ Every counterexample below explicitly satisfies all four operational laws as for
 | **Actual `UnifiedV12Optimizer`** | **`v11` `softplus` (no floor)** | `0.0576` | **`0.0731` (FAIL)** | `0.0796` | `0.4770` | `softplus` cap gives zero normal damping |
 | **Actual `UnifiedV12Optimizer`** | **Hidden `lambda_floor=0.005`** | `0.0680` | `0.0445` *(weak)* | `0.0581` | `0.4724` | Weak partial damping from hidden floor |
 | **Actual `UnifiedV12Optimizer`** | **True Born–Infeld (`minimal`)** | `0.0550` | **`0.0000` (EXACT)** | `0.0298` | `0.2130` | Complete normal-axis convergence! |
+| OGDA ($\lambda = 1.0$, $\eta=0.05$) | None ($\mu_D = 0$) | `0.0084` | `0.0840` *(noisy)* | `0.0840` | `0.3914` | Contracts vs `alt_gd`, but $5\times$ minibatch variance lifts floor vs deterministic A1 |
 
-#### A3 — 2D Full-Support Isotropic Gaussian Under ParticleGAN's Public `hinge` Loss ($y \sim \mathcal{N}(0, I_2)$)
+#### A3 — 2D Full-Support Isotropic Gaussian Under ParticleGAN's Public `hinge` Loss ($y \sim \mathcal{N}(0, I_2)$, $\theta_0 = (0.4, 0.3)$)
 
-Even with **full-dimensional support** ($\Sigma_Y = I_2$, zero manifold degeneracy), `GANLoss("hinge")` has $f''(0) = 0$ inside $|D(x)| < 1$: `UnifiedV12Optimizer` with `pen=none` stalls at `r_tail = 0.24171` (`psi_rms = 0.2886`, `maxLip = 0.4871 < 1`), `unified_lambda_floor` drops only modestly to `0.21049`, while `born_infeld` cuts error by `2.8×` to `0.08600` (`psi_rms = 0.0529`, finite-batch stochastic floor).
+Even with **full-dimensional support** ($\Sigma_Y = I_2$, zero manifold degeneracy), `GANLoss("hinge")` has $f''(0) = 0$ inside $|D(x)| < 1$ (all `5/5` executed arms reported verbatim):
+
+| Optimizer | Critic Interior Penalty | Tail Radius $r_{\text{tail}}$ | Tail RMS ($\theta_1$ / $\theta_2$) | Tail $\|\psi\|_{\text{rms}}$ | $\max \|\nabla_x D\|_2$ | Outcome |
+| :--- | :--- | :---: | :---: | :---: | :---: | :--- |
+| Alternating 1:1 GD | None ($\mu_D = 0$) | `0.13344` | `0.1360` / `0.0577` | `0.1814` | `0.4585` | Persistent orbit despite full support |
+| **Actual `UnifiedV12Optimizer`** | **None ($\mu_D = 0$)** | **`0.24171`** | `0.1468` / `0.2300` | `0.2886` | `0.4871` | Persistent orbit (`ema_fg=1.0`, `stiff=0`) |
+| **Actual `UnifiedV12Optimizer`** | **Hidden `lambda_floor=0.005`** | `0.21049` | `0.1801` / `0.1529` | `0.2208` | `0.4596` | Weak damping insufficient against batch noise |
+| **Actual `UnifiedV12Optimizer`** | **True Born–Infeld (`minimal`)** | **`0.08600`** | `0.0601` / `0.0733` | **`0.0529`** | `0.3356` | `2.8×` error / `5.5×` slope reduction (stochastic floor) |
+| OGDA ($\lambda = 1.0$, $\eta=0.05$) | None ($\mu_D = 0$) | `0.20648` | `0.2097` / `0.0843` | `0.2246` | `0.4453` | $5\times$ minibatch variance dominates stochastic hinge |
 
 ### 3.2 Nonlinear Neural Counterexample B (2D Smooth MLPs + Actual `UnifiedV12Optimizer` & Penalties)
 
-Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`129` params, $\rho = 1.26$, `steps = 1,000`, tail = last `300` steps, `ns_2d_activations = 2,000`, `probe_consumptions = 1,000`, Seed `0`):
+Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`129` params, $\rho = 1.26$, `steps = 1,000`, tail = last `300` steps, `ns_2d_activations = 2,000`, `probe_consumptions = 1,000`, Seed `0`; all `10/10` executed arms reported verbatim):
 
 | Actual ParticleGAN Critic Penalty | Loss | $\beta_1$ | Sim? | Tail $|\bar{x}_2|$ | Tail Peak-to-Peak (`ptp`) | Tail $\operatorname{std}(x_2)$ | Critic Normal Slope | $\operatorname{med}/\max\|\nabla_x D\|$ | $|\mathbb{E}[D]|$ |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
@@ -207,13 +217,15 @@ Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`1
 | `bcap_hinge_gauge` *(momentum test)* | `wasserstein` | **`0.9`** | No | `0.1638` | `0.7296` | **`0.2432`** | **`0.4296`** | `0.829` / **`2.370`** | **`0.5920`** |
 | `bcap_hinge_gauge` *(sim test)* | `wasserstein` | `0.0` | **Yes** | `0.0355` | `0.2018` | `0.0410` | `0.1230` | `0.567` / **`1.432`** | `0.1574` |
 | `bcap_hinge_gauge` | `non_saturating` | `0.0` | No | `0.0227` | **`0.1417`** | `0.0145` | `0.0173` | `0.017` / `0.074` | `0.0030` |
+| `unified_v11_no_floor` *(non-monotone!)* | `non_saturating` | `0.0` | No | `0.0040` | `0.0328` | `0.0137` | `0.0026` | `0.003` / `0.014` | `0.0004` |
 | `unified_v11_default` | `non_saturating` | `0.0` | No | `0.0452` | **`0.2404`** | `0.0333` | `0.0073` | `0.011` / `0.095` | `0.0012` |
 | `minimal_born_infeld` | `non_saturating` | `0.0` | No | **`0.0048`** | **`0.0477`** | `0.0586` | **`0.0006`** | `0.001` / `0.005` | `0.0001` |
 
 **Causal Interpretation of Counterexample B:**
-1. On `wasserstein`, every single Law 1–4 criterion holds on `bcap_hinge_gauge` (`lip_max = 0.983 <= 1.0`, `|E[D]| = 0.0467`, `ns_2d = 2000`, `probes = 1000`, `b1 = 0.0`, balanced $\rho = 1.26$), yet the generator normal mean oscillates across **`0.7160` peak-to-peak** forever.
-2. Increasing **only** the zero-centered critic curvature $\mu_D$ produces a **strictly monotonic 4-rung collapse** of both oscillation amplitude (`0.7160 -> 0.4102 -> 0.1834 -> 0.0569`, **`12.6×`**) and normal critic slope (`0.1659 -> 0.0494 -> 0.0081 -> 0.0005`, **`332×`**).
-3. **Honest Damping–Variance Trade-Off Disclosed:** Under strong Born–Infeld damping (`minimal_born_infeld`, $\mu_D = 1.08$), normal mean oscillation is crushed (`|mean_n| = 0.0048–0.0085`), but the critic's normal slope drops to `0.0005`, leaving slightly higher residual normal spread (`std_n = 0.0466–0.0586`) than `unified_v11_default` (`std_n = 0.0336`) — explaining *why* ParticleGAN's `unified_v11`/`v12` keeps `lambda_floor = 0.005` small and pairs it with direct transport losses (`t1c`) in low-D, while exposing that `lambda_floor = 0.005` alone still leaves `0.18–0.24` peak-to-peak oscillation on pure adversarial nonlinear games without `t1c`.
+1. On `wasserstein` ($f''(0) \equiv 0$, cleanly isolating $\mu_D$ without logistic cross-curvature), every single Law 1–4 criterion holds on `bcap_hinge_gauge` (`lip_max = 0.983 <= 1.0`, `|E[D]| = 0.0467`, `ns_2d = 2000`, `probes = 1000`, `b1 = 0.0`, balanced $\rho = 1.26$), yet the generator normal mean oscillates across **`0.7160` peak-to-peak** forever.
+2. On `wasserstein`, increasing **only** the zero-centered critic curvature $\mu_D$ produces a **strictly monotonic 4-rung collapse** of both oscillation amplitude (`0.7160 -> 0.4102 -> 0.1834 -> 0.0569`, **`12.6×`**) and normal critic slope (`0.1659 -> 0.0494 -> 0.0081 -> 0.0005`, **`332×`**).
+3. **Honest Non-Monotonicity on Coupled Nonlinear `non_saturating` MLP Disclosed:** Unlike pure `wasserstein` ($f''(0) \equiv 0$) and decoupled analytic `A2` (where `unified_v11_no_floor` fails cleanly at `norm = 0.0731`), in the coupled nonlinear `SiLU` MLP under `non_saturating` logistic loss ($f''(0) = \frac{1}{4}$), `unified_v11_no_floor` (`|mean_n|=0.0040`, `ptp=0.0328`, `std_n=0.0137`, `slope_n=0.0026`) outperforms both `unified_v11_default` (`ptp=0.2404`) and `minimal_born_infeld` (`ptp=0.0477`, `std_n=0.0586`) on seed `0`. Mechanistically, shared `SiLU` hidden units and finite generator residual spread ($\operatorname{std}(x_2) > 0$) couple tangent-axis logistic curvature ($f''(0)\operatorname{Var}(y_1) = \frac{1}{4}$) into the normal feature representation, creating non-monotone single-trajectory sensitivity when $\mu_D$ is tiny (`0` vs `0.01`), whereas strong Born–Infeld ($\mu_D = 1.08$) deterministically crushes normal critic slope (`0.0006`, `29×` below `b_cap`).
+4. **Honest Damping–Variance Trade-Off Disclosed:** Under strong Born–Infeld damping (`minimal_born_infeld`, $\mu_D = 1.08$), normal mean oscillation is crushed (`|mean_n| = 0.0048–0.0085`), but the critic's normal slope drops to `0.0005–0.0006`, leaving higher residual normal spread (`std_n = 0.0466–0.0586`) than `unified_v11_default` (`std_n = 0.0333–0.0336`) — explaining *why* ParticleGAN's `unified_v11`/`v12` keeps `lambda_floor = 0.005` small and pairs it with direct transport losses (`t1c`) in low-D, while exposing that `lambda_floor = 0.005` alone still leaves `0.18–0.24` peak-to-peak oscillation on pure adversarial nonlinear games without `t1c`.
 
 ---
 
