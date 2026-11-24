@@ -103,10 +103,11 @@ def _eval_probe_forward(mod: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str,
 
 _flat_nocopy = lambda t: t.view(-1) if t.is_contiguous() else (t.permute(0, 2, 3, 1).view(-1) if (t.ndim == 4 and t.is_contiguous(memory_format=torch.channels_last)) else t.reshape(-1))
 
-def _update_l2_ref(st: Dict[str, Any], lt: float, rp_f: float) -> float:
+def _update_l2_ref(st: Dict[str, Any], lt: float, g_eq: float, dec: float) -> float:
     if not bool(st.get("log2_init", False)): st["log2_init"], st["log2_ref"] = True, float(lt); return float(lt)
-    rp = float(st.get("log2_ref", 0.0)); dl = max(-1.0, min(1.0, lt - rp))
-    st["log2_ref"] = rp + (0.05 * dl if (rp_f >= 0.0 or dl > 0.0) else 0.0); return float(st["log2_ref"])
+    rp = float(st.get("log2_ref", 0.0))
+    st["log2_ref"] = (rp + 0.05 * min(1.0, lt - rp)) if lt > rp else (g_eq * (rp - dec) + (1.0 - g_eq) * (rp + 0.05 * max(-1.0, lt - rp)))
+    return float(st["log2_ref"])
 
 def _apply_mom(st: Dict[str, Any], p: torch.Tensor, gu: torch.Tensor, b1: float) -> torch.Tensor:
     if b1 <= 0.0: return gu
@@ -245,7 +246,7 @@ class AxiomOptimizer(Optimizer):
         self.clear_sampled_rows(); self._mod_g_scale = self._mod_wakeup_boost = self._mod_prior_scale = 1.0
         self._origin_norm_t, self._protected, self._protected_single = None, None, False
 
-    def _update_step_cosine(self, net_grads: List[torch.Tensor], dev: torch.device) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _update_step_cosine(self, net_grads: List[torch.Tensor], dev: torch.device) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
         rho_p = self._ema_step_cos_t if (self._ema_step_cos_t is not None and self._ema_step_cos_t.device == dev) else torch.full((), self._ema_step_cos_val, dtype=torch.float64, device=dev)
         damp_p = self._log2_damp_t if (self._log2_damp_t is not None and self._log2_damp_t.device == dev) else torch.full((), self._log2_damp_val, dtype=torch.float64, device=dev)
         rho_n = rho_p
@@ -261,10 +262,11 @@ class AxiomOptimizer(Optimizer):
                 rho_n = torch.where(sk_ok, 0.90 * rho_p + 0.10 * (sk_now * prev_sk).sum().double().clamp(-1.0, 1.0), rho_p)
             self._prev_step_sketch = torch.where(sk_ok, sk_now, prev_sk if prev_sk is not None else sk_now)
         if self._ss_coef is None or self._ss_coef[0].device != dev:
-            self._ss_coef = (torch.tensor([-1.0 / 0.35, 1.0 / 0.35, -1.0 / 0.45], dtype=torch.float64, device=dev), torch.tensor([-0.45 / 0.35, 0.15 / 0.35, -0.15 / 0.45], dtype=torch.float64, device=dev))
-        u3 = (rho_n * self._ss_coef[0] + self._ss_coef[1]).clamp_(0.0, 1.0); g3 = u3 * u3 * (3.0 - 2.0 * u3)
-        log2_d = (damp_p - 0.08 * g3[0] + 0.12 * g3[1]).clamp(-10.0, 0.0); self._ema_step_cos_t, self._log2_damp_t = rho_n, log2_d
-        return rho_p, rho_n, torch.exp2(log2_d), float(self.smoothing) * g3[2]
+            self._ss_coef = (torch.tensor([-1.0 / 0.35, 1.0 / 0.35, -1.0 / 0.45, -1.0 / 0.30], dtype=torch.float64, device=dev),
+                             torch.tensor([-0.45 / 0.35, 0.15 / 0.35, -0.15 / 0.45, 0.55 / 0.30], dtype=torch.float64, device=dev))
+        u4 = (rho_n * self._ss_coef[0] + self._ss_coef[1]).clamp_(0.0, 1.0); g4 = u4 * u4 * (3.0 - 2.0 * u4)
+        log2_d = (damp_p - 0.08 * g4[0] + 0.12 * g4[1]).clamp(-10.0, 0.0); self._ema_step_cos_t, self._log2_damp_t = rho_n, log2_d
+        return rho_p, rho_n, torch.exp2(log2_d), float(self.smoothing) * g4[2], g4[3]
 
     def _two_obj_pyth(self) -> Dict[int, float]:
         if self._protected is None or int(self._protected.shape[0]) != 2: return {}
@@ -283,7 +285,7 @@ class AxiomOptimizer(Optimizer):
         return {pid: (min(2.0, max(1.0, (math.sqrt(a2) + math.sqrt(b2)) / math.sqrt(max(a2 + b2 + 2.0 * dt, 1e-36)))) if (a2 > 1e-24 and b2 > 1e-24) else 1.0)
                 for r, pids in rp.items() for a2, b2, dt in (acc[r],) for pid in pids}
 
-    def _step_prior(self, p: torch.Tensor, grad: torch.Tensor, grp: Dict[str, Any], *, base_lr: float, b1: float, s_rel: torch.Tensor, rho_p: float) -> None:
+    def _step_prior(self, p: torch.Tensor, grad: torch.Tensor, grp: Dict[str, Any], *, base_lr: float, b1: float, s_rel: float, s_peak_pr: float, g_eq: float, dec: float) -> None:
         if base_lr <= 0.0: return
         st, r_sc, req = self.state[p], self._row_scales.get(p), bool(grp.get("sampled_rows_required", True))
         if req and r_sc is None:
@@ -301,12 +303,13 @@ class AxiomOptimizer(Optimizer):
             dr = torch.where(fin, mpv.mul(b1).add(dr, alpha=1.0 - b1), mpv); mp.index_add_(0, ridx, (dr - mpv) * rmask.float())
         u_row, l2, ok0 = _me_unit_rows(dr); ok = rmask & ok0; nok = ok.float().sum()
         n_ok, mean_l2 = torch.stack((nok.double(), ((l2 * ok.float()).sum() / nok.clamp_min(1.0)).double())).tolist()
-        ref_n = _update_l2_ref(st, float(mean_l2), float(rho_p)) if n_ok > 0.0 else float(st.get("log2_ref", 0.0))
-        ur = torch.where(ok, u_row * torch.rsqrt(1.0 + (s_rel.float() * torch.exp2((ref_n - l2).clamp(-30.0, 30.0))).square()), torch.zeros_like(u_row))
+        ref_n = _update_l2_ref(st, float(mean_l2), g_eq, dec) if n_ok > 0.0 else float(st.get("log2_ref", 0.0))
+        rat = torch.exp2((ref_n - l2).clamp(-30.0, 20.0)); rs = float(s_rel) * rat + float(s_peak_pr) * (rat - 1.0).clamp_min(0.0)
+        ur = torch.where(ok, u_row * torch.rsqrt(1.0 + rs.square()), torch.zeros_like(u_row))
         p.index_add_(0, ridx, (ur * r_sc.unsqueeze(1) if (r_sc is not None and len(r_sc) == len(ridx)) else ur).to(p.dtype), alpha=-base_lr)
 
     def _run_foreach_fast(self, items: List[Tuple[torch.Tensor, torch.Tensor, float, float, float, bool]], *,
-                          rho_p: torch.Tensor, c_osc: torch.Tensor, s_rel: torch.Tensor,
+                          c_osc: torch.Tensor, s_rel: torch.Tensor, s_peak: float, g_eq: torch.Tensor, dec: float,
                           g_mult: float | torch.Tensor) -> List[Tuple[torch.Tensor, torch.Tensor, float, float, float, bool]]:
         params, grads = [it[0] for it in items], [it[1] for it in items]
         dev, key, lr_key, c = params[0].device, tuple(id(p) for p in params), tuple(it[2] for it in items), self._fast_cache
@@ -321,9 +324,11 @@ class AxiomOptimizer(Optimizer):
         lrs = torch.where(c["is_gen"], c["lrs"] * (g_mult.to(dev, dtype=torch.float64) if isinstance(g_mult, torch.Tensor) else float(g_mult)), c["lrs"]) if (isinstance(g_mult, torch.Tensor) or g_mult != 1.0) else c["lrs"]
         norms = torch.stack(torch._foreach_norm(grads)).double(); ok = torch.isfinite(norms) & (norms > 1e-17) & (norms < 1e17)
         sn = torch.where(ok, norms, torch.ones_like(norms)); lt, rp, ip = torch.log2(sn) - c["half_l2"], c["log2_ref"], c["log2_init"]
-        dl = (lt - rp).clamp(-1.0, 1.0); rn = torch.where(ok, torch.where(ip, torch.where((rho_p >= 0.0) | (dl > 0.0), rp + 0.05 * dl, rp), lt), rp)
+        dn = g_eq * (rp - dec) + (1.0 - g_eq) * (rp + 0.05 * (lt - rp).clamp_min(-1.0))
+        rn = torch.where(ok, torch.where(ip, torch.where(lt > rp, rp + 0.05 * (lt - rp).clamp_max(1.0), dn), lt), rp)
         c["log2_ref"].copy_(rn); c["log2_init"].copy_(ip | ok)
-        sc = torch.where(ok, -(lrs * c["factors"] * c_osc * torch.rsqrt(1.0 + (s_rel * torch.exp2((rn - lt).clamp(-30.0, 30.0))).square())) / sn, torch.zeros_like(norms)).float()
+        rat = torch.exp2((rn - lt).clamp(-30.0, 20.0)); rs = s_rel * rat + (s_peak * g_eq) * (rat - 1.0).clamp_min(0.0)
+        sc = torch.where(ok, -(lrs * c["factors"] * c_osc * torch.rsqrt(1.0 + rs.square())) / sn, torch.zeros_like(norms)).float()
         if not bool(ok.all().item()):
             ml = ok.tolist()
             if (keep := [i for i, b in enumerate(ml) if b]):
@@ -409,23 +414,29 @@ class AxiomOptimizer(Optimizer):
             gen_probe = ((not is_crit) and rec is not None and getattr(rec, "_g_probe_cache", None) is not None and getattr(rec, "_enable_secant_probe", True)
                          and not is_simp and not is_cf and (self._protected is None or int(self._protected.shape[0]) < 2))
             fast_it, d2_it, slow_it, tracked = [], [], [], []
+            s_cool = 1.0 if s_therm >= 0.9999 else (s_therm / math.hypot(s_therm, 0.0061))
+            dec = 0.0007215 if s_therm >= 0.5 else 0.0
+            u_st = max(0.0, min(1.0, (0.18 - ema_fg) / 0.07)); stiff_g = u_st * u_st * (3.0 - 2.0 * u_st)
+            s_peak = (float(self.smoothing) / 0.05) * 0.20 * (1.0 - stiff_g)
             for grp in self.param_groups:
                 is_pr, is_gr, b1 = grp["algorithm"] == "axiom_prior", grp["role"] not in ("critic", "prior", "table"), float(grp["betas"][0])
-                blr = float(grp["lr"]) * step_scale * (self._mod_prior_scale if is_pr else 1.0)
+                b1_p = max(b1, 0.75) if (is_pr and self._mod_prior_scale < 1.0) else b1
+                blr = float(grp["lr"]) * step_scale * s_cool * (self._mod_prior_scale if is_pr else 1.0)
                 for p in grp["params"]:
                     if (g := p.grad) is None: continue
                     self.state[p]["step"] = int(self.state[p].get("step", 0)) + 1; lr_p = blr * pyth.get(id(p), 1.0)
-                    if is_pr: slow_it.append((p, g, lr_p, 0.0, 0.0, b1, True, grp))
+                    if is_pr: slow_it.append((p, g, lr_p, 0.0, 0.0, b1_p, True, grp))
                     elif lr_p > 0.0:
                         if gen_probe and (not self._gen_param_ids or id(p) in self._gen_param_ids): tracked.append((p, p.detach().clone()))
                         fac, hl2, rd, cd, md = self._param_metrics(p)
                         if p.ndim == 2 and md >= 2: d2_it.append((p, g, lr_p, fac, hl2, rd, cd, b1, is_gr))
                         elif (not gen_probe) and b1 == 0.0 and p.dtype == torch.float32 and g.dtype == torch.float32: fast_it.append((p, g, lr_p, fac, hl2, is_gr))
                         else: slow_it.append((p, g, lr_p, fac, hl2, b1, is_gr, None))
-            rho_p, rho_n, c_osc, s_rel = self._update_step_cosine(net_grads, ref_dev)
-            if fast_it: slow_it.extend((p, g, lr_p, fac, hl2, 0.0, is_gr, None) for p, g, lr_p, fac, hl2, is_gr in self._run_foreach_fast(fast_it, rho_p=rho_p, c_osc=c_osc, s_rel=s_rel, g_mult=g_mult))
+            _, _, c_osc, s_rel_raw, g_eq = self._update_step_cosine(net_grads, ref_dev)
+            s_rel = s_rel_raw * (1.0 - stiff_g)
+            if fast_it: slow_it.extend((p, g, lr_p, fac, hl2, 0.0, is_gr, None) for p, g, lr_p, fac, hl2, is_gr in self._run_foreach_fast(fast_it, c_osc=c_osc, s_rel=s_rel, s_peak=s_peak, g_eq=g_eq, dec=dec, g_mult=g_mult))
             if slow_it or d2_it:
-                s_vec: List[torch.Tensor] = [rho_p.double(), c_osc.double(), s_rel.double()]
+                s_vec: List[torch.Tensor] = [c_osc.double(), s_rel.double(), g_eq.double()]
                 if isinstance(g_mult, torch.Tensor): s_vec.append(g_mult.to(ref_dev, dtype=torch.float64).reshape(()))
                 slow_norm, d2_norm = [], []
                 for x in slow_it:
@@ -436,23 +447,25 @@ class AxiomOptimizer(Optimizer):
                     gu, l2n, ok = mantissa_exponent_normalize(x[1]); d2_norm.append((x, gu))
                     s_vec.extend((ok.to(ref_dev, dtype=torch.float64), l2n.to(ref_dev, dtype=torch.float64)))
                 sv = torch.stack(s_vec).tolist()
-                rp_f, cosc_f, srel_f = float(sv[0]), float(sv[1]), float(sv[2])
+                cosc_f, srel_f, geq_f = float(sv[0]), float(sv[1]), float(sv[2])
                 idx_s, gm_f = (4, float(sv[3])) if isinstance(g_mult, torch.Tensor) else (3, float(g_mult))
+                sp_eff = s_peak * geq_f
                 if slow_norm: self._flush_fast_cache(); self._fast_cache = None
                 for x in slow_it:
-                    if x[7] is not None: self._step_prior(x[0], x[1], x[7], base_lr=x[2], b1=x[5], s_rel=s_rel, rho_p=rp_f)
+                    if x[7] is not None: self._step_prior(x[0], x[1], x[7], base_lr=x[2], b1=x[5], s_rel=srel_f, s_peak_pr=1.25 * sp_eff, g_eq=geq_f, dec=dec)
                 for (p, _, lr_p, fac, hl2, b1, is_gr, _), gu in slow_norm:
                     ok_v, l2_v = sv[idx_s] > 0.5, float(sv[idx_s + 1]); idx_s += 2
                     if not ok_v: continue
-                    gu, lt = _apply_mom(self.state[p], p, gu, b1), l2_v - hl2; rn = _update_l2_ref(self.state[p], lt, rp_f)
-                    p.add_((gu * (-(((lr_p * gm_f) if is_gr else lr_p) * fac) * cosc_f / math.sqrt(1.0 + (srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))) ** 2))).to(p.dtype))
+                    gu, lt = _apply_mom(self.state[p], p, gu, b1), l2_v - hl2; rn = _update_l2_ref(self.state[p], lt, geq_f, dec)
+                    rat = 2.0 ** max(-30.0, min(20.0, rn - lt)); rs = srel_f * rat + sp_eff * max(0.0, rat - 1.0)
+                    p.add_((gu * (-(((lr_p * gm_f) if is_gr else lr_p) * fac) * cosc_f / math.sqrt(1.0 + rs * rs))).to(p.dtype))
                 ns_b: Dict[Tuple[int, int], List[Tuple[torch.Tensor, torch.Tensor, bool, float, float]]] = {}
                 for (p, _, lr_p, fac, hl2, rd, cd, b1, is_gr), gu in d2_norm:
                     ok_v, l2_v = sv[idx_s] > 0.5, float(sv[idx_s + 1]); idx_s += 2
                     if not ok_v: continue
-                    st, lt = self.state[p], l2_v - hl2; gu, rn, nt = _apply_mom(st, p, gu, b1), _update_l2_ref(st, lt, rp_f), rd > cd
+                    st, lt = self.state[p], l2_v - hl2; gu, rn, nt = _apply_mom(st, p, gu, b1), _update_l2_ref(st, lt, geq_f, dec), rd > cd
                     mc = gu.reshape(rd, cd).T if nt else gu.reshape(rd, cd)
-                    rate, rs = ((lr_p * gm_f) if is_gr else lr_p), srel_f * (2.0 ** max(-30.0, min(30.0, rn - lt)))
+                    rat = 2.0 ** max(-30.0, min(20.0, rn - lt)); rate, rs = ((lr_p * gm_f) if is_gr else lr_p), srel_f * rat + sp_eff * max(0.0, rat - 1.0)
                     ns_b.setdefault((int(mc.shape[0]), int(mc.shape[1])), []).append((p, mc, nt, rate * fac * cosc_f, rs))
                 for bkt in ns_b.values():
                     self.ns_2d_activations += len(bkt); mats = torch.stack([b[1] for b in bkt], dim=0)

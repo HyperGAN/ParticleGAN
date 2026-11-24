@@ -239,16 +239,13 @@ def _attach_hook(mod: Optional[nn.Module], record: AxiomStepRecord, fn: Any, fla
     if isinstance(mod, nn.Module):
         mod._axiom_record, mod._axiom_has_bn = record, any(isinstance(m, (nn.modules.batchnorm._BatchNorm, nn.modules.dropout._DropoutNd)) for m in mod.modules())
         if not getattr(mod, flag, False): mod.register_forward_hook(fn, with_kwargs=True); setattr(mod, flag, True)
-
 _attach_axiom_critic_hook = lambda critic, record: _attach_hook(critic, record, _axiom_critic_hook, "_axiom_hook_registered")
 _attach_axiom_generator_hook = lambda generator, record: _attach_hook(generator, record, _axiom_generator_hook, "_axiom_gen_hook_registered")
-
 def bind_axiom_record(record: AxiomStepRecord, *readers: Any) -> None:
     for r in readers:
         if r is not None:
             r._axiom_record = record
             if hasattr(r, "record") and (not hasattr(r, "param_groups") or getattr(r, "critic", None) is not None): r.record = record
-
 def _has_quantized_linear(mod: Any) -> bool:
     if not isinstance(mod, nn.Module): return False
     try: from ..low_precision import EmulatedLinear
@@ -260,12 +257,10 @@ def _bn_dual_bf16_hook(_m: nn.Module, _i: Tuple[Any, ...], out: Any) -> Any:
         p, t = fwAD.unpack_dual(out)
         if t is not None and (p.dtype != torch.bfloat16 or t.dtype != torch.bfloat16): return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
     return out
-
 def _dense_rademacher(x: torch.Tensor, phi: float, salt: int) -> torch.Tensor:
     h = (torch.arange(x.numel(), device=x.device, dtype=torch.int64) * 2654435761 + ((int(phi * 1073741824.0) + salt * 7919) & 0xFFFFFFFF) * 3266489917 + 374761393) & 0xFFFFFFFF
     h = (((h ^ (h >> 15)) * 2246822519) & 0xFFFFFFFF); h = (((h ^ (h >> 13)) * 3266489917) & 0xFFFFFFFF)
     return torch.where(((h ^ (h >> 16)) & 1) == 0, 1.0, -1.0).to(dtype=x.dtype).reshape_as(x)
-
 _cslice = lambda val, b, s, n: val if (not isinstance(val, torch.Tensor) or val.ndim < 1 or val.shape[0] != b or n >= b) else (val[s : s + n] if s + n <= b else torch.cat((val[s:], val[: s + n - b]), dim=0))
 
 class AxiomPenaltyKernel:
@@ -329,20 +324,26 @@ class AxiomPenaltyKernel:
         df_l = next((e[4] for e in reversed(self.record._live_captures) if e[0] == stp and e[1] == kf and e[2] == csig and e[5] and e[4] is not None), None)
         reused = dr_l is not None and df_l is not None
         try:
+            cap_tot: Optional[torch.Tensor] = None
             if not use_ror:
                 try: dr_s, df_s, s_hat = self._fwad(live, x_real, x_fake, args, kwargs, phi, mod=mod, has_bn=has_bn, has_bd=has_bd)
                 except (RuntimeError, NotImplementedError, TypeError): self._fwad_unsupported.add(cid); use_ror = True
             if use_ror:
                 self.record._in_penalty = True
                 try:
-                    br, bf = int(x_real.shape[0]), int(x_fake.shape[0])
-                    if not has_bn and not has_bd and not args and not kwargs and br == bf:
-                        y2, sq = self._ror(live, torch.cat((x_real.detach(), x_fake.detach()), dim=0), (), {}); dr_s, df_s, s_hat = y2[:br], y2[br:], 0.5 * (sq[:br].mean() + sq[br:].mean())
-                    else: dr_s, sqr = self._ror(live, x_real, args, kwargs); df_s, sqf = self._ror(live, x_fake, args, kwargs); s_hat = 0.5 * (sqr.mean() + sqf.mean())
+                    br, bf, _cap = int(x_real.shape[0]), int(x_fake.shape[0]), (lambda sq: torch.relu((sq + 1e-12).sqrt() - self.kappa).square().mean())
+                    if not has_bn and not has_bd and not args and not kwargs and br == bf and x_real.shape == x_fake.shape:
+                        tc = (0.15 + 0.70 * torch.remainder((torch.arange(br, device=x_real.device, dtype=torch.float32) + 0.5) / float(br) + phi, 1.0)).to(x_real.dtype).reshape((br,) + (1,) * (x_real.ndim - 1))
+                        y3, sq3 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach(), (1.0 - tc) * x_real.detach() + tc * x_fake.detach()), dim=0), (), {})
+                        dr_s, df_s, sqr, sqf, sqc = y3[:br], y3[br : 2 * br], sq3[:br], sq3[br : 2 * br], sq3[2 * br :]
+                        s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + 0.75 * _cap(sqf) + 0.25 * _cap(sqc)
+                    else:
+                        dr_s, sqr = self._ror(live, x_real, args, kwargs); df_s, sqf = self._ror(live, x_fake, args, kwargs)
+                        s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf)
                 finally: self.record._in_penalty = False
             dr2, df2 = (dr_l, df_l) if reused else (dr_s, df_s)
             lam = (self.lambda_floor * torch.exp((self.beta_ema * torch.relu(self.record._dev_ema("ema_grad_sq", s_hat.device) - self.kappa * self.kappa)).clamp_max(self._c_max))).to(s_hat.dtype)
-            self.record._observe_grad_sq_tensor(s_hat.detach()); pl = 0.5 * self.coeff * lam * s_hat
+            self.record._observe_grad_sq_tensor(s_hat.detach()); pl = 0.5 * self.coeff * (lam * s_hat if cap_tot is None else (cap_tot + lam * s_hat))
             ml = 0.5 * (dr2.float().mean() + df2.float().mean()) if self.gamma_gauge > 0.0 else s_hat.new_zeros(())
             pg, s_th = (0.5 * self.coeff * self.gamma_gauge * ml.square() if self.gamma_gauge > 0.0 else s_hat.new_zeros(())), float(self.record.thermal_scale)
             if s_th < 1.0:
