@@ -485,6 +485,9 @@ def _bind_formulation_record(recipe: Recipe, opt_d: Any, loss_fn: Any, prior_reg
     elif eff == "t2_secant":
         from particlegan.t2_critic import bind_t2_record
         bind_t2_record(opt_d.record, loss_fn, prior_reg_fn)
+    elif eff == "axiom":
+        from particlegan.axiom import bind_axiom_record
+        bind_axiom_record(opt_d.record, loss_fn, prior_reg_fn)
     elif eff == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
         from particlegan.rhbi import bind_rhbi_record
         bind_rhbi_record(opt_d.record, loss_fn, prior_reg_fn)
@@ -494,9 +497,6 @@ def _bind_formulation_record(recipe: Recipe, opt_d: Any, loss_fn: Any, prior_reg
     elif eff == "rgdt":
         from particlegan.t3_dynamics import bind_rgdt_record
         bind_rgdt_record(opt_d.record, loss_fn, prior_reg_fn)
-    elif eff == "axiom":
-        from particlegan.axiom import bind_axiom_record
-        bind_axiom_record(opt_d.record, loss_fn, prior_reg_fn)
 
 
 class T3IsolationFixture:

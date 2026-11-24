@@ -168,6 +168,11 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()
             _attach_cond_fiber_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "axiom":
+            from ._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            optimizer.record = AxiomStepRecord()
+            optimizer._axiom_record = optimizer.record
+            _attach_axiom_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
             from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
@@ -188,11 +193,6 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
             from .minimal import MinimalStepRecord, _attach_minimal_critic_hook
             optimizer.record = MinimalStepRecord()
             _attach_minimal_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "axiom":
-            from ._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
-            optimizer.record = AxiomStepRecord()
-            optimizer._axiom_record = optimizer.record
-            _attach_axiom_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

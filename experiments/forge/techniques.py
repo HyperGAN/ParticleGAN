@@ -186,7 +186,7 @@ def technique_signature(value):
             mechanisms["t4_arch_iso"] = True
         if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
             mechanisms["t4_arch_condensation"] = True
-    if recipe.t1c_weight > 0:
+    if recipe.t1c_weight > 0 and recipe.effective_critic_formulation != "axiom":
         mechanisms["t1c_transport"] = True
         if recipe.t1c_chart_weight > 0:
             mechanisms["t1c_chart_commitment"] = True
@@ -311,8 +311,8 @@ def recipe_field_active(name, value, *, task=None):
         return recipe.kinetic_transport_local_weight > 0
     if name == "kinetic_transport_projections":
         return recipe.kinetic_transport_weight > 0 or recipe.kinetic_transport_local_weight > 0
-    active_bi_weight = recipe.rhbi_weight > 0 or recipe.t1c_weight > 0 or recipe.effective_critic_formulation in {"unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber"}
-    active_bi_form = recipe.effective_critic_formulation in {"rhbi", "t1_coupling", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber"}
+    active_bi_weight = recipe.rhbi_weight > 0 or recipe.t1c_weight > 0 or recipe.effective_critic_formulation in {"unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "axiom"}
+    active_bi_form = recipe.effective_critic_formulation in {"rhbi", "t1_coupling", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "axiom"}
     if name == "rhbi_weight":
         return recipe.rhbi_weight > 0
     if name == "t1c_weight":
@@ -346,6 +346,8 @@ def recipe_field_active(name, value, *, task=None):
             or (active_bi_form and recipe.reg_coeff > 0 and recipe.rhbi_chord_weight > 0)
         )
     if name == "rhbi_fibre_rel_blend":
+        if recipe.effective_critic_formulation == "axiom":
+            return recipe.t1c_weight > 0
         return (
             active_bi_form
             or active_bi_weight

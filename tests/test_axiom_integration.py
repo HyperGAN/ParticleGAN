@@ -251,7 +251,7 @@ def test_forge_idea_studies_and_clockfree_source_audit():
     from experiments.forge.clockfree import source_audit
     from experiments.forge.contracts import validate_idea
     from experiments.forge.studies import validate_study
-    from experiments.forge.techniques import technique_signature
+    from experiments.forge.techniques import recipe_field_active, technique_signature
 
     idea_path = REPO_ROOT / "configs" / "forge" / "ideas" / "axiom-v1.json"
     idea = json.loads(idea_path.read_text())
@@ -282,6 +282,47 @@ def test_forge_idea_studies_and_clockfree_source_audit():
     assert sig["mechanisms"].get("axiom_optimizer") is True
     assert sig["mechanisms"].get("axiom_critic") is True
     assert sig["mechanisms"].get("axiom_transport") is True
+    assert "t1c_transport" not in sig["mechanisms"]
+    assert "t1c_chart_commitment" not in sig["mechanisms"]
+    assert recipe_field_active("rhbi_fibre_rel_blend", rec) is True
+
+
+def test_axiom_record_binding_not_shadowed_and_zero_legacy_import():
+    check_script = (
+        "import torch, particlegan as pg\n"
+        "import particlegan.t1_coupling as legacy_t1c\n"
+        "from benchmarks.toy_audit.api_t3_isolation import HOST_DEFINITIONS, T3IsolationFixture\n"
+        "def _boom(*args, **kwargs):\n"
+        "    raise AssertionError('legacy bind_t1_coupling_record must not be called for axiom')\n"
+        "legacy_t1c.bind_t1_coupling_record = _boom\n"
+        "rec = pg.get_recipe('axiom', prior_kind='mog', sigma_rel=0.05, num_particles=16, z_dim=2, batch_size=16, total_steps=50)\n"
+        "g = torch.nn.Sequential(torch.nn.Linear(2, 16), torch.nn.SiLU(), torch.nn.Linear(16, 2))\n"
+        "d = torch.nn.Sequential(torch.nn.Linear(2, 16), torch.nn.SiLU(), torch.nn.Linear(16, 1))\n"
+        "prior = rec.make_prior()\n"
+        "tr = pg.GANTrainer(rec, g, d, prior=prior, max_steps=50, seed=0)\n"
+        "assert tr.loss._axiom_record is tr.opt_d.record\n"
+        "assert tr.loss.record is tr.opt_d.record\n"
+        "assert tr.prior_regularizer._axiom_record is tr.opt_d.record\n"
+        "assert tr.prior_regularizer._bound_device is not None\n"
+        "assert not hasattr(tr.loss, '_t1c_record')\n"
+        "res_t3 = HOST_DEFINITIONS['t3_iso_scale_mass_8x']['resources']\n"
+        "rec_t3 = pg.get_recipe('axiom', num_particles=res_t3['num_particles'], z_dim=res_t3['z_dim'], batch_size=res_t3['batch_size'], total_steps=50)\n"
+        "t3 = T3IsolationFixture('t3_iso_scale_mass_8x', rec_t3, device='cpu', seed=0, max_steps=50)\n"
+        "assert t3.loss._axiom_record is t3.opt_d.record\n"
+        "assert t3.loss.record is t3.opt_d.record\n"
+        "assert not hasattr(t3.loss, '_t1c_record')\n"
+        "rec_adam = pg.get_recipe('axiom', optimizer_family='adam', optimizer_smoothing=0.0, constraint_geometry_mode='none', total_steps=50)\n"
+        "opt_d_adam = rec_adam.make_critic_optimizer(d)\n"
+        "assert type(opt_d_adam.record).__name__ == 'AxiomStepRecord'\n"
+    )
+    proc = subprocess.run(
+        [sys.executable, "-c", check_script],
+        cwd=str(REPO_ROOT),
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, f"binding/import check failed:\n{proc.stderr}\n{proc.stdout}"
 
 
 # ---------------------------------------------------------------------------

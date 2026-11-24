@@ -472,6 +472,13 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "cond_fiber":
             from .cond_fiber import bind_cond_fiber_record
             bind_cond_fiber_record(self.opt_d.record, self.loss, self.prior_regularizer)
+        elif recipe.effective_critic_formulation == "axiom":
+            from ._axiom.critic import bind_axiom_record
+            bind_axiom_record(self.opt_d.record, self.loss, self.prior_regularizer)
+            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
+                g_dev = next((p.device for p in self.G.parameters()), None)
+                if g_dev is not None:
+                    self.prior_regularizer._bound_device = g_dev
         elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
             from .rhbi import bind_rhbi_record
             bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
@@ -490,13 +497,6 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "minimal":
             from .minimal import bind_minimal_record
             bind_minimal_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
-        elif recipe.effective_critic_formulation == "axiom":
-            from ._axiom.critic import bind_axiom_record
-            bind_axiom_record(self.opt_d.record, self.loss, self.prior_regularizer)
             if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
                 g_dev = next((p.device for p in self.G.parameters()), None)
                 if g_dev is not None:
