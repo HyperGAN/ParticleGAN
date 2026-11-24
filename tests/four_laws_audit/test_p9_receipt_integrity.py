@@ -24,26 +24,38 @@ from scripts.four_laws_audit.p9_verify_receipts import (  # noqa: E402
 )
 
 
-def test_four_laws_links_and_missing_receipts_detected() -> None:
-    """Verify every existing readout loads and flag the exact 3 broken links in docs/four-laws.md."""
+def test_four_laws_links_and_missing_receipts_repaired() -> None:
+    """Verify docs/four-laws.md has 0 broken links / 0 missing readouts and historical missing files stay absent."""
     res = audit_four_laws_links(ROOT)
     assert res["checked_local_file_links"] >= 60
-    assert res["unique_readout_prefixes"] == 40
-    assert res["existing_readout_count"] == 38
+    assert res["unique_readout_prefixes"] >= 42
+    assert res["existing_readout_count"] == res["unique_readout_prefixes"]
+    assert res["broken_links"] == []
+    assert res["missing_readouts"] == []
 
-    broken_targets = {b["target"] for b in res["broken_links"]}
-    assert broken_targets == {
-        "../reports/forge/records/readout-5002641a64ddaa91f1fc3b87.json",
-        "../reports/forge/records/readout-731e752ff3c4f97e29a84145.json",
-        "../particlegan/unified_v12.py",
-    }
-    assert res["missing_readouts"] == ["readout-5002641a", "readout-731e752f"]
+    # Regression guard: historical missing files documented by P9 must never be silently fabricated on disk
+    for historical_missing in (
+        ROOT / "reports" / "forge" / "records" / "readout-5002641a64ddaa91f1fc3b87.json",
+        ROOT / "reports" / "forge" / "records" / "readout-731e752ff3c4f97e29a84145.json",
+        ROOT / "particlegan" / "unified_v12.py",
+    ):
+        assert not historical_missing.exists(), f"Historical missing file was fabricated: {historical_missing}"
+
+    # Confirm all 4 actual committed unified-v12 readouts are linked in docs/four-laws.md
+    linked_files = {item["file"] for item in res["readout_inventory"] if item["exists"]}
+    for expected_v12 in (
+        "readout-b51ab67c4d97526186e23651.json",
+        "readout-c1ee5c3bb7ac4f432532da63.json",
+        "readout-624964f4e46793593bc147e4.json",
+        "readout-59898e1a77c4b179c9aebbc1.json",
+    ):
+        assert expected_v12 in linked_files
 
     # Confirm every existing readout has non-empty task_results and a candidate_id
     for item in res["readout_inventory"]:
-        if item["exists"]:
-            assert item["candidate_id"]
-            assert item["n_tasks"] > 0
+        assert item["exists"]
+        assert item["candidate_id"]
+        assert item["n_tasks"] > 0
 
 
 def test_link_auditor_semantic_positive_control(tmp_path: pathlib.Path) -> None:
