@@ -85,12 +85,17 @@ def test_theorem2_beyond_horizon_and_saddle_nonidentifiability():
     assert res["sym_potential_axis_max_grad_norm"] < 1.0
 
     # Fixed-horizon Sinkhorn screens 100% of 42.4-sigma orphan pairs into slack
-    # and exhibits the exact 2.41x [r_screen, r_gprox_off] dead zone (3.0 < c_hat < 8.4)
+    # and exhibits exact [r_screen, r_gprox_off] dead zones:
+    #   metric.py (1.5*rho=4.50 -> 2.8*rho=8.40): 1.728x
+    #   primitive.py rapidity_screening=True (3.8923 -> 8.40): 1.952x
+    #   primitive.py rapidity_screening=False (rho=3.00 -> 8.40): 2.413x
     scr = res["fixed_horizon_valley_screening"]
     assert scr["orphan_min_c_hat"] > 30.0
     assert scr["orphan_active_mass"] < 1e-12
     assert scr["orphan_slack_mass"] > 0.40
-    assert scr["dead_zone_radius_ratio"] > 2.40
+    assert abs(scr["dead_zone_ratio_metric_py"] - 1.728198) < 1e-4
+    assert abs(scr["dead_zone_ratio_primitive_rap"] - 1.951678) < 1e-4
+    assert abs(scr["dead_zone_ratio_primitive_lin"] - 2.413297) < 1e-4
 
 
 def test_theorem4_generalized_midpoint_cancellation_and_zero_eigh():
@@ -190,7 +195,7 @@ def test_analytic_1lip_experiments_a_b_c():
     assert exp_b["pop_sym_1lip_critic"]["metrics"]["modes"] == 2
     assert exp_b["dist_w1_1lip_global_ell_no_macro_dn"]["passed"] is False
     assert exp_b["dist_w1_1lip_global_ell_no_macro_dn"]["metrics"]["modes"] == 2
-    # Exposes the [3.0, 8.4] c_hat dead zone under Adam (balanced mass, stranded short of +-1.5 e_2)
+    # Exposes the [4.50, 8.40] metric.py c_hat dead zone under Adam (balanced mass, stranded short of +-1.5 e_2)
     assert exp_b["dist_w1_1lip_conformal_rloc_adam"]["passed"] is False
     assert exp_b["dist_w1_1lip_conformal_rloc_adam"]["metrics"]["mass_tv"] <= 0.12
     # Exact same D_cap + conformal + RGDT macro + unit-row DualNorm PASSES ALL GATES!

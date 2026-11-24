@@ -428,9 +428,19 @@ def verify_theorem2_beyond_horizon() -> Dict[str, Any]:
         "fixed_horizon_valley_screening": {
             "ell": 0.05,
             "rho": 3.0,
-            "r_screen_exact": 0.05 * math.sqrt((3.0 + 1.0) ** 2 - 1.0),
+            "c_screen_metric_py": 1.5 * 3.0,
+            "c_screen_primitive_lin": 3.0,
+            "c_screen_primitive_rap": 2.0 * 3.0 * (math.sqrt(math.e) - 1.0),
+            "c_gprox_off": 2.8 * 3.0,
+            "r_screen_metric_py_exact": 0.05 * math.sqrt((1.5 * 3.0 + 1.0) ** 2 - 1.0),
+            "r_screen_primitive_lin_exact": 0.05 * math.sqrt((3.0 + 1.0) ** 2 - 1.0),
+            "r_screen_primitive_rap_exact": 0.05 * math.sqrt((2.0 * 3.0 * (math.sqrt(math.e) - 1.0) + 1.0) ** 2 - 1.0),
             "r_gprox_off_exact": 0.05 * math.sqrt((2.8 * 3.0 + 1.0) ** 2 - 1.0),
-            "dead_zone_radius_ratio": math.sqrt(((2.8 * 3.0 + 1.0) ** 2 - 1.0) / ((3.0 + 1.0) ** 2 - 1.0)),
+            "dead_zone_ratio_metric_py": math.sqrt(((2.8 * 3.0 + 1.0) ** 2 - 1.0) / ((1.5 * 3.0 + 1.0) ** 2 - 1.0)),
+            "dead_zone_ratio_primitive_lin": math.sqrt(((2.8 * 3.0 + 1.0) ** 2 - 1.0) / ((3.0 + 1.0) ** 2 - 1.0)),
+            "dead_zone_ratio_primitive_rap": math.sqrt(
+                ((2.8 * 3.0 + 1.0) ** 2 - 1.0) / ((2.0 * 3.0 * (math.sqrt(math.e) - 1.0) + 1.0) ** 2 - 1.0)
+            ),
             "valley_dist": math.sqrt(2.0) * a,
             "orphan_min_c_hat": orphan_min_c_hat,
             "orphan_active_mass": orphan_active_mass,
@@ -880,10 +890,10 @@ def run_analytic_1lip_saddle_shift(
       3. Theorem 2's exact D_cap(x) + fixed global horizon ell screened Feydy OT (NO macro,
          unit-row-normalized DualNorm step) -> FAILS (modes=2: 42.4-sigma valley is 100% screened).
       4. EXACT SAME D_cap(x) + conformal horizon + actual v11 r_loc macro under Adam
-         -> EXPOSES THE [r_screen, r_gprox_off] (3.0 < c_hat < 8.4) DEAD ZONE: balances mass
-            across all 4 modes (mass_tv <= 0.12), but Adam's accumulated v_t damps the faint
-            Sinkhorn tail once g_prox turns off at c_hat = 8.4, stranding rescued explorers
-            short of +-1.5 e_2 (modes=2, hq < 0.75).
+         -> EXPOSES THE [r_screen, r_gprox_off] (4.50 < c_hat < 8.40 in metric.py) DEAD ZONE:
+            balances mass across all 4 modes (mass_tv <= 0.12), but Adam's accumulated v_t damps
+            the faint Sinkhorn tail once g_prox turns off at c_hat = 8.40, stranding rescued
+            explorers short of +-1.5 e_2 (modes=2, hq < 0.75).
       5. EXACT SAME D_cap(x) + conformal horizon + actual RGDT bipartite_deficit_macro_loss
          (with explorer anchor release) + unit-row-normalized DualNorm step (matching RGDT)
          -> PASSES ALL GATES (4/4 modes, mass_tv <= 0.12, hq >= 0.92, frozen_control_modes=2).
@@ -1212,7 +1222,7 @@ def run_analytic_1lip_conditional_fiber(
     Pairs the exact same provably globally 1-Lipschitz relativistic analytic conditional critic
     (sup ||grad_{(c,x)} D||_2 < 1 everywhere) with:
       1. Unresidualized local 3-NN context-kernel IMQ-CMMD -> severe base-drift variance inflation
-         (bulk eig_max > 1.6, outer-tail q_0 eig_max > 2.4, mean_err > 0.6).
+         (bulk eig_max = 1.4001, outer-tail q_0 eig_max = 1.9671, mean_err = 0.6437).
       2. Single-batch pooled-tangent residualization (RGDT Pillar 3) -> resolves bulk cleanly,
          retains outer-5% tail q_0 mean/covariance error due to n_t ~ 16 starvation.
       3. Cross-batch UnifiedV11CondFiberBank + midpoint-canceling FIFO ring -> resolves BOTH bulk
