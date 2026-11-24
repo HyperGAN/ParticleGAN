@@ -24,7 +24,7 @@ _BATCHED_GRAM_MIN_DIM = 256
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
-    "unified_v11_equil", "unified_v12_equil", "r4_mp_no_ns", "r4_no_secant_band",
+    "unified_v11_equil", "unified_v12_equil", "axiom", "r4_mp_no_ns", "r4_no_secant_band",
     "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
     "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11",
 )
@@ -1462,6 +1462,15 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
             **options,
         )
+    elif recipe.optimizer_family == "axiom":
+        from .._axiom.optimizer import AxiomOptimizer
+        optimizer = AxiomOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            critic=critic,
+            **options,
+        )
     else:
         optimizer_class = NormalizedOptimizer
         if critic is not None and recipe.critic_step_mode == "finite_cap":
@@ -1551,6 +1560,14 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v11_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "axiom":
+            from .._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            from .._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
+            optimizer.record = AxiomStepRecord()
+            optimizer._axiom_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(_axiom_conv_layouts((critic,)))
+            _attach_axiom_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()
