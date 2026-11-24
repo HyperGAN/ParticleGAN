@@ -345,8 +345,13 @@ def axiom_pullback_step(trainer: Any, real: torch.Tensor, generator_real: Any, l
             err = (fake_flat.detach().float() - yr.float()).norm(dim=-1)
             cur = max(float(err.mean().item()), 0.35 * float(err.amax().item()))
             reg.res_ema = min(cur, 10.0) if cur > max(3.5 * reg.res_ema, reg.res_ema + 0.12) else (0.88 * reg.res_ema + 0.12 * min(cur, 10.0))
-            g_sc = max(0.015, min(1.0, reg.res_ema / 0.025))
-        loss_pt = (torch.sqrt(1e-6 + (fake_flat - yr).square()) - 1e-3).mean() + (0.004 * base_prior.z.float().square().mean().to(fake_flat.dtype) if (hasattr(base_prior, "z") and base_prior.z.requires_grad) else 0.0)
+            g_sc, zd_pt = max(0.015, min(1.0, reg.res_ema / 0.025)), latent.detach()
+            zn = zd_pt.norm(dim=-1, keepdim=True)
+            u_pt = torch.where(zn > 1e-6, zd_pt / zn.clamp_min(1e-6), F.one_hot(torch.zeros(b, device=yr.device, dtype=torch.long), num_classes=int(zd_pt.shape[1])).to(zd_pt.dtype))
+            x_pm = gen_clean(torch.cat((zd_pt + 1e-3 * u_pt, zd_pt - 1e-3 * u_pt), 0)).reshape(2, b, -1).float()
+            s_c = (x_pm[0] - x_pm[1]).norm(dim=-1) / 2e-3
+            w_pt = torch.where(err > 0.01, (torch.quantile(s_c, 0.75).clamp_min(1e-4) / s_c.clamp_min(1e-6)).clamp(1.0, 12.0), 1.0).to(fake_flat.dtype)
+        loss_pt = (w_pt[:, None] * (torch.sqrt(1e-6 + (fake_flat - yr).square()) - 1e-3)).mean() + (0.004 * base_prior.z.float().square().mean().to(fake_flat.dtype) if (hasattr(base_prior, "z") and base_prior.z.requires_grad) else 0.0)
         prior_diag = reg(base_prior.z if recipe.num_particles <= 1024 else base_prior.z[torch.unique(indices)]).detach() if (hasattr(base_prior, "z") and base_prior.z.requires_grad and recipe.prior_reg > 0) else loss_gan.new_zeros(())
         loss_g, pm, tr, tr_l = _finalize_gen_step(trainer, base_prior, (0.02 * min(1.0, reg.res_ema / 0.25)) * loss_gan + float(recipe.t1_pullback_weight) * loss_pt, loss_gan, fake_g, real_g, fake_logits, latent, indices, loss_d, penalty, g_sc, 1.0, g_sc)
         return loss_g, loss_gan, prior_diag, pm, tr, tr_l
@@ -362,7 +367,8 @@ def axiom_pullback_step(trainer: Any, real: torch.Tensor, generator_real: Any, l
         is_coal_i = multicell_coal[near_p]
         xff = torch.where(is_coal_i[:, None], x_ctr_det, fake_det)
         scale_ratio = xff.std(0, unbiased=False).mean().clamp_min(1e-8) / r_macro_safe
-        wakeup_t, v_mu_star_all = torch.where(scale_ratio < 0.50, scale_ratio.new_full((), 5.0), torch.where(scale_ratio < 0.80, scale_ratio.new_full((), 2.0), scale_ratio.new_full((), 1.0))), (var_bar_all - (w_mat_all @ reg.v_push).clamp_min(0.0)).clamp_min(0.0)
+        v_push_bar = (w_mat_all @ reg.v_push).clamp_min(0.0)
+        wakeup_t, v_mu_star_all = torch.where(scale_ratio < 0.50, scale_ratio.new_full((), 5.0), torch.where(scale_ratio < 0.80, scale_ratio.new_full((), 2.0), scale_ratio.new_full((), 1.0))), _smoothstep01((((var_bar_all - v_push_bar) / var_bar_all.clamp_min(1e-10)).clamp(0.0, 1.0) - 0.15) / 0.12) * (var_bar_all - v_push_bar).clamp_min(0.0)
         has_coal, any_coal_i, all_coal, need_whiten, scale_ge_065, any_v_mu = torch.stack((multicell_coal.any(), is_coal_i.any(), is_coal_i.all(), scale_ratio < 0.35, scale_ratio >= 0.65, multicell_coal.any() & (v_mu_star_all.amax() > 0.0))).tolist()
         iso_val = float((sigma_z * r_macro_safe / sigma_cell_med).clamp(1.0, 4.5).item()) if has_sigma else 1.0
         reg.iso_ema = (iso_val if not was_init else (0.95 * reg.iso_ema + 0.05 * iso_val)) if has_sigma else 1.0
@@ -396,12 +402,16 @@ def axiom_pullback_step(trainer: Any, real: torch.Tensor, generator_real: Any, l
         sigma_push = central_pullback_cov(gen_clean, mu_det[:m_iso], sigma_z)
         v_iso_sub, eye_d = v_iso_i[:m_iso].to(sigma_push.dtype), torch.eye(dim, device=yr.device, dtype=sigma_push.dtype)[None]
         with torch.no_grad():
-            v_tr, (gid, idx_map) = sigma_push.detach().float().diagonal(dim1=-2, dim2=-1).sum(-1) / float(dim), ((cid_i[:m_iso], comp_rep) if has_coal else (near_p[:m_iso], torch.arange(k_proto, device=yr.device)))
-            g_cnt = torch.bincount(gid, minlength=k_proto).float()
-            reg.v_push, w_iso_sat = torch.where(g_cnt[idx_map] > 0, 0.90 * reg.v_push + 0.10 * (v_tr.new_zeros(k_proto).index_add_(0, gid, v_tr)[idx_map] / g_cnt[idx_map].clamp_min(1.0)), reg.v_push), (v_iso_i[:m_iso] / v_tr.clamp_min(0.15 * v_iso_i[:m_iso])).sqrt().clamp(1.0, 4.0).to(sigma_push.dtype)
+            diag_p = sigma_push.detach().float().diagonal(dim1=-2, dim2=-1).clamp_min(1e-12)
+            v_tr, (gid, idx_map) = diag_p.sum(-1) / float(dim), ((cid_i[:m_iso], comp_rep) if has_coal else (near_p[:m_iso], torch.arange(k_proto, device=yr.device)))
+            g_cnt, sig_i_f = torch.bincount(gid, minlength=k_proto).float(), v_iso_i[:m_iso].sqrt()
+            reg.v_push, w_iso_sat = torch.where(g_cnt[idx_map] > 0, 0.90 * reg.v_push + 0.10 * (v_tr.new_zeros(k_proto).index_add_(0, gid, v_tr)[idx_map] / g_cnt[idx_map].clamp_min(1.0)), reg.v_push), (sig_i_f / diag_p.sqrt().amin(-1).clamp_min(0.15 * sig_i_f)).clamp(1.0, 4.0).to(sigma_push.dtype)
             iso_frob = ((sigma_push.detach().float() / v_iso_i[:m_iso].view(m_iso, 1, 1).clamp_min(1e-10)) - eye_d.float()).square().sum((1, 2)).sqrt()
             reg.iso_err_ema = 0.92 * reg.iso_err_ema + 0.08 * min(float((0.60 * iso_frob.mean() + 0.40 * torch.quantile(iso_frob, 0.92)).item()), 5.0)
-        loss_g_iso = (inv_w_i[:m_iso].to(sigma_push.dtype) * w_iso_sat * ((sigma_push - v_iso_sub.view(m_iso, 1, 1) * eye_d).square().sum((1, 2)) / ((float(dim) * v_iso_sub).square() + 1e-10))).mean().to(fake_flat.dtype)
+        w_iso, sig_iso, sc_iso = inv_w_i[:m_iso].to(sigma_push.dtype) * w_iso_sat, v_iso_sub.sqrt(), sc_med_dt.to(sigma_push.dtype).clamp_min(1e-6)
+        iso_rad = (w_iso * ((torch.diagonal(sigma_push, dim1=-2, dim2=-1).clamp_min(1e-12).sqrt() - sig_iso[:, None]) / sc_iso).square().sum(-1)).mean()
+        iso_cov = (w_iso * ((sigma_push - v_iso_sub.view(m_iso, 1, 1) * eye_d) / (sig_iso * sc_iso).clamp_min(1e-8).view(m_iso, 1, 1)).square().sum((1, 2))).mean() / float(dim)
+        loss_g_iso = (0.45 * iso_rad + 0.55 * iso_cov).to(fake_flat.dtype)
     eq_g = max(0.0, min(1.0, (0.030 - reg.res_ema) / 0.020)) if has_coal else 0.0
     adv_w, g_floor, row_floor = (0.038 * (1.0 - eq_g) + 0.008 * eq_g, 0.022 * (1.0 - eq_g) + 0.012 * eq_g, 0.15 * (1.0 - eq_g) + 0.38 * eq_g) if has_coal else (0.15, 0.04, 0.15)
     g_scale_t = torch.where(scale_ratio < 0.60, scale_ratio.new_full((), 1.0), scale_ratio.new_full((), max(g_floor, min(1.0, max(reg.res_ema / 0.10, 0.28 * max(0.0, min(1.0, (reg.iso_err_ema - 0.22) / 0.45)))))))

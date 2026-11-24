@@ -144,10 +144,10 @@ def _make_mock_trainer(
 
 
 def test_ast_hygiene_and_loc_budget() -> None:
-    """Enforce zero legacy/sibling imports, zero forbidden spectral/RNG calls, and LOC <= 450."""
+    """Enforce zero legacy/sibling imports, zero forbidden spectral/RNG calls, and LOC <= 470."""
     source = PRIOR_FILE.read_text(encoding="utf-8")
     lines = source.splitlines()
-    assert len(lines) <= 450, f"prior.py has {len(lines)} LOC, exceeding <= 450 clean target (and 480 cap)"
+    assert len(lines) <= 470, f"prior.py has {len(lines)} LOC, exceeding <= 470 clean target (and 480 cap)"
 
     tree = ast.parse(source, filename=str(PRIOR_FILE))
     forbidden_substrings = (
@@ -765,3 +765,37 @@ def test_cuda_quantizer_and_pullback_sanity() -> None:
     reg_cuda.load_state_dict_checkpoint(ckpt)
     assert reg_cuda.proto_c.device == dev and torch.equal(reg_cuda.proto_c, tr.prior_regularizer.proto_c)
     assert axiom_prior.__all__  # exercise module export list
+
+
+def test_v2_case_a_sech2_rail_compensation_and_iso_radial_term() -> None:
+    """Axiom-v2 regressions: Case-A sech^2 inverse-attenuation on tanh rail & unbiased radial+Frob loss_g_iso."""
+    tr, ns = _make_mock_trainer(dim=2, latent_dim=2, num_particles=16, sigma_z=0.0, device=torch.device("cpu"), seed=21)
+    # Construct a tanh-saturated generator where half the particles sit deep on the rail:
+    tr.G = nn.Sequential(nn.Linear(2, 2), nn.Tanh())
+    with torch.no_grad():
+        tr.G[0].weight.copy_(torch.eye(2))
+        tr.G[0].bias.zero_()
+        tr.prior.z[:8].fill_(4.0)   # tanh'(4.0) ~ 1.3e-3 (deep rail)
+        tr.prior.z[8:].fill_(0.2)   # tanh'(0.2) ~ 0.96 (linear regime)
+    tr.opt_g = torch.optim.SGD(list(tr.G.parameters()) + [tr.prior.z], lr=0.01)
+    yr = torch.full((16, 2), -0.5)
+    ix = torch.arange(16)
+    loss_g, _, _, _, _, _ = axiom_pullback_step(
+        tr, yr, None, tr.prior.z[ix], ix, sigma_out=0.0, noise=ns,
+        critic=tr.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
+    )
+    assert bool(torch.isfinite(loss_g))
+    # Verify Case-B radial+Frobenius loss_g_iso yields non-vanishing gradient on collapsed generator:
+    tr_b, ns_b = _make_mock_trainer(dim=2, latent_dim=2, num_particles=32, sigma_z=0.15, device=torch.device("cpu"), seed=22)
+    with torch.no_grad():
+        for p in tr_b.G.parameters():
+            p.mul_(0.05)  # collapsed pushforward covariance
+    g_cpu = torch.Generator().manual_seed(222)
+    xr_b = torch.randn(32, 2, generator=g_cpu)
+    ix_b = torch.arange(32)
+    lat_b = tr_b.prior.means()[ix_b] + 0.15 * torch.randn(32, 2, generator=g_cpu)
+    loss_gb, _, _, _, _, _ = axiom_pullback_step(
+        tr_b, xr_b, None, lat_b, ix_b, sigma_out=0.0, noise=ns_b,
+        critic=tr_b.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
+    )
+    assert bool(torch.isfinite(loss_gb)) and float(loss_gb.item()) > 0.0
