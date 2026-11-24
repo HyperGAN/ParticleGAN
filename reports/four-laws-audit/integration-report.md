@@ -152,7 +152,7 @@ Cross-referencing [`ci-and-consistency-check.md`](ci-and-consistency-check.md) (
    - `scripts/check_repo_bloat.py` -> **`0` new violations**
    - `CUDA_VISIBLE_DEVICES="" OMP_NUM_THREADS=1 MKL_NUM_THREADS=1 pytest -v tests/four_laws_audit/ tests/test_unified_bytegan.py` -> **`100%` PASS** within CI shard timeout
    - `scripts/ci_pytest.py` 8-shard collection check & wheel/sdist exclusion check (`reports/four-laws-audit/`, `scripts/four_laws_audit/`, `tests/four_laws_audit/` excluded from release artifacts) -> **PASS**
-4. **Cross-Document Link, Anchor & GFM Table Hygiene:** `0` broken local links or heading anchors and `0` GFM pipe-parity mismatches across `docs/four-laws.md` and ALL `reports/four-laws-audit/*.md` (including alignment of `test_p9_receipt_integrity.py` if receipt tables migrated between `docs/four-laws.md` and `evidence-ledger-and-revisions.md` — tracked in [`ci-and-consistency-check.md`](ci-and-consistency-check.md)).
+4. **Cross-Document Link, Anchor & GFM Table Hygiene:** `0` broken local links or heading anchors and `0` GFM pipe-parity mismatches across `docs/four-laws.md` and ALL `reports/four-laws-audit/*.md` (including verified `test_p9_receipt_integrity.py` compliance — tracked in [`ci-and-consistency-check.md`](ci-and-consistency-check.md)).
 
 ### 8.2 Explicitly Decoupled Post-Merge Work (NOT Merge Blockers!)
 Per the audit mandate (*"Scientific findings should not be held hostage by engineering work"*), the following items are **deliberately NOT blockers** to merging PR #633:
