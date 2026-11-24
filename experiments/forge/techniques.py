@@ -147,6 +147,17 @@ def technique_signature(value):
         mechanisms["unified_v11_equil_optimizer"] = True
     if recipe.optimizer_family == "unified_v12_equil":
         mechanisms["unified_v12_equil_optimizer"] = True
+    if recipe.optimizer_family == "axiom":
+        mechanisms["axiom_optimizer"] = True
+    if recipe.critic_formulation == "axiom":
+        mechanisms["axiom_critic"] = True
+        mechanisms["axiom_transport"] = True
+    if recipe.prior_regularizer == "axiom" and recipe.t1_pullback_weight > 0:
+        mechanisms["axiom_pullback"] = True
+        if recipe.t1_iso_weight > 0:
+            mechanisms["axiom_iso"] = True
+        if recipe.prior_update == "learned" and recipe.t1_prior_row_lr > 0:
+            mechanisms["axiom_condensation"] = True
     if recipe.optimizer_family in {"r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"}:
         mechanisms[f"{recipe.optimizer_family}_optimizer"] = True
     if recipe.prior_regularizer in {"unified_v4", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe"} and recipe.t1_pullback_weight > 0:
@@ -240,7 +251,7 @@ def recipe_field_active(name, value, *, task=None):
     if name == "optimizer_momentum":
         return recipe.optimizer_family in {"dualnorm", "dualnorm_D_only"}
     if name == "optimizer_smoothing":
-        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"}
+        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "axiom", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"}
     if name == "optimizer_convolution":
         return recipe.optimizer_family == "dualnorm"
     if name == "optimizer_convolution_rule":
@@ -288,9 +299,9 @@ def recipe_field_active(name, value, *, task=None):
         return prior_active and recipe.prior_regularizer == "coulomb" and recipe.prior_reg > 0
     if name in {"prior_reg_target_std", "prior_reg_eps"} and recipe.prior_reg == 0:
         return False
-    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"}:
+    if name == "prior_reg_target_std" and recipe.prior_regularizer not in {"vicreg", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"}:
         return False
-    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"}:
+    if name == "prior_reg_eps" and recipe.prior_regularizer not in {"vicreg", "moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"}:
         return False
     if name in {"prior_sigreg_projections", "prior_sigreg_knots"}:
         return prior_active and recipe.prior_regularizer == "sigreg" and recipe.prior_reg > 0
@@ -378,11 +389,11 @@ def recipe_field_active(name, value, *, task=None):
     if name in {"rhbi_rho", "rhbi_tau", "rhbi_eps", "rhbi_iters", "rhbi_c_max", "rhbi_beta_ell", "rhbi_nn_quantile", "rhbi_rapidity_screening", "rhbi_scale_log_odds", "rhbi_conditional_fibre"}:
         return active_bi_weight or recipe.rhbi_critic_weight > 0
     if name == "t1_pullback_weight":
-        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"} and recipe.t1_pullback_weight > 0
     if name in {"t1_iso_weight", "t1_max_prototypes"}:
-        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0
+        return recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"} and recipe.t1_pullback_weight > 0
     if name in {"t1_laguerre_lr", "t1_prior_row_lr"}:
-        return prior_active and recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"} and recipe.t1_pullback_weight > 0 and recipe.t1_prior_row_lr > 0
+        return prior_active and recipe.prior_regularizer in {"t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"} and recipe.t1_pullback_weight > 0 and recipe.t1_prior_row_lr > 0
     if name == "rgdt_macro_slack_weight":
         return recipe.effective_critic_formulation in {"rgdt", "unified_v4", "unified_v11", "r4_autograd_critic"}
     if name in {"rgdt_conformal_horizon", "rgdt_fiber_residual_weight", "rgdt_manifold_chart_weight"}:

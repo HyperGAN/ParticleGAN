@@ -494,6 +494,9 @@ def _bind_formulation_record(recipe: Recipe, opt_d: Any, loss_fn: Any, prior_reg
     elif eff == "rgdt":
         from particlegan.t3_dynamics import bind_rgdt_record
         bind_rgdt_record(opt_d.record, loss_fn, prior_reg_fn)
+    elif eff == "axiom":
+        from particlegan.axiom import bind_axiom_record
+        bind_axiom_record(opt_d.record, loss_fn, prior_reg_fn)
 
 
 class T3IsolationFixture:
@@ -542,7 +545,7 @@ class T3IsolationFixture:
         self.prior = p_mod.to(self.device)
         self.recipe.apply_prior_policy(self.prior)
 
-        no_ema_forms = ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt")
+        no_ema_forms = ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "axiom")
         ema_critic = None if recipe.effective_critic_formulation in no_ema_forms else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G,

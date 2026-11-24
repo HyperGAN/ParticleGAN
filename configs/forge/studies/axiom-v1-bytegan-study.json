@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "axiom-v1-bytegan-study"
+  },
+  "candidate": "axiom-v1",
+  "competing_explanation": "If Axiom's unified Law 1-4 atomic ledger, inverse codebook contraction, or thermal settling fails to clear collisions or align E(x) onto exact latent particles, axiom-v1 will fall short of 256/256 valid_unique_bytes on bytegan_hypercube8 or fail bytegan_bigan_dictionary bijection.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global axiom-v1 passes both zero-sigma 256-byte stretch benchmarks (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection) via unified GPU-vectorized argsort atomic ledger and joint BiGAN inverse codebook contraction.",
+  "id": "axiom-v1-bytegan-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "campaign_id": "bytegan-stretch-diag-v1",
+        "cuda_model": "NVIDIA RTX A6000"
+      },
+      "path": "reports/forge/bytegan-stretch/summary.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bytegan_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

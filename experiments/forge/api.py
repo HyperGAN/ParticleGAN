@@ -633,7 +633,7 @@ class FormulationContext:
                 "policy_controls": policy_controls(self.recipe),
                 "policy_serving": self.recipe.serve_average > 0,
                 "served_sampling": bool(self.policy_task) and policy_controls(self.recipe),
-                "secant_critic": self.recipe.effective_critic_formulation in ("t2_secant", "unified", "unified_v4", "unified_v11", "cond_fiber", "minimal"),
+                "secant_critic": self.recipe.effective_critic_formulation in ("t2_secant", "unified", "unified_v4", "unified_v11", "cond_fiber", "minimal", "axiom"),
                 **{name: True for name in self.extension_values}}
 
     def _check_capabilities(self):
