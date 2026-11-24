@@ -19,7 +19,7 @@ import argparse
 from collections import deque
 import json
 import math
-from typing import Any, Callable, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 import torch
 
@@ -736,7 +736,7 @@ def run_regime4_adversarial_shift(arms: Tuple[str, ...] = ALL_ARMS) -> Dict[str,
       (4a) Post-spike permanent ratcheting (single 1e4x gradient spike at step 20)
            at both scale c=1.0 and c=1e-6 (below unified_v12's s_base cap!).
       (4b) Post-settling distribution shift with 1000x curvature/scale drop.
-      (4c) Non-convex saddle escape L(x,y) = 0.5 x^2 - 0.5 y^2 + 0.25 y^4 from (1.0, 1e-8).
+      (4c) Non-convex saddle escape L(x,y) = 0.5 x^2 - 0.5 y^2 + 0.25 y^4 from (5.0, 1e-8).
     """
     gen = torch.Generator().manual_seed(0)
     w0 = torch.randn((4, 4), generator=gen, dtype=torch.float32)

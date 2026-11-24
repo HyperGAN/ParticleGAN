@@ -30,11 +30,7 @@ if str(_REPO_ROOT / "scripts" / "four_laws_audit") not in sys.path:
     sys.path.insert(0, str(_REPO_ROOT / "scripts" / "four_laws_audit"))
 
 from p1_scale_settling import (  # noqa: E402
-    DynamicCoherenceSGD,
-    DynamicPeakRMSSGD,
-    FixedEpsTikhonovSGD,
     MemorylessNormalizedSGD,
-    make_optimizer,
     run_regime1_rescaling,
     run_regime2_deterministic,
     run_regime3_noisy_stationary,
@@ -165,8 +161,8 @@ def test_regime1_exact_rescaling_and_actual_particlegan_breakpoints() -> None:
 def test_regime2_rail_escape_settling_and_obstructions() -> None:
     """Verify:
       (a) Pure monotonic peak_rms escapes 1e-12 tanh rail AND settles identically across c in {1e-6, 1, 1e6}.
-      (b) Actual UnifiedV12 escapes 1e-12 rail and settles at c=1e-6 and c=1, but LOSES settling at c=1e6
-          (s_base=0.0061 cap -> persistent chatter at c=1e6!).
+      (b) Actual UnifiedV12 escapes 1e-12 rail and settles at c=1e-6, but ALREADY LOSES settling
+          at c=1 and c=1e6 (s_base=0.0061 cap -> persistent chatter at both c=1 and c=1e6!).
       (c) Actual MinimalGeneratorOptimizer & NashV3GeneratorAdam STALL on 1e-12 rail due to eps=1e-8!
       (d) Obstruction 4.1: EVERY nontrivial trajectory-degree-0 operator kicks W_0=1e-6 outward by >10^3x on step 1.
       (e) Theorem 3b/3d: Decaying peak (gamma=0.9995), sliding window (W=50), and coherence cooling
@@ -200,9 +196,11 @@ def test_regime2_rail_escape_settling_and_obstructions() -> None:
         assert rail["pure_peak_mono"][scale_k]["final_rms"] < 1e-5
         assert rail["pure_peak_mono"][scale_k]["tail_mean_step"] < 1e-5
 
-    # (b) Actual UnifiedV12 escapes at all scales, settles at 1e-6 and 1, but CHATTERS at c=1e6 due to s_base cap!
+    # (b) Actual UnifiedV12 escapes at all scales and settles at c=1e-6, but ALREADY CHATTERS at c=1 and c=1e6 due to s_base cap!
     assert 0 < rail["pg_unified_v12"]["1e-06"]["escaped_step"] < 400
     assert rail["pg_unified_v12"]["1e-06"]["final_rms"] < 1e-4
+    assert rail["pg_unified_v12"]["1e+00"]["tail_mean_step"] > 0.10
+    assert rail["pg_unified_v12"]["1e+00"]["tail_mean_step"] > 100.0 * rail["pg_unified_v12"]["1e-06"]["tail_mean_step"]
     assert rail["pg_unified_v12"]["1e+06"]["tail_mean_step"] > 100.0 * rail["pg_unified_v12"]["1e-06"]["tail_mean_step"]
 
     # (c) Actual Minimal and NashV3 fail to escape 1e-12 rail because of additive eps=1e-8!
@@ -271,7 +269,7 @@ def test_regime4_spike_freezing_shift_and_saddle() -> None:
           while UnifiedV12 at c=1.0 recovers ONLY because s_base=0.0061 broke scale invariance,
           and sliding-window W=50 recovers cleanly at ALL scales!
       (b) Post-settling shift + 1000x scale drop traps monotonic peak_rms (Obstruction 4.2).
-      (c) Non-convex saddle L(x,y)=0.5x^2-0.5y^2+0.25y^4 from (1, 1e-8): tensor-wide monotonic
+      (c) Non-convex saddle L(x,y)=0.5x^2-0.5y^2+0.25y^4 from (5.0, 1e-8): tensor-wide monotonic
           peak_rms stalls at the saddle while memoryless/coordinatewise escape.
     """
     r4 = run_regime4_adversarial_shift(
