@@ -890,7 +890,7 @@ class UnifiedV11GANLoss(GANLoss):
         ):
             if b_r >= 4:
                 y_feat = project_transport_features(x_r.detach(), max_spatial=self.t1c.max_spatial)
-                g_conn_fwd, _, _, _ = self.t1c._compute_manifold_gates(y_feat)
+                g_conn_fwd, _, _, _ = self.t1c._compute_manifold_gates_eff(y_feat, record=rec)
 
         if is_simplicial and saved_cw > 0.0:
             self.t1c.chart_weight = saved_cw * max(0.0, 1.0 - float(g_conn_fwd))

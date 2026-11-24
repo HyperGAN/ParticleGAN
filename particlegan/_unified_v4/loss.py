@@ -163,7 +163,7 @@ class UnifiedV4CouplingLoss(T1CouplingLoss):
         g_conn = 0.0
         q90_y_u = 0.1
         if b_r >= 4:
-            g_conn_m, g_macro_m, q90_m, y_scale = self._compute_manifold_gates(y_flat)
+            g_conn_m, g_macro_m, q90_m, y_scale = self._compute_manifold_gates_eff(y_flat, record=record)
             if g_conn_m <= 1e-4:
                 return y_real[:0].sum()
             q90_y_u = q90_m
