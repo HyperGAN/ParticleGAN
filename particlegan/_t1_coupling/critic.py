@@ -197,9 +197,38 @@ def _lookup_t1c_capture_parts(
     return None, None, (r_attr if r_attr is not None else fallback_record), False, None
 
 
+def _validate_atomic_ledger_packet(ledger: Any) -> None:
+    if not isinstance(ledger, dict) or set(ledger) != {"row_chart", "row_dist", "row_target"}:
+        raise ValueError("invalid t1_coupling atomic_ledger fields")
+    rc = ledger["row_chart"]
+    rd = ledger["row_dist"]
+    rt = ledger["row_target"]
+    if (
+        not isinstance(rc, torch.Tensor)
+        or not isinstance(rd, torch.Tensor)
+        or not isinstance(rt, torch.Tensor)
+    ):
+        raise ValueError("t1_coupling atomic_ledger requires tensor fields")
+    if rc.dtype != torch.int64 or rd.dtype != torch.float32 or rt.dtype != torch.int64:
+        raise ValueError("invalid t1_coupling atomic_ledger tensor dtypes")
+    if rc.ndim != 1 or rd.ndim != 1 or rt.ndim != 1 or rc.shape[0] == 0:
+        raise ValueError("invalid t1_coupling atomic_ledger tensor shapes")
+    if rc.shape[0] != rd.shape[0] or rc.shape[0] != rt.shape[0]:
+        raise ValueError("mismatched t1_coupling atomic_ledger tensor lengths")
+    if bool(torch.isnan(rd).any()) or bool((rd < 0.0).any()):
+        raise ValueError("invalid t1_coupling atomic_ledger row_dist values")
+    if bool((rc < -1).any()) or bool((rt < -1).any()):
+        raise ValueError("invalid t1_coupling atomic_ledger indices")
+
+
 def _validate_t1c_packet(packet: Any) -> Dict[str, Any]:
-    if not isinstance(packet, dict) or set(packet) != _T1C_PACKET_KEYS:
+    if not isinstance(packet, dict):
         raise ValueError("invalid t1_coupling record packet fields")
+    pkeys = set(packet)
+    if pkeys != _T1C_PACKET_KEYS and pkeys != (_T1C_PACKET_KEYS | {"atomic_ledger"}):
+        raise ValueError("invalid t1_coupling record packet fields")
+    if "atomic_ledger" in packet:
+        _validate_atomic_ledger_packet(packet["atomic_ledger"])
     if type(packet["schema"]) is not int or packet["schema"] != 1:
         raise ValueError("unsupported t1_coupling record schema")
     for bkey in ("ell_initialized", "thermal_initialized", "cond_initialized", "het_initialized", "chart_initialized"):
@@ -293,6 +322,12 @@ class _T1CouplingRecordMixin:
         self.chart_count: Optional[torch.Tensor] = None
         self.chart_sq_dev: Optional[torch.Tensor] = None
         self.chart_fake_mass: Optional[torch.Tensor] = None
+        self.atomic_ledger_initialized: bool = False
+        self.atomic_row_chart: Optional[torch.Tensor] = None
+        self.atomic_row_dist: Optional[torch.Tensor] = None
+        self.atomic_row_target: Optional[torch.Tensor] = None
+        self._active_prior_table: Optional[torch.Tensor] = None
+        self._active_batch_rows: Optional[torch.Tensor] = None
         self.legacy_thermal_channel: bool = True
         self._in_penalty: bool = False
         self._in_protected_probe: bool = False
@@ -343,6 +378,17 @@ class _T1CouplingRecordMixin:
         self.revivals = int(revivals)
         if math.isfinite(data_scale) and data_scale > 0.0:
             self.ema_data_scale = 0.92 * self.ema_data_scale + 0.08 * float(data_scale)
+
+    def update_atomic_ledger_state(
+        self,
+        row_chart: torch.Tensor,
+        row_dist: torch.Tensor,
+        row_target: torch.Tensor,
+    ) -> None:
+        self.atomic_ledger_initialized = True
+        self.atomic_row_chart = row_chart.detach().clone().to(dtype=torch.int64)
+        self.atomic_row_dist = row_dist.detach().clone().to(dtype=torch.float32)
+        self.atomic_row_target = row_target.detach().clone().to(dtype=torch.int64)
 
     def observe_t1c_thermal(
         self,
@@ -414,7 +460,7 @@ class _T1CouplingRecordMixin:
         return self._thermal_scale
 
     def _t1c_packet(self) -> Dict[str, Any]:
-        return {
+        pkt: Dict[str, Any] = {
             "schema": 1,
             "ell_ema": float(self.t1c_ell_ema),
             "ell_initialized": bool(self.t1c_ell_initialized),
@@ -440,6 +486,18 @@ class _T1CouplingRecordMixin:
             "chart_sq_dev": None if self.chart_sq_dev is None else self.chart_sq_dev.detach().clone(),
             "chart_fake_mass": None if self.chart_fake_mass is None else self.chart_fake_mass.detach().clone(),
         }
+        if (
+            self.atomic_ledger_initialized
+            and self.atomic_row_chart is not None
+            and self.atomic_row_dist is not None
+            and self.atomic_row_target is not None
+        ):
+            pkt["atomic_ledger"] = {
+                "row_chart": self.atomic_row_chart.detach().clone(),
+                "row_dist": self.atomic_row_dist.detach().clone(),
+                "row_target": self.atomic_row_target.detach().clone(),
+            }
+        return pkt
 
     def _restore_t1c_packet(self, packet: Dict[str, Any]) -> None:
         _validate_t1c_packet(packet)
@@ -467,6 +525,19 @@ class _T1CouplingRecordMixin:
         self.chart_count = None if packet["chart_count"] is None else packet["chart_count"].detach().clone()
         self.chart_sq_dev = None if packet["chart_sq_dev"] is None else packet["chart_sq_dev"].detach().clone()
         self.chart_fake_mass = None if packet["chart_fake_mass"] is None else packet["chart_fake_mass"].detach().clone()
+        ledger = packet.get("atomic_ledger")
+        if ledger is not None:
+            self.atomic_ledger_initialized = True
+            self.atomic_row_chart = ledger["row_chart"].detach().clone()
+            self.atomic_row_dist = ledger["row_dist"].detach().clone()
+            self.atomic_row_target = ledger["row_target"].detach().clone()
+        else:
+            self.atomic_ledger_initialized = False
+            self.atomic_row_chart = None
+            self.atomic_row_dist = None
+            self.atomic_row_target = None
+        self._active_prior_table = None
+        self._active_batch_rows = None
         self._capture_ring = OrderedDict()
 
     def restore_device_state(self, device: torch.device) -> None:
@@ -478,6 +549,12 @@ class _T1CouplingRecordMixin:
             self.chart_sq_dev = self.chart_sq_dev.to(device=device)
         if self.chart_fake_mass is not None:
             self.chart_fake_mass = self.chart_fake_mass.to(device=device)
+        if self.atomic_row_chart is not None:
+            self.atomic_row_chart = self.atomic_row_chart.to(device=device)
+        if self.atomic_row_dist is not None:
+            self.atomic_row_dist = self.atomic_row_dist.to(device=device)
+        if self.atomic_row_target is not None:
+            self.atomic_row_target = self.atomic_row_target.to(device=device)
         _publish_thermal(self, device, self._thermal_scale)
 
     def _copy_t1c_to(self, dup: Any) -> None:
@@ -505,6 +582,12 @@ class _T1CouplingRecordMixin:
         dup.chart_count = None if self.chart_count is None else self.chart_count.detach().clone()
         dup.chart_sq_dev = None if self.chart_sq_dev is None else self.chart_sq_dev.detach().clone()
         dup.chart_fake_mass = None if self.chart_fake_mass is None else self.chart_fake_mass.detach().clone()
+        dup.atomic_ledger_initialized = self.atomic_ledger_initialized
+        dup.atomic_row_chart = None if self.atomic_row_chart is None else self.atomic_row_chart.detach().clone()
+        dup.atomic_row_dist = None if self.atomic_row_dist is None else self.atomic_row_dist.detach().clone()
+        dup.atomic_row_target = None if self.atomic_row_target is None else self.atomic_row_target.detach().clone()
+        dup._active_prior_table = None
+        dup._active_batch_rows = None
         dup.legacy_thermal_channel = self.legacy_thermal_channel
         dup._in_penalty = self._in_penalty
         dup._in_protected_probe = self._in_protected_probe
