@@ -200,6 +200,7 @@ def update_streaming_charts(
     revival_tau: float = 0.008,
     split_eps: float = 1e-3,
     max_spatial: int = 8,
+    allow_dead_revival: bool = True,
 ) -> Tuple[
     torch.Tensor,
     torch.Tensor,
@@ -412,7 +413,7 @@ def update_streaming_charts(
     phase = float(revival_phase)
     total_revivals = int(revivals)
 
-    if bool(dead_mask.any()) and k >= 2:
+    if allow_dead_revival and bool(dead_mask.any()) and k >= 2:
         dead_indices = torch.nonzero(dead_mask, as_tuple=False).squeeze(1).tolist()
         coord_std = y.std(dim=0, unbiased=False) + 1e-6
         dim_idx = torch.arange(1, dim + 1, device=y.device, dtype=torch.float32)
