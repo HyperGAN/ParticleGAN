@@ -71,6 +71,11 @@ HEAVY_TASK_PREFIXES = (
 )
 
 DEFAULT_REPO_URL = "https://github.com/HyperGAN/ParticleGAN.git"
+TRANSIENT_TRANSPORT_RETRY_RCS = frozenset({124})
+DEFAULT_TRANSPORT_RETRIES = 1
+DEFAULT_TRANSPORT_RETRY_BACKOFF_SECONDS = 3.0
+DEFAULT_REAP_MAX_RUNS = 50
+DEFAULT_REAP_STOP_TIMEOUT_SECONDS = 30.0
 
 
 def utc_stamp() -> str:
@@ -1126,6 +1131,8 @@ class ColabWorker:
         max_minutes: int = 120,
         idle_grace_minutes: int = 10,
         stall_minutes: int = 25,
+        transport_retries: int = DEFAULT_TRANSPORT_RETRIES,
+        transport_retry_backoff: float = DEFAULT_TRANSPORT_RETRY_BACKOFF_SECONDS,
     ) -> None:
         self.worker_name = worker_name
         self.gpu = normalize_gpu(gpu)
@@ -1137,6 +1144,8 @@ class ColabWorker:
         self.max_seconds = max_minutes * 60
         self.idle_grace_seconds = idle_grace_minutes * 60
         self.stall_seconds = stall_minutes * 60
+        self.transport_retries = max(0, int(transport_retries))
+        self.transport_retry_backoff = max(0.0, float(transport_retry_backoff))
         self.cfg = run_dir / f"{worker_name}.colab.json"
         self.log = run_dir / f"{worker_name}.log"
         self.alive = False
@@ -1155,6 +1164,34 @@ class ColabWorker:
             log_file=self.log,
             capture=capture,
         )
+
+    def _colab_with_transport_retry(
+        self,
+        args: list[str],
+        *,
+        timeout: float,
+        label: str,
+        retries: int | None = None,
+        backoff_seconds: float | None = None,
+        stdin_text: str | None = None,
+        capture: bool = False,
+    ) -> tuple[int, str]:
+        """Run an idempotent Colab transport command with bounded retry ONLY on rc=124 timeouts."""
+        max_retries = self.transport_retries if retries is None else max(0, int(retries))
+        backoff = self.transport_retry_backoff if backoff_seconds is None else max(0.0, float(backoff_seconds))
+        attempts = 1 + max_retries
+        rc, out = 0, ""
+        for attempt in range(1, attempts + 1):
+            rc, out = self._colab(args, timeout=timeout, stdin_text=stdin_text, capture=capture)
+            if rc == 0 or rc not in TRANSIENT_TRANSPORT_RETRY_RCS or attempt >= attempts:
+                return rc, out
+            self._log(
+                f"{label} hit transient transport timeout (rc={rc}) on attempt {attempt}/{attempts}; "
+                f"retrying in {backoff:.1f}s..."
+            )
+            if backoff > 0:
+                time.sleep(backoff)
+        return rc, out
 
     def start(self) -> None:
         spec = COLAB_GPU_SPECS[self.gpu]
@@ -1201,12 +1238,20 @@ class ColabWorker:
         # Upload optional unpushed branch bundle / dirty worktree overlay
         if self.branch_sync.get("bundle_path"):
             self._log("Uploading unpushed branch git bundle...")
-            rc, _ = self._colab(["upload", "-s", self.worker_name, self.branch_sync["bundle_path"], "/content/branch.bundle"], timeout=120)
+            rc, _ = self._colab_with_transport_retry(
+                ["upload", "-s", self.worker_name, self.branch_sync["bundle_path"], "/content/branch.bundle"],
+                timeout=120,
+                label="Branch bundle upload",
+            )
             if rc != 0:
                 raise RuntimeError(f"Failed to upload branch.bundle (rc={rc})")
         if self.branch_sync.get("overlay_path"):
             self._log(f"Uploading worktree overlay ({self.branch_sync['dirty_file_count']} file(s))...")
-            rc, _ = self._colab(["upload", "-s", self.worker_name, self.branch_sync["overlay_path"], "/content/worktree-overlay.tar.gz"], timeout=120)
+            rc, _ = self._colab_with_transport_retry(
+                ["upload", "-s", self.worker_name, self.branch_sync["overlay_path"], "/content/worktree-overlay.tar.gz"],
+                timeout=120,
+                label="Worktree overlay upload",
+            )
             if rc != 0:
                 raise RuntimeError(f"Failed to upload worktree-overlay.tar.gz (rc={rc})")
 
@@ -1257,17 +1302,19 @@ class ColabWorker:
         """Run one Forge study/catch-up unit on this warm VM and download its output tarball."""
         self._log(f"Starting unit {unit.unit_id} (cand={unit.candidate_id}, tasks={len(unit.tasks)}, study={study_id})")
         # Upload study (and ephemeral view if partial slice)
-        rc, _ = self._colab(
+        rc, _ = self._colab_with_transport_retry(
             ["upload", "-s", self.worker_name, str(study_file), f"/content/ParticleGAN/configs/forge/studies/{study_id}.json"],
             timeout=60,
+            label=f"Study upload ({unit.unit_id})",
         )
         if rc != 0:
             raise RuntimeError(f"Study upload failed for {unit.unit_id} (rc={rc})")
         if ephemeral_view_file is not None:
             view_name = ephemeral_view_file.name.replace(".view.json", "")
-            rc, _ = self._colab(
+            rc, _ = self._colab_with_transport_retry(
                 ["upload", "-s", self.worker_name, str(ephemeral_view_file), f"/content/ParticleGAN/configs/forge/views/{view_name}.json"],
                 timeout=60,
+                label=f"Ephemeral view upload ({unit.unit_id})",
             )
             if rc != 0:
                 raise RuntimeError(f"Ephemeral view upload failed for {unit.unit_id} (rc={rc})")
@@ -1320,7 +1367,11 @@ class ColabWorker:
         rc, _ = self._colab(["ssh", "-s", self.worker_name, "--", "bash", "-lc", run_sh], timeout=ssh_timeout)
         elapsed = time.monotonic() - t0
 
-        dl_rc, _ = self._colab(["download", "-s", self.worker_name, tar_remote, str(tar_local)], timeout=240)
+        dl_rc, _ = self._colab_with_transport_retry(
+            ["download", "-s", self.worker_name, tar_remote, str(tar_local)],
+            timeout=240,
+            label=f"Result download ({unit.unit_id})",
+        )
         self._log(f"Unit {unit.unit_id} done in {elapsed:.1f}s (run_rc={rc}, dl_rc={dl_rc}, tar_exists={tar_local.exists()})")
         return {
             "unit_id": unit.unit_id,
@@ -1340,7 +1391,11 @@ class ColabWorker:
         self.alive = False
         _GLOBAL_REGISTRY.unregister(self.worker_name)
         self._log(f"Stopping Colab VM {self.worker_name}...")
-        self._colab(["stop", "-s", self.worker_name], timeout=30)
+        self._colab_with_transport_retry(
+            ["stop", "-s", self.worker_name],
+            timeout=30,
+            label=f"Session stop ({self.worker_name})",
+        )
         self._log("Session released.")
 
 
@@ -1720,24 +1775,319 @@ def cmd_status(_args: argparse.Namespace) -> int:
     return 0
 
 
-def cmd_reap(_args: argparse.Namespace) -> int:
-    """Stop all active Colab sessions listed by `colab sessions`."""
-    rc, out = run_with_hard_timeout(["colab", "sessions"], timeout_seconds=30, capture=True)
-    print(out, end="")
-    if rc != 0:
-        return rc
-    for line in out.splitlines():
-        token = line.strip()
-        if not token or token.startswith("[colab]"):
+def _run_colab_with_timeout_retry(
+    cmd: list[str],
+    *,
+    timeout_seconds: float,
+    label: str,
+    retries: int = DEFAULT_TRANSPORT_RETRIES,
+    backoff_seconds: float = DEFAULT_TRANSPORT_RETRY_BACKOFF_SECONDS,
+    capture: bool = True,
+) -> tuple[int, str]:
+    """Run an idempotent `colab` CLI command with bounded retry ONLY on rc=124 hard timeouts."""
+    attempts = 1 + max(0, int(retries))
+    backoff = max(0.0, float(backoff_seconds))
+    rc, out = 0, ""
+    for attempt in range(1, attempts + 1):
+        rc, out = run_with_hard_timeout(cmd, timeout_seconds=timeout_seconds, capture=capture)
+        if rc == 0 or rc not in TRANSIENT_TRANSPORT_RETRY_RCS or attempt >= attempts:
+            return rc, out
+        print(
+            f"[colab_forge] {label} hit transient timeout (rc={rc}) on attempt {attempt}/{attempts}; "
+            f"retrying in {backoff:.1f}s...",
+            flush=True,
+        )
+        if backoff > 0:
+            time.sleep(backoff)
+    return rc, out
+
+
+def _parse_colab_sessions_output(output: str) -> list[dict[str, str | None]]:
+    """Parse active session rows from `colab sessions` stdout.
+
+    Supports both google-colab-cli >=0.8 lines (`[name] endpoint | Hardware: ...` and
+    `[?] endpoint | Hardware: ...`) and legacy unbracketed `name | Hardware: ...` lines.
+    """
+    rows: list[dict[str, str | None]] = []
+    for raw in output.splitlines():
+        token = raw.strip()
+        if not token or token.startswith("[colab]") or "|" not in token:
             continue
-        # Lines look like: `name | Hardware: L4 ...` or `[?] gpu-l4-... | Hardware: L4`
-        parts = token.split("|", 1)[0].strip().split()
-        if not parts:
+        head = token.split("|", 1)[0].strip()
+        if not head:
             continue
-        sess = parts[-1]
-        print(f"[reap] Stopping session {sess}...")
-        run_with_hard_timeout(["colab", "stop", "-s", sess], timeout_seconds=30, capture=False)
-    return cmd_status(_args)
+        if head.startswith("[") and "]" in head:
+            close = head.index("]")
+            raw_name = head[1:close].strip()
+            rest = head[close + 1 :].strip().split()
+            endpoint = rest[0] if rest else None
+            name = None if (not raw_name or raw_name == "?") else raw_name
+            if name is None and endpoint is None:
+                continue
+            rows.append({"name": name, "endpoint": endpoint})
+        else:
+            parts = head.split()
+            if not parts:
+                continue
+            rows.append({"name": parts[-1], "endpoint": None})
+    return rows
+
+
+def _discover_isolated_config_sessions(
+    root: Path,
+    *,
+    max_runs: int = DEFAULT_REAP_MAX_RUNS,
+) -> tuple[list[dict[str, Any]], int]:
+    """Scan recent `runs/forge/colab/*/*.colab.json` worker configs for recorded sessions.
+
+    Returns `(entries, configs_scanned)` ordered newest-first so deduplication prefers the
+    most recent worker config.
+    """
+    colab_dir = root.resolve() / "runs/forge/colab"
+    if not colab_dir.is_dir():
+        return [], 0
+
+    run_dirs: list[tuple[float, str, Path]] = []
+    for entry in colab_dir.iterdir():
+        if not entry.is_dir():
+            continue
+        try:
+            mtime = entry.stat().st_mtime
+        except OSError:
+            continue
+        run_dirs.append((mtime, entry.name, entry))
+    run_dirs.sort(key=lambda item: (item[0], item[1]), reverse=True)
+    if max_runs > 0:
+        run_dirs = run_dirs[:max_runs]
+
+    discovered: list[dict[str, Any]] = []
+    configs_scanned = 0
+    for _, _, run_dir in run_dirs:
+        cfg_files: list[tuple[float, str, Path]] = []
+        for cfg in run_dir.glob("*.colab.json"):
+            if not cfg.is_file():
+                continue
+            try:
+                mtime = cfg.stat().st_mtime
+            except OSError:
+                continue
+            cfg_files.append((mtime, cfg.name, cfg))
+        cfg_files.sort(key=lambda item: (item[0], item[1]), reverse=True)
+
+        for _, _, cfg in cfg_files:
+            configs_scanned += 1
+            try:
+                doc = json.loads(cfg.read_text(encoding="utf-8"))
+            except (OSError, json.JSONDecodeError):
+                continue
+            if not isinstance(doc, dict) or not doc:
+                continue
+            for key, val in doc.items():
+                if isinstance(val, dict):
+                    name = str(val.get("name") or key).strip()
+                    raw_ep = val.get("endpoint")
+                    endpoint = str(raw_ep).strip() if isinstance(raw_ep, str) and raw_ep.strip() else None
+                else:
+                    name = str(key).strip()
+                    endpoint = None
+                if not name:
+                    continue
+                discovered.append({"config": cfg, "name": name, "endpoint": endpoint})
+    return discovered, configs_scanned
+
+
+def reap_sessions(
+    root: Path,
+    *,
+    max_runs: int = DEFAULT_REAP_MAX_RUNS,
+    session_timeout: float = 30.0,
+    stop_timeout: float = DEFAULT_REAP_STOP_TIMEOUT_SECONDS,
+    retries: int = DEFAULT_TRANSPORT_RETRIES,
+    backoff_seconds: float = DEFAULT_TRANSPORT_RETRY_BACKOFF_SECONDS,
+) -> dict[str, Any]:
+    """Stop active Colab sessions in the default config and recent isolated worker configs."""
+    sessions_rc, sessions_out = _run_colab_with_timeout_retry(
+        ["colab", "sessions"],
+        timeout_seconds=session_timeout,
+        label="colab sessions",
+        retries=retries,
+        backoff_seconds=backoff_seconds,
+        capture=True,
+    )
+    if sessions_out:
+        print(sessions_out, end="" if sessions_out.endswith("\n") else "\n", flush=True)
+
+    server_known = sessions_rc == 0
+    parsed_rows = _parse_colab_sessions_output(sessions_out) if server_known else []
+    active_server_endpoints = {r["endpoint"] for r in parsed_rows if r["endpoint"]}
+    unknown_server_endpoints = {r["endpoint"] for r in parsed_rows if r["name"] is None and r["endpoint"]}
+    server_has_any_sessions = bool(parsed_rows)
+    server_has_endpoint_ids = bool(active_server_endpoints)
+
+    stopped_default: list[str] = []
+    stopped_isolated: list[dict[str, str | None]] = []
+    not_found: list[dict[str, str | None]] = []
+    failed: list[dict[str, Any]] = []
+    skipped_stale = 0
+    skipped_duplicate = 0
+
+    seen_default_names: set[str] = set()
+    handled_endpoints: set[str] = set()
+
+    def _classify_stop(
+        cmd: list[str],
+        *,
+        label: str,
+        session: str,
+        endpoint: str | None,
+        config_path: Path | None,
+    ) -> None:
+        stop_rc, stop_out = _run_colab_with_timeout_retry(
+            cmd,
+            timeout_seconds=stop_timeout,
+            label=label,
+            retries=retries,
+            backoff_seconds=backoff_seconds,
+            capture=True,
+        )
+        if stop_out:
+            print(stop_out, end="" if stop_out.endswith("\n") else "\n", flush=True)
+        if stop_rc != 0:
+            failed.append(
+                {
+                    "session": session,
+                    "endpoint": endpoint,
+                    "config": str(config_path) if config_path else None,
+                    "rc": stop_rc,
+                }
+            )
+            return
+        if "not found" in stop_out.lower():
+            not_found.append(
+                {
+                    "session": session,
+                    "endpoint": endpoint,
+                    "config": str(config_path) if config_path else None,
+                }
+            )
+            return
+        if config_path is None:
+            stopped_default.append(session)
+        else:
+            stopped_isolated.append(
+                {
+                    "session": session,
+                    "endpoint": endpoint,
+                    "config": str(config_path),
+                }
+            )
+
+    # 1. Stop named sessions tracked in the default Colab CLI config.
+    for row in parsed_rows:
+        sess = row["name"]
+        ep = row["endpoint"]
+        if sess is None:
+            continue
+        if sess in seen_default_names or (ep and ep in handled_endpoints):
+            skipped_duplicate += 1
+            continue
+        seen_default_names.add(sess)
+        print(f"[reap] Stopping default-config session {sess}...", flush=True)
+        _classify_stop(
+            ["colab", "stop", "-s", sess],
+            label=f"colab stop {sess}",
+            session=sess,
+            endpoint=ep,
+            config_path=None,
+        )
+        if ep:
+            handled_endpoints.add(ep)
+
+    if not server_known:
+        print(
+            f"[reap] Warning: `colab sessions` failed (rc={sessions_rc}); "
+            "falling back to stopping sessions recorded in recent isolated worker configs.",
+            flush=True,
+        )
+
+    # 2. Scan recent isolated worker configs (`runs/forge/colab/*/*.colab.json`).
+    isolated_entries, configs_scanned = _discover_isolated_config_sessions(root, max_runs=max_runs)
+    seen_isolated_keys: set[tuple[Path, str]] = set()
+    for entry in isolated_entries:
+        cfg: Path = entry["config"]
+        sess = entry["name"]
+        ep = entry["endpoint"]
+        resolved_key = (cfg.resolve(), sess)
+        if resolved_key in seen_isolated_keys or (ep and ep in handled_endpoints):
+            skipped_duplicate += 1
+            continue
+        seen_isolated_keys.add(resolved_key)
+
+        if server_known:
+            if not server_has_any_sessions:
+                skipped_stale += 1
+                continue
+            if server_has_endpoint_ids and ep is not None and ep not in active_server_endpoints:
+                skipped_stale += 1
+                continue
+            if server_has_endpoint_ids and ep is None and not unknown_server_endpoints:
+                skipped_stale += 1
+                continue
+
+        ep_label = f" (endpoint={ep})" if ep else ""
+        print(f"[reap] Stopping isolated session {sess}{ep_label} via {cfg}...", flush=True)
+        _classify_stop(
+            ["colab", "--config", str(cfg), "stop", "-s", sess],
+            label=f"colab --config {cfg.name} stop {sess}",
+            session=sess,
+            endpoint=ep,
+            config_path=cfg,
+        )
+        if ep:
+            handled_endpoints.add(ep)
+
+    unmatched_orphans = sorted(ep for ep in unknown_server_endpoints if ep not in handled_endpoints)
+    total_stopped = len(stopped_default) + len(stopped_isolated)
+    print(
+        f"[reap] Summary: stopped={total_stopped} "
+        f"(default={len(stopped_default)}, isolated={len(stopped_isolated)}), "
+        f"not_found={len(not_found)}, failed={len(failed)}, "
+        f"skipped_stale={skipped_stale}, skipped_duplicate={skipped_duplicate}, "
+        f"configs_scanned={configs_scanned}, unmatched_orphans={len(unmatched_orphans)}",
+        flush=True,
+    )
+    if unmatched_orphans:
+        print(
+            "[reap] Warning: active server endpoint(s) not matched in default or recent local "
+            f"worker configs: {', '.join(unmatched_orphans)}",
+            flush=True,
+        )
+
+    return {
+        "sessions_rc": sessions_rc,
+        "stopped_default": stopped_default,
+        "stopped_isolated": stopped_isolated,
+        "not_found": not_found,
+        "failed": failed,
+        "skipped_stale": skipped_stale,
+        "skipped_duplicate": skipped_duplicate,
+        "configs_scanned": configs_scanned,
+        "unmatched_orphans": unmatched_orphans,
+    }
+
+
+def cmd_reap(args: argparse.Namespace) -> int:
+    """Stop all active Colab sessions in default and recent isolated worker configs."""
+    root = getattr(args, "root", REPO_ROOT).resolve()
+    max_runs = int(getattr(args, "max_runs", DEFAULT_REAP_MAX_RUNS))
+    stop_timeout = float(getattr(args, "stop_timeout", DEFAULT_REAP_STOP_TIMEOUT_SECONDS))
+    summary = reap_sessions(root, max_runs=max_runs, stop_timeout=stop_timeout)
+    status_rc = cmd_status(args)
+    if status_rc != 0:
+        return status_rc
+    if summary["sessions_rc"] != 0 or summary["failed"]:
+        return 1
+    return 0
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -1784,7 +2134,11 @@ def build_parser() -> argparse.ArgumentParser:
     _add_pool_args(rn)
 
     sub.add_parser("status", help="Show active Colab sessions and compute-unit balance")
-    sub.add_parser("reap", help="Stop all active Colab sessions immediately")
+    rp = sub.add_parser("reap", help="Stop all active Colab sessions (default + isolated worker configs)")
+    rp.add_argument("--max-runs", type=int, default=DEFAULT_REAP_MAX_RUNS,
+                    help="max recent run directories under runs/forge/colab/ to scan for *.colab.json configs")
+    rp.add_argument("--stop-timeout", type=float, default=DEFAULT_REAP_STOP_TIMEOUT_SECONDS,
+                    help="hard timeout in seconds for each `colab stop` invocation")
     return p
 
 
