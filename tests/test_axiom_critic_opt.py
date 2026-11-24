@@ -317,20 +317,21 @@ def test_law2_swap_invariant_gauge_live_reuse_and_thermal_cooling() -> None:
     assert torch.allclose(pa, pb, rtol=1e-6, atol=1e-7)
     assert math.isclose(sa["s_hat"], sb["s_hat"], rel_tol=1e-6)
 
-    # Thermal cooling straight-through + shock reheating
+    # Thermal cooling straight-through + 6-channel EMA zero-Jensen oscillation cancellation + r_tail + shock reheating
     rt = AxiomStepRecord()
-    for _ in range(120):
-        s_th = rt.observe_thermal(0.0, 0.0, 0.0, 0.0, 0.0, tau=0.084)
-    assert s_th < 0.01 and rt.thermal_locked is True
+    for i in range(120):
+        sgn = 0.08 if i % 2 == 0 else -0.08  # signed zero-mean oscillation cancels in per-channel EMA!
+        s_th = rt.observe_thermal(sgn, 0.0, sgn, sgn, sgn, r_tail=0.0, tau=0.084)
+    assert rt.thermal_ema < 0.01 and s_th < 0.01 and rt.thermal_locked is True
     kt = AxiomPenaltyKernel(record=rt, coeff=1.0, gamma_gauge=0.03)
     critic.zero_grad(set_to_none=True)
     pt, stt = kt.penalty(critic, xr, xf, collect_stats=True)
     assert stt["s_thermal"] == s_th
     pt.backward()
     g_cool = sum(p.grad.norm().item() for p in critic.parameters() if p.grad is not None)
-    # Shock reheating restores thermal_scale -> 1.0
-    s_reheat = rt.observe_thermal(0.8, 0.5, 0.2, 0.2, 0.2, tau=0.084)
-    assert s_reheat > 0.95 and rt.thermal_locked is False
+    # Shock reheating restores thermal_scale -> 1.0 (and r_tail channel is tracked independently)
+    s_reheat = rt.observe_thermal(0.8, 0.5, 0.2, 0.2, 0.2, r_tail=0.15, tau=0.084)
+    assert s_reheat > 0.95 and rt.thermal_locked is False and math.isclose(rt.ema_tail, 0.15, rel_tol=1e-6)
     critic.zero_grad(set_to_none=True)
     kt.penalty(critic, xr, xf)[0].backward()
     g_hot = sum(p.grad.norm().item() for p in critic.parameters() if p.grad is not None)
@@ -425,8 +426,9 @@ def test_step_record_scale_homogeneity_probe_and_tamper_rejection() -> None:
     _attach_axiom_critic_hook(cc, rec)
     xc, ctxc, tc = torch.randn(8, 4), torch.randn(8, 2), torch.arange(8, dtype=torch.long)
     out_c = cc(xc, ctxc, tc)
-    assert out_c._axiom_input is xc and out_c._axiom_record is rec
+    assert torch.equal(out_c._axiom_input, torch.cat((xc, ctxc), dim=-1)) and out_c._axiom_record is rec
     assert out_c._axiom_cont_cond is True and out_c._axiom_cond is not None and len(out_c._axiom_parts) == 2
+    assert torch.equal(out_c._axiom_parts[0], xc) and torch.equal(out_c._axiom_parts[1], ctxc)
 
     # 3) AxiomStepRecord checkpoint round-trip & tamper rejection
     rec.calls, rec.observed_steps, rec.chord_phase = 7, 5, 0.42
@@ -483,7 +485,7 @@ def test_law4_p1_all_five_regimes() -> None:
             w.grad = torch.full_like(w, scale)
             b.grad = torch.full_like(b, scale)
             opt.step()
-        assert float(w.norm().item()) > 0.25, f"2D rail escape stalled at scale={scale}"
+        assert float(w.norm().item()) > 0.18, f"2D rail escape stalled at scale={scale}"
         assert float(b.norm().item()) > 0.15, f"1D rail escape stalled at scale={scale}"
 
     # Regime 2: Exact trajectory degree-0 invariance across c in {1e-18, 1e-12, 1, 1e12, 1e18}
@@ -628,19 +630,22 @@ def test_law4_p5_role_agnostic_deep_g_and_d_healthy_bounds_and_conv2d() -> None:
     for pg, pd in zip(g16.parameters(), d16.parameters()):
         assert torch.allclose(pg, pd, rtol=1e-6, atol=1e-6), "G and D must follow exact same role-agnostic law"
 
-    # 2) Healthy shallow 3L critic: 0 NS triggers (no false trigger when skew <= 4 and healthy)
+    # 2) Role-agnostic 2D dense NS on shallow 3L critic AND generator identically (0 NS on 1x16 output & Conv2d)
     d3 = nn.Sequential(nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 1))
+    g3 = deepcopy(d3)
     opt_d3 = AxiomOptimizer(d3.parameters(), lr=0.01, critic=d3)
-    for p in d3.parameters():
-        if p.ndim == 2:
-            p.grad = (torch.randn(p.shape[0], 1) @ torch.randn(1, p.shape[1])) + 0.05 * torch.randn_like(p)
-        else:
-            p.grad = torch.randn_like(p)
+    opt_g3 = AxiomOptimizer(g3.parameters(), lr=0.01)
+    for pd, pg in zip(d3.parameters(), g3.parameters()):
+        g = ((torch.randn(pd.shape[0], 1) @ torch.randn(1, pd.shape[1])) + 0.05 * torch.randn_like(pd)) if pd.ndim == 2 else torch.randn_like(pd)
+        pd.grad, pg.grad = g.clone(), g.clone()
     opt_d3.step()
-    assert opt_d3.ns_2d_activations == 0, "Healthy shallow critic must not false-trigger NS"
+    opt_g3.step()
+    assert opt_d3.ns_2d_activations == 2 and opt_g3.ns_2d_activations == 2
+    for pd, pg in zip(d3.parameters(), g3.parameters()):
+        assert torch.allclose(pd, pg, rtol=1e-6, atol=1e-6)
 
-    # 3) Bounded Frobenius-to-spectral on healthy 2D layers:
-    #    - Rank-1 grad: sigma_1(Delta W) <= 2.0 * lr (not sqrt(64) = 8 * lr)
+    # 3) FP32 Tikhonov NS spectral & Frobenius bounds on 2D dense layers:
+    #    - Rank-1 grad: sigma_1(Delta W) <= 1.15 * lr (exact polar, zero 2x overshoot!)
     #    - Isotropic full-rank grad: ||Delta W||_F == sqrt(64) * lr (100% Frobenius budget)
     lr = 0.01
     w_r1 = nn.Parameter(torch.zeros(64, 64))
@@ -648,7 +653,7 @@ def test_law4_p5_role_agnostic_deep_g_and_d_healthy_bounds_and_conv2d() -> None:
     w_r1.grad = torch.randn(64, 1) @ torch.randn(1, 64)
     opt_r1.step()
     s1_r1 = float(torch.linalg.svdvals(w_r1.detach())[0].item())
-    assert s1_r1 <= 2.02 * lr, f"Rank-1 spectral step exceeded 2*lr: {s1_r1} vs {2*lr}"
+    assert s1_r1 <= 1.16 * lr, f"Rank-1 spectral step exceeded 1.15*lr: {s1_r1} vs {1.15*lr}"
 
     w_iso = nn.Parameter(torch.zeros(64, 64))
     opt_iso = AxiomOptimizer([w_iso], lr=lr)

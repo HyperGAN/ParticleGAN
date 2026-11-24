@@ -11,11 +11,12 @@ import torch.autograd.forward_ad as fwAD
 _GOLDEN_CONJ, _MAX_LIVE_CAPTURES, _PROBE_MAX_BATCH = 0.6180339887498949, 6, 32
 _EMA_BOOLS = frozenset({"grad_sq_initialized", "margin_initialized"})
 _BOOL_FIELDS = ("anchor_started", "grad_sq_initialized", "margin_initialized", "ell_initialized", "thermal_initialized", "thermal_locked", "cond_initialized", "het_initialized")
+_THERMAL_KEYS = ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail")
 _SCALAR_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float], bool, bool]] = {
     "chord_phase": (0.0, 1.0, False, True), "ema_grad_sq": (0.0, None, False, False), "ema_margin": (-60.0, 60.0, False, False),
     "ema_data_scale": (0.0, None, True, False), "ema_push_res": (0.0, None, False, False), "ell_ema": (0.0, None, False, False),
-    "thermal_scale": (1e-5, 1.0, False, False), "thermal_ema": (0.0, None, False, False), "step_scale": (0.0, 1.0, True, False),
-    "cond_ema": (-0.5, 2.0, False, False), "het_ema": (0.0, None, False, False), "g_func_gain": (0.0, 1.0, True, False),
+    "thermal_scale": (1e-5, 1.0, False, False), "step_scale": (0.0, 1.0, True, False), "cond_ema": (-0.5, 2.0, False, False),
+    "het_ema": (0.0, None, False, False), "g_func_gain": (0.0, 1.0, True, False), **{k: (None, None, False, False) for k in _THERMAL_KEYS},
 }
 _DICT_FIELDS = ("chart_state", "atomic_ledger", "cond_fiber_bank")
 _RECORD_KEYS = frozenset({"schema", "calls", "observed_steps", "last_ratio", *_BOOL_FIELDS, *_SCALAR_BOUNDS, *_DICT_FIELDS})
@@ -48,13 +49,11 @@ def _validate_payload(obj: Any, name: str) -> None:
             if not isinstance(k, (str, int, tuple)): raise ValueError(f"unsupported key in {name}")
             _validate_payload(v, name)
     else: raise ValueError(f"unsupported type {type(obj).__name__} in {name}")
-
 def _check_scalar(val: Any, name: str, lo: Optional[float] = None, hi: Optional[float] = None, slo: bool = False, shi: bool = False) -> float:
     if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val): raise ValueError(f"invalid {name}: {val!r}")
     f = float(val)
     if (lo is not None and (f <= lo if slo else f < lo)) or (hi is not None and (f >= hi if shi else f > hi)): raise ValueError(f"{name}={f} outside bounds")
     return f
-
 def _ema_prop(name: str) -> property:
     is_b = name in _EMA_BOOLS
     return property(lambda s: (s._flush_ema() if name in s._ema_t else None, s._ema[name])[1],
@@ -69,8 +68,8 @@ class AxiomStepRecord:
         self.schema, self.calls, self.observed_steps, self.anchor_started, self.last_ratio, self.chord_phase = 1, 0, 0, False, None, 0.0
         self._ema: Dict[str, Any] = {"ema_grad_sq": 1.0, "grad_sq_initialized": False, "ema_margin": 0.0, "ema_data_scale": 1.0, "ema_push_res": 1.0, "margin_initialized": False, "ell_ema": 0.0}
         self.ell_initialized = self.thermal_initialized = self.thermal_locked = self.cond_initialized = self.het_initialized = False
-        self.thermal_scale = self.thermal_ema = self.step_scale = self.het_ema = self.g_func_gain = 1.0
-        self.cond_ema, self.chart_state, self.atomic_ledger, self.cond_fiber_bank = 0.25, None, None, None
+        self.thermal_scale = self.step_scale = self.het_ema = self.g_func_gain = self.ema_ed = self.ema_mu_sq = self.ema_spread = self.ema_q90 = self.ema_hmax = 1.0
+        self.ema_tail, self.cond_ema, self.chart_state, self.atomic_ledger, self.cond_fiber_bank = 0.0, 0.25, None, None, None
         self._reset_transient()
 
     def _reset_transient(self) -> None:
@@ -86,11 +85,9 @@ class AxiomStepRecord:
     def apply_flushed_ema_values(self, keys: List[str], vals: List[float]) -> None:
         for k, v in zip(keys, vals):
             if k in self._ema: self._ema[k] = bool(v > 0.5) if k in _EMA_BOOLS else float(v); self._ema_t.pop(k, None)
-
     def _flush_ema(self) -> None:
         ks, ts = self.take_pending_ema_tensors()
         if ts: self.apply_flushed_ema_values(ks, torch.stack([t.double() for t in ts]).tolist() if all(t.device == ts[0].device for t in ts) else [float(t.item()) for t in ts])
-
     def _dev_ema(self, name: str, dev: torch.device) -> torch.Tensor:
         if (cur := self._ema_t.get(name)) is not None and cur.device == dev: return cur
         if cur is not None: self._flush_ema()
@@ -116,23 +113,31 @@ class AxiomStepRecord:
             rg, ppr = (((xf.mean(0) - xr.mean(0)).norm() + 0.5 * (xf.std() - xr.std()).abs()) / nsc.clamp_min(1e-30)).clamp_max(10.0), self._dev_ema("ema_push_res", dev)
             self._ema_t["ema_push_res"] = torch.where(torch.isfinite(rg), torch.where(wi, 0.92 * ppr + 0.08 * rg, rg), ppr)
 
-    def observe_thermal(self, r_ed: float, r_mu_sq: float, r_spread: float, r_q90: float, r_hmax: float, *,
-                        tau: float = 0.084, shock_mu_ratio: float = 0.35, shock_ed_floor: float = 0.30, lock_hysteresis: float = 0.0) -> float:
-        tau_f, tp = float(tau), max(0.0, float(tau)); cl, ce = max(0.20, 2.0 * tp), max(0.70, 4.0 * tp)
-        ec, mc, sc, qc, hc = max(-ce, min(float(r_ed), ce)), max(-cl * cl, min(float(r_mu_sq), cl * cl)), max(-cl, min(float(r_spread), cl)), max(-cl, min(float(r_q90), cl)), max(-cl, min(float(r_hmax), cl))
-        ud = min(1.0, max(0.0, -sc) / 0.03); res, sed = max(0.5 * max(0.0, ec), math.sqrt(max(0.0, mc)), 0.60 * abs(sc), max(qc, 0.60 * max(0.0, -qc) * ud), max(hc, 0.60 * max(0.0, -hc) * ud)), max(float(shock_ed_floor), 4.0 * tp * tp)
-        if not self.thermal_initialized or (self.thermal_scale < 0.99 and (r_ed > sed or r_mu_sq > shock_mu_ratio * sed)): self.thermal_ema, self.thermal_initialized, self.thermal_locked = res, True, False
-        else: self.thermal_ema = 0.96 * self.thermal_ema + 0.04 * res
+    @property
+    def thermal_ema(self) -> float:
+        ud, q9, hm = min(1.0, max(0.0, -float(self.ema_spread)) / 0.03), float(self.ema_q90), float(self.ema_hmax)
+        return max(0.5 * max(0.0, float(self.ema_ed)), math.sqrt(max(0.0, float(self.ema_mu_sq))), 0.60 * abs(float(self.ema_spread)), max(q9, 0.60 * max(0.0, -q9) * ud), max(hm, 0.60 * max(0.0, -hm) * ud), max(0.0, float(self.ema_tail)))
+
+    ema_residual = thermal_ema
+
+    def observe_thermal(self, r_ed: float, r_mu_sq: float, r_spread: float, r_q90: float, r_hmax: float, *, r_tail: float = 0.0, tau: float = 0.084, ema_decay: float = 0.96, s_min: float = 1e-5, shock_mu_ratio: float = 0.35, shock_ed_floor: float = 0.30, lock_hysteresis: float = 0.0) -> float:
+        ed_f, mu_f, tau_f = float(r_ed), float(r_mu_sq), float(tau); tp = max(0.0, tau_f); cl, ce, sed = max(0.20, 2.0 * tp), max(0.70, 4.0 * tp), max(float(shock_ed_floor), 4.0 * tp * tp)
+        vals = (max(-ce, min(ed_f, ce)), max(-cl * cl, min(mu_f, cl * cl)), max(-cl, min(float(r_spread), cl)), max(-cl, min(float(r_q90), cl)), max(-cl, min(float(r_hmax), cl)), max(-cl, min(float(r_tail), cl)))
+        if not self.thermal_initialized or (self.thermal_scale < 0.99 and (ed_f > sed or mu_f > shock_mu_ratio * sed)):
+            for k, v in zip(_THERMAL_KEYS, vals): setattr(self, k, v)
+            self.thermal_initialized, self.thermal_locked = True, False
+        else:
+            d, om = float(ema_decay), 1.0 - float(ema_decay)
+            for k, v in zip(_THERMAL_KEYS, vals): setattr(self, k, d * getattr(self, k) + om * v)
         if tau_f <= 0.0: self.thermal_scale, self.thermal_locked = 1.0, False; return 1.0
         tlo = min(0.92, 0.50 + (float(lock_hysteresis) if self.thermal_locked else 0.0)) * tau_f
-        u = min(1.0, max(0.0, (self.thermal_ema - tlo) / max(1e-8, tau_f - tlo))); th = u * u * (3.0 - 2.0 * u)
-        s = 1.0 if th >= 1.0 else (1e-5 if th <= 0.0 else max(1e-5, min(1.0, 0.04 * th / math.sqrt(max(1e-8, 1.0 - th * th)))))
-        self.thermal_scale, self.thermal_locked = max(1e-5, min(1.0, s)), bool(s <= 1e-4); return self.thermal_scale
+        u = min(1.0, max(0.0, (self.thermal_ema - tlo) / max(1e-8, tau_f - tlo))); th = u * u * (3.0 - 2.0 * u); sm = max(1e-5, float(s_min))
+        s = 1.0 if th >= 1.0 else (sm if th <= 0.0 else max(sm, min(1.0, 0.04 * th / math.sqrt(max(1e-8, 1.0 - th * th)))))
+        self.thermal_scale, self.thermal_locked = max(sm, min(1.0, s)), bool(s <= 1e-4); return self.thermal_scale
 
     def clear_transient_captures(self) -> None:
         for e in self._live_captures: e[3] = e[4] = None; e[5].clear()
         self._live_captures.clear(); self._last_probe_actual_input = None
-
     def restore_device_state(self, device: torch.device) -> None:
         for a in ("chart_state", "atomic_ledger"):
             if (v := getattr(self, a)) is not None: setattr(self, a, _walk_payload(v, lambda t: t.to(device=device)))
@@ -142,9 +147,7 @@ class AxiomStepRecord:
         bank = self._cond_bank_obj.to_packet() if (self._cond_bank_obj is not None and hasattr(self._cond_bank_obj, "to_packet")) else self.cond_fiber_bank
         return {"schema": 1, "calls": int(self.calls), "observed_steps": int(self.observed_steps), "last_ratio": None if self.last_ratio is None else float(self.last_ratio),
                 **{k: bool(getattr(self, k)) for k in _BOOL_FIELDS}, **{k: float(getattr(self, k)) for k in _SCALAR_BOUNDS},
-                "chart_state": None if self.chart_state is None else _walk_payload(self.chart_state, cpu),
-                "atomic_ledger": None if self.atomic_ledger is None else _walk_payload(self.atomic_ledger, cpu),
-                "cond_fiber_bank": None if bank is None else _walk_payload(bank, cpu)}
+                **{dk: None if (v := (bank if dk == "cond_fiber_bank" else getattr(self, dk))) is None else _walk_payload(v, cpu) for dk in _DICT_FIELDS}}
 
     def load_state_dict(self, state: Dict[str, Any]) -> None:
         if (not isinstance(state, dict) or set(state) != _RECORD_KEYS or type(state["schema"]) is not int or state["schema"] != 1
@@ -165,7 +168,9 @@ def _extract_axiom_inputs_parts(args: Tuple[Any, ...], kwargs: Optional[Dict[str
     for it in ([*args, *(kwargs[k] for k in sorted(kwargs))] if kwargs else args):
         if isinstance(it, torch.Tensor) and it.ndim >= 1 and it.shape[0] == b and it.numel() > 0:
             (fl.append(it) if it.is_floating_point() else (ds.append(it.detach().to(torch.int64).reshape(b, -1)) if not it.is_complex() else None))
-    return (fl[0], (None if not ds else (ds[0] if len(ds) == 1 else torch.cat(ds, -1))), len(fl) > 1, tuple(fl)) if fl else (None, None, False, None)
+    if not fl: return None, None, False, None
+    cd, parts = (None if not ds else (ds[0] if len(ds) == 1 else torch.cat(ds, -1))), (tuple(t.reshape(b, -1) for t in fl) if len(fl) > 1 else None)
+    return (fl[0] if parts is None else torch.cat(parts, -1)), cd, parts is not None, parts
 
 def _record_axiom_capture(out: Any, x_in: Optional[torch.Tensor], cond: Optional[torch.Tensor], rec: Any, *, has_cont_cond: bool = False, parts: Optional[Tuple[torch.Tensor, ...]] = None, thermally_scaled: bool = False) -> None:
     if x_in is not None and isinstance(tgt := _first_out(out), torch.Tensor) and tgt.ndim >= 1 and tgt.shape[0] == x_in.shape[0]:
