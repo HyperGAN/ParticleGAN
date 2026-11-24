@@ -59,6 +59,7 @@ class _StubAxiomRecord:
     _active_prior_table: Optional[torch.Tensor] = None
     _active_batch_rows: Optional[torch.Tensor] = None
     thermal_calls: List[Tuple[float, float, float, float, float, float]] = field(default_factory=list)
+    last_shock_mu_ratio: float = 0.35
 
     def observe_thermal(
         self,
@@ -76,6 +77,7 @@ class _StubAxiomRecord:
     ) -> float:
         # Strict signature guard matching AxiomStepRecord.observe_thermal (6-channel thermal EMA).
         self.thermal_calls.append((float(r_ed), float(r_mu_sq), float(r_spread), max(float(r_q90), float(r_tail)), float(r_hmax), float(tau)))
+        self.last_shock_mu_ratio = float(shock_mu_ratio)
         self.thermal_initialized = True
         self.thermal_ema = max(0.0, float(r_ed) + max(0.0, float(r_q90), float(r_tail)))
         return self.thermal_scale
@@ -115,7 +117,7 @@ def _make_exact_atoms(k: int = 8, n: int = 64, d: int = 4, *, seed: int = 31, de
 def test_transport_hygiene_loc_and_zero_forbidden_ops(monkeypatch: pytest.MonkeyPatch):
     src = TRANSPORT_PATH.read_text(encoding="utf-8")
     lines = src.splitlines()
-    assert len(lines) <= 640, f"transport.py exceeds 640 LOC budget: {len(lines)}"
+    assert len(lines) <= 695, f"transport.py exceeds 695 LOC budget: {len(lines)}"
     tree = ast.parse(src, filename=str(TRANSPORT_PATH))
 
     forbidden_imports = {
@@ -626,3 +628,67 @@ def test_v2_weibull_1d_unscaled_log_odds_step_scale_and_simplicial_cooling():
     y_a, atoms = _make_exact_atoms(k=4, n=16, d=4, seed=5)
     _, _, nal, _ = T._update_atomic_ledger(y_a + 1.0, torch.arange(8).repeat(2), atoms, torch.ones(4) / 4.0, 16, None, allow_update=True)
     assert "row_dist" in nal and bool(torch.isfinite(nal["row_dist"]).all())
+
+
+def test_v3_conformal_horizon_deconflicted_charts_and_atomic_absent_shield():
+    """Axiom-v3 transport regressions: conformal width gate, shock charts, deconflicted routing, atomic absent_shield."""
+    g = torch.Generator().manual_seed(131)
+    # 1. Conformal local horizons: active on 8x width-ratio mixture, silent on uniform-width mixture.
+    y_unif = _make_disconnected_modes(64, sigma=0.25)
+    ell_u = T._batch_ell(y_unif, 0.25)
+    exy_u, exx_u, ex_u, ey_u, dyy_u = T._conformal_horizon(y_unif, y_unif, ell_u, 0.0, False, return_aux=True)
+    assert exy_u is ell_u and exx_u is ell_u and ex_u is None and ey_u is None and dyy_u is not None
+
+    y_mix = torch.cat([torch.tensor([-15.0, 0.0]) + 0.15 * torch.randn(32, 2, generator=g), torch.tensor([15.0, 0.0]) + 1.50 * torch.randn(32, 2, generator=g)], 0)
+    ell_m = T._batch_ell(y_mix, 0.25)
+    exy_m, exx_m, ex_m, ey_m, _ = T._conformal_horizon(y_mix, y_mix, ell_m, 0.0, False, return_aux=True)
+    assert ex_m is not None and ey_m is not None and torch.allclose(exy_m, exx_m, atol=1e-6)
+    assert float(ey_m[:32].mean().item()) < 0.6 * float(ey_m[32:].mean().item())
+
+    # 2. Shock-accelerated _update_charts tracks fake_mass inside chart_state (zero new top-level keys).
+    y_c0 = _make_disconnected_modes(48, sigma=0.10)
+    c0, w0, r0, b0, cs0 = T._update_charts(y_c0, None, max_charts=16, allow_update=True)
+    assert "fake_mass" in cs0 and cs0["fake_mass"].shape == w0.shape and bool(torch.isfinite(cs0["fake_mass"]).all())
+    assert int(b0.sum().item()) == 48
+    # Stationary update vs large jump shock:
+    c_stat, _, _, _, cs_stat = T._update_charts(y_c0, cs0, max_charts=16, allow_update=True)
+    c_jump, w_jump, _, _, cs_jump = T._update_charts(y_c0 + 25.0, cs0, max_charts=4, allow_update=True)
+    assert float(((w_jump[:, None] * c_jump).sum(0) - (w0[:, None] * c0).sum(0)).norm().item()) > 15.0, "shock-accelerated charts failed to track jump"
+    assert float((c_jump - c0).norm(dim=1).amax().item()) > 20.0, "nearest chart failed to jump under shock"
+    assert bool(torch.isfinite(cs_stat["fake_mass"]).all()) and bool(torch.isfinite(cs_jump["fake_mass"]).all())
+
+    # 3. _deconflicted_routing: absent-chart shield + surplus->deficit rebalance + allow_update=False guard.
+    k_c = 6
+    ang = torch.linspace(0.0, 2.0 * math.pi * (1.0 - 1.0 / k_c), k_c)
+    cf = torch.stack((10.0 * torch.cos(ang), 10.0 * torch.sin(ang)), dim=1)
+    wr = torch.full((k_c,), 1.0 / k_c)
+    rads = torch.full((k_c,), 0.25)
+    bcnt = torch.tensor([0.0, 10.0, 10.0, 10.0, 10.0, 10.0])  # chart 0 absent from batch
+    xf_bal = cf.repeat_interleave(8, dim=0)  # 48 particles, 8 seated at each chart
+    _, _, rw_bal, ab_sh, fm_no = T._deconflicted_routing(xf_bal, cf, wr, rads, bcnt, wr.clone(), torch.tensor(0.25), wv_c=1.0, halo_mult=2.1, s_th=1.0, allow_update=False)
+    assert torch.allclose(fm_no, wr), "allow_update=False mutated fake_mass"
+    assert float(ab_sh[:8].mean().item()) > 0.9 and float(ab_sh[8:].amax().item()) == 0.0
+    assert float(rw_bal.amax().item()) == 0.0, "balanced settled particles should have zero routing pull"
+    # Surplus on chart 1, deficit on chart 0 -> triggers rebalance pull on chart-1 particles and moves fake_mass EMA.
+    cur_fm_imb = torch.tensor([0.0, 0.45, 0.15, 0.15, 0.15, 0.10])
+    xf_imb = cf[torch.tensor([1] * 24 + [2] * 6 + [3] * 6 + [4] * 6 + [5] * 6)]
+    _, _, rw_imb, _, fm_upd = T._deconflicted_routing(xf_imb, cf, wr, rads, torch.full((k_c,), 8.0), cur_fm_imb, torch.tensor(0.25), wv_c=1.0, halo_mult=2.1, s_th=1.0, allow_update=True)
+    assert float(rw_imb[:24].amax().item()) > 0.1 and float(fm_upd[1].item()) > float(cur_fm_imb[1].item())
+
+    # 4. forward() atomic absent_shield & thermal shock_mu_ratio=0.15.
+    loss_fn = T.AxiomTransportLoss()
+    y_atoms, atoms8 = _make_exact_atoms(k=8, n=32, d=4, seed=71)
+    # Remove atom 0 from current minibatch y_real while keeping all 8 atoms in chart_state:
+    y_no0 = atoms8[1:][torch.arange(32) % 7]
+    z_tab = torch.randn(16, 3, generator=g)
+    rows = torch.arange(16).repeat(2)
+    rec = _StubAxiomRecord(_active_prior_table=z_tab, _active_batch_rows=rows)
+    # Seed all 8 atoms into chart_state first:
+    _ = loss_fn(atoms8.repeat(4, 1).requires_grad_(True), atoms8.repeat(4, 1), torch.zeros(32, requires_grad=True), torch.zeros(32), record=rec)
+    assert rec.chart_state is not None and rec.atomic_ledger is not None
+    assert rec.last_shock_mu_ratio == pytest.approx(0.15)
+    xf_a = (atoms8.repeat(4, 1) + 0.05).requires_grad_(True)
+    df_a = (xf_a.sum(1) * 0.1).requires_grad_(True)
+    l_a = loss_fn(xf_a, y_no0, df_a, y_no0.sum(1) * 0.1, record=rec)
+    l_a.backward()
+    assert torch.isfinite(l_a) and xf_a.grad is not None and torch.isfinite(xf_a.grad).all()

@@ -799,3 +799,80 @@ def test_v2_case_a_sech2_rail_compensation_and_iso_radial_term() -> None:
         critic=tr_b.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
     )
     assert bool(torch.isfinite(loss_gb)) and float(loss_gb.item()) > 0.0
+
+
+def test_v3_case_a_per_coord_rail_2x2_eig_and_pooled_rho_mu() -> None:
+    """Axiom-v3 regressions: per-coord Case-A rail escape, rotation-invariant 2x2 eig isometry, and pooled rho_mu."""
+    # 1. Per-coord Case-A rail compensation: dim 0 deep on tanh rail, dim 1 linear.
+    tr_a, ns_a = _make_mock_trainer(dim=2, latent_dim=2, num_particles=16, sigma_z=0.0, device=torch.device("cpu"), seed=31)
+    tr_a.G = nn.Sequential(nn.Linear(2, 2), nn.Tanh())
+    with torch.no_grad():
+        tr_a.G[0].weight.copy_(torch.eye(2))
+        tr_a.G[0].bias.zero_()
+        tr_a.prior.z[:, 0].fill_(4.0)
+        tr_a.prior.z[:, 1].fill_(0.05)
+    tr_a.opt_g = torch.optim.SGD(list(tr_a.G.parameters()) + [tr_a.prior.z], lr=0.05)
+    z0_before = float(tr_a.prior.z[:, 0].mean().item())
+    yr_a = torch.zeros(16, 2)
+    ix_a = torch.arange(16)
+    loss_a, _, _, _, _, _ = axiom_pullback_step(
+        tr_a, yr_a, None, tr_a.prior.z[ix_a], ix_a, sigma_out=0.0, noise=ns_a,
+        critic=tr_a.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
+    )
+    assert bool(torch.isfinite(loss_a))
+    assert float(tr_a.prior.z[:, 0].mean().item()) < z0_before, "saturated rail coordinate must move toward target"
+
+    # 2. Rotation-invariant 2x2 closed-form eigenvalue isometry (semantic control: invariant under 45-deg rotation).
+    ang = math.pi / 4.0
+    rot = torch.tensor([[math.cos(ang), -math.sin(ang)], [math.sin(ang), math.cos(ang)]], dtype=torch.float32)
+    a_aniso = torch.tensor([[1.8, 0.0], [0.0, 0.3]], dtype=torch.float32)
+    g_rng = torch.Generator().manual_seed(303)
+    xr0 = torch.randn(32, 2, generator=g_rng) * 0.5
+    eps0 = torch.randn(32, 2, generator=g_rng)
+    ix0 = torch.arange(32)
+    losses_iso = []
+    for rmat in (torch.eye(2), rot):
+        tr_r, ns_r = _make_mock_trainer(dim=2, latent_dim=2, num_particles=32, sigma_z=0.20, device=torch.device("cpu"), seed=32)
+        tr_r.G = nn.Linear(2, 2, bias=False)
+        with torch.no_grad():
+            tr_r.G.weight.copy_(rmat @ a_aniso)
+            for p in tr_r.D.parameters():
+                p.zero_()
+        tr_r.opt_g = torch.optim.SGD(list(tr_r.G.parameters()), lr=0.0)
+        tr_r.recipe.t1_pullback_weight = 0.0
+        tr_r.recipe.t1_iso_weight = 1.0
+        tr_r.recipe.t1_prior_row_lr = 0.0
+        tr_r.prior_regularizer.quantizer_initialized = True
+        tr_r.prior_regularizer.proto_c = torch.tensor([[-0.5, 0.0], [0.5, 0.0]]) @ rmat.T
+        tr_r.prior_regularizer.proto_var = torch.tensor([0.25, 0.25])
+        tr_r.prior_regularizer.v_push = torch.tensor([0.25, 0.25])
+        tr_r.prior_regularizer.proto_w = torch.tensor([0.5, 0.5])
+        tr_r.prior_regularizer.w_fake_ema = torch.tensor([0.5, 0.5])
+        tr_r.prior_regularizer.psi = torch.zeros(2)
+        lat_r = tr_r.prior.means()[ix0] + 0.20 * eps0
+        lg, _, _, _, _, _ = axiom_pullback_step(
+            tr_r, xr0 @ rmat.T, None, lat_r, ix0, sigma_out=0.0, noise=ns_r,
+            critic=tr_r.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
+        )
+        losses_iso.append(float(lg.item()))
+    assert abs(losses_iso[0] - losses_iso[1]) < 1e-4, f"2x2 eig isometry broke rotation invariance: {losses_iso}"
+
+    # 3. Coalesced sibling cluster exercising pooled rho_mu LTV shrink stays finite & mass-exact.
+    tr_c, ns_c = _make_mock_trainer(dim=2, latent_dim=2, num_particles=48, sigma_z=0.20, device=torch.device("cpu"), seed=33)
+    tr_c.prior_regularizer.quantizer_initialized = True
+    tr_c.prior_regularizer.proto_c = torch.tensor([[-0.15, 0.0], [0.15, 0.0], [10.0, 0.0], [10.3, 0.0]])
+    tr_c.prior_regularizer.proto_var = torch.full((4,), 0.09)
+    tr_c.prior_regularizer.v_push = torch.full((4,), 0.09)
+    tr_c.prior_regularizer.proto_w = torch.full((4,), 0.25)
+    tr_c.prior_regularizer.w_fake_ema = torch.full((4,), 0.25)
+    tr_c.prior_regularizer.psi = torch.zeros(4)
+    xr_c = torch.cat((0.25 * torch.randn(24, 2, generator=g_rng), torch.tensor([10.15, 0.0]) + 0.25 * torch.randn(24, 2, generator=g_rng)), 0)
+    ix_c = torch.arange(48)
+    for _ in range(3):
+        lat_c = tr_c.prior.means()[ix_c] + 0.20 * torch.randn(48, 2, generator=g_rng)
+        lg_c, _, _, _, _, _ = axiom_pullback_step(
+            tr_c, xr_c, None, lat_c, ix_c, sigma_out=0.0, noise=ns_c,
+            critic=tr_c.D, loss_d=torch.tensor(1.0), penalty=torch.tensor(0.0),
+        )
+        assert bool(torch.isfinite(lg_c))
+        assert abs(float(tr_c.prior_regularizer.proto_w.double().sum().item()) - 1.0) <= 1e-6

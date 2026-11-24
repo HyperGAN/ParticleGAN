@@ -132,17 +132,26 @@ def _curve_gate(y_flat: torch.Tensor, g_conn: float) -> float:
     return float(g_conn * float(_ss01((0.11 - torch.median(ev[:, -2] / ev[:, -1].clamp_min(1e-12))) / 0.06).item()))
 
 @torch.no_grad()
-def _conformal_horizon(xp: torch.Tensor, yp: torch.Tensor, ell: torch.Tensor, g_conn: float, cond_p: bool) -> Tuple[torch.Tensor, torch.Tensor]:
-    bf, br, dim = xp.shape[0], yp.shape[0], xp.shape[-1]
-    if g_conn > 0.5 or cond_p or dim < 2 or dim > 16 or br < 16 or br > 512 or bf < 2: return ell, ell
-    eb, dyy = ell.detach().float().clamp_min(1e-6), _cdist_s(yp); kd = dyy.clone().fill_diagonal_(float("inf")).topk(min(br - 1, max(3, br // 16)), dim=-1, largest=False).values
-    d1, d2, dk, vq = kd[:, 0].clamp_min(1e-6), kd[:, min(1, kd.shape[1] - 1)].clamp_min(1e-6), kd[:, -1].clamp_min(1e-6), _valley(yp.float(), dyy)
-    vcap = torch.where(vq > 3.0 * torch.quantile(d1, 0.50), 0.28 * vq, 2.0 * dk.amax())
-    eraw = (0.55 * torch.minimum(dk, torch.minimum(torch.where(d2 > vcap, 2.2 * d1, 3.2 * d2), vcap))).clamp_min(0.45 * eb)
-    kbw, bcap, wd = min(3, br), 1.6 * vcap, max(0.0, min(1.0, 1.0 - g_conn))
-    _fld = lambda d: (1.0 - wd) * eb + wd * (torch.softmax(-d / (0.45 * torch.minimum(d.topk(kbw, dim=-1, largest=False).values[:, -1], bcap) + 0.35 * eb).clamp_min(1e-6).unsqueeze(1), 1) @ eraw).clamp_min(1e-6)
-    ey, ex = _fld(dyy), _fld(_cdist_s(xp, yp))
-    return torch.sqrt(ex.unsqueeze(1) * ey.unsqueeze(0)).to(ell.dtype), torch.sqrt(ex.unsqueeze(1) * ex.unsqueeze(0)).to(ell.dtype)
+def _conformal_horizon(xp: torch.Tensor, yp: torch.Tensor, ell: torch.Tensor, g_conn: float, cond_p: bool, *, return_aux: bool = False) -> Tuple[Any, ...]:
+    bf, br = xp.shape[0], yp.shape[0]
+    if g_conn > 0.5 or cond_p or bf < 12 or br < 12: return (ell, ell, None, None, None) if return_aux else (ell, ell)
+    xf, yf, eg = xp.detach().float(), yp.detach().float(), ell.detach().float().clamp_min(1e-6)
+    sc = torch.maximum(torch.maximum(xf.abs().amax(), yf.abs().amax()), eg).clamp_min(1.0)
+    yu, xu = yf / sc, xf / sc; dyy = torch.cdist(yu, yu, p=2.0) * sc
+    vals = dyy.clone().fill_diagonal_(float("inf")).topk(min(3, br - 1), dim=1, largest=False).values
+    d1, d2, d3 = vals[:, 0].clamp_min(1e-6), vals[:, min(1, vals.shape[1] - 1)].clamp_min(1e-6), vals[:, min(2, vals.shape[1] - 1)].clamp_min(1e-6)
+    rpt = torch.where((d2 <= 2.8 * d1) & (d3 <= 2.8 * d2), d2, d1)
+    pds, pix = dyy.topk(min(8, br), dim=1, largest=False)
+    inm = (pds <= (3.2 * d2).unsqueeze(1)).float(); inm[:, 0] = 1.0
+    rp = (rpt[pix] * inm).sum(1) / inm.sum(1).clamp_min(1.0)
+    gw = float(_ss01(eg.new_tensor((float((torch.quantile(rp, 0.85) / torch.quantile(rp, 0.15).clamp_min(1e-6)).item()) - 2.85) / 0.85)).item())
+    if gw <= 1e-4: return (ell, ell, None, None, dyy) if return_aux else (ell, ell)
+    sraw = (1.0 - gw) * eg + gw * (eg * (rp / torch.quantile(rp, 0.25).clamp_min(1e-6))).clamp(0.70 * eg, 4.50 * eg)
+    tbw = 2.0 * (2.4 * sraw / sc).clamp_min(1e-5).unsqueeze(0).square()
+    ey = (torch.softmax(-(dyy / sc).square() / tbw, dim=1) @ sraw).clamp_min(1e-6)
+    ex = (torch.softmax(-torch.cdist(xu, yu, p=2.0).square() / tbw, dim=1) @ sraw).clamp_min(1e-6)
+    exy, exx = torch.sqrt(ex.unsqueeze(1) * ey.unsqueeze(0)).to(ell.dtype), torch.sqrt(ex.unsqueeze(1) * ex.unsqueeze(0)).to(ell.dtype)
+    return (exy, exx, ex, ey, dyy) if return_aux else (exy, exx)
 
 def _orphan_macro_loss(xp: torch.Tensor, yp: torch.Tensor, ch_xy: torch.Tensor, prs: torch.Tensor, pcs: torch.Tensor, *, rho: float, g_conn: float) -> torch.Tensor:
     bf, br = xp.shape[0], yp.shape[0]
@@ -230,15 +239,18 @@ def _update_atomic_ledger(xf: torch.Tensor, rows: torch.Tensor, charts: torch.Te
     return tk, nn_cc, {"row_chart": rc, "row_target": rt, "row_dist": rd}, max(1.6 * float(((xf32 - cf[tk]).norm(dim=1) / nn_cc[tk]).clamp_max(10.0).mean().item()), r_cov)
 
 @torch.no_grad()
-def _update_charts(y_cf: torch.Tensor, prev: Optional[Dict[str, Any]], *, max_charts: int, allow_update: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, Dict[str, Any]]:
+def _update_charts(y_cf: torch.Tensor, prev: Optional[Dict[str, Any]], *, max_charts: int, allow_update: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, Dict[str, Any]]:
     b, dim, dev, kcap, sc = y_cf.shape[0], y_cf.shape[1], y_cf.device, max(2, int(max_charts)), y_cf.abs().amax().clamp_min(1.0)
     is_init = isinstance(prev, dict) and isinstance(prev.get("sum"), torch.Tensor) and prev["sum"].ndim == 2 and prev["sum"].shape[1] == dim and prev["sum"].shape[0] > 0
     if is_init:
         cs, cc, cq = (prev[k].to(device=dev, dtype=torch.float32) for k in ("sum", "count", "sq_dev"))
-        if not allow_update: return cs / cc.clamp_min(1e-8).unsqueeze(1), cc / cc.sum().clamp_min(1e-8), (cq / cc.clamp_min(1e-8)).clamp_min(1e-12).sqrt(), prev
+        fm = (prev["fake_mass"] if isinstance(prev.get("fake_mass"), torch.Tensor) and prev["fake_mass"].shape == cc.shape else (cc / cc.sum().clamp_min(1e-8))).to(device=dev, dtype=torch.float32)
+        if not allow_update:
+            cp = cs / cc.clamp_min(1e-8).unsqueeze(1)
+            return cp, cc / cc.sum().clamp_min(1e-8), (cq / cc.clamp_min(1e-8)).clamp_min(1e-12).sqrt(), F.one_hot(_cdist_s(y_cf, cp).argmin(1), num_classes=cs.shape[0]).float().sum(0), prev
     else:
         pd = torch.remainder(torch.arange(1, dim + 1, device=dev, dtype=torch.float32) * _PHI1, 1.0) - 0.5; c0 = y_cf[int(torch.argmin((y_cf / sc) @ (pd / pd.norm().clamp_min(1e-8))).item())].unsqueeze(0).clone()
-        cs, cc, cq = c0 * 0.5, torch.full((1,), 0.5, device=dev), (_batch_ell(y_cf, 0.25).square().clamp_min(1e-8) * 0.5).reshape(1).clamp_min(1e-12)
+        cs, cc, cq, fm = c0 * 0.5, torch.full((1,), 0.5, device=dev), (_batch_ell(y_cf, 0.25).square().clamp_min(1e-8) * 0.5).reshape(1).clamp_min(1e-12), torch.ones((1,), device=dev)
     if cs.shape[0] < kcap:
         ce, re = cs / cc.clamp_min(1e-8).unsqueeze(1), (cq / cc.clamp_min(1e-8)).clamp_min(1e-12).sqrt(); sg = torch.maximum(sc, ce.abs().amax()).clamp_min(1.0)
         yug = y_cf / sg; dg = _cdist_s(yug, ce / sg); dmg = dg.amax().clamp_min(1e-5); eug = torch.minimum(_batch_ell(yug, 0.25), (0.04 * dmg).clamp_min(1e-5)); mw, nr = dg.square().min(1)
@@ -249,11 +261,46 @@ def _update_charts(y_cf: torch.Tensor, prev: Optional[Dict[str, Any]], *, max_ch
             ni = int(nx.item()); adds.append(ni); dn = (yug - yug[ni]).square().sum(1); tw, mw = torch.where(dn < mw, e2, tw), torch.minimum(mw, dn); mw[ni] = -1.0
         if adds:
             ca, an = y_cf[torch.tensor(adds, device=dev, dtype=torch.long)], torch.full((len(adds),), max(1e-3, float(cc.sum().item()) / float(max(b, cs.shape[0] + len(adds)))), device=dev)
-            cs, cc, cq = torch.cat([cs, ca * an.unsqueeze(1)], 0), torch.cat([cc, an], 0), torch.cat([cq, ((eug * sg).square().clamp_min(1e-8) * an).clamp_min(1e-12)], 0)
-    cp = cs / cc.clamp_min(1e-8).unsqueeze(1); asg = _cdist_s(y_cf, cp).argmin(1); oh, al = F.one_hot(asg, num_classes=cs.shape[0]).float(), min(0.35, max(0.025, 0.08 * ((float(b) / float(cs.shape[0])) ** 0.45)))
-    ns = ((1.0 - al) * cs + al * (oh.T @ y_cf)) if is_init else torch.where((oh.sum(0) >= 1.0).unsqueeze(1), oh.T @ y_cf, cp * 0.5); nc = ((1.0 - al) * cc + al * oh.sum(0)) if is_init else oh.sum(0).clamp_min(0.5)
+            cs, cc, cq, fm = torch.cat([cs, ca * an.unsqueeze(1)], 0), torch.cat([cc, an], 0), torch.cat([cq, ((eug * sg).square().clamp_min(1e-8) * an).clamp_min(1e-12)], 0), torch.cat([fm, torch.zeros((len(adds),), device=dev)], 0)
+    cp = cs / cc.clamp_min(1e-8).unsqueeze(1); dmin, asg = _cdist_s(y_cf, cp).min(1); oh = F.one_hot(asg, num_classes=cs.shape[0]).float(); bcnt = oh.sum(0)
+    al0 = min(0.35, max(0.025, 0.08 * ((float(b) / float(cs.shape[0])) ** 0.45)))
+    shock = float((((torch.sqrt(dmin.square().mean() / (2.0 * y_cf.var(0, unbiased=False).sum()).clamp_min(1e-12)) - 0.40) / 0.30).clamp(0.0, 1.0)).item()) if is_init else 0.0
+    al = min(0.65, al0 + (0.65 - al0) * shock * shock)
+    ns = ((1.0 - al) * cs + al * (oh.T @ y_cf)) if is_init else torch.where((bcnt >= 1.0).unsqueeze(1), oh.T @ y_cf, cp * 0.5); nc = ((1.0 - al) * cc + al * bcnt) if is_init else bcnt.clamp_min(0.5)
     nq = (((1.0 - al) * cq + al * (oh.T @ (y_cf - cp[asg]).square().sum(1))) if is_init else (oh.T @ (y_cf - (ns / nc.unsqueeze(1))[asg]).square().sum(1))).clamp_min(1e-12); w_out = nc / nc.sum().clamp_min(1e-8)
-    return ns / nc.clamp_min(1e-8).unsqueeze(1), w_out, (nq / nc.clamp_min(1e-8)).clamp_min(1e-12).sqrt(), {"sum": ns, "count": nc, "sq_dev": nq, "fake_mass": w_out.clone(), "revival_phase": 0.0, "revivals": 0, "data_scale": float(sc.item())}
+    return ns / nc.clamp_min(1e-8).unsqueeze(1), w_out, (nq / nc.clamp_min(1e-8)).clamp_min(1e-12).sqrt(), bcnt, {"sum": ns, "count": nc, "sq_dev": nq, "fake_mass": fm.clone(), "revival_phase": 0.0, "revivals": 0, "data_scale": float(sc.item())}
+
+@torch.no_grad()
+def _deconflicted_routing(xf: torch.Tensor, cf: torch.Tensor, wr: torch.Tensor, rads: torch.Tensor, bcnt: torch.Tensor, cur_fm: torch.Tensor, ec: torch.Tensor, *, wv_c: float, halo_mult: float, s_th: float, allow_update: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]:
+    bf, k, dev = xf.shape[0], cf.shape[0], xf.device
+    if k >= 2:
+        nn_cc = _cdist_s(cf, diag_inf=True).amin(1).clamp_min(1e-6)
+        r_eff = rads.float().clamp_min(0.02 * nn_cc); r_halo = torch.minimum(float(halo_mult) * r_eff, 0.35 * nn_cc); r_bas = torch.minimum(1.35 * r_halo, 0.45 * nn_cc)
+    else: r_eff = rads.float().clamp_min(1e-5); r_halo, r_bas = float(halo_mult) * r_eff, 1.35 * float(halo_mult) * r_eff
+    d_near, near_i = _cdist_s(xf, cf).min(1); in_b = d_near <= r_bas[near_i]
+    bf_frac = (F.one_hot(near_i[in_b], num_classes=k).float().sum(0) if bool(in_b.any()) else torch.zeros(k, device=dev)) / float(max(1, bf))
+    al_f = min(0.35, max(0.025, 0.08 * ((float(bf) / float(max(1, k))) ** 0.45)))
+    next_fm = ((1.0 - al_f) * cur_fm.float() + al_f * bf_frac) if allow_update else cur_fm.float()
+    se_k = torch.sqrt((2.0 * (al_f / max(1e-6, 2.0 - al_f)) / float(max(1, bf)) * wr.float()).clamp_min(1e-8))
+    def_k, sur_k = F.relu(wr.float() - next_fm - 1.60 * se_k), F.relu(next_fm - wr.float() - 1.60 * se_k)
+    ab_sh = (float(wv_c) * _ss01((r_halo[near_i] - d_near) / (0.35 * r_halo[near_i]).clamp_min(1e-6)) * (bcnt <= 0.0).float()[near_i] * (sur_k <= 1e-6).float()[near_i]) if (wv_c > 1e-4 and k > 4) else torch.zeros(bf, device=dev)
+    if wv_c <= 1e-4 or k < 3: return cf[near_i], r_halo[near_i], torch.zeros(bf, device=dev), ab_sh, next_fm
+    g_val = float(wv_c) * _ss01((d_near - r_halo[near_i]) / (0.45 * r_halo[near_i]).clamp_min(1e-6))
+    wt = wr.float() + 2.0 * def_k; wt = wt / wt.sum().clamp_min(1e-8)
+    bi = torch.sqrt(ec.square() + _cdist_s(xf, cf).square()) - ec
+    lpi = _log_sinkhorn(-(bi / bi.median().clamp_min(1e-8)).clamp_max(200.0) / 0.08, xf.new_full((bf,), -math.log(max(1, bf)), dtype=torch.float32), wt.clamp_min(1e-12).log(), 8)
+    rq = (wt * float(bf)).cpu(); q = torch.floor(rq).long(); rem = bf - int(q.sum().item())
+    if rem > 0: q[torch.topk((rq - q.float()) - 1e-7 * torch.arange(k, dtype=torch.float32), k=min(rem, k), largest=True).indices] += 1
+    scpu = lpi.detach().cpu(); top2 = torch.topk(scpu, k=2, dim=1, largest=True).values
+    ord_i, ql, wcpu = torch.argsort(top2[:, 0] - top2[:, 1] - 1e-7 * torch.arange(bf, dtype=torch.float32), descending=True).tolist(), q.tolist(), torch.empty(bf, dtype=torch.long)
+    scpu[:, q <= 0] = float("-inf")
+    for ii in ord_i:
+        cw = int(scpu[ii].argmax().item()); wcpu[ii] = cw; ql[cw] -= 1
+        if ql[cw] <= 0: scpu[:, cw] = float("-inf")
+    win, sth_g = wcpu.to(dev), float(_ss01(xf.new_tensor((float(s_th) - 0.02) / 0.18)).item())
+    g_reb = torch.where((win != near_i) & (def_k[win] > 0.0) & (sur_k[near_i] > 0.0), float(wv_c * sth_g) * (def_k[win] / wr[win].clamp_min(1e-6)).clamp(0.0, 1.0), torch.zeros_like(g_val)) if (float(def_k.sum().item()) > 1e-4 and sth_g > 1e-4) else torch.zeros_like(g_val)
+    ti = win if sth_g > 0.5 else torch.where(g_reb > 0.0, win, near_i)
+    return cf[ti], r_halo[ti], torch.maximum(g_val, g_reb), ab_sh, next_fm
 
 def _split_joint_pair(xf: torch.Tensor, yr: torch.Tensor, tab: Optional[torch.Tensor], rows: Optional[torch.Tensor]) -> Optional[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor]]:
     if tab is None or rows is None or tab.ndim != 2 or rows.ndim != 1 or rows.shape[0] != xf.shape[0] or xf.shape[0] < 4 or yr.shape[0] < 4: return None
@@ -403,7 +450,7 @@ class AxiomTransportLoss(nn.Module):
         return c_max * torch.tanh((ff.double() - db).to(ff.dtype) / c_max), c_max * torch.tanh((rf.double() - db).to(rf.dtype) / c_max)
     def _atomic_match(self, fx: torch.Tensor, rx: torch.Tensor, record: Any, ptab: torch.Tensor, brows: torch.Tensor, can_mut: bool) -> Optional[Tuple[torch.Tensor, torch.Tensor, Dict[str, Any], float]]:
         if ptab.ndim != 2 or brows.ndim != 1 or brows.shape[0] != fx.shape[0] or bool((brows < 0).any()) or bool((brows >= ptab.shape[0]).any()): return None
-        charts, wr, rads, ncs = _update_charts(rx.detach().float(), getattr(record, "chart_state", None), max_charts=self.chart_capacity, allow_update=can_mut)
+        charts, wr, rads, _, ncs = _update_charts(rx.detach().float(), getattr(record, "chart_state", None), max_charts=self.chart_capacity, allow_update=can_mut)
         if compute_discrete_atomic_gate(rx.detach(), charts=charts, radii=rads) <= 0.5 or charts.shape[0] < 2: return None
         tk, nn_cc, nal, r_fwd = _update_atomic_ledger(fx.detach(), brows, charts, wr, int(ptab.shape[0]), getattr(record, "atomic_ledger", None), allow_update=can_mut)
         if can_mut and record is not None: record.chart_state, record.atomic_ledger = ncs, nal
@@ -415,15 +462,33 @@ class AxiomTransportLoss(nn.Module):
         xp, yp = project_transport_features(x_fake, self.max_spatial), project_transport_features(y_real.detach(), self.max_spatial)
         ell, (g_conn, _, _, _) = self._resolve_ell(yp, record, can_mut), _manifold_gates(yp)
         if record is not None and hasattr(record, "_disc_gate"): record._disc_gate = 1.0 - g_conn
-        exy, exx = _conformal_horizon(xp, yp, ell, g_conn, cond_p); ey_loc, g_het, nn1_y, s_near, wv_c, am = ell, 0.0, None, None, 0.0, None
+        exy, exx, ex_ms, ey_ms, dyy_c = _conformal_horizon(xp, yp, ell, g_conn, cond_p, return_aux=True)
+        ey_loc, g_het, nn1_y, s_near, wv_c, am = (ey_ms.to(ell.dtype) if ey_ms is not None else ell), 0.0, None, None, 0.0, None
+        c_tgt = c_halo = c_rw = ab_sh = None
         if not cond_p and self.chart_weight > 0.0 and br >= 4 and bf >= 2:
             ptab, brows = (getattr(record, "_active_prior_table", None), getattr(record, "_active_batch_rows", None)) if record is not None else (None, None)
             am = self._atomic_match(xp, yp, record, ptab, brows, can_mut) if (ptab is not None and brows is not None) else None
+            if am is not None:
+                with torch.no_grad():
+                    rl, rc = brows.detach().reshape(-1).long().to(xp.device), am[2]["row_chart"].to(xp.device)
+                    tk = torch.where(rc[rl] >= 0, rc[rl].clamp_min(0), _cdist_s(xp.detach().float(), am[1]).argmin(1))
+                    ab_sh = (torch.bincount(_cdist_s(yp.detach().float(), am[1]).argmin(1), minlength=am[1].shape[0])[tk] <= 0).float()
+            elif (1.0 - g_conn) > 1e-4:
+                charts, wr, rads, bcnt, ncs = _update_charts(yp.float(), getattr(record, "chart_state", None) if record is not None else None, max_charts=self.chart_capacity, allow_update=can_mut)
+                if charts.shape[0] >= 2:
+                    with torch.no_grad():
+                        ec = ell.detach().float().clamp_min(1e-6)
+                        wv_c = float(_ss01((torch.quantile(_cdist_s(0.5 * (yp + yp.roll(1, 0)), charts).amin(1), 0.75) / torch.maximum(torch.quantile(_cdist_s(yp, charts).amin(1), 0.75), ec).clamp_min(1e-6) - 0.85 * self.rho) / 1.50).item()) * (1.0 - g_conn)
+                    c_tgt, c_halo, c_rw, ab_sh, nfm = _deconflicted_routing(xp.detach().float(), charts, wr, rads, bcnt, ncs["fake_mass"], ec, wv_c=wv_c, halo_mult=self.halo_mult, s_th=float(getattr(record, "thermal_scale", 1.0)) if record is not None else 1.0, allow_update=can_mut)
+                    ncs["fake_mass"] = nfm
+                    if can_mut and record is not None: record.chart_state = ncs
         if (not cond_p) and am is None and bf >= 8 and br >= 8:
             with torch.no_grad():
-                dyy_s = _cdist_s(yp); eb = ell.detach().float().clamp_min(1e-6); wv_pt = float(_ss01((_valley(yp.float(), dyy_s) / (2.0 * eb) - 0.85 * self.rho) / 1.50).item()) * (1.0 - g_conn)
+                dyy_s = dyy_c.clone() if dyy_c is not None else _cdist_s(yp); dyy_s.fill_diagonal_(0.0); eb = ell.detach().float().clamp_min(1e-6)
+                wv_sup = max(wv_c, float(_ss01((_valley(yp.float(), dyy_s) / (2.0 * eb) - 0.85 * self.rho) / 1.50).item()) * (1.0 - g_conn))
                 pm = dyy_s > 0.0; md_s = torch.quantile(dyy_s[pm], 0.25).clamp_min(1e-5) if bool(pm.any()) else eb
-                rho_k = torch.exp(-dyy_s.square() / (2.0 * (1.15 * md_s).square()).clamp_min(1e-10)).sum(1); ec_s = min(20.0, max(0.0, wv_pt * float((torch.quantile(rho_k, 0.85) / torch.quantile(rho_k, 0.03).clamp_min(1.0)).item())))
+                bw_k = (1.15 * md_s * (ey_ms / eb)).clamp_min(1e-5).unsqueeze(1) if ey_ms is not None else (1.15 * md_s)
+                rho_k = torch.exp(-dyy_s.square() / (2.0 * bw_k.square()).clamp_min(1e-10)).sum(1); ec_s = min(20.0, max(0.0, wv_sup * float((torch.quantile(rho_k, 0.85) / torch.quantile(rho_k, 0.03).clamp_min(1.0)).item())))
                 if record is not None and hasattr(record, "het_initialized"):
                     if can_mut: record.het_ema, record.het_initialized = (min(ec_s, 3.0) if not record.het_initialized else (0.92 * float(record.het_ema) + 0.08 * ec_s)), True
                     hv = float(record.het_ema) if record.het_initialized else min(ec_s, 3.0)
@@ -433,9 +498,9 @@ class AxiomTransportLoss(nn.Module):
                     dyy_i = dyy_s.clone().fill_diagonal_(float("inf")); nn1_y, nn2_y = dyy_i.amin(1), dyy_i.topk(min(2, br - 1), dim=1, largest=False).values[:, -1]
                     s_sp = g_het * _ss01((nn2_y / eb - 2.8) / 1.4)
                     if bool((s_sp > 1e-4).any()):
-                        ey_f = torch.maximum(eb.expand(br), eb + s_sp * (0.64 * nn2_y - eb).clamp(0.0, 3.4 * eb)); ey_loc = ey_f.to(ell.dtype)
+                        ey_f = torch.maximum(ey_ms if ey_ms is not None else eb.expand(br), eb + s_sp * (0.64 * nn2_y - eb).clamp(0.0, 3.4 * eb)); ey_loc = ey_f.to(ell.dtype)
                         nd_s, ny_s = _cdist_s(xp, yp).min(1); ne_s = ey_f[ny_s]; s_near = s_sp[ny_s] * _ss01((2.8 * ne_s - nd_s) / (1.2 * ne_s).clamp_min(1e-6))
-                        ex_f = torch.maximum(eb.expand(bf), eb + s_near * (ne_s - eb)).to(ell.dtype); exy = torch.maximum(exy, torch.sqrt(ex_f.unsqueeze(1) * ey_loc.unsqueeze(0))); exx = torch.maximum(exx, torch.sqrt(ex_f.unsqueeze(1) * ex_f.unsqueeze(0)))
+                        ex_f = torch.maximum(ex_ms if ex_ms is not None else eb.expand(bf), eb + s_near * (ne_s - eb)).to(ell.dtype); exy = torch.sqrt(ex_f.unsqueeze(1) * ey_loc.unsqueeze(0)); exx = torch.sqrt(ex_f.unsqueeze(1) * ex_f.unsqueeze(0))
         (cxy, chxy), (cxx, chxx), (dft, drt) = _bi_cost(xp, yp, exy), _bi_cost(xp, xp, exx), self._log_odds(d_fake, d_real)
         with torch.no_grad():
             Pxy = _sinkhorn_slack(chxy, dft.detach(), drt.detach(), rho=self.rho, tau=self.tau, eps=self.eps, iters=self.iters, mask=_discrete_mask(cond_fake, cond_real, bf, br))
@@ -445,20 +510,15 @@ class AxiomTransportLoss(nn.Module):
             Pxy_a, Pxy_s, Pxy_cs = Pxy[:bf, :br], Pxy[:bf, br], Pxy[bf, :br]; self.last_p_xy_slack = Pxy_s.detach(); af = (bf * Pxy_a.sum(1)).clamp(0.0, 1.0)
             if s_near is not None: af = (af + 0.50 * s_near.to(af.dtype)).clamp(0.0, 1.0)
             sf = (float(bf) * Pxy_s).clamp(0.0, 1.0); p_sl = Pxy_s * (1.0 + 0.35 * sf)
+            if ab_sh is not None: p_sl = p_sl * (1.0 - ab_sh.to(p_sl.dtype))
         coord = (Pxy_a * cxy).sum() - 0.5 * (Pxx_a * torch.sqrt(af.unsqueeze(1) * af.unsqueeze(0)) * cxx).sum()
         critic_t = -(p_sl * (0.5 * self.tau * dft)).sum() + (0.03 * self.tau) * (Pxy_a * (F.softplus(drt.unsqueeze(0) - dft.unsqueeze(1)) - math.log(2.0))).sum()
         r_tail = 0.0
         if am is not None: coord, r_tail = coord + self.chart_weight * am[0].to(coord.dtype), am[3]
-        elif not cond_p and self.chart_weight > 0.0 and br >= 4 and bf >= 2 and (1.0 - g_conn) > 1e-4:
-            charts, wr, rads, ncs = _update_charts(yp.float(), getattr(record, "chart_state", None) if record is not None else None, max_charts=self.chart_capacity, allow_update=can_mut)
-            if charts.shape[0] >= 2:
-                if can_mut and record is not None: record.chart_state = ncs
-                with torch.no_grad():
-                    ec = ell.detach().float().clamp_min(1e-6); wv_c = float(_ss01((torch.quantile(_cdist_s(0.5 * (yp + yp.roll(1, 0)), charts).amin(1), 0.75) / torch.maximum(torch.quantile(_cdist_s(yp, charts).amin(1), 0.75), ec).clamp_min(1e-6) - 0.85 * self.rho) / 1.50).item())
-                    if wv_c > 1e-4: bi = torch.sqrt(ec.square() + _cdist_s(xp, charts).square()) - ec; win = _log_sinkhorn(-(bi / bi.median().clamp_min(1e-8)).clamp_max(200.0) / 0.08, xp.new_full((bf,), -math.log(max(1, bf)), dtype=torch.float32), wr.clamp_min(1e-12).log(), 8).argmax(1)
-                if wv_c > 1e-4:
-                    diff = xp.float() - charts[win].detach(); sd = torch.maximum(diff.detach().abs().amax(), ec).clamp_min(1.0); uh = F.relu(torch.sqrt((diff / sd).square().sum(-1) + 1e-12) * sd - self.halo_mult * rads[win].detach())
-                    coord = coord + ((1.0 - g_conn) * wv_c * self.chart_weight) * (uh.square() / (torch.sqrt(ec.square() + uh.square()) + ec).clamp_min(1e-30)).mean().to(coord.dtype)
+        elif c_tgt is not None and c_rw is not None and bool((c_rw > 1e-5).any()):
+            ec = ell.detach().float().clamp_min(1e-6); diff = xp.float() - c_tgt.detach(); sd = torch.maximum(diff.detach().abs().amax(), ec).clamp_min(1.0)
+            uh = F.relu(torch.sqrt((diff / sd).square().sum(-1) + 1e-12) * sd - c_halo.detach())
+            coord = coord + self.chart_weight * ((c_rw.to(coord.dtype) / float(bf)) * (uh.square() / (torch.sqrt(ec.square() + uh.square()) + ec).clamp_min(1e-30)).to(coord.dtype)).sum()
         if g_het > 1e-4 and nn1_y is not None:
             with torch.no_grad():
                 gb = float(_ss01(ell.new_tensor((float(Pxy_a.detach().float().sum().item()) - 0.72) / 0.12)).item()); wo = None
@@ -472,13 +532,13 @@ class AxiomTransportLoss(nn.Module):
         if record is not None:
             if can_mut and not (simp_step or getattr(record, "_simplicial_step", False)) and not cond_p and bf >= 4 and br >= 4 and hasattr(record, "observe_thermal"):
                 with torch.no_grad():
-                    red, rmu, rsp, rq90, rhm = _two_sample_residuals(xp, yp, ell)
+                    red, rmu, rsp, rq90, rhm = _two_sample_residuals(xp, yp, ell, cvx_mu_gain=0.80)
                     if (not disc_step) and am is None and bf >= 8 and br >= 8:
-                        wvt = max(wv_c * (1.0 - g_conn), float(_ss01((_valley(yp.float(), _cdist_s(yp)) / (2.0 * ell.detach().float().clamp_min(1e-6)) - 0.85 * self.rho) / 1.50).item()) * (1.0 - g_conn))
+                        wvt = max(wv_c, float(_ss01((_valley(yp.float(), _cdist_s(yp)) / (2.0 * ell.detach().float().clamp_min(1e-6)) - 0.85 * self.rho) / 1.50).item()) * (1.0 - g_conn))
                         if wvt > 0.0:
                             dxy_t, dyy_t, off_t = _cdist_s(xp, yp), _cdist_s(yp), ~torch.eye(br, dtype=torch.bool, device=yp.device)
                             r_tail = max(r_tail, float((wvt * 1.20 * (torch.quantile(dxy_t.amin(1), 0.96) - torch.quantile(dyy_t.masked_fill(~off_t, float("inf")).amin(1), 0.96)) / dyy_t[off_t].mean().clamp_min(1e-6)).item()))
-                    record.observe_thermal(red, rmu, rsp, rq90, rhm, r_tail=r_tail)
+                    record.observe_thermal(red, rmu, rsp, rq90, rhm, r_tail=r_tail, shock_mu_ratio=0.15)
             sth = float(getattr(record, "thermal_scale", 1.0)); total = (_scale_grad(coord, sth) + critic_t) if getattr(d_fake, "_axiom_thermally_scaled", False) else _scale_grad(total, sth)
         return self.weight * total
     def simplicial_manifold_loss(self, z_table: torch.Tensor, gen_fn: Any, y_real: torch.Tensor, *, record: Any = None, iso_weight: float = 0.45, chart_weight: float = 4.0) -> torch.Tensor:
