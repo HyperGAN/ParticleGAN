@@ -89,18 +89,18 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
+| **Atlas** | `atlas-particle-normal-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **Axiom** | `axiom-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: five_word_joint_smoke: clean/live scoring has no declared polic | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 
 ## Reproduce This Experiment
 

@@ -74,8 +74,12 @@ def test_build_inventory_exports_matches_committed_inventory():
         row["joules_total"] >= 0.0 and isinstance(row["energy_backend"], str) and row["energy_backend"]
         for row in with_energy
     )
-    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully.
-    v12 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "unified-v12")
+    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully (RTX A6000 cohort).
+    v12 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA RTX A6000"
+    )
     assert v12["optimizer_family"] == "unified_v12_equil"
     assert v12["family_id"] == "unified"
     assert v12["contended"] is False
@@ -83,6 +87,32 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert v12["ring16_j_to_pass"] == pytest.approx(462.5188, rel=1e-4)
     assert v12["grid100_j_to_pass"] == pytest.approx(4512.9094, rel=1e-4)
     assert v12["occam_pass"] == 16 and v12["occam_executed"] == 16
+
+    # Verify separate uncontended NVIDIA L4 energy cohort (Axiom v4 + Unified v12..v14 matched L4 baselines).
+    ax_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "axiom-v4" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert ax_l4["family_id"] == "axiom"
+    assert ax_l4["optimizer_family"] == "axiom"
+    assert ax_l4["contended"] is False
+    assert ax_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert ax_l4["r256_joules_per_step"] == pytest.approx(4.3849, rel=1e-3)
+    assert ax_l4["ring16_j_to_pass"] == pytest.approx(275.7, rel=1e-2)
+    assert ax_l4["grid100_j_to_pass"] == pytest.approx(1542.3, rel=1e-2)
+    assert ax_l4["staggered100_j_to_pass"] == pytest.approx(1591.6, rel=1e-2)
+    assert ax_l4["occam_pass"] == 13 and ax_l4["occam_executed"] == 16
+
+    v12_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert v12_l4["family_id"] == "unified"
+    assert v12_l4["contended"] is False
+    assert v12_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert v12_l4["r256_joules_per_step"] == pytest.approx(5.5738, rel=1e-3)
 
     # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")

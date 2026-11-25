@@ -556,7 +556,19 @@ def _collect_receipt_energy_rows(
                 row["staggered100_first_pass_step"] = item["first_pass_step"]
             if row["staggered100_j_to_pass"] is None:
                 row["staggered100_j_to_pass"] = item["joules_to_first_pass"]
-    return [grouped[k] for k in sorted(grouped, key=lambda item: tuple("" if x is None else str(x) for x in item))]
+    metric_keys = (
+        "r256_ms_per_step",
+        "r256_joules_per_step",
+        "ring16_j_to_pass",
+        "grid100_j_to_pass",
+        "grid100_j_to_sustained_pass",
+        "staggered100_j_to_pass",
+    )
+    return [
+        grouped[k]
+        for k in sorted(grouped, key=lambda item: tuple("" if x is None else str(x) for x in item))
+        if any(grouped[k].get(mk) is not None for mk in metric_keys)
+    ]
 
 
 def _gif_to_media_relpath(gif_path: str | None) -> str | None:

@@ -86,15 +86,15 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **Axiom** | `axiom-v4` | **PASS** | recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `BLOCKED` | imbalance_nash requires an effective MoGParticlePrior | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
@@ -103,6 +103,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 1.93 kJ (J-to-PASS) | component_core_covariance_error=0.285, component_core_min_eigen_ratio=0.4236, component_covariance_error=0.6746, component_min_eigen_ratio=0.4236 | [7ba9ad8ae0324360bbf108829764982a.json](../technique-receipts/7ba9ad8ae0324360bbf108829764982a.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 7.85 kJ (J-to-PASS) | component_core_covariance_error=0.3327, component_core_min_eigen_ratio=0.3521, component_covariance_error=0.554, component_min_eigen_ratio=0.3521 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.99 kJ (J-to-PASS) | component_core_covariance_error=0.2086, component_core_min_eigen_ratio=0.4598, component_covariance_error=0.5151, component_min_eigen_ratio=0.4598 | [cb5f86c0393a45d5a79b35b9b4c5f622.json](../technique-receipts/cb5f86c0393a45d5a79b35b9b4c5f622.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 1.95 kJ (J-to-PASS) | component_core_covariance_error=0.3713, component_core_min_eigen_ratio=0.2297, component_covariance_error=0.3946, component_min_eigen_ratio=0.2297 | [bb916eae8edc4e92a159df6c50b6ad72.json](../technique-receipts/bb916eae8edc4e92a159df6c50b6ad72.json) |

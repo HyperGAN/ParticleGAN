@@ -79,14 +79,14 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Atlas** | `atlas-particle-normal-v4` | **PASS** | recomputed origin point-mass contraction gates | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **Axiom** | `axiom-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **E22** | `e22` | **PASS** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | recomputed the declared final zero-tanh bounds | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | **PASS** | recomputed the declared final zero-tanh bounds | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed the declared final zero-tanh bounds | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
@@ -99,6 +99,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 409 J (J-to-PASS) | mean_abs_error=0.001996, p99_abs_error=0.007618, rms_error=0.002508, saturated_fraction=0 | [91b5b661538b4f56a628886e9a286b8e.json](../technique-receipts/91b5b661538b4f56a628886e9a286b8e.json) |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 297 J (J-to-PASS) | mean_abs_error=0.002121, p99_abs_error=0.01618, rms_error=0.003806, saturated_fraction=0 | [caf808b3dd6142adb43bc96595a02a33.json](../technique-receipts/caf808b3dd6142adb43bc96595a02a33.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 1.29 kJ (J-to-PASS) | mean_abs_error=0.002037, p99_abs_error=0.01572, rms_error=0.00363, saturated_fraction=0 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 497 J (J-to-PASS) | mean_abs_error=0.00264, p99_abs_error=0.01034, rms_error=0.003506, saturated_fraction=0 | [398e2ca2bc524599b37f03c18367e0ac.json](../technique-receipts/398e2ca2bc524599b37f03c18367e0ac.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 460 J (J-to-PASS) | mean_abs_error=0.002195, p99_abs_error=0.008354, rms_error=0.002884, saturated_fraction=0 | [89f3e83c01a44d9f8337f9ba2fd62f4a.json](../technique-receipts/89f3e83c01a44d9f8337f9ba2fd62f4a.json) |

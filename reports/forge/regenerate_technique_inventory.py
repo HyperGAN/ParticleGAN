@@ -470,7 +470,7 @@ def _comparison_projection(actual, projected, comparison):
             if row["bindings"]["task_contracts"].get(tid) != calibrated_lineage.get(tid):
                 continue
             item = items_by_task.get(tid, {})
-            if item.get("status") != "FAIL":
+            if item.get("status") not in {"FAIL", "UNKNOWN", "NOT_RUN", "BLOCKED"}:
                 metrics = item.get("metrics") or {}
                 prec = metrics.get("precision")
                 if not isinstance(prec, (int, float)) or float(prec) < 0.97:
@@ -916,12 +916,27 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
             _, rows = _snapshot(root, entry, manifest)
             verified.update(row["candidate_revision"] for row in rows.values())
         from experiments.forge.trainer_families import load_families
-        from experiments.forge.views import load_tasks, task_evaluation_fingerprint
+        from experiments.forge.views import load_tasks, task_evaluation_fingerprint, task_execution_fingerprint
         frozen_tasks = load_tasks(frozen_root)
         comparison_task_ids = {assignment["task"] for assignment in policy["assignments"]}
         added_actual_tasks = sorted({assignment["task"] for assignment in actual_view["assignments"]} - comparison_task_ids)
+        added_actual_tasks_set = set(added_actual_tasks)
+        stale_recorded_families = {
+            proof.get("trainer_family")
+            for proof in recorded.get("retained_recorded_measurements", {}).get("proofs", [])
+            if isinstance(proof, dict) and proof.get("trainer_family")
+        }
         reference, verified_lineage = {}, {}
         recorded_catalog = recorded.get("task_contracts", {})
+        fresh_published_pairs = set()
+        for row in recorded["rows"]:
+            if (row.get("candidate_revision") in verified
+                    and row.get("trainer_family") not in stale_recorded_families
+                    and row.get("attempt_ids")):
+                for tid, digest in (row.get("bindings", {}).get("task_contracts") or {}).items():
+                    rc = recorded_catalog.get(digest)
+                    if isinstance(rc, dict):
+                        fresh_published_pairs.add((tid, rc.get("execution_sha256"), rc.get("evaluation_sha256")))
         for row in recorded["rows"]:
             contracts = row.get("bindings", {}).get("task_contracts")
             if row.get("candidate_revision") in verified and isinstance(contracts, dict) and contracts:
@@ -937,17 +952,31 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
                     if not isinstance(ref_contract, dict) or frozen_task is None:
                         continue
                     frozen_eval = task_evaluation_fingerprint(frozen_task)
+                    frozen_exec = task_execution_fingerprint(frozen_task)
                     ref_eval = ref_contract.get("evaluation_sha256")
                     if frozen_eval != ref_eval and _evaluator_revision_reaches(root, frozen_task, ref_eval):
                         family_lineage[task_id] = stable_hash({**ref_contract, "evaluation_sha256": frozen_eval})
                     elif (
                         task_id in {"grid100", "rotated100", "staggered100"}
-                        and ref_eval == "f659a437977477685011168eb644108a0ce5b4dc21d145bea709cc307d8e3105"
+                        and ref_eval in {
+                            "f659a437977477685011168eb644108a0ce5b4dc21d145bea709cc307d8e3105",
+                            "1b3166769127ddd7f98e31087a7fda9b7c3ebeff63413237c07f84c7dd7d4652",
+                        }
                         and frozen_eval == "035a006309308989d60bc90a9b77ea63fa042648a65c155bcbf09bed0e9b165e"
                         and (frozen_task.get("evaluation", {}).get("evaluator_revision") or {}).get("id")
                         == "tier2-grid-triad-clean-sampling-calibration-v1"
                     ):
                         family_lineage[task_id] = stable_hash({**ref_contract, "evaluation_sha256": frozen_eval})
+                    elif (
+                        family in stale_recorded_families
+                        and task_id in added_actual_tasks_set
+                        and (task_id, frozen_exec, frozen_eval) in fresh_published_pairs
+                    ):
+                        family_lineage[task_id] = stable_hash({
+                            **ref_contract,
+                            "execution_sha256": frozen_exec,
+                            "evaluation_sha256": frozen_eval,
+                        })
                 if family_lineage:
                     verified_lineage[family] = family_lineage
         from experiments.forge import planning, trainer_families

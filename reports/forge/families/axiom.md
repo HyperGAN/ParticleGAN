@@ -112,7 +112,7 @@ $G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ loca
 **Mass-Conserving Laguerre Prototype Quantizer & Transitive-Closure LTV Coalescence**
 
 $$
-\sum_{k=1}^{K} w_k = 1,\qquad v_k \leftarrow \mathrm{unbiased\_quantizer\_var}(y, \mu_k),\qquad \mathcal L_{\mathrm{iso}} = \frac{1}{2}\left\lVert \frac{G(z+\sigma_z u)-G(z-\sigma_z u)}{2\sigma_z} \right\rVert_F^2
+\sum_{k=1}^{K} w_k = 1,\qquad v_k \leftarrow \mathrm{Var}_{\mathrm{unbiased}}(y, \mu_k),\qquad \mathcal L_{\mathrm{iso}} = \frac{1}{2}\left\lVert \frac{G(z+\sigma_z u)-G(z-\sigma_z u)}{2\sigma_z} \right\rVert_F^2
 $$
 
 Preserves exact total prototype mass across teleportation, tracks unbiased cell variance v_cprev for deep ResNet/tanh stability, coalesces overlapping cells via 4-step transitive-closure Pythagorean LTV (cs <= 10.0), and enforces central-offset pullback covariance isometry without O(sigma_z) forward-probe bias.
@@ -128,7 +128,7 @@ Uses exact RoR on low-D/quantized MLPs and clock-free Weyl-phase sub-batch b_reg
 **IEEE-754 Mantissa-Exponent Degree-0 Equilibration & Spectral-Split Tikhonov Polar**
 
 $$
-\tilde G = \mathrm{ldexp}(G, -\lfloor \log_2 \lVert G \rVert_{\mathrm{rms}} \rfloor),\qquad \mathrm{scale}(m, r_{\mathrm{eff}}) = \min\left(\sqrt{m},\; 2\sqrt{r_{\mathrm{eff}}}\right)
+\tilde G = \mathrm{ldexp}(G, -\lfloor \log_2 \lVert G \rVert_{\mathrm{rms}} \rfloor),\qquad \mathrm{scale}(m, r_{\mathrm{eff}}) = \min\left(\sqrt{m},\enspace 2\sqrt{r_{\mathrm{eff}}}\right)
 $$
 
 Achieves exact scale invariance across 1e-5x to 1e4x shocks without step clocks, applies deadband-free step-cosine & spectral-split FP32 Tikhonov NS with exact 4D 1x1 Conv2d == 2D Linear parity, and runs 0 NS on healthy spatial Conv2d.

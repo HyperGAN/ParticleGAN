@@ -88,16 +88,16 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **RHBI** | `rhbi-v12` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **Axiom** | `axiom-v4` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8, interp_arc_bin | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8 | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 

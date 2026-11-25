@@ -239,8 +239,8 @@ def test_evaluator_revision_lineage_accepts_source_only_refresh_and_rejects_gate
     recorded = read_json(ROOT / 'reports/forge/technique-inventory.json')
     live_two_pole = load_tasks(ROOT)['two_pole']
     live_eval = task_evaluation_fingerprint(live_two_pole)
-    k3p_ref = next(row['bindings']['task_contracts'] for row in recorded['rows'] if row['trainer_family'] == 'k3p')
-    ref_eval = recorded['task_contracts'][k3p_ref['two_pole']]['evaluation_sha256']
+    e22_ref = next(row['bindings']['task_contracts'] for row in recorded['rows'] if row['trainer_family'] == 'e22')
+    ref_eval = recorded['task_contracts'][e22_ref['two_pole']]['evaluation_sha256']
     assert ref_eval != live_eval
     assert publication._evaluator_revision_reaches(ROOT, live_two_pole, ref_eval) is True
 
@@ -288,7 +288,7 @@ def test_combined_source_lineage_rejects_semantic_damage_even_with_rehashed_rece
     monkeypatch.setattr(publication.subprocess, 'check_output', archived_git)
     recorded = read_json(ROOT / 'reports/forge/technique-inventory.json')
     reference = next(row['bindings']['task_contracts'] for row in recorded['rows']
-                     if row['trainer_family'] == 'k3p')
+                     if row['trainer_family'] == 'e22')
     target = recorded['task_contracts'][reference['two_pole']]['evaluation_sha256']
     assert publication._evaluator_revision_reaches(tmp_path, task, target)
 

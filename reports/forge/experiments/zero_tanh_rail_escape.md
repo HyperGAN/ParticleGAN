@@ -88,15 +88,15 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **E22** | `e22` | **PASS** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **Atlas** | `atlas-particle-normal-v4` | `BLOCKED` | zero_tanh_rail_escape: zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `BLOCKED` | zero_tanh_rail_escape: zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | zero_tanh_rail_escape: zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
@@ -107,6 +107,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 752 J (J-to-PASS) | mean_abs_error=0.001829, p99_abs_error=0.006108, rms_error=0.002357, saturated_fraction=0 | [f8ddd87df4cf46168629a5bbb614b410.json](../technique-receipts/f8ddd87df4cf46168629a5bbb614b410.json) |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 498 J (J-to-PASS) | mean_abs_error=0.002041, p99_abs_error=0.01999, rms_error=0.004805, saturated_fraction=0 | [c614ad45546349d8b776e055db7888e8.json](../technique-receipts/c614ad45546349d8b776e055db7888e8.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 1.80 kJ (J-to-PASS) | mean_abs_error=0.001275, p99_abs_error=0.01079, rms_error=0.002909, saturated_fraction=0 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 496 J (J-to-PASS) | mean_abs_error=0.000974, p99_abs_error=0.005887, rms_error=0.001559, saturated_fraction=0 | [717cda2561634f24874e5dedf5b83e8f.json](../technique-receipts/717cda2561634f24874e5dedf5b83e8f.json) |
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **PASS** | — | 360 J (J-to-PASS) | mean_abs_error=0.001603, p99_abs_error=0.007366, rms_error=0.002267, saturated_fraction=0 | [7e8c1f1997434c47a25ca8f2880a2ea6.json](../technique-receipts/7e8c1f1997434c47a25ca8f2880a2ea6.json) |

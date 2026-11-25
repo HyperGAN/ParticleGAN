@@ -70,7 +70,7 @@
   "equations": [
     {
       "label": "Mass-Conserving Laguerre Prototype Quantizer & Transitive-Closure LTV Coalescence",
-      "latex": "\\sum_{k=1}^{K} w_k = 1,\\qquad v_k \\leftarrow \\mathrm{unbiased\\_quantizer\\_var}(y, \\mu_k),\\qquad \\mathcal L_{\\mathrm{iso}} = \\frac{1}{2}\\left\\lVert \\frac{G(z+\\sigma_z u)-G(z-\\sigma_z u)}{2\\sigma_z} \\right\\rVert_F^2",
+      "latex": "\\sum_{k=1}^{K} w_k = 1,\\qquad v_k \\leftarrow \\mathrm{Var}_{\\mathrm{unbiased}}(y, \\mu_k),\\qquad \\mathcal L_{\\mathrm{iso}} = \\frac{1}{2}\\left\\lVert \\frac{G(z+\\sigma_z u)-G(z-\\sigma_z u)}{2\\sigma_z} \\right\\rVert_F^2",
       "explanation": "Preserves exact total prototype mass across teleportation, tracks unbiased cell variance v_cprev for deep ResNet/tanh stability, coalesces overlapping cells via 4-step transitive-closure Pythagorean LTV (cs <= 10.0), and enforces central-offset pullback covariance isometry without O(sigma_z) forward-probe bias."
     },
     {
@@ -80,7 +80,7 @@
     },
     {
       "label": "IEEE-754 Mantissa-Exponent Degree-0 Equilibration & Spectral-Split Tikhonov Polar",
-      "latex": "\\tilde G = \\mathrm{ldexp}(G, -\\lfloor \\log_2 \\lVert G \\rVert_{\\mathrm{rms}} \\rfloor),\\qquad \\mathrm{scale}(m, r_{\\mathrm{eff}}) = \\min\\left(\\sqrt{m},\\; 2\\sqrt{r_{\\mathrm{eff}}}\\right)",
+      "latex": "\\tilde G = \\mathrm{ldexp}(G, -\\lfloor \\log_2 \\lVert G \\rVert_{\\mathrm{rms}} \\rfloor),\\qquad \\mathrm{scale}(m, r_{\\mathrm{eff}}) = \\min\\left(\\sqrt{m},\\enspace 2\\sqrt{r_{\\mathrm{eff}}}\\right)",
       "explanation": "Achieves exact scale invariance across 1e-5x to 1e4x shocks without step clocks, applies deadband-free step-cosine & spectral-split FP32 Tikhonov NS with exact 4D 1x1 Conv2d == 2D Linear parity, and runs 0 NS on healthy spatial Conv2d."
     }
   ],

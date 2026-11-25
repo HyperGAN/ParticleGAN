@@ -94,14 +94,14 @@ flowchart LR
 | **EMPF** | `empf-v8` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **RHBI** | `rhbi-v12` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: gaussian1d_stability: clean/live scoring has no declared policy | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | no compatible result | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | no compatible result | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -109,6 +109,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 2.17 kJ (J-to-PASS) | cdf_ks=0.01411, finite_fraction=1, mean=3.014, mean_error_sigma=0.02786 | [1f4ef32e69f94353972ccb75ac711639.json](../technique-receipts/1f4ef32e69f94353972ccb75ac711639.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 5.21 kJ (J-to-PASS) | cdf_ks=0.01472, finite_fraction=1, mean=3.007, mean_error_sigma=0.01369 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.85 kJ (J-to-PASS) | cdf_ks=0.01991, finite_fraction=1, mean=3.014, mean_error_sigma=0.02763 | [f5b98ecfd28949c18e5876106cdcb3b4.json](../technique-receipts/f5b98ecfd28949c18e5876106cdcb3b4.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 2.86 kJ (J-to-PASS) | cdf_ks=0.01486, finite_fraction=1, mean=3, mean_error_sigma=0.0008137 | [c04063912f6149e5910486262cbfa945.json](../technique-receipts/c04063912f6149e5910486262cbfa945.json) |

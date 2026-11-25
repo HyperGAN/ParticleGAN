@@ -97,15 +97,15 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **Axiom** | `axiom-v4` | **PASS** | sustained live accuracy and independent holdout pass | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **Unified** | `unified-v11` | **PASS** | sustained live accuracy and independent holdout pass | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: grid100: clean/live scoring has no declared policy-control evid | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | no compatible result | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | no compatible result | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
@@ -114,6 +114,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 15.37 kJ | abs_cov_trace_bias=0.05995, accuracy_score=0.495, center_max_sigma=0.1355, center_rms_sigma=0.06841 | [2f667e8cadd34d44939b2409f1385b70.json](../technique-receipts/2f667e8cadd34d44939b2409f1385b70.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 46.01 kJ | abs_cov_trace_bias=0.0649, accuracy_score=0.5342, center_max_sigma=0.1834, center_rms_sigma=0.08341 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 15.58 kJ | abs_cov_trace_bias=0.06785, accuracy_score=0.6053, center_max_sigma=0.212, center_rms_sigma=0.08669 | [c2f715fec46b4a61b0dd84e45be2e0ce.json](../technique-receipts/c2f715fec46b4a61b0dd84e45be2e0ce.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 24.98 kJ | abs_cov_trace_bias=0.001079, accuracy_score=0.2688, center_max_sigma=0.3161, center_rms_sigma=0.07026 | [be55e8f7b4c24af5a20a3e5cd5554dd1.json](../technique-receipts/be55e8f7b4c24af5a20a3e5cd5554dd1.json) |
