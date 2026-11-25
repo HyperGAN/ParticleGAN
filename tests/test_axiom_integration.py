@@ -255,29 +255,37 @@ def test_forge_idea_studies_and_clockfree_source_audit():
     from experiments.forge.techniques import recipe_field_active, technique_signature
     from experiments.forge.views import load_tasks
 
-    idea_path = REPO_ROOT / "configs" / "forge" / "ideas" / "axiom-v1.json"
-    idea = json.loads(idea_path.read_text())
-    validate_idea(idea)
-    assert idea["id"] == "axiom-v1"
-    assert "trainer_family" not in idea
-
     tasks = load_tasks(REPO_ROOT)
-    for tid in (
-        "bytegan_hypercube8",
-        "bytegan_bigan_dictionary",
-        "t3_iso_scale_mass_8x",
-        "t3_iso_horizon_saddle_shift",
-        "dcgan_performance_r256",
-        "grid100_res16_tanh",
+    for idea_name, study_glob, min_studies in (
+        ("axiom-v1", "axiom-v1-*.json", 4),
+        ("axiom-v4", "axiom-v4-*.json", 9),
     ):
-        assert task_preflight(tasks[tid], idea, {}, root=REPO_ROOT, tasks=tasks) == [], f"preflight failed for {tid}"
+        idea_path = REPO_ROOT / "configs" / "forge" / "ideas" / f"{idea_name}.json"
+        idea = json.loads(idea_path.read_text())
+        validate_idea(idea)
+        assert idea["id"] == idea_name
+        assert "trainer_family" not in idea
 
-    study_paths = sorted((REPO_ROOT / "configs" / "forge" / "studies").glob("axiom-v1-*.json"))
-    assert len(study_paths) >= 4
-    for sp in study_paths:
-        study = json.loads(sp.read_text())
-        validate_study(study)
-        assert study["candidate"] == "axiom-v1"
+        for tid in (
+            "bytegan_hypercube8",
+            "bytegan_bigan_dictionary",
+            "t3_iso_scale_mass_8x",
+            "t3_iso_horizon_saddle_shift",
+            "dcgan_performance_r256",
+            "grid100_res16_tanh",
+            "fl_law1_aniso_unequal_modes",
+            "fl_law3_highd_orphan_d32",
+            "fl_law42_deep_resbn_and_conv1x1",
+            "fl_law44_highd_sparse_prior_and_shock",
+        ):
+            assert task_preflight(tasks[tid], idea, {}, root=REPO_ROOT, tasks=tasks) == [], f"preflight failed for {idea_name}/{tid}"
+
+        study_paths = sorted((REPO_ROOT / "configs" / "forge" / "studies").glob(study_glob))
+        assert len(study_paths) >= min_studies
+        for sp in study_paths:
+            study = json.loads(sp.read_text())
+            validate_study(study)
+            assert study["candidate"] == idea_name
 
     rec = pg.get_recipe("axiom", total_steps=1000)
     audit = source_audit(rec.to_dict(), {})
@@ -620,3 +628,55 @@ def test_clockfree_horizon_invariance():
         assert torch.equal(v1, v2), f"clock-dependent drift in G.{k}"
     for (k, v1), (_, v2) in zip(t_short.D.state_dict().items(), t_long.D.state_dict().items()):
         assert torch.equal(v1, v2), f"clock-dependent drift in D.{k}"
+
+
+def test_v4_ddgan_detached_capture_ring_and_separate_wordfixture_optimizers():
+    # 1. DDGAN detached real_logits survives via AxiomStepRecord._capture_ring / lookup_capture!
+    recipe = pg.get_recipe("axiom", model="ddgan", num_particles=16, z_dim=2, batch_size=24, total_steps=100)
+    g, d = _VecG(5, 2, 24), _CondD(2, 2, 24)
+    prior = pg.ParticlePrior(num_particles=16, z_dim=2, learnable=True)
+    _init_deterministic(g, d, prior, seed=401)
+    opt_g, opt_d = recipe.make_optimizers(g, d, prior)
+    loss = recipe.make_loss()
+    rng = torch.Generator().manual_seed(402)
+    x0 = torch.randn((24, 2), generator=rng)
+    xt = x0 + 0.4 * torch.randn((24, 2), generator=rng)
+    t = torch.randint(1, 3, (24,), generator=rng)
+    z, rows = prior.sample(24, generator=rng)
+    fake = g(torch.cat((z, xt, t.float().unsqueeze(-1)), dim=-1))
+    d_real_det = d(x0, xt=xt, t=t).detach()  # strips _axiom_* Python attributes!
+    assert not hasattr(d_real_det, "_axiom_input")
+    opt_g.zero_grad()
+    opt_g.set_sampled_rows(prior.z, rows)
+    gl = loss.g_loss(d(fake, xt=xt, t=t), d_real_det)
+    gl.backward()
+    assert torch.isfinite(gl) and opt_d.record.cond_initialized is True
+
+    # 2. WordFixture separate make_generator_optimizer / make_critic_optimizer path recovers prior rows via grad_fn BFS!
+    rec_w = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=32, total_steps=100)
+    gw, ew, dw = _VecG(2, 4, 24), _VecG(4, 2, 24), _VecD(6, 24)
+    pw = pg.ParticlePrior(num_particles=8, z_dim=2, learnable=True)
+    _init_deterministic(gw, ew, dw, pw, seed=403)
+    groups_w = [
+        {"params": list(gw.parameters()), "lr": rec_w.lr},
+        {"params": list(ew.parameters()), "lr": rec_w.lr},
+        {"params": list(pw.parameters()), "lr": rec_w.lr * rec_w.prior_lr_mult},
+    ]
+    opt_gw = rec_w.make_generator_optimizer(groups_w, latent_table=pw.z)
+    opt_dw = rec_w.make_critic_optimizer(dw)
+    loss_w = rec_w.make_loss()
+    assert opt_gw._axiom_record is None
+    atoms = torch.eye(4)
+    ids = torch.arange(32) % 4
+    rx = atoms[ids]
+    z_w, rows_w = pw.sample(32, generator=rng)
+    opt_gw.zero_grad()
+    opt_gw.set_sampled_rows(pw.z, rows_w)
+    jf = torch.cat((gw(z_w), z_w), dim=-1)
+    jr = torch.cat((rx, ew(rx)), dim=-1)
+    gl_w = loss_w.joint_g_loss(dw(jf), dw(jr))
+    constraint_geometry_backward(gl_w, opt_gw, (gl_w,))
+    opt_gw.step()
+    assert torch.isfinite(gl_w)
+    assert opt_dw.record.atomic_ledger is not None
+    assert getattr(pw.z, "_axiom_record", None) is opt_dw.record
