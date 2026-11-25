@@ -131,10 +131,24 @@ def test_executable_inventory_retains_every_historical_question_and_pr231():
         "api-infogan-anisotropic-modes", "api-misgan-mcar-p50-recovery",
         "api-misgan-mcar-p80-anchored", "api-pacgan-unequal-mass", "api-pacgan8-grid100",
     }
+    four_laws_stretch = {
+        "fl_law1_aniso_unequal_modes",
+        "fl_law1_noisy_atomic_codebook",
+        "fl_law2_pure_adversarial_codim1",
+        "fl_law2_groupnorm_and_vit_sprites",
+        "fl_law3_highd_orphan_d32",
+        "fl_law41_trust_rare1pct_tanh",
+        "fl_law42_swap_deep_critic_16l",
+        "fl_law42_deep_resbn_and_conv1x1",
+        "fl_law44_highd_sparse_prior_and_shock",
+    }
     assert gan_stretch <= cases.keys()
+    assert four_laws_stretch <= cases.keys()
     historical = {name: case for name, case in cases.items()
-                  if case["provider"] not in api_contract.MODEL_PROVIDERS and name not in gan_stretch}
+                  if case["provider"] not in api_contract.MODEL_PROVIDERS
+                  and name not in gan_stretch
+                  and name not in four_laws_stretch}
     assert len(historical) == 186
-    assert len(cases) == 205  # Eight model cases, scoped MisGAN and ten GAN stretch cases.
+    assert len(cases) == 214  # Eight model cases, scoped MisGAN, ten GAN stretch cases, and nine Four Laws cases.
     assert all(case["evaluation_observations"] >= case.get("terminal_observations", 5)
                for case in cases.values())

@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "id": "fl_law42_swap_deep_critic_16l",
+  "description": "Learn an 8-mode 2D Gaussian ring (8/8 modes, hq >= 0.85, mass_tv <= 0.12, valley_fraction <= 0.05) when depth asymmetry is inverted onto a deep 16L skip-free LeakyReLU critic.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law42_swap_deep_critic_16l"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law42_swap_deep_critic_16l",
+    "steps": 800,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.08,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law42_swap_deep_critic_16l",
+      "case_id": "fl_law42_swap_deep_critic_16l",
+      "kind": "fl_law42_swap_deep_critic_16l",
+      "law": "law4.2",
+      "defects": [
+        "D-10"
+      ],
+      "title": "Law 4.2: Shallow 3L G + deep 16L skip-free critic on 8-mode 2D ring",
+      "goal": "Learn an 8-mode 2D Gaussian ring (8/8 modes, hq >= 0.85, mass_tv <= 0.12, valley_fraction <= 0.05) when depth asymmetry is inverted onto a deep 16L skip-free LeakyReLU critic.",
+      "target": "8-mode equal-mass 2D Gaussian ring (R=2.5, sigma=0.08) trained with shallow 3L MLP generator and deep 16L skip-free LeakyReLU critic (fourier=0)",
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 4,
+        "batch_size": 256
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.08,
+        "standardize": false
+      },
+      "model": {
+        "generator_family": "simple_mlp",
+        "g_hidden": 64,
+        "g_layers": 3,
+        "out_dim": 2,
+        "discriminator_family": "deep_skipfree_mlp",
+        "d_hidden": 64,
+        "d_layers": 16,
+        "fourier": 0
+      },
+      "steps": 800,
+      "eval_samples": 4096,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law42_swap_deep_critic_16l",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "modes",
+        "==",
+        8
+      ],
+      [
+        "hq",
+        ">=",
+        0.85
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.12
+      ],
+      [
+        "valley_fraction",
+        "<=",
+        0.05
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_4.py": "f6296814007f9dfd42d5528e075133ebbd6c302816ab870f08702e208c49b611",
+      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

@@ -157,6 +157,8 @@ _STRETCH_PROVIDERS = (
     "benchmarks.toy_audit.api_cgan_overlap",
     "benchmarks.toy_audit.api_cramergan",
     "benchmarks.toy_audit.api_cyclegan",
+    "benchmarks.toy_audit.api_four_laws_123",
+    "benchmarks.toy_audit.api_four_laws_4",
 )
 
 
