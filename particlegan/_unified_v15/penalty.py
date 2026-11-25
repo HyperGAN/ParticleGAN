@@ -617,10 +617,13 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
             if (
                 not is_conditioned
                 and not has_spatial
+                and not _has_spatial_dims(x_fake)
                 and x_real.ndim >= 2
+                and x_fake.ndim >= 2
                 and dim_ni > 8
                 and b_r_ni >= 2
-                and x_real.shape == x_fake.shape
+                and int(x_fake.shape[0]) == b_r_ni
+                and int(x_fake[0].numel()) == dim_ni
                 and x_real.dtype == x_fake.dtype
             ):
                 res = self._penalty_highd_batched(

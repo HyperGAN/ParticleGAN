@@ -31,13 +31,16 @@ from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init, unwrap_p
 from particlegan._t3_dynamics.metric import born_infeld_c_hat_detached, sinkhorn_slack
 from particlegan._unified_v15.critic import (
     UnifiedV15HighDBasinBank,
+    UnifiedV15SparseObsBank,
     UnifiedV15StepRecord,
     record_unified_v15_generator_probe,
     validate_v15_highd_bank_packet,
+    validate_v15_sparse_obs_bank_packet,
 )
 from particlegan._unified_v15.loss import (
     UnifiedV15CouplingLoss,
     unified_v15_highd_basin_stein_loss,
+    unified_v15_sparse_obs_wiener_loss,
     v15_zero_eigh_bipartite_deficit_macro_loss,
 )
 from particlegan._unified_v15.penalty import (
@@ -609,4 +612,288 @@ def test_singleton_spatial_conv1x1_parity() -> None:
     gl2.backward()
     gl4.backward()
     assert torch.allclose(lin_g.weight.grad, conv_g.weight.grad.view_as(lin_g.weight), atol=1e-5, rtol=1e-4)
+
+
+def test_observe_scale_spike_immunity_sparsity_and_mixed_shape() -> None:
+    """observe_scale must resist 1e4x transient spikes, unbias sparse masks by 1/sqrt(p), and accept (B,C) vs (B,C,1,1)."""
+    torch.set_num_threads(1)
+    rec = UnifiedV15StepRecord()
+    g = torch.Generator().manual_seed(601)
+    base = torch.randn((64, 2), generator=g) * 1e-5
+
+    # Step 0 initialization is exact (scale-homogeneous at 1e-5)
+    rec.observed_steps = 0
+    rec.observe_scale(base, base)
+    sc0 = rec.ema_data_scale
+    expected_sc0 = float(base.square().sum(dim=-1).mean().sqrt().item())
+    assert abs(sc0 - expected_sc0) / expected_sc0 < 1e-5
+
+    # Two transient 1e4x spike steps must NOT inflate ema_data_scale by 1000x (ratio cap <= 4x per step -> <= +15%/step)
+    rec.observed_steps = 1
+    rec.observe_scale(base * 1e4, base)
+    rec.observed_steps = 2
+    rec.observe_scale(base * 1e4, base)
+    sc_post_spike = rec.ema_data_scale
+    assert sc_post_spike < sc0 * 1.40, f"Transient 1e4x spike exploded ema_data_scale: {sc0:.3e} -> {sc_post_spike:.3e}"
+    # Recovery back toward sc0 on normal steps
+    for s in range(3, 15):
+        rec.observed_steps = s
+        rec.observe_scale(base, base)
+    assert abs(rec.ema_data_scale - sc0) / sc0 < 0.25
+
+    # Sparsity unbiasing on 10%-observed R^512 must recover full dense clean scale (within 15%)
+    rec_sp = UnifiedV15StepRecord()
+    clean = torch.randn((128, 512), generator=g) * 0.56
+    mask = (torch.rand((128, 512), generator=g) < 0.10).float()
+    rec_sp.observed_steps = 0
+    rec_sp.observe_scale(clean * mask, clean * mask)
+    clean_sc = float(clean.square().sum(dim=-1).mean().sqrt().item())
+    assert abs(rec_sp.ema_data_scale - clean_sc) / clean_sc < 0.12
+
+    # Dense R^512 stays exact (no sparsity correction triggered)
+    rec_dn = UnifiedV15StepRecord()
+    rec_dn.observed_steps = 0
+    rec_dn.observe_scale(clean, clean)
+    assert abs(rec_dn.ema_data_scale - clean_sc) / clean_sc < 1e-5
+
+    # Mixed (B, C) real vs (B, C, 1, 1) fake must match (B, C) vs (B, C) bit-identically
+    xr_m = torch.randn((32, 32), generator=g)
+    xf_m = torch.randn((32, 32), generator=g)
+    rec_a = UnifiedV15StepRecord()
+    rec_b = UnifiedV15StepRecord()
+    rec_a.observe_scale(xr_m, xf_m)
+    rec_b.observe_scale(xr_m, xf_m.view(32, 32, 1, 1))
+    assert rec_a.ema_data_scale == rec_b.ema_data_scale
+    assert rec_a.ema_push_res == rec_b.ema_push_res
+
+
+def test_highd_basin_bank_capacity_overflow_guard() -> None:
+    """highd_basin_stein_loss must cleanly disable itself on >16-mode overflow while staying active on <=16 modes."""
+    torch.set_num_threads(1)
+    g = torch.Generator().manual_seed(701)
+
+    # 32 well-separated modes in R^128 overflow max_basins=16 -> must return (0.0, 0.0)
+    centers_32 = F.normalize(torch.randn((32, 128), generator=g), dim=1) * 6.0
+    idx_32 = torch.arange(128) % 32
+    y_32 = centers_32[idx_32] + 0.05 * torch.randn((128, 128), generator=g)
+    x_32 = (y_32 * 0.5).clone().requires_grad_(True)
+    rec_ov = UnifiedV15StepRecord()
+    loss_ov, def_ov = unified_v15_highd_basin_stein_loss(x_32, y_32, record=rec_ov, allow_update=True)
+    assert rec_ov.highd_basin_bank.k == rec_ov.highd_basin_bank.max_basins
+    assert float(loss_ov.item()) == 0.0 and def_ov == 0.0
+    # Read-only probe must also respect overflow guard
+    loss_ov_ro, def_ov_ro = unified_v15_highd_basin_stein_loss(x_32, y_32, record=rec_ov, allow_update=False)
+    assert float(loss_ov_ro.item()) == 0.0 and def_ov_ro == 0.0
+
+    # 4 well-separated modes in R^32 fit cleanly within max_basins=16 -> must stay active!
+    centers_4 = F.normalize(torch.randn((4, 32), generator=g), dim=1) * 5.0
+    idx_4 = torch.arange(64) % 4
+    y_4 = centers_4[idx_4] + 0.15 * torch.randn((64, 32), generator=g)
+    x_4 = (centers_4[idx_4] + 0.03 * torch.randn((64, 32), generator=g)).requires_grad_(True)
+    rec_ok = UnifiedV15StepRecord()
+    for _ in range(4):
+        loss_ok, def_ok = unified_v15_highd_basin_stein_loss(x_4, y_4, record=rec_ok, allow_update=True)
+    assert rec_ok.highd_basin_bank.k == 4
+    assert def_ok > 0.1 and loss_ok.requires_grad
+
+
+def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint() -> None:
+    """Verify sparse-obs Wiener-NLM operator: scale invariance, equilibrium, read-only probe, schema checks & fresh-process resume."""
+    torch.set_num_threads(1)
+    dim, dz, n_modes, bs = 128, 16, 8, 64
+    g = torch.Generator().manual_seed(801)
+    q_orth, _ = torch.linalg.qr(torch.randn((dim, n_modes), generator=g))
+    centers = q_orth.T * 6.0  # (8, 128) orthogonal modes, norm=6.0
+
+    def _run_steps(scale: float) -> tuple[UnifiedV15StepRecord, torch.Tensor, torch.Tensor, torch.Tensor]:
+        rec = UnifiedV15StepRecord()
+        gg = torch.Generator().manual_seed(802)
+        last_loss = torch.tensor(0.0)
+        last_xf = None
+        last_z = None
+        for _ in range(20):
+            idx = torch.randint(0, n_modes, (bs,), generator=gg)
+            y_clean = (centers[idx] + 0.03 * torch.randn((bs, dim), generator=gg)) * scale
+            mr = (torch.rand((bs, dim), generator=gg) < 0.20).float()
+            mf = (torch.rand((bs, dim), generator=gg) < 0.20).float()
+            z_b = torch.randn((bs, dz), generator=gg)
+            xf = (torch.randn((bs, dim), generator=gg) * 0.2 * scale * mf).requires_grad_(True)
+            last_loss = unified_v15_sparse_obs_wiener_loss(
+                xf, y_clean * mr, record=rec, z_batch=z_b, allow_update=True, start_proto_step=10
+            )
+            last_xf = xf
+            last_z = z_b
+        return rec, last_loss, last_xf, last_z
+
+    rec_1, loss_1, xf_1, z_1 = _run_steps(1.0)
+    rec_tiny, loss_tiny, _, _ = _run_steps(1e-4)
+
+    # 1. Exact degree-0 scale invariance across 1e4x scale change
+    assert rec_1.sparse_obs_bank.proto_k >= n_modes
+    assert rec_1.sparse_obs_bank.proto_k == rec_tiny.sparse_obs_bank.proto_k
+    assert torch.allclose(loss_1.detach(), loss_tiny.detach(), atol=1e-4, rtol=1e-3), (
+        f"Sparse Wiener loss not scale-invariant: {loss_1.item():.6f} vs {loss_tiny.item():.6f}"
+    )
+
+    # 2. Prototype recovery accuracy from 20%-masked R^128 observations
+    bank = rec_1.sparse_obs_bank
+    assert isinstance(bank, UnifiedV15SparseObsBank)
+    act = bank.proto_w[: bank.proto_k] >= 2.0
+    protos = bank.proto_y[: bank.proto_k][act]
+    med_err = float(torch.cdist(protos, centers).min(dim=1).values.median().item())
+    assert med_err < 1.5, f"Wiener-NLM prototypes failed to recover centers: med_err={med_err:.3f}"
+
+    # 3. Read-only protected-probe invariance (allow_update=False mutates ZERO bank state)
+    pkt_before = copy.deepcopy(bank.to_packet())
+    loss_ro = unified_v15_sparse_obs_wiener_loss(
+        xf_1.detach().requires_grad_(True),
+        torch.zeros_like(xf_1),
+        record=rec_1,
+        z_batch=z_1,
+        allow_update=False,
+    )
+    assert loss_ro.requires_grad and torch.isfinite(loss_ro)
+    pkt_after = bank.to_packet()
+    assert pkt_before.keys() == pkt_after.keys()
+    for k in pkt_before:
+        va, vb = pkt_before[k], pkt_after[k]
+        if isinstance(va, torch.Tensor):
+            assert torch.equal(va, vb), f"Read-only probe mutated sparse_obs_bank.{k}"
+        else:
+            assert va == vb
+
+    # 4. Exact equilibrium zero-loss & zero-gradient when x_fake matches its assigned Laguerre prototype
+    act_idx = act.nonzero(as_tuple=False).squeeze(-1)
+    zu = F.normalize(z_1, dim=1)
+    asg = (zu @ bank.proto_z[act_idx].T + bank.proto_b[act_idx].unsqueeze(0)).argmax(dim=1)
+    tgt_eq = bank.proto_y[act_idx][asg]
+    mf_eq = (torch.rand((bs, dim), generator=torch.Generator().manual_seed(809)) < 0.20).float()
+    xf_eq = (tgt_eq * mf_eq).detach().requires_grad_(True)
+    loss_eq = unified_v15_sparse_obs_wiener_loss(
+        xf_eq, torch.zeros_like(xf_eq), record=rec_1, z_batch=z_1, allow_update=False
+    )
+    assert float(loss_eq.item()) == 0.0
+    grad_eq = torch.autograd.grad(loss_eq, xf_eq)[0]
+    assert float(grad_eq.abs().max().item()) == 0.0
+
+    # 5. Strict checkpoint schema rejection of missing/tampered sparse_obs_bank packets
+    sd = rec_1.state_dict()
+    bad_miss = copy.deepcopy(sd)
+    del bad_miss["unified_v15"]["sparse_obs_bank"]
+    with pytest.raises(ValueError):
+        UnifiedV15StepRecord().load_state_dict(bad_miss)
+
+    pkt_ok = bank.to_packet()
+    validate_v15_sparse_obs_bank_packet(pkt_ok)
+    bad_nan = copy.deepcopy(pkt_ok)
+    bad_nan["S_y"][0, 0] = float("nan")
+    with pytest.raises(ValueError):
+        validate_v15_sparse_obs_bank_packet(bad_nan)
+    bad_w = copy.deepcopy(pkt_ok)
+    bad_w["proto_w"][0] = -1.0
+    with pytest.raises(ValueError):
+        validate_v15_sparse_obs_bank_packet(bad_w)
+    bad_dtype = copy.deepcopy(pkt_ok)
+    bad_dtype["buf_m"] = bad_dtype["buf_m"].float()
+    with pytest.raises(ValueError):
+        validate_v15_sparse_obs_bank_packet(bad_dtype)
+
+    # 6. Fresh-subprocess bit-exact checkpoint continuation across step-15 prototype activation!
+    class _SparseMaskedG(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.net = nn.Sequential(nn.Linear(dz, 32), nn.SiLU(), nn.Linear(32, dim))
+            self._m_gen = torch.Generator().manual_seed(909)
+
+        def forward(self, z: torch.Tensor) -> torch.Tensor:
+            out = torch.tanh(self.net(z))
+            if self.training:
+                m = (torch.rand(out.shape, generator=self._m_gen) < 0.20).to(out.dtype)
+                return out * m
+            return out
+
+    def _make_sparse_trainer() -> GANTrainer:
+        rc = get_recipe("unified_v15", num_particles=32, z_dim=dz, batch_size=32, prior_kind="mog", standardize=False)
+        gm = _SparseMaskedG()
+        dm = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))
+        pr = MoGParticlePrior(32, dz, sigma=0.05, standardize=False, learnable=True)
+        init.deterministic_orthogonal_(gm, seed=41)
+        init.deterministic_orthogonal_(dm, seed=42)
+        init.deterministic_orthogonal_(pr, seed=43)
+        return GANTrainer(rc, gm, dm, prior=pr, seed=0, max_steps=20)
+
+    tr_full = _make_sparse_trainer()
+    rng_b = torch.Generator().manual_seed(910)
+    batches = []
+    for _ in range(18):
+        idx = torch.randint(0, n_modes, (32,), generator=rng_b)
+        yc = centers[idx] + 0.03 * torch.randn((32, dim), generator=rng_b)
+        mr = (torch.rand((32, dim), generator=rng_b) < 0.20).float()
+        batches.append(yc * mr)
+
+    for b in batches[:12]:
+        tr_full.step(b)
+    assert tr_full.opt_d.record.sparse_obs_bank.step == 12
+    assert tr_full.opt_d.record.sparse_obs_bank.proto_k == 0  # pre-activation!
+
+    with tempfile.TemporaryDirectory() as td:
+        ckpt_p = Path(td) / "ckpt.pt"
+        b_p = Path(td) / "batches.pt"
+        out_p = Path(td) / "out.pt"
+        torch.save({"trainer": tr_full.state_dict(), "m_gen": tr_full.G._m_gen.get_state()}, ckpt_p)
+        torch.save(batches[12:], b_p)
+
+        for b in batches[12:]:
+            tr_full.step(b)
+        assert tr_full.opt_d.record.sparse_obs_bank.proto_k >= 1  # crossed step-15 activation!
+
+        script = (
+            "import torch\n"
+            "from torch import nn\n"
+            "from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init\n"
+            "torch.set_num_threads(1)\n"
+            f"dim, dz = {dim}, {dz}\n"
+            "class _SparseMaskedG(nn.Module):\n"
+            "    def __init__(self):\n"
+            "        super().__init__()\n"
+            "        self.net = nn.Sequential(nn.Linear(dz, 32), nn.SiLU(), nn.Linear(32, dim))\n"
+            "        self._m_gen = torch.Generator().manual_seed(909)\n"
+            "    def forward(self, z):\n"
+            "        out = torch.tanh(self.net(z))\n"
+            "        if self.training:\n"
+            "            m = (torch.rand(out.shape, generator=self._m_gen) < 0.20).to(out.dtype)\n"
+            "            return out * m\n"
+            "        return out\n"
+            "rc = get_recipe('unified_v15', num_particles=32, z_dim=dz, batch_size=32, prior_kind='mog', standardize=False)\n"
+            "gm = _SparseMaskedG()\n"
+            "dm = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))\n"
+            "pr = MoGParticlePrior(32, dz, sigma=0.05, standardize=False, learnable=True)\n"
+            "init.deterministic_orthogonal_(gm, seed=41)\n"
+            "init.deterministic_orthogonal_(dm, seed=42)\n"
+            "init.deterministic_orthogonal_(pr, seed=43)\n"
+            "tr = GANTrainer(rc, gm, dm, prior=pr, seed=0, max_steps=20)\n"
+            f"blob = torch.load({str(ckpt_p)!r}, weights_only=False)\n"
+            "tr.load_state_dict(blob['trainer'])\n"
+            "tr.G._m_gen.set_state(blob['m_gen'])\n"
+            f"for b in torch.load({str(b_p)!r}, weights_only=False):\n"
+            "    tr.step(b)\n"
+            f"torch.save({{'g': [p.detach().clone() for p in tr.G.parameters()], 'd': [p.detach().clone() for p in tr.D.parameters()], 'sp': tr.opt_d.record.sparse_obs_bank.to_packet()}}, {str(out_p)!r})\n"
+        )
+        proc = subprocess.run([sys.executable, "-c", script], check=True, capture_output=True, text=True)
+        assert proc.returncode == 0
+        res = torch.load(out_p, weights_only=False)
+        for pa, pb in zip(tr_full.G.parameters(), res["g"]):
+            assert torch.equal(pa.detach(), pb)
+        for pa, pb in zip(tr_full.D.parameters(), res["d"]):
+            assert torch.equal(pa.detach(), pb)
+        sp_full = tr_full.opt_d.record.sparse_obs_bank.to_packet()
+        sp_res = res["sp"]
+        assert sp_full.keys() == sp_res.keys()
+        for k in sp_full:
+            va, vb = sp_full[k], sp_res[k]
+            if isinstance(va, torch.Tensor):
+                assert torch.equal(va, vb), f"Subprocess sparse_obs_bank mismatch on {k}"
+            else:
+                assert va == vb
+
 
