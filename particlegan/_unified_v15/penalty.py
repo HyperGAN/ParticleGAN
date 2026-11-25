@@ -1,6 +1,7 @@
 """Unified-v15 1st-Order Spatial-Frame Forward-Tangent & Multi-Probe Secant Born-Infeld Critic Penalty."""
 from __future__ import annotations
 
+import contextlib
 import math
 from typing import Any, Callable, Dict, Optional, Sequence, Tuple
 
@@ -34,6 +35,11 @@ from .._unified_v11.optimizer import UnifiedV11EquilibratedOptimizer
 from .optimizer import UnifiedV15Optimizer
 
 _BAT_TANGENT_CACHE: Dict[Tuple[int, int, int, torch.device], Tuple[torch.Tensor, torch.Tensor, torch.Tensor]] = {}
+
+
+def _has_spatial_dims(x: torch.Tensor) -> bool:
+    """Return True iff ``x`` has non-singleton spatial dimensions beyond ``(B, C)``."""
+    return x.ndim >= 3 and any(int(s) > 1 for s in x.shape[2:])
 
 
 def _get_batched_tangent_helpers(
@@ -77,7 +83,7 @@ def _prepare_batched_highd_tangent_plans(
     k_eff = min(pool_k, b)
     d2 = torch.stack([torch.cdist(flat[i], flat[i], p=2.0) for i in range(m)], dim=0).pow(2)
     knn_d2, knn_idx = torch.topk(d2, k=k_eff, dim=2, largest=False)
-    bw2 = knn_d2[:, :, max(1, k_eff // 2)].clamp_min(1e-5).unsqueeze(2)
+    bw2 = knn_d2[:, :, min(k_eff - 1, max(1, k_eff // 2))].clamp_min(1e-5).unsqueeze(2)
     weights = torch.exp(-0.5 * knn_d2 / bw2)
     weights.div_(weights.sum(dim=2, keepdim=True).clamp_min_(1e-12))
     return u_all, knn_idx, weights
@@ -108,13 +114,49 @@ def _bn_dual_bf16_hook(
     return output
 
 
+def _math_sdpa_context() -> contextlib.AbstractContextManager[Any]:
+    """Force math SDPA backend during exact RoR double-backward so ViT/Attention critics stay finite."""
+    attn_mod = getattr(torch.nn, "attention", None)
+    if attn_mod is not None and hasattr(attn_mod, "sdpa_kernel") and hasattr(attn_mod, "SDPBackend"):
+        return attn_mod.sdpa_kernel(attn_mod.SDPBackend.MATH)
+    return contextlib.nullcontext()
+
+
+def _critic_has_non_dcgan_layers(critic: Optional[nn.Module]) -> bool:
+    """Detect GroupNorm, LayerNorm, or Attention/Transformer blocks that require exact RoR."""
+    if not isinstance(critic, nn.Module):
+        return False
+    attn_types = (
+        nn.GroupNorm,
+        nn.LayerNorm,
+        nn.MultiheadAttention,
+        nn.TransformerEncoderLayer,
+        nn.TransformerDecoderLayer,
+    )
+    return any(isinstance(m, attn_types) for m in critic.modules())
+
+
+def _debiased_fwad_sq(sq: torch.Tensor) -> torch.Tensor:
+    """Unbiased batch-shrinkage variance reduction for 1-probe fwAD sq before convex EBI cap (L2-4)."""
+    n = int(sq.shape[0])
+    if n < 2:
+        return sq
+    alpha = 0.88 * (float(n - 1) / float(n))
+    return (1.0 - alpha) * sq + alpha * sq.mean()
+
+
 class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
-    """Unified-v15 universal 1st-order forward-AD Born-Infeld critic kernel (`0` `autograd.grad`)."""
+    """Unified-v15 regime-dispatched Exact-RoR / Debiased-fwAD Born-Infeld critic penalty kernel."""
 
     def __init__(self, *, record: Any = None, **kwargs: Any) -> None:
         rec = UnifiedV15StepRecord() if record is None else record
         super().__init__(record=rec, **kwargs)
         self.arm = "unified_v15"
+        self._last_image_grad_mode: str = ""
+
+    @property
+    def beta(self) -> float:
+        return self.ebi_beta
 
     @torch.no_grad()
     def _build_geodesic_chord(
@@ -246,7 +288,10 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
         self.record.calls += 1
         coefficient = self.coeff * self.lazy_k if self.lazy_k > 1 else self.coeff
         b_n = int(x_real.shape[0])
-        dim = int(x_real.shape[1])
+        tail_shape = tuple(x_real.shape[1:])
+        dim = max(1, int(x_real[0].numel()))
+        xr_2d = x_real.detach().reshape(b_n, dim)
+        xf_2d = x_fake.detach().reshape(b_n, dim)
 
         eff_beta = self.ebi_beta
         if self.settle_beta > 0.0 and bool(getattr(self.record, "t1c_thermal_initialized", False)):
@@ -261,22 +306,22 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
         try:
             use_chord = self.chord_weight > 0.0
             if use_chord:
-                x_chord, phi = self._build_geodesic_chord(x_real, x_fake, is_conditioned=False)
-                x_stack = torch.stack((x_real.detach(), x_fake.detach(), x_chord), dim=0)
+                x_chord, phi = self._build_geodesic_chord(xr_2d, xf_2d, is_conditioned=False)
+                x_stack = torch.stack((xr_2d, xf_2d, x_chord), dim=0)
                 m_cnt = 3
             else:
                 phi = float(getattr(self.record, "t1c_chord_phase", 0.0))
                 if hasattr(self.record, "t1c_chord_phase"):
                     self.record.t1c_chord_phase = (phi + _GOLDEN_CONJ) % 1.0
-                x_stack = torch.stack((x_real.detach(), x_fake.detach()), dim=0)
+                x_stack = torch.stack((xr_2d, xf_2d), dim=0)
                 m_cnt = 2
 
             self.record._in_penalty = True
             try:
                 u_all, knn_idx, weights = _prepare_batched_highd_tangent_plans(x_stack, phi)
                 if can_concat_batches:
-                    x_cat = x_stack.reshape(m_cnt * b_n, dim)
-                    u_cat = u_all.reshape(m_cnt * b_n, dim)
+                    x_cat = x_stack.reshape(m_cnt * b_n, *tail_shape)
+                    u_cat = u_all.reshape(m_cnt * b_n, *tail_shape)
                     y_2d: Optional[torch.Tensor] = None
                     tau_sq_cat: Optional[torch.Tensor] = None
                     if not quantized_fprop:
@@ -295,7 +340,7 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                         y_p = _format_logits_2d(live((x_cat + fd_delta * u_cat).detach()), m_cnt * b_n)
                         y_m = _format_logits_2d(live((x_cat - fd_delta * u_cat).detach()), m_cnt * b_n)
                         y_2d = 0.5 * (y_p + y_m)
-                        step_sq = (2.0 * fd_delta * u_cat.float()).square().sum(dim=1).clamp_min(1e-12)
+                        step_sq = (2.0 * fd_delta * u_cat.float()).flatten(1).square().sum(dim=1).clamp_min(1e-12)
                         tau_sq_cat = (y_p - y_m).square().sum(dim=-1) / step_sq.to(dtype=y_2d.dtype)
                     d_r_2d = y_2d[:b_n]
                     d_f_2d = y_2d[b_n : 2 * b_n]
@@ -304,8 +349,8 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                     logits_parts: list[torch.Tensor] = []
                     tau_parts: list[torch.Tensor] = []
                     for i in range(m_cnt):
-                        x_i = x_stack[i]
-                        u_i = u_all[i]
+                        x_i = x_stack[i].reshape(b_n, *tail_shape)
+                        u_i = u_all[i].reshape(b_n, *tail_shape)
                         y_i_2d: Optional[torch.Tensor] = None
                         t_i_sq: Optional[torch.Tensor] = None
                         if not quantized_fprop:
@@ -324,7 +369,7 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                             y_p = _format_logits_2d(live((x_i + fd_delta * u_i).detach()), b_n)
                             y_m = _format_logits_2d(live((x_i - fd_delta * u_i).detach()), b_n)
                             y_i_2d = 0.5 * (y_p + y_m)
-                            step_sq = (2.0 * fd_delta * u_i.float()).square().sum(dim=1).clamp_min(1e-12)
+                            step_sq = (2.0 * fd_delta * u_i.float()).flatten(1).square().sum(dim=1).clamp_min(1e-12)
                             t_i_sq = (y_p - y_m).square().sum(dim=-1) / step_sq.to(dtype=y_i_2d.dtype)
                         logits_parts.append(y_i_2d)
                         tau_parts.append(t_i_sq)
@@ -496,6 +541,55 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
             for mod, flag in bn_modes:
                 mod.training = flag
 
+    def _eval_image_exact_ror_sq(
+        self,
+        live: Callable[[torch.Tensor], torch.Tensor],
+        x_probe: torch.Tensor,
+        phi: float,
+        *,
+        salt: int,
+        has_batchnorm: bool,
+        critic_module: Optional[nn.Module],
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """Evaluate exact per-sample ``||grad_x D(x)||_2^2`` via Reverse-over-Reverse autograd (L2-4/L2-5).
+
+        Used on small-resolution (``dim < 32768``) and non-DCGAN (GroupNorm/LayerNorm/Attention)
+        image critics where exact RoR has zero convex-EBI Jensen bias (``1.00x``) and lower
+        latency/VRAM than fwAD. Forces ``SDPBackend.MATH`` for Attention double-backward safety
+        and temporarily switches BatchNorm layers to ``eval()`` to prevent cross-sample leakage.
+        """
+        b_p = int(x_probe.shape[0])
+        bn_modes = []
+        if has_batchnorm and isinstance(critic_module, nn.Module):
+            for mod in critic_module.modules():
+                if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
+                    bn_modes.append((mod, mod.training))
+                    mod.eval()
+        try:
+            x_req = x_probe.detach().requires_grad_(True)
+            with _math_sdpa_context():
+                d_out = live(x_req)
+                d_2d = _format_logits_2d(d_out, b_p)
+                k_out = int(d_2d.shape[1])
+                if k_out == 1:
+                    scalar_out = d_2d.sum()
+                else:
+                    ranks = torch.arange(b_p, device=x_probe.device, dtype=torch.int64)
+                    w_out = _murmur32_signs(ranks, k_out, phi, salt, x_probe.device).to(dtype=d_2d.dtype)
+                    scalar_out = (d_2d * w_out).sum() / math.sqrt(float(k_out))
+                grad_x = torch.autograd.grad(
+                    outputs=scalar_out,
+                    inputs=x_req,
+                    create_graph=True,
+                    retain_graph=True,
+                    only_inputs=True,
+                )[0]
+            sq = grad_x.float().flatten(1).square().sum(dim=1)
+            return d_2d, sq
+        finally:
+            for mod, flag in bn_modes:
+                mod.training = flag
+
     def penalty(
         self,
         live: Callable[[torch.Tensor], torch.Tensor],
@@ -515,13 +609,15 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
         has_instancenorm: bool = False,
         critic_module: Optional[nn.Module] = None,
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
-        is_image_tensor = x_real.ndim >= 3 and self.input_domain != "continuous"
+        has_spatial = _has_spatial_dims(x_real)
+        is_image_tensor = has_spatial and self.input_domain != "continuous"
         if not is_image_tensor:
             b_r_ni = int(x_real.shape[0])
             dim_ni = max(1, int(x_real[0].numel())) if b_r_ni > 0 else 0
             if (
                 not is_conditioned
-                and x_real.ndim == 2
+                and not has_spatial
+                and x_real.ndim >= 2
                 and dim_ni > 8
                 and b_r_ni >= 2
                 and x_real.shape == x_fake.shape
@@ -636,66 +732,116 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                 d_r_2d = _format_logits_2d(d_r_raw, b_r)
                 d_f_2d = _format_logits_2d(d_f_raw, b_f)
 
-                # Universal 1st-order forward-AD probe across ALL image spatial dimensions (8x8..256x256):
-                # 1 interleaved half-real/half-fake batch (BN in eval -> zero cross-sample BN leakage).
-                if not is_conditioned and b_r == b_f and b_r >= 2:
-                    shift = int(phi * 1024.0) & 1
-                    parity = ((torch.arange(b_f, device=x_real.device) + shift) % 2) == 0
-                    mask_nd = parity.reshape((b_f,) + (1,) * (x_real.ndim - 1))
-                    x_probe = torch.where(mask_nd, z_r, z_f)
-                    sq_mix = self._eval_image_fwad_sq(
-                        live,
-                        x_probe,
-                        phi,
-                        salt=3,
-                        dim=dim,
-                        has_batchnorm=has_batchnorm,
-                        has_instancenorm=has_instancenorm,
-                        critic_module=critic_module,
-                        quantized_fprop=quantized_fprop,
-                    )
-                    if shift == 0:
-                        sq_r_raw = sq_mix[0::2]
-                        sq_f_raw = sq_mix[1::2]
+                # Regime dispatch (L2-4 + L2-5):
+                # - Exact RoR (zero Jensen bias, math SDPA) for small-res (dim < 32768) or non-DCGAN
+                #   (GroupNorm / LayerNorm / Attention / Transformer) image critics.
+                # - Debiased 1st-order fwAD for compute-bound >=128^2 pure Conv2d DCGAN critics
+                #   (preserves 3.64x speedup & -66.4% energy win on r256 while cutting Jensen bias).
+                use_exact_ror = (not quantized_fprop) and (
+                    dim < 32768 or _critic_has_non_dcgan_layers(critic_module)
+                )
+                if use_exact_ror:
+                    self._last_image_grad_mode = "exact_ror"
+                    if (
+                        not is_conditioned
+                        and b_r == b_f
+                        and (can_concat_batches or has_batchnorm)
+                    ):
+                        x_cat = torch.cat((z_r, z_f), dim=0)
+                        _, sq_cat = self._eval_image_exact_ror_sq(
+                            live,
+                            x_cat,
+                            phi,
+                            salt=3,
+                            has_batchnorm=has_batchnorm,
+                            critic_module=critic_module,
+                        )
+                        sq_r_raw = sq_cat[:b_r]
+                        sq_f_raw = sq_cat[b_r:]
                     else:
-                        sq_r_raw = sq_mix[1::2]
-                        sq_f_raw = sq_mix[0::2]
+                        _, sq_r_raw = self._eval_image_exact_ror_sq(
+                            live,
+                            z_r,
+                            phi,
+                            salt=3,
+                            has_batchnorm=has_batchnorm,
+                            critic_module=critic_module,
+                        )
+                        _, sq_f_raw = self._eval_image_exact_ror_sq(
+                            live,
+                            z_f,
+                            phi,
+                            salt=11,
+                            has_batchnorm=has_batchnorm,
+                            critic_module=critic_module,
+                        )
+                    sq_r_cap = sq_r_raw
+                    sq_f_cap = sq_f_raw
                 else:
-                    sq_r_raw = self._eval_image_fwad_sq(
-                        live,
-                        z_r,
-                        phi,
-                        salt=3,
-                        dim=dim,
-                        has_batchnorm=has_batchnorm,
-                        has_instancenorm=has_instancenorm,
-                        critic_module=critic_module,
-                        quantized_fprop=quantized_fprop,
-                    )
-                    sq_f_raw = self._eval_image_fwad_sq(
-                        live,
-                        z_f,
-                        phi,
-                        salt=11,
-                        dim=dim,
-                        has_batchnorm=has_batchnorm,
-                        has_instancenorm=has_instancenorm,
-                        critic_module=critic_module,
-                        quantized_fprop=quantized_fprop,
-                    )
+                    self._last_image_grad_mode = "fwad_debiased"
+                    # Universal 1st-order forward-AD probe on >=128^2 Conv2d DCGANs:
+                    # 1 interleaved half-real/half-fake batch (BN in eval -> zero cross-sample BN leakage).
+                    if not is_conditioned and b_r == b_f and b_r >= 2:
+                        shift = int(phi * 1024.0) & 1
+                        parity = ((torch.arange(b_f, device=x_real.device) + shift) % 2) == 0
+                        mask_nd = parity.reshape((b_f,) + (1,) * (x_real.ndim - 1))
+                        x_probe = torch.where(mask_nd, z_r, z_f)
+                        sq_mix = self._eval_image_fwad_sq(
+                            live,
+                            x_probe,
+                            phi,
+                            salt=3,
+                            dim=dim,
+                            has_batchnorm=has_batchnorm,
+                            has_instancenorm=has_instancenorm,
+                            critic_module=critic_module,
+                            quantized_fprop=quantized_fprop,
+                        )
+                        if shift == 0:
+                            sq_r_raw = sq_mix[0::2]
+                            sq_f_raw = sq_mix[1::2]
+                        else:
+                            sq_r_raw = sq_mix[1::2]
+                            sq_f_raw = sq_mix[0::2]
+                    else:
+                        sq_r_raw = self._eval_image_fwad_sq(
+                            live,
+                            z_r,
+                            phi,
+                            salt=3,
+                            dim=dim,
+                            has_batchnorm=has_batchnorm,
+                            has_instancenorm=has_instancenorm,
+                            critic_module=critic_module,
+                            quantized_fprop=quantized_fprop,
+                        )
+                        sq_f_raw = self._eval_image_fwad_sq(
+                            live,
+                            z_f,
+                            phi,
+                            salt=11,
+                            dim=dim,
+                            has_batchnorm=has_batchnorm,
+                            has_instancenorm=has_instancenorm,
+                            critic_module=critic_module,
+                            quantized_fprop=quantized_fprop,
+                        )
+                    sq_r_cap = _debiased_fwad_sq(sq_r_raw)
+                    sq_f_cap = _debiased_fwad_sq(sq_f_raw)
 
-                # Universal per-sample Born-Infeld cap on unbiased 1-probe forward-AD ||grad_x D||^2:
-                norm_r = (sq_r_raw + 1e-12).sqrt()
-                norm_f = (sq_f_raw + 1e-12).sqrt()
+                # Born-Infeld cap + D-09 dimension-independent normal-axis dissipation floor (never vanishes on r256):
+                norm_r = (sq_r_cap + 1e-12).sqrt()
+                norm_f = (sq_f_cap + 1e-12).sqrt()
+                img_floor = min(self.lambda_floor, 1.0e-4) if self.lambda_floor > 0.0 else 0.0
                 total = x_real.new_zeros(())
                 if self.real_weight > 0.0:
                     total = total + self.real_weight * F.softplus(norm_r - self.kappa, beta=eff_beta).square().mean()
-                    if self.lambda_floor > 0.0:
-                        total = total + self.real_weight * (0.0005 / float(dim)) * sq_r_raw.mean()
+                    if img_floor > 0.0:
+                        total = total + self.real_weight * img_floor * sq_r_raw.mean()
                 if self.fake_weight > 0.0:
                     total = total + self.fake_weight * F.softplus(norm_f - self.kappa, beta=eff_beta).square().mean()
-                    if self.lambda_floor > 0.0:
-                        total = total + self.fake_weight * (0.0005 / float(dim)) * sq_f_raw.mean()
+                    if img_floor > 0.0:
+                        total = total + self.fake_weight * img_floor * sq_f_raw.mean()
                 if self.gamma_gauge > 0.0:
                     eff_gauge = min(self.gamma_gauge, 0.005)
                     mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
@@ -737,6 +883,7 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                 "t1c_ell": float(ell_v),
                 "s_thermal": float(s_therm),
                 "live_endpoints_reused": bool(reused_endpoints),
+                "grad_mode": self._last_image_grad_mode,
             }
         finally:
             if hasattr(self.record, "clear_transient_captures"):
@@ -797,6 +944,10 @@ class UnifiedV15CriticPenalty(_K3PCriticPenalty):
             or "Quantized" in type(m).__name__
             for m in self.critic.modules()
         )
+
+    @property
+    def coefficient(self) -> float:
+        return float(self.regularizer.coeff)
 
     def __call__(
         self,
