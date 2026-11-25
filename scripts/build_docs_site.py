@@ -1516,6 +1516,7 @@ def stage_docs_site(
     family_meta_by_id = {f["id"]: f for f in leaderboard_payload.get("families", []) if isinstance(f, dict)}
     priority_active_ids = [
         "unified",
+        "axiom",
         "minimal",
         "rhbi",
         "empf",

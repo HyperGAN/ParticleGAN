@@ -2,7 +2,7 @@
   "automation_digest": "975631e907a1ca668dde96bd2837db3d6c54dadeacaf628069d8333c4539ee33",
   "conflicts": [],
   "import_gap_count": 7,
-  "input_digest": "d788f24ed635d45faaf05e72d0a3d736726fdedaf7569b92ed126841b97fbecb",
+  "input_digest": "08fd5a7324308ce2465c310448e4aa6638df507812cb3e6b166c5d11137cc494",
   "input_hashes": {
     "configs/forge/cadence-studies/bispf-lazy-cadence-v1.json": "fc7302ac06b61fa093a39265d440545fdab176852a588c40b750be16adc1e58b",
     "configs/forge/calibration-lane-template.json": "65f10d3061aa487bb32da43bb97cb91934a25d763f6bb634f1d3316fdcc6d9e5",
@@ -580,6 +580,7 @@
     "configs/forge/defaults.json": "e5699dacce7222eb7a819944eabb796330fd59530a23e0506f941a389a8330a5",
     "configs/forge/execution-policy.schema.json": "ba06ed1dbce661fd1e827229c4a357aaf3d4bb3263f70ba8cbea162b0dc44a11",
     "configs/forge/family-documentation/atlas.json": "eb0dca1538de1e93ec4ddcf7e62009656141768cbdd24eba889929ec7bd38e5a",
+    "configs/forge/family-documentation/axiom.json": "d53a8e74099cb4fbfef4fa895c32e0c1e7690b149da6a48200a1af1fc9666e74",
     "configs/forge/family-documentation/bcap-ada-nsgda.json": "072f3cd764414b5bbbdf2d697c8bf2d76efb7e31220c6936ecddcd9f16fa6b83",
     "configs/forge/family-documentation/bcap-develop-integration-combined-v1.json": "f2703f6fae4c540d4ff5213c1ab1e4607bd8596140a387d57832812b4e2bee19",
     "configs/forge/family-documentation/bcap-develop-integration-winner-v1.json": "99194a9831cd93828d87d8d6ff4fbce775a3190be2103f8a9f304cef7736ef78",
@@ -1913,7 +1914,7 @@
     "configs/forge/tasks/vector_unequal_width_published.json": "dbaca203f391ac52d40f08a8c7c1e58d54469aa3e260b26fc9e0c0bef0ba0172",
     "configs/forge/tasks/zero_tanh_rail_escape.json": "0018f232b03992c216186ba91ffa89d7ee03ed09eefe1c5230c737f31367e2c7",
     "configs/forge/tasks/zero_tanh_smoke.json": "2a87587a74026fe4873dcee566d1bc5c5b2e5c335483c6565ec0aef8b5d29b04",
-    "configs/forge/trainer-families.json": "deecebff75f455783349010397bac30e089476a9602014d2dbfb1619f5ebd383",
+    "configs/forge/trainer-families.json": "6518244ca0347a28efc249e2e64f719ca88c7e3ef68a64ca09b69b6ef8cc51e2",
     "configs/forge/view-history/adaptation-v2.json": "21533b224174d5378d60b50a93ea0d4a586bb73bf25b4eeeec7b257f9322f21d",
     "configs/forge/view-history/adaptation-v3.json": "2a8a4862f3ed6c3639f3010706ba87de370f6df4c256197d663b28887a514084",
     "configs/forge/view-history/bispf_throughput_endurance-v1.json": "79ba370744414ba362958e5daed9240ce1a8edf4a367a26df5480c6a060e9a14",
@@ -7001,7 +7002,7 @@
   },
   "operational_lifecycle_digest": "a9af4314073c4377eb6fc81c5cb20417930f4e0c3e36165961fca921a04ab15b",
   "output_hashes": {
-    "reports/forge/EXPERIMENT_MEMORY.md": "1c7d2a450aee5e31b389e947f827cc1b2c3748f4b0343dec9e94276b8e4d7812",
+    "reports/forge/EXPERIMENT_MEMORY.md": "391b20870e3e6e9a2ecf4c67718680067f2e4e3f6dc87c95460506fe477201a6",
     "reports/forge/publication-records.json": "5174449ad10c00a8d22dee09d3ef50c8fb0fc76f196d85197271ee7c0766c9d8"
   },
   "pending_readout": [],
