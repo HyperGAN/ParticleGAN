@@ -1,7 +1,7 @@
 {
   "campaign": {
-    "budget_seconds": 28800,
-    "candidate_budget_seconds": 28800,
+    "budget_seconds": 43200,
+    "candidate_budget_seconds": 43200,
     "id": "axiom-v4-four-laws-adherence-study"
   },
   "candidate": "axiom-v4",
