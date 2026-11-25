@@ -1,0 +1,124 @@
+{
+  "schema_version": 1,
+  "id": "fl_law1_noisy_atomic_codebook",
+  "description": "Capture all 64 non-hypercube hexagonal codebook atoms under sigma/Delta=0.02 Gaussian jitter, 8:1 Zipf mass skew, and M=96 != K=64 particles without barycentric ghosts or mass flattening.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law1_noisy_atomic_codebook"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law1_noisy_atomic_codebook",
+    "steps": 1600,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.015,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law1_noisy_atomic_codebook",
+      "case_id": "fl_law1_noisy_atomic_codebook",
+      "kind": "fl_law1_noisy_atomic_codebook",
+      "law": "law1",
+      "defects": [
+        "E10",
+        "D-06"
+      ],
+      "title": "Law 1: 64-atom noisy Zipf hexagonal codebook with M != K (P=96 particles)",
+      "goal": "Capture all 64 non-hypercube hexagonal codebook atoms under sigma/Delta=0.02 Gaussian jitter, 8:1 Zipf mass skew, and M=96 != K=64 particles without barycentric ghosts or mass flattening.",
+      "target": "2D 8x8 staggered hexagonal 64-atom constellation (spacing Delta=0.65) with Gaussian jitter sigma=0.02*Delta and permuted Zipf(s=0.50) weights (8:1 skew).",
+      "resources": {
+        "num_particles": 96,
+        "z_dim": 4,
+        "batch_size": 128
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.015,
+        "standardize": false
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 128,
+        "layers": 3,
+        "out_dim": 2,
+        "in_dim": 2,
+        "fourier": 3
+      },
+      "steps": 1600,
+      "eval_samples": 4096,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law1_noisy_atomic_codebook",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "atom_recall",
+        ">=",
+        0.96
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.12
+      ],
+      [
+        "rms_nearest_dist",
+        "<=",
+        0.08
+      ],
+      [
+        "outlier_rate",
+        "<=",
+        0.05
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_123.py": "d366ac883c1dc70f0ceb707eed9cb9a6fe2caeb99f349dee45293da670ec83ba",
+      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

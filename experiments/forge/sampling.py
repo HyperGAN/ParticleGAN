@@ -109,6 +109,9 @@ def expected_policy(task: dict) -> dict:
     if adapter == "transfer_behavior":
         host = task.get("execution", {}).get("host", task.get("id"))
         law = BEHAVIOR_POLICIES.get(host)
+    elif adapter == "four_laws":
+        from .four_laws import expected_sampling_law
+        law = expected_sampling_law(task)
     else:
         law = ADAPTER_POLICIES.get(adapter)
     if law is None:

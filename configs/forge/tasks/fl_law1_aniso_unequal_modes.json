@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "fl_law1_aniso_unequal_modes",
+  "description": "Recover all 8 rotated 10:1 anisotropic Gaussian ellipses with 4:1 unequal mode weights under B_f < K streaming chart pressure, preserving per-mode covariance eigenvalue ratios and skewed mode masses.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law1_aniso_unequal_modes"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law1_aniso_unequal_modes",
+    "steps": 1500,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.05,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law1_aniso_unequal_modes",
+      "case_id": "fl_law1_aniso_unequal_modes",
+      "kind": "fl_law1_aniso_unequal_modes",
+      "law": "law1",
+      "defects": [
+        "D-06",
+        "D-07"
+      ],
+      "title": "Law 1: 8-mode 10:1 anisotropic rotated ellipses with 4:1 mass skew (B_f < K)",
+      "goal": "Recover all 8 rotated 10:1 anisotropic Gaussian ellipses with 4:1 unequal mode weights under B_f < K streaming chart pressure, preserving per-mode covariance eigenvalue ratios and skewed mode masses.",
+      "target": "2D 8-mode Gaussian mixture on R=3.0 circle with 10:1 rotated ellipse covariance (sigma_major=0.25, sigma_minor=0.025) and 4:1 unequal weights [0.25, 0.25, 0.125, 0.125, 0.0625, 0.0625, 0.0625, 0.0625].",
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 4,
+        "batch_size": 16
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.05,
+        "standardize": false
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 128,
+        "layers": 3,
+        "out_dim": 2,
+        "in_dim": 2,
+        "fourier": 2
+      },
+      "steps": 1500,
+      "eval_samples": 4096,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law1_aniso_unequal_modes",
+    "eval_samples": 4096,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "mode_recall",
+        ">=",
+        1.0
+      ],
+      [
+        "precision",
+        ">=",
+        0.85
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.14
+      ],
+      [
+        "min_cov_eig_ratio",
+        ">=",
+        0.35
+      ],
+      [
+        "max_cov_eig_ratio",
+        "<=",
+        2.2
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_123.py": "d366ac883c1dc70f0ceb707eed9cb9a6fe2caeb99f349dee45293da670ec83ba",
+      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

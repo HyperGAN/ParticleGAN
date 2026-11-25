@@ -8,8 +8,6 @@ import torch.autograd.forward_ad as fwAD
 
 import particlegan
 from particlegan import (
-    GANTrainer,
-    InputNoise,
     MoGParticlePrior,
     ParticlePrior,
     configure_bf16_autocast,

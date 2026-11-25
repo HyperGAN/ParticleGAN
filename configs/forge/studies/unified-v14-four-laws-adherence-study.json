@@ -1,0 +1,54 @@
+{
+  "campaign": {
+    "budget_seconds": 28800,
+    "candidate_budget_seconds": 28800,
+    "id": "unified-v14-four-laws-adherence-study"
+  },
+  "candidate": "unified-v14",
+  "competing_explanation": "If unified-v14's Bug 1 peak_rms prior-smoothing restoration or Bug 2 floor+flip stiff_gate, bandpass d_couple, and 2D critic Schatten-6 spectral cap fail to resolve high-D masked prior transport or deep ResBN stability—or leave open Four Laws defects D-02..D-10 exposed across rare-mode trust, swapped 16L deep critics, 4D 1x1 Conv2d parity, and high-D R^32 orphan mixtures—unified-v14 will record faithful negative margins and FAILs on the affected four-laws-adherence-v1 probes.",
+  "control": {
+    "candidate_id": "unified-v13",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "min_margin",
+    "op": "<",
+    "phase": "final",
+    "task_id": "fl_law44_highd_sparse_prior_and_shock",
+    "threshold": 0.0
+  },
+  "hypothesis": "Unchanged global unified-v14 establishes the empirical Four Laws Adherence baseline across all 20 curated anchors and 9 new public-API dynamical probes in four-laws-adherence-v1 relative to unchanged unified-v13 control, measuring exact pass/fail verdicts and signed margins for Laws 1-4.",
+  "id": "unified-v14-four-laws-adherence-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "min_margin",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "fl_law44_highd_sparse_prior_and_shock",
+    "threshold": 0.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "four-laws-adherence-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

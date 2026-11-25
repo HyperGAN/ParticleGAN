@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "id": "fl_law41_trust_rare1pct_tanh",
+  "description": "Learn a 2D 5-mode mixture with 4 major modes (99% mass) and 1 separated 1% minority mode near the saturating 3*tanh rail (5/5 modes, rare_mode_recall >= 0.45, precision >= 0.85, mass_tv <= 0.10).",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law41_trust_rare1pct_tanh"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law41_trust_rare1pct_tanh",
+    "steps": 800,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.08,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law41_trust_rare1pct_tanh",
+      "case_id": "fl_law41_trust_rare1pct_tanh",
+      "kind": "fl_law41_trust_rare1pct_tanh",
+      "law": "law4.1",
+      "defects": [
+        "D-04"
+      ],
+      "title": "Law 4.1/4.3: 1% minority mode under saturating tanh generator",
+      "goal": "Learn a 2D 5-mode mixture with 4 major modes (99% mass) and 1 separated 1% minority mode near the saturating 3*tanh rail (5/5 modes, rare_mode_recall >= 0.45, precision >= 0.85, mass_tv <= 0.10).",
+      "target": "2D 5-mode Gaussian mixture: 4 major modes at (+-1.5, +-1.5) (24.75% each) and 1 separated 1% minority mode at (0.0, 2.85), sigma=0.08, under saturating 3.0*tanh generator",
+      "resources": {
+        "num_particles": 512,
+        "z_dim": 4,
+        "batch_size": 256
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.08,
+        "standardize": false
+      },
+      "model": {
+        "generator_family": "saturating_tanh_mlp",
+        "g_hidden": 128,
+        "g_layers": 4,
+        "out_dim": 2,
+        "out_bound": 3.0,
+        "discriminator_family": "simple_mlp",
+        "d_hidden": 128,
+        "d_layers": 3,
+        "fourier": 2
+      },
+      "steps": 800,
+      "eval_samples": 8192,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law41_trust_rare1pct_tanh",
+    "eval_samples": 8192,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "modes",
+        "==",
+        5
+      ],
+      [
+        "rare_mode_recall",
+        ">=",
+        0.45
+      ],
+      [
+        "precision",
+        ">=",
+        0.85
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.1
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_4.py": "f6296814007f9dfd42d5528e075133ebbd6c302816ab870f08702e208c49b611",
+      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

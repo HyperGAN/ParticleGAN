@@ -952,6 +952,18 @@ STRETCH_EVALUATOR_KINDS = frozenset({
     "bytegan_bigan_dictionary",
 })
 
+FOUR_LAWS_EVALUATOR_KINDS = frozenset({
+    "fl_law1_aniso_unequal_modes",
+    "fl_law1_noisy_atomic_codebook",
+    "fl_law2_pure_adversarial_codim1",
+    "fl_law2_groupnorm_and_vit_sprites",
+    "fl_law3_highd_orphan_d32",
+    "fl_law41_trust_rare1pct_tanh",
+    "fl_law42_swap_deep_critic_16l",
+    "fl_law42_deep_resbn_and_conv1x1",
+    "fl_law44_highd_sparse_prior_and_shock",
+})
+
 
 def _stretch_thresholds(task, evidence):
     evaluation = task["evaluation"]
@@ -1079,6 +1091,11 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         bytegan_check = bytegan_grade(task, evidence)
         if bytegan_check is not None:
             return _verdict(*bytegan_check)
+    if task.get("adapter") == "four_laws":
+        from .four_laws import grade as four_laws_grade
+        four_laws_check = four_laws_grade(task, evidence)
+        if four_laws_check is not None:
+            return _verdict(*four_laws_check)
     from .tier1_policy import is_policy_task
     if is_policy_task(task) and task["adapter"] != "clockfree_audit":
         from .tier1_policy import validate_evidence
@@ -1101,7 +1118,8 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
                "paired_adaptation": _adaptation, "clockfree_parity": _clockfree,
                "image_training_performance": performance_grade,
                "zero_tanh_smoke": _zero_tanh_smoke,
-               **{kind: _stretch_thresholds for kind in STRETCH_EVALUATOR_KINDS}}
+               **{kind: _stretch_thresholds for kind in STRETCH_EVALUATOR_KINDS},
+               **{kind: _stretch_thresholds for kind in FOUR_LAWS_EVALUATOR_KINDS}}
     grader = graders.get(task["evaluation"]["kind"])
     if grader is None:
         return _verdict("BLOCKED", f"unsupported evaluator {task['evaluation']['kind']}")

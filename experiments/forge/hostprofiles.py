@@ -18,7 +18,7 @@ PROFILE_ADAPTERS = {"image_profile": {"transfer_image"},
                     "native_profile": {"native100", "native100_continuation"}}
 SUPPORTED_ADAPTERS = frozenset().union(*PROFILE_ADAPTERS.values())
 BOUNDARY_ADAPTERS = SUPPORTED_ADAPTERS | {
-    "transfer_behavior", "ring_endurance", "clockfree_audit", "paired_adaptation", "word_joint", "particle_interpolation", "t3_isolation", "imbalance_nash", "bytegan", "bytegan_bigan",
+    "transfer_behavior", "ring_endurance", "clockfree_audit", "paired_adaptation", "word_joint", "particle_interpolation", "t3_isolation", "imbalance_nash", "bytegan", "bytegan_bigan", "four_laws",
 }
 
 
@@ -124,6 +124,9 @@ def _validate_task(task, candidate, root, *, explicit_initializer=True):
             elif adapter in {"bytegan", "bytegan_bigan"}:
                 from .bytegan import bytegan_context
                 bytegan_context({"candidate": reference_candidate, "protocol": {"seed": 0}}, task, "cpu", root=root)
+            elif adapter == "four_laws":
+                from .four_laws import four_laws_context
+                four_laws_context({"candidate": reference_candidate, "protocol": {"seed": 0}}, task, "cpu", root=root)
             else:
                 from .api import task_formulation_context
                 task_formulation_context(reference_candidate, task, device="cpu", root=root)
