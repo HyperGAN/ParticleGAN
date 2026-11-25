@@ -40,8 +40,58 @@ from .leaderboard_contract import (
 
 DEFAULT_HF_REPO = "HyperGAN/particlegan-forge-evidence"
 DEFAULT_MEDIA_PREFIX = "media/forge/"
+DEFAULT_PAGES_BASE_URL = "https://hypergan.github.io/ParticleGAN"
 DEFAULT_RECEIPT_RELPATH = Path("reports/forge/publications/inventory-latest.json")
 HF_SHA_RE = re.compile(r"^[0-9a-f]{40}$")
+MAX_INLINE_SVG_BYTES = 20480
+
+DEFAULT_LAWS_EPIGRAPH = (
+    "Our goal is not to preserve any fixed set of laws. "
+    "Our goal is to discover the laws of learning as evidence advances."
+)
+DEFAULT_LAWS_EPISTEMIC_NOTE = (
+    "This law taxonomy is a living scientific framework derived from current "
+    "mathematical and empirical audits. Individual laws may be refined, split, "
+    "merged, or replaced as new counterexamples and evidence emerge."
+)
+
+_ACRONYM_MAP = {
+    "ae": "AE",
+    "vae": "VAE",
+    "gan": "GAN",
+    "bigan": "BiGAN",
+    "cgan": "CGAN",
+    "dcgan": "DCGAN",
+    "ddgan": "DDGAN",
+    "pacgan": "PacGAN",
+    "cyclegan": "CycleGAN",
+    "misgan": "MisGAN",
+    "bytegan": "ByteGAN",
+    "mlp": "MLP",
+    "resbn": "ResBN",
+    "rgb": "RGB",
+    "knn": "k-NN",
+    "w1": "W1",
+    "mxfp8": "MXFP8",
+    "nvfp4": "NVFP4",
+    "mog": "MoG",
+    "1d": "1D",
+    "2d": "2D",
+    "3d": "3D",
+    "8d": "8D",
+    "32d": "32D",
+    "cpu": "CPU",
+    "gpu": "GPU",
+    "lr": "LR",
+    "ema": "EMA",
+    "bn": "BN",
+    "fl": "FL",
+    "cov": "Cov",
+    "img": "Image",
+    "interp": "Interpolation",
+    "aniso10": "Anisotropic 10:1",
+    "res16": "ResNet-16",
+}
 
 SCIENTIFIC_CAVEATS = [
     (
@@ -646,11 +696,529 @@ def _compact_metrics_summary(cell: dict) -> dict:
     return summary
 
 
+def _clean_str_list(values) -> list[str]:
+    if not isinstance(values, (list, tuple)):
+        return []
+    out: list[str] = []
+    seen: set[str] = set()
+    for item in values:
+        text = _opt_str(item)
+        if text and text not in seen:
+            seen.add(text)
+            out.append(text)
+    return out
+
+
+def _humanize_task_id(task_id: str) -> str:
+    parts = [p for p in re.split(r"[_\-]+", str(task_id or "").strip()) if p]
+    if not parts:
+        return str(task_id or "")
+    rendered = []
+    for part in parts:
+        low = part.lower()
+        if low in _ACRONYM_MAP:
+            rendered.append(_ACRONYM_MAP[low])
+        elif re.fullmatch(r"v\d+", low):
+            rendered.append(low)
+        else:
+            rendered.append(part.capitalize())
+    return " ".join(rendered)
+
+
+def _load_laws_registry_payload(root: Path, *, pages_base_url: str) -> tuple[dict, list[dict]]:
+    """Load the evolving laws registry from ``configs/forge/laws.json`` with safe fallback."""
+    base = pages_base_url.rstrip("/")
+    doc: dict | None = None
+    laws_path = root / "configs/forge/laws.json"
+    if laws_path.is_file():
+        try:
+            from . import laws_registry as _laws_registry  # type: ignore
+
+            loaded = _laws_registry.load_laws(root)
+            if isinstance(loaded, dict):
+                doc = loaded
+        except Exception:
+            doc = None
+        if doc is None:
+            try:
+                loaded = read_json(laws_path)
+                if isinstance(loaded, dict):
+                    doc = loaded
+            except Exception:
+                doc = None
+
+    if not isinstance(doc, dict) or not isinstance(doc.get("laws"), list):
+        return (
+            {
+                "schema_version": 1,
+                "epistemic_status": "provisional_evolving",
+                "epigraph": DEFAULT_LAWS_EPIGRAPH,
+                "epistemic_note": DEFAULT_LAWS_EPISTEMIC_NOTE,
+                "doc_path": "docs/four-laws.md",
+                "pages_url": f"{base}/laws/",
+                "source": "unavailable",
+            },
+            [],
+        )
+
+    doc_path = _opt_str(doc.get("doc_path")) or "docs/four-laws.md"
+    laws_meta = {
+        "schema_version": _opt_int(doc.get("schema_version")) or 1,
+        "epistemic_status": _opt_str(doc.get("epistemic_status")) or "provisional_evolving",
+        "epigraph": _opt_str(doc.get("epigraph")) or DEFAULT_LAWS_EPIGRAPH,
+        "epistemic_note": _opt_str(doc.get("epistemic_note")) or DEFAULT_LAWS_EPISTEMIC_NOTE,
+        "doc_path": doc_path,
+        "pages_url": f"{base}/laws/",
+        "source": "configs/forge/laws.json",
+    }
+
+    laws_out: list[dict] = []
+    for raw_law in doc.get("laws", []):
+        if not isinstance(raw_law, dict):
+            continue
+        law_id = _opt_str(raw_law.get("id"))
+        if not law_id:
+            continue
+        sub_out: list[dict] = []
+        for raw_sub in raw_law.get("sub_laws") or []:
+            if not isinstance(raw_sub, dict):
+                continue
+            sub_id = _opt_str(raw_sub.get("id"))
+            if not sub_id:
+                continue
+            sub_out.append(
+                {
+                    "id": sub_id,
+                    "short_label": _opt_str(raw_sub.get("short_label")) or sub_id,
+                    "title": _opt_str(raw_sub.get("title")) or sub_id,
+                    "doc_anchor": _opt_str(raw_sub.get("doc_anchor")) or _opt_str(raw_law.get("doc_anchor")) or "",
+                }
+            )
+        laws_out.append(
+            {
+                "id": law_id,
+                "short_label": _opt_str(raw_law.get("short_label")) or law_id,
+                "title": _opt_str(raw_law.get("title")) or law_id,
+                "domain_level": _opt_str(raw_law.get("domain_level")) or _opt_str(raw_law.get("title")) or law_id,
+                "question": _opt_str(raw_law.get("question")) or "",
+                "doc_anchor": _opt_str(raw_law.get("doc_anchor")) or "",
+                "status": _opt_str(raw_law.get("status")) or "active",
+                "sub_laws": sub_out,
+            }
+        )
+    return laws_meta, laws_out
+
+
+def _load_family_doc_enrichment(
+    root: Path,
+    fam_id: str,
+    base_tags: list[str] | None,
+    *,
+    pages_base_url: str,
+) -> dict:
+    """Load optional researcher documentation enrichment for one trainer family."""
+    base = pages_base_url.rstrip("/")
+    doc_path = root / "configs/forge/family-documentation" / f"{fam_id}.json"
+    doc: dict = {}
+    if doc_path.is_file():
+        try:
+            loaded = read_json(doc_path)
+            if isinstance(loaded, dict):
+                doc = loaded
+        except Exception:
+            doc = {}
+
+    law_mechanisms: dict[str, dict] = {}
+    raw_mechs = doc.get("law_mechanisms")
+    if isinstance(raw_mechs, dict):
+        for law_id, entry in raw_mechs.items():
+            key = _opt_str(law_id)
+            if not key or not isinstance(entry, dict):
+                continue
+            law_mechanisms[key] = {
+                "status": _opt_str(entry.get("status")) or "unaddressed",
+                "mechanism": _opt_str(entry.get("mechanism")) or "",
+                "how_it_works": _opt_str(entry.get("how_it_works")) or "",
+                "known_limits": _opt_str(entry.get("known_limits")) or "",
+            }
+
+    equations: list[dict] = []
+    if isinstance(doc.get("equations"), list):
+        for eq in doc["equations"]:
+            if not isinstance(eq, dict):
+                continue
+            latex = _opt_str(eq.get("latex"))
+            if not latex:
+                continue
+            equations.append(
+                {
+                    "label": _opt_str(eq.get("label")) or "Equation",
+                    "latex": latex,
+                    "explanation": _opt_str(eq.get("explanation")) or "",
+                }
+            )
+
+    quickstart: dict | None = None
+    raw_qs = doc.get("quickstart")
+    if isinstance(raw_qs, dict):
+        preset = _opt_str(raw_qs.get("preset"))
+        raw_snippet = raw_qs.get("snippet")
+        if isinstance(raw_snippet, list):
+            snippet_lines = [str(line) for line in raw_snippet]
+        elif isinstance(raw_snippet, str):
+            snippet_lines = raw_snippet.splitlines()
+        else:
+            snippet_lines = []
+        if preset or snippet_lines:
+            quickstart = {
+                "preset": preset or fam_id,
+                "snippet": snippet_lines,
+            }
+
+    tags = _clean_str_list(list(base_tags or []) + list(doc.get("tags") or []))
+    return {
+        "overview": _opt_str(doc.get("overview")),
+        "law_mechanisms": law_mechanisms,
+        "equations": equations,
+        "mermaid_diagram": _opt_str(doc.get("mermaid_diagram")),
+        "quickstart": quickstart,
+        "tags": tags,
+        "pages_url": f"{base}/families/{fam_id}/",
+    }
+
+
+def _load_experiment_docs_catalog(root: Path) -> dict[str, dict]:
+    """Read optional experiment catalog from ``experiments.forge.experiment_docs`` if present."""
+    try:
+        from . import experiment_docs as _experiment_docs  # type: ignore
+
+        builder = getattr(_experiment_docs, "build_experiment_catalog", None)
+        if not callable(builder):
+            return {}
+        catalog = builder(root)
+    except Exception:
+        return {}
+
+    by_id: dict[str, dict] = {}
+    if isinstance(catalog, dict):
+        tasks_obj = catalog.get("tasks") if "tasks" in catalog else catalog
+        if isinstance(tasks_obj, list):
+            for entry in tasks_obj:
+                if isinstance(entry, dict):
+                    tid = _opt_str(entry.get("task_id")) or _opt_str(entry.get("id"))
+                    if tid:
+                        by_id[tid] = entry
+        elif isinstance(tasks_obj, dict):
+            for tid, entry in tasks_obj.items():
+                if isinstance(entry, dict):
+                    key = _opt_str(entry.get("task_id")) or _opt_str(tid)
+                    if key:
+                        by_id[key] = entry
+    return by_id
+
+
+def _synthesize_prior_summary(execution: dict, host_def: dict) -> str | None:
+    prior = execution.get("prior") if isinstance(execution.get("prior"), dict) else {}
+    prior_contract = execution.get("prior_contract") if isinstance(execution.get("prior_contract"), dict) else {}
+    parts: list[str] = []
+    kind = _opt_str(prior.get("kind")) or _opt_str(prior_contract.get("kind"))
+    if kind:
+        sub = []
+        sigma = _opt_float(prior.get("sigma"))
+        if sigma is not None:
+            sub.append(f"sigma={sigma:g}")
+        std = _opt_bool(prior.get("standardize"))
+        if std is not None:
+            sub.append(f"standardize={str(std).lower()}")
+        parts.append(f"{kind} ({', '.join(sub)})" if sub else kind)
+    particles = _opt_int(host_def.get("particles")) or _opt_int(prior.get("num_particles"))
+    if particles is not None:
+        parts.append(f"{particles} particles")
+    z_dim = _opt_int(host_def.get("z_dim")) or _opt_int(prior.get("z_dim"))
+    if z_dim is not None:
+        parts.append(f"z_dim={z_dim}")
+    return " · ".join(parts) if parts else None
+
+
+def _synthesize_model_summary(task_json: dict, execution: dict, host_def: dict) -> str | None:
+    parts: list[str] = []
+    adapter = _opt_str(task_json.get("adapter"))
+    host = _opt_str(execution.get("host"))
+    kind = _opt_str(host_def.get("kind"))
+    if adapter:
+        parts.append(adapter)
+    if host and host != task_json.get("id"):
+        parts.append(f"host={host}")
+    if kind:
+        parts.append(kind)
+    arch_bits = []
+    layers = _opt_int(host_def.get("layers"))
+    hidden = _opt_int(host_def.get("hidden"))
+    if layers is not None and hidden is not None:
+        arch_bits.append(f"{layers}×{hidden} MLP")
+    elif hidden is not None:
+        arch_bits.append(f"hidden={hidden}")
+    fourier = _opt_int(host_def.get("fourier"))
+    if fourier is not None:
+        arch_bits.append(f"fourier={fourier}")
+    batch = _opt_int(host_def.get("batch"))
+    if batch is not None:
+        arch_bits.append(f"batch={batch}")
+    perf = execution.get("performance") if isinstance(execution.get("performance"), dict) else {}
+    if perf:
+        res = _opt_int(perf.get("resolution"))
+        width = _opt_int(perf.get("width"))
+        pbatch = _opt_int(perf.get("batch_size"))
+        if res is not None:
+            arch_bits.append(f"r={res}")
+        if width is not None:
+            arch_bits.append(f"w={width}")
+        if pbatch is not None:
+            arch_bits.append(f"batch={pbatch}")
+    if arch_bits:
+        parts.append(", ".join(arch_bits))
+    return " · ".join(parts) if parts else None
+
+
+def _synthesize_protocol_notes(execution: dict, evaluation: dict) -> str | None:
+    parts: list[str] = []
+    protocol = _opt_str(execution.get("protocol"))
+    if protocol:
+        parts.append(f"Protocol: {protocol}")
+    init_name = _opt_str(execution.get("initializer"))
+    if init_name:
+        parts.append(f"Initializer: {init_name}")
+    sampling = _opt_str(evaluation.get("sampling_law"))
+    if sampling:
+        parts.append(f"Sampling: {sampling}")
+    scoring = _opt_str(evaluation.get("scoring_weights"))
+    if scoring:
+        parts.append(f"Weights: {scoring}")
+    eval_noise = _opt_str(evaluation.get("eval_output_noise"))
+    if eval_noise:
+        parts.append(f"Eval noise: {eval_noise}")
+    stable = _opt_int(evaluation.get("minimum_stable_checks"))
+    if stable is not None:
+        parts.append(f"Sustained checks >= {stable}")
+    return " · ".join(parts) if parts else None
+
+
+def _extract_thresholds(evaluation: dict, cat_entry: dict) -> dict:
+    raw = cat_entry.get("thresholds")
+    if isinstance(raw, dict) and raw:
+        return {
+            str(k): v
+            for k, v in raw.items()
+            if isinstance(v, (int, float, bool, str)) or (isinstance(v, list) and len(v) <= 8)
+        }
+    out: dict = {}
+    raw_thresh = evaluation.get("thresholds")
+    if isinstance(raw_thresh, list):
+        for entry in raw_thresh:
+            if isinstance(entry, (list, tuple)) and len(entry) >= 3:
+                metric_name = _opt_str(entry[0])
+                op = _opt_str(entry[1])
+                val = entry[2]
+                if metric_name and op and isinstance(val, (int, float, bool, str)):
+                    out[metric_name] = f"{op} {val}"
+    for bucket_name, prefix in (
+        ("thresholds", ""),
+        ("coverage_thresholds", "coverage."),
+        ("accuracy_limits", "accuracy."),
+    ):
+        bucket = evaluation.get(bucket_name)
+        if not isinstance(bucket, dict):
+            continue
+        for k, v in sorted(bucket.items()):
+            if isinstance(v, (int, float, bool, str)):
+                out[f"{prefix}{k}"] = v
+            elif isinstance(v, list) and len(v) <= 6 and all(isinstance(x, (int, float, bool, str)) for x in v):
+                out[f"{prefix}{k}"] = v
+    return out
+
+
+def _mermaid_safe(text: str, max_len: int = 44) -> str:
+    cleaned = re.sub(r'["`<>]', "", str(text or "")).replace("\n", " ").strip()
+    if len(cleaned) > max_len:
+        cleaned = cleaned[: max_len - 1].rstrip() + "…"
+    return cleaned or "Component"
+
+
+def _synthesize_task_mermaid(
+    task_id: str,
+    task_json: dict,
+    prior_summary: str | None,
+    model_summary: str | None,
+    steps: int | None,
+    evaluation: dict,
+) -> str | None:
+    if not task_json:
+        return None
+    prior_lbl = _mermaid_safe(prior_summary or "Task Prior P")
+    model_lbl = _mermaid_safe(model_summary or _opt_str(task_json.get("adapter")) or "Generator & Critic")
+    step_lbl = f"{steps} steps" if steps is not None else "Task budget"
+    eval_lbl = _mermaid_safe(
+        " · ".join(
+            bit
+            for bit in (
+                _opt_str(evaluation.get("scoring_weights")),
+                _opt_str(evaluation.get("sampling_law")),
+                _opt_str(evaluation.get("kind")),
+            )
+            if bit
+        )
+        or "Numerical Gate"
+    )
+    target_lbl = _mermaid_safe(_humanize_task_id(task_id))
+    return "\n".join(
+        [
+            "flowchart TD",
+            f'  P["Prior: {prior_lbl}"] --> G["Model: {model_lbl}"]',
+            f'  G -->|"Train ({step_lbl})"| D["Critic & Target: {target_lbl}"]',
+            f'  D --> E["Gate: {eval_lbl}"]',
+        ]
+    )
+
+
+def _load_task_svg(root: Path, task_id: str, cat_entry: dict) -> tuple[str | None, str | None]:
+    rel_candidate = _opt_str(cat_entry.get("svg_relpath")) or f"reports/forge/experiments/assets/{task_id}.svg"
+    svg_path = root / rel_candidate
+    svg_relpath: str | None = None
+    svg_inline: str | None = None
+    if svg_path.is_file():
+        svg_relpath = rel_candidate.replace("\\", "/")
+        try:
+            raw_bytes = svg_path.read_bytes()
+            if len(raw_bytes) <= MAX_INLINE_SVG_BYTES:
+                text = raw_bytes.decode("utf-8", errors="strict").strip()
+                text = re.sub(r"^<\?xml[^>]*\?>\s*", "", text)
+                if text.startswith("<svg"):
+                    svg_inline = text
+        except Exception:
+            svg_inline = None
+    elif isinstance(cat_entry.get("svg_inline"), str):
+        text = re.sub(r"^<\?xml[^>]*\?>\s*", "", cat_entry["svg_inline"].strip())
+        if text.startswith("<svg") and len(text.encode("utf-8")) <= MAX_INLINE_SVG_BYTES:
+            svg_inline = text
+    return svg_relpath, svg_inline
+
+
+def _enrich_task_definitions(
+    root: Path,
+    task_defs: list[dict],
+    *,
+    pages_base_url: str,
+    default_candidate: str = "unified-v11",
+) -> list[dict]:
+    """Attach optional documentation, contract, diagram, and portal metadata to task definitions.
+
+    Reads ``experiments.forge.experiment_docs.build_experiment_catalog`` first when available,
+    then falls back cleanly to ``configs/forge/task-documentation/<task_id>.json`` and inline
+    ``configs/forge/tasks/<task_id>.json`` metadata.
+    """
+    base = pages_base_url.rstrip("/")
+    catalog = _load_experiment_docs_catalog(root)
+    tasks_dir = root / "configs/forge/tasks"
+    task_docs_dir = root / "configs/forge/task-documentation"
+    enriched: list[dict] = []
+
+    for rec in task_defs:
+        item = dict(rec)
+        task_id = str(item["task_id"])
+        cat_entry = catalog.get(task_id) or {}
+        task_file = tasks_dir / f"{task_id}.json"
+        task_json: dict = {}
+        if task_file.is_file():
+            try:
+                loaded = read_json(task_file)
+                if isinstance(loaded, dict):
+                    task_json = loaded
+            except Exception:
+                task_json = {}
+
+        sidecar_doc: dict = {}
+        sidecar_file = task_docs_dir / f"{task_id}.json"
+        if sidecar_file.is_file():
+            try:
+                loaded_doc = read_json(sidecar_file)
+                if isinstance(loaded_doc, dict):
+                    sidecar_doc = loaded_doc
+            except Exception:
+                sidecar_doc = {}
+
+        inline_doc = task_json.get("documentation") if isinstance(task_json.get("documentation"), dict) else {}
+        # Priority: experiment_docs catalog -> sidecar task-documentation -> inline task["documentation"]
+        doc_block = {**inline_doc, **sidecar_doc}
+        execution = task_json.get("execution") if isinstance(task_json.get("execution"), dict) else {}
+        evaluation = task_json.get("evaluation") if isinstance(task_json.get("evaluation"), dict) else {}
+        host_def = execution.get("host_definition") if isinstance(execution.get("host_definition"), dict) else {}
+
+        title = _opt_str(cat_entry.get("title")) or _opt_str(doc_block.get("title")) or _humanize_task_id(task_id)
+        laws = _clean_str_list(cat_entry.get("laws") or doc_block.get("laws"))
+        edge_cases = _clean_str_list(cat_entry.get("edge_cases") or doc_block.get("edge_cases"))
+        intuition = (
+            _opt_str(cat_entry.get("intuition"))
+            or _opt_str(doc_block.get("intuition"))
+            or _opt_str(task_json.get("description"))
+            or _opt_str(item.get("summary"))
+        )
+        failure_mode = _opt_str(cat_entry.get("failure_mode")) or _opt_str(doc_block.get("failure_mode"))
+        protocol_notes = (
+            _opt_str(cat_entry.get("protocol_notes"))
+            or _opt_str(doc_block.get("protocol_notes"))
+            or _synthesize_protocol_notes(execution, evaluation)
+        )
+        prior_summary = _opt_str(cat_entry.get("prior_summary")) or _synthesize_prior_summary(execution, host_def)
+        model_summary = _opt_str(cat_entry.get("model_summary")) or _synthesize_model_summary(
+            task_json, execution, host_def
+        )
+        steps = _opt_int(cat_entry.get("steps")) or _opt_int(execution.get("steps")) or _opt_int(host_def.get("steps"))
+        thresholds = _extract_thresholds(evaluation, cat_entry)
+        mermaid = (
+            _opt_str(cat_entry.get("mermaid"))
+            or _opt_str(doc_block.get("custom_mermaid"))
+            or _opt_str(doc_block.get("mermaid"))
+            or _synthesize_task_mermaid(task_id, task_json, prior_summary, model_summary, steps, evaluation)
+        )
+        svg_relpath, svg_inline = _load_task_svg(root, task_id, cat_entry)
+        reproduction_cmd = (
+            _opt_str(cat_entry.get("reproduction_cmd"))
+            or f"python -m experiments.forge probe {default_candidate} --task {task_id}"
+        )
+
+        item.update(
+            {
+                "title": title,
+                "laws": laws,
+                "edge_cases": edge_cases,
+                "intuition": intuition,
+                "failure_mode": failure_mode,
+                "protocol_notes": protocol_notes,
+                "prior_summary": prior_summary,
+                "model_summary": model_summary,
+                "steps": steps,
+                "thresholds": thresholds,
+                "mermaid": mermaid,
+                "svg_relpath": svg_relpath,
+                "svg_inline": svg_inline,
+                "reproduction_cmd": reproduction_cmd,
+                "pages_url": f"{base}/experiments/{task_id}/",
+                "task_config_path": f"configs/forge/tasks/{task_id}.json" if task_file.is_file() else None,
+                "adapter": _opt_str(task_json.get("adapter")),
+                "sampling_law": _opt_str(evaluation.get("sampling_law")),
+                "scoring_weights": _opt_str(evaluation.get("scoring_weights")),
+            }
+        )
+        enriched.append(item)
+    return enriched
+
+
 def build_inventory_exports(
     root: Path,
     *,
     repo: str = DEFAULT_HF_REPO,
     generated_at: str | None = None,
+    pages_base_url: str = DEFAULT_PAGES_BASE_URL,
 ) -> dict:
     """Build structured leaderboard, receipt, and attempt datasets from committed Forge reports."""
     root = Path(root).resolve()
@@ -664,6 +1232,7 @@ def build_inventory_exports(
     selected = list(_selected_cohorts(progress))
     stale_families = _stale_family_ids(publication)
     media_by_family_task, media_by_attempt_task = _collect_media_index(progress)
+    laws_meta, laws_list = _load_laws_registry_payload(root, pages_base_url=pages_base_url)
 
     fixed = load_fixed_test_list(root)
     full_suite_names = list(fixed["tests"]) if fixed else full_suite_tasks(progress)
@@ -682,15 +1251,23 @@ def build_inventory_exports(
     removed_assignments = [a for a in assignments if "removal" in a]
     removed_distinct = len({a["task"] for a in removed_assignments})
 
-    task_defs = _collect_task_definitions(progress, full_suite_names)
-    task_def_by_id = {d["task_id"]: d for d in task_defs}
-
     cand_to_family: dict[str, str] = {}
+    default_probe_candidate = "unified-v11"
     for family, cohort in selected:
         sel_row = _selected_row(publication, cohort)
         cid = sel_row.get("candidate_id") or family.get("benchmark_configuration", {}).get("candidate_id") or ""
         if cid:
             cand_to_family[str(cid)] = family["id"]
+            if family["id"] == "unified":
+                default_probe_candidate = str(cid)
+
+    task_defs = _enrich_task_definitions(
+        root,
+        _collect_task_definitions(progress, full_suite_names),
+        pages_base_url=pages_base_url,
+        default_candidate=default_probe_candidate,
+    )
+    task_def_by_id = {d["task_id"]: d for d in task_defs}
     idea_cache: dict[str, dict | None] = {}
 
     # Receipts table from reports/forge/technique-receipts/*.json
@@ -968,6 +1545,12 @@ def build_inventory_exports(
         fam_r256_j, fam_ring16_j, fam_grid100_j = _match_family_energy(
             candidate_id, backend, source_digest, source_origin_commit, cohort_attempt_ids
         )
+        fam_doc = _load_family_doc_enrichment(
+            root,
+            fam_id,
+            family.get("tags"),
+            pages_base_url=pages_base_url,
+        )
 
         families_json.append(
             {
@@ -983,6 +1566,13 @@ def build_inventory_exports(
                 "backend": backend,
                 "cohort_anchor": anchor,
                 "family_page": family_page,
+                "pages_url": fam_doc["pages_url"],
+                "overview": fam_doc["overview"],
+                "law_mechanisms": fam_doc["law_mechanisms"],
+                "equations": fam_doc["equations"],
+                "mermaid_diagram": fam_doc["mermaid_diagram"],
+                "quickstart": fam_doc["quickstart"],
+                "tags": fam_doc["tags"],
                 "stale": is_stale,
                 "stale_note": stale_note,
                 "qualified_tier": int(row.get("qualified_tier") or 0),
@@ -1199,9 +1789,12 @@ def build_inventory_exports(
         "git_commit": git_commit,
         "dataset_repo": repo,
         "media_prefix": DEFAULT_MEDIA_PREFIX,
+        "pages_base_url": pages_base_url.rstrip("/"),
         "view": publication.get("view", "discriminator_stability"),
         "view_revision": int(publication.get("view_revision") or 0),
         "declared_view_revisions": declared_view_revisions,
+        "laws_meta": laws_meta,
+        "laws": laws_list,
         "full_suite_list": (
             {
                 "id": fixed["id"],
@@ -1244,6 +1837,23 @@ def build_inventory_exports(
         "git_commit": git_commit,
         "generated_at": timestamp,
     }
+
+
+def export_leaderboard_json(
+    root: Path,
+    *,
+    repo: str = DEFAULT_HF_REPO,
+    generated_at: str | None = None,
+    pages_base_url: str = DEFAULT_PAGES_BASE_URL,
+) -> dict:
+    """Export the enriched, v1-compatible ``leaderboard.json`` payload offline."""
+    exports = build_inventory_exports(
+        root,
+        repo=repo,
+        generated_at=generated_at,
+        pages_base_url=pages_base_url,
+    )
+    return exports["leaderboard_json"]
 
 
 def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[Path, int]]:
