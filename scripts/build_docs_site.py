@@ -888,19 +888,28 @@ def _resolve_target(
     if not path_part:
         return raw_url
 
-    # For files authored natively inside docs/portal/, keep clean staged relative links intact.
+    # For files authored natively inside docs/portal/, keep clean staged relative links intact
+    # (supporting both Markdown source-dir paths and MkDocs directory-URL paths such as
+    # ../laws/ from leaderboard.md -> /leaderboard/index.html).
     if src_repo_rel.startswith("docs/portal/"):
-        base_dir = posixpath.dirname(dst_docs_rel)
-        cand = posixpath.normpath(posixpath.join(base_dir, path_part))
-        if (
-            cand in staged_paths
-            or f"{cand.rstrip('/')}/index.md" in staged_paths
-            or f"{cand.rstrip('/')}.md" in staged_paths
+        base_dirs = [posixpath.dirname(dst_docs_rel)]
+        if dst_docs_rel.endswith(".md") and not (
+            dst_docs_rel == "index.md" or dst_docs_rel.endswith("/index.md")
         ):
-            return raw_url
+            base_dirs.append(dst_docs_rel.removesuffix(".md"))
+        for base_dir in base_dirs:
+            cand = posixpath.normpath(posixpath.join(base_dir, path_part))
+            if (
+                cand in staged_paths
+                or f"{cand.rstrip('/')}/index.md" in staged_paths
+                or f"{cand.rstrip('/')}.md" in staged_paths
+            ):
+                return raw_url
 
     src_dir = posixpath.dirname(src_repo_rel)
-    resolved_repo = posixpath.normpath(posixpath.join(src_dir, path_part)).lstrip("./")
+    resolved_repo = re.sub(
+        r"^(?:\./)+", "", posixpath.normpath(posixpath.join(src_dir, path_part))
+    ).lstrip("/")
 
     if resolved_repo.startswith("../"):
         return raw_url

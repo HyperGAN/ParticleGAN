@@ -238,3 +238,26 @@ def test_mkdocs_strict_build_when_installed(tmp_path):
     assert (site_dir / "laws/four-laws/index.html").is_file()
     assert (site_dir / "families/unified/index.html").is_file()
     assert (site_dir / "assets/data/leaderboard.json").is_file()
+    lb_html = (site_dir / "leaderboard/index.html").read_text(encoding="utf-8")
+    assert 'href="../laws/"' in lb_html
+    assert 'href="../technique-inventory/"' in lb_html
+    assert "blob/develop/docs/laws" not in lb_html
+    assert "blob/develop/docs/technique-inventory" not in lb_html
+
+
+def test_portal_directory_urls_and_dotfiles_preserved(tmp_path):
+    """Portal directory-URL links (../laws/) and repo dotfiles (.github/...) must not break."""
+    build_dir = tmp_path / "docs-stage"
+    site_dir = tmp_path / "docs-site"
+    portal.stage_docs_site(ROOT, build_dir=build_dir, site_dir=site_dir, prefer_stdlib_leaderboard=True)
+    lb_md = (build_dir / "docs/leaderboard.md").read_text(encoding="utf-8")
+    assert 'href="../laws/"' in lb_md
+    assert 'href="../technique-inventory/"' in lb_md
+    assert "blob/develop/docs/laws" not in lb_md
+    assert "blob/develop/docs/technique-inventory" not in lb_md
+    ci_audit = build_dir / "docs/laws/audit/ci-and-consistency-check.md"
+    if ci_audit.is_file():
+        ci_text = ci_audit.read_text(encoding="utf-8")
+        assert "blob/develop/github/workflows/tests.yml" not in ci_text
+        if "workflows/tests.yml" in ci_text:
+            assert "blob/develop/.github/workflows/tests.yml" in ci_text
