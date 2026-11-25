@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "rotated100",
+  "title": "100-Mode Rotated Gaussian Grid",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "non-axis-aligned"
+  ],
+  "intuition": "Rotates the 10x10 Gaussian grid off the coordinate axes to verify that a trainer's 100-mode recovery is geometrically invariant and not exploiting axis-aligned separability.",
+  "failure_mode": "Axis-biased quantizers, separable coordinate heuristics, or poorly conditioned generators leave bridge mass along rotated diagonals and miss precision or covariance gates.",
+  "protocol_notes": "Tier-2 required benchmark (7,000 updates, clean live weights, untouched holdout gate).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

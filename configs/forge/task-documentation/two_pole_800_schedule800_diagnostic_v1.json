@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "two_pole_800_schedule800_diagnostic_v1",
+  "title": "Two-Pole 800-Step Horizon (Schedule=800 Diagnostic)",
+  "laws": [
+    "law2",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "horizon-sensitivity",
+    "schedule-diagnostic",
+    "behavioral-probe"
+  ],
+  "intuition": "Extends `two_pole` 10x to 800 updates with a matching 800-step schedule horizon to diagnose whether scheduled baselines hold pole separation and bounded critic slopes over longer budgets.",
+  "failure_mode": "Scheduled baselines can over-shoot or drift over 800 steps when tuned only for the 80-step horizon.",
+  "protocol_notes": "Diagnostic horizon-control arm paired with `two_pole_800_schedule80_diagnostic_v1`.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

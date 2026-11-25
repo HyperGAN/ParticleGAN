@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-five_word_joint_smoke",
+  "title": "Five-Word Discrete Vocabulary Joint BiGAN Smoke (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder",
+    "exact-capacity-prior",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `five_word_joint_smoke` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Trains a joint BiGAN (generator, encoder, joint critic) with exactly 5 learned 2D particles on a 5-word discrete vocabulary ('apple', 'grape', 'lemon', 'melon', 'berry'). Must generate all 5 words cleanly and reconstruct every word with >= 0.90 token confidence.",
+  "failure_mode": "Two words collide onto one particle or the encoder fails to invert the generator's discrete assignments, breaking exact reconstruction.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `five_word_joint_smoke` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

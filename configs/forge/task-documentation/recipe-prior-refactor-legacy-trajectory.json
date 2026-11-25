@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-trajectory",
+  "title": "Stepwise Trajectory Identity Preservation (Legacy Prior Cohort)",
+  "laws": [
+    "law4_1",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "trajectory-stability",
+    "identity-drift",
+    "behavioral-probe",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `trajectory` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Verifies that multi-step generator updates maintain low identity distortion (identity_mse <= 0.02) consistently across the terminal evaluation window rather than drifting away over 400 updates.",
+  "failure_mode": "Cumulative trajectory drift or poorly damped momentum steadily degrades identity_mse across updates.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `trajectory` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

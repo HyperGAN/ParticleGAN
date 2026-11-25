@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-cover_leftover",
+  "title": "Dual-Cloud Concept Cover & Residual Preservation (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law4_1"
+  ],
+  "edge_cases": [
+    "dual-particle-cloud",
+    "subspace-preservation",
+    "leakage-control",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `cover_leftover` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Uses two explicit learned particle clouds to test whether adversarial updates match both concept poles (pole_rel_err <= 0.20) while preserving orthogonal residual content (content_kept >= 0.75) with low leakage (leak_ratio <= 0.20).",
+  "failure_mode": "Adversarial forces collapse the residual content subspace onto the concept axis or cross-contaminate the positive and negative clouds.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `cover_leftover` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

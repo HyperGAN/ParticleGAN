@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="100-Mode Staggered Hex-Like Gaussian Grid (Affine-Square Init 14k Continuation)">
+<title>100-Mode Staggered Hex-Like Gaussian Grid (Affine-Square Init 14k Continuation) — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">100-Mode Staggered Hex-Like Gaussian Grid (Affine-Sq</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">100-mode 2D Gaussian lattice (staggered) · sigma=0.03-0.05</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="114.5" y1="54.0" x2="114.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="116.0" x2="404.0" y2="116.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="307.5" y1="54.0" x2="307.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="240.0" x2="404.0" y2="240.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<text x="211.0" y="298.0" font-size="9" fill="#64748b" text-anchor="middle">x1 (10x10 modes, 33.3-sigma valleys)</text>
+<text x="24.0" y="67.0" font-size="9" fill="#64748b">x2</text>
+<path d="M114.1,269.8h0M134.5,269.8h0M154.9,269.8h0M175.3,269.8h0M195.7,269.8h0M216.1,269.8h0M236.5,269.8h0M256.9,269.8h0M277.3,269.8h0M297.7,269.8h0M124.3,249.4h0M144.7,249.4h0M165.1,249.4h0M185.5,249.4h0M205.9,249.4h0M226.3,249.4h0M246.7,249.4h0M267.1,249.4h0M287.5,249.4h0M307.9,249.4h0M114.1,229.0h0M134.5,229.0h0M154.9,229.0h0M175.3,229.0h0M195.7,229.0h0M216.1,229.0h0M236.5,229.0h0M256.9,229.0h0M277.3,229.0h0M297.7,229.0h0M124.3,208.6h0M144.7,208.6h0M165.1,208.6h0M185.5,208.6h0M205.9,208.6h0M226.3,208.6h0M246.7,208.6h0M267.1,208.6h0M287.5,208.6h0M307.9,208.6h0M114.1,188.2h0M134.5,188.2h0M154.9,188.2h0M175.3,188.2h0M195.7,188.2h0M216.1,188.2h0M236.5,188.2h0M256.9,188.2h0M277.3,188.2h0M297.7,188.2h0M124.3,167.8h0M144.7,167.8h0M165.1,167.8h0M185.5,167.8h0M205.9,167.8h0M226.3,167.8h0M246.7,167.8h0M267.1,167.8h0M287.5,167.8h0M307.9,167.8h0M114.1,147.4h0M134.5,147.4h0M154.9,147.4h0M175.3,147.4h0M195.7,147.4h0M216.1,147.4h0M236.5,147.4h0M256.9,147.4h0M277.3,147.4h0M297.7,147.4h0M124.3,127.0h0M144.7,127.0h0M165.1,127.0h0M185.5,127.0h0M205.9,127.0h0M226.3,127.0h0M246.7,127.0h0M267.1,127.0h0M287.5,127.0h0M307.9,127.0h0M114.1,106.6h0M134.5,106.6h0M154.9,106.6h0M175.3,106.6h0M195.7,106.6h0M216.1,106.6h0M236.5,106.6h0M256.9,106.6h0M277.3,106.6h0M297.7,106.6h0M124.3,86.2h0M144.7,86.2h0M165.1,86.2h0M185.5,86.2h0M205.9,86.2h0M226.3,86.2h0M246.7,86.2h0M267.1,86.2h0M287.5,86.2h0M307.9,86.2h0" fill="none" stroke="#4f46e5" stroke-width="6.0" stroke-linecap="round" stroke-opacity="0.85"/>
+<rect x="28" y="274" width="236" height="20" rx="4" fill="#eff6ff" stroke="#93c5fd"/>
+<text x="36.0" y="288.0" font-size="9" fill="#1d4ed8" font-weight="600">Continuation: 7k -&gt; 14k endurance</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">staggered100_affine_square_named</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1, law2</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.025)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">14000 steps · B=2048</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=20000 · z_dim=2</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">native100_continuation</text>
+<text x="428.0" y="259.0" font-size="9" fill="#64748b" font-weight="600">Continues</text>
+<text x="428.0" y="271.0" font-size="10" fill="#0f172a">staggered100_affine_square_named</text>
+</svg>

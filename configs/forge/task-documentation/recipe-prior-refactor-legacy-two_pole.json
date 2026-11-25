@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-two_pole",
+  "title": "Two-Pole Directional Concept Separation (Legacy Prior Cohort)",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "short-horizon-80",
+    "critic-slope-control",
+    "behavioral-probe",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `two_pole` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Fast 80-step directional separation probe testing whether adversarial training moves opposing concept poles apart cleanly (mean_abs >= 0.30) while keeping critic spatial gradients bounded (grad_med <= 1.0).",
+  "failure_mode": "Under-regularized critics develop sharp spikes (grad_med > 1.0), whereas overly damped or sluggish trainers fail to separate the two poles within the 80-update window.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `two_pole` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_spiral_published",
+  "title": "Continuous Curved 2D Spiral Manifold (Published Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "continuous-manifold",
+    "curved-support",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_spiral` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Tests continuous curved probability mass (1.5-turn Archimedes spiral with radial noise sigma=0.08) rather than a finite table of point clusters, checking global sliced W1, mean, and covariance fidelity.",
+  "failure_mode": "Overly rigid discrete prototype charts quantize the smooth spiral into beads or cut straight chords across inner turns.",
+  "protocol_notes": "Separate published transfer cohort of `vector_spiral`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

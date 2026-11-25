@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "misgan_block_neural_imputer",
+  "title": "3-Pair MisGAN: Neural Imputer on Ambiguous Single-Sensor Queries",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "masked-observation",
+    "neural-imputer",
+    "no-ppost-fallback"
+  ],
+  "intuition": "Grades the actual trained neural imputer G_i([x*m, m, z_i]) directly on held-out ambiguous single-sensor queries WITHOUT posterior resampling fallback: must preserve observed entries to 1e-6 and calibrate missing-coordinate spread (ratio in [0.7, 1.3]).",
+  "failure_mode": "Neural imputers collapse to deterministic conditional means (missing_std_ratio << 0.7) on ambiguous queries or perturb already-observed coordinates.",
+  "protocol_notes": "Tier-4 held benchmark (7,000 updates); strictly forbids posterior-resampling fallback.",
+  "diagram_kind": "misgan_masked",
+  "custom_mermaid": null
+}

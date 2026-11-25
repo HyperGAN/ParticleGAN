@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_r32",
+  "title": "DCGAN Throughput Benchmark: 32x32 RGB (B=16, W=64)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "dcgan-conv2d",
+    "mock-data-only"
+  ],
+  "intuition": "Measures synchronized per-update wall time (ms/step), throughput (images/s), and peak GPU memory for one complete public trainer step on 32x32 RGB DCGAN mock data (3 warmup + 10 measured updates).",
+  "failure_mode": "Excessive host-device synchronizations or per-step Python/SVD overhead inflate small-image latency well above the convolutional backbone baseline.",
+  "protocol_notes": "Separate research_diagnostic throughput workload on Uniform[-1,1] mock RGB data; confers zero image-quality or qualification credit.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

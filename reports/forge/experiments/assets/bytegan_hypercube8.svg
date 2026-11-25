@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="ByteGAN: 256-Mode 8D Binary Hypercube Codebook">
+<title>ByteGAN: 256-Mode 8D Binary Hypercube Codebook — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">ByteGAN: 256-Mode 8D Binary Hypercube Codebook</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">8D binary hypercube {-1,+1}^8 · 256 exact uint8 byte modes</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<path d="M42.0,82.0h0M86.0,82.0h0M130.0,82.0h0M174.0,82.0h0M53.0,93.0h0M97.0,93.0h0M141.0,93.0h0M185.0,93.0h0M64.0,104.0h0M108.0,104.0h0M152.0,104.0h0M196.0,104.0h0M75.0,115.0h0M119.0,115.0h0M163.0,115.0h0M207.0,115.0h0M42.0,126.0h0M86.0,126.0h0M130.0,126.0h0M174.0,126.0h0M53.0,137.0h0M97.0,137.0h0M141.0,137.0h0M185.0,137.0h0M64.0,148.0h0M108.0,148.0h0M152.0,148.0h0M196.0,148.0h0M75.0,159.0h0M119.0,159.0h0M163.0,159.0h0M207.0,159.0h0M42.0,170.0h0M86.0,170.0h0M130.0,170.0h0M174.0,170.0h0M53.0,181.0h0M97.0,181.0h0M141.0,181.0h0M185.0,181.0h0M64.0,192.0h0M108.0,192.0h0M152.0,192.0h0M196.0,192.0h0M75.0,203.0h0M119.0,203.0h0M163.0,203.0h0M207.0,203.0h0M42.0,214.0h0M86.0,214.0h0M130.0,214.0h0M174.0,214.0h0M53.0,225.0h0M97.0,225.0h0M141.0,225.0h0M185.0,225.0h0M64.0,236.0h0M108.0,236.0h0M152.0,236.0h0M196.0,236.0h0M75.0,247.0h0M119.0,247.0h0M163.0,247.0h0M207.0,247.0h0" fill="none" stroke="#2563eb" stroke-width="6.2" stroke-linecap="round" stroke-opacity="0.85"/>
+<path d="M53.0,82.0h0M97.0,82.0h0M141.0,82.0h0M185.0,82.0h0M42.0,93.0h0M86.0,93.0h0M130.0,93.0h0M174.0,93.0h0M75.0,104.0h0M119.0,104.0h0M163.0,104.0h0M207.0,104.0h0M64.0,115.0h0M108.0,115.0h0M152.0,115.0h0M196.0,115.0h0M53.0,126.0h0M97.0,126.0h0M141.0,126.0h0M185.0,126.0h0M42.0,137.0h0M86.0,137.0h0M130.0,137.0h0M174.0,137.0h0M75.0,148.0h0M119.0,148.0h0M163.0,148.0h0M207.0,148.0h0M64.0,159.0h0M108.0,159.0h0M152.0,159.0h0M196.0,159.0h0M53.0,170.0h0M97.0,170.0h0M141.0,170.0h0M185.0,170.0h0M42.0,181.0h0M86.0,181.0h0M130.0,181.0h0M174.0,181.0h0M75.0,192.0h0M119.0,192.0h0M163.0,192.0h0M207.0,192.0h0M64.0,203.0h0M108.0,203.0h0M152.0,203.0h0M196.0,203.0h0M53.0,214.0h0M97.0,214.0h0M141.0,214.0h0M185.0,214.0h0M42.0,225.0h0M86.0,225.0h0M130.0,225.0h0M174.0,225.0h0M75.0,236.0h0M119.0,236.0h0M163.0,236.0h0M207.0,236.0h0M64.0,247.0h0M108.0,247.0h0M152.0,247.0h0M196.0,247.0h0" fill="none" stroke="#0d9488" stroke-width="6.2" stroke-linecap="round" stroke-opacity="0.85"/>
+<path d="M64.0,82.0h0M108.0,82.0h0M152.0,82.0h0M196.0,82.0h0M75.0,93.0h0M119.0,93.0h0M163.0,93.0h0M207.0,93.0h0M42.0,104.0h0M86.0,104.0h0M130.0,104.0h0M174.0,104.0h0M53.0,115.0h0M97.0,115.0h0M141.0,115.0h0M185.0,115.0h0M64.0,126.0h0M108.0,126.0h0M152.0,126.0h0M196.0,126.0h0M75.0,137.0h0M119.0,137.0h0M163.0,137.0h0M207.0,137.0h0M42.0,148.0h0M86.0,148.0h0M130.0,148.0h0M174.0,148.0h0M53.0,159.0h0M97.0,159.0h0M141.0,159.0h0M185.0,159.0h0M64.0,170.0h0M108.0,170.0h0M152.0,170.0h0M196.0,170.0h0M75.0,181.0h0M119.0,181.0h0M163.0,181.0h0M207.0,181.0h0M42.0,192.0h0M86.0,192.0h0M130.0,192.0h0M174.0,192.0h0M53.0,203.0h0M97.0,203.0h0M141.0,203.0h0M185.0,203.0h0M64.0,214.0h0M108.0,214.0h0M152.0,214.0h0M196.0,214.0h0M75.0,225.0h0M119.0,225.0h0M163.0,225.0h0M207.0,225.0h0M42.0,236.0h0M86.0,236.0h0M130.0,236.0h0M174.0,236.0h0M53.0,247.0h0M97.0,247.0h0M141.0,247.0h0M185.0,247.0h0" fill="none" stroke="#4f46e5" stroke-width="6.2" stroke-linecap="round" stroke-opacity="0.85"/>
+<path d="M75.0,82.0h0M119.0,82.0h0M163.0,82.0h0M207.0,82.0h0M64.0,93.0h0M108.0,93.0h0M152.0,93.0h0M196.0,93.0h0M53.0,104.0h0M97.0,104.0h0M141.0,104.0h0M185.0,104.0h0M42.0,115.0h0M86.0,115.0h0M130.0,115.0h0M174.0,115.0h0M75.0,126.0h0M119.0,126.0h0M163.0,126.0h0M207.0,126.0h0M64.0,137.0h0M108.0,137.0h0M152.0,137.0h0M196.0,137.0h0M53.0,148.0h0M97.0,148.0h0M141.0,148.0h0M185.0,148.0h0M42.0,159.0h0M86.0,159.0h0M130.0,159.0h0M174.0,159.0h0M75.0,170.0h0M119.0,170.0h0M163.0,170.0h0M207.0,170.0h0M64.0,181.0h0M108.0,181.0h0M152.0,181.0h0M196.0,181.0h0M53.0,192.0h0M97.0,192.0h0M141.0,192.0h0M185.0,192.0h0M42.0,203.0h0M86.0,203.0h0M130.0,203.0h0M174.0,203.0h0M75.0,214.0h0M119.0,214.0h0M163.0,214.0h0M207.0,214.0h0M64.0,225.0h0M108.0,225.0h0M152.0,225.0h0M196.0,225.0h0M53.0,236.0h0M97.0,236.0h0M141.0,236.0h0M185.0,236.0h0M42.0,247.0h0M86.0,247.0h0M130.0,247.0h0M174.0,247.0h0" fill="none" stroke="#7c3aed" stroke-width="6.2" stroke-linecap="round" stroke-opacity="0.85"/>
+<text x="124.0" y="268.0" font-size="9" fill="#475569" text-anchor="middle">256 vertices of {-1, +1}^8 (16x16 nibble map)</text>
+<rect x="234.0" y="90.0" width="154" height="66" rx="6" fill="#eff6ff" stroke="#2563eb" stroke-width="1.5"/>
+<text x="311.0" y="110.0" font-size="9" fill="#2563eb" font-weight="700" text-anchor="middle">256-Particle Bijection</text>
+<text x="311.0" y="126.0" font-size="8" fill="#475569" text-anchor="middle">Zero-sigma ParticlePrior</text>
+<text x="311.0" y="140.0" font-size="8" fill="#059669" font-weight="600" text-anchor="middle">256/256 unique bytes, 0 collisions</text>
+<rect x="234.0" y="172.0" width="154" height="66" rx="6" fill="#fffbeb" stroke="#d97706" stroke-width="1.5"/>
+<text x="311.0" y="192.0" font-size="9" fill="#d97706" font-weight="700" text-anchor="middle">Law 1 Atomic Support</text>
+<text x="311.0" y="208.0" font-size="8" fill="#475569" text-anchor="middle">RMS bit error &lt;= 0.12</text>
+<text x="311.0" y="222.0" font-size="8" fill="#475569" text-anchor="middle">Zero interior ghost bytes</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">bytegan_hypercube8</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">particle_cloud (sigma=0.0)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">4000 steps · B=128</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=256 · z_dim=8</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">bytegan</text>
+</svg>

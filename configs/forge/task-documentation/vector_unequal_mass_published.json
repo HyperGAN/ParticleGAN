@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_unequal_mass_published",
+  "title": "Unequal-Mass 4-Corner Mixture (2% Rare Mode) (Published Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "rare-mode",
+    "unequal-mass",
+    "disconnected-support",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_unequal_mass` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Four corner Gaussians with highly skewed weights [55%, 30%, 13%, 2%]. Tests whether the trainer preserves both the exact share (min_mass_ratio >= 0.25, mass_tv <= 0.15) and local covariance of a rare 2% cluster.",
+  "failure_mode": "Rare clusters receive sparse minibatch signal and get either absorbed into major modes, over-equalized (destroying mass_tv), or flattened into degenerate 1D lines.",
+  "protocol_notes": "Separate published transfer cohort of `vector_unequal_mass`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

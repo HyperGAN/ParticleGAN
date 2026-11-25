@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ddgan_bimodal_chain",
+  "title": "4-Step DDGAN Conditional Bimodal Reverse Chain",
+  "laws": [
+    "law3b",
+    "law1"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "multimodal-posterior",
+    "sparse-stratum-tail"
+  ],
+  "intuition": "Harder Law 3B conditional reverse-diffusion test where x_0 is bimodal at (-0.75, 0) and (+0.75, 0), so reverse transitions from ambiguous central x_t values are genuinely multimodal rather than unimodal Gaussian.",
+  "failure_mode": "Conditioned generator averages across the two branches at ambiguous x_t or starves low-density tail query strata, failing t1/t2 conditional CDF and mean checks.",
+  "protocol_notes": "Tier-2 required public-API DDGAN task; exposes conditional fiber bias on multimodal posteriors.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_res16_scaled_tanh",
+  "title": "100-Mode Grid with 16-Block ResNet + Scaled Tanh",
+  "laws": [
+    "law4_1",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "deep-spectral-contraction",
+    "tanh-saturation",
+    "100-modes"
+  ],
+  "intuition": "Variant of `grid100_res16_tanh` with wider scaled-tanh output bounds, isolating deep residual tanh conditioning from tight outer-mode clipping.",
+  "failure_mode": "Residual branch drift still saturates internal/output tanh layers if step scaling is uncalibrated for depth.",
+  "protocol_notes": "Tier-4 stretch benchmark with `max_saturated_fraction` gate.",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

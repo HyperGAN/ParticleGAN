@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_mlp16",
+  "title": "100-Mode Grid with Deep 16-Layer Skip-Free MLP",
+  "laws": [
+    "law4_2",
+    "law1"
+  ],
+  "edge_cases": [
+    "deep-spectral-contraction",
+    "16-layer-mlp",
+    "100-modes"
+  ],
+  "intuition": "Replaces the shallow generator on `grid100` with a deep 16-layer skip-free MLP to isolate Law 4.2 (Pathology-Driven Spectral Conditioning): ordinary optimizers suffer exponential singular-value collapse across 16 layers.",
+  "failure_mode": "Without spectral equilibration (e.g., polar/Newton-Schulz conditioning), gradients vanish or explode through 16 skip-free linear layers and the generator collapses onto a handful of modes.",
+  "protocol_notes": "Tier-4 held benchmark and Four Laws Adherence Law 4 anchor.",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

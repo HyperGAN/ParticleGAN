@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law41_trust_rare1pct_tanh",
+  "title": "Law 4.1/4.3 Probe: 1% Minority Mode Inside Saturating 3*tanh Rail",
+  "laws": [
+    "law4_1",
+    "law4_3"
+  ],
+  "edge_cases": [
+    "rare-mode",
+    "tanh-saturation",
+    "pushforward-trust"
+  ],
+  "intuition": "Places 4 major modes (99% mass) at (+-1.5, +-1.5) and a single 1% minority mode at (0.0, 2.85) inside the saturating tail of a `3.0 * tanh(...)` generator, grading strictly on generated outputs (5/5 modes, rare_mode_recall >= 0.45).",
+  "failure_mode": "Global pushforward trust regions calibrated by the 99% bulk modes suppress the steep pre-activation step needed to reach the 1% rail-adjacent mode, or vanishing tanh gradients starve it completely.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (800 updates, P=512, B=256, 4L saturating tanh generator).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

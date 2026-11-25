@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-residual_student",
+  "title": "Residual Student Protected Identity & Task Objective (Legacy Prior Cohort)",
+  "laws": [
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "multi-objective-conflict",
+    "protected-constraints",
+    "behavioral-probe",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `residual_student` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Evaluates a residual student trained under both an adversarial task loss and an explicit identity-preservation constraint: it must achieve 100% task success with zero wrong-pad errors while keeping identity_mse <= 0.02.",
+  "failure_mode": "Without conflict-resolving multi-objective updates (e.g., non-ascent gradient projection), adversarial gradients violate the identity subspace or trigger wrong-pad regressions.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `residual_student` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

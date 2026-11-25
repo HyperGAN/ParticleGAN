@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "misgan_block_recovery",
+  "title": "2-Pair MisGAN: 100-Mode 8D Block Sensor Dropout",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "masked-observation",
+    "8d-subspace",
+    "100-modes"
+  ],
+  "intuition": "Trains a 2-pair incomplete-data MisGAN (detached mask gradient in L_x) on an 8D sensor-block dropout embedding of 100 modes, requiring complete 100/100 mode recovery, low off-plane error (<= 0.04), accurate mask TV, and posterior imputation accuracy.",
+  "failure_mode": "Without detached mask gradients or strong 100-mode support representation, the data generator hallucinates off-subspace artifacts in unobserved sensor blocks.",
+  "protocol_notes": "Tier-4 held benchmark (7,000 updates).",
+  "diagram_kind": "misgan_masked",
+  "custom_mermaid": null
+}

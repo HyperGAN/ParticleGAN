@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "precision_gaussian_mxfp8",
+  "title": "Scalar Gaussian MXFP8 Quantized Training",
+  "laws": [
+    "law2",
+    "law4_1",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "low-precision-quantization",
+    "mxfp8",
+    "scalar-1d"
+  ],
+  "intuition": "Trains N(2, 0.5^2) using Blackwell-format MXFP8 software-reference quantization across forward pass (FPROP), activation gradients (DGRAD), and weight gradients (WGRAD), testing numerical stability under 8-bit floating point.",
+  "failure_mode": "Micro-secant perturbations that fall below floating-point ULP or unscaled second-order ops round to zero, produce gradient collapse, or cause variance drift under MXFP8.",
+  "protocol_notes": "Tier-1 stretch benchmark using emulated MXFP8 Linear layers; native Blackwell hardware kernel parity remains separate.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "residual_student",
+  "title": "Residual Student Protected Identity & Task Objective",
+  "laws": [
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "multi-objective-conflict",
+    "protected-constraints",
+    "behavioral-probe"
+  ],
+  "intuition": "Evaluates a residual student trained under both an adversarial task loss and an explicit identity-preservation constraint: it must achieve 100% task success with zero wrong-pad errors while keeping identity_mse <= 0.02.",
+  "failure_mode": "Without conflict-resolving multi-objective updates (e.g., non-ascent gradient projection), adversarial gradients violate the identity subspace or trigger wrong-pad regressions.",
+  "protocol_notes": "400-step Tier-2 required host exercising multi-objective protected-constraint geometry.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}
