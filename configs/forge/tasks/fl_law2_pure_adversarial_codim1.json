@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "id": "fl_law2_pure_adversarial_codim1",
+  "description": "Converge smoothly onto a zero-thickness 1D circle embedded in R^2 (R=1.5, sigma_perp=0) without late-window normal-direction limit cycles or arc collapse.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law2_pure_adversarial_codim1"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law2_pure_adversarial_codim1",
+    "steps": 1200,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.05,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law2_pure_adversarial_codim1",
+      "case_id": "fl_law2_pure_adversarial_codim1",
+      "kind": "fl_law2_pure_adversarial_codim1",
+      "law": "law2",
+      "defects": [
+        "D-09",
+        "L2-6"
+      ],
+      "title": "Law 2 intersect 4.5: Codimension-1 thin circle normal-orbit stability",
+      "goal": "Converge smoothly onto a zero-thickness 1D circle embedded in R^2 (R=1.5, sigma_perp=0) without late-window normal-direction limit cycles or arc collapse.",
+      "target": "2D codimension-1 thin circle x = 1.5*(cos theta, sin theta), theta ~ Unif[0, 2pi), normal thickness sigma_perp = 0.",
+      "resources": {
+        "num_particles": 128,
+        "z_dim": 2,
+        "batch_size": 128
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.05,
+        "standardize": false
+      },
+      "model": {
+        "family": "smooth_silu_mlp",
+        "hidden": 64,
+        "layers": 2,
+        "out_dim": 2,
+        "in_dim": 2
+      },
+      "steps": 1200,
+      "eval_samples": 2048,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law2_pure_adversarial_codim1",
+    "eval_samples": 2048,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "normal_orbit_r_tail",
+        "<=",
+        0.06
+      ],
+      [
+        "normal_orbit_ptp",
+        "<=",
+        0.12
+      ],
+      [
+        "manifold_mae",
+        "<=",
+        0.06
+      ],
+      [
+        "manifold_coverage",
+        ">=",
+        0.9375
+      ],
+      [
+        "angular_tv",
+        "<=",
+        0.15
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_123.py": "d366ac883c1dc70f0ceb707eed9cb9a6fe2caeb99f349dee45293da670ec83ba",
+      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}
