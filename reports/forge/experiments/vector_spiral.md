@@ -88,6 +88,7 @@ flowchart LR
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
 | **RHBI** | `rhbi-v12` | **PASS** | recomputed complete live curve and terminal suffix | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed complete live curve and terminal suffix | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Axiom** | `axiom-v4` | **FAIL** | recomputed complete live curve and terminal suffix | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: vector_spiral: clean/live scoring has no declared policy-contro | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 
 ## Reproduce This Experiment

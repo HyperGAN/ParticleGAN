@@ -90,6 +90,7 @@ flowchart LR
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
+| **Axiom** | `axiom-v4` | `BLOCKED` | alice_spiral_bigan: no registered public Forge adapter for this stretch host; declare and | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `BLOCKED` | alice_spiral_bigan: no registered public Forge adapter for this stretch host; declare and | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |

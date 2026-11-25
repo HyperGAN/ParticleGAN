@@ -468,10 +468,10 @@ def board(root: Path, view_id: str, *, include_bindings=False) -> dict:
             original = attempt["request"]
             cid = original.get("candidate", {}).get("id")
             backend = original.get("execution_backend")
-            if cid and backend in {"cpu", "cuda"}:
-                model = original.get("compute_profiles", {}).get("cuda", {}).get("model") if backend == "cuda" else None
-                attempt_configs[cid].add((backend, model))
             if not diagnostic_evidence_scope(original):
+                if cid and backend in {"cpu", "cuda"}:
+                    model = original.get("compute_profiles", {}).get("cuda", {}).get("model") if backend == "cuda" else None
+                    attempt_configs[cid].add((backend, model))
                 c_key = (
                     original.get("candidate_revision"),
                     original.get("source", {}).get("digest"),

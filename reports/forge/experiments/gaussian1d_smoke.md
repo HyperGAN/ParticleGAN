@@ -83,6 +83,7 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **Atlas** | `atlas-particle-normal-v4` | **PASS** | any scheduled full pass with independent same-state confirmation | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Axiom** | `axiom-v4` | **PASS** | any scheduled full pass with independent same-state confirmation | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | any scheduled full pass with independent same-state confirmation | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | any scheduled full pass with independent same-state confirmation | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | any scheduled full pass with independent same-state confirmation | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |

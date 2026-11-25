@@ -92,6 +92,7 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
+| **Axiom** | `axiom-v4` | **PASS** | every joint generation/inverse check throughout the fixed continuation window | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | every joint generation/inverse check throughout the fixed continuation window | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | every joint generation/inverse check throughout the fixed continuation window | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | every joint generation/inverse check throughout the fixed continuation window | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |

@@ -11,44 +11,44 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 
 | Problem | What it tests | Has any configuration passed? |
 | --- | --- | --- |
-| [Keep a bell curve stable, then learn a moved target](problems.md#gaussian1d_stability) | After learning a simple bell curve, keep its centre, width and distribution correct while training continues; then track a shifted target and stay there. | Selected recorded PASS: EMPF, RHBI, Unified. |
-| [Preserve rare clusters](problems.md#vector_unequal_mass) | Learn several blobs with different probabilities, including a rare 2% blob, without losing its population or collapsing its shape. | Selected recorded PASS: RHBI, Unified. |
-| [Learn narrow and broad clusters together](problems.md#vector_unequal_width) | Give four equally likely blobs different widths while preserving both their shapes and their equal probabilities. | Selected recorded PASS: Unified. |
-| [Learn stretched and tilted clusters](problems.md#vector_anisotropic) | Match the populations and shapes of three equally likely blobs stretched horizontally, vertically and diagonally. | Selected recorded PASS: RHBI, Unified. |
-| [Settle on an overlapping distribution](problems.md#vector_overlap) | Match the observable centre, spread and distribution of two overlapping blobs; no hidden component labels are required. | Selected recorded PASS: RHBI, Unified. |
-| [Generate all four bar images](problems.md#img_bars4) | Generate each of four simple bar pictures, rather than producing only a few convincing examples. | Selected recorded PASS: Unified. |
+| [Keep a bell curve stable, then learn a moved target](problems.md#gaussian1d_stability) | After learning a simple bell curve, keep its centre, width and distribution correct while training continues; then track a shifted target and stay there. | Selected recorded PASS: Axiom, EMPF, RHBI, Unified. |
+| [Preserve rare clusters](problems.md#vector_unequal_mass) | Learn several blobs with different probabilities, including a rare 2% blob, without losing its population or collapsing its shape. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [Learn narrow and broad clusters together](problems.md#vector_unequal_width) | Give four equally likely blobs different widths while preserving both their shapes and their equal probabilities. | Selected recorded PASS: Axiom, Unified. |
+| [Learn stretched and tilted clusters](problems.md#vector_anisotropic) | Match the populations and shapes of three equally likely blobs stretched horizontally, vertically and diagonally. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [Settle on an overlapping distribution](problems.md#vector_overlap) | Match the observable centre, spread and distribution of two overlapping blobs; no hidden component labels are required. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [Generate all four bar images](problems.md#img_bars4) | Generate each of four simple bar pictures, rather than producing only a few convincing examples. | Selected recorded PASS: Axiom, Unified. |
 | [Generate all four image corners](problems.md#img_blobs4) | Generate a small bright square at each of four corners, with enough clean examples of every corner. | Selected recorded PASS: RHBI, Unified. |
-| [Generate both brightness levels accurately](problems.md#img_intensity2) | Generate a square at either of two target brightnesses, with both levels represented and little brightness error. | Selected recorded PASS: RHBI, Unified. |
-| [A grid of 100 clusters](problems.md#grid100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | Selected recorded PASS: Unified. |
-| [A rotated grid of 100 clusters](problems.md#rotated100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | Selected recorded PASS: Unified. |
-| [A staggered grid of 100 clusters](problems.md#staggered100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
+| [Generate both brightness levels accurately](problems.md#img_intensity2) | Generate a square at either of two target brightnesses, with both levels represented and little brightness error. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [A grid of 100 clusters](problems.md#grid100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | Selected recorded PASS: Axiom, Unified. |
+| [A rotated grid of 100 clusters](problems.md#rotated100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | Selected recorded PASS: Axiom, Unified. |
+| [A staggered grid of 100 clusters](problems.md#staggered100) | Learn all 100 small blobs with correct locations, populations and widths, scoring the current model's clean outputs without adding evaluation noise. | Selected recorded PASS: Axiom. |
 | [Keep the 100-cluster grid correct for longer](problems.md#grid100_14k) | Continue a model that passed the 7,000-update 100-cluster test to 14,000 updates without losing quality. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Keep the 100-cluster rotated grid correct for longer](problems.md#rotated100_14k) | Continue a model that passed the 7,000-update 100-cluster test to 14,000 updates without losing quality. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Keep the 100-cluster staggered grid correct for longer](problems.md#staggered100_14k) | Continue a model that passed the 7,000-update 100-cluster test to 14,000 updates without losing quality. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Recover quickly after the target moves](problems.md#target_shift_recovery) | Learn and hold a ring of blobs, then track a sudden sideways shift within 400 updates and stay correct; a frozen model must fail to show the change is real. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
-| [Keep every learned mode alive](problems.md#mode_hold) | Keep generating every target mode during continued training, rather than losing modes after initially finding them. | Selected recorded PASS: BISPF, EMPF, RHBI, Unified. |
+| [Keep every learned mode alive](problems.md#mode_hold) | Keep generating every target mode during continued training, rather than losing modes after initially finding them. | Selected recorded PASS: Axiom, BISPF, EMPF, RHBI, Unified. |
 | [Keep a learned ring stable for a long run](problems.md#ring_extension) | Acquire all eight ring blobs, hold them for 1,200 consecutive checks, then survive 300 additional checks on the same uninterrupted run. | Selected recorded PASS: BISPF. |
-| [Learn sixteen distinct clusters from scratch](problems.md#ring16_acquisition) | Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI, Unified. |
-| [Learning must not depend on external clock labels](problems.md#clockfree_audit_measurement_v1) | Check that the same learning state and inputs produce the same update despite changed step labels, declared horizon, evaluation cadence or a save/restart. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI, Unified, Atlas. |
+| [Learn sixteen distinct clusters from scratch](problems.md#ring16_acquisition) | Learn all sixteen blobs on a ring with balanced populations and real within-blob spread, rather than sixteen collapsed points. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI, Unified. |
+| [Learning must not depend on external clock labels](problems.md#clockfree_audit_measurement_v1) | Check that the same learning state and inputs produce the same update despite changed step labels, declared horizon, evaluation cadence or a save/restart. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI, Unified, Atlas. |
 | [Escape a tanh saturation rail after the target shifts to zero](problems.md#zero_tanh_rail_escape) | First converge near the tanh saturation rail at (+0.90, -0.90) where tanh' is attenuated (~0.19), then escape the rail within 400 updates when the target shifts to (0.0, 0.0) at update 1,001 and stay settled there. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Survive a 16-layer unnormalized MLP generator on the 100-cluster grid](problems.md#grid100_mlp16) | Learn all 100 equal-weight Gaussian modes on `grid100` using a 16-hidden-layer 128-wide LeakyReLU(0.2) MLP generator without residual skips or normalization layers. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Learn the 100-cluster grid with a 16-layer residual MLP and bounded tanh head](problems.md#grid100_res16_tanh) | Recover all 100 Gaussian modes on `grid100` using a 16-layer identity-skip residual MLP generator and a bounded `S=5.25` scaled `tanh` output head without saturating the `\|x\| > 0.99 * 5.25` rails. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Recover an 8D lifted 100-mode manifold from incomplete block-masked data (MisGAN + ppost)](problems.md#misgan_block_recovery) | Train a 2-pair incomplete-data MisGAN (`(G_x, D_x)` + `(G_m, D_m)` with detached mask gradient in `L_x`) observing only masked 8D data `(x * m, m)` under structured block dropout, then impute held-out rows via native Bayesian particle-posterior (`ppost`) resampling from `G_x`. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Learn a multimodal neural imputer on ambiguous single-sensor block masks without ppost](problems.md#misgan_block_neural_imputer) | Train a 3-pair MisGAN (`(G_x, D_x)` + `(G_m, D_m)` + `(G_i, D_i)`) and grade the neural imputer `G_i([x * m, m, z_i])` directly on the 16 held-out ambiguous single-sensor queries without `ppost` particle resampling. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Learn a continuous 16-mode ring joint Encoder-Generator-Critic BiGAN](problems.md#ring16_bigan_continuous) | Train a continuous 2D multimodal joint BiGAN `(G(z), E(x), D(x, z))` on the 16-Gaussian ring (`MoGParticlePrior(sigma=0.1)`), simultaneously satisfying forward 16-mode generation and paired round-trip reconstruction `x -> G(E(x))`. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
-| [Separate direct sample particles across two symmetric poles](problems.md#two_pole) | Drive a generator-free direct particle cloud from zero to two symmetric poles (`mean_abs >= 0.30`) and hold them steady with bounded critic gradient (`grad_med <= 1.0`) across the final five checks. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, R1/R2. |
-| [Acquire five discrete words and paired BiGAN reconstructions in 20,001 joint updates](problems.md#five_word_joint_smoke) | Train a joint generator-encoder-prior-critic BiGAN over five five-letter words for 20,001 updates, acquiring all five clean word modes (`modes == 5`, `quality_fraction >= 0.95`, `mass_tv <= 0.10`) and exact high-confidence paired reconstructions (`reconstruction_exact == 1`, `minimum_reconstruction_token_probability >= 0.90`) at an independently confirmed scheduled state. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, R1/R2. |
-| [Reconstruct four noisy corner Gaussians and generate balanced independent modes (AE-GAN)](problems.md#model_ae_gan_multimodal) | Train a public-API multimodal AE-GAN to reconstruct four equally weighted corner Gaussians (`reconstruction_mse <= 0.025`, `reconstruction_mode_agreement >= 0.98`) while independently generating all four modes with balanced masses (`mass_tv <= 0.15`) and well-conditioned within-mode covariances (`0.10 <= eigen_ratio <= 4.0`) across the final five checks. | Selected recorded PASS: EMPF, RHBI, Unified. |
+| [Separate direct sample particles across two symmetric poles](problems.md#two_pole) | Drive a generator-free direct particle cloud from zero to two symmetric poles (`mean_abs >= 0.30`) and hold them steady with bounded critic gradient (`grad_med <= 1.0`) across the final five checks. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, R1/R2. |
+| [Acquire five discrete words and paired BiGAN reconstructions in 20,001 joint updates](problems.md#five_word_joint_smoke) | Train a joint generator-encoder-prior-critic BiGAN over five five-letter words for 20,001 updates, acquiring all five clean word modes (`modes == 5`, `quality_fraction >= 0.95`, `mass_tv <= 0.10`) and exact high-confidence paired reconstructions (`reconstruction_exact == 1`, `minimum_reconstruction_token_probability >= 0.90`) at an independently confirmed scheduled state. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, R1/R2. |
+| [Reconstruct four noisy corner Gaussians and generate balanced independent modes (AE-GAN)](problems.md#model_ae_gan_multimodal) | Train a public-API multimodal AE-GAN to reconstruct four equally weighted corner Gaussians (`reconstruction_mse <= 0.025`, `reconstruction_mode_agreement >= 0.98`) while independently generating all four modes with balanced masses (`mass_tv <= 0.15`) and well-conditioned within-mode covariances (`0.10 <= eigen_ratio <= 4.0`) across the final five checks. | Selected recorded PASS: Axiom, EMPF, RHBI, Unified. |
 | [Learn four-step conditional reverse transitions and ancestral generation (DDGAN)](problems.md#model_ddgan_gaussian_chain) | Train a four-step public-API DDGAN on a 2D Gaussian forward diffusion chain so every reverse conditional transition (`t1..t4`, `q0`/`q1`) and the final ancestral marginal satisfy `projection_cdf <= 0.12`, `normalized_mean <= 0.25`, and covariance eigenvalues in `[0.65, 1.40]` across the last five checks. | Selected recorded PASS: Unified. |
 | [Learn four-step conditional reverse transitions on a bimodal diffusion chain (DDGAN)](problems.md#model_ddgan_bimodal_chain) | Train a four-step public-API DDGAN on a 2D two-mode Gaussian mixture forward diffusion chain (unlocked only after passing model_ddgan_gaussian_chain) so every reverse conditional transition (`t1..t4`, `q0`/`q1`) and the final ancestral two-mode marginal satisfy mode coverage, mass TV, projection CDF, mean, and covariance eigenvalue bounds across the last five checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 | [Pair particle AE reconstruction with four-step DDGAN reverse transitions and ancestral generation](problems.md#model_ae_ddgan_gaussian_chain) | Reconstruct held-out inputs through a learned particle autoencoder and four public DDGAN reverse steps (`paired_nmse <= 0.10`, `paired_worst_axis_nrmse <= 0.25`, `paired_shuffled_gain >= 3.0`) while simultaneously passing all conditional reverse-transition and independent ancestral-chain bounds. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
-| [Learn a Gaussian with 8-bit MXFP8 training arithmetic](problems.md#precision_gaussian_mxfp8) | Train from the shared deterministic initialization using Blackwell-format MXFP8 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: RHBI, Unified. |
-| [Learn a Gaussian with 4-bit NVFP4 training arithmetic](problems.md#precision_gaussian_nvfp4) | Train from the shared deterministic initialization using Blackwell-format NVFP4 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: RHBI, Unified. |
-| [Hold all five discrete words and exact BiGAN inversion across 4,000 continuation updates](problems.md#five_word_joint_hold) | Restore the candidate's own confirmed five-word acquisition checkpoint in a fresh process and pass every generation and exact encoder-inversion bound across all 24 scheduled checks over 4,000 additional updates. | Selected recorded PASS: BCAP, BISPF, EMPF, RHBI. |
+| [Learn a Gaussian with 8-bit MXFP8 training arithmetic](problems.md#precision_gaussian_mxfp8) | Train from the shared deterministic initialization using Blackwell-format MXFP8 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [Learn a Gaussian with 4-bit NVFP4 training arithmetic](problems.md#precision_gaussian_nvfp4) | Train from the shared deterministic initialization using Blackwell-format NVFP4 software-reference forward and backward GEMM operands; match the full scalar Gaussian law at five final checks. | Selected recorded PASS: Axiom, RHBI, Unified. |
+| [Hold all five discrete words and exact BiGAN inversion across 4,000 continuation updates](problems.md#five_word_joint_hold) | Restore the candidate's own confirmed five-word acquisition checkpoint in a fresh process and pass every generation and exact encoder-inversion bound across all 24 scheduled checks over 4,000 additional updates. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI. |
 | [Interpolate unseen latent k-NN chords along a 270-degree circular arc from 12 zero-sigma particles without MoG](problems.md#interp_sparse_arc) | Train 12 discrete zero-sigma `ParticlePrior` locations and an MLP generator on a 2D circular arc (`R = 2.0`, `sigma = 0.03`) under protocol seed 0 so both endpoints (`endpoint_hq >= 0.85`) and unseen latent k-NN chords (`interp_hq >= 0.80`, `interp_arc_bins >= 22`, `midpoint_novelty >= 0.20`) stay on the curved manifold across five final live checks. | Selected recorded PASS: RHBI, Unified. |
 | [Translate a sharp 2x2 patch smoothly across unseen latent chords in 8x8 images from 16 zero-sigma particles](problems.md#interp_img_patch_shift) | Train 16 zero-sigma `ParticlePrior` codes (`z_dim = 4`) and a `residual_upsample` convolutional generator on continuous single-patch 8x8 images so unseen latent k-NN chords render single sharp shifted patches (`interp_rmse <= 0.10`, `interp_peak >= 0.78`, `midpoint_novelty >= 0.18`, `quadrant_coverage == 4`) rather than 0.5-peak pixel double exposures. | Selected recorded PASS: RHBI. |
 | [Interpolate unseen 2D latent triangle barycenters across a curved 3D saddle sheet from 24 zero-sigma particles](problems.md#interp_saddle_barycentric) | Train 24 zero-sigma `ParticlePrior` locations (`z_dim = 2`) and a 3D-output MLP generator on $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y)$ so unseen 2D latent k-NN triangle barycenters stay on the curved surface (`barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78`, `xy_bins_covered >= 12`, `barycenter_novelty >= 0.18`) across five final live checks. | Selected recorded PASS: RHBI. |
-| [Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook](problems.md#bytegan_hypercube8) | Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
+| [Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook](problems.md#bytegan_hypercube8) | Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks. | Selected recorded PASS: Axiom. |
 | [Learn a bidirectional 1-to-1 256-byte dictionary over {-1, +1}^8 with a joint BiGAN](problems.md#bytegan_bigan_dictionary) | Train a joint BiGAN `(G(z), E(x), D(x, z))` with 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) over `public_components` so forward generation forms an exact 256-byte bijection (`valid_unique_bytes == 256`, `rms_bit_error <= 0.12`), round-trip reconstruction `G(E(x))` recovers every canonical byte (`recon_valid_exact_bytes == 256`, `recon_rms_bit_error <= 0.12`), and the encoder indexes all 256 distinct particles 1-to-1 (`encoder_particle_bijection_bytes == 256`) across five final clean live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
 
 <a name="gaussian1d_stability"></a>
@@ -71,6 +71,7 @@ Test: `gaussian1d_stability` · Required for qualification and included in full-
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-gaussian1d_stability) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-gaussian1d_stability) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-gaussian1d_stability) |
@@ -108,6 +109,7 @@ Test: `vector_unequal_mass` · Held for qualification; included in full-suite re
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_mass) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_mass) |
@@ -144,6 +146,7 @@ Test: `vector_unequal_width` · Held for qualification; included in full-suite r
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_width) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_width) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-vector_unequal_width) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-vector_unequal_width) |
@@ -180,6 +183,7 @@ Test: `vector_anisotropic` · Held for qualification; included in full-suite res
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-vector_anisotropic) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-vector_anisotropic) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-vector_anisotropic) |
@@ -216,6 +220,7 @@ Test: `vector_overlap` · Held for qualification; included in full-suite results
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-vector_overlap) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-vector_overlap) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-vector_overlap) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-vector_overlap) |
@@ -252,6 +257,7 @@ Test: `img_bars4` · Held for qualification; included in full-suite results.
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-img_bars4) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-img_bars4) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-img_bars4) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-img_bars4) |
@@ -288,6 +294,7 @@ Test: `img_blobs4` · Held for qualification; included in full-suite results.
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [FAIL](families/axiom.md#cohort-cuda-daa283c8a640-experiment-img_blobs4) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-img_blobs4) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-img_blobs4) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-img_blobs4) |
@@ -324,6 +331,7 @@ Test: `img_intensity2` · Held for qualification; included in full-suite results
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-img_intensity2) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-img_intensity2) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-img_intensity2) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-img_intensity2) |
@@ -360,6 +368,7 @@ Test: `grid100` · Required for qualification and included in full-suite results
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-grid100) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-grid100) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-grid100) |
@@ -396,6 +405,7 @@ Test: `rotated100` · Required for qualification and included in full-suite resu
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-rotated100) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-rotated100) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-rotated100) |
@@ -432,6 +442,7 @@ Test: `staggered100` · Required for qualification and included in full-suite re
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-staggered100) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-staggered100) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-staggered100) |
@@ -468,6 +479,7 @@ Test: `grid100_14k` · Required for qualification and included in full-suite res
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-grid100_14k) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-grid100_14k) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-grid100_14k) |
@@ -504,6 +516,7 @@ Test: `rotated100_14k` · Required for qualification and included in full-suite 
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-rotated100_14k) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-rotated100_14k) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-rotated100_14k) |
@@ -540,6 +553,7 @@ Test: `staggered100_14k` · Required for qualification and included in full-suit
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-staggered100_14k) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-staggered100_14k) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-staggered100_14k) |
@@ -576,6 +590,7 @@ Test: `target_shift_recovery` · Required for qualification and included in full
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-target_shift_recovery) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-target_shift_recovery) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-target_shift_recovery) |
@@ -612,6 +627,7 @@ Test: `mode_hold` · Required for qualification and included in full-suite resul
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-mode_hold) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [FAIL](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-mode_hold) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-mode_hold) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-mode_hold) |
@@ -650,6 +666,7 @@ Test: `ring_extension` · Required for qualification and included in full-suite 
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-ring_extension) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-ring_extension) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-ring_extension) |
@@ -686,6 +703,7 @@ Test: `ring16_acquisition` · Required for qualification and included in full-su
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-ring16_acquisition) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-ring16_acquisition) |
@@ -722,6 +740,7 @@ Test: `clockfree_audit_measurement_v1` · Required for qualification and include
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-clockfree_audit_measurement_v1) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-clockfree_audit_measurement_v1) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-clockfree_audit_measurement_v1) |
@@ -760,6 +779,7 @@ Test: `zero_tanh_rail_escape` · Held for qualification; included in full-suite 
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-zero_tanh_rail_escape) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-zero_tanh_rail_escape) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-zero_tanh_rail_escape) |
@@ -798,6 +818,7 @@ Test: `grid100_mlp16` · Held for qualification; included in full-suite results.
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-grid100_mlp16) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-grid100_mlp16) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-grid100_mlp16) |
@@ -837,6 +858,7 @@ Test: `grid100_res16_tanh` · Held for qualification; included in full-suite res
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-grid100_res16_tanh) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-grid100_res16_tanh) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-grid100_res16_tanh) |
@@ -876,6 +898,7 @@ Test: `misgan_block_recovery` · Held for qualification; included in full-suite 
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [BLOCKED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_recovery) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-misgan_block_recovery) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-misgan_block_recovery) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-misgan_block_recovery) |
@@ -915,6 +938,7 @@ Test: `misgan_block_neural_imputer` · Held for qualification; included in full-
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [BLOCKED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_neural_imputer) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-misgan_block_neural_imputer) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-misgan_block_neural_imputer) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-misgan_block_neural_imputer) |
@@ -954,6 +978,7 @@ Test: `ring16_bigan_continuous` · Held for qualification; included in full-suit
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [BLOCKED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-ring16_bigan_continuous) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-ring16_bigan_continuous) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-ring16_bigan_continuous) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [BLOCKED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-ring16_bigan_continuous) |
@@ -990,6 +1015,7 @@ Test: `two_pole` · Required for qualification and included in full-suite result
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-two_pole) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-two_pole) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-two_pole) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-two_pole) |
@@ -1028,6 +1054,7 @@ Test: `five_word_joint_smoke` · Required for qualification and included in full
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_smoke) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_smoke) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-five_word_joint_smoke) |
@@ -1064,6 +1091,7 @@ Test: `model_ae_gan_multimodal` · Required for qualification and included in fu
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_gan_multimodal) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_gan_multimodal) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_ae_gan_multimodal) |
@@ -1100,6 +1128,7 @@ Test: `model_ddgan_gaussian_chain` · Required for qualification and included in
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [FAIL](families/axiom.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_ddgan_gaussian_chain) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_ddgan_gaussian_chain) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_ddgan_gaussian_chain) |
@@ -1137,6 +1166,7 @@ Test: `model_ddgan_bimodal_chain` · Required for qualification and included in 
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_ddgan_bimodal_chain) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_ddgan_bimodal_chain) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_ddgan_bimodal_chain) |
@@ -1173,6 +1203,7 @@ Test: `model_ae_ddgan_gaussian_chain` · Required for qualification and included
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [INCOMPLETE](families/axiom.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_ddgan_gaussian_chain) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_ae_ddgan_gaussian_chain) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_ae_ddgan_gaussian_chain) |
@@ -1208,6 +1239,7 @@ Test: `precision_gaussian_mxfp8` · Held for qualification; included in full-sui
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_mxfp8) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_mxfp8) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_mxfp8) |
@@ -1243,6 +1275,7 @@ Test: `precision_gaussian_nvfp4` · Held for qualification; included in full-sui
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_nvfp4) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_nvfp4) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-precision_gaussian_nvfp4) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-precision_gaussian_nvfp4) |
@@ -1281,6 +1314,7 @@ Test: `five_word_joint_hold` · Required for qualification and included in full-
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-five_word_joint_hold) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-five_word_joint_hold) |
@@ -1317,6 +1351,7 @@ Test: `interp_sparse_arc` · Held for qualification; included in full-suite resu
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [FAIL](families/axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-interp_sparse_arc) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-interp_sparse_arc) |
@@ -1352,6 +1387,7 @@ Test: `interp_img_patch_shift` · Held for qualification; included in full-suite
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [FAIL](families/axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-interp_img_patch_shift) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-interp_img_patch_shift) |
@@ -1388,6 +1424,7 @@ Test: `interp_saddle_barycentric` · Held for qualification; included in full-su
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [FAIL](families/axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-interp_saddle_barycentric) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [FAIL](families/empf.md#cohort-cuda-23a94f16ca88-experiment-interp_saddle_barycentric) |
@@ -1423,6 +1460,7 @@ Test: `bytegan_hypercube8` · Held for qualification; included in full-suite res
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [PASS](families/axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_hypercube8) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-bytegan_hypercube8) |
@@ -1458,6 +1496,7 @@ Test: `bytegan_bigan_dictionary` · Held for qualification; included in full-sui
 
 | Selected recipe | Result |
 | --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) |
 | [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
 | [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-bytegan_bigan_dictionary) |
 | [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-bytegan_bigan_dictionary) |

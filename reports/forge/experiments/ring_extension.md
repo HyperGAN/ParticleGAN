@@ -88,6 +88,7 @@ flowchart LR
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed every extension observation without selecting another window | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | no compatible result | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **Atlas** | `atlas-particle-normal-v4` | **FAIL** | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | no compatible result | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: ring_extension: clean/live scoring has no declared policy-contr | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |

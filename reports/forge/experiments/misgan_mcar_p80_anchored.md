@@ -95,6 +95,7 @@ flowchart LR
 | **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **Axiom** | `axiom-v4` | `BLOCKED` | misgan_mcar_p80_anchored: no registered public Forge adapter for this stretch host; declar | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **EMPF** | `empf-v8` | `BLOCKED` | misgan_mcar_p80_anchored: no registered public Forge adapter for this stretch host; declar | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | misgan_mcar_p80_anchored: no registered public Forge adapter for this stretch host; declar | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `BLOCKED` | misgan_mcar_p80_anchored: no registered public Forge adapter for this stretch host; declar | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |

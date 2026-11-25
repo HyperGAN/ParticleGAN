@@ -85,6 +85,7 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **Atlas** | `atlas-particle-normal-v4` | **PASS** | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed complete live curve and terminal suffix | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | no compatible result | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | no compatible result | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |

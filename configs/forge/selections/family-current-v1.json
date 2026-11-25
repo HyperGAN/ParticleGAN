@@ -867,8 +867,8 @@
   },
   "policy_fingerprint": "fcb7ac52465e555fc6d88a1d53d92c485ae340216eafaa6fe49b03981c8f175a",
   "previous_selection": {
-    "path": "configs/forge/selections/history/family-current-824da6ddadd82bd516459b512c064bbf4fb450af91c45fb32a4d038f8295847f.json",
-    "sha256": "824da6ddadd82bd516459b512c064bbf4fb450af91c45fb32a4d038f8295847f"
+    "path": "configs/forge/selections/history/family-current-e2923bb2fcc4a07937cdf4146f0caf66e1b4ffb62c6b530984d2ed1e39faba8e.json",
+    "sha256": "e2923bb2fcc4a07937cdf4146f0caf66e1b4ffb62c6b530984d2ed1e39faba8e"
   },
   "schema_version": 1,
   "scope": "whole_candidate_family_current",
@@ -891,6 +891,25 @@
       "source_digest": "2e8a97a0aa845c961de00d403fdcd1673b34b33626e4546c3138882a40e7bacf",
       "task_keys_sha256": "0f99364cdb1a7e66fbf778a554c08495493ff5bb4baa0cf89d38dc7512967004",
       "trainer_family": "atlas"
+    },
+    {
+      "candidate_id": "axiom-v4",
+      "candidate_revision": "264cae8cbe0aa368eeecedf07bfdab0a2a41e0c35a04f779c0563e0d2afa9ec1",
+      "cohort": "7f84496d73bd0570d8c7a9608f837081450150a3961c393866bf4bc4d3006be7",
+      "execution_backend": "cuda",
+      "measurement_views": [
+        "discriminator_stability"
+      ],
+      "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+      "reason": "Select axiom-v4 (clean-slate 2,409-LOC 4-Law formulation combining mass-conserving GPU-resident Laguerre-Pythagorean prototype atlas with 4-step LTV coalescence & central-offset pullback isometry, compute-regime-dispatched exact RoR / Weyl-phase sub-batch fwAD R1+R2 critic regularizer with detached-EMA linear-in-s_hat scaling, mu_D=0.005 floor & zero-mean gauge, conformal k=3 Voronoi Sinkhorn transport + dead-zone-free orphan macro-transport + zero-eigh Pade-(1,1) Halley conditional fiber bank + charts-first atomic bijection, and IEEE-754 mantissa-exponent degree-0 equilibration with spectral-split Tikhonov NS, exact 4D 1x1 Conv2d==Linear parity, 3-kernel foreach fast path, stratified p95 trust & 1-sync 2x2 KKT direction_blend) following ordinary discriminator_stability revision-20 CUDA measurement on NVIDIA RTX A6000 (11/11 required Tier 1 PASS, 6/6 projected v9 Tier 1 PASS, 19/21 projected v9 Tier 2 PASS, 3/3 100-mode grid triad grid100/rotated100/staggered100 PASS, five_word_joint_hold PASS, 3/3 precision fp32/mxfp8/nvfp4 PASS, 2/2 causal isolation PASS, 3/3 extreme Nash imbalance PASS, bytegan_hypercube8 PASS; 40/47 executed discriminator_stability tasks PASS with 6 honest numerical failures \u2014 img_blobs4, interp_img_patch_shift, interp_saddle_barycentric, interp_sparse_arc, model_ddgan_gaussian_chain, vector_spiral \u2014 and 1 INCOMPLETE wall-time timeout on model_ae_ddgan_gaussian_chain under 2-worker GPU sharing, matching 40/47 PASS in solo RTX A6000 readout-d83ce97f). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
+      "recipe_sha256": "af7588e082cc27995a340b8f3fad53d836ef8d696f351cf8526de324bde3c4b7",
+      "rng_sha256": "ea1838dd2440d16754beb1e1d4f3066e9e4858a393fb6a7ae0e341e34a7a744a",
+      "runtime_cohort_sha256": "daa283c8a640abc2e6adc669f79de118ccb0c45d38dfc62bf75b0d831038c1a1",
+      "scientific_row_sha256": "e23540fd4adb9024b27fac2d402140da2228a07fd4a51cbbd6097b32cd4b11b6",
+      "selection_kind": "current_measurement",
+      "source_digest": "181b8ef0e8883ab4436059ba56931ee6bbb196ba923e7c111f433ab45e1342d2",
+      "task_keys_sha256": "b7a77a4ce175b8ed0c9e04175c558539400ed609fa2e7c19ccb2972b04c1ba3a",
+      "trainer_family": "axiom"
     },
     {
       "candidate_id": "recipe-prior-refactor-bcap-pure-v1",
