@@ -1,0 +1,267 @@
+{
+  "attempt_ids": [
+    "48cd843cc8954320b04454da6b145d84",
+    "7c9da0904b8b4992b035e547ade34457"
+  ],
+  "candidate_id": "axiom-v4",
+  "candidate_revision": "0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v12/v13/v14 (2/2) while improving core_min_eigen_ratio margin, and strictly beats minimal-v2 (1/2), rhbi-v12 (0/2), and empf-v8 (0/2).",
+  "conclusion": "PASS 2/2: axiom-v4 passes both t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift with higher heteroscedastic eigen-ratio margin than axiom-v3 and unified-v12/v13/v14.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "48cd843cc8954320b04454da6b145d84",
+        "7c9da0904b8b4992b035e547ade34457"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "9ad8642c137815409cf1bd3c95a6969abf376b096d8d8555e2ebc1cfc0356a33",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.5447192477495629
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.5447192477495629
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "48cd843cc8954320b04454da6b145d84",
+          "producer_request_id": "12c5dade38a780f593eb647e",
+          "producer_study_id": "axiom-v4-t3-iso-study",
+          "result_hash": "ff230700fab0cf147a1b672aea658f8315d7b88c89aab08ab50eb917d3294152",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "7c9da0904b8b4992b035e547ade34457",
+          "producer_request_id": "12c5dade38a780f593eb647e",
+          "producer_study_id": "axiom-v4-t3-iso-study",
+          "result_hash": "a659932589c2f43ae373b8a6ee65c21901de5d6d1c251ac15ffb0caf4cdabd27",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "db4d061fad26e290822ebc4d15c5031aba2c381798cfbceb021cd211a60f4a6b",
+        "contract_sha256": "9ad8642c137815409cf1bd3c95a6969abf376b096d8d8555e2ebc1cfc0356a33",
+        "control_binding_sha256": "17f90f62f131fe117022158d2774ed3b5cc0cd66d9ddddcfe88853988b62624b",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "813e30864e0387d534868106e76f7790b8ff7e67eaf81b3d9c8bf88063a077e4"
+      },
+      "study_id": "axiom-v4-t3-iso-study",
+      "study_sha256": "813e30864e0387d534868106e76f7790b8ff7e67eaf81b3d9c8bf88063a077e4"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Unchanged global axiom-v4 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0 via scale-invariant k=4 local-NN density-ratio orphan rescue and V4E spectral-split prior smoothing.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Preserve scale-safe _sc_safe transport scaling and record in axiom-study.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "48cd843cc8954320b04454da6b145d84",
+        "result_hash": "ff230700fab0cf147a1b672aea658f8315d7b88c89aab08ab50eb917d3294152",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "7c9da0904b8b4992b035e547ade34457",
+        "result_hash": "a659932589c2f43ae373b8a6ee65c21901de5d6d1c251ac15ffb0caf4cdabd27",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-b6570e904053603948226d93",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/48cd843cc8954320b04454da6b145d84/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "axiom-v4-t3-iso-study"
+    },
+    "candidate": "axiom-v4",
+    "competing_explanation": "If Axiom v4's dead-zone-free multi-scale conformal transport or beyond-horizon orphan rescue either under-triggers on shifted modes or over-triggers on the 8x broad cluster, axiom-v4 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Unchanged global axiom-v4 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0 via scale-invariant k=4 local-NN density-ratio orphan rescue and V4E spectral-split prior smoothing.",
+    "id": "axiom-v4-t3-iso-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v10",
+          "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+        },
+        "path": "reports/forge/records/readout-15aafd6ce00180e64ecd23fc.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v4-t3-iso-study",
+  "study_sha256": "813e30864e0387d534868106e76f7790b8ff7e67eaf81b3d9c8bf88063a077e4",
+  "task_results": [
+    {
+      "compatibility_key": "e1e38269107192e8a6baffa1ea2b3d276a74fa94a69d8f6ff5cdb1d7950eecef",
+      "cost": {
+        "adapter_loop_seconds": 62.53760708193295,
+        "adapter_seconds": 62.92949555814266,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 166.55468755971566,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 417,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 10.469643999993801,
+          "joules_to_first_pass": 4365.841547997415,
+          "joules_to_sustained_pass": 6114.27209599638,
+          "joules_total": 10469.643999993801,
+          "sustained_pass_step": 584
+        },
+        "eval_seconds": 0.09695693012326956,
+        "execution_seconds": 70.39366483781487,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 64.42847147607245,
+        "train_seconds": 58.11388602340594,
+        "wall_seconds": 70.39366483781487
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.6081192456560061,
+        "critic_grad_med": 8.082942258624826e-06,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 0.953125,
+        "mass_tv": 0.0625,
+        "modes": 4,
+        "pre_shift_hq": 0.9765625,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    },
+    {
+      "compatibility_key": "03cfa3ca4625cc12f79197e1c20fda399172ed9fdaa281509483befb407856a1",
+      "cost": {
+        "adapter_loop_seconds": 55.43564743711613,
+        "adapter_seconds": 55.7567291110754,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 167.99016924931735,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 234,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 11.692525000013411,
+          "joules_to_first_pass": 2736.0508500031383,
+          "joules_to_sustained_pass": 4291.156675004922,
+          "joules_total": 9354.020000010729,
+          "sustained_pass_step": 367
+        },
+        "eval_seconds": 0.08442720584571362,
+        "execution_seconds": 63.37924883700907,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 57.42109207296744,
+        "train_seconds": 51.051712551154196,
+        "wall_seconds": 63.37924883700907
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.23763305668053877,
+        "core_min_eigen_ratio": 0.5447192477495629,
+        "critic_grad_med": 6.115270934969885e-06,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 2.190899107266379,
+        "hq": 0.9609375,
+        "mass_tv": 0.027578137814998627,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_scale_mass_8x"
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "axiom-v4-disc-stab-study"
+  },
+  "candidate": "axiom-v4",
+  "competing_explanation": "If Axiom v4's unified <=2,500 LOC Law 1-4 updates regress discrete multimodal stability, word BiGAN convergence, conditional diffusion tails, precision quantization, or continuous manifold interpolation relative to unified-v12/v13/v14, axiom-v4 will fail bytegan_hypercube8, five_word_joint_smoke, precision_gaussian_*, interp_saddle_barycentric, or model_ddgan_bimodal_chain.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global axiom-v4 clears Tier-1 and Tier-2 discriminator_stability (target 50-51/51 including ring16_acquisition, five_word_joint_smoke, precision_gaussian_{fp32,mxfp8,nvfp4}, bytegan_hypercube8 256/256, interp_img_patch_shift, interp_saddle_barycentric, model_ddgan_bimodal_chain, and model_ae_ddgan_bimodal_chain) on PyTorch 2.15 RTX A6000.",
+  "id": "axiom-v4-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
