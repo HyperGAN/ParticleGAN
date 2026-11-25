@@ -132,7 +132,7 @@ Executed via [`scripts/axiom_four_laws_benchmark.py`](../../scripts/axiom_four_l
 | **2A. P1 24-Decade Scale Invariance & `1e-40`** | **`1.12e-6` / `u(1e-40)=0.0566`** (**PASS**) | `0.326` / `0.0` | `0.326` / `0.0` | `0.176` / `0.0` | `0.606` / `0.0` |
 | **2B–D. P1 Rail / `1e4x` Spike / `1/t` Decay / Chatter** | **`0.0` / `0.999999` / `0.999995` / `0.00097`** (**PASS**) | `0.015` / `0.0008` / `0.0012` / `1.000` | `0.015` / `0.0008` / `0.0012` / `1.000` | `0.0` / `0.002` / `0.020` / `1.000` | `6.85` / `FAIL` / `0.0005` / `1.000` |
 | **3A–C. P4 Verified `p95` Trust + `coord_scale` + Tail** | **`0.54x / 0.0025x / 1.000x / tail=True`** (**PASS**) | `5.00x / 10.24x / 500x / False` | `5.00x / 10.24x / 500x / False` | `5.00x / 301x / 500x / False` | `5.00x / 0.00x / N/A / False` |
-| **4A–B. P6 Below-$\kappa$ Unbiased & Dim-Indep $\mu_D$** | **`1.07x` (`cos=0.990`) · `r256/2d=1.06x`** (**PASS**) | `1423.3x` · `3.59e-3` | `1423.3x` · `3.59e-3` | `0.65x` · `30.5x` | `0.004x` · `7.09e-3` |
+| **4A–B. P6 Below-$\kappa$ Unbiased & Dim-Indep $\mu_D$** | **`1.07x` (`cos=0.990`) · `r256/2d=1.06x`** (**PASS**) | `1423.3x` · `3.60e-3` | `1423.3x` · `3.60e-3` | `0.65x` · `1953x` | `0.004x` · `7.09e-3` |
 | **5A–C. P7 Mass Conservation / LTV / $B_f<K$** | **`0.00` / `(1.000, 1.000)` / `36/36`** (**PASS**) | `0.1187` / `(0.267, 0.810)` / `0/36` | `0.1187` / `(0.267, 0.810)` / `0/36` | `0.1187` / `FAIL` | N/A |
 | **5D. Conv2d `64x64` Syncs/step** | **`4.0` syncs (`#1` fastest)** | `5.0` syncs | `5.0` syncs | `6.0` syncs | `75.0` syncs |
 
