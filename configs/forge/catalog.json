@@ -45,6 +45,7 @@
       "forge_engine": 131,
       "lrfree/feature-cells-cb64-ra": 4042,
       "report/atlas-explanation": 5,
+      "report/axiom": 4,
       "report/behavioral_baseline": 32,
       "report/cifar-ddgan": 445,
       "report/cifar-particle-ae": 27,
@@ -52,6 +53,7 @@
       "report/denoising-toy": 67,
       "report/develop-gates-20261001": 19,
       "report/e22-animation": 3,
+      "report/four-laws-audit": 16,
       "report/gram-profile": 3,
       "report/gym": 230,
       "report/learned_lr": 5,
@@ -113,20 +115,20 @@
       "frozen_driver": 28,
       "frozen_evaluator_or_audit": 2,
       "frozen_support": 28,
-      "narrative": 976,
+      "narrative": 996,
       "structured_evidence": 4413,
       "support": 1567,
       "support_artifact": 14,
       "visualization": 23,
       "visualization_artifact": 70
     },
-    "files": 8927
+    "files": 8947
   },
   "coverage": {
-    "declared_count": 8927,
+    "declared_count": 8947,
     "missing": [],
     "stale": [],
-    "tracked_count": 8927,
+    "tracked_count": 8947,
     "unclassified": [],
     "valid": true
   },
@@ -4827,7 +4829,7 @@
     },
     {
       "family": "config/repo_guard",
-      "git_blob": "f6f5ab34deba207d6bf025ddb4803767bbac3399",
+      "git_blob": "e7155b585477fff8d40bb2462d6223eab62019b0",
       "path": "configs/repo_bloat_allowlist.json",
       "role": "configuration",
       "suggested_tiers": []
@@ -7476,7 +7478,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "4afbe371455158c7300c11387f81bf51797a8fbe",
+      "git_blob": "bd0e5c3d54d0325df0d9adfbc237ee4294bed47d",
       "path": "experiments/forge/api.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7672,7 +7674,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "dfed60b0d1c4a44a9139b39c765dcc193d851715",
+      "git_blob": "fa95f5e231c135f9980bb66b99cbd4663f21f23d",
       "path": "experiments/forge/clockfree.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -7924,7 +7926,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "d44410f716b287d7c9276c93a19a70317ec64e1e",
+      "git_blob": "8b301617416862d7e2d24178b94619fb84884a3b",
       "path": "experiments/forge/paired_sampling.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8253,7 +8255,7 @@
     },
     {
       "family": "forge_engine",
-      "git_blob": "ece038f6c047fe785280ee2e4a09930abb07c9a6",
+      "git_blob": "b0212733a2520866eea4725824c1537f33aa87eb",
       "path": "experiments/forge/techniques.py",
       "role": "engine_support",
       "suggested_tiers": []
@@ -8878,6 +8880,34 @@
       "git_blob": "7a00b7e9562fe14de79758f6ec0adb61ed871a61",
       "path": "reports/atlas-explanation/render_infographics.py",
       "role": "visualization",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/axiom",
+      "git_blob": "a49dfa407a516ede4085b9d1f8ddbdf01bb8a99e",
+      "path": "reports/axiom/axiom-study.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/axiom",
+      "git_blob": "7099b85bff150cedff48c45d68f32db18ce3a82b",
+      "path": "reports/axiom/design-spec.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/axiom",
+      "git_blob": "a5086ce565f23f479219752fc608f9e1d766c8c3",
+      "path": "reports/axiom/four-laws-benchmark.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/axiom",
+      "git_blob": "d5fd556e4fc34f60f7f701c98dcb7b003791e240",
+      "path": "reports/axiom/gap-analysis.md",
+      "role": "narrative",
       "suggested_tiers": []
     },
     {
@@ -13328,6 +13358,118 @@
       "family": "report/project",
       "git_blob": "6289dbd7b42abcb42cc2e02626c168aeb0b1dd06",
       "path": "reports/forge-audit-2026-10-02.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "531530a71fe0599edfe849558ddebbcf53090acb",
+      "path": "reports/four-laws-audit/README.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "5179a24e9bebe3b576f792090384015a613a91d6",
+      "path": "reports/four-laws-audit/ci-and-consistency-check.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "c47bc76da4ea172a8d0bfde75ee0f3c09fbdb849",
+      "path": "reports/four-laws-audit/evidence-ledger-and-revisions.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "91adb122430a167f991472fd0fe74cd797fb825e",
+      "path": "reports/four-laws-audit/integration-report.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "306666550667bd742b7f00534e23f7ef59b51cb9",
+      "path": "reports/four-laws-audit/p0-law43-rank-audit.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "f44b6d0283c40ce8b5e03210d9bc6d955109ec76",
+      "path": "reports/four-laws-audit/p1-law42-scale-settling.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "6c7525daba927d8c588a69dfecd645b80b371098",
+      "path": "reports/four-laws-audit/p10-synthesis-and-ledger.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "c5588060c5541368488fd4209901b8fb585806b6",
+      "path": "reports/four-laws-audit/p2-law3-identifiability.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "ffbd36b0b2a4d704e6aada90d1f7ff1334c6d256",
+      "path": "reports/four-laws-audit/p3-game-dynamics-counterexample.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "97681f203b79e1413fc23a217532ba13c7e8ccf8",
+      "path": "reports/four-laws-audit/p4-function-space-generality.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "e58081b2fc074362b9074e050ae2c2cd3118344d",
+      "path": "reports/four-laws-audit/p5-optimizer-asymmetry.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "93d92fd8b47e04738112eff73001f733d81e7aad",
+      "path": "reports/four-laws-audit/p6-law2-autodiff-audit.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "d23e8d6c6138940b5392535f379bfb33e3434237",
+      "path": "reports/four-laws-audit/p7-law1-topology-audit.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "5d602e0f9bad752e9e4f728c66d0e7ecf1006032",
+      "path": "reports/four-laws-audit/p8-qualification-audit.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "bba6788779cdafd9f645f2dc11f2dd4c984c27d8",
+      "path": "reports/four-laws-audit/p9-receipts-efficiency-audit.md",
+      "role": "narrative",
+      "suggested_tiers": []
+    },
+    {
+      "family": "report/four-laws-audit",
+      "git_blob": "b3cf9d51f5f28a6e5f36b7b27857977810b68adb",
+      "path": "reports/four-laws-audit/research-backlog-and-forge-proposals.md",
       "role": "narrative",
       "suggested_tiers": []
     },
