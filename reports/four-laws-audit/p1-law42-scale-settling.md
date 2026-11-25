@@ -45,18 +45,18 @@ Does [`docs/four-laws.md`](../../docs/four-laws.md) or any Forge study report ac
 | [`docs/four-laws.md`](../../docs/four-laws.md#L86) | Law 4.2: *"Scale-invariant (degree-0) layerwise conditioning that still settles smoothly as gradients vanish ($\Delta W \to 0$ as $G \to 0$) is required without a step clock."* | **No** (conflates pointwise degree-0 with continuous settling at 0) |
 | [`docs/four-laws.md`](../../docs/four-laws.md#L93) | *"Scale-Invariant Layer & Rail Equalization: Equalize extreme depth attenuation and saturation rails without underflow dead zones, while settling cleanly at equilibrium with no step clock."* | **No** |
 | [`docs/four-laws.md`](../../docs/four-laws.md#L115) | *"Dynamic-$10^{-38}$ scale norm + homogeneous `peak_rms` settling"* | **No** |
-| [`docs/four-laws.md`](../../docs/four-laws.md#L160) | *"Normalizes $(m_t, v_{\text{rms},t})$ by $s_t = \max(\max |v_{\text{rms},t-1}|, \max |g_t|, 10^{-38})$ ... while degree-0 homogeneous `peak_rms` / momentum-coherence cooling $\text{coherence} = \|\tilde{m}_t\|_F / \|\tilde{v}_t\|_F \to 0$ eliminates equilibrium chatter without a step clock."* | **No** (also falsely claims $\text{coherence} \to 0$ and omits `min(s_base, ...)` cap) |
+| [`docs/four-laws.md`](../../docs/four-laws.md#L160) | *"Normalizes $(m_t, v_{\text{rms},t})$ by $s_t = \max(\max \lvert v_{\text{rms},t-1}\rvert, \max \lvert g_t\rvert, 10^{-38})$ ... while degree-0 homogeneous `peak_rms` / momentum-coherence cooling $\text{coherence} = \lVert\tilde{m}_t\rVert_F / \lVert\tilde{v}_t\rVert_F \to 0$ eliminates equilibrium chatter without a step clock."* | **No** (also falsely claims $\text{coherence} \to 0$ and omits `min(s_base, ...)` cap) |
 | [`docs/four-laws.md`](../../docs/four-laws.md#L187) | *"`zero_tanh_rail_escape` still passes at `mae = 0.0026` without `w_sat_pt` because $10^{-38}$ dynamic scale normalization already inverts `sech^2`."* | **No** (note `zero_tanh_rail_escape` has $\operatorname{sech}^2 \approx 0.19$, not $10^{-12}$) |
-| [`reports/forge/studies/law4-optimizer-laws.md`](../forge/studies/law4-optimizer-laws.md#L206-L210) | Law 4.2 formula: $\Delta W_l = -\eta \gamma_{\text{MP}} \frac{G_l}{\sqrt{\|G_l\|^2 + s_{\text{eff}}^2}}$, $s_{\text{eff}} = \min(s_{\text{base}}, c\,\text{peak\_rms}_l)$ described as *"Degree-0 scale-invariant ... while preserving smooth equilibrium settling ($G_l \to 0 \implies \Delta W_l \to 0$) without a step clock."* | **No** (formula itself breaks degree-0 homogeneity for $c\,\text{peak\_rms}_l > s_{\text{base}}$!) |
+| [`reports/forge/studies/law4-optimizer-laws.md`](../forge/studies/law4-optimizer-laws.md#L206-L210) | Law 4.2 formula: $\Delta W_l = -\eta \gamma_{\text{MP}} \frac{G_l}{\sqrt{\lVert G_l\rVert^2 + s_{\text{eff}}^2}}$, $s_{\text{eff}} = \min(s_{\text{base}}, c\,\text{peak\_rms}_l)$ described as *"Degree-0 scale-invariant ... while preserving smooth equilibrium settling ($G_l \to 0 \implies \Delta W_l \to 0$) without a step clock."* | **No** (formula itself breaks degree-0 homogeneity for $c\,\text{peak\_rms}_l > s_{\text{base}}$!) |
 | [`reports/forge/studies/t4-imbalance-nash.md`](../forge/studies/t4-imbalance-nash.md#L38-L40) | *"Theorem 4A.1 (Homogeneous Peak-RMS Settling): $u_t = \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + 0.015 \sigma_t^{\text{peak}} + \varepsilon}$. Unlike fixed damping $\varepsilon_0 > 0$, $u_t$ is **exact degree-0 homogeneous** under arbitrary constant gradient rescaling $g_t \mapsto c\cdot g_t$ ($c > 0$), yet contracts smoothly as $O(\hat{\sigma}_t / \sigma_t^{\text{peak}}) \to 0$."* | **No** (actually has additive $+\varepsilon = 10^{-8}$, raw $g^2$ underflow, and $\gamma_{\text{peak}}=0.9995$!) |
 | [`reports/forge/studies/r3-nash-complete.md`](../forge/studies/r3-nash-complete.md#L21) | Summarizes `peak_rms` from `t4-nash-v2` (and docstring of [`_nash_v3/optim.py`](../../particlegan/_nash_v3/optim.py#L4) claims *"Degree-0 scale-invariant `peak_rms` equilibrium settling"*). | **No** |
-| [`reports/forge/studies/t4-strange-architectures.md`](../forge/studies/t4-strange-architectures.md#L46-L65) | Claims $10^{-38}$ dynamic scale norm cancels $s_t$ identically in ratios of $(\tilde{m}_t, \tilde{v}_t)$ and *"at stationary Nash equilibrium (oscillatory minibatch gradients), $\|\tilde{m}_t\|_F \ll \|\tilde{v}_t\|_F$ automatically cools $\text{coherence} \to 0$ without any external step clock."* | **No** (coherence stays at $\ge \frac{1-\beta_1}{1+\beta_1} > 0$, never $\to 0$) |
+| [`reports/forge/studies/t4-strange-architectures.md`](../forge/studies/t4-strange-architectures.md#L46-L65) | Claims $10^{-38}$ dynamic scale norm cancels $s_t$ identically in ratios of $(\tilde{m}_t, \tilde{v}_t)$ and *"at stationary Nash equilibrium (oscillatory minibatch gradients), $\lVert\tilde{m}_t\rVert_F \ll \lVert\tilde{v}_t\rVert_F$ automatically cools $\text{coherence} \to 0$ without any external step clock."* | **No** (coherence stays at $\ge \frac{1-\beta_1}{1+\beta_1} > 0$, never $\to 0$) |
 | [`reports/forge/studies/r4-minimal-core.md`](../forge/studies/r4-minimal-core.md#L33,L61) | Claims *"pure-elementwise $10^{-38}$ MP + `peak_rms`"* and *"falling back seamlessly to dynamic-$10^{-38}$ scale-normalized moments under extreme vanishing/overflowing gradients."* | **No** (omits unscaled `+ eps` bug in `_minimal/dynamics.py:172,186`) |
 | [`reports/forge/studies/r4-occam-ablation-razor.md`](../forge/studies/r4-occam-ablation-razor.md#L26,L30,L95,L134) | Attributes `zero_tanh_rail_escape` pass to $10^{-38}$ dynamic scale norm; calls `r4_mp_no_ns` *"$10^{-38}$-safe `peak_rms`"* (which still multiplies by unscaled `s_eff = 0.0061` at `_r4_ablation/optimizer.py:295,318`). | **No** |
 
 ### 1.2 Implementation Audit Matrix Across Every Optimizer in `particlegan/`
 
-| Implementation & Lines | Default Recipe Params (`recipes.py`) | Dynamic `1e-38` Norm? | `peak_rms` Formula & Decay `p_dec` | Coherence `\|\|m\|\|/\|\|v\|\|` Active? | Actual Homogeneity Range ($c$ for $\|g_0\| \sim 1$) | Exact Failure / Breakpoint Found in Code |
+| Implementation & Lines | Default Recipe Params (`recipes.py`) | Dynamic `1e-38` Norm? | `peak_rms` Formula & Decay `p_dec` | Coherence `\|\|m\|\|/\|\|v\|\|` Active? | Actual Homogeneity Range ($c$ for $\lVert g_0\rVert \sim 1$) | Exact Failure / Breakpoint Found in Code |
 | :--- | :--- | :---: | :--- | :---: | :--- | :--- |
 | **`UnifiedV12Optimizer`** *(Default)* [`_unified_v12/optimizer.py`](../../particlegan/_unified_v12/optimizer.py#L305-L454,L688,L1008-L1084) | `lr=0.014`, `betas=(0, 0.999)`, `eps=1e-8`, `smoothing=0.0061` ([`recipes.py:2816`](../../particlegan/recipes.py#L2816-L2819)) | Yes (slow path `<1e-18` / `>1e18`; fast path `[1e-18, 1e18]`) | `s_eff = min(0.0061, 0.50 * peak_rms)`; **`p_dec = 1.0`** on all 1-obj/uncond tasks (`0.9995` only on 2-obj cond-fiber, line 688) | Only when `ema_fg < 0.60` (`stiff_gate > 0`) or scalar 1D (`clamp(0.35, 1.0)`); **`1.0` otherwise** | `[1e-37, ~0.012]` (below `s_base/0.50`) | **Breaks above `peak_rms = 0.0122`** (`s_base` cap); **permanently freezes** on spikes when `peak_rms < 0.0122` (`p_dec = 1.0`); dead `peak_rms` on prior rows (lines 828–845); `_step_generator_free_critic` line 509 uses raw `gf.norm()` |
 | **`UnifiedV11EquilibratedOptimizer`** [`_unified_v11/optimizer.py`](../../particlegan/_unified_v11/optimizer.py#L878-L1118) | Same (`smoothing=0.0061`, [`recipes.py:2809`](../../particlegan/recipes.py#L2809-L2815)) | Partial (`m/v` factored; `cur_sv_rms` uses raw `gf.norm()`, line 973–979) | `s_eff = min(0.0061, 0.30 * peak_rms)`; `p_dec = 0.9995` if `s_therm >= 0.5` else `1.0` (line 985) | Only when `ema_fg < 0.18` (`stiff_gate > 0`) or scalar 1D (`clamp(0.35, 1.0)`) | `[1e-22, ~0.020]` on 2D; **`[1e-6, ~0.02]` on 1D** | **Breaks above `0.0203`** (`s_base` cap); **`cur_sv_rms` underflows to `0` at `1e-25`**; **1D `clamp_min(eps=1e-8)` crushes `1e-12` by `6600x`** (line 1106); dead `peak_rms` on prior rows (lines 878–940) |
@@ -66,7 +66,7 @@ Does [`docs/four-laws.md`](../../docs/four-laws.md) or any Forge study report ac
 | **`R4MPNoNSOptimizer`** [`_r4_ablation/optimizer.py`](../../particlegan/_r4_ablation/optimizer.py#L208-L324) | `smoothing=0.0061`, `settle_rel=0.015` | Yes (dimensionless `1e-8` in `denom_elem`, line 269) | `peak_rms` (`0.9995`, `peak_scaled` clamped `1e6`) **plus** unscaled `s_eff = 0.0061` (lines 295, 318) | Only when `deep_g > 0` or scalar 1D | `[1e-37, ~0.006]` (broken by `s_eff = 0.0061` multiplier) | Unscaled `s_eff = 0.0061` factor multiplies `u_elem`, re-introducing fixed-$\varepsilon$ rail deadlock when `deep_g == 0` |
 | **`UnifiedV4EquilibratedOptimizer`** [`_unified_v4/optimizer.py`](../../particlegan/_unified_v4/optimizer.py#L585-L695) | `smoothing=0.0061` ([`recipes.py:2795`](../../particlegan/recipes.py#L2795-L2800)) | Yes (only when `use_moments`), raw `s_eff = 0.0061` | **No `peak_rms`** — raw constant `s_eff = 0.0061 * (1 - deep_gate)` | Only when `deep_g > 0` or scalar 1D | Breaks everywhere `s_eff > 0` | Fixed constant `s_eff = 0.0061` crushes small gradients on shallow nets (`deep_gate = 0`) |
 | **`Law4EnergyV1..V11Optimizer`** [`_law4_energy/optimizer.py`](../../particlegan/_law4_energy/optimizer.py#L134-L140,L3721-L3733,L4429) | `smoothing=0.0061` | Yes (slow path) | `v1..v6`: `min(s_base, 0.03 * peak)`, `p_dec=0.9995`; `v7..v11`: `min(s_base, 0.50 * peak)`, `p_dec=1.0` | Only when `ema_fg < 0.60` (`stiff_gate > 0`) | Same `s_base` ceiling as `v12` | Same Defect A (`s_base` cap) and Defect B (`p_dec = 1.0` in `v7..v11`) |
-| **`NormalizedOptimizer` (`DualNorm`)** [`optim/dualnorm.py`](../../particlegan/optim/dualnorm.py#L152-L161,L903-L940) | `smoothing=0.001..0.0061` | **No** (hard `norm < eps` skip, fixed `smoothing`) | **None** | **No** | Fixed-$\varepsilon$ crossover at `smoothing` | Pure fixed-$\varepsilon$ Tikhonov polar; deadlocks when $\|G\| \ll \text{smoothing}$ |
+| **`NormalizedOptimizer` (`DualNorm`)** [`optim/dualnorm.py`](../../particlegan/optim/dualnorm.py#L152-L161,L903-L940) | `smoothing=0.001..0.0061` | **No** (hard `norm < eps` skip, fixed `smoothing`) | **None** | **No** | Fixed-$\varepsilon$ crossover at `smoothing` | Pure fixed-$\varepsilon$ Tikhonov polar; deadlocks when $\lVert G\rVert \ll \text{smoothing}$ |
 
 ---
 
@@ -76,16 +76,28 @@ Does [`docs/four-laws.md`](../../docs/four-laws.md) or any Forge study report ac
 
 > **Theorem 1 (Incompatibility of Memoryless Positive 0-Homogeneity and Continuous Settling at Zero).**
 > Let $U: \mathbb{R}^d \to \mathbb{R}^d$ be a memoryless update operator satisfying **positive 0-homogeneity**:
-> $$U(c g) = U(g) \qquad \forall c > 0,\;\forall g \in \mathbb{R}^d \setminus \{0\}.$$
+>
+> $$
+> U(c g) = U(g) \qquad \forall c > 0,\;\forall g \in \mathbb{R}^d \setminus \{0\}.
+> $$
+>
 > If $U(0) = 0$ and $\lim_{g \to 0} U(g) = 0$ (i.e., $U$ vanishes and is continuous at $0$), then $U(g) = 0$ identically for all $g \in \mathbb{R}^d$ (more generally, $\lim_{g \to 0} U(g) = 0$ alone forces $U(g) = 0$ for every $g \in \mathbb{R}^d \setminus \{0\}$).
 
 **Proof.** Fix any $g \in \mathbb{R}^d \setminus \{0\}$ and define the sequence $g_n := \frac{1}{n} g$ for $n \in \mathbb{N}$. Then $\lim_{n \to \infty} g_n = 0$. By positive 0-homogeneity with $c = 1/n > 0$, $U(g_n) = U(g)$ for every $n \ge 1$. Taking the limit as $n \to \infty$ yields
-$$U(g) = \lim_{n \to \infty} U(g_n) = \lim_{h \to 0} U(h) = 0.$$
+
+$$
+U(g) = \lim_{n \to \infty} U(g_n) = \lim_{h \to 0} U(h) = 0.
+$$
+
 Since $g \neq 0$ was arbitrary and $U(0) = 0$, $U \equiv 0$ on $\mathbb{R}^d$. $\square$
 
 > **Corollary 1.1 (Essential Jump Discontinuity & Persistent Limit-Cycle Chatter).**
 > Every nontrivial ($U \not\equiv 0$) memoryless positive 0-homogeneous operator is discontinuous at $0$ along every active ray: for any $g \neq 0$ with $U(g) \neq 0$,
-> $$\liminf_{c \to 0^+} \|U(cg)\| = \|U(g)\| > 0, \qquad \limsup_{h \to 0} \|U(h)\| \ge \sup_{u \in S^{d-1}} \|U(u)\| > 0.$$
+>
+> $$
+> \liminf_{c \to 0^+} \|U(cg)\| = \|U(g)\| > 0, \qquad \limsup_{h \to 0} \|U(h)\| \ge \sup_{u \in S^{d-1}} \|U(u)\| > 0.
+> $$
+>
 > In particular, for normalized gradient descent $x_{t+1} = x_t - \eta\, U(\nabla L(x_t))$ with $\|U(g)\| = 1$ ($\forall g \neq 0$) on the 1D quadratic $L(x) = \frac{1}{2} x^2$ with initial point $x_0 \notin \eta \mathbb{Z}$, the iterate enters an exact period-2 limit cycle between $r \in (0, \eta)$ and $r - \eta \in (-\eta, 0)$, satisfying $\limsup_{t \to \infty} |x_t| = \max(r, \eta - r) \ge \eta / 2$ forever.
 
 > **Corollary 1.2 (Extension to Matrix / Spectral Operators).**
@@ -97,7 +109,11 @@ Since $g \neq 0$ was arbitrary and $U(0) = 0$, $U \equiv 0$ on $\mathbb{R}^d$. $
 
 > **Theorem 2 (No Simultaneous Rail Escape and Settling Under Fixed $\varepsilon > 0$).**
 > Consider any fixed-floor regularized operator on $\mathbb{R}^d$,
-> $$U_\varepsilon^{\text{add}}(g) = \frac{g}{\|g\| + \varepsilon} \quad \text{or} \quad U_\varepsilon^{\text{Tikh}}(g) = \frac{g}{\sqrt{\|g\|^2 + \varepsilon^2}}, \qquad \varepsilon > 0,$$
+>
+> $$
+> U_\varepsilon^{\text{add}}(g) = \frac{g}{\|g\| + \varepsilon} \quad \text{or} \quad U_\varepsilon^{\text{Tikh}}(g) = \frac{g}{\sqrt{\|g\|^2 + \varepsilon^2}}, \qquad \varepsilon > 0,
+> $$
+>
 > with normalized step gain $\phi(u) := \|U_\varepsilon(g)\| \in [0, 1)$ as a function of $u = \|g\|/\varepsilon$ ($\phi_{\text{add}}(u) = \frac{u}{u+1}$, $\phi_{\text{Tikh}}(u) = \frac{u}{\sqrt{u^2 + 1}}$). Because $\phi$ is strictly increasing on $(0, \infty)$:
 > 1. Maintaining $(1-\delta)$-approximate scale invariance ($\phi(g_{\text{rail}}/\varepsilon) \ge 1-\delta$) down to a rail gradient $g_{\text{rail}}$ requires $\varepsilon \le g_{\text{rail}} / \phi^{-1}(1-\delta)$ (e.g., $\delta = 0.1, g_{\text{rail}} = 10^{-12} \implies \varepsilon \le 1.11 \times 10^{-13}$ additive or $4.84 \times 10^{-13}$ Tikhonov).
 > 2. Achieving contraction $\phi(g_{\text{eq}}/\varepsilon) \le \tau$ at equilibrium gradient $g_{\text{eq}}$ requires $\varepsilon \ge g_{\text{eq}} / \phi^{-1}(\tau)$ (e.g., $\tau = 0.1, g_{\text{eq}} = 10^{-3} \implies \varepsilon \ge 9 \times 10^{-3}$ additive or $9.95 \times 10^{-3}$ Tikhonov).
@@ -114,11 +130,18 @@ Since $g \neq 0$ was arbitrary and $U(0) = 0$, $U \equiv 0$ on $\mathbb{R}^d$. $
 
 > **Definition (Trajectory Positive 0-Homogeneity).**
 > A causal trajectory operator $\mathcal{U} = (U_t)_{t \ge 1}$ with $U_t: (\mathbb{R}^d)^t \to \mathbb{R}^d$ is **trajectory scale-invariant (degree-0)** if for every $t \ge 1$, every history $g_{1:t} = (g_1, \dots, g_t)$, and every static global scalar $c > 0$,
-> $$U_t(c g_1, c g_2, \dots, c g_t) = U_t(g_1, g_2, \dots, g_t).$$
+>
+> $$
+> U_t(c g_1, c g_2, \dots, c g_t) = U_t(g_1, g_2, \dots, g_t).
+> $$
 
 > **Theorem 3 (Compatibility of Stateful Trajectory Scale Invariance and Continuous Settling).**
 > Let $F_t: (\mathbb{R}^d)^t \to \mathbb{R}^d$ and $S_t: (\mathbb{R}^d)^t \to [0, \infty)$ be any causal **positive 1-homogeneous** functionals ($F_t(c g_{1:t}) = c F_t(g_{1:t})$, $S_t(c g_{1:t}) = c S_t(g_{1:t})$ for all $c > 0$). Then for any $\alpha > 0$,
-> $$U_t(g_{1:t}) := \frac{F_t(g_{1:t})}{\sqrt{\|F_t(g_{1:t})\|^2 + \alpha^2 S_t(g_{1:t})^2}}$$
+>
+> $$
+> U_t(g_{1:t}) := \frac{F_t(g_{1:t})}{\sqrt{\|F_t(g_{1:t})\|^2 + \alpha^2 S_t(g_{1:t})^2}}
+> $$
+>
 > satisfies:
 > 1. **Exact Trajectory Degree-0 Invariance** for all $c > 0$ (in floating-point arithmetic, preserved across the entire normal exponent range down to $10^{-38}$ when $(F_t, S_t)$ are computed in factored mantissa–exponent form).
 > 2. **Continuous Settling Along Relative-Decay Trajectories:** Whenever $\lim_{t \to \infty} \frac{\|F_t(g_{1:t})\|}{S_t(g_{1:t})} = 0$ (with $S_t > 0$), $\|U_t(g_{1:t})\| \le \frac{\|F_t(g_{1:t})\|}{\alpha S_t(g_{1:t})} \to 0$.
@@ -131,14 +154,9 @@ However, **every concrete choice of causal scale functional $S_t$ incurs a prova
 - **Theorem 3c (Sliding-Window Peak $P_t^{(W)} = \max_{t-W < s \le t} \|g_s\|$, finite $W$):** Recovers from any spike of arbitrary magnitude $M$ in **strictly $W$ steps**, **but cannot settle to zero on any smooth convergence**: for algebraic $t^{-p}$, $\|g_t\| / P_t^{(W)} = (1 - W/t)^p \to 1$; even for exponential $r^t$, $\|g_t\| / P_t^{(W)} \equiv r^{W-1} > 0$ (strictly positive floor!).
 - **Theorem 3d (Exact Asymptotic Floors of Momentum Coherence $C_t = \min(1, \|\hat{m}_t\|_F / \|\hat{v}_t\|_F)$ for Fixed $\beta_1 \in (0, 1)$):**
   1. *Slow monotonic convergence ($\|g_t\| = t^{-p}$ or $r^t$ with $r > \sqrt{\beta_2}$):* $\hat{m}_t \sim g_t$ and $\hat{v}_t \sim |g_t|$, so $C_t \to \mathbf{1.0}$ (**zero settling**!). Coherence only vanishes on deterministic convergence when $\|g_t\|$ decays *faster* than $\sqrt{\beta_2}^t$ — i.e., via $\beta_2$ memory lag acting as a decaying peak reference, NOT directional cancellation!
-  2. *I.i.d. zero-mean stationary noise ($g_t \sim (0, \sigma^2 I_d)$):* $\mathbb{E}[\|\hat{m}_t\|^2] \to \frac{1-\beta_1}{1+\beta_1} d\sigma^2$ while $\mathbb{E}[\|\hat{v}_t\|^2] \to d\sigma^2$. Thus for every fixed dimension $d \ge 1$ the RMS ratio satisfies
-     $$\sqrt{\frac{\mathbb{E}[\|\hat{m}_t\|^2]}{\mathbb{E}[\|\hat{v}_t\|^2]}} \xrightarrow{t \to \infty} \sqrt{\frac{1 - \beta_1}{1 + \beta_1}} > 0 \qquad (\text{e.g. } 0.3780 \text{ at } \beta_1=0.75,\; 0.3333 \text{ at } \beta_1=0.80),$$
-     and $C_t \xrightarrow{p} \sqrt{\frac{1 - \beta_1}{1 + \beta_1}}$ in probability as $t, d \to \infty$ jointly (for finite fixed $d$, $C_t$ converges in distribution to a non-degenerate stationary random variable around this positive floor rather than collapsing to $0$).
-  3. *Deterministic period-2 flipping ($g_t = (-1)^t g_0$):* $\hat{m}_t \to (-1)^t \frac{1-\beta_1}{1+\beta_1} g_0$, so
-     $$C_t \xrightarrow{t \to \infty} \frac{1 - \beta_1}{1 + \beta_1} > 0 \qquad (\text{e.g. } 0.1429 \text{ at } \beta_1=0.75,\; 0.1111 \text{ at } \beta_1=0.80).$$
-  4. *Pure harmonic rotation ($g_t = (\cos(\omega t), \sin(\omega t))^\top$, bilinear game):* $\hat{m}_t \to \frac{1-\beta_1}{1-\beta_1 e^{-i\omega}} e^{i\omega t}$, so
-     $$C_t \xrightarrow{t \to \infty} \frac{1 - \beta_1}{\sqrt{1 - 2\beta_1 \cos\omega + \beta_1^2}} \in \left[\frac{1-\beta_1}{1+\beta_1},\, 1\right],$$
-     which approaches $1$ for small game frequency $\omega = O(\eta)$ while introducing destabilizing phase lag $-\arctan\!\left(\frac{\beta_1 \sin\omega}{1 - \beta_1 \cos\omega}\right) \approx -\frac{\beta_1 \omega}{1-\beta_1}$.
+  2. *I.i.d. zero-mean stationary noise ($g_t \sim (0, \sigma^2 I_d)$):* $\mathbb{E}[\|\hat{m}_t\|^2] \to \frac{1-\beta_1}{1+\beta_1} d\sigma^2$ while $\mathbb{E}[\|\hat{v}_t\|^2] \to d\sigma^2$. Thus for every fixed dimension $d \ge 1$ the RMS ratio satisfies $\sqrt{\frac{\mathbb{E}[\|\hat{m}_t\|^2]}{\mathbb{E}[\|\hat{v}_t\|^2]}} \xrightarrow{t \to \infty} \sqrt{\frac{1 - \beta_1}{1 + \beta_1}} > 0$ (e.g. $0.3780$ at $\beta_1=0.75$, $0.3333$ at $\beta_1=0.80$), and $C_t \xrightarrow{p} \sqrt{\frac{1 - \beta_1}{1 + \beta_1}}$ in probability as $t, d \to \infty$ jointly (for finite fixed $d$, $C_t$ converges in distribution to a non-degenerate stationary random variable around this positive floor rather than collapsing to $0$).
+  3. *Deterministic period-2 flipping ($g_t = (-1)^t g_0$):* $\hat{m}_t \to (-1)^t \frac{1-\beta_1}{1+\beta_1} g_0$, so $C_t \xrightarrow{t \to \infty} \frac{1 - \beta_1}{1 + \beta_1} > 0$ (e.g. $0.1429$ at $\beta_1=0.75$, $0.1111$ at $\beta_1=0.80$).
+  4. *Pure harmonic rotation ($g_t = (\cos(\omega t), \sin(\omega t))^\top$, bilinear game):* $\hat{m}_t \to \frac{1-\beta_1}{1-\beta_1 e^{-i\omega}} e^{i\omega t}$, so $C_t \xrightarrow{t \to \infty} \frac{1 - \beta_1}{\sqrt{1 - 2\beta_1 \cos\omega + \beta_1^2}} \in \left[\frac{1-\beta_1}{1+\beta_1},\, 1\right]$, which approaches $1$ for small game frequency $\omega = O(\eta)$ while introducing destabilizing phase lag $-\arctan\!\left(\frac{\beta_1 \sin\omega}{1 - \beta_1 \cos\omega}\right) \approx -\frac{\beta_1 \omega}{1-\beta_1}$.
 
 ---
 
@@ -149,7 +167,11 @@ However, **every concrete choice of causal scale functional $S_t$ incurs a prova
 
 > **Theorem 4.2 (Impossibility of Time-Varying Scale Invariance with Magnitude-Based Settling).**
 > No causal gradient-only operator $\mathcal{U}$ can simultaneously satisfy **time-varying positive 0-homogeneity**,
-> $$U_t(c_1 g_1, \dots, c_t g_t) = U_t(g_1, \dots, g_t) \qquad \forall c_1, \dots, c_t > 0,$$
+>
+> $$
+> U_t(c_1 g_1, \dots, c_t g_t) = U_t(g_1, \dots, g_t) \qquad \forall c_1, \dots, c_t > 0,
+> $$
+>
 > and continuous settling along monotonic vanishing gradients ($g_t = \lambda^t g_0 \to 0 \implies U_t(g_{1:t}) \to 0$).
 
 **Proof.** Take any converging monotonic sequence $g_t = \lambda^t e_1$ ($\lambda \in (0, 1)$) and choose $c_s = \lambda^{-s} > 0$. Then $(c_1 g_1, \dots, c_t g_t) = (e_1, \dots, e_1)$ is a constant non-converging unit sequence, yet time-varying 0-homogeneity forces $U_t(g_{1:t}) = U_t(e_1, \dots, e_1)$. Thus either $U_t$ fails to settle on $g_t = \lambda^t e_1$ or it freezes on a constant non-zero gradient $e_1$ (a linear objective with no minimum). Equivalently, observing only gradient magnitudes $\|g_1\|, \dots, \|g_t\|$ cannot distinguish a genuine decrease in distance-to-optimum from a time-varying loss rescaling $L_t = c_t L$. $\square$
@@ -192,7 +214,7 @@ All results below are verbatim from [`scripts/four_laws_audit/p1_scale_settling.
 
 **2a (Quadratic, $\kappa=10$, 1000 steps), 2b (`tanh` rail from $W_0 = 14.0 I_4$, $\operatorname{sech}^2(14) = 2.755 \times 10^{-12}$, `lr=0.08`, 1000 steps across $c \in \{10^{-6}, 1, 10^6\}$), 2c (Near-Eq $W_0 = 10^{-6}$ Step-1 Kick):**
 
-| Optimizer Arm | Quad `final_err` / `tail_stp` | Rail Escape Step (`1e-6` / `1` / `1e6`) | Rail Final RMS (`1e-6` / `1` / `1e6`) | Rail Tail Step (`1e-6` / `1` / `1e6`) | Near-Eq Step-1 Kick ($\|W_1\|/\|W_0\|$) |
+| Optimizer Arm | Quad `final_err` / `tail_stp` | Rail Escape Step (`1e-6` / `1` / `1e6`) | Rail Final RMS (`1e-6` / `1` / `1e6`) | Rail Tail Step (`1e-6` / `1` / `1e6`) | Near-Eq Step-1 Kick ($\lVert W_1\rVert/\lVert W_0\rVert$) |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | `memless_norm_sgd` | `1.30e-2` / `2.00e-2` | `326 / 326 / 326` | `6.1e-6 / 6.1e-6 / 6.1e-6` | **`8.0e-2 / 8.0e-2 / 8.0e-2`** *(chatter)* | **`19,999×`** |
 | `fixed_eps_adam` | `2.11e-5` / `3.28e-2` | **`-1 / -1`** / `44` | **`7.00 / 6.99`** / `1.6e-2` | `0.0 / 4.6e-5 / 1.8e-1` | `73,961×` |
@@ -217,7 +239,7 @@ All results below are verbatim from [`scripts/four_laws_audit/p1_scale_settling.
 
 ### 3.3 Regime 3 — Noisy Stationary Points (Zero-Mean Noise, 2500 steps, $8 \times 8$)
 
-| Optimizer Arm | Gaussian `tail/early` | Sphere Const-Norm `tail/early` | `100×` Variance-Drop `tail/early` | Gaussian Drift $\|W_T\|_F$ |
+| Optimizer Arm | Gaussian `tail/early` | Sphere Const-Norm `tail/early` | `100×` Variance-Drop `tail/early` | Gaussian Drift $\lVert W_T\rVert_F$ |
 | :--- | :---: | :---: | :---: | :---: |
 | `memless_norm_sgd` | `1.0000` | `1.0000` | `1.0000` | `0.9618` |
 | `pure_peak_mono` | `0.9730` *(slow $\ln^{-1/2} t$)* | **`1.0000`** *(zero settle)* | **`0.0190`** *(tracks drop)* | `0.8024` |
@@ -256,7 +278,7 @@ All results below are verbatim from [`scripts/four_laws_audit/p1_scale_settling.
 | Optimizer Arm | Simultaneous $r_T / r_0$ | Simultaneous Tail Step | Alternating $r_T / r_0$ | Alternating Tail Step |
 | :--- | :---: | :---: | :---: | :---: |
 | `memless_norm_sgd` | `1.1138` *(exact $\sqrt{1+0.24}=1.1136$)* | `2.00e-02` | `1.0062` | `2.00e-02` |
-| `pure_peak_mono` | **`1.0862`** *($\|g_t\|/P_t \equiv 1$!)* | `1.78e-02` | `0.9991` | `1.74e-02` |
+| `pure_peak_mono` | **`1.0862`** *($\lVert g_t\rVert/P_t \equiv 1$!)* | `1.78e-02` | `0.9991` | `1.74e-02` |
 | `pure_coherence` ($\beta_1=0.80$) | **`1.7600`** *(momentum divergence!)* | `2.00e-02` | **`1.6913`** | `2.00e-02` |
 | `pg_unified_v12` | **`1.5332`** | `3.98e-02` | `1.1505` | `3.98e-02` |
 | `pg_unified_v12_stiff` | `1.2141` | `9.92e-03` | `1.1856` | `9.96e-03` |
@@ -284,7 +306,7 @@ Following [`reports/four-laws-audit/README.md`](README.md#L25-L38), every substa
 | **C4** | First-order gradient-only scale-invariant optimizers cannot avoid a step-1 near-equilibrium kick or distinguish time-varying scale drops from convergence | **Information-theoretic obstruction** *(Theorems 4.1 & 4.2)* |
 | **C5** | ParticleGAN's $s_{\text{eff}} = \min(s_{\text{base}}, c \cdot \text{peak\_rms})$ formula is degree-0 scale-invariant ([`law4-optimizer-laws.md:208`](../forge/studies/law4-optimizer-laws.md#L208), [`docs/four-laws.md:115,160`](../../docs/four-laws.md#L115)) | **Falsified claim** *(breaks above $s_{\text{base}}/c$: `0.0122` in `v12`, `0.0203` in `v11`)* |
 | **C6** | "Theorem 4A.1": `T4Nash` / `T4NashV3` / `Minimal` `peak_rms` update $m / (\sqrt{v} + 0.015\,\text{peak\_rms} + \varepsilon)$ is exact degree-0 homogeneous ([`t4-imbalance-nash.md:38-40`](../forge/studies/t4-imbalance-nash.md#L38-L40), [`r4-minimal-core.md:33,61`](../forge/studies/r4-minimal-core.md#L33)) | **Falsified claim** *(unscaled `+ eps = 1e-8` crushes $10^{-12}$ gradients by $10^{-4}\times$)* |
-| **C7** | Momentum coherence $\text{coherence} = \|\tilde{m}_t\|_F / \|\tilde{v}_t\|_F \to 0$ eliminates equilibrium chatter without a step clock ([`docs/four-laws.md:160`](../../docs/four-laws.md#L160), [`t4-strange-architectures.md:65`](../forge/studies/t4-strange-architectures.md#L65)) | **Falsified claim** *(strictly positive floors $\sqrt{\frac{1-\beta_1}{1+\beta_1}}$ and $\frac{1-\beta_1}{1+\beta_1}$; inactive in default `v11`/`v12`)* |
+| **C7** | Momentum coherence $\text{coherence} = \lVert\tilde{m}_t\rVert_F / \lVert\tilde{v}_t\rVert_F \to 0$ eliminates equilibrium chatter without a step clock ([`docs/four-laws.md:160`](../../docs/four-laws.md#L160), [`t4-strange-architectures.md:65`](../forge/studies/t4-strange-architectures.md#L65)) | **Falsified claim** *(strictly positive floors $\sqrt{\frac{1-\beta_1}{1+\beta_1}}$ and $\frac{1-\beta_1}{1+\beta_1}$; inactive in default `v11`/`v12`)* |
 | **C8** | $10^{-38}$ dynamic scale-normalized layerwise conditioning is required to equalize deep inter-layer skew ($10^4\times$) and $\operatorname{sech}^2$ saturation rails against single-LR SGD ([`docs/four-laws.md:86`](../../docs/four-laws.md#L86), [`law4-optimizer-laws.md:206-210`](../forge/studies/law4-optimizer-laws.md#L206-L210)) | **Empirically supported causal mechanism** |
 | **C9** | Monotonic `peak_rms` (`p_dec = 1.0`) vs. decaying `peak_rms` (`p_dec = 0.9995`) resolves equilibrium settling across non-stationary / spiky training without a step clock | **Engineering heuristic** *(fragile trade-off: `p_dec=1` freezes permanently on spikes/shifts; `p_dec<1` anti-settles on $t^{-p}$ decay)* |
 | **C10** | Can a purely first-order, clock-free, $O(\text{params})$ stateful rule achieve global trajectory degree-0 invariance, settling on all $g_t \to 0$, *and* spike/shift immunity without external function-space residuals or secant curvature? | **Unresolved question** *(tightly constrained by Theorem 4.2: requires a non-magnitude channel such as directional flips, $(\Delta x, \Delta g)$ secants, or data-space residuals)* |

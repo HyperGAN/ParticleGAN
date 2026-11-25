@@ -34,7 +34,9 @@ By contrast, a 3-point second-order input-gradient regularizer (`EMPF`, `BISPF`,
 
 Replacing $\|\nabla_x D(x)\|_2$ naively by transport-chord or pairwise finite-difference secants
 
-$$S(a, b) = \frac{|D_\theta(a) - D_\theta(b)|}{\sqrt{\|a - b\|_2^2 + \varepsilon^2}}$$
+$$
+S(a, b) = \frac{|D_\theta(a) - D_\theta(b)|}{\sqrt{\|a - b\|_2^2 + \varepsilon^2}}
+$$
 
 (`t2-secant-v1`, `readout-2d0a1240650dbb7b14eb74d1`) passed 6/11 required Tier 1 gates (`two_pole` `grad_med = 0.1962 <= 1.0`, `ring16_acquisition` `hq = 0.9321`) and sped up `r256` to `108.43 ms/step`, but exposed three fundamental mathematical obstructions:
 
@@ -42,7 +44,9 @@ $$S(a, b) = \frac{|D_\theta(a) - D_\theta(b)|}{\sqrt{\|a - b\|_2^2 + \varepsilon
 2. **Theorem 2 (High-Dimensional Projection Attenuation & Variance)**: For $\hat{u} \sim \mathcal{U}(S^{d-1})$ or normalized Rademacher $u \in \{\pm d^{-1/2}\}^d$, $\mathbb{E}[(\nabla_x D(x) \cdot u)^2] = \frac{1}{d}\|\nabla_x D(x)\|_2^2$. Unscaled secants underestimate $\|\nabla_x D\|_2$ by $\sqrt{d}$ ($13.04\times$ at $d = 170$ on `five_word_joint_smoke`). Conversely, multiplying a single probe ($K=1$) by $d$ yields kurtosis $\text{Var}[d(\nabla_x D \cdot u)^2] \approx 2 \|\nabla_x D\|_2^4$ (relative standard error $\sqrt{2} \approx 141\%$).
 3. **Theorem 3 (Piecewise-Linear Parameter-Jacobian Kink Impulses)**: For a ReLU/LeakyReLU critic $D_\theta(x) = \sum_\ell \alpha_\ell(x)^\top x + \beta_\ell(x)$, $D_\theta$ is continuous across hyperplane kinks $H_j = \{x : w_j^\top h(x) + b_j = 0\}$, but $\nabla_\theta D_\theta(x)$ jumps across $H_j$. Whenever the segment $[x, x + \delta u]$ crosses $H_j$, the finite-difference parameter gradient
 
-$$\nabla_\theta \left[\frac{D_\theta(x + \delta u) - D_\theta(x)}{\delta}\right] = \frac{\nabla_\theta D_\theta(x + \delta u) - \nabla_\theta D_\theta(x)}{\delta}$$
+$$
+\nabla_\theta \left[\frac{D_\theta(x + \delta u) - D_\theta(x)}{\delta}\right] = \frac{\nabla_\theta D_\theta(x + \delta u) - \nabla_\theta D_\theta(x)}{\delta}
+$$
 
 contains an **$O(1/\delta)$ impulse** from the mismatched gate indicator $\mathbb{I}[w_j^\top h(x+\delta u)+b_j > 0] \ne \mathbb{I}[w_j^\top h(x)+b_j > 0]$ (empirically degrading parameter-gradient cosine similarity against exact R1/Born-Infeld gradients to `0.22–0.32` at $\delta = 2 \times 10^{-3}$).
 
@@ -55,7 +59,9 @@ contains an **$O(1/\delta)$ impulse** from the mismatched gate indicator $\mathb
 - **Mid-Dimensional Manifolds ($5 \le d \le 8$)**: Two chained analytical Householder reflections $Q(\phi) = (I - 2 v_1 v_1^\top)(I - 2 v_0 v_0^\top) \in O(d)$ construct an exact orthonormal frame in $O(d)$ on GPU with zero cuSOLVER QR synchronization and zero RNG state consumption.
 - **High-Dimensional Manifolds ($d > 8$, e.g., $d = 170$ Word Simplexes)**: Deterministic 32-bit Murmur3 Rademacher unit tangents $u_i \in \{\pm d^{-1/2}\}^d$ are pooled across $k = 32$ local Gaussian-weighted nearest neighbors:
 
-$$\widehat{\|\nabla_x D(x_i)\|_2^2} = d \sum_{m \in \mathcal{N}_k(i)} w_{im} \big(\nabla_x D(x_m) \cdot u_m\big)^2, \qquad \sum_{m} w_{im} = 1,$$
+$$
+\widehat{\|\nabla_x D(x_i)\|_2^2} = d \sum_{m \in \mathcal{N}_k(i)} w_{im} \big(\nabla_x D(x_m) \cdot u_m\big)^2, \qquad \sum_{m} w_{im} = 1,
+$$
 
 cutting Hutchinson relative error by $1/\sqrt{32}$ (`param_grad_cosine = 0.79` at $d=170$) in **one $1.0\times$-batch forward-AD pass**.
 - **BF16 Convolutional Image Critics (`is_image_tensor`)**: An instance-bound forward hook (`_attach_t2_critic_hook`) captures the live unscaled 1st-order logits $D(x_{\text{real}})$ and $D(x_{\text{fake}})$ computed during `d_loss` (guarded by step tags, `module.training`, and tensor backward-invalidation hooks so freed graphs are never reused). `_T2SecantPenaltyKernel` reuses these live endpoints at **0 extra forward cost**, evaluates **1** interleaved BF16 probe batch $z_{\text{base}} + \delta u_{\text{sep}}$ ($\delta = 0.02$, $O(B(CH+W))$ separable Murmur3 Rademacher perturbation), forms the multi-scale secant envelope across micro-probes, real-fake chords, and cyclic intra-batch rolls, and tracks Chamfer scale on $8 \times 8$ pooled spatial moments (`F.adaptive_avg_pool2d(..., 8)`) in $O(B^2)$ time — cutting total critic cost from $\sim 15 F_D$ to **$\sim 6 F_D$**.

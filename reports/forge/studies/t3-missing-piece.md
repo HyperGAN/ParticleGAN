@@ -37,7 +37,11 @@ Implemented in [`particlegan/_t3_dynamics/`](../../../particlegan/_t3_dynamics/)
 
 ### Pillar 1: Symmetric Target-Induced Conformal Riemannian Horizon ([`conformal_horizon_pair`](../../../particlegan/_t3_dynamics/metric.py))
 From each detached real batch $Y = \{y_j\}_{j=1}^{B_r}$, `RGDT` estimates local $k$-NN target scales truncated by cyclic midpoint valley gaps (preventing empty-valley bridging) and $d_{(2)}$ jump caps (preserving 2% rare modes), then evaluates a **single smooth Euclidean-Voronoi scalar field** $\ell_Y: \mathbb{R}^d \to \mathbb{R}_+$ identically on $X$ and $Y$:
-$$\ell_{XY}[i, j] = \sqrt{\ell_Y(x_i)\,\ell_Y(y_j)}, \qquad \ell_{XX}[i, i'] = \sqrt{\ell_Y(x_i)\,\ell_Y(x_{i'})}.$$
+
+$$
+\ell_{XY}[i, j] = \sqrt{\ell_Y(x_i)\,\ell_Y(y_j)}, \qquad \ell_{XX}[i, i'] = \sqrt{\ell_Y(x_i)\,\ell_Y(x_{i'})}.
+$$
+
 - **Theorem (Exact Feydy Unbiasedness under Heteroscedastic Rescaling):** Because $\ell_Y(\cdot)$ depends only on detached $Y$, when $X = Y$ we have $\ell_{XY} \equiv \ell_{XX}$ element-by-element (`atol < 1e-7`), so the Feydy Sinkhorn divergence $\langle P_{XY}^{\text{act}}, c_{\ell_{XY}}\rangle - \frac{1}{2}\langle P_{XX}^{\text{eff}}, c_{\ell_{XX}}\rangle$ has **exact zero gradient at $q_\theta = p$** while equalizing dimensionless intra-mode horizons $\|y_j - y_{j'}\|/\ell_{XY} = O(1)$ across arbitrary mode-width ratios ($\sigma_4/\sigma_1 = 4.3$).
 - **`rgdt-v1 -> rgdt-v2` refinement:** Replacing column-wise $\ell_j^{-1}$ softmax weights with row-local $k=3$ Euclidean Voronoi bandwidth $h_Y(u)$ makes kernel weights strictly monotone in $\|u - y_j\|_2$, preventing broad modes from hijacking narrow Voronoi basins while keeping bit-for-bit $X = Y$ symmetry.
 

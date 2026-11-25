@@ -33,17 +33,17 @@ In `benchmarks/toy100/problems.py`:
   - `grid100`: $10 \times 10$ orthogonal grid at centers $c_k \in \{-4.5, -3.5, \dots, +4.5\}^2$, pitch $\Delta = 1.0$.
   - `rotated100`: Orthogonal grid rotated by $\theta = \pi / 6$.
   - `staggered100`: Triangular/hexagonal staggered arrangement with pitch $\Delta = 1.0$.
-- Pitch-to-spread ratio:
-  $$\frac{\Delta}{\sigma} = \frac{1.0}{0.03} \approx 33.33$$
-- Inter-disk void distance:
-  $$\text{Gap} = \Delta - 2 R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma$$
-- Domain area: The bounding box $[-5.0, 5.0]^2$ has area $A_{\text{total}} = 100$. The combined area of the 100 mode disks is:
-  $$A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447$$
-  **$97.455\%$ of the data domain is empty interstitial void.**
+- Pitch-to-spread ratio: $\Delta / \sigma = 1.0 / 0.03 \approx 33.33$.
+- Inter-disk void distance: $\text{Gap} = \Delta - 2 R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma$.
+- Domain area: The bounding box $[-5.0, 5.0]^2$ has area $A_{\text{total}} = 100$. The combined area of the 100 mode disks is $A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447$. **$97.455\%$ of the data domain is empty interstitial void.**
 
 ### 2.2 Theoretical Oracle Precision Ceiling
 For a true 2D Gaussian $\mathcal{N}(c_k, \sigma^2 I_2)$, the normalized radius $R / \sigma = \|X - c_k\|_2 / \sigma$ follows a Rayleigh distribution:
-$$P(R / \sigma \le 3.0) = \int_0^3 r e^{-r^2 / 2} \, dr = 1 - e^{-4.5} \approx 0.988891 \quad (98.889\%)$$
+
+$$
+P(R / \sigma \le 3.0) = \int_0^3 r e^{-r^2 / 2} \, dr = 1 - e^{-4.5} \approx 0.988891 \quad (98.889\%)
+$$
+
 The unassigned Gaussian tail probability is $e^{-4.5} \approx 1.111\%$.
 
 ### 2.3 The Noisy Origin of 0.97
@@ -90,7 +90,11 @@ As documented in `reports/forge/test-dispositions-20261015/README.md#L742-L753`,
 Let $\mathcal{Z} \subset \mathbb{R}^d$ be a connected, open latent domain equipped with continuous prior density $p(z) > 0$. Let $G: \mathcal{Z} \to \mathbb{R}^2$ be a continuous mapping (specifically, an $L$-layer continuous piecewise-linear MLP with LeakyReLU activations).
 
 Let $\mathcal{X}_{\text{target}}$ consist of $K = 100$ disjoint closed mode balls:
-$$B_k = \{x \in \mathbb{R}^2 : \|x - c_k\|_2 \le R_{\text{hq}}\}, \quad k \in \{1, \dots, 100\}$$
+
+$$
+B_k = \{x \in \mathbb{R}^2 : \|x - c_k\|_2 \le R_{\text{hq}}\}, \quad k \in \{1, \dots, 100\}
+$$
+
 where $R_{\text{hq}} = 0.09$ and $\min_{j \ne k} \|c_j - c_k\|_2 = 1.0$.
 
 Let $U_k = G^{-1}(B_k) = \{z \in \mathcal{Z} : G(z) \in B_k\}$. If $G$ covers all 100 modes (i.e., $U_k \ne \emptyset$ for all $k$), then:
@@ -101,17 +105,35 @@ Let $U_k = G^{-1}(B_k) = \{z \in \mathcal{Z} : G(z) \in B_k\}$. If $G$ covers al
 
 ### 4.2 Measure-Theoretic filament Mass Lower Bound
 The high-quality sample precision is given by:
-$$\text{Precision} = P_{z \sim p}(G(z) \in \bigcup_{k=1}^{100} B_k) = 1 - P_{z \sim p}(z \in V)$$
+
+$$
+\text{Precision} = P_{z \sim p}(G(z) \in \bigcup_{k=1}^{100} B_k) = 1 - P_{z \sim p}(z \in V)
+$$
+
 For $G$ to satisfy $\text{Precision} \ge 0.97$:
-$$P_{z \sim p}(z \in V) \le 0.0300$$
+
+$$
+P_{z \sim p}(z \in V) \le 0.0300
+$$
+
 Accounting for the theoretical Gaussian tail outside $R_{\text{hq}}$ ($1 - 0.98889 = 0.0111$), the total allowed probability mass for the transition region across all 100 modes is:
-$$\text{Allowed filament mass} \le 0.0300 - 0.0111 = 0.0189 \quad (1.89\%)$$
+
+$$
+\text{Allowed filament mass} \le 0.0300 - 0.0111 = 0.0189 \quad (1.89\%)
+$$
 
 Across the $10 \times 10$ mode grid, there exist at least $2 \times 9 \times 10 = 180$ nearest-neighbor mode boundaries. Per boundary, the allowed transition mass is:
-$$\frac{0.0189}{180} \approx 0.000105 \quad (0.01\% \text{ per boundary interface})$$
+
+$$
+\frac{0.0189}{180} \approx 0.000105 \quad (0.01\% \text{ per boundary interface})
+$$
 
 For an MLP generator with Lipschitz constant $\text{Lip}(G)$, traversing the void distance $\text{Gap} = 0.82$ requires a latent path length of at least:
-$$\delta_z \ge \frac{0.82}{\text{Lip}(G)}$$
+
+$$
+\delta_z \ge \frac{0.82}{\text{Lip}(G)}
+$$
+
 To compress the transition stripe width $\delta_z$ such that its prior integral is $\le 0.01\%$, $\text{Lip}(G)$ must exceed $120$. However:
 - Critic Lipschitz regularization ($R_1$, $R_2$ penalties, gradient clipping $b_{\text{cap}}$).
 - Generator weight decay and finite learning rates.
@@ -128,29 +150,51 @@ A proposed alternative explored in early research was restricting capacity to 5 
 ### 5.1 Proof A: Kolmogorov-Smirnov Step-Function Lower Bound on Radial Fidelity
 The task accuracy gate enforces `radial_ks <= 0.04`.
 In `benchmarks/toy100/accuracy.py:134-142`, `radial_ks` measures the Kolmogorov-Smirnov distance between the empirical CDF $F_M(r)$ of normalized in-radius radii $r_i = \|x_i - c_k\| / \sigma$ and the theoretical Rayleigh CDF:
-$$F_{\text{target}}(r) = \frac{1 - e^{-r^2 / 2}}{1 - e^{-4.5}}, \quad r \in [0, 3.0]$$
+
+$$
+F_{\text{target}}(r) = \frac{1 - e^{-r^2 / 2}}{1 - e^{-4.5}}, \quad r \in [0, 3.0]
+$$
 
 For any empirical distribution composed of $M$ discrete particles, $F_M(r)$ is a monotonically non-decreasing step function with $M$ jumps of size at least $1/M$.
 
 **Lemma**: For any continuous strictly increasing CDF $F(r)$ on $[a, b]$ and any empirical step function $F_M(r)$ with $M$ points, the Kolmogorov-Smirnov distance is strictly bounded below by:
-$$\inf_{\{r_1, \dots, r_M\}} \sup_{r} |F_M(r) - F(r)| \ge \frac{1}{2M}$$
+
+$$
+\inf_{\{r_1, \dots, r_M\}} \sup_{r} |F_M(r) - F(r)| \ge \frac{1}{2M}
+$$
+
 *Proof*: At each point $r_i$, $F_M(r)$ jumps from $(i-1)/M$ to $i/M$. If $F(r_i) = (i - 0.5)/M$, the distance at the left and right limits is $|F_M(r_i^-) - F(r_i)| = 1/(2M)$ and $|F_M(r_i) - F(r_i)| = 1/(2M)$. Any deviation of $F(r_i)$ from the midpoint increases one of the two errors. Thus $D_{\text{KS}} \ge \frac{1}{2M}$. $\square$
 
 **Application to 5 Particles/Mode ($M = 5$)**:
-$$D_{\text{KS}} \ge \frac{1}{2 \times 5} = 0.100$$
+
+$$
+D_{\text{KS}} \ge \frac{1}{2 \times 5} = 0.100
+$$
+
 Even under the theoretically optimal particle placement that minimizes KS, $D_{\text{KS}} \ge 0.100 > 0.040$.
 In live training with continuous generators, empirical clustering produces $\text{KS} \approx 0.32 - 0.51$, exceeding the $0.04$ limit by $8\times - 13\times$ (recorded as a confirmed dead end in `teamwork_orchestrator_2/DEAD_ENDS.md:6`).
 
 **Application to 200 Particles/Mode ($M = 200$, $N = 20,000$)**:
 At $M = 200$, the discrete step height is $1/200 = 0.005 \ll 0.040$. Pooled across 100 modes ($N_{\text{hq}} \approx 15,000$ points), the expected asymptotic KS statistic is:
-$$\mathbb{E}[D_{\text{KS}}] \approx \frac{0.868}{\sqrt{N_{\text{hq}}}} \approx \frac{0.868}{\sqrt{15000}} \approx 0.0071 \ll 0.040$$
+
+$$
+\mathbb{E}[D_{\text{KS}}] \approx \frac{0.868}{\sqrt{N_{\text{hq}}}} \approx \frac{0.868}{\sqrt{15000}} \approx 0.0071 \ll 0.040
+$$
+
 Leaving generous margin below the $0.040$ accuracy gate. Therefore, $N = 20,000$ is strictly required.
 
 ### 5.2 Proof B: Breakdown of $k$-NN Density Estimation in `birth_death.py`
 In `particlegan/birth_death.py#L265`:
-$$k = \min\left( \left\lceil \frac{\log_2(N / Q) + 1}{2} \right\rceil, \max(1, N - 2) \right)$$
+
+$$
+k = \min\left( \left\lceil \frac{\log_2(N / Q) + 1}{2} \right\rceil, \max(1, N - 2) \right)
+$$
+
 For $N = 500$ and default $Q = 0.05$:
-$$\log_2\left(\frac{500}{0.05}\right) = \log_2(10000) \approx 13.29 \implies k = \left\lceil \frac{14.29}{2} \right\rceil = 8$$
+
+$$
+\log_2\left(\frac{500}{0.05}\right) = \log_2(10000) \approx 13.29 \implies k = \left\lceil \frac{14.29}{2} \right\rceil = 8
+$$
 
 If a mode contains only $M = 5$ particles, the 8 nearest neighbors of any particle in that mode **must include at least 3 particles belonging to other modes across the $33.3\sigma$ void**.
 - Intra-mode neighbor distance: $r_1, \dots, r_4 \sim \mathcal{O}(\sigma) = 0.03$.
@@ -158,7 +202,11 @@ If a mode contains only $M = 5$ particles, the 8 nearest neighbors of any partic
 The $k$-NN ball radius expands from $0.03$ to $1.0$ (a $33$-fold distortion). The density ratio estimator $\hat{\rho}(x) \propto k / (N V_d r_k^d)$ collapses, measuring lattice grid pitch rather than local mode density. Spurious birth-death events are triggered, destabilizing the system.
 
 For $N = 20,000$ ($M = 200$ per mode):
-$$k = \left\lceil \frac{\log_2(20000 / 0.05) + 1}{2} \right\rceil = \lceil 9.8 \rceil = 10 \ll 200$$
+
+$$
+k = \left\lceil \frac{\log_2(20000 / 0.05) + 1}{2} \right\rceil = \lceil 9.8 \rceil = 10 \ll 200
+$$
+
 All $10$ nearest neighbors remain safely within the local mode disk ($r_{10} \approx 0.03 \ll 1.0$), ensuring accurate, stable density estimation.
 
 ### 5.3 Proof C: Poisson Mass Fragility
@@ -167,14 +215,26 @@ With $N = 500$ particles total:
 - Expected particles per mode: $\lambda = 5$.
 - A mode fails `min_hq_mode_mass >= 0.005` if it contains $\le 2$ particles ($2 \times 0.002 = 0.004 < 0.005$).
 Under Poisson fluctuations:
-$$P(\text{Poisson}(5) \le 2) = e^{-5}\left(1 + 5 + \frac{25}{2}\right) = 18.5 e^{-5} \approx 0.1247 \quad (12.5\%)$$
+
+$$
+P(\text{Poisson}(5) \le 2) = e^{-5}\left(1 + 5 + \frac{25}{2}\right) = 18.5 e^{-5} \approx 0.1247 \quad (12.5\%)
+$$
+
 The probability that all 100 modes maintain $\ge 3$ particles simultaneously is:
-$$P(\text{all 100 modes pass}) = (1 - 0.1247)^{100} = (0.8753)^{100} \approx 1.7 \times 10^{-6}$$
+
+$$
+P(\text{all 100 modes pass}) = (1 - 0.1247)^{100} = (0.8753)^{100} \approx 1.7 \times 10^{-6}
+$$
+
 With $99.9998\%$ probability, random sampling alone causes at least one mode to fail.
 
 For $N = 20,000$ ($\lambda = 200$, $\text{Std} = \sqrt{200} \approx 14.14$):
 Failing the 0.005 threshold requires $< 100$ particles, a deviation of:
-$$Z = \frac{200 - 100}{14.14} \approx 7.07\sigma$$
+
+$$
+Z = \frac{200 - 100}{14.14} \approx 7.07\sigma
+$$
+
 $P(Z > 7.07) \approx 7.7 \times 10^{-13}$. Across 100 modes, $P(\text{failure}) \approx 7.7 \times 10^{-11} \approx 0$.
 The mass gate is completely secure.
 
