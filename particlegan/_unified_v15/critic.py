@@ -30,7 +30,7 @@ from ..k3p import K3PCriticAdam
 from .._unified_v11.bank import UnifiedV11CondFiberBank, validate_v11_bank_packet
 
 _MAX_D_PROBES = 2
-_PROBE_SLICE = 16
+_PROBE_SLICE = 32
 
 _UNIFIED_V15_PACKET_KEYS = frozenset({
     *_T1C_PACKET_KEYS,
@@ -41,7 +41,216 @@ _UNIFIED_V15_PACKET_KEYS = frozenset({
     "margin_initialized",
     "g_func_gain",
     "cond_fiber_bank",
+    "highd_basin_bank",
 })
+
+
+_HIGHD_BANK_KEYS = frozenset({
+    "k",
+    "dim",
+    "sigma_z_ema",
+    "sigma_z_init",
+    "w_y",
+    "mu_y",
+    "cov_y",
+    "rad_y",
+    "w_x",
+    "mu_x",
+    "cov_x",
+})
+
+
+def validate_v15_highd_bank_packet(packet: Any) -> Dict[str, Any]:
+    """Validate checkpoint schema for ``UnifiedV15HighDBasinBank``."""
+    if not isinstance(packet, dict):
+        raise ValueError("invalid unified_v15 highd_basin_bank packet")
+    k_val = packet.get("k")
+    d_val = packet.get("dim")
+    sig_ema = packet.get("sigma_z_ema")
+    sig_init = packet.get("sigma_z_init")
+    if type(k_val) is not int or k_val < 0 or k_val > 64:
+        raise ValueError("invalid highd_basin_bank k")
+    if type(d_val) is not int or d_val < 0 or d_val > 1024:
+        raise ValueError("invalid highd_basin_bank dim")
+    if isinstance(sig_ema, bool) or not isinstance(sig_ema, (int, float)) or not math.isfinite(sig_ema) or float(sig_ema) < 0.0:
+        raise ValueError("invalid highd_basin_bank sigma_z_ema")
+    if type(sig_init) is not bool:
+        raise ValueError("invalid highd_basin_bank sigma_z_init")
+    if k_val == 0:
+        if set(packet) != {"k", "dim", "sigma_z_ema", "sigma_z_init"}:
+            raise ValueError("invalid empty highd_basin_bank packet keys")
+        return packet
+    if set(packet) != _HIGHD_BANK_KEYS or d_val < 1:
+        raise ValueError("invalid populated highd_basin_bank packet keys")
+    expected_shapes = {
+        "w_y": (k_val,),
+        "mu_y": (k_val, d_val),
+        "cov_y": (k_val, d_val, d_val),
+        "rad_y": (k_val,),
+        "w_x": (k_val,),
+        "mu_x": (k_val, d_val),
+        "cov_x": (k_val, d_val, d_val),
+    }
+    for name, shp in expected_shapes.items():
+        ten = packet[name]
+        if not isinstance(ten, torch.Tensor) or tuple(ten.shape) != shp or not bool(torch.isfinite(ten).all()):
+            raise ValueError(f"invalid highd_basin_bank tensor {name}")
+        if name in ("w_y", "w_x") and float(ten.amin().item()) < 0.0:
+            raise ValueError(f"negative highd_basin_bank weight {name}")
+        if name == "rad_y" and float(ten.amin().item()) <= 0.0:
+            raise ValueError("nonpositive highd_basin_bank rad_y")
+    return packet
+
+
+class UnifiedV15HighDBasinBank:
+    """Checkpointed, zero-`eigh`, Haar-O(d)-invariant streaming basin statistics for ``16 < dim <= 256``."""
+
+    def __init__(self, *, max_basins: int = 16, gamma: float = 0.90) -> None:
+        self.max_basins = int(max_basins)
+        self.gamma = float(gamma)
+        self.dim: int = 0
+        self.k: int = 0
+        self.sigma_z_ema: float = 0.0
+        self.sigma_z_init: bool = False
+        self.w_y: Optional[torch.Tensor] = None
+        self.mu_y: Optional[torch.Tensor] = None
+        self.cov_y: Optional[torch.Tensor] = None
+        self.rad_y: Optional[torch.Tensor] = None
+        self.w_x: Optional[torch.Tensor] = None
+        self.mu_x: Optional[torch.Tensor] = None
+        self.cov_x: Optional[torch.Tensor] = None
+
+    def reset(self) -> None:
+        self.dim = 0
+        self.k = 0
+        self.sigma_z_ema = 0.0
+        self.sigma_z_init = False
+        self.w_y = self.mu_y = self.cov_y = self.rad_y = None
+        self.w_x = self.mu_x = self.cov_x = None
+
+    def to_packet(self) -> Dict[str, Any]:
+        if self.k == 0 or self.w_y is None:
+            return {
+                "k": 0,
+                "dim": int(self.dim),
+                "sigma_z_ema": float(self.sigma_z_ema),
+                "sigma_z_init": bool(self.sigma_z_init),
+            }
+        return {
+            "k": int(self.k),
+            "dim": int(self.dim),
+            "sigma_z_ema": float(self.sigma_z_ema),
+            "sigma_z_init": bool(self.sigma_z_init),
+            "w_y": self.w_y.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "mu_y": self.mu_y.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "cov_y": self.cov_y.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "rad_y": self.rad_y.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "w_x": self.w_x.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "mu_x": self.mu_x.detach().to(device="cpu", dtype=torch.float64).clone(),
+            "cov_x": self.cov_x.detach().to(device="cpu", dtype=torch.float64).clone(),
+        }
+
+    def load_packet(self, packet: Any) -> None:
+        validate_v15_highd_bank_packet(packet)
+        self.dim = int(packet["dim"])
+        self.k = int(packet["k"])
+        self.sigma_z_ema = float(packet["sigma_z_ema"])
+        self.sigma_z_init = bool(packet["sigma_z_init"])
+        if self.k == 0:
+            self.w_y = self.mu_y = self.cov_y = self.rad_y = None
+            self.w_x = self.mu_x = self.cov_x = None
+            return
+        self.w_y = packet["w_y"].detach().to(dtype=torch.float64).clone()
+        self.mu_y = packet["mu_y"].detach().to(dtype=torch.float64).clone()
+        self.cov_y = packet["cov_y"].detach().to(dtype=torch.float64).clone()
+        self.rad_y = packet["rad_y"].detach().to(dtype=torch.float64).clone()
+        self.w_x = packet["w_x"].detach().to(dtype=torch.float64).clone()
+        self.mu_x = packet["mu_x"].detach().to(dtype=torch.float64).clone()
+        self.cov_x = packet["cov_x"].detach().to(dtype=torch.float64).clone()
+
+    def restore_device(self, device: torch.device) -> None:
+        if self.k == 0 or self.w_y is None:
+            return
+        self.w_y = self.w_y.to(device=device, dtype=torch.float64)
+        self.mu_y = self.mu_y.to(device=device, dtype=torch.float64)
+        self.cov_y = self.cov_y.to(device=device, dtype=torch.float64)
+        self.rad_y = self.rad_y.to(device=device, dtype=torch.float64)
+        self.w_x = self.w_x.to(device=device, dtype=torch.float64)
+        self.mu_x = self.mu_x.to(device=device, dtype=torch.float64)
+        self.cov_x = self.cov_x.to(device=device, dtype=torch.float64)
+
+    def copy(self) -> "UnifiedV15HighDBasinBank":
+        dup = UnifiedV15HighDBasinBank(max_basins=self.max_basins, gamma=self.gamma)
+        dup.dim = self.dim
+        dup.k = self.k
+        dup.sigma_z_ema = self.sigma_z_ema
+        dup.sigma_z_init = self.sigma_z_init
+        if self.k > 0 and self.w_y is not None:
+            dup.w_y = self.w_y.detach().clone()
+            dup.mu_y = self.mu_y.detach().clone()
+            dup.cov_y = self.cov_y.detach().clone()
+            dup.rad_y = self.rad_y.detach().clone()
+            dup.w_x = self.w_x.detach().clone()
+            dup.mu_x = self.mu_x.detach().clone()
+            dup.cov_x = self.cov_x.detach().clone()
+        return dup
+
+
+def _has_spatial_dims(x: torch.Tensor) -> bool:
+    """Return True iff ``x`` has non-singleton spatial dimensions beyond ``(B, C)``."""
+    return x.ndim >= 3 and any(int(s) > 1 for s in x.shape[2:])
+
+
+def _probe_batch_count(b_full: int, elem_dim: int) -> int:
+    """Element-budgeted probe count eliminating b_p=2 rare-mode blindness (D-04)."""
+    if elem_dim <= 16:
+        return min(b_full, 16)
+    if elem_dim <= 16384:
+        return min(b_full, max(8, min(_PROBE_SLICE, 65536 // max(1, elem_dim))))
+    return min(b_full, max(4, min(16, 65536 // max(1, elem_dim))))
+
+
+@torch.no_grad()
+def _select_probe_indices(ref: torch.Tensor, b_full: int, b_probe: int) -> Optional[torch.Tensor]:
+    """Zero-sync deterministic stratified / rare-tail probe indices (0 RNG, 0% rare-mode blindness)."""
+    if b_probe >= b_full:
+        return None
+    elem_dim = max(1, int(ref[0].numel()))
+    flat = ref.detach().reshape(b_full, -1).float()
+    dev_sq = (flat - flat.mean(dim=0, keepdim=True)).square().sum(dim=1)
+    order = torch.argsort(dev_sq, stable=True)
+    if elem_dim > 16:
+        if b_probe <= 1:
+            return order[-1:]
+        pos = torch.linspace(0.0, float(b_full - 1), steps=b_probe, device=ref.device).round().to(dtype=torch.long)
+        pos = pos.clamp(0, b_full - 1)
+        return order.index_select(0, pos)
+    idx = torch.arange(b_probe, device=ref.device, dtype=torch.long)
+    i95 = min(b_full - 1, int(round(0.95 * float(b_full - 1))))
+    i99 = max(0, b_full - max(1, b_full // 100))
+    v95 = dev_sq[order[i95]]
+    v99 = dev_sq[order[i99]]
+    vmax = dev_sq[order[-1]]
+    is_extreme = (v95 > 0.0) & (vmax > (4.0 * v95))
+    is_rare_cluster = (v95 > 0.0) & (v99 > (1.60 * v95))
+    tail_idx = torch.where(is_extreme, order[-1], order[i99])
+    use_tail = (is_extreme | is_rare_cluster) & (tail_idx >= b_probe)
+    idx[-1] = torch.where(use_tail, tail_idx, idx[-1])
+    return idx
+
+
+def _index_probe_arg(val: Any, b_full: int, idx: Optional[torch.Tensor]) -> Any:
+    if isinstance(val, torch.Tensor):
+        if idx is not None and val.ndim >= 1 and val.shape[0] == b_full:
+            return val.detach().index_select(0, idx.to(device=val.device))
+        return val.detach()
+    if isinstance(val, dict):
+        return {k: _index_probe_arg(v, b_full, idx) for k, v in val.items()}
+    if isinstance(val, tuple):
+        return tuple(_index_probe_arg(v, b_full, idx) for v in val)
+    if isinstance(val, list):
+        return [_index_probe_arg(v, b_full, idx) for v in val]
+    return val
 
 
 def _slice_probe_arg(val: Any, b_full: int, b_probe: int) -> Any:
@@ -155,6 +364,7 @@ def _validate_unified_v15_packet(packet: Any) -> Dict[str, Any]:
     ):
         raise ValueError("invalid unified_v15 g_func_gain outside (0, 1]")
     validate_v11_bank_packet(packet["cond_fiber_bank"])
+    validate_v15_highd_bank_packet(packet["highd_basin_bank"])
     t1c_sub = {k: packet[k] for k in _T1C_PACKET_KEYS}
     if "atomic_ledger" in packet:
         t1c_sub["atomic_ledger"] = packet["atomic_ledger"]
@@ -180,10 +390,12 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._margin_init_t: Optional[torch.Tensor] = None
         self._g_func_gain: float = 1.0
         self.cond_fiber_bank = UnifiedV11CondFiberBank()
+        self.highd_basin_bank = UnifiedV15HighDBasinBank()
         self._live_captures: List[List[Any]] = []
         self._last_probe_actual_input: Optional[torch.Tensor] = None
         self._d_probe_list: List[Tuple[Tuple[Any, ...], Dict[str, Any], torch.Tensor]] = []
         self._g_probe_cache: Optional[Tuple[nn.Module, Tuple[Any, ...], Dict[str, Any], torch.Tensor]] = None
+        self._g_last_latent: Optional[Tuple[nn.Module, torch.Tensor]] = None
         self._in_probe: bool = False
         self._enable_secant_probe: bool = True
 
@@ -345,7 +557,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         dev = x_real.device
         step_tag = int(getattr(self, "observed_steps", 0))
         xr = x_real.detach().reshape(x_real.shape[0], -1).float()
-        sc = xr.square().sum(dim=-1).mean().sqrt().clamp_min(0.05).double()
+        sc = xr.square().sum(dim=-1).mean().sqrt().clamp_min(1e-12).double()
         fin_sc = torch.isfinite(sc)
 
         if self._ema_data_scale_t is not None and self._ema_data_scale_t.device == dev:
@@ -363,7 +575,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
             xf = x_fake.detach().reshape(x_fake.shape[0], -1).float()
             mean_gap = (xf.mean(dim=0) - xr.mean(dim=0)).norm().double()
             std_gap = (xf.std().double() - xr.std().double()).abs()
-            rel_gap = ((mean_gap + 0.5 * std_gap) / new_sc.clamp_min(0.05)).clamp_max(10.0)
+            rel_gap = ((mean_gap + 0.5 * std_gap) / new_sc.clamp_min(1e-12)).clamp_max(10.0)
             fin_rg = torch.isfinite(rel_gap)
 
             if self._ema_push_res_t is not None and self._ema_push_res_t.device == dev:
@@ -384,6 +596,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
     def clear_step_probes(self) -> None:
         if hasattr(self, "_d_probe_list") and self._d_probe_list:
             self._d_probe_list.clear()
+        self._g_last_latent = None
 
     def _unified_v15_packet(self) -> Dict[str, Any]:
         return {
@@ -395,7 +608,12 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
             "margin_initialized": bool(self.margin_initialized),
             "g_func_gain": float(self._g_func_gain),
             "cond_fiber_bank": self.cond_fiber_bank.to_packet(),
+            "highd_basin_bank": self.highd_basin_bank.to_packet(),
         }
+
+    def restore_device_state(self, device: torch.device) -> None:
+        super().restore_device_state(device)
+        self.highd_basin_bank.restore_device(device)
 
     def _restore_unified_v15_packet(self, packet: Dict[str, Any]) -> None:
         _validate_unified_v15_packet(packet)
@@ -410,12 +628,14 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self.margin_initialized = bool(packet["margin_initialized"])
         self._g_func_gain = float(packet["g_func_gain"])
         self.cond_fiber_bank.load_packet(packet["cond_fiber_bank"])
+        self.highd_basin_bank.load_packet(packet["highd_basin_bank"])
         self._t1c_disc_gate = 0.0
         self._simplicial_step = False
         self.clear_transient_captures()
         self._live_captures = []
         self._d_probe_list = []
         self._g_probe_cache = None
+        self._g_last_latent = None
         self._last_probe_actual_input = None
         self._in_probe = False
 
@@ -428,11 +648,13 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         dup.margin_initialized = self.margin_initialized
         dup._g_func_gain = self._g_func_gain
         dup.cond_fiber_bank = self.cond_fiber_bank.copy()
+        dup.highd_basin_bank = self.highd_basin_bank.copy()
         dup._t1c_disc_gate = 0.0
         dup._simplicial_step = False
         dup._live_captures = []
         dup._d_probe_list = []
         dup._g_probe_cache = None
+        dup._g_last_latent = None
         dup._last_probe_actual_input = None
         dup._in_probe = False
         dup._enable_secant_probe = self._enable_secant_probe
@@ -581,19 +803,26 @@ def _unified_v15_critic_forward_hook(
 
         if (
             getattr(rec, "_enable_secant_probe", True)
-            and x_first.ndim == 2
+            and x_first.ndim >= 2
+            and not _has_spatial_dims(x_first)
             and x_first.shape[0] >= 1
             and len(args) == 1
             and not kwargs
         ):
             b_full = int(x_first.shape[0])
             in_dim = max(1, int(x_first[0].numel()))
-            b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // in_dim)))
-            p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
-            if _module_needs_eval_probe_baseline(module):
+            b_p = _probe_batch_count(b_full, in_dim)
+            p_idx = _select_probe_indices(x_first, b_full, b_p)
+            p_args = tuple(_index_probe_arg(a, b_full, p_idx) for a in args)
+            raw_slice = (
+                raw_target.detach().index_select(0, p_idx.to(device=raw_target.device)).to(dtype=torch.float32)
+                if p_idx is not None
+                else raw_target.detach().to(dtype=torch.float32)
+            )
+            if _module_needs_eval_probe_baseline(module, p_args, {}, raw_slice, rec):
                 d_pre = _eval_v15_probe_forward(module, p_args, {}, rec)
             else:
-                d_pre = raw_target.detach()[:b_p].to(dtype=torch.float32)
+                d_pre = raw_slice
             if d_pre is not None:
                 probes = getattr(rec, "_d_probe_list", None)
                 if probes is None:
@@ -621,11 +850,12 @@ def _unified_v15_critic_forward_hook(
                 modified = True
             target = scaled
 
+    max_t1c_dim = 4096 if (x_first is not None and _has_spatial_dims(x_first)) else 1024
     if (
         x_first is not None
         and x_first.ndim >= 2
         and x_first.shape[0] > 0
-        and x_first[0].numel() > 1024
+        and x_first[0].numel() > max_t1c_dim
         and len(args) == 1
         and not kwargs
     ):
@@ -650,14 +880,31 @@ def _unified_v15_critic_forward_hook(
     return output if modified else None
 
 
-def _module_needs_eval_probe_baseline(module: nn.Module) -> bool:
+def _module_needs_eval_probe_baseline(
+    module: nn.Module,
+    p_args: Optional[Tuple[Any, ...]] = None,
+    p_kwargs: Optional[Dict[str, Any]] = None,
+    raw_slice: Optional[torch.Tensor] = None,
+    record: Any = None,
+) -> bool:
     cached = getattr(module, "_unified_v15_has_bn", getattr(module, "_unified_v15_gen_has_bn", None))
-    if isinstance(cached, bool):
-        return cached
-    return any(
+    if cached is True:
+        return True
+    if any(
         isinstance(m, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd))
         for m in module.modules()
-    )
+    ):
+        return True
+    verified = getattr(module, "_unified_v15_eval_verified", None)
+    if isinstance(verified, bool):
+        return verified
+    if p_args is not None and p_kwargs is not None and raw_slice is not None and module.training:
+        y_eval = _eval_v15_probe_forward(module, p_args, p_kwargs, record)
+        if y_eval is not None and y_eval.shape == raw_slice.shape:
+            differs = not bool(torch.allclose(y_eval, raw_slice, atol=1e-4, rtol=1e-3))
+            module._unified_v15_eval_verified = differs
+            return differs
+    return False
 
 
 def record_unified_v15_generator_probe(
@@ -669,7 +916,7 @@ def record_unified_v15_generator_probe(
     *,
     require_module_training: bool = True,
 ) -> bool:
-    """Capture an element-budgeted generator probe for Unified-v15 function-space secant regulation.
+    """Capture a stratified element-budgeted generator probe for Unified-v15 function-space secant regulation.
 
     Supports single-tensor and multi-input/composite generator modules whose ``forward(*args, **kwargs)``
     replays the full generator computation from sampled latent (and conditioning) to generated output.
@@ -698,15 +945,32 @@ def record_unified_v15_generator_probe(
         return False
     b_full = int(raw_out.shape[0])
     out_dim = max(1, int(raw_out[0].numel()))
-    b_p = min(b_full, max(2, min(_PROBE_SLICE, 8192 // out_dim)))
-    p_args = tuple(_slice_probe_arg(a, b_full, b_p) for a in args)
-    p_kwargs = {k: _slice_probe_arg(v, b_full, b_p) for k, v in kwargs.items()}
-    if _module_needs_eval_probe_baseline(module):
+    if (
+        not _has_spatial_dims(raw_out)
+        and 16 < out_dim <= 256
+        and len(args) == 1
+        and not kwargs
+        and isinstance(args[0], torch.Tensor)
+        and args[0].ndim >= 2
+        and not _has_spatial_dims(args[0])
+        and args[0].shape[0] == b_full
+    ):
+        record._g_last_latent = (module, args[0].detach())
+    b_p = _probe_batch_count(b_full, out_dim)
+    p_idx = _select_probe_indices(raw_out, b_full, b_p)
+    p_args = tuple(_index_probe_arg(a, b_full, p_idx) for a in args)
+    p_kwargs = {k: _index_probe_arg(v, b_full, p_idx) for k, v in kwargs.items()}
+    raw_slice = (
+        raw_out.detach().index_select(0, p_idx.to(device=raw_out.device)).to(dtype=torch.float32)
+        if p_idx is not None
+        else raw_out.detach().to(dtype=torch.float32)
+    )
+    if _module_needs_eval_probe_baseline(module, p_args, p_kwargs, raw_slice, record):
         y_pre = _eval_v15_probe_forward(module, p_args, p_kwargs, record)
         if y_pre is None:
             return False
     else:
-        y_pre = raw_out.detach()[:b_p].to(dtype=torch.float32)
+        y_pre = raw_slice
     record._g_probe_cache = (module, p_args, p_kwargs, y_pre)
     return True
 
@@ -834,6 +1098,7 @@ class UnifiedV15CriticAdam(K3PCriticAdam):
 
 __all__ = [
     "UnifiedV15CriticAdam",
+    "UnifiedV15HighDBasinBank",
     "UnifiedV15StepRecord",
     "_UnifiedV15ObserverStepRecord",
     "_attach_unified_v15_critic_hook",
@@ -847,4 +1112,5 @@ __all__ = [
     "_validate_unified_v15_packet",
     "bind_unified_v15_record",
     "record_unified_v15_generator_probe",
+    "validate_v15_highd_bank_packet",
 ]

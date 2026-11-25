@@ -82,7 +82,7 @@ class _UnifiedV15CouplingBase(nn.Module):
         halo_mult: float = 2.1,
         multiscale_horizon: bool = False,
         cond_drift_deconflict: bool = False,
-        max_spatial: int = 8,
+        max_spatial: int = 16,
     ) -> None:
         super().__init__()
         for name, val, positive in (
@@ -860,6 +860,7 @@ class _UnifiedV15CouplingBase(nn.Module):
         r_atomic_fwd = 0.0
 
         g_conn_fwd = 0.0
+        g_atom_fwd = 0.0
         if self.chart_weight > 0.0 and uncond_pair and b_f >= 4 and b_r >= 4:
             # Compute spatial area ratio between transport coordinates and raw chart features.
             if y_real.ndim >= 4 and (y_real.shape[-2] > self.max_spatial or y_real.shape[-1] > self.max_spatial):
@@ -1121,7 +1122,12 @@ class _UnifiedV15CouplingBase(nn.Module):
         P_xy = self._sinkhorn_slack(
             c_hat_xy, d_fake_tilde.detach(), d_real_tilde.detach(), hollow=False, pair_mask=mask_xy
         )
-        use_hollow = self.self_coupling == "hollow"
+        use_hollow = self.self_coupling == "hollow" or (
+            x_fake.ndim >= 2
+            and not _has_spatial_dims(x_fake)
+            and int(x_fake[0].numel()) >= 256
+            and g_atom_fwd <= 0.1
+        )
         dedup_xx = self.self_coupling == "feydy_unique" or (
             self.self_coupling in ("feydy_discrete", "feydy_atomic", "feydy_atomic_v15") and discrete_step
         )
@@ -2597,7 +2603,11 @@ def v15_zero_eigh_bipartite_deficit_macro_loss(
     with torch.no_grad():
         c_f = c_hat_xy.detach().float()
         col_min_c = c_f.amin(dim=0)
-        u_orph = ((col_min_c - 2.80 * float(rho)) / max(1.20 * float(rho), 1e-6)).clamp(0.0, 1.0)
+        # D-08: align proximity onset directly with Sinkhorn slack screening crossover (1.65*rho,
+        # full at 3.00*rho) so no screening dead zone exists between local OT screening and macro
+        # orphan rescue while arriving modes settle cleanly; broad covered modes (r_loc <= 1.0)
+        # remain strictly gated off by g_loc below.
+        u_orph = ((col_min_c - 1.65 * float(rho)) / max(1.35 * float(rho), 1e-6)).clamp(0.0, 1.0)
         g_prox = u_orph * u_orph * (3.0 - 2.0 * u_orph)
 
         xf = x_fake.detach().reshape(b_f, -1).float()
@@ -3019,6 +3029,376 @@ def unified_v15_conditional_loss(
     return (imq_scale * loss_imq + loss_op).clamp(-fmax, fmax).to(x_flat.dtype)
 
 
+@torch.no_grad()
+def _highd_bank_assign_and_update(
+    bank: Any,
+    x_det: torch.Tensor,
+    y_det: torch.Tensor,
+) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    """Update checkpointed high-D streaming basin statistics (0 eigh, Haar-O(d) invariant)."""
+    dev = y_det.device
+    yf = y_det.double()
+    xf = x_det.double()
+    b_r, d = yf.shape
+    if bank.k > 0 and bank.dim != d:
+        bank.reset()
+    bank.dim = int(d)
+
+    d_yy = torch.cdist(yf, yf, p=2.0)
+    d_yy_inf = d_yy.clone()
+    d_yy_inf.fill_diagonal_(float("inf"))
+    k_loc = min(3, max(1, b_r - 1))
+    r_loc = torch.topk(d_yy_inf, k=k_loc, dim=1, largest=False).values[:, -1].clamp_min(1e-6)
+
+    if bank.k == 0 or bank.mu_y is None:
+        first = int(r_loc.argmin().item())
+        seeds = [first]
+        seed_r = [float(r_loc[first].item())]
+        while len(seeds) < bank.max_basins:
+            ratios = [
+                d_yy[:, s_idx] / torch.maximum(r_loc, torch.full_like(r_loc, sr))
+                for s_idx, sr in zip(seeds, seed_r)
+            ]
+            far_val, far_idx = torch.stack(ratios, dim=1).amin(dim=1).max(dim=0)
+            if float(far_val.item()) <= 1.85:
+                break
+            fi = int(far_idx.item())
+            seeds.append(fi)
+            seed_r.append(float(r_loc[fi].item()))
+        bank.k = len(seeds)
+        centers = yf[seeds].clone()
+        seed_r_t = torch.tensor(seed_r, dtype=torch.float64, device=dev)
+        asg_y = (torch.cdist(yf, centers, p=2.0) / seed_r_t.unsqueeze(0).clamp_min(1e-6)).argmin(dim=1)
+        bank.w_y = torch.zeros(bank.k, dtype=torch.float64, device=dev)
+        bank.mu_y = centers.clone()
+        bank.cov_y = torch.zeros((bank.k, d, d), dtype=torch.float64, device=dev)
+        bank.rad_y = seed_r_t.clone()
+        bank.w_x = torch.zeros(bank.k, dtype=torch.float64, device=dev)
+        bank.mu_x = centers.clone()
+        bank.cov_x = torch.zeros((bank.k, d, d), dtype=torch.float64, device=dev)
+        for c in range(bank.k):
+            mc = asg_y == c
+            nc = int(mc.sum().item())
+            if nc >= 1:
+                yc = yf[mc]
+                mu = yc.mean(dim=0)
+                bank.w_y[c] = float(nc)
+                bank.mu_y[c] = mu
+                ry = yc - mu
+                bank.cov_y[c] = (ry.T @ ry) / float(nc)
+                bank.rad_y[c] = r_loc[mc].median().clamp_min(1e-6)
+    else:
+        if bank.mu_y.device != dev:
+            bank.restore_device(dev)
+        d_yc = torch.cdist(yf, bank.mu_y, p=2.0)
+        denom_yc = torch.maximum(r_loc.unsqueeze(1), bank.rad_y.unsqueeze(0)).clamp_min(1e-6)
+        min_ratio, asg_y = (d_yc / denom_yc).min(dim=1)
+        far_mask = min_ratio > 1.95
+        if bank.k < bank.max_basins and int(far_mask.sum().item()) >= 3:
+            far_idx_all = far_mask.nonzero(as_tuple=False).squeeze(-1)
+            fi = int(far_idx_all[r_loc[far_idx_all].argmin()].item())
+            new_c = yf[fi : fi + 1]
+            new_r = r_loc[fi : fi + 1]
+            bank.k += 1
+            bank.mu_y = torch.cat([bank.mu_y, new_c], dim=0)
+            bank.rad_y = torch.cat([bank.rad_y, new_r], dim=0)
+            bank.w_y = torch.cat([bank.w_y, torch.zeros(1, dtype=torch.float64, device=dev)], dim=0)
+            bank.cov_y = torch.cat([bank.cov_y, torch.zeros((1, d, d), dtype=torch.float64, device=dev)], dim=0)
+            bank.mu_x = torch.cat([bank.mu_x, new_c.clone()], dim=0)
+            bank.w_x = torch.cat([bank.w_x, torch.zeros(1, dtype=torch.float64, device=dev)], dim=0)
+            bank.cov_x = torch.cat([bank.cov_x, torch.zeros((1, d, d), dtype=torch.float64, device=dev)], dim=0)
+            d_yc = torch.cdist(yf, bank.mu_y, p=2.0)
+            denom_yc = torch.maximum(r_loc.unsqueeze(1), bank.rad_y.unsqueeze(0)).clamp_min(1e-6)
+            min_ratio, asg_y = (d_yc / denom_yc).min(dim=1)
+
+        bank.w_y.mul_(bank.gamma)
+        for c in range(bank.k):
+            mc = (asg_y == c) & (min_ratio <= 1.95)
+            nc = int(mc.sum().item())
+            if nc >= 1:
+                yc = yf[mc]
+                w_new = float(bank.w_y[c].item()) + float(nc)
+                alpha = float(nc) / max(w_new, 1e-8)
+                mu_b = yc.mean(dim=0)
+                delta = mu_b - bank.mu_y[c]
+                ry = yc - mu_b
+                cov_b = (ry.T @ ry) / float(nc)
+                bank.cov_y[c] = (
+                    (1.0 - alpha) * bank.cov_y[c]
+                    + alpha * cov_b
+                    + alpha * (1.0 - alpha) * torch.outer(delta, delta)
+                )
+                bank.mu_y[c] = bank.mu_y[c] + alpha * delta
+                bank.w_y[c] = w_new
+                bank.rad_y[c] = (1.0 - alpha) * bank.rad_y[c] + alpha * r_loc[mc].median()
+
+    d_xc = torch.cdist(xf, bank.mu_y, p=2.0)
+    min_rx, asg_x = (d_xc / bank.rad_y.unsqueeze(0).clamp_min(1e-6)).min(dim=1)
+    in_basin_x = min_rx <= 2.2
+    bank.w_x.mul_(bank.gamma)
+    for c in range(bank.k):
+        mc = (asg_x == c) & in_basin_x
+        nc = int(mc.sum().item())
+        if nc >= 1:
+            xc = xf[mc]
+            w_old = float(bank.w_x[c].item())
+            w_new = w_old + float(nc)
+            alpha = float(nc) / max(w_new, 1e-8)
+            mu_b = xc.mean(dim=0)
+            rx = xc - mu_b
+            cov_b = (rx.T @ rx) / float(nc)
+            if w_old < 1e-6:
+                bank.mu_x[c] = mu_b
+                bank.cov_x[c] = cov_b
+            else:
+                delta = mu_b - bank.mu_x[c]
+                bank.cov_x[c] = (
+                    (1.0 - alpha) * bank.cov_x[c]
+                    + alpha * cov_b
+                    + alpha * (1.0 - alpha) * torch.outer(delta, delta)
+                )
+                bank.mu_x[c] = bank.mu_x[c] + alpha * delta
+            bank.w_x[c] = w_new
+    return d_xc, min_rx, asg_x
+
+
+def _has_spatial_dims(x: torch.Tensor) -> bool:
+    """Return True iff ``x`` has non-singleton spatial dimensions beyond ``(B, C)``."""
+    return x.ndim >= 3 and any(int(s) > 1 for s in x.shape[2:])
+
+
+def unified_v15_highd_basin_stein_loss(
+    x_fake: torch.Tensor,
+    y_real: torch.Tensor,
+    *,
+    record: Any = None,
+    generator: Optional[nn.Module] = None,
+    z_batch: Optional[torch.Tensor] = None,
+    allow_update: bool = True,
+    w_jac: float = 0.90,
+    w_x: float = 0.85,
+    w_mu: float = 1.45,
+    w_bridge: float = 1.55,
+) -> Tuple[torch.Tensor, float]:
+    """Zero-`eigh`, Haar-O(d)-invariant, scale-equivariant High-D Basin Wiener-Stein & shell-bridge operator (L3-7)."""
+    zero = x_fake[:0].sum()
+    bank = getattr(record, "highd_basin_bank", None) if record is not None else None
+    if bank is None or x_fake.ndim < 2 or y_real.ndim < 2 or _has_spatial_dims(x_fake) or _has_spatial_dims(y_real):
+        return zero, 0.0
+    x_fake = x_fake.reshape(int(x_fake.shape[0]), -1)
+    y_real = y_real.reshape(int(y_real.shape[0]), -1)
+    b_f, d = int(x_fake.shape[0]), int(x_fake.shape[1])
+    b_r = int(y_real.shape[0])
+    if b_f < 8 or b_r < 8 or d <= 16 or d > 256:
+        return zero, 0.0
+
+    z_tail: Tuple[int, ...] = ()
+    z_2d: Optional[torch.Tensor] = None
+    if z_batch is not None and z_batch.ndim >= 2 and not _has_spatial_dims(z_batch):
+        z_tail = tuple(z_batch.shape[2:])
+        z_2d = z_batch.reshape(int(z_batch.shape[0]), -1)
+
+    with torch.no_grad():
+        if allow_update:
+            d_xc, min_rx, asg_x = _highd_bank_assign_and_update(bank, x_fake.detach(), y_real.detach())
+            if z_2d is not None and z_2d.shape[0] >= 4 and z_2d.shape[1] >= 1:
+                zf = z_2d.detach().float()
+                d_zz = torch.cdist(zf, zf, p=2.0)
+                d_zz.fill_diagonal_(float("inf"))
+                est_sig = max(1e-4, float(torch.quantile(d_zz.amin(dim=1), 0.10).item()) / math.sqrt(2.0 * float(zf.shape[1])))
+                bank.sigma_z_ema = est_sig if not bank.sigma_z_init else (0.90 * bank.sigma_z_ema + 0.10 * est_sig)
+                bank.sigma_z_init = True
+        else:
+            if bank.k == 0 or bank.mu_y is None or bank.dim != d:
+                return zero, 0.0
+            if bank.mu_y.device != x_fake.device:
+                bank.restore_device(x_fake.device)
+            d_xc = torch.cdist(x_fake.detach().double(), bank.mu_y, p=2.0)
+            min_rx, asg_x = (d_xc / bank.rad_y.unsqueeze(0).clamp_min(1e-6)).min(dim=1)
+
+        # Dimension-derived chi_d 3-sigma shell boundary: 1 + 3 / sqrt(2*d)
+        r_shell = 1.0 + 3.0 / math.sqrt(2.0 * float(d))
+        in_basin_x = min_rx <= (r_shell + 0.65)
+        mature_y = bank.w_y >= float(d) * 0.4
+        if not bool(mature_y.any()):
+            return zero, 0.0
+        min_cov_ratio = float((bank.w_x[mature_y] / bank.w_y[mature_y].clamp_min(1e-6)).amin().item())
+        u_cov = max(0.0, min(1.0, (min_cov_ratio - 0.50) / 0.25))
+        cov_gate = u_cov * u_cov * (3.0 - 2.0 * u_cov)
+        if cov_gate <= 1e-4:
+            return zero, 1.0
+        euclid_asg = d_xc.argmin(dim=1)
+
+    total_loss = zero
+    if w_bridge > 0.0 and bank.k >= 1:
+        u_br = ((min_rx.float() - r_shell) / 0.55).clamp(0.0, 1.0)
+        g_br = torch.where(mature_y[euclid_asg], u_br * u_br * (3.0 - 2.0 * u_br), torch.zeros_like(u_br))
+        if bool((g_br > 1e-4).any()):
+            mu_tgt = bank.mu_y.float()[euclid_asg]
+            rad_tgt = bank.rad_y.float()[euclid_asg].clamp_min(1e-5)
+            bi_dist = (rad_tgt.square() + (x_fake.float() - mu_tgt).square().sum(dim=-1)).sqrt() - rad_tgt
+            total_loss = total_loss + (float(w_bridge) * float(cov_gate)) * (
+                (g_br * bi_dist).sum() / float(b_f)
+            ).to(dtype=x_fake.dtype)
+
+    has_jac_inputs = (
+        generator is not None
+        and z_2d is not None
+        and z_2d.shape[0] == b_f
+        and 1 <= z_2d.shape[1] <= 128
+        and bank.sigma_z_init
+        and w_jac > 0.0
+    )
+    with torch.no_grad():
+        eye = torch.eye(d, dtype=torch.float64, device=x_fake.device)
+        op_x = torch.zeros((bank.k, d, d), dtype=torch.float32, device=x_fake.device)
+        mu_force = torch.zeros((bank.k, d), dtype=torch.float32, device=x_fake.device)
+        sig_y_vec = torch.zeros(bank.k, dtype=torch.float32, device=x_fake.device)
+        valid_c = torch.zeros(bank.k, dtype=torch.bool, device=x_fake.device)
+        anchors: List[torch.Tensor] = []
+        t_mats: List[torch.Tensor] = []
+        t_invs: List[torch.Tensor] = []
+        anc_sigs: List[float] = []
+        worst_def = 0.0
+        eps_x = 0.12
+
+        for c in range(bank.k):
+            if float(bank.w_y[c].item()) < float(d) * 0.4 or float(bank.w_x[c].item()) < 4.0:
+                continue
+            cy = bank.cov_y[c]
+            var_y = float(torch.diagonal(cy).sum().item()) / float(d)
+            if var_y <= 1e-10:
+                continue
+            sigma_y = math.sqrt(var_y)
+            shrink = min(0.25, float(d) / (float(d) + 4.0 * float(bank.w_y[c].item())))
+            cy_reg = (1.0 - shrink) * cy + (shrink * var_y) * eye
+            Ly, info_y = torch.linalg.cholesky_ex(0.5 * (cy_reg + cy_reg.T))
+            if int(info_y.item()) != 0:
+                continue
+            cy_inv = torch.cholesky_inverse(Ly)
+
+            cx = 0.5 * (bank.cov_x[c] + bank.cov_x[c].T)
+            var_x = float(torch.diagonal(cx).sum().item()) / float(d)
+            # Symmetric shrinkage on cx (exact cx_reg == cy_reg -> op_x == 0 at equilibrium!)
+            cx_reg = (1.0 - shrink) * cx + (shrink * min(var_x, var_y)) * eye
+            Lx_x, info_x = torch.linalg.cholesky_ex(cx_reg + eps_x * cy_reg)
+            if int(info_x.item()) != 0:
+                continue
+            cx_inv = torch.cholesky_inverse(Lx_x)
+            Lx_ref, info_xr = torch.linalg.cholesky_ex(cx_reg + 0.01 * cy_reg)
+            if int(info_xr.item()) == 0:
+                ld_gap = float((2.0 * torch.diagonal(Ly).log().sum() - 2.0 * torch.diagonal(Lx_ref).log().sum()).item()) / float(d)
+                if ld_gap > worst_def:
+                    worst_def = ld_gap
+
+            op_x[c] = ((1.0 / (1.0 + eps_x)) * cy_inv - cx_inv).float()
+            dm_c = bank.mu_x[c] - bank.mu_y[c]
+            mf_c = cy_inv @ dm_c
+            dm_w_norm = math.sqrt(max(0.0, float((dm_c * mf_c).sum().item())) / float(d))
+            if dm_w_norm > 2.0:
+                mf_c = mf_c * (2.0 / dm_w_norm)
+            mu_force[c] = mf_c.float()
+            sig_y_vec[c] = float(sigma_y)
+            valid_c[c] = True
+
+            if has_jac_inputs:
+                mc = (asg_x == c) & (min_rx <= 2.4)
+                if bool(mc.any()):
+                    # Golden-Ratio Wiener matrix residual target: T_c^{-1} = C_y^{-1} + C_y^{-1} C_x C_y^{-1}
+                    # Strictly SPD, zero-eigh, Haar-O(d) & scale equivariant: expands collapsed eigendirections
+                    # (tau -> 1) while suppressing local Jacobian puffing on already-wide eigendirections!
+                    t_inv = cy_inv + (cy_inv @ cx_reg @ cy_inv)
+                    t_inv = 0.5 * (t_inv + t_inv.T)
+                    L_ti, info_ti = torch.linalg.cholesky_ex(t_inv)
+                    if int(info_ti.item()) == 0:
+                        t_c = torch.cholesky_inverse(L_ti)
+                        cand_idx = mc.nonzero(as_tuple=False).squeeze(-1)
+                        order_c = torch.argsort(d_xc[cand_idx, c])
+                        nc = len(order_c)
+                        pick_pos = [0] if nc == 1 else ([0, 1] if nc == 2 else [0, nc // 3, (2 * nc) // 3])
+                        for pp in pick_pos:
+                            anchors.append(z_2d.detach()[int(cand_idx[int(order_c[pp].item())].item())])
+                            t_mats.append(t_c)
+                            t_invs.append(t_inv)
+                            anc_sigs.append(sigma_y)
+
+    if not bool(valid_c.any()):
+        return total_loss, worst_def
+
+    if anchors and generator is not None and z_2d is not None:
+        m_act = len(anchors)
+        d_z = int(z_2d.shape[1])
+        z_anc = torch.stack(anchors, dim=0)
+        eye_z = torch.eye(d_z, dtype=z_anc.dtype, device=z_anc.device) * float(bank.sigma_z_ema)
+        z_all = torch.cat(
+            [
+                (z_anc.unsqueeze(1) + eye_z.unsqueeze(0)).reshape(m_act * d_z, d_z),
+                (z_anc.unsqueeze(1) - eye_z.unsqueeze(0)).reshape(m_act * d_z, d_z),
+            ],
+            dim=0,
+        )
+        if z_tail:
+            z_all = z_all.reshape(2 * m_act * d_z, d_z, *z_tail)
+        prev_probe = bool(getattr(record, "_in_probe", False)) if record is not None else False
+        bn_modes = []
+        for mod in generator.modules():
+            if isinstance(mod, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd)):
+                bn_modes.append((mod, mod.training))
+                mod.eval()
+        if record is not None:
+            record._in_probe = True
+        try:
+            y_out = generator(z_all)
+        finally:
+            if record is not None:
+                record._in_probe = prev_probe
+            for mod, flag in bn_modes:
+                mod.training = flag
+        y_all = y_out[0] if isinstance(y_out, (tuple, list)) and y_out else y_out
+        if isinstance(y_all, torch.Tensor) and y_all.shape[0] == 2 * m_act * d_z:
+            y_p = y_all[: m_act * d_z].reshape(m_act, d_z, d)
+            y_m = y_all[m_act * d_z :].reshape(m_act, d_z, d)
+            J_all = (0.5 * (y_p - y_m)).double()
+            eps_r = 1e-4
+            t_stack = torch.stack(t_mats, dim=0)
+            t_inv_stack = torch.stack(t_invs, dim=0)
+            L_all = torch.matmul(J_all.transpose(1, 2), J_all)
+            tr_term = (1.0 / (1.0 + eps_r)) * (t_inv_stack * L_all).sum(dim=(-2, -1))
+            L_reg = 0.5 * (L_all + L_all.transpose(-1, -2)) + eps_r * t_stack
+            chol_L = torch.linalg.cholesky(L_reg)
+            logdet_L = 2.0 * torch.diagonal(chol_L, dim1=-2, dim2=-1).log().sum(dim=-1)
+            with torch.no_grad():
+                chol_T = torch.linalg.cholesky((1.0 + eps_r) * t_stack)
+                logdet_T = 2.0 * torch.diagonal(chol_T, dim1=-2, dim2=-1).log().sum(dim=-1)
+            stein_b = 0.5 * (tr_term - logdet_L + logdet_T - float(d) / (1.0 + eps_r)) / math.sqrt(float(d))
+            sig_anc_t = torch.tensor(anc_sigs, dtype=torch.float64, device=x_fake.device)
+            mean_sig = sig_anc_t.mean().clamp_min(1e-8)
+            jac_loss = ((sig_anc_t.square() / mean_sig) * stein_b).mean()
+            total_loss = total_loss + (float(w_jac) * float(cov_gate)) * jac_loss.to(dtype=x_fake.dtype)
+
+    row_valid = in_basin_x & valid_c[asg_x]
+    if bool(row_valid.any()) and (w_x > 0.0 or w_mu > 0.0):
+        idx = asg_x[row_valid]
+        xf_v = x_fake.float()[row_valid]
+        rx = xf_v - bank.mu_x.float()[idx]
+        sig = sig_y_vec[idx]
+        r2_dimless = rx.square().sum(dim=-1, keepdim=True) / (float(d) * sig.square().unsqueeze(-1).clamp_min(1e-10))
+        rx_s = rx * torch.rsqrt(1.0 + 0.05 * r2_dimless)
+        counts = torch.bincount(idx, minlength=bank.k).clamp_min(1).float()
+        n_active = float((counts[valid_c] > 0).sum().clamp_min(1).item())
+        w_row = 1.0 / (n_active * counts[idx])
+        if w_x > 0.0:
+            quad = 0.5 * torch.einsum("ni,nij,nj->n", rx_s, op_x[idx], rx_s)
+            phys_x = (sig / math.sqrt(float(d))) * quad
+            total_loss = total_loss + (float(w_x) * float(cov_gate)) * (w_row * phys_x).sum().to(dtype=x_fake.dtype)
+        if w_mu > 0.0:
+            mu_inner = (xf_v * mu_force[idx]).sum(dim=-1)
+            phys_mu = (sig / math.sqrt(float(d))) * mu_inner
+            total_loss = total_loss + (float(w_mu) * float(cov_gate)) * (w_row * phys_mu).sum().to(dtype=x_fake.dtype)
+
+    return total_loss, worst_def
+
+
 class UnifiedV15GANLoss(GANLoss):
     """Unified-v15 4-Law + Zero-`eigh` CondFiber GANLoss."""
 
@@ -3213,7 +3593,8 @@ class UnifiedV15GANLoss(GANLoss):
         if self.conditional_fibre == "calibrated" and has_cont_cond:
             return base
         dim_d = max(1, x_r[0].numel()) if x_r.shape[0] > 0 else 0
-        if not has_cont_cond and x_r.ndim >= 2 and dim_d > 1024:
+        max_t1c_dim_d = 4096 if _has_spatial_dims(x_r) else 1024
+        if not has_cont_cond and x_r.ndim >= 2 and dim_d > max_t1c_dim_d:
             if self.loss == "non_saturating" and self.t1c.weight > 0.0 and self.fibre_rel_blend > 0.0:
                 pair_d = self._scalar_pair_relativistic(real_logits, fake_logits)
                 if pair_d is not None:
@@ -3302,9 +3683,11 @@ class UnifiedV15GANLoss(GANLoss):
                 return self.t1c.weight * rel_term
             return self.t1c.weight * super().g_loss(fake_logits, real_logits)
 
-        # 2. High-dimensional domains (dim > 1024, e.g. 32x32..256x256 images or high-D 2D vectors):
+        # 2. High-dimensional domains (dim > 4096 on images e.g. 64x64..256x256, or dim > 1024 on flat vectors):
         dim = max(1, x_r[0].numel()) if b_r > 0 else 0
-        if x_r.ndim >= 2 and dim > 1024:
+        has_spatial = _has_spatial_dims(x_r)
+        max_t1c_dim = 4096 if has_spatial else 1024
+        if x_r.ndim >= 2 and dim > max_t1c_dim:
             self.t1c._discrete_prior_step = False
             self.t1c._simplicial_active_step = False
             if rec is not None and hasattr(rec, "_t1c_disc_gate"):
@@ -3325,6 +3708,7 @@ class UnifiedV15GANLoss(GANLoss):
         if rec is not None and hasattr(rec, "_simplicial_step"):
             rec._simplicial_step = is_simplicial
         saved_cw = self.t1c.chart_weight
+        is_flat_vec = x_f.ndim >= 2 and not _has_spatial_dims(x_f) and not has_spatial
 
         g_conn_fwd = 0.0
         if (is_simplicial and saved_cw > 0.0) or (
@@ -3333,8 +3717,8 @@ class UnifiedV15GANLoss(GANLoss):
             and not is_simplicial
             and cond_f is None
             and cond_r is None
-            and x_f.ndim == 2
-            and 2 <= dim <= 16
+            and is_flat_vec
+            and 2 <= dim <= 256
         ):
             if b_r >= 4:
                 y_feat = project_transport_features(x_r.detach(), max_spatial=self.t1c.max_spatial)
@@ -3367,15 +3751,17 @@ class UnifiedV15GANLoss(GANLoss):
             and not is_simplicial
             and cond_f is None
             and cond_r is None
-            and x_f.ndim == 2
-            and 2 <= dim <= 16
+            and is_flat_vec
+            and 2 <= dim <= 256
             and g_conn_fwd <= 0.05
             and b_f >= 4
             and b_r >= 4
         ):
+            x_f_m = x_f.reshape(b_f, -1) if x_f.ndim > 2 else x_f
+            x_r_m = x_r.reshape(b_r, -1) if x_r.ndim > 2 else x_r
             with torch.no_grad():
-                ell_m = self.t1c._update_ell(x_r, record=rec, allow_update=False)
-                c_hat_m = born_infeld_c_hat_detached(x_f, x_r, ell_m)
+                ell_m = self.t1c._update_ell(x_r_m, record=rec, allow_update=False)
+                c_hat_m = born_infeld_c_hat_detached(x_f_m, x_r_m, ell_m)
                 f_1d = fake_logits.detach().reshape(b_f, -1).mean(dim=1)
                 r_1d = real_logits.detach().reshape(b_r, -1).mean(dim=1)
                 c_mid = 0.5 * (f_1d.mean() + r_1d.mean())
@@ -3391,8 +3777,8 @@ class UnifiedV15GANLoss(GANLoss):
                     iters=self.t1c.iters,
                 )
             macro_loss = v15_zero_eigh_bipartite_deficit_macro_loss(
-                x_f,
-                x_r,
+                x_f_m,
+                x_r_m,
                 c_hat_m,
                 P_m[:b_f, b_r],
                 P_m[b_f, :b_r],
@@ -3403,6 +3789,32 @@ class UnifiedV15GANLoss(GANLoss):
             if s_th < 1.0 and macro_loss.requires_grad:
                 macro_loss = macro_loss * s_th + macro_loss.detach() * (1.0 - s_th)
             loss_val = loss_val + (self.t1c.weight * self.macro_slack_weight) * macro_loss
+
+        if (
+            rec is not None
+            and cond_f is None
+            and cond_r is None
+            and is_flat_vec
+            and 16 < dim <= 256
+            and b_f >= 8
+            and b_r >= 8
+        ):
+            g_lat = getattr(rec, "_g_last_latent", None)
+            g_mod = g_lat[0] if g_lat is not None else None
+            z_b = g_lat[1] if g_lat is not None else None
+            stein_loss, worst_def = unified_v15_highd_basin_stein_loss(
+                x_f,
+                x_r,
+                record=rec,
+                generator=g_mod,
+                z_batch=z_b,
+                allow_update=allow_ell,
+            )
+            if allow_ell and hasattr(rec, "_thermal_scale"):
+                u_def = max(0.0, min(1.0, (worst_def - 0.12) / 0.55))
+                s_def = 0.12 + 0.88 * (u_def * u_def * (3.0 - 2.0 * u_def))
+                rec._thermal_scale = max(float(rec._thermal_scale), s_def)
+            loss_val = loss_val + self.t1c.weight * stein_loss.to(dtype=loss_val.dtype)
 
         return loss_val
 
@@ -3433,4 +3845,5 @@ __all__ = [
     "UnifiedV15CouplingLoss",
     "UnifiedV15GANLoss",
     "unified_v15_conditional_loss",
+    "unified_v15_highd_basin_stein_loss",
 ]
