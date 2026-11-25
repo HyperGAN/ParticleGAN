@@ -6,6 +6,7 @@
   - Exported `float_output`, `uses_channels_last`, `uses_bf16_autocast`, `configure_bf16_autocast`, and `critic_source_context` (with `_float_output` / `_convolution_autocast` retained as compatibility aliases) so external hosts like HyperGAN share exact `GANTrainer` BF16+NHWC parity without duplicating private capture-attribute lists or `_t2_pending_source_key` tracking.
   - Preserved `_bispf_record`, `_t1c_bypassed`, `_nash_v3_*`, and `_minimal_*` capture attributes, `dict` subclass containers, and `fwAD` dual tangents in `float_output`.
   - Extended `UnifiedV11CriticPenalty._eval_image_fwad_sq` to attach the BF16 dual hook to `_InstanceNorm` layers and cleanly fall back to FP32 `fwAD` whenever BF16 is active on a non-BN critic.
+  - Vectorized `UnifiedV12Optimizer`'s `stiff_gate > 0` moment update path (`_apply_slow_moment_batch_foreach`), secant `applied_deltas` rescaling, and zero-pad-copy `_sketch_grad_67_finite` flip-controller using `torch._foreach_*` (eliminating ~6,500 per-parameter CUDA kernel launches/step; 4.1x–9.8x faster stiff `opt_g.step()` on RTX A6000 with exact parity and zero `new_tensor` allocations).
 
 ## 0.12.0 — 2026-11-23
 
