@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "clockfree_audit_measurement_v1",
+  "title": "Clock-Free & Restart Invariance Measurement",
+  "laws": [
+    "law4_4"
+  ],
+  "edge_cases": [
+    "clock-invariance",
+    "restart-parity",
+    "state-hygiene"
+  ],
+  "intuition": "Diagnostic measurement version of `clockfree_audit` that executes all four clock/restart parity perturbations even on explicitly scheduled recipes so hidden clock dependencies are transparently measured rather than refused.",
+  "failure_mode": "Scheduled baselines (e.g., cosine decay or lazy penalty intervals) diverge across horizon and step-label perturbations, exposing non-stationary clock dependence.",
+  "protocol_notes": "Tier-1 diagnostic and Four Laws Adherence Law 4 anchor; pins `clockfree_audit.json` verbatim.",
+  "diagram_kind": "clockfree_audit",
+  "custom_mermaid": null
+}

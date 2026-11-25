@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "precision_gaussian_nvfp4",
+  "title": "Scalar Gaussian NVFP4 Quantized Training",
+  "laws": [
+    "law2",
+    "law4_1",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "low-precision-quantization",
+    "nvfp4",
+    "scalar-1d"
+  ],
+  "intuition": "Extreme 4-bit quantization stress test training N(2, 0.5^2) through software-reference NVFP4 (E2M1 with micro-block scaling) across FPROP, DGRAD, and WGRAD without losing distribution accuracy (KS <= 0.05).",
+  "failure_mode": "Severe 4-bit quantization noise destroys fine gradient signals, breaks finite-difference critic penalties via ULP rounding, or stalls convergence on small step updates.",
+  "protocol_notes": "Tier-1 stretch benchmark using emulated NVFP4 Linear layers; native kernel parity remains unverified.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

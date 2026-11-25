@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-clockfree_audit_measurement_v1",
+  "title": "Clock-Free & Restart Invariance Measurement (Legacy Prior Cohort)",
+  "laws": [
+    "law4_4"
+  ],
+  "edge_cases": [
+    "clock-invariance",
+    "restart-parity",
+    "state-hygiene",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `clockfree_audit_measurement_v1` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Diagnostic measurement version of `clockfree_audit` that executes all four clock/restart parity perturbations even on explicitly scheduled recipes so hidden clock dependencies are transparently measured rather than refused.",
+  "failure_mode": "Scheduled baselines (e.g., cosine decay or lazy penalty intervals) diverge across horizon and step-label perturbations, exposing non-stationary clock dependence.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `clockfree_audit_measurement_v1` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "clockfree_audit",
+  "custom_mermaid": null
+}

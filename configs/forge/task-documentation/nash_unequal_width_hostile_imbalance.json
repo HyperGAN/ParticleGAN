@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "nash_unequal_width_hostile_imbalance",
+  "title": "Extreme Nash Imbalance on Unequal-Width 4-Mode Mixture",
+  "laws": [
+    "law2",
+    "law3a",
+    "law4_3",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "hostile-nash-imbalance",
+    "multi-scale-width",
+    "off-manifold-init"
+  ],
+  "intuition": "Combines >600x critic overcapacity and hostile off-manifold initialization with 4 unequal-width Gaussian modes (sigma in {0.07, 0.12, 0.20, 0.30}), testing whether Nash equilibration preserves per-mode scale fidelity.",
+  "failure_mode": "Even if the generator escapes the initial corner, critic dominance collapses the narrow sigma=0.07 mode or distorts component covariances.",
+  "protocol_notes": "Tier-2 stretch task (1,100 updates).",
+  "diagram_kind": "nash_imbalance",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-vector_two_broad",
+  "title": "Two Broad Separated 2D Gaussians (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "broad-modes",
+    "covariance-calibration",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `vector_two_broad` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Baseline 2D multimodal vector task with two broad isotropic Gaussians at (-1, 0) and (+1, 0) (sigma=0.25), checking basic multimodal coverage, balanced mass, and accurate within-mode spread.",
+  "failure_mode": "Recipes that collapse mode variance to points fail component_min_eigen_ratio and component_covariance_error.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `vector_two_broad` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

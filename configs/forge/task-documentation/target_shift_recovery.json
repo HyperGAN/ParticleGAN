@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "target_shift_recovery",
+  "title": "Paired Non-Stationary Target Shift Recovery",
+  "laws": [
+    "law3a",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "non-stationary-shift",
+    "paired-frozen-control",
+    "settling-vs-tracking"
+  ],
+  "intuition": "Tests whether a converged multimodal model adapts cleanly when the target distribution shifts mid-run, verified against a paired frozen-target control to confirm genuine adaptation rather than noisy drift.",
+  "failure_mode": "Over-settled optimizers or frozen priors fail to migrate particles to the shifted modes within the recovery deadline, while unstable recipes fail the stationary pre-shift checks.",
+  "protocol_notes": "Four Laws Adherence Law 3 anchor; paired adaptation evaluator with recovery deadline.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

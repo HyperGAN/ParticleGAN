@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "interp_saddle_barycentric",
+  "title": "3D Non-Harmonic Saddle Sheet Barycentric Interpolation",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "latent-interpolation",
+    "3d-curved-surface",
+    "zero-sigma-prior"
+  ],
+  "intuition": "Tests 2D simplex interpolation: learns 24 zero-sigma particles on a curved 3D saddle surface w = 0.8(x^2 - y^2) + 0.9 cos(0.75 pi x) cos(0.75 pi y) and scores unseen k-NN triangle barycenters on surface MAE and novelty.",
+  "failure_mode": "Discrete-atlas granularity pulls triangle barycenters off the curved saddle sheet (a documented Law 1 trade-off where smooth continuous transport outperforms discrete prototype charts).",
+  "protocol_notes": "Tier-2 stretch task and Four Laws Adherence Law 1 anchor (24 zero-sigma particles).",
+  "diagram_kind": "saddle_3d_barycentric",
+  "custom_mermaid": null
+}

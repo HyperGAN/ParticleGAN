@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_r256",
+  "title": "DCGAN Throughput Benchmark: 256x256 RGB (B=16, W=64)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "dcgan-conv2d",
+    "high-res-conv",
+    "energy-telemetry",
+    "mock-data-only"
+  ],
+  "intuition": "Primary high-resolution 256x256 RGB DCGAN compute, VRAM, and NVML energy benchmark (Law 2 anchor): exposes the 3.6x latency / 66% energy crossover between 1-probe `fwAD` and reverse-over-reverse gradient penalties.",
+  "failure_mode": "Reverse-over-reverse double backprop (`create_graph=True`), ambient O(BKD) pixel-space prior ops, or dense matrix decompositions severely inflate ms/step, peak MiB, and Joules/step.",
+  "protocol_notes": "Four Laws Adherence Law 2 throughput anchor; mock Uniform[-1,1] RGB data only (no image-quality or qualification credit).",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "unused_token_hold",
+  "title": "Unused Vocabulary Slot Preservation",
+  "laws": [
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "selective-update",
+    "subspace-preservation",
+    "behavioral-probe"
+  ],
+  "intuition": "Tests selective functional updating: an active concept token must move decisively toward its target (concept_move >= 0.85) while unqueried vocabulary slots remain undisturbed (unused_hold >= 0.85).",
+  "failure_mode": "Global unconditioned updates, excessive weight decay, or leaky critic gradients bleed across shared parameters and corrupt unused token representations.",
+  "protocol_notes": "Tier-1 required behavioral gate (200 updates); requires conditional/slot-preserving updates rather than destructive global drift.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

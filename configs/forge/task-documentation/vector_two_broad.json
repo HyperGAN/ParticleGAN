@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_two_broad",
+  "title": "Two Broad Separated 2D Gaussians",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "broad-modes",
+    "covariance-calibration"
+  ],
+  "intuition": "Baseline 2D multimodal vector task with two broad isotropic Gaussians at (-1, 0) and (+1, 0) (sigma=0.25), checking basic multimodal coverage, balanced mass, and accurate within-mode spread.",
+  "failure_mode": "Recipes that collapse mode variance to points fail component_min_eigen_ratio and component_covariance_error.",
+  "protocol_notes": "Tier-2 required transfer-vector task (1,200 updates, clean live evaluation).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

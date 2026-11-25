@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "ring_extension",
+  "title": "8-Mode Ring Long-Horizon Endurance Extension",
+  "laws": [
+    "law3a",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "long-horizon-stability",
+    "checkpoint-continuation",
+    "mode-retention"
+  ],
+  "intuition": "Continues the candidate's converged `ring_hold` state without resetting or re-annealing to test whether all 8 modes and high sample quality (hq >= 0.90) persist over an extended training horizon.",
+  "failure_mode": "Slow prior drift, step-size decay artifacts, or undamped minimax cycles cause delayed mode collapse hundreds of updates after initial convergence.",
+  "protocol_notes": "Tier-3 required endurance task and Four Laws Adherence Law 3 anchor; uninterrupted continuation of `ring_hold`.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

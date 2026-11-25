@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_misgan_four_mode",
+  "title": "Public-API 3-Pair MisGAN on 4-Mode 8D Block-Masked Data",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "masked-observation",
+    "neural-imputer",
+    "8d-subspace"
+  ],
+  "intuition": "Compact public-API MisGAN learning a 4-mode distribution embedded in 8D and its block sensor-dropout mask law strictly from incomplete observations, plus a stochastic neural imputer verified on held-out queries.",
+  "failure_mode": "Leaking mask gradients into data generation or collapsing imputer uncertainty produces off-plane points or overwrites observed coordinates.",
+  "protocol_notes": "Research diagnostic model-mode MisGAN task (4 modes on 8D Hadamard subspace).",
+  "diagram_kind": "misgan_masked",
+  "custom_mermaid": null
+}

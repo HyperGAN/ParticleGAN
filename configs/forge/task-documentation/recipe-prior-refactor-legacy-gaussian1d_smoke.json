@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-gaussian1d_smoke",
+  "title": "1D Gaussian Acquisition Smoke (Legacy Prior Cohort)",
+  "laws": [
+    "law2",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "scalar-1d",
+    "acquisition-smoke",
+    "checkpoint-producer",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `gaussian1d_smoke` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Minimal sanity gate asking whether public training acquires a single scalar Gaussian N(2, 0.5^2) from random initialization within 1,000 updates, matching its mean, standard deviation, and full CDF (KS <= 0.05).",
+  "failure_mode": "Broken critic scaling, NaN divergence, or collapsed variance prevents even a unimodal 1D Gaussian from converging within bounds.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `gaussian1d_smoke` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

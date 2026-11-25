@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-vector_overlap",
+  "title": "Overlapping Bimodal Cloud (Unidentifiable Components) (Legacy Prior Cohort)",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "overlapping-support",
+    "distribution-matching",
+    "sustained-settling",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `vector_overlap` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Two broad overlapping Gaussians at (-0.35, 0) and (+0.35, 0) (sigma=0.55) where component labels are not identifiable. Grades observable global mean, global covariance, and sliced W1 over a sustained terminal window.",
+  "failure_mode": "Recipes that over-segment continuous overlapping clouds into rigid discrete blobs or oscillate across late updates miss the sustained covariance and sw1 gates.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `vector_overlap` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

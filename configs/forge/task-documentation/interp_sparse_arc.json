@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "interp_sparse_arc",
+  "title": "Sparse 12-Particle 270-Degree Arc Interpolation",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "latent-interpolation",
+    "zero-sigma-prior",
+    "continuous-manifold"
+  ],
+  "intuition": "Tests whether a generator paired with just 12 zero-sigma discrete particles on a 270-degree circular arc (R=2.0) maps unseen latent k-NN chords (t = 0.25, 0.5, 0.75) smoothly along the curved arc (>= 22/32 arc bins, interp_hq >= 0.80, midpoint_novelty >= 0.20) instead of snapping to endpoints or cutting chords across dead space.",
+  "failure_mode": "Discrete prototype atlases often act like piecewise-constant lookup tables (Voronoi snapping -> low novelty) or interpolate linearly across empty interior space (low interp_hq).",
+  "protocol_notes": "Tier-1 stretch task and Four Laws Adherence Law 1 anchor; zero-sigma ParticlePrior exception.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

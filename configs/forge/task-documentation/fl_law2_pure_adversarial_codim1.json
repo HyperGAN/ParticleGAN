@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law2_pure_adversarial_codim1",
+  "title": "Law 2 intersect 4.5 Probe: Codimension-1 Thin Circle Normal Orbits",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "codimension-1-manifold",
+    "normal-orbit-cycles",
+    "zero-thickness-support"
+  ],
+  "intuition": "Directly falsifies pure upper-bound Lipschitz caps (mu_D = 0): trains a smooth SiLU generator and critic on a zero-thickness 1D circle (R=1.5, sigma_perp=0) in R^2, grading late-window normal-axis orbit oscillation (r_tail <= 0.06, ptp <= 0.12).",
+  "failure_mode": "A critic regularizer that only caps slopes above kappa provides zero normal-direction Hessian curvature (mu_D = 0) near equilibrium, causing permanent radial limit cycles around the thin circle.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (1,200 updates, smooth SiLU MLP generator & critic).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

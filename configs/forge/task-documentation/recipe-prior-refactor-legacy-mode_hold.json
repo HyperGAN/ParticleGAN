@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-mode_hold",
+  "title": "8-Mode Ring Sustained Mode Hold (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "mode-retention",
+    "long-horizon-stability",
+    "ring-mixture",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `mode_hold` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Tests whether a trainer can acquire and continuously hold all 8 modes of a 2D Gaussian ring at high sample quality (hq >= 0.90) across 1,200 updates without late-stage mode dropout or oscillation.",
+  "failure_mode": "Recipes that pass early acquisition often oscillate or shed modes over sustained updates when critic damping or minimax contraction (Law 4.5) is missing.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `mode_hold` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

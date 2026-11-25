@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="PacGAN m=4 Packed Critic on Unequal-Mass Ring (2% Rare Mode)">
+<title>PacGAN m=4 Packed Critic on Unequal-Mass Ring (2% Rare Mode) — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">PacGAN m=4 Packed Critic on Unequal-Mass Ring (2% Ra</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">PacGAN m=4 packed critic · 5-mode ring with rare 2% mode</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="114.5" y1="54.0" x2="114.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="116.0" x2="404.0" y2="116.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="307.5" y1="54.0" x2="307.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="240.0" x2="404.0" y2="240.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<text x="211.0" y="298.0" font-size="9" fill="#64748b" text-anchor="middle">x1</text>
+<text x="24.0" y="67.0" font-size="9" fill="#64748b">x2</text>
+<ellipse cx="289.5" cy="178.0" rx="10.7" ry="10.7" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"/>
+<ellipse cx="289.5" cy="178.0" rx="4.8" ry="4.8" fill="#2563eb" fill-opacity="0.65"/>
+<text x="289.5" y="163.3" font-size="9" fill="#2563eb" font-weight="600" text-anchor="middle">40%</text>
+<ellipse cx="229.5" cy="95.5" rx="9.8" ry="9.8" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"/>
+<ellipse cx="229.5" cy="95.5" rx="4.4" ry="4.4" fill="#2563eb" fill-opacity="0.65"/>
+<text x="229.5" y="81.7" font-size="9" fill="#2563eb" font-weight="600" text-anchor="middle">30%</text>
+<ellipse cx="132.5" cy="127.0" rx="8.8" ry="8.8" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"/>
+<ellipse cx="132.5" cy="127.0" rx="4.0" ry="4.0" fill="#2563eb" fill-opacity="0.65"/>
+<text x="132.5" y="114.2" font-size="9" fill="#2563eb" font-weight="600" text-anchor="middle">20%</text>
+<ellipse cx="132.5" cy="229.0" rx="7.1" ry="7.1" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"/>
+<ellipse cx="132.5" cy="229.0" rx="3.2" ry="3.2" fill="#2563eb" fill-opacity="0.65"/>
+<text x="132.5" y="217.9" font-size="9" fill="#2563eb" font-weight="600" text-anchor="middle">8%</text>
+<ellipse cx="229.5" cy="260.5" rx="5.6" ry="5.6" fill="#2563eb" fill-opacity="0.18" stroke="#2563eb" stroke-width="1.5"/>
+<ellipse cx="229.5" cy="260.5" rx="2.5" ry="2.5" fill="#2563eb" fill-opacity="0.65"/>
+<text x="229.5" y="250.9" font-size="9" fill="#2563eb" font-weight="600" text-anchor="middle">2%</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">pacgan_unequal_mass</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1, law2, law3a</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.05)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">3000 steps · B=256</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=256 · z_dim=2</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">transfer_vector</text>
+</svg>

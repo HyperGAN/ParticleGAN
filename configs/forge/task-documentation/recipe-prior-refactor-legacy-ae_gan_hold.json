@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-ae_gan_hold",
+  "title": "Autoencoder-GAN Reconstruction & Hold (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "multi-objective-conflict",
+    "encoder-decoder-loop",
+    "scheduled-output-noise",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `ae_gan_hold` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Jointly trains an encoder, learned particle prior, decoder/generator, and critic on a compact representation-holding task. It verifies that adversarial updates do not erode autoencoder reconstruction fidelity (recon_mse <= 0.05) or drift off the protected hold subspace (hold <= 0.35).",
+  "failure_mode": "Naive adversarial gradients overwhelm the reconstruction objective, inflating recon_mse or causing the learned prior and decoder to drift away from the encoded data manifold.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `ae_gan_hold` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

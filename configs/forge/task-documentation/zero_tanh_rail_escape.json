@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "zero_tanh_rail_escape",
+  "title": "Tanh Saturation Rail Escape after Target Shift",
+  "laws": [
+    "law4_1",
+    "law4_3",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "tanh-saturation",
+    "vanishing-jacobian",
+    "non-stationary-shift"
+  ],
+  "intuition": "Directly probes Law 4.1 (Functional Realization): Phase 1 trains a tanh generator onto corner (0.9, -0.9) near the saturation rail, then at step 1,001 shifts the target to (0, 0). The optimizer must escape vanishing tanh derivatives within a 400-step deadline and settle with zero saturated samples.",
+  "failure_mode": "Because tanh'(z) -> 0 near +/-1, standard unconditioned gradients vanish and leave generator outputs permanently trapped at the rail (0.9, -0.9) after the shift.",
+  "protocol_notes": "Gated by `zero_tanh_smoke`; Four Laws Adherence Law 4 anchor (shift at step 1,001, recovery deadline 400 steps).",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

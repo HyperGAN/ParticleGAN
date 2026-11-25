@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-staggered100",
+  "title": "100-Mode Staggered Hex-Like Gaussian Grid (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "staggered-lattice",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `staggered100` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Shifts alternating rows of the 10x10 Gaussian lattice by half a spacing, breaking rectangular grid symmetry to stress streaming prototype assignment and continuous local pushforward geometry.",
+  "failure_mode": "Voronoi/Laguerre charts or coordinate-aligned representations struggle with staggered neighbor topology, causing lingering bridge samples or under-covered rows.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `staggered100` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

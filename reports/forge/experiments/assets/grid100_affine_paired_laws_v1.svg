@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="100-Mode 10x10 Gaussian Grid (Affine-Paired Laws Cohort)">
+<title>100-Mode 10x10 Gaussian Grid (Affine-Paired Laws Cohort) — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">100-Mode 10x10 Gaussian Grid (Affine-Paired Laws Coh</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">100-mode 2D Gaussian lattice (square) · sigma=0.03-0.05</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="114.5" y1="54.0" x2="114.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="116.0" x2="404.0" y2="116.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="307.5" y1="54.0" x2="307.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="240.0" x2="404.0" y2="240.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<text x="211.0" y="298.0" font-size="9" fill="#64748b" text-anchor="middle">x1 (10x10 modes, 33.3-sigma valleys)</text>
+<text x="24.0" y="67.0" font-size="9" fill="#64748b">x2</text>
+<path d="M114.1,274.9h0M114.1,253.3h0M114.1,231.8h0M114.1,210.3h0M114.1,188.8h0M114.1,167.2h0M114.1,145.7h0M114.1,124.2h0M114.1,102.7h0M114.1,81.1h0M135.7,274.9h0M135.7,253.3h0M135.7,231.8h0M135.7,210.3h0M135.7,188.8h0M135.7,167.2h0M135.7,145.7h0M135.7,124.2h0M135.7,102.7h0M135.7,81.1h0M157.2,274.9h0M157.2,253.3h0M157.2,231.8h0M157.2,210.3h0M157.2,188.8h0M157.2,167.2h0M157.2,145.7h0M157.2,124.2h0M157.2,102.7h0M157.2,81.1h0M178.7,274.9h0M178.7,253.3h0M178.7,231.8h0M178.7,210.3h0M178.7,188.8h0M178.7,167.2h0M178.7,145.7h0M178.7,124.2h0M178.7,102.7h0M178.7,81.1h0M200.2,274.9h0M200.2,253.3h0M200.2,231.8h0M200.2,210.3h0M200.2,188.8h0M200.2,167.2h0M200.2,145.7h0M200.2,124.2h0M200.2,102.7h0M200.2,81.1h0M221.8,274.9h0M221.8,253.3h0M221.8,231.8h0M221.8,210.3h0M221.8,188.8h0M221.8,167.2h0M221.8,145.7h0M221.8,124.2h0M221.8,102.7h0M221.8,81.1h0M243.3,274.9h0M243.3,253.3h0M243.3,231.8h0M243.3,210.3h0M243.3,188.8h0M243.3,167.2h0M243.3,145.7h0M243.3,124.2h0M243.3,102.7h0M243.3,81.1h0M264.8,274.9h0M264.8,253.3h0M264.8,231.8h0M264.8,210.3h0M264.8,188.8h0M264.8,167.2h0M264.8,145.7h0M264.8,124.2h0M264.8,102.7h0M264.8,81.1h0M286.3,274.9h0M286.3,253.3h0M286.3,231.8h0M286.3,210.3h0M286.3,188.8h0M286.3,167.2h0M286.3,145.7h0M286.3,124.2h0M286.3,102.7h0M286.3,81.1h0M307.9,274.9h0M307.9,253.3h0M307.9,231.8h0M307.9,210.3h0M307.9,188.8h0M307.9,167.2h0M307.9,145.7h0M307.9,124.2h0M307.9,102.7h0M307.9,81.1h0" fill="none" stroke="#2563eb" stroke-width="6.0" stroke-linecap="round" stroke-opacity="0.85"/>
+<rect x="28" y="274" width="236" height="20" rx="4" fill="#eff6ff" stroke="#93c5fd"/>
+<text x="36.0" y="288.0" font-size="9" fill="#1d4ed8" font-weight="600">Affine-init square cohort</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">grid100_affine_paired_laws_v1</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1, law2</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.025)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">7000 steps · B=2048</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=20000 · z_dim=2</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">native100</text>
+</svg>

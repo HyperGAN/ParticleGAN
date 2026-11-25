@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "pacgan_unequal_mass",
+  "title": "PacGAN m=4 Packed Critic on Unequal-Mass Ring (2% Rare Mode)",
+  "laws": [
+    "law1",
+    "law2",
+    "law3a"
+  ],
+  "edge_cases": [
+    "packed-critic",
+    "rare-mode",
+    "unequal-mass"
+  ],
+  "intuition": "Applies a PacGAN m=4 packed discriminator to a 5-mode ring with weights [40%, 30%, 20%, 8%, 2%], testing whether packing preserves rare 2% mode survival (min_mode_mass >= 0.01) without distorting overall mass TV.",
+  "failure_mode": "The 2% mode appears in only ~8% of m=4 packed tuples, allowing uncalibrated critics to ignore or over-equalize it.",
+  "protocol_notes": "Tier-4 stretch benchmark (3,000 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

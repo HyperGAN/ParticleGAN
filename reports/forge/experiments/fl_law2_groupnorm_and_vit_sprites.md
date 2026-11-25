@@ -1,0 +1,105 @@
+<!-- Generated Forge experiment page — do not edit manually; regenerate via `python -m experiments.forge.experiment_docs` -->
+
+[← Leaderboard](../technique-inventory.md) · [Experiment Catalog](README.md) · [Explore by Laws](../LAWS_HUB.md) · [Research Portal](https://hypergan.github.io/ParticleGAN/)
+
+# Law 2 Probe: 32x32 RGB Sprites with ResNet+GroupNorm + ViT Critic (`fl_law2_groupnorm_and_vit_sprites`)
+
+| Field | Value |
+| --- | --- |
+| **Laws Tested** | [Law 2](../LAWS_HUB.md#law2) |
+| **Edge Cases** | `groupnorm-vit-critic` `sdpa-fwad-compatibility` `rgb-sprites-32x32` |
+| **Primary View (`discriminator_stability`)** | Not in `discriminator_stability` |
+| **Four Laws Adherence Role** | law2 (four_laws_probe) |
+| **Fixed Full-Suite Denominator** | No (diagnostic / auxiliary cohort) |
+| **Adapter / Domain** | `four_laws` / `fl_law2_groupnorm_and_vit_sprites` |
+| **Prior** | `mog` (sigma=`0.05`, standardize=`False`) |
+| **Update Budget** | `600` steps |
+
+## What This Experiment Tests
+
+Tests Law 2 differentiation faithfulness and architectural generality on 32x32x3 4-class RGB geometric sprites (red ring, green cross, blue frame, gold diamond) scored by a ResNet+GroupNorm + Patch-4 multi-head attention (ViT) critic.
+
+> [!NOTE]
+> **Protocol notes:** Four Laws Adherence diagnostic probe (600 updates, 32x32x3 RGB sprites).
+
+## Laws & Edge Cases Targeted
+
+- **[Law 2: Potential Geometry](../LAWS_HUB.md#law2)** ([Law 2 theory](../../../docs/four-laws.md#law-2--potential-geometry)) — Does the critic communicate useful learning forces with appropriate geometric control and computational efficiency?
+- **Edge-case tags:** `groupnorm-vit-critic`, `sdpa-fwad-compatibility`, `rgb-sprites-32x32`
+
+## Common Failure Mode
+
+Forward-mode `fwAD` crashes or loses fidelity on SDPA attention / GroupNorm critics where exact reverse-over-reverse (RoR) is required, or micro-secant finite differences collapse under high-dimensional RGB perturbations.
+
+## Visual Schematic
+
+![Target and protocol schematic for fl_law2_groupnorm_and_vit_sprites](assets/fl_law2_groupnorm_and_vit_sprites.svg)
+
+*Target & Protocol Schematic · not training output — generated deterministically from the declared task contract.*
+
+## Protocol & Architecture Diagram
+
+```mermaid
+flowchart LR
+    P["Prior: mog (sigma=0.05, P=64, z=8)"] --> G["Generator: 32x32 RGB ResNet"]
+    G --> D["Critic: ResNet+GroupNorm + Patch-4 ViT"]
+    D --> Gate["Gate: fl_law2_groupnorm_and_vit_sprites (600 steps, 5 sustained)"]
+```
+
+## Task Contract & Numerical Gates
+
+### Execution & Sampling Contract
+
+| Contract Field | Declared Value |
+| --- | --- |
+| Initializer | `deterministic_orthogonal` |
+| Prior | `mog` (sigma=`0.05`, standardize=`False`) |
+| Update Budget | `600` steps |
+| Batch Size | `32` |
+| Particles / Latent Dim | `P=64` / `z_dim=8` |
+| Sampling Law | `public_prior_without_output_noise` |
+| Evaluation Output Noise | `clean` |
+| Scoring Weights | `live` |
+| Architecture | `family=resnet_gn_vit_sprites32, image_size=32, channels=3, gen_channels=32, critic_channels=16, vit_dim=32, vit_heads=4, patch_size=4` |
+| Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
+| Assigned Views | `four-laws-adherence-v1` (T1 diagnostic) |
+
+### Numerical Pass/Fail Thresholds
+
+| Metric | Operator | Threshold |
+| --- | :---: | ---: |
+| `finite_fraction` | `==` | `1.0` |
+| `mode_coverage` | `>=` | `1.0` |
+| `sprite_hq` | `>=` | `0.85` |
+| `template_rmse` | `<=` | `0.12` |
+| `mass_tv` | `<=` | `0.14` |
+
+## Recorded Family Results
+
+> [!IMPORTANT]
+> Screening outcomes below come from recorded single-seed (`seed = 0`) Forge evidence. `NOT MEASURED`, `BLOCKED`, and `INCOMPATIBLE` are non-numerical states — not scientific failures — and confer no pass or qualification credit.
+
+No selected-family cohort cells are recorded for this task in the current `reports/forge/technique-inventory.json`.
+
+## Reproduce This Experiment
+
+```bash
+# Validate this task declaration and inspect planned dependencies
+python -m experiments.forge validate
+python -m experiments.forge plan --view four-laws-adherence-v1 --candidate unified-v12 --tasks fl_law2_groupnorm_and_vit_sprites
+```
+
+**Declaration & Source Files:**
+
+- Task contract: [configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json)
+- Source code: [benchmarks/toy_audit/api_four_laws_123.py](../../../benchmarks/toy_audit/api_four_laws_123.py)
+- Source code: [experiments/forge/four_laws.py](../../../experiments/forge/four_laws.py)
+
+## Annotation Provenance
+
+This page was assembled read-only from the following versioned inputs without altering any task execution/evaluation fingerprint:
+
+- **Task contract JSON:** [configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json)
+- **Editorial task documentation sidecar:** [configs/forge/task-documentation/fl_law2_groupnorm_and_vit_sprites.json](../../../configs/forge/task-documentation/fl_law2_groupnorm_and_vit_sprites.json)
+- **Read-only Python AST source:** [benchmarks/toy_audit/api_four_laws_123.py](../../../benchmarks/toy_audit/api_four_laws_123.py) (AST symbols: `__doc__`, `THRESHOLDS`, `SPECS`)
+- **Read-only Python AST source:** [experiments/forge/four_laws.py](../../../experiments/forge/four_laws.py) (AST symbols: `__doc__`)
