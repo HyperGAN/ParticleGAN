@@ -21,6 +21,7 @@ _FORMULATION_BF16_ATTRS = {
     "t4_nash": "_t4_bf16_autocast",
     "unified_v4": "_unified_v4_bf16_autocast",
     "unified_v11": "_unified_v4_bf16_autocast",
+    "unified_v15": "_unified_v4_bf16_autocast",
     "r4_autograd_critic": "_unified_v4_bf16_autocast",
     "t4_nash_v3": "_nash_v3_bf16_autocast",
     "minimal": "_minimal_bf16_autocast",
@@ -39,7 +40,7 @@ _PYTORCH_RESERVED_TENSOR_ATTRS = frozenset({
 })
 _FLOAT_OUTPUT_COUPLED_PREFIXES = ("_rhbi", "_t1c", "_rgdt")
 _HIGHRES_SIMPLICIAL_4D_FORMULATIONS = frozenset({"unified", "unified_v4", "r4_autograd_critic", "cond_fiber"})
-_HIGHRES_SIMPLICIAL_ANYD_FORMULATIONS = frozenset({"unified_v11"})
+_HIGHRES_SIMPLICIAL_ANYD_FORMULATIONS = frozenset({"unified_v11", "unified_v15"})
 
 
 def _resolve_training_precision(training_precision):
@@ -539,7 +540,7 @@ class GANTrainer:
             raise TypeError("require_latent_damping must be a boolean or None")
         # The recipe picks the regularization formulation; its
         # step-time work runs inside these optimizers' step().
-        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal") else deepcopy(self.D)
+        ema_critic = None if recipe.effective_critic_formulation in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "unified_v15", "r4_autograd_critic", "cond_fiber", "minimal") else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G, self.D, self.prior, ema_critic=ema_critic,
             require_latent_damping=require_latent_damping, **self.optimizer_options)
@@ -577,6 +578,13 @@ class GANTrainer:
         elif recipe.effective_critic_formulation == "unified_v11":
             from .unified_v11 import bind_unified_v11_record
             bind_unified_v11_record(self.opt_d.record, self.loss, self.prior_regularizer)
+            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
+                g_dev = next((p.device for p in self.G.parameters()), None)
+                if g_dev is not None:
+                    self.prior_regularizer._bound_device = g_dev
+        elif recipe.effective_critic_formulation == "unified_v15":
+            from ._unified_v15 import bind_unified_v15_record
+            bind_unified_v15_record(self.opt_d.record, self.loss, self.prior_regularizer)
             if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
                 g_dev = next((p.device for p in self.G.parameters()), None)
                 if g_dev is not None:
@@ -829,6 +837,10 @@ class GANTrainer:
         try:
             self.D.requires_grad_(False)
             latent, indices = self._sample_training_prior(len(real))
+            use_unified_v15_pb = False
+            if recipe.prior_regularizer == "unified_v15" and recipe.t1_pullback_weight > 0.0:
+                from ._unified_v15 import should_use_unified_v15_pullback
+                use_unified_v15_pb = should_use_unified_v15_pullback(self, real, latent, indices)
             use_unified_v11_pb = False
             if recipe.prior_regularizer == "unified_v11" and recipe.t1_pullback_weight > 0.0:
                 from ._unified_v11 import should_use_unified_v11_pullback
@@ -852,7 +864,22 @@ class GANTrainer:
             if recipe.prior_regularizer == "unified" and recipe.t1_pullback_weight > 0.0:
                 from ._unified import should_use_unified_pullback
                 use_unified_pb = should_use_unified_pullback(self, real, latent, indices)
-            if use_unified_v11_pb:
+            if use_unified_v15_pb:
+                from ._unified_v15 import unified_v15_pullback_step
+                simplex_loss = None
+                loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v15_pullback_step(
+                    self,
+                    real,
+                    generator_real,
+                    latent,
+                    indices,
+                    sigma_out=sigma_out,
+                    noise=noise,
+                    critic=critic,
+                    loss_d=loss_d,
+                    penalty=penalty,
+                )
+            elif use_unified_v11_pb:
                 from ._unified_v11 import unified_v11_pullback_step
                 simplex_loss = None
                 loss_g, loss_gan, prior_reg, prior_manip_loss, transport, transport_local = unified_v11_pullback_step(
