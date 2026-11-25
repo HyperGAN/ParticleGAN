@@ -147,6 +147,8 @@ def technique_signature(value):
         mechanisms["unified_v11_equil_optimizer"] = True
     if recipe.optimizer_family == "unified_v12_equil":
         mechanisms["unified_v12_equil_optimizer"] = True
+    if recipe.optimizer_family == "unified_v14_equil":
+        mechanisms["unified_v14_equil_optimizer"] = True
     if recipe.optimizer_family == "axiom":
         mechanisms["axiom_optimizer"] = True
     if recipe.critic_formulation == "axiom":
@@ -251,7 +253,7 @@ def recipe_field_active(name, value, *, task=None):
     if name == "optimizer_momentum":
         return recipe.optimizer_family in {"dualnorm", "dualnorm_D_only"}
     if name == "optimizer_smoothing":
-        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "axiom", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"}
+        return recipe.optimizer_family in {"dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "axiom", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"}
     if name == "optimizer_convolution":
         return recipe.optimizer_family == "dualnorm"
     if name == "optimizer_convolution_rule":
