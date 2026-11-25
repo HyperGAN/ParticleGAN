@@ -81,6 +81,7 @@ def coalesce_pythagorean_ltv(proto_c: torch.Tensor, proto_var: torch.Tensor, pro
     cw = cw / cw.sum(1, keepdim=True).clamp_min(1e-12); cc = cw @ proto_c
     cv = (cw * (pv[None, :] + (proto_c[None, :] - cc[:, None]).square().sum(-1) / float(dim))).sum(1).clamp_min(1e-24)
     coal = cand & ((adj @ (~(d_cc.masked_fill(adj > 0.5, float("inf")).min(1).values >= (4.2 * sqrt_d * cv.sqrt()))).float()) < 0.5)
+    if float((proto_w * coal.float()).sum().item()) < 0.70: return proto_c, pv, eye_k, torch.zeros(k, device=proto_c.device, dtype=torch.bool)
     return torch.where(coal[:, None], cc, proto_c), torch.where(coal, cv, pv), torch.where(coal[:, None], cw, eye_k), (cs > 1.5) & coal
 
 @torch.no_grad()
@@ -205,15 +206,23 @@ class AxiomPriorRegularizer(nn.Module):
     @torch.no_grad()
     def update_laguerre_dual(self, xu_det: torch.Tensor, c_bar: torch.Tensor, w_mat: torch.Tensor, r_macro_safe: torch.Tensor, laguerre_lr: float) -> Tuple[torch.Tensor, torch.Tensor]:
         """Per-cell relative-deficit Laguerre dual ascent with zero-droop deficits & exact gauge."""
-        k_f, dim = float(len(c_bar)), int(c_bar.shape[1])
-        k_star = (torch.cdist(xu_det, c_bar, p=2.0).square() - (w_mat @ self.psi)[None, :]).argmin(1)
-        w_hard = w_mat[k_star].mean(0)
-        w_fe = 0.88 * self.w_fake_ema + 0.12 * w_hard
-        self.w_fake_ema = w_fe / w_fe.sum().clamp_min(1e-12)
-        tv_now, tv_floor, d_max = 0.5 * (self.proto_w - self.w_fake_ema).abs().sum(), 0.35 * math.sqrt(k_f / max(float(len(xu_det)) * 8.0, 1.0)), ((self.proto_w - self.w_fake_ema).clamp_min(0.0) / self.proto_w.clamp_min(1.0 / k_f)).amax()
+        k, dim, wm = int(len(c_bar)), int(c_bar.shape[1]), w_mat
+        if 2 * len(xu_det) < k and self.proto_c is not None and self.proto_var is not None and len(self.proto_c) == k:
+            pv = self.proto_var.clamp_min(1e-24); sig, sqd, dcc = pv.sqrt(), math.sqrt(float(dim)), torch.cdist(self.proto_c, self.proto_c, p=2.0)
+            adj = ((dcc <= (2.6 * sqd * torch.maximum(sig[:, None], sig[None, :]))) & (torch.maximum(sig[:, None], sig[None, :]) <= (2.2 * torch.minimum(sig[:, None], sig[None, :]).clamp_min(1e-12)))).float().fill_diagonal_(1.0)
+            for _ in range(4): adj = ((adj @ adj) > 0).float()
+            cw = adj * self.proto_w.clamp_min(1e-12)[None, :]; cw = cw / cw.sum(1, keepdim=True).clamp_min(1e-12); cc = cw @ self.proto_c
+            cv = (cw * (pv[None, :] + (self.proto_c[None, :] - cc[:, None]).square().sum(-1) / float(dim))).sum(1).clamp_min(1e-24)
+            wm = torch.where(((adj @ (~(dcc.masked_fill(adj > 0.5, float("inf")).min(1).values >= (4.2 * sqd * cv.sqrt()))).float()) < 0.5)[:, None], cw, wm)
+        k_f = float((1.0 / (wm > 0).float().sum(1).clamp_min(1.0)).sum().item()) if 2 * len(xu_det) < k else float(k)
+        k_star = (torch.cdist(xu_det, c_bar, p=2.0).square() - (wm @ self.psi)[None, :]).argmin(1)
+        w_hard = wm[k_star].mean(0); w_fe = 0.88 * self.w_fake_ema + 0.12 * w_hard; self.w_fake_ema = w_fe / w_fe.sum().clamp_min(1e-12)
+        pw_c, wf_c = wm @ self.proto_w, wm @ self.w_fake_ema
+        tv_now = 0.5 * (self.proto_w - self.w_fake_ema).abs().sum() if wm is w_mat else 0.5 * ((pw_c - wf_c).abs() / (wm > 0).float().sum(1).clamp_min(1.0)).sum()
+        tv_floor, d_max = 0.35 * math.sqrt(k_f / max(float(len(xu_det)) * 8.0, 1.0)), ((pw_c - wf_c).clamp_min(0.0) / pw_c.clamp_min(1.0 / max(1.0, k_f))).amax()
         g_psi = torch.maximum(_smoothstep01((tv_now - tv_floor) / max(0.08, tv_floor)), _smoothstep01((d_max - 0.15) / 0.20))
         eta = g_psi * min(3.0, max(0.35, float(laguerre_lr) * k_f)) * float(dim) * r_macro_safe.square()
-        psi_next = w_mat @ (self.psi * (1.0 - 0.004 * g_psi * (1.0 - (self.proto_w > self.w_fake_ema).float())) + eta * (self.proto_w - (0.35 * w_hard + 0.65 * self.w_fake_ema)))
+        psi_next = wm @ (self.psi * (1.0 - 0.004 * g_psi * (1.0 - (pw_c > wf_c).float())) + eta * (self.proto_w - (0.35 * w_hard + 0.65 * self.w_fake_ema)))
         psi_next = psi_next - psi_next.mean()
         self.psi = psi_next * ((2.5 * float(dim) * r_macro_safe.square() + 0.5) / psi_next.abs().amax().clamp_min(1e-24)).clamp_max(1.0)
         return k_star, g_psi
@@ -239,12 +248,12 @@ class AxiomPriorRegularizer(nn.Module):
         med_v, raw_sp = v_prev.median().clamp_min(1e-24), 2.0 * x.var(0, unbiased=False).sum()
         sums = x.new_zeros((k, dim + 2)).index_add_(0, assign, torch.cat((x.new_ones((b, 1)), ((x - c_prev[assign]).square().sum(1) / float(dim))[:, None], x), 1))
         b_cnt, b_mean = sums[:, 0], sums[:, 2:] / sums[:, 0].clamp_min(1.0)[:, None]
-        v_est = (sums[:, 1] / b_cnt.clamp_min(1.0)).clamp_min(1e-24)
+        v_est = (x.new_zeros(k).index_add_(0, assign, (x - b_mean[assign]).square().sum(1) / float(dim)) / (b_cnt - 1.0).clamp_min(1.0)).clamp_min(1e-24)
         has_sp, pair_sp = raw_sp > 1e-24, raw_sp.clamp_min(1e-24)
         shock = ((torch.where(has_sp, torch.sqrt(d2_min.mean() / pair_sp), raw_sp.new_zeros(())) - 0.45) / 0.35).clamp(0.0, 1.0)
         aw, hit, ac = 0.02 + 0.48 * shock * shock, b_cnt > 0, (((0.06 + 0.38 * shock * shock) * (b_cnt / (b_cnt + 2.0))).clamp_max(0.50))[:, None]
         pw = (1.0 - aw) * self.proto_w + aw * (b_cnt / float(b))
-        self.proto_w, self.proto_var, self.proto_c = pw / pw.sum().clamp_min(1e-12), torch.where(hit, 0.88 * v_prev + 0.12 * v_est, v_prev), torch.where(hit[:, None], (1.0 - ac) * c_prev + ac * b_mean, c_prev)
+        self.proto_w, self.proto_var, self.proto_c = pw / pw.sum().clamp_min(1e-12), torch.where(b_cnt >= 2.0, 0.88 * v_prev + 0.12 * v_est, v_prev), torch.where(hit[:, None], (1.0 - ac) * c_prev + ac * b_mean, c_prev)
         mean_w, dead, gamma = 1.0 / float(k), self.proto_w < (0.04 / float(k)), float(min(dim, 4)) / float(min(dim, 4) + 2)
         max_ur, worst_j = (d2_min / torch.maximum(36.0 * float(dim) * torch.maximum(v_prev[assign], med_v), 0.08 * pair_sp)).max(0)
         ge = (self.proto_w.clamp_min(1e-12) ** gamma) * self.proto_var

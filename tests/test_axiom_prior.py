@@ -927,3 +927,24 @@ def test_v4_coalesce_10_highd_box_muller_v_cprev_and_tiny_scale() -> None:
     reg_tiny.update_quantizer(tiny_mix)
     assert float(reg_tiny.proto_var.median().item()) < 1e-9, f"1e-5x proto_var floored too high: {reg_tiny.proto_var.median()}"
     assert abs(float(reg_tiny.proto_w.double().sum().item()) - 1.0) <= 1e-6
+
+    # 4. 70% atlas-consistency guard rejects partial coalescence when <70% mass qualifies.
+    c_part = torch.cat((torch.stack((torch.linspace(-0.2, 0.2, 4), torch.zeros(4)), dim=1), torch.stack((torch.linspace(20.0, 21.0, 12), torch.zeros(12)), dim=1)), dim=0)
+    w_part = torch.cat((torch.full((4,), 0.10), torch.full((12,), 0.05)))  # 40% coalescible < 70%
+    cb_p, vb_p, _, mc_p = coalesce_pythagorean_ltv(c_part, torch.full((16,), 0.04), w_part)
+    assert not bool(mc_p.any()) and torch.allclose(cb_p, c_part)
+
+    # 5. Sparse-particle pigeonhole Laguerre dual (2*N < K) groups siblings & avoids empty-cell d_max=1 runaway.
+    reg_sp = AxiomPriorRegularizer(max_prototypes=64)
+    reg_sp.quantizer_initialized = True
+    centers_4 = torch.tensor([[-10.0, -10.0], [-10.0, 10.0], [10.0, -10.0], [10.0, 10.0]])
+    reg_sp.proto_c = centers_4.repeat_interleave(12, dim=0) + torch.linspace(-0.05, 0.05, 12).repeat(4)[:, None]
+    reg_sp.proto_var = torch.full((48,), 0.04)
+    reg_sp.v_push = reg_sp.proto_var.clone()
+    reg_sp.proto_w = torch.full((48,), 1.0 / 48.0)
+    reg_sp.w_fake_ema = torch.full((48,), 1.0 / 48.0)
+    reg_sp.psi = torch.zeros(48)
+    xu_12 = centers_4.repeat_interleave(3, dim=0)  # N=12 particles covering all 4 modes equally, 2*12 < 48!
+    _, g_sp = reg_sp.update_laguerre_dual(xu_12, reg_sp.proto_c, torch.eye(48), torch.tensor(10.0), 0.15)
+    assert float(g_sp.item()) < 0.05, f"Balanced 2*N<K mode coverage falsely triggered Laguerre runaway: g_psi={float(g_sp.item())}"
+    assert abs(float(reg_sp.psi.mean().item())) <= 1e-6 and abs(float(reg_sp.w_fake_ema.double().sum().item()) - 1.0) <= 1e-6
