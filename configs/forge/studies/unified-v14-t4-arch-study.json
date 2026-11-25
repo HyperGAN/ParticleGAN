@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v14-t4-arch-study"
+  },
+  "candidate": "unified-v14",
+  "competing_explanation": "If unified-v14's floor+flip current_stiff_gate, decoupled fg_damp, bandpass d_couple, 2D critic Schatten-6 spectral ceiling, or prior peak_rms smoothing cap regresses deep unnormalized MLP16, unscaled 16-layer residual tanh, scaled residual tanh, or dynamic tanh rail escape, unified-v14 will score below 7/7 on t4-strange-architectures-v1.",
+  "control": {
+    "candidate_id": "unified-v13",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global unified-v14 achieves 7/7 PASS on t4-strange-architectures-v1, passing grid100_res16_tanh (center_rms_sigma <= 0.25) alongside grid100_mlp16, grid100_res16_scaled_tanh, grid100, clockfree_audit_measurement_v1, zero_tanh_smoke, and zero_tanh_rail_escape.",
+  "id": "unified-v14-t4-arch-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.25
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-c1ee5c3bb7ac4f432532da63.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

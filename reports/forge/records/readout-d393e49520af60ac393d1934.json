@@ -1,0 +1,503 @@
+{
+  "attempt_ids": [
+    "148aecdd32a74ecba3bb39794677b36a",
+    "166e4e179cd34755ad6e41f4afb0dbd0",
+    "4997ced7921f4b5bba57a34700936220",
+    "9714efc10cb34d16841b8d4501278314",
+    "a15a707d167b407cade8f84204b95b0b",
+    "c163cceb526940a4bd562effe91dd5c4"
+  ],
+  "candidate_id": "unified-v14",
+  "candidate_revision": "0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "0 Conv2d NS and 0 Schatten-6 on 4D Conv2d DCGAN layers; reduces r256 peak allocated VRAM by 95.8 MiB vs unified-v12 (1147.65 vs 1243.44 MiB). Median r256 step time (47.22 ms) reflects honest GPU 1 contention (contended=true) rather than uncontended regression (<=45 ms prediction inconclusive, >65 ms falsifier not triggered).",
+  "conclusion": "6/6 PASS on dcgan_performance (RTX A6000 GPU 1, single-worker, protocol seed 0; NOTE: NVML recorded contended=true from concurrent external GPU 1 activity): r32=19.36 ms/st (p95 19.98 ms, 67.04 MiB), r64=23.92 ms/st (p95 25.12 ms, 163.93 MiB), r128=28.74 ms/st (p95 30.18 ms, 428.10 MiB), r256=47.22 ms/st (p95 49.77 ms, 336.6 img/s, 1147.65 MiB peak alloc), b64=25.99 ms/st (p95 27.27 ms, 320.08 MiB), w128=24.71 ms/st (p95 25.20 ms, 424.96 MiB).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "148aecdd32a74ecba3bb39794677b36a",
+        "166e4e179cd34755ad6e41f4afb0dbd0",
+        "4997ced7921f4b5bba57a34700936220",
+        "9714efc10cb34d16841b8d4501278314",
+        "a15a707d167b407cade8f84204b95b0b",
+        "c163cceb526940a4bd562effe91dd5c4"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "d4e9b9608c174f9c5a035c326a84f61796f38409620353c8f723bbd1f3e458f8",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "stop_and_readout",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 47.22085956018418
+        },
+        "prediction": {
+          "satisfied": false,
+          "value": 47.22085956018418
+        }
+      },
+      "outcome": "inconclusive",
+      "provenance": [
+        {
+          "attempt_id": "148aecdd32a74ecba3bb39794677b36a",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "64f8a90f1a5b8e392ea7ebb99123327eedf97b8aaa0ed92aacf4e44ae8abaa3f",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "166e4e179cd34755ad6e41f4afb0dbd0",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "4e9777175f9fcf177cda38a403233b31fac0ffbd49b3f2958b793dcfe4afe35e",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "4997ced7921f4b5bba57a34700936220",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "81a2e5695a6612a61201a18d78041baa0292532d5cba8b5952c46c7fa296e6c0",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9714efc10cb34d16841b8d4501278314",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "7b0f84058919cad47ed9659f9db36f115d8ed6f727270d0ef8b395a1e4904f4b",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "a15a707d167b407cade8f84204b95b0b",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "74209adab95f360dd8084fcb808cd4ca9ba5a3c6453659f4ab96c6c380951050",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "c163cceb526940a4bd562effe91dd5c4",
+          "producer_request_id": "b40e3d494ecba8bf3e4db8da",
+          "producer_study_id": "unified-v14-dcgan-perf-study",
+          "result_hash": "4e0d63e5fbd66651bad0dd9da16a1bc1d6c17d91375f67f44c2f82555c57e0e9",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "47999d50f02e5a9b8f49a8e26e1ed86eaf598f0b0954a172ddefd6b89c992616",
+        "contract_sha256": "d4e9b9608c174f9c5a035c326a84f61796f38409620353c8f723bbd1f3e458f8",
+        "control_binding_sha256": "2c3e240ad81c9c30be8dedb91ac67ec8bb9a2fae4a9887f0b58ec62bb46b839a",
+        "policy_fingerprint": "2a43027d306d94e8a634697d7c67d9864b4a2e4ea31205d5aa86cc2cf0fa7a71",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "11b33b50e018448fcd713f00371ce3ef96027b467cac043ee603da21cb54c62b"
+      },
+      "study_id": "unified-v14-dcgan-perf-study",
+      "study_sha256": "11b33b50e018448fcd713f00371ce3ef96027b467cac043ee603da21cb54c62b"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "dcgan_performance",
+  "hypothesis": "Unchanged global unified-v14 passes 6/6 dcgan_performance with 0 Conv2d NS and 0 Schatten-6 on 4D Conv2d DCGAN layers, preserving unified-v12/v13 latency (<=45 ms/step median uncontended on dcgan_performance_r256) and memory footprint.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Commit formal Forge readout receipt on chore/unified-v14-readouts and hand off to @fl-verifier.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "148aecdd32a74ecba3bb39794677b36a",
+        "result_hash": "64f8a90f1a5b8e392ea7ebb99123327eedf97b8aaa0ed92aacf4e44ae8abaa3f",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "166e4e179cd34755ad6e41f4afb0dbd0",
+        "result_hash": "4e9777175f9fcf177cda38a403233b31fac0ffbd49b3f2958b793dcfe4afe35e",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "4997ced7921f4b5bba57a34700936220",
+        "result_hash": "81a2e5695a6612a61201a18d78041baa0292532d5cba8b5952c46c7fa296e6c0",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9714efc10cb34d16841b8d4501278314",
+        "result_hash": "7b0f84058919cad47ed9659f9db36f115d8ed6f727270d0ef8b395a1e4904f4b",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "a15a707d167b407cade8f84204b95b0b",
+        "result_hash": "74209adab95f360dd8084fcb808cd4ca9ba5a3c6453659f4ab96c6c380951050",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "c163cceb526940a4bd562effe91dd5c4",
+        "result_hash": "4e0d63e5fbd66651bad0dd9da16a1bc1d6c17d91375f67f44c2f82555c57e0e9",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-d393e49520af60ac393d1934",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/148aecdd32a74ecba3bb39794677b36a/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600,
+      "candidate_budget_seconds": 3600,
+      "id": "unified-v14-dcgan-perf-study"
+    },
+    "candidate": "unified-v14",
+    "competing_explanation": "If unified-v14's guarded peak_rms prior smoothing, floor+flip current_stiff_gate, bandpass d_couple, or 2D critic Schatten-6 check adds noticeable latency or GPU memory overhead to 4D Conv2d DCGAN training, unified-v14 will exceed 65 ms/step on dcgan_performance_r256.",
+    "control": {
+      "candidate_id": "unified-v13",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "update_ms_median",
+      "op": ">",
+      "phase": "final",
+      "task_id": "dcgan_performance_r256",
+      "threshold": 65.0
+    },
+    "hypothesis": "Unchanged global unified-v14 passes 6/6 dcgan_performance with 0 Conv2d NS and 0 Schatten-6 on 4D Conv2d DCGAN layers, preserving unified-v12/v13 latency (<=45 ms/step median uncontended on dcgan_performance_r256) and memory footprint.",
+    "id": "unified-v14-dcgan-perf-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "update_ms_median",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "dcgan_performance_r256",
+      "threshold": 45.0
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v12",
+          "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+        },
+        "path": "reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "dcgan_performance"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "unified-v14-dcgan-perf-study",
+  "study_sha256": "11b33b50e018448fcd713f00371ce3ef96027b467cac043ee603da21cb54c62b",
+  "task_results": [
+    {
+      "compatibility_key": "87858e14850db5406680e0c37602133b2555f666861925a09942a6333710f845",
+      "cost": {
+        "adapter_seconds": 6.341544538969174,
+        "charged_task": "dcgan_performance_w128",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 113.4554949909238,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 712.3659999966621,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 12.938631023978814,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 7.4677555181551725,
+        "wall_seconds": 12.938631023978814
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 667.0265409629792,
+        "images_per_second": 646.3946559927008,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 11036160,
+        "parameter_count_generator": 13117184,
+        "peak_allocated_mib": 424.9609375,
+        "peak_reserved_mib": 452.0,
+        "total_wall_seconds": 6.01915464294143,
+        "update_ms_median": 24.706692434847355,
+        "update_ms_p95": 25.19835429266095,
+        "warmup_ms_median": 26.923793833702803
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_w128"
+    },
+    {
+      "compatibility_key": "e3df6b7908a0ca04c54c768e7223d5311d5e04515703aa4b97d7f44eedd706d7",
+      "cost": {
+        "adapter_seconds": 5.920774545986205,
+        "charged_task": "dcgan_performance_r256",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 127.11688319218996,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 744.319000005722,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 12.44041119585745,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 7.034093052847311,
+        "wall_seconds": 12.44041119585745
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 679.9103738740087,
+        "images_per_second": 336.64696769185815,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 11156224,
+        "parameter_count_generator": 12196736,
+        "peak_allocated_mib": 1147.64892578125,
+        "peak_reserved_mib": 1188.0,
+        "total_wall_seconds": 5.599358337931335,
+        "update_ms_median": 47.22085956018418,
+        "update_ms_p95": 49.766285135410726,
+        "warmup_ms_median": 48.368426971137524
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r256"
+    },
+    {
+      "compatibility_key": "f785df4537b1b90c076bd28496b09363f9b74a2b2f9bc72d081a5b07cd0f3a72",
+      "cost": {
+        "adapter_seconds": 2.7785777479875833,
+        "charged_task": "dcgan_performance_r64",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 111.31060035914747,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 302.1279999911785,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 9.32331162597984,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.908578853821382,
+        "wall_seconds": 9.32331162597984
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 684.6850281581283,
+        "images_per_second": 666.076338795672,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 2765568,
+        "parameter_count_generator": 3806080,
+        "peak_allocated_mib": 163.93115234375,
+        "peak_reserved_mib": 176.0,
+        "total_wall_seconds": 2.5672871998976916,
+        "update_ms_median": 23.91754207201302,
+        "update_ms_p95": 25.120039493776858,
+        "warmup_ms_median": 24.568306049332023
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r64"
+    },
+    {
+      "compatibility_key": "dfe887e10c64f1598ea4f84e4bd142ed49eb3d6c910f1380c4a6cab11184650f",
+      "cost": {
+        "adapter_seconds": 2.0760128109250218,
+        "charged_task": "dcgan_performance_r32",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 109.40301446975387,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 220.0940000116825,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 8.519533182960004,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.1997204630170017,
+        "wall_seconds": 8.519533182960004
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 675.0503089278936,
+        "images_per_second": 825.7579417150781,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 663296,
+        "parameter_count_generator": 1183616,
+        "peak_allocated_mib": 67.041015625,
+        "peak_reserved_mib": 72.0,
+        "total_wall_seconds": 1.8918438979890198,
+        "update_ms_median": 19.359574071131647,
+        "update_ms_p95": 19.977063359692693,
+        "warmup_ms_median": 21.32231299765408
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r32"
+    },
+    {
+      "compatibility_key": "e988190696f6391f640afc724270e948643ad1cbaa567c218409ae5e2ee8841d",
+      "cost": {
+        "adapter_seconds": 4.163562654983252,
+        "charged_task": "dcgan_performance_r128",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 115.58138648090069,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 473.9650000035763,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 10.629102535080165,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 5.27026879391633,
+        "wall_seconds": 10.629102535080165
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 679.3567789718509,
+        "images_per_second": 558.0885614238714,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 6960896,
+        "parameter_count_generator": 8001408,
+        "peak_allocated_mib": 428.1025390625,
+        "peak_reserved_mib": 460.0,
+        "total_wall_seconds": 3.905865743989125,
+        "update_ms_median": 28.738111373968422,
+        "update_ms_p95": 30.18103459617123,
+        "warmup_ms_median": 29.12521897815168
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_r128"
+    },
+    {
+      "compatibility_key": "1110a88acfc5c05bfc99cd196fa539d2c5e156225383b37d41ca358077fc63e4",
+      "cost": {
+        "adapter_seconds": 2.8430124409496784,
+        "charged_task": "dcgan_performance_b64",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 115.75974408565948,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 321.70899999141693,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 9.328592353966087,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 3.993255282053724,
+        "wall_seconds": 9.328592353966087
+      },
+      "evaluator_summary": {},
+      "gate_status": "PASS",
+      "metrics": {
+        "completed_updates": 13,
+        "finite_update_fraction": 1.0,
+        "first_update_ms": 676.2068569660187,
+        "images_per_second": 2458.5982730079613,
+        "measured_updates": 10,
+        "parameter_count_discriminator": 2765568,
+        "parameter_count_generator": 3806080,
+        "peak_allocated_mib": 320.07958984375,
+        "peak_reserved_mib": 344.0,
+        "total_wall_seconds": 2.6350294260773808,
+        "update_ms_median": 25.98787657916546,
+        "update_ms_p95": 27.269198675639927,
+        "warmup_ms_median": 27.86618983373046
+      },
+      "raw_status": "completed",
+      "reason": "complete finite public-trainer timing budget; diagnostic performance evidence only",
+      "task_id": "dcgan_performance_b64"
+    }
+  ]
+}
