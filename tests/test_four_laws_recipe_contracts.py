@@ -1,7 +1,6 @@
 """Layer-1 Parametrized Four-Laws Mathematical Contract Suite (<15s CPU).
 
-Parametrized across ``CONTRACT_RECIPES = ("unified_v11", "unified_v12", "unified_v13", "unified_v14")``
-(1-line extensible for ``unified_v15``!).
+Parametrized across ``CONTRACT_RECIPES = ("unified_v11", "unified_v12", "unified_v13", "unified_v14", "unified_v15")``.
 
 CI Contract:
   Every Four-Laws invariant currently violated by a recipe MUST be marked with
@@ -27,18 +26,24 @@ from particlegan._t1_coupling.charts import laguerre_hard_commitment
 from particlegan._unified_v4.optimizer import _band_scale
 from particlegan._unified_v11.critic import record_unified_v11_generator_probe
 from particlegan._unified_v11.optimizer import quintic_orthogonalize_2d
+from particlegan._unified_v15.charts import laguerre_hard_commitment as laguerre_hard_commitment_v15
+from particlegan._unified_v15.critic import record_unified_v15_generator_probe
+from particlegan._unified_v15.optimizer import (
+    _band_scale as _band_scale_v15,
+    quintic_orthogonalize_2d as quintic_orthogonalize_2d_v15,
+)
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-# 1-line extensible for future unified_v15:
 CONTRACT_RECIPES: tuple[str, ...] = (
     "unified_v11",
     "unified_v12",
     "unified_v13",
     "unified_v14",
+    "unified_v15",
 )
-ALL_CURRENT = frozenset(CONTRACT_RECIPES)
+ALL_CURRENT = frozenset(("unified_v11", "unified_v12", "unified_v13", "unified_v14"))
 
 
 def _parametrize_recipes(
@@ -109,9 +114,10 @@ def test_d02_s0_quintic_rank1_frob_blowup_and_bf16_leakage(recipe_name: str) -> 
     s1_normed = float(torch.linalg.svdvals(dw)[0].item()) / max(lr, 1e-12)
 
     # Also check direct s=0 quintic kernel & BF16 threshold guard
-    out_s0 = quintic_orthogonalize_2d(g_r1, steps=5, smoothing=0.0)
+    q_fn = quintic_orthogonalize_2d_v15 if recipe_name == "unified_v15" else quintic_orthogonalize_2d
+    out_s0 = q_fn(g_r1, steps=5, smoothing=0.0)
     s1_kernel = float(torch.linalg.svdvals(out_s0.double())[0].item())
-    src = inspect.getsource(quintic_orthogonalize_2d)
+    src = inspect.getsource(q_fn)
     assert s1_kernel <= 1.25, f"{recipe_name}: s=0 quintic rank-1 sigma_1 blew up to {s1_kernel:.2f}"
     assert s1_normed <= 1.25, f"{recipe_name}: optimizer s_base=0 rank-1 sigma_1/lr blew up to {s1_normed:.2f}"
     assert "min(r_dim, c_dim) >= 64" not in src, "s=0 branch still casts m>=64 to BF16 (77.8% leakage)"
@@ -218,13 +224,16 @@ def test_d04_band_scale_non_c1_and_saturating_overshoot(recipe_name: str) -> Non
     rec_obj = getattr(opt_d, "record", None)
     assert rec_obj is not None
     opt_g._unified_v11_record = rec_obj
+    if recipe_name == "unified_v15":
+        opt_g._unified_v15_record = rec_obj
     rec_obj.ema_data_scale = math.sqrt(2.0)  # coord_scale = 1.0
     rec_obj.ema_push_res = 0.0  # delta_g_max = 0.045
     rec_obj._thermal_scale = 1.0
 
     z_probe = torch.ones((16, 2), dtype=torch.float32)
     y_pre = g_mod(z_probe)
-    record_unified_v11_generator_probe(g_mod, (z_probe,), {}, y_pre, rec_obj, require_module_training=True)
+    probe_fn = record_unified_v15_generator_probe if recipe_name == "unified_v15" else record_unified_v11_generator_probe
+    probe_fn(g_mod, (z_probe,), {}, y_pre, rec_obj, require_module_training=True)
     # Drive large opposing gradient pulling weights across tanh saturation knee:
     opt_g.param_groups[0]["lr"] = 3.6
     _step_gen_loss(opt_g, g_mod.w.sum())
@@ -234,9 +243,10 @@ def test_d04_band_scale_non_c1_and_saturating_overshoot(recipe_name: str) -> Non
     delta_g_max = 0.045
 
     # Also check _band_scale C^1 continuity at delta_max:
+    band_fn = _band_scale_v15 if recipe_name == "unified_v15" else _band_scale
     eps_fd = 1e-5
-    d_left = (_band_scale(0.20, 0.0, 0.20) - _band_scale(0.20 - eps_fd, 0.0, 0.20)) / eps_fd
-    d_right = (_band_scale(0.20 + eps_fd, 0.0, 0.20) - _band_scale(0.20, 0.0, 0.20)) / eps_fd
+    d_left = (band_fn(0.20, 0.0, 0.20) - band_fn(0.20 - eps_fd, 0.0, 0.20)) / eps_fd
+    d_right = (band_fn(0.20 + eps_fd, 0.0, 0.20) - band_fn(0.20, 0.0, 0.20)) / eps_fd
     assert abs(d_left - d_right) < 1e-2, f"_band_scale has C^1 kink at delta_max: {d_left:.3f} vs {d_right:.3f}"
     assert realized <= 1.10 * delta_g_max, (
         f"{recipe_name}: one-shot _band_scale overshot delta_g_max={delta_g_max:.3f} -> realized={realized:.4f}"
@@ -425,11 +435,11 @@ def test_d07_gersho_merge_proto_var_ltv_conservation(recipe_name: str) -> None:
 )
 def test_d06_bf_lt_k_zero_eviction(recipe_name: str) -> None:
     """When B_f < K with uniform weights, exact-match particles on high-index charts must not be evicted."""
-    del recipe_name  # All current unified_v11..v14 share particlegan._t1_coupling.charts.laguerre_hard_commitment
     torch.set_num_threads(1)
     charts = torch.tensor([[0.0, 0.0], [1.0, 0.0], [10.0, 0.0], [20.0, 0.0]], dtype=torch.float32)
     x_exact_high = torch.tensor([[10.0, 0.0], [20.0, 0.0]], dtype=torch.float32)
-    _, _, winners = laguerre_hard_commitment(
+    laguerre_fn = laguerre_hard_commitment_v15 if recipe_name == "unified_v15" else laguerre_hard_commitment
+    _, _, winners = laguerre_fn(
         x_exact_high,
         charts,
         torch.full((4,), 0.25),
@@ -632,7 +642,18 @@ def test_checkpoint_save_restore_bit_exact_continuation(recipe_name: str) -> Non
 
 def _recipe_source_files(recipe_name: str) -> list[Path]:
     rec = get_recipe(recipe_name)
-    files: list[Path] = sorted((REPO_ROOT / "particlegan" / "_unified_v11").glob("*.py"))
+    if rec.optimizer_family == "unified_v15_equil":
+        files: list[Path] = sorted((REPO_ROOT / "particlegan" / "_unified_v15").glob("*.py"))
+        for rel in (
+            "particlegan/_unified_v11/bank.py",
+            "particlegan/_unified_v11/optimizer.py",
+            "particlegan/_t1_coupling/critic.py",
+        ):
+            dep = REPO_ROOT / rel
+            if dep.is_file():
+                files.append(dep)
+        return files
+    files = sorted((REPO_ROOT / "particlegan" / "_unified_v11").glob("*.py"))
     if rec.optimizer_family == "unified_v12_equil":
         files.extend(sorted((REPO_ROOT / "particlegan" / "_unified_v12").glob("*.py")))
     elif rec.optimizer_family == "unified_v14_equil":
@@ -681,11 +702,15 @@ def test_d12_occam_complexity_reporter_accounting(recipe_name: str) -> None:
     assert report["files"] >= 6
     assert report["direct_loc"] > 1000
     assert report["ast_branches"] > 100
+    if recipe_name == "unified_v15":
+        assert report["surviving_round4_epicycles"] == 0, (
+            f"{recipe_name}: {report['surviving_round4_epicycles']} Round-4 epicycles still present"
+        )
 
 
 @_parametrize_recipes(
-    xfail_for=ALL_CURRENT,
-    reason="Open Four-Laws defect D-12 (Occam LOC > 3500 & surviving Round-4 epicycles) — target for unified_v15",
+    xfail_for=ALL_CURRENT | frozenset({"unified_v15"}),
+    reason="Open Four-Laws defect D-12 (Occam LOC > 3500 / AST branches > 450; unified_v15 removes Round-4 epicycles=0 but retains full isolated package LOC)",
 )
 def test_d12_occam_complexity_budget(recipe_name: str) -> None:
     """Occam simplicity target for unified_v15: <= 3500 direct LOC, <= 450 AST branches, 0 Round-4 epicycles."""
