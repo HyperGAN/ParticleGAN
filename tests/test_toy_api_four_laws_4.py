@@ -257,6 +257,13 @@ def test_checkpoint_save_restore_exact_continuation(task_id: str) -> None:
     obs_a = fix_a.observe(n=128, seed=10000)
     obs_b = fix_b.observe(n=128, seed=10000)
     assert obs_a["metrics"] == obs_b["metrics"]
+    assert fix_a.batch_sequence_sha256 == fix_b.batch_sequence_sha256
+    assert fix_a.seed == fix_b.seed
+
+    # Mismatched recipe checkpoint must be rejected fail-closed before mutating state
+    fix_other = fl4.build_case(task_id, device="cpu", seed=0, recipe_name="minimal", max_steps=4)
+    with pytest.raises(ValueError, match="recipe mismatch"):
+        fix_other.load_state_dict(saved)
 
 
 @pytest.mark.parametrize("task_id", fl4.TASKS)

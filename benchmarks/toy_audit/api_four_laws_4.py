@@ -1672,7 +1672,7 @@ class FourLawsFixture:
         self._window_step_disps: list[float] = []
         self._window_ood_ratios: list[float] = []
         self._window_stiff_gates: list[float] = []
-        self._batch_hasher = hashlib.sha256()
+        self._batch_sequence_sha256: str = hashlib.sha256(b"").hexdigest()
 
         # Construct primary G, D, prior, and GANTrainer
         if components is not None:
@@ -1728,8 +1728,8 @@ class FourLawsFixture:
             if self._initial_prior_z is not None and hasattr(unwrap_prior(prior_conv), "z"):
                 with torch.no_grad():
                     unwrap_prior(prior_conv).z.copy_(self._initial_prior_z.to(device=self.device))
-            self.aux_trainers["conv1x1"] = self._make_standalone_trainer(
-                self.recipe, g_conv, d_conv, prior_conv, tag_prefix=f"{tid}:conv1x1"
+            self.aux_trainers["conv1x1"] = self._make_cloned_rng_trainer(
+                self.recipe, g_conv, d_conv, prior_conv, source=self.trainer
             )
         elif self.kind == "fl_law44_highd_sparse_prior_and_shock":
             shock_recipe = self.recipe.replace(num_particles=128, z_dim=4, batch_size=128)
@@ -1818,13 +1818,51 @@ class FourLawsFixture:
             )
         return GANTrainer(recipe, g_mod, d_mod, **opts)
 
+    @staticmethod
+    def _clone_generator(src: torch.Generator | None) -> torch.Generator | None:
+        if src is None:
+            return None
+        cloned = torch.Generator(device=src.device)
+        cloned.set_state(src.get_state().clone())
+        return cloned
+
+    def _make_cloned_rng_trainer(
+        self,
+        recipe: Recipe,
+        g_mod: nn.Module,
+        d_mod: nn.Module,
+        prior: nn.Module,
+        *,
+        source: GANTrainer,
+    ) -> GANTrainer:
+        """Clone initial RNG stream states from ``source`` into independent twin generators."""
+        opts: dict[str, Any] = {
+            "prior": prior,
+            "seed": self.seed,
+            "max_steps": self.limit,
+            "require_latent_damping": recipe.latent_damping_max_rate > 0,
+        }
+        for name in (
+            "latent_generator",
+            "prior_noise_generator",
+            "penalty_generator",
+            "noise_generator",
+            "input_noise_generator",
+            "model_generator",
+            "eval_generator",
+        ):
+            cloned = self._clone_generator(getattr(source, name, None))
+            if cloned is not None:
+                opts[name] = cloned
+        return GANTrainer(recipe, g_mod, d_mod, **opts)
+
     @property
     def completed_steps(self) -> int:
         return int(self.trainer.completed_steps)
 
     @property
     def batch_sequence_sha256(self) -> str:
-        return self._batch_hasher.hexdigest()
+        return self._batch_sequence_sha256
 
     @torch.no_grad()
     def _eval_gen_clean(self, gen_mod: nn.Module, z: torch.Tensor) -> torch.Tensor:
@@ -1841,7 +1879,10 @@ class FourLawsFixture:
         real_cpu = sample_target_for_kind(
             self.kind, self.recipe.batch_size, self.data_rng, device="cpu", apply_mask=apply_mask
         )
-        self._batch_hasher.update(real_cpu.numpy().tobytes())
+        step_hash = hashlib.sha256(real_cpu.numpy().tobytes()).digest()
+        self._batch_sequence_sha256 = hashlib.sha256(
+            bytes.fromhex(self._batch_sequence_sha256) + step_hash
+        ).hexdigest()
         real_dev = real_cpu.to(self.device)
 
         y_id_pre = y_ood_pre = None
@@ -1905,6 +1946,11 @@ class FourLawsFixture:
     def observe(self, n: int | None = None, seed: int = 10000) -> dict[str, Any]:
         eval_n = int(self.spec["eval_samples"] if n is None else n)
         eval_stream = self._eval_stream(int(seed), purpose="samples")
+        eval_state_before = (
+            eval_stream.get_state().clone()
+            if self.kind == "fl_law42_deep_resbn_and_conv1x1"
+            else None
+        )
         ref_rng = torch.Generator(device="cpu").manual_seed(_seed_int(f"{self.kind}:ref", self.seed))
         ref = sample_target_for_kind(self.kind, min(4096, max(1024, eval_n)), ref_rng, device="cpu", apply_mask=False)
         samples = self.trainer.sample(eval_n, output_noise=False, generator=eval_stream)
@@ -1952,7 +1998,9 @@ class FourLawsFixture:
             )
 
         if self.kind == "fl_law42_deep_resbn_and_conv1x1":
-            conv_stream = self._eval_stream(int(seed) + 17, purpose="conv1x1_samples")
+            conv_stream = torch.Generator(device=eval_stream.device)
+            assert eval_state_before is not None
+            conv_stream.set_state(eval_state_before)
             samples_conv = self.aux_trainers["conv1x1"].sample(eval_n, output_noise=False, generator=conv_stream)
             if samples_conv.ndim == 4:
                 samples_conv = samples_conv.reshape(samples_conv.shape[0], -1)
@@ -2036,6 +2084,8 @@ class FourLawsFixture:
             "case_id": self.case_id,
             "seed": self.seed,
             "limit": self.limit,
+            "recipe": self.recipe.to_dict(),
+            "batch_sequence_sha256": self._batch_sequence_sha256,
             "data_rng": self.data_rng.get_state().clone(),
             "aux_data_rngs": {k: g.get_state().clone() for k, g in self._aux_data_rngs.items()},
             "trainer": self.trainer.state_dict(),
@@ -2052,6 +2102,12 @@ class FourLawsFixture:
     def load_state_dict(self, state: dict[str, Any]) -> None:
         if state.get("case_id") != self.case_id:
             raise ValueError("checkpoint case_id mismatch")
+        if state.get("recipe") != self.recipe.to_dict():
+            raise ValueError("checkpoint recipe mismatch")
+        if "batch_sequence_sha256" not in state or "seed" not in state:
+            raise ValueError("checkpoint missing required provenance fields")
+        self.seed = int(state["seed"])
+        self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
         self.data_rng.set_state(state["data_rng"].cpu())
         for k, g in self._aux_data_rngs.items():
             g.set_state(state["aux_data_rngs"][k].cpu())
