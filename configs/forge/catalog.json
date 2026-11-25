@@ -4843,7 +4843,7 @@
     },
     {
       "family": "config/repo_guard",
-      "git_blob": "e7155b585477fff8d40bb2462d6223eab62019b0",
+      "git_blob": "95bb1b2aa27da23ebdd98f84724d6cf347b3ca88",
       "path": "configs/repo_bloat_allowlist.json",
       "role": "configuration",
       "suggested_tiers": []
@@ -8905,7 +8905,7 @@
     },
     {
       "family": "report/axiom",
-      "git_blob": "a49dfa407a516ede4085b9d1f8ddbdf01bb8a99e",
+      "git_blob": "f9d6d0cc7e23babb3fe08b02cbff6650067b5a0f",
       "path": "reports/axiom/axiom-study.md",
       "role": "narrative",
       "suggested_tiers": []
@@ -8919,7 +8919,7 @@
     },
     {
       "family": "report/axiom",
-      "git_blob": "a5086ce565f23f479219752fc608f9e1d766c8c3",
+      "git_blob": "98dc3cb6d10c3dc782fd77c008782123db6f3099",
       "path": "reports/axiom/four-laws-benchmark.md",
       "role": "narrative",
       "suggested_tiers": []
