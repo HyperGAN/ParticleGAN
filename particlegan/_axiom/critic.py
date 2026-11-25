@@ -1,6 +1,7 @@
 """Axiom Module B: Law 2 Critic Potential Geometry, Law 4.5 Normal Dissipation, and StepRecord."""
 from __future__ import annotations
 
+from collections import OrderedDict
 from copy import deepcopy
 import math, random, sys
 from typing import Any, Callable, Dict, List, Optional, Tuple
@@ -8,7 +9,7 @@ import torch
 from torch import nn
 import torch.autograd.forward_ad as fwAD
 
-_GOLDEN_CONJ, _MAX_LIVE_CAPTURES, _PROBE_MAX_BATCH = 0.6180339887498949, 6, 32
+_GOLDEN_CONJ, _MAX_LIVE_CAPTURES, _MAX_CAPTURE_RING, _PROBE_MAX_BATCH = 0.6180339887498949, 6, 16, 32
 _EMA_BOOLS = frozenset({"grad_sq_initialized", "margin_initialized"})
 _BOOL_FIELDS = ("anchor_started", "grad_sq_initialized", "margin_initialized", "ell_initialized", "thermal_initialized", "thermal_locked", "cond_initialized", "het_initialized")
 _THERMAL_KEYS = ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail")
@@ -22,20 +23,17 @@ _DICT_FIELDS = ("chart_state", "atomic_ledger", "cond_fiber_bank")
 _RECORD_KEYS = frozenset({"schema", "calls", "observed_steps", "last_ratio", *_BOOL_FIELDS, *_SCALAR_BOUNDS, *_DICT_FIELDS})
 _first_out = lambda out: out[0] if isinstance(out, (tuple, list)) and out else out
 _fmt_logits = lambda y, b: y.reshape(b, 1) if y.ndim < 2 else y.reshape(b, -1)
-
-def _tensor_id(t: Any) -> Optional[Tuple[int, int, Tuple[int, ...], str]]:
-    if not isinstance(t, torch.Tensor) or t.ndim < 1 or t.numel() == 0: return None
-    try: ptr = int(t.untyped_storage().data_ptr())
-    except RuntimeError: return None
-    return None if ptr == 0 else (ptr, int(t.storage_offset()), tuple(int(s) for s in t.shape), str(t.device))
-
+def _storage_ptr(t: Any) -> int:
+    if not isinstance(t, torch.Tensor) or t.ndim < 1 or t.numel() == 0: return 0
+    try: return int(t.untyped_storage().data_ptr())
+    except RuntimeError: return 0
+_tensor_id = lambda t: (ptr, int(t.storage_offset()), tuple(int(s) for s in t.shape), str(t.device)) if (ptr := _storage_ptr(t)) else None
+_capture_key = lambda t: (ptr, int(t.storage_offset()), int(t.numel()), int(t.shape[0])) if (ptr := _storage_ptr(t)) else None
 def _cond_sig(args: Tuple[Any, ...], kwargs: Dict[str, Any]) -> Tuple[Any, ...]:
     s = [("T", _tensor_id(x), str(x.dtype)) if isinstance(x, torch.Tensor) else ("V", type(x).__qualname__, repr(x)) for x in args[1:]]
     return tuple(s + [("KT", k, _tensor_id(kwargs[k]), str(kwargs[k].dtype)) if isinstance(kwargs[k], torch.Tensor) else ("KV", k, type(kwargs[k]).__qualname__, repr(kwargs[k])) for k in sorted(kwargs)])
-
 def _walk_payload(obj: Any, fn: Callable[[torch.Tensor], torch.Tensor]) -> Any:
     return fn(obj) if isinstance(obj, torch.Tensor) else ({k: _walk_payload(v, fn) for k, v in obj.items()} if isinstance(obj, dict) else (type(obj)(_walk_payload(v, fn) for v in obj) if isinstance(obj, (list, tuple)) else deepcopy(obj)))
-
 def _validate_payload(obj: Any, name: str) -> None:
     if obj is None or type(obj) in (bool, int, str): return
     if type(obj) is float:
@@ -73,15 +71,14 @@ class AxiomStepRecord:
         self._reset_transient()
 
     def _reset_transient(self) -> None:
-        self._ema_t: Dict[str, torch.Tensor] = {}; self._live_captures: List[List[Any]] = []
+        self._ema_t: Dict[str, torch.Tensor] = {}; self._live_captures: List[List[Any]] = []; self._capture_ring: OrderedDict[Tuple[int, int, int, int], Tuple[Any, ...]] = OrderedDict()
         self._in_penalty = self._in_probe = self._in_protected_probe = self._simplicial_step = False; self._enable_secant_probe, self._disc_gate = True, 0.0
         self._last_probe_actual_input = self._g_probe_cache = self._active_prior_table = self._active_batch_rows = self._cond_bank_obj = None
-
+    def lookup_capture(self, logits: Any) -> Optional[Tuple[Any, ...]]: return self._capture_ring.get(k) if (k := _capture_key(logits)) is not None else None
     def take_pending_ema_tensors(self) -> Tuple[List[str], List[torch.Tensor]]: return list(self._ema_t.keys()), list(self._ema_t.values())
     def record_step(self, optimizer: Any = None) -> None: del optimizer; self.observed_steps += 1; self.clear_transient_captures()
     def __copy__(self) -> "AxiomStepRecord": dup = AxiomStepRecord(); dup.load_state_dict(self.state_dict()); return dup
     def __deepcopy__(self, memo: Dict[int, Any]) -> "AxiomStepRecord": dup = self.__copy__(); memo[id(self)], dup._enable_secant_probe = dup, self._enable_secant_probe; return dup
-
     def apply_flushed_ema_values(self, keys: List[str], vals: List[float]) -> None:
         for k, v in zip(keys, vals):
             if k in self._ema: self._ema[k] = bool(v > 0.5) if k in _EMA_BOOLS else float(v); self._ema_t.pop(k, None)
@@ -107,7 +104,8 @@ class AxiomStepRecord:
         if x_real is None or x_real.numel() == 0: return
         xr = x_real.detach().reshape(x_real.shape[0], -1).double(); xm = xr.abs().amax(); sx = torch.where(xm > 0.0, xm, xm.new_full((), 1.0))
         sc, psc = ((xr / sx).square().sum(-1).mean().sqrt() * sx).clamp_min(1e-30), self._dev_ema("ema_data_scale", dev)
-        nsc = torch.where(torch.isfinite(sc) & (xm > 0.0), torch.where(wi, 0.95 * psc + 0.05 * sc, sc), psc); self._ema_t["ema_data_scale"] = nsc
+        lp, lc = torch.log2(psc.clamp_min(1e-30)), torch.log2(sc.clamp_min(1e-30))
+        nsc = torch.where(torch.isfinite(sc) & (xm > 0.0), torch.where(wi, torch.exp2(lp + 0.05 * (lc - lp).clamp(-1.0, 1.0)), sc), psc); self._ema_t["ema_data_scale"] = nsc
         if x_fake is not None and x_fake.shape == x_real.shape:
             xf = x_fake.detach().reshape(x_fake.shape[0], -1).double()
             rg, ppr = (((xf.mean(0) - xr.mean(0)).norm() + 0.5 * (xf.std() - xr.std()).abs()) / nsc.clamp_min(1e-30)).clamp_max(10.0), self._dev_ema("ema_push_res", dev)
@@ -117,7 +115,6 @@ class AxiomStepRecord:
     def thermal_ema(self) -> float:
         ud, q9, hm = min(1.0, max(0.0, -float(self.ema_spread)) / 0.03), float(self.ema_q90), float(self.ema_hmax)
         return max(0.5 * max(0.0, float(self.ema_ed)), math.sqrt(max(0.0, float(self.ema_mu_sq))), 0.60 * abs(float(self.ema_spread)), max(q9, 0.60 * max(0.0, -q9) * ud), max(hm, 0.60 * max(0.0, -hm) * ud), max(0.0, float(self.ema_tail)))
-
     ema_residual = thermal_ema
 
     def observe_thermal(self, r_ed: float, r_mu_sq: float, r_spread: float, r_q90: float, r_hmax: float, *, r_tail: float = 0.0, tau: float = 0.084, ema_decay: float = 0.96, s_min: float = 1e-5, shock_mu_ratio: float = 0.35, shock_ed_floor: float = 0.30, lock_hysteresis: float = 0.0) -> float:
@@ -137,18 +134,16 @@ class AxiomStepRecord:
 
     def clear_transient_captures(self) -> None:
         for e in self._live_captures: e[3] = e[4] = None; e[5].clear()
-        self._live_captures.clear(); self._last_probe_actual_input = None
+        self._live_captures.clear(); self._capture_ring.clear(); self._last_probe_actual_input = None
     def restore_device_state(self, device: torch.device) -> None:
         for a in ("chart_state", "atomic_ledger"):
             if (v := getattr(self, a)) is not None: setattr(self, a, _walk_payload(v, lambda t: t.to(device=device)))
-
     def state_dict(self) -> Dict[str, Any]:
         self._flush_ema(); cpu = lambda t: t.detach().cpu().clone()
         bank = self._cond_bank_obj.to_packet() if (self._cond_bank_obj is not None and hasattr(self._cond_bank_obj, "to_packet")) else self.cond_fiber_bank
         return {"schema": 1, "calls": int(self.calls), "observed_steps": int(self.observed_steps), "last_ratio": None if self.last_ratio is None else float(self.last_ratio),
                 **{k: bool(getattr(self, k)) for k in _BOOL_FIELDS}, **{k: float(getattr(self, k)) for k in _SCALAR_BOUNDS},
                 **{dk: None if (v := (bank if dk == "cond_fiber_bank" else getattr(self, dk))) is None else _walk_payload(v, cpu) for dk in _DICT_FIELDS}}
-
     def load_state_dict(self, state: Dict[str, Any]) -> None:
         if (not isinstance(state, dict) or set(state) != _RECORD_KEYS or type(state["schema"]) is not int or state["schema"] != 1
                 or any(type(state[ik]) is not int or state[ik] < 0 for ik in ("calls", "observed_steps"))
@@ -175,6 +170,9 @@ def _extract_axiom_inputs_parts(args: Tuple[Any, ...], kwargs: Optional[Dict[str
 def _record_axiom_capture(out: Any, x_in: Optional[torch.Tensor], cond: Optional[torch.Tensor], rec: Any, *, has_cont_cond: bool = False, parts: Optional[Tuple[torch.Tensor, ...]] = None, thermally_scaled: bool = False) -> None:
     if x_in is not None and isinstance(tgt := _first_out(out), torch.Tensor) and tgt.ndim >= 1 and tgt.shape[0] == x_in.shape[0]:
         tgt._axiom_input, tgt._axiom_record, tgt._axiom_cond, tgt._axiom_cont_cond, tgt._axiom_parts, tgt._axiom_thermally_scaled = x_in, rec, cond, bool(has_cont_cond), parts, bool(thermally_scaled)
+        if rec is not None and int(x_in[0].numel()) <= 4096 and isinstance(ring := getattr(rec, "_capture_ring", None), OrderedDict) and (ck := _capture_key(tgt)) is not None:
+            ring[ck] = (x_in.detach(), None if cond is None else cond.detach(), rec, bool(has_cont_cond), None if parts is None else tuple(p.detach() for p in parts)); ring.move_to_end(ck)
+            while len(ring) > _MAX_CAPTURE_RING: ring.popitem(last=False)
 
 @torch.no_grad()
 def eval_probe_forward(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str, Any], record: Optional[AxiomStepRecord] = None) -> Optional[torch.Tensor]:
@@ -186,8 +184,7 @@ def eval_probe_forward(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[st
     if record is not None: record._in_probe = True
     try:
         module.eval(); p0 = next(module.parameters(), None)
-        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bool(p0 is not None and p0.device.type == "cuda" and getattr(module, "_axiom_bf16_autocast", False))):
-            tgt = _first_out(module(*args, **kwargs))
+        with torch.autocast("cuda", dtype=torch.bfloat16, enabled=bool(p0 is not None and p0.device.type == "cuda" and (getattr(module, "_axiom_bf16_autocast", False) or getattr(module, "_particlegan_bf16_autocast", False)))): tgt = _first_out(module(*args, **kwargs))
         return tgt.detach().to(torch.float32) if isinstance(tgt, torch.Tensor) else None
     finally:
         if record is not None: record._in_probe = prev_p
@@ -225,15 +222,13 @@ def _index_arg(val: Any, b: int, idx: torch.Tensor) -> Any:
 def _axiom_generator_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str, Any], output: Any) -> None:
     rec, raw = getattr(module, "_axiom_record", None), _first_out(output)
     if (rec is None or rec._in_probe or rec._in_penalty or rec._in_protected_probe or not rec._enable_secant_probe or not module.training or not torch.is_grad_enabled()
-            or not isinstance(raw, torch.Tensor) or not raw.is_floating_point() or not raw.requires_grad or raw.ndim < 2 or raw.shape[0] < 1 or int(raw[0].numel()) > 32 or fwAD.unpack_dual(raw).tangent is not None):
-        return
+            or not isinstance(raw, torch.Tensor) or not raw.is_floating_point() or not raw.requires_grad or raw.ndim < 2 or raw.shape[0] < 1 or int(raw[0].numel()) > 32 or fwAD.unpack_dual(raw).tangent is not None): return
     b, dev, nu = int(raw.shape[0]), raw.device, _PROBE_MAX_BATCH // 2
     idx = torch.arange(b, device=dev, dtype=torch.long) if b <= _PROBE_MAX_BATCH else torch.cat((
         u := ((torch.arange(nu, device=dev, dtype=torch.long) * b) // nu + int(float(rec.chord_phase) * b)) % b,
         torch.topk(raw.detach().reshape(b, -1).double().norm(dim=-1).index_fill(0, u, float("-inf")), k=_PROBE_MAX_BATCH - nu).indices), dim=0)
     pa, pk = tuple(_index_arg(a, b, idx) for a in args), {k: _index_arg(v, b, idx) for k, v in kwargs.items()}
-    if (y_pre := eval_probe_forward(module, pa, pk, rec) if getattr(module, "_axiom_has_bn", False) else raw.detach().index_select(0, idx).to(torch.float32)) is not None:
-        rec._g_probe_cache = (module, pa, pk, y_pre)
+    if (y_pre := eval_probe_forward(module, pa, pk, rec) if getattr(module, "_axiom_has_bn", False) else raw.detach().index_select(0, idx).to(torch.float32)) is not None: rec._g_probe_cache = (module, pa, pk, y_pre)
 
 def _attach_hook(mod: Optional[nn.Module], record: AxiomStepRecord, fn: Any, flag: str) -> None:
     if isinstance(mod, nn.Module):
@@ -251,11 +246,9 @@ def _has_quantized_linear(mod: Any) -> bool:
     try: from ..low_precision import EmulatedLinear
     except Exception: EmulatedLinear = ()  # type: ignore[assignment]
     return any(isinstance(m, EmulatedLinear) or getattr(m, "format", None) in ("nvfp4", "mxfp8") or "Emulated" in type(m).__name__ for m in mod.modules())
-
 def _bn_dual_bf16_hook(_m: nn.Module, _i: Tuple[Any, ...], out: Any) -> Any:
-    if isinstance(out, torch.Tensor):
-        p, t = fwAD.unpack_dual(out)
-        if t is not None and (p.dtype != torch.bfloat16 or t.dtype != torch.bfloat16): return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
+    if isinstance(out, torch.Tensor) and (t := fwAD.unpack_dual(out)[1]) is not None and ((p := fwAD.unpack_dual(out)[0]).dtype != torch.bfloat16 or t.dtype != torch.bfloat16):
+        return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
     return out
 def _dense_rademacher(x: torch.Tensor, phi: float, salt: int) -> torch.Tensor:
     h = (torch.arange(x.numel(), device=x.device, dtype=torch.int64) * 2654435761 + ((int(phi * 1073741824.0) + salt * 7919) & 0xFFFFFFFF) * 3266489917 + 374761393) & 0xFFFFFFFF
@@ -265,31 +258,26 @@ _cslice = lambda val, b, s, n: val if (not isinstance(val, torch.Tensor) or val.
 
 class AxiomPenaltyKernel:
     """Compute-regime-dispatched zero-Jensen linear-R1+R2 + Law 4.5 floor + swap-invariant gauge."""
-
-    def __init__(self, *, record: Optional[AxiomStepRecord] = None, coeff: float = 1.0, kappa: float = 1.0,
-                 lambda_floor: float = 0.005, beta_ema: float = 1.5, gamma_gauge: float = 0.03, max_lambda: float = 2.0) -> None:
-        self.record = AxiomStepRecord() if record is None else record
-        self.coeff, self.kappa = _check_scalar(coeff, "coeff", 0.0), _check_scalar(kappa, "kappa", 0.0, slo=True)
+    def __init__(self, *, record: Optional[AxiomStepRecord] = None, coeff: float = 1.0, kappa: float = 1.0, lambda_floor: float = 0.005, beta_ema: float = 1.5, gamma_gauge: float = 0.03, max_lambda: float = 2.0) -> None:
+        self.record, self.coeff, self.kappa = (AxiomStepRecord() if record is None else record), _check_scalar(coeff, "coeff", 0.0), _check_scalar(kappa, "kappa", 0.0, slo=True)
         self.lambda_floor, self.beta_ema = _check_scalar(lambda_floor, "lambda_floor", 0.0, slo=True), _check_scalar(beta_ema, "beta_ema", 0.0)
         self.gamma_gauge, self.max_lambda = _check_scalar(gamma_gauge, "gamma_gauge", 0.0), _check_scalar(max_lambda, "max_lambda", self.lambda_floor)
         self._c_max, self._fwad_unsupported = math.log(max(1.0, self.max_lambda / self.lambda_floor)), set()
-
     def _ror(self, live: Callable[..., torch.Tensor], x: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
         b, xr = int(x.shape[0]), x.detach().requires_grad_(True); y2, sq = _fmt_logits(live(xr, *a, **kw), b), None
         for k in range(int(y2.shape[1])):
             if (gk := torch.autograd.grad(y2[:, k].sum(), xr, create_graph=True, allow_unused=True)[0]) is not None:
                 term = gk.reshape(b, -1).float().square().sum(dim=-1); sq = term if sq is None else (sq + term)
         return y2, (y2.new_zeros(b, dtype=torch.float32) if sq is None else sq / float(y2.shape[1]))
-
-    def _fwad(self, live: Callable[..., torch.Tensor], xr: torch.Tensor, xf: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any],
-              phi: float, *, mod: Optional[nn.Module], has_bn: bool, has_bd: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _fwad(self, live: Callable[..., torch.Tensor], xr: torch.Tensor, xf: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any], phi: float, *, mod: Optional[nn.Module], has_bn: bool, has_bd: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         br, bf, bn_m, bn_h = int(xr.shape[0]), int(xf.shape[0]), [], []
-        bf16 = bool(has_bn and xr.is_cuda and isinstance(mod, nn.Module) and (getattr(mod, "bf16", False) or getattr(mod, "_axiom_bf16_autocast", False) or (torch.is_autocast_enabled("cuda") and torch.get_autocast_dtype("cuda") == torch.bfloat16)))
-        if has_bn and isinstance(mod, nn.Module):
+        bf16 = bool(xr.is_cuda and isinstance(mod, nn.Module) and (getattr(mod, "bf16", False) or (torch.is_autocast_enabled("cuda") and torch.get_autocast_dtype("cuda") == torch.bfloat16)))
+        if isinstance(mod, nn.Module) and (has_bn or bf16):
             for m in mod.modules():
-                if isinstance(m, nn.modules.batchnorm._BatchNorm):
+                if has_bn and isinstance(m, nn.modules.batchnorm._BatchNorm):
                     bn_m.append((m, m.training)); m.eval()
                     if bf16: bn_h.append(m.register_forward_hook(_bn_dual_bf16_hook))
+                elif bf16 and isinstance(m, nn.modules.instancenorm._InstanceNorm): bn_h.append(m.register_forward_hook(_bn_dual_bf16_hook))
         def _dual(xs: torch.Tensor, ca: Tuple[Any, ...], ckw: Dict[str, Any], salt: int) -> Tuple[torch.Tensor, torch.Tensor]:
             vs = _dense_rademacher(xs, phi, salt); y, j = fwAD.unpack_dual(live(fwAD.make_dual(xs.to(torch.bfloat16) if bf16 else xs, vs.to(torch.bfloat16) if bf16 else vs), *ca, **ckw))
             if j is None: raise NotImplementedError("dual tangent dropped")
@@ -299,20 +287,24 @@ class AxiomPenaltyKernel:
             sr, sf = int(phi * br) % br, int(((phi + 0.5) % 1.0) * bf) % bf
             with fwAD.dual_level():
                 if not a and not kw and br == bf and br >= 4 and not has_bd:
-                    b_reg = max(2, br // 4); brs = b_reg // 2
-                    y2, j2 = _dual(torch.cat((_cslice(xr.detach(), br, sr, brs), _cslice(xf.detach(), bf, sf, b_reg - brs)), dim=0), (), {}, 1)
-                    return y2[:brs], y2[brs:], 0.5 * (j2[:brs].square().mean() + j2[brs:].square().mean())
+                    try:
+                        b_reg = max(2, br // 4); brs = b_reg // 2
+                        y2, j2 = _dual(torch.cat((_cslice(xr.detach(), br, sr, brs), _cslice(xf.detach(), bf, sf, b_reg - brs)), dim=0), (), {}, 1)
+                        return y2[:brs], y2[brs:], 0.5 * (j2[:brs].square().mean() + j2[brs:].square().mean())
+                    except RuntimeError: pass
                 brs, bfs = (br if has_bd else max(1, min(br, br // 4))), (bf if has_bd else max(1, min(bf, bf // 4)))
-                yr, jr = _dual(_cslice(xr.detach(), br, sr, brs), tuple(_cslice(v, br, sr, brs) for v in a), {k: _cslice(v, br, sr, brs) for k, v in kw.items()}, 1)
-                yf, jf = _dual(_cslice(xf.detach(), bf, sf, bfs), tuple(_cslice(v, bf, sf, bfs) for v in a), {k: _cslice(v, bf, sf, bfs) for k, v in kw.items()}, 2)
+                try:
+                    yr, jr = _dual(_cslice(xr.detach(), br, sr, brs), tuple(_cslice(v, br, sr, brs) for v in a), {k: _cslice(v, br, sr, brs) for k, v in kw.items()}, 1)
+                    yf, jf = _dual(_cslice(xf.detach(), bf, sf, bfs), tuple(_cslice(v, bf, sf, bfs) for v in a), {k: _cslice(v, bf, sf, bfs) for k, v in kw.items()}, 2)
+                except RuntimeError:
+                    if brs == br and bfs == bf: raise
+                    yr, jr = _dual(xr.detach(), a, kw, 1); yf, jf = _dual(xf.detach(), a, kw, 2)
                 return yr, yf, 0.5 * (jr.square().mean() + jf.square().mean())
         finally:
             self.record._in_penalty = False
             for h in bn_h: h.remove()
             for m, f in bn_m: m.training = f
-
-    def penalty(self, live: Callable[..., torch.Tensor], x_real: torch.Tensor, x_fake: torch.Tensor, *args: Any,
-                collect_stats: bool = False, critic_module: Optional[nn.Module] = None, **kwargs: Any) -> Tuple[torch.Tensor, Dict[str, Any]]:
+    def penalty(self, live: Callable[..., torch.Tensor], x_real: torch.Tensor, x_fake: torch.Tensor, *args: Any, collect_stats: bool = False, critic_module: Optional[nn.Module] = None, **kwargs: Any) -> Tuple[torch.Tensor, Dict[str, Any]]:
         if self.coeff == 0.0: self.record.clear_transient_captures(); return x_real.new_zeros(()), ({"applied": False, "pen": 0.0, "center": self.kappa} if collect_stats else {})
         self.record.calls, phi = self.record.calls + 1, float(self.record.chord_phase); self.record.chord_phase = (phi + _GOLDEN_CONJ) % 1.0
         mod = critic_module if isinstance(critic_module, nn.Module) else (live if isinstance(live, nn.Module) else None)
@@ -331,15 +323,21 @@ class AxiomPenaltyKernel:
             if use_ror:
                 self.record._in_penalty = True
                 try:
-                    br, bf, _cap = int(x_real.shape[0]), int(x_fake.shape[0]), (lambda sq: torch.relu((sq + 1e-12).sqrt() - self.kappa).square().mean())
-                    if not has_bn and not has_bd and not args and not kwargs and br == bf and x_real.shape == x_fake.shape:
-                        tc = (0.15 + 0.70 * torch.remainder((torch.arange(br, device=x_real.device, dtype=torch.float32) + 0.5) / float(br) + phi, 1.0)).to(x_real.dtype).reshape((br,) + (1,) * (x_real.ndim - 1))
-                        y3, sq3 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach(), (1.0 - tc) * x_real.detach() + tc * x_fake.detach()), dim=0), (), {})
-                        dr_s, df_s, sqr, sqf, sqc = y3[:br], y3[br : 2 * br], sq3[:br], sq3[br : 2 * br], sq3[2 * br :]
-                        s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + 0.75 * _cap(sqf) + 0.25 * _cap(sqc)
-                    else:
-                        dr_s, sqr = self._ror(live, x_real, args, kwargs); df_s, sqf = self._ror(live, x_fake, args, kwargs)
-                        s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf)
+                    br, bf, _cap, done = int(x_real.shape[0]), int(x_fake.shape[0]), (lambda sq: torch.relu((sq + 1e-12).sqrt() - self.kappa).square().mean()), False
+                    if not has_bn and not has_bd and br == bf and x_real.shape == x_fake.shape:
+                        try:
+                            if not args and not kwargs:
+                                tc = (0.15 + 0.70 * torch.remainder((torch.arange(br, device=x_real.device, dtype=torch.float32) + 0.5) / float(br) + phi, 1.0)).to(x_real.dtype).reshape((br,) + (1,) * (x_real.ndim - 1))
+                                y3, sq3 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach(), (1.0 - tc) * x_real.detach() + tc * x_fake.detach()), dim=0), (), {})
+                                dr_s, df_s, sqr, sqf, sqc = y3[:br], y3[br : 2 * br], sq3[:br], sq3[br : 2 * br], sq3[2 * br :]
+                                s_hat, cap_tot, done = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + 0.75 * _cap(sqf) + 0.25 * _cap(sqc), True
+                            else:
+                                _dup = lambda v: torch.cat((v, v), 0) if (isinstance(v, torch.Tensor) and v.ndim >= 1 and v.shape[0] == br) else v
+                                y2, sq2 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach()), 0), tuple(_dup(v) for v in args), {k: _dup(v) for k, v in kwargs.items()})
+                                dr_s, df_s, sqr, sqf = y2[:br], y2[br:], sq2[:br], sq2[br:]; s_hat, cap_tot, done = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf), True
+                        except RuntimeError: pass
+                    if not done:
+                        dr_s, sqr = self._ror(live, x_real, args, kwargs); df_s, sqf = self._ror(live, x_fake, args, kwargs); s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf)
                 finally: self.record._in_penalty = False
             dr2, df2 = (dr_l, df_l) if reused else (dr_s, df_s)
             lam = (self.lambda_floor * torch.exp((self.beta_ema * torch.relu(self.record._dev_ema("ema_grad_sq", s_hat.device) - self.kappa * self.kappa)).clamp_max(self._c_max))).to(s_hat.dtype)
