@@ -644,6 +644,17 @@ def test_checkpoint_cross_family_and_tamper_rejection() -> None:
     with pytest.raises(ValueError):
         og15.load_state_dict(bad_peak)
 
+    for bad_gref in (-1.0, float("nan"), float("inf"), True, "1.0"):
+        bad_gr = copy.deepcopy(valid_g_sd)
+        bad_gr["unified_v15_equil"]["g_peak_ref"] = bad_gref
+        with pytest.raises(ValueError, match="g_peak_ref"):
+            og15.load_state_dict(bad_gr)
+
+    missing_gr = copy.deepcopy(valid_g_sd)
+    del missing_gr["unified_v15_equil"]["g_peak_ref"]
+    with pytest.raises(ValueError):
+        og15.load_state_dict(missing_gr)
+
 
 def test_zero_forbidden_primitives_and_frob_smoothing_contract(monkeypatch: pytest.MonkeyPatch) -> None:
     """UnifiedV15Optimizer must never invoke svd/eigh/pinv/autograd.grad and must pass 64x64 spike recovery."""
@@ -702,3 +713,114 @@ def test_zero_forbidden_primitives_and_frob_smoothing_contract(monkeypatch: pyte
     _step_gen_loss(opt_g64, (lin64.weight * (base_g * 1e-6)).sum())
     post = float((lin64.weight.detach() - w1).norm().item())
     assert post / max(pre, 1e-12) >= 0.90, f"64x64 spike recovery too low: {post / max(pre, 1e-12):.4f}"
+
+
+def test_two_player_s_mean_degree0_invariance_and_1e25_slow_path() -> None:
+    """Two-player S_mean (G + D + scalar 1D bias + prior) must be degree-0 across 1e-25..1e+4."""
+    torch.set_num_threads(1)
+
+    def _run_two_player(scale: float) -> tuple[list[torch.Tensor], list[torch.Tensor], torch.Tensor, float]:
+        g_mod = nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 4))
+        d_mod = nn.Sequential(nn.Linear(4, 16), nn.SiLU(), nn.Linear(16, 1))
+        init.deterministic_orthogonal_(g_mod, seed=101)
+        init.deterministic_orthogonal_(d_mod, seed=102)
+        _, prior, opt_g, opt_d = _build_v15_pair(g_mod, d_mod, num_particles=32, z_dim=8, batch_size=16)
+        init.deterministic_orthogonal_(prior, seed=103)
+        gen = torch.Generator().manual_seed(909)
+        rows = torch.arange(16, dtype=torch.long)
+        for _ in range(4):
+            # Step G + prior first so opt_g publishes S_mean(G) to shared step record:
+            opt_g.set_sampled_rows(prior.z, rows)
+            loss_g = sum(
+                (p * (torch.randn(p.shape, generator=gen) * scale)).sum()
+                for p in g_mod.parameters()
+            ) + (prior.z[rows] * (torch.randn((16, 8), generator=gen) * (0.2 * scale))).sum()
+            _step_gen_loss(opt_g, loss_g)
+            # Step D (including scalar 1D bias of shape (1,) on slow path!) consuming S_mean(G):
+            for p in d_mod.parameters():
+                p.grad = torch.randn(p.shape, generator=gen) * (0.1 * scale)
+            opt_d.step()
+        return (
+            [p.detach().clone() for p in g_mod.parameters()],
+            [p.detach().clone() for p in d_mod.parameters()],
+            prior.z.detach().clone(),
+            float(opt_g.state_dict()["unified_v15_equil"]["g_peak_ref"]),
+        )
+
+    g_ref, d_ref, z_ref, gref_1 = _run_two_player(1.0)
+    assert gref_1 > 0.0
+    for sc in (1e-6, 1e+4, 1e-25):
+        g_s, d_s, z_s, gref_s = _run_two_player(sc)
+        assert abs(gref_s / (gref_1 * sc) - 1.0) < 1e-4, f"S_mean scale {sc}: {gref_s} vs {gref_1 * sc}"
+        for pa, pb in zip(g_ref, g_s):
+            assert float((pa - pb).abs().max().item()) < 2e-5, f"G degree-0 drift at scale={sc}"
+        for pa, pb in zip(d_ref, d_s):
+            assert float((pa - pb).abs().max().item()) < 2e-5, f"D degree-0 drift at scale={sc}"
+        assert float((z_ref - z_s).abs().max().item()) < 2e-5, f"Prior degree-0 drift at scale={sc}"
+
+
+def test_two_player_g_peak_ref_checkpoint_load_order_and_decay() -> None:
+    """g_peak_ref must restore bit-exactly regardless of opt_g/opt_d load order and decay on two-obj cond steps."""
+    torch.set_num_threads(1)
+
+    def _make_pair():
+        g_mod = nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 4))
+        d_mod = nn.Sequential(nn.Linear(4, 16), nn.SiLU(), nn.Linear(16, 1))
+        init.deterministic_orthogonal_(g_mod, seed=201)
+        init.deterministic_orthogonal_(d_mod, seed=202)
+        _, prior, opt_g, opt_d = _build_v15_pair(g_mod, d_mod, num_particles=32, z_dim=8, batch_size=16)
+        return g_mod, d_mod, prior, opt_g, opt_d
+
+    g0, d0, _, og0, od0 = _make_pair()
+    gen = torch.Generator().manual_seed(303)
+    # Run 3 steps (opt_d then opt_g, matching GANTrainer order) so opt_g has newer g_peak_ref than opt_d:
+    for s in range(3):
+        for p in d0.parameters():
+            p.grad = torch.randn(p.shape, generator=gen) * 0.05
+        od0.step()
+        mult = 1.0 if s < 2 else 2.5
+        loss_g = sum((p * (torch.randn(p.shape, generator=gen) * mult)).sum() for p in g0.parameters())
+        _step_gen_loss(og0, loss_g)
+
+    sd_g = og0.state_dict()
+    sd_d = od0.state_dict()
+    gref_latest = sd_g["unified_v15_equil"]["g_peak_ref"]
+    assert gref_latest > sd_d["unified_v15_equil"]["g_peak_ref"] > 0.0
+
+    # Verify standard single-objective step retains peak (p_dec = 1.0) while cooled 2-obj cond decays by 0.9995:
+    p_first = next(iter(g0.parameters()))
+    peak_before = float(og0.state[p_first]["peak_rms_val"])
+    loss_tiny = sum((p * 1e-6).sum() for p in g0.parameters())
+    _step_gen_loss(og0, loss_tiny)
+    assert float(og0.state[p_first]["peak_rms_val"]) == peak_before
+
+    rec0 = og0._active_record()
+    assert rec0 is not None
+    rec0.t1c_cond_initialized = True
+    rec0._thermal_scale = 1.0
+    og0.zero_grad(set_to_none=True)
+    l_a = sum((p * 1e-6).sum() for p in g0.parameters())
+    l_b = sum((p * 2e-6).sum() for p in g0.parameters())
+    constraint_geometry_backward(l_a + l_b, og0, (l_a, l_b))
+    og0.step()
+    peak_after = float(og0.state[p_first]["peak_rms_val"])
+    assert abs(peak_after - peak_before * 0.9995) < 1e-6 * peak_before
+
+    # Verify BOTH load orders (opt_g -> opt_d AND opt_d -> opt_g) produce bit-identical next opt_d step:
+    d_grads = [torch.randn(p.shape, generator=gen) * 0.02 for p in d0.parameters()]
+    outs = []
+    for order in ("g_first", "d_first"):
+        _, d_r, _, og_r, od_r = _make_pair()
+        if order == "g_first":
+            og_r.load_state_dict(copy.deepcopy(sd_g))
+            od_r.load_state_dict(copy.deepcopy(sd_d))
+        else:
+            od_r.load_state_dict(copy.deepcopy(sd_d))
+            og_r.load_state_dict(copy.deepcopy(sd_g))
+        assert float(getattr(od_r._active_record(), "_v15_g_peak_ref", 0.0)) == gref_latest
+        for p, dg in zip(d_r.parameters(), d_grads):
+            p.grad = dg.clone()
+        od_r.step()
+        outs.append([p.detach().clone() for p in d_r.parameters()])
+    for pa, pb in zip(outs[0], outs[1]):
+        assert torch.equal(pa, pb)
