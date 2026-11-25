@@ -3,8 +3,8 @@
   "dry_run": false,
   "files": {
     "README.md": {
-      "bytes": 3966,
-      "sha256": "ffc0c89bdcb8fe980ef395b69c32778b197c69f8f2295b9e70ada1fb36fbd272"
+      "bytes": 3967,
+      "sha256": "f55f0bc2f93c18dd826742901874ca6031b979ae96b8ce1ea59fd03567059ce8"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,31 +12,31 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 12077,
-      "rows": 99,
-      "sha256": "6d77c4f62df4bb682509e99abec8ee1b24950ed8817992b211771aa8c752a35a"
+      "bytes": 12161,
+      "rows": 101,
+      "sha256": "30650e8150f408166f848d5b2f9e11b97444f5d6f43f9341e01e6f8c633675d0"
     },
     "data/leaderboard.json": {
-      "bytes": 2365053,
-      "families": 11,
-      "sha256": "a4a4dcf0849bddff0a2464aefc7f9cc689b460c72c3c312f1ae4fb0375b36881",
-      "tasks": 1414
+      "bytes": 2513945,
+      "families": 12,
+      "sha256": "624e5d346e0e6ef6867f441b23795222e9ea6fc46df16dfa0e890d64747639c4",
+      "tasks": 1532
     },
     "data/leaderboard.parquet": {
-      "bytes": 27342,
-      "rows": 11,
-      "sha256": "34570b5f4225a75cc6cdce9c3dc307a5d716b3ec4924353a3c0a156d6895c003"
+      "bytes": 27575,
+      "rows": 12,
+      "sha256": "ca22627c06112d3d70e8f8fdaeb6047d8cbfcdc66310d237d61fa7495bb64065"
     },
     "data/receipts.parquet": {
-      "bytes": 794216,
-      "rows": 3962,
-      "sha256": "2595987d6303b8a9dab801457f0d1197e4730a77e572f1bc27b99c342209ec9a"
+      "bytes": 808067,
+      "rows": 4009,
+      "sha256": "60d9b927f9ad7d9ae44ab8cff878c29e5dc77306f8eef61fb6a6ef58c1474ce1"
     }
   },
-  "git_source_commit": "9c79408bc52b935eafb26f7bed22152c4f4405d7",
-  "hf_revision": "5543735d74f7d93967ccfddc0884d98ffdb40a80",
+  "git_source_commit": "9171d67cdce58eeee4d742a8a0a94ee6ad1f9362",
+  "hf_revision": "519558716abce2015dbb856c5c8a32b66ece3575",
   "inventory": true,
-  "published_at": "2026-11-25T13:34:02Z",
+  "published_at": "2026-11-25T14:52:44Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",
