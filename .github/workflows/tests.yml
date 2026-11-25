@@ -68,6 +68,9 @@ jobs:
       - name: Check repository report bloat guard
         if: matrix.shard == 0
         run: python scripts/check_repo_bloat.py
+      - name: Check Markdown math rendering
+        if: matrix.shard == 0
+        run: python scripts/check_markdown_math.py
       - name: Test numerical kernels and experiment workflows
         # Spread the slow readout tests individually, pin ancestor-history tests to shard 7,
         # and keep other files together.
