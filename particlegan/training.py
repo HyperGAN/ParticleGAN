@@ -1,4 +1,5 @@
 """A checkpointable training loop using the current recipe formulation."""
+from contextlib import contextmanager
 from copy import deepcopy
 import math
 
@@ -12,11 +13,43 @@ from .priors import unwrap_prior
 from .recipes import Recipe, learning_rate_scales
 from .policy import UpdatePolicy, _state_to_device, _validate_optimizer_state, input_noise_std as input_noise_std, output_noise_std
 
+_VALID_TRAINING_PRECISIONS = ("float32", "bf16_channels_last")
 
-def _convolution_autocast(module, enabled):
-    if not enabled or not any(isinstance(child, (nn.Conv2d, nn.ConvTranspose2d))
-                              and max(child.in_channels, child.out_channels) // child.groups > 32
-                              for child in module.modules()):
+_FORMULATION_BF16_ATTRS = {
+    "t4_nash": "_t4_bf16_autocast",
+    "unified_v4": "_unified_v4_bf16_autocast",
+    "unified_v11": "_unified_v4_bf16_autocast",
+    "r4_autograd_critic": "_unified_v4_bf16_autocast",
+    "t4_nash_v3": "_nash_v3_bf16_autocast",
+    "minimal": "_minimal_bf16_autocast",
+}
+
+_FLOAT_OUTPUT_DIRECT_ATTRS = (
+    "_bispf_input",
+    "_empf_input", "_empf_record", "_empf_conditioned", "_empf_cond_tensors",
+    "_t2_input", "_t2_record", "_t2_conditioned", "_t2_cond_tensors",
+    "_rhbi_record", "_rhbi_thermally_scaled",
+    "_t1c_record", "_t1c_thermally_scaled", "_t1c_bypassed",
+    "_rgdt_record", "_rgdt_thermally_scaled",
+    "_t4_input", "_t4_record", "_t4_conditioned", "_t4_cond_tensors",
+    "_nash_v3_input", "_nash_v3_record", "_nash_v3_conditioned", "_nash_v3_cond_tensors",
+    "_minimal_input", "_minimal_record", "_minimal_conditioned", "_minimal_cond_tensors",
+)
+_FLOAT_OUTPUT_COUPLED_PREFIXES = ("_rhbi", "_t1c", "_rgdt")
+
+
+def _resolve_training_precision(training_precision):
+    if isinstance(training_precision, Recipe):
+        return training_precision.training_precision
+    if isinstance(training_precision, bool):
+        return "bf16_channels_last" if training_precision else "float32"
+    if not isinstance(training_precision, str) or training_precision not in _VALID_TRAINING_PRECISIONS:
+        raise ValueError("training_precision must be float32 or bf16_channels_last")
+    return training_precision
+
+
+def _cuda_bf16_supported(module):
+    if module is None:
         return False
     parameter = next(module.parameters(), None)
     if parameter is None or parameter.device.type != "cuda":
@@ -25,68 +58,123 @@ def _convolution_autocast(module, enabled):
         return torch.cuda.is_bf16_supported(including_emulation=False)
 
 
-def _float_output(value):
+def _has_bf16_convolution(module):
+    if module is None:
+        return False
+    return any(
+        isinstance(child, (nn.Conv2d, nn.ConvTranspose2d))
+        and max(child.in_channels, child.out_channels) // child.groups > 32
+        for child in module.modules()
+    )
+
+
+def uses_channels_last(module, training_precision="bf16_channels_last"):
+    """Return True when ``module`` should use CUDA ``channels_last`` (NHWC) layout."""
+    precision = _resolve_training_precision(training_precision)
+    if precision != "bf16_channels_last" or not _has_bf16_convolution(module):
+        return False
+    return _cuda_bf16_supported(module)
+
+
+def uses_bf16_autocast(module, training_precision="bf16_channels_last"):
+    """Return True when ``module`` should run training forwards under CUDA BF16 autocast."""
+    precision = _resolve_training_precision(training_precision)
+    if precision == "float32":
+        return False
+    return uses_channels_last(module, precision)
+
+
+def configure_bf16_autocast(recipe, module, enabled):
+    """Set formulation-specific BF16 autocast probe flags on ``module`` and return ``bool(enabled)``."""
+    flag = bool(enabled)
+    if module is not None:
+        formulation = (
+            recipe
+            if isinstance(recipe, str)
+            else getattr(recipe, "effective_critic_formulation", None)
+        )
+        attr = _FORMULATION_BF16_ATTRS.get(formulation)
+        if attr is not None:
+            setattr(module, attr, flag)
+    return flag
+
+
+def _convolution_autocast(module, enabled):
+    return uses_channels_last(module, bool(enabled))
+
+
+def float_output(value):
+    """Cast ``torch.bfloat16`` tensor outputs to ``torch.float32``, preserving ParticleGAN capture metadata.
+
+    Recursively converts tensors inside ``tuple``, ``list``, and ``dict`` containers,
+    preserves ``torch.autograd.forward_ad`` dual tangents, and returns non-BF16
+    tensors untouched without copying.
+    """
     if isinstance(value, torch.Tensor):
-        result = value.float() if value.dtype == torch.bfloat16 else value
-        if hasattr(value, "_bispf_input"):
-            result._bispf_input = value._bispf_input
-        if hasattr(value, "_empf_input"):
-            result._empf_input = value._empf_input
-        if hasattr(value, "_empf_record"):
-            result._empf_record = value._empf_record
-        if hasattr(value, "_empf_conditioned"):
-            result._empf_conditioned = value._empf_conditioned
-        if hasattr(value, "_empf_cond_tensors"):
-            result._empf_cond_tensors = value._empf_cond_tensors
-        if hasattr(value, "_t2_input"):
-            result._t2_input = value._t2_input
-        if hasattr(value, "_t2_record"):
-            result._t2_record = value._t2_record
-        if hasattr(value, "_t2_conditioned"):
-            result._t2_conditioned = value._t2_conditioned
-        if hasattr(value, "_t2_cond_tensors"):
-            result._t2_cond_tensors = value._t2_cond_tensors
-        if hasattr(value, "_rhbi_input"):
-            result._rhbi_input = value._rhbi_input
-            result._rhbi_cond = getattr(value, "_rhbi_cond", None)
-            result._rhbi_cont_cond = bool(getattr(value, "_rhbi_cont_cond", False))
-            result._rhbi_parts = getattr(value, "_rhbi_parts", None)
-        if hasattr(value, "_rhbi_record"):
-            result._rhbi_record = value._rhbi_record
-        if hasattr(value, "_rhbi_thermally_scaled"):
-            result._rhbi_thermally_scaled = value._rhbi_thermally_scaled
-        if hasattr(value, "_t1c_input"):
-            result._t1c_input = value._t1c_input
-            result._t1c_cond = getattr(value, "_t1c_cond", None)
-            result._t1c_cont_cond = bool(getattr(value, "_t1c_cont_cond", False))
-            result._t1c_parts = getattr(value, "_t1c_parts", None)
-        if hasattr(value, "_t1c_record"):
-            result._t1c_record = value._t1c_record
-        if hasattr(value, "_t1c_thermally_scaled"):
-            result._t1c_thermally_scaled = value._t1c_thermally_scaled
-        if hasattr(value, "_rgdt_input"):
-            result._rgdt_input = value._rgdt_input
-            result._rgdt_cond = getattr(value, "_rgdt_cond", None)
-            result._rgdt_cont_cond = bool(getattr(value, "_rgdt_cont_cond", False))
-            result._rgdt_parts = getattr(value, "_rgdt_parts", None)
-        if hasattr(value, "_rgdt_record"):
-            result._rgdt_record = value._rgdt_record
-        if hasattr(value, "_rgdt_thermally_scaled"):
-            result._rgdt_thermally_scaled = value._rgdt_thermally_scaled
-        if hasattr(value, "_t4_input"):
-            result._t4_input = value._t4_input
-        if hasattr(value, "_t4_record"):
-            result._t4_record = value._t4_record
-        if hasattr(value, "_t4_conditioned"):
-            result._t4_conditioned = value._t4_conditioned
-        if hasattr(value, "_t4_cond_tensors"):
-            result._t4_cond_tensors = value._t4_cond_tensors
+        if value.dtype != torch.bfloat16:
+            return value
+        result = value.float()
+        if getattr(value, "__dict__", None):
+            for attr in _FLOAT_OUTPUT_DIRECT_ATTRS:
+                if hasattr(value, attr):
+                    setattr(result, attr, getattr(value, attr))
+            for prefix in _FLOAT_OUTPUT_COUPLED_PREFIXES:
+                input_attr = f"{prefix}_input"
+                if hasattr(value, input_attr):
+                    setattr(result, input_attr, getattr(value, input_attr))
+                    setattr(result, f"{prefix}_cond", getattr(value, f"{prefix}_cond", None))
+                    setattr(result, f"{prefix}_cont_cond", bool(getattr(value, f"{prefix}_cont_cond", False)))
+                    setattr(result, f"{prefix}_parts", getattr(value, f"{prefix}_parts", None))
         return result
     if isinstance(value, tuple):
-        return tuple(_float_output(item) for item in value)
+        converted = tuple(float_output(item) for item in value)
+        return value if all(new is old for new, old in zip(converted, value)) else converted
     if isinstance(value, list):
-        return [_float_output(item) for item in value]
+        converted = [float_output(item) for item in value]
+        return value if all(new is old for new, old in zip(converted, value)) else converted
+    if isinstance(value, dict):
+        if not value:
+            return value
+        converted = {k: float_output(v) for k, v in value.items()}
+        if all(converted[k] is value[k] for k in value):
+            return value
+        try:
+            return type(value)(converted)
+        except TypeError:
+            return converted
     return value
+
+
+_float_output = float_output
+
+
+@contextmanager
+def critic_source_context(critic, source):
+    """Bind pre-transform ``source`` tensor identity on ``critic`` for live-endpoint reuse.
+
+    Use around critic calls when an input transform (such as ``channels_last``
+    conversion or additive input noise) allocates a new tensor storage pointer so
+    formulation hooks still match ``source`` during critic penalty evaluation.
+    """
+    target = critic
+    if target is not None and not hasattr(target, "_t2_record"):
+        inner = getattr(target, "critic", None)
+        if inner is not None and hasattr(inner, "_t2_record"):
+            target = inner
+    if target is None or source is None or not hasattr(target, "_t2_record"):
+        yield
+        return
+    from ._t2_critic.critic import _tensor_identity_key
+    sentinel = object()
+    previous = getattr(target, "_t2_pending_source_key", sentinel)
+    target._t2_pending_source_key = _tensor_identity_key(source)
+    try:
+        yield
+    finally:
+        if previous is sentinel:
+            target._t2_pending_source_key = None
+        else:
+            target._t2_pending_source_key = previous
 
 
 class InputNoise(nn.Module):
@@ -101,22 +189,21 @@ class InputNoise(nn.Module):
     def __init__(self, critic, std=0.0, generator=None, *, bf16=False):
         super().__init__()
         self.critic, self.std, self.generator = critic, float(std), generator
-        self.bf16 = _convolution_autocast(critic, bf16)
+        self._channels_last = uses_channels_last(critic, bf16)
+        self.bf16 = uses_bf16_autocast(critic, bf16)
 
     def _forward(self, x, *args, _source_x=None, **kwargs):
         src = x if _source_x is None else _source_x
-        has_t2 = hasattr(self.critic, "_t2_record")
-        if has_t2:
-            from ._t2_critic.critic import _tensor_identity_key
-            self.critic._t2_pending_source_key = _tensor_identity_key(src)
-        try:
+        with critic_source_context(self.critic, src):
             if not self.bf16 or x.device.type != "cuda":
                 return self.critic(x, *args, **kwargs)
             with torch.autocast("cuda", dtype=torch.bfloat16):
-                return _float_output(self.critic(x.contiguous(memory_format=torch.channels_last), *args, **kwargs))
-        finally:
-            if has_t2:
-                self.critic._t2_pending_source_key = None
+                inp = (
+                    x.contiguous(memory_format=torch.channels_last)
+                    if self._channels_last and x.ndim == 4
+                    else x
+                )
+                return float_output(self.critic(inp, *args, **kwargs))
 
     def forward(self, x, *args, **kwargs):
         if self.std == 0:
@@ -338,8 +425,7 @@ class GANTrainer:
             raise ValueError("GANTrainer supports unconditional scalar GANs with particle priors and no encoder")
         self.recipe, self.G, self.D = recipe, generator, discriminator
         for module in (self.G, self.D):
-            if (_convolution_autocast(module, recipe.training_precision == "bf16_channels_last")
-                    and next(module.parameters()).device.type == "cuda"):
+            if uses_channels_last(module, recipe.training_precision):
                 module.to(memory_format=torch.channels_last)
         if recipe.constraint_geometry_mode == "strict_progress" and (recipe.input_noise_std or recipe.output_noise_std or recipe.standardize):
             raise ValueError("strict_progress requires zero additive noise and unstandardized prior for deterministic replay")
@@ -506,20 +592,10 @@ class GANTrainer:
                 for name in self._STREAMS if name not in ("eval_generator", "model_generator"))):
             raise ValueError("model stream must be separate from other training streams and global draws")
         self._noisy_D = InputNoise(self.D, 0.0, self.input_noise_generator,
-                                   bf16=recipe.training_precision == "bf16_channels_last")
-        self._bf16_generator = _convolution_autocast(self.G, recipe.training_precision == "bf16_channels_last")
-        if recipe.effective_critic_formulation == "t4_nash":
-            self.G._t4_bf16_autocast = bool(self._bf16_generator)
-            self.D._t4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation in ("unified_v4", "unified_v11", "r4_autograd_critic"):
-            self.G._unified_v4_bf16_autocast = bool(self._bf16_generator)
-            self.D._unified_v4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "t4_nash_v3":
-            self.G._nash_v3_bf16_autocast = bool(self._bf16_generator)
-            self.D._nash_v3_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "minimal":
-            self.G._minimal_bf16_autocast = bool(self._bf16_generator)
-            self.D._minimal_bf16_autocast = bool(self._noisy_D.bf16)
+                                   bf16=recipe.training_precision)
+        self._bf16_generator = uses_bf16_autocast(self.G, recipe.training_precision)
+        configure_bf16_autocast(recipe, self.G, self._bf16_generator)
+        configure_bf16_autocast(recipe, self.D, self._noisy_D.bf16)
         self._in_training_step = False
         # Manipulator hooks resolved once; plain priors have neither.
         self._postprocesses = bool(getattr(self.prior, "postprocesses_generated", False))

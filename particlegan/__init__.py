@@ -42,7 +42,15 @@ from .recipes import (
     scale_learning_rates,
 )
 from .routing import RoutedBatch, RoutedCandidate, RoutedExecution, RoutedRows
-from .training import GANTrainer, InputNoise
+from .training import (
+    GANTrainer,
+    InputNoise,
+    configure_bf16_autocast,
+    critic_source_context,
+    float_output,
+    uses_bf16_autocast,
+    uses_channels_last,
+)
 from .tensorflow_adam import TensorFlowV1Adam
 from .vicreg_loss import ParticleRegularizer
 from .coulomb_prior import CoulombPriorRegularizer
@@ -202,5 +210,6 @@ __all__ = [
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
     "DEFAULT_RECIPE", "Recipe", "NetworkLRTransition", "DataDriftController", "get_recipe", "get_recipe_fields", "learning_rate_scale", "learning_rate_scales", "scale_learning_rates", "GANTrainer", "InputNoise",
+    "configure_bf16_autocast", "critic_source_context", "float_output", "uses_bf16_autocast", "uses_channels_last",
     "BatchDistanceDiscriminator", "LinearSkipDiscriminator",
 ]
