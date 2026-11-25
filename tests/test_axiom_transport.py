@@ -770,3 +770,8 @@ def test_v4_fast_spectral_word_bfs_cpu_guard_and_tiny_scale():
     assert torch.isfinite(c_t).all() and torch.isfinite(ch_t).all() and float(c_t.amax().item()) > 1e-7
     _, _, rads_t, _, cs_t = T._update_charts(y_tiny, None, max_charts=8, allow_update=True)
     assert float(rads_t.amax().item()) < 1e-4 and cs_t["data_scale"] < 1e-3
+    # _sc_safe restores exact 1.0 normal-scale floor (>=1e-2) while staying scale-free below 1e-2.
+    assert float(T._sc_safe(torch.tensor(0.5)).item()) == 1.0
+    assert float(T._sc_safe(torch.tensor(2.5)).item()) == 2.5
+    assert float(T._sc_safe(torch.tensor(1e-5)).item()) == pytest.approx(1e-5)
+    assert float(T._sc_safe(torch.tensor(0.0)).item()) == pytest.approx(1e-12)

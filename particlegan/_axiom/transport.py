@@ -78,16 +78,17 @@ def project_transport_features(x: torch.Tensor, max_spatial: int = 8) -> torch.T
         x4 = F.pad(x4, (0, pw, 0, ph), mode="replicate") if (ph or pw) else x4
         return (x4.reshape(x4.shape[0], x4.shape[1], ho, x4.shape[-2] // ho, wo, x4.shape[-1] // wo).mean((3, 5)).reshape(b, -1) * math.sqrt(float(hi * wi) / float(max(1, ho * wo)))).to(x.dtype)
     return x.reshape(b, -1)
+def _sc_safe(v: torch.Tensor) -> torch.Tensor: return torch.where(v < 1e-2, v.clamp_min(1e-12), v.clamp_min(1.0))
 @torch.no_grad()
 def _cdist_s(a: torch.Tensor, b: Optional[torch.Tensor] = None, *, diag_inf: bool = False) -> torch.Tensor:
     af = a.detach().reshape(a.shape[0], -1).float(); bf = af if b is None else b.detach().reshape(b.shape[0], -1).float()
-    sc = torch.maximum(af.abs().amax(), bf.abs().amax()).clamp_min(1e-12)
+    sc = _sc_safe(torch.maximum(af.abs().amax(), bf.abs().amax()))
     d = torch.cdist(af / sc, bf / sc, p=2.0, compute_mode="donot_use_mm_for_euclid_dist") * sc
     return d.fill_diagonal_(float("inf")) if (diag_inf and b is None) else d
 
 def _bi_cost(x: torch.Tensor, y: torch.Tensor, ell: torch.Tensor, *, aligned: bool = False, f64: bool = False) -> Tuple[torch.Tensor, torch.Tensor]:
-    dt = torch.float64 if f64 else torch.float32; xf, yf, el = x.reshape(x.shape[0], -1).to(dt), y.reshape(y.shape[0], -1).to(dt), ell.detach().to(dt).clamp_min(1e-24)
-    sc = torch.maximum(torch.maximum(xf.detach().abs().amax(), yf.detach().abs().amax()), el.amax()).clamp_min(1e-12); xu, yu, eu = xf / sc, yf / sc, el / sc
+    dt = torch.float64 if f64 else torch.float32; xf, yf = x.reshape(x.shape[0], -1).to(dt), y.reshape(y.shape[0], -1).to(dt)
+    sc = _sc_safe(torch.maximum(torch.maximum(xf.detach().abs().amax(), yf.detach().abs().amax()), ell.detach().to(dt).amax())); el = ell.detach().to(dt).clamp_min(1e-6 * sc.clamp_max(1.0)); xu, yu, eu = xf / sc, yf / sc, el / sc
     sq = (xu - yu).square().sum(-1) if aligned else (xu.square().sum(-1, keepdim=True) + yu.square().sum(-1).unsqueeze(0) - 2.0 * (xu @ yu.T))
     sq = sq if aligned else (sq + (sq.detach().clamp_min(0.0) - sq.detach())); rad = torch.sqrt(eu.square() + sq)
     cu = (rad - eu) + (sq / (rad + eu).clamp_min(1e-30) - (rad - eu)).detach()
@@ -116,7 +117,7 @@ def _batch_ell(y_flat: torch.Tensor, q: float = 0.25) -> torch.Tensor:
     if y_flat.shape[0] <= 1: return y_flat.new_tensor(1.0, dtype=torch.float32)
     dim = max(1, int(y_flat.shape[-1])); akt_e = max(0.0, 1.0 / float(dim) - 0.5)
     akt_f = (((2.0 * math.e * float(y_flat.shape[0])) / max(1e-6, -math.log(max(1e-6, 1.0 - float(q))))) ** akt_e) if akt_e > 0.0 else 1.0
-    sc = y_flat.detach().float().abs().amax().clamp_min(1e-12); d = _cdist_s(y_flat) / sc; dm = d.amax()
+    sc = _sc_safe(y_flat.detach().float().abs().amax()); d = _cdist_s(y_flat) / sc; dm = d.amax()
     if float(dm.item()) <= 0.0: return y_flat.new_tensor(1e-3, dtype=torch.float32) * sc
     thr = 1e-5 * dm; pmin, qr = torch.where(d > thr, d, float("inf")).amin(), torch.quantile(d.fill_diagonal_(float("inf")).amin(-1), q)
     return torch.where(qr <= thr, torch.where(torch.isfinite(pmin), 0.15 * pmin, 0.05 * dm), qr * akt_f).clamp_min(1e-5) * sc
@@ -126,7 +127,7 @@ def _valley(yf: torch.Tensor, dyy: torch.Tensor) -> torch.Tensor:
     return torch.quantile(dmy.amin(-1), 0.85)
 @torch.no_grad()
 def _manifold_gates(y_flat: torch.Tensor) -> Tuple[float, float, float, torch.Tensor]:
-    br, ys = y_flat.shape[0], y_flat.float().abs().amax().clamp_min(1e-12)
+    br, ys = y_flat.shape[0], _sc_safe(y_flat.float().abs().amax())
     if br < 4: return 0.0, 0.0, 0.1, ys
     yu = (y_flat.float() / ys)[:: max(1, br // 256)] if br > 512 else (y_flat.float() / ys); dyy, off = _cdist_s(yu), ~torch.eye(yu.shape[0], dtype=torch.bool, device=yu.device)
     q90 = torch.quantile(dyy.masked_fill(~off, float("inf")).amin(-1), 0.90).clamp_min(1e-8); span, m = torch.quantile(dyy[off], 0.90) / q90, dyy.clone()
@@ -136,22 +137,22 @@ def _manifold_gates(y_flat: torch.Tensor) -> Tuple[float, float, float, torch.Te
 def _curve_gate(y_flat: torch.Tensor, g_conn: float) -> float:
     if g_conn <= 1e-4 or y_flat.shape[0] < 12: return 0.0
     if y_flat.shape[1] < 2: return float(g_conn)
-    yu = y_flat.float() / y_flat.float().abs().amax().clamp_min(1e-12); pat = yu[_cdist_s(yu).topk(k=min(9, y_flat.shape[0]), dim=-1, largest=False).indices].double()
+    yu = y_flat.float() / _sc_safe(y_flat.float().abs().amax()); pat = yu[_cdist_s(yu).topk(k=min(9, y_flat.shape[0]), dim=-1, largest=False).indices].double()
     cen = pat - pat.mean(1, keepdim=True); ev = zero_eigh_symmetric(torch.bmm(cen.transpose(1, 2), cen) if cen.shape[2] < cen.shape[1] else torch.bmm(cen, cen.transpose(1, 2)), sweeps=6)[0].clamp_min(0.0)
     return float(g_conn * float(_ss01((0.11 - torch.median(ev[:, -2] / ev[:, -1].clamp_min(1e-12))) / 0.06).item()))
 @torch.no_grad()
 def _conformal_horizon(xp: torch.Tensor, yp: torch.Tensor, ell: torch.Tensor, g_conn: float, cond_p: bool, *, return_aux: bool = False) -> Tuple[Any, ...]:
     bf, br = xp.shape[0], yp.shape[0]
     if g_conn > 0.5 or cond_p or bf < 12 or br < 12: return (ell, ell, None, None, None) if return_aux else (ell, ell)
-    xf, yf, eg = xp.detach().float(), yp.detach().float(), ell.detach().float().clamp_min(1e-24); sc = torch.maximum(torch.maximum(xf.abs().amax(), yf.abs().amax()), eg).clamp_min(1e-12)
+    xf, yf = xp.detach().float(), yp.detach().float(); sc = _sc_safe(torch.maximum(torch.maximum(xf.abs().amax(), yf.abs().amax()), ell.detach().float())); ef = 1e-6 * sc.clamp_max(1.0); eg = ell.detach().float().clamp_min(ef)
     yu, xu = yf / sc, xf / sc; dyy = torch.cdist(yu, yu, p=2.0) * sc; vals = dyy.clone().fill_diagonal_(float("inf")).topk(min(3, br - 1), dim=1, largest=False).values
-    d1, d2, d3 = vals[:, 0].clamp_min(1e-24), vals[:, min(1, vals.shape[1] - 1)].clamp_min(1e-24), vals[:, min(2, vals.shape[1] - 1)].clamp_min(1e-24)
+    d1, d2, d3 = vals[:, 0].clamp_min(ef), vals[:, min(1, vals.shape[1] - 1)].clamp_min(ef), vals[:, min(2, vals.shape[1] - 1)].clamp_min(ef)
     rpt = torch.where((d2 <= 2.8 * d1) & (d3 <= 2.8 * d2), d2, d1); pds, pix = dyy.topk(min(8, br), dim=1, largest=False)
     inm = (pds <= (3.2 * d2).unsqueeze(1)).float(); inm[:, 0] = 1.0; rp = (rpt[pix] * inm).sum(1) / inm.sum(1).clamp_min(1.0)
-    gw = float(_ss01(eg.new_tensor((float((torch.quantile(rp, 0.85) / torch.quantile(rp, 0.15).clamp_min(1e-24)).item()) - 2.85) / 0.85)).item())
+    gw = float(_ss01(eg.new_tensor((float((torch.quantile(rp, 0.85) / torch.quantile(rp, 0.15).clamp_min(ef)).item()) - 2.85) / 0.85)).item())
     if gw <= 1e-4: return (ell, ell, None, None, dyy) if return_aux else (ell, ell)
-    sraw = (1.0 - gw) * eg + gw * (eg * (rp / torch.quantile(rp, 0.25).clamp_min(1e-24))).clamp(0.70 * eg, 4.50 * eg); tbw = 2.0 * (2.4 * sraw / sc).clamp_min(1e-5).unsqueeze(0).square()
-    ey = (torch.softmax(-(dyy / sc).square() / tbw, dim=1) @ sraw).clamp_min(1e-24); ex = (torch.softmax(-torch.cdist(xu, yu, p=2.0).square() / tbw, dim=1) @ sraw).clamp_min(1e-24)
+    sraw = (1.0 - gw) * eg + gw * (eg * (rp / torch.quantile(rp, 0.25).clamp_min(ef))).clamp(0.70 * eg, 4.50 * eg); tbw = 2.0 * (2.4 * sraw / sc).clamp_min(1e-5).unsqueeze(0).square()
+    ey = (torch.softmax(-(dyy / sc).square() / tbw, dim=1) @ sraw).clamp_min(ef); ex = (torch.softmax(-torch.cdist(xu, yu, p=2.0).square() / tbw, dim=1) @ sraw).clamp_min(ef)
     exy, exx = torch.sqrt(ex.unsqueeze(1) * ey.unsqueeze(0)).to(ell.dtype), torch.sqrt(ex.unsqueeze(1) * ex.unsqueeze(0)).to(ell.dtype)
     return (exy, exx, ex, ey, dyy) if return_aux else (exy, exx)
 def _orphan_macro_loss(xp: torch.Tensor, yp: torch.Tensor, ch_xy: torch.Tensor, prs: torch.Tensor, pcs: torch.Tensor, *, rho: float, g_conn: float) -> torch.Tensor:
@@ -240,7 +241,7 @@ def _update_atomic_ledger(xf: torch.Tensor, rows: torch.Tensor, charts: torch.Te
 
 @torch.no_grad()
 def _update_charts(y_cf: torch.Tensor, prev: Optional[Dict[str, Any]], *, max_charts: int, allow_update: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, Dict[str, Any]]:
-    b, dim, dev, kcap, sc = y_cf.shape[0], y_cf.shape[1], y_cf.device, max(2, int(max_charts)), y_cf.abs().amax().clamp_min(1e-12)
+    b, dim, dev, kcap, sc = y_cf.shape[0], y_cf.shape[1], y_cf.device, max(2, int(max_charts)), _sc_safe(y_cf.abs().amax())
     is_init = isinstance(prev, dict) and isinstance(prev.get("sum"), torch.Tensor) and prev["sum"].ndim == 2 and prev["sum"].shape[1] == dim and prev["sum"].shape[0] > 0
     cp = dmin = asg = None
     if is_init:
@@ -251,8 +252,8 @@ def _update_charts(y_cf: torch.Tensor, prev: Optional[Dict[str, Any]], *, max_ch
     else:
         pd = torch.remainder(torch.arange(1, dim + 1, device=dev, dtype=torch.float32) * _PHI1, 1.0) - 0.5; c0 = y_cf[int(torch.argmin((y_cf / sc) @ (pd / pd.norm().clamp_min(1e-8))).item())].unsqueeze(0).clone()
         cs, cc, cq, fm = c0 * 0.5, torch.full((1,), 0.5, device=dev), (_batch_ell(y_cf, 0.25).square().clamp_min(1e-24) * 0.5).reshape(1).clamp_min(1e-24), torch.ones((1,), device=dev)
-    if cs.shape[0] < kcap and (dmin is None or float(dmin.amax().item()) > 1e-3 * float(sc.item())):
-        ce, re = (cp if cp is not None else cs / cc.clamp_min(1e-8).unsqueeze(1)), (cq / cc.clamp_min(1e-8)).clamp_min(1e-24).sqrt(); sg = torch.maximum(sc, ce.abs().amax()).clamp_min(1e-12)
+    if cs.shape[0] < kcap:
+        ce, re = (cp if cp is not None else cs / cc.clamp_min(1e-8).unsqueeze(1)), (cq / cc.clamp_min(1e-8)).clamp_min(1e-24).sqrt(); sg = _sc_safe(torch.maximum(sc, ce.abs().amax()))
         yug = y_cf / sg; dg = _cdist_s(yug, ce / sg); dmg = dg.amax().clamp_min(1e-5); eug = torch.minimum(_batch_ell(yug, 0.25), (0.04 * dmg).clamp_min(1e-5)); mw, nr = dg.square().min(1)
         tw, e2, adds = (2.2 * torch.minimum(torch.maximum(re[nr] / sg, eug), (0.06 * dmg).clamp_min(1e-5))).square(), (2.1 * eug).square(), []
         while cs.shape[0] + len(adds) < kcap:
@@ -520,7 +521,7 @@ class AxiomTransportLoss(nn.Module):
         r_tail = 0.0
         if am is not None: coord, r_tail = coord + self.chart_weight * am[0].to(coord.dtype), am[3]
         elif c_tgt is not None and c_rw is not None and bool((c_rw > 1e-5).any()):
-            ec = ell.detach().float().clamp_min(1e-24); diff = xp.float() - c_tgt.detach(); sd = torch.maximum(diff.detach().abs().amax(), ec).clamp_min(1e-12)
+            ec = ell.detach().float().clamp_min(1e-24); diff = xp.float() - c_tgt.detach(); sd = _sc_safe(torch.maximum(diff.detach().abs().amax(), ec))
             uh = F.relu(torch.sqrt((diff / sd).square().sum(-1) + 1e-12) * sd - c_halo.detach())
             coord = coord + self.chart_weight * ((c_rw.to(coord.dtype) / float(bf)) * (uh.square() / (torch.sqrt(ec.square() + uh.square()) + ec).clamp_min(1e-30)).to(coord.dtype)).sum()
         if g_het > 1e-4 and nn1_y is not None:
@@ -552,7 +553,7 @@ class AxiomTransportLoss(nn.Module):
         if mp > 512: z_table, mp = z_table[((torch.arange(128, device=z_table.device) * mp) // 128 + int(phi * mp)) % mp], 128
         yf, use_f64 = y_real.detach().reshape(br, -1), (mp <= 256)
         with torch.no_grad():
-            g_conn, g_mac, q90_u, y_sc = _manifold_gates(yf) if (chart_weight > 0.0 and br >= 4) else (0.0, 0.0, 0.1, yf.float().abs().amax().clamp_min(1e-12))
+            g_conn, g_mac, q90_u, y_sc = _manifold_gates(yf) if (chart_weight > 0.0 and br >= 4) else (0.0, 0.0, 0.1, _sc_safe(yf.float().abs().amax()))
             g_curv, zd, ell = (_curve_gate(yf, g_conn) if chart_weight > 0.0 else 0.0), z_table.detach(), self._resolve_ell(yf, record, False)
             dzz = (torch.cdist(zd.double(), zd.double(), p=2.0) + 1e-12 * torch.arange(mp, device=zd.device, dtype=torch.float64).unsqueeze(0)).fill_diagonal_(float("inf"))
             knn, nq = min(4, mp - 1), max(4, br if br <= 512 else 128); nbrs = dzz.topk(knn, dim=-1, largest=False).indices
