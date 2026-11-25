@@ -46,9 +46,7 @@ Each Round-1 track isolated a distinct failure mechanism in existing global GAN 
 
 - **Fused Low-Dimensional Spatial-Frame Forward AD ($1 \le D \le 8$)**: For $D \le 4$, real, fake, and Weyl-chord batches are concatenated along batch dimension `[x_real, x_fake(, x_chord)]` and evaluated in a **single** `torch.autograd.forward_ad.dual_level()` pass over the exact deterministic orthonormal basis $e_1, \dots, e_D \in \mathbb{R}^D$ (or two chained $O(D)$ analytical Householder reflections for $5 \le D \le 8$), yielding the exact Euclidean gradient norm $\|\nabla_x D(x)\|_2^2 = \sum_{a=1}^D (\partial_{e_a} D(x))^2$ with zero backward-of-backward graph construction and zero `create_graph=True` retention.
 - **Manifold-Pooled Murmur3 Rademacher Forward AD ($D > 8$ Non-Image Vectors, e.g., $D = 170$ Simplexes)**: Deterministic 32-bit Murmur3 Rademacher unit tangents $u_i \in \{\pm D^{-1/2}\}^D$ are pooled across $k = 32$ Gaussian-weighted local neighbors in one $1\times$-batch `dual_level` pass, suppressing Hutchinson variance by $1/\sqrt{32}$ with zero RNG consumption.
-- **$K = 2$ Gram-Schmidt Orthogonal Micro-Secant on Small 4D Images ($D \le 1024$, e.g., $8 \times 8$)**: On discrete low-resolution 4D images where `t2-secant-v5`'s single separable probe suffered $O(1)$ directional variance across modes, `_UnifiedSecantKernel` constructs a deterministic 2-probe orthonormal tangent pair $(u_1, u_2)$ via Gram-Schmidt orthogonalization:
-  $$u_2 \leftarrow \frac{\tilde{u}_2 - \langle \tilde{u}_2, u_1 \rangle u_1}{\|\tilde{u}_2 - \langle \tilde{u}_2, u_1 \rangle u_1\|_2}, \qquad \widehat{\|\nabla_x D(z)\|_2^2}_{\text{micro}} = \frac{D}{2\delta^2}\sum_{r=1}^2 \big(D(z + \delta u_r) - D(z)\big)^2,$$
-  halving probe variance while reusing live unscaled logits $D(x_{\text{real}}), D(x_{\text{fake}})$ captured at zero forward cost via `_attach_unified_critic_hook`.
+- **$K = 2$ Gram-Schmidt Orthogonal Micro-Secant on Small 4D Images ($D \le 1024$, e.g., $8 \times 8$)**: On discrete low-resolution 4D images where `t2-secant-v5`'s single separable probe suffered $O(1)$ directional variance across modes, `_UnifiedSecantKernel` constructs a deterministic 2-probe orthonormal tangent pair $(u_1, u_2)$ via Gram-Schmidt orthogonalization, $u_2 \leftarrow (\tilde{u}_2 - \langle \tilde{u}_2, u_1 \rangle u_1) / \|\tilde{u}_2 - \langle \tilde{u}_2, u_1 \rangle u_1\|_2$, with $\widehat{\|\nabla_x D(z)\|_2^2}_{\text{micro}} = \frac{D}{2\delta^2}\sum_{r=1}^2 (D(z + \delta u_r) - D(z))^2$, halving probe variance while reusing live unscaled logits $D(x_{\text{real}}), D(x_{\text{fake}})$ captured at zero forward cost via `_attach_unified_critic_hook`.
 - **Zero-Copy High-Resolution BF16 Live-Endpoint Secant ($D > 1024$, e.g., $32^2 \dots 256^2$)**: Reuses live BF16 `channels_last` critic logits directly without cloning high-resolution 4D input tensors inside the forward hook, evaluating **1** separable Murmur3 Rademacher micro-secant probe batch + cyclic intra-batch chords + $8 \times 8$ pooled Chamfer scale $\ell_{\text{Chamfer}}$. Uncontended critic+generator step latency drops to **`87.51 ms/step` and `1,308.4 MiB` at $256 \times 256$**.
 
 ---
@@ -57,26 +55,44 @@ Each Round-1 track isolated a distinct failure mechanism in existing global GAN 
 
 On unconditional multi-dimensional continuous-kernel Mixture-of-Gaussians tasks (`real.ndim == 2`, $2 \le D \le 16$, $\sigma_z > 0$; 1D $D=1$ lines route directly to `UnifiedGANLoss` to avoid $\mathbb{R}^2 \to \mathbb{R}^1$ nullspace folding), `UnifiedPriorRegularizer` eliminates **all three** sources of `t1-prior-v2`'s `-0.302` variance shrinkage while preserving high-rate Zador-Gersho cloud fidelity:
 
-1. **Zero-DOF-Shrinkage Pre-Update Cell Variance**: Within-batch cell variance is measured against independent **pre-update** centroids $C_{k,\text{prev}}$ before applying centroid step $\alpha_c$:
-   $$\hat{v}_k = \frac{1}{D\,n_k} \sum_{x_j \in V_k} \|x_j - C_{k,\text{prev}}\|_2^2,$$
-   eliminating the $(1 - \alpha_c)^2$ in-sample centroid-fit shrinkage.
-2. **Externally Isolated Low-Rate Sibling Coalescence ($2 \le |\mathcal{C}| \le 4$)**: Two prototypes $a, b$ form a candidate sibling edge when $\|C_a - C_b\|_2 \le 2.6\sqrt{D}\max(\sigma_a, \sigma_b)$ and $\max(\sigma_a, \sigma_b) \le 2.2\min(\sigma_a, \sigma_b)$. Transitive connected components $\mathcal{C}$ via three $O(K^3)$ boolean matrix squarings ($K \le 256$) coalesce **if and only if** both:
-   - Low-rate sub-cell cardinality holds ($1 \le |\mathcal{C}| \le 4$), **and**
-   - Every member of $\mathcal{C}$ is externally isolated from all outside prototypes by at least $4.2\sqrt{D}\,\sigma_{\text{cand}}(\mathcal{C})$:
-     $$\min_{k \in \mathcal{C},\; j \notin \mathcal{C}} \|C_k - C_j\|_2 \ge 4.2\sqrt{D}\,\sigma_{\text{cand}}(\mathcal{C}).$$
-   On separated 100-mode lattices ($K = 192, M = 100$), mode spacing is $\ge 15\sigma \gg 4.2\sqrt{2}\sigma$, so every 2–4 sibling sub-cell split coalesces cleanly to its exact mode centroid $\bar{C}_{\mathcal{C}} = \sum_{j \in \mathcal{C}} \frac{w_j}{W_{\mathcal{C}}} C_j$ with **exact Pythagorean total-variance conservation**:
-   $$\sigma_{\text{bar},\mathcal{C}}^2 = \sum_{j \in \mathcal{C}} \frac{w_j}{W_{\mathcal{C}}} \left(\sigma_{\text{cell},j}^2 + \frac{1}{D}\|C_j - \bar{C}_{\mathcal{C}}\|_2^2\right).$$
-   Conversely, on dense high-rate clouds (`mode_hold`, `vector_unequal_width`, `vector_anisotropic`, where $12\dots 100$ sub-cells tile broad modes at neighbor spacing $\sim 1.8\sqrt{D}\sigma$), external neighbors lie well inside $4.2\sqrt{D}\sigma$, keeping $W_{\text{mat}} = I_K$ and preserving exact anisotropic sub-cell cloud geometry without fringe-pair artifacts.
-3. **Unbiased Clean-Center Variance Subtraction, Residual-Gated Settling & Exact 2D Complex-Frame Pushforward Covariance (`v1 -> v2 -> v3`)**:
-   By the **Law of Total Variance** inside each coalesced mode $m$, generated samples $G_\theta(\mu_i + \sigma_z \varepsilon_i)$ decompose into clean particle-center spread plus pushforward kernel covariance:
-   $$\operatorname{Var}\!\big(G_\theta(\mu + \sigma_z \varepsilon) \mid m\big) = \underbrace{\operatorname{Var}\!\big(G_\theta(\mu) \mid m\big)}_{v_{\mu,m}} + \sigma_{\text{eff},m}^2.$$
-   `unified_pullback_step` matches clean centers $G_\theta(\mu_i)$ to $\bar{C}_{\mathcal{C}}$ in Part A, estimates unbiased within-component clean-center variance $\hat{v}_{\mu,m} = \frac{n_m}{n_m - 1}\overline{\|G_\theta(\mu_i) - \bar{x}_m\|_2^2 / D}$ for $n_m \ge 2$, and sets
-   $$\sigma_{\text{eff},m} = \sigma_{\text{bar},m}\sqrt{\max\!\big(0.25,\; 0.965 - \hat{v}_{\mu,m} / \sigma_{\text{bar},m}^2\big)}.$$
-   In `unified-v3`, equilibrium settling on `has_multicell_coal` is gated smoothly by the checkpointed transport residual EMA $g_{\text{eq}} = \operatorname{clip}((0.030 - \text{res}_{\text{ema}}) / 0.020,\; 0,\; 1)$:
-   - During active acquisition ($\text{res}_{\text{ema}} \ge 0.030$, e.g., `ring16_acquisition` steps `0..1600`), $g_{\text{eq}} = 0$ preserves fast acquisition (`adv_w = 0.038`, `g_floor = 0.022`, `row_floor = 0.15` $\implies$ `ring16_acquisition` `PASS` at `hq = 0.9915, cov_err = 0.4075`).
-   - Once transport settles ($\text{res}_{\text{ema}} \le 0.010$), $g_{\text{eq}} \to 1$ damps Part-A slope jitter (`adv_w = 0.008`, `g_floor = 0.012`) while maintaining Part-B straggler condensation (`row_floor = 0.38`), and on $(D=2, d_z=2)$ enforces the **deterministic exact 2-probe complex-frame $2 \times 2$ pushforward covariance**
-     $$\Sigma_{\text{push}, i} = \frac{\Delta x_{0,i}\Delta x_{0,i}^\top + \Delta x_{\perp,i}\Delta x_{\perp,i}^\top}{\|\varepsilon_i\|_2^2} = \sigma_z^2 J_G(\mu_i) J_G(\mu_i)^\top$$
-     via $\|\Sigma_{\text{push},i} - \sigma_{\text{eff},i}^2 I_2\|_F^2$ across all $B = 256$ samples, locking `max_cov_eig_ratio` to `1.11–1.46 <= 1.70` and unlocking full official clean live MoG `PASS` on **`rotated100`** (`precision = 0.9856`) and **`staggered100`** (`precision = 0.9910`).
+**1. Zero-DOF-Shrinkage Pre-Update Cell Variance.**
+Within-batch cell variance is measured against independent **pre-update** centroids $C_{k,\text{prev}}$ before applying centroid step $\alpha_c$:
+
+$$
+\hat{v}_k = \frac{1}{D\,n_k} \sum_{x_j \in V_k} \|x_j - C_{k,\text{prev}}\|_2^2,
+$$
+
+eliminating the $(1 - \alpha_c)^2$ in-sample centroid-fit shrinkage.
+
+**2. Externally Isolated Low-Rate Sibling Coalescence ($2 \le |\mathcal{C}| \le 4$).**
+Two prototypes $a, b$ form a candidate sibling edge when $\|C_a - C_b\|_2 \le 2.6\sqrt{D}\max(\sigma_a, \sigma_b)$ and $\max(\sigma_a, \sigma_b) \le 2.2\min(\sigma_a, \sigma_b)$. Transitive connected components $\mathcal{C}$ via three $O(K^3)$ boolean matrix squarings ($K \le 256$) coalesce **if and only if** both:
+- Low-rate sub-cell cardinality holds ($1 \le |\mathcal{C}| \le 4$), **and**
+- Every member of $\mathcal{C}$ is externally isolated from all outside prototypes by at least $4.2\sqrt{D}\,\sigma_{\text{cand}}(\mathcal{C})$, i.e., $\min_{k \in \mathcal{C},\; j \notin \mathcal{C}} \|C_k - C_j\|_2 \ge 4.2\sqrt{D}\,\sigma_{\text{cand}}(\mathcal{C})$.
+
+On separated 100-mode lattices ($K = 192, M = 100$), mode spacing is $\ge 15\sigma \gg 4.2\sqrt{2}\sigma$, so every 2–4 sibling sub-cell split coalesces cleanly to its exact mode centroid $\bar{C}_{\mathcal{C}} = \sum_{j \in \mathcal{C}} \frac{w_j}{W_{\mathcal{C}}} C_j$ with **exact Pythagorean total-variance conservation**:
+
+$$
+\sigma_{\text{bar},\mathcal{C}}^2 = \sum_{j \in \mathcal{C}} \frac{w_j}{W_{\mathcal{C}}} \left(\sigma_{\text{cell},j}^2 + \frac{1}{D}\|C_j - \bar{C}_{\mathcal{C}}\|_2^2\right).
+$$
+
+Conversely, on dense high-rate clouds (`mode_hold`, `vector_unequal_width`, `vector_anisotropic`, where $12\dots 100$ sub-cells tile broad modes at neighbor spacing $\sim 1.8\sqrt{D}\sigma$), external neighbors lie well inside $4.2\sqrt{D}\sigma$, keeping $W_{\text{mat}} = I_K$ and preserving exact anisotropic sub-cell cloud geometry without fringe-pair artifacts.
+
+**3. Unbiased Clean-Center Variance Subtraction, Residual-Gated Settling & Exact 2D Complex-Frame Pushforward Covariance (`v1 -> v2 -> v3`).**
+By the **Law of Total Variance** inside each coalesced mode $m$, generated samples $G_\theta(\mu_i + \sigma_z \varepsilon_i)$ decompose into clean particle-center spread plus pushforward kernel covariance:
+
+$$
+\operatorname{Var}\!\big(G_\theta(\mu + \sigma_z \varepsilon) \mid m\big) = \underbrace{\operatorname{Var}\!\big(G_\theta(\mu) \mid m\big)}_{v_{\mu,m}} + \sigma_{\text{eff},m}^2.
+$$
+
+`unified_pullback_step` matches clean centers $G_\theta(\mu_i)$ to $\bar{C}_{\mathcal{C}}$ in Part A, estimates unbiased within-component clean-center variance $\hat{v}_{\mu,m} = \frac{n_m}{n_m - 1}\overline{\|G_\theta(\mu_i) - \bar{x}_m\|_2^2 / D}$ for $n_m \ge 2$, and sets:
+
+$$
+\sigma_{\text{eff},m} = \sigma_{\text{bar},m}\sqrt{\max\!\big(0.25,\; 0.965 - \hat{v}_{\mu,m} / \sigma_{\text{bar},m}^2\big)}.
+$$
+
+In `unified-v3`, equilibrium settling on `has_multicell_coal` is gated smoothly by the checkpointed transport residual EMA $g_{\text{eq}} = \operatorname{clip}((0.030 - \text{res}_{\text{ema}}) / 0.020,\; 0,\; 1)$:
+- During active acquisition ($\text{res}_{\text{ema}} \ge 0.030$, e.g., `ring16_acquisition` steps `0..1600`), $g_{\text{eq}} = 0$ preserves fast acquisition (`adv_w = 0.038`, `g_floor = 0.022`, `row_floor = 0.15` $\implies$ `ring16_acquisition` `PASS` at `hq = 0.9915, cov_err = 0.4075`).
+- Once transport settles ($\text{res}_{\text{ema}} \le 0.010$), $g_{\text{eq}} \to 1$ damps Part-A slope jitter (`adv_w = 0.008`, `g_floor = 0.012`) while maintaining Part-B straggler condensation (`row_floor = 0.38`), and on $(D=2, d_z=2)$ enforces the **deterministic exact 2-probe complex-frame $2 \times 2$ pushforward covariance** $\Sigma_{\text{push}, i} = (\Delta x_{0,i}\Delta x_{0,i}^\top + \Delta x_{\perp,i}\Delta x_{\perp,i}^\top) / \|\varepsilon_i\|_2^2 = \sigma_z^2 J_G(\mu_i) J_G(\mu_i)^\top$ via $\|\Sigma_{\text{push},i} - \sigma_{\text{eff},i}^2 I_2\|_F^2$ across all $B = 256$ samples, locking `max_cov_eig_ratio` to `1.11–1.46 <= 1.70` and unlocking full official clean live MoG `PASS` on **`rotated100`** (`precision = 0.9856`) and **`staggered100`** (`precision = 0.9910`).
 
 ---
 

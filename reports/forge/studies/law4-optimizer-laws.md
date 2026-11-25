@@ -205,7 +205,11 @@ Grounded verbatim in all `33` Forge readouts and `12` hardware energy profiles, 
 
 ### Law 4.2 — Intra-Player Degree-0 Gauge & Rail Escape Law
 > **Statement:** A single global player-level scalar $\alpha \in \mathbb{R}_+$ cannot equalize multiplicative inter-layer Jacobian skew $\max_l \|g_l\| / \min_l \|g_l\| \in [10^1, 10^5]$ or $\operatorname{sech}^2(a) \to 0$ saturation rails. Degree-0 scale-invariant layerwise (and prior-row) normalization
-> $$\Delta W_l = -\eta\,\gamma_{\text{MP}}(W_l)\,\frac{G_l}{\sqrt{\|G_l\|^2 + s_{\text{eff}}(W_l)^2}}, \qquad s_{\text{eff}}(W_l) = \min\!\big(s_{\text{base}},\, c\,\text{peak\_rms}_l\big)$$
+>
+> $$
+> \Delta W_l = -\eta\,\gamma_{\text{MP}}(W_l)\,\frac{G_l}{\sqrt{\|G_l\|^2 + s_{\text{eff}}(W_l)^2}}, \qquad s_{\text{eff}}(W_l) = \min\!\big(s_{\text{base}},\, c\,\text{peak\_rms}_l\big)
+> $$
+>
 > with underflow-safe scaling ($10^{-38}$) and Marchenko–Pastur operator gain $\gamma_{\text{MP}}$ is **necessary** to equalize multi-layer MLPs, Conv2d stacks, BiGAN `(G, E)` pairs, and `tanh` rails, while preserving smooth equilibrium settling ($G_l \to 0 \implies \Delta W_l \to 0$) without a step clock.
 > - **Causal Proof:** `R2` (`law4-sgd-secant`) retains `3,300×` `mlp16` skew, stays frozen at `a = 8.000` on `tanh` rails, and fails `img_bars4` (`0/4`), `grid100` (`0.455`), and `five_word` (`3/5`). Adding strictly zero-state degree-0 Frobenius-MP (`R5`, `law4-frob-sgd-mp`, `readout-12f988a4`) collapses `mlp16` skew `7,500× → 19×`, escapes `a = 8.0 → 1.837`, and immediately unlocks `grid100` (`0.9724, ctr=0.0660`, step `1000`), `five_word` (`5/5`), `img_bars4` (`4/4`), and `gaussian1d_stability` (`0.0301`).
 
@@ -318,11 +322,11 @@ All five Phase-2 arms below ran back-to-back on strictly idle `NVIDIA RTX A6000`
 | **`law4-energy-v8`** *(`erank_2` G + 0-NS D, `e4010a035`)* | `13/16` | `45.73` | `286.5` | `13.15 J` | **`0.000`** | `217` (PASS) | `562.1 J` | **`1000` / `2000`** (PASS) | **`4,794 J` / `9,587 J`** *(LOWEST `grid100`!)* | `1750` / `2750` *(FAIL suf)* | `10,154 J`* |
 | **`law4-energy-v7`** *(0-NS D Frob $m^{0.25}$, `e4010a035`)* | `14/16` | `45.36` | `288.2` | `13.15 J` | **`0.000`** | `217` (PASS) | `584.2 J` | **`1000` / `2000`** (PASS) | **`4,912 J` / `9,824 J`** | `1750` / `2750` (**PASS**, `ctr=0.139`) | `10,062 J` / `15,811 J` |
 | **`unified-v11` (Fixed)** *(`f396e5c64`)* | **`16/16`** · `14/17` T1 | `85.81` | `275.3` | `23.70 J` | `0.000` | **`200`** (PASS) | `675.4 J` | `1250` / `2250` (PASS) | `7,833 J` / `14,100 J` | `1500` / `2500` (**PASS**, `ctr=0.136`) | `9,643 J` / `16,071 J` |
-| `law4-energy-v9` *(0-NS D Sign-MP, `e4010a035`)* | `13/16` | `47.57` | `280.6` | `13.41 J` | **`0.000`** | `217` (PASS) | `613.0 J` | **`1000` / `2000`** (PASS) | `5,550 J` / `11,099 J` | **`1250` / `2250`** (**PASS**, `ctr=0.129`)\dagger | *(omitted: ext. GPU contention)*\dagger |
+| `law4-energy-v9` *(0-NS D Sign-MP, `e4010a035`)* | `13/16` | `47.57` | `280.6` | `13.41 J` | **`0.000`** | `217` (PASS) | `613.0 J` | **`1000` / `2000`** (PASS) | `5,550 J` / `11,099 J` | **`1250` / `2250`** (**PASS**, `ctr=0.129`)† | *(omitted: ext. GPU contention)*† |
 | `law4-energy-v3` *(R1 Champion, `dc941984c`)* | `14/16` *(dev `87d72c`)* | `45.58` | `287.7` | `13.12 J` | `0.000` | `217` (PASS) | `619.3 J` | `1500` / `2500` (PASS) | `7,643 J` / `12,739 J` | — | — |
 | `unified-v11` *(R1 dev HEAD, `87d72c39b`)* | `11/16` | `84.75` | `250.4` | `21.28 J` | `0.000` | `217` (PASS) | `636.4 J` | `1750` / `2750` (PASS) | `9,998 J` / `15,711 J` | — | — |
 
-*(\dagger External host workloads began contending on GPU 0 midway through `law4-energy-v9.staggered100`; its deterministic pass milestones `1250 / 2250` PASS are preserved while its contended hardware energy is omitted (`null`) to maintain strict uncontended cohort integrity in `law4-phase2-energy-benchmark.json` and `data/energy.parquet`.)*
+*(† External host workloads began contending on GPU 0 midway through `law4-energy-v9.staggered100`; its deterministic pass milestones `1250 / 2250` PASS are preserved while its contended hardware energy is omitted (`null`) to maintain strict uncontended cohort integrity in `law4-phase2-energy-benchmark.json` and `data/energy.parquet`.)*
 
 **Phase-2 Bottom Line:**
 - **`law4-energy-v10` (`e4010a035`) establishes a strict, unprecedented Pareto dominance across BOTH scientific quality AND hardware energy:**

@@ -12,7 +12,11 @@
 ## Research Formulation
 
 Inspired by **Kim et al. (ICML 2017, DiscoGAN, arXiv:1703.05192, Figure 2 toy)** and **Zhu et al. (ICCV 2017, CycleGAN, arXiv:1703.10593)**, this benchmark tests unpaired cross-domain translation $(G_{X\to Y}, G_{Y\to X}, D_Y, D_X)$ with bidirectional cycle-consistency regularization:
-$$\mathcal{L}_{\text{cyc}}(G_{X\to Y}, G_{Y\to X}) = \mathbb{E}_{x \sim P_X}\|G_{Y\to X}(G_{X\to Y}(x)) - x\|_2^2 + \mathbb{E}_{y \sim P_Y}\|G_{X\to Y}(G_{Y\to X}(y)) - y\|_2^2$$
+
+$$
+\mathcal{L}_{\text{cyc}}(G_{X\to Y}, G_{Y\to X}) = \mathbb{E}_{x \sim P_X}\|G_{Y\to X}(G_{X\to Y}(x)) - x\|_2^2 + \mathbb{E}_{y \sim P_Y}\|G_{X\to Y}(G_{Y\to X}(y)) - y\|_2^2
+$$
+
 between two disjoint 8-mode 2D constellations ($\sigma = 0.08$):
 - **Domain $X$:** 8-mode ring of radius $R_X = 2.5$ at $\theta_k = 2\pi k / 8$ ($k=0,\dots,7$).
 - **Domain $Y$:** 8-mode square-perimeter constellation on $\{-2.0, 0.0, +2.0\}^2 \setminus \{(0, 0)\}$.

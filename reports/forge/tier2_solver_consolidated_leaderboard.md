@@ -27,8 +27,8 @@ This report establishes the single, authoritative consolidated leaderboard and q
 - **4-Step Diffusion GAN Chains Historic 170/170 Qualification**: Resolved small-step ($t_1, t_2$) reverse variance collapse and paired autoencoder reconstruction. Decoupling AE manifold tethering eliminated coordinate distortion; symmetrizing mirror queries and accommodating the unanchored Hamiltonian saddle limit cycle orbit ($r_{\text{orbit}} = 1.4082\sigma$) enabled all 4 chains to qualify with **170/170 bounds passed (0 failed)**.
 - **Stability & Hold Tasks Fully Remediated**:
   - Reverted frozen contract mutations on `atlas-particle-normal-v4.json` (0 diff vs HEAD; 4/4 contract tests pass).
-  - Activated `moment_tether` ($\lambda = 0.01$) on pure BCAP, eliminating late-training mode coalescence in `mode_hold` (sustaining 8/8 modes with $\text{HQ} \ge 0.984$ across steps 1000–1200) while preserving `ring16_acquisition` at 16/16 modes ($cov\_err = 0.7263 \le 0.85$).
-  - Identified the Euclidean gradient penalty quenching mechanism on 16D `trajectory`, proving passing performance ($identity\_mse = 0.000137 \le 0.02$, over 100x margin).
+  - Activated `moment_tether` ($\lambda = 0.01$) on pure BCAP, eliminating late-training mode coalescence in `mode_hold` (sustaining 8/8 modes with $\text{HQ} \ge 0.984$ across steps 1000–1200) while preserving `ring16_acquisition` at 16/16 modes (`cov_err` $= 0.7263 \le 0.85$).
+  - Identified the Euclidean gradient penalty quenching mechanism on 16D `trajectory`, proving passing performance (`identity_mse` $= 0.000137 \le 0.02$, over 100x margin).
   - Validated `five_word_joint_hold` continuation ladder across 25/25 dual-confirmed observation checks.
   - Formally established the `no_global_recipe` holding disposition for `gaussian1d_stability`.
 - **Architectural & Cryptographic Integrity**: Zero adapter-level overrides remain in `experiments/forge/api.py`. The exact 118-field Recipe schema invariance is strictly preserved. Cryptographic SHA-256 bindings across all task cards match bit-for-bit.
@@ -86,9 +86,7 @@ The 100-Mode Grid Triad (`grid100`, `rotated100`, `staggered100`) evaluates the 
 Across 84 exhaustive audit attempts across all repository families, **zero models had ever passed under clean sampling**. Peak clean precision plateaued between $0.51$ and $0.56$ at 7,000 steps, reaching at most $0.65 - 0.70$ at 14,000 steps.
 
 ### 3.2 Topological & Mathematical Proof of the Intermediate Value Barrier
-1. **Geometric Void Ratio**: The bounding box $[-5.0, 5.0]^2$ has area $A_{\text{total}} = 100$. The combined area of all 100 mode disks is:
-   $$A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447$$
-   **$97.455\%$ of the data domain is empty interstitial void.** The gap between nearest mode disks is $\text{Gap} = \Delta - 2R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma$.
+1. **Geometric Void Ratio**: The bounding box $[-5.0, 5.0]^2$ has area $A_{\text{total}} = 100$. The combined area of all 100 mode disks is $A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447$. **$97.455\%$ of the data domain is empty interstitial void.** The gap between nearest mode disks is $\text{Gap} = \Delta - 2R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma$.
 2. **Topological Intermediate Value Theorem Barrier**: Any continuous neural network mapping a connected latent space $\mathcal{Z} \subset \mathbb{R}^2$ to 100 disconnected mode balls must map the connected interstitial paths in $\mathcal{Z}$ across the $27.33\sigma$ interstitial void. To achieve $0.97$ precision, the total probability mass allocated to all boundary transition filaments across 100 modes must be under $1.89\%$. For a continuous 3-layer MLP generator, this requires infinite Lipschitz gradients that are unattainable and unstable under gradient descent.
 3. **Forensic Provenance of Legacy 0.97 Gate**: Historical passing runs achieved $0.98+$ precision solely because the legacy evaluation harness added exogenous Gaussian noise ($\sigma_{\text{out}} = 0.029$) to discrete particles sitting at mode centers. When the repository migrated to clean continuous sampling, the 0.97 gate was retained without empirical calibration.
 4. **Capacity Impossibility of 5 Particles/Mode**: Restricting capacity to 5 particles/mode ($N = 500$) violates the task accuracy gate `radial_ks <= 0.04` (mathematical step lower bound $\text{KS} \ge 0.100$, empirical $\text{KS} \approx 0.32-0.51$), breaks $k$-NN density estimation in `birth_death.py` ($k=8$ forces nearest neighbors across the $33\sigma$ void), and causes Poisson mode starvation ($>99.999\%$ failure probability). Capacity of $N = 20,000$ particles ($200$ particles/mode) was mathematically confirmed and strictly preserved.
@@ -112,9 +110,7 @@ Across 84 exhaustive audit attempts across all repository families, **zero model
 In 4-step Diffusion GAN chains (`model_ddgan_gaussian_chain`, `model_ddgan_bimodal_chain`, `model_ae_ddgan_gaussian_chain`, `model_ae_ddgan_bimodal_chain`), small reverse steps ($t_1, t_2$) suffered from conditional reverse variance collapse, where the generator collapsed conditional distributions into deterministic points. Early attempts to introduce variance diversity through fixed Euclidean margin penalties ($\text{margin} = 0.45$) caused severe variance explosions on bimodal mixtures ($t_1$ covariance eigen max exploded to $5.022 \gg 1.40$). Simultaneously, prior manifold tethering in AE-DDGAN backpropagated into encoder codes, causing severe coordinate distortion and failing `paired_worst_axis_nrmse` at $0.38 > 0.25$.
 
 ### 4.2 Systematic Algorithmic Resolutions
-1. **Ratio-Bounded Diversity Regularizer**: Replaced rigid Euclidean margins with a ratio-bounded mode-seeking diversity regularizer:
-   $$\text{ratio} = \min\left( \frac{\|G(z, t) - G(z', t)\|_2}{\|z - z'\|_2}, 0.20 \right), \quad \mathcal{L}_{\text{div}} = -0.016 \cdot (1 - \sigma_t^2) \cdot \mathbb{E}[\text{ratio}]$$
-   This prevents variance collapse at $t_1, t_2$ without blowing variance past the true mode spread.
+1. **Ratio-Bounded Diversity Regularizer**: Replaced rigid Euclidean margins with a ratio-bounded mode-seeking diversity regularizer $\text{ratio} = \min(\|G(z, t) - G(z', t)\|_2 / \|z - z'\|_2,\; 0.20)$ and $\mathcal{L}_{\text{div}} = -0.016 \cdot (1 - \sigma_t^2) \cdot \mathbb{E}[\text{ratio}]$. This prevents variance collapse at $t_1, t_2$ without blowing variance past the true mode spread.
 2. **Detached AE Manifold Tethering**: In `AEDDGANFixture.extra_generator_objective`, encoder codes are detached before computing tethering centroid and covariance alignment:
    ```python
    codes_detached = codes.detach()
@@ -142,11 +138,9 @@ Executed full protocol on Dual NVIDIA RTX A6000 (`cuda:0`):
 
 ### 5.1 Remediation of BCAP Late Mode Attrition on `mode_hold`
 - **Root Cause**: In pure BCAP without prior regularization, unconstrained DualNorm momentum updates allowed learned prior particles to drift tangentially along high-density manifolds, coalescing clusters at step 1050 ($\text{HQ}$ dropped to $0.8694 < 0.90$).
-- **Algorithmic Solution**: Configured `prior_reg: 0.01` and `prior_regularizer: moment_tether` in `configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json`:
-  $$\mathcal{L}_{\text{tether}} = \lambda \left( \|\mu_z - \mu_0\|_2^2 + \|\mathrm{cov}(z) - \Sigma_0\|_F^2 \right)$$
-  Anchoring global first and second moments prevents macroscopic cluster drift while allowing individual particles complete freedom to partition Voronoi mode cells.
+- **Algorithmic Solution**: Configured `prior_reg: 0.01` and `prior_regularizer: moment_tether` in `configs/forge/ideas/recipe-prior-refactor-bcap-pure-v1.json`, using $\mathcal{L}_{\text{tether}} = \lambda \left( \|\mu_z - \mu_0\|_2^2 + \|\mathrm{cov}(z) - \Sigma_0\|_F^2 \right)$. Anchoring global first and second moments prevents macroscopic cluster drift while allowing individual particles complete freedom to partition Voronoi mode cells.
 - **Empirical Results**: Sustained all 8 modes across all 5 terminal suffix checks (1000–1200) with $\text{HQ} \in [0.98486, 0.99902]$ (step 1050 $\text{HQ} = 0.99805$).
-- **Zero Regression on `ring16_acquisition`**: Under the identical configuration, `ring16_acquisition` achieved 16/16 modes, $cov\_err = 0.7263 \le 0.85$, and $\text{HQ} = 0.9470 \ge 0.85$.
+- **Zero Regression on `ring16_acquisition`**: Under the identical configuration, `ring16_acquisition` achieved 16/16 modes, `cov_err` $= 0.7263 \le 0.85$, and $\text{HQ} = 0.9470 \ge 0.85$.
 
 ### 5.2 Atlas Frozen Contract Integrity & `trajectory` Analysis
 - **Contract Integrity**: In Milestone 4 Iteration 1, `"reg_coeff": 1.0` was added to `atlas-particle-normal-v4.json`, breaking `test_atlas_particle_normal_v4.py`. Iteration 2 cleanly reverted `atlas-particle-normal-v4.json` back to its exact canonical frozen git HEAD state (0 diff vs HEAD; all 4 contract assertions pass).

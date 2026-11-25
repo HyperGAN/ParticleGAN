@@ -50,29 +50,61 @@ All mechanisms reside in [`particlegan/_t3_dynamics/`](../../../particlegan/_t3_
 ### Pillar 1: Symmetric Target-Induced Conformal Riemannian Horizon ([`conformal_horizon_pair`](../../../particlegan/_t3_dynamics/metric.py))
 
 Given fake batch $X \in \mathbb{R}^{B_f \times d}$, detached real batch $Y \in \mathbb{R}^{B_r \times d}$, and scalar EMA reference $\ell_{\text{base}}$, let $k_{\text{loc}} = \min(B_r - 1, \max(3, \lfloor B_r / 16 \rfloor))$ and let $d_{(1),j} \le d_{(2),j} \le \dots \le d_{(k_{\text{loc}}),j}$ be the sorted non-self Euclidean distances of $y_j$ in $Y$. Form permutation-equivariant antipodal midpoints using the 2nd-farthest real neighbor $j_{\text{far}}(j) = \text{topk}(\|y_j - Y\|_2, k=\min(B_r-1, 2))_{-1}$:
-$$y^{\text{mid}}_j = \frac{1}{2}\big(y_j + y_{j_{\text{far}}(j)}\big), \qquad q^{\text{val}}_{85} = \operatorname{quantile}_{0.85}\!\Big(\min_{m \notin \{j,\, j_{\text{far}}(j)\}} \|y^{\text{mid}}_j - y_m\|_2\Big).$$
+
+$$
+y^{\text{mid}}_j = \frac{1}{2}\big(y_j + y_{j_{\text{far}}(j)}\big), \qquad q^{\text{val}}_{85} = \operatorname{quantile}_{0.85}\!\Big(\min_{m \notin \{j,\, j_{\text{far}}(j)\}} \|y^{\text{mid}}_j - y_m\|_2\Big).
+$$
+
 Define the valley cap and rare-pair jump cap:
-$$c_{\text{val}} = \begin{cases} 0.28\,q^{\text{val}}_{85}, & q^{\text{val}}_{85} > 3.0\,\operatorname{med}(d_{(1)}), \\ 2.0\max_j d_{(k_{\text{loc}}),j}, & \text{otherwise}, \end{cases} \qquad c_{\text{jump},j} = \begin{cases} 2.2\,d_{(1),j}, & d_{(2),j} > c_{\text{val}}, \\ 3.2\,d_{(2),j}, & d_{(2),j} \le c_{\text{val}}, \end{cases}$$
-$$\ell^{\text{raw}}_j = \max\!\Big(0.45\,\ell_{\text{base}},\; 0.55\,\min\!\big(d_{(k_{\text{loc}}),j},\, c_{\text{jump},j},\, c_{\text{val}}\big)\Big).$$
+
+$$
+c_{\text{val}} = \begin{cases} 0.28\,q^{\text{val}}_{85}, & q^{\text{val}}_{85} > 3.0\,\operatorname{med}(d_{(1)}), \\ 2.0\max_j d_{(k_{\text{loc}}),j}, & \text{otherwise}, \end{cases} \qquad c_{\text{jump},j} = \begin{cases} 2.2\,d_{(1),j}, & d_{(2),j} > c_{\text{val}}, \\ 3.2\,d_{(2),j}, & d_{(2),j} \le c_{\text{val}}, \end{cases}
+$$
+
+$$
+\ell^{\text{raw}}_j = \max\!\Big(0.45\,\ell_{\text{base}},\; 0.55\,\min\!\big(d_{(k_{\text{loc}}),j},\, c_{\text{jump},j},\, c_{\text{val}}\big)\Big).
+$$
+
 Evaluate a **single valley-capped $k=3$ Euclidean-Voronoi scalar field** $\ell_Y: \mathbb{R}^d \to \mathbb{R}_+$ identically on $Y$ and $X$:
-$$b_Y(u) = \min\!\big(d_{(3)}(u, Y),\; 1.6\,c_{\text{val}}\big), \qquad h_Y(u) = \max\!\big(10^{-6},\; 0.45\,b_Y(u) + 0.35\,\ell_{\text{base}}\big),$$
-$$\ell_Y(u) = \sum_{j=1}^{B_r} \operatorname{softmax}_j\!\left(-\frac{\|u - y_j\|_2}{h_Y(u)}\right) \ell^{\text{raw}}_j, \qquad \ell_{XY}[i,j] = \sqrt{\ell_Y(x_i)\,\ell_Y(y_j)}, \qquad \ell_{XX}[i,i'] = \sqrt{\ell_Y(x_i)\,\ell_Y(x_{i'})}.$$
+
+$$
+b_Y(u) = \min\!\big(d_{(3)}(u, Y),\; 1.6\,c_{\text{val}}\big), \qquad h_Y(u) = \max\!\big(10^{-6},\; 0.45\,b_Y(u) + 0.35\,\ell_{\text{base}}\big),
+$$
+
+$$
+\ell_Y(u) = \sum_{j=1}^{B_r} \operatorname{softmax}_j\!\left(-\frac{\|u - y_j\|_2}{h_Y(u)}\right) \ell^{\text{raw}}_j, \qquad \ell_{XY}[i,j] = \sqrt{\ell_Y(x_i)\,\ell_Y(y_j)}, \qquad \ell_{XX}[i,i'] = \sqrt{\ell_Y(x_i)\,\ell_Y(x_{i'})}.
+$$
 
 - **Exact Feydy Debiasing Theorem:** Because $\ell_Y(\cdot)$ depends solely on detached $Y$, when $X = Y$ we have $\ell_{XY} \equiv \ell_{XX}$ element-by-element (`atol < 1e-7`), so the conformal Born–Infeld Feydy divergence $\langle P^{\text{act}}_{XY}, c_{\ell_{XY}}\rangle - \frac{1}{2}\langle P^{\text{eff}}_{XX}, c_{\ell_{XX}}\rangle$ has **exact zero gradient at $q_\theta = p$** while normalizing dimensionless intra-mode distances $\|y_j - y_{j'}\|/\ell_{XY} = O(1)$ across $8\times$ mode-width ratios and protecting 2-sample rare modes ($d_{(2)} > c_{\text{val}} \implies c_{\text{jump}} = 2.2\,d_{(1)}$).
 
 ### Pillar 2: Orphan- & Basin-Starvation-Gated Bipartite Monge Macro-Transport ([`bipartite_deficit_macro_loss`](../../../particlegan/_t3_dynamics/metric.py))
 
 Let $s^{\text{col}}_j = \text{clamp}(B_r P^{\text{slack}}_{\cdot, j}, 0, 1)$ and $s^{\text{row}}_i = \text{clamp}(B_f P^{\text{slack}}_{i, \cdot}, 0, 1)$ be the unbalanced Sinkhorn column-deficit and row-surplus marginals ($\rho = 3.0$; inactive when $H_0$-connectedness $g_{\text{conn}} > 0.05$ or conditioning is present). Compute the proximity gate $g_{\text{prox},j} = S_3\!\big(\text{clamp}((\min_i \hat{c}_{ij} - 2.80\rho)/(1.20\rho), 0, 1)\big)$. When disconnected valleys exist ($w_{\text{val}} = S_3(\text{clamp}((q^{\text{val}}_{85}/\text{med}(d_{(1)}) - 3.20)/1.80, 0, 1)) > 10^{-4}$), estimate smooth basin shares at bandwidth $h_{\text{bas}} = 0.38\,q^{\text{val}}_{85}$:
-$$\pi_y[j] = \frac{1}{B_r}\sum_{j'=1}^{B_r} e^{-\frac{\|y_j - y_{j'}\|^2}{2h_{\text{bas}}^2}}, \qquad \pi_x[j] = \frac{1}{B_f}\sum_{i=1}^{B_f} e^{-\frac{\|x_i - y_j\|^2}{2h_{\text{bas}}^2}},$$
+
+$$
+\pi_y[j] = \frac{1}{B_r}\sum_{j'=1}^{B_r} e^{-\frac{\|y_j - y_{j'}\|^2}{2h_{\text{bas}}^2}}, \qquad \pi_x[j] = \frac{1}{B_f}\sum_{i=1}^{B_f} e^{-\frac{\|x_i - y_j\|^2}{2h_{\text{bas}}^2}},
+$$
+
 and gate `g_prox` simultaneously against **Poisson zero-draw rare modes** ($B_f \pi_y < 4.2$) and **already-populated basins** ($\pi_x / \pi_y \ge 0.45$):
-$$s_{\text{zd},j} = S_3\!\Big(\operatorname{clamp}\!\Big(\frac{B_f\pi_y[j] - 4.2}{2.3},\,0,\,1\Big)\Big), \qquad s_{\text{starv},j} = S_3\!\Big(\operatorname{clamp}\!\Big(\frac{0.45 - \pi_x[j]/\pi_y[j]}{0.20},\,0,\,1\Big)\Big),$$
-$$g_{\text{orph},j} = g_{\text{prox},j}\,\big((1 - w_{\text{val}}) + w_{\text{val}}\,s_{\text{zd},j}\,s_{\text{starv},j}\big), \qquad q^{\text{raw}}_j = s^{\text{col}}_j\,g_{\text{orph},j}, \qquad m_{\text{orphan}} = \frac{1}{B_r}\sum_{j=1}^{B_r} q^{\text{raw}}_j.$$
+
+$$
+s_{\text{zd},j} = S_3\!\Big(\operatorname{clamp}\!\Big(\frac{B_f\pi_y[j] - 4.2}{2.3},\,0,\,1\Big)\Big), \qquad s_{\text{starv},j} = S_3\!\Big(\operatorname{clamp}\!\Big(\frac{0.45 - \pi_x[j]/\pi_y[j]}{0.20},\,0,\,1\Big)\Big),
+$$
+
+$$
+g_{\text{orph},j} = g_{\text{prox},j}\,\big((1 - w_{\text{val}}) + w_{\text{val}}\,s_{\text{zd},j}\,s_{\text{starv},j}\big), \qquad q^{\text{raw}}_j = s^{\text{col}}_j\,g_{\text{orph},j}, \qquad m_{\text{orphan}} = \frac{1}{B_r}\sum_{j=1}^{B_r} q^{\text{raw}}_j.
+$$
+
 When $m_{\text{orphan}} > 10^{-4}$, select $K = \min(B_f - 1, \text{round}(B_f m_{\text{orphan}}))$ explorer rows ($K = B_f$ if $m_{\text{orphan}} \ge 0.85$) maximizing $1.50\,s^{\text{row}}_i - 0.65\min(4.0, d_{\text{orph,min}}(x_i)/d_{\text{med}}) + 10^{-4}\operatorname{frac}((i+0.5)\phi_1)$, release their microscopic anchors ($P^{\text{act}}_{i,\cdot} \leftarrow 0$), order real columns along the weighted principal eigenvector $v_{\max}$ of $\operatorname{Cov}_{q}(Y)$, solve a 10-iteration Sinkhorn coupling at temperature $0.03$ on $d_{XY}/d_{\text{med}}$, and project each sorted explorer $e \in \{0,\dots,K-1\}$ via strided quantiles $\text{slot}(e) = e/2$ (even $e$) or $\lceil K/2\rceil + \lfloor e/2\rfloor$ (odd $e$), $q_u(e) = (\text{slot}(e) + 0.5)/K$, minimizing $\frac{1}{B_f}\sum_{e=0}^{K-1} \ell_{\text{macro}}\big(\sqrt{1 + \|x_{i_e} - y_{j^*(e)}\|^2/\ell_{\text{macro}}^2} - 1\big)$ with $\ell_{\text{macro}} = 0.25\,d_{\text{med}}$.
 
 ### Pillar 3: Exchangeability-Invariant Pooled-Tangent Conditional Fiber Residualization ([`pooled_tangent_conditional_loss`](../../../particlegan/_t3_dynamics/metric.py))
 
 On continuous-conditioned tuples $(c_k, x_k, y_k)_{k=1}^B$, form the **detached swap-invariant pooled midpoint** $z^{\text{pool}}_k = \frac{1}{2}(x_k^{\text{det}} + y_k^{\text{det}})$. Within each discrete stratum $g$ of size $n_g \ge \max(4, d_c + 2)$, normalize $\tilde{c}_k = (c_k - \bar{c}_g)/\sqrt{\widehat{\operatorname{Var}}(c_g)\,d_c}$ and solve kernel ridge regression on $z^{\text{pool}}$:
-$$K_g = \tilde{c}_g \tilde{c}_g^\top + 0.35\exp\!\Big(-\frac{d^2(\tilde{c}_g, \tilde{c}_g)}{2\,\operatorname{med}(d^2_{\text{off}})}\Big), \qquad \hat{m}(c_g) = \bar{z}_g + K_g\big(K_g + 0.04\,n_g\,I_{n_g}\big)^{-1}(z^{\text{pool}}_g - \bar{z}_g).$$
+
+$$
+K_g = \tilde{c}_g \tilde{c}_g^\top + 0.35\exp\!\Big(-\frac{d^2(\tilde{c}_g, \tilde{c}_g)}{2\,\operatorname{med}(d^2_{\text{off}})}\Big), \qquad \hat{m}(c_g) = \bar{z}_g + K_g\big(K_g + 0.04\,n_g\,I_{n_g}\big)^{-1}(z^{\text{pool}}_g - \bar{z}_g).
+$$
+
 Evaluate multi-scale ($s \in \{0.35, 1.0, 2.8\}$) coordinate-whitened IMQ discrepancy $\langle W^{\text{IMQ}}, \Psi_{XY}\rangle - \frac{1}{2}\langle W^{\text{IMQ}}, \Psi_{XX}\rangle$ on residuals $\tilde{x}_i = x_i - \hat{m}(c_i)$ vs $\tilde{y}_k = y_k - \hat{m}(c_k)$ weighted by $3$-NN context Gaussian affinity $K_c[i,k] = \mathbf{1}_{i\ne k}\exp(-\|c_i - c_k\|^2/(2\sigma_i\sigma_k))$ with symmetric degree normalization $W^{\text{IMQ}} = \frac{1}{2B}(D_c^{-1/2} K_c D_c^{-1/2} + \text{h.c.})$, and damp `G+D` DualNorm steps via $\text{step\_scale} = 1 - 0.65\,S_3(\text{clamp}((0.028 - \bar{r}_{\text{cond}})/0.016, 0, 1))$.
 
 ### Thermal Equilibrium & Synchronous Autoencoder Cooling ([`critic.py`](../../../particlegan/_t3_dynamics/critic.py), [`loss.py`](../../../particlegan/_t3_dynamics/loss.py), [`dualnorm.py`](../../../particlegan/optim/dualnorm.py))

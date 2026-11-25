@@ -34,45 +34,76 @@ Diagnostic profiling of `unified-v3` revealed four compounding small-sample stat
 
 For each discrete stratum $t$ (partitioned deterministically on CPU), `CondFiberBank` maintains strictly pre-update float64 sufficient statistics and a bounded float32 paired-context FIFO ring ($M_{\max}=384$), queried **before** updating on the current batch (eliminating same-batch leakage and variance collapse):
 
-1. **Exact Parallel-Welford Context Standardization**:
-   Maintains $(n_{\text{eff}}, \mu_c, m_{2,c})$ under clock-free forgetting factor $\gamma_s \in [\gamma_{\min}, \gamma_{\text{base}}] = [0.50, 0.96]$, yielding standardized contexts $u = (c - \mu_c) / \sigma_c$ and shared context leverage weight:
-   $$\omega(c) = 1 + 0.90 \cdot \min\!\left(\frac{\|u\|_2^2}{d_c},\; 4.5\right).$$
-   Because $\omega(c)$ depends exclusively on the shared context $c$ (never on $X$ or $Y$), it preserves exact swap invariance and exact zero bias at equilibrium $P(X \mid c) = P(Y \mid c)$.
+**1. Exact Parallel-Welford Context Standardization.**
+Maintains $(n_{\text{eff}}, \mu_c, m_{2,c})$ under clock-free forgetting factor $\gamma_s \in [\gamma_{\min}, \gamma_{\text{base}}] = [0.50, 0.96]$, yielding standardized contexts $u = (c - \mu_c) / \sigma_c$ and shared context leverage weight:
 
-2. **Piecewise-Hinge + Bounded Bilinear Feature Basis**:
-   For $d_c \le 6$ ($p = 1 + 3 d_c + \binom{d_c}{2}$, so $p=8$ for $d_c=2$):
-   $$\phi(c) = \left[1,\; u,\; 2(\operatorname{softplus}(u - 0.8) - 0.425),\; 2(\operatorname{softplus}(-u - 0.8) - 0.425),\; \frac{u_a u_b}{\sqrt{1 + 0.15(u_a^2 + u_b^2)}}\right]_{a < b}.$$
-   The unit-scaled two-sided softplus hinges capture outer-tail LeakyReLU slope kinks with $O(\|u\|)$ asymptotic growth, while the bounded pairwise bilinear terms resolve 2D diagonal corner biases without quadratic blowup.
+$$
+\omega(c) = 1 + 0.90 \cdot \min\!\left(\frac{\|u\|_2^2}{d_c},\; 4.5\right).
+$$
 
-3. **Dual-Timescale Symmetric WLS Mean Operator & Residual Whitening**:
-   Accumulates slow ($\gamma_{\text{base}} = 0.96$, $\sim 400$ samples/stratum) and fast ($\gamma_{\text{fast}} = 0.85$, $\sim 105$ samples/stratum) weighted Gram and cross-moments $(G_{\phi\phi}, G_{\phi X}, G_{\phi Y})$ with anisotropic Tikhonov ridge $\Lambda = \operatorname{diag}(\lambda_{\text{lin}} = 10^{-3}, \lambda_{\text{nl}} = 0.025)$:
-   $$B_X^{\text{slow}}, B_Y^{\text{slow}} = \left(\frac{G_{\phi\phi}}{W_{\text{eff}}} + \Lambda\right)^{-1} \frac{[G_{\phi X}, G_{\phi Y}]}{W_{\text{eff}}}, \qquad B_{\text{pool}} = \frac{1}{2}(B_X^{\text{slow}} + B_Y^{\text{slow}}).$$
-   - **Swap-invariant pooled drift**: $m_{\text{pool}}(c) = \phi(c) B_{\text{pool}}$ removes cross-context mean drift before multi-scale hollow IMQ-CMMD with exact pair-swap invariance.
-   - **Swap-invariant residual whitening**: $W_t = \left(\frac{1}{2}(\Sigma_{XX} + \Sigma_{YY}) + \epsilon I\right)^{-1/2}$ from exact symmetric float64 eigendecomposition.
-   - **Critically-damped mean discrepancy**: Combines $85\%$ fast-stream tracking $\Delta m_{\text{bank}}(c) = \phi(c)(B_X^{\text{fast}} - B_Y^{\text{slow}})$ (preventing 25-step Hopf delay oscillation on moving $G_\theta$) with $15\%$ zero-lag exact slow-Gram leave-one-out residual $\Delta m_{\text{LOO}}(c_i)$ (instant damping, zero self-attraction), smoothly odd-saturated:
-     $$\widetilde{\Delta m}_W(c_i) = \tau_m \tanh\!\left(\frac{\|\Delta m_i W_t\|_2}{\tau_m}\right) \frac{\Delta m_i W_t}{\|\Delta m_i W_t\|_2}, \qquad \tau_m = 3.0.$$
+Because $\omega(c)$ depends exclusively on the shared context $c$ (never on $X$ or $Y$), it preserves exact swap invariance and exact zero bias at equilibrium $P(X \mid c) = P(Y \mid c)$.
 
-4. **Midpoint-Canceling Nonparametric Paired-Context FIFO Ring (Local Conditional Covariance)**:
-   From strictly past paired contexts $\{(c_j, X_j, Y_j)\}_{j=1}^{M}$ ($M \le 384$), compute recency-weighted adaptive $k$-NN ($k=20$) kernel weights $\alpha_{ij} \propto \exp\!\left(-\frac{\|u_i - u_j\|^2}{2 h_i^2} - \frac{\text{age}_j}{128}\right)$ and pooled-midpoint residuals $r_{X,j} = X_j - m_{\text{pool}}(c_j)$, $r_{Y,j} = Y_j - m_{\text{pool}}(c_j)$:
-   $$E_{\text{cov}}^{\text{loc}}(c_i) = \sum_{j=1}^M \alpha_{ij}\left(r_{X,j} r_{X,j}^\top - r_{Y,j} r_{Y,j}^\top\right).$$
-   **Exact Midpoint Cancellation Theorem**: Writing $m_{\text{pool}} = \frac{1}{2}(m_X + m_Y)$ and $\Delta = m_X - m_Y$,
-   $$\mathbb{E}[r_X r_X^\top \mid c] = \Sigma_X(c) + \tfrac{1}{4}\Delta\Delta^\top, \qquad \mathbb{E}[r_Y r_Y^\top \mid c] = \Sigma_Y(c) + \tfrac{1}{4}\Delta\Delta^\top,$$
-   so the mean-bias outer product $\tfrac{1}{4}\Delta\Delta^\top$ **cancels identically** in $r_X r_X^\top - r_Y r_Y^\top$, isolating pure local conditional covariance error $\Sigma_X(c_i) - \Sigma_Y(c_i)$ with exact swap antisymmetry and zero variance collapse.
+**2. Piecewise-Hinge + Bounded Bilinear Feature Basis.**
+For $d_c \le 6$ ($p = 1 + 3 d_c + \binom{d_c}{2}$, so $p=8$ for $d_c=2$):
 
-5. **Split-Sign Bounded Covariance Matching**:
-   Whitening $E_W(c_i) = \operatorname{sat}_F(W_t E_{\text{cov}}^{\text{loc}}(c_i) W_t; \tau_c = 1.5)$ and eigensplitting on CPU (15x faster than CUDA batched cuSOLVER `eigh` for small $d_x$) into $E_W = E_+ + E_-$ ($E_+ \succeq 0$, $E_- \preceq 0$):
-   $$\mathcal{L}_{\text{cov}} = \frac{1}{B} \sum_{i=1}^B w_i \cdot \frac{1}{2 d_x}\left(r_{W,i}^\top E_{+,i} r_{W,i} + \tilde{r}_{W,i}^\top E_{-,i} \tilde{r}_{W,i}\right), \qquad \tilde{r}_{W,i} = \frac{r_{W,i}}{\sqrt{1 + 0.25 \|r_{W,i}\|^2 / d_x}}.$$
-   Positive eigenvalues contract excess variance linearly, while negative eigenvalues expand under-dispersed modes with radially bounded gradients — preventing concave outlier blowup while maintaining exact zero first-order bias at $E_W = 0$.
+$$
+\phi(c) = \left[1,\; u,\; 2(\operatorname{softplus}(u - 0.8) - 0.425),\; 2(\operatorname{softplus}(-u - 0.8) - 0.425),\; \frac{u_a u_b}{\sqrt{1 + 0.15(u_a^2 + u_b^2)}}\right]_{a < b}.
+$$
 
-6. **Variance-Preserving Conditional Budget Partition & Operator-Aware Settling**:
-   Once the bank is warm, the conditional discrepancy partitions the total conditional energy budget cleanly relative to auxiliary objectives (such as `ae_loss`):
-   $$\mathcal{L}_{\text{cond}} = 0.40\,\mathcal{L}_{\text{IMQ-CMMD}}(m_{\text{pool}}) + 0.36\,\mathcal{L}_{\text{mean}} + 0.30\,\mathcal{L}_{\text{cov}}.$$
-   To prevent premature step-size cooling while outer-tail errors remain unresolved (without positive-rectification bias), the strictly clock-free settling residual adds parameter-space excess operator discrepancy:
-   $$r_{\text{cond}} = r_{\text{IMQ}} + \min\!\left(0.5,\; 0.11 \max\!\left(0,\; \max_t \left(\frac{\|(B_X^{\text{slow}} - B_Y^{\text{slow}}) W_t\|_F^2}{d_x} - \frac{2p}{n_{\text{eff}}}\right) - 0.10\right)\right),$$
-   driving the symmetric DualNorm step scale $\text{step\_scale} = 1 - 0.85 \cdot \operatorname{smoothstep}_{[0.026, 0.050]}(\text{EMA}_{0.99}(r_{\text{cond}}))$.
+The unit-scaled two-sided softplus hinges capture outer-tail LeakyReLU slope kinks with $O(\|u\|)$ asymptotic growth, while the bounded pairwise bilinear terms resolve 2D diagonal corner biases without quadratic blowup.
 
-7. **Swap-Invariant Innovation Reset**:
-   Clock-free forgetting modulation $\gamma = \gamma_{\min} + (\gamma_0 - \gamma_{\min}) \exp(-\tfrac{1}{2}\max(0, z_{\text{innov}} - 2.5)^2)$ driven by $z_{\text{innov}} = \max(e_X, e_Y, c_{\text{jump}})$ rapidly adapts to non-stationary shifts without any step counter.
+**3. Dual-Timescale Symmetric WLS Mean Operator & Residual Whitening.**
+Accumulates slow ($\gamma_{\text{base}} = 0.96$, $\sim 400$ samples/stratum) and fast ($\gamma_{\text{fast}} = 0.85$, $\sim 105$ samples/stratum) weighted Gram and cross-moments $(G_{\phi\phi}, G_{\phi X}, G_{\phi Y})$ with anisotropic Tikhonov ridge $\Lambda = \operatorname{diag}(\lambda_{\text{lin}} = 10^{-3}, \lambda_{\text{nl}} = 0.025)$:
+
+$$
+B_X^{\text{slow}}, B_Y^{\text{slow}} = \left(\frac{G_{\phi\phi}}{W_{\text{eff}}} + \Lambda\right)^{-1} \frac{[G_{\phi X}, G_{\phi Y}]}{W_{\text{eff}}}, \qquad B_{\text{pool}} = \frac{1}{2}(B_X^{\text{slow}} + B_Y^{\text{slow}}).
+$$
+
+- **Swap-invariant pooled drift**: $m_{\text{pool}}(c) = \phi(c) B_{\text{pool}}$ removes cross-context mean drift before multi-scale hollow IMQ-CMMD with exact pair-swap invariance.
+- **Swap-invariant residual whitening**: $W_t = \left(\frac{1}{2}(\Sigma_{XX} + \Sigma_{YY}) + \epsilon I\right)^{-1/2}$ from exact symmetric float64 eigendecomposition.
+- **Critically-damped mean discrepancy**: Combines $85\%$ fast-stream tracking $\Delta m_{\text{bank}}(c) = \phi(c)(B_X^{\text{fast}} - B_Y^{\text{slow}})$ (preventing 25-step Hopf delay oscillation on moving $G_\theta$) with $15\%$ zero-lag exact slow-Gram leave-one-out residual $\Delta m_{\text{LOO}}(c_i)$ (instant damping, zero self-attraction), smoothly odd-saturated via $\widetilde{\Delta m}_W(c_i) = \tau_m \tanh\!\left(\|\Delta m_i W_t\|_2 / \tau_m\right) \frac{\Delta m_i W_t}{\|\Delta m_i W_t\|_2}$ ($\tau_m = 3.0$).
+
+**4. Midpoint-Canceling Nonparametric Paired-Context FIFO Ring (Local Conditional Covariance).**
+From strictly past paired contexts $\{(c_j, X_j, Y_j)\}_{j=1}^{M}$ ($M \le 384$), compute recency-weighted adaptive $k$-NN ($k=20$) kernel weights $\alpha_{ij} \propto \exp\!\left(-\frac{\|u_i - u_j\|^2}{2 h_i^2} - \frac{\text{age}_j}{128}\right)$ and pooled-midpoint residuals $r_{X,j} = X_j - m_{\text{pool}}(c_j)$, $r_{Y,j} = Y_j - m_{\text{pool}}(c_j)$:
+
+$$
+E_{\text{cov}}^{\text{loc}}(c_i) = \sum_{j=1}^M \alpha_{ij}\left(r_{X,j} r_{X,j}^\top - r_{Y,j} r_{Y,j}^\top\right).
+$$
+
+**Exact Midpoint Cancellation Theorem**: Writing $m_{\text{pool}} = \frac{1}{2}(m_X + m_Y)$ and $\Delta = m_X - m_Y$,
+
+$$
+\mathbb{E}[r_X r_X^\top \mid c] = \Sigma_X(c) + \tfrac{1}{4}\Delta\Delta^\top, \qquad \mathbb{E}[r_Y r_Y^\top \mid c] = \Sigma_Y(c) + \tfrac{1}{4}\Delta\Delta^\top,
+$$
+
+so the mean-bias outer product $\tfrac{1}{4}\Delta\Delta^\top$ **cancels identically** in $r_X r_X^\top - r_Y r_Y^\top$, isolating pure local conditional covariance error $\Sigma_X(c_i) - \Sigma_Y(c_i)$ with exact swap antisymmetry and zero variance collapse.
+
+**5. Split-Sign Bounded Covariance Matching.**
+Whitening $E_W(c_i) = \operatorname{sat}_F(W_t E_{\text{cov}}^{\text{loc}}(c_i) W_t; \tau_c = 1.5)$ and eigensplitting on CPU (15x faster than CUDA batched cuSOLVER `eigh` for small $d_x$) into $E_W = E_+ + E_-$ ($E_+ \succeq 0$, $E_- \preceq 0$):
+
+$$
+\mathcal{L}_{\text{cov}} = \frac{1}{B} \sum_{i=1}^B w_i \cdot \frac{1}{2 d_x}\left(r_{W,i}^\top E_{+,i} r_{W,i} + \tilde{r}_{W,i}^\top E_{-,i} \tilde{r}_{W,i}\right), \qquad \tilde{r}_{W,i} = \frac{r_{W,i}}{\sqrt{1 + 0.25 \|r_{W,i}\|^2 / d_x}}.
+$$
+
+Positive eigenvalues contract excess variance linearly, while negative eigenvalues expand under-dispersed modes with radially bounded gradients — preventing concave outlier blowup while maintaining exact zero first-order bias at $E_W = 0$.
+
+**6. Variance-Preserving Conditional Budget Partition & Operator-Aware Settling.**
+Once the bank is warm, the conditional discrepancy partitions the total conditional energy budget cleanly relative to auxiliary objectives (such as `ae_loss`):
+
+$$
+\mathcal{L}_{\text{cond}} = 0.40\,\mathcal{L}_{\text{IMQ-CMMD}}(m_{\text{pool}}) + 0.36\,\mathcal{L}_{\text{mean}} + 0.30\,\mathcal{L}_{\text{cov}}.
+$$
+
+To prevent premature step-size cooling while outer-tail errors remain unresolved (without positive-rectification bias), the strictly clock-free settling residual adds parameter-space excess operator discrepancy:
+
+$$
+r_{\text{cond}} = r_{\text{IMQ}} + \min\!\left(0.5,\; 0.11 \max\!\left(0,\; \max_t \left(\frac{\|(B_X^{\text{slow}} - B_Y^{\text{slow}}) W_t\|_F^2}{d_x} - \frac{2p}{n_{\text{eff}}}\right) - 0.10\right)\right),
+$$
+
+driving the symmetric DualNorm step scale $\text{step\_scale} = 1 - 0.85 \cdot \operatorname{smoothstep}_{[0.026, 0.050]}(\text{EMA}_{0.99}(r_{\text{cond}}))$.
+
+**7. Swap-Invariant Innovation Reset.**
+Clock-free forgetting modulation $\gamma = \gamma_{\min} + (\gamma_0 - \gamma_{\min}) \exp(-\tfrac{1}{2}\max(0, z_{\text{innov}} - 2.5)^2)$ driven by $z_{\text{innov}} = \max(e_X, e_Y, c_{\text{jump}})$ rapidly adapts to non-stationary shifts without any step counter.
 
 ---
 

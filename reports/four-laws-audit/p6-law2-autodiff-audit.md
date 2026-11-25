@@ -74,9 +74,9 @@ Every critic penalty implementation under `particlegan/` (plus non-critic `fwAD`
 | **C2** | [`docs/four-laws.md:113,136`](../../docs/four-laws.md#L113) | Lists `unified_v11` (and default `unified_v12`) under *"Live-Endpoint Reuse + Separable BF16 Micro-Secants (Convolutional Image Critics)"* with *"free transport-chord and cyclic-roll secants"* | **Falsified claim** |
 | **C3** | [`docs/four-laws.md:135`](../../docs/four-laws.md#L135), [`t2-efficient-critic.md:51`](../forge/studies/t2-efficient-critic.md#L51) | `fwAD.dual_level` evaluates $(D_\theta(x), \nabla_x D_\theta(x)\cdot u)$ at the exact primal activation mask with zero ReLU/LeakyReLU $O(1/\delta)$ kink impulses | **Proven mathematical result** |
 | **C4** | [`docs/four-laws.md:46,136`](../../docs/four-laws.md#L46), [`t2-efficient-critic.md:12,18,43-47,61`](../forge/studies/t2-efficient-critic.md#L18) | Separable BF16 micro-secant (`delta = 0.02`, `t2_secant`/`unified`) & `minimal` micro-secant (`eps = 1e-5`) provide faithful slope regularity compatible with low-precision BF16 while avoiding kink impulses | **Falsified claim** |
-| **C5** | [`t2-efficient-critic.md:10-11,41-42`](../forge/studies/t2-efficient-critic.md#L41-L42), [`docs/four-laws.md:44-45`](../../docs/four-laws.md#L44-L45) | Naive macro chords suffer symmetric-flank cancellation ($S = 0$ as $\|\nabla_x D\| \to \infty$) and unscaled single probes suffer $\Theta(\sqrt{d})$ high-D projection attenuation | **Proven mathematical result** |
+| **C5** | [`t2-efficient-critic.md:10-11,41-42`](../forge/studies/t2-efficient-critic.md#L41-L42), [`docs/four-laws.md:44-45`](../../docs/four-laws.md#L44-L45) | Naive macro chords suffer symmetric-flank cancellation ($S = 0$ as $\lVert\nabla_x D\rVert \to \infty$) and unscaled single probes suffer $\Theta(\sqrt{d})$ high-D projection attenuation | **Proven mathematical result** |
 | **C6** | [`t2-efficient-critic.md:16,55-60`](../forge/studies/t2-efficient-critic.md#L55-L60), [`_t2_critic/penalty.py:15-17`](../../particlegan/_t2_critic/penalty.py#L15-L17) | Spatial-frame Householder reconstruction (`5 <= d <= 8`) has *"exact `0` directional variance"* and $k=32$ local Gaussian Hutchinson pooling (`d > 8`) yields accurate low-bias norm/gradient estimates | **Falsified claim** *(exact only for constant-gradient linear critics; nonlinear critics incur spatial-mixing bias and opposite-signed Jensen bias)* |
-| **C7** | [`_t2_critic/penalty.py:145-159`](../../particlegan/_t2_critic/penalty.py#L145-L159), [`_unified_v11/penalty.py:85-94`](../../particlegan/_unified_v11/penalty.py#L85-L94), [`_minimal/geometry.py:54-60`](../../particlegan/_minimal/geometry.py#L54-L60) | Separable Rademacher perturbations (`O(B(CH+W))` 2-way in `t2_secant`/`unified_v11` and 3-way in `minimal`) match dense Rademacher variance $2\|\nabla_x D\|_2^4$ | **Falsified claim** |
+| **C7** | [`_t2_critic/penalty.py:145-159`](../../particlegan/_t2_critic/penalty.py#L145-L159), [`_unified_v11/penalty.py:85-94`](../../particlegan/_unified_v11/penalty.py#L85-L94), [`_minimal/geometry.py:54-60`](../../particlegan/_minimal/geometry.py#L54-L60) | Separable Rademacher perturbations (`O(B(CH+W))` 2-way in `t2_secant`/`unified_v11` and 3-way in `minimal`) match dense Rademacher variance $2\lVert\nabla_x D\rVert_2^4$ | **Falsified claim** |
 | **C8** | [`docs/four-laws.md:43,139-141,182`](../../docs/four-laws.md#L43), [`t2-efficient-critic.md:5,20,31`](../forge/studies/t2-efficient-critic.md#L20) | Eliminating `create_graph=True` RoR cuts high-resolution (`128^2`–`256^2`) Conv2d critic penalty latency, VRAM, and hardware GPU energy dramatically | **Empirically supported causal mechanism** |
 | **C9** | [`docs/four-laws.md:43,51,113`](../../docs/four-laws.md#L43), [`t2-efficient-critic.md:29-31`](../forge/studies/t2-efficient-critic.md#L29-L31) | Implicit claim that `fwAD` universally dominates RoR `autograd.grad(create_graph=True)` across architectures, dimensions, probe counts, and precision regimes | **Falsified claim** |
 | **C10** | [`docs/four-laws.md:141,182`](../../docs/four-laws.md#L141), [`r4-occam-ablation-razor.md:20,130-131`](../forge/studies/r4-occam-ablation-razor.md#L130-L131) | 1-probe `fwAD`/secant EBI achieves higher Forge pass rate than exact RoR EBI (Arm 7 `-fwad-critic`: `14/16` vs. `11/15` on `r4-occam-ablation-v1`) | **Empirical correlation** *(confounded by Jensen bias, spatial smoothing, BN mode switch, and unequal tuning on `fwAD`)* |
@@ -89,62 +89,122 @@ Every critic penalty implementation under `particlegan/` (plus non-critic `fwAD`
 
 **Theorem 1 (RoF = Exact Mixed Second-Order Derivative):**
 Let $f: \mathbb{R}^P \times \mathbb{R}^d \to \mathbb{R}$, $(\theta, x) \mapsto D_\theta(x)$ be $C^2$ in a neighborhood of $(\theta, x)$, let $u \in \mathbb{R}^d$ be independent of $\theta$, and let $\Phi: \mathbb{R}_{\ge 0} \to \mathbb{R}$ be $C^1$.
-1. Evaluating $f(\theta, x + \epsilon u)$ in dual arithmetic ($\epsilon^2 = 0$, `fwAD.dual_level()`) returns the primal value $D_\theta(x)$ and the directional spatial derivative
-   $$\tau(\theta, x; u) = \left.\frac{d}{d\epsilon}\right|_{\epsilon=0} D_\theta(x + \epsilon u) = \langle \nabla_x D_\theta(x), u \rangle.$$
-2. Differentiating $\mathcal{R}(\theta) = \Phi\big(\tau(\theta, x; u)^2\big)$ with respect to $\theta$ via `.backward()` executes **reverse-over-forward (RoF)** automatic differentiation and returns the **exact mixed second-order derivative contraction**:
-   $$\nabla_\theta \mathcal{R}(\theta) = 2\,\Phi'\!\big(\tau^2\big)\,\tau(\theta, x; u)\,\nabla_\theta\langle \nabla_x D_\theta(x), u \rangle = 2\,\Phi'\!\big(\tau^2\big)\,\tau(\theta, x; u)\,\underbrace{\left(\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x}\right)}_{H_{\theta x} \in \mathbb{R}^{P \times d}} u.$$
-3. Summing over any orthonormal basis $\{q_m\}_{m=1}^d \subset \mathbb{R}^d$ yields $S(\theta, x) = \sum_{m=1}^d \tau(\theta, x; q_m)^2 = \|\nabla_x D_\theta(x)\|_2^2$ and
-   $$\nabla_\theta \Phi\big(S(\theta, x)\big) = 2\,\Phi'\!\big(\|\nabla_x D_\theta(x)\|_2^2\big)\,\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x}\,\nabla_x D_\theta(x),$$
-   which is **algebraically identical** to reverse-over-reverse (RoR) differentiation via `torch.autograd.grad(D(x), x, create_graph=True)` followed by `.backward()`.
-4. **Explicit 2-Layer Smooth Network ($\sigma''$ Witness):** For $D_\theta(x) = v^\top \sigma(W x + b)$ with $z = W x + b$, $\tau = \sum_h v_h \sigma'(z_h) (W u)_h$, hence:
-   $$\frac{\partial \tau}{\partial v_h} = \sigma'(z_h)(W u)_h, \qquad \frac{\partial \tau}{\partial b_h} = v_h\,\mathbf{\sigma''(z_h)}\,(W u)_h, \qquad \frac{\partial \tau}{\partial W_{hj}} = v_h\,\mathbf{\sigma''(z_h)}\,(W u)_h x_j + v_h \sigma'(z_h) u_j.$$
-   The bias gradient $\nabla_b \mathcal{R}$ is **purely proportional to $\sigma''(z)$**, proving `fwAD` + `.backward()` explicitly evaluates second-order activation derivatives!
-5. **Piecewise-Linear (`ReLU`/`LeakyReLU`) Critics:** Off the measure-zero union of activation hyperplanes $\mathcal{H} = \bigcup_j \{x : z_j(\theta, x) = 0\}$, the activation mask $M(\theta, x)$ is locally constant, so $D_\theta(x) = a(\theta, M)^\top x + c(\theta, M)$. While the pure spatial Hessian vanishes ($\frac{\partial^2 D}{\partial x^2} = 0$ a.e.), the **mixed second-order derivative does NOT vanish**:
-   $$\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x} = \frac{\partial a(\theta, M)}{\partial \theta} \neq 0,$$
-   because $a(\theta, M)$ is a multilinear product of layer weight matrices. Both `fwAD` + `.backward()` (RoF) and `autograd.grad(create_graph=True)` + `.backward()` (RoR) evaluate the exact same primal mask $M(\theta, x)$ with zero distributional kink impulse and agree to machine precision.
+**1.** Evaluating $f(\theta, x + \epsilon u)$ in dual arithmetic ($\epsilon^2 = 0$, `fwAD.dual_level()`) returns the primal value $D_\theta(x)$ and the directional spatial derivative
+
+$$
+\tau(\theta, x; u) = \left.\frac{d}{d\epsilon}\right|_{\epsilon=0} D_\theta(x + \epsilon u) = \langle \nabla_x D_\theta(x), u \rangle.
+$$
+
+**2.** Differentiating $\mathcal{R}(\theta) = \Phi\big(\tau(\theta, x; u)^2\big)$ with respect to $\theta$ via `.backward()` executes **reverse-over-forward (RoF)** automatic differentiation and returns the **exact mixed second-order derivative contraction**:
+
+$$
+\nabla_\theta \mathcal{R}(\theta) = 2\,\Phi'\!\big(\tau^2\big)\,\tau(\theta, x; u)\,\nabla_\theta\langle \nabla_x D_\theta(x), u \rangle = 2\,\Phi'\!\big(\tau^2\big)\,\tau(\theta, x; u)\,\underbrace{\left(\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x}\right)}_{H_{\theta x} \in \mathbb{R}^{P \times d}} u.
+$$
+
+**3.** Summing over any orthonormal basis $\{q_m\}_{m=1}^d \subset \mathbb{R}^d$ yields $S(\theta, x) = \sum_{m=1}^d \tau(\theta, x; q_m)^2 = \|\nabla_x D_\theta(x)\|_2^2$ and
+
+$$
+\nabla_\theta \Phi\big(S(\theta, x)\big) = 2\,\Phi'\!\big(\|\nabla_x D_\theta(x)\|_2^2\big)\,\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x}\,\nabla_x D_\theta(x),
+$$
+
+which is **algebraically identical** to reverse-over-reverse (RoR) differentiation via `torch.autograd.grad(D(x), x, create_graph=True)` followed by `.backward()`.
+
+**4. Explicit 2-Layer Smooth Network ($\sigma''$ Witness):** For $D_\theta(x) = v^\top \sigma(W x + b)$ with $z = W x + b$, $\tau = \sum_h v_h \sigma'(z_h) (W u)_h$, hence:
+
+$$
+\frac{\partial \tau}{\partial v_h} = \sigma'(z_h)(W u)_h, \qquad \frac{\partial \tau}{\partial b_h} = v_h\,\mathbf{\sigma''(z_h)}\,(W u)_h, \qquad \frac{\partial \tau}{\partial W_{hj}} = v_h\,\mathbf{\sigma''(z_h)}\,(W u)_h x_j + v_h \sigma'(z_h) u_j.
+$$
+
+The bias gradient $\nabla_b \mathcal{R}$ is **purely proportional to $\sigma''(z)$**, proving `fwAD` + `.backward()` explicitly evaluates second-order activation derivatives!
+
+**5. Piecewise-Linear (`ReLU`/`LeakyReLU`) Critics:** Off the measure-zero union of activation hyperplanes $\mathcal{H} = \bigcup_j \{x : z_j(\theta, x) = 0\}$, the activation mask $M(\theta, x)$ is locally constant, so $D_\theta(x) = a(\theta, M)^\top x + c(\theta, M)$. While the pure spatial Hessian vanishes ($\frac{\partial^2 D}{\partial x^2} = 0$ a.e.), the **mixed second-order derivative does NOT vanish**:
+
+$$
+\frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x} = \frac{\partial a(\theta, M)}{\partial \theta} \neq 0,
+$$
+
+because $a(\theta, M)$ is a multilinear product of layer weight matrices. Both `fwAD` + `.backward()` (RoF) and `autograd.grad(create_graph=True)` + `.backward()` (RoR) evaluate the exact same primal mask $M(\theta, x)$ with zero distributional kink impulse and agree to machine precision.
 
 ### 2.2 Theorem 2 — Finite-Difference Micro-Secants, $O(1/\delta)$ Kink Impulses & BF16/FP32 Quantization Collapse
 
 **Theorem 2 (Micro-Secant Derivative Order, Kink Impulses & Precision Underflow):**
 Let $\hat{\tau}_{\text{fwd}}(\theta, x; u, \delta) = \frac{D_\theta(x + \delta u) - D_\theta(x)}{\delta}$ and $\hat{\tau}_{\text{cen}}(\theta, x; u, \delta) = \frac{D_\theta(x + \delta u) - D_\theta(x - \delta u)}{2\delta}$ ($\|u\|_2 = 1$).
-1. **True Mathematical Order:** Differentiating $\hat{\tau}_{\text{fwd}}$ or $\hat{\tau}_{\text{cen}}$ once w.r.t. $\theta$ computes a **finite-difference approximation to the mixed second derivative**:
-   $$\nabla_\theta \hat{\tau}_{\text{fwd}} = \frac{\nabla_\theta D_\theta(x + \delta u) - \nabla_\theta D_\theta(x)}{\delta} = \frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x} u + O(\delta) \quad (\text{smooth } D_\theta),$$
-   using **genuine first-order reverse-mode AD** on two primal evaluations.
-2. **Piecewise-Linear $O(1/\delta)$ Impulse for BOTH Forward and Central Differences:** If the segment $[x, x + \delta u]$ (forward FD) or $[x - \delta u, x + \delta u]$ (central FD) straddles a ReLU/LeakyReLU hyperplane $H_j = \{w_j^\top h + b_j = 0\}$ at signed distance $\eta < \delta$, then the piecewise-affine coefficients jump ($\Delta a_j \neq 0, \Delta c_j \neq 0$ with $\Delta a_j^\top x_H + \Delta c_j = 0$ on $H_j$), so $D_\theta$ is continuous across $H_j$ yet $\nabla_\theta D_\theta$ jumps by $O(1)$ across $H_j$. Dividing by $\delta$ injects an **unbounded $O(1/\delta)$ parameter-gradient impulse** into BOTH $\nabla_\theta \hat{\tau}_{\text{fwd}}$ and $\nabla_\theta \hat{\tau}_{\text{cen}}$!
-3. **High-Dimensional Per-Pixel Quantization Collapse:** For a unit Rademacher vector $u \in \{\pm d^{-1/2}\}^d$, each pixel perturbation has magnitude $\Delta x_{\text{px}} = \delta / \sqrt{d}$. In floating-point format with $p$ significand bits (`BF16`: $p=7$, $\mathrm{ULP}(x) = 2^{\lfloor \log_2 |x| \rfloor - 7}$; `FP32`: $p=23$, $\mathrm{ULP}(x) = 2^{\lfloor \log_2 |x| \rfloor - 23}$), whenever $\Delta x_{\text{px}} < \tfrac{1}{2}\mathrm{ULP}(x)$:
-   - A pixel rounds back identically to $\mathrm{fl}(x)$ unless it lies within $\Delta x_{\text{px}}$ of a rounding midpoint (survival fraction $\approx 2\Delta x_{\text{px}}/\mathrm{ULP}$), in which case it jumps by a full $\pm \mathrm{ULP} \gg \Delta x_{\text{px}}$!
-   - For **`t2_secant`/`unified` (`delta = 0.02`, `256×256×3`, $d = 196{,}608$)**: $\Delta x_{\text{px}} = 4.51 \times 10^{-5}$ vs. $\tfrac{1}{2}\mathrm{ULP}_{\text{BF16}}(0.5) = 1.95 \times 10^{-3}$ (**$43\times$ below half-ULP**). Inside `torch.autocast("cuda", dtype=torch.bfloat16)`, **`95.2%` of pixels vanish** while the `4.8%` near rounding midpoints jump by $87\times$ their nominal perturbation!
-   - For **`minimal` (`secant_eps = 1e-5`, `256×256×3`)**: $\Delta x_{\text{px}} = 2.25 \times 10^{-8} < \tfrac{1}{2}\mathrm{ULP}_{\text{FP32}}(0.5) = 2.98 \times 10^{-8}$, so **`100%` of pixels with $|x| \ge 0.5$ vanish identically even in FP32** and **`99.99%` vanish in BF16**!
+
+**1. True Mathematical Order:** Differentiating $\hat{\tau}_{\text{fwd}}$ or $\hat{\tau}_{\text{cen}}$ once w.r.t. $\theta$ computes a **finite-difference approximation to the mixed second derivative**:
+
+$$
+\nabla_\theta \hat{\tau}_{\text{fwd}} = \frac{\nabla_\theta D_\theta(x + \delta u) - \nabla_\theta D_\theta(x)}{\delta} = \frac{\partial^2 D_\theta(x)}{\partial \theta\,\partial x} u + O(\delta) \quad (\text{smooth } D_\theta),
+$$
+
+using **genuine first-order reverse-mode AD** on two primal evaluations.
+
+**2. Piecewise-Linear $O(1/\delta)$ Impulse for BOTH Forward and Central Differences:** If the segment $[x, x + \delta u]$ (forward FD) or $[x - \delta u, x + \delta u]$ (central FD) straddles a ReLU/LeakyReLU hyperplane $H_j = \{w_j^\top h + b_j = 0\}$ at signed distance $\eta < \delta$, then the piecewise-affine coefficients jump ($\Delta a_j \neq 0, \Delta c_j \neq 0$ with $\Delta a_j^\top x_H + \Delta c_j = 0$ on $H_j$), so $D_\theta$ is continuous across $H_j$ yet $\nabla_\theta D_\theta$ jumps by $O(1)$ across $H_j$. Dividing by $\delta$ injects an **unbounded $O(1/\delta)$ parameter-gradient impulse** into BOTH $\nabla_\theta \hat{\tau}_{\text{fwd}}$ and $\nabla_\theta \hat{\tau}_{\text{cen}}$!
+
+**3. High-Dimensional Per-Pixel Quantization Collapse:** For a unit Rademacher vector $u \in \{\pm d^{-1/2}\}^d$, each pixel perturbation has magnitude $\Delta x_{\text{px}} = \delta / \sqrt{d}$. In floating-point format with $p$ significand bits (`BF16`: $p=7$, $\mathrm{ULP}(x) = 2^{\lfloor \log_2 |x| \rfloor - 7}$; `FP32`: $p=23$, $\mathrm{ULP}(x) = 2^{\lfloor \log_2 |x| \rfloor - 23}$), whenever $\Delta x_{\text{px}} < \tfrac{1}{2}\mathrm{ULP}(x)$:
+- A pixel rounds back identically to $\mathrm{fl}(x)$ unless it lies within $\Delta x_{\text{px}}$ of a rounding midpoint (survival fraction $\approx 2\Delta x_{\text{px}}/\mathrm{ULP}$), in which case it jumps by a full $\pm \mathrm{ULP} \gg \Delta x_{\text{px}}$!
+- For **`t2_secant`/`unified` (`delta = 0.02`, `256×256×3`, $d = 196{,}608$)**: $\Delta x_{\text{px}} = 4.51 \times 10^{-5}$ vs. $\tfrac{1}{2}\mathrm{ULP}_{\text{BF16}}(0.5) = 1.95 \times 10^{-3}$ (**$43\times$ below half-ULP**). Inside `torch.autocast("cuda", dtype=torch.bfloat16)`, **`95.2%` of pixels vanish** while the `4.8%` near rounding midpoints jump by $87\times$ their nominal perturbation!
+- For **`minimal` (`secant_eps = 1e-5`, `256×256×3`)**: $\Delta x_{\text{px}} = 2.25 \times 10^{-8} < \tfrac{1}{2}\mathrm{ULP}_{\text{FP32}}(0.5) = 2.98 \times 10^{-8}$, so **`100%` of pixels with $|x| \ge 0.5$ vanish identically even in FP32** and **`99.99%` vanish in BF16**!
 
 ### 2.3 Theorem 3 — Opposite-Signed Jensen's Inequality Bias for Nonlinear Critic Penalties
 
 **Theorem 3 (Loss, Gradient-Magnitude & Directional Jensen Bias):**
 Let $g = \nabla_x D_\theta(x) \in \mathbb{R}^d \setminus \{0\}$, $s = \|g\|_2^2 > 0$, and let $\hat{s} = \frac{d}{K}\sum_{k=1}^K (g^\top u_k)^2$ be an unbiased $K$-probe estimator ($\mathbb{E}[\hat{s}] = s$, $\operatorname{Var}(\hat{s}) > 0$ for non-degenerate $g$ and finite $K$).
-1. **Strictly Concave Born–Infeld $\phi_\beta(s) = \frac{\sqrt{1 + \beta s} - 1}{\beta}$ (`minimal`, $\beta > 0$):**
-   Since $\phi_\beta''(s) = -\frac{\beta}{4}(1+\beta s)^{-3/2} < 0$, **strict Jensen's inequality** gives strict negative loss bias:
-   $$\mathbb{E}\big[\phi_\beta(\hat{s})\big] < \phi_\beta(s).$$
-   Moreover, for parameter gradient $\nabla_\theta \phi_\beta(\hat{s}) = \frac{1}{\sqrt{1+\beta \hat{s}}} \frac{d}{K} \sum_k (g^\top u_k) H_{\theta x} u_k$, write $\hat{s} = s T$ with $\mathbb{E}[T] = 1$. In the isotropic / large-$d$ limit ($T \sim \chi_K^2 / K$), the expected parameter gradient satisfies
-   $$\mathbb{E}\big[\nabla_\theta \phi_\beta(\hat{s})\big] = \mathbb{E}\!\left[\frac{T}{\sqrt{1 + \beta s T}}\right] H_{\theta x} g \quad \text{vs. exact} \quad \frac{1}{\sqrt{1 + \beta s}} H_{\theta x} g.$$
-   Because $\psi(t) := t / \sqrt{1 + \beta s t}$ has $\psi''(t) = -\frac{\beta s (1 + \frac{1}{4}\beta s t)}{(1+\beta s t)^{5/2}} < 0$ for all $t \ge 0$, **$\psi$ is strictly concave** and therefore **BOTH the loss AND the expected parameter gradient are strictly attenuated** for every $s > 0$:
-   $$\frac{\|\mathbb{E}[\nabla_\theta \phi_\beta(\hat{s})]\|_2}{\|\nabla_\theta \phi_\beta(s)\|_2} < 1, \qquad \lim_{\beta s \to \infty} \frac{\mathbb{E}[T/\sqrt{1+\beta s T}]}{1/\sqrt{1+\beta s}} = \mathbb{E}[\sqrt{T}] = \begin{cases} \sqrt{2/\pi} \approx 0.7979 & (K=1\text{ dense, }-20.2\%), \\ 2/\pi \approx 0.6366 & (K=1\text{ 2-way sep., rank-1, }-36.3\%). \end{cases}$$
-   In addition, for **Rademacher** probes on anisotropic $g$ (unequal $|g_i|$), $\mathbb{E}[\nabla_g \phi_\beta(\hat{s})]$ is **not even collinear with $g$**: $\phi_\beta'((g^\top \epsilon)^2)$ down-weights sign alignments where minor entries reinforce the dominant entry, systematically rotating the expected gradient away from $g$ (verified at **`13.30°`** by exact $2^4$ enumeration on $g = [2.0, 0.4, 0.4, 0.4]$!).
-2. **Convex-on-Cap EBI Squared Softplus $h_{\beta,\kappa}(s) = [\operatorname{softplus}_\beta(\sqrt{s} - \kappa)]^2$ (`unified_v11`/`v12`, `t2_secant`, `unified`):**
-   Write $h(s) = g(\sqrt{s})$ with $g(r) = \operatorname{sp}_\beta(r-\kappa)^2$. Then $h''(s) = \frac{r g''(r) - g'(r)}{4 r^3}$. In the hinge limit $\beta \to \infty$, $h_{\infty,\kappa}(s) = (\sqrt{s} - \kappa)_+^2$ has $h''(s) = \frac{\kappa}{2} s^{-3/2} > 0$ for $\sqrt{s} > \kappa$ and $0$ for $\sqrt{s} < \kappa$ — **globally convex on $[0, \infty)$**! For finite $\beta \in [6, 12]$ and $\kappa = 1$, $g(r) \approx \beta^{-2} e^{2\beta(r-\kappa)}$ for $r \ll \kappa$, so $r g''(r) - g'(r) \approx 2\beta(2\beta r - 1)g(r)$ crosses zero at $r^\star \approx \frac{1}{2\beta}$ (exact numerical zeros of $h''_{\beta,1}$: $r^\star = 0.04167$ for $\beta = 12$ and $r^\star = 0.08359$ for $\beta = 6$), making $h_{\beta,\kappa}(s)$ strictly convex across the entire active cap and transition region ($r > r^\star \approx \frac{1}{2\beta}$). Consequently, Jensen's inequality reverses sign:
-   $$\mathbb{E}\big[h_{\beta,\kappa}(\hat{s})\big] > h_{\beta,\kappa}(s) \qquad (\text{strictly positive over-penalization!}),$$
-   causing severe **false cap triggering below $\kappa$** ($\mathbb{P}(\sqrt{\hat{s}} > \kappa) = \mathbb{P}(|Z| > \kappa / r) = 21.1\%$ at $r = 0.8 < \kappa = 1.0$, inflating expected penalty `1,015×` and expected gradient `275.8×`!), even while the logged `mean_grad_norm` $\mathbb{E}[\sqrt{\hat{s}}] < \sqrt{s}$ (`0.798 r`) is **strictly negatively biased**.
+
+**1. Strictly Concave Born–Infeld $\phi_\beta(s) = \frac{\sqrt{1 + \beta s} - 1}{\beta}$ (`minimal`, $\beta > 0$):**
+Since $\phi_\beta''(s) = -\frac{\beta}{4}(1+\beta s)^{-3/2} < 0$, **strict Jensen's inequality** gives strict negative loss bias:
+
+$$
+\mathbb{E}\big[\phi_\beta(\hat{s})\big] < \phi_\beta(s).
+$$
+
+Moreover, for parameter gradient $\nabla_\theta \phi_\beta(\hat{s}) = \frac{1}{\sqrt{1+\beta \hat{s}}} \frac{d}{K} \sum_k (g^\top u_k) H_{\theta x} u_k$, write $\hat{s} = s T$ with $\mathbb{E}[T] = 1$. In the isotropic / large-$d$ limit ($T \sim \chi_K^2 / K$), the expected parameter gradient satisfies
+
+$$
+\mathbb{E}\big[\nabla_\theta \phi_\beta(\hat{s})\big] = \mathbb{E}\!\left[\frac{T}{\sqrt{1 + \beta s T}}\right] H_{\theta x} g \quad \text{vs. exact} \quad \frac{1}{\sqrt{1 + \beta s}} H_{\theta x} g.
+$$
+
+Because $\psi(t) := t / \sqrt{1 + \beta s t}$ has $\psi''(t) = -\frac{\beta s (1 + \frac{1}{4}\beta s t)}{(1+\beta s t)^{5/2}} < 0$ for all $t \ge 0$, **$\psi$ is strictly concave** and therefore **BOTH the loss AND the expected parameter gradient are strictly attenuated** for every $s > 0$:
+
+$$
+\frac{\|\mathbb{E}[\nabla_\theta \phi_\beta(\hat{s})]\|_2}{\|\nabla_\theta \phi_\beta(s)\|_2} < 1, \qquad \lim_{\beta s \to \infty} \frac{\mathbb{E}[T/\sqrt{1+\beta s T}]}{1/\sqrt{1+\beta s}} = \mathbb{E}[\sqrt{T}] = \begin{cases} \sqrt{2/\pi} \approx 0.7979 & (K=1\text{ dense, }-20.2\%), \\ 2/\pi \approx 0.6366 & (K=1\text{ 2-way sep., rank-1, }-36.3\%). \end{cases}
+$$
+
+In addition, for **Rademacher** probes on anisotropic $g$ (unequal $|g_i|$), $\mathbb{E}[\nabla_g \phi_\beta(\hat{s})]$ is **not even collinear with $g$**: $\phi_\beta'((g^\top \epsilon)^2)$ down-weights sign alignments where minor entries reinforce the dominant entry, systematically rotating the expected gradient away from $g$ (verified at **`13.30°`** by exact $2^4$ enumeration on $g = [2.0, 0.4, 0.4, 0.4]$!).
+
+**2. Convex-on-Cap EBI Squared Softplus $h_{\beta,\kappa}(s) = [\operatorname{softplus}_\beta(\sqrt{s} - \kappa)]^2$ (`unified_v11`/`v12`, `t2_secant`, `unified`):**
+Write $h(s) = g(\sqrt{s})$ with $g(r) = \operatorname{sp}_\beta(r-\kappa)^2$. Then $h''(s) = \frac{r g''(r) - g'(r)}{4 r^3}$. In the hinge limit $\beta \to \infty$, $h_{\infty,\kappa}(s) = (\sqrt{s} - \kappa)_+^2$ has $h''(s) = \frac{\kappa}{2} s^{-3/2} > 0$ for $\sqrt{s} > \kappa$ and $0$ for $\sqrt{s} < \kappa$ — **globally convex on $[0, \infty)$**! For finite $\beta \in [6, 12]$ and $\kappa = 1$, $g(r) \approx \beta^{-2} e^{2\beta(r-\kappa)}$ for $r \ll \kappa$, so $r g''(r) - g'(r) \approx 2\beta(2\beta r - 1)g(r)$ crosses zero at $r^\star \approx \frac{1}{2\beta}$ (exact numerical zeros of $h''_{\beta,1}$: $r^\star = 0.04167$ for $\beta = 12$ and $r^\star = 0.08359$ for $\beta = 6$), making $h_{\beta,\kappa}(s)$ strictly convex across the entire active cap and transition region ($r > r^\star \approx \frac{1}{2\beta}$). Consequently, Jensen's inequality reverses sign:
+
+$$
+\mathbb{E}\big[h_{\beta,\kappa}(\hat{s})\big] > h_{\beta,\kappa}(s) \qquad (\text{strictly positive over-penalization!}),
+$$
+
+causing severe **false cap triggering below $\kappa$** ($\mathbb{P}(\sqrt{\hat{s}} > \kappa) = \mathbb{P}(|Z| > \kappa / r) = 21.1\%$ at $r = 0.8 < \kappa = 1.0$, inflating expected penalty `1,015×` and expected gradient `275.8×`!), even while the logged `mean_grad_norm` $\mathbb{E}[\sqrt{\hat{s}}] < \sqrt{s}$ (`0.798 r`) is **strictly negatively biased**.
 
 ### 2.4 Theorem 4 — Exact Closed-Form Variance of Separable Rademacher & Householder Spatial-Frame Geometry
 
 **Theorem 4A (Exact Separable vs. Dense Rademacher Variance):**
 Let $G \in \mathbb{R}^{m \times n}$ ($m = CH, n = W$) be a spatial gradient reshaped as a matrix with $\|G\|_F^2 = \|g\|_2^2$.
-- For **dense Rademacher** $\epsilon \in \{\pm 1\}^{mn}$, $Z_{\text{dense}} = (\epsilon^\top \operatorname{vec}(G))^2$ satisfies $\mathbb{E}[Z_{\text{dense}}] = \|G\|_F^2$ and
-  $$\operatorname{Var}(Z_{\text{dense}}) = 2\big(\|G\|_F^4 - \|G\|_4^4\big).$$
-- For **2-way separable Rademacher** $u = (a b^\top) / \sqrt{mn}$ with independent $a \in \{\pm 1\}^m, b \in \{\pm 1\}^n$ ([`_t2_critic/penalty.py:145-159`](../../particlegan/_t2_critic/penalty.py#L145-L159), [`_unified_v11/penalty.py:94`](../../particlegan/_unified_v11/penalty.py#L94)), $Z_{\text{sep2}} = (a^\top G b)^2$ is unbiased ($\mathbb{E}[Z_{\text{sep2}}] = \|G\|_F^2$) with **exact closed-form variance** (conditioning on $b$ and expanding $\mathbb{E}_b[(b^\top G^\top G b)^2]$):
-  $$\operatorname{Var}(Z_{\text{sep2}}) = 3\!\left(\|G\|_F^4 + 2\|G^\top G\|_F^2 - 2\sum_{j=1}^n \|G_{:,j}\|_2^4\right) - 2\!\left(3\sum_{i=1}^m \|G_{i,:}\|_2^4 - 2\sum_{i,j} G_{ij}^4\right) - \|G\|_F^4.$$
-  Dropping $O(1/m, 1/n)$ fourth-power corrections yields the leading spectral law in terms of the Rényi-2 effective rank $r_{\text{eff},2}(G) = \|G\|_F^4 / \|G^\top G\|_F^2 \in [1, \min(m, n)]$:
-  $$\operatorname{Var}(Z_{\text{sep2}}) \approx \left(2 + \frac{6}{r_{\text{eff},2}(G)}\right)\|G\|_F^4.$$
-  - For rank-1 spatial gradients ($G = p q^\top$, e.g., horizontal/vertical edges or stripes, $r_{\text{eff},2} = 1$), the formula factors exactly as $\operatorname{Var}(Z_{\text{sep2}}) = (3 - 2\|p\|_4^4/\|p\|_2^4)(3 - 2\|q\|_4^4/\|q\|_2^4)\|G\|_F^4 - \|G\|_F^4 \to \mathbf{8\|G\|_F^4}$ (**`4×` worse** than dense Rademacher!).
-  - For `minimal`'s **3-way Kronecker probe** $u_{c,h,w} = d^{-1/2} s_b a_c b_h c_w$ ([`_minimal/geometry.py:56-60`](../../particlegan/_minimal/geometry.py#L56-L60)), a 3-way rank-1 gradient yields $(3 - 2\rho_c)(3 - 2\rho_h)(3 - 2\rho_w) - 1 \to \mathbf{26\|G\|_F^4}$ (`13×` asymptotic; `15.88` vs. `1.91` on $3\times 32\times 32$), AND because axis 0 only multiplies by a batch scalar $s_b \in \{\pm 1\}$, **all $B$ batch samples share the exact same direction up to sign (`|cos(u_i, u_j)| = 1`)**!
+
+**Dense Rademacher:** For $\epsilon \in \{\pm 1\}^{mn}$, $Z_{\text{dense}} = (\epsilon^\top \operatorname{vec}(G))^2$ satisfies $\mathbb{E}[Z_{\text{dense}}] = \|G\|_F^2$ and
+
+$$
+\operatorname{Var}(Z_{\text{dense}}) = 2\big(\|G\|_F^4 - \|G\|_4^4\big).
+$$
+
+**2-way separable Rademacher:** For $u = (a b^\top) / \sqrt{mn}$ with independent $a \in \{\pm 1\}^m, b \in \{\pm 1\}^n$ ([`_t2_critic/penalty.py:145-159`](../../particlegan/_t2_critic/penalty.py#L145-L159), [`_unified_v11/penalty.py:94`](../../particlegan/_unified_v11/penalty.py#L94)), $Z_{\text{sep2}} = (a^\top G b)^2$ is unbiased ($\mathbb{E}[Z_{\text{sep2}}] = \|G\|_F^2$) with **exact closed-form variance** (conditioning on $b$ and expanding $\mathbb{E}_b[(b^\top G^\top G b)^2]$):
+
+$$
+\operatorname{Var}(Z_{\text{sep2}}) = 3\!\left(\|G\|_F^4 + 2\|G^\top G\|_F^2 - 2\sum_{j=1}^n \|G_{:,j}\|_2^4\right) - 2\!\left(3\sum_{i=1}^m \|G_{i,:}\|_2^4 - 2\sum_{i,j} G_{ij}^4\right) - \|G\|_F^4.
+$$
+
+Dropping $O(1/m, 1/n)$ fourth-power corrections yields the leading spectral law in terms of the Rényi-2 effective rank $r_{\text{eff},2}(G) = \|G\|_F^4 / \|G^\top G\|_F^2 \in [1, \min(m, n)]$:
+
+$$
+\operatorname{Var}(Z_{\text{sep2}}) \approx \left(2 + \frac{6}{r_{\text{eff},2}(G)}\right)\|G\|_F^4.
+$$
+
+- For rank-1 spatial gradients ($G = p q^\top$, e.g., horizontal/vertical edges or stripes, $r_{\text{eff},2} = 1$), the formula factors exactly as $\operatorname{Var}(Z_{\text{sep2}}) = (3 - 2\|p\|_4^4/\|p\|_2^4)(3 - 2\|q\|_4^4/\|q\|_2^4)\|G\|_F^4 - \|G\|_F^4 \to \mathbf{8\|G\|_F^4}$ (**`4×` worse** than dense Rademacher!).
+- For `minimal`'s **3-way Kronecker probe** $u_{c,h,w} = d^{-1/2} s_b a_c b_h c_w$ ([`_minimal/geometry.py:56-60`](../../particlegan/_minimal/geometry.py#L56-L60)), a 3-way rank-1 gradient yields $(3 - 2\rho_c)(3 - 2\rho_h)(3 - 2\rho_w) - 1 \to \mathbf{26\|G\|_F^4}$ (`13×` asymptotic; `15.88` vs. `1.91` on $3\times 32\times 32$), AND because axis 0 only multiplies by a batch scalar $s_b \in \{\pm 1\}$, **all $B$ batch samples share the exact same direction up to sign (`|cos(u_i, u_j)| = 1`)**!
 
 **Theorem 4B (Chained 2-Householder Frame Subspace & Spatial-Mixing Bias):**
 In [`_t2_critic/penalty.py:133-142`](../../particlegan/_t2_critic/penalty.py#L133-L142), $Q = H_2 H_1 = (I - 2 v_1 v_1^\top)(I - 2 v_0 v_0^\top) \in \mathrm{SO}(d)$ is exact orthonormal ($Q^\top Q = I_d$, $\det Q = +1$), yet every vector $w \in \operatorname{span}(v_0, v_1)^\perp$ satisfies $Q w = w$, so **$Q$ fixes a $(d-2)$-dimensional subspace** (it is a planar rotation, not Haar-random). Furthermore, [`_prepare_spatial_tangent_plan`](../../particlegan/_t2_critic/penalty.py#L200-L224) assigns only **one** basis vector $q_{\text{slot}(i)}$ per sample $x_i$ and reconstructs $\hat{s}_i = \sum_{k=1}^d (\nabla_x D(x_{j_k})\cdot q_k)^2$ from nearest basis-slot neighbors $x_{j_k}$. This is exact ($\hat{s}_i = \|\nabla_x D\|_2^2$) **only** when $\nabla_x D$ is spatially constant (linear critic); on any nonlinear critic ($\nabla^2 D \neq 0$), mixing gradients across $d$ distinct points incurs strictly nonzero spatial-smoothing bias (`rel_l2 = 0.341–0.415` at $d=6, 8$).
@@ -166,7 +226,7 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 
 #### (a) Closed-Form Analytical Mixed Hessian vs. `fwAD` (RoF) vs. `autograd.grad` (RoR) (FP64, $B=32, d=6, H=24$)
 
-| Activation | Outer $\Phi$ | $\max|\tau_{\text{fwAD}} - \tau_{\text{anal}}|$ | $\|\nabla_b \mathcal{R}\|_2$ *(pure $\sigma''$ term!)* | `fwAD` vs. Analytical `rel_l2` | `fwAD` vs. Analytical `cos` | `fwAD` vs. RoR `rel_l2` |
+| Activation | Outer $\Phi$ | $\max\lvert\tau_{\text{fwAD}} - \tau_{\text{anal}}\rvert$ | $\lVert\nabla_b \mathcal{R}\rVert_2$ *(pure $\sigma''$ term!)* | `fwAD` vs. Analytical `rel_l2` | `fwAD` vs. Analytical `cos` | `fwAD` vs. RoR `rel_l2` |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: |
 | `tanh` | `bi` | `4.44e-16` | **`0.0737`** | **`2.54e-16`** | **`1.000000000000`** | `2.94e-16` |
 | `tanh` | `ebi` | `4.44e-16` | **`0.0864`** | **`2.55e-16`** | **`1.000000000000`** | `2.88e-16` |
@@ -175,7 +235,7 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 
 #### (b) Full $\|\nabla_x D\|_2^2$ Canonical `fwAD` (`_eval_lowd_forward_grad_sq`) vs. RoR (`d = 4`, normalized to active slope `2.0`)
 
-| Critic Architecture | Dtype | $\|H_{xx}\mathbf{1}\|_2$ *(spatial 2nd deriv.)* | $\|\nabla_\theta \mathcal{R}\|_2$ *(mixed 2nd deriv.)* | `fwAD` vs. RoR `rel_l2` | `fwAD` vs. RoR `cos` |
+| Critic Architecture | Dtype | $\lVert H_{xx}\mathbf{1}\rVert_2$ *(spatial 2nd deriv.)* | $\lVert\nabla_\theta \mathcal{R}\rVert_2$ *(mixed 2nd deriv.)* | `fwAD` vs. RoR `rel_l2` | `fwAD` vs. RoR `cos` |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | `ReLU` MLP (`fourier=0`) | FP64 / FP32 | **`0.000e+00`** | **`21.1354`** / `22.2527` | **`3.94e-16`** / `2.40e-07` | `1.0000000000` |
 | `LeakyReLU(0.2)` MLP (`fourier=0`) | FP64 / FP32 | **`0.000e+00`** | **`30.9293`** / `28.2824` | **`5.62e-16`** / `3.16e-07` | `1.0000000000` |
@@ -247,7 +307,7 @@ All numbers below are verbatim from running `PYTHONPATH="$PWD" /nvme/dev/hyperga
 
 #### (a) Controlled Hyperplane Kink Crossing ($\eta = 10^{-4}$, 2-Layer `LeakyReLU(0.2)`, FP64)
 
-| Method | Step $\delta$ | Crosses Kink? | $\tau$ Rel. Err | $\|\nabla_\theta \hat{\mathcal{R}}\| / \|\nabla_\theta \mathcal{R}_{\text{exact}}\|$ | `grad_cos` vs. Exact |
+| Method | Step $\delta$ | Crosses Kink? | $\tau$ Rel. Err | $\lVert\nabla_\theta \hat{\mathcal{R}}\rVert / \lVert\nabla_\theta \mathcal{R}_{\text{exact}}\rVert$ | `grad_cos` vs. Exact |
 | :--- | :---: | :---: | :---: | :---: | :---: |
 | **`fwAD` (RoF)** | `0` | No | **`0.000e+00`** | **`1.000`** | **`+1.00000`** |
 | Forward FD | `2.0e-2` | Yes | `3.183` | **`45.15×`** | `-0.03243` |

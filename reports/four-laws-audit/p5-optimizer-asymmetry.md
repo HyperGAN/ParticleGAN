@@ -90,9 +90,17 @@ Direct source inspection of [`particlegan/_unified_v11/optimizer.py`](../../part
 ### 2.1 Theorem 1 (Hypothesis a — Scalar-Potential Linear Rank-1 Bottleneck)
 
 **Theorem 1:** Let $f_\theta(x) = W_L \cdots (W_1 x + b_1) + \cdots + b_L = A x + c \in \mathbb{R}^{d_{\text{out}}}$ be an $L$-layer affine/linear MLP (with $A = W_L \cdots W_1 \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ and hidden width $W$) evaluated on a minibatch $X \in \mathbb{R}^{B \times d_{\text{in}}}$, and let $\mathcal{L}(f_\theta(X), \nabla_x f_\theta(X))$ be any differentiable scalar loss. Then for **every** layer $\ell \in \{1, \dots, L\}$, the weight gradient $G_{W_\ell} = \nabla_{W_\ell} \mathcal{L}$ satisfies (for bias-free $b = 0$):
-$$\operatorname{rank}(G_{W_\ell}) \;\le\; \min(d_{\text{out}}, d_{\text{in}}, W) \quad \text{for general } \mathcal{L}(f_\theta(X), \nabla_x f_\theta(X)), \qquad \operatorname{rank}(G_{W_\ell}) \;\le\; \min(d_{\text{out}}, d_{\text{in}}, B, W) \quad \text{for } \mathcal{L}(f_\theta(X)) \text{ alone},$$
+
+$$
+\operatorname{rank}(G_{W_\ell}) \;\le\; \min(d_{\text{out}}, d_{\text{in}}, W) \quad \text{for general } \mathcal{L}(f_\theta(X), \nabla_x f_\theta(X)), \qquad \operatorname{rank}(G_{W_\ell}) \;\le\; \min(d_{\text{out}}, d_{\text{in}}, B, W) \quad \text{for } \mathcal{L}(f_\theta(X)) \text{ alone},
+$$
+
 and with arbitrary nonzero biases $b_\ell \ne 0$, $\operatorname{rank}(G_{W_\ell}) \le \min(d_{\text{out}}, d_{\text{in}} + 1, W)$ in general (and $\le \min(d_{\text{out}}, B, W)$ for $\mathcal{L}(f_\theta(X))$ alone). In particular, for a scalar critic ($d_{\text{out}} = 1$, $f_\theta(x) = a^\top x + c$ with $a^\top = w_L W_{L-1}\cdots W_1 \in \mathbb{R}^{1 \times d_{\text{in}}}$), **both** adversarial losses $\mathcal{L}_{\text{adv}}(D(X))$ **and** any input-gradient penalty $\mathcal{L}_{\text{pen}}(\|\nabla_x D(X)\|_2) = \mathcal{L}_{\text{pen}}(\|a\|_2)$ produce **exact rank-1 weight gradients** at every layer (even with nonzero biases!):
-$$G_{W_\ell} = \big(W_L \cdots W_{\ell+1}\big)^\top \cdot \Big(g_a^\top (W_{\ell-1} \cdots W_1)^\top + g_c \bar{h}_{\ell-1}^\top\Big) \;\in\; \mathbb{R}^{d_\ell \times d_{\ell-1}}, \qquad \operatorname{rank}(G_{W_\ell}) \le 1,$$
+
+$$
+G_{W_\ell} = \big(W_L \cdots W_{\ell+1}\big)^\top \cdot \Big(g_a^\top (W_{\ell-1} \cdots W_1)^\top + g_c \bar{h}_{\ell-1}^\top\Big) \;\in\; \mathbb{R}^{d_\ell \times d_{\ell-1}}, \qquad \operatorname{rank}(G_{W_\ell}) \le 1,
+$$
+
 where $g_a = \nabla_a \mathcal{L} \in \mathbb{R}^{d_{\text{in}}}$, $g_c = \partial \mathcal{L} / \partial c \in \mathbb{R}$, and $\bar{h}_{\ell-1} = \sum_{j=1}^{\ell-1} (W_{\ell-1}\cdots W_{j+1}) b_j$ is the constant affine bias contribution into layer $\ell$ (zero when $b = 0$).
 
 *Proof:* Write $P_\ell = W_L \cdots W_{\ell+1} \in \mathbb{R}^{d_{\text{out}} \times d_\ell}$ and $Q_\ell = W_{\ell-1} \cdots W_1 \in \mathbb{R}^{d_{\ell-1} \times d_{\text{in}}}$. For bias-free networks, $\mathcal{L}$ depends on $W_\ell$ exclusively through the linear map $A = P_\ell W_\ell Q_\ell \in \mathbb{R}^{d_{\text{out}} \times d_{\text{in}}}$ (both $f_\theta(X) = X A^\top$ and $\nabla_x f_\theta(x) = A$ depend only on $A$), so the chain rule yields $G_{W_\ell} = P_\ell^\top (\nabla_A \mathcal{L}) Q_\ell^\top$. Since $\operatorname{rank}(P_\ell^\top) \le \min(d_{\text{out}}, W)$ and $\operatorname{rank}(Q_\ell^\top) \le \min(d_{\text{in}}, W)$, submultiplicativity gives $\operatorname{rank}(G_{W_\ell}) \le \min(d_{\text{out}}, d_{\text{in}}, W)$ (note $\nabla_A \mathcal{L}_{\text{pen}}(A)$ does not factor through $X$, so $B$ does not bound rank when a gradient penalty is active and $B < d_{\text{out}}$). For $\mathcal{L}(f_\theta(X))$ alone, $\nabla_A \mathcal{L} = (\nabla_Y \mathcal{L})^\top X$ additionally has rank $\le B$, tightening the bound to $\min(d_{\text{out}}, d_{\text{in}}, B, W)$. With nonzero biases, $G_{W_\ell} = P_\ell^\top [(\nabla_A \mathcal{L}) Q_\ell^\top + (\nabla_c \mathcal{L}) \bar{h}_{\ell-1}^\top]$ adds at most rank $1$ inside the bracket (giving $\le \min(d_{\text{out}}, d_{\text{in}} + 1, W)$ in general, and $G_{W_\ell} = P_\ell^\top (\nabla_Y \mathcal{L})^\top H_{\ell-1}$ of rank $\le \min(d_{\text{out}}, B, W)$ for $\mathcal{L}(f_\theta(X))$ alone) and still left-factors through $P_\ell^\top \in \mathbb{R}^{d_\ell \times d_{\text{out}}}$; setting $d_{\text{out}} = 1$ gives $\operatorname{rank}(G_{W_\ell}) \le 1$ identically, including when Law 2 Born–Infeld slope penalty is added. $\square$
@@ -102,27 +110,46 @@ where $g_a = \nabla_a \mathcal{L} \in \mathbb{R}^{d_{\text{in}}}$, $g_c = \parti
 ### 2.2 Theorem 2 (Hypotheses a, b, d — Contrastive Mean-Cone Cancellation vs. Deep-Layer Collapse)
 
 **Proposition 2 (Contrastive Cancellation of the Positive-Cone Mean Mode):** Let $h_\ell(x) = \phi(W_\ell h_{\ell-1}(x))$ be an $L$-layer skip-free `LeakyReLU` ($\alpha \in [0, 1)$) MLP initialized orthogonally. Because $\phi$ is positively biased ($\mathbb{E}[\phi(z)] = \frac{1-\alpha}{\sqrt{2\pi}}\sigma > 0$), deeper activations $h_\ell(x)$ align progressively onto a shared positive-cone direction $\mu_\ell \in \mathbb{R}^W$ with residual variation $\tilde{h}_\ell(x) = h_\ell(x) - \mu_\ell$ satisfying $\|\tilde{h}_\ell\| / \|\mu_\ell\| \to 0$ with depth $\ell$ (Daneshmand et al., 2020).
-1. Under a **single-sign objective** (such as a generator pushforward loss $\mathcal{L}_G = \frac{1}{B}\sum_i \ell(G(z_i))$ or single-class critic loss $-D(x_{\text{real}}).\text{mean}()$), the top-layer weight gradient $G_{W_\ell} = \frac{1}{B}\sum_i \delta_{\ell,i} h_{\ell-1,i}^\top$ accumulates a coherent rank-1 outer product $\bar{\delta}_\ell \mu_{\ell-1}^\top$ that grows exponentially toward the output relative to attenuated early layers, producing massive inter-layer gradient skew (`27,593×` on `G16`, `18,820×` on single-sign `D16`) and $r_{\text{stable}} \to 1.000$.
-2. Under a **contrastive zero-sum critic objective** $\mathcal{L}_D = \frac{1}{B}\sum_i \psi(D(x_i^{\text{real}}) - D(x_i^{\text{fake}}))$ with matched sample weights $\sum_i w_i^{\text{real}} = \sum_i w_i^{\text{fake}}$, the shared mean-cone component cancels at first order:
-   $$G_{W_\ell}^{\text{contrast}} = \frac{1}{B}\sum_i w_i\Big[\delta_{\ell}(x_i^{\text{real}}) h_{\ell-1}(x_i^{\text{real}})^\top - \delta_{\ell}(x_i^{\text{fake}}) h_{\ell-1}(x_i^{\text{fake}})^\top\Big] = \bar{\delta}_\ell \big(\mu_{\ell-1}^{\text{real}} - \mu_{\ell-1}^{\text{fake}}\big)^\top + O(\tilde{\delta}\tilde{h}^\top).$$
-   At initialization where $\mu_{\ell-1}^{\text{real}} \approx \mu_{\ell-1}^{\text{fake}}$ in deep layers, this slashes inter-layer norm skew by **`4,567×`** (`18,820.4× -> 4.1×`, `1.8×` with `fourier=2`) and lifts mid-layer `med_srk` (`1.000 -> 1.220`). **However, it does NOT cure deep-layer spectral collapse or vanishing input sensitivity:** the deepest layers (`net.24..30`) still collapse to $r_{\text{stable}} = 1.000000005$, $\sigma_2/\sigma_1 = 2.85\times 10^{-5}$, and $\|\nabla_x D\|_2 = 4.94\times 10^{-7}$!
+**1.** Under a **single-sign objective** (such as a generator pushforward loss $\mathcal{L}_G = \frac{1}{B}\sum_i \ell(G(z_i))$ or single-class critic loss $-D(x_{\text{real}}).\text{mean}()$), the top-layer weight gradient $G_{W_\ell} = \frac{1}{B}\sum_i \delta_{\ell,i} h_{\ell-1,i}^\top$ accumulates a coherent rank-1 outer product $\bar{\delta}_\ell \mu_{\ell-1}^\top$ that grows exponentially toward the output relative to attenuated early layers, producing massive inter-layer gradient skew (`27,593×` on `G16`, `18,820×` on single-sign `D16`) and $r_{\text{stable}} \to 1.000$.
+
+**2.** Under a **contrastive zero-sum critic objective** $\mathcal{L}_D = \frac{1}{B}\sum_i \psi(D(x_i^{\text{real}}) - D(x_i^{\text{fake}}))$ with matched sample weights $\sum_i w_i^{\text{real}} = \sum_i w_i^{\text{fake}}$, the shared mean-cone component cancels at first order:
+
+$$
+G_{W_\ell}^{\text{contrast}} = \frac{1}{B}\sum_i w_i\Big[\delta_{\ell}(x_i^{\text{real}}) h_{\ell-1}(x_i^{\text{real}})^\top - \delta_{\ell}(x_i^{\text{fake}}) h_{\ell-1}(x_i^{\text{fake}})^\top\Big] = \bar{\delta}_\ell \big(\mu_{\ell-1}^{\text{real}} - \mu_{\ell-1}^{\text{fake}}\big)^\top + O(\tilde{\delta}\tilde{h}^\top).
+$$
+
+At initialization where $\mu_{\ell-1}^{\text{real}} \approx \mu_{\ell-1}^{\text{fake}}$ in deep layers, this slashes inter-layer norm skew by **`4,567×`** (`18,820.4× -> 4.1×`, `1.8×` with `fourier=2`) and lifts mid-layer `med_srk` (`1.000 -> 1.220`). **However, it does NOT cure deep-layer spectral collapse or vanishing input sensitivity:** the deepest layers (`net.24..30`) still collapse to $r_{\text{stable}} = 1.000000005$, $\sigma_2/\sigma_1 = 2.85\times 10^{-5}$, and $\|\nabla_x D\|_2 = 4.94\times 10^{-7}$!
 
 *Verified in Exp 1b and `test_theorem2_contrastive_mean_cone_cancellation_and_deep_critic_collapse`.*
 
 ### 2.3 Theorem 3 (The $\sqrt{r}$ Spectral-Norm Distortion & Irreducible Frobenius–Spectral Dilemma)
 
 **Theorem 3:** Let $W_D \in \mathbb{R}^{r \times c}$ with $m = \min(r, c) \ge 2$ have nonzero gradient $G_D = U \Sigma V^\top$ with singular values $\sigma_1 \ge \sigma_2 \ge \dots \ge \sigma_m \ge 0$ and stable rank $r_{\text{stable}}(G_D) = \|G_D\|_F^2 / \sigma_1^2 \in [1, m]$.
-1. **Exact `unified_v12` Aspect-Frobenius Identity:** `UnifiedV12Optimizer` ([`particlegan/_unified_v12/optimizer.py:319,930`](../../particlegan/_unified_v12/optimizer.py#L930)) sets `factor_d = sqrt(max(1, r/c)) * sqrt(min(r, c))`. Checking both cases ($r \ge c \implies \sqrt{r/c}\sqrt{c} = \sqrt{r}$; $r < c \implies 1\cdot\sqrt{r} = \sqrt{r}$) yields the exact identity:
-   $$\sqrt{\max(1, r/c)}\,\sqrt{\min(r, c)} \;\equiv\; \sqrt{r} \qquad \forall\, r, c \ge 1.$$
-2. **Exact Spectral-Norm Overshoot vs. Polar NS:** For zero-smoothing Polar NS, $\Delta W^{\text{Polar}} = -\eta\,\gamma_{\text{aspect}}\,U V^\top$ has operator norm $\|\Delta W^{\text{Polar}}\|_2 = \eta\,\gamma_{\text{aspect}}$ and Frobenius norm $\eta\,\gamma_{\text{aspect}}\sqrt{m} = \eta\sqrt{r}$ (when $\operatorname{rank}(G_D) = m$). For `unified_v12`'s 0-NS critic update $\Delta W^{\text{v12}} = -\eta\sqrt{r}\,G_D / \|G_D\|_F$, the singular values are $\sigma_k(\Delta W^{\text{v12}}) = \eta\sqrt{r}\,\sigma_k / \|G_D\|_F$, giving the exact spectral-norm distortion ratio:
-   $$\frac{\|\Delta W^{\text{v12}}\|_2}{\|\Delta W^{\text{Polar}}\|_2} = \frac{\sqrt{m}\,\sigma_1}{\|G_D\|_F} = \sqrt{\frac{m}{r_{\text{stable}}(G_D)}} \;\in\; \big[1, \sqrt{m}\big], \qquad \frac{\sigma_k(\Delta W^{\text{v12}})}{\sigma_k(\Delta W^{\text{Polar}})} = \sqrt{\frac{m}{r_{\text{stable}}(G_D)}}\,\frac{\sigma_k}{\sigma_1} \quad \big(1 \le k \le \operatorname{rank}(G_D)\big).$$
-   On a $128\times 128$ hidden critic layer with $r_{\text{stable}} = 1.0$, `v12`'s 0-NS rule **inflates the top singular mode by `11.314×`** (`10.328×` at $r_{\text{stable}} = 1.20$) while starving minor modes by $\sigma_k/\sigma_1$.
-3. **Irreducible Frobenius–Spectral Matching Dilemma for Scalar Rescaling:** Any scalar-rescaled gradient $\Delta W^{(\alpha)} = -\alpha G_D$ satisfies the invariant ratio
-   $$\frac{\|\Delta W^{(\alpha)}\|_F}{\|\Delta W^{(\alpha)}\|_2} \;=\; \sqrt{r_{\text{stable}}(G_D)}, \qquad \text{whereas} \qquad \frac{\|\Delta W^{\text{Polar}}\|_F}{\|\Delta W^{\text{Polar}}\|_2} \;=\; \sqrt{\operatorname{rank}(G_D)}.$$
-   Consequently, whenever $r_{\text{stable}}(G_D) \ll m$, **no Frobenius-MP scaling choice $\alpha$ can simultaneously match Polar NS in both operator norm and Frobenius norm**:
-   - **Frobenius-matched (`v12` $\sqrt{r}$):** $\|\Delta W\|_F = \eta\sqrt{r}$, but $\|\Delta W\|_2 = \sqrt{m/r_{\text{stable}}}\,\eta\gamma_{\text{aspect}}$ overshoots by up to $\sqrt{m}$ (`11.3×`), destabilizing deep skip-free critics (`Regime B1a` `hq = 0.2861`, standalone `16L D` `acc_valley = 0.6396`).
-   - **Spectral-matched (`G / sigma_1`):** $\|\Delta W\|_2 = \eta\gamma_{\text{aspect}}$, stabilizing deep critics (`Regime B1b` `hq = 0.9163`, standalone `0.9814`), but $\|\Delta W\|_F = \sqrt{r_{\text{stable}}/m}\,\eta\sqrt{r}$ shrinks the critic update budget by `~7×`, causing generator-free `t3_iso_scale_mass_8x` to FAIL (`Exp 3c`: `min_eig = 0.3885 < 0.45`).
-   - **Only spectral equalization (5-step NS)** decouples the two norms so $\|\Delta W\|_2 \approx \eta\gamma_{\text{aspect}}$ and $\|\Delta W\|_F \approx \eta\sqrt{r}$ hold simultaneously. $\square$
+
+**1. Exact `unified_v12` Aspect-Frobenius Identity:** `UnifiedV12Optimizer` ([`particlegan/_unified_v12/optimizer.py:319,930`](../../particlegan/_unified_v12/optimizer.py#L930)) sets `factor_d = sqrt(max(1, r/c)) * sqrt(min(r, c))`. Checking both cases ($r \ge c \implies \sqrt{r/c}\sqrt{c} = \sqrt{r}$; $r < c \implies 1\cdot\sqrt{r} = \sqrt{r}$) yields the exact identity:
+
+$$
+\sqrt{\max(1, r/c)}\,\sqrt{\min(r, c)} \;\equiv\; \sqrt{r} \qquad \forall\, r, c \ge 1.
+$$
+
+**2. Exact Spectral-Norm Overshoot vs. Polar NS:** For zero-smoothing Polar NS, $\Delta W^{\text{Polar}} = -\eta\,\gamma_{\text{aspect}}\,U V^\top$ has operator norm $\|\Delta W^{\text{Polar}}\|_2 = \eta\,\gamma_{\text{aspect}}$ and Frobenius norm $\eta\,\gamma_{\text{aspect}}\sqrt{m} = \eta\sqrt{r}$ (when $\operatorname{rank}(G_D) = m$). For `unified_v12`'s 0-NS critic update $\Delta W^{\text{v12}} = -\eta\sqrt{r}\,G_D / \|G_D\|_F$, the singular values are $\sigma_k(\Delta W^{\text{v12}}) = \eta\sqrt{r}\,\sigma_k / \|G_D\|_F$, giving the exact spectral-norm distortion ratio:
+
+$$
+\frac{\|\Delta W^{\text{v12}}\|_2}{\|\Delta W^{\text{Polar}}\|_2} = \frac{\sqrt{m}\,\sigma_1}{\|G_D\|_F} = \sqrt{\frac{m}{r_{\text{stable}}(G_D)}} \;\in\; \big[1, \sqrt{m}\big], \qquad \frac{\sigma_k(\Delta W^{\text{v12}})}{\sigma_k(\Delta W^{\text{Polar}})} = \sqrt{\frac{m}{r_{\text{stable}}(G_D)}}\,\frac{\sigma_k}{\sigma_1} \quad \big(1 \le k \le \operatorname{rank}(G_D)\big).
+$$
+
+On a $128\times 128$ hidden critic layer with $r_{\text{stable}} = 1.0$, `v12`'s 0-NS rule **inflates the top singular mode by `11.314×`** (`10.328×` at $r_{\text{stable}} = 1.20$) while starving minor modes by $\sigma_k/\sigma_1$.
+
+**3. Irreducible Frobenius–Spectral Matching Dilemma for Scalar Rescaling:** Any scalar-rescaled gradient $\Delta W^{(\alpha)} = -\alpha G_D$ satisfies the invariant ratio
+
+$$
+\frac{\|\Delta W^{(\alpha)}\|_F}{\|\Delta W^{(\alpha)}\|_2} \;=\; \sqrt{r_{\text{stable}}(G_D)}, \qquad \text{whereas} \qquad \frac{\|\Delta W^{\text{Polar}}\|_F}{\|\Delta W^{\text{Polar}}\|_2} \;=\; \sqrt{\operatorname{rank}(G_D)}.
+$$
+
+Consequently, whenever $r_{\text{stable}}(G_D) \ll m$, **no Frobenius-MP scaling choice $\alpha$ can simultaneously match Polar NS in both operator norm and Frobenius norm**:
+- **Frobenius-matched (`v12` $\sqrt{r}$):** $\|\Delta W\|_F = \eta\sqrt{r}$, but $\|\Delta W\|_2 = \sqrt{m/r_{\text{stable}}}\,\eta\gamma_{\text{aspect}}$ overshoots by up to $\sqrt{m}$ (`11.3×`), destabilizing deep skip-free critics (`Regime B1a` `hq = 0.2861`, standalone `16L D` `acc_valley = 0.6396`).
+- **Spectral-matched (`G / sigma_1`):** $\|\Delta W\|_2 = \eta\gamma_{\text{aspect}}$, stabilizing deep critics (`Regime B1b` `hq = 0.9163`, standalone `0.9814`), but $\|\Delta W\|_F = \sqrt{r_{\text{stable}}/m}\,\eta\sqrt{r}$ shrinks the critic update budget by `~7×`, causing generator-free `t3_iso_scale_mass_8x` to FAIL (`Exp 3c`: `min_eig = 0.3885 < 0.45`).
+- **Only spectral equalization (5-step NS)** decouples the two norms so $\|\Delta W\|_2 \approx \eta\gamma_{\text{aspect}}$ and $\|\Delta W\|_F \approx \eta\sqrt{r}$ hold simultaneously. $\square$
 
 *Verified to machine precision (`< 1e-13`) in Exp 1c and `test_theorem3_sqrt_r_polar_frobenius_spectral_norm_distortion`.*
 
@@ -162,7 +189,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 1b-1: Contrastive Mean-Cone Cancellation & Architectural Step-0 Spectra (`128`-wide MLPs, FP64 SVD)
 
-| Network & Loss Configuration | Hidden 2D Layers | Median $r_{\text{stable}}$ | Min $r_{\text{stable}}$ | Median $\operatorname{erank}_{\text{RV}}$ | Median $\sigma_2/\sigma_1$ | Inter-Layer Norm Skew | Median $\|\nabla_x D\|_2$ |
+| Network & Loss Configuration | Hidden 2D Layers | Median $r_{\text{stable}}$ | Min $r_{\text{stable}}$ | Median $\operatorname{erank}_{\text{RV}}$ | Median $\sigma_2/\sigma_1$ | Inter-Layer Norm Skew | Median $\lVert\nabla_x D\rVert_2$ |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `G16_adv` (16L G, single-sign) | 15 | **1.000** | **1.000** | 1.003 | `2.48e-4` | **27,593.1×** | — |
 | `D16_f0_single_sign` (16L D, `-D(real)`) | 15 | **1.000** | **1.000** | 1.011 | `6.88e-4` | **18,820.4×** | `4.94e-7` |
@@ -184,7 +211,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 1c: Theorem 3 Numerical Verification — `v12` $\sqrt{r}$ vs. `spec`-Matched vs. Polar ($128\times 128$, FP64)
 
-| Target / Actual $r_{\text{stable}}$ | Theory $\sqrt{128/r_{\text{stable}}}$ | `v12` $\sqrt{r}$ $\sigma_1$ / $\sigma_2$ / $\|\cdot\|_F$ | `spec` Frob $\sigma_1$ / $\sigma_2$ / $\|\cdot\|_F$ | Polar $\sigma_1$ / $\sigma_2$ |
+| Target / Actual $r_{\text{stable}}$ | Theory $\sqrt{128/r_{\text{stable}}}$ | `v12` $\sqrt{r}$ $\sigma_1$ / $\sigma_2$ / $\lVert\cdot\rVert_F$ | `spec` Frob $\sigma_1$ / $\sigma_2$ / $\lVert\cdot\rVert_F$ | Polar $\sigma_1$ / $\sigma_2$ |
 | :---: | :---: | :---: | :---: | :---: |
 | `1.00` | `11.314×` | **`11.314`** / `7.30e-15` / `11.314` | `1.000` / `6.58e-16` / `1.000` | `1.000` / `6.58e-16` |
 | `1.20` | `10.328×` | **`10.328`** / `0.410` / `11.314` | `1.000` / `0.040` / `1.095` | `1.000` / `1.000` |
@@ -208,7 +235,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.0: Standalone 16-Layer Skip-Free Critic Control (`fourier=0`, Law 2 BI $\beta=2.0$, `300` steps, `ring8` vs. Gaussian)
 
-| Critic Optimizer Arm | `acc_gauss` | `acc_valley` | Logit Margin | Median $\|\nabla_x D\|_2$ | `ns_D / total_2d_D` | NS Saved | Wall (`s`) |
+| Critic Optimizer Arm | `acc_gauss` | `acc_valley` | Logit Margin | Median $\lVert\nabla_x D\rVert_2$ | `ns_D / total_2d_D` | NS Saved | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Frob-MP_v12_sqrt_r` (`v12` exact rule) | **0.8750** | **0.6396** | `+0.379` | `0.074` | `0 / 4,800` | `100.0%` | `22.1` |
 | `Frob-MP_spec_matched` (`G / sigma_1`) | 0.9834 | 0.9814 | `+0.313` | `0.281` | `0 / 4,800` | `100.0%` | `31.8` |
@@ -218,7 +245,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.1: Regime A — Deep 16L Skip-Free G + Shallow 3L D (`grid100_mlp16`, ParticleGAN `unified_v12`, `1,200` steps, `5,000` particles, `bsz=512`)
 
-| Arm | Modes | `hq` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ (Tail $\Delta D$) | `ns_G / total` | `ns_D / total` | NS Saved vs. Both | Step-10 / 600 / 1200 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
+| Arm | Modes | `hq` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ (Tail $\Delta D$) | `ns_G / total` | `ns_D / total` | NS Saved vs. Both | Step-10 / 600 / 1200 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `34 / 100` | `0.1153` | `0.548` | `0.1167 / 1.580 (1.713)` | `0 / 20,400` | `0 / 3,600` | `100.0%` | `1.03 / 1.35 / 1.61` ; `1.18 / 1.20 / 1.57` | `93.2` |
 | **`G-only`** | **`100 / 100`** | **`0.9714`** | `0.238` | `0.0501 / 0.986 (0.430)` | `20,400 / 20,400` | `0 / 3,600` | `15.0%` | `1.00 / 1.08 / 1.01` ; `1.25 / 1.32 / 1.61` | `104.1` |
@@ -228,7 +255,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.2: Regime B1a — Adversarial Falsification: Shallow 3L G + Deep 16L Skip-Free D (`PureAdv RpGAN + Law 2`, `v12 sqrt(r)` Frob-MP, `450` steps, `ring8`)
 
-| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Step-10 / 225 / 450 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
+| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Step-10 / 225 / 450 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `8 / 8` | **`0.2861`** | `0.0293` | `0.479 / 0.537` | `1.11e-7` | `0.0542 / 0.157` | `0 / 1,800` | `0 / 7,200` | `100.0%` | `1.02 / 1.11 / 1.13` ; `1.09 / 1.27 / 1.00` | `36.3` |
 | `G-only` *(Law 4.4)* | **`7 / 8`** | **`0.3701`** | `0.0334` | `0.513 / 0.520` | `1.70e-3` | `0.0210 / 0.233` | `1,800 / 1,800` | `0 / 7,200` | `80.0%` | `1.15 / 1.15 / 1.08` ; `1.01 / 1.02 / 1.17` | `35.7` |
@@ -238,7 +265,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.3: Regime B1b — Theorem 3 Isolation: Same 3L G + 16L D with Spectral-Norm-Matched (`G / sigma_1`) Frob-MP (`450` steps, `ring8`)
 
-| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
+| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `8 / 8` | `0.9163` | `0.0217` | `0.752 / 0.669` | `6.31e-3` | `0.0259 / 0.155` | `0 / 1,800` | `0 / 7,200` | `100.0%` | `48.4` |
 | `G-only` *(Law 4.4)* | **`7 / 8`** | **`0.7285`** | `0.0330` | `0.609 / 0.585` | `1.30e-2` | `0.0444 / 0.100` | `1,800 / 1,800` | `0 / 7,200` | `80.0%` | `46.3` |
@@ -250,7 +277,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.4: Regime B2 — Direct-OT Masking Confounder (`Full ParticleGAN unified_v12`, `3L G + 16L D`, `ring16`, `350` steps)
 
-| Arm | Modes | `hq` | `mass_tv` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
+| Arm | Modes | `hq` | `mass_tv` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `16 / 16` | `0.9858` | `0.0984` | `0.118` | `0.0084 / 0.490` | `0 / 1,400` | `0 / 5,600` | `100.0%` | `20.6` |
 | `G-only` | `16 / 16` | `0.9834` | `0.1050` | `0.100` | `0.0166 / 0.499` | `1,400 / 1,400` | `0 / 5,600` | `80.0%` | `20.3` |
@@ -262,7 +289,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.5: Regime B3 — Both Deep (`16L G + 16L D`, Pure Adversarial RpGAN + Law 2, `v12 sqrt(r)`, `400` steps, `ring8`)
 
-| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
+| Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G / total` | `ns_D / total` | NS Saved | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `0 / 8` | `0.0000` | `0.8750` | `0.572 / 0.536` | `0.053` | `0.3187 / 1.155` | `0 / 6,800` | `0 / 6,400` | `100.0%` | `49.4` |
 | `G-only` | `0 / 8` | `0.0000` | `0.6943` | `0.557 / 0.534` | `0.071` | `0.0420 / 1.719` | `6,800 / 6,800` | `0 / 6,400` | `48.5%` | `54.9` |
@@ -274,7 +301,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 2.6: Regime C1 — Balanced Shallow (`3L G + 3L D`, `ring16`, ParticleGAN `unified_v12`, `350` steps)
 
-| Arm | Modes | `hq` | `mass_tv` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ (Tail $\Delta D$) | `ns_G / total` | `ns_D / total` | NS Saved vs. Both | Step-10 / 175 / 350 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
+| Arm | Modes | `hq` | `mass_tv` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ (Tail $\Delta D$) | `ns_G / total` | `ns_D / total` | NS Saved vs. Both | Step-10 / 175 / 350 $r_{\text{stable}}(G)$ ; $r_{\text{stable}}(D)$ | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `Neither` | `16 / 16` | `0.9875` | `0.1099` | `0.297` | `0.0115 / 0.278 (0.138)` | `0 / 1,400` | `0 / 1,050` | `100.0%` | `2.28 / 1.34 / 1.89` ; `1.27 / 1.28 / 1.30` | `14.0` |
 | `G-only` | `16 / 16` | `0.9775` | `0.1021` | `0.356` | `0.0168 / 0.366 (0.237)` | `1,400 / 1,400` | `0 / 1,050` | `42.9%` | `1.75 / 1.30 / 1.68` ; `1.21 / 1.35 / 1.97` | `13.0` |
@@ -298,7 +325,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 3a: Hypothesis (c) — Law 2 Born–Infeld Penalty ON ($\beta=2.0$) vs. OFF ($\beta=0.0$) Across Shallow & Deep Critics (`250` steps, `ring8`, Pure Adversarial)
 
-| Architecture Cohort | Law 2 | Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\|\nabla_x D\|_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G` / `ns_D` | Wall (`s`) |
+| Architecture Cohort | Law 2 | Arm | Modes | `hq` | `mass_tv` | `d_acc_gauss` / `d_acc_valley` | $\lVert\nabla_x D\rVert_2$ | Mean $\Delta G$ / $\Delta D$ | `ns_G` / `ns_D` | Wall (`s`) |
 | :--- | :---: | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | `shallow_3LG_3LD` (`spec`) | **ON** | `Neither` | `8 / 8` | `0.7036` | `0.0632` | `0.912 / 0.994` | `0.054` | `0.0394 / 0.0316` | `0 / 0` | `8.4` |
 | `shallow_3LG_3LD` (`spec`) | **ON** | `G-only` | `8 / 8` | `0.7251` | `0.0808` | `0.752 / 0.774` | `0.053` | `0.0610 / 0.0285` | `1,000 / 0` | `8.6` |
@@ -342,7 +369,7 @@ All metrics below are copied verbatim from the canonical run of [`scripts/four_l
 
 #### Table 3c: Forensic Dissection of `unified_v12`'s Generator-Free Critic NS Fallback (`t3_iso_scale_mass_8x`, `G = nn.Identity()`, `800` steps)
 
-| Ablation Arm (Exact Config) | Final Pass | Sust. `5/5` (`600..800`) | `core_min_eigen_ratio` (Worst-5) | `core_cov_err` | `hq` | `mass_tv` | $\|\nabla_x D\|_2$ | `ns_D / total` (Saved) | Step-10/200/400/800 $r_{\text{stable}}(D)$ | Wall (`s`) |
+| Ablation Arm (Exact Config) | Final Pass | Sust. `5/5` (`600..800`) | `core_min_eigen_ratio` (Worst-5) | `core_cov_err` | `hq` | `mass_tv` | $\lVert\nabla_x D\rVert_2$ | `ns_D / total` (Saved) | Step-10/200/400/800 $r_{\text{stable}}(D)$ | Wall (`s`) |
 | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **`v12_fallback_ON_exact`** (`ns`, `sqrt_m`, `0.30`, `0.9995`) | **PASS** | **`5 / 5`** | **`0.5859`** (`0.5859`) | `0.2979` | `0.9570` | `0.0276` | `0.0012` | `1,600 / 1,600` (`0.0%`) | `1.17 / 1.23 / 1.59 / 1.12` | `39.6` |
 | `v12_fallback_OFF_exact` (`frob`, `sqrt_m`, `0.50`, `1.0`) | PASS | `5 / 5` | `0.5353` (`0.5353`) | `0.2694` | `0.9473` | `0.0334` | `0.0008` | `0 / 1,600` (`100.0%`) | `1.25 / 1.28 / 1.61 / 1.16` | `38.1` |

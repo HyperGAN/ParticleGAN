@@ -42,7 +42,7 @@ Law 4.3 as currently stated in [`docs/four-laws.md:87,94`](../../docs/four-laws.
 | **C1** | [`docs/four-laws.md:87`](../../docs/four-laws.md#L87), [`law4-optimizer-laws.md:137,214`](../forge/studies/law4-optimizer-laws.md#L214) | *"Elementwise, Frobenius, $L_\infty$, and Kronecker-factored preconditioners preserve gradient rank ($\operatorname{rank}(D_L G D_R) = \operatorname{rank}(G)$)"* | **Falsified claim** (conflates Hadamard/$L_\infty$ with separable $D_L G D_R$; misattributes rank-preserving formula to elementwise & $L_\infty$ maps) |
 | **C2** | [`docs/four-laws.md:87`](../../docs/four-laws.md#L87), [`law4-optimizer-laws.md:137,214`](../forge/studies/law4-optimizer-laws.md#L214) | *"...and therefore cannot rescue deep skip-free dense layers whose gradient effective rank collapses ($\operatorname{erank}(G) \to 1$)."* | **Falsified claim** (causal explanation wrong for elementwise/SignSGD; false for full Kronecker/Shampoo, which *does* rescue effective-rank collapse; empirically valid *only* as a failure of Frobenius, diagonal Adafactor, Adam, and SignSGD on `grid100_mlp16` for distinct mechanisms) |
 | **C3** | [`docs/four-laws.md:94`](../../docs/four-laws.md#L94), [`law4-optimizer-laws.md:137`](../forge/studies/law4-optimizer-laws.md#L137) | *"Restore gradient rank where diagonal conditioning hits the rank-preservation limit"* / *"Only non-diagonal spectral polar orthogonalization lifts collapsed gradients back to full rank."* | **Falsified claim** (exact-arithmetic polar/NS satisfies $\operatorname{rank}(X_k) \le \operatorname{rank}(G)$ and can never lift exact rank; true mechanism is lifting **effective/stable rank** on already high-exact-rank anisotropic gradients) |
-| **C4** | [`law4-optimizer-laws.md:56,213`](../forge/studies/law4-optimizer-laws.md#L213), [`law4_optimizer_profiler.py:757`](../../experiments/law4_optimizer_profiler.py#L757) | Defines *"effective rank $\operatorname{erank}(G_l) = \|G_l\|_F^2 / \sigma_1(G_l)^2$"* | **Falsified claim** (terminological error: $\|G\|_F^2/\sigma_1^2$ is **stable rank**, strictly $\le$ Roy–Vetterli entropy `erank` $\exp(H(\sigma/\|\sigma\|_1))$ and can differ by $>20\times$) |
+| **C4** | [`law4-optimizer-laws.md:56,213`](../forge/studies/law4-optimizer-laws.md#L213), [`law4_optimizer_profiler.py:757`](../../experiments/law4_optimizer_profiler.py#L757) | Defines *"effective rank $\operatorname{erank}(G_l) = \lVert G_l\rVert_F^2 / \sigma_1(G_l)^2$"* | **Falsified claim** (terminological error: $\lVert G\rVert_F^2/\sigma_1^2$ is **stable rank**, strictly $\le$ Roy–Vetterli entropy `erank` $\exp(H(\sigma/\lVert\sigma\rVert_1))$ and can differ by $>20\times$) |
 | **C5** | [`docs/four-laws.md:162`](../../docs/four-laws.md#L162) | *"Replaces $O(\min(m,n)^3)$ SVD with 5-step pure-GEMM Quintic Newton–Schulz iterations ($a=3.4445, b=-4.7750, c=2.0315$)..."* (describing `unified_v11`/`v12`) | **Falsified claim** (actual `_unified_v4`/`v11`/`v12`/`law4_energy` use 5 step-varying coefficients; stationary `(3.4445,-4.7750,2.0315)` is used only in `_t4_arch` and `optim/convolution_quintic.py`) |
 | **C6** | [`docs/four-laws.md:169`](../../docs/four-laws.md#L169), [`law4-optimizer-laws.md:397`](../forge/studies/law4-optimizer-laws.md#L397), [`law4-energy-champion.md:124`](../forge/studies/law4-energy-champion.md#L124) | *"CountSketch spectral preconditioning on stiff deep 2D generators"* | **Falsified claim** (`_unified_v12/optimizer.py:57-74,126-170` is a scalar period-2 sign-flip gain controller, not a spectral preconditioner) |
 | **C7** | [`docs/four-laws.md:87,185`](../../docs/four-laws.md#L185), [`r4-occam-ablation-razor.md:23,104-106`](../forge/studies/r4-occam-ablation-razor.md#L104-L106), [`r4-minimal-core.md:20`](../forge/studies/r4-minimal-core.md#L20) | 16-layer skip-free MLP (`grid100_mlp16`) suffers severe spectral collapse where diagonal/elementwise conditioning collapses (`prec=0.024–0.255`), while shallow MLPs, 16-layer residual MLPs, and 4D Conv2d kernels do not collapse and do not need NS | **Empirically supported causal mechanism** (verified in Forge knockouts + our direct architectural spectrum & alignment measurements; scoped to seed 0 & tested architectures) |
@@ -75,53 +75,90 @@ Every optimizer under `particlegan/` (plus companion study branches `research/la
 
 **Proposition 1 (Hadamard Rank Inflation):** Let $A, B \in \mathbb{R}^{m \times n}$ and let $A \odot B$ denote their elementwise (Hadamard) product. In general, $\operatorname{rank}(A \odot B) \le \operatorname{rank}(A)\operatorname{rank}(B)$, and strict rank increase $\operatorname{rank}(A \odot B) > \operatorname{rank}(A)$ occurs whenever $\operatorname{rank}(B) > 1$ is non-degenerate on $\operatorname{supp}(A)$.
 
-- **Minimal $2\times 2$ Counterexample:**
-  $$A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \quad (\operatorname{rank} = 1), \qquad B = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix} \implies A \odot B = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}, \quad \det(A \odot B) = 1 \neq 0 \implies \operatorname{rank}(A \odot B) = 2.$$
-- **Corollary 1A (1-Step Adam with $\varepsilon > 0$ Breaks Rank-1):** Let $G = u v^\top$ with $u = v = [1, 2]^\top$ ($\operatorname{rank}(G) = 1$). At step 1 with any additive denominator floor $\delta > 0$ (whether PyTorch Adam's $\varepsilon = 10^{-8}$ or ParticleGAN's $0.015 \cdot \operatorname{RMS} + 10^{-8}$),
-  $$U(\delta) = G \oslash (|G| + \delta) = \begin{bmatrix} \frac{1}{1+\delta} & \frac{2}{2+\delta} \\ \frac{2}{2+\delta} & \frac{4}{4+\delta} \end{bmatrix}, \qquad \det U(\delta) = \frac{-4\delta}{(1+\delta)(4+\delta)(2+\delta)^2} < 0 \quad \forall\,\delta > 0.$$
-  Hence $\operatorname{rank}(U(\delta)) = 2 > \operatorname{rank}(G) = 1$ for *every* $\delta > 0$. More generally, for $u \in \mathbb{R}^m_{>0}, v \in \mathbb{R}^n_{>0}$ with distinct entries, $U_{ij} = \frac{u_i v_j}{u_i v_j + \delta} = u_i \left(\frac{1}{u_i + \delta/v_j}\right)$ is a diagonally scaled Cauchy matrix, which is **nonsingular (exact full rank $\min(m, n)$)**!
-- **Corollary 1B (Multi-Step Adam Breaks Rank-1 Even With $\varepsilon = 0$ and $\beta_1 = 0$):** Let $G_1 = u_1 v_1^\top$ and $G_2 = u_2 v_2^\top$ be two independent rank-1 gradients. At step 2 with $\beta_1 = 0, \beta_2 \in (0, 1), \varepsilon = 0$, the second-moment EMA $V_2 \propto \beta_2 (u_1^{\odot 2})(v_1^{\odot 2})^\top + (1-\beta_2)(u_2^{\odot 2})(v_2^{\odot 2})^\top$ has $\operatorname{rank}(V_2) = 2$. Hence $V_2^{\odot -1/2}$ is non-separable ($\operatorname{rank} > 1$) and $U_2 = G_2 \oslash \sqrt{V_2}$ generically has $\operatorname{rank}(U_2) > 1$ (exact full rank in exact arithmetic, `rank(1e-12) = 3` / `rank(1e-6) = 2` on $16\times 16$ at $\beta_2 = 0.999$ in Exp 1) despite $\operatorname{rank}(G_2) = 1$.
-- **Corollary 1C (Exact SignSGD vs. Smooth SignSGD):**
-  - On exact rank-1 $G = u v^\top$, **exact** $\operatorname{sign}(u v^\top) = \operatorname{sign}(u)\operatorname{sign}(v)^\top$ preserves $\operatorname{rank} \le 1$.
-  - On **exact rank-2** $G_{ij} = j - i + \tfrac{1}{2}$ ($i, j \in \{0, \dots, n-1\}$), $G = \mathbf{1}(j+\tfrac{1}{2})^\top - i\mathbf{1}^\top$ has exact rank $2$, yet $\operatorname{sign}(G)$ is upper-triangular $+1$ and strictly lower-triangular $-1$ with $|\det(\operatorname{sign}(G))| = 2^{n-1} \neq 0$ — **exact full rank $n$**!
-  - **Smooth SignSGD** (`_smooth_sign_unit`, $U_{ij} = G_{ij}/\sqrt{G_{ij}^2 + s^2}$ with $s > 0$) breaks rank even on **rank-1** $G = u v^\top$: for $u = v = [1, 2]^\top, s = 1$, $\det(U) = 4(\tfrac{1}{\sqrt{34}} - \tfrac{1}{5}) \neq 0 \implies \operatorname{rank}(U) = 2$.
-- **Corollary 1D (Adafactor Separability Split):** Standard Shazeer–Stern Adafactor adds $\varepsilon_1$ *before* row/col averaging, keeping $V_{ij} = r_i c_j / \mathrm{rms}(r)$ rank-1 separable, so $G \oslash V = \mathrm{rms}(r) D_r^{-1} G D_c^{-1}$ **preserves exact rank**. In contrast, ParticleGAN's `law4_adafactor_mp` (`research/law4-alt-optimizers:particlegan/_law4_alt/optimizer.py:1524`) divides by $V_{ij} + \delta$ ($\delta = 0.015 \cdot \text{peak} + 10^{-8}$), turning $1/(r_i c_j + \delta)$ into a full-rank Cauchy matrix and **breaking exact rank** (`1 -> 6` at `tol=1e-12`).
+**Minimal $2\times 2$ Counterexample:**
+
+$$
+A = \begin{bmatrix} 1 & 1 \\ 1 & 1 \end{bmatrix} \quad (\operatorname{rank} = 1), \qquad B = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix} \implies A \odot B = \begin{bmatrix} 1 & 1 \\ 1 & 2 \end{bmatrix}, \quad \det(A \odot B) = 1 \neq 0 \implies \operatorname{rank}(A \odot B) = 2.
+$$
+
+**Corollary 1A (1-Step Adam with $\varepsilon > 0$ Breaks Rank-1):** Let $G = u v^\top$ with $u = v = [1, 2]^\top$ ($\operatorname{rank}(G) = 1$). At step 1 with any additive denominator floor $\delta > 0$ (whether PyTorch Adam's $\varepsilon = 10^{-8}$ or ParticleGAN's $0.015 \cdot \operatorname{RMS} + 10^{-8}$),
+
+$$
+U(\delta) = G \oslash (|G| + \delta) = \begin{bmatrix} \frac{1}{1+\delta} & \frac{2}{2+\delta} \\ \frac{2}{2+\delta} & \frac{4}{4+\delta} \end{bmatrix}, \qquad \det U(\delta) = \frac{-4\delta}{(1+\delta)(4+\delta)(2+\delta)^2} < 0 \quad \forall\,\delta > 0.
+$$
+
+Hence $\operatorname{rank}(U(\delta)) = 2 > \operatorname{rank}(G) = 1$ for *every* $\delta > 0$. More generally, for $u \in \mathbb{R}^m_{>0}, v \in \mathbb{R}^n_{>0}$ with distinct entries, $U_{ij} = \frac{u_i v_j}{u_i v_j + \delta} = u_i \left(\frac{1}{u_i + \delta/v_j}\right)$ is a diagonally scaled Cauchy matrix, which is **nonsingular (exact full rank $\min(m, n)$)**!
+
+**Corollary 1B (Multi-Step Adam Breaks Rank-1 Even With $\varepsilon = 0$ and $\beta_1 = 0$):** Let $G_1 = u_1 v_1^\top$ and $G_2 = u_2 v_2^\top$ be two independent rank-1 gradients. At step 2 with $\beta_1 = 0, \beta_2 \in (0, 1), \varepsilon = 0$, the second-moment EMA $V_2 \propto \beta_2 (u_1^{\odot 2})(v_1^{\odot 2})^\top + (1-\beta_2)(u_2^{\odot 2})(v_2^{\odot 2})^\top$ has $\operatorname{rank}(V_2) = 2$. Hence $V_2^{\odot -1/2}$ is non-separable ($\operatorname{rank} > 1$) and $U_2 = G_2 \oslash \sqrt{V_2}$ generically has $\operatorname{rank}(U_2) > 1$ (exact full rank in exact arithmetic, `rank(1e-12) = 3` / `rank(1e-6) = 2` on $16\times 16$ at $\beta_2 = 0.999$ in Exp 1) despite $\operatorname{rank}(G_2) = 1$.
+
+**Corollary 1C (Exact SignSGD vs. Smooth SignSGD):**
+- On exact rank-1 $G = u v^\top$, **exact** $\operatorname{sign}(u v^\top) = \operatorname{sign}(u)\operatorname{sign}(v)^\top$ preserves $\operatorname{rank} \le 1$.
+- On **exact rank-2** $G_{ij} = j - i + \tfrac{1}{2}$ ($i, j \in \{0, \dots, n-1\}$), $G = \mathbf{1}(j+\tfrac{1}{2})^\top - i\mathbf{1}^\top$ has exact rank $2$, yet $\operatorname{sign}(G)$ is upper-triangular $+1$ and strictly lower-triangular $-1$ with $|\det(\operatorname{sign}(G))| = 2^{n-1} \neq 0$ — **exact full rank $n$**!
+- **Smooth SignSGD** (`_smooth_sign_unit`, $U_{ij} = G_{ij}/\sqrt{G_{ij}^2 + s^2}$ with $s > 0$) breaks rank even on **rank-1** $G = u v^\top$: for $u = v = [1, 2]^\top, s = 1$, $\det(U) = 4(\tfrac{1}{\sqrt{34}} - \tfrac{1}{5}) \neq 0 \implies \operatorname{rank}(U) = 2$.
+
+**Corollary 1D (Adafactor Separability Split):** Standard Shazeer–Stern Adafactor adds $\varepsilon_1$ *before* row/col averaging, keeping $V_{ij} = r_i c_j / \mathrm{rms}(r)$ rank-1 separable, so $G \oslash V = \mathrm{rms}(r) D_r^{-1} G D_c^{-1}$ **preserves exact rank**. In contrast, ParticleGAN's `law4_adafactor_mp` (`research/law4-alt-optimizers:particlegan/_law4_alt/optimizer.py:1524`) divides by $V_{ij} + \delta$ ($\delta = 0.015 \cdot \text{peak} + 10^{-8}$), turning $1/(r_i c_j + \delta)$ into a full-rank Cauchy matrix and **breaking exact rank** (`1 -> 6` at `tol=1e-12`).
 
 ### 2.2 Theorem 2 — Invertible Separable & Kronecker Scaling: Exact Rank vs. Effective Rank
 
 **Theorem 2 (Exact Rank Preservation, Effective Rank Non-Preservation, and Shampoo–Polar Equivalence):**
 Let $L \in \mathrm{GL}_m(\mathbb{R})$ and $R \in \mathrm{GL}_n(\mathbb{R})$ be arbitrary invertible matrices. Then:
-1. **Exact Rank Invariance:** $\operatorname{rank}(L G R) = \operatorname{rank}(G)$ for all $G \in \mathbb{R}^{m \times n}$ (since $L$ and $R$ are bijective linear maps). This holds for SGD ($L=I, R=I$), scalar/Frobenius-normalized SGD ($c G, c \ne 0$), diagonal separable scaling $D_L G D_R$ (Shazeer–Stern Adafactor), and full Kronecker preconditioning $L G R$ (Shampoo, K-FAC).
-2. **Scalar/Frobenius Normalization Preserves the Entire Normalized Spectrum:** For $c > 0$, $\sigma_i(c G) = c \sigma_i(G)$, so exact rank, stable rank, participation ratio, Roy–Vetterli `erank`, and $\kappa(G)$ are all strictly invariant.
-3. **Diagonal $D_L G D_R$ Does NOT Preserve Effective Rank — Axis-Aligned vs. Rotated Dichotomy:**
-   - If $G = \operatorname{diag}(\sigma_1, \dots, \sigma_m)$ is axis-aligned with $\sigma_1 = 1, \sigma_{2..m} = 10^{-4}$ ($r_{\text{stable}} = 1.000$), then $D_L = \operatorname{diag}(\sigma_i^{-1}), D_R = I$ yields $D_L G D_R = I_m$ ($r_{\text{stable}} = m = 16.000$); even Shazeer–Stern Adafactor yields $r_{\text{stable}} = 15.000$ (by squaring the diagonal scale).
-   - If $G = Q_1 \operatorname{diag}(\sigma) Q_2^\top$ has **dense/rotated singular vectors** (as in deep MLPs), row and column norms of $G$ concentrate around $\|G\|_F/\sqrt{m}$ and $\|G\|_F/\sqrt{n}$, so diagonal $D_L, D_R \approx c I$ cannot equalize rotated singular values (Shazeer–Stern Adafactor keeps $r_{\text{stable}} = 1.000$ on rotated $\kappa = 10^4$).
-4. **Full Kronecker 1-Step Shampoo $\equiv$ Exact Tikhonov Polar Orthogonalization:** Let $G = U \Sigma V^\top$ be the full SVD of $G \in \mathbb{R}^{m \times n}$ ($U \in O(m)$, $V \in O(n)$, $\Sigma \in \mathbb{R}^{m \times n}$ with $\Sigma_{ii} = \sigma_i$ for $1 \le i \le \min(m, n)$), and let $L = (G G^\top + s^2 I_m)^{-1/4}$ and $R = (G^\top G + s^2 I_n)^{-1/4}$ ($s > 0$). Then:
-   $$L G R = U (\Sigma \Sigma^\top + s^2 I_m)^{-1/4} \Sigma (\Sigma^\top \Sigma + s^2 I_n)^{-1/4} V^\top = U \Sigma_{\text{tikh}} V^\top = G (G^\top G + s^2 I_n)^{-1/2},$$
-   where $\Sigma_{\text{tikh}} \in \mathbb{R}^{m \times n}$ has $(\Sigma_{\text{tikh}})_{ii} = \sigma_i / \sqrt{\sigma_i^2 + s^2}$ for $1 \le i \le \min(m, n)$ and $0$ elsewhere.
-   Therefore, **full Kronecker preconditioning preserves exact rank AND completely rescues effective-rank collapse** (`r_stable: 1.000 -> 15.999` on rotated $\kappa=10^4$, L2 distance to exact Tikhonov polar `7.82e-9` in FP64)!
+**1. Exact Rank Invariance:** $\operatorname{rank}(L G R) = \operatorname{rank}(G)$ for all $G \in \mathbb{R}^{m \times n}$ (since $L$ and $R$ are bijective linear maps). This holds for SGD ($L=I, R=I$), scalar/Frobenius-normalized SGD ($c G, c \ne 0$), diagonal separable scaling $D_L G D_R$ (Shazeer–Stern Adafactor), and full Kronecker preconditioning $L G R$ (Shampoo, K-FAC).
+
+**2. Scalar/Frobenius Normalization Preserves the Entire Normalized Spectrum:** For $c > 0$, $\sigma_i(c G) = c \sigma_i(G)$, so exact rank, stable rank, participation ratio, Roy–Vetterli `erank`, and $\kappa(G)$ are all strictly invariant.
+
+**3. Diagonal $D_L G D_R$ Does NOT Preserve Effective Rank — Axis-Aligned vs. Rotated Dichotomy:**
+- If $G = \operatorname{diag}(\sigma_1, \dots, \sigma_m)$ is axis-aligned with $\sigma_1 = 1, \sigma_{2..m} = 10^{-4}$ ($r_{\text{stable}} = 1.000$), then $D_L = \operatorname{diag}(\sigma_i^{-1}), D_R = I$ yields $D_L G D_R = I_m$ ($r_{\text{stable}} = m = 16.000$); even Shazeer–Stern Adafactor yields $r_{\text{stable}} = 15.000$ (by squaring the diagonal scale).
+- If $G = Q_1 \operatorname{diag}(\sigma) Q_2^\top$ has **dense/rotated singular vectors** (as in deep MLPs), row and column norms of $G$ concentrate around $\|G\|_F/\sqrt{m}$ and $\|G\|_F/\sqrt{n}$, so diagonal $D_L, D_R \approx c I$ cannot equalize rotated singular values (Shazeer–Stern Adafactor keeps $r_{\text{stable}} = 1.000$ on rotated $\kappa = 10^4$).
+
+**4. Full Kronecker 1-Step Shampoo $\equiv$ Exact Tikhonov Polar Orthogonalization:** Let $G = U \Sigma V^\top$ be the full SVD of $G \in \mathbb{R}^{m \times n}$ ($U \in O(m)$, $V \in O(n)$, $\Sigma \in \mathbb{R}^{m \times n}$ with $\Sigma_{ii} = \sigma_i$ for $1 \le i \le \min(m, n)$), and let $L = (G G^\top + s^2 I_m)^{-1/4}$ and $R = (G^\top G + s^2 I_n)^{-1/4}$ ($s > 0$). Then:
+
+$$
+L G R = U (\Sigma \Sigma^\top + s^2 I_m)^{-1/4} \Sigma (\Sigma^\top \Sigma + s^2 I_n)^{-1/4} V^\top = U \Sigma_{\text{tikh}} V^\top = G (G^\top G + s^2 I_n)^{-1/2},
+$$
+
+where $\Sigma_{\text{tikh}} \in \mathbb{R}^{m \times n}$ has $(\Sigma_{\text{tikh}})_{ii} = \sigma_i / \sqrt{\sigma_i^2 + s^2}$ for $1 \le i \le \min(m, n)$ and $0$ elsewhere.
+Therefore, **full Kronecker preconditioning preserves exact rank AND completely rescues effective-rank collapse** (`r_stable: 1.000 -> 15.999` on rotated $\kappa=10^4$, L2 distance to exact Tikhonov polar `7.82e-9` in FP64)!
 
 ### 2.3 Theorem 3 — Exact-Arithmetic Subspace & Rank Invariance of Polynomial & Fused Tikhonov `Z = [X, Y]` Newton–Schulz
 
 **Theorem 3 (Subspace & Rank Invariance of Standard and Fused `Z=[X, Y]` Quintic NS):**
 Let $G \in \mathbb{R}^{m \times n}$ with $m \le n$ (tall matrices $m > n$ are transposed before iteration and transposed back) have **thin SVD** $G = U \Sigma V^\top$ where $U \in O(m)$, $V \in \mathbb{R}^{n \times m}$ ($V^\top V = I_m$), and $\Sigma = \operatorname{diag}(\sigma_1, \dots, \sigma_m) \in \mathbb{R}^{m \times m}$ with $\sigma_1 \ge \dots \ge \sigma_r > 0 = \sigma_{r+1} = \dots = \sigma_m$ ($\operatorname{rank}(G) = r$). Let $p_k(t) = a_k + b_k t + c_k t^2$ be any sequence of polynomials.
-1. **Standard Polynomial NS** ($X_0 = \alpha G$, $X_{k+1} = p_k(X_k X_k^\top) X_k$): By induction (using $V^\top V = I_m$), $X_k = U \operatorname{diag}(\sigma_i^{(k)}) V^\top \in \mathbb{R}^{m \times n}$ where $\sigma_i^{(0)} = \alpha \sigma_i$ and $\sigma_i^{(k+1)} = p_k((\sigma_i^{(k)})^2)\,\sigma_i^{(k)}$. Since $\sigma_i = 0 \implies \sigma_i^{(k)} = 0$ for all $k \ge 0$:
-   $$\operatorname{Col}(X_k) \subseteq \operatorname{Col}(G), \qquad \operatorname{Row}(X_k) \subseteq \operatorname{Row}(G), \qquad \operatorname{rank}(X_k) \le \operatorname{rank}(G).$$
-2. **Fused Tikhonov `Z = [X, Y]` NS (`particlegan/_unified_v11/optimizer.py:103-118`):** Initialize $Z_0 = [X_0, Y_0]$ with $X_0 = \alpha G \in \mathbb{R}^{m \times n}$ and $Y_0 = \beta I_m \in \mathbb{R}^{m \times m}$ ($\beta = \alpha s \ge 0$), and iterate $Z_{k+1} = p_k(Z_k Z_k^\top) Z_k = [X_{k+1}, Y_{k+1}]$.
-   - *Proof by induction:* At $k = 0$, $X_0 = U \operatorname{diag}(d_i^{(0)} \alpha \sigma_i) V^\top$ (thin $V \in \mathbb{R}^{n \times m}$) and $Y_0 = U \operatorname{diag}(d_i^{(0)} \beta) U^\top$ with $d_i^{(0)} = 1$. Assume the form holds at step $k$. Using $V^\top V = I_m$ and $U^\top U = I_m$:
-     $$Z_k Z_k^\top = X_k X_k^\top + Y_k Y_k^\top = U \operatorname{diag}\!\Big((d_i^{(k)})^2 \big(\alpha^2 \sigma_i^2 + \beta^2\big)\Big) U^\top.$$
-     Therefore $p_k(Z_k Z_k^\top) = U \operatorname{diag}\!\big(\gamma_i^{(k)}\big) U^\top$ where $\gamma_i^{(k)} = p_k\!\big((d_i^{(k)})^2(\alpha^2\sigma_i^2 + \beta^2)\big)$. Setting $d_i^{(k+1)} = \gamma_i^{(k)} d_i^{(k)}$ yields
-     $$X_{k+1} = U \operatorname{diag}\!\big(d_i^{(k+1)} \alpha \sigma_i\big) V^\top, \qquad Y_{k+1} = U \operatorname{diag}\!\big(d_i^{(k+1)} \beta\big) U^\top,$$
-     completing the induction.
-   - *Exact consequences:*
-     - **Zero cross-coupling leakage:** Every $\sigma_i = 0$ stays identically zero in $X_k$ for all $k$: $\operatorname{Col}(X_k) \subseteq \operatorname{Col}(G)$, $\operatorname{Row}(X_k) \subseteq \operatorname{Row}(G)$, and **$\operatorname{rank}(X_k) \le \operatorname{rank}(G)$**.
-     - **Exact Tikhonov limit:** Setting $r_i^{(k)} = d_i^{(k)}\sqrt{\alpha^2 \sigma_i^2 + \beta^2}$ gives the scalar recursion $r_i^{(k+1)} = p_k((r_i^{(k)})^2) r_i^{(k)}$. Whenever $r_i^{(k)} \to 1$, $X_k \to U \operatorname{diag}\!\big(\sigma_i / \sqrt{\sigma_i^2 + s^2}\big) V^\top = G(G^\top G + s^2 I_n)^{-1/2}$.
-     - **Finite 5-step gain ceiling:** For $s = 0$ and small $\sigma_i^{(0)}$, $\sigma_i^{(5)} = \left(\prod_{k=0}^4 a_k\right) \sigma_i^{(0)} + O((\sigma_i^{(0)})^3)$. For ParticleGAN's `_QUINTIC_COEFFS`, $\prod_{k=0}^4 a_k = 492.75$ (stationary `(3.4445,-4.7750,2.0315)`: $a^5 = 484.88$). Hence 5-step NS lifts $\sigma_i / \|G\|_F \in [10^{-3}, 1]$ to $[0.47, 1.02]$, but **cannot lift $\sigma_i / \|G\|_F \le 10^{-6}$ above $5\times 10^{-4}$** in exact arithmetic!
+
+**1. Standard Polynomial NS** ($X_0 = \alpha G$, $X_{k+1} = p_k(X_k X_k^\top) X_k$): By induction (using $V^\top V = I_m$), $X_k = U \operatorname{diag}(\sigma_i^{(k)}) V^\top \in \mathbb{R}^{m \times n}$ where $\sigma_i^{(0)} = \alpha \sigma_i$ and $\sigma_i^{(k+1)} = p_k((\sigma_i^{(k)})^2)\,\sigma_i^{(k)}$. Since $\sigma_i = 0 \implies \sigma_i^{(k)} = 0$ for all $k \ge 0$:
+
+$$
+\operatorname{Col}(X_k) \subseteq \operatorname{Col}(G), \qquad \operatorname{Row}(X_k) \subseteq \operatorname{Row}(G), \qquad \operatorname{rank}(X_k) \le \operatorname{rank}(G).
+$$
+
+**2. Fused Tikhonov `Z = [X, Y]` NS (`particlegan/_unified_v11/optimizer.py:103-118`):** Initialize $Z_0 = [X_0, Y_0]$ with $X_0 = \alpha G \in \mathbb{R}^{m \times n}$ and $Y_0 = \beta I_m \in \mathbb{R}^{m \times m}$ ($\beta = \alpha s \ge 0$), and iterate $Z_{k+1} = p_k(Z_k Z_k^\top) Z_k = [X_{k+1}, Y_{k+1}]$.
+
+*Proof by induction:* At $k = 0$, $X_0 = U \operatorname{diag}(d_i^{(0)} \alpha \sigma_i) V^\top$ (thin $V \in \mathbb{R}^{n \times m}$) and $Y_0 = U \operatorname{diag}(d_i^{(0)} \beta) U^\top$ with $d_i^{(0)} = 1$. Assume the form holds at step $k$. Using $V^\top V = I_m$ and $U^\top U = I_m$:
+
+$$
+Z_k Z_k^\top = X_k X_k^\top + Y_k Y_k^\top = U \operatorname{diag}\!\Big((d_i^{(k)})^2 \big(\alpha^2 \sigma_i^2 + \beta^2\big)\Big) U^\top.
+$$
+
+Therefore $p_k(Z_k Z_k^\top) = U \operatorname{diag}\!\big(\gamma_i^{(k)}\big) U^\top$ where $\gamma_i^{(k)} = p_k\!\big((d_i^{(k)})^2(\alpha^2\sigma_i^2 + \beta^2)\big)$. Setting $d_i^{(k+1)} = \gamma_i^{(k)} d_i^{(k)}$ yields
+
+$$
+X_{k+1} = U \operatorname{diag}\!\big(d_i^{(k+1)} \alpha \sigma_i\big) V^\top, \qquad Y_{k+1} = U \operatorname{diag}\!\big(d_i^{(k+1)} \beta\big) U^\top,
+$$
+
+completing the induction.
+
+*Exact consequences:*
+- **Zero cross-coupling leakage:** Every $\sigma_i = 0$ stays identically zero in $X_k$ for all $k$: $\operatorname{Col}(X_k) \subseteq \operatorname{Col}(G)$, $\operatorname{Row}(X_k) \subseteq \operatorname{Row}(G)$, and **$\operatorname{rank}(X_k) \le \operatorname{rank}(G)$**.
+- **Exact Tikhonov limit:** Setting $r_i^{(k)} = d_i^{(k)}\sqrt{\alpha^2 \sigma_i^2 + \beta^2}$ gives the scalar recursion $r_i^{(k+1)} = p_k((r_i^{(k)})^2) r_i^{(k)}$. Whenever $r_i^{(k)} \to 1$, $X_k \to U \operatorname{diag}\!\big(\sigma_i / \sqrt{\sigma_i^2 + s^2}\big) V^\top = G(G^\top G + s^2 I_n)^{-1/2}$.
+- **Finite 5-step gain ceiling:** For $s = 0$ and small $\sigma_i^{(0)}$, $\sigma_i^{(5)} = \left(\prod_{k=0}^4 a_k\right) \sigma_i^{(0)} + O((\sigma_i^{(0)})^3)$. For ParticleGAN's `_QUINTIC_COEFFS`, $\prod_{k=0}^4 a_k = 492.75$ (stationary `(3.4445,-4.7750,2.0315)`: $a^5 = 484.88$). Hence 5-step NS lifts $\sigma_i / \|G\|_F \in [10^{-3}, 1]$ to $[0.47, 1.02]$, but **cannot lift $\sigma_i / \|G\|_F \le 10^{-6}$ above $5\times 10^{-4}$** in exact arithmetic!
 
 ### 2.4 Rigorous Hierarchy of Rank & Spectral Diversity Measures
 
 For any nonzero $X \in \mathbb{R}^{m \times n}$ with singular values $\sigma_1 \ge \dots \ge \sigma_r > 0$, define $p_i = \sigma_i / \sum_{j=1}^r \sigma_j$ and $q_i = \sigma_i^2 / \sum_{j=1}^r \sigma_j^2$:
-$$1 \;\le\; \underbrace{\frac{\|X\|_F^2}{\sigma_1^2}}_{r_{\text{stable}}(X)} \;\le\; \underbrace{\frac{\|X\|_F^4}{\|X X^\top\|_F^2}}_{\operatorname{PR}(X) = \exp(H_2(q))} \;\le\; \exp(H_1(q)) \;\le\; \underbrace{\exp(H_1(p))}_{\operatorname{erank}_{\text{RV}}(X)} \;\le\; \operatorname{rank}(X) \;\le\; \min(m, n).$$
+
+$$
+1 \;\le\; \underbrace{\frac{\|X\|_F^2}{\sigma_1^2}}_{r_{\text{stable}}(X)} \;\le\; \underbrace{\frac{\|X\|_F^4}{\|X X^\top\|_F^2}}_{\operatorname{PR}(X) = \exp(H_2(q))} \;\le\; \exp(H_1(q)) \;\le\; \underbrace{\exp(H_1(p))}_{\operatorname{erank}_{\text{RV}}(X)} \;\le\; \operatorname{rank}(X) \;\le\; \min(m, n).
+$$
+
 *Proof:* $\sum \sigma_i^4 \le \sigma_1^2 \sum \sigma_i^2 \implies r_{\text{stable}} \le \operatorname{PR}$; Rényi entropy monotonicity gives $H_2(q) \le H_1(q)$; since $p_1 \ge \dots \ge p_r > 0$ and $\sum_{i=1}^k q_i - \sum_{i=1}^k p_i = (\sum_{j=1}^r p_j^2)^{-1} \sum_{i=1}^k \sum_{j=k+1}^r p_i p_j (p_i - p_j) \ge 0$ for all $k$, $q$ majorizes $p$ ($q \succ p$), so Schur-concavity of Shannon entropy gives $H_1(q) \le H_1(p) \le \ln r$. $\square$
 
 - **Why the naming error in `law4-optimizer-laws.md` matters:** On $\sigma = (1, 10^{-2}, \dots, 10^{-2})$ (100 copies of $10^{-2}$), $r_{\text{stable}} = 1.01$ while Roy–Vetterli $\operatorname{erank}_{\text{RV}} = 20.0$ (and on `grid100_mlp16` `net.2.weight`, $r_{\text{stable}} = 1.14$ while $\operatorname{erank}_{\text{RV}} = 3.66$; on `dcgan_G` `main.3.weight`, per-offset median $r_{\text{stable}} = 3.05\text{–}3.06$ [`3.055`, flattened `3.07`] while $\operatorname{erank}_{\text{RV}} = 141.09$!). Distinct metrics must never share the symbol `erank`.
@@ -137,7 +174,7 @@ All numbers below are verbatim outputs of `PYTHONPATH="$PWD" /nvme/dev/hypergan/
 | Transform on Rank-1 $G_1 = u v^\top$ (or Rank-2 $G_2$) | `rank(1e-12)` | `rank(1e-6)` | `stable_rank` | `rv_erank` | $\sigma_2 / \sigma_1$ | Verdict |
 | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 | `input_rank1` ($16\times 16$) | **1** | **1** | 1.000 | 1.000 | `1.09e-16` | Exact rank 1 |
-| `frob_sgd` ($G_1 / \|G_1\|_F$) | **1** | **1** | 1.000 | 1.000 | `1.08e-16` | Preserves rank & spectrum |
+| `frob_sgd` ($G_1 / \lVert G_1\rVert_F$) | **1** | **1** | 1.000 | 1.000 | `1.08e-16` | Preserves rank & spectrum |
 | `separable_DL_G_DR` ($D_L G_1 D_R$) | **1** | **1** | 1.000 | 1.000 | `8.28e-17` | Preserves exact rank |
 | `adafactor_shazeer_stern` ($\varepsilon_1$ inside squares) | **1** | **1** | 1.000 | 1.000 | `9.43e-17` | Separable $\implies$ preserves exact rank |
 | **`adafactor_particlegan_law4`** ($+0.015\,\text{peak}+10^{-8}$) | **6** | **3** | 1.000 | 1.035 | `5.51e-03` | **BREAKS exact rank!** |

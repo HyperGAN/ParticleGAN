@@ -64,7 +64,11 @@ Combining `@v11-bisect`'s two exact regression root causes (restored non-collaps
 
 ### Exact Mathematical Identity of `law4-energy-v10` (Exact Polar-Frobenius-Matched 0-NS Critic)
 For any 2D critic weight matrix $W_D \in \mathbb{R}^{r \times c}$ with $m = \min(r, c) \ge 2$, the exact polar factor $U = G_D (G_D^\top G_D)^{-1/2}$ has Frobenius norm $\|U\|_F = \sqrt{m}$. Replacing Critic 5-step Quintic NS with zero-state degree-0 Frobenius-MP scaled by $\sqrt{\max(1, r/c)}\sqrt{m} \equiv \sqrt{r}$ ($\sqrt{\text{fan\_out}}$):
-$$\Delta W_D = -\eta_D \sqrt{r}\,\frac{G_D}{\sqrt{\|G_D\|_F^2 + m\,s_{\text{eff}}^2}}$$
+
+$$
+\Delta W_D = -\eta_D \sqrt{r}\,\frac{G_D}{\sqrt{\|G_D\|_F^2 + m\,s_{\text{eff}}^2}}
+$$
+
 preserves the exact `1 : 1.5 : 2.9` $G : D : \text{prior}$ function-space Frobenius impedance ratio while eliminating **100% of Critic 2D NS matmuls**, **100% of 4D Conv2d NS**, **100% of critic secant probes**, and cutting equilibrium critic agitation by **`3.8×`**.
 
 ### Verbatim Phase-2 Frontier Leaderboard (Seed `0`, `deterministic_orthogonal`, `NVIDIA RTX A6000`)

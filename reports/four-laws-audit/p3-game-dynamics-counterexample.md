@@ -18,9 +18,7 @@ Inspecting the exact critic-penalty code reveals a decisive gap between what `do
    - **`unified_v11` / `unified_v12` ([`particlegan/_unified/penalty.py:741–744`](../../particlegan/_unified/penalty.py#L741-L744), [`particlegan/_unified_v11/penalty.py:354–357`](../../particlegan/_unified_v11/penalty.py#L354-L357))** do **not** use $\sqrt{1+\beta g^2}-1$ in the critic penalty; they use `softplus(norm - 1, beta=12)^2` **plus an undocumented explicit R1+R2 quadratic floor** `lambda_floor = 0.005`, yielding $\mu_D = 0.0100$ (which collapses further to $0.0005/d = 2.54 \times 10^{-9}$ on $256^2$ RGB images, [`particlegan/_unified_v11/penalty.py:683,687`](../../particlegan/_unified_v11/penalty.py#L683-L687)).
    - Additionally, on low-D tasks ($d \le 1024$), `UnifiedV11GANLoss` ([`particlegan/_unified_v11/loss.py:859–959`](../../particlegan/_unified_v11/loss.py#L859-L959)) and `MinimalLoss` ([`particlegan/_minimal/geometry.py:320–329`](../../particlegan/_minimal/geometry.py#L320-L329)) add **non-adversarial geometric transport losses** directly to `g_loss` (injecting $J_{GG} \succ 0$), and [`particlegan/training.py:678–696`](../../particlegan/training.py#L678-L696) uses **1:1 alternating D-then-G updates** (exact determinant $\det(M_{\text{alt}}) = 1 - \eta_D \mu_D$, which contracts at $\mu_D = 0.01, \eta_D = 0.021$ where simultaneous Euler GD diverges!).
 3. **Additional Law 4.5 Mathematical Finding (OGDA $\lambda = 0.5$ Neutral Boundary & Schur–Cohn Momentum Collapse):**
-   - We prove the exact closed-form Schur–Cohn stability ceiling for simultaneous Heavy-Ball momentum on $\lambda = \gamma \pm i\omega$:
-     $$\eta_{\max}(\beta_1; \gamma, \omega) = \frac{2\gamma (1 + \beta_1)(1 - \beta_1)^2}{\gamma^2 (1 - \beta_1)^2 + \omega^2 (1 + \beta_1)^2}.$$
-     For underdamped adversarial games ($\omega \gg \gamma$), positive momentum $\beta_1 > 0$ shrinks $\eta_{\max}$ by $(1-\beta_1)^2 / (1+\beta_1)$ — **`82.2×` smaller at $\beta_1 = 0.85$ (Muon) and `190×` smaller at $\beta_1 = 0.90$ (Adam)** — proving a deterministic dynamical reason for Law 4.5 independent of minibatch staleness.
+   - We prove the exact closed-form Schur–Cohn stability ceiling for simultaneous Heavy-Ball momentum on $\lambda = \gamma \pm i\omega$: $\eta_{\max}(\beta_1; \gamma, \omega) = \frac{2\gamma (1 + \beta_1)(1 - \beta_1)^2}{\gamma^2 (1 - \beta_1)^2 + \omega^2 (1 + \beta_1)^2}$. For underdamped adversarial games ($\omega \gg \gamma$), positive momentum $\beta_1 > 0$ shrinks $\eta_{\max}$ by $(1-\beta_1)^2 / (1+\beta_1)$ — **`82.2×` smaller at $\beta_1 = 0.85$ (Muon) and `190×` smaller at $\beta_1 = 0.90$ (Adam)** — proving a deterministic dynamical reason for Law 4.5 independent of minibatch staleness.
    - Simultaneously, we expose a crucial flaw in ParticleGAN's empirical rejection of Optimistic Extragradient ([`law4-optimizer-laws.md:130,135`](../forge/studies/law4-optimizer-laws.md#L130-L135)): `law4-optimistic-equil` used $\lambda = 0.5$ (`1.5 g_t - 0.5 g_{t-1}`), which sits on the **exact $O(\eta^2)$ neutral boundary $1 - 2\lambda = 0$** for purely imaginary eigenvalues ($\rho = 1.000002 > 1$ at $\mu_D = 0$!). Classical OGDA (Daskalakis et al., ICLR 2018) uses $\lambda = 1.0$ (`2 g_t - g_{t-1}`), which **strictly contracts even at $\mu_D = 0$** (`r_tail = 0.00852` vs `0.24573` for $\lambda = 0.5$ on Counterexample A1), albeit at $5.0\times$ i.i.d. noise variance.
 
 **Governance Verdict (No 5th Law Needed):**
@@ -32,24 +30,39 @@ The Four Laws as stated are **design principles / partial necessary conditions u
 
 Consider a smooth two-player differentiable game with joint parameter vector $x = (\theta, \psi) \in \mathbb{R}^{p+q}$ and pseudo-gradient vector field $F(\theta, \psi) = (\nabla_\theta \mathcal{L}_G(\theta, \psi),\, \nabla_\psi \mathcal{L}_D(\theta, \psi))$ (for zero-sum games, $\mathcal{L}_D = -\mathcal{L}_G + \mathcal{R}(D)$). Near a stationary equilibrium $x^* = (\theta^*, \psi^*)$ with $F(x^*) = 0$, the linearized dynamics are governed by the game Jacobian $J_F = \nabla_x F(x^*)$:
 
-$$J_F = \begin{pmatrix} J_{GG} & J_{GD} \\ J_{DG} & J_{DD} \end{pmatrix} = \underbrace{\frac{1}{2}(J_F + J_F^\top)}_{S\text{ (symmetric / dissipative)}} + \underbrace{\frac{1}{2}(J_F - J_F^\top)}_{A\text{ (antisymmetric / Hamiltonian)}}.$$
+$$
+J_F = \begin{pmatrix} J_{GG} & J_{GD} \\ J_{DG} & J_{DD} \end{pmatrix} = \underbrace{\frac{1}{2}(J_F + J_F^\top)}_{S\text{ (symmetric / dissipative)}} + \underbrace{\frac{1}{2}(J_F - J_F^\top)}_{A\text{ (antisymmetric / Hamiltonian)}}.
+$$
 
 For zero-sum games with a critic regularizer $\mathcal{R}(D)$ having Hessian $\mu_D I = \nabla^2_{\psi\psi} \mathcal{R}\big|_{x^*} \succeq 0$ and zero generator regularizer ($J_{GG} = 0$), the canonical 2D (or block-$2d$) linearized Jacobian with interaction frequency $\omega > 0$ and player capacity/gain ratio $\rho > 0$ is:
 
-$$J_F(\mu_D, \omega, \rho) = \begin{pmatrix} 0 & -\omega \rho \\ \omega / \rho & \mu_D \end{pmatrix}, \qquad \lambda_\pm(J_F) = \frac{\mu_D \pm \sqrt{\mu_D^2 - 4\omega^2}}{2}.$$
+$$
+J_F(\mu_D, \omega, \rho) = \begin{pmatrix} 0 & -\omega \rho \\ \omega / \rho & \mu_D \end{pmatrix}, \qquad \lambda_\pm(J_F) = \frac{\mu_D \pm \sqrt{\mu_D^2 - 4\omega^2}}{2}.
+$$
 
 ### 1.1 Symmetric vs. Antisymmetric Spectrum & Simultaneous vs. Alternating Updates
 
-1. **Purely Imaginary Spectrum ($\mu_D = 0$):** When $J_{GG} = J_{DD} = 0$, $J_F = A$ is purely skew-symmetric with $\lambda_\pm = \pm i\omega$.
-   - **Simultaneous Euler GD ($x_{k+1} = x_k - \eta F(x_k)$, $M_{\text{sim}} = I - \eta J_F$):**
-     $$|\lambda_\pm(M_{\text{sim}})| = |1 \mp i \eta \omega| = \sqrt{1 + \eta^2 \omega^2} > 1 \qquad \forall\,\eta > 0.$$
-     Simultaneous Euler GD is **unconditionally exponentially divergent** for every positive step size.
-   - **Weakly Damped Simultaneous GD ($0 < \mu_D < 2\omega$):** $|1 - \eta \lambda_\pm|^2 = 1 - \eta \mu_D + \eta^2 \omega^2 < 1 \iff 0 < \eta < \mu_D / \omega^2$. At `unified_v11`/`v12`'s actual $\mu_D = 0.01$ (`lambda_floor = 0.005`), simultaneous GD with $\eta = 0.014$ **strictly diverges** ($\rho_{\text{sim}} = 1.000028 > 1$)!
-   - **1:1 Alternating D-then-G GD (Exact Architecture of [`particlegan/training.py:678–696`](../../particlegan/training.py#L678-L696)):**
-     $$M_{\text{alt}} = \begin{pmatrix} 1 & \eta_G \omega \rho \\ 0 & 1 \end{pmatrix} \begin{pmatrix} 1 & 0 \\ -\eta_D \omega / \rho & 1 - \eta_D \mu_D \end{pmatrix} = \begin{pmatrix} 1 - \eta_G \eta_D \omega^2 & \eta_G \omega \rho (1 - \eta_D \mu_D) \\ -\eta_D \omega / \rho & 1 - \eta_D \mu_D \end{pmatrix}.$$
-     **Theorem 1 (Exact Alternating Symplectic Determinant):** $\det(M_{\text{alt}}) = 1 - \eta_D \mu_D$ identically, independent of $\eta_G, \omega, \rho$.
-     - When $\mu_D = 0$: $\det(M_{\text{alt}}) = 1$ (area-preserving symplectic integrator). For $0 < \eta_G \eta_D \omega^2 < 4$, both eigenvalues lie **strictly on the unit circle** $|\lambda_\pm| = 1$, trapping every trajectory on a neutrally stable invariant ellipse (never converging).
-     - When $\mu_D > 0$ (underdamped complex conjugate regime): $\rho(M_{\text{alt}}) = \sqrt{1 - \eta_D \mu_D} < 1$ for all $0 < \eta_D < 1/\mu_D$ and small $\eta_G$. Thus 1:1 alternation converts ParticleGAN's weak $\mu_D = 0.01$ from simultaneous divergence ($\rho_{\text{sim}} = 1.000042$) into strict contraction ($\rho_{\text{alt}} = 0.999895$).
+**Purely Imaginary Spectrum ($\mu_D = 0$):** When $J_{GG} = J_{DD} = 0$, $J_F = A$ is purely skew-symmetric with $\lambda_\pm = \pm i\omega$.
+
+**Simultaneous Euler GD ($x_{k+1} = x_k - \eta F(x_k)$, $M_{\text{sim}} = I - \eta J_F$):**
+
+$$
+|\lambda_\pm(M_{\text{sim}})| = |1 \mp i \eta \omega| = \sqrt{1 + \eta^2 \omega^2} > 1 \qquad \forall\,\eta > 0.
+$$
+
+Simultaneous Euler GD is **unconditionally exponentially divergent** for every positive step size.
+
+**Weakly Damped Simultaneous GD ($0 < \mu_D < 2\omega$):** $|1 - \eta \lambda_\pm|^2 = 1 - \eta \mu_D + \eta^2 \omega^2 < 1 \iff 0 < \eta < \mu_D / \omega^2$. At `unified_v11`/`v12`'s actual $\mu_D = 0.01$ (`lambda_floor = 0.005`), simultaneous GD with $\eta = 0.014$ **strictly diverges** ($\rho_{\text{sim}} = 1.000028 > 1$)!
+
+**1:1 Alternating D-then-G GD (Exact Architecture of [`particlegan/training.py:678–696`](../../particlegan/training.py#L678-L696)):**
+
+$$
+M_{\text{alt}} = \begin{pmatrix} 1 & \eta_G \omega \rho \\ 0 & 1 \end{pmatrix} \begin{pmatrix} 1 & 0 \\ -\eta_D \omega / \rho & 1 - \eta_D \mu_D \end{pmatrix} = \begin{pmatrix} 1 - \eta_G \eta_D \omega^2 & \eta_G \omega \rho (1 - \eta_D \mu_D) \\ -\eta_D \omega / \rho & 1 - \eta_D \mu_D \end{pmatrix}.
+$$
+
+**Theorem 1 (Exact Alternating Symplectic Determinant):** $\det(M_{\text{alt}}) = 1 - \eta_D \mu_D$ identically, independent of $\eta_G, \omega, \rho$.
+- When $\mu_D = 0$: $\det(M_{\text{alt}}) = 1$ (area-preserving symplectic integrator). For $0 < \eta_G \eta_D \omega^2 < 4$, both eigenvalues lie **strictly on the unit circle** $|\lambda_\pm| = 1$, trapping every trajectory on a neutrally stable invariant ellipse (never converging).
+- When $\mu_D > 0$ (underdamped complex conjugate regime): $\rho(M_{\text{alt}}) = \sqrt{1 - \eta_D \mu_D} < 1$ for all $0 < \eta_D < 1/\mu_D$ and small $\eta_G$. Thus 1:1 alternation converts ParticleGAN's weak $\mu_D = 0.01$ from simultaneous divergence ($\rho_{\text{sim}} = 1.000042$) into strict contraction ($\rho_{\text{alt}} = 0.999895$).
 
 | Critic Curvature $\mu_D$ | $J_F$ Eigenvalues ($\omega=1$) | $\rho(M_{\text{sim}})$ ($\eta_G{=}0.014, \eta_D{=}0.021$) | $\rho(M_{\text{alt}})$ (1:1 D-then-G) | $\det(M_{\text{alt}}) = 1 - \eta_D \mu_D$ | Regime |
 | :---: | :---: | :---: | :---: | :---: | :--- |
@@ -62,11 +75,14 @@ $$J_F(\mu_D, \omega, \rho) = \begin{pmatrix} 0 & -\omega \rho \\ \omega / \rho &
 ### 1.2 Non-Normality & Kreiss Pseudospectral Transient Amplification (Connection to Law 4.1)
 
 Spectral stability $\rho(M) < 1$ guarantees only *asymptotic* decay $\lim_{k\to\infty} \|M^k\| = 0$, NOT bounded finite-time trajectories. Whenever $J_F$ is non-normal ($J_F J_F^\top \ne J_F^\top J_F$) — either from **player capacity/gain mismatch $\rho \gg 1$** or from **defective Jordan coupling** — its $\varepsilon$-pseudospectrum bulges far outside the unit disk, governed by the **Kreiss Matrix Theorem**:
-$$\mathcal{K}(M) \le \sup_{k \ge 0} \|M^k\|_2 \le e\, n\, \mathcal{K}(M), \qquad \mathcal{K}(M) = \sup_{|z| > 1} (|z| - 1)\|(zI - M)^{-1}\|_2.$$
+
+$$
+\mathcal{K}(M) \le \sup_{k \ge 0} \|M^k\|_2 \le e\, n\, \mathcal{K}(M), \qquad \mathcal{K}(M) = \sup_{|z| > 1} (|z| - 1)\|(zI - M)^{-1}\|_2.
+$$
 
 From `scripts/four_laws_audit/p3_game_dynamics.py` (fixed contracting eigenvalues $\mu_D = 0.5, \eta = 0.1 \implies \rho(M) = 0.97980 < 1$ identically across all $\rho$):
 
-| System ($M = I - 0.1 J_F$) | $\|J_F J_F^\top - J_F^\top J_F\|_F$ | Eigenvector $\kappa(V)$ | Spectral Radius $\rho(M)$ | Peak Transient $\sup_k \|M^k\|_2$ | Peak Step $k^*$ | Kreiss $\mathcal{K}(M) \ge$ |
+| System ($M = I - 0.1 J_F$) | $\lVert J_F J_F^\top - J_F^\top J_F\rVert_F$ | Eigenvector $\kappa(V)$ | Spectral Radius $\rho(M)$ | Peak Transient $\sup_k \lVert M^k\rVert_2$ | Peak Step $k^*$ | Kreiss $\mathcal{K}(M) \ge$ |
 | :--- | ---: | ---: | :---: | ---: | :---: | ---: |
 | Balanced ($\rho = 1$) | `1.41` | `1.29` | `0.97980` | `1.02×` | `6` | `1.00` |
 | Imbalanced ($\rho = 10$) | `141.59` | `10.33` | `0.97980` | `7.64×` | `14` | `4.06` |
@@ -83,7 +99,11 @@ From `scripts/four_laws_audit/p3_game_dynamics.py` (fixed contracting eigenvalue
 For simultaneous Heavy-Ball momentum $x_{k+1} = x_k - \eta F(x_k) + \beta_1 (x_k - x_{k-1})$ applied to an eigenmode $\lambda = \gamma + i\omega$ ($\gamma \ge 0$), the characteristic polynomial is $z^2 - (1 + \beta_1 - \eta\lambda) z + \beta_1 = 0$. Applying the exact complex Schur–Cohn criterion ($|a_0| < 1$ and $|a_1 - \bar{a}_1 a_0| < 1 - |a_0|^2$) yields:
 
 **Theorem 2 (Exact Schur–Cohn Momentum Stability Ceiling):** For any $\beta_1 \in (-1, 1)$ and $\gamma > 0$, simultaneous Heavy-Ball momentum is strictly Schur-stable iff $0 < \eta < \eta_{\max}(\beta_1; \gamma, \omega)$, where:
-$$\eta_{\max}(\beta_1; \gamma, \omega) = \frac{2\gamma (1 + \beta_1)(1 - \beta_1)^2}{\gamma^2 (1 - \beta_1)^2 + \omega^2 (1 + \beta_1)^2}.$$
+
+$$
+\eta_{\max}(\beta_1; \gamma, \omega) = \frac{2\gamma (1 + \beta_1)(1 - \beta_1)^2}{\gamma^2 (1 - \beta_1)^2 + \omega^2 (1 + \beta_1)^2}.
+$$
+
 - **Pure optimization limit ($\omega = 0$):** Recovers Polyak's (1964) exact ceiling $\eta_{\max} = \frac{2(1+\beta_1)}{\gamma}$ (positive momentum *helps*).
 - **Purely imaginary limit ($\gamma = 0, \omega > 0$):** $\eta_{\max} = 0$; small-$\eta$ expansion gives $|z_1|^2 = 1 + \frac{1+\beta_1}{(1-\beta_1)^3}\eta^2\omega^2 + O(\eta^4)$, so $\beta_1 = 0.85$ accelerates instability **`548×`** and $\beta_1 = 0.90$ **`1,900×`**!
 - **Underdamped adversarial game ($\omega \gg \gamma$):** $\eta_{\max} \approx \frac{2\gamma}{\omega^2}\frac{(1-\beta_1)^2}{1+\beta_1}$. Positive momentum **collapses** the stable step-size ceiling **`82.2×` at $\beta_1 = 0.85$ (Muon)** and **`190×` at $\beta_1 = 0.90$ (Adam)**, whereas **negative momentum** $\beta_1 = -0.5$ *expands* $\eta_{\max}$ by **`4.5×`** (matching Gidel et al., ICLR 2019)!
@@ -112,9 +132,7 @@ $$\eta_{\max}(\beta_1; \gamma, \omega) = \frac{2\gamma (1 + \beta_1)(1 - \beta_1
 
 For a linear critic $D_{\psi, b}(x) = \psi^\top x + b$ near Nash equilibrium $(\theta^*, \psi^*, b^*) = (0, 0, 0)$ with target $y \sim P_Y$ ($\mathbb{E}[y] = 0$, $\operatorname{Cov}(y) = \Sigma_Y$) and $x \sim P_G$ ($\Sigma_X = \Sigma_Y$ at equilibrium):
 - **Wasserstein (`loss="wasserstein"`) & Hinge (`loss="hinge"`, [`particlegan/gan_loss.py:37–39`](../../particlegan/gan_loss.py#L37-L39)):** On $|D(x)| < 1$, both are linear in $D$ ($f''(0) \equiv 0$), so $\nabla^2_{\psi\psi}\mathcal{L}_D = 0$ **even on full-dimensional distributions ($\Sigma_Y \succ 0$)**!
-- **Non-Saturating & Relativistic Logistic (`loss="non_saturating"`, `"relativistic"`, [`particlegan/gan_loss.py:32–35`](../../particlegan/gan_loss.py#L32-L35)):** Since $\operatorname{softplus}''(0) = \frac{1}{4}$, the loss itself induces
-  $$\nabla^2_{\psi\psi}\mathcal{L}_D\big|_{x^*} = \frac{1}{4}(\Sigma_Y + \Sigma_X) = \frac{1}{2}\Sigma_Y.$$
-  Along **tangent directions** of $P_Y$ ($\operatorname{range}(\Sigma_Y)$), logistic loss supplies intrinsic curvature; along **every normal direction** orthogonal to a lower-dimensional data manifold $\mathcal{M} \subset \mathbb{R}^d$ ($\ker(\Sigma_Y)$, including Dirac-GAN where $\Sigma_Y = 0$ and real image manifolds of codimension $\gg 1$), $\nabla^2_{\psi\psi}\mathcal{L}_D\big|_{\ker(\Sigma_Y)} = 0$ identically (Mescheder et al. 2018, Lemma 2.1 & Theorem 4.1). Only zero-centered critic gradient penalties (R1/R2 or Born–Infeld's quadratic bottom) populate $J_{DD}$ along $\ker(\Sigma_Y)$.
+- **Non-Saturating & Relativistic Logistic (`loss="non_saturating"`, `"relativistic"`, [`particlegan/gan_loss.py:32–35`](../../particlegan/gan_loss.py#L32-L35)):** Since $\operatorname{softplus}''(0) = \frac{1}{4}$, the loss itself induces $\nabla^2_{\psi\psi}\mathcal{L}_D\big|_{x^*} = \frac{1}{4}(\Sigma_Y + \Sigma_X) = \frac{1}{2}\Sigma_Y$. Along **tangent directions** of $P_Y$ ($\operatorname{range}(\Sigma_Y)$), logistic loss supplies intrinsic curvature; along **every normal direction** orthogonal to a lower-dimensional data manifold $\mathcal{M} \subset \mathbb{R}^d$ ($\ker(\Sigma_Y)$, including Dirac-GAN where $\Sigma_Y = 0$ and real image manifolds of codimension $\gg 1$), $\nabla^2_{\psi\psi}\mathcal{L}_D\big|_{\ker(\Sigma_Y)} = 0$ identically (Mescheder et al. 2018, Lemma 2.1 & Theorem 4.1). Only zero-centered critic gradient penalties (R1/R2 or Born–Infeld's quadratic bottom) populate $J_{DD}$ along $\ker(\Sigma_Y)$.
 
 ---
 
@@ -124,13 +142,13 @@ For a linear critic $D_{\psi, b}(x) = \psi^\top x + b$ near Nash equilibrium $(\
 
 Measured directly on `particlegan`'s actual penalty classes in `scripts/four_laws_audit/p3_game_dynamics.py` (`audit_particlegan_penalties()`, $D(x) = w^\top x + b$, $d=2$, `coeff=1.0`, `kappa=1.0`):
 
-| Critic Penalty Implementation | Exact Code Location | Formula Summary | $\partial^2 \mathcal{R}/\partial w^2\big|_0$ ($\mu_D$) | $\partial^2 \mathcal{R}/\partial b^2\big|_0$ (Gauge) | $\partial \mathcal{R}/\partial w\big|_{0.5}$ | Provides $J_{DD} \succ 0$? |
+| Critic Penalty Implementation | Exact Code Location | Formula Summary | $\partial^2 \mathcal{R}/\partial w^2\big\vert_0$ ($\mu_D$) | $\partial^2 \mathcal{R}/\partial b^2\big\vert_0$ (Gauge) | $\partial \mathcal{R}/\partial w\big\vert_{0.5}$ | Provides $J_{DD} \succ 0$? |
 | :--- | :--- | :--- | ---: | ---: | ---: | :---: |
-| **`GradientPenalty(arm="b_cap")`** | [`grad_regularizers.py:233–235`](../../particlegan/grad_regularizers.py#L233-L235) | $\frac{1}{2}\big(\operatorname{ReLU}(\|g_r\|-1)^2 + \operatorname{ReLU}(\|g_f\|-1)^2\big)$ | **`0.000000e+00`** | `0.000000e+00` | `0.000000e+00` | **NO** |
-| **`UnifiedV11CriticPenalty(lambda_floor=0)`** | [`_unified/penalty.py:730–749`](../../particlegan/_unified/penalty.py#L730-L749) | $\frac{1}{2}\big(\operatorname{sp}_{12}(\|g\|-1)^2 + 0.03\bar{D}^2\big)$ | **`6.463026e-07`** | `3.000000e-02` | `1.340168e-06` | **NO** *(flat interior; gauge damps $b$ only)* |
-| **`UnifiedV11CriticPenalty` (Default `v11`/`v12`)** | [`_unified/penalty.py:741–744`](../../particlegan/_unified/penalty.py#L741-L744) | $+\, \frac{1}{2}\cdot 0.005\,(\|g_r\|^2 + \|g_f\|^2)$ *(hidden R1+R2 floor!)* | **`1.000065e-02`** | `3.000000e-02` | `5.001350e-03` | **WEAK YES** *(on low-D; `2.54e-9` on `r256`!)* |
-| **`MinimalCriticPenalty` (Default `minimal`)** | [`_minimal/geometry.py:138–141`](../../particlegan/_minimal/geometry.py#L138-L141) | $\frac{\sqrt{1 + 8\|g\|^2}-1}{8} + 0.08\,\text{chord} + 0.03(\bar{D}_r^2+\bar{D}_f^2)$ | **`1.080281e+00`** | `1.200000e-01` | `3.288177e-01` | **STRONG YES** *(`108×` stronger than `v11`/`v12`!)* |
-| **`GradientPenalty(arm="a_r1r2")`** | [`grad_regularizers.py:231`](../../particlegan/grad_regularizers.py#L231) | $\frac{1}{2}(\|g_r\|^2 + \|g_f\|^2)$ | **`2.000000e+00`** | `0.000000e+00` | `1.000000e+00` | **STRONG YES** |
+| **`GradientPenalty(arm="b_cap")`** | [`grad_regularizers.py:233–235`](../../particlegan/grad_regularizers.py#L233-L235) | $\frac{1}{2}\big(\operatorname{ReLU}(\lVert g_r\rVert-1)^2 + \operatorname{ReLU}(\lVert g_f\rVert-1)^2\big)$ | **`0.000000e+00`** | `0.000000e+00` | `0.000000e+00` | **NO** |
+| **`UnifiedV11CriticPenalty(lambda_floor=0)`** | [`_unified/penalty.py:730–749`](../../particlegan/_unified/penalty.py#L730-L749) | $\frac{1}{2}\big(\operatorname{sp}_{12}(\lVert g\rVert-1)^2 + 0.03\bar{D}^2\big)$ | **`6.463026e-07`** | `3.000000e-02` | `1.340168e-06` | **NO** *(flat interior; gauge damps $b$ only)* |
+| **`UnifiedV11CriticPenalty` (Default `v11`/`v12`)** | [`_unified/penalty.py:741–744`](../../particlegan/_unified/penalty.py#L741-L744) | $+\, \frac{1}{2}\cdot 0.005\,(\lVert g_r\rVert^2 + \lVert g_f\rVert^2)$ *(hidden R1+R2 floor!)* | **`1.000065e-02`** | `3.000000e-02` | `5.001350e-03` | **WEAK YES** *(on low-D; `2.54e-9` on `r256`!)* |
+| **`MinimalCriticPenalty` (Default `minimal`)** | [`_minimal/geometry.py:138–141`](../../particlegan/_minimal/geometry.py#L138-L141) | $\frac{\sqrt{1 + 8\lVert g\rVert^2}-1}{8} + 0.08\,\text{chord} + 0.03(\bar{D}_r^2+\bar{D}_f^2)$ | **`1.080281e+00`** | `1.200000e-01` | `3.288177e-01` | **STRONG YES** *(`108×` stronger than `v11`/`v12`!)* |
+| **`GradientPenalty(arm="a_r1r2")`** | [`grad_regularizers.py:231`](../../particlegan/grad_regularizers.py#L231) | $\frac{1}{2}(\lVert g_r\rVert^2 + \lVert g_f\rVert^2)$ | **`2.000000e+00`** | `0.000000e+00` | `1.000000e+00` | **STRONG YES** |
 
 **Three Critical Code Discrepancies Exposed:**
 1. **`docs/four-laws.md` conflates two mathematically distinct penalties under the name "Born–Infeld":** `minimal` implements the actual Born–Infeld energy $\frac{\sqrt{1+\beta g^2}-1}{\beta}$ (which is **strictly quadratic $\frac{1}{2}g^2$ at $g=0$**), whereas `unified_v11`/`v12` implement a **softplus one-sided cap** $\operatorname{softplus}_\beta(g-\kappa)^2$ (whose interior curvature is $6.5 \times 10^{-7}$, made *even flatter* by `settle_beta = 16.0` raising $\beta: 12 \to 28$ at equilibrium!) **bolted onto an undocumented explicit R1+R2 quadratic floor `lambda_floor = 0.005`** (`0` mentions of `lambda_floor` anywhere in `docs/four-laws.md`!).
@@ -142,7 +160,7 @@ Measured directly on `particlegan`'s actual penalty classes in `scripts/four_law
 Inspecting [`particlegan/_unified_v11/optimizer.py:714–782,983–1053,1173–1315`](../../particlegan/_unified_v11/optimizer.py#L714-L782), [`particlegan/_unified_v12/optimizer.py:122–170,1023–1046,1151–1230`](../../particlegan/_unified_v12/optimizer.py#L122-L170), and [`particlegan/_unified_v4/optimizer.py:40–56`](../../particlegan/_unified_v4/optimizer.py#L40-L56):
 
 1. **`delta_g_max` (`_band_scale`):** Computes a **strictly positive scalar** $\alpha_G \in [10^{-4}, 48.0]$ from realized output displacement $\delta_{\text{rel}} = \operatorname{RMS}(G_{\theta'}(z) - G_\theta(z))/s_{\text{coord}}$ and rescales all generator parameter updates isotropically: $\Delta\theta \mapsto \alpha_G \Delta\theta$.
-   - *Analytic Consequence:* Rescaling $F_G \mapsto \alpha_G F_G$ with $\alpha_G > 0$ only rescales effective generator learning rate $\eta_G^{\text{eff}} = \alpha_G \eta_G > 0$. On $J_F = \begin{pmatrix} 0 & -\omega \\ \omega & 0 \end{pmatrix}$, eigenvalues remain purely imaginary ($\pm i \omega \sqrt{\alpha_G \eta_G \eta_D}$ in continuous time; $|1 \pm i\omega\sqrt{\alpha_G \eta_G \eta_D}| > 1$ in simultaneous Euler; $|\lambda| = 1$ in alternating GD). **`delta_g_max` bounds orbit radius / prevents unbounded blowup, converting divergence into a bounded limit cycle, but CANNOT induce rotational contraction.**
+   - *Analytic Consequence:* Rescaling $F_G \mapsto \alpha_G F_G$ with $\alpha_G > 0$ only rescales effective generator learning rate $\eta_G^{\text{eff}} = \alpha_G \eta_G > 0$. On the skew-symmetric $2\times 2$ Jacobian $J_F(\mu_D{=}0, \omega, \rho{=}1)$ (zero diagonal, off-diagonal entries $-\omega$ and $+\omega$), eigenvalues remain purely imaginary ($\pm i \omega \sqrt{\alpha_G \eta_G \eta_D}$ in continuous time; $|1 \pm i\omega\sqrt{\alpha_G \eta_G \eta_D}| > 1$ in simultaneous Euler; $|\lambda| = 1$ in alternating GD). **`delta_g_max` bounds orbit radius / prevents unbounded blowup, converting divergence into a bounded limit cycle, but CANNOT induce rotational contraction.**
 2. **Coherence Cooling (`stiff_gate` + `||m||/||v||`) & `UnifiedV12` CountSketch Flip Controller:**
    - `stiff_gate` activates **only** when `_ema_func_gain < 0.18` (`v11`, [`optimizer.py:716`](../../particlegan/_unified_v11/optimizer.py#L716)) or `< 0.60` (`v12`, [`optimizer.py:124`](../../particlegan/_unified_v12/optimizer.py#L124)). On any balanced, well-conditioned counterexample where $\delta_{\text{rel}} \le \delta_{g,\max}$, `_ema_func_gain == 1.0`, so `stiff_gate == 0.0`, `b1_eff == 0.0`, coherence cooling is **identically inactive (`coh = 1.0`)**, and the CountSketch flip controller ([`optimizer.py:134`](../../particlegan/_unified_v12/optimizer.py#L134)) is **bypassed**.
    - Even if forced on, smooth rotation has step-to-step gradient cosine $\cos(\eta \omega) \approx +0.999 > 0$ (NOT period-2 sign flip $\cos < -0.45$), and turning on `b1_eff = 0.75 * stiff_gate > 0` *destabilizes* purely imaginary eigenmodes by Theorem 2!
@@ -163,7 +181,7 @@ Every counterexample below explicitly satisfies all four operational laws as for
 
 #### A1 — 2D Bounded 1-Lipschitz Wasserstein Dirac-GAN ($y \equiv 0$, $G_\theta(z) = \theta$, $r_0 = 0.40$)
 
-| Optimizer / Update Rule | Critic Interior Penalty | Tail Radius $r_{\text{tail}}$ | Tail Critic $\|\psi\|_{\text{rms}}$ | $\max \|\nabla_x D\|_2$ | `delta_g` Clamps | `ema_fg` / `stiff` | Outcome |
+| Optimizer / Update Rule | Critic Interior Penalty | Tail Radius $r_{\text{tail}}$ | Tail Critic $\lVert\psi\rVert_{\text{rms}}$ | $\max \lVert\nabla_x D\rVert_2$ | `delta_g` Clamps | `ema_fg` / `stiff` | Outcome |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :--- |
 | Simultaneous GD ($\eta=0.05$) | None ($\mu_D = 0$) | **`1.46739`** | `0.8758` | `0.9486` | `0` | — | **DIVERGES to $\tanh$ wall** |
 | **Sim GD + Active `delta_g_max=0.004`** | **None ($\mu_D = 0$)** | **`0.31376`** | **`0.6653`** | **`0.8014`** | **`2,849/3,000`** | — | **FAIL: Persistent Limit Cycle** |
@@ -182,7 +200,7 @@ Every counterexample below explicitly satisfies all four operational laws as for
 
 #### A2 — 2D Codimension-1 Manifold Gaussian Under ParticleGAN's Default `non_saturating` Logistic Loss ($y = (y_1, 0), y_1 \sim \mathcal{N}(0, 1)$, $\theta_0 = (0.4, 0.4)$)
 
-| Optimizer | Critic Interior Penalty | Tangent RMS ($\theta_1$, $\text{Var}=1$) | Normal RMS ($\theta_2$, codim-1) | Tail $\|\psi\|_{\text{rms}}$ | $\max \|\nabla_x D\|_2$ | Mechanism Verified |
+| Optimizer | Critic Interior Penalty | Tangent RMS ($\theta_1$, $\text{Var}=1$) | Normal RMS ($\theta_2$, codim-1) | Tail $\lVert\psi\rVert_{\text{rms}}$ | $\max \lVert\nabla_x D\rVert_2$ | Mechanism Verified |
 | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
 | Sim GD + `delta_g_max=0.002` (`2,770` clamps) | None ($\mu_D = 0$) | **`0.0069`** *(conv.)* | **`0.2334` (FAIL)** | `0.3910` | `0.6290` | Tangent damped by $f''(0)\Sigma_Y$; normal orbits! |
 | Alternating 1:1 GD | None ($\mu_D = 0$) | **`0.0035`** *(conv.)* | **`0.1931` (FAIL)** | `0.2526` | `0.4616` | Exact Mescheder Thm 4.1 tangent/normal split |
@@ -196,7 +214,7 @@ Every counterexample below explicitly satisfies all four operational laws as for
 
 Even with **full-dimensional support** ($\Sigma_Y = I_2$, zero manifold degeneracy), `GANLoss("hinge")` has $f''(0) = 0$ inside $|D(x)| < 1$ (all `5/5` executed arms reported verbatim):
 
-| Optimizer | Critic Interior Penalty | Tail Radius $r_{\text{tail}}$ | Tail RMS ($\theta_1$ / $\theta_2$) | Tail $\|\psi\|_{\text{rms}}$ | $\max \|\nabla_x D\|_2$ | Outcome |
+| Optimizer | Critic Interior Penalty | Tail Radius $r_{\text{tail}}$ | Tail RMS ($\theta_1$ / $\theta_2$) | Tail $\lVert\psi\rVert_{\text{rms}}$ | $\max \lVert\nabla_x D\rVert_2$ | Outcome |
 | :--- | :--- | :---: | :---: | :---: | :---: | :--- |
 | Alternating 1:1 GD | None ($\mu_D = 0$) | `0.13344` | `0.1360` / `0.0577` | `0.1814` | `0.4585` | Persistent orbit despite full support |
 | **Actual `UnifiedV12Optimizer`** | **None ($\mu_D = 0$)** | **`0.24171`** | `0.1468` / `0.2300` | `0.2886` | `0.4871` | Persistent orbit (`ema_fg=1.0`, `stiff=0`) |
@@ -208,7 +226,7 @@ Even with **full-dimensional support** ($\Sigma_Y = I_2$, zero manifold degenera
 
 Balanced 2D smooth `SiLU` residual MLP $G$ (`162` params) and `SiLU` MLP $D$ (`129` params, $\rho = 1.26$, `steps = 1,000`, tail = last `300` steps, `ns_2d_activations = 2,000`, `probe_consumptions = 1,000`, Seed `0`; all `10/10` executed arms reported verbatim):
 
-| Actual ParticleGAN Critic Penalty | Loss | $\beta_1$ | Sim? | Tail $|\bar{x}_2|$ | Tail Peak-to-Peak (`ptp`) | Tail $\operatorname{std}(x_2)$ | Critic Normal Slope | $\operatorname{med}/\max\|\nabla_x D\|$ | $|\mathbb{E}[D]|$ |
+| Actual ParticleGAN Critic Penalty | Loss | $\beta_1$ | Sim? | Tail $\lvert\bar{x}_2\rvert$ | Tail Peak-to-Peak (`ptp`) | Tail $\operatorname{std}(x_2)$ | Critic Normal Slope | $\operatorname{med}/\max\lVert\nabla_x D\rVert$ | $\lvert\mathbb{E}[D]\rvert$ |
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
 | **`bcap_hinge_gauge`** ($\mu_D = 0$) | `wasserstein` | `0.0` | No | **`0.1640`** | **`0.7160` (HUGE ORBIT)** | `0.1221` | **`0.1659`** | `0.249` / **`0.983`** | `0.0467` |
 | **`unified_v11_no_floor`** ($\mu_D = 6.5\text{e-}7$) | `wasserstein` | `0.0` | No | **`0.0703`** | **`0.4102` (FAIL)** | `0.0738` | **`0.0494`** | `0.161` / **`0.734`** | `0.0241` |
