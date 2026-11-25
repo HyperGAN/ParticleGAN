@@ -157,26 +157,20 @@ def _compute_pythagorean_smoothed_cells_v15(
     sig_dir_i = v_dir_i.sqrt()
     sig_dir_j = sig_dir_i.transpose(0, 1)
     sig_dir_max = torch.maximum(sig_dir_i, sig_dir_j)
-    sig_dir_min = torch.minimum(sig_dir_i, sig_dir_j).clamp_min(1e-12)
 
     sig_tr = proto_var.sqrt()
     sig_tr_max = torch.maximum(sig_tr.unsqueeze(1), sig_tr.unsqueeze(0))
     sig_tr_min = torch.minimum(sig_tr.unsqueeze(1), sig_tr.unsqueeze(0)).clamp_min(1e-12)
 
-    in_sibling = (
-        (d_cc <= (2.6 * sqrt_d * sig_dir_max))
-        & (sig_dir_max <= (2.2 * sig_dir_min))
-        & (sig_tr_max <= (2.2 * sig_tr_min))
-    )
+    in_sibling = (d_cc <= (2.6 * sqrt_d * sig_dir_max)) & (sig_tr_max <= (2.2 * sig_tr_min))
     in_sibling.fill_diagonal_(True)
 
     adj = in_sibling.float()
-    adj = ((adj @ adj) > 0).float()
-    adj = ((adj @ adj) > 0).float()
-    adj = ((adj @ adj) > 0).float()
+    # 6 squarings -> exact transitive closure up to 2^6 = 64 hops (covers any isolated mode in K <= 256).
+    for _ in range(6):
+        adj = ((adj @ adj) > 0).float()
     comp_size = adj.sum(dim=1)
-    max_comp_sz = float(min(12, max(4, k // 4)))
-    cand_coalesce = (comp_size >= 1.0) & (comp_size <= max_comp_sz) & (comp_size < float(k))
+    cand_coalesce = (comp_size >= 1.0) & (comp_size < float(k))
 
     cand_mask = torch.where(cand_coalesce.unsqueeze(1) & cand_coalesce.unsqueeze(0), adj, eye_k)
     cand_w = cand_mask * proto_w.clamp_min(1e-12).unsqueeze(0)
@@ -195,6 +189,9 @@ def _compute_pythagorean_smoothed_cells_v15(
     comp_isolated = (adj @ (~node_isolated).float()) < 0.5
 
     iso_coal = cand_coalesce & comp_isolated
+    # Zero-sync majority isolation guard: prevent tiny isolated fragments from flipping global
+    # isolated-mode scheduling while the majority of prototypes cover uncoalesced continuous mass.
+    iso_coal = iso_coal & (iso_coal.float().mean() >= 0.5)
     multicell_coal = (comp_size > 1.5) & iso_coal
 
     w_mat = torch.where(iso_coal.unsqueeze(1), cand_w, eye_k)
@@ -831,8 +828,21 @@ class UnifiedV15PriorRegularizer(nn.Module):
         has_spread_t = raw_spread > (1e-11 * x_energy)
         pair_spread = raw_spread.clamp_min(1e-24)
         var_floor = (1e-10 * pair_spread).clamp_min(1e-24)
+        # Outlier-robust global scale-jump detector (median batch radius vs prototype cloud radius):
+        # distinguishes whole-batch transient scale spikes (e.g., 1e4x scale shock) from single
+        # uncovered-mode outliers or same-scale mode shifts without breaking scale equivariance.
+        x_med = x.sort(dim=0).values[b // 2 : b // 2 + 1]
+        r_batch_rob = _quantile_1d_fast((x - x_med).norm(dim=-1), 0.5).clamp_min(1e-12)
+        c_med = c_prev.sort(dim=0).values[k // 2 : k // 2 + 1]
+        r_proto_rob = torch.maximum(
+            _quantile_1d_fast((c_prev - c_med).norm(dim=-1), 0.5),
+            (float(dim) * _quantile_1d_fast(self.proto_var, 0.5).clamp_min(1e-24)).sqrt(),
+        ).clamp_min(1e-12)
+        is_scale_spike_t = (r_batch_rob / r_proto_rob) > 3.0
+
         r2p_t = torch.where(has_spread_t, torch.sqrt(d2_min.mean() / pair_spread).double(), raw_spread.new_zeros((), dtype=torch.float64))
-        shock_t64 = ((r2p_t - 0.45) / 0.35).clamp(0.0, 1.0)
+        shock_raw64 = ((r2p_t - 0.45) / 0.35).clamp(0.0, 1.0)
+        shock_t64 = torch.where(is_scale_spike_t, shock_raw64.new_zeros(()), shock_raw64)
         self.proto_hits = torch.where(
             shock_t64 > 0.25,
             (self.proto_hits * (1.0 - 0.8 * shock_t64).float()).clamp_min(1.0),
@@ -846,7 +856,16 @@ class UnifiedV15PriorRegularizer(nn.Module):
 
         hit = b_cnt > 0
         b_cnt_safe = b_cnt.clamp_min(1.0)
+        b_mean = b_sum / b_cnt_safe.unsqueeze(1)
         cov_est = b_cov_sum / b_cnt_safe.view(k, 1, 1) + (var_floor * eye_d.unsqueeze(0))
+        # Geometric trust-region during extreme upward scale spikes: cap single-step covariance
+        # expansion to <= 4x current prototype scale so transient 1e4x spikes cannot inflate
+        # proto_cov by 1e8x while genuine persistent scale shifts still adapt geometrically.
+        tr_est = torch.diagonal(cov_est, dim1=-2, dim2=-1).mean(dim=-1).clamp_min(1e-24)
+        tr_cap = (4.0 * torch.maximum(self.proto_var, self.proto_var.median().clamp_min(1e-24))).clamp_min(1e-24)
+        cov_spike_scale = (tr_cap / tr_est).clamp_max(1.0).view(k, 1, 1)
+        cov_est = torch.where(is_scale_spike_t, cov_est * cov_spike_scale, cov_est)
+
         # Symmetric hit-annealed covariance EMA: fast (0.14-0.25) on newly initialized/split/teleported
         # prototypes, smoothly annealing to 0.045 once settled (zero one-sided shrinkage bias).
         alpha_base_c = (0.045 + 0.16 / torch.sqrt(self.proto_hits)).clamp_max(0.22)
@@ -858,12 +877,15 @@ class UnifiedV15PriorRegularizer(nn.Module):
         )
         self.proto_var = torch.diagonal(self.proto_cov, dim1=-2, dim2=-1).mean(dim=-1).clamp_min(var_floor)
 
-        b_mean = b_sum / b_cnt_safe.unsqueeze(1)
         new_hits = (self.proto_hits + b_cnt).clamp_max(2000.0)
         self.proto_hits = torch.where(hit, new_hits, self.proto_hits)
         base_c = (0.035 + 0.25 / torch.sqrt(self.proto_hits)) + (0.38 * (shock_t64 * shock_t64)).float()
         alpha_c = (base_c * (b_cnt / (b_cnt + 2.0))).clamp_max(0.50).unsqueeze(1)
-        self.proto_c = torch.where(hit.unsqueeze(1), (1.0 - alpha_c) * c_prev + alpha_c * b_mean, c_prev)
+        step_c = alpha_c * (b_mean - c_prev)
+        step_c_norm = step_c.norm(dim=-1, keepdim=True).clamp_min(1e-24)
+        step_c_cap = (0.5 * r_proto_rob) / step_c_norm
+        step_c = torch.where(is_scale_spike_t, step_c * step_c_cap.clamp_max(1.0), step_c)
+        self.proto_c = torch.where(hit.unsqueeze(1), c_prev + step_c, c_prev)
 
         med_v = self.proto_var.median().clamp_min(var_floor)
         if dim == 2:
@@ -876,7 +898,11 @@ class UnifiedV15PriorRegularizer(nn.Module):
         dead = self.proto_w < (0.04 * mean_w)
         uncovered_ratio = d2_min / torch.maximum(36.0 * float(dim) * v_loc_max, 1e-3 * pair_spread)
         max_ur, worst_j = uncovered_ratio.max(dim=0)
-        do_uncovered_t = (max_ur > 1.0) & has_spread_t if k >= 8 else raw_spread.new_zeros((), dtype=torch.bool)
+        do_uncovered_t = (
+            (max_ur > 1.0) & has_spread_t & (~is_scale_spike_t)
+            if k >= 8
+            else raw_spread.new_zeros((), dtype=torch.bool)
+        )
 
         d_eff = float(min(dim, 4))
         gamma = d_eff / (d_eff + 2.0)
@@ -1509,9 +1535,9 @@ def unified_v15_pullback_step(
                 (u_def * u_def * (3.0 - 2.0 * u_def)) * (v_bar_sq - v_push_bar).clamp_min(0.0),
                 v_bar_sq.new_zeros((k_proto, dim)),
             )
-            any_v_mu_star_t = has_multicell_coal_t & (v_mu_star_cand.amax() > 0.0)
+            any_v_mu_star_t = has_iso_coal_t & (v_mu_star_cand.amax() > 0.0)
         else:
-            any_v_mu_star_t = has_multicell_coal_t.new_zeros((), dtype=torch.bool)
+            any_v_mu_star_t = has_iso_coal_t.new_zeros((), dtype=torch.bool)
 
         (
             is_point_flag,
@@ -1647,10 +1673,10 @@ def unified_v15_pullback_step(
         xi_i: Optional[torch.Tensor] = None
         xi_f_sum: Optional[torch.Tensor] = None
         need_vpush_reuse = (
-            has_coal_flag and has_sigma and recipe.t1_iso_weight > 0.0 and not is_point_flag
+            has_iso_flag and has_sigma and recipe.t1_iso_weight > 0.0 and not is_point_flag
             and dim == 2 and mu_det.shape[1] == 2 and reg.v_push is not None
         )
-        v_mu_star_all = v_mu_star_cand if (has_coal_flag and any_v_mu_star_flag and v_mu_star_cand is not None) else None
+        v_mu_star_all = v_mu_star_cand if (has_iso_flag and any_v_mu_star_flag and v_mu_star_cand is not None) else None
         condense_part_a = (
             v_mu_star_all is not None and any_coal_i_flag and scale_ge_065_flag
             and can_condense_table and not is_point_flag and indices is not None
@@ -1676,7 +1702,7 @@ def unified_v15_pullback_step(
 
         if condense_part_a:
             assert v_mu_star_all is not None and cid_i is not None and cnt_f is not None and xi_i is not None and xi_f_sum is not None
-            need_conc_i = multicell_coal[target_p_G] & (v_mu_star_all[target_p_G].amax(dim=-1) > 0.0)
+            need_conc_i = iso_coal[target_p_G] & (v_mu_star_all[target_p_G].amax(dim=-1) > 0.0)
             d_near_i = (xff - c_bar_all[target_p_G]).norm(dim=-1)
             halo_r = 3.5 * math.sqrt(float(dim)) * sigma_bar_all[target_p_G]
             halo_blend = ((d_near_i / halo_r.clamp_min(1e-12)).clamp(0.0, 1.0) ** 2).unsqueeze(1).to(fake_flat.dtype)
@@ -1734,7 +1760,10 @@ def unified_v15_pullback_step(
                 w_sat_vec = torch.where(is_rail, w_boost, torch.ones_like(w_boost)).to(fake_flat.dtype)
 
         y_bound = yf.abs().amax(dim=0, keepdim=True) + 3.5 * sigma_cell_med
-        ot_scale_dt = (y_abs_ref if is_point_flag else r_macro_safe).to(fake_flat.dtype)
+        # Scale-invariant OT reference (r_macro / 2.0): exact degree-0 scale invariance from 1e-6x
+        # to 1e6x while preserving v14-matched OT-to-isometry center stiffness on multi-mode grids.
+        bound_scale_f = (y_abs_ref if is_point_flag else r_macro_safe).float()
+        ot_scale_dt = (y_abs_ref if is_point_flag else (0.50 * r_macro_safe)).to(fake_flat.dtype)
 
     sc_med_dt = sigma_cell_med.to(fake_flat.dtype)
     if x_ctr_all_grad is not None and ledger_assigned is not None and ledger_comp_c is not None and ledger_comp_sig is not None and ledger_comp_w is not None:
@@ -1767,7 +1796,7 @@ def unified_v15_pullback_step(
         sc_ot_dt = (ledger_comp_sig[batch_comp].to(fake_flat.dtype) if (use_ledger and ledger_comp_sig is not None) else sc_med_dt)
         ot_row_w = (w_sat_vec * inv_w_i) if use_ledger else w_sat_vec
         loss_g_ot = (ot_row_w * (torch.sqrt(sc_ot_dt.square() + sq_ot) - sc_ot_dt) / ot_scale_dt).mean()
-    excess_bound = F.relu(fake_flat.float().abs() - y_bound) / ot_scale_dt.float()
+    excess_bound = F.relu(fake_flat.float().abs() - y_bound) / bound_scale_f
     loss_g_ot = loss_g_ot + (4.0 * (torch.sqrt(1.0 + excess_bound.square()) - 1.0).mean()).to(fake_flat.dtype)
 
     if has_sigma and recipe.t1_iso_weight > 0.0:
@@ -1785,56 +1814,74 @@ def unified_v15_pullback_step(
                 dx_0 = x_u1 - x_ctr_flat[:m_iso]
                 dx_p = x_u2 - x_ctr_flat[:m_iso]
                 sc_sub2 = sigma_eff_i[:m_iso]
-                dx_0_n = dx_0.norm(dim=-1)
-                dx_p_n = dx_p.norm(dim=-1)
+                # Exact per-sample target-whitened pullback frame W_i = Sigma_tgt^{-1/2}:
+                # - On isotropic modes (or uncoalesced transient cells), reduces identically to
+                #   dx / sc_sub2 -> zero saddle point & exact v14 quadratic norm+cov geometry.
+                # - On genuinely anisotropic isolated ellipses, maps the target ellipse to I_2 so
+                #   major and minor axes have unit condition number 1.0 and non-vanishing gradient
+                #   down to dx_minor = 0 (eliminating rank-1 pancake collapse & 1/kappa^2 blindness).
                 with torch.no_grad():
-                    min_dx_u = torch.minimum(dx_0_n.detach(), dx_p_n.detach())
-                    w_iso_sat = (sc_sub2 / min_dx_u.clamp_min(0.15 * sc_sub2)).clamp(1.0, 4.0)
-                    lam1_2, lam2_2, _, _ = _sym_eig2x2_exact(cov_eff_i[:m_iso])
-                    is_aniso_2d = bool(((lam1_2 / lam2_2).amax() > 1.8).item())
+                    lam1_2, lam2_2, c_th2, s_th2 = _sym_eig2x2_exact(cov_eff_i[:m_iso])
+                    is_aniso_i = iso_coal[target_p_G[:m_iso]] & ((lam1_2 / lam2_2) > 1.8)
+                    iso_var2 = sc_sub2.detach().float().square().clamp_min(1e-24)
+                    t_lam1 = torch.where(is_aniso_i, lam1_2, iso_var2)
+                    t_lam2 = torch.where(is_aniso_i, lam2_2, iso_var2)
+                    inv_s1 = t_lam1.rsqrt().to(fake_flat.dtype)
+                    inv_s2 = t_lam2.rsqrt().to(fake_flat.dtype)
+                    c_dt2 = torch.where(is_aniso_i, c_th2, c_th2.new_ones(())).to(fake_flat.dtype)
+                    s_dt2 = torch.where(is_aniso_i, s_th2, s_th2.new_zeros(())).to(fake_flat.dtype)
+                dx_w0 = torch.stack(
+                    (
+                        (c_dt2 * dx_0[:, 0] + s_dt2 * dx_0[:, 1]) * inv_s1,
+                        (-s_dt2 * dx_0[:, 0] + c_dt2 * dx_0[:, 1]) * inv_s2,
+                    ),
+                    dim=-1,
+                )
+                dx_wp = torch.stack(
+                    (
+                        (c_dt2 * dx_p[:, 0] + s_dt2 * dx_p[:, 1]) * inv_s1,
+                        (-s_dt2 * dx_p[:, 0] + c_dt2 * dx_p[:, 1]) * inv_s2,
+                    ),
+                    dim=-1,
+                )
+                w0_n = dx_w0.norm(dim=-1)
+                wp_n = dx_wp.norm(dim=-1)
+                with torch.no_grad():
+                    min_w_n = torch.minimum(w0_n.detach(), wp_n.detach())
+                    w_iso_sat = (1.0 / min_w_n.clamp_min(0.15)).clamp(1.0, 4.0)
                 w_iso_sub = inv_w_i[:m_iso] * w_iso_sat
-                M_dx2 = torch.stack((dx_0, dx_p), dim=-1)
-                Sigma_push2 = M_dx2 @ M_dx2.transpose(1, 2)
+                sc_ratio2 = (sc_sub2 / sc_med_dt).clamp(0.1, 10.0)
+                iso_u1 = (w_iso_sub * ((w0_n - 1.0) * sc_ratio2).square()).mean()
+                iso_u2 = (w_iso_sub * ((wp_n - 1.0) * sc_ratio2).square()).mean()
+                M_w2 = torch.stack((dx_w0, dx_wp), dim=-1)
+                Sigma_w2 = M_w2 @ M_w2.transpose(1, 2)
                 eye2 = reg._get_eye2(yr.device, fake_flat.dtype)
-                target_cov2 = cov_eff_i[:m_iso].to(fake_flat.dtype) if is_aniso_2d else ((sc_sub2.square().view(m_iso, 1, 1)) * eye2)
-                denom_cov2 = (sc_sub2 * sc_med_dt).clamp_min(1e-24).view(m_iso, 1, 1)
 
                 if has_iso_flag:
                     with torch.no_grad():
-                        if reg.v_push is not None and has_coal_flag:
+                        if reg.v_push is not None:
                             assert comp_rep is not None and cid_i is not None and cnt_f is not None
                             vp_diag = dx_0.detach().float().square() + dx_p.detach().float().square()
                             sum_vp = vp_diag.new_zeros((k_proto, dim))
                             sum_vp.index_add_(0, cid_i, vp_diag)
                             cnt_k = cnt_f[comp_rep]
-                            hit_k = (cnt_k > 0) & multicell_coal
+                            hit_k = (cnt_k > 0) & iso_coal
                             mean_vp_k = sum_vp[comp_rep] / cnt_k.clamp_min(1.0).unsqueeze(1)
                             reg.v_push = torch.where(hit_k.unsqueeze(1), 0.88 * reg.v_push + 0.12 * mean_vp_k, reg.v_push)
-                        t_tr1 = sc_sub2.detach().float().square().clamp_min(1e-24).view(m_iso, 1, 1)
-                        iso_frob_i = ((Sigma_push2.detach().float() - target_cov2.detach().float()) / t_tr1).square().sum(dim=(1, 2)).sqrt()
+                        iso_frob_i = (Sigma_w2.detach().float() - eye2.float()).square().sum(dim=(1, 2)).sqrt()
                         cur_frob64 = 0.60 * iso_frob_i.mean().double() + 0.40 * _quantile_1d_fast(iso_frob_i, 0.92).double()
                         reg._iso_err_ema_t = 0.92 * prev_iso_err64 + 0.08 * cur_frob64.clamp_max(5.0)
-                    err_cov2 = (Sigma_push2 - target_cov2) / denom_cov2
-                    iso_cov2 = (w_iso_sub * (4.0 * torch.asinh(0.5 * err_cov2).square()).sum(dim=(1, 2))).mean() * 0.5
-                    if is_aniso_2d:
-                        loss_g_iso = iso_cov2
-                    else:
-                        iso_u1 = (w_iso_sub * (4.0 * torch.asinh(0.5 * (dx_0_n - sc_sub2) / sc_med_dt).square())).mean()
-                        iso_u2 = (w_iso_sub * (4.0 * torch.asinh(0.5 * (dx_p_n - sc_sub2) / sc_med_dt).square())).mean()
-                        loss_g_iso = 0.45 * (iso_u1 + iso_u2) + 0.55 * iso_cov2
+                    iso_cov2 = (
+                        w_iso_sub * ((Sigma_w2 - eye2) * sc_ratio2.view(m_iso, 1, 1)).square().sum(dim=(1, 2))
+                    ).mean() * 0.5
+                    loss_g_iso = 0.45 * (iso_u1 + iso_u2) + 0.55 * iso_cov2
                 else:
                     with torch.no_grad():
                         eps_norm = eps_g.norm(dim=-1).clamp_min(0.25)
                         rel_iso_err = (((fake_det - x_ctr_det).norm(dim=-1) - eff_raw_sig_i * eps_norm) / sigma_cell_med.clamp_min(1e-12)).abs()
                         reg._iso_err_ema_t = 0.94 * prev_iso_err64 + 0.06 * rel_iso_err.mean().clamp_max(5.0).double()
-                    if is_aniso_2d:
-                        err_cov2 = (Sigma_push2 - target_cov2) / denom_cov2
-                        loss_g_iso = (w_iso_sub * (4.0 * torch.asinh(0.5 * err_cov2).square()).sum(dim=(1, 2))).mean() * 0.5
-                    else:
-                        iso_u1 = (w_iso_sub * (4.0 * torch.asinh(0.5 * (dx_0_n - sc_sub2) / sc_med_dt).square())).mean()
-                        iso_u2 = (w_iso_sub * (4.0 * torch.asinh(0.5 * (dx_p_n - sc_sub2) / sc_med_dt).square())).mean()
-                        cos_sq = ((dx_0 * dx_p).sum(dim=-1) / (dx_0_n * dx_p_n + (1e-6 * sc_sub2.square()).clamp_min(1e-24))).square().mean()
-                        loss_g_iso = 0.5 * (iso_u1 + iso_u2) + 0.25 * cos_sq
+                    cos_sq = ((dx_w0 * dx_wp).sum(dim=-1) / (w0_n * wp_n + 1e-6)).square().mean()
+                    loss_g_iso = 0.5 * (iso_u1 + iso_u2) + 0.25 * cos_sq
             else:
                 # General (dim, d_z): zero nullspace bias, zero eigh, zero d_z==4 epicycle!
                 # Tracks per-component pushforward covariance reg.push_cov[K, D, D] and applies
@@ -1956,7 +2003,8 @@ def unified_v15_pullback_step(
                     u0 = (c_dt * dx_ker[:, 0] + s_dt * dx_ker[:, 1]) * is1_dt
                     u1 = (-s_dt * dx_ker[:, 0] + c_dt * dx_ker[:, 1]) * is2_dt
                     quad_i = 0.5 * (m00 * u0.square() + 2.0 * m01 * u0 * u1 + m11 * u1.square())
-                    loss_g_iso = (iso_row_w * (riem_val + (quad_i - quad_i.detach()))).mean()
+                    # Match the 2x OT-to-isometry stiffness of ot_scale_dt = 0.5 * r_macro_safe.
+                    loss_g_iso = 2.0 * (iso_row_w * (riem_val + (quad_i - quad_i.detach()))).mean()
                 else:
                     with torch.no_grad():
                         t_diag = torch.diagonal(iso_cov_eff, dim1=-2, dim2=-1).clamp_min(1e-24)
@@ -1970,7 +2018,7 @@ def unified_v15_pullback_step(
                         reg._iso_err_ema_t = 0.94 * prev_iso_err64 + 0.06 * cur_riem64
                     u_d = dx_ker * inv_sd
                     quad_i = 0.5 * (me_d * u_d.square()).mean(dim=-1)
-                    loss_g_iso = (iso_row_w * (riem_val + (quad_i - quad_i.detach()))).mean()
+                    loss_g_iso = 2.0 * (iso_row_w * (riem_val + (quad_i - quad_i.detach()))).mean()
     else:
         loss_g_iso = fake_flat.new_zeros(())
 
@@ -2041,10 +2089,10 @@ def unified_v15_pullback_step(
             g_scale_t = res_ema64.new_full((), 1.0)
         else:
             iso_err64 = reg._get_ema_t("iso_err_ema", yr.device)
-            iso_gate64 = ((iso_err64 - 0.18) / 0.45).clamp(0.0, 1.0)
+            iso_gate64 = ((iso_err64 - 0.22) / 0.45).clamp(0.0, 1.0)
             g_scale_norm64 = torch.maximum(
                 g_floor64,
-                torch.minimum(res_ema64.new_full((), 1.0), torch.maximum(res_ema64 / 0.10, 0.35 * iso_gate64)),
+                torch.minimum(res_ema64.new_full((), 1.0), torch.maximum(res_ema64 / 0.10, 0.28 * iso_gate64)),
             )
             g_scale_t = torch.where(scale_ratio_t < 0.60, res_ema64.new_full((), 1.0), g_scale_norm64)
 
@@ -2163,7 +2211,7 @@ def unified_v15_pullback_step(
 
                 if v_mu_star_all is not None:
                     assert comp_rep is not None
-                    coal_u = multicell_coal[k_star]
+                    coal_u = iso_coal[k_star]
                     xi_u = _deterministic_box_muller(u_rows, dim, torch.float32).to(yr.device)
                     cid_u = comp_rep[k_star]
                     packed_u = torch.cat((xi_u.new_ones((n_u, 1)), xi_u), dim=1)

@@ -627,3 +627,91 @@ def test_d07_settled_ledger_hysteresis_resists_small_ema_jitter() -> None:
         reg, x_settled, rows, p_total, centers5, covs5, sigs5, w_mat5, need_whiten=False, real_batch_size=16
     )
     assert int((assigned2 == 4).sum().item()) >= 1, "zero-occupancy mode was not rescued immediately"
+
+
+def test_r2_large_component_coalescence_and_majority_guard() -> None:
+    """Uncapped transitive coalescence recovers large (>12 proto) isolated modes without partial-fragment poisoning."""
+    g = torch.Generator().manual_seed(0)
+    # 1. fl_law41-like 5-mode mixture (4 major 24.75% modes + 1 rare 1% mode, K=192):
+    centers = torch.tensor([[-1.5, -1.5], [-1.5, 1.5], [1.5, -1.5], [1.5, 1.5], [0.0, 2.85]], dtype=torch.float32)
+    probs = torch.tensor([0.2475, 0.2475, 0.2475, 0.2475, 0.01], dtype=torch.float32)
+    reg = UnifiedV15PriorRegularizer(max_prototypes=256)
+    for _ in range(80):
+        idx = torch.multinomial(probs, 256, replacement=True, generator=g)
+        reg.update_quantizer(centers[idx] + 0.08 * torch.randn((256, 2), generator=g))
+    _, _, _, w_mat, iso_coal, _ = _compute_pythagorean_smoothed_cells_v15(reg.proto_c, reg.proto_cov, reg.proto_w)
+    uniq_comps = int(len(torch.unique((w_mat > 0.0).float().argmax(dim=1))))
+    assert float(iso_coal.float().mean().item()) >= 0.95
+    assert uniq_comps == 5
+
+    # 2. Majority isolation guard: 1 tiny 4-proto isolated island next to two overlapping uncoalesced
+    # clouds (4/44 = 9% < 50% isolated) must NOT leak into iso_coal and flip global has_iso_flag.
+    t_a = torch.linspace(-1.0, 1.0, 20)
+    c_cloud1 = torch.stack((t_a, torch.zeros_like(t_a)), dim=1)
+    c_cloud2 = torch.stack((t_a, torch.full_like(t_a, 1.2)), dim=1)
+    c_isl = torch.tensor([[12.0, 12.0], [12.02, 12.0], [12.0, 12.02], [12.02, 12.02]], dtype=torch.float32)
+    pc = torch.cat((c_cloud1, c_cloud2, c_isl), dim=0)
+    pcov = torch.cat((0.02 * torch.eye(2).expand(40, 2, 2), 0.002 * torch.eye(2).expand(4, 2, 2)), dim=0)
+    pw = torch.full((44,), 1.0 / 44.0, dtype=torch.float32)
+    _, _, _, _, iso_part, _ = _compute_pythagorean_smoothed_cells_v15(pc, pcov, pw)
+    assert not bool(iso_part.any().item()), "sub-majority isolated fragment leaked into iso_coal"
+
+
+def test_r2_update_quantizer_scale_spike_trust_region() -> None:
+    """Transient 1e4x scale spikes must not inflate proto_c/proto_var by 1e4x..1e10x while single outliers still rescue."""
+    g = torch.Generator().manual_seed(0)
+    centers = torch.tensor([[-1.5, -1.5], [-1.5, 1.5], [1.5, -1.5], [1.5, 1.5]], dtype=torch.float32) * 1e-5
+    reg = UnifiedV15PriorRegularizer(max_prototypes=64)
+    for _ in range(40):
+        idx = torch.randint(0, 4, (128,), generator=g)
+        reg.update_quantizer(centers[idx] + (8e-7) * torch.randn((128, 2), generator=g))
+    c_pre = float(reg.proto_c.abs().amax().item())
+    v_pre = float(reg.proto_var.amax().item())
+
+    # Inject 2-step transient 1e4x scale spike (matching fl_law44 scale_shock)
+    for _ in range(2):
+        idx = torch.randint(0, 4, (128,), generator=g)
+        reg.update_quantizer(centers[idx] * 1e4 + (8e-3) * torch.randn((128, 2), generator=g))
+
+    c_post = float(reg.proto_c.abs().amax().item())
+    v_post = float(reg.proto_var.amax().item())
+    assert c_post < 5.0 * c_pre, f"2-step 1e4x spike inflated proto_c from {c_pre:.2e} to {c_post:.2e}"
+    assert v_post < 100.0 * v_pre, f"2-step 1e4x spike inflated proto_var from {v_pre:.2e} to {v_post:.2e}"
+
+
+def test_r2_singleton_isolated_mode_updates_v_push_and_whitened_2d_pullback() -> None:
+    """Singleton isolated modes (|C|==1) on dim==2, z_dim==2 must actively update v_push and stay finite."""
+    torch.manual_seed(0)
+    tr = _make_v15_trainer(z_dim=2, num_particles=32, sigma=0.025, seed=0)
+    reg = tr.prior_regularizer
+    assert isinstance(reg, UnifiedV15PriorRegularizer)
+    # Seed 4 well-separated singleton isolated modes (1 prototype per mode, |C|==1 -> iso_coal=True, multicell=False)
+    centers = torch.tensor([[-4.0, -4.0], [4.0, -4.0], [-4.0, 4.0], [4.0, 4.0]], dtype=torch.float32)
+    reg.quantizer_initialized = True
+    reg.proto_c = centers.clone()
+    reg.proto_var = torch.full((4,), 0.03 ** 2, dtype=torch.float32)
+    reg.proto_cov = torch.stack(
+        (
+            torch.tensor([[0.09, 0.0], [0.0, 0.0025]]),  # Anisotropic isolated singleton
+            0.0009 * torch.eye(2),
+            0.0009 * torch.eye(2),
+            0.0009 * torch.eye(2),
+        ),
+        dim=0,
+    )
+    reg.push_cov = reg.proto_cov.clone()
+    reg.proto_w = torch.full((4,), 0.25, dtype=torch.float32)
+    reg.proto_hits = torch.full((4,), 50.0, dtype=torch.float32)
+    reg.w_fake_ema = reg.proto_w.clone()
+    reg.psi = torch.zeros(4, dtype=torch.float32)
+    reg.v_push = torch.full((4, 2), 0.12345, dtype=torch.float32)
+    vp_before = reg.v_push.clone()
+
+    g_data = torch.Generator().manual_seed(7)
+    idx = torch.randint(0, 4, (32,), generator=g_data)
+    yb = centers[idx] + 0.03 * torch.randn((32, 2), generator=g_data)
+    tr.step(yb)
+    assert reg.v_push is not None
+    assert not torch.equal(reg.v_push, vp_before), "singleton iso_coal modes failed to update reg.v_push"
+    assert bool(torch.isfinite(reg.v_push).all())
+    assert all(bool(torch.isfinite(p).all()) for p in tr.G.parameters())
