@@ -675,6 +675,31 @@ def test_observe_scale_spike_immunity_sparsity_and_mixed_shape() -> None:
     assert rec_a.ema_data_scale == rec_b.ema_data_scale
     assert rec_a.ema_push_res == rec_b.ema_push_res
 
+    # Degenerate exact-zero target (zero_tanh_smoke / zero_tanh_rail_escape): degree-1 homogeneous fallback to ||x_fake||_rms
+    z_real = torch.zeros((64, 2), dtype=torch.float32)
+    xf_base = torch.randn((64, 2), generator=g) * 0.5
+    xf_rms = float(xf_base.square().sum(dim=-1).mean().double().sqrt().item())
+    for c_scale in (1e-5, 1.0, 1e5):
+        rec_z = UnifiedV15StepRecord()
+        rec_z.observed_steps = 0
+        rec_z.observe_scale(z_real, xf_base * c_scale)
+        expected = xf_rms * c_scale
+        assert abs(rec_z.ema_data_scale - expected) / expected < 1e-6, (
+            f"Zero-target scale fallback broke degree-1 homogeneity at c={c_scale}: {rec_z.ema_data_scale} vs {expected}"
+        )
+    # Non-zero small target (1e-3) stays exact sc_real even when x_fake is 100x larger (D-04 invariant)
+    xr_small = torch.randn((64, 2), generator=g) * 1e-3
+    xr_small_rms = float(xr_small.square().sum(dim=-1).mean().double().sqrt().item())
+    rec_nz = UnifiedV15StepRecord()
+    rec_nz.observed_steps = 0
+    rec_nz.observe_scale(xr_small, xr_small * 100.0)
+    assert abs(rec_nz.ema_data_scale - xr_small_rms) / xr_small_rms < 1e-6
+    # Degenerate zero target with x_fake=None safely clamps to 1e-12 (finite, positive)
+    rec_z0 = UnifiedV15StepRecord()
+    rec_z0.observed_steps = 0
+    rec_z0.observe_scale(z_real, None)
+    assert math.isfinite(rec_z0.ema_data_scale) and abs(rec_z0.ema_data_scale - 1e-12) < 1e-18
+
 
 def test_highd_basin_bank_capacity_overflow_guard() -> None:
     """highd_basin_stein_loss must cleanly disable itself on >16-mode overflow while staying active on <=16 modes."""

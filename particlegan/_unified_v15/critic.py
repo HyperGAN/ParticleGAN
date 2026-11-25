@@ -783,15 +783,29 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         step_tag = int(getattr(self, "observed_steps", 0))
         xr = x_real.detach().reshape(x_real.shape[0], -1).float()
         dim_s = int(xr.shape[1])
+        has_fake_pair = (
+            x_fake is not None
+            and x_fake.ndim >= 2
+            and int(x_fake.shape[0]) == int(x_real.shape[0])
+            and int(x_fake.numel()) == int(x_real.numel())
+        )
+        xf: Optional[torch.Tensor] = (
+            x_fake.detach().reshape(x_fake.shape[0], -1).float() if has_fake_pair else None
+        )
         is_sparse: Optional[torch.Tensor] = None
         if dim_s >= 128 and not _has_spatial_dims(x_real):
             obs_rate = (xr != 0).float().mean().double()
             is_sparse = (obs_rate < 0.50) & (obs_rate > 1e-4)
             p_eff = torch.where(is_sparse, obs_rate.clamp_min(1e-4), obs_rate.new_full((), 1.0))
             sc_sq = xr.square().sum(dim=-1).mean().double() / p_eff
-            sc = sc_sq.clamp_min(1e-24).sqrt().clamp_min(1e-12)
+            sc_real_raw = sc_sq.clamp_min(0.0).sqrt()
         else:
-            sc = xr.square().sum(dim=-1).mean().sqrt().clamp_min(1e-12).double()
+            sc_real_raw = xr.square().sum(dim=-1).mean().sqrt().double()
+        if xf is not None:
+            sc_fake_raw = xf.square().sum(dim=-1).mean().double().sqrt()
+            sc = torch.where(sc_real_raw <= (1e-12 * sc_fake_raw), sc_fake_raw, sc_real_raw).clamp_min(1e-12)
+        else:
+            sc = sc_real_raw.clamp_min(1e-12)
         fin_sc = torch.isfinite(sc)
 
         if self._ema_data_scale_t is not None and self._ema_data_scale_t.device == dev:
@@ -806,13 +820,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         new_sc = torch.where(fin_sc, cand_sc, prev_sc)
         self._ema_data_scale_t = new_sc
 
-        if (
-            x_fake is not None
-            and x_fake.ndim >= 2
-            and int(x_fake.shape[0]) == int(x_real.shape[0])
-            and int(x_fake.numel()) == int(x_real.numel())
-        ):
-            xf = x_fake.detach().reshape(x_fake.shape[0], -1).float()
+        if xf is not None:
             mean_gap = (xf.mean(dim=0) - xr.mean(dim=0)).norm().double()
             std_gap = (xf.std().double() - xr.std().double()).abs()
             rel_gap = ((mean_gap + 0.5 * std_gap) / new_sc.clamp_min(1e-12)).clamp_max(10.0)
