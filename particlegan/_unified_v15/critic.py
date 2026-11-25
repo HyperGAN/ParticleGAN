@@ -431,19 +431,12 @@ def _probe_batch_count(b_full: int, elem_dim: int) -> int:
 
 @torch.no_grad()
 def _select_probe_indices(ref: torch.Tensor, b_full: int, b_probe: int) -> Optional[torch.Tensor]:
-    """Zero-sync deterministic stratified / rare-tail probe indices (0 RNG, 0% rare-mode blindness)."""
+    """Zero-sync deterministic rare-tail probe indices (0 RNG, 0% rare-mode blindness, unbiased on balanced batches)."""
     if b_probe >= b_full:
         return None
-    elem_dim = max(1, int(ref[0].numel()))
     flat = ref.detach().reshape(b_full, -1).float()
     dev_sq = (flat - flat.mean(dim=0, keepdim=True)).square().sum(dim=1)
     order = torch.argsort(dev_sq, stable=True)
-    if elem_dim > 16:
-        if b_probe <= 1:
-            return order[-1:]
-        pos = torch.linspace(0.0, float(b_full - 1), steps=b_probe, device=ref.device).round().to(dtype=torch.long)
-        pos = pos.clamp(0, b_full - 1)
-        return order.index_select(0, pos)
     idx = torch.arange(b_probe, device=ref.device, dtype=torch.long)
     i95 = min(b_full - 1, int(round(0.95 * float(b_full - 1))))
     i99 = max(0, b_full - max(1, b_full // 100))
@@ -617,6 +610,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._d_probe_list: List[Tuple[Tuple[Any, ...], Dict[str, Any], torch.Tensor]] = []
         self._g_probe_cache: Optional[Tuple[nn.Module, Tuple[Any, ...], Dict[str, Any], torch.Tensor]] = None
         self._g_last_latent: Optional[Tuple[nn.Module, torch.Tensor]] = None
+        self._g_last_latent_live: Optional[Tuple[nn.Module, torch.Tensor]] = None
         self._in_probe: bool = False
         self._enable_secant_probe: bool = True
 
@@ -842,11 +836,13 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         if hasattr(self, "_live_captures") and self._live_captures:
             _clear_live_capture_entries(self._live_captures)
         self._last_probe_actual_input = None
+        self._g_last_latent_live = None
 
     def clear_step_probes(self) -> None:
         if hasattr(self, "_d_probe_list") and self._d_probe_list:
             self._d_probe_list.clear()
         self._g_last_latent = None
+        self._g_last_latent_live = None
 
     def _unified_v15_packet(self) -> Dict[str, Any]:
         return {
@@ -889,6 +885,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         self._d_probe_list = []
         self._g_probe_cache = None
         self._g_last_latent = None
+        self._g_last_latent_live = None
         self._last_probe_actual_input = None
         self._in_probe = False
 
@@ -909,6 +906,7 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
         dup._d_probe_list = []
         dup._g_probe_cache = None
         dup._g_last_latent = None
+        dup._g_last_latent_live = None
         dup._last_probe_actual_input = None
         dup._in_probe = False
         dup._enable_secant_probe = self._enable_secant_probe
@@ -1210,6 +1208,7 @@ def record_unified_v15_generator_probe(
         and args[0].shape[0] == b_full
     ):
         record._g_last_latent = (module, args[0].detach())
+        record._g_last_latent_live = (module, args[0]) if args[0].requires_grad else None
     b_p = _probe_batch_count(b_full, out_dim)
     p_idx = _select_probe_indices(raw_out, b_full, b_p)
     p_args = tuple(_index_probe_arg(a, b_full, p_idx) for a in args)

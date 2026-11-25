@@ -254,6 +254,15 @@ def test_d04_critic_scale_homogeneity_and_stratified_probe() -> None:
     _, _, _, y_pre_g = opt_d2.record._g_probe_cache
     assert torch.equal(y_pre_g, y_grid.detach()[:16])
 
+    # Balanced high-D (dim=128) 64-mode batch stays unbiased [:32] (zero argsort rank-flipping vs 4D Conv2d 1x1)
+    g128 = nn.Identity()
+    _, _, _, opt_d128 = _make_opt_pair(nn.Linear(128, 128), nn.Linear(128, 1), batch_size=256)
+    c64 = torch.randn((64, 128), generator=g_rng) * 0.4
+    y128 = (c64[torch.arange(256) % 64] + 0.08 * torch.randn((256, 128), generator=g_rng)).requires_grad_(True)
+    assert record_unified_v15_generator_probe(g128, (y128,), {}, y128, opt_d128.record)
+    _, _, _, y_pre128 = opt_d128.record._g_probe_cache
+    assert torch.equal(y_pre128, y128.detach()[:32])
+
 
 def test_d04_custom_training_flag_generator_eval_parity() -> None:
     """Custom `if self.training:` generator without BN/Dropout must capture eval() y_pre matching post-step eval()."""
@@ -798,7 +807,7 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
     with pytest.raises(ValueError):
         validate_v15_sparse_obs_bank_packet(bad_dtype)
 
-    # 6. Fresh-subprocess bit-exact checkpoint continuation across step-15 prototype activation!
+    # 6. Fresh-subprocess bit-exact checkpoint continuation across step-8 prototype activation & recentering window!
     class _SparseMaskedG(nn.Module):
         def __init__(self) -> None:
             super().__init__()
@@ -825,15 +834,15 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
     tr_full = _make_sparse_trainer()
     rng_b = torch.Generator().manual_seed(910)
     batches = []
-    for _ in range(18):
+    for _ in range(14):
         idx = torch.randint(0, n_modes, (32,), generator=rng_b)
         yc = centers[idx] + 0.03 * torch.randn((32, dim), generator=rng_b)
         mr = (torch.rand((32, dim), generator=rng_b) < 0.20).float()
         batches.append(yc * mr)
 
-    for b in batches[:12]:
+    for b in batches[:6]:
         tr_full.step(b)
-    assert tr_full.opt_d.record.sparse_obs_bank.step == 12
+    assert tr_full.opt_d.record.sparse_obs_bank.step == 6
     assert tr_full.opt_d.record.sparse_obs_bank.proto_k == 0  # pre-activation!
 
     with tempfile.TemporaryDirectory() as td:
@@ -841,16 +850,16 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
         b_p = Path(td) / "batches.pt"
         out_p = Path(td) / "out.pt"
         torch.save({"trainer": tr_full.state_dict(), "m_gen": tr_full.G._m_gen.get_state()}, ckpt_p)
-        torch.save(batches[12:], b_p)
+        torch.save(batches[6:], b_p)
 
-        for b in batches[12:]:
+        for b in batches[6:]:
             tr_full.step(b)
-        assert tr_full.opt_d.record.sparse_obs_bank.proto_k >= 1  # crossed step-15 activation!
+        assert tr_full.opt_d.record.sparse_obs_bank.proto_k >= 1  # crossed step-8 activation & recentering!
 
         script = (
             "import torch\n"
             "from torch import nn\n"
-            "from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init\n"
+            "from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init, unwrap_prior\n"
             "torch.set_num_threads(1)\n"
             f"dim, dz = {dim}, {dz}\n"
             "class _SparseMaskedG(nn.Module):\n"
@@ -877,7 +886,7 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
             "tr.G._m_gen.set_state(blob['m_gen'])\n"
             f"for b in torch.load({str(b_p)!r}, weights_only=False):\n"
             "    tr.step(b)\n"
-            f"torch.save({{'g': [p.detach().clone() for p in tr.G.parameters()], 'd': [p.detach().clone() for p in tr.D.parameters()], 'sp': tr.opt_d.record.sparse_obs_bank.to_packet()}}, {str(out_p)!r})\n"
+            f"torch.save({{'g': [p.detach().clone() for p in tr.G.parameters()], 'd': [p.detach().clone() for p in tr.D.parameters()], 'z': unwrap_prior(tr.prior).z.detach().clone(), 'sp': tr.opt_d.record.sparse_obs_bank.to_packet()}}, {str(out_p)!r})\n"
         )
         proc = subprocess.run([sys.executable, "-c", script], check=True, capture_output=True, text=True)
         assert proc.returncode == 0
@@ -886,6 +895,7 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
             assert torch.equal(pa.detach(), pb)
         for pa, pb in zip(tr_full.D.parameters(), res["d"]):
             assert torch.equal(pa.detach(), pb)
+        assert torch.equal(unwrap_prior(tr_full.prior).z.detach(), res["z"])
         sp_full = tr_full.opt_d.record.sparse_obs_bank.to_packet()
         sp_res = res["sp"]
         assert sp_full.keys() == sp_res.keys()
@@ -895,5 +905,81 @@ def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint
                 assert torch.equal(va, vb), f"Subprocess sparse_obs_bank mismatch on {k}"
             else:
                 assert va == vb
+
+
+def test_sparse_obs_g_loss_keeps_live_adversarial_critic_gradient() -> None:
+    """Semantic control (AGENTS.md): sparse-masked g_loss must keep live fake_logits critic gradient and clean transient z_live."""
+    torch.set_num_threads(1)
+    dim, dz, bs = 128, 16, 32
+
+    class _SparseG(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.fc = nn.Linear(dz, dim)
+
+        def forward(self, z: torch.Tensor) -> torch.Tensor:
+            m = (torch.rand(z.shape[0], dim, generator=torch.Generator().manual_seed(777)) < 0.15).float()
+            return torch.tanh(self.fc(z)) * m
+
+    g_mod = _SparseG()
+    d_mod = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))
+    init.deterministic_orthogonal_(g_mod, seed=71)
+    init.deterministic_orthogonal_(d_mod, seed=72)
+    rec, _, _, opt_d = _make_opt_pair(g_mod, d_mod, batch_size=bs, z_dim=dz)
+    loss_fn = rec.make_loss()
+
+    rng = torch.Generator().manual_seed(778)
+    z_live = torch.randn((bs, dz), generator=rng, requires_grad=True)
+    x_r = torch.randn((bs, dim), generator=rng) * (torch.rand((bs, dim), generator=rng) < 0.15).float()
+
+    # Warm up 8 steps so sparse prototypes are active too
+    for _ in range(9):
+        z_cur = torch.randn((bs, dz), generator=rng, requires_grad=True)
+        dr = d_mod(x_r)
+        df = d_mod(g_mod(z_cur))
+        gl = loss_fn.g_loss(df, dr)
+        assert opt_d.record._g_last_latent_live is None, "Transient _g_last_latent_live leaked after g_loss!"
+
+    # 1. Verify direct autograd sensitivity to fake_logits (must NEVER be bypassed!)
+    dr = d_mod(x_r)
+    xf = g_mod(z_live)
+    df = d_mod(xf)
+    df.retain_grad()
+    gl = loss_fn.g_loss(df, dr)
+    assert opt_d.record._g_last_latent_live is None
+    g_fake_logits = torch.autograd.grad(gl, df, retain_graph=True)[0]
+    assert float(g_fake_logits.abs().max().item()) > 1e-4, "fake_logits received zero gradient (critic bypassed!)"
+
+    # 2. Semantic damage control: perturbing critic weights must measurably change G's parameter gradient!
+    g_mod.zero_grad()
+    gl.backward()
+    grad_g_normal = g_mod.fc.weight.grad.detach().clone()
+    grad_z_normal = z_live.grad.detach().clone()
+    assert float(grad_z_normal.abs().max().item()) > 1e-5, "Learnable latent z received zero gradient"
+
+    with torch.no_grad():
+        for p in d_mod.parameters():
+            p.mul_(5.0)
+    z_live2 = z_live.detach().clone().requires_grad_(True)
+    g_mod.zero_grad()
+    dr2 = d_mod(x_r)
+    df2 = d_mod(g_mod(z_live2))
+    gl2 = loss_fn.g_loss(df2, dr2)
+    gl2.backward()
+    grad_g_scaled_d = g_mod.fc.weight.grad.detach().clone()
+    diff_g = float((grad_g_scaled_d - grad_g_normal).abs().max().item())
+    assert diff_g > 1e-5, f"Perturbing critic had zero effect on G gradient (diff={diff_g:.2e})"
+
+    # 3. Spherical Voronoi alignment term must be purely tangential to S^{dz-1} (zero radial distortion on z_live)
+    z_test = torch.randn((bs, dz), generator=rng, requires_grad=True)
+    xf_det = xf.detach()
+    sp_z = unified_v15_sparse_obs_wiener_loss(
+        xf_det, x_r, record=opt_d.record, z_batch=z_test.detach(), z_live=z_test, allow_update=False, z_pull=1.0
+    )
+    gz_only = torch.autograd.grad(sp_z, z_test)[0]
+    radial_dot = (gz_only * z_test.detach()).sum(dim=1).abs().max().item()
+    assert float(gz_only.abs().max().item()) > 1e-5
+    assert radial_dot < 1e-5, f"Voronoi latent alignment leaked radial force ({radial_dot:.2e})"
+
 
 

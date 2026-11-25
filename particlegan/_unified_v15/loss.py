@@ -3443,11 +3443,13 @@ def unified_v15_sparse_obs_wiener_loss(
     *,
     record: Any = None,
     z_batch: Optional[torch.Tensor] = None,
+    z_live: Optional[torch.Tensor] = None,
     allow_update: bool = True,
-    start_proto_step: int = 15,
+    start_proto_step: int = 8,
     merge_cos: float = 0.55,
-    k_nlm: int = 32,
+    k_nlm: int = 24,
     eta_b: float = 0.15,
+    z_pull: float = 1.0,
 ) -> torch.Tensor:
     """Zero-`eigh`, zero-RNG, scale-homogeneous Wiener-NLM + Laguerre transport for coordinate-masked vectors.
 
@@ -3473,6 +3475,18 @@ def unified_v15_sparse_obs_wiener_loss(
     if z_batch is not None and z_batch.ndim >= 2 and not _has_spatial_dims(z_batch) and int(z_batch.shape[0]) == b_f:
         z_2d = z_batch.detach().reshape(b_f, -1).float().to(device=dev)
         dz = int(z_2d.shape[1])
+    z_live_2d: Optional[torch.Tensor] = None
+    if (
+        float(z_pull) > 0.0
+        and z_live is not None
+        and z_live.requires_grad
+        and z_live.ndim >= 2
+        and not _has_spatial_dims(z_live)
+        and int(z_live.shape[0]) == b_f
+    ):
+        cand_zl = z_live.reshape(b_f, -1).float().to(device=dev)
+        if dz > 0 and int(cand_zl.shape[1]) == dz:
+            z_live_2d = cand_zl
 
     if not allow_update:
         if bank.step == 0 or bank.S_y is None or bank.mu_y is None or bank.dim != dim:
@@ -3495,6 +3509,10 @@ def unified_v15_sparse_obs_wiener_loss(
             asg_loc = scores.argmax(dim=1)
             tgt_dense = bank.proto_y[act_idx][asg_loc]
             loss_nlm = ((xf - mf_m * tgt_dense).pow(2).sum(dim=1).mean()) / (p_x * sc_y)
+            if z_live_2d is not None:
+                tgt_z_ro = bank.proto_z[act_idx][asg_loc].detach()
+                z_u_live = F.normalize(z_live_2d, dim=1)
+                loss_nlm = loss_nlm + float(z_pull) * (1.0 - (z_u_live * tgt_z_ro).sum(dim=1)).mean()
             return loss_nlm.to(dtype=x_fake.dtype)
         zx = xf - mf_m * bank.mu_y.unsqueeze(0)
         sig_y = (bank.S_y - (1.0 - p_y) * torch.diag(diag_sy)) / (p_y * p_y)
@@ -3610,7 +3628,7 @@ def unified_v15_sparse_obs_wiener_loss(
         y_mmse = bank.mu_y.unsqueeze(0) + zr_w
         y_clean = torch.where(den > 1e-4, num / den.clamp_min(1e-4), y_mmse)
 
-        if n_b >= 512:
+        if n_b >= 256:
             dot2 = y_clean @ yb.T
             n_c2 = (y_clean.pow(2) @ mb.T).clamp_min(1e-24).sqrt()
             n_b2 = yb.pow(2).sum(dim=1, keepdim=True).T.clamp_min(1e-24).sqrt()
@@ -3623,6 +3641,7 @@ def unified_v15_sparse_obs_wiener_loss(
             y_clean = torch.where(den2 > 1e-4, num2 / den2.clamp_min(1e-4), y_clean)
 
         tgt_dense: Optional[torch.Tensor] = None
+        tgt_z_dir: Optional[torch.Tensor] = None
         if st_n >= int(start_proto_step) and z_2d is not None and dz > 0:
             max_p = int(bank.max_protos)
             yc_c = y_clean - bank.mu_y.unsqueeze(0)
@@ -3648,7 +3667,7 @@ def unified_v15_sparse_obs_wiener_loss(
                     upd = cnt > 0
                     w_old = bank.proto_w[:pk]
                     w_new = (w_old + cnt).clamp_max(300.0)
-                    alpha = torch.where(upd, cnt / w_new.clamp_min(1.0), torch.zeros_like(cnt))
+                    alpha = torch.where(upd, (cnt / w_new.clamp_min(1.0)).clamp_min(0.04), torch.zeros_like(cnt))
                     mean_y = sum_y / cnt.clamp_min(1.0).unsqueeze(1)
                     bank.proto_y[:pk] = torch.where(
                         upd.unsqueeze(1),
@@ -3684,7 +3703,7 @@ def unified_v15_sparse_obs_wiener_loss(
                     if float(bs.item()) >= float(merge_cos) or pk >= max_p:
                         j = int(bj.item())
                         w_new_j = min(300.0, float(bank.proto_w[j].item()) + 1.0)
-                        a_j = 1.0 / w_new_j
+                        a_j = max(0.04, 1.0 / w_new_j)
                         bank.proto_y[j] = (1.0 - a_j) * bank.proto_y[j] + a_j * y_clean[bi_t]
                         bank.proto_w[j] = w_new_j
                     else:
@@ -3694,8 +3713,8 @@ def unified_v15_sparse_obs_wiener_loss(
                             z_dir = F.normalize(a_z @ yc_c[bi_t], dim=0)
                         else:
                             z_dir = _det_sparse_unit_cands(pk, 1, dz, dev)[0]
-                        if float(z_dir.norm().item()) < 0.5 or float((bank.proto_z[:pk] @ z_dir).max().item()) > 0.85:
-                            cand = _det_sparse_unit_cands(pk + 17, 32, dz, dev)
+                        if float(z_dir.norm().item()) < 0.5 or float((bank.proto_z[:pk] @ z_dir).max().item()) > 0.25:
+                            cand = _det_sparse_unit_cands(pk + 17, 64, dz, dev)
                             z_dir = cand[(cand @ bank.proto_z[:pk].T).max(dim=1).values.argmin()]
                         bank.proto_z[pk] = z_dir
                         bank.proto_b[pk] = 0.0
@@ -3718,16 +3737,30 @@ def unified_v15_sparse_obs_wiener_loss(
             asg_loc = scores.argmax(dim=1)
             p_tgt = pw_act / pw_act.sum().clamp_min(1e-8)
             counts = torch.bincount(asg_loc, minlength=k_act).float() / float(b_f)
-            pb_new = pb_act + float(eta_b) * (p_tgt - counts)
-            pb_new = (pb_new - pb_new.mean()).clamp(-0.5, 0.5)
+            age = max(0, st_n - int(start_proto_step))
+            eta_eff = float(eta_b) / math.sqrt(1.0 + float(age) / 10.0)
+            pb_new = pb_act + eta_eff * (p_tgt - counts)
+            pb_new = (pb_new - pb_new.mean()).clamp(-0.6, 0.6)
             bank.proto_b[act_idx] = pb_new
+            if age < 40:
+                zc = torch.bincount(asg_loc, minlength=k_act).float()
+                zsum = torch.zeros_like(pz_act)
+                zsum.index_add_(0, asg_loc, zu)
+                zhit = zc > 0
+                if bool(zhit.any()):
+                    zmean = F.normalize(zsum[zhit], dim=1)
+                    bank.proto_z[act_idx[zhit]] = F.normalize(0.80 * pz_act[zhit] + 0.20 * zmean, dim=1)
             tgt_dense = py_act[asg_loc]
+            tgt_z_dir = bank.proto_z[act_idx][asg_loc]
 
     zx = xf - mf_m * bank.mu_y.unsqueeze(0)
     if tgt_dense is not None:
         loss_nlm = ((xf - mf_m * tgt_dense).pow(2).sum(dim=1).mean()) / (p_x * sc_y)
         if hasattr(record, "observe_sparse_push_res"):
             record.observe_sparse_push_res(float(loss_nlm.detach().sqrt().clamp(0.0, 2.0).item()))
+        if z_live_2d is not None and tgt_z_dir is not None:
+            z_u_live = F.normalize(z_live_2d, dim=1)
+            loss_nlm = loss_nlm + float(z_pull) * (1.0 - (z_u_live * tgt_z_dir.detach()).sum(dim=1)).mean()
         return loss_nlm.to(dtype=x_fake.dtype)
 
     if sx_prev is not None:
@@ -3976,6 +4009,9 @@ class UnifiedV15GANLoss(GANLoss):
         x_f, x_r, cond_f, cond_r, rec, has_cont_cond, parts_f, parts_r, captured = self._resolve_pair_parts(
             fake_logits, real_logits
         )
+        g_lat_live = getattr(rec, "_g_last_latent_live", None) if rec is not None else None
+        if rec is not None and hasattr(rec, "_g_last_latent_live"):
+            rec._g_last_latent_live = None
         if not captured:
             base_g = super().g_loss(fake_logits, real_logits)
             if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
@@ -4052,7 +4088,8 @@ class UnifiedV15GANLoss(GANLoss):
                     return self.t1c.weight * ((1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g)
             return base_g
 
-        # 2b. High-D coordinate-masked sparse-observation Wiener-NLM + semi-discrete Laguerre transport:
+        # 2b. High-D coordinate-masked sparse-observation Wiener-NLM + semi-discrete Laguerre transport
+        #     coupled alongside live adversarial critic loss (never bypasses fake_logits!):
         allow_ell = torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False)
         is_flat_vec = x_f.ndim >= 2 and not _has_spatial_dims(x_f) and not has_spatial
         if (
@@ -4076,14 +4113,22 @@ class UnifiedV15GANLoss(GANLoss):
                     rec._simplicial_step = False
                 g_lat_sp = getattr(rec, "_g_last_latent", None)
                 z_sp = g_lat_sp[1] if g_lat_sp is not None else None
+                z_live_sp = g_lat_live[1] if g_lat_live is not None else None
                 sp_loss = unified_v15_sparse_obs_wiener_loss(
                     x_f,
                     x_r,
                     record=rec,
                     z_batch=z_sp,
+                    z_live=z_live_sp,
                     allow_update=allow_ell,
                 )
-                return self.t1c.weight * sp_loss.to(dtype=fake_logits.dtype)
+                base_g = super().g_loss(fake_logits, real_logits)
+                adv_g = base_g
+                if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
+                    pair_g = self._scalar_pair_relativistic(fake_logits, real_logits, detach_neg=True)
+                    if pair_g is not None:
+                        adv_g = (1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g
+                return self.t1c.weight * (adv_g + 16.0 * sp_loss.to(dtype=fake_logits.dtype))
 
         # 3. H_0-connectedness-gated chart coupling + zero-eigh orphan macro-transport:
         is_discrete = bool(self.t1c._discrete_prior_step)
