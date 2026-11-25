@@ -736,6 +736,7 @@ def test_checkpoint_validator_rejects_all_tampering() -> None:
         AxiomPriorRegularizer(target_std=0.0)
 
 
+@pytest.mark.cuda
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA unavailable")
 def test_cuda_quantizer_and_pullback_sanity() -> None:
     """GPU sanity check: quantizer shock, central pullback, full step, and CPU->CUDA checkpoint restore."""

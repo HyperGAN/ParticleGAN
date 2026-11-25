@@ -538,6 +538,7 @@ def test_forward_no_mutation_guards_and_strict_clock_freedom():
     assert not rec_guard.ell_initialized and rec_guard.chart_state is None and rec_guard.thermal_calls == []
 
 
+@pytest.mark.cuda
 @pytest.mark.skipif(not torch.cuda.is_available(), reason="CUDA GPU not available")
 def test_axiom_transport_cuda_smoke():
     dev = torch.device("cuda:0")
