@@ -44,5 +44,31 @@
     "loss": "Current BCAP paired relativistic logistic; joint hosts retain their explicit two-stream generator/encoder objective and existing auxiliary terms.",
     "noise": "Zero additive training input/output noise. Task-declared prior sampling, named streams and data batches remain unchanged.",
     "optimizer": "Normalize the concatenated gradient once per player: W -= eta_P * g / (norm(g_P) + epsilon). Generator and encoder share the G-player norm; the latent prior is a separate player. No momentum or Adam moments."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer",
+      "how_it_works": "Retains BCAP's task-declared prior with no prototype chart or pullback covariance isometry.",
+      "known_limits": "Separated multimodal targets bridge valleys and lose rare-mode fidelity."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed BCAP real/fake one-sided squared L2 cap (lambda=1, kappa=1, RoR)",
+      "how_it_works": "Softly penalizes excess critic input-gradient norms above 1.0 via exact RoR.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1`, no zero-mean logit gauge, and high RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot resolve multi-scale widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Player-global normalized gradient descent (nsgda_global)",
+      "how_it_works": "Normalizes the concatenated gradient once per player (G+E, D, and P separately) at constant step sizes.",
+      "known_limits": "Global normalization cannot equalize badly conditioned layers (4.2) or control realized nonlinear jumps (4.1/4.3); `mu_D = 0` leaves orbits undamped."
+    }
   }
 }

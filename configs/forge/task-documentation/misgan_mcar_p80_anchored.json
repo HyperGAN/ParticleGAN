@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "misgan_mcar_p80_anchored",
+  "title": "3-Pair MisGAN + GAIN Hints: Extreme 80% MCAR Missingness",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "masked-observation",
+    "mcar-80pct",
+    "neural-imputer"
+  ],
+  "intuition": "Extreme 80% coordinate missingness in 8D with 10% complete anchor rows and a GAIN partial-hint conditioned neural imputer G_i, testing whether both complete generation (>= 80/100 modes) and neural imputation remain identifiable.",
+  "failure_mode": "At 80% missingness, identifiability collapses without properly leveraging the 10% complete anchors and hint-conditioned imputer critic.",
+  "protocol_notes": "Tier-4 stretch benchmark (4,000 updates).",
+  "diagram_kind": "misgan_masked",
+  "custom_mermaid": null
+}

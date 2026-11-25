@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ddgan_repair_bimodal_chain_v1",
+  "title": "DDGAN Conditional Repair Diagnostic (Bimodal Chain)",
+  "laws": [
+    "law3b",
+    "law1"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "multimodal-posterior",
+    "diagnostic-repair"
+  ],
+  "intuition": "Scoped GPU0 diagnostic of `model_ddgan_bimodal_chain` with strict conditional slice bounds (CDF <= 0.12) for auditing conditional fiber operator matching on multimodal reverse transitions.",
+  "failure_mode": "Cross-branch mode averaging or tail-stratum variance collapse fails the strict 0.12 conditional CDF gate.",
+  "protocol_notes": "Explicitly scoped diagnostic task; separate from ordinary `model_ddgan_bimodal_chain`.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

@@ -1,0 +1,61 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Continuous Curved 2D Spiral Manifold">
+<title>Continuous Curved 2D Spiral Manifold — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">Continuous Curved 2D Spiral Manifold</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">Continuous 2D Archimedes spiral manifold + radial noise</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="114.5" y1="54.0" x2="114.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="116.0" x2="404.0" y2="116.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="307.5" y1="54.0" x2="307.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="240.0" x2="404.0" y2="240.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<text x="211.0" y="298.0" font-size="9" fill="#64748b" text-anchor="middle">x1</text>
+<text x="24.0" y="67.0" font-size="9" fill="#64748b">x2</text>
+<polyline points="241.6,192.9 242.6,190.8 243.4,188.6 243.8,186.1 243.9,183.5 243.6,180.7 242.9,178.0 241.7,175.2 240.2,172.5 238.2,169.9 235.8,167.5 233.0,165.4 229.8,163.6 226.3,162.2 222.6,161.2 218.6,160.7 214.4,160.7 210.2,161.2 205.9,162.4 201.7,164.1 197.6,166.3 193.7,169.2 190.1,172.6 186.9,176.6 184.2,181.0 181.9,185.8 180.3,191.1 179.2,196.6 178.9,202.3 179.3,208.2 180.4,214.1 182.3,219.9 184.9,225.6 188.3,231.1 192.4,236.2 197.2,240.8 202.7,244.9 208.7,248.4 215.2,251.1 222.1,253.1 229.4,254.2 236.9,254.5 244.5,253.8 252.0,252.2 259.5,249.6 266.7,246.1 273.5,241.6 279.9,236.3 285.7,230.2 290.7,223.3 294.9,215.7 298.3,207.5 300.6,198.8 302.0,189.8 302.2,180.6 301.3,171.3 299.2,162.0 296.0,152.9 291.7,144.2 286.2,135.9 279.8,128.2 272.3,121.3 263.9,115.2 254.8,110.2 245.0,106.2 234.7,103.4 223.9,101.8 212.9,101.5 201.9,102.6 190.9,105.0 180.1,108.8 169.8,113.9 160.0,120.3 151.0,127.9 142.8,136.6 135.7,146.3 129.7,157.0 125.0,168.4 121.7,180.4 119.8,192.9" fill="none" stroke="#2563eb" stroke-width="12" stroke-opacity="0.18" stroke-linecap="round"/>
+<polyline points="241.6,192.9 242.6,190.8 243.4,188.6 243.8,186.1 243.9,183.5 243.6,180.7 242.9,178.0 241.7,175.2 240.2,172.5 238.2,169.9 235.8,167.5 233.0,165.4 229.8,163.6 226.3,162.2 222.6,161.2 218.6,160.7 214.4,160.7 210.2,161.2 205.9,162.4 201.7,164.1 197.6,166.3 193.7,169.2 190.1,172.6 186.9,176.6 184.2,181.0 181.9,185.8 180.3,191.1 179.2,196.6 178.9,202.3 179.3,208.2 180.4,214.1 182.3,219.9 184.9,225.6 188.3,231.1 192.4,236.2 197.2,240.8 202.7,244.9 208.7,248.4 215.2,251.1 222.1,253.1 229.4,254.2 236.9,254.5 244.5,253.8 252.0,252.2 259.5,249.6 266.7,246.1 273.5,241.6 279.9,236.3 285.7,230.2 290.7,223.3 294.9,215.7 298.3,207.5 300.6,198.8 302.0,189.8 302.2,180.6 301.3,171.3 299.2,162.0 296.0,152.9 291.7,144.2 286.2,135.9 279.8,128.2 272.3,121.3 263.9,115.2 254.8,110.2 245.0,106.2 234.7,103.4 223.9,101.8 212.9,101.5 201.9,102.6 190.9,105.0 180.1,108.8 169.8,113.9 160.0,120.3 151.0,127.9 142.8,136.6 135.7,146.3 129.7,157.0 125.0,168.4 121.7,180.4 119.8,192.9" fill="none" stroke="#2563eb" stroke-width="2.4" stroke-linecap="round"/>
+<circle cx="241.6" cy="192.9" r="2.6" fill="#0d9488"/>
+<circle cx="243.6" cy="180.7" r="2.6" fill="#0d9488"/>
+<circle cx="235.8" cy="167.5" r="2.6" fill="#0d9488"/>
+<circle cx="218.6" cy="160.7" r="2.6" fill="#0d9488"/>
+<circle cx="197.6" cy="166.3" r="2.6" fill="#0d9488"/>
+<circle cx="181.9" cy="185.8" r="2.6" fill="#0d9488"/>
+<circle cx="180.4" cy="214.1" r="2.6" fill="#0d9488"/>
+<circle cx="197.2" cy="240.8" r="2.6" fill="#0d9488"/>
+<circle cx="229.4" cy="254.2" r="2.6" fill="#0d9488"/>
+<circle cx="266.7" cy="246.1" r="2.6" fill="#0d9488"/>
+<circle cx="294.9" cy="215.7" r="2.6" fill="#0d9488"/>
+<circle cx="301.3" cy="171.3" r="2.6" fill="#0d9488"/>
+<circle cx="279.8" cy="128.2" r="2.6" fill="#0d9488"/>
+<circle cx="234.7" cy="103.4" r="2.6" fill="#0d9488"/>
+<circle cx="180.1" cy="108.8" r="2.6" fill="#0d9488"/>
+<circle cx="135.7" cy="146.3" r="2.6" fill="#0d9488"/>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">vector_spiral</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1, law2</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.025)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">1600 steps · B=128</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=256 · z_dim=4</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">transfer_vector</text>
+</svg>

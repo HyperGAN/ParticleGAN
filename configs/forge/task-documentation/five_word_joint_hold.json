@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "five_word_joint_hold",
+  "title": "Five-Word Joint BiGAN 4k Retention Hold",
+  "laws": [
+    "law1",
+    "law3b",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder",
+    "checkpoint-continuation"
+  ],
+  "intuition": "Continues the candidate's earliest passing `five_word_joint_smoke` checkpoint for 4,000 updates, requiring every single scheduled generation and inverse-reconstruction check to stay passing without drift.",
+  "failure_mode": "Even after clean acquisition, coupled BiGAN minimax dynamics gradually rotate or collapse latent word codes, causing late-window reconstruction drop or mode loss.",
+  "protocol_notes": "Tier-2 required continuation of `five_word_joint_smoke` (4,000 updates; strict every-check retention).",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

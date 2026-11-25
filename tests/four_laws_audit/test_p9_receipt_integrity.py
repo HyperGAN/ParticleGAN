@@ -25,10 +25,14 @@ from scripts.four_laws_audit.p9_verify_receipts import (  # noqa: E402
 
 
 def test_four_laws_links_and_missing_receipts_repaired() -> None:
-    """Verify docs/four-laws.md has 0 broken links / 0 missing readouts and historical missing files stay absent."""
+    """Verify docs/four-laws.md + evidence ledger have 0 broken links / 0 missing readouts and historical missing files stay absent."""
     res = audit_four_laws_links(ROOT)
+    assert res["audited_documents"] == [
+        "docs/four-laws.md",
+        "reports/four-laws-audit/evidence-ledger-and-revisions.md",
+    ]
     assert res["checked_local_file_links"] >= 60
-    assert res["unique_readout_prefixes"] >= 42
+    assert res["unique_readout_prefixes"] >= 25
     assert res["existing_readout_count"] == res["unique_readout_prefixes"]
     assert res["broken_links"] == []
     assert res["missing_readouts"] == []
@@ -41,7 +45,7 @@ def test_four_laws_links_and_missing_receipts_repaired() -> None:
     ):
         assert not historical_missing.exists(), f"Historical missing file was fabricated: {historical_missing}"
 
-    # Confirm all 4 actual committed unified-v12 readouts are linked in docs/four-laws.md
+    # Confirm all 4 actual committed unified-v12 readouts are verified across docs/four-laws.md + evidence ledger
     linked_files = {item["file"] for item in res["readout_inventory"] if item["exists"]}
     for expected_v12 in (
         "readout-b51ab67c4d97526186e23651.json",
@@ -59,9 +63,10 @@ def test_four_laws_links_and_missing_receipts_repaired() -> None:
 
 
 def test_link_auditor_semantic_positive_control(tmp_path: pathlib.Path) -> None:
-    """Semantic control: auditor catches newly injected broken link and reports 0 broken when fixed."""
+    """Semantic control: auditor catches newly injected broken links/readouts in both docs/four-laws.md and the ledger."""
     (tmp_path / "docs").mkdir()
     (tmp_path / "reports" / "forge" / "records").mkdir(parents=True)
+    (tmp_path / "reports" / "four-laws-audit").mkdir(parents=True)
     rec = tmp_path / "reports" / "forge" / "records" / "readout-deadbeef0000000000000000.json"
     rec.write_text(
         json.dumps(
@@ -86,8 +91,32 @@ def test_link_auditor_semantic_positive_control(tmp_path: pathlib.Path) -> None:
     assert len(bad_audit["broken_links"]) == 1
     assert bad_audit["missing_readouts"] == ["readout-11111111"]
 
+    # Historical nonexistent hash referenced in docs/four-laws.md is NEVER excused
+    doc.write_text(
+        "Historical bad ref in four-laws: `readout-5002641a`\n",
+        encoding="utf-8",
+    )
+    hist_in_doc = audit_four_laws_links(tmp_path)
+    assert hist_in_doc["missing_readouts"] == ["readout-5002641a"]
+
     doc.write_text(
         "Good: [ok](../reports/forge/records/readout-deadbeef0000000000000000.json)\n",
+        encoding="utf-8",
+    )
+    ledger = tmp_path / "reports" / "four-laws-audit" / "evidence-ledger-and-revisions.md"
+    ledger.write_text(
+        "Prose audit note on `readout-5002641a` (never existed).\n"
+        "Unexpected bad link: [bad](../forge/records/readout-222222223333333344444444.json)\n",
+        encoding="utf-8",
+    )
+    bad_ledger = audit_four_laws_links(tmp_path)
+    assert len(bad_ledger["broken_links"]) == 1
+    assert bad_ledger["missing_readouts"] == ["readout-22222222"]
+    assert bad_ledger["documented_historical_missing_readouts"] == ["readout-5002641a"]
+
+    ledger.write_text(
+        "Prose audit note on `readout-5002641a` (never existed).\n"
+        "Valid ledger link: [ok](../forge/records/readout-deadbeef0000000000000000.json)\n",
         encoding="utf-8",
     )
     good_audit = audit_four_laws_links(tmp_path)

@@ -64,6 +64,9 @@ def source_audit(recipe, extensions):
              "particlegan/_r4_ablation/prior.py",
              "particlegan/_minimal/dynamics.py", "particlegan/_minimal/geometry.py",
              "particlegan/_minimal/prior.py",
+             "particlegan/_axiom/prior.py", "particlegan/_axiom/critic.py",
+             "particlegan/_axiom/transport.py", "particlegan/_axiom/optimizer.py",
+             "particlegan/_axiom/loss.py",
              "particlegan/grad_regularizers.py", "experiments/forge/clockfree.py",
              "experiments/forge/api.py", "experiments/forge/rng.py"]
     return {"source_sha256": {name: file_hash(root / name) for name in files},

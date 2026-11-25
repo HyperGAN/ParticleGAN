@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "staggered100_affine_square_named_v1_14k",
+  "title": "100-Mode Staggered Hex-Like Gaussian Grid (Affine-Square Init 14k Continuation)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "staggered-lattice",
+    "affine-init-cohort"
+  ],
+  "intuition": "Explicitly scoped affine-square init 14k continuation variant of `staggered100`. Shifts alternating rows of the 10x10 Gaussian lattice by half a spacing, breaking rectangular grid symmetry to stress streaming prototype assignment and continuous local pushforward geometry.",
+  "failure_mode": "Voronoi/Laguerre charts or coordinate-aligned representations struggle with staggered neighbor topology, causing lingering bridge samples or under-covered rows.",
+  "protocol_notes": "Explicit affine-square initialized 14k endurance continuation cohort; separate from standard deterministic_orthogonal initialization.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

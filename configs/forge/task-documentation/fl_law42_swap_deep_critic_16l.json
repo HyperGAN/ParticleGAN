@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law42_swap_deep_critic_16l",
+  "title": "Law 4.2 Probe: Swapped Depth Asymmetry (Shallow G vs Deep 16L Critic)",
+  "laws": [
+    "law4_2",
+    "law2"
+  ],
+  "edge_cases": [
+    "deep-critic-16l",
+    "deep-spectral-contraction",
+    "ring-mixture"
+  ],
+  "intuition": "Inverts depth asymmetry onto the critic: pairs a shallow 3-layer MLP generator with a deep 16-layer skip-free LeakyReLU critic (fourier=0) on an 8-mode 2D ring. Tests whether spectral conditioning rescues deep critics as well as deep generators.",
+  "failure_mode": "Without Law 4.2 spectral conditioning on D, the 16-layer critic's input Jacobian contracts to ~5e-7, leaving one-sided upper slope caps inactive and starving the generator of any useful force field.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (800 updates, 8-mode ring R=2.5, valley_fraction <= 0.05).",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

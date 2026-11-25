@@ -4,8 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ParticleGAN · Forge Benchmark Leaderboard</title>
-  <meta name="description" content="Interactive Forge benchmark leaderboard, task receipt explorer, and training GIF inspector for HyperGAN/ParticleGAN.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%234f46e5'/%3E%3Ctext x='16' y='23' font-size='20' text-anchor='middle' fill='white'%3E%E2%9A%9B%3C/text%3E%3C/svg%3E">
+  <meta name="description" content="Interactive Forge benchmark leaderboard, evolving laws coverage matrix, Pareto efficiency charts, experiment deep-dives, and training GIF inspector for HyperGAN/ParticleGAN.">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@11.4.1/dist/mermaid.min.js" crossorigin="anonymous" defer></script>
 </head>
 <body>
   <header class="topbar">
@@ -20,6 +24,7 @@
 
       <div class="topbar-actions">
         <nav class="quick-links" aria-label="External provenance links">
+          <a id="link-pages-portal" class="portal-link" href="https://hypergan.github.io/ParticleGAN/" target="_blank" rel="noopener noreferrer">Research Portal ↗</a>
           <a id="link-github" href="https://github.com/HyperGAN/ParticleGAN" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
           <a id="link-inventory" href="https://github.com/HyperGAN/ParticleGAN/blob/develop/reports/forge/technique-inventory.md" target="_blank" rel="noopener noreferrer">technique-inventory.md ↗</a>
           <a id="link-problems" href="https://github.com/HyperGAN/ParticleGAN/blob/develop/reports/forge/problems.md" target="_blank" rel="noopener noreferrer">problems.md ↗</a>
@@ -108,10 +113,11 @@
     <!-- Section Navigation Tabs -->
     <nav class="section-nav" aria-label="Dashboard sections">
       <a href="#leaderboard-section" class="nav-pill active">1. Selected Recipes Leaderboard</a>
-      <a href="#energy-section" class="nav-pill">2. Energy &amp; J-to-PASS</a>
-      <a href="#explorer-section" class="nav-pill">3. Task &amp; Receipt Explorer</a>
-      <a href="#gif-section" class="nav-pill">4. Training GIF Inspector</a>
-      <a href="#provenance-section" class="nav-pill">5. Provenance &amp; Links</a>
+      <a href="#laws-section" class="nav-pill">2. Laws &amp; Families Matrix</a>
+      <a href="#energy-section" class="nav-pill">3. Energy &amp; Pareto</a>
+      <a href="#explorer-section" class="nav-pill">4. Task &amp; Receipt Explorer</a>
+      <a href="#gif-section" class="nav-pill">5. Training GIF Inspector</a>
+      <a href="#provenance-section" class="nav-pill">6. Provenance &amp; Links</a>
     </nav>
 
     <!-- 1. Selected Recipes Leaderboard -->
@@ -119,12 +125,12 @@
       <div class="panel-header">
         <div>
           <h2 id="leaderboard-heading">Selected Recipes Leaderboard</h2>
-          <p class="panel-desc">Click any column header to sort. Select a family row to inspect recipe provenance or filter receipts.</p>
+          <p class="panel-desc">Click any column header to sort. Select a family row to inspect recipe provenance, law coverage, or filter receipts.</p>
         </div>
         <div class="segmented" role="group" aria-label="Leaderboard column group">
           <button type="button" class="seg-btn active" data-lb-mode="all">All Columns</button>
           <button type="button" class="seg-btn" data-lb-mode="tiers">Tier Reqs (1–4)</button>
-          <button type="button" class="seg-btn" data-lb-mode="full">Full-Suite (69)</button>
+          <button type="button" class="seg-btn" data-lb-mode="full">Full-Suite</button>
           <button type="button" class="seg-btn" data-lb-mode="stretch">Stretch</button>
         </div>
       </div>
@@ -161,7 +167,9 @@
             <p id="fd-subtitle" class="muted"></p>
           </div>
           <div class="detail-drawer-actions">
+            <button id="fd-laws-btn" class="btn btn-ghost" type="button">Inspect Laws &amp; Equations</button>
             <button id="fd-filter-btn" class="btn btn-primary" type="button">Filter Explorer to Family</button>
+            <a id="fd-portal-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener noreferrer">Portal Page ↗</a>
             <a id="fd-page-link" class="btn btn-ghost" href="#" target="_blank" rel="noopener noreferrer">Family Report ↗</a>
             <button id="fd-close-btn" class="btn btn-ghost" type="button" aria-label="Close family details">✕</button>
           </div>
@@ -170,12 +178,78 @@
       </div>
     </section>
 
-    <!-- 2. Energy & J-to-PASS Efficiency -->
+    <!-- 2. Research Laws & Families Matrix -->
+    <section id="laws-section" class="panel" aria-labelledby="laws-heading">
+      <div class="panel-header">
+        <div>
+          <h2 id="laws-heading">Research Laws &amp; Families Matrix</h2>
+          <p class="panel-desc">Dynamically populated from the repository's evolving laws registry. Click any Family × Law cell to read how that formulation addresses or omits the law, including its known limits.</p>
+        </div>
+        <div class="laws-header-actions">
+          <span class="badge badge-evolving" id="laws-status-badge">Provisional · Evolving Taxonomy</span>
+          <a id="link-laws-doc" class="btn btn-ghost btn-sm" href="https://hypergan.github.io/ParticleGAN/laws/" target="_blank" rel="noopener noreferrer">Laws Hub ↗</a>
+        </div>
+      </div>
+
+      <div id="laws-epistemic-banner" class="epistemic-callout">
+        <blockquote id="laws-epigraph" class="epistemic-quote"></blockquote>
+        <p id="laws-epistemic-note" class="epistemic-note"></p>
+      </div>
+
+      <div id="laws-cards-grid" class="laws-cards-grid"></div>
+
+      <div id="laws-matrix-container" class="laws-matrix-block">
+        <div class="subsection-head">
+          <h3>Family × Law Coverage Heatmap</h3>
+          <div class="heatmap-legend" aria-label="Coverage legend">
+            <span class="badge badge-law-addressed">✓ Addressed</span>
+            <span class="badge badge-law-partial">◐ Partial</span>
+            <span class="badge badge-law-unaddressed">○ Unaddressed</span>
+            <span class="badge badge-law-na">— N/A</span>
+          </div>
+        </div>
+        <div class="table-wrap" id="laws-matrix-wrap">
+          <div class="empty-cell">Loading law coverage matrix…</div>
+        </div>
+
+        <!-- Law x Family Cell Explanation Drawer -->
+        <div id="law-cell-drawer" class="detail-drawer hidden" aria-live="polite">
+          <div class="detail-drawer-head">
+            <div>
+              <h3 id="lcd-title">Law × Family Mechanism</h3>
+              <p id="lcd-subtitle" class="muted"></p>
+            </div>
+            <div class="detail-drawer-actions">
+              <button id="lcd-filter-tasks-btn" class="btn btn-primary btn-sm" type="button">Filter Tasks</button>
+              <button id="lcd-open-family-btn" class="btn btn-ghost btn-sm" type="button">Show Formulation Card</button>
+              <button id="lcd-close-btn" class="btn btn-ghost btn-sm" type="button" aria-label="Close mechanism drawer">✕</button>
+            </div>
+          </div>
+          <div id="lcd-body" class="law-cell-body"></div>
+        </div>
+      </div>
+
+      <!-- Interactive Family Formulation Card (KaTeX + Mermaid + Quickstart) -->
+      <div class="family-formulation-block" id="family-formulation-block">
+        <div class="subsection-head">
+          <div>
+            <h3>Family Formulations, Equations &amp; Quickstart</h3>
+            <p class="panel-desc">Select a family to inspect its equations (KaTeX), update-loop diagram (Mermaid), and copyable PyTorch <code>get_recipe(...)</code> quickstart.</p>
+          </div>
+          <div id="family-switcher-pills" class="family-pill-row" role="tablist" aria-label="Select family formulation"></div>
+        </div>
+        <div id="family-formulation-card" class="formulation-card">
+          <div class="empty-cell">Loading family formulations…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. Energy & J-to-PASS Efficiency + Pareto Scatter -->
     <section id="energy-section" class="panel" aria-labelledby="energy-heading">
       <div class="panel-header">
         <div>
           <h2 id="energy-heading">Energy &amp; <code>J-to-PASS</code> Efficiency</h2>
-          <p class="panel-desc">Hardware NVML energy telemetry &amp; Joules-to-PASS across matched GPU cohorts. Click any header to sort; missing measurements stay <code>—</code> and cohorts are never mixed.</p>
+          <p class="panel-desc">Hardware NVML energy telemetry &amp; Joules-to-PASS across matched GPU cohorts. Click any header to sort or any Pareto point to inspect; missing measurements stay <code>—</code> and cohorts are never mixed.</p>
         </div>
         <div class="energy-header-controls">
           <div class="segmented" role="group" aria-label="Energy cohort filter">
@@ -186,6 +260,32 @@
           </div>
           <div class="count-pill" id="energy-count">0 benchmarks</div>
         </div>
+      </div>
+
+      <!-- Interactive Pure-SVG Pareto Scatter Plot -->
+      <div id="pareto-card" class="pareto-card">
+        <div class="pareto-head">
+          <div>
+            <h3 class="pareto-title">Cost vs. Pass-Rate Pareto Frontier</h3>
+            <p class="pareto-sub" id="pareto-subtitle">Each GPU &amp; contention cohort is colored and frontier-traced separately — never conflated across hardware.</p>
+          </div>
+          <div class="pareto-controls">
+            <div class="segmented" role="group" aria-label="Pareto X-axis metric">
+              <button type="button" class="seg-btn active" data-pareto-x="grid100_j_to_pass">grid100 J-to-PASS</button>
+              <button type="button" class="seg-btn" data-pareto-x="r256_joules_per_step">r256 J/step</button>
+              <button type="button" class="seg-btn" data-pareto-x="r256_ms_per_step">r256 ms/step</button>
+            </div>
+            <div class="segmented" role="group" aria-label="Pareto Y-axis metric">
+              <button type="button" class="seg-btn active" data-pareto-y="occam">Occam Pass %</button>
+              <button type="button" class="seg-btn" data-pareto-y="full_suite">Family Full-Suite %</button>
+            </div>
+          </div>
+        </div>
+        <div class="pareto-stage">
+          <div id="pareto-svg-wrap" class="pareto-svg-wrap"></div>
+          <div id="pareto-tooltip" class="pareto-tooltip hidden" role="tooltip"></div>
+        </div>
+        <div id="pareto-legend" class="pareto-legend"></div>
       </div>
 
       <div class="filter-bar energy-filter-bar" role="search">
@@ -233,12 +333,12 @@
       </div>
     </section>
 
-    <!-- 3. Task / Receipt Explorer -->
+    <!-- 4. Task / Receipt Explorer -->
     <section id="explorer-section" class="panel" aria-labelledby="explorer-heading">
       <div class="panel-header">
         <div>
           <h2 id="explorer-heading">Task &amp; Receipt Explorer</h2>
-          <p class="panel-desc">Inspect individual recorded family × task outcomes, exact contract hashes, and blocker reasons.</p>
+          <p class="panel-desc">Inspect recorded family × task outcomes, exact contract hashes, and blocker reasons. Click any task ID to open its Experiment Deep-Dive view.</p>
         </div>
         <div class="count-pill" id="explorer-count">0 results</div>
       </div>
@@ -248,6 +348,18 @@
           <label for="filter-family">Family</label>
           <select id="filter-family">
             <option value="">All families</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-law">Law</label>
+          <select id="filter-law">
+            <option value="">All laws</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label for="filter-edge-case">Edge Case</label>
+          <select id="filter-edge-case">
+            <option value="">All edge cases</option>
           </select>
         </div>
         <div class="filter-group">
@@ -285,7 +397,7 @@
         </div>
         <div class="filter-group filter-search">
           <label for="filter-search">Search</label>
-          <input id="filter-search" type="search" placeholder="task id, family, recipe, reason, hash…" autocomplete="off">
+          <input id="filter-search" type="search" placeholder="task id, title, family, law, edge case, reason, hash…" autocomplete="off">
         </div>
         <div class="filter-group filter-check">
           <label class="checkbox-label">
@@ -334,6 +446,7 @@
             <p id="rd-subtitle" class="muted"></p>
           </div>
           <div class="detail-drawer-actions">
+            <button id="rd-open-exp-btn" class="btn btn-ghost" type="button">Experiment Deep-Dive</button>
             <button id="rd-open-gif-btn" class="btn btn-primary" type="button">Compare in GIF Inspector</button>
             <button id="rd-close-btn" class="btn btn-ghost" type="button" aria-label="Close receipt details">✕</button>
           </div>
@@ -342,7 +455,7 @@
       </div>
     </section>
 
-    <!-- 3. Training GIF Inspector / Side-by-Side Comparison -->
+    <!-- 5. Training GIF Inspector / Side-by-Side Comparison -->
     <section id="gif-section" class="panel" aria-labelledby="gif-heading">
       <div class="panel-header">
         <div>
@@ -356,6 +469,12 @@
       </div>
 
       <div class="gif-controls">
+        <div class="filter-group">
+          <label for="gif-law-filter">Law Filter</label>
+          <select id="gif-law-filter">
+            <option value="">All laws</option>
+          </select>
+        </div>
         <div class="filter-group gif-task-select">
           <label for="gif-task">Task</label>
           <select id="gif-task"></select>
@@ -386,7 +505,7 @@
       </div>
     </section>
 
-    <!-- 4. Provenance & Raw Sources -->
+    <!-- 6. Provenance & Raw Sources -->
     <section id="provenance-section" class="panel" aria-labelledby="provenance-heading">
       <div class="panel-header">
         <div>
@@ -398,10 +517,36 @@
     </section>
   </main>
 
+  <!-- Dedicated Experiment Deep-Dive Modal (#experiment/<task_id>) -->
+  <div id="experiment-modal" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="exp-modal-title">
+    <div class="modal-dialog">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title-row">
+            <h2 id="exp-modal-title">Experiment Deep-Dive</h2>
+            <code id="exp-modal-task-id"></code>
+          </div>
+          <div id="exp-modal-badges" class="modal-badges"></div>
+        </div>
+        <div class="modal-head-actions">
+          <button id="exp-modal-copy-link" class="btn btn-ghost btn-sm" type="button" title="Copy shareable link">Copy Link</button>
+          <a id="exp-modal-portal-link" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener noreferrer">Portal Page ↗</a>
+          <a id="exp-modal-json-link" class="btn btn-ghost btn-sm hidden" href="#" target="_blank" rel="noopener noreferrer">Task JSON ↗</a>
+          <a id="exp-modal-prob-link" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener noreferrer">problems.md ↗</a>
+          <button id="exp-modal-close" class="btn btn-ghost btn-sm" type="button" aria-label="Close experiment deep-dive">✕ Close</button>
+        </div>
+      </div>
+      <div id="exp-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
   <footer class="site-footer">
     <div class="container footer-inner">
       <span>HyperGAN / ParticleGAN · MIT License · Static Space (zero backend)</span>
-      <span>Data source: <a id="footer-data-url" href="https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/data/leaderboard.json" target="_blank" rel="noopener noreferrer">data/leaderboard.json ↗</a></span>
+      <span>
+        <a id="footer-portal-url" href="https://hypergan.github.io/ParticleGAN/" target="_blank" rel="noopener noreferrer">Research Portal ↗</a>
+        · Data source: <a id="footer-data-url" href="https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/data/leaderboard.json" target="_blank" rel="noopener noreferrer">data/leaderboard.json ↗</a>
+      </span>
     </div>
   </footer>
 

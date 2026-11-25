@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "img_bars4_residual16",
+  "title": "8x8 Procedural Images: Four Bar Positions (Residual-Upsample Width-16)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "cross-valley-averaging",
+    "residual-upsample-conv"
+  ],
+  "intuition": "Architectural transfer variant of `img_bars4` replacing transposed convolutions with nearest-neighbor upsampling + width-16 residual Conv2d blocks. Four discrete spatial bar locations (two vertical, two horizontal) on 8x8 grayscale images. Exposes cross-valley barycentric mode collapse on convolutional generators when batch/particle coupling is soft.",
+  "failure_mode": "Historically a major discriminator: BCAP, BISPF, EMPF-v8, and RHBI-v12 collapsed to 2/4 bars or blurry superpositions.",
+  "protocol_notes": "Separate residual-upsample image architecture cohort of `img_bars4`.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

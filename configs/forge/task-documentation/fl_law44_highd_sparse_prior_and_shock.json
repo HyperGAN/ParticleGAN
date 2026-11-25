@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law44_highd_sparse_prior_and_shock",
+  "title": "Law 4.4 Probe: R^512 Sparse-Mask Prior & 1e-5x / 1e4x Scale Shock",
+  "laws": [
+    "law4_4",
+    "law1"
+  ],
+  "edge_cases": [
+    "high-dimensional",
+    "sparse-observation-mask",
+    "scale-shock-1e4x"
+  ],
+  "intuition": "Dual-part Law 4.4 probe combining (A) a 64-mode 10%-observed R^512 bounded manifold (P=1600, RMSNorm critic) and (B) an extreme 1e-5x-scaled 4-mode GAN hit by a transient 1e4x scale spike and mode shift at step 200.",
+  "failure_mode": "Scale-dependent step floors or non-resetting EMA denominators either freeze at 1e-5x data scale or lock up permanently after the step-200 1e4x shock spike; sparse 10% masks break dense prior updates.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe testing scale-free settling and shock recovery.",
+  "diagram_kind": "highd_manifold",
+  "custom_mermaid": null
+}

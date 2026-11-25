@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_anisotropic",
+  "title": "Three Rotated Anisotropic Ellipses",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "anisotropic-covariance",
+    "rotated-ellipses",
+    "disconnected-support"
+  ],
+  "intuition": "Three equal-mass 2D Gaussians stretched along horizontal, vertical, and diagonal axes. Tests full 2x2 covariance fidelity so that matching a wide principal axis cannot hide collapse along the narrow axis.",
+  "failure_mode": "Scalar-trace isotropic covariance trackers or misallocated prototype mass distort ellipse eccentricity and violate component_covariance_error or mass_tv.",
+  "protocol_notes": "Tier-2 held transfer-vector task (1,200 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

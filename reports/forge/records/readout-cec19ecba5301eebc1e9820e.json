@@ -1,0 +1,745 @@
+{
+  "attempt_ids": [
+    "4427c9d1f0904d999c6e664881d1c862",
+    "5e84d9cf01b04a32a04c416414291eab",
+    "96eb0d550c7446c0ae1afa7deb979fae",
+    "9c3b9e80ee554d75b03196ae4420f531",
+    "cd16c173a55146e380338590c6b4ffb7"
+  ],
+  "candidate_id": "axiom-v1",
+  "candidate_revision": "69b0f27211ec3c89e2f52f60f97eaac9a5f9eee33a94b7029cb82a2dea14e53f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Beats minimal-v2 (2/4 PASS) while trailing unified-v11/v12 (5/5 PASS) on post-shift deadline settling speed.",
+  "conclusion": "3/5 PASS on t3-shift-recovery-diagnostic-v1 (RTX A6000, seed 0, axiom-v3 37f537db8): ae_gan_hold PASS, mode_hold PASS (8/8 modes, hq=0.9180), zero_tanh_smoke PASS (p99=0.0183); target_shift_recovery FAIL (8/8 modes post-shift, 58/81 live deadline checks, min_hq=0.7424) and zero_tanh_rail_escape FAIL (terminal p99=0.0245 <= 0.025, mae=0.0027 <= 0.005, missed earlier suffix).",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "4427c9d1f0904d999c6e664881d1c862",
+        "5e84d9cf01b04a32a04c416414291eab",
+        "96eb0d550c7446c0ae1afa7deb979fae",
+        "9c3b9e80ee554d75b03196ae4420f531",
+        "cd16c173a55146e380338590c6b4ffb7"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "f636e261fc6e7709567e2d8baab8de83d2db64f1f4918919b6c7310a698649ff",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.0033244085498154163
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.0033244085498154163
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "4427c9d1f0904d999c6e664881d1c862",
+          "producer_request_id": "6c2c55ca7997134c2d5fb928",
+          "producer_study_id": "axiom-v1-shift-diagnostic-study",
+          "result_hash": "fa022cc59ffba3c19e53a7b32408df41ce04370c70ee708bf35d36ab7601f740",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "5e84d9cf01b04a32a04c416414291eab",
+          "producer_request_id": "6c2c55ca7997134c2d5fb928",
+          "producer_study_id": "axiom-v1-shift-diagnostic-study",
+          "result_hash": "7b6e9b56274581270f4480a6ae0d782054656c365fa2c282e33f0b1d700510de",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "96eb0d550c7446c0ae1afa7deb979fae",
+          "producer_request_id": "6c2c55ca7997134c2d5fb928",
+          "producer_study_id": "axiom-v1-shift-diagnostic-study",
+          "result_hash": "ee293055091bbf9b8ec00493e2bd26437a5ddef2802b16763f6d1d3ff33ea335",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "9c3b9e80ee554d75b03196ae4420f531",
+          "producer_request_id": "6c2c55ca7997134c2d5fb928",
+          "producer_study_id": "axiom-v1-shift-diagnostic-study",
+          "result_hash": "62f6a31530633abcd4d55f9075b0be5f826be7eb1afb9e478fca2a782d175e49",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "cd16c173a55146e380338590c6b4ffb7",
+          "producer_request_id": "6c2c55ca7997134c2d5fb928",
+          "producer_study_id": "axiom-v1-shift-diagnostic-study",
+          "result_hash": "a25cb6f4eac77a0aa644263ae05a1d38c5819cff840c5d6464f7492127f210a4",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "d039898e1954ebbb354cf4cfb07d96b2e5fc13456c712715a772ad943fa91b1b",
+        "contract_sha256": "f636e261fc6e7709567e2d8baab8de83d2db64f1f4918919b6c7310a698649ff",
+        "control_binding_sha256": "e383a7be1c9d1a6adc74c870c8356f932102f80013e37879dab2d3eb27699a29",
+        "policy_fingerprint": "1398b8ca18b7f7a140ecfea50905272a1ef3e2aea184fb0143eedd92da79de4f",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "b13a8c5457ff644bdaac478a86cf72527789df84c04ad6bc306dfff58659513f"
+      },
+      "study_id": "axiom-v1-shift-diagnostic-study",
+      "study_sha256": "b13a8c5457ff644bdaac478a86cf72527789df84c04ad6bc306dfff58659513f"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3-shift-recovery-diagnostic-v1",
+  "hypothesis": "Unchanged global axiom-v1 passes 5/5 on t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery, and shift holdouts) under protocol seed 0.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Record honest 3/5 result; target earlier post-shift and Case-A settling speed without breaking Law 4.4 P1 coherence invariants in axiom-v4.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "4427c9d1f0904d999c6e664881d1c862",
+        "result_hash": "fa022cc59ffba3c19e53a7b32408df41ce04370c70ee708bf35d36ab7601f740",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "5e84d9cf01b04a32a04c416414291eab",
+        "result_hash": "7b6e9b56274581270f4480a6ae0d782054656c365fa2c282e33f0b1d700510de",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "96eb0d550c7446c0ae1afa7deb979fae",
+        "result_hash": "ee293055091bbf9b8ec00493e2bd26437a5ddef2802b16763f6d1d3ff33ea335",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "9c3b9e80ee554d75b03196ae4420f531",
+        "result_hash": "62f6a31530633abcd4d55f9075b0be5f826be7eb1afb9e478fca2a782d175e49",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "cd16c173a55146e380338590c6b4ffb7",
+        "result_hash": "a25cb6f4eac77a0aa644263ae05a1d38c5819cff840c5d6464f7492127f210a4",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-cec19ecba5301eebc1e9820e",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/4427c9d1f0904d999c6e664881d1c862/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 7200,
+      "candidate_budget_seconds": 7200,
+      "id": "axiom-v1-shift-diagnostic-study"
+    },
+    "candidate": "axiom-v1",
+    "competing_explanation": "If log2_damp equilibrium settling locks into a one-way ratchet or dead-zone-free orphan rescue fails to re-open after a non-stationary target shift, axiom-v1 will fail ae_gan_hold (hold > 0.35) or target_shift_recovery.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "hold",
+      "op": ">",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "hypothesis": "Unchanged global axiom-v1 passes 5/5 on t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery, and shift holdouts) under protocol seed 0.",
+    "id": "axiom-v1-shift-diagnostic-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "hold",
+      "op": "<=",
+      "phase": "final",
+      "task_id": "ae_gan_hold",
+      "threshold": 0.35
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v12",
+          "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+        },
+        "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3-shift-recovery-diagnostic-v1"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v1-shift-diagnostic-study",
+  "study_sha256": "b13a8c5457ff644bdaac478a86cf72527789df84c04ad6bc306dfff58659513f",
+  "task_results": [
+    {
+      "compatibility_key": "19cba2e04f17598bae1b5036828d88eeb1b621608c82ee3532d2eb0a9a6adcd7",
+      "cost": {
+        "adapter_loop_seconds": 44.77784523414448,
+        "adapter_seconds": 45.16592950001359,
+        "charged_task": "mode_hold",
+        "completed_steps": 1200,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 103.71590524242465,
+          "contended": false,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 150,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 3.8971616666639846,
+          "joules_to_first_pass": 584.5742499995977,
+          "joules_to_sustained_pass": 3702.3035833307854,
+          "joules_total": 4676.593999996781,
+          "sustained_pass_step": 950
+        },
+        "execution_seconds": 52.688939729938284,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1200,
+          "generator": 1200,
+          "prior": 1200
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 44.26146179600619,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.012204820290207863
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.008524009492248297
+            },
+            "training_updates": {
+              "calls": 1200,
+              "seconds": 44.24073296622373
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 46.77081587607972,
+        "wall_seconds": 52.688939729938284
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.7916666666666666,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 950,
+          "first_pass_step": 150,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 19,
+          "passing_suffix": 10,
+          "stable_from_seconds": null,
+          "stable_from_step": 750
+        },
+        "metric_checks": {
+          "hq": {
+            "margin": 0.017968749999999978,
+            "metric": "hq",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 0.9,
+            "value": 0.91796875
+          },
+          "modes": {
+            "margin": 0,
+            "metric": "modes",
+            "op": ">=",
+            "status": "PASS",
+            "threshold": 8,
+            "value": 8
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "cover": 1.0,
+        "effective_modes": 7.560166358947754,
+        "hq": 0.91796875,
+        "modes": 8,
+        "n_modes": 8,
+        "step": 1200
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "mode_hold"
+    },
+    {
+      "compatibility_key": "129af17f3b036f906045ab5474dfc96dca359083363e6a57e536c7a2747ab797",
+      "cost": {
+        "adapter_seconds": 7.478305361000821,
+        "charged_task": "ae_gan_hold",
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 99.11383686219058,
+          "contended": false,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 32,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": null,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 735.0450000017881,
+          "sustained_pass_step": 73
+        },
+        "execution_seconds": 14.791040892945603,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 9.119125064928085,
+        "wall_seconds": 14.791040892945603
+      },
+      "evaluator_summary": {
+        "attempted": true,
+        "confirmation_fraction": 0.292,
+        "convergence": {
+          "complete": true,
+          "confirmed_seconds": null,
+          "confirmed_step": 73,
+          "first_pass_step": 32,
+          "minimum_stable_checks": 5,
+          "observations": 24,
+          "passing_observations": 22,
+          "passing_suffix": 22,
+          "stable_from_seconds": null,
+          "stable_from_step": 32
+        },
+        "metric_checks": {
+          "hold": {
+            "margin": 0.34667559145018456,
+            "metric": "hold",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.35,
+            "value": 0.0033244085498154163
+          },
+          "recon_mse": {
+            "margin": 0.047413017321377995,
+            "metric": "recon_mse",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.05,
+            "value": 0.0025869826786220074
+          }
+        },
+        "passed": true,
+        "shortfall": 0.0,
+        "status": "PASS"
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "hold": 0.0033244085498154163,
+        "recon_mse": 0.0025869826786220074
+      },
+      "raw_status": "completed",
+      "reason": "recomputed complete live curve and terminal suffix",
+      "task_id": "ae_gan_hold"
+    },
+    {
+      "compatibility_key": "6e11dc9552c40de071b8e1da5e86adee141be4388da61ab0312710f3db874f07",
+      "cost": {
+        "adapter_loop_seconds": 24.700663550989702,
+        "adapter_seconds": 25.170712950872257,
+        "charged_task": "zero_tanh_smoke",
+        "completed_steps": 1000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 150.92597009366122,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 167,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 3.7864350000023843,
+          "joules_to_first_pass": 632.3346450003982,
+          "joules_to_sustained_pass": 1264.6692900007963,
+          "joules_total": 3786.435000002384,
+          "sustained_pass_step": 334
+        },
+        "execution_seconds": 33.02507317205891,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 1000,
+          "generator": 1000,
+          "prior": 1000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 23.40716247376986,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.011760195950046182
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.00911666452884674
+            },
+            "training_updates": {
+              "calls": 1000,
+              "seconds": 23.386285613290966
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 26.69751285109669,
+        "wall_seconds": 33.02507317205891
+      },
+      "evaluator_summary": {
+        "metric_checks": {
+          "mean_abs_error": {
+            "margin": 0.0018767352402210237,
+            "metric": "mean_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.005,
+            "value": 0.0031232647597789764
+          },
+          "p99_abs_error": {
+            "margin": 0.006717998161911966,
+            "metric": "p99_abs_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.025,
+            "value": 0.018282001838088036
+          },
+          "rms_error": {
+            "margin": 0.0051197542250156405,
+            "metric": "rms_error",
+            "op": "<=",
+            "status": "PASS",
+            "threshold": 0.01,
+            "value": 0.00488024577498436
+          },
+          "saturated_fraction": {
+            "margin": -0.0,
+            "metric": "saturated_fraction",
+            "op": "==",
+            "status": "PASS",
+            "threshold": 0.0,
+            "value": 0.0
+          }
+        },
+        "passed": true
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "mean_abs_error": 0.0031232647597789764,
+        "p99_abs_error": 0.018282001838088036,
+        "rms_error": 0.00488024577498436,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed the declared final zero-tanh bounds",
+      "task_id": "zero_tanh_smoke"
+    },
+    {
+      "compatibility_key": "59e6f70313c49a70b83ae6c1569d15ae98b1261bb63b39000b3863ce51d8f1e5",
+      "cost": {
+        "adapter_loop_seconds": 48.93503476912156,
+        "adapter_seconds": 49.39479763596319,
+        "charged_task": "zero_tanh_rail_escape",
+        "completed_steps": 2000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 156.97323594925018,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 167,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 3.8701944999992848,
+          "joules_to_first_pass": 646.3224814998806,
+          "joules_to_sustained_pass": 1935.0972499996424,
+          "joules_total": 7740.3889999985695,
+          "sustained_pass_step": 500
+        },
+        "execution_seconds": 56.65566879697144,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 2000,
+          "generator": 2000,
+          "prior": 2000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 46.00268941489048,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 25,
+              "seconds": 0.012802655575796962
+            },
+            "sampling": {
+              "calls": 25,
+              "seconds": 0.009896517498418689
+            },
+            "training_updates": {
+              "calls": 2000,
+              "seconds": 45.97999024181627
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 50.91892486694269,
+        "wall_seconds": 56.65566879697144
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 1,
+        "passed": false,
+        "terminal_passed": 1
+      },
+      "gate_status": "FAIL",
+      "metrics": {
+        "mean_abs_error": 0.0026628002524375916,
+        "p99_abs_error": 0.02452853135764599,
+        "rms_error": 0.005549558438360691,
+        "sample_count": 4096,
+        "saturated_fraction": 0.0,
+        "step": 2000
+      },
+      "raw_status": "completed",
+      "reason": "failed zero_tanh_rail_escape thresholds: p99_abs_error <= 0.025",
+      "task_id": "zero_tanh_rail_escape"
+    },
+    {
+      "compatibility_key": "5ce31ae2b69dec36408420eeea7b8335a47cf33f5f2723645078f5e18df69e4d",
+      "cost": {
+        "adapter_loop_seconds": 153.57161896605976,
+        "adapter_seconds": 154.2244328779634,
+        "charged_task": "target_shift_recovery",
+        "completed_steps": 3600,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 134.64292952423813,
+          "contended": false,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": null,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 5.763968055554562,
+          "joules_to_first_pass": null,
+          "joules_to_sustained_pass": null,
+          "joules_total": 20750.284999996424,
+          "sustained_pass_step": null
+        },
+        "execution_seconds": 162.20712894410826,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 3600,
+          "generator": 3600,
+          "prior": 3600
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 149.34178750729188,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 360,
+              "seconds": 0.0891283096279949
+            },
+            "sampling": {
+              "calls": 360,
+              "seconds": 0.1688068772200495
+            },
+            "training_updates": {
+              "calls": 3600,
+              "seconds": 149.08385232044384
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 155.91513831587508,
+        "wall_seconds": 162.20712894410826
+      },
+      "evaluator_summary": {},
+      "gate_status": "FAIL",
+      "metrics": {
+        "frozen_deadline": {
+          "checks": 81,
+          "failing_steps": [
+            2800,
+            2810,
+            2820,
+            2830,
+            2840,
+            2850,
+            2860,
+            2870,
+            2880,
+            2890,
+            2900,
+            2910,
+            2920,
+            2930,
+            2940,
+            2950,
+            2960,
+            2970,
+            2980,
+            2990,
+            3000,
+            3010,
+            3020,
+            3030,
+            3040,
+            3050,
+            3060,
+            3070,
+            3080,
+            3090,
+            3100,
+            3110,
+            3120,
+            3130,
+            3140,
+            3150,
+            3160,
+            3170,
+            3180,
+            3190,
+            3200,
+            3210,
+            3220,
+            3230,
+            3240,
+            3250,
+            3260,
+            3270,
+            3280,
+            3290,
+            3300,
+            3310,
+            3320,
+            3330,
+            3340,
+            3350,
+            3360,
+            3370,
+            3380,
+            3390,
+            3400,
+            3410,
+            3420,
+            3430,
+            3440,
+            3450,
+            3460,
+            3470,
+            3480,
+            3490,
+            3500,
+            3510,
+            3520,
+            3530,
+            3540,
+            3550,
+            3560,
+            3570,
+            3580,
+            3590,
+            3600
+          ],
+          "min_hq": 0.0,
+          "min_modes": 0,
+          "pass_all": false,
+          "pass_suffix": false,
+          "passing_checks": 0,
+          "passing_suffix": 0,
+          "stable_from_step": null
+        },
+        "live_deadline": {
+          "checks": 81,
+          "failing_steps": [
+            2830,
+            2840,
+            3040,
+            3050,
+            3060,
+            3070,
+            3180,
+            3190,
+            3200,
+            3380,
+            3390,
+            3400,
+            3470,
+            3480,
+            3490,
+            3500,
+            3530,
+            3540,
+            3550,
+            3560,
+            3580,
+            3590,
+            3600
+          ],
+          "min_hq": 0.742431640625,
+          "min_modes": 8,
+          "pass_all": false,
+          "pass_suffix": false,
+          "passing_checks": 58,
+          "passing_suffix": 0,
+          "stable_from_step": null
+        }
+      },
+      "raw_status": "completed",
+      "reason": "recomputed live recovery and matched frozen negative control",
+      "task_id": "target_shift_recovery"
+    }
+  ]
+}

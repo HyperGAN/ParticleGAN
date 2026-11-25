@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-img_stripes2",
+  "title": "8x8 Procedural Images: Horizontal vs Vertical Stripes (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "finite-prior-enumeration",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `img_stripes2` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Smallest convolutional image transfer test: learn both 8x8 stripe orientations (horizontal and vertical) using a 32-particle prior with exact finite-prior enumeration (2/2 modes, hq >= 0.90).",
+  "failure_mode": "Unregularized Conv2d critics or cross-valley barycentric averaging produce blurry '+' cross hybrids instead of crisp stripes.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `img_stripes2` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

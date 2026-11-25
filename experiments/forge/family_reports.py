@@ -14,7 +14,7 @@ import os
 from pathlib import Path
 
 from .contracts import file_hash, identifier, read_json, stable_hash
-from . import family_documentation
+from . import family_documentation, laws_registry
 from .views import (COUNTED_OR_HELD, is_stretch, stretch_note,
                     task_evaluation_fingerprint, task_execution_fingerprint)
 
@@ -22,10 +22,30 @@ from .views import (COUNTED_OR_HELD, is_stretch, stretch_note,
 FAMILY_DIRECTORY = Path("reports/forge/families")
 PROBLEM_DEFINITIONS = Path("reports/forge/problem-definitions.json")
 PROBLEM_PAGE = Path("reports/forge/problems.md")
+LAWS_HUB_PAGE = Path("reports/forge/LAWS_HUB.md")
+EXPERIMENTS_INDEX_PAGE = Path("reports/forge/experiments/README.md")
+EXPERIMENTS_DIRECTORY = Path("reports/forge/experiments")
+TEST_PERFORMANCE_PAGE = Path("reports/forge/test-performance.md")
+PORTAL_URL = "https://hypergan.github.io/ParticleGAN/"
+HF_SPACE_URL = "https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard"
 COMPLETE = {"PASS", "FAIL"}
 BASE_TIERS = ("1", "2", "3")
 TIERS = BASE_TIERS
 COVERAGE_PREFLIGHT = Path("reports/forge/tier-coverage-20261014/preflight.json")
+
+_LAW_STATUS_DISPLAY = {
+    "addressed": "Addressed",
+    "partial": "Partial",
+    "unaddressed": "Unaddressed",
+    "not_applicable": "N/A",
+}
+
+_LAW_STATUS_MATRIX = {
+    "addressed": "✅ Addressed",
+    "partial": "🟡 Partial",
+    "unaddressed": "⬜ Unaddressed",
+    "not_applicable": "➖ N/A",
+}
 
 
 def evaluated_tiers(views) -> tuple[str, ...]:
@@ -866,6 +886,7 @@ def build_progress(root: Path, publication: dict, *, selection_card: dict | None
         if overlay is not None:
             family["cohorts"][-1]["policy_cloud_publication"] = overlay["publication"]
     documented, tag_definitions = family_documentation.load_family_documentation(root, families, load)
+    laws = laws_registry.load_laws(root, load=load)
     for family in families.values():
         family.update(documented.get(family["id"], {"tags": [], "documentation": None}))
         illustration = (family.get("documentation") or {}).get("illustration")
@@ -922,7 +943,10 @@ def build_progress(root: Path, publication: dict, *, selection_card: dict | None
                 "research_renderer_sha256": file_hash(Path(__file__).with_name("research_tiers.py")),
                 "pr399_renderer_sha256": file_hash(Path(__file__).with_name("pr399_scores.py")),
                 "policy_cloud_renderer_sha256": file_hash(Path(__file__).with_name("policy_cloud_publication.py")),
-                "documentation_loader_sha256": file_hash(Path(family_documentation.__file__))}
+                "documentation_loader_sha256": file_hash(Path(family_documentation.__file__)),
+                "laws_registry_loader_sha256": file_hash(Path(laws_registry.__file__))}
+    if laws is not None:
+        progress["laws_registry"] = laws
     if recorded_scope is not None:
         progress["recorded_display_scope"] = recorded_scope
     if first_full_atlas is not None:
@@ -1356,6 +1380,315 @@ def _score_cells(root, page, family, cohort, counts, *, tiers=None, view_id=None
     return cells
 
 
+def _all_rows(publication):
+    return publication.get("rows", []) + publication.get("historical_family_rows", [])
+
+
+def _cohort_row(publication, cohort):
+    rows = _all_rows(publication)
+    index = cohort.get("row_index")
+    return rows[index] if isinstance(index, int) and 0 <= index < len(rows) else {}
+
+
+def _doc_link(root, page, label, target, anchor=None):
+    """Link to a repository doc, adding #anchor only when an explicit HTML anchor exists."""
+    path = root / target
+    if not path.is_file():
+        return cell(label)
+    if anchor and f'<a name="{anchor}"></a>' in path.read_text():
+        return link(root, page, label, target, anchor)
+    return link(root, page, label, target)
+
+
+def _quick_nav_bar(root, page, progress, *, on_leaderboard=False):
+    laws_doc = (progress.get("laws_registry") or {}).get("doc_path", "docs/four-laws.md")
+    items = []
+    if on_leaderboard:
+        items.append(f"[Research Portal (GitHub Pages)]({PORTAL_URL})")
+        items.append(f"[Interactive HF Leaderboard Space]({HF_SPACE_URL})")
+    else:
+        items.append(link(root, page, "← Family leaderboard", "reports/forge/technique-inventory.md"))
+    if (root / LAWS_HUB_PAGE).is_file():
+        items.append(link(root, page, "Explore by Laws", LAWS_HUB_PAGE.as_posix()))
+    elif laws_doc and (root / laws_doc).is_file():
+        items.append(link(root, page, "Explore by Laws" if on_leaderboard else "Current Laws Framework", laws_doc))
+    if (root / EXPERIMENTS_INDEX_PAGE).is_file():
+        items.append(link(root, page, "Experiment Catalog", EXPERIMENTS_INDEX_PAGE.as_posix()))
+    items.append(link(root, page, "Unresolved Problems", PROBLEM_PAGE.as_posix()))
+    if on_leaderboard:
+        items.append(link(root, page, "Full Matrix", TEST_PERFORMANCE_PAGE.as_posix()))
+    if not on_leaderboard:
+        items.append(f"[Research Portal]({PORTAL_URL})")
+        items.append(f"[HF Space]({HF_SPACE_URL})")
+    return " · ".join(items)
+
+
+def _r256_measurement(publication, row):
+    """Return (update_ms_median, receipt_path) for dcgan_performance_r256 of this exact recipe, else (None, None)."""
+    evidence = publication.get("scaling_performance")
+    if not evidence or not row:
+        return None, None
+    family_id = row.get("trainer_family")
+    candidate_id = row.get("candidate_id")
+    if not family_id or not candidate_id:
+        return None, None
+    from .scaling_publication import performance_status
+    for record in evidence.get("records", []):
+        if (record.get("task_id") == "dcgan_performance_r256"
+                and record.get("trainer_family") == family_id
+                and record.get("candidate_id") == candidate_id):
+            result = record.get("result", {})
+            if performance_status(result) == "COMPLETE":
+                median = result.get("metrics", {}).get("update_ms_median")
+                if isinstance(median, (int, float)):
+                    return float(median), record.get("receipt")
+    return None, None
+
+
+def _cohort_full_suite_counts(root, progress, cohort):
+    from .leaderboard_contract import fixed_outcomes, load_fixed_test_list
+    current = full_suite_tasks(progress)
+    fixed = load_fixed_test_list(root)
+    names = list(fixed["tests"]) if fixed else current
+    counted = {a["task"] for view in _summed_views(progress) for a in view["assignments"]
+               if a["importance"] == "required"}
+    not_counted = [name for name in names if name not in counted]
+    statuses = {test: cohort.get("tasks", {}).get(test, {}).get("status", "UNKNOWN") for test in names}
+    return fixed_outcomes(statuses, names, not_counted), fixed
+
+
+def _screening_status_badge(row, counts):
+    total = counts.get("total", 0)
+    passed = counts.get("passed", 0)
+    failed = counts.get("failed", 0)
+    not_measured = counts.get("not_measured", 0)
+    other_total = sum(counts.get("other", {}).values())
+    qualified_tier = row.get("qualified_tier", 0)
+    if total == 0 or (passed == 0 and failed == 0 and not_measured == total):
+        return "Unmeasured"
+    if qualified_tier > 0:
+        if failed == 0 and not_measured == 0 and other_total == 0:
+            return f"Screening Tier {qualified_tier} · 0 fails"
+        if failed == 0:
+            return f"Screening Tier {qualified_tier} · 0 fails ({not_measured + other_total} unmeasured)"
+        return f"Screening Tier {qualified_tier} ({failed} fail{'' if failed == 1 else 's'})"
+    if passed > 0 and failed == 0:
+        return "Measured (0 fails; uncalibrated)"
+    if failed > 0:
+        return f"Measured ({failed} fail{'' if failed == 1 else 's'})"
+    return f"Incomplete ({not_measured + other_total} unmeasured)"
+
+
+def _family_display_label(root, page, progress, family, cohort):
+    name = family["label"]
+    if cohort["backend"] != "cuda" or (len(family["cohorts"]) > 1 and not family.get("current_cohort_anchor")):
+        name += " (" + cohort["backend"] + ")"
+    label = link(root, page, name, family["page"])
+    if cohort.get("configuration_family"):
+        configuration = next(item for item in progress.get("configuration_families", [])
+                             if item["id"] == cohort["configuration_family"])
+        label += " · " + link(root, page, configuration["label"], configuration["page"])
+    return label
+
+
+def _executive_scorecard_section(root, publication, page, selected, report_tiers):
+    progress = publication["family_progress"]
+    if not selected:
+        return []
+    tier_header = " / ".join(f"T{t}" for t in report_tiers)
+    lines = [
+        "## Executive scorecard", "",
+        "At-a-glance snapshot combining distinct full-suite counts, per-tier view requirements, "
+        "separate DCGAN `r256` median update latency (when measured for that exact recipe), and "
+        "honest screening status. Rows retain their individual sources and tuning budgets; timing "
+        "receipts confer no scientific qualification or default adoption.", "",
+        f"| Family / selected recipe | Distinct PASS / FAIL / Not measured | Tier views ({tier_header}) | DCGAN r256 ms/step | Screening status |",
+        "| --- | ---: | ---: | ---: | --- |",
+    ]
+    for family, cohort in selected:
+        row = _cohort_row(publication, cohort)
+        label = _family_display_label(root, page, progress, family, cohort)
+        counts, _ = _cohort_full_suite_counts(root, progress, cohort)
+        distinct_text = f"**{counts['passed']}** / {counts['failed']} / {counts['not_measured']} (of {counts['total']})"
+        tier_summary = " · ".join(
+            f"T{t}: {cohort['tiers'][t]['passed']}/{cohort['tiers'][t]['total']}"
+            for t in report_tiers
+        )
+        r256_ms, r256_receipt = _r256_measurement(publication, row)
+        if r256_ms is not None:
+            speed_text = f"{r256_ms:,.2f} ms"
+            if r256_receipt and (root / r256_receipt).is_file():
+                speed_text = link(root, page, speed_text, r256_receipt)
+        else:
+            speed_text = "unknown"
+        badge = _screening_status_badge(row, counts)
+        lines.append(f"| {label} | {distinct_text} | {tier_summary} | {speed_text} | {cell(badge)} |")
+    return lines + [""]
+
+
+def _laws_matrix_section(root, progress, page, selected):
+    registry = progress.get("laws_registry")
+    if not registry or not registry.get("laws") or not selected:
+        return []
+    laws = registry["laws"]
+    if not any((family.get("documentation") or {}).get("law_mechanisms") for family, _ in selected):
+        return []
+    doc_path = registry.get("doc_path", "docs/four-laws.md")
+    ref_links = []
+    if (root / LAWS_HUB_PAGE).is_file():
+        ref_links.append(link(root, page, "Explore by Laws hub", LAWS_HUB_PAGE.as_posix()))
+    if doc_path and (root / doc_path).is_file():
+        ref_links.append(_doc_link(root, page, "Current laws framework", doc_path))
+    ref_suffix = (" See " + " · ".join(ref_links) + "." if ref_links else "")
+    header = "| Family | " + " | ".join(f"{cell(law['short_label'])}: {cell(law['title'])}" for law in laws) + " |"
+    divider = "| --- | " + " | ".join(["---"] * len(laws)) + " |"
+    lines = [
+        "## How families address the current laws", "",
+        f"> *\"{registry['epigraph']}\"*", "",
+        f"{registry['epistemic_note']} (Status: `{registry['epistemic_status']}`.)" + ref_suffix, "",
+        "Each cell summarizes how the family's documented mechanism relates to the corresponding law in "
+        "`configs/forge/laws.json`. Editorial mechanism notes never alter scientific grades.", "",
+        header,
+        divider,
+    ]
+    for family, cohort in selected:
+        label = _family_display_label(root, page, progress, family, cohort)
+        mechanisms = (family.get("documentation") or {}).get("law_mechanisms") or {}
+        row_cells = [label]
+        for law in laws:
+            entry = mechanisms.get(law["id"])
+            if not entry:
+                row_cells.append("—")
+                continue
+            status_badge = _LAW_STATUS_MATRIX.get(entry["status"], cell(entry["status"]))
+            mech = entry["mechanism"]
+            if len(mech) > 72:
+                mech = mech[:69].rstrip() + "..."
+            status_link = link(root, page, status_badge, family["page"], "how-it-addresses-laws")
+            row_cells.append(f"{status_link} — {cell(mech)}")
+        lines.append("| " + " | ".join(row_cells) + " |")
+    return lines + [""]
+
+
+def _family_executive_summary(root, publication, page, family, report_tiers):
+    cohorts = family.get("cohorts") or []
+    if not cohorts:
+        return []
+    progress = publication["family_progress"]
+    current_anchor = family.get("current_cohort_anchor")
+    cohort = next((c for c in cohorts if c["anchor"] == current_anchor), cohorts[0])
+    row = _cohort_row(publication, cohort)
+    candidate_id = row.get("candidate_id", "unavailable")
+    counts, fixed = _cohort_full_suite_counts(root, progress, cohort)
+    r256_ms, r256_receipt = _r256_measurement(publication, row)
+    if r256_ms is not None:
+        speed_text = f"{r256_ms:,.2f} ms/step"
+        if r256_receipt and (root / r256_receipt).is_file():
+            speed_text = link(root, page, speed_text, r256_receipt)
+    else:
+        speed_text = "unknown"
+    badge = _screening_status_badge(row, counts)
+    tier_parts = [f"Tier {t}: {score(cohort['tiers'][t])}" for t in report_tiers]
+    tier_parts.append(f"Total: {score(cohort['total'])}")
+    denom_label = f"fixed list `{fixed['id']}`" if fixed else "current views"
+    distinct_text = (f"**{counts['passed']} PASS** · **{counts['failed']} FAIL** · "
+                     f"{counts['not_measured']} not measured (of {counts['total']} distinct tests; {denom_label})"
+                     if counts["total"] else "No required or held tests declared")
+    candidate_text = f"`{cell(candidate_id)}`"
+    if cohort.get("configuration_family"):
+        configuration = next((item for item in progress.get("configuration_families", [])
+                              if item["id"] == cohort["configuration_family"]), None)
+        if configuration is not None:
+            candidate_text += " (" + link(root, page, configuration["label"], configuration["page"]) + ")"
+    lines = [
+        "## Executive summary", "",
+        "| Field | Value |",
+        "| --- | --- |",
+        f"| Selected candidate | {candidate_text} |",
+        f"| Distinct full-suite outcomes | {distinct_text} |",
+        f"| Counted view requirements | {' · '.join(tier_parts)} |",
+        f"| DCGAN r256 speed | {speed_text} |",
+        f"| Screening status | {cell(badge)} |",
+    ]
+    if family.get("tags"):
+        tags_text = " · ".join(
+            link(root, page, tag, "reports/forge/technique-inventory.md", "tag-" + tag)
+            for tag in family["tags"]
+        )
+        lines.append(f"| Tags | {tags_text} |")
+    lines.append("")
+    quickstart = (family.get("documentation") or {}).get("quickstart")
+    if quickstart:
+        lines += [
+            "### Quickstart", "",
+            f"Public preset: `{cell(quickstart['preset'])}`", "",
+            "```python",
+            *quickstart["snippet"],
+            "```", "",
+        ]
+    return lines
+
+
+def _family_laws_section(root, page, family, laws_registry_data):
+    documentation = family.get("documentation") or {}
+    mechanisms = documentation.get("law_mechanisms")
+    if not laws_registry_data or not laws_registry_data.get("laws") or not mechanisms:
+        return []
+    laws = laws_registry_data["laws"]
+    doc_path = laws_registry_data.get("doc_path", "docs/four-laws.md")
+    links = []
+    if (root / LAWS_HUB_PAGE).is_file():
+        links.append(link(root, page, "Explore by Laws hub", LAWS_HUB_PAGE.as_posix()))
+    if doc_path and (root / doc_path).is_file():
+        links.append(_doc_link(root, page, "Current laws framework", doc_path))
+    ref_text = (" · ".join(links) + "." if links else "")
+    lines = [
+        '<a name="how-it-addresses-laws"></a>', "",
+        f"## How {family['label']} addresses the current laws", "",
+        f"> *\"{laws_registry_data['epigraph']}\"*", "",
+        f"{laws_registry_data['epistemic_note']} " + ref_text, "",
+        "| Law | Status | Primary mechanism |",
+        "| --- | --- | --- |",
+    ]
+    for law in laws:
+        entry = mechanisms.get(law["id"])
+        if not entry:
+            continue
+        law_label = f"{law['short_label']}: {law['title']}"
+        if doc_path and (root / doc_path).is_file():
+            law_cell = _doc_link(root, page, law_label, doc_path, law.get("doc_anchor"))
+        else:
+            law_cell = cell(law_label)
+        badge = _LAW_STATUS_MATRIX.get(entry["status"], cell(entry["status"]))
+        lines.append(f"| {law_cell} | {badge} | {cell(entry['mechanism'])} |")
+    lines.append("")
+    for law in laws:
+        entry = mechanisms.get(law["id"])
+        if not entry:
+            continue
+        status_label = _LAW_STATUS_DISPLAY.get(entry["status"], entry["status"])
+        lines += [
+            f"### {law['short_label']} — {law['title']} ({status_label})", "",
+            f"*{law['question']}*", "",
+            f"- **Mechanism:** {entry['mechanism']}",
+            f"- **How it works:** {entry['how_it_works']}",
+            f"- **Known limits:** {entry['known_limits']}", "",
+        ]
+    return lines
+
+
+def _family_mermaid_section(family):
+    diagram = (family.get("documentation") or {}).get("mermaid_diagram")
+    if not diagram:
+        return []
+    return [
+        "## Update loop diagram", "",
+        "```mermaid",
+        diagram,
+        "```", "",
+    ]
+
+
 def render_leaderboard(root: Path, publication: dict, page: Path) -> str:
     progress = publication["family_progress"]
     report_tiers = tuple(progress.get("tiers", TIERS))
@@ -1374,14 +1707,17 @@ def render_leaderboard(root: Path, publication: dict, page: Path) -> str:
     uncounted = " and ".join(f"{value} {label}" for value, _, label in roles if value)
     uncounted_tests = " and ".join(f"{tests} {label} test" + ("" if tests == 1 else "s") for _, tests, label in roles if tests)
     lines = ["# Forge family leaderboard", "",
-             "A **family** can have several **recipes**. Each score belongs to one exact recipe and source. "
+             _quick_nav_bar(root, page, progress, on_leaderboard=True), "",
+             "> [!IMPORTANT]",
+             "> **Screening & calibration scope.** A **family** can have several **recipes**. Each score belongs to one exact recipe and source. "
              "For example, BCAP's selected recipe uses DualNorm; Confidence LR, Finite critic cap and Positive evidence "
-             "are separate BCAP research recipes, with their own scores.", "",
-             "Click a count for its gates, measurements and evidence. Required lower tiers must pass before advancing.", "",
-             "Counts describe screening and selection evidence. Scientific superiority or public-default adoption "
+             "are separate BCAP research recipes, with their own scores.",
+             ">",
+             "> Counts describe screening and selection evidence. Scientific superiority or public-default adoption "
              "requires report-bound accepted calibration and independently frozen confirmation evidence. Software "
              "repairs grant neither; unmeasured confirmation remains unmeasured. Tuning effort and task holdout "
              "disclosures accompany the full-suite comparison below.", "",
+             "Click a count for its gates, measurements and evidence. Required lower tiers must pass before advancing.", "",
              "## Selected recipes", "",
              "Passes / required-view instances for one selected recipe per family. Shared tests count once in every view "
              f"that requires them: **{counted} means {counted} counted view requirements, including repeated tests**, "
@@ -1433,6 +1769,8 @@ def render_leaderboard(root: Path, publication: dict, page: Path) -> str:
                   link(root, page, "Outcomes, blocked attempts and setup", "reports/forge/ATTEMPT_COVERAGE.md") +
                   ". This counts attempts, including start refusals, rather than passes or qualification.", ""]
     lines += _full_suite_section(root, publication, page, selected)
+    lines += _executive_scorecard_section(root, publication, page, selected, report_tiers)
+    lines += _laws_matrix_section(root, progress, page, selected)
     lines += _stretch_section(root, page, progress, selected, report_tiers)
     lines += _uncounted_section(root, page, summed, selected)
     from .model_toy_publication import board_section
@@ -1557,7 +1895,7 @@ def _tag_directory(root, page, progress):
     return lines
 
 
-def _technique_description(root, page, family):
+def _technique_description(root, page, family, *, laws_registry_data=None):
     documentation = family.get("documentation")
     if documentation is None:
         return ["## Technique overview", "",
@@ -1573,6 +1911,8 @@ def _technique_description(root, page, family):
         if any(character.isspace() for character in target):
             target = "<" + target + ">"
         lines += [f"![{alt}]({target})", "", illustration["caption"], ""]
+    lines += _family_laws_section(root, page, family, laws_registry_data)
+    lines += _family_mermaid_section(family)
     equations = documentation.get("equations", [])
     if equations:
         lines += ["## Mathematical formulation", "", documentation["symbols"], ""]
@@ -1711,8 +2051,9 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
     report_tiers = tuple(progress.get("tiers", TIERS))
     views = {view["id"]: view for view in progress["views"]}
     lines = ["<!-- Generated Forge family report -->", "", f"# {family['label']}", "",
-             link(root, page, "← Family leaderboard", "reports/forge/technique-inventory.md"), "",
-             *_technique_description(root, page, family),
+             _quick_nav_bar(root, page, progress, on_leaderboard=False), "",
+             *_family_executive_summary(root, publication, page, family, report_tiers),
+             *_technique_description(root, page, family, laws_registry_data=progress.get("laws_registry")),
              "Generated from one selected configuration per runtime. Recorded verdicts retain their original scientific "
              "contracts; grouping them under current views grants no new qualification.", ""]
     if family.get("historical_only"):
@@ -1924,22 +2265,33 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
                 if not assignments:
                     lines += ["No experiments assigned.", ""]
                     continue
-                lines += ["| Experiment | Role | Recorded result | Test definition |", "| --- | --- | --- | --- |"]
+                count_label = f"{len(assignments)} test" + ("" if len(assignments) == 1 else "s")
+                lines += [
+                    "<details>",
+                    f"<summary>Tier {tier} assignments ({count_label})</summary>", "",
+                    "| Experiment | Role | Recorded result | Test definition |", "| --- | --- | --- | --- |",
+                ]
                 for assignment in assignments:
                     name = assignment["task"]
                     result = cohort["tasks"][name]
                     lines.append("| " + " | ".join([
                         link(root, page, name, family["page"], base + "-experiment-" + name),
                         role_cell(root, page, assignment), result["status"], _definition_label(result)]) + " |")
-                lines.append("")
+                lines += ["", "</details>", ""]
         lines += [*_heading(2, "Experiment metrics and pass criteria", base + "-experiments"), "One evidence entry per experiment is shared by its view rows. "
                   "Test-definition changes describe differences from the recorded run, independently of whether it was executed. "
                   "Earlier verdicts are preserved.", ""]
         for name, result in cohort["tasks"].items():
             task_path = Path(progress.get("task_paths", {}).get(name, "configs/forge/tasks/" + name + ".json"))
             task = read_json(root / task_path) if (root / task_path).is_file() else {}
+            exp_page = EXPERIMENTS_DIRECTORY / f"{name}.md"
+            header_links = [_existing_link(root, page, "Current experiment declaration", task_path)]
+            if (root / exp_page).is_file():
+                header_links.append(link(root, page, "Experiment page", exp_page.as_posix()))
             lines += [*_heading(3, name, base + "-experiment-" + name), f"**{name}: {result['status']}**. " +
-                      _existing_link(root, page, "Current experiment declaration", task_path) + ".", "",
+                      " · ".join(header_links) + ".", "",
+                      "<details>",
+                      f"<summary>Metrics, pass criteria &amp; provenance ({cell(result['status'])})</summary>", "",
                       "Test definition: **" + _definition_label(result) + "**. " + cell(result["coverage_reason"]) +
                       " " + cell(result["reason"]), ""]
             attempt = result.get("run_attempt")
@@ -2042,6 +2394,7 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
             explanation = task.get("research_artifacts", {}).get("readout")
             if explanation:
                 lines += [_existing_link(root, page, "Explanation and existing training artifacts", explanation), ""]
+            lines += ["</details>", ""]
     lines += ["## Historical and diagnostic evidence", "",
               "Separate configurations, API variants and serving laws retain their own scopes and supply no cells above.", ""]
     from .research_tiers import family_research_lines

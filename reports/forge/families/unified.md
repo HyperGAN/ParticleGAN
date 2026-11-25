@@ -2,22 +2,118 @@
 
 # Unified
 
-[← Family leaderboard](../technique-inventory.md)
+[← Family leaderboard](../technique-inventory.md) · [Explore by Laws](../LAWS_HUB.md) · [Experiment Catalog](../experiments/README.md) · [Unresolved Problems](../problems.md) · [Research Portal](https://hypergan.github.io/ParticleGAN/) · [HF Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard)
+
+## Executive summary
+
+| Field | Value |
+| --- | --- |
+| Selected candidate | `unified-v11` |
+| Distinct full-suite outcomes | **40 PASS** · **6 FAIL** · 13 not measured (of 71 distinct tests; fixed list `technique-inventory-full-suite-2026-11-23`) |
+| Counted view requirements | Tier 1: 27/27 · Tier 2: 68/78 (1 not run) · Tier 3: 0/10 (10 not run) · Tier 4: 0/0 · Total: 95/115 (11 not run) |
+| DCGAN r256 speed | [90.24 ms/step](../scaling-receipts/dcgan-performance-cloud-e132cf1f36af/unified-dcgan_performance_r256-a0655ac699332817.json) |
+| Screening status | Screening Tier 1 (6 fails) |
+| Tags | [adversarial-training](../technique-inventory.md#tag-adversarial-training) · [capped-input-gradients](../technique-inventory.md#tag-capped-input-gradients) · [constant-learning-rate](../technique-inventory.md#tag-constant-learning-rate) · [critic-gradient-penalty](../technique-inventory.md#tag-critic-gradient-penalty) · [optimizer-interventions](../technique-inventory.md#tag-optimizer-interventions) · [selectable-loss](../technique-inventory.md#tag-selectable-loss) |
+
+### Quickstart
+
+Public preset: `unified_v12`
+
+```python
+import torch
+from torch import nn
+from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init
+
+# Current research default (DEFAULT_RECIPE = 'unified_v12');
+# pass get_recipe('unified_v11') for the pinned screening cohort.
+recipe = get_recipe('unified_v12', total_steps=1000)
+G = init.deterministic_orthogonal_(nn.Sequential(
+    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)
+D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)
+prior = init.deterministic_orthogonal_(recipe.make_prior())
+trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)
+stats = trainer.step(torch.randn(recipe.batch_size, 2))
+```
 
 **Tags:** [adversarial-training](../technique-inventory.md#tag-adversarial-training) · [capped-input-gradients](../technique-inventory.md#tag-capped-input-gradients) · [constant-learning-rate](../technique-inventory.md#tag-constant-learning-rate) · [critic-gradient-penalty](../technique-inventory.md#tag-critic-gradient-penalty) · [optimizer-interventions](../technique-inventory.md#tag-optimizer-interventions) · [selectable-loss](../technique-inventory.md#tag-selectable-loss)
 
 ## Technique overview
 
-Unified (selected candidate unified-v11, preset "unified_v11") is a clock-free, constant-learning-rate ParticleGAN formulation that unites all four GAN laws with strictly zero torch.autograd.grad, zero torch.linalg.svd/svdvals, zero torch.linalg.eigh/eigvalsh, and zero torch.linalg.pinv across every forward, backward, penalty, transport, conditional fiber bank, prior, and optimizer path. It combines streaming Laguerre-Pythagorean prototype quantization and orthogonal pullback covariance isometry (Law 1), a first-order Born-Infeld secant critic regularizer with zero-mean logit gauge (Law 2), scale-invariant k=4 density-ratio orphan macro-transport and a zero-eigh cyclic-Jacobi cross-batch conditional fiber operator bank (Law 3), and fused Z=[X,Y] Quintic Tikhonov polar equilibration with dynamic-1e-38 Marchenko-Pastur scaling, realized generator pushforward secant trust, and strictly zero-autograd.grad / zero-pinv analytic non-ascent direction_blend projection (Law 4). It is the provisional public research default (DEFAULT_RECIPE = "unified_v11") in 0.11.0; Forge screening calibration remains provisional (BLOCKED under criteria-v1.json) and remaining failures (staggered100 / staggered100_14k, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, interp_img_patch_shift, interp_saddle_barycentric, and 12 unimplemented Tier-4 stretch hosts) stay explicitly disclosed.
+Unified (screening leaderboard cohort pinned at `unified-v11`; current public research default `DEFAULT_RECIPE = "unified_v12"`; opt-in `unified_v13` adds discrete-atomic ByteGAN bijection; see `minimal` for the compact 899-LOC zero-NS core) is a clock-free, constant-learning-rate ParticleGAN formulation uniting mechanisms across all four provisional learning laws with zero `torch.autograd.grad`, zero `torch.linalg.svd/svdvals`, zero `torch.linalg.eigh/eigvalsh`, and zero `torch.linalg.pinv`. It pairs streaming Laguerre-Pythagorean prototype quantization and orthogonal pullback covariance isometry (Law 1), interleaved 1-probe reverse-over-forward (`fwAD`) Elastic Born-Infeld critic regularization with zero-mean logit gauge and an explicit slope floor (Law 2), scale-invariant k=4 density-ratio orphan macro-transport plus a zero-eigh cyclic-Jacobi cross-batch conditional fiber operator bank (Law 3), and dynamic-1e-38 Marchenko-Pastur scaling, Quintic Tikhonov polar equilibration (extended in `unified-v12` with polar-matched 4D Conv2d Frob-MP, asymmetric 0-NS 2D critics, and CountSketch flip control), realized generator pushforward secant trust, and analytic 1x1/2x2 non-ascent `direction_blend` projection (Law 4). Forge screening calibration remains BLOCKED under `criteria-v1.json`, so `unified_v12` is an uncalibrated research default and all remaining failures remain explicitly disclosed.
+
+<a name="how-it-addresses-laws"></a>
+
+## How Unified addresses the current laws
+
+> *"Our goal is not to preserve the four laws. Our goal is to discover the laws of learning, even if doing so ultimately requires abandoning the current four."*
+
+This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. [Explore by Laws hub](../LAWS_HUB.md) · [Current laws framework](../../../docs/four-laws.md).
+
+| Law | Status | Primary mechanism |
+| --- | --- | --- |
+| [Law 1: Representational Geometry](../../../docs/four-laws.md) | ✅ Addressed | Streaming Laguerre-Pythagorean prototype atlas + orthogonal pullback covariance isometry |
+| [Law 2: Potential Geometry](../../../docs/four-laws.md) | ✅ Addressed | Interleaved 1-probe RoF (fwAD) Elastic Born-Infeld secant penalty + zero-mean logit gauge + explicit floor |
+| [Law 3: Transport Identifiability](../../../docs/four-laws.md) | ✅ Addressed | Conformal local horizons + k=4 orphan macro-transport (3A) + zero-eigh cross-batch conditional fiber bank (3B) |
+| [Law 4: Functional and Game Dynamics](../../../docs/four-laws.md) | ✅ Addressed | Dynamic-1e-38 MP + Quintic Tikhonov NS / Frob-MP (4.2) + pushforward secant trust (4.1/4.3) + 1:1 beta1=0 alternation (4.4/4.5) |
+
+### Law 1 — Representational Geometry (Addressed)
+
+*Can the system represent the required probability measure efficiently and faithfully?*
+
+- **Mechanism:** Streaming Laguerre-Pythagorean prototype atlas + orthogonal pullback covariance isometry
+- **How it works:** Implements a streaming Laguerre-Pythagorean prototype atlas, scalar-trace LTV coalescence, quota/Moreau-Yosida Laguerre assignment, and orthogonal pullback covariance isometry (`particlegan/_unified_v11/prior.py`, `particlegan/_t1_coupling/charts.py`). Precursor and Round-4 Occam single-factor knockouts (RTX A6000, seed 0) established that `t1-prior-v2` moved Tier-2 held generalization from 0/7 (`empf-v8`) to 6/7 (`readout-379720b9`, `readout-c982ddf2`), `t1-coupling-v5` first passed 4/4 discrete images including `img_bars4` (`hq=0.9688, tv=0.1562`, `readout-b87c22fb`, `readout-cedd207f`), and knocking out Laguerre mass balancing (Arm 5 `readout-b27b2689`: 14/16 -> 7/15, `grid100 prec=0.2827`) or Pythagorean LTV coalescence (Arm 4 `readout-04bb3c21`: 14/16 -> 9/15) caused severe regressions while `d_z=2` isometry (Arm 3 `readout-44dbbe8a`) preserved `grid100` covariance. Opt-in `unified_v13` (`particlegan/_t1_coupling/atomic.py`, 451 LOC, `rhbi_self_coupling="feydy_atomic"`) adds a scale-invariant discrete-atomic support gate, persistent Hamilton-quota bijection ledger, atomic thermal residual, and joint BiGAN inverse codebook contraction, converting 8D 256-mode `ByteGAN` from 0/2 (`unified-v12`: 139/256 unique bytes, 0/256 exact BiGAN reconstructions) to 2/2 PASS (256/256 valid unique bytes, 0 collisions, 256/256 exact reconstructions, 3.39x lower energy 15,432 vs. 52,355 J) with 0.000e+00 bit-exact parity across 41 matched non-ByteGAN tasks (`reports/forge/studies/unified-bytegan-bijection.md`).
+- **Known limits:** Discrete prototype granularity degrades continuous manifold interpolation (`interp_saddle_barycentric` `bhq=0.7027 < 0.78`; `interp_img_patch_shift` genuine double-exposure ghosting `interp_peak=0.4915 < 0.78, finite_fraction=1.0` in `readout-b51ab67c`). `_unified_v11/prior.py` cuts host syncs 5x-6x vs. `_unified_v4` (40 -> 8 pullback-only, 60 -> 10 full-step) rather than literal zero-sync; ambient O(BKD) pairwise distances disable pullback above dim > 1024. P7 audited `w_fake_ema` teleport mass drift (0.9714 in `v11`), Gersho-merge LTV omission (73.3% variance deficit), `0.65 * v` split loss (19% variance destroyed), Moreau-Yosida `tv_floor` deadband (TV=0.0395), `laguerre_hard_commitment` +13.05% suboptimality vs. Hungarian OT and `B_f < K` eviction (`charts.py:561`), scalar-trace anisotropic Frobenius error (62.5%-67.8% at kappa=3..5), O(sigma_z) forward-probe curvature bias, and surviving redundant `d_z=4` Radon-Hurwitz code (3 extra G forwards/step). `feydy_atomic` in opt-in `unified_v13` was engineered post-ByteGAN and targets exact discrete atomic supports (noisy/hybrid untested).
+
+### Law 2 — Potential Geometry (Addressed)
+
+*Does the critic communicate useful learning forces with appropriate geometric control and computational efficiency?*
+
+- **Mechanism:** Interleaved 1-probe RoF (fwAD) Elastic Born-Infeld secant penalty + zero-mean logit gauge + explicit floor
+- **How it works:** Implements interleaved 1-probe reverse-over-forward (RoF, `fwAD.dual_level()` + `.backward()`) mixed second-order differentiation (`particlegan/_unified_v11/penalty.py:343-357,404-490,631-695`) across vectors (exact I_d for d <= 4, chained 2-Householder Q=H_2 H_1 for 5 <= d <= 8, Murmur3 Rademacher + k=32 Gaussian pooling for d > 8) and Conv2d images (`_eval_image_fwad_sq`, switching `BatchNorm2d` to `.eval()` with `_bn_dual_bf16_hook`, zero image micro-secants, live-endpoint reuse for zero-mean gauge), paired with convex-on-cap `softplus_12(||grad_x D|| - 1)^2` and explicit floor `lambda_floor=0.005` (mu_D=0.01 low-D). Verified in `t2-secant-v2`/`v5` (`readout-14cc2a44`, `readout-a2d41a67`), Round-4 Arm 7 (`readout-4b04c4bf`, `readout-b96faf85`: 1.48x faster r256 89.66 vs. 133.01 ms, -477.7 MiB VRAM vs. RoR), and P6 isolated 256^2 BF16 `DCGANCritic` (3.64x speedup 45.15 -> 12.40 ms, -33.1% VRAM, -66.4% NVML energy 11,301 -> 3,799 mJ/iter, 0 LeakyReLU flips, grad_cos=0.987-0.996).
+- **Known limits:** Convex-on-cap EBI incurs severe positive Jensen false triggering (1,015x penalty / 275.8x gradient at true slope 0.8 < 1.0); 2-way separable Rademacher probes inflate variance 3.78x-4x on rank-1 stripe gradients; chained 2-Householder incurs rel_l2=0.341-0.415 spatial mixing error; `BN.eval()` shifts the operator vs. training-mode BN; hardcoded image floor `0.0005 / dim` dilutes to 2.54e-9 at 256x256x3; `d_penalty` remains the #1 non-backbone r256 cost (5.37 ms, 13.3% of step); multi-logit mean-vs-sum inconsistency and `pool_k=1` `IndexError` (`_t2_critic/penalty.py:240`) were audited in P6. Exact RoR beats `fwAD` on all GPU MLPs, 32^2-64^2 Conv2d, ResNet+GroupNorm, K >= 4 probes, `SDPBackend.MATH` attention, and `EmulatedLinear` FP8/FP4; legacy `t2_secant`/`unified_v4` BF16 micro-secants (`delta=0.02`) collapsed (95.2% pixels lost).
+
+### Law 3 — Transport Identifiability (Addressed)
+
+*Does the learning system possess enough information to determine appropriate transport?*
+
+- **Mechanism:** Conformal local horizons + k=4 orphan macro-transport (3A) + zero-eigh cross-batch conditional fiber bank (3B)
+- **How it works:** Law 3A combines conformal local Sinkhorn horizons (`_t1_coupling/primitive.py:1017`, causally required in `v11`/`v12` on generator-free `t3_iso_scale_mass_8x`), 1D Weibull AKT scaling `max(0, 1/d - 0.5)` (Round-4 Arm 6 `readout-edffe8ce`, required for `gaussian1d_smoke`), and scale-invariant k=4 density-ratio orphan macro-transport + core-ball Burg covariance (`rgdt-v3` `readout-c30d4a58` and `unified-v11` `readout-d1e36bf5`: both 2/2 `t3_iso`). Law 3B implements a swap-invariant cross-batch conditional fiber operator bank + 384-entry FIFO ring with zero-eigh cyclic-Jacobi whitening (`particlegan/_unified_v11/bank.py`, 745 LOC, <4.2e-15 spectral parity vs. `eigh` for d <= 16) plus a K=2 triangle-inequality radius in `unified-v12` (`cond-fiber-v1` `readout-5932f4d3` 40/47, `unified-v11` `readout-fc5b67a7` 41/47, `unified-v12` `readout-b51ab67c` 46/48 incl. 2/2 AE-DDGAN).
+- **Known limits:** P2 audited a 1.73x-2.41x handoff dead zone between Sinkhorn screening and macro orphan rescue (`g_prox` in `_t3_dynamics/metric.py:301-310` and `_t1_coupling/primitive.py:446-472`), antagonistic Pillar 1-2 coupling across the screening boundary, and hard-disabling of macro rescue for ambient dim > 16 (`_unified_v11/loss.py:923`). The 745-LOC fiber bank lacks column-sign canonicalization and post-v10 single-factor knockouts; matched live `unified-v12` and `unified-v13` fail `model_ddgan_bimodal_chain` (4.6961 > 4.5) and `model_ae_ddgan_bimodal_chain` (2.0592 > 2.05) on PR #644's Python 3.15/PyTorch 2.15 RTX A6000 cohort and time out (180.3s) on NVIDIA L4 `model_ae_ddgan_gaussian_chain`.
+
+### Law 4 — Functional and Game Dynamics (Addressed)
+
+*Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?*
+
+- **Mechanism:** Dynamic-1e-38 MP + Quintic Tikhonov NS / Frob-MP (4.2) + pushforward secant trust (4.1/4.3) + 1:1 beta1=0 alternation (4.4/4.5)
+- **How it works:** Combines underflow-safe 1e-38 dynamic scale normalization, capped `peak_rms` Tikhonov smoothing (`s_eff = min(0.0061, 0.50 * peak_rms)` in `unified-v12`), Modular-Duality/polar-matched operator scaling (`sqrt(max(1, r/c))` on 2D Gen NS, `sqrt(r)` on 2D neural-G Critic Frob-MP, stride-aware Frob-MP with 0 Conv2d NS in `unified-v12`), 5-step Quintic Tikhonov NS on 2D Gen (+ `_generator_free` 2D Critic NS fallback), one-shot `_band_scale` generator pushforward trust (`delta_g_max` + `_ema_func_gain`), zero-pinv analytic `direction_blend`, and prime-67 CountSketch period-2 flip scalar gain control (`particlegan/_unified_v12/optimizer.py`, `particlegan/_unified_v11/optimizer.py`) under 1:1 D-then-G alternation with beta1=0 (`b1_eff = 0.75 * stiff_gate` on stiff generators) plus `lambda_floor`/low-D `t1c` dissipation. Dropping 4D Conv2d NS collapsed `opt_d + opt_g` 16.2x on idle A6000 r256 (39.81 -> 2.45 ms; `unified-v12` `readout-59898e1a` 41.39 ms / 1,243.4 MiB; idle NVML 36.61 ms / 11.20 J/st total, 8.34 J/st dyn vs. `v11` 66.38 ms / 18.86 J/st; 4.72x lower J-to-PASS on `five_word_joint_smoke` 1,399 vs. 6,602 J). Round-4 Arms 1-2 (`readout-690dd40a`, `readout-0219c6e2`, `readout-4e2fd695`) confirmed 2D NS is essential for `grid100_mlp16` (0.9929 -> 0.0244) and `delta_g_max` for 548x Nash.
+- **Known limits:** Syntactic `_generator_free = (total_gen_mats == 0)` (`recipes.py:2381-2388`) fails swapped deep-critic pure adversarial games (3L G + 16L D: `hq` drops 0.9055 -> 0.3701); BF16 `s=0` NS leaks 77.8%-86.8% orthogonal rounding noise and `target_frob=sqrt(m)` overshoots sigma_1 to 11.31 on rank-1 128^2 matrices; 5-step NS gain caps at 492.75; non-C^1 one-shot `_band_scale` violates delta_max by 2.65x-6.37x (14.17x-839x on amplification) and `b_p=2` image prefix probes (`_unified_v11/critic.py:701`) miss 90% of heavy-tail spikes (`0.05` `coord_scale` floor at `critic.py:347-348`); `min(s_base, c*peak_rms)` breaks degree-0 above 0.0122 (`v12`) / 0.0203 (`v11`) and `p_dec=1.0` permanently freezes after 10^4x spikes (`err=3.024`); `grid100_res16_tanh` exhibits a 1-ULP cliff; pure adversarial mu_D=0 games orbit (`B ptp=0.716`); J-to-PASS is higher than `v11` on `grid100_mlp16` (12,781 vs. 9,808 J) and `law4-energy-v10` on `staggered100` (10,743 vs. 8,681 J); and `v12` spans 8,579 direct LOC (1,062 AST branches, 9.54x `minimal-v2`) with surviving `w_sat_pt`/`d_z=4` RH epicycles and 6/7 unablated post-v10 mechanisms.
+
+## Update loop diagram
+
+```mermaid
+flowchart TD
+    Data["Real batch x & Prior z ~ P"] --> Gen["Generator y = G(z)"]
+    Data --> CritD["Critic forward D(x), D(stop_grad(y))"]
+    Gen --> CritD
+    CritD --> Law2["Law 2: 1-Probe RoF (fwAD) EBI + Floor + Gauge"]
+    Law2 --> StepD["Law 4: 1e-38 MP + Equilibrated D Step (beta1=0)"]
+    StepD --> Resample["Resample z ~ P, Recompute y = G(z)"]
+    Resample --> Law3["Law 3A/3B: Debiased OT + k=4 Orphan + Cond Fiber Bank"]
+    Resample --> Law1["Law 1: Laguerre Prototype Atlas + Pullback Isometry"]
+    Law3 --> Blend["Law 4.1/4.3: Analytic direction_blend + Pushforward Trust"]
+    Law1 --> Blend
+    Blend --> StepG["Law 4.2/4.4: 2D Quintic NS / Frob-MP G & P Step"]
+    StepG --> Data
+```
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch, and $y=G(z)$ the generated batch of size $B_f$. $r_{\mathrm{loc}}(y_j)=d_{k=4}(y_j,X_{\mathrm{fake}})/d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})$ is the scale-invariant local orphan density ratio, $(W_t,S_c,S_y,S_{cc},S_{cy},S_{yy})$ plus a paired-context FIFO ring ($M=384$) form the zero-eigh conditional fiber operator bank, $Z=[X,Y]\in\mathbb R^{m\times(n+m)}$ is the fused Tikhonov-augmented polar matrix, and $\Delta D_{\mathrm{sec}}$ is the first-order finite-difference / fwAD critic secant slope.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch, and $y=G(z)$ the generated batch of size $B_f$. $`r_{\mathrm{loc}}(y_j)=d_{k=4}(y_j,X_{\mathrm{fake}})/d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})`$ is the scale-invariant local orphan density ratio, $`(W_t,S_c,S_y,S_{cc},S_{cy},S_{yy})`$ plus a paired-context FIFO ring ($M=384$) form the zero-eigh conditional fiber operator bank, $Z=[X,Y]\in\mathbb R^{m\times(n+m)}$ is the fused Tikhonov-augmented polar matrix, and $`\Delta D_{\mathrm{sec}}`$ is the first-order finite-difference / fwAD critic secant slope.
 
 **Scale-Invariant Local k=4 Density-Ratio Orphan Gate**
 
 $$
-r_{\mathrm{loc}}(y_j)=\frac{d_{k=4}(y_j,X_{\mathrm{fake}})}{d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})},\qquad g_{\mathrm{orphan}}(y_j)=\operatorname{smoothstep}\!\left(\frac{r_{\mathrm{loc}}(y_j)-3.52}{1.30}\right)
+r_{\mathrm{loc}}(y_j)=\frac{d_{k=4}(y_j,X_{\mathrm{fake}})}{d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\lbrace y_j\rbrace)},\qquad g_{\mathrm{orphan}}(y_j)=\mathrm{smoothstep}\left(\frac{r_{\mathrm{loc}}(y_j)-3.52}{1.30}\right)
 $$
 
 Detects genuinely uncaptured orphan modes invariant to per-component spatial scale, avoiding over-pulling small-scale components on heteroscedastic mixtures while rescuing equidistant shifted modes.
@@ -25,7 +121,7 @@ Detects genuinely uncaptured orphan modes invariant to per-component spatial sca
 **Zero-eigh Conditional Fiber Operator Cooling Law**
 
 $$
-r_{\mathrm{cond}}=r_{\mathrm{imq}}+\min\!\left(0.5,\;0.11\,\max(0,\;r_{\mathrm{op,worst}}-0.10)\right),\qquad s_{\mathrm{step}}=1-0.85\,\operatorname{smoothstep}\!\left(\frac{0.050-\max(0,\bar r_{\mathrm{cond}})}{0.024}\right)
+r_{\mathrm{cond}}=r_{\mathrm{imq}}+\min\left(0.5,\enspace0.11\thinspace\max(0,\enspace r_{\mathrm{op,worst}}-0.10)\right),\qquad s_{\mathrm{step}}=1-0.85\thinspace\mathrm{smoothstep}\left(\frac{0.050-\max(0,\bar r_{\mathrm{cond}})}{0.024}\right)
 $$
 
 Couples hollow multi-scale IMQ-CMMD with worst-stratum cyclic-Jacobi whitened operator discrepancy to stabilize conditional reverse-diffusion chains without torch.linalg.eigh.
@@ -50,11 +146,11 @@ For each task-owned training update:
 | Adversarial loss | Selectable non-saturating logistic (selected configuration) augmented with Sinkhorn-debiased relativistic transport, scale-invariant k=4 density-ratio orphan macro-transport, core-ball Burg covariance matching, and zero-eigh cross-batch conditional fiber operator matching (IMQ-CMMD + whitened stratum mean/covariance + paired-context ring local covariance) on conditioned hosts. |
 | Optimizer | UnifiedV11EquilibratedOptimizer (optimizer_family="unified_v11_equil", zero momentum, smoothing 0.0061, BF16 channels-last conv training, direction_blend constraint geometry): dynamic-1e-38 Marchenko-Pastur scaling, fused Z=[X,Y] 5-step Quintic Tikhonov polar (FP32 for m<64, BF16 for 64<=m<=128, zero torch.linalg.svd/eigh/pinv), realized generator pushforward secant trust band, and closed-form 1x1/2x2 analytic non-ascent projection. |
 | Learning rates and annealing | Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.014$, critic multiplier $1.5$, and prior multiplier $2.9$ (`prior_reg=0.02`). |
-| Parameter-gradient clipping | None. Step equilibration operates through dynamic-$10^{-38}$ scale normalization, fused Quintic Tikhonov polar projection, and realized pushforward secant trust without hard parameter clipping. |
+| Parameter-gradient clipping | None. Step equilibration operates through dynamic-$`10^{-38}`$ scale normalization, fused Quintic Tikhonov polar projection, and realized pushforward secant trust without hard parameter clipping. |
 | Critic penalties and anchors | First-order Born-Infeld secant critic regularizer (`critic_formulation="unified_v11"`, `ebi_beta=12.0`, `reg_coeff=1.0`, `reg_kappa=1.0`, zero `torch.autograd.grad`) evaluated along endpoints and transport chords with zero-mean logit gauge and state-driven thermal settling. |
 | Damping and update guards | Instance-bound checkpointed step record carrying shock-filtered transport EMA, conditional fiber bank sufficient statistics and 384-pair FIFO ring, worst-stratum operator-gated conditional cooling, thermal-safe precision gating, and per-group depth accounting; zero global state and zero step counters. |
 | Training and sampling noise | No scheduled additive critic-input or generator-output training noise (`input_noise_std=0.0`, `output_noise_std=0.0`). Task-declared MoG intrinsic sigma is preserved. |
-| Parameter averaging and serving | Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights. |
+| Parameter averaging and serving | Generator EMA decay=$`0`$ and serve_average=$`0`$; all evaluations score live unaveraged weights. |
 
 ## Configuration differences
 
@@ -62,6 +158,9 @@ For each task-owned training update:
 - All bank tensors, FIFO rings, low-discrepancy phases, and thermal scalars live exclusively on instance-bound state dicts and travel bit-for-bit across fresh-process checkpoint save/load with tamper rejection.
 - Honest governance disclosure (AGENTS.md): tuning budget spans 11 hand-declared unified-v1..v11 candidate cards across Round 2-4 studies (no registered grid search). Forge calibration acceptance remains BLOCKED under configs/forge/calibration/criteria-v1.json (see reports/forge/studies/r3-calibration-holdout.md and reports/forge/calibration/r3-calibration-holdout.json). Remaining honest numerical failures on unified-v11 (staggered100 / staggered100_14k, grid100_res16_tanh, five_word_joint_hold, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, interp_img_patch_shift, interp_saddle_barycentric) and 12 unimplemented Tier-4 stretch hosts remain explicitly visible. For a compact <900-LOC zero-Newton-Schulz fast core (55.50 ms/step on DCGAN r256), see the separate Minimal family (preset="minimal").
 - One global trainer configuration supplies every displayed result across Tier 1-4; task-owned architectures, priors, initializations, budgets, and gates remain fixed.
+- Pinned screening cohort vs. current research default: `configs/forge/selections/family-current-v1.json` pins `unified-v11` (`default_adoption: false`, `40/71` full-suite PASS, `90.24 ms/step` DCGAN r256), whereas `particlegan/recipes.py` sets `DEFAULT_RECIPE = "unified_v12"` as an uncalibrated research default (`46/48` `discriminator_stability` readout, `41.39 ms/step` uncontended `r256`, `68` cumulative direct Four-Law lineage cards / `78.27` GPU-h audited in `docs/four-laws.md`). Opt-in `unified_v13` adds `rhbi_self_coupling="feydy_atomic"` for discrete 8D ByteGAN bijection (`2/2` ByteGAN PASS); the separate `minimal` preset (`minimal-v2`, 899 LOC, zero Newton-Schulz) provides the compact fast core.
+- Committed `unified-v12` Forge receipts (4 files, RTX A6000 seed 0): `readout-b51ab67c` (46/48 `discriminator_stability`, 29/29 required), `readout-c1ee5c3b` (7/7 standalone `t4-arch`), `readout-624964f4` (16/16 Occam), and `readout-59898e1a` (6/6 uncontended `dcgan_performance`, 41.39 ms / 1,243.4 MiB `r256`). NVIDIA L4 cross-GPU waves exposed 5 numerical failures (`grid100_res16_tanh`, `rotated100_affine_square_named_v1`, `vector_unequal_width_published`, `interp_img_patch_shift`, `interp_saddle_barycentric`), 2 timeouts (`model_ae_ddgan_gaussian_chain`, 180.3s), and 2 runner errors.
+- Direct Four-Law lineage cumulative selection budget audited in P8: 68 declared candidate cards, 190 concluded readouts, 2,143 task evaluations, and 78.27 GPU-hours to `unified-v12` (card #69 opt-in `unified-v13`), vs. 8.40 GPU-h for `empf`, 10.12 GPU-h for `rhbi`, and 2 cards for `minimal`. `r3-tier3-long-horizon-holdout-v1` overlaps active screening on 13/18 tasks (14/18 including shift recovery).
 
 <details>
 <summary>Implementation and recipe sources</summary>
@@ -94,6 +193,19 @@ These links support the explanation. Recorded results below remain bound to thei
 - [reports/forge/studies/r3-unified-v4.md](../studies/r3-unified-v4.md)
 - [reports/forge/studies/r3-calibration-holdout.md](../studies/r3-calibration-holdout.md)
 - [reports/forge/studies/r4-occam-ablation-razor.md](../studies/r4-occam-ablation-razor.md)
+- [particlegan/_unified_v12/optimizer.py](../../../particlegan/_unified_v12/optimizer.py)
+- [particlegan/_t1_coupling/atomic.py](../../../particlegan/_t1_coupling/atomic.py)
+- [particlegan/_t1_coupling/charts.py](../../../particlegan/_t1_coupling/charts.py)
+- [particlegan/_t1_coupling/primitive.py](../../../particlegan/_t1_coupling/primitive.py)
+- [configs/forge/ideas/unified-v12.json](../../../configs/forge/ideas/unified-v12.json)
+- [configs/forge/ideas/unified-v13.json](../../../configs/forge/ideas/unified-v13.json)
+- [reports/forge/studies/unified-bytegan-bijection.md](../studies/unified-bytegan-bijection.md)
+- [reports/forge/studies/law4-optimizer-laws.md](../studies/law4-optimizer-laws.md)
+- [reports/forge/records/readout-b51ab67c4d97526186e23651.json](../records/readout-b51ab67c4d97526186e23651.json)
+- [reports/forge/records/readout-c1ee5c3bb7ac4f432532da63.json](../records/readout-c1ee5c3bb7ac4f432532da63.json)
+- [reports/forge/records/readout-624964f4e46793593bc147e4.json](../records/readout-624964f4e46793593bc147e4.json)
+- [reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json](../records/readout-59898e1a77c4b179c9aebbc1.json)
+- [reports/four-laws-audit/evidence-ledger-and-revisions.md](../../four-laws-audit/evidence-ledger-and-revisions.md)
 
 </details>
 
@@ -356,15 +468,23 @@ Calibration: **provisional**. Phase D historical calibration remains required
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | required | PASS | matches recorded run |
 | [unused_token_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-adaptation-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (19 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -388,13 +508,20 @@ Calibration: **provisional**. Phase D historical calibration remains required
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | required | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | required | FAIL | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-adaptation-tier-3"></a>
 
 ### Tier 3
 
+<details>
+<summary>Tier 3 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [target_shift_recovery](unified.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | required | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-adaptation-tier-4"></a>
 
@@ -415,6 +542,9 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 <a name="cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1"></a>
 
 ### Tier 1
+
+<details>
+<summary>Tier 1 assignments (21 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -439,6 +569,8 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-2"></a>
 
@@ -472,6 +604,9 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (16 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
@@ -490,6 +625,8 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-2"></a>
 
@@ -523,9 +660,14 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bcap-tier1-stability-diagnostic-v1-tier-2"></a>
 
@@ -559,9 +701,14 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bcap-tier1-stability-repairs-diagnostic-v1-tier-2"></a>
 
@@ -595,12 +742,17 @@ Calibration: **provisional**. Four source-bound image diagnostics do not qualify
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (4 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [img_stripes2](unified.md#cohort-cuda-42a130a78fc3-experiment-img_stripes2) | diagnostic | PASS | matches recorded run |
 | [img_bars4](unified.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
 | [img_blobs4](unified.md#cohort-cuda-42a130a78fc3-experiment-img_blobs4) | diagnostic | PASS | matches recorded run |
 | [img_intensity2](unified.md#cohort-cuda-42a130a78fc3-experiment-img_intensity2) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bcap_convolution_images-tier-2"></a>
 
@@ -634,10 +786,15 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [img_stripes2_w64_optimizer_diagnostic](unified.md#cohort-cuda-42a130a78fc3-experiment-img_stripes2_w64_optimizer_diagnostic) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [img_bars4_w64_optimizer_diagnostic](unified.md#cohort-cuda-42a130a78fc3-experiment-img_bars4_w64_optimizer_diagnostic) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bispf_fastpath_quality-tier-2"></a>
 
@@ -671,10 +828,15 @@ Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do n
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [bytegan_hypercube8](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [bytegan_bigan_dictionary](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-bytegan_stretch-tier-2"></a>
 
@@ -715,6 +877,9 @@ Additional eligibility requirements:
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (4 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | required | PASS | matches recorded run |
@@ -722,9 +887,14 @@ Additional eligibility requirements:
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | required | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (19 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -748,9 +918,14 @@ Additional eligibility requirements:
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | required | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | required | FAIL | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3"></a>
 
 ### Tier 3
+
+<details>
+<summary>Tier 3 assignments (7 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -761,6 +936,8 @@ Additional eligibility requirements:
 | [rotated100_14k](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100_14k) | required | UNKNOWN | recorded definition unavailable |
 | [staggered100_14k](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100_14k) | required | UNKNOWN | recorded definition unavailable |
 | [target_shift_recovery](unified.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | required | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-clockfree_continuous-tier-4"></a>
 
@@ -782,6 +959,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (6 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [dcgan_performance_r32](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r32) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -790,6 +970,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [dcgan_performance_r256](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r256) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [dcgan_performance_b64](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_b64) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [dcgan_performance_w128](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_w128) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-dcgan_performance-tier-2"></a>
 
@@ -823,9 +1005,14 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [dcgan_performance_cpu_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_cpu_smoke) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-dcgan_performance_cpu_smoke-tier-2"></a>
 
@@ -859,10 +1046,15 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [ddgan_repair_gaussian_chain_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-ddgan_repair_gaussian_chain_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [ddgan_repair_bimodal_chain_wall_v2](unified.md#cohort-cuda-42a130a78fc3-experiment-ddgan_repair_bimodal_chain_wall_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-ddgan-conditional-repair-v1-tier-2"></a>
 
@@ -896,6 +1088,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (17 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | required | PASS | matches recorded run |
@@ -916,9 +1111,14 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [interp_sparse_arc](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | PASS | matches recorded run |
 | [t3_iso_scale_mass_8x](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-discriminator_stability-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (32 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -955,9 +1155,14 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [nash_unequal_width_hostile_imbalance](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | PASS | matches recorded run |
 | [bytegan_hypercube8](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | recorded definition unavailable |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-discriminator_stability-tier-3"></a>
 
 ### Tier 3
+
+<details>
+<summary>Tier 3 assignments (3 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -965,9 +1170,14 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [ring_extension](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
 | [zero_tanh_rail_escape](unified.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | [held: no recipe has passed its current declaration](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-discriminator_stability-tier-4"></a>
 
 ### Tier 4
+
+<details>
+<summary>Tier 4 assignments (16 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -988,6 +1198,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100_res16_scaled_tanh](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
 | [bytegan_bigan_dictionary](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | recorded definition unavailable |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-formulation_comparison"></a>
 
 ## formulation_comparison
@@ -1002,15 +1214,23 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | required | PASS | matches recorded run |
 | [unused_token_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-formulation_comparison-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (34 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -1049,16 +1269,96 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 | [grid100_affine_paired_laws_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_affine_paired_laws_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [grid100_release07_cloud_named_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_release07_cloud_named_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-formulation_comparison-tier-3"></a>
 
 ### Tier 3
+
+<details>
+<summary>Tier 3 assignments (2 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [ring_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
 | [ring_extension](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-formulation_comparison-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-42a130a78fc3-four-laws-adherence-v1"></a>
+
+## four-laws-adherence-v1
+
+**four-laws-adherence-v1 — revision 1**. [View declaration](../../../configs/forge/views/four-laws-adherence-v1.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 curated Forge anchors (+ 4 required prerequisite smoke/hold dependencies) with 9 new public-API dynamical falsification probes targeting Laws 1-4; supplies research diagnostic telemetry only and no ordinary qualification or default-adoption credit.
+
+<a name="cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1"></a>
+
+### Tier 1
+
+<details>
+<summary>Tier 1 assignments (33 tests)</summary>
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [mode_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
+| [ring_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
+| [gaussian1d_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
+| [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
+| [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+| [bytegan_hypercube8](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [bytegan_bigan_dictionary](unified.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [interp_sparse_arc](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | matches recorded run |
+| [interp_saddle_barycentric](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | FAIL | matches recorded run |
+| [fl_law1_aniso_unequal_modes](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law1_noisy_atomic_codebook](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_noisy_atomic_codebook) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [img_bars4](unified.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
+| [img_stripes2](unified.md#cohort-cuda-42a130a78fc3-experiment-img_stripes2) | diagnostic | PASS | matches recorded run |
+| [nash_overpowered_critic_ring16](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
+| [dcgan_performance_r256](unified.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r256) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law2_pure_adversarial_codim1](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law2_groupnorm_and_vit_sprites](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_groupnorm_and_vit_sprites) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [t3_iso_scale_mass_8x](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
+| [t3_iso_horizon_saddle_shift](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [ring_extension](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
+| [target_shift_recovery](unified.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [model_ae_ddgan_gaussian_chain](unified.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+| [fl_law3_highd_orphan_d32](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law3_highd_orphan_d32) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_mlp16](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
+| [grid100_res16_tanh](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](unified.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [clockfree_audit_measurement_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
+| [gaussian1d_stability](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
+| [fl_law41_trust_rare1pct_tanh](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law41_trust_rare1pct_tanh) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law42_swap_deep_critic_16l](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law42_swap_deep_critic_16l) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law42_deep_resbn_and_conv1x1](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law42_deep_resbn_and_conv1x1) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law44_highd_sparse_prior_and_shock](unified.md#cohort-cuda-42a130a78fc3-experiment-fl_law44_highd_sparse_prior_and_shock) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-4"></a>
 
 ### Tier 4
 
@@ -1078,15 +1378,23 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | required | PASS | matches recorded run |
 | [unused_token_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (32 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -1123,14 +1431,21 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 | [rotated100_affine_square_named_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100_affine_square_named_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [staggered100_affine_square_named_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100_affine_square_named_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-host_profile_transfer-tier-3"></a>
 
 ### Tier 3
+
+<details>
+<summary>Tier 3 assignments (2 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [ring_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
 | [ring_extension](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-host_profile_transfer-tier-4"></a>
 
@@ -1152,10 +1467,15 @@ Calibration: **provisional**. Bounded budget/schedule diagnostic supplies no ord
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole_800_schedule80_diagnostic_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole_800_schedule80_diagnostic_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [two_pole_800_schedule800_diagnostic_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole_800_schedule800_diagnostic_v1) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-k3p_two_pole_horizon-tier-2"></a>
 
@@ -1191,6 +1511,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (30 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
@@ -1224,6 +1547,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [ring_extension](unified.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [clockfree_audit_measurement_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-2"></a>
 
 ### Tier 2
@@ -1256,9 +1581,14 @@ Calibration: **provisional**. Scoped research diagnostic; no ordinary qualificat
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [model_misgan_four_mode](unified.md#cohort-cuda-42a130a78fc3-experiment-model_misgan_four_mode) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-misgan-bispf-research-v1-tier-2"></a>
 
@@ -1292,11 +1622,16 @@ Calibration: **provisional**. Three zero-sigma particle interpolation stretch to
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [interp_sparse_arc](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | matches recorded run |
 | [interp_img_patch_shift](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | diagnostic | FAIL | matches recorded run |
 | [interp_saddle_barycentric](unified.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-particle_interpolation_stretch-tier-2"></a>
 
@@ -1329,6 +1664,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 <a name="cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1"></a>
 
 ### Tier 1
+
+<details>
+<summary>Tier 1 assignments (48 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -1381,6 +1719,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [misgan_block_neural_imputer](unified.md#cohort-cuda-42a130a78fc3-experiment-misgan_block_neural_imputer) | diagnostic | BLOCKED | matches recorded run |
 | [ring16_bigan_continuous](unified.md#cohort-cuda-42a130a78fc3-experiment-ring16_bigan_continuous) | diagnostic | BLOCKED | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-2"></a>
 
 ### Tier 2
@@ -1413,15 +1753,23 @@ Calibration: **provisional**. Phase D historical calibration remains required
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | required | PASS | matches recorded run |
 | [unused_token_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-quality_coverage-tier-2"></a>
 
 ### Tier 2
+
+<details>
+<summary>Tier 2 assignments (19 tests)</summary>
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
@@ -1444,6 +1792,8 @@ Calibration: **provisional**. Phase D historical calibration remains required
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | required | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | required | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | required | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-quality_coverage-tier-3"></a>
 
@@ -1471,10 +1821,15 @@ Calibration: **provisional**. Own-checkpoint word retention only; no ordinary ti
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [five_word_joint_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
 | [five_word_joint_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-r1r2-repair-word-retention-20261022-tier-2"></a>
 
@@ -1508,6 +1863,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (18 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [two_pole](unified.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | diagnostic | PASS | matches recorded run |
@@ -1528,6 +1886,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100_14k](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [rotated100_14k](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [staggered100_14k](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-2"></a>
 
@@ -1561,6 +1921,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (16 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
@@ -1579,6 +1942,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [cgan_overlapping_classes](unified.md#cohort-cuda-42a130a78fc3-experiment-cgan_overlapping_classes) | diagnostic | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](unified.md#cohort-cuda-42a130a78fc3-experiment-cramer_energy_overlap) | diagnostic | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](unified.md#cohort-cuda-42a130a78fc3-experiment-cyclegan_unpaired_constellation) | diagnostic | BLOCKED | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-2"></a>
 
@@ -1612,6 +1977,9 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (16 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
@@ -1630,6 +1998,8 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 | [nash_overpowered_generator_ring16](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16) | diagnostic | PASS | matches recorded run |
 | [t3_iso_scale_mass_8x](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
 | [t3_iso_horizon_saddle_shift](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-2"></a>
 
@@ -1663,6 +2033,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (23 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [five_word_joint_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
@@ -1688,6 +2061,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-2"></a>
 
@@ -1721,6 +2096,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (23 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [five_word_joint_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
@@ -1746,6 +2124,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-2"></a>
 
@@ -1779,6 +2159,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (23 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [five_word_joint_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
@@ -1804,6 +2187,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-2"></a>
 
@@ -1837,6 +2222,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (23 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [five_word_joint_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
@@ -1862,6 +2250,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](unified.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](unified.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-2"></a>
 
@@ -1895,9 +2285,14 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [clockfree_audit](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-selected-family-coverage-diagnostic-v1-tier-2"></a>
 
@@ -1931,6 +2326,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (5 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [ae_gan_hold](unified.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
@@ -1938,6 +2336,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [target_shift_recovery](unified.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [zero_tanh_smoke](unified.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
 | [zero_tanh_rail_escape](unified.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-2"></a>
 
@@ -1971,10 +2371,15 @@ Calibration: **provisional**. Two Theory-1-free, Theory-2-verified causal isolat
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [t3_iso_scale_mass_8x](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
 | [t3_iso_horizon_saddle_shift](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-t3_causal_isolation_stretch-tier-2"></a>
 
@@ -2008,6 +2413,9 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (8 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [t3_iso_scale_mass_8x](unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
@@ -2018,6 +2426,8 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 | [img_bars4](unified.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
 | [model_ddgan_gaussian_chain](unified.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | matches recorded run |
 | [model_ae_ddgan_gaussian_chain](unified.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-2"></a>
 
@@ -2051,6 +2461,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (7 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [clockfree_audit_measurement_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
@@ -2060,6 +2473,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100_mlp16](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_scaled_tanh](unified.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_scaled_tanh) | diagnostic | UNKNOWN | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-2"></a>
 
@@ -2093,11 +2508,16 @@ Calibration: **provisional**. Three severe G/D capacity-imbalance and hostile no
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (3 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [nash_overpowered_critic_ring16](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16) | diagnostic | PASS | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](unified.md#cohort-cuda-42a130a78fc3-experiment-nash_unequal_width_hostile_imbalance) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-t4_imbalance_nash_stretch-tier-2"></a>
 
@@ -2133,6 +2553,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (7 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_acquisition_tier1_policy_selected_cloud_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_acquisition_tier1_policy_selected_cloud_v1) | required | UNKNOWN | recorded definition unavailable |
@@ -2142,6 +2565,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [ring16_acquisition_tier1_policy_selected_cloud_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition_tier1_policy_selected_cloud_v1) | required | UNKNOWN | recorded definition unavailable |
 | [five_word_joint_acquisition_tier1_policy_selected_cloud_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_acquisition_tier1_policy_selected_cloud_v1) | required | UNKNOWN | recorded definition unavailable |
 | [clockfree_audit_tier1_policy_selected_cloud_v1](unified.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_tier1_policy_selected_cloud_v1) | required | UNKNOWN | recorded definition unavailable |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-tier1_policy_coverage-tier-2"></a>
 
@@ -2175,10 +2600,15 @@ Calibration: **provisional**. Two toy gates do not establish screen calibration 
 
 ### Tier 1
 
+<details>
+<summary>Tier 1 assignments (2 tests)</summary>
+
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [model_vae_hard](unified.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
 | [model_vae_categorical](unified.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-vaegan_coverage-tier-2"></a>
 
@@ -2208,7 +2638,10 @@ One evidence entry per experiment is shared by its view rows. Test-definition ch
 
 ### ae_gan_hold
 
-**ae_gan_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ae_gan_hold.json).
+**ae_gan_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ae_gan_hold.json) · [Experiment page](../experiments/ae_gan_hold.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -2244,11 +2677,16 @@ Declared budget: 250 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); generated_and_reconstructed_prior_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ae_gan_hold_tier1_policy_selected_cloud_v1"></a>
 
 ### ae_gan_hold_tier1_policy_selected_cloud_v1
 
 **ae_gan_hold_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/ae_gan_hold_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2273,11 +2711,16 @@ Declared budget: 250 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_and_reconstructed_prior_with_scheduled_output_noise; weights state_selected; output noise public_recipe_schedule.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-alice_spiral_bigan"></a>
 
 ### alice_spiral_bigan
 
-**alice_spiral_bigan: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/alice_spiral_bigan.json).
+**alice_spiral_bigan: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/alice_spiral_bigan.json) · [Experiment page](../experiments/alice_spiral_bigan.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. alice_spiral_bigan: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -2303,17 +2746,22 @@ Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary"></a>
 
 ### bytegan_bigan_dictionary
 
-**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json).
+**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json) · [Experiment page](../experiments/bytegan_bigan_dictionary.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
 Execution: **not run**.
 
-Used by: [bytegan_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bytegan_stretch-tier-1) · [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4).
+Used by: [bytegan_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bytegan_stretch-tier-1) · [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
 
 Current pass criteria:
 
@@ -2336,17 +2784,22 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 
 [Explanation and existing training artifacts](../bytegan-stretch/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8"></a>
 
 ### bytegan_hypercube8
 
-**bytegan_hypercube8: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_hypercube8.json).
+**bytegan_hypercube8: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_hypercube8.json) · [Experiment page](../experiments/bytegan_hypercube8.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
 Execution: **not run**.
 
-Used by: [bytegan_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bytegan_stretch-tier-1) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2).
+Used by: [bytegan_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bytegan_stretch-tier-1) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
 
 Current pass criteria:
 
@@ -2366,11 +2819,16 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 [Explanation and existing training artifacts](../bytegan-stretch/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-cgan_overlapping_classes"></a>
 
 ### cgan_overlapping_classes
 
-**cgan_overlapping_classes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cgan_overlapping_classes.json).
+**cgan_overlapping_classes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cgan_overlapping_classes.json) · [Experiment page](../experiments/cgan_overlapping_classes.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. cgan_overlapping_classes: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -2396,11 +2854,16 @@ Declared budget: 3000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-clockfree_audit"></a>
 
 ### clockfree_audit
 
-**clockfree_audit: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json).
+**clockfree_audit: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json) · [Experiment page](../experiments/clockfree_audit.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2416,17 +2879,22 @@ Declared budget: 24 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1"></a>
 
 ### clockfree_audit_measurement_v1
 
-**clockfree_audit_measurement_v1: PASS**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit_measurement_v1.json).
+**clockfree_audit_measurement_v1: PASS**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit_measurement_v1.json) · [Experiment page](../experiments/clockfree_audit_measurement_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. declared state/horizon/cadence/restart comparisons agree; source audit bound
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [clockfree_continuous / Tier 1](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [clockfree_continuous / Tier 1](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded final metrics:
 
@@ -2446,11 +2914,16 @@ Declared budget: 24 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-clockfree_audit_tier1_policy_selected_cloud_v1"></a>
 
 ### clockfree_audit_tier1_policy_selected_cloud_v1
 
 **clockfree_audit_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/clockfree_audit_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2468,11 +2941,16 @@ Declared budget: 24 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior_without_output_noise; weights state_selected; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-cover_leftover"></a>
 
 ### cover_leftover
 
-**cover_leftover: PASS**. [Current experiment declaration](../../../configs/forge/tasks/cover_leftover.json).
+**cover_leftover: PASS**. [Current experiment declaration](../../../configs/forge/tasks/cover_leftover.json) · [Experiment page](../experiments/cover_leftover.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -2515,11 +2993,16 @@ Declared budget: 800 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-cramer_energy_overlap"></a>
 
 ### cramer_energy_overlap
 
-**cramer_energy_overlap: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cramer_energy_overlap.json).
+**cramer_energy_overlap: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cramer_energy_overlap.json) · [Experiment page](../experiments/cramer_energy_overlap.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. cramer_energy_overlap: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -2544,11 +3027,16 @@ Declared budget: 3000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-cyclegan_unpaired_constellation"></a>
 
 ### cyclegan_unpaired_constellation
 
-**cyclegan_unpaired_constellation: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cyclegan_unpaired_constellation.json).
+**cyclegan_unpaired_constellation: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cyclegan_unpaired_constellation.json) · [Experiment page](../experiments/cyclegan_unpaired_constellation.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. cyclegan_unpaired_constellation: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -2575,11 +3063,16 @@ Declared budget: 3500 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_b64"></a>
 
 ### dcgan_performance_b64
 
-**dcgan_performance_b64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json).
+**dcgan_performance_b64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json) · [Experiment page](../experiments/dcgan_performance_b64.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2594,11 +3087,16 @@ Declared budget: 13 updates; timeout 180 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_cpu_smoke"></a>
 
 ### dcgan_performance_cpu_smoke
 
-**dcgan_performance_cpu_smoke: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_cpu_smoke.json).
+**dcgan_performance_cpu_smoke: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_cpu_smoke.json) · [Experiment page](../experiments/dcgan_performance_cpu_smoke.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2613,11 +3111,16 @@ Declared budget: 3 updates; timeout 120 seconds.
 
 Current measurement: mog prior (sigma 0.1); training_update_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r128"></a>
 
 ### dcgan_performance_r128
 
-**dcgan_performance_r128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json).
+**dcgan_performance_r128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json) · [Experiment page](../experiments/dcgan_performance_r128.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2632,17 +3135,22 @@ Declared budget: 13 updates; timeout 180 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r256"></a>
 
 ### dcgan_performance_r256
 
-**dcgan_performance_r256: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json).
+**dcgan_performance_r256: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json) · [Experiment page](../experiments/dcgan_performance_r256.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
 Execution: **not run**.
 
-Used by: [dcgan_performance / Tier 1](unified.md#cohort-cuda-42a130a78fc3-dcgan_performance-tier-1).
+Used by: [dcgan_performance / Tier 1](unified.md#cohort-cuda-42a130a78fc3-dcgan_performance-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
 
 Current pass criteria:
 
@@ -2651,11 +3159,16 @@ Declared budget: 13 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r32"></a>
 
 ### dcgan_performance_r32
 
-**dcgan_performance_r32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json).
+**dcgan_performance_r32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json) · [Experiment page](../experiments/dcgan_performance_r32.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2669,12 +3182,17 @@ Current pass criteria:
 Declared budget: 13 updates; timeout 180 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r64"></a>
 
 ### dcgan_performance_r64
 
-**dcgan_performance_r64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json).
+**dcgan_performance_r64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json) · [Experiment page](../experiments/dcgan_performance_r64.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2688,12 +3206,17 @@ Current pass criteria:
 Declared budget: 13 updates; timeout 180 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-experiment-dcgan_performance_w128"></a>
 
 ### dcgan_performance_w128
 
-**dcgan_performance_w128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json).
+**dcgan_performance_w128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json) · [Experiment page](../experiments/dcgan_performance_w128.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2708,11 +3231,16 @@ Declared budget: 13 updates; timeout 180 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); training_update_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ddgan_repair_bimodal_chain_wall_v2"></a>
 
 ### ddgan_repair_bimodal_chain_wall_v2
 
-**ddgan_repair_bimodal_chain_wall_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_bimodal_chain_wall_v2.json).
+**ddgan_repair_bimodal_chain_wall_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_bimodal_chain_wall_v2.json) · [Experiment page](../experiments/ddgan_repair_bimodal_chain_wall_v2.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2778,11 +3306,16 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 [Explanation and existing training artifacts](../ddgan-conditional-repair/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ddgan_repair_gaussian_chain_v1"></a>
 
 ### ddgan_repair_gaussian_chain_v1
 
-**ddgan_repair_gaussian_chain_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_gaussian_chain_v1.json).
+**ddgan_repair_gaussian_chain_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_gaussian_chain_v1.json) · [Experiment page](../experiments/ddgan_repair_gaussian_chain_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2843,11 +3376,16 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 [Explanation and existing training artifacts](../ddgan-conditional-repair/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-five_word_joint_acquisition_tier1_policy_selected_cloud_v1"></a>
 
 ### five_word_joint_acquisition_tier1_policy_selected_cloud_v1
 
 **five_word_joint_acquisition_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/five_word_joint_acquisition_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -2878,11 +3416,16 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 
 [Explanation and existing training artifacts](../five-word-joint/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold"></a>
 
 ### five_word_joint_hold
 
-**five_word_joint_hold: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_hold.json).
+**five_word_joint_hold: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_hold.json) · [Experiment page](../experiments/five_word_joint_hold.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. every joint generation/inverse check throughout the fixed continuation window
 
@@ -2937,11 +3480,16 @@ Dependencies: five_word_joint_smoke (checkpoint).
 
 [Explanation and existing training artifacts](../five-word-tier-split/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke"></a>
 
 ### five_word_joint_smoke
 
-**five_word_joint_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_smoke.json).
+**five_word_joint_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_smoke.json) · [Experiment page](../experiments/five_word_joint_smoke.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. any scheduled full joint pass plus independent same-state confirmation
 
@@ -2994,11 +3542,327 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 
 [Explanation and existing training artifacts](../five-word-tier-split/README.md)
 
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law1_aniso_unequal_modes"></a>
+
+### fl_law1_aniso_unequal_modes
+
+**fl_law1_aniso_unequal_modes: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json) · [Experiment page](../experiments/fl_law1_aniso_unequal_modes.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| mode_recall | >= 1 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+| min_cov_eig_ratio | >= 0.35 |
+| max_cov_eig_ratio | <= 2.2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1500 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law1_noisy_atomic_codebook"></a>
+
+### fl_law1_noisy_atomic_codebook
+
+**fl_law1_noisy_atomic_codebook: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json) · [Experiment page](../experiments/fl_law1_noisy_atomic_codebook.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| atom_recall | >= 0.96 |
+| mass_tv | <= 0.12 |
+| rms_nearest_dist | <= 0.08 |
+| outlier_rate | <= 0.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1600 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.015); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law2_groupnorm_and_vit_sprites"></a>
+
+### fl_law2_groupnorm_and_vit_sprites
+
+**fl_law2_groupnorm_and_vit_sprites: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json) · [Experiment page](../experiments/fl_law2_groupnorm_and_vit_sprites.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| mode_coverage | >= 1 |
+| sprite_hq | >= 0.85 |
+| template_rmse | <= 0.12 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 600 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law2_pure_adversarial_codim1"></a>
+
+### fl_law2_pure_adversarial_codim1
+
+**fl_law2_pure_adversarial_codim1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json) · [Experiment page](../experiments/fl_law2_pure_adversarial_codim1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| normal_orbit_r_tail | <= 0.06 |
+| normal_orbit_ptp | <= 0.12 |
+| manifold_mae | <= 0.06 |
+| manifold_coverage | >= 0.9375 |
+| angular_tv | <= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1200 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law3_highd_orphan_d32"></a>
+
+### fl_law3_highd_orphan_d32
+
+**fl_law3_highd_orphan_d32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32.json) · [Experiment page](../experiments/fl_law3_highd_orphan_d32.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| core_eig_min | >= 0.25 |
+| orphan_recall | >= 0.5 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1200 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law41_trust_rare1pct_tanh"></a>
+
+### fl_law41_trust_rare1pct_tanh
+
+**fl_law41_trust_rare1pct_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json) · [Experiment page](../experiments/fl_law41_trust_rare1pct_tanh.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| rare_mode_recall | >= 0.45 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.1 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law42_deep_resbn_and_conv1x1"></a>
+
+### fl_law42_deep_resbn_and_conv1x1
+
+**fl_law42_deep_resbn_and_conv1x1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| sw1 | <= 0.1 |
+| var_ratio_err | <= 0.25 |
+| conv1x1_sw1 | <= 0.1 |
+| conv1x1_sw1_ratio | <= 1.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 500 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law42_swap_deep_critic_16l"></a>
+
+### fl_law42_swap_deep_critic_16l
+
+**fl_law42_swap_deep_critic_16l: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json) · [Experiment page](../experiments/fl_law42_swap_deep_critic_16l.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 8 |
+| hq | >= 0.85 |
+| mass_tv | <= 0.12 |
+| valley_fraction | <= 0.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 800 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-42a130a78fc3-experiment-fl_law44_highd_sparse_prior_and_shock"></a>
+
+### fl_law44_highd_sparse_prior_and_shock
+
+**fl_law44_highd_sparse_prior_and_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json) · [Experiment page](../experiments/fl_law44_highd_sparse_prior_and_shock.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| sw1 | <= 0.14 |
+| mode_recall | >= 0.75 |
+| var_ratio_err | <= 0.25 |
+| shock_modes | == 4 |
+| shock_hq | >= 0.65 |
+| shock_sw1 | <= 0.35 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 400 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-gaussian1d_acquisition_tier1_policy_selected_cloud_v1"></a>
 
 ### gaussian1d_acquisition_tier1_policy_selected_cloud_v1
 
 **gaussian1d_acquisition_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/gaussian1d_acquisition_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3028,17 +3892,22 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior
 
 [Explanation and existing training artifacts](../../toy_audit/api_contract/gaussian1d/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke"></a>
 
 ### gaussian1d_smoke
 
-**gaussian1d_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_smoke.json).
+**gaussian1d_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_smoke.json) · [Experiment page](../experiments/gaussian1d_smoke.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. any scheduled full pass with independent same-state confirmation
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3076,17 +3945,22 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 [Explanation and existing training artifacts](../gaussian-smoke-tier-split/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability"></a>
 
 ### gaussian1d_stability
 
-**gaussian1d_stability: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_stability.json).
+**gaussian1d_stability: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_stability.json) · [Experiment page](../experiments/gaussian1d_stability.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. stationary hold, deadline reacquisition and shifted hold
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3127,17 +4001,22 @@ Dependencies: gaussian1d_smoke (checkpoint).
 
 [Explanation and existing training artifacts](../gaussian-smoke-tier-split/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100"></a>
 
 ### grid100
 
-**grid100: PASS**. [Current experiment declaration](../../../configs/forge/tasks/grid100.json).
+**grid100: PASS**. [Current experiment declaration](../../../configs/forge/tasks/grid100.json) · [Experiment page](../experiments/grid100.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. sustained live accuracy and independent holdout pass
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3194,11 +4073,16 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_14k"></a>
 
 ### grid100_14k
 
-**grid100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json).
+**grid100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json) · [Experiment page](../experiments/grid100_14k.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3235,11 +4119,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: grid100 (checkpoint), clockfree_audit (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_affine_paired_laws_v1"></a>
 
 ### grid100_affine_paired_laws_v1
 
-**grid100_affine_paired_laws_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_paired_laws_v1.json).
+**grid100_affine_paired_laws_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_paired_laws_v1.json) · [Experiment page](../experiments/grid100_affine_paired_laws_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3274,11 +4163,16 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_affine_square_named_v1"></a>
 
 ### grid100_affine_square_named_v1
 
-**grid100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_square_named_v1.json).
+**grid100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_square_named_v1.json) · [Experiment page](../experiments/grid100_affine_square_named_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3313,17 +4207,22 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_mlp16"></a>
 
 ### grid100_mlp16
 
-**grid100_mlp16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16.json).
+**grid100_mlp16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16.json) · [Experiment page](../experiments/grid100_mlp16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -3356,11 +4255,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: grid100 (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_release07_cloud_named_v1"></a>
 
 ### grid100_release07_cloud_named_v1
 
-**grid100_release07_cloud_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_release07_cloud_named_v1.json).
+**grid100_release07_cloud_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_release07_cloud_named_v1.json) · [Experiment page](../experiments/grid100_release07_cloud_named_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3395,11 +4299,16 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_res16_scaled_tanh"></a>
 
 ### grid100_res16_scaled_tanh
 
-**grid100_res16_scaled_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json).
+**grid100_res16_scaled_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json) · [Experiment page](../experiments/grid100_res16_scaled_tanh.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
@@ -3437,18 +4346,23 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
 Dependencies: grid100 (gate).
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-experiment-grid100_res16_tanh"></a>
 
 ### grid100_res16_tanh
 
-**grid100_res16_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_tanh.json).
+**grid100_res16_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_tanh.json) · [Experiment page](../experiments/grid100_res16_tanh.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -3481,17 +4395,22 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: grid100 (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_bars4"></a>
 
 ### img_bars4
 
-**img_bars4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4.json).
+**img_bars4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4.json) · [Experiment page](../experiments/img_bars4.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
+Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -3520,11 +4439,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_bars4_residual16"></a>
 
 ### img_bars4_residual16
 
-**img_bars4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_residual16.json).
+**img_bars4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_residual16.json) · [Experiment page](../experiments/img_bars4_residual16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3546,11 +4470,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_bars4_w64_optimizer_diagnostic"></a>
 
 ### img_bars4_w64_optimizer_diagnostic
 
-**img_bars4_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_w64_optimizer_diagnostic.json).
+**img_bars4_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_w64_optimizer_diagnostic.json) · [Experiment page](../experiments/img_bars4_w64_optimizer_diagnostic.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3572,11 +4501,16 @@ Declared budget: 600 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_blobs4"></a>
 
 ### img_blobs4
 
-**img_blobs4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4.json).
+**img_blobs4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4.json) · [Experiment page](../experiments/img_blobs4.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -3611,11 +4545,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_blobs4_residual16"></a>
 
 ### img_blobs4_residual16
 
-**img_blobs4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4_residual16.json).
+**img_blobs4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4_residual16.json) · [Experiment page](../experiments/img_blobs4_residual16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3637,11 +4576,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_intensity2"></a>
 
 ### img_intensity2
 
-**img_intensity2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2.json).
+**img_intensity2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2.json) · [Experiment page](../experiments/img_intensity2.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -3676,11 +4620,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_intensity2_residual16"></a>
 
 ### img_intensity2_residual16
 
-**img_intensity2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2_residual16.json).
+**img_intensity2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2_residual16.json) · [Experiment page](../experiments/img_intensity2_residual16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3702,17 +4651,22 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_stripes2"></a>
 
 ### img_stripes2
 
-**img_stripes2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2.json).
+**img_stripes2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2.json) · [Experiment page](../experiments/img_stripes2.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -3741,11 +4695,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_stripes2_residual16"></a>
 
 ### img_stripes2_residual16
 
-**img_stripes2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_residual16.json).
+**img_stripes2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_residual16.json) · [Experiment page](../experiments/img_stripes2_residual16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3767,11 +4726,16 @@ Declared budget: 600 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-img_stripes2_w64_optimizer_diagnostic"></a>
 
 ### img_stripes2_w64_optimizer_diagnostic
 
-**img_stripes2_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_w64_optimizer_diagnostic.json).
+**img_stripes2_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_w64_optimizer_diagnostic.json) · [Experiment page](../experiments/img_stripes2_w64_optimizer_diagnostic.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -3793,11 +4757,16 @@ Declared budget: 600 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-infogan_anisotropic_modes"></a>
 
 ### infogan_anisotropic_modes
 
-**infogan_anisotropic_modes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/infogan_anisotropic_modes.json).
+**infogan_anisotropic_modes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/infogan_anisotropic_modes.json) · [Experiment page](../experiments/infogan_anisotropic_modes.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -3824,11 +4793,16 @@ Declared budget: 3500 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift"></a>
 
 ### interp_img_patch_shift
 
-**interp_img_patch_shift: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json).
+**interp_img_patch_shift: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json) · [Experiment page](../experiments/interp_img_patch_shift.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. failed interp_img_patch_shift thresholds: finite_fraction == 1.0, endpoint_rmse <= 0.09, interp_rmse <= 0.1, interp_peak >= 0.78, quadrant_coverage == 4, midpoint_novelty >= 0.18
 
@@ -3878,17 +4852,22 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 [Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric"></a>
 
 ### interp_saddle_barycentric
 
-**interp_saddle_barycentric: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json).
+**interp_saddle_barycentric: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json) · [Experiment page](../experiments/interp_saddle_barycentric.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [particle_interpolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [particle_interpolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-particle_interpolation_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -3930,17 +4909,22 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 [Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc"></a>
 
 ### interp_sparse_arc
 
-**interp_sparse_arc: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json).
+**interp_sparse_arc: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json) · [Experiment page](../experiments/interp_sparse_arc.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed interp_sparse_arc gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [particle_interpolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [particle_interpolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-particle_interpolation_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -3981,11 +4965,16 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 [Explanation and existing training artifacts](../particle-interpolation-stretch/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-mid_scale_identity"></a>
 
 ### mid_scale_identity
 
-**mid_scale_identity: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mid_scale_identity.json).
+**mid_scale_identity: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mid_scale_identity.json) · [Experiment page](../experiments/mid_scale_identity.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4030,11 +5019,16 @@ Declared budget: 800 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-misgan_block_neural_imputer"></a>
 
 ### misgan_block_neural_imputer
 
-**misgan_block_neural_imputer: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_neural_imputer.json).
+**misgan_block_neural_imputer: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_neural_imputer.json) · [Experiment page](../experiments/misgan_block_neural_imputer.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. misgan_block_neural_imputer: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -4059,11 +5053,16 @@ Declared budget: 7000 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-misgan_block_recovery"></a>
 
 ### misgan_block_recovery
 
-**misgan_block_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_recovery.json).
+**misgan_block_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_recovery.json) · [Experiment page](../experiments/misgan_block_recovery.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. misgan_block_recovery: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -4090,11 +5089,16 @@ Declared budget: 7000 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-misgan_mcar_p50_recovery"></a>
 
 ### misgan_mcar_p50_recovery
 
-**misgan_mcar_p50_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p50_recovery.json).
+**misgan_mcar_p50_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p50_recovery.json) · [Experiment page](../experiments/misgan_mcar_p50_recovery.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. misgan_mcar_p50_recovery: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -4121,11 +5125,16 @@ Declared budget: 4000 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-misgan_mcar_p80_anchored"></a>
 
 ### misgan_mcar_p80_anchored
 
-**misgan_mcar_p80_anchored: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p80_anchored.json).
+**misgan_mcar_p80_anchored: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p80_anchored.json) · [Experiment page](../experiments/misgan_mcar_p80_anchored.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. misgan_mcar_p80_anchored: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -4152,17 +5161,22 @@ Declared budget: 4000 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-mode_hold"></a>
 
 ### mode_hold
 
-**mode_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mode_hold.json).
+**mode_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mode_hold.json) · [Experiment page](../experiments/mode_hold.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -4191,11 +5205,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain"></a>
 
 ### model_ae_ddgan_bimodal_chain
 
-**model_ae_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_bimodal_chain.json).
+**model_ae_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_bimodal_chain.json) · [Experiment page](../experiments/model_ae_ddgan_bimodal_chain.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
@@ -4269,17 +5288,22 @@ Dependencies: model_ae_ddgan_gaussian_chain (gate).
 
 [Explanation and existing training artifacts](../api-model-toys/ae-ddgan.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain"></a>
 
 ### model_ae_ddgan_gaussian_chain
 
-**model_ae_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json).
+**model_ae_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) · [Experiment page](../experiments/model_ae_ddgan_gaussian_chain.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
+Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -4391,11 +5415,16 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 [Explanation and existing training artifacts](../api-model-toys/ae-ddgan.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal"></a>
 
 ### model_ae_gan_multimodal
 
-**model_ae_gan_multimodal: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_gan_multimodal.json).
+**model_ae_gan_multimodal: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_gan_multimodal.json) · [Experiment page](../experiments/model_ae_gan_multimodal.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4445,11 +5474,16 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 [Explanation and existing training artifacts](../api-model-toys/ae.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction"></a>
 
 ### model_ae_reconstruction
 
-**model_ae_reconstruction: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_reconstruction.json).
+**model_ae_reconstruction: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_reconstruction.json) · [Experiment page](../experiments/model_ae_reconstruction.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4487,11 +5521,16 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 [Explanation and existing training artifacts](../api-model-toys/ae.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain"></a>
 
 ### model_ddgan_bimodal_chain
 
-**model_ddgan_bimodal_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_bimodal_chain.json).
+**model_ddgan_bimodal_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_bimodal_chain.json) · [Experiment page](../experiments/model_ddgan_bimodal_chain.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4613,11 +5652,16 @@ Dependencies: model_ddgan_gaussian_chain (gate).
 
 [Explanation and existing training artifacts](../api-model-toys/ddgan.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain"></a>
 
 ### model_ddgan_gaussian_chain
 
-**model_ddgan_gaussian_chain: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_gaussian_chain.json).
+**model_ddgan_gaussian_chain: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_gaussian_chain.json) · [Experiment page](../experiments/model_ddgan_gaussian_chain.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4727,11 +5771,16 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 [Explanation and existing training artifacts](../api-model-toys/ddgan.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_misgan_four_mode"></a>
 
 ### model_misgan_four_mode
 
-**model_misgan_four_mode: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_misgan_four_mode.json).
+**model_misgan_four_mode: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_misgan_four_mode.json) · [Experiment page](../experiments/model_misgan_four_mode.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -4766,11 +5815,16 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 [Explanation and existing training artifacts](../misgan-bispf/README.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_vae_categorical"></a>
 
 ### model_vae_categorical
 
-**model_vae_categorical: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_categorical.json).
+**model_vae_categorical: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_categorical.json) · [Experiment page](../experiments/model_vae_categorical.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4829,11 +5883,16 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 [Explanation and existing training artifacts](../api-model-toys/vae.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-model_vae_hard"></a>
 
 ### model_vae_hard
 
-**model_vae_hard: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_hard.json).
+**model_vae_hard: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_hard.json) · [Experiment page](../experiments/model_vae_hard.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -4892,17 +5951,22 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 [Explanation and existing training artifacts](../api-model-toys/vae.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16"></a>
 
 ### nash_overpowered_critic_ring16
 
-**nash_overpowered_critic_ring16: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_critic_ring16.json).
+**nash_overpowered_critic_ring16: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_critic_ring16.json) · [Experiment page](../experiments/nash_overpowered_critic_ring16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t4_imbalance_nash_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4_imbalance_nash_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t4_imbalance_nash_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4_imbalance_nash_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -4954,11 +6018,16 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 [Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16"></a>
 
 ### nash_overpowered_generator_ring16
 
-**nash_overpowered_generator_ring16: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_generator_ring16.json).
+**nash_overpowered_generator_ring16: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_generator_ring16.json) · [Experiment page](../experiments/nash_overpowered_generator_ring16.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed nash_overpowered_generator_ring16 gates (5/5 terminal checks passed)
 
@@ -5016,11 +6085,16 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 [Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-nash_unequal_width_hostile_imbalance"></a>
 
 ### nash_unequal_width_hostile_imbalance
 
-**nash_unequal_width_hostile_imbalance: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json).
+**nash_unequal_width_hostile_imbalance: PASS**. [Current experiment declaration](../../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) · [Experiment page](../experiments/nash_unequal_width_hostile_imbalance.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed nash_unequal_width_hostile_imbalance gates (5/5 terminal checks passed)
 
@@ -5076,11 +6150,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 [Explanation and existing training artifacts](../studies/t4-imbalance-nash.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-pacgan8_grid100"></a>
 
 ### pacgan8_grid100
 
-**pacgan8_grid100: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan8_grid100.json).
+**pacgan8_grid100: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan8_grid100.json) · [Experiment page](../experiments/pacgan8_grid100.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. pacgan8_grid100: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -5104,11 +6183,16 @@ Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-pacgan_unequal_mass"></a>
 
 ### pacgan_unequal_mass
 
-**pacgan_unequal_mass: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan_unequal_mass.json).
+**pacgan_unequal_mass: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan_unequal_mass.json) · [Experiment page](../experiments/pacgan_unequal_mass.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. pacgan_unequal_mass: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -5133,11 +6217,16 @@ Declared budget: 3000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-precision_gaussian_fp32"></a>
 
 ### precision_gaussian_fp32
 
-**precision_gaussian_fp32: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_fp32.json).
+**precision_gaussian_fp32: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_fp32.json) · [Experiment page](../experiments/precision_gaussian_fp32.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5180,11 +6269,16 @@ Declared budget: 1000 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-precision_gaussian_mxfp8"></a>
 
 ### precision_gaussian_mxfp8
 
-**precision_gaussian_mxfp8: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_mxfp8.json).
+**precision_gaussian_mxfp8: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_mxfp8.json) · [Experiment page](../experiments/precision_gaussian_mxfp8.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5227,11 +6321,16 @@ Declared budget: 1000 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-precision_gaussian_nvfp4"></a>
 
 ### precision_gaussian_nvfp4
 
-**precision_gaussian_nvfp4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_nvfp4.json).
+**precision_gaussian_nvfp4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_nvfp4.json) · [Experiment page](../experiments/precision_gaussian_nvfp4.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5274,11 +6373,16 @@ Declared budget: 1000 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-residual_student"></a>
 
 ### residual_student
 
-**residual_student: PASS**. [Current experiment declaration](../../../configs/forge/tasks/residual_student.json).
+**residual_student: PASS**. [Current experiment declaration](../../../configs/forge/tasks/residual_student.json) · [Experiment page](../experiments/residual_student.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5315,11 +6419,16 @@ Declared budget: 400 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); conditional_prior_centers_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ring16_acquisition"></a>
 
 ### ring16_acquisition
 
-**ring16_acquisition: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ring16_acquisition.json).
+**ring16_acquisition: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ring16_acquisition.json) · [Experiment page](../experiments/ring16_acquisition.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5362,11 +6471,16 @@ Declared budget: 1600 updates; timeout 300 seconds.
 
 Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ring16_acquisition_tier1_policy_selected_cloud_v1"></a>
 
 ### ring16_acquisition_tier1_policy_selected_cloud_v1
 
 **ring16_acquisition_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/ring16_acquisition_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -5394,11 +6508,16 @@ Declared budget: 400 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior_without_output_noise; weights state_selected; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ring16_bigan_continuous"></a>
 
 ### ring16_bigan_continuous
 
-**ring16_bigan_continuous: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/ring16_bigan_continuous.json).
+**ring16_bigan_continuous: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/ring16_bigan_continuous.json) · [Experiment page](../experiments/ring16_bigan_continuous.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. ring16_bigan_continuous: no registered public Forge adapter for this stretch host; declare and implement its complete recipe, sampling and checkpoint contracts before training
 
@@ -5423,17 +6542,22 @@ Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights unbound; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ring_extension"></a>
 
 ### ring_extension
 
-**ring_extension: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json).
+**ring_extension: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json) · [Experiment page](../experiments/ring_extension.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 3](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -5455,17 +6579,22 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: ring_hold (checkpoint).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-ring_hold"></a>
 
 ### ring_hold
 
-**ring_hold: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json).
+**ring_hold: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json) · [Experiment page](../experiments/ring_hold.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-3) · [host_profile_transfer / Tier 3](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 3](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -5487,11 +6616,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: mode_hold (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-rotated100"></a>
 
 ### rotated100
 
-**rotated100: PASS**. [Current experiment declaration](../../../configs/forge/tasks/rotated100.json).
+**rotated100: PASS**. [Current experiment declaration](../../../configs/forge/tasks/rotated100.json) · [Experiment page](../experiments/rotated100.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. sustained live accuracy and independent holdout pass
 
@@ -5554,11 +6688,16 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-rotated100_14k"></a>
 
 ### rotated100_14k
 
-**rotated100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json).
+**rotated100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json) · [Experiment page](../experiments/rotated100_14k.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -5595,11 +6734,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: rotated100 (checkpoint), clockfree_audit (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-rotated100_affine_square_named_v1"></a>
 
 ### rotated100_affine_square_named_v1
 
-**rotated100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_affine_square_named_v1.json).
+**rotated100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_affine_square_named_v1.json) · [Experiment page](../experiments/rotated100_affine_square_named_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -5634,17 +6778,22 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-staggered100"></a>
 
 ### staggered100
 
-**staggered100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/staggered100.json).
+**staggered100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/staggered100.json) · [Experiment page](../experiments/staggered100.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. coverage, sustained live accuracy, or independent holdout failed
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](unified.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](unified.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](unified.md#cohort-cuda-42a130a78fc3-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](unified.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -5701,11 +6850,16 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-staggered100_14k"></a>
 
 ### staggered100_14k
 
-**staggered100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json).
+**staggered100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json) · [Experiment page](../experiments/staggered100_14k.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -5742,11 +6896,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: staggered100 (checkpoint), clockfree_audit (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-staggered100_affine_square_named_v1"></a>
 
 ### staggered100_affine_square_named_v1
 
-**staggered100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_affine_square_named_v1.json).
+**staggered100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_affine_square_named_v1.json) · [Experiment page](../experiments/staggered100_affine_square_named_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -5781,17 +6940,22 @@ Declared budget: 7000 updates; timeout 3600 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift"></a>
 
 ### t3_iso_horizon_saddle_shift
 
-**t3_iso_horizon_saddle_shift: PASS**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json).
+**t3_iso_horizon_saddle_shift: PASS**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) · [Experiment page](../experiments/t3_iso_horizon_saddle_shift.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
+Used by: [discriminator_stability / Tier 2](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
 
 Recorded final metrics:
 
@@ -5832,17 +6996,22 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 [Explanation and existing training artifacts](../studies/t3-third-piece-proof.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x"></a>
 
 ### t3_iso_scale_mass_8x
 
-**t3_iso_scale_mass_8x: PASS**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_scale_mass_8x.json).
+**t3_iso_scale_mass_8x: PASS**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_scale_mass_8x.json) · [Experiment page](../experiments/t3_iso_scale_mass_8x.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
+Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3_factorial_ablation-tier-1).
 
 Recorded final metrics:
 
@@ -5883,17 +7052,22 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 [Explanation and existing training artifacts](../studies/t3-third-piece-proof.md)
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-target_shift_recovery"></a>
 
 ### target_shift_recovery
 
-**target_shift_recovery: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json).
+**target_shift_recovery: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json) · [Experiment page](../experiments/target_shift_recovery.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
 Execution: **not run**.
 
-Used by: [adaptation / Tier 3](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-3) · [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 3](unified.md#cohort-cuda-42a130a78fc3-adaptation-tier-3) · [clockfree_continuous / Tier 3](unified.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-3) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -5906,11 +7080,16 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 Dependencies: mode_hold (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-trajectory"></a>
 
 ### trajectory
 
-**trajectory: PASS**. [Current experiment declaration](../../../configs/forge/tasks/trajectory.json).
+**trajectory: PASS**. [Current experiment declaration](../../../configs/forge/tasks/trajectory.json) · [Experiment page](../experiments/trajectory.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5943,11 +7122,16 @@ Declared budget: 400 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); conditional_prior_centers_with_scheduled_output_noise; weights live; output noise public_recipe_schedule.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-two_pole"></a>
 
 ### two_pole
 
-**two_pole: PASS**. [Current experiment declaration](../../../configs/forge/tasks/two_pole.json).
+**two_pole: PASS**. [Current experiment declaration](../../../configs/forge/tasks/two_pole.json) · [Experiment page](../experiments/two_pole.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -5983,11 +7167,16 @@ Declared budget: 80 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-two_pole_800_schedule800_diagnostic_v1"></a>
 
 ### two_pole_800_schedule800_diagnostic_v1
 
-**two_pole_800_schedule800_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule800_diagnostic_v1.json).
+**two_pole_800_schedule800_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule800_diagnostic_v1.json) · [Experiment page](../experiments/two_pole_800_schedule800_diagnostic_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6011,12 +7200,17 @@ Declared budget: 800 updates; timeout 300 seconds.
 Current measurement: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
 [Explanation and existing training artifacts](../k3p-two-pole-horizon-v1/README.md)
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-experiment-two_pole_800_schedule80_diagnostic_v1"></a>
 
 ### two_pole_800_schedule80_diagnostic_v1
 
-**two_pole_800_schedule80_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule80_diagnostic_v1.json).
+**two_pole_800_schedule80_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule80_diagnostic_v1.json) · [Experiment page](../experiments/two_pole_800_schedule80_diagnostic_v1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6040,12 +7234,17 @@ Declared budget: 800 updates; timeout 300 seconds.
 Current measurement: particle_cloud prior (sigma 0); learned_particles_and_critic_gradient; weights live; output noise not_applied_to_measurement.
 
 [Explanation and existing training artifacts](../k3p-two-pole-horizon-v1/README.md)
+
+</details>
 
 <a name="cohort-cuda-42a130a78fc3-experiment-two_pole_tier1_policy_selected_cloud_v1"></a>
 
 ### two_pole_tier1_policy_selected_cloud_v1
 
 **two_pole_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/two_pole_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6070,11 +7269,16 @@ Declared budget: 80 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); tier1_selected_learned_particles_and_critic_gradient; weights state_selected; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-unipolar"></a>
 
 ### unipolar
 
-**unipolar: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unipolar.json).
+**unipolar: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unipolar.json) · [Experiment page](../experiments/unipolar.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6111,11 +7315,16 @@ Declared budget: 400 updates; timeout 1800 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-unused_token_hold"></a>
 
 ### unused_token_hold
 
-**unused_token_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unused_token_hold.json).
+**unused_token_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unused_token_hold.json) · [Experiment page](../experiments/unused_token_hold.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6151,11 +7360,16 @@ Declared budget: 200 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); learned_parameter_measurement; weights live; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-unused_token_hold_tier1_policy_selected_cloud_v1"></a>
 
 ### unused_token_hold_tier1_policy_selected_cloud_v1
 
 **unused_token_hold_tier1_policy_selected_cloud_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/task-variants/tier1_policy_selected_cloud_v1/unused_token_hold_tier1_policy_selected_cloud_v1.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6180,11 +7394,16 @@ Declared budget: 200 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); tier1_selected_learned_parameter_measurement; weights state_selected; output noise not_applied_to_measurement.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_anisotropic"></a>
 
 ### vector_anisotropic
 
-**vector_anisotropic: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic.json).
+**vector_anisotropic: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic.json) · [Experiment page](../experiments/vector_anisotropic.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6225,11 +7444,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_anisotropic_published"></a>
 
 ### vector_anisotropic_published
 
-**vector_anisotropic_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic_published.json).
+**vector_anisotropic_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic_published.json) · [Experiment page](../experiments/vector_anisotropic_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6254,11 +7478,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_overlap"></a>
 
 ### vector_overlap
 
-**vector_overlap: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap.json).
+**vector_overlap: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap.json) · [Experiment page](../experiments/vector_overlap.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6295,11 +7524,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_overlap_published"></a>
 
 ### vector_overlap_published
 
-**vector_overlap_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap_published.json).
+**vector_overlap_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap_published.json) · [Experiment page](../experiments/vector_overlap_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6322,11 +7556,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_spiral"></a>
 
 ### vector_spiral
 
-**vector_spiral: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral.json).
+**vector_spiral: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral.json) · [Experiment page](../experiments/vector_spiral.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6363,11 +7602,16 @@ Declared budget: 1600 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_spiral_published"></a>
 
 ### vector_spiral_published
 
-**vector_spiral_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral_published.json).
+**vector_spiral_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral_published.json) · [Experiment page](../experiments/vector_spiral_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6390,11 +7634,16 @@ Declared budget: 1600 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_two_broad"></a>
 
 ### vector_two_broad
 
-**vector_two_broad: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad.json).
+**vector_two_broad: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad.json) · [Experiment page](../experiments/vector_two_broad.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6435,11 +7684,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_two_broad_published"></a>
 
 ### vector_two_broad_published
 
-**vector_two_broad_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad_published.json).
+**vector_two_broad_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad_published.json) · [Experiment page](../experiments/vector_two_broad_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6464,11 +7718,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass"></a>
 
 ### vector_unequal_mass
 
-**vector_unequal_mass: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass.json).
+**vector_unequal_mass: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass.json) · [Experiment page](../experiments/vector_unequal_mass.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6511,11 +7770,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass_published"></a>
 
 ### vector_unequal_mass_published
 
-**vector_unequal_mass_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass_published.json).
+**vector_unequal_mass_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass_published.json) · [Experiment page](../experiments/vector_unequal_mass_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6541,11 +7805,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_unequal_width"></a>
 
 ### vector_unequal_width
 
-**vector_unequal_width: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width.json).
+**vector_unequal_width: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width.json) · [Experiment page](../experiments/vector_unequal_width.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
 
@@ -6586,11 +7855,16 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-vector_unequal_width_published"></a>
 
 ### vector_unequal_width_published
 
-**vector_unequal_width_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width_published.json).
+**vector_unequal_width_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width_published.json) · [Experiment page](../experiments/vector_unequal_width_published.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
@@ -6615,17 +7889,22 @@ Declared budget: 1200 updates; timeout 1800 seconds.
 
 Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape"></a>
 
 ### zero_tanh_rail_escape
 
-**zero_tanh_rail_escape: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json).
+**zero_tanh_rail_escape: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json) · [Experiment page](../experiments/zero_tanh_rail_escape.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-3) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.1); public_prior_without_output_noise; weights unavailable; output noise clean.
 
@@ -6646,17 +7925,22 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 Dependencies: zero_tanh_smoke (gate).
 
+</details>
+
 <a name="cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke"></a>
 
 ### zero_tanh_smoke
 
-**zero_tanh_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_smoke.json).
+**zero_tanh_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_smoke.json) · [Experiment page](../experiments/zero_tanh_smoke.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed the declared final zero-tanh bounds
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](unified.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](unified.md#cohort-cuda-42a130a78fc3-t4-strange-architectures-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -6684,6 +7968,8 @@ Current pass criteria:
 Declared budget: 1000 updates; timeout 120 seconds.
 
 Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights unbound; output noise clean.
+
+</details>
 
 ## Historical and diagnostic evidence
 

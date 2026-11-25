@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_overlap",
+  "title": "Overlapping Bimodal Cloud (Unidentifiable Components)",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "overlapping-support",
+    "distribution-matching",
+    "sustained-settling"
+  ],
+  "intuition": "Two broad overlapping Gaussians at (-0.35, 0) and (+0.35, 0) (sigma=0.55) where component labels are not identifiable. Grades observable global mean, global covariance, and sliced W1 over a sustained terminal window.",
+  "failure_mode": "Recipes that over-segment continuous overlapping clouds into rigid discrete blobs or oscillate across late updates miss the sustained covariance and sw1 gates.",
+  "protocol_notes": "Tier-2 held transfer-vector task; deliberately omits unidentifiable per-component gates.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

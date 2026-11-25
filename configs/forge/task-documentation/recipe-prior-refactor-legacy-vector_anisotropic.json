@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-vector_anisotropic",
+  "title": "Three Rotated Anisotropic Ellipses (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "anisotropic-covariance",
+    "rotated-ellipses",
+    "disconnected-support",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `vector_anisotropic` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Three equal-mass 2D Gaussians stretched along horizontal, vertical, and diagonal axes. Tests full 2x2 covariance fidelity so that matching a wide principal axis cannot hide collapse along the narrow axis.",
+  "failure_mode": "Scalar-trace isotropic covariance trackers or misallocated prototype mass distort ellipse eccentricity and violate component_covariance_error or mass_tv.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `vector_anisotropic` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

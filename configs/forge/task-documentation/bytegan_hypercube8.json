@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "bytegan_hypercube8",
+  "title": "ByteGAN: 256-Mode 8D Binary Hypercube Codebook",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "discrete-atomic",
+    "8d-hypercube",
+    "exact-capacity-prior"
+  ],
+  "intuition": "Tests exact discrete atomic bijection on all 256 uniform uint8 bytes encoded at the corners of {-1, +1}^8 using an exact-capacity 256-particle zero-sigma prior: requires 256/256 unique valid bytes, zero collisions, and rms_bit_error <= 0.12.",
+  "failure_mode": "Without atomic bijection support, streaming prototype priors suffer collisions and collapse to ~139/256 unique bytes (as historically observed on `unified-v12` before opt-in `feydy_atomic`).",
+  "protocol_notes": "Tier-2 stretch task and Four Laws Adherence Law 1 anchor (4,000 updates, zero-sigma 256-particle prior).",
+  "diagram_kind": "bytegan_hypercube",
+  "custom_mermaid": null
+}

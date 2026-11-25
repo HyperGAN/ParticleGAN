@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "pacgan8_grid100",
+  "title": "PacGAN m=8 Packed Critic on 100-Mode Grid",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "packed-critic",
+    "100-modes",
+    "disconnected-support"
+  ],
+  "intuition": "Packs m=8 samples jointly into the critic D(x_1..x_8) on a 100-mode 10x10 Gaussian grid (sigma=0.05), testing high-order product-measure mode coverage (>= 95/100 modes) and covariance calibration.",
+  "failure_mode": "Packing increases critic input dimensionality 8x; improperly scaled gradient penalties or weak Law 1 priors still leave collapsed or under-represented modes.",
+  "protocol_notes": "Tier-4 stretch benchmark (4,000 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

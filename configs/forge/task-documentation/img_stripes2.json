@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "img_stripes2",
+  "title": "8x8 Procedural Images: Horizontal vs Vertical Stripes",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "finite-prior-enumeration"
+  ],
+  "intuition": "Smallest convolutional image transfer test: learn both 8x8 stripe orientations (horizontal and vertical) using a 32-particle prior with exact finite-prior enumeration (2/2 modes, hq >= 0.90).",
+  "failure_mode": "Unregularized Conv2d critics or cross-valley barycentric averaging produce blurry '+' cross hybrids instead of crisp stripes.",
+  "protocol_notes": "Tier-2 required image task and Four Laws Adherence Law 2 anchor (600 updates).",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

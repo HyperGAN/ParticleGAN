@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "two_pole",
+  "title": "Two-Pole Directional Concept Separation",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "short-horizon-80",
+    "critic-slope-control",
+    "behavioral-probe"
+  ],
+  "intuition": "Fast 80-step directional separation probe testing whether adversarial training moves opposing concept poles apart cleanly (mean_abs >= 0.30) while keeping critic spatial gradients bounded (grad_med <= 1.0).",
+  "failure_mode": "Under-regularized critics develop sharp spikes (grad_med > 1.0), whereas overly damped or sluggish trainers fail to separate the two poles within the 80-update window.",
+  "protocol_notes": "Tier-1 required behavioral gate (80 updates, 24 observations, 5 sustained terminal checks).",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-vector_spiral",
+  "title": "Continuous Curved 2D Spiral Manifold (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "continuous-manifold",
+    "curved-support",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `vector_spiral` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Tests continuous curved probability mass (1.5-turn Archimedes spiral with radial noise sigma=0.08) rather than a finite table of point clusters, checking global sliced W1, mean, and covariance fidelity.",
+  "failure_mode": "Overly rigid discrete prototype charts quantize the smooth spiral into beads or cut straight chords across inner turns.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `vector_spiral` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

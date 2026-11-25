@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "clockfree_audit",
+  "title": "Clock-Free & Restart Invariance Audit",
+  "laws": [
+    "law4_4"
+  ],
+  "edge_cases": [
+    "clock-invariance",
+    "restart-parity",
+    "state-hygiene"
+  ],
+  "intuition": "Audits whether a trainer is truly clock-free by perturbing four external schedule knobs \u2014 step label (+8192), total horizon (4096), evaluation cadence, and checkpoint restart \u2014 and asserting bit-exact state-hash parity plus zero hidden step-counter dependencies.",
+  "failure_mode": "Hidden LR annealing, step-dependent noise schedules, lazy periodic counters, or uncheckpointed internal state break state-hash parity across perturbations.",
+  "protocol_notes": "24-step deterministic parity probe; parent specification of `clockfree_audit_measurement_v1`.",
+  "diagram_kind": "clockfree_audit",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_res16_tanh",
+  "title": "100-Mode Grid with 16-Block ResNet + Tanh",
+  "laws": [
+    "law4_1",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "deep-spectral-contraction",
+    "tanh-saturation",
+    "100-modes"
+  ],
+  "intuition": "Combines a 16-block residual generator with saturating `tanh` activations on `grid100`, testing whether deep residual spectral conditioning also prevents tanh rail saturation (max_saturated_fraction gate).",
+  "failure_mode": "Aggressive spectral step sizes push residual branches into tanh saturation, clipping outer modes of the 100-mode grid and failing the saturation fraction check.",
+  "protocol_notes": "Tier-4 held benchmark and Four Laws Adherence Law 4 anchor with explicit `max_saturated_fraction` gate.",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "gaussian1d_stability",
+  "title": "1D Gaussian Stationary Hold & Target Shift Recovery",
+  "laws": [
+    "law3a",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "non-stationary-shift",
+    "settling-vs-tracking",
+    "checkpoint-continuation"
+  ],
+  "intuition": "Continues the candidate's own passing `gaussian1d_smoke` checkpoint to test the Law 4.4 settling-versus-tracking dilemma: first hold N(2, 0.5^2) stably across stationary updates, then rapidly re-acquire a shifted target within deadline and hold it.",
+  "failure_mode": "Recipes with aggressive LR annealing freeze and miss the shifted target, whereas recipes without settling damping oscillate around the stationary bell curve and fail hold checks.",
+  "protocol_notes": "Strict checkpoint continuation from `gaussian1d_smoke`; cannot pass without a valid passing smoke parent.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

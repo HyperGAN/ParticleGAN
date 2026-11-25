@@ -29,7 +29,7 @@ Programmatically extracted from `configs/forge/{ideas,configurations,studies}/*.
 | `t1_prior_coupling` (`t1-prior-v1..2`, `t1-coupling-v1..5`) | 7 | 14 | 14 | 208 | 8.76 | Law 1 prior atlas, LTV, Laguerre coupling |
 | `t2_secant` (`t2-secant-v1..5`) | 5 | 8 | 8 | 123 | 2.78 | Law 2 1st-order `fwAD`/secant critic |
 | `t3_rgdt` (`rgdt-v1..3` + ablations) | 6 | 18 | 18 | 228 | 7.54 | Law 3 scale-invariant $k=4$ / Weibull AKT |
-| `t4_arch_nash` (`t4-arch-v1..3`, `t4-nash-v1..3`, controls) | 15 | 26 | 26 | 234 | 7.95 | Law 4 dynamic-$10^{-38}$ / NS / `delta_g_max` |
+| `t4_arch_nash` (`t4-arch-v1..3`, `t4-nash-v1..3`, controls) | 15 | 26 | 26 | 234 | 7.95 | Law 4 dynamic-$`10^{-38}`$ / NS / `delta_g_max` |
 | `cond_fiber` (`cond-fiber-v1`) | 1 | 2 | 2 | 53 | 1.16 | Law 3 conditional fiber bank |
 | `r4_razor_minimal` (`r4-razor-*`, `minimal-v1..2`) | 11 | 30 | 26 | 248 | 10.80 | Round-4 ablation & minimal-core diagnostics |
 | **Subtotal — Direct 4-Law / Unified Ancestry** | **68** | **197** | **190** | **2,143** | **78.27** | *Excludes `law4-sgd-*`/`law4-alt-*` branch runs* |
@@ -91,7 +91,7 @@ A subtle methodological hazard in [`docs/four-laws.md`](../../docs/four-laws.md)
 Two natural experiments already committed on `origin/develop` **after** `unified-v12` was frozen (`ff41cf173`) directly falsify claims of universal law-complete generalization:
 
 1. **Post-Freeze Unseen Discrete High-D Distribution — `ByteGAN` (PR #632, [`reports/forge/bytegan-stretch/summary.json`](../forge/bytegan-stretch/summary.json)):**
-   - Two brand-new tasks on the 8D discrete hypercube $\{-1,+1\}^8$ (`256` uniform `uint8` modes, `z_dim = 8`, zero-sigma `ParticlePrior`): `bytegan_hypercube8` and `bytegan_bigan_dictionary`.
+   - Two brand-new tasks on the 8D discrete hypercube $`\{-1,+1\}^8`$ (`256` uniform `uint8` modes, `z_dim = 8`, zero-sigma `ParticlePrior`): `bytegan_hypercube8` and `bytegan_bigan_dictionary`.
    - **Result:** **`unified-v12` scored `0 / 2` FAIL** (as did all 4 other families: `rhbi-v12`, `bispf`, `empf-v8`, `bcap-pure`):
      - `bytegan_hypercube8`: only **`139 / 256` valid unique bytes** (`154` raw unique, `rms_bit_error = 0.0875`) — **45.7% of discrete modes missing/collided!**
      - `bytegan_bigan_dictionary`: **`170 / 256` valid unique bytes** (`67` collisions, `86` orphans, `rms_bit_error = 0.1505 > 0.12`), **`0 / 256` `recon_valid_exact_bytes`** (`recon_rms_bit_error = 0.8635`), and `154 / 256` `encoder_particle_bijection_bytes`. Notably, much older `bcap-pure` outperformed `unified-v12` on `valid_unique_bytes` (`175` vs `170`) and `encoder_particle_bijection_bytes` (`183` vs `154`).
@@ -111,7 +111,7 @@ Two natural experiments already committed on `origin/develop` **after** `unified
 Even if a single global recipe passed `48/48` on `discriminator_stability`, `18/18` on Tier 3, and `7/7` on `t4-arch`, **passing operational Forge gates would still not constitute a proof of Laws 1–4**:
 
 1. **Existential Witness vs. Universal Quantifier ($\exists \neq \forall$):** A mathematical law asserts a universal quantifier over distributions, architectures, initializations, and scales ($\forall P_Y \in \mathcal{P}, \forall (G, D) \in \mathcal{A}$). A Forge pass verifies only an existential witness on one finite list of synthetic tasks, one initializer (`deterministic_orthogonal`), one seed (`0`), and one GPU family (`RTX A6000`).
-2. **Affirming the Consequent (Confounded Credit Assignment):** When a `8,564`-LOC recipe with `1,057` branches passes a gate after adding mechanism $M$, passing proves at most that $(R \cup \{M\})$ passes on seed `0` — not that $M$'s claimed theoretical mechanism caused the improvement rather than an incidental step-size damping, random trajectory perturbation, or interaction with another branch. (Indeed, Round-4 Arm 8 showed that `zero_tanh_rail_escape` still passed without the `fwAD` saturation probe `w_sat_pt` that had been credited for it!)
+2. **Affirming the Consequent (Confounded Credit Assignment):** When a `8,564`-LOC recipe with `1,057` branches passes a gate after adding mechanism $M$, passing proves at most that $`(R \cup \{M\})`$ passes on seed `0` — not that $M$'s claimed theoretical mechanism caused the improvement rather than an incidental step-size damping, random trajectory perturbation, or interaction with another branch. (Indeed, Round-4 Arm 8 showed that `zero_tanh_rail_escape` still passed without the `fwAD` saturation probe `w_sat_pt` that had been credited for it!)
 3. **Threshold-Cliff Aliasing:** Binary pass/fail gates hide proximity to catastrophic failure. `grid100_res16_tanh` passing standalone (`c1ee5c3b`) and failing by 1 mode at step 6250 after a 1-ULP scalar refactor (PR #615) or on an L4 GPU (`dadc826a`) shows that a binary `PASS` can sit with near-zero robustness margin.
 4. **Proxy-Objective Divergence (`dcgan_performance_r256`):** `dcgan_performance_r256` trains for `13` updates on i.i.d. `Uniform[-1, 1]` random pixel noise with `particle_cloud` (`sigma=0.0`) and checks only finiteness and non-zero parameter motion. It provides **zero evidence** of high-resolution image convergence, FID, or energy-to-quality on natural images.
 5. **Coordinate & Dimension Non-Invariance:** Several mechanisms in `unified-v12` explicitly branch on coordinate dimensions (`d == 1`, `dim == 2 and d_z == 2`, `dim == 2 and d_z == 4`, `d <= 4`, `5 <= d <= 8`, `d > 8`). A true geometric law must hold under orthogonal rotations, coordinate permutations, and affine rescalings without dimension-specific lookup tables.
@@ -127,7 +127,7 @@ To separate genuine scientific generalization from Forge benchmark overfitting �
 | Stage | Allowed Activity | Seed Policy | Governance Rule |
 | :--- | :--- | :--- | :--- |
 | **Stage 1: Development & Screening (Existing Forge)** | Architecture/theory research, ablations, recipe iteration | **Fixed seed `0` only** (`AGENTS.md`: zero seed-only optimization) | Results are strictly *hypothesis generation / screening*; never grant scientific superiority or `default_adoption: true`. |
-| **Stage 2: Cryptographic Freeze & `FUSQP-v1` Confirmation** | **Zero code/hyperparameter edits** after registering `(recipe_sha256, source_commit, git_tree_sha256)` in a preregistered manifest | **Fixed disjoint confirmatory seed panel** $S_{\text{conf}} = \{1001, 1002, \dots, 1010\}$ ($K = 10$ seeds for fast vector/2D tasks; $K = 5$ seeds $\{1001..1005\}$ for 16-layer/image/long-horizon tasks), executed **once per frozen candidate** | Any post-hoc tweak invalidates the confirmation cohort and requires a brand-new candidate ID and a *fresh* unseen task partition (`FUSQP-v2`). **Never select among seeds; report the full distribution over all $K$ seeds.** |
+| **Stage 2: Cryptographic Freeze & `FUSQP-v1` Confirmation** | **Zero code/hyperparameter edits** after registering `(recipe_sha256, source_commit, git_tree_sha256)` in a preregistered manifest | **Fixed disjoint confirmatory seed panel** $`S_{\text{conf}} = \{1001, 1002, \dots, 1010\}`$ ($K = 10$ seeds for fast vector/2D tasks; $K = 5$ seeds $`\{1001..1005\}`$ for 16-layer/image/long-horizon tasks), executed **once per frozen candidate** | Any post-hoc tweak invalidates the confirmation cohort and requires a brand-new candidate ID and a *fresh* unseen task partition (`FUSQP-v2`). **Never select among seeds; report the full distribution over all $K$ seeds.** |
 
 ### 5.2 Pillar A — Held-Out Architectures (Zero Overlap With Existing Forge Tasks)
 
@@ -146,9 +146,9 @@ Every task uses standard public `particlegan` API (`GANTrainer` / `E22Policy`), 
 Tests whether "Laws 1–4" are genuinely invariant under symmetry transformations that preserve the underlying mathematical problem:
 
 1. **`inv_ortho_rotation_d8`:** Embed a 2D 100-mode irregular mixture and a 4-mode unequal-width mixture into $\mathbb{R}^8$ via a fixed Haar-random orthogonal matrix $Q \in O(8)$ (plus zero-variance or tiny-noise orthogonal complement). **Defeats `dim == 2` special-casing!**
-2. **`inv_affine_scale_sweep`:** Rescale target coordinates $Y \mapsto \alpha Y + b$ across **6 orders of magnitude** $\alpha \in \{10^{-3}, 10^{-1}, 10^{+1}, 10^{+3}\}$ with non-zero offset $b = (50\alpha, -30\alpha)$ and anisotropic diagonal scaling $\operatorname{diag}(10^{-2}, 10^{+2})$. **Directly tests Law 3 scale-invariance and Law 4.2 degree-0 gauge invariance!**
-3. **`inv_latent_dim_sweep`:** Run canonical 100-mode and 16-mode tasks with $d_z \in \{3, 5, 7, 16, 32\}$ — explicitly excluding special-cased $d_z \in \{2, 4\}$ branches (`Sigma_push2` and Radon–Hurwitz quaternion)!
-4. **`inv_batch_size_mismatch`:** Fix $M = 100$ modes while sweeping minibatch size $B \in \{16, 32, 64, 256\}$ (testing Law 1's $B \ll M$ Poisson count-variance regime down to $B/M = 0.16$).
+2. **`inv_affine_scale_sweep`:** Rescale target coordinates $Y \mapsto \alpha Y + b$ across **6 orders of magnitude** $`\alpha \in \{10^{-3}, 10^{-1}, 10^{+1}, 10^{+3}\}`$ with non-zero offset $b = (50\alpha, -30\alpha)$ and anisotropic diagonal scaling $\mathrm{diag}(10^{-2}, 10^{+2})$. **Directly tests Law 3 scale-invariance and Law 4.2 degree-0 gauge invariance!**
+3. **`inv_latent_dim_sweep`:** Run canonical 100-mode and 16-mode tasks with $`d_z \in \{3, 5, 7, 16, 32\}`$ — explicitly excluding special-cased $`d_z \in \{2, 4\}`$ branches (`Sigma_push2` and Radon–Hurwitz quaternion)!
+4. **`inv_batch_size_mismatch`:** Fix $M = 100$ modes while sweeping minibatch size $`B \in \{16, 32, 64, 256\}`$ (testing Law 1's $B \ll M$ Poisson count-variance regime down to $B/M = 0.16$).
 
 ### 5.4 Pillar C — Independently Generated Pathological Distributions
 
@@ -156,10 +156,10 @@ Generated by a separate deterministic task generator (`seed_data = 20261124`) co
 
 1. **`dist_poisson_multiscale_64`:** 64-mode **non-lattice** Poisson-disc mixture in $\mathbb{R}^2$ with log-uniform mode widths $\sigma_m \in [0.02, 0.40]$ ($20\times$ width ratio, vs $8\times$ in `t3_iso`) and Zipf mode weights $w_m \propto m^{-0.8}$ ($27.9\times$ mass ratio, $64^{0.8} = 27.86$).
 2. **`dist_nested_rings_spirals_3d`:** Three concentric nested 1D rings + two intertwined 3D logarithmic spirals in $\mathbb{R}^3$ (nonzero Betti numbers $\beta_0 = 5, \beta_1 = 3$; non-convex, curved 1D manifolds in 3D, breaking 2D-only manifold heuristics).
-3. **`dist_heavy_tail_student_t`:** 8-mode multivariate Student-$t$ mixture ($\nu = 2.5$, finite mean/variance, heavy polynomial tails — no Gaussian sub-exponential tail assumption!).
+3. **`dist_heavy_tail_student_t`:** 8-mode multivariate Student-$`t`$ mixture ($\nu = 2.5$, finite mean/variance, heavy polynomial tails — no Gaussian sub-exponential tail assumption!).
 4. **`dist_hybrid_manifold_atoms`:** Continuous 2D Swiss-roll sheet (60% mass) coexisting with 8 isolated tight point-like Gaussian atoms (40% mass) in $\mathbb{R}^3$ (tests whether prototype coalescence destroys continuous sheets or blurs discrete atoms).
 5. **`dist_continuous_drift_oscillation`:** Non-stationary 12-mode ring whose radius breathes continuously $R(t) = 2.0 + 0.8\sin(2\pi t / 2000)$ and rotates at constant angular velocity $\omega = 2\pi/4000$ (tests clock-free continuous tracking rather than one-shot step-function shifts!).
-6. **`dist_discrete_simplex_d12`:** 128 randomly chosen vertices of the 12D hypercube $\{-1, +1\}^{12}$ (`z_dim = 12`, generalizing the unseen `ByteGAN` failure mode).
+6. **`dist_discrete_simplex_d12`:** 128 randomly chosen vertices of the 12D hypercube $`\{-1, +1\}^{12}`$ (`z_dim = 12`, generalizing the unseen `ByteGAN` failure mode).
 7. **`dist_real_image_fid_anchor`:** Standardized small-scale real-image benchmark (e.g., CIFAR-10 `32×32` or FFHQ-64 subset under fixed 50k clean FID + Precision/Recall + NVML total Joules-to-FID-threshold), closing the gap left open by mock-noise `dcgan_performance_r256`.
 
 ### 5.5 Pillar D — Distribution-Level Reporting & Qualification Criteria
@@ -174,8 +174,8 @@ Rather than binary single-seed PASS/FAIL tallies, every frozen candidate evaluat
    - Sustained 5-check stability (`J_sustained`, `steps_sustained`),
    - **Dynamic energy** (`J_dyn`) alongside total board energy (`J_tot`) and verified idle baseline power (`idle_W`, requiring `gpu_util == 0%` before and after, rejecting contended runs automatically).
    - Report `∞` (right-censored) for non-passing seeds and compare via survival / Kaplan–Meier median `J-to-PASS`.
-5. **Endurance & Shift Recovery Dynamics:** Report late-horizon drift slope (`metric(14k) - metric(7k)`), minimum suffix quality over 20% terminal window, and shift-recovery half-life ($t_{1/2}$ updates to recover 50% and 95% of pre-shift quality).
-6. **Qualification & Default-Adoption Gate:** A candidate earns **`default_adoption: true`** ONLY if: (i) Forge screening calibration passes an updated non-degenerate criteria profile, (ii) on `FUSQP-v1`, it achieves **zero catastrophic/NaN failures**, statistically significant non-inferiority on every Pillar (lower bound of paired bootstrap 95% CI $\ge 0$ on Pillar pass rates and median `J-to-PASS`), and $\ge 80\%$ multi-seed pass rate on Pillars A–C with strict source/hash lock.
+5. **Endurance & Shift Recovery Dynamics:** Report late-horizon drift slope (`metric(14k) - metric(7k)`), minimum suffix quality over 20% terminal window, and shift-recovery half-life ($`t_{1/2}`$ updates to recover 50% and 95% of pre-shift quality).
+6. **Qualification & Default-Adoption Gate:** A candidate earns **`default_adoption: true`** ONLY if: (i) Forge screening calibration passes an updated non-degenerate criteria profile, (ii) on `FUSQP-v1`, it achieves **zero catastrophic/NaN failures**, statistically significant non-inferiority on every Pillar (lower bound of paired bootstrap 95% CI $\ge 0$ on Pillar pass rates and median `J-to-PASS`), and $`\ge 80\%`$ multi-seed pass rate on Pillars A–C with strict source/hash lock.
 
 ---
 
@@ -267,4 +267,4 @@ Rather than binary single-seed PASS/FAIL tallies, every frozen candidate evaluat
    - Disclose the **full cumulative tuning budget** (`68` direct-ancestry cards / `190` readouts / `78.27` GPU-h across Round 1–4, `unified-v1..v12`, and `law4-energy-v1..v11`), not merely `unified-v1..v11`.
    - Remove the word *"untouched"* from `r3-tier3-long-horizon-holdout-v1` (`13/18` tasks directly overlap active screening views — `14/18` including `t3-shift-recovery-diagnostic-v1`, leaving only `clockfree_audit` and three `*_14k` continuations of tuned 7k lattices) and commit official Forge `readout-*.json` receipts before claiming `18/18` Tier-3 or `5/5` shift recovery for `unified-v12`.
 2. **Resolve Governance Drift:** Either align `family-current-v1.json` and `DEFAULT_RECIPE` explicitly under a documented "uncalibrated research-preview default" policy (distinct from scientific qualification), or restore calibration gating before default changes.
-3. **Implement `FUSQP-v1` Before Any Claim of Universal Law Validation:** Freeze `unified-v12` (or its Occam-pruned successor) and run Pillars A–D across the preregistered confirmatory seed panel $S_{\text{conf}} = \{1001..1010\}$ with zero post-freeze tuning.
+3. **Implement `FUSQP-v1` Before Any Claim of Universal Law Validation:** Freeze `unified-v12` (or its Occam-pruned successor) and run Pillars A–D across the preregistered confirmatory seed panel $`S_{\text{conf}} = \{1001..1010\}`$ with zero post-freeze tuning.

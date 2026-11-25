@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "interp_img_patch_shift",
+  "title": "8x8 Continuous Patch-Shift Latent Interpolation",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "latent-interpolation",
+    "discrete-images-8x8",
+    "double-exposure-ghosting"
+  ],
+  "intuition": "Learns 16 zero-sigma particles on continuously translated 2x2 unit-peak patches across an 8x8 image canvas and probes unseen latent k-NN midpoints. True manifold interpolation translates a single sharp peak (interp_peak >= 0.78).",
+  "failure_mode": "Pixel-space linear blending / double-exposure ghosting produces two half-height (~0.50) patches at latent midpoints instead of one shifted unit-height patch (a verified open failure on `unified-v11`/`v12`).",
+  "protocol_notes": "Tier-2 stretch task using 16 zero-sigma particles and residual-upsample image generator.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

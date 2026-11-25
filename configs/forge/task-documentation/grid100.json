@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100",
+  "title": "100-Mode 10x10 Gaussian Grid",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "borell-tis-cliff"
+  ],
+  "intuition": "Iconic Law 1 representational-geometry benchmark: learn all 100 tightly separated 2D Gaussian clusters (10x10 grid, 33.3-sigma valleys) scored on clean live outputs with strict precision (>= 0.97-0.99), balanced mass, and accurate per-mode covariance on an untouched holdout.",
+  "failure_mode": "Unimodal continuous priors hit the super-exponential Borell-TIS Lipschitz cliff, producing heavy valley bridge mass (24%-54% precision vs >= 97% required) and thin or empty clusters.",
+  "protocol_notes": "Tier-2 required benchmark and Law 1 anchor (7,000 updates, clean live weights, untouched holdout gate).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

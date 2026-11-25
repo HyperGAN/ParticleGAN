@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "infogan_anisotropic_modes",
+  "title": "InfoGAN Disentanglement on 8 Anisotropic Ring Modes",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "disentanglement",
+    "anisotropic-covariance",
+    "variational-mi"
+  ],
+  "intuition": "Trains InfoGAN (G([z, c_disc, c_cont]), D(x), Q(c|x)) on 8 rotated anisotropic Gaussians on a ring, requiring both 8/8 mode coverage AND disentangled recovery of discrete mode identity (NMI >= 0.85, q_acc >= 0.90) and continuous long-axis position (R^2 >= 0.65).",
+  "failure_mode": "The generator ignores the continuous latent code c_cont or scrambles discrete codes across modes when adversarial and mutual-information gradients conflict.",
+  "protocol_notes": "Tier-4 stretch benchmark (3,500 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

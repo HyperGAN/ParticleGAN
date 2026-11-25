@@ -1,10 +1,13 @@
 # Forge family leaderboard
 
-A **family** can have several **recipes**. Each score belongs to one exact recipe and source. For example, BCAP's selected recipe uses DualNorm; Confidence LR, Finite critic cap and Positive evidence are separate BCAP research recipes, with their own scores.
+[Research Portal (GitHub Pages)](https://hypergan.github.io/ParticleGAN/) · [Interactive HF Leaderboard Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard) · [Explore by Laws](LAWS_HUB.md) · [Experiment Catalog](experiments/README.md) · [Unresolved Problems](problems.md) · [Full Matrix](test-performance.md)
+
+> [!IMPORTANT]
+> **Screening & calibration scope.** A **family** can have several **recipes**. Each score belongs to one exact recipe and source. For example, BCAP's selected recipe uses DualNorm; Confidence LR, Finite critic cap and Positive evidence are separate BCAP research recipes, with their own scores.
+>
+> Counts describe screening and selection evidence. Scientific superiority or public-default adoption requires report-bound accepted calibration and independently frozen confirmation evidence. Software repairs grant neither; unmeasured confirmation remains unmeasured. Tuning effort and task holdout disclosures accompany the full-suite comparison below.
 
 Click a count for its gates, measurements and evidence. Required lower tiers must pass before advancing.
-
-Counts describe screening and selection evidence. Scientific superiority or public-default adoption requires report-bound accepted calibration and independently frozen confirmation evidence. Software repairs grant neither; unmeasured confirmation remains unmeasured. Tuning effort and task holdout disclosures accompany the full-suite comparison below.
 
 ## Selected recipes
 
@@ -68,6 +71,46 @@ Selection versus holdout for recipes that descend from a registered search:
 - **K3P:** Selected on Tier ≤3; holdout none: 0/0 PASS — no untuned holdout tier is declared. Tuning-tier passes are selection evidence, not independent confirmation.
 - **KA2:** Selected on Tier ≤3; holdout none: 0/0 PASS — no untuned holdout tier is declared. Tuning-tier passes are selection evidence, not independent confirmation.
 - **R1/R2:** Selected on Tier ≤3; holdout none: 0/0 PASS — no untuned holdout tier is declared. Tuning-tier passes are selection evidence, not independent confirmation.
+
+## Executive scorecard
+
+At-a-glance snapshot combining distinct full-suite counts, per-tier view requirements, separate DCGAN `r256` median update latency (when measured for that exact recipe), and honest screening status. Rows retain their individual sources and tuning budgets; timing receipts confer no scientific qualification or default adoption.
+
+| Family / selected recipe | Distinct PASS / FAIL / Not measured | Tier views (T1 / T2 / T3 / T4) | DCGAN r256 ms/step | Screening status |
+| --- | ---: | ---: | ---: | --- |
+| [BCAP](families/bcap-pure.md) · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md) | **16** / 12 / 43 (of 71) | T1: 22/27 · T2: 49/78 · T3: 0/10 · T4: 0/0 | [3,116.94 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/bcap-dualnorm-dcgan_performance_r256-cc9cb926156132e3.json) | Screening Tier 1 (12 fails) |
+| [BISPF](families/bispf.md) | **18** / 11 / 42 (of 71) | T1: 22/27 · T2: 55/78 · T3: 4/10 · T4: 0/0 | [341.38 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/bispf-dcgan_performance_r256-e57db770fedc1f01.json) | Screening Tier 1 (11 fails) |
+| [EMPF](families/empf.md) | **23** / 17 / 15 (of 71) | T1: 27/27 · T2: 56/78 · T3: 0/10 · T4: 0/0 | [129.72 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/empf-dcgan_performance_r256-d4effd0f8863d6ca.json) | Screening Tier 1 (17 fails) |
+| [RHBI](families/rhbi.md) | **33** / 7 / 15 (of 71) | T1: 27/27 · T2: 56/78 · T3: 0/10 · T4: 0/0 | [590.59 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/rhbi-dcgan_performance_r256-25269c11b4a157e4.json) | Screening Tier 1 (7 fails) |
+| [Unified](families/unified.md) | **40** / 6 / 13 (of 71) | T1: 27/27 · T2: 68/78 · T3: 0/10 · T4: 0/0 | [90.24 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/unified-dcgan_performance_r256-a0655ac699332817.json) | Screening Tier 1 (6 fails) |
+| [Atlas](families/atlas.md) | **8** / 6 / 51 (of 71) | T1: 18/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [265.83 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/atlas-dcgan_performance_r256-6b6e3b67ab525b9b.json) | Measured (6 fails) |
+| [E22](families/e22.md) | **0** / 0 / 42 (of 71) | T1: 0/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [270.46 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/e22-dcgan_performance_r256-f24d5f4adfdb369f.json) | Incomplete (71 unmeasured) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md) | **5** / 2 / 64 (of 71) | T1: 20/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [252.38 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/release07-gan-v3-dcgan_performance_r256-69dad7c16b6bec97.json) | Measured (2 fails) |
+| [K3P](families/k3p.md) | **5** / 2 / 64 (of 71) | T1: 20/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [254.57 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/k3p-dcgan_performance_r256-46b107e45b3c208c.json) | Measured (2 fails) |
+| [KA2](families/ka2.md) | **5** / 2 / 64 (of 71) | T1: 20/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [255.34 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/ka2-dcgan_performance_r256-7c993dab9fb711a1.json) | Measured (2 fails) |
+| [R1/R2](families/r1r2.md) | **5** / 2 / 64 (of 71) | T1: 20/27 · T2: 0/78 · T3: 0/10 · T4: 0/0 | [253.88 ms](scaling-receipts/dcgan-performance-cloud-e132cf1f36af/r1r2-dcgan_performance_r256-94517517174fcfdd.json) | Measured (2 fails) |
+
+## How families address the current laws
+
+> *"Our goal is not to preserve the four laws. Our goal is to discover the laws of learning, even if doing so ultimately requires abandoning the current four."*
+
+This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. (Status: `provisional_evolving`.) See [Explore by Laws hub](LAWS_HUB.md) · [Current laws framework](../../docs/four-laws.md).
+
+Each cell summarizes how the family's documented mechanism relates to the corresponding law in `configs/forge/laws.json`. Editorial mechanism notes never alter scientific grades.
+
+| Family | Law 1: Representational Geometry | Law 2: Potential Geometry | Law 3: Transport Identifiability | Law 4: Functional and Game Dynamics |
+| --- | --- | --- | --- | --- |
+| [BCAP](families/bcap-pure.md) · [BCAP dualnorm (experimental starting point)](families/bcap-dualnorm.md) | [⬜ Unaddressed](families/bcap-pure.md#how-it-addresses-laws) — No adaptive multimodal prior chart or latent pullback regularizer | [🟡 Partial](families/bcap-pure.md#how-it-addresses-laws) — Fixed real/fake one-sided squared L2 input-gradient cap (RoR) | [⬜ Unaddressed](families/bcap-pure.md#how-it-addresses-laws) — Standard scalar adversarial critic loss only (no multi-scale metric,... | [🟡 Partial](families/bcap-pure.md#how-it-addresses-laws) — Constant-LR zero-momentum Adam (pure) or DualNorm polar updates + dir... |
+| [BISPF](families/bispf.md) | [🟡 Partial](families/bispf.md#how-it-addresses-laws) — Degree-of-freedom-aware Stratified Blue-Noise Particle (SBNP) prior r... | [✅ Addressed](families/bispf.md#how-it-addresses-laws) — Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR) + harmonic... | [🟡 Partial](families/bispf.md#how-it-addresses-laws) — Median-normalized global Sinkhorn coupling for transport chords and o... | [🟡 Partial](families/bispf.md#how-it-addresses-laws) — Zero-momentum DualNorm (batched SVD + quintic conv) + Harmonic Mode C... |
+| [EMPF](families/empf.md) | [🟡 Partial](families/empf.md#how-it-addresses-laws) — Online e-means sufficient-statistics prototype bank (S, N) + degree-o... | [✅ Addressed](families/empf.md#how-it-addresses-laws) — Prototype-chord Elastic Born-Infeld penalty + harmonic slope floor +... | [🟡 Partial](families/empf.md#how-it-addresses-laws) — Mass-weighted scale-free prototype-to-fake Sinkhorn OT + conditioned-... | [🟡 Partial](families/empf.md#how-it-addresses-laws) — Zero-momentum DualNorm (newton_schulz_hybrid_v1) + 1D quantile-W2 / C... |
+| [RHBI](families/rhbi.md) | [🟡 Partial](families/rhbi.md#how-it-addresses-laws) — Simplicial manifold projection + H0 geodesic chart alignment + feydy_... | [✅ Addressed](families/rhbi.md#how-it-addresses-laws) — Thermally coupled Born-Infeld endpoint + Weyl geodesic-chord cap + sl... | [🟡 Partial](families/rhbi.md#how-it-addresses-laws) — Slack-screened (B+1)x(B+1) unbalanced Sinkhorn + Poisson-Weibull AKT... | [🟡 Partial](families/rhbi.md#how-it-addresses-laws) — Zero-momentum DualNorm (polar_cpu_v1) + 6-channel Kantorovich-Helling... |
+| [Unified](families/unified.md) | [✅ Addressed](families/unified.md#how-it-addresses-laws) — Streaming Laguerre-Pythagorean prototype atlas + orthogonal pullback... | [✅ Addressed](families/unified.md#how-it-addresses-laws) — Interleaved 1-probe RoF (fwAD) Elastic Born-Infeld secant penalty + z... | [✅ Addressed](families/unified.md#how-it-addresses-laws) — Conformal local horizons + k=4 orphan macro-transport (3A) + zero-eig... | [✅ Addressed](families/unified.md#how-it-addresses-laws) — Dynamic-1e-38 MP + Quintic Tikhonov NS / Frob-MP (4.2) + pushforward... |
+| [Atlas](families/atlas.md) | [🟡 Partial](families/atlas.md#how-it-addresses-laws) — Unstandardized ParticlePrior + NormalNoiseManipulator + automatic bou... | [🟡 Partial](families/atlas.md#how-it-addresses-laws) — KA2 readiness-gated R1/fake-cap handover + moment-surprise-gated EMA... | [⬜ Unaddressed](families/atlas.md#how-it-addresses-laws) — Paired relativistic scalar critic + critic-feature support turnover only | [🟡 Partial](families/atlas.md#how-it-addresses-laws) — Schedule-free stationarity LR ladders + AMSGrad (beta1=0) + RowEviden... |
+| [E22](families/e22.md) | [🟡 Partial](families/e22.md#how-it-addresses-laws) — Independent ParticlePrior rows + critic-feature k-NN birth/death + DV... | [🟡 Partial](families/e22.md#how-it-addresses-laws) — KA2 applied-call handover penalty + moment-surprise-gated EMA critic-... | [⬜ Unaddressed](families/e22.md#how-it-addresses-laws) — Paired relativistic scalar critic + learnable output noise only | [🟡 Partial](families/e22.md#how-it-addresses-laws) — Stationarity LR ladders + AMSGrad (beta1=0) + spike guard + A2 + RowE... |
+| [GAN v3 release 0.7](families/release07-gan-v3.md) | [🟡 Partial](families/release07-gan-v3.md#how-it-addresses-laws) — VICReg-inspired latent variance/covariance spread penalty (0.05 * R_p... | [🟡 Partial](families/release07-gan-v3.md#how-it-addresses-laws) — Fixed strong real/fake one-sided squared L2 input-gradient cap (lambd... | [⬜ Unaddressed](families/release07-gan-v3.md#how-it-addresses-laws) — Paired relativistic scalar critic (RpGAN) only | [🟡 Partial](families/release07-gan-v3.md#how-it-addresses-laws) — Beta1=0, beta2=0.99 Adam + full-horizon 60%-hold cosine LR decay to 5... |
+| [K3P](families/k3p.md) | [⬜ Unaddressed](families/k3p.md#how-it-addresses-laws) — No multimodal prototype atlas, pullback isometry, or prior regularizer | [🟡 Partial](families/k3p.md#how-it-addresses-laws) — LR-coupled handover from early RMS R1/fake-cap to late L2 caps + fixe... | [⬜ Unaddressed](families/k3p.md#how-it-addresses-laws) — Paired relativistic scalar critic + scheduled input/output noise only | [🟡 Partial](families/k3p.md#how-it-addresses-laws) — Beta1=0 Adam wrappers + 200-step critic spike guard + A2 sparse-row d... |
+| [KA2](families/ka2.md) | [⬜ Unaddressed](families/ka2.md#how-it-addresses-laws) — No multimodal prototype atlas, pullback isometry, or prior regularizer | [🟡 Partial](families/ka2.md#how-it-addresses-laws) — Critic-local KA2 handover + moment-surprise-gated adaptive EMA critic... | [⬜ Unaddressed](families/ka2.md#how-it-addresses-laws) — Paired relativistic scalar critic + scheduled input/output noise only | [🟡 Partial](families/ka2.md#how-it-addresses-laws) — Beta1=0 KA2/K3P Adam + moment-surprise anchor tracking + spike guard... |
+| [R1/R2](families/r1r2.md) | [⬜ Unaddressed](families/r1r2.md#how-it-addresses-laws) — No multimodal prototype atlas, pullback isometry, or prior regularizer | [🟡 Partial](families/r1r2.md#how-it-addresses-laws) — Zero-centered squared L2 real (R1) and fake (R2) input-gradient penal... | [⬜ Unaddressed](families/r1r2.md#how-it-addresses-laws) — Paired relativistic scalar critic (RpGAN) only | [🟡 Partial](families/r1r2.md#how-it-addresses-laws) — Native Adam (beta1=0, early beta2/gamma cosine) + 1:1 alternation + R... |
 
 ## Stretch experiments
 
@@ -621,5 +664,5 @@ After any view revision (for example a held or removed test), always add `--refr
 
 [Experiments, criteria and tier assignments](EXPERIMENTS_BY_TIER.md) · [Complete numerical publication and provenance](technique-inventory.json)
 
-Publication input digest `2aa28db225f3800b9a8247fd32a1c8049b314528a4984cfac599fef240ac7883`.
+Publication input digest `590b0f8d8858346097a3b990aab73fd2cf1b75d39ac24ace8802232dcbaa90d2`.
 [Performance by test and complete recipe](test-performance.md): compatible passes, failures, execution errors and missing witnesses, with sortable evidence drill-down.

@@ -32,6 +32,17 @@ ROOT = pathlib.Path(__file__).resolve().parents[2]
 RECORDS_DIR = ROOT / "reports" / "forge" / "records"
 STUDIES_DIR = ROOT / "reports" / "forge" / "studies"
 FOUR_LAWS_PATH = ROOT / "docs" / "four-laws.md"
+EVIDENCE_LEDGER_PATH = ROOT / "reports" / "four-laws-audit" / "evidence-ledger-and-revisions.md"
+
+# Pre-audit nonexistent readout hashes intentionally documented in prose inside
+# reports/four-laws-audit/evidence-ledger-and-revisions.md as P9 audit findings.
+# They are NEVER excused in docs/four-laws.md or in any Markdown link.
+HISTORICAL_NONEXISTENT_READOUT_PREFIXES = frozenset(
+    {
+        "readout-5002641a",
+        "readout-731e752f",
+    }
+)
 
 
 def _load_json(path: pathlib.Path) -> Any:
@@ -39,32 +50,57 @@ def _load_json(path: pathlib.Path) -> Any:
 
 
 def audit_four_laws_links(root: pathlib.Path = ROOT) -> Dict[str, Any]:
-    """Verify every relative file link and every readout-* reference in docs/four-laws.md."""
+    """Verify relative links and readout-* references across docs/four-laws.md and the evidence ledger."""
     four_laws = root / "docs" / "four-laws.md"
-    text = four_laws.read_text(encoding="utf-8")
+    evidence_ledger = root / "reports" / "four-laws-audit" / "evidence-ledger-and-revisions.md"
+    audit_docs: List[pathlib.Path] = [four_laws]
+    if evidence_ledger.is_file():
+        audit_docs.append(evidence_ledger)
 
-    md_links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text)
+    total_md_links = 0
     checked_links: List[Dict[str, Any]] = []
     broken_links: List[Dict[str, Any]] = []
-    for label, target in md_links:
-        if target.startswith("#") or target.startswith(("http://", "https://")):
-            continue
-        path_part = target.split("#")[0]
-        resolved = (four_laws.parent / path_part).resolve()
-        exists = resolved.exists()
-        entry = {
-            "label": label,
-            "target": target,
-            "resolved": str(resolved.relative_to(root)) if str(resolved).startswith(str(root)) else str(resolved),
-            "exists": exists,
-        }
-        checked_links.append(entry)
-        if not exists:
-            broken_links.append(entry)
+    strict_prefixes: set[str] = set()
+    ledger_prose_prefixes: set[str] = set()
 
-    # All readout-* references (both markdown links and inline code)
-    raw_refs = sorted(set(re.findall(r"readout-[0-9a-f]{8,24}(?:\.json)?", text)))
-    prefixes = sorted(set(r.replace(".json", "")[:16] for r in raw_refs))
+    for doc_path in audit_docs:
+        text = doc_path.read_text(encoding="utf-8")
+        is_ledger = doc_path == evidence_ledger
+        doc_rel = str(doc_path.relative_to(root)) if str(doc_path).startswith(str(root)) else str(doc_path)
+
+        md_links = re.findall(r"\[([^\]]+)\]\(([^)]+)\)", text)
+        total_md_links += len(md_links)
+        for label, target in md_links:
+            for ref in re.findall(r"readout-[0-9a-f]{8,24}(?:\.json)?", target):
+                strict_prefixes.add(ref.replace(".json", "")[:16])
+            if target.startswith("#") or target.startswith(("http://", "https://")):
+                continue
+            path_part = target.split("#")[0]
+            resolved = (doc_path.parent / path_part).resolve()
+            exists = resolved.exists()
+            entry = {
+                "source": doc_rel,
+                "label": label,
+                "target": target,
+                "resolved": str(resolved.relative_to(root)) if str(resolved).startswith(str(root)) else str(resolved),
+                "exists": exists,
+            }
+            checked_links.append(entry)
+            if not exists:
+                broken_links.append(entry)
+
+        # All readout-* references (both markdown links and inline code)
+        raw_refs = set(re.findall(r"readout-[0-9a-f]{8,24}(?:\.json)?", text))
+        doc_prefixes = {r.replace(".json", "")[:16] for r in raw_refs}
+        if is_ledger:
+            ledger_prose_prefixes.update(doc_prefixes)
+        else:
+            strict_prefixes.update(doc_prefixes)
+
+    documented_historical_missing = sorted(
+        (ledger_prose_prefixes - strict_prefixes) & HISTORICAL_NONEXISTENT_READOUT_PREFIXES
+    )
+    prefixes = sorted(strict_prefixes | (ledger_prose_prefixes - HISTORICAL_NONEXISTENT_READOUT_PREFIXES))
     records_dir = root / "reports" / "forge" / "records"
 
     readout_inventory: List[Dict[str, Any]] = []
@@ -98,12 +134,17 @@ def audit_four_laws_links(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         )
 
     return {
-        "total_markdown_links": len(md_links),
+        "audited_documents": [
+            str(p.relative_to(root)) if str(p).startswith(str(root)) else str(p)
+            for p in audit_docs
+        ],
+        "total_markdown_links": total_md_links,
         "checked_local_file_links": len(checked_links),
         "broken_links": broken_links,
         "unique_readout_prefixes": len(prefixes),
         "existing_readout_count": len(prefixes) - len(missing_readouts),
         "missing_readouts": missing_readouts,
+        "documented_historical_missing_readouts": documented_historical_missing,
         "readout_inventory": readout_inventory,
     }
 
@@ -511,8 +552,11 @@ def audit_code_complexity(root: pathlib.Path = ROOT) -> Dict[str, Any]:
     def _ns_enqueue_excludes_conv(call_node: ast.Call) -> bool:
         cur: Optional[ast.AST] = call_node
         while cur is not None:
-            if isinstance(cur, ast.For) and "dense2d_meta" in ast.unparse(cur.iter):
-                # Fed exclusively by dense2d_grads.append(), which is itself checked below.
+            if isinstance(cur, ast.For) and any(
+                tok in ast.unparse(cur.iter) for tok in ("dense2d_meta", "ns_meta")
+            ):
+                # Fed exclusively by dense2d_grads.append() / ns_meta.append(),
+                # both of which are checked below.
                 return True
             if isinstance(cur, ast.If):
                 test_src = ast.unparse(cur.test)
@@ -530,7 +574,7 @@ def audit_code_complexity(root: pathlib.Path = ROOT) -> Dict[str, Any]:
         and isinstance(node.func, ast.Attribute)
         and (
             (isinstance(node.func.value, ast.Name) and node.func.value.id == "pending_dense" and node.func.attr == "setdefault")
-            or (isinstance(node.func.value, ast.Name) and node.func.value.id == "dense2d_grads" and node.func.attr == "append")
+            or (isinstance(node.func.value, ast.Name) and node.func.value.id in ("dense2d_grads", "ns_meta") and node.func.attr == "append")
         )
     ]
     all_ns_enqueues_exclude_conv = bool(ns_enqueue_calls) and all(

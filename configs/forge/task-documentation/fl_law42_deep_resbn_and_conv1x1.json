@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law42_deep_resbn_and_conv1x1",
+  "title": "Law 4.2/4.5 Probe: 8-Block ResBN & Isomorphic 4D Conv2d 1x1 Twin",
+  "laws": [
+    "law4_2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "resbn-depth",
+    "conv1x1-isomorphism",
+    "high-dimensional"
+  ],
+  "intuition": "Trains an 8-block branch-RMSNorm residual trunk (D=128, w=128) on a 64-mode R^128 mixture alongside its mathematically isomorphic 4D `Conv2d(1x1)` twin on identical initial weights and batches (conv1x1_sw1_ratio <= 1.05).",
+  "failure_mode": "Optimizers that apply polar/spectral conditioning to 2D Linear matrices but skip or mishandle 4D Conv2d tensors diverge sharply between the two mathematically identical parameterizations.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (500 updates, R^128 64-mode mixture).",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

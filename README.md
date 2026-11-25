@@ -79,12 +79,14 @@ zero-state polar-matched 4D Conv2d Frobenius-MP with `0` Conv2d NS, Law 4.4 asym
 2D critic with generator-free 2D NS fallback, CountSketch spectral preconditioning on stiff deep
 2D generators, zero-`pinv` analytic `direction_blend`, and `bf16_channels_last` conv training at
 constant rates).
-Explicit `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
+Explicit `get_recipe("axiom")` (`2,409`-LOC clean-slate opt-in Four-Laws core; see the
+[Axiom comparative study](reports/axiom/axiom-study.md)), `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
 `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
 `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
-**[The Four Laws of Stable, Energy-Efficient GAN Convergence](docs/four-laws.md)** for the
-solution-agnostic statement of the four laws, the catalog of solutions found so far (`unified_v12`,
-`unified_v11`, `minimal`, and related families), and Occam's Razor ablations, the
+**[The Four Laws of Adversarial Generative Learning](docs/four-laws.md)** for the
+solution-agnostic statement of the evolving laws (subject to revision as research progresses),
+**[Explore by Laws](reports/forge/LAWS_HUB.md)** and the **[Experiment Catalog](reports/forge/experiments/README.md)**
+for dedicated per-experiment pages, target schematics, and law-to-family cross-links, the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names) for acronyms, and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) for configuration details.
 
@@ -110,10 +112,11 @@ quality metrics and checkpoint continuation.
 
 ## Results and status
 
-The single current status page is the
-**[technique inventory](reports/forge/technique-inventory.md)**. It shows every recipe
-family against the same declared tests, failures included, with links to gates,
-metrics, receipts and training GIFs. Other report pages are historical records.
+Explore the live research and benchmark evidence across three synchronized views:
+
+- **[Research Portal (GitHub Pages)](https://hypergan.github.io/ParticleGAN/)** — searchable documentation portal with interactive leaderboard, NVML energy Pareto scatter, evolving laws, family narratives, and dedicated per-experiment pages.
+- **[Interactive Leaderboard Space (Hugging Face)](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard)** — live receipt explorer, Laws × Family matrix, Experiment Deep-Dive schematics, and side-by-side training GIFs streamed from [`HyperGAN/particlegan-forge-evidence`](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence).
+- **[Technique Inventory (GitHub)](reports/forge/technique-inventory.md)** — the single canonical status page in Git, alongside **[Explore by Laws](reports/forge/LAWS_HUB.md)** and the **[Experiment Catalog](reports/forge/experiments/README.md)**. Other report pages are historical records.
 
 What the evidence does and does not show today:
 
@@ -135,7 +138,19 @@ What the evidence does and does not show today:
   `68/78` Tier 2), **`40/69` full-suite passes**, and **`50/68` stretch view assignments** — ahead
   of `rhbi_optimized` (`rhbi-v12`, `83/115`, `33/69`), `empf` (`empf-v8`, `83/115`, `23/69`), and
   `bispf_optimized` (`81/115`, `18/69`), while `get_recipe("minimal")` offers an `899`-LOC
-  zero-Newton-Schulz fast core (`55.50 ms/step` on `r256`). Forge's screening calibration remains
+  zero-Newton-Schulz fast core (`55.50 ms/step` on `r256`). Opt-in **`get_recipe("axiom")`**
+  (`2,409`-LOC clean-slate Four-Laws core; `DEFAULT_RECIPE = "unified_v12"` remains untouched)
+  sweeps **`18/18` (`100%`) untouched Tier-3/14k holdouts** (`r3-tier3-long-horizon-holdout-v1`),
+  sets repository records on solo idle RTX A6000 `r256` Conv2d (**`34.86 ms/step`**,
+  **`805.8 MiB`** VRAM, **`7.307 J/step`** NVML energy; `6/6` `dcgan_performance`),
+  **`2/2`** `bytegan_stretch` (`rms_bit_error = 0.00471`), **`2/2`**
+  `t3_causal_isolation_stretch` (`core_min_eigen_ratio = 0.5447`), **`3/3`** `t4_imbalance_nash`,
+  **`5/5`** `t3_shift_diagnostic`, **`5/7`** `t4_strange_architectures`, **`40/47`** executed
+  Tiers 1–2 `discriminator_stability` PASS (`16/17` Tier 1), **`22/33`** `four-laws-adherence-v1`,
+  and **`9/9`** Four-Laws structural adversarial controls (vs `0/9` for legacy families;
+  [Axiom study](reports/axiom/axiom-study.md),
+  [design spec](reports/axiom/design-spec.md),
+  [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md)). Forge's screening calibration remains
   provisional (`BLOCKED` under `criteria-v1.json`; see
   [r3-calibration-holdout](reports/forge/studies/r3-calibration-holdout.md)), Tier 2/3 full-tier
   qualification is incomplete, and remaining non-passes (`interp_img_patch_shift`,
@@ -213,7 +228,7 @@ acquisition, settling, endurance and recovery required again.
 **Changing the default.** A promotion changes one line in
 [particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "unified_v12"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
-`get_recipe("unified_v11")`, `get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
+`get_recipe("axiom")`, `get_recipe("unified_v11")`, `get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
 `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
 `get_recipe("ka2")` remain available. This is the owner-selected research default;
 Forge calibration remains provisional (`BLOCKED`), Tier 2/3 qualification is incomplete,
@@ -293,6 +308,7 @@ transport their parent's Adam history at half mass.
 
 ## Learn more
 
+- [Axiom 4-Law family](reports/axiom/axiom-study.md): opt-in `get_recipe("axiom")` comparative Forge study (`2,409`-LOC clean-slate core, `18/18` `t3-holdout`, `40/47` Tiers 1–2 `disc-stab` [`16/17` T1], `34.86 ms` / `805.8 MiB` / `7.307 J/step` solo idle `r256`, `2/2` ByteGAN `rms=0.00471`, `2/2` `t3_iso` `eig=0.5447`, `3/3` `t4-nash`, `5/5` `shift-diagnostic`, `5/7` `t4-arch`, `22/33` `four-laws-adherence-v1`, `9/9` Four-Laws controls), [design spec](reports/axiom/design-spec.md), and [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md)
 - [Optimized BISPF settings and measured behavior](reports/forge/bispf-optimized/README.md)
 - [BISPF continuous vs. categorical input domains](docs/bispf-input-domains.md): explicit penalty domain declarations (`input_domain="continuous"` or `"categorical"`) for wide continuous vectors (`dim >= 170`) and categorical codebooks
 - [Historical KA2 formulation](docs/ka2.md), including several critics and conditional critics

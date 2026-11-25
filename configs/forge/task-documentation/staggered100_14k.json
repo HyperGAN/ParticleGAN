@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "staggered100_14k",
+  "title": "100-Mode Staggered Grid 14k Continuation",
+  "laws": [
+    "law1",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "100-modes",
+    "staggered-lattice",
+    "checkpoint-continuation"
+  ],
+  "intuition": "Continues a passing 7,000-step `staggered100` checkpoint to 14,000 updates, testing sustained stability on non-rectangular 100-mode geometry.",
+  "failure_mode": "Mode drift or prototype starvation degrades precision across the extended 7k-to-14k window.",
+  "protocol_notes": "Strict checkpoint continuation of `staggered100`.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

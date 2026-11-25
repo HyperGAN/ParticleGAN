@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_r64",
+  "title": "DCGAN Throughput Benchmark: 64x64 RGB (B=16, W=64)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "dcgan-conv2d",
+    "mock-data-only"
+  ],
+  "intuition": "Standard 64x64 RGB DCGAN throughput and VRAM benchmark measuring fixed-architecture update latency (one D step + one G/prior step) across competing trainer families.",
+  "failure_mode": "Expensive second-order autograd graphs or large dense linear-algebra solves degrade step latency and VRAM scaling.",
+  "protocol_notes": "Research diagnostic throughput workload only; no image-quality gate.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}
