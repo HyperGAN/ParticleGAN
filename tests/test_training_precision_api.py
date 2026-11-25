@@ -10,12 +10,15 @@ import particlegan
 from particlegan import (
     GANTrainer,
     InputNoise,
+    MoGParticlePrior,
+    ParticlePrior,
     configure_bf16_autocast,
     critic_source_context,
     float_output,
     get_recipe,
     uses_bf16_autocast,
     uses_channels_last,
+    uses_simplicial_manifold_loss,
 )
 from particlegan.training import _convolution_autocast, _float_output
 from particlegan.unified_v11 import bind_unified_v11_record, record_unified_v11_generator_probe
@@ -50,6 +53,7 @@ def test_public_exports_and_backward_compat_aliases() -> None:
         "uses_bf16_autocast",
         "configure_bf16_autocast",
         "critic_source_context",
+        "uses_simplicial_manifold_loss",
     ):
         assert name in particlegan.__all__
         assert hasattr(particlegan, name)
@@ -106,6 +110,9 @@ def test_float_output_preserves_all_capture_metadata_containers_and_fwad() -> No
     raw._minimal_record = rec
     raw._minimal_conditioned = True
     raw._minimal_cond_tensors = (cond,)
+    raw._future_v99_input = x_in
+    raw._future_v99_record = rec
+    raw._future_flag = "keep"
 
     out = float_output(raw)
     assert out.dtype == torch.float32
@@ -120,6 +127,7 @@ def test_float_output_preserves_all_capture_metadata_containers_and_fwad() -> No
         "_t4_input", "_t4_record", "_t4_conditioned", "_t4_cond_tensors",
         "_nash_v3_input", "_nash_v3_record", "_nash_v3_conditioned", "_nash_v3_cond_tensors",
         "_minimal_input", "_minimal_record", "_minimal_conditioned", "_minimal_cond_tensors",
+        "_future_v99_input", "_future_v99_record", "_future_flag",
     ):
         got = getattr(out, attr)
         exp = getattr(raw, attr)
@@ -127,6 +135,16 @@ def test_float_output_preserves_all_capture_metadata_containers_and_fwad() -> No
             assert got is exp
         else:
             assert got == exp
+
+    # Reserved PyTorch internal dict keys (if injected) and dunders are never copied onto result
+    raw_res = torch.randn(2, dtype=torch.bfloat16)
+    raw_res.__dict__["_backward_hooks"] = {"sentinel": True}
+    raw_res.__dict__["__custom_dunder__"] = 42
+    raw_res.__dict__["_custom_capture"] = "ok"
+    out_res = float_output(raw_res)
+    assert "_backward_hooks" not in out_res.__dict__
+    assert "__custom_dunder__" not in out_res.__dict__
+    assert out_res._custom_capture == "ok"
 
     # Zero-copy fast path for non-BF16 tensors and containers without BF16 leaves
     fp32 = torch.randn(4, 1, dtype=torch.float32)
@@ -176,13 +194,17 @@ def test_precision_predicates_and_configure_cpu() -> None:
     with pytest.raises(ValueError, match="training_precision"):
         uses_bf16_autocast(conv_wide, "bf16")
 
-    # Accepts Recipe instances directly
+    # Accepts Recipe instances and duck-typed recipe wrappers directly
     rec_v12 = get_recipe("unified_v12")
     assert uses_channels_last(conv_wide, rec_v12) is False
     assert uses_bf16_autocast(conv_wide, rec_v12) is False
+    duck_recipe = type("_DuckRecipe", (), {"training_precision": "bf16_channels_last"})()
+    assert uses_channels_last(conv_wide, duck_recipe) is False
+    assert uses_bf16_autocast(conv_wide, duck_recipe) is False
 
-    # Formulation flags configured accurately and return bool(enabled)
+    # Formulation flags configured accurately (including canonical flag, unified_v14, and future/custom recipes)
     for preset, attr in (
+        ("unified_v14", "_unified_v4_bf16_autocast"),
         ("unified_v12", "_unified_v4_bf16_autocast"),
         ("unified_v11", "_unified_v4_bf16_autocast"),
         ("unified_v4", "_unified_v4_bf16_autocast"),
@@ -193,10 +215,73 @@ def test_precision_predicates_and_configure_cpu() -> None:
         probe = nn.Sequential(nn.Linear(4, 4))
         rec = get_recipe(preset)
         assert configure_bf16_autocast(rec, probe, True) is True
+        assert getattr(probe, "_particlegan_bf16_autocast") is True
         assert getattr(probe, attr) is True
         assert configure_bf16_autocast(rec, probe, False) is False
+        assert getattr(probe, "_particlegan_bf16_autocast") is False
         assert getattr(probe, attr) is False
+
+    # Future/custom formulation still sets canonical _particlegan_bf16_autocast and optional custom attr
+    probe_future = nn.Sequential(nn.Linear(4, 4))
+    future_rec = type(
+        "_FutureRecipe",
+        (),
+        {"effective_critic_formulation": "future_v99", "bf16_autocast_attr": "_future_v99_bf16_autocast"},
+    )()
+    assert configure_bf16_autocast(future_rec, probe_future, True) is True
+    assert probe_future._particlegan_bf16_autocast is True
+    assert probe_future._future_v99_bf16_autocast is True
+    probe_none = nn.Sequential(nn.Linear(4, 4))
+    assert configure_bf16_autocast(None, probe_none, True) is True
+    assert probe_none._particlegan_bf16_autocast is True
     assert configure_bf16_autocast(rec_v12, None, True) is True
+
+
+def test_uses_simplicial_manifold_loss_general_across_recipes() -> None:
+    low_2d = torch.randn(4, 32)
+    high_2d = torch.randn(4, 2048)
+    low_4d = torch.randn(4, 3, 16, 16)  # 768 <= 1024
+    high_4d = torch.randn(4, 3, 32, 32)  # 3072 > 1024
+    discrete_prior = ParticlePrior(num_particles=16, z_dim=4, learnable=True)
+    frozen_prior = ParticlePrior(num_particles=16, z_dim=4, learnable=False)
+    mog_prior = MoGParticlePrior(num_particles=16, z_dim=4, sigma=0.05, standardize=False)
+
+    # Non-simplex recipes always False
+    for preset in ("ka2", "bispf_optimized", "empf", "t4_nash", "minimal"):
+        assert uses_simplicial_manifold_loss(get_recipe(preset), low_2d, prior=discrete_prior) is False
+
+    # Unified-v11/v12/v13/v14 skip any tensor with per-sample numel > 1024, keep <= 1024
+    for preset in ("unified_v11", "unified_v12", "unified_v13", "unified_v14"):
+        rec = get_recipe(preset)
+        assert uses_simplicial_manifold_loss(rec, low_2d, prior=discrete_prior) is True
+        assert uses_simplicial_manifold_loss(rec, low_4d, prior=discrete_prior) is True
+        assert uses_simplicial_manifold_loss(rec, high_2d, prior=discrete_prior) is False
+        assert uses_simplicial_manifold_loss(rec, high_4d, prior=discrete_prior) is False
+        assert uses_simplicial_manifold_loss(rec, low_2d, prior=frozen_prior) is False
+        assert uses_simplicial_manifold_loss(rec, low_2d, prior=mog_prior) is False
+        assert uses_simplicial_manifold_loss(rec, low_2d, prior=discrete_prior, conditioned=True) is False
+        assert uses_simplicial_manifold_loss(rec, low_2d, prior=discrete_prior, is_discrete_prior=False) is False
+
+    # Earlier unified / unified_v4 skip 4D > 1024 only (matching GANTrainer)
+    for preset in ("unified", "unified_v4"):
+        rec = get_recipe(preset)
+        assert uses_simplicial_manifold_loss(rec, high_2d, prior=discrete_prior) is True
+        assert uses_simplicial_manifold_loss(rec, low_4d, prior=discrete_prior) is True
+        assert uses_simplicial_manifold_loss(rec, high_4d, prior=discrete_prior) is False
+
+    # RHBI / t1_coupling keep simplicial loss active regardless of image dim
+    for preset in ("rhbi_optimized", "t1_coupling"):
+        rec = get_recipe(preset)
+        assert uses_simplicial_manifold_loss(rec, high_4d, prior=discrete_prior) is True
+
+    # Custom/future recipe with explicit simplicial_max_dim cap
+    custom = type(
+        "_CustomSimplex",
+        (),
+        {"rhbi_simplex_weight": 0.35, "effective_critic_formulation": "future_v99", "simplicial_max_dim": 64},
+    )()
+    assert uses_simplicial_manifold_loss(custom, torch.randn(4, 64), prior=discrete_prior) is True
+    assert uses_simplicial_manifold_loss(custom, torch.randn(4, 65), prior=discrete_prior) is False
 
 
 def test_critic_source_context_reuses_live_endpoints_and_is_reentrant() -> None:
@@ -347,7 +432,10 @@ def test_cuda_bf16_predicates_and_scored_critic_fwad_paths(monkeypatch) -> None:
     bind_unified_v11_record(opt_d.record, opt_g)
     probe_dtypes = []
     hook = gen[4].register_forward_hook(lambda _m, _a, out: probe_dtypes.append(out.dtype))
-    configure_bf16_autocast(recipe, gen, True)
+    # Verify canonical _particlegan_bf16_autocast works even for an arbitrary future formulation without legacy attr
+    configure_bf16_autocast("future_v99", gen, True)
+    assert getattr(gen, "_particlegan_bf16_autocast") is True
+    assert not hasattr(gen, "_unified_v4_bf16_autocast")
     z, ids = prior.sample(4)
     with torch.autocast("cuda", dtype=torch.bfloat16):
         fake_g = float_output(gen(z))
