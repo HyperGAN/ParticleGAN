@@ -30,11 +30,12 @@ zero-SVD, zero-`pinv`, zero-`autograd.grad`, zero-extra-sync GPU efficiency:
 5. **D-05 Ceiling-Free Degree-0 & Spike-Immune Scale Reference (Defects A, B, F):**
    - Replaces the fixed ``s_base`` ceiling and unguarded peak ratchet with a Huber-capped
      scale reference ``peak_new = max(peak_prev * p_dec, min(cur, 4 * peak_prev))`` and
-     outlier-immune median Frobenius reference
-     ``G_ref = median_p(peak_p * sv_denom_sqrt_p)``,
-     ``s_eff(p) = min(s_base * G_ref, 0.50 * peak_p)`` across all network and prior
-     parameters: exact trajectory degree-0 across 24+ decades, continuous equilibrium
-     settling at every scale, and >=98% recovery from ``1e4x`` spikes.
+     width-invariant role-calibrated per-parameter settling
+     ``s_eff(p) = min((k_role * s_base) * peak_p, 0.50 * peak_p)`` (``k_G = 3.0`` on
+     generators/encoders, ``k_D = 14.0`` on critics, plus width-invariant prior scale
+     reference ``G_ref = 1.5 * median(peak_p)`` when coupled with network parameters):
+     exact trajectory degree-0 across 24+ decades, zero Frobenius width distortion,
+     continuous equilibrium settling at every scale, and >=98% recovery from ``1e4x`` spikes.
 """
 from __future__ import annotations
 
@@ -56,6 +57,9 @@ from .._unified_v11.optimizer import (
 _FLIP_SKETCH_DIM = 67  # Prime -> coprime to all power-of-2 layer widths/strides (268 B total, 0 B/param)
 _PEAK_GROWTH_CAP = 4.0  # Huber-capped per-step upward growth -> immune to transient 1e4x spikes, passes natural <=4x jumps
 _REL_SMOOTH_MAX = 0.50
+_REL_SMOOTH_GEN = 3.0  # Width-invariant per-param relative settling multiplier for generators/encoders
+_REL_SMOOTH_CRITIC = 14.0  # Width-invariant per-param relative settling multiplier for critics
+_REL_SMOOTH_PRIOR_REF = 1.5  # Width-invariant median(peak_p) scale reference multiplier for coupled prior tables
 _CRITIC_SCHATTEN6_LAM = 0.25
 _CRITIC_SCHATTEN6_TAU = 2.0
 _CRITIC_SCHATTEN6_BAND = 0.25
@@ -717,7 +721,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
         b1_eff: float,
         b2_eff: float,
         s_base: float,
-        g_ref_t: Optional[torch.Tensor],
         peak_precomputed: Optional[torch.Tensor],
         s_therm: float,
         p_dec: float,
@@ -768,8 +771,8 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
 
         has_smooth = s_base > 0.0
         if has_smooth:
-            g_ref_use = g_ref_t.to(device=peak_new_t.device, dtype=peak_new_t.dtype) if g_ref_t is not None else (peak_new_t * sv_denom_sqrt)
-            s_eff_t = torch.minimum(g_ref_use * s_base, _REL_SMOOTH_MAX * peak_new_t)
+            rel_mult = _REL_SMOOTH_CRITIC if is_critic_role else _REL_SMOOTH_GEN
+            s_eff_t = torch.minimum((rel_mult * s_base) * peak_new_t, _REL_SMOOTH_MAX * peak_new_t)
         else:
             s_eff_t = gf_safe.new_zeros(())
 
@@ -915,8 +918,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 Tuple[int, int, bool],
                 List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool, bool]],
             ] = {}
-            gf_entries: List[Tuple[Any, ...]] = []
-            peak_frobs_gf: List[torch.Tensor] = []
 
             for grp in self.param_groups:
                 b1, b2 = grp["betas"]
@@ -957,61 +958,47 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                         st["peak_rms"] = torch.zeros((), device=p.device, dtype=torch.float32)
                     peak_new = _huber_peak_t(st["peak_rms"], cur_sv_rms, finite & torch.isfinite(cur_sv_rms), p_dec)
                     st["peak_rms"].copy_(peak_new)
-                    peak_frobs_gf.append(peak_new * sv_denom_sqrt)
-                    gf_entries.append(
-                        (
-                            p, st, step_t, rate_p, s_base_gf, b1_eff, b2_eff,
-                            gf_safe, g_max, finite, g_active, is_conv, r_d, c_d,
-                            factor, sv_denom_sqrt, safe_scale, g_unit_scaled, scaled_norm, peak_new,
+
+                    has_smooth = s_base_gf > 0.0
+                    if has_smooth:
+                        s_eff_t = torch.minimum((_REL_SMOOTH_CRITIC * s_base_gf) * peak_new, _REL_SMOOTH_MAX * peak_new)
+                    else:
+                        s_eff_t = gf_safe.new_zeros(())
+
+                    is_scalar_1d = p.ndim == 1 and p.numel() == 1
+                    if (b1_eff > 0.0) or is_scalar_1d:
+                        b1_use = max(b1_eff, 0.80) if is_scalar_1d else b1_eff
+                        m_hat, m_norm, raw_coh, sc = _update_scale_safe_moments(
+                            st, p, gf_safe, g_max, finite, g_active, step_t, b1_use, b2_eff
                         )
-                    )
+                        coh = raw_coh.clamp(0.35, 1.0) if is_scalar_1d else torch.ones_like(m_norm)
+                        direc_u = torch.where(g_active, m_hat, torch.zeros_like(m_hat))
+                        d_norm_u = m_norm
+                        d_scale = sc
+                        direc_2d = torch.where(g_active, (m_hat * sc) if has_smooth else m_hat, torch.zeros_like(m_hat))
+                    else:
+                        direc_u = g_unit_scaled
+                        d_norm_u = scaled_norm
+                        d_scale = safe_scale
+                        direc_2d = torch.where(g_active, gf_safe if has_smooth else g_unit_scaled, torch.zeros_like(gf_safe))
+                        coh = gf_safe.new_ones(())
 
-            g_ref_gf = _scale_safe_median_tensors(peak_frobs_gf) if peak_frobs_gf else None
-            for (
-                p, st, step_t, rate_p, s_base_gf, b1_eff, b2_eff,
-                gf_safe, g_max, finite, g_active, is_conv, r_d, c_d,
-                factor, sv_denom_sqrt, safe_scale, g_unit_scaled, scaled_norm, peak_new,
-            ) in gf_entries:
-                has_smooth = s_base_gf > 0.0
-                if has_smooth and g_ref_gf is not None:
-                    s_eff_t = torch.minimum(g_ref_gf * s_base_gf, _REL_SMOOTH_MAX * peak_new)
-                else:
-                    s_eff_t = gf_safe.new_zeros(())
+                    if rate_p <= 0.0:
+                        continue
 
-                is_scalar_1d = p.ndim == 1 and p.numel() == 1
-                if (b1_eff > 0.0) or is_scalar_1d:
-                    b1_use = max(b1_eff, 0.80) if is_scalar_1d else b1_eff
-                    m_hat, m_norm, raw_coh, sc = _update_scale_safe_moments(
-                        st, p, gf_safe, g_max, finite, g_active, step_t, b1_use, b2_eff
-                    )
-                    coh = raw_coh.clamp(0.35, 1.0) if is_scalar_1d else torch.ones_like(m_norm)
-                    direc_u = torch.where(g_active, m_hat, torch.zeros_like(m_hat))
-                    d_norm_u = m_norm
-                    d_scale = sc
-                    direc_2d = torch.where(g_active, (m_hat * sc) if has_smooth else m_hat, torch.zeros_like(m_hat))
-                else:
-                    direc_u = g_unit_scaled
-                    d_norm_u = scaled_norm
-                    d_scale = safe_scale
-                    direc_2d = torch.where(g_active, gf_safe if has_smooth else g_unit_scaled, torch.zeros_like(gf_safe))
-                    coh = gf_safe.new_ones(())
-
-                if rate_p <= 0.0:
-                    continue
-
-                if is_conv or p.ndim < 2:
-                    s_scaled = (s_eff_t * sv_denom_sqrt) / d_scale.clamp_min(1e-38)
-                    denom_u = torch.hypot(d_norm_u, s_scaled).clamp_min(1e-30) if has_smooth else d_norm_u.clamp_min(1e-30)
-                    unit_u = torch.where(g_active & (d_norm_u > 1e-30), direc_u / denom_u, torch.zeros_like(direc_u))
-                    p.add_((unit_u * ((-rate_p * factor) * coh)).to(p.dtype))
-                    self.fast_path_updates += 1
-                else:
-                    mat = direc_2d.reshape(r_d, c_d)
-                    step_mult = (-rate_p * factor) * coh
-                    needs_t = r_d > c_d
-                    mat_canon = mat.T if needs_t else mat
-                    m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
-                    pending_dense.setdefault(m_key, []).append((p, mat_canon, step_mult, s_eff_t, False, needs_t))
+                    if is_conv or p.ndim < 2:
+                        s_scaled = (s_eff_t * sv_denom_sqrt) / d_scale.clamp_min(1e-38)
+                        denom_u = torch.hypot(d_norm_u, s_scaled).clamp_min(1e-30) if has_smooth else d_norm_u.clamp_min(1e-30)
+                        unit_u = torch.where(g_active & (d_norm_u > 1e-30), direc_u / denom_u, torch.zeros_like(direc_u))
+                        p.add_((unit_u * ((-rate_p * factor) * coh)).to(p.dtype))
+                        self.fast_path_updates += 1
+                    else:
+                        mat = direc_2d.reshape(r_d, c_d)
+                        step_mult = (-rate_p * factor) * coh
+                        needs_t = r_d > c_d
+                        mat_canon = mat.T if needs_t else mat
+                        m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_smooth)
+                        pending_dense.setdefault(m_key, []).append((p, mat_canon, step_mult, s_eff_t, False, needs_t))
 
             self._flush_pending_dense(pending_dense, count_critic_ns=True)
             self.last_step_gain = 1.0
@@ -1070,7 +1057,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 and self._protected is not None
                 and int(self._protected.shape[0]) == 2
             )
-            p_dec = 0.9995 if (is_two_obj_cond and s_therm >= 0.5) else 1.0
+            p_dec = 1.0
 
             # Scale-homogeneous origin collapse guard relative to tracked data scale (never crushes 1e-5x targets):
             data_scale_ref = max(1e-12, float(getattr(rec, "ema_data_scale", 1.0))) if rec is not None else 1.0
@@ -1370,10 +1357,10 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 p_g_val: float | torch.Tensor = pre_g_tensor if pre_g_tensor is not None else pre_g_float
                 gen_v4_mult_t = g_s_val * p_g_val  # type: ignore[assignment]
 
-            # 1a. Scale-homogeneous Huber peak update & outlier-immune median Frobenius reference G_ref (0 extra syncs!):
+            # 1a. Scale-homogeneous Huber peak update & width-invariant prior scale reference G_ref (0 extra syncs!):
             fast_ready: List[Tuple[Any, ...]] = []
             dense2d_ready: List[Tuple[Any, ...]] = []
-            peak_frobs_f: List[float] = []
+            peak_vals_f: List[float] = []
 
             for idx_f, item_f in enumerate(fast_meta):
                 (
@@ -1398,7 +1385,8 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                     del st["peak_rms"]
                 peak_new = _huber_peak_f(peak_prev, cur_sv, p_dec)
                 st["peak_rms_val"] = peak_new
-                peak_frobs_f.append(peak_new * sv_denom_sqrt)
+                if prior_queue:
+                    peak_vals_f.append(peak_new)
                 fast_ready.append((item_f, g_norm, peak_new))
 
             for idx_d, item_d in enumerate(dense2d_meta):
@@ -1423,12 +1411,13 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                     del st["peak_rms"]
                 peak_new = _huber_peak_f(peak_prev, cur_sv, p_dec)
                 st["peak_rms_val"] = peak_new
-                peak_frobs_f.append(peak_new * sv_denom_sqrt)
+                if prior_queue:
+                    peak_vals_f.append(peak_new)
                 dense2d_ready.append((item_d, g_norm, peak_new))
 
-            if peak_frobs_f:
-                peak_frobs_f.sort()
-                g_ref_f = peak_frobs_f[len(peak_frobs_f) // 2]
+            if peak_vals_f:
+                peak_vals_f.sort()
+                g_ref_f = _REL_SMOOTH_PRIOR_REF * peak_vals_f[len(peak_vals_f) // 2]
             else:
                 g_ref_f = 0.0
 
@@ -1450,7 +1439,8 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 if rate_p <= 0.0:
                     continue
                 if s_base_p > 0.0:
-                    s_eff = min(s_base_p * g_ref_f, _REL_SMOOTH_MAX * peak_new)
+                    rel_mult = _REL_SMOOTH_CRITIC if is_critic_role else _REL_SMOOTH_GEN
+                    s_eff = min((rel_mult * s_base_p) * peak_new, _REL_SMOOTH_MAX * peak_new)
                     denom = math.hypot(g_norm, s_eff * sv_denom_sqrt)
                 else:
                     denom = g_norm
@@ -1483,7 +1473,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 if rate_p <= 0.0:
                     continue
                 has_s = s_base_p > 0.0
-                s_eff = min(s_base_p * g_ref_f, _REL_SMOOTH_MAX * peak_new) if has_s else 0.0
+                s_eff = min((_REL_SMOOTH_GEN * s_base_p) * peak_new, _REL_SMOOTH_MAX * peak_new) if has_s else 0.0
                 mat = g.reshape(r_d, c_d)
                 needs_t = r_d > c_d
                 mat_canon = mat.T if needs_t else mat
@@ -1497,36 +1487,33 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             # 2. Zero-Sync Slow Path (stiff 2D NS on G, scalar 1D, extreme scales <1e-18 / >1e18 / NaN / non-FP32):
             slow_g_ref_t: Optional[torch.Tensor] = None
             slow_peaks_pre: List[Optional[torch.Tensor]] = [None] * len(slow_queue)
-            if slow_queue:
-                if g_ref_f > 0.0:
-                    slow_g_ref_t = slow_queue[0][0].new_full((), g_ref_f, dtype=torch.float32)
-                else:
-                    pf_slow: List[torch.Tensor] = []
-                    for idx_s, s_item in enumerate(slow_queue):
-                        p_s, g_s = s_item[0], s_item[1]
-                        st_s = self.state[p_s]
-                        gf_s = g_s.float()
-                        fin_s = torch.isfinite(gf_s).all()
-                        gfs_safe = torch.where(fin_s, gf_s, torch.zeros_like(gf_s))
-                        gm_s = gfs_safe.abs().amax()
-                        ga_s = fin_s & (gm_s > 1e-38)
-                        sc_s = torch.where(ga_s, gm_s, torch.ones_like(gm_s))
-                        gu_s = torch.where(ga_s, gfs_safe / sc_s, torch.zeros_like(gfs_safe))
-                        if self._is_spatial_conv(p_s):
-                            _, sv_s = self._cached_conv_metrics(p_s)
-                        elif p_s.ndim >= 2:
-                            _, _, _, _, sv_s = self._cached_dense_metrics(p_s)
-                        else:
-                            sv_s = 1.0
-                        csv_s = (gu_s.norm() * sc_s) / sv_s
-                        if "peak_rms" not in st_s:
-                            st_s["peak_rms"] = gfs_safe.new_full((), float(st_s.get("peak_rms_val", 0.0)))
-                        pk_s = _huber_peak_t(st_s["peak_rms"], csv_s, fin_s & torch.isfinite(csv_s), p_dec)
-                        st_s["peak_rms"].copy_(pk_s)
-                        slow_peaks_pre[idx_s] = pk_s
-                        pf_slow.append(pk_s * sv_s)
-                    if pf_slow:
-                        slow_g_ref_t = _scale_safe_median_tensors(pf_slow)
+            if slow_queue and prior_queue and g_ref_f <= 0.0:
+                pf_slow: List[torch.Tensor] = []
+                for idx_s, s_item in enumerate(slow_queue):
+                    p_s, g_s = s_item[0], s_item[1]
+                    st_s = self.state[p_s]
+                    gf_s = g_s.float()
+                    fin_s = torch.isfinite(gf_s).all()
+                    gfs_safe = torch.where(fin_s, gf_s, torch.zeros_like(gf_s))
+                    gm_s = gfs_safe.abs().amax()
+                    ga_s = fin_s & (gm_s > 1e-38)
+                    sc_s = torch.where(ga_s, gm_s, torch.ones_like(gm_s))
+                    gu_s = torch.where(ga_s, gfs_safe / sc_s, torch.zeros_like(gfs_safe))
+                    if self._is_spatial_conv(p_s):
+                        _, sv_s = self._cached_conv_metrics(p_s)
+                    elif p_s.ndim >= 2:
+                        _, _, _, _, sv_s = self._cached_dense_metrics(p_s)
+                    else:
+                        sv_s = 1.0
+                    csv_s = (gu_s.norm() * sc_s) / sv_s
+                    if "peak_rms" not in st_s:
+                        st_s["peak_rms"] = gfs_safe.new_full((), float(st_s.get("peak_rms_val", 0.0)))
+                    pk_s = _huber_peak_t(st_s["peak_rms"], csv_s, fin_s & torch.isfinite(csv_s), p_dec)
+                    st_s["peak_rms"].copy_(pk_s)
+                    slow_peaks_pre[idx_s] = pk_s
+                    pf_slow.append(pk_s * _REL_SMOOTH_PRIOR_REF)
+                if pf_slow:
+                    slow_g_ref_t = _scale_safe_median_tensors(pf_slow)
 
             for idx_s, (
                 p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b1_eff, b2_eff,
@@ -1554,7 +1541,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                     b1_eff=b1_eff,
                     b2_eff=b2_eff,
                     s_base=s_base_p,
-                    g_ref_t=slow_g_ref_t,
                     peak_precomputed=slow_peaks_pre[idx_s],
                     s_therm=s_therm,
                     p_dec=p_dec,
