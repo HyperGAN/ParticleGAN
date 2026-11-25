@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_r128",
+  "title": "DCGAN Throughput Benchmark: 128x128 RGB (B=16, W=64)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "dcgan-conv2d",
+    "high-res-conv",
+    "mock-data-only"
+  ],
+  "intuition": "Higher-resolution 128x128 RGB DCGAN speed and memory benchmark where reverse-over-reverse (`create_graph=True`) gradient penalties begin to dominate VRAM and NVML energy compared to interleaved 1-probe `fwAD`.",
+  "failure_mode": "Double-backward critic penalty graph retention spikes peak VRAM and doubles or triples per-step latency.",
+  "protocol_notes": "Research diagnostic throughput workload only; no image-quality gate.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

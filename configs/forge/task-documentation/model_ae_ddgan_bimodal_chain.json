@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ae_ddgan_bimodal_chain",
+  "title": "Latent AE + 4-Step DDGAN Bimodal Chain",
+  "laws": [
+    "law3b",
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "latent-diffusion",
+    "multimodal-posterior"
+  ],
+  "intuition": "Full latent-diffusion stress test coupling a particle AE with a 4-step bimodal DDGAN reverse chain, requiring accurate reconstruction alongside multimodal conditional reverse transitions.",
+  "failure_mode": "Simultaneous latent drift and multimodal branch averaging cause collapsed or biased conditional slices.",
+  "protocol_notes": "Tier-2 required public-API model task.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

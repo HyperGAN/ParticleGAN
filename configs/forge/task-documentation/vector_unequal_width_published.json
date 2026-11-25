@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_unequal_width_published",
+  "title": "Unequal-Width 4-Corner Mixture (4.3x Scale Spread) (Published Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "multi-scale-width",
+    "ray-length-ambiguity",
+    "covariance-calibration",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_unequal_width` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Four equal-mass corner Gaussians with distinct widths sigma in {0.07, 0.12, 0.20, 0.30}. Probes Law 3A (W1 ray-length identifiability): the trainer must match each cluster's individual width without smearing narrow clusters or shrinking broad ones.",
+  "failure_mode": "Unit-slope W1/Lipschitz critics exert width-independent pull, collapsing wide clusters or letting stray samples contaminate the narrowest sigma=0.07 mode.",
+  "protocol_notes": "Separate published transfer cohort of `vector_unequal_width`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

@@ -1,0 +1,122 @@
+<!-- Generated Forge experiment page — do not edit manually; regenerate via `python -m experiments.forge.experiment_docs` -->
+
+[← Leaderboard](../technique-inventory.md) · [Experiment Catalog](README.md) · [Explore by Laws](../LAWS_HUB.md) · [Research Portal](https://hypergan.github.io/ParticleGAN/)
+
+# Sparse 12-Particle 270-Degree Arc Interpolation (`interp_sparse_arc`)
+
+| Field | Value |
+| --- | --- |
+| **Laws Tested** | [Law 1](../LAWS_HUB.md#law1) |
+| **Edge Cases** | `latent-interpolation` `zero-sigma-prior` `continuous-manifold` |
+| **Primary View (`discriminator_stability`)** | Tier 1 (stretch) |
+| **Four Laws Adherence Role** | law1 (anchor) |
+| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Adapter / Domain** | `particle_interpolation` / `interp_sparse_arc` |
+| **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
+| **Update Budget** | `600` steps |
+
+## What This Experiment Tests
+
+Tests whether a generator paired with just 12 zero-sigma discrete particles on a 270-degree circular arc (R=2.0) maps unseen latent k-NN chords (t = 0.25, 0.5, 0.75) smoothly along the curved arc (>= 22/32 arc bins, interp_hq >= 0.80, midpoint_novelty >= 0.20) instead of snapping to endpoints or cutting chords across dead space.
+
+> [!NOTE]
+> **Protocol notes:** Tier-1 stretch task and Four Laws Adherence Law 1 anchor; zero-sigma ParticlePrior exception.
+
+## Laws & Edge Cases Targeted
+
+- **[Law 1: Representational Geometry](../LAWS_HUB.md#law1)** ([Law 1 theory](../../../docs/four-laws.md#law-1--representational-geometry)) — Can the system represent the required probability measure efficiently and faithfully?
+- **Edge-case tags:** `latent-interpolation`, `zero-sigma-prior`, `continuous-manifold`
+
+## Common Failure Mode
+
+Discrete prototype atlases often act like piecewise-constant lookup tables (Voronoi snapping -> low novelty) or interpolate linearly across empty interior space (low interp_hq).
+
+**Historical audit diagnosis** (`reports/forge/problem-definitions.json`): No selected recipe sustains all five final live checks (`0/8` runnable, `e22` preflight `BLOCKED` by `live_sampling`). Selected `atlas-particle-normal-v4` meets every bound at step 600 (`endpoint_hq = 1.000`, `interp_hq = 0.9365`, `output_knn_interp_hq = 1.000`, `30/32` bins, `midpoint_novelty = 0.576`) and passes `3/5` terminal checks via its recipe-owned `normal_noise` (`0.0065`) prior manipulator, while `empf-v7` bends interior chords (`interp_hq = 0.8254`) with off-arc endpoints (`endpoint_hq = 0.6667 < 0.85`) and classical Adam families (`release07-gan-v3`, `r1r2`, `k3p`, `ka2`) place endpoints on the arc (`0.83-1.00`) but cut straight Euclidean secants across unseen chords (`interp_hq = 0.52-0.65`).
+
+- *Recommended research focus:* Add a recipe-owned latent chord perturbation or local Jacobian smoothness regularizer and damp live-iterate oscillation on zero-sigma `ParticlePrior` without sacrificing counted Tier 1-3 passes.
+
+## Visual Schematic
+
+![Target and protocol schematic for interp_sparse_arc](assets/interp_sparse_arc.svg)
+
+*Target & Protocol Schematic · not training output — generated deterministically from the declared task contract.*
+
+## Protocol & Architecture Diagram
+
+```mermaid
+flowchart LR
+    P["Prior: particle_cloud (sigma=0.0, P=12, z=2)"] --> G["Generator: 2L MLP (h=64)"]
+    G --> M["Unseen Latent k-NN Chords / Barycenters"]
+    M --> D["Critic D(x)"]
+    D --> Gate["Gate: interp_sparse_arc (600 steps, 5 sustained)"]
+```
+
+## Task Contract & Numerical Gates
+
+### Execution & Sampling Contract
+
+| Contract Field | Declared Value |
+| --- | --- |
+| Initializer | `deterministic_orthogonal` |
+| Prior | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
+| Update Budget | `600` steps |
+| Batch Size | `128` |
+| Particles / Latent Dim | `P=12` / `z_dim=2` |
+| Sampling Law | `enumerated_prior_without_output_noise` |
+| Evaluation Output Noise | `clean` |
+| Scoring Weights | `live` |
+| Architecture | `family=simple_mlp, hidden=64, layers=2, out_dim=2, fourier=2` |
+| Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
+| Assigned Views | `discriminator_stability` (T1 stretch), `four-laws-adherence-v1` (T1 diagnostic), `particle_interpolation_stretch` (T1 diagnostic) |
+
+### Numerical Pass/Fail Thresholds
+
+| Metric | Operator | Threshold |
+| --- | :---: | ---: |
+| `finite_fraction` | `==` | `1.0` |
+| `endpoint_hq` | `>=` | `0.85` |
+| `interp_hq` | `>=` | `0.8` |
+| `interp_arc_bins` | `>=` | `22` |
+| `midpoint_novelty` | `>=` | `0.2` |
+
+## Recorded Family Results
+
+> [!IMPORTANT]
+> Screening outcomes below come from recorded single-seed (`seed = 0`) Forge evidence. `NOT MEASURED`, `BLOCKED`, and `INCOMPATIBLE` are non-numerical states — not scientific failures — and confer no pass or qualification credit.
+
+| Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
+| --- | --- | :---: | --- | --- | --- |
+| **RHBI** | `rhbi-v12` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
+| **Unified** | `unified-v11` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
+| **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
+| **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
+| **EMPF** | `empf-v8` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8, interp_arc_bin | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+
+## Reproduce This Experiment
+
+```bash
+# Validate this task declaration and inspect planned dependencies
+python -m experiments.forge validate
+python -m experiments.forge plan --view discriminator_stability --candidate unified-v12 --tasks interp_sparse_arc
+```
+
+**Declaration & Source Files:**
+
+- Task contract: [configs/forge/tasks/interp_sparse_arc.json](../../../configs/forge/tasks/interp_sparse_arc.json)
+- Source code: [benchmarks/toy_audit/api_interpolation.py](../../../benchmarks/toy_audit/api_interpolation.py)
+- Source code: [experiments/forge/interpolation.py](../../../experiments/forge/interpolation.py)
+
+## Annotation Provenance
+
+This page was assembled read-only from the following versioned inputs without altering any task execution/evaluation fingerprint:
+
+- **Task contract JSON:** [configs/forge/tasks/interp_sparse_arc.json](../../../configs/forge/tasks/interp_sparse_arc.json)
+- **Editorial task documentation sidecar:** [configs/forge/task-documentation/interp_sparse_arc.json](../../../configs/forge/task-documentation/interp_sparse_arc.json)
+- **Read-only Python AST source:** [benchmarks/toy_audit/api_interpolation.py](../../../benchmarks/toy_audit/api_interpolation.py) (AST symbols: `__doc__`, `THRESHOLDS`, `HOST_DEFINITIONS`)
+- **Read-only Python AST source:** [experiments/forge/interpolation.py](../../../experiments/forge/interpolation.py) (AST symbols: `__doc__`)

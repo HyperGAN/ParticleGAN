@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1250. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1255. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4119,6 +4119,22 @@ Preregistered full7000-update grid100_affine_paired_laws_v1 FAIL; sustained cove
 **Next:** Stop these exact revisions and this selected registration. Before another GPU study, perform a bounded zero-training saved-state audit of critic radial and centering gradients against per-mode moments. Only a supported substantive hypothesis warrants a new frozen registration. Preserve A2 and sigma .025; no coefficient, cap, width, amplitude or seed sweep, best-checkpoint/EMA substitution, 14k continuation or automatic matrix expansion.
 
 [Record and receipt provenance](records/readout-0297c36f9f2d9c5feb45b3cb.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### unified-v14 · readout-030b754950e236c22af7add0
+
+**Scope:** current; scientific; revision `0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584`.
+
+Unchanged global unified-v14 preserves all 17/17 Tier-1 passes (11/11 required) and all live unified-v13 Tier-2 passes including bytegan_hypercube8 (256/256 valid unique bytes) and model_ae_ddgan_gaussian_chain on discriminator_stability Tiers 1-2.
+
+**Observed:** {'FAIL': 4, 'INCOMPLETE': 1, 'PASS': 45}; wall seconds 7094.626; mechanism `structural`.
+
+rotated100: precision=0.98788, center_rms_sigma=0.059226, mass_tv=0.03739, radial_ks=0.032704
+
+45/49 PASS on discriminator_stability Tiers 1-2 (RTX A6000 GPUs 0,1, protocol seed 0): Tier 1 17/17 PASS (100%: 11/11 required, 4/4 stretch, 2/2 diagnostic), Tier 2 28/32 PASS (16/18 required, 7/7 held, 5/7 stretch incl. bytegan_hypercube8 PASS 256/256, 3/3 Nash PASS, t3_iso_horizon_saddle_shift PASS). model_ae_ddgan_gaussian_chain PASS on single-worker GPU 0 retry after initial shared-GPU 180s wall-time timeout (paired_nmse=0.04803, final_cdf=0.07215, t1_q0_cdf=0.22267). Only 4 FAILs are the exact 4 pre-existing live unified-v12/v13 FAILs: model_ddgan_bimodal_chain, model_ae_ddgan_bimodal_chain, interp_img_patch_shift, interp_saddle_barycentric.
+
+**Next:** Commit formal Forge readout receipts on chore/unified-v14-readouts and hand off to @fl-verifier.
+
+[Record and receipt provenance](records/readout-030b754950e236c22af7add0.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### bispf-prior-fresh-gaussian-v1 · readout-030ba1dfffb896ffe7ef8768
 
@@ -8504,6 +8520,22 @@ rgdt-v3 passes 4/4 tasks on t3-shift-recovery-diagnostic-v1, converting Tier-3 t
 
 [Record and receipt provenance](records/readout-9ac29cca3e759e381fb46e36.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v14 · readout-9b4a34dd50ba60c4669876c5
+
+**Scope:** research_diagnostic; scientific; revision `0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584`.
+
+Unchanged global unified-v14 achieves 7/7 PASS on t4-strange-architectures-v1, passing grid100_res16_tanh (center_rms_sigma <= 0.25) alongside grid100_mlp16, grid100_res16_scaled_tanh, grid100, clockfree_audit_measurement_v1, zero_tanh_smoke, and zero_tanh_rail_escape.
+
+**Observed:** {'PASS': 7}; wall seconds 3023.111; mechanism `structural`.
+
+grid100_mlp16: precision=0.99071, center_rms_sigma=0.071334, mass_tv=0.03823, radial_ks=0.029971; grid100_res16_tanh: precision=0.99001, center_rms_sigma=0.10035, mass_tv=0.03423, radial_ks=0.02928
+
+7/7 PASS on t4-strange-architectures-v1 (RTX A6000, protocol seed 0): grid100_res16_tanh PASS (prec=0.99001, ctr=0.10035, bias=-0.07456, rks=0.02928, tv=0.03423), grid100_mlp16 PASS (prec=0.99071, ctr=0.07133, bias=-0.07170, rks=0.02997), grid100_res16_scaled_tanh PASS (prec=0.99094, ctr=0.05456, bias=-0.04086, rks=0.01668), grid100 PASS (prec=0.98973, ctr=0.09178, bias=-0.05773, rks=0.02284), zero_tanh_smoke PASS (p99=0.01237), zero_tanh_rail_escape PASS (p99=0.01963), clockfree_audit_measurement_v1 PASS (4/4 parity).
+
+**Next:** Commit formal Forge readout receipt on chore/unified-v14-readouts and hand off to @fl-verifier.
+
+[Record and receipt provenance](records/readout-9b4a34dd50ba60c4669876c5.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### r4-razor-no-sat-probe · readout-9b7edc6de002e2ce4dde5bc5
 
 **Scope:** research_diagnostic; scientific; revision `921de9f3afcd70db4ad811fdee26688730c6547a64c43ab4defe66e16023522b`.
@@ -10344,6 +10376,22 @@ law4-energy-v7 (Law 4.4 Asymmetric 0-NS Critic Frob-MP m^0.25 + 5-step 2D Polar 
 
 [Record and receipt provenance](records/readout-d2e26497bc23a120806f8de4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v14 · readout-d393e49520af60ac393d1934
+
+**Scope:** research_diagnostic; scientific; revision `0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584`.
+
+Unchanged global unified-v14 passes 6/6 dcgan_performance with 0 Conv2d NS and 0 Schatten-6 on 4D Conv2d DCGAN layers, preserving unified-v12/v13 latency (<=45 ms/step median uncontended on dcgan_performance_r256) and memory footprint.
+
+**Observed:** {'PASS': 6}; wall seconds 63.18; mechanism `structural`.
+
+
+
+6/6 PASS on dcgan_performance (RTX A6000 GPU 1, single-worker, protocol seed 0; NOTE: NVML recorded contended=true from concurrent external GPU 1 activity): r32=19.36 ms/st (p95 19.98 ms, 67.04 MiB), r64=23.92 ms/st (p95 25.12 ms, 163.93 MiB), r128=28.74 ms/st (p95 30.18 ms, 428.10 MiB), r256=47.22 ms/st (p95 49.77 ms, 336.6 img/s, 1147.65 MiB peak alloc), b64=25.99 ms/st (p95 27.27 ms, 320.08 MiB), w128=24.71 ms/st (p95 25.20 ms, 424.96 MiB).
+
+**Next:** Commit formal Forge readout receipt on chore/unified-v14-readouts and hand off to @fl-verifier.
+
+[Record and receipt provenance](records/readout-d393e49520af60ac393d1934.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### axiom-v4 · readout-d3967c0e415122139e9783d8
 
 **Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
@@ -11352,6 +11400,22 @@ nash_unequal_width_hostile_imbalance: hq=0.99561, mass_tv=0.048584; nash_overpow
 
 [Record and receipt provenance](records/readout-f711bad4b080dc992add928d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### unified-v14 · readout-f743ab4df05860dcf3966cbd
+
+**Scope:** research_diagnostic; scientific; revision `0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584`.
+
+Unchanged global unified-v14 (optimizer_family='unified_v14_equil' with feydy_atomic) preserves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Conv2d NS, 0 neural-G Critic NS, 0 critic probes, 0 new_tensor H2D copies, and _SUPPORTS_ZEROSYNC_V4_TENSORS=True.
+
+**Observed:** {'PASS': 16}; wall seconds 3760.853; mechanism `structural`.
+
+vector_unequal_width: hq=0.99854, mass_tv=0.13037; grid100_mlp16: precision=0.99071, center_rms_sigma=0.071334, mass_tv=0.03823, radial_ks=0.029971; vector_unequal_mass: hq=0.99756, mass_tv=0.11237
+
+16/16 PASS on r4-occam-ablation-v1 (RTX A6000, protocol seed 0): 12/12 fresh probes PASS plus 4/4 certified reused PASS from unified-v14-t4-arch-study (grid100, grid100_mlp16, zero_tanh_smoke, zero_tanh_rail_escape). Key metrics: t3_iso_scale_mass_8x core_min_eigen_ratio=0.47231 (hq=0.96289, tv=0.01391), t3_iso_horizon_saddle_shift hq=0.95312 (4/4), nash_overpowered_critic_ring16 16/16 (hq=0.95532), nash_overpowered_generator_ring16 16/16 (hq=0.98267), five_word_joint_smoke 5/5 (tv=0.01895), model_ddgan_gaussian_chain final_cdf=0.03946, gaussian1d_stability cdf_ks=0.02072, img_bars4 hq=1.0.
+
+**Next:** Commit formal Forge readout receipt on chore/unified-v14-readouts and hand off to @fl-verifier.
+
+[Record and receipt provenance](records/readout-f743ab4df05860dcf3966cbd.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v9 · readout-f744f3298254b4a3c2a34a5c
 
 **Scope:** research_diagnostic; scientific; revision `a79c86920325f96941be1be0d9e96981dc62d227d8984257ad5bce0a02b84b77`.
@@ -11399,6 +11463,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-f878dc3aade4f1e6cc109a58.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### unified-v14 · readout-f8b7f645c030870f4fc898b3
+
+**Scope:** research_diagnostic; scientific; revision `0ea65bf782577f1235886583738271af4938650654ff980a325772e4c1f27584`.
+
+Unchanged global unified-v14 (inheriting feydy_atomic from unified-v13) passes 2/2 on bytegan_stretch (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection).
+
+**Observed:** {'PASS': 2}; wall seconds 801.109; mechanism `structural`.
+
+bytegan_hypercube8: mass_tv=0; bytegan_bigan_dictionary: mass_tv=0
+
+2/2 PASS on bytegan_stretch (RTX A6000, protocol seed 0): bytegan_hypercube8 PASS (256/256 valid unique bytes, 0 collisions, 0 orphans, mass_tv=0.0, rms_bit_error=0.04393, max_bit_error=0.16055, min_bit_margin=0.83945, 5/5 checks) and bytegan_bigan_dictionary PASS (256/256 valid unique bytes, 0 collisions, rms_bit_error=0.00235, recon_valid_exact_bytes=256/256, recon_rms_bit_error=0.00552, recon_max_bit_error=0.08494, encoder_particle_bijection_bytes=256/256, encoder_cycle_match_bytes=256/256, 5/5 checks).
+
+**Next:** Commit formal Forge readout receipt on chore/unified-v14-readouts and hand off to @fl-verifier.
+
+[Record and receipt provenance](records/readout-f8b7f645c030870f4fc898b3.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### axiom-v1 · readout-fa20a38c3690656c64c2a7fc
 
@@ -12150,4 +12230,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `5bebf413680800405c33a7007feaf45f021a2c579388f145beaf4befe719c4f1`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `0636cf905fcf12e896bd05da2f805fbb5d62891399d0d321e9dd3c3eb0602cd3`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

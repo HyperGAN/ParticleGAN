@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "nash_overpowered_critic_ring16",
+  "title": "Extreme Nash Imbalance: >600x Overpowered Tilted Critic (D >> G)",
+  "laws": [
+    "law2",
+    "law4_3",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "hostile-nash-imbalance",
+    "off-manifold-init",
+    "ring-mixture"
+  ],
+  "intuition": "Pairs a tiny 0.08x-compressed off-manifold generator (32x2) against a >600x larger 512x4 Fourier-3 critic initialized with a hostile upside-down linear tilt (~ -30 logit margins) on a 16-mode ring.",
+  "failure_mode": "The overpowered critic immediately saturates margins and crushes generator gradients, leaving the tiny generator trapped far off-manifold in its initial corner.",
+  "protocol_notes": "Tier-2 stretch task and Four Laws Adherence Law 2 anchor (1,600 updates).",
+  "diagram_kind": "nash_imbalance",
+  "custom_mermaid": null
+}

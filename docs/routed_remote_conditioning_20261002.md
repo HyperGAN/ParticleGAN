@@ -19,35 +19,35 @@ Labels come from one frozen same-family public-initialized teacher (generator se
 
 Before training, fit labels alone define channel means and population standard deviations:
 
-\[
-\mu_c=\operatorname{mean}_{i,h,w} y^{fit}_{ichw},\qquad
-s_c=\max\!\left(\sqrt{\operatorname{mean}_{i,h,w}(y^{fit}_{ichw}-\mu_c)^2},10^{-4}\right).
-\]
+$$
+\mu_c=\mathrm{mean}_{i,h,w} y^{fit}_{ichw},\qquad
+s_c=\max\left(\sqrt{\mathrm{mean}_{i,h,w}(y^{fit}_{ichw}-\mu_c)^2},10^{-4}\right).
+$$
 
-Every label and every student raw output use the same fixed transformation \(\widetilde y_c=(y_c-\mu_c)/s_c\) before critic scores, penalties and GAN losses. Means/stds are generator buffers installed before policy/EMA construction and preserved in checkpoints. Held rows never determine calibration. Thus output noise σ=1.3 is expressed in normalized target units, matching the real task's convention. Raw teacher targets, calibration and normalized targets remain hash-bound evidence.
+Every label and every student raw output use the same fixed transformation $\widetilde y_c=(y_c-\mu_c)/s_c$ before critic scores, penalties and GAN losses. Means/stds are generator buffers installed before policy/EMA construction and preserved in checkpoints. Held rows never determine calibration. Thus output noise σ=1.3 is expressed in normalized target units, matching the real task's convention. Raw teacher targets, calibration and normalized targets remain hash-bound evidence.
 
 For two paired held teacher labels on the evaluation patch, the best predictor unable to distinguish the remote marker has squared-error lower bound
 
-\[
-V=\frac14\operatorname{mean}_{pair,c,h,w}(\widetilde y^+_{c,h,w}-\widetilde y^-_{c,h,w})^2.
-\]
+$$
+V=\frac14\mathrm{mean}_{pair,c,h,w}(\widetilde y^+_{c,h,w}-\widetilde y^-_{c,h,w})^2.
+$$
 
-The fixed teacher must have \(V\ge10^{-8}\). Failure refuses the fixture; it does not change the teacher, marker, mask, seed or threshold. Clean teacher capacity does **not** prove perfect capacity under native DV12 perturbations: information routed through a noisy code can have a conditioning tradeoff. This fixture leaves that native law intact and reports its outcome without attributing a negative result to a GAN or ParticleGAN bug.
+The fixed teacher must have $V\ge10^{-8}$. Failure refuses the fixture; it does not change the teacher, marker, mask, seed or threshold. Clean teacher capacity does **not** prove perfect capacity under native DV12 perturbations: information routed through a noisy code can have a conditioning tradeoff. This fixture leaves that native law intact and reports its outcome without attributing a negative result to a GAN or ParticleGAN bug.
 
 ## Game and single candidate factor
 
-Let \(e=\widetilde G(x,t)-\widetilde y\), \(n=\sigma\epsilon\). The public loss is
+Let $e=\widetilde G(x,t)-\widetilde y$, $n=\sigma\epsilon$. The public loss is
 
-\[
-L_D=\operatorname{mean}\operatorname{softplus}(D(n+e)-D(n))+\mathrm{KA2},
-\]
+$$
+L_D=\mathrm{mean}\mathrm{softplus}(D(n+e)-D(n))+\mathrm{KA2},
+$$
 
 with G detached for D, followed by one true scalar antithetic G loss,
 
-\[
-L_G=\tfrac12\sum_{a\in\{-1,+1\}}\operatorname{mean}\operatorname{softplus}
-\big(\operatorname{stopgrad}D(an)-D(an+e)\big).
-\]
+$$
+L_G=\tfrac12\sum_{a\in\lbrace-1,+1\rbrace}\mathrm{mean}\mathrm{softplus}
+\big(\mathrm{stopgrad}D(an)-D(an+e)\big).
+$$
 
 There is one D16 backward/step and one G backward/step per native lifecycle. Native DV12 perturbation, learned output-noise ownership, KA2's independent EMA, table damping/testing, routed restructuring, settling and averaged serving remain active. All optimizers use β=(0,.999). The generator group receives the same quarter factor once after public begin_step; encoder/table/noise rates remain native. Critic global score gain is 0, local gain .0625 and the free-sign quadratic head starts at zero with public KEEP and learns only through D. Score-inactive global critic features are retained for native routing controls.
 

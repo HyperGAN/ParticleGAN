@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "gaussian1d_acquisition",
+  "title": "1D Gaussian Sustained Acquisition",
+  "laws": [
+    "law2",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "scalar-1d",
+    "sustained-suffix"
+  ],
+  "intuition": "Measures sustained acquisition of N(2, 0.5^2) over 1,000 updates requiring 5 consecutive terminal passing checks on mean error, standard-deviation ratio, and Kolmogorov-Smirnov CDF distance.",
+  "failure_mode": "A transient pass followed by late-window width oscillation fails the 5-check sustained suffix gate.",
+  "protocol_notes": "Predecessor/companion sustained gate to `gaussian1d_smoke`.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

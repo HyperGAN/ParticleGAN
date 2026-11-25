@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_14k",
+  "title": "100-Mode Grid 14k Endurance Continuation",
+  "laws": [
+    "law1",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "100-modes",
+    "long-horizon-stability",
+    "checkpoint-continuation"
+  ],
+  "intuition": "Continues a passing 7,000-step `grid100` checkpoint out to 14,000 updates with verified prefix parity, testing whether all 100 modes and tight covariance bounds survive twice the training horizon.",
+  "failure_mode": "Gradual prototype collapse, mass imbalance drift, or late-horizon minimax instability erodes precision or drops modes.",
+  "protocol_notes": "Strict continuation of `grid100` (requires passing 7k parent checkpoint and bit-exact prefix parity).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

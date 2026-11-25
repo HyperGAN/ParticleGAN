@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "zero_tanh_smoke",
+  "title": "Origin Point-Mass under Tanh Generator",
+  "laws": [
+    "law2",
+    "law4_1"
+  ],
+  "edge_cases": [
+    "tanh-saturation",
+    "point-mass-dirac",
+    "checkpoint-producer"
+  ],
+  "intuition": "Tests whether a 2D generator ending in a bounded `tanh` activation can contract cleanly onto the origin Dirac point mass (0, 0) within 1,000 updates with zero saturated outputs (saturated_fraction == 0.0).",
+  "failure_mode": "Overshooting updates slam generator pre-activations into the +/-1 tanh rails where derivatives vanish, leaving saturated samples stuck on the boundary.",
+  "protocol_notes": "Tier-1 required gate; serves as prerequisite for `zero_tanh_rail_escape`.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

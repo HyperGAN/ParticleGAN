@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "nash_overpowered_generator_ring16",
+  "title": "Extreme Nash Imbalance: >600x Overpowered Generator (G >> D)",
+  "laws": [
+    "law4_3",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "hostile-nash-imbalance",
+    "kreiss-blowup",
+    "ring-mixture"
+  ],
+  "intuition": "Reverses capacity asymmetry: pits a >600x larger 2.2x-amplified off-manifold generator (512x4) against a tiny 32x2 Fourier-1 tilted critic on a 16-mode ring, directly stressing Law 4.3 displacement/Kreiss control.",
+  "failure_mode": "Without displacement and Kreiss control, the massive generator rockets past the tiny critic in violent non-normal excursions before the critic can build an informative potential.",
+  "protocol_notes": "Tier-2 stretch task (1,600 updates).",
+  "diagram_kind": "nash_imbalance",
+  "custom_mermaid": null
+}

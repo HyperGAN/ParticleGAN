@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ring16_acquisition",
+  "title": "16-Mode 2D Gaussian Ring Acquisition",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "ring-mixture",
+    "covariance-calibration"
+  ],
+  "intuition": "Core Tier-1 multimodal acquisition test: recover all 16 equally weighted 2D Gaussians arranged on a circle (R=3.0, sigma=0.10) with balanced occupancy (mass_tv <= 0.15), high quality (hq >= 0.85), and non-collapsed per-mode covariance.",
+  "failure_mode": "Mode dropping, inter-mode bridges along chords of the circle, or collapsed per-mode eigenvalues (component_min_eigen_ratio < 0.15) caused by poor Law 1 support geometry or unstable critic forces.",
+  "protocol_notes": "Tier-1 required benchmark (clean live evaluation over 4,096 samples, 24 observations).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

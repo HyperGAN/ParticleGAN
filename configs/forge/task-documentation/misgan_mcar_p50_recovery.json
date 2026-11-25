@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "misgan_mcar_p50_recovery",
+  "title": "2-Pair MisGAN: 8D MCAR p=0.50 Coordinate Missingness",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "masked-observation",
+    "mcar-50pct",
+    "8d-subspace"
+  ],
+  "intuition": "Recovers a 100-mode 2D manifold embedded in 8D when 50% of coordinates are randomly missing completely at random (MCAR), testing simultaneous data manifold and mask distribution recovery.",
+  "failure_mode": "High coordinate dropout blurs the 8D subspace constraint (off_plane > 0.05) and reduces recovered modes below 90/100.",
+  "protocol_notes": "Tier-4 stretch benchmark (4,000 updates, empty masks resampled).",
+  "diagram_kind": "misgan_masked",
+  "custom_mermaid": null
+}

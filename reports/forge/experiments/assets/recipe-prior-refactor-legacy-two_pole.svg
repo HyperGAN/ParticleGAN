@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Two-Pole Directional Concept Separation (Legacy Prior Cohort)">
+<title>Two-Pole Directional Concept Separation (Legacy Prior Cohort) — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">Two-Pole Directional Concept Separation (Legacy Prio</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">Two-Pole Directional Separation</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="211.0" y="82.0" font-size="11" fill="#0f172a" font-weight="700" text-anchor="middle">Two-Pole Directional Separation</text>
+<rect x="36.5" y="136.0" width="104.0" height="68" rx="8" fill="#ffffff" stroke="#2563eb" stroke-width="1.8"/>
+<text x="88.5" y="166.0" font-size="9" fill="#2563eb" font-weight="700" text-anchor="middle">Negative</text>
+<text x="88.5" y="181.0" font-size="9" fill="#475569" text-anchor="middle">Pole (-u)</text>
+<line x1="140.5" y1="170.0" x2="157.0" y2="170.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="159.0" y="136.0" width="104.0" height="68" rx="8" fill="#ffffff" stroke="#334155" stroke-width="1.8"/>
+<text x="211.0" y="166.0" font-size="9" fill="#334155" font-weight="700" text-anchor="middle">Neutral</text>
+<text x="211.0" y="181.0" font-size="9" fill="#475569" text-anchor="middle">(0)</text>
+<line x1="263.0" y1="170.0" x2="279.5" y2="170.0" stroke="#334155" stroke-width="1.5" marker-end="url(#arrow)"/>
+<rect x="281.5" y="136.0" width="104.0" height="68" rx="8" fill="#ffffff" stroke="#e11d48" stroke-width="1.8"/>
+<text x="333.5" y="166.0" font-size="9" fill="#e11d48" font-weight="700" text-anchor="middle">Positive</text>
+<text x="333.5" y="181.0" font-size="9" fill="#475569" text-anchor="middle">Pole (+u)</text>
+<rect x="42" y="234" width="338" height="42" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+<text x="211.0" y="259.0" font-size="9" fill="#0f172a" font-weight="600" text-anchor="middle">mean_abs &gt;= 0.30 · critic grad_med &lt;= 1.0</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">recipe-prior-refactor-legacy-two</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law2, law4_5</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">particle_cloud (sigma=0.0)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">80 steps · B=host</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=host · z_dim=host</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">not_applied_to_measurement</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">transfer_behavior</text>
+</svg>

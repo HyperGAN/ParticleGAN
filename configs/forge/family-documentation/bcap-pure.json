@@ -1,6 +1,6 @@
 {
   "overview": "BCAP adds a fixed critic penalty whenever the input-gradient norm exceeds a threshold, evaluated separately on real and generated data. This high-level formulation defines the family. Adam, normalized-gradient and DualNorm optimizers, learning rates, momentum and loss settings are configuration choices. The current benchmark uses the explicitly selected winning DualNorm recipe. Historical BCAP-with-K3P formulations and optimizer alternatives retain their complete, separate evidence below.",
-  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\\epsilon_{\\mathrm{in}})$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $(a)_+=\\max(a,0)$ and $\\operatorname{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\\nabla_x C(x)$ and $g_f=\\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\\lambda$ is penalty strength and $\\kappa$ the cap threshold. $\\eta_0$ is the global base LR, $m_D$ and $m_P$ the role multipliers. A joint host also has an encoder $E$, whose adversarial objective must train both joint critic streams.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\\epsilon_{\\mathrm{in}})`$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $`(a)_+=\\max(a,0)`$ and $\\mathrm{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\\nabla_x C(x)$ and $g_f=\\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\\lambda$ is penalty strength and $\\kappa$ the cap threshold. $\\eta_0$ is the global base LR, $m_D$ and $m_P$ the role multipliers. A joint host also has an encoder $E$, whose adversarial objective must train both joint critic streams.",
   "pseudocode": [
     "Choose an adversarial loss, optimizer and its configuration.",
     "For each task-owned training update:",
@@ -14,14 +14,14 @@
     "  Joint encoder/generator hosts reverse labels on both critic streams."
   ],
   "training_details": {
-    "loss": "Selectable paired relativistic logistic (canonical/default), non-saturating logistic, hinge, Wasserstein or least squares. The scalar losses are minimized. Relativistic $D$: $\\mathbb E[\\operatorname{softplus}(C(y)-C(x))]$; $G$ reverses the difference. Joint hosts use the explicit generator/encoder objective.",
+    "loss": "Selectable paired relativistic logistic (canonical/default), non-saturating logistic, hinge, Wasserstein or least squares. The scalar losses are minimized. Relativistic $D$: $\\mathbb E[\\mathrm{softplus}(C(y)-C(x))]$; $G$ reverses the difference. Joint hosts use the explicit generator/encoder objective.",
     "optimizer": "Native PyTorch Adam. Canonical $\\beta_1=0$, $\\beta_2=0.999$ and $\\varepsilon=10^{-8}$; moments are constant.",
     "learning_rates": "Constant: canonical global LR $0.00425$, D multiplier $1$ and prior multiplier $2$. The measured round also tested global LR $0.0010625$. Network and prior LR floors are $1$, so the scheduled API path performs no annealing.",
     "gradient_clipping": "None. Critic spike guard is disabled; BCAP acts through the loss, not parameter-gradient clipping.",
     "critic_penalty": "Fixed real/fake one-sided squared L2 cap. Canonical $\\lambda=1$, $\\kappa=1$, applied every critic update. No K3P early/late blend or critic-anchor term.",
     "damping_and_guards": "No A2 latent-row damping, direct-particle response gain, or adaptive critic step intervention.",
     "noise": "No additive critic-input or generator-output training noise. Sampling noise inherent to a task-declared MoG prior remains part of that prior, not an extra BCAP intervention.",
-    "averaging": "Canonical generator EMA decay=$0$ and no critic-anchor penalty; the reported round scores clean live weights."
+    "averaging": "Canonical generator EMA decay=$`0`$ and no critic-anchor penalty; the reported round scores clean live weights."
   },
   "configuration_notes": [
     "The fixed capped input-gradient penalty defines BCAP. Optimizer choice, learning rates, momentum, numerical floors and adversarial-loss settings stay within this solution family.",
@@ -56,7 +56,7 @@
     {
       "title": "Wasserstein GAN",
       "url": "https://arxiv.org/abs/1701.07875",
-      "component": "Wasserstein score-loss option. This BCAP recipe does not adopt the paper\u2019s weight clipping or full training algorithm."
+      "component": "Wasserstein score-loss option. This BCAP recipe does not adopt the paper’s weight clipping or full training algorithm."
     },
     {
       "title": "Least Squares Generative Adversarial Networks",
@@ -84,12 +84,12 @@
   "equations": [
     {
       "label": "Default paired adversarial loss",
-      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(x)-C(y))\\right].\\end{aligned}",
+      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\left[\\mathrm{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\left[\\mathrm{softplus}(C(x)-C(y))\\right].\\end{aligned}",
       "explanation": "These scalar losses are minimized. The critic objective is $\\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise. This equation is the canonical paired-loss example; non-saturating, hinge, Wasserstein and least-squares options keep their own loss formulas, and joint hosts use their explicit generator/encoder objective."
     },
     {
       "label": "Fixed capped input-gradient penalty",
-      "latex": "R_{\\mathrm{BCAP}}=\\frac{\\lambda}{2}\\left\\{\\mathbb E\\!\\left[(\\lVert g_r\\rVert_2-\\kappa)_+^2\\right]+\\mathbb E\\!\\left[(\\lVert g_f\\rVert_2-\\kappa)_+^2\\right]\\right\\}.",
+      "latex": "R_{\\mathrm{BCAP}}=\\frac{\\lambda}{2}\\left\\lbrace\\mathbb E\\left[(\\lVert g_r\\rVert_2-\\kappa)_+^2\\right]+\\mathbb E\\left[(\\lVert g_f\\rVert_2-\\kappa)_+^2\\right]\\right\\rbrace.",
       "explanation": "The cap is a soft loss penalty on real and fake critic input-gradient norms, without division by input dimension. It does not directly clip critic parameter gradients or weights. The canonical BCAP cards use $\\lambda=1$ and $\\kappa=1$; source-bound selected recipes may differ."
     }
   ],
@@ -97,5 +97,49 @@
     "path": "reports/forge/families/assets/bcap-explainer.png",
     "alt": "Real and generated samples share a critic; a soft penalty discourages excessive input-gradient slopes and adds to the critic loss.",
     "caption": "Conceptual illustration of the BCAP critic-loss mechanism, not measured training results. Generator/prior updates are described below."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No adaptive multimodal prior chart or latent pullback regularizer",
+      "how_it_works": "Leaves representation entirely to the task-declared latent prior pushed through G (`prior_reg=0`), without prototype quantization, pullback isometry, or prior repulsion.",
+      "known_limits": "Separated multimodal targets force continuous generators to stretch across empty valleys, producing ghost mass, lost rare-mode share (`vector_unequal_mass`), and discrete image mode drops (`img_bars4`, `img_blobs4`)."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed real/fake one-sided squared L2 input-gradient cap (RoR)",
+      "how_it_works": "Adds `0.5 * lambda * (E[(||g_r||_2 - kappa)_+^2] + E[(||g_f||_2 - kappa)_+^2])` via exact reverse-over-reverse differentiation to softly discourage spatial slopes above `kappa = 1`.",
+      "known_limits": "P3 proved `GradientPenalty(arm=\"b_cap\")` has exact zero normal-direction curvature (`mu_D = 0.0`) on `||grad D||_2 < kappa`, leaving zero-momentum minimax games orbiting in persistent limit cycles; P2-C4 also demonstrated the median-chord Lipschitz illusion on live 200-step `bcap` (`grad_med = 0.697 <= 1.0` while `grid_max = 1.521`). Omits a zero-mean logit gauge anchor and pays exact RoR double-backward cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Standard scalar adversarial critic loss only (no multi-scale metric, orphan rescue, or fiber bank)",
+      "how_it_works": "Relies purely on selectable scalar adversarial losses (paired relativistic, non-saturating, hinge, Wasserstein, or least squares) without optimal-transport horizons, orphan detection, or conditional fiber drift-variance deconfounding.",
+      "known_limits": "Fails generator-free multi-scale and beyond-horizon causal isolation (`bcap-pure-v1` 0/2 `t3_iso`, `readout-18e9fbb0`), unequal-width and unequal-mass vector mixtures, and conditional reverse-diffusion chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Constant-LR zero-momentum Adam (pure) or DualNorm polar updates + direction_blend (selected benchmark)",
+      "how_it_works": "Runs 1:1 alternating updates with zero first-order momentum (`beta1=0`) and constant rates. The selected family benchmark (`bcap-dualnorm`, preset `'bcap'`) upgrades native Adam to smoothed DualNorm polar orthogonalization and `direction_blend` constraint projection.",
+      "known_limits": "Pure Adam BCAP lacks spectral conditioning, pushforward trust, rail rescaling, and equilibrium settling. Even selected `bcap-dualnorm` lacks realized pushforward trust (4.1/4.3), dynamic-1e-38 scale/settling (4.4), and `mu_D > 0` rotational dissipation (4.5), allowing limit cycles and failing 12/28 measured full-suite tasks."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Task Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> CritLoss[\"Critic Loss: Adversarial_D(D(x), D(y_det))\"]\n    Gen --> CritLoss\n    CritLoss --> BCap[\"Law 2: Fixed One-Sided Cap (||grad D|| - kappa)_+^2 (RoR)\"]\n    BCap --> StepD[\"Law 4: Adam (pure) or DualNorm (selected, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> GLoss[\"Adversarial_G + Task Auxiliary Losses\"]\n    GLoss --> StepG[\"Step G, P & E (Constant LR; direction_blend in DualNorm)\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "bcap_adam",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "# Pure native-Adam BCAP (use get_recipe('bcap') for selected DualNorm BCAP)",
+      "recipe = get_recipe('bcap_adam', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
   }
 }

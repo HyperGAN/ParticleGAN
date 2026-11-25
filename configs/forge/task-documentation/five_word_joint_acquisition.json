@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "five_word_joint_acquisition",
+  "title": "Five-Word Joint BiGAN Sustained Acquisition",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder"
+  ],
+  "intuition": "Sustained acquisition benchmark verifying that a joint BiGAN acquires all five words and confident inverse reconstructions from scratch.",
+  "failure_mode": "Mode collisions or weak joint critic coupling between E(x) and G(z) prevent simultaneous 5/5 word generation and exact inversion.",
+  "protocol_notes": "Retained standalone acquisition variant alongside `five_word_joint_smoke`.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

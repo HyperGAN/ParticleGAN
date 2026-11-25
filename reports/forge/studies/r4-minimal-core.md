@@ -58,7 +58,7 @@ All LOC and AST branch counts are computed directly from the repository AST (rep
 3. **`d_z == 4` Radon-Hurwitz 4-tangent quaternion branch collapsed** (confirmed redundant by `r4-ablation-razor` Arm 3; replaced by a single rank-agnostic orthogonal partner `ep` covering all `dim == 2, d_z >= 2` with zero extra branches).
 4. **100-line 2D `_conformal_local_horizons` deleted** (confirmed redundant across 12/12 2D/4D/deep/Nash/image/lattice probes by `r4-ablation-razor` Arm 6).
 5. **13 running conditional sufficient-statistics tensors collapsed to a single 384-pair FIFO ring `(ring_c, ring_x, ring_y)`** deriving recency-weighted WLS, analytic `2×2`/Cholesky whitener (zero `eigh`), local `k`-NN covariance, and hollow IMQ-CMMD strictly pre-update — cutting conditional checkpoint state 4× and preserving bit-exact continuation across the 24-pair activation boundary.
-6. **Single shared `g_scale` per parameter + `torch._foreach_*` in-place fast path** for normal-range finite gradients `[1e-18, 1e18]`, falling back seamlessly to dynamic-$10^{-38}$ scale-normalized moments under extreme vanishing/overflowing gradients.
+6. **Single shared `g_scale` per parameter + `torch._foreach_*` in-place fast path** for normal-range finite gradients `[1e-18, 1e18]`, falling back seamlessly to dynamic-$`10^{-38}`$ scale-normalized moments under extreme vanishing/overflowing gradients.
 
 ---
 

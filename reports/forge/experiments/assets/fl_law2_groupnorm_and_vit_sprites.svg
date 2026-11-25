@@ -1,0 +1,58 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Law 2 Probe: 32x32 RGB Sprites with ResNet+GroupNorm + ViT Critic">
+<title>Law 2 Probe: 32x32 RGB Sprites with ResNet+GroupNorm + ViT Critic — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">Law 2 Probe: 32x32 RGB Sprites with ResNet+GroupNorm</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">32x32 4-class RGB sprites with ResNet+GroupNorm + ViT critic</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<rect x="40.8" y="90.0" width="68.0" height="68.0" rx="4" fill="#0f172a"/>
+<circle cx="74.8" cy="124.0" r="20" fill="none" stroke="#ef4444" stroke-width="7"/>
+<text x="74.8" y="174.0" font-size="9" fill="#0f172a" font-weight="600" text-anchor="middle">Red Ring</text>
+<rect x="131.6" y="90.0" width="68.0" height="68.0" rx="4" fill="#0f172a"/>
+<rect x="160.6" y="102.0" width="10" height="44.0" fill="#22c55e"/>
+<rect x="143.6" y="119.0" width="44.0" height="10" fill="#22c55e"/>
+<text x="165.6" y="174.0" font-size="9" fill="#0f172a" font-weight="600" text-anchor="middle">Green Cross</text>
+<rect x="222.4" y="90.0" width="68.0" height="68.0" rx="4" fill="#0f172a"/>
+<rect x="234.4" y="102.0" width="44.0" height="44.0" fill="none" stroke="#3b82f6" stroke-width="7"/>
+<text x="256.4" y="174.0" font-size="9" fill="#0f172a" font-weight="600" text-anchor="middle">Blue Frame</text>
+<rect x="313.2" y="90.0" width="68.0" height="68.0" rx="4" fill="#0f172a"/>
+<polygon points="347.2,101.0 370.2,124.0 347.2,147.0 324.2,124.0" fill="#eab308"/>
+<text x="347.2" y="174.0" font-size="9" fill="#0f172a" font-weight="600" text-anchor="middle">Gold Diamond</text>
+<rect x="31.2" y="210.0" width="80.0" height="34" rx="6" fill="#f8fafc" stroke="#2563eb" stroke-width="1.6"/>
+<text x="71.2" y="231.0" font-size="8" fill="#2563eb" font-weight="700" text-anchor="middle">32x32x3 RGB</text>
+<line x1="111.2" y1="227.0" x2="122.4" y2="227.0" stroke="#334155" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="124.4" y="210.0" width="80.0" height="34" rx="6" fill="#f8fafc" stroke="#0d9488" stroke-width="1.6"/>
+<text x="164.4" y="231.0" font-size="8" fill="#0d9488" font-weight="700" text-anchor="middle">ResNet + GroupNorm</text>
+<line x1="204.4" y1="227.0" x2="215.6" y2="227.0" stroke="#334155" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="217.6" y="210.0" width="80.0" height="34" rx="6" fill="#f8fafc" stroke="#7c3aed" stroke-width="1.6"/>
+<text x="257.6" y="231.0" font-size="8" fill="#7c3aed" font-weight="700" text-anchor="middle">Patch-4 ViT (SDPA)</text>
+<line x1="297.6" y1="227.0" x2="308.8" y2="227.0" stroke="#334155" stroke-width="1.4" marker-end="url(#arrow)"/>
+<rect x="310.8" y="210.0" width="80.0" height="34" rx="6" fill="#f8fafc" stroke="#e11d48" stroke-width="1.6"/>
+<text x="350.8" y="231.0" font-size="8" fill="#e11d48" font-weight="700" text-anchor="middle">Critic Score</text>
+<text x="211.0" y="286.0" font-size="9" fill="#475569" text-anchor="middle">Tests Law 2 fwAD vs RoR compatibility on GroupNorm + Attention critics</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">fl_law2_groupnorm_and_vit_sprite</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law2</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.05)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">600 steps · B=32</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=64 · z_dim=8</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">four_laws</text>
+</svg>

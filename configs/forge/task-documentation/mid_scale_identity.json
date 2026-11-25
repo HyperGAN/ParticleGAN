@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "mid_scale_identity",
+  "title": "Mid-Scale Concept Alignment & Magnitude Calibration",
+  "laws": [
+    "law2",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "scale-calibration",
+    "directional-alignment",
+    "behavioral-probe"
+  ],
+  "intuition": "Checks whether adversarial training preserves both the orientation (cosine >= 0.85) and calibrated magnitude (in [0.75, 1.25]) of opposing positive and negative concept vectors at intermediate scale.",
+  "failure_mode": "Scale-uncalibrated step sizes or unbounded critic slopes either overshoot the target magnitude (>1.25) or shrink concept vectors below 0.75.",
+  "protocol_notes": "800-step Tier-2 required behavioral host verifying directional and scale fidelity.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

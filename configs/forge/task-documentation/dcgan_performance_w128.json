@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_w128",
+  "title": "DCGAN Throughput Benchmark: 64x64 Wide Channels (B=16, W=128)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "wide-channels",
+    "mock-data-only"
+  ],
+  "intuition": "Doubles DCGAN channel width (W=128 at 64x64 RGB) to expose parameter-dimension O(W^3) optimizer bottlenecks (such as full SVD/eigh or high-iteration polar updates on wide Conv2d weight tensors).",
+  "failure_mode": "Matrix-conditioning optimizers with cubic parameter cost slow down sharply when channel width doubles.",
+  "protocol_notes": "Research diagnostic throughput workload only; no image-quality gate.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

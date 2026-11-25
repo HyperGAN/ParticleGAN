@@ -1,0 +1,101 @@
+site_name: ParticleGAN Research Portal
+site_description: Composable PyTorch primitives for learnable particle priors, evolving Laws of GAN learning, Forge benchmarks, and reproducible studies.
+site_url: https://hypergan.github.io/ParticleGAN/
+repo_url: https://github.com/HyperGAN/ParticleGAN
+repo_name: HyperGAN/ParticleGAN
+edit_uri: ""
+
+docs_dir: docs/portal
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  font:
+    text: Inter
+    code: JetBrains Mono
+  icon:
+    repo: fontawesome/brands/github
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: indigo
+      accent: cyan
+      toggle:
+        icon: material/brightness-7
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.sections
+    - navigation.indexes
+    - navigation.top
+    - navigation.path
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.tabs.link
+    - toc.follow
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - tables
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/HyperGAN/ParticleGAN
+      name: ParticleGAN on GitHub
+    - icon: material/chart-box-outline
+      link: https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard
+      name: Interactive Hugging Face Leaderboard Space
+    - icon: material/database-outline
+      link: https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence
+      name: ParticleGAN Forge Evidence Dataset
+
+extra_css:
+  - assets/stylesheets/portal.css
+
+extra_javascript:
+  - assets/javascripts/mathjax.js
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+  - https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js
+  - assets/javascripts/mermaid-init.js
+  - assets/javascripts/portal-leaderboard.js
+
+nav:
+  - Home: index.md
+  - Leaderboard: leaderboard.md

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ring16_bigan_continuous",
+  "title": "16-Mode Ring Continuous Joint BiGAN",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "bidirectional-encoder",
+    "ring-mixture",
+    "mode-consistency"
+  ],
+  "intuition": "Trains a joint BiGAN (G(z), E(x), D(x, z)) on a 16-mode Gaussian ring with MoGParticlePrior(sigma=0.1), requiring both 16/16 generative mode recovery and high encoder-decoder mode consistency (>= 0.98) and reconstruction accuracy.",
+  "failure_mode": "Joint critic D(x, z) fails to couple encoder and generator distributions, leading to accurate marginal samples but scrambled reconstructions (recon_rmse > 0.12 or mode_consistency < 0.98).",
+  "protocol_notes": "Tier-4 held stretch task (4,000 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

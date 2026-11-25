@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "img_intensity2_residual16",
+  "title": "8x8 Procedural Images: Two Photometric Intensity Levels (Residual-Upsample Width-16)",
+  "laws": [
+    "law1",
+    "law2",
+    "law3a"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "photometric-intensity",
+    "tight-rmse",
+    "residual-upsample-conv"
+  ],
+  "intuition": "Architectural transfer variant of `img_intensity2` replacing transposed convolutions with nearest-neighbor upsampling + width-16 residual Conv2d blocks. Tests photometric amplitude fidelity rather than spatial position: a centered 4x4 square must be generated at both target brightnesses (0.35 and 0.85) with tight template RMSE (<= 0.06).",
+  "failure_mode": "Trainers collapse to a single intermediate gray level (~0.60) or drop the dimmer/brighter mode entirely.",
+  "protocol_notes": "Separate residual-upsample image architecture cohort of `img_intensity2`.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

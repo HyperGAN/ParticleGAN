@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "cyclegan_unpaired_constellation",
+  "title": "CycleGAN Unpaired Ring-to-Square Constellation Translation",
+  "laws": [
+    "law1",
+    "law3b",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "unpaired-translation",
+    "dual-loop",
+    "cycle-consistency"
+  ],
+  "intuition": "Simultaneously trains dual translators (G_XY, G_YX) and dual critics (D_Y, D_X) for unpaired domain translation between an 8-mode circular ring and an 8-mode square perimeter, verifying bidirectional coverage and cycle RMSE <= 0.12.",
+  "failure_mode": "Dual minimax loops decouple or collapse multiple source modes onto a single target mode, breaking cycle-consistency or losing target coverage in one direction.",
+  "protocol_notes": "Tier-4 stretch benchmark (3,500 updates).",
+  "diagram_kind": "cyclegan_dual",
+  "custom_mermaid": null
+}

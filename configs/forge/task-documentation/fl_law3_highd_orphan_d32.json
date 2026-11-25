@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law3_highd_orphan_d32",
+  "title": "Law 3A Probe: Haar-Rotated R^32 Multi-Scale Mixture + 8% Orphan",
+  "laws": [
+    "law3a"
+  ],
+  "edge_cases": [
+    "high-dimensional",
+    "distant-orphan-mode",
+    "screening-horizon",
+    "multi-scale-width"
+  ],
+  "intuition": "Exposes the dim <= 16 Law 3A ceiling and beyond-horizon screening dead zone: places 4 multi-scale core clusters plus a distant 8% orphan at (+7.5, 0) inside a Haar-rotated R^32 space (dim=32 > 16).",
+  "failure_mode": "Heuristics restricted to low ambient dimensions (dim <= 16) switch off silently in R^32, leaving the distant 8% orphan mode completely uncaptured (orphan_recall = 0) or collapsing core 32D covariances.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (Haar-rotated R^32, 5 modes including distant 8% orphan).",
+  "diagram_kind": "highd_manifold",
+  "custom_mermaid": null
+}

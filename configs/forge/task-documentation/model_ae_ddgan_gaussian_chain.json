@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ae_ddgan_gaussian_chain",
+  "title": "Latent AE + 4-Step DDGAN Gaussian Chain",
+  "laws": [
+    "law3b",
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "latent-diffusion",
+    "multi-objective-conflict"
+  ],
+  "intuition": "Couples a learned particle autoencoder with a 4-step latent DDGAN reverse chain on a correlated Gaussian, requiring simultaneous AE reconstruction fidelity, ancestral generation quality, and conditioned transition accuracy.",
+  "failure_mode": "Moving latent coordinates from AE updates destabilize the conditional DDGAN fiber transitions, degrading conditioned slice CDFs even when reconstruction looks clean.",
+  "protocol_notes": "Tier-2 required benchmark and Four Laws Adherence Law 3 anchor.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}
