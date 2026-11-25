@@ -74,6 +74,31 @@ def _sketch_grad_67(grad: torch.Tensor, roll: int) -> torch.Tensor:
     return sk
 
 
+def _sketch_grad_67_finite(grad: torch.Tensor, roll: int) -> torch.Tensor:
+    """Zero-pad-copy CountSketch for already-verified finite, well-scaled gradients."""
+    gf = grad.detach().float().reshape(-1)
+    n = int(gf.numel())
+    full_rows = n // _FLIP_SKETCH_DIM
+    rem = n - full_rows * _FLIP_SKETCH_DIM
+    if full_rows > 1:
+        rows = gf[: full_rows * _FLIP_SKETCH_DIM].view(full_rows, _FLIP_SKETCH_DIM)
+        sk = rows[0::2].sum(dim=0) - rows[1::2].sum(dim=0)
+    elif full_rows == 1:
+        sk = gf[:_FLIP_SKETCH_DIM].clone()
+    else:
+        sk = gf.new_zeros(_FLIP_SKETCH_DIM)
+    if rem:
+        tail = gf[full_rows * _FLIP_SKETCH_DIM :]
+        if full_rows % 2 == 0:
+            sk[:rem].add_(tail)
+        else:
+            sk[:rem].sub_(tail)
+    sk = sk / sk.norm().clamp_min(1e-30)
+    if roll:
+        sk = torch.roll(sk, shifts=roll, dims=0)
+    return sk
+
+
 class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
     """Energy-optimal, zero-sync, deep-residual-coupled 4-Law optimizer (`unified_v12_equil`)."""
 
@@ -132,7 +157,7 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
         """
         ema_fg = float(self._ema_func_gain)
         if ema_fg < 0.60 and s_therm >= 0.5:
-            sk_sum: Optional[torch.Tensor] = None
+            sketch_items: List[Tuple[torch.Tensor, int]] = []
             idx_l = 0
             for grp in self.param_groups:
                 if self._player(grp["role"]) != "generator":
@@ -143,9 +168,35 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
                         and min(int(p.shape[0]), int(p.numel() // max(1, int(p.shape[0])))) >= 2
                         and p.grad is not None
                     ):
-                        sk_l = _sketch_grad_67(p.grad, (idx_l * 13) % _FLIP_SKETCH_DIM)
-                        sk_sum = sk_l if sk_sum is None else (sk_sum + sk_l)
+                        sketch_items.append((p.grad.detach(), (idx_l * 13) % _FLIP_SKETCH_DIM))
                         idx_l += 1
+            sk_sum: Optional[torch.Tensor] = None
+            if sketch_items:
+                by_dev_fp32: Dict[torch.device, List[Tuple[int, torch.Tensor, int]]] = {}
+                fallback_indices: set[int] = set()
+                for idx_s, (g_s, roll_s) in enumerate(sketch_items):
+                    if g_s.dtype == torch.float32 and g_s.numel() > 0:
+                        by_dev_fp32.setdefault(g_s.device, []).append((idx_s, g_s, roll_s))
+                    else:
+                        fallback_indices.add(idx_s)
+                g_max_map: Dict[int, float] = {}
+                for entries in by_dev_fp32.values():
+                    max_ts = torch._foreach_norm([e[1] for e in entries], float("inf"))
+                    max_vals = torch.stack(max_ts).tolist()
+                    for (idx_s, _, _), mv in zip(entries, max_vals):
+                        g_max_map[idx_s] = float(mv)
+                for idx_s, (g_s, roll_s) in enumerate(sketch_items):
+                    if idx_s in fallback_indices:
+                        sk_l = _sketch_grad_67(g_s, roll_s)
+                    else:
+                        gm = g_max_map[idx_s]
+                        if not math.isfinite(gm) or gm <= 1e-38:
+                            sk_l = g_s.new_zeros(_FLIP_SKETCH_DIM)
+                        elif 1e-18 <= gm <= 1e18:
+                            sk_l = _sketch_grad_67_finite(g_s, roll_s)
+                        else:
+                            sk_l = _sketch_grad_67(g_s, roll_s)
+                    sk_sum = sk_l if sk_sum is None else (sk_sum + sk_l)
             if sk_sum is not None:
                 sk_nrm = sk_sum.norm()
                 sk_u = sk_sum / sk_nrm.clamp_min(1e-30)
@@ -276,6 +327,312 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
             for pid in pids_r:
                 param_mults[pid] = mult
         return param_mults
+
+    def _apply_slow_moment_batch_foreach(
+        self,
+        batch_items: List[Tuple[Any, ...]],
+        *,
+        p_dec: float,
+        s_therm: float,
+        v4_g_scale_f: Optional[float],
+        v4_pre_g_f: Optional[float],
+        od_f: Optional[float],
+        pre_g_tensor: Optional[torch.Tensor],
+        origin_damping_t: Optional[torch.Tensor],
+        origin_damping: float,
+        pre_gain_applied: float | torch.Tensor,
+        coh_vals: List[torch.Tensor],
+        applied_deltas: List[Tuple[torch.Tensor, torch.Tensor]],
+        pending_dense: Dict[
+            Tuple[int, int, bool],
+            List[Tuple[torch.Tensor, torch.Tensor, Any, torch.Tensor, bool, bool]],
+        ],
+    ) -> Tuple[float, int, Optional[float], Optional[float], Optional[float], float | torch.Tensor, List[Tuple[Any, ...]]]:
+        """Vectorized ``torch._foreach_*`` moment path matching ``_apply_slow_param_zerosync``."""
+        vec_coh_sum = 0.0
+        vec_coh_count = 0
+        fallback_items: List[Tuple[Any, ...]] = []
+        if not batch_items:
+            return vec_coh_sum, vec_coh_count, v4_g_scale_f, v4_pre_g_f, od_f, pre_gain_applied, fallback_items
+
+        by_dev: Dict[torch.device, List[Tuple[Any, ...]]] = {}
+        for item in batch_items:
+            by_dev.setdefault(item[0].device, []).append(item)
+
+        for dev, entries in by_dev.items():
+            n_ent = len(entries)
+            grads_e: List[torch.Tensor] = []
+            m_scale_ts: List[torch.Tensor] = []
+            v_scale_ts: List[torch.Tensor] = []
+            peak_ts: List[torch.Tensor] = []
+            metrics_e: List[Tuple[bool, float, float, int, int, int]] = []
+
+            for item in entries:
+                p, g = item[0], item[1]
+                is_critic_role = item[11]
+                st = self.state[p]
+                if "peak_rms" not in st:
+                    init_peak = float(st.get("peak_rms_val", 0.0))
+                    st["peak_rms"] = g.new_full((), init_peak)
+                if "m_unit" not in st:
+                    st["m_unit"] = torch.zeros_like(p, dtype=torch.float32)
+                    st["m_scale"] = torch.zeros((), device=dev, dtype=torch.float32)
+                    st["v_rms"] = torch.zeros_like(p, dtype=torch.float32)
+                    st["v_scale"] = torch.zeros((), device=dev, dtype=torch.float32)
+                grads_e.append(g)
+                m_scale_ts.append(st["m_scale"])
+                v_scale_ts.append(st["v_scale"])
+                peak_ts.append(st["peak_rms"])
+
+                is_conv = p.ndim == 4
+                r_d = c_d = m_dim = 1
+                if is_conv:
+                    factor, sv_denom_sqrt = self._cached_conv_metrics(p)
+                elif p.ndim >= 2:
+                    r_d, c_d, m_dim, aspect_factor, sv_denom_sqrt = self._cached_dense_metrics(p)
+                    factor = aspect_factor * math.sqrt(float(m_dim)) if (is_critic_role and m_dim >= 2) else aspect_factor
+                else:
+                    factor, sv_denom_sqrt = 1.0, 1.0
+                metrics_e.append((is_conv, factor, sv_denom_sqrt, r_d, c_d, m_dim))
+
+            g_norms_t = torch._foreach_norm(grads_e, 2)
+            g_maxs_t = torch._foreach_norm(grads_e, float("inf"))
+
+            extra_t: List[torch.Tensor] = []
+            idx_gs = idx_pg = idx_od = -1
+            base_off = 5 * n_ent
+            if v4_g_scale_f is None and isinstance(self._v4_g_scale, torch.Tensor):
+                idx_gs = base_off + len(extra_t)
+                extra_t.append(self._v4_g_scale.to(device=dev, dtype=torch.float32))
+            if v4_pre_g_f is None and pre_g_tensor is not None:
+                idx_pg = base_off + len(extra_t)
+                extra_t.append(pre_g_tensor.to(device=dev, dtype=torch.float32))
+            if od_f is None and origin_damping_t is not None:
+                idx_od = base_off + len(extra_t)
+                extra_t.append(origin_damping_t.to(device=dev, dtype=torch.float32))
+
+            packed1 = torch.stack((*g_norms_t, *g_maxs_t, *m_scale_ts, *v_scale_ts, *peak_ts, *extra_t)).tolist()
+            if idx_gs >= 0:
+                v4_g_scale_f = float(packed1[idx_gs])
+            if idx_pg >= 0:
+                v4_pre_g_f = float(packed1[idx_pg])
+                pre_gain_applied = v4_pre_g_f
+            if idx_od >= 0:
+                od_f = float(packed1[idx_od])
+
+            gen_v4_mult_local = (
+                (v4_g_scale_f * v4_pre_g_f)
+                if (v4_g_scale_f is not None and v4_pre_g_f is not None)
+                else None
+            )
+
+            safe_indices: List[int] = []
+            safe_grads: List[torch.Tensor] = []
+            safe_m_units: List[torch.Tensor] = []
+            safe_v_rmss: List[torch.Tensor] = []
+            safe_m_scale_ts: List[torch.Tensor] = []
+            safe_v_scale_ts: List[torch.Tensor] = []
+            safe_peak_ts: List[torch.Tensor] = []
+            m_b1_ratios: List[float] = []
+            v_ratios: List[float] = []
+            inv_scs: List[float] = []
+            b1_list: List[float] = []
+            b2_list: List[float] = []
+            scs: List[float] = []
+            peak_news: List[float] = []
+            s_effs: List[float] = []
+
+            for i, item in enumerate(entries):
+                gn = float(packed1[i])
+                gm = float(packed1[n_ent + i])
+                m_prev_sc = float(packed1[2 * n_ent + i])
+                v_prev_sc = float(packed1[3 * n_ent + i])
+                peak_prev = float(packed1[4 * n_ent + i])
+                sc_cand = max(m_prev_sc, v_prev_sc, gm)
+                is_gen_v4 = item[4]
+                apply_od = item[5]
+                if (
+                    not (
+                        math.isfinite(gn)
+                        and math.isfinite(gm)
+                        and math.isfinite(m_prev_sc)
+                        and math.isfinite(v_prev_sc)
+                        and math.isfinite(peak_prev)
+                        and (1e-18 <= gm <= 1e18)
+                        and (gn <= 1e18)
+                        and (1e-18 <= sc_cand <= 1e18)
+                    )
+                    or (is_gen_v4 and gen_v4_mult_local is None)
+                    or (apply_od and od_f is None)
+                ):
+                    fallback_items.append(item)
+                    continue
+                p, g = item[0], item[1]
+                b1_eff, b2_eff = float(item[6]), float(item[7])
+                s_base = float(item[9])
+                _, _, sv_denom_sqrt, _, _, _ = metrics_e[i]
+                cur_sv = gn / sv_denom_sqrt
+                peak_new = max(peak_prev * p_dec, cur_sv)
+                s_eff = min(s_base, peak_new * 0.50) if s_base > 0.0 else 0.0
+                st = self.state[p]
+                safe_indices.append(i)
+                safe_grads.append(g)
+                safe_m_units.append(st["m_unit"])
+                safe_v_rmss.append(st["v_rms"])
+                safe_m_scale_ts.append(st["m_scale"])
+                safe_v_scale_ts.append(st["v_scale"])
+                safe_peak_ts.append(st["peak_rms"])
+                m_b1_ratios.append((m_prev_sc / sc_cand) * b1_eff)
+                v_ratios.append(v_prev_sc / sc_cand)
+                inv_scs.append(1.0 / sc_cand)
+                b1_list.append(b1_eff)
+                b2_list.append(b2_eff)
+                scs.append(sc_cand)
+                peak_news.append(peak_new)
+                s_effs.append(s_eff)
+
+            m_cnt = len(safe_indices)
+            if m_cnt == 0:
+                continue
+
+            # Vectorized EMA moment update (8 foreach kernels for all parameters on this device):
+            m_nexts = torch._foreach_mul(safe_m_units, m_b1_ratios)
+            g_scaleds = torch._foreach_mul(safe_grads, inv_scs)
+            if all(b == b1_list[0] for b in b1_list):
+                torch._foreach_add_(m_nexts, g_scaleds, alpha=1.0 - b1_list[0])
+            else:
+                torch._foreach_add_(m_nexts, torch._foreach_mul(g_scaleds, [1.0 - b for b in b1_list]))
+
+            v_nexts = torch._foreach_mul(safe_v_rmss, v_ratios)
+            torch._foreach_mul_(v_nexts, v_nexts)
+            torch._foreach_mul_(v_nexts, b2_list)
+            torch._foreach_mul_(g_scaleds, g_scaleds)
+            if all(b == b2_list[0] for b in b2_list):
+                torch._foreach_add_(v_nexts, g_scaleds, alpha=1.0 - b2_list[0])
+            else:
+                torch._foreach_add_(v_nexts, torch._foreach_mul(g_scaleds, [1.0 - b for b in b2_list]))
+            torch._foreach_sqrt_(v_nexts)
+            del g_scaleds
+
+            new_m_scs_t = torch._foreach_norm(m_nexts, float("inf"))
+            new_v_scs_t = torch._foreach_norm(v_nexts, float("inf"))
+            m_norms_t = torch._foreach_norm(m_nexts, 2)
+            v_norms_t = torch._foreach_norm(v_nexts, 2)
+            packed2 = torch.stack((*new_m_scs_t, *new_v_scs_t, *m_norms_t, *v_norms_t)).tolist()
+
+            inv_m_scs: List[float] = []
+            inv_v_scs: List[float] = []
+            m_scale_news: List[float] = []
+            v_scale_news: List[float] = []
+
+            upd_ps: List[torch.Tensor] = []
+            upd_m_nexts: List[torch.Tensor] = []
+            upd_alphas: List[float] = []
+            upd_tracks: List[bool] = []
+
+            ns_m_nexts: List[torch.Tensor] = []
+            ns_dir_scales: List[float] = []
+            ns_meta: List[Tuple[torch.Tensor, int, int, bool, float, float, bool, bool]] = []
+
+            for k, orig_i in enumerate(safe_indices):
+                item = entries[orig_i]
+                p = item[0]
+                step_t = int(item[2])
+                lr_p_no_v4 = float(item[3])
+                is_gen_v4 = bool(item[4])
+                apply_od = bool(item[5])
+                b1_eff = b1_list[k]
+                b2_eff = b2_list[k]
+                eps = float(item[8])
+                s_base = float(item[9])
+                stiff_gate = float(item[10])
+                is_critic_role = bool(item[11])
+                track_sec = bool(item[12])
+                is_conv, factor, sv_denom_sqrt, r_d, c_d, m_dim = metrics_e[orig_i]
+
+                sc = scs[k]
+                s_eff = s_effs[k]
+                has_smooth = s_base > 0.0
+                nm = float(packed2[k])
+                nv = float(packed2[m_cnt + k])
+                mn = float(packed2[2 * m_cnt + k])
+                vn = float(packed2[3 * m_cnt + k])
+
+                if nm > 1e-38:
+                    inv_m_scs.append(1.0 / nm)
+                    m_scale_news.append(nm * sc)
+                else:
+                    inv_m_scs.append(0.0)
+                    m_scale_news.append(0.0)
+                if nv > 1e-38:
+                    inv_v_scs.append(1.0 / nv)
+                    v_scale_news.append(nv * sc)
+                else:
+                    inv_v_scs.append(0.0)
+                    v_scale_news.append(0.0)
+
+                bc1 = max(1.0 - (b1_eff ** step_t), 1e-8)
+                bc2_sqrt = max(math.sqrt(1.0 - (b2_eff ** step_t)), 1e-8)
+                m_hat_norm = mn / bc1
+                v_hat_norm = vn / bc2_sqrt
+                if v_hat_norm > 1e-30 and m_hat_norm > 1e-30:
+                    raw_coh = min(1.0, max(0.0, m_hat_norm / v_hat_norm))
+                else:
+                    raw_coh = 0.0
+                coh = ((1.0 - stiff_gate) + stiff_gate * raw_coh) if stiff_gate > 0.0 else 1.0
+
+                rate_p = lr_p_no_v4 * (gen_v4_mult_local if is_gen_v4 else 1.0) * (od_f if apply_od else 1.0)  # type: ignore[operator]
+                if rate_p <= 0.0:
+                    continue
+                if track_sec:
+                    vec_coh_sum += coh
+                    vec_coh_count += 1
+
+                if (not is_conv) and (not is_critic_role) and p.ndim >= 2 and m_dim >= 2:
+                    ns_m_nexts.append(m_nexts[k])
+                    ns_dir_scales.append((sc / bc1) if has_smooth else (1.0 / bc1))
+                    ns_meta.append((p, r_d, c_d, has_smooth, (-rate_p * factor) * coh, s_eff, track_sec, r_d > c_d))
+                elif m_hat_norm > 1e-30:
+                    if has_smooth:
+                        s_scaled = (s_eff * sv_denom_sqrt) / max(sc, 1e-38)
+                        denom_m = max(math.hypot(m_hat_norm, s_scaled), 1e-30)
+                    else:
+                        denom_m = max(m_hat_norm + (eps if p.ndim == 1 else 0.0), 1e-30)
+                    alpha_m = ((-rate_p * factor) * coh) / (bc1 * denom_m)
+                    upd_ps.append(p)
+                    upd_m_nexts.append(m_nexts[k])
+                    upd_alphas.append(alpha_m)
+                    upd_tracks.append(track_sec)
+
+            # Direct parameter updates (all 4D convs + 1D norms/biases + critic 2D) in 2 foreach launches:
+            if upd_ps:
+                deltas = torch._foreach_mul(upd_m_nexts, upd_alphas)
+                torch._foreach_add_(upd_ps, deltas)
+                for p_u, d_u, trk_u in zip(upd_ps, deltas, upd_tracks):
+                    if trk_u:
+                        applied_deltas.append((p_u, d_u))
+
+            # Queue 2D Generator NS matrices in 1 foreach launch + 1 H2D scalar vector:
+            if ns_m_nexts:
+                ns_dirs = torch._foreach_mul(ns_m_nexts, ns_dir_scales)
+                ns_s_ts = torch.tensor([m[5] for m in ns_meta], device=dev, dtype=torch.float32).unbind()
+                for dir_k, s_t_k, (p_k, r_d, c_d, has_s, mult_k, _, trk_k, needs_t) in zip(ns_dirs, ns_s_ts, ns_meta):
+                    mat_k = dir_k.reshape(r_d, c_d)
+                    mat_canon = mat_k.T if needs_t else mat_k
+                    m_key = (int(mat_canon.shape[0]), int(mat_canon.shape[1]), has_s)
+                    pending_dense.setdefault(m_key, []).append((p_k, mat_canon, mult_k, s_t_k, trk_k, needs_t))
+
+            # In-place moment & scalar state updates in 6 foreach launches:
+            torch._foreach_mul_(m_nexts, inv_m_scs)
+            torch._foreach_copy_(safe_m_units, m_nexts)
+            torch._foreach_mul_(v_nexts, inv_v_scs)
+            torch._foreach_copy_(safe_v_rmss, v_nexts)
+            all_0d_ts = safe_m_scale_ts + safe_v_scale_ts + safe_peak_ts
+            all_0d_vals = m_scale_news + v_scale_news + peak_news
+            torch._foreach_zero_(all_0d_ts)
+            torch._foreach_add_(all_0d_ts, all_0d_vals)
+
+        return vec_coh_sum, vec_coh_count, v4_g_scale_f, v4_pre_g_f, od_f, pre_gain_applied, fallback_items
 
     def _apply_slow_param_zerosync(
         self,
@@ -1082,11 +1439,59 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
                     (p, mat_canon, g.new_full((), -rate_p * factor), g.new_full((), s_eff), track_sec, needs_t)
                 )
 
-            # 2. Zero-Sync Slow Path (stiff 2D NS on G, scalar 1D, extreme scales <1e-18 / >1e18 / NaN / non-FP32):
+            # 2. Vectorized Foreach Moment Path + Zero-Sync Slow Fallback (scalar 1D, extreme scales, NaN, non-FP32):
+            vec_coh_sum = 0.0
+            vec_coh_count = 0
+            moment_batch: List[Tuple[Any, ...]] = []
+            scalar_slow_queue: List[Tuple[Any, ...]] = []
+            for item in slow_queue:
+                p_s, g_s = item[0], item[1]
+                b1_s, stiff_s = float(item[6]), float(item[10])
+                is_sc1d = p_s.ndim == 1 and p_s.numel() == 1
+                if (
+                    p_s.dtype == torch.float32
+                    and g_s.dtype == torch.float32
+                    and p_s.numel() > 0
+                    and not is_sc1d
+                    and (b1_s > 0.0 or stiff_s > 0.0)
+                ):
+                    moment_batch.append(item)
+                else:
+                    scalar_slow_queue.append(item)
+
+            if moment_batch:
+                (
+                    vec_coh_sum,
+                    vec_coh_count,
+                    v4_g_scale_f,
+                    v4_pre_g_f,
+                    od_f,
+                    pre_gain_applied,
+                    fb_items,
+                ) = self._apply_slow_moment_batch_foreach(
+                    moment_batch,
+                    p_dec=p_dec,
+                    s_therm=s_therm,
+                    v4_g_scale_f=v4_g_scale_f,
+                    v4_pre_g_f=v4_pre_g_f,
+                    od_f=od_f,
+                    pre_g_tensor=pre_g_tensor,
+                    origin_damping_t=origin_damping_t,
+                    origin_damping=origin_damping,
+                    pre_gain_applied=pre_gain_applied,
+                    coh_vals=coh_vals,
+                    applied_deltas=applied_deltas,
+                    pending_dense=pending_dense,
+                )
+                if fb_items:
+                    scalar_slow_queue.extend(fb_items)
+                if gen_v4_mult_f is None and v4_g_scale_f is not None and v4_pre_g_f is not None:
+                    gen_v4_mult_f = v4_g_scale_f * v4_pre_g_f
+
             for (
                 p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b1_eff, b2_eff, eps,
                 s_base, stiff_gate, is_critic_role, track_sec,
-            ) in slow_queue:
+            ) in scalar_slow_queue:
                 if is_gen_v4 and gen_v4_mult_f is None and gen_v4_mult_t is not None:
                     rate_val: float | torch.Tensor = lr_p_no_v4 * gen_v4_mult_t
                     if apply_od:
@@ -1164,10 +1569,14 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
                         probe_ran = True
                         out_dim = max(1, int(y_pre[0].numel()))
                         delta_rms_t = (y_post - y_pre).square().mean().sqrt().double()
-                        total_coh_n = fast_coh_count + len(coh_vals)
+                        total_coh_n = fast_coh_count + vec_coh_count + len(coh_vals)
                         if coh_vals:
                             slow_coh_sum_t = torch.stack(coh_vals).sum().double()
-                            mean_coh_t = (float(fast_coh_count) + slow_coh_sum_t) / float(max(1, total_coh_n))
+                            mean_coh_t = (float(fast_coh_count) + vec_coh_sum + slow_coh_sum_t) / float(max(1, total_coh_n))
+                        elif total_coh_n > 0:
+                            mean_coh_t = delta_rms_t.new_full(
+                                (), (float(fast_coh_count) + vec_coh_sum) / float(total_coh_n)
+                            )
                         else:
                             mean_coh_t = delta_rms_t.new_full((), 1.0)
                         has_pg_t = isinstance(pre_gain_applied, torch.Tensor)
@@ -1213,8 +1622,14 @@ class UnifiedV12Optimizer(UnifiedV11EquilibratedOptimizer):
                     for p_i, alpha_i in fast_secant_deltas:
                         if p_i.grad is not None:
                             p_i.add_(p_i.grad, alpha=adj * alpha_i)
-                    for p_i, d_i in applied_deltas:
-                        p_i.add_(d_i, alpha=adj)
+                    if applied_deltas:
+                        by_kind: Dict[Tuple[torch.device, torch.dtype], Tuple[List[torch.Tensor], List[torch.Tensor]]] = {}
+                        for p_i, d_i in applied_deltas:
+                            pair = by_kind.setdefault((p_i.device, p_i.dtype), ([], []))
+                            pair[0].append(p_i)
+                            pair[1].append(d_i)
+                        for adj_ps, adj_ds in by_kind.values():
+                            torch._foreach_add_(adj_ps, adj_ds, alpha=adj)
                 if probe_ran:
                     if alpha_gain < 1.0:
                         target_fg = max(0.05, min(1.0, pre_gain_f * alpha_gain))

@@ -1,4 +1,5 @@
 """A checkpointable training loop using the current recipe formulation."""
+from contextlib import contextmanager
 from copy import deepcopy
 import math
 
@@ -12,11 +13,48 @@ from .priors import unwrap_prior
 from .recipes import Recipe, learning_rate_scales
 from .policy import UpdatePolicy, _state_to_device, _validate_optimizer_state, input_noise_std as input_noise_std, output_noise_std
 
+_VALID_TRAINING_PRECISIONS = ("float32", "bf16_channels_last")
 
-def _convolution_autocast(module, enabled):
-    if not enabled or not any(isinstance(child, (nn.Conv2d, nn.ConvTranspose2d))
-                              and max(child.in_channels, child.out_channels) // child.groups > 32
-                              for child in module.modules()):
+_CANONICAL_BF16_ATTR = "_particlegan_bf16_autocast"
+
+_FORMULATION_BF16_ATTRS = {
+    "t4_nash": "_t4_bf16_autocast",
+    "unified_v4": "_unified_v4_bf16_autocast",
+    "unified_v11": "_unified_v4_bf16_autocast",
+    "r4_autograd_critic": "_unified_v4_bf16_autocast",
+    "t4_nash_v3": "_nash_v3_bf16_autocast",
+    "minimal": "_minimal_bf16_autocast",
+    "axiom": "_axiom_bf16_autocast",
+}
+
+_PYTORCH_RESERVED_TENSOR_ATTRS = frozenset({
+    "_backward_hooks",
+    "_post_accumulate_grad_hooks",
+    "_cdata",
+    "_base",
+    "_grad",
+    "_grad_fn",
+    "_version",
+    "_is_view",
+    "_tensor_impl",
+})
+_FLOAT_OUTPUT_COUPLED_PREFIXES = ("_rhbi", "_t1c", "_rgdt", "_axiom")
+_HIGHRES_SIMPLICIAL_4D_FORMULATIONS = frozenset({"unified", "unified_v4", "r4_autograd_critic", "cond_fiber"})
+_HIGHRES_SIMPLICIAL_ANYD_FORMULATIONS = frozenset({"unified_v11", "axiom"})
+
+
+def _resolve_training_precision(training_precision):
+    if hasattr(training_precision, "training_precision") and not isinstance(training_precision, (str, bool)):
+        training_precision = training_precision.training_precision
+    if isinstance(training_precision, bool):
+        return "bf16_channels_last" if training_precision else "float32"
+    if not isinstance(training_precision, str) or training_precision not in _VALID_TRAINING_PRECISIONS:
+        raise ValueError("training_precision must be float32 or bf16_channels_last")
+    return training_precision
+
+
+def _cuda_bf16_supported(module):
+    if module is None:
         return False
     parameter = next(module.parameters(), None)
     if parameter is None or parameter.device.type != "cuda":
@@ -25,77 +63,183 @@ def _convolution_autocast(module, enabled):
         return torch.cuda.is_bf16_supported(including_emulation=False)
 
 
-def _float_output(value):
+def _has_bf16_convolution(module):
+    if module is None:
+        return False
+    return any(
+        isinstance(child, (nn.Conv2d, nn.ConvTranspose2d))
+        and max(child.in_channels, child.out_channels) // child.groups > 32
+        for child in module.modules()
+    )
+
+
+def uses_channels_last(module, training_precision="bf16_channels_last"):
+    """Return True when ``module`` should use CUDA ``channels_last`` (NHWC) layout."""
+    precision = _resolve_training_precision(training_precision)
+    if precision != "bf16_channels_last" or not _has_bf16_convolution(module):
+        return False
+    return _cuda_bf16_supported(module)
+
+
+def uses_bf16_autocast(module, training_precision="bf16_channels_last"):
+    """Return True when ``module`` should run training forwards under CUDA BF16 autocast."""
+    precision = _resolve_training_precision(training_precision)
+    if precision == "float32":
+        return False
+    return uses_channels_last(module, precision)
+
+
+def configure_bf16_autocast(recipe, module, enabled):
+    """Set canonical and formulation-specific BF16 autocast probe flags on ``module`` and return ``bool(enabled)``."""
+    flag = bool(enabled)
+    if module is not None:
+        setattr(module, _CANONICAL_BF16_ATTR, flag)
+        custom_attr = None if isinstance(recipe, str) else getattr(recipe, "bf16_autocast_attr", None)
+        if isinstance(custom_attr, str) and custom_attr:
+            setattr(module, custom_attr, flag)
+        formulation = (
+            recipe
+            if isinstance(recipe, str)
+            else getattr(recipe, "effective_critic_formulation", None)
+        )
+        attr = _FORMULATION_BF16_ATTRS.get(formulation)
+        if attr is not None:
+            setattr(module, attr, flag)
+    return flag
+
+
+def uses_simplicial_manifold_loss(
+    recipe,
+    real=None,
+    *,
+    prior=None,
+    is_discrete_prior=None,
+    conditioned=False,
+):
+    """Return True when ``recipe`` should evaluate ``simplicial_manifold_loss`` on ``real``.
+
+    Centralizes ParticleGAN's formulation-owned high-dimensional bypass rules
+    (e.g. ``per_sample_numel > 1024`` on unified formulations) so external hosts
+    never hardcode recipe-version checks.
+    """
+    if recipe is None or conditioned:
+        return False
+    if float(getattr(recipe, "rhbi_simplex_weight", 0.0) or 0.0) <= 0.0:
+        return False
+    if is_discrete_prior is False:
+        return False
+    if prior is not None:
+        base_prior = unwrap_prior(prior)
+        if is_discrete_prior is None and type(base_prior) is not ParticlePrior:
+            return False
+        table = getattr(base_prior, "z", None)
+        if not isinstance(table, torch.Tensor) or not table.requires_grad or len(table) < 2:
+            return False
+    if isinstance(real, torch.Tensor) and real.ndim >= 2 and real.shape[0] > 0:
+        per_sample = int(real[0].numel())
+        explicit_cap = getattr(recipe, "simplicial_max_dim", None)
+        if explicit_cap is not None and per_sample > int(explicit_cap):
+            return False
+        formulation = getattr(recipe, "effective_critic_formulation", None)
+        if formulation in _HIGHRES_SIMPLICIAL_ANYD_FORMULATIONS and per_sample > 1024:
+            return False
+        if formulation in _HIGHRES_SIMPLICIAL_4D_FORMULATIONS and real.ndim >= 4 and per_sample > 1024:
+            return False
+    return True
+
+
+def _convolution_autocast(module, enabled):
+    return uses_channels_last(module, bool(enabled))
+
+
+def float_output(value):
+    """Cast ``torch.bfloat16`` tensor outputs to ``torch.float32``, preserving attached capture metadata.
+
+    Copies all non-reserved Python instance attributes attached to ``value`` so
+    current and future formulation hooks retain capture metadata automatically.
+    Recursively converts tensors inside ``tuple``, ``list``, and ``dict`` containers,
+    preserves ``torch.autograd.forward_ad`` dual tangents, and returns non-BF16
+    tensors untouched without copying.
+    """
     if isinstance(value, torch.Tensor):
-        result = value.float() if value.dtype == torch.bfloat16 else value
-        if hasattr(value, "_bispf_input"):
-            result._bispf_input = value._bispf_input
-        if hasattr(value, "_empf_input"):
-            result._empf_input = value._empf_input
-        if hasattr(value, "_empf_record"):
-            result._empf_record = value._empf_record
-        if hasattr(value, "_empf_conditioned"):
-            result._empf_conditioned = value._empf_conditioned
-        if hasattr(value, "_empf_cond_tensors"):
-            result._empf_cond_tensors = value._empf_cond_tensors
-        if hasattr(value, "_t2_input"):
-            result._t2_input = value._t2_input
-        if hasattr(value, "_t2_record"):
-            result._t2_record = value._t2_record
-        if hasattr(value, "_t2_conditioned"):
-            result._t2_conditioned = value._t2_conditioned
-        if hasattr(value, "_t2_cond_tensors"):
-            result._t2_cond_tensors = value._t2_cond_tensors
-        if hasattr(value, "_rhbi_input"):
-            result._rhbi_input = value._rhbi_input
-            result._rhbi_cond = getattr(value, "_rhbi_cond", None)
-            result._rhbi_cont_cond = bool(getattr(value, "_rhbi_cont_cond", False))
-            result._rhbi_parts = getattr(value, "_rhbi_parts", None)
-        if hasattr(value, "_rhbi_record"):
-            result._rhbi_record = value._rhbi_record
-        if hasattr(value, "_rhbi_thermally_scaled"):
-            result._rhbi_thermally_scaled = value._rhbi_thermally_scaled
-        if hasattr(value, "_t1c_input"):
-            result._t1c_input = value._t1c_input
-            result._t1c_cond = getattr(value, "_t1c_cond", None)
-            result._t1c_cont_cond = bool(getattr(value, "_t1c_cont_cond", False))
-            result._t1c_parts = getattr(value, "_t1c_parts", None)
-        if hasattr(value, "_t1c_record"):
-            result._t1c_record = value._t1c_record
-        if hasattr(value, "_t1c_thermally_scaled"):
-            result._t1c_thermally_scaled = value._t1c_thermally_scaled
-        if hasattr(value, "_rgdt_input"):
-            result._rgdt_input = value._rgdt_input
-            result._rgdt_cond = getattr(value, "_rgdt_cond", None)
-            result._rgdt_cont_cond = bool(getattr(value, "_rgdt_cont_cond", False))
-            result._rgdt_parts = getattr(value, "_rgdt_parts", None)
-        if hasattr(value, "_rgdt_record"):
-            result._rgdt_record = value._rgdt_record
-        if hasattr(value, "_rgdt_thermally_scaled"):
-            result._rgdt_thermally_scaled = value._rgdt_thermally_scaled
-        if hasattr(value, "_t4_input"):
-            result._t4_input = value._t4_input
-        if hasattr(value, "_t4_record"):
-            result._t4_record = value._t4_record
-        if hasattr(value, "_t4_conditioned"):
-            result._t4_conditioned = value._t4_conditioned
-        if hasattr(value, "_t4_cond_tensors"):
-            result._t4_cond_tensors = value._t4_cond_tensors
-        if hasattr(value, "_axiom_input"):
-            result._axiom_input = value._axiom_input
-            result._axiom_cond = getattr(value, "_axiom_cond", None)
-            result._axiom_cont_cond = bool(getattr(value, "_axiom_cont_cond", False))
-            result._axiom_parts = getattr(value, "_axiom_parts", None)
-        if hasattr(value, "_axiom_record"):
-            result._axiom_record = value._axiom_record
-        if hasattr(value, "_axiom_thermally_scaled"):
-            result._axiom_thermally_scaled = value._axiom_thermally_scaled
+        if value.dtype != torch.bfloat16:
+            return value
+        result = value.float()
+        attrs = getattr(value, "__dict__", None)
+        if attrs:
+            for attr, attr_val in attrs.items():
+                if (
+                    attr in _PYTORCH_RESERVED_TENSOR_ATTRS
+                    or (attr.startswith("__") and attr.endswith("__"))
+                ):
+                    continue
+                setattr(result, attr, attr_val)
+            for prefix in _FLOAT_OUTPUT_COUPLED_PREFIXES:
+                if f"{prefix}_input" in attrs:
+                    if not hasattr(result, f"{prefix}_cond"):
+                        setattr(result, f"{prefix}_cond", None)
+                    setattr(result, f"{prefix}_cont_cond", bool(getattr(result, f"{prefix}_cont_cond", False)))
+                    if not hasattr(result, f"{prefix}_parts"):
+                        setattr(result, f"{prefix}_parts", None)
         return result
     if isinstance(value, tuple):
-        return tuple(_float_output(item) for item in value)
+        converted = tuple(float_output(item) for item in value)
+        return value if all(new is old for new, old in zip(converted, value)) else converted
     if isinstance(value, list):
-        return [_float_output(item) for item in value]
+        converted = [float_output(item) for item in value]
+        return value if all(new is old for new, old in zip(converted, value)) else converted
+    if isinstance(value, dict):
+        if not value:
+            return value
+        converted = {k: float_output(v) for k, v in value.items()}
+        if all(converted[k] is value[k] for k in value):
+            return value
+        try:
+            return type(value)(converted)
+        except TypeError:
+            return converted
     return value
+
+
+_float_output = float_output
+
+
+@contextmanager
+def critic_source_context(critic, source):
+    """Bind pre-transform ``source`` tensor identity on ``critic`` for live-endpoint reuse.
+
+    Use around critic calls when an input transform (such as ``channels_last``
+    conversion or additive input noise) allocates a new tensor storage pointer so
+    formulation hooks still match ``source`` during critic penalty evaluation.
+    """
+    target = critic
+    if target is not None and not (hasattr(target, "_t2_record") or hasattr(target, "_axiom_record")):
+        inner = getattr(target, "critic", None)
+        if inner is not None and (hasattr(inner, "_t2_record") or hasattr(inner, "_axiom_record")):
+            target = inner
+    has_t2 = target is not None and source is not None and hasattr(target, "_t2_record")
+    has_axiom = target is not None and source is not None and hasattr(target, "_axiom_record")
+    if not (has_t2 or has_axiom):
+        yield
+        return
+    sentinel = object()
+    prev_t2 = sentinel
+    prev_axiom = sentinel
+    if has_t2:
+        from ._t2_critic.critic import _tensor_identity_key
+        prev_t2 = getattr(target, "_t2_pending_source_key", sentinel)
+        target._t2_pending_source_key = _tensor_identity_key(source)
+    if has_axiom:
+        from ._axiom.critic import _tensor_id
+        prev_axiom = getattr(target, "_axiom_pending_source_key", sentinel)
+        target._axiom_pending_source_key = _tensor_id(source)
+    try:
+        yield
+    finally:
+        if has_t2:
+            target._t2_pending_source_key = None if prev_t2 is sentinel else prev_t2
+        if has_axiom:
+            target._axiom_pending_source_key = None if prev_axiom is sentinel else prev_axiom
 
 
 class InputNoise(nn.Module):
@@ -110,33 +254,21 @@ class InputNoise(nn.Module):
     def __init__(self, critic, std=0.0, generator=None, *, bf16=False):
         super().__init__()
         self.critic, self.std, self.generator = critic, float(std), generator
-        self.bf16 = _convolution_autocast(critic, bf16)
+        self._channels_last = uses_channels_last(critic, bf16)
+        self.bf16 = uses_bf16_autocast(critic, bf16)
 
     def _forward(self, x, *args, _source_x=None, **kwargs):
         src = x if _source_x is None else _source_x
-        has_t2 = hasattr(self.critic, "_t2_record")
-        has_axiom = hasattr(self.critic, "_axiom_record")
-        if has_t2:
-            from ._t2_critic.critic import _tensor_identity_key
-            self.critic._t2_pending_source_key = _tensor_identity_key(src)
-        if has_axiom:
-            try:
-                _ptr = int(src.untyped_storage().data_ptr())
-            except RuntimeError:
-                _ptr = 0
-            self.critic._axiom_pending_source_key = (
-                None if _ptr == 0 else (_ptr, int(src.storage_offset()), tuple(int(s) for s in src.shape), str(src.device))
-            )
-        try:
+        with critic_source_context(self.critic, src):
             if not self.bf16 or x.device.type != "cuda":
                 return self.critic(x, *args, **kwargs)
             with torch.autocast("cuda", dtype=torch.bfloat16):
-                return _float_output(self.critic(x.contiguous(memory_format=torch.channels_last), *args, **kwargs))
-        finally:
-            if has_t2:
-                self.critic._t2_pending_source_key = None
-            if has_axiom:
-                self.critic._axiom_pending_source_key = None
+                inp = (
+                    x.contiguous(memory_format=torch.channels_last)
+                    if self._channels_last and x.ndim == 4
+                    else x
+                )
+                return float_output(self.critic(inp, *args, **kwargs))
 
     def forward(self, x, *args, **kwargs):
         if self.std == 0:
@@ -367,8 +499,7 @@ class GANTrainer:
             raise ValueError("GANTrainer supports unconditional scalar GANs with particle priors and no encoder")
         self.recipe, self.G, self.D = recipe, generator, discriminator
         for module in (self.G, self.D):
-            if (_convolution_autocast(module, recipe.training_precision == "bf16_channels_last")
-                    and next(module.parameters()).device.type == "cuda"):
+            if uses_channels_last(module, recipe.training_precision):
                 module.to(memory_format=torch.channels_last)
         if recipe.constraint_geometry_mode == "strict_progress" and (recipe.input_noise_std or recipe.output_noise_std or recipe.standardize):
             raise ValueError("strict_progress requires zero additive noise and unstandardized prior for deterministic replay")
@@ -542,23 +673,10 @@ class GANTrainer:
                 for name in self._STREAMS if name not in ("eval_generator", "model_generator"))):
             raise ValueError("model stream must be separate from other training streams and global draws")
         self._noisy_D = InputNoise(self.D, 0.0, self.input_noise_generator,
-                                   bf16=recipe.training_precision == "bf16_channels_last")
-        self._bf16_generator = _convolution_autocast(self.G, recipe.training_precision == "bf16_channels_last")
-        if recipe.effective_critic_formulation == "t4_nash":
-            self.G._t4_bf16_autocast = bool(self._bf16_generator)
-            self.D._t4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation in ("unified_v4", "unified_v11", "r4_autograd_critic"):
-            self.G._unified_v4_bf16_autocast = bool(self._bf16_generator)
-            self.D._unified_v4_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "t4_nash_v3":
-            self.G._nash_v3_bf16_autocast = bool(self._bf16_generator)
-            self.D._nash_v3_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "minimal":
-            self.G._minimal_bf16_autocast = bool(self._bf16_generator)
-            self.D._minimal_bf16_autocast = bool(self._noisy_D.bf16)
-        elif recipe.effective_critic_formulation == "axiom":
-            self.G._axiom_bf16_autocast = bool(self._bf16_generator)
-            self.D._axiom_bf16_autocast = bool(self._noisy_D.bf16)
+                                   bf16=recipe.training_precision)
+        self._bf16_generator = uses_bf16_autocast(self.G, recipe.training_precision)
+        configure_bf16_autocast(recipe, self.G, self._bf16_generator)
+        configure_bf16_autocast(recipe, self.D, self._noisy_D.bf16)
         self._in_training_step = False
         # Manipulator hooks resolved once; plain priors have neither.
         self._postprocesses = bool(getattr(self.prior, "postprocesses_generated", False))
@@ -606,7 +724,7 @@ class GANTrainer:
             raise ValueError("pass sampled row IDs as indices or rows, not both")
         if self._in_training_step and self._bf16_generator and latent.device.type == "cuda":
             with torch.autocast("cuda", dtype=torch.bfloat16):
-                return _float_output(self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
+                return float_output(self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
                                     rows=indices if rows is None else rows))
         return self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
                                     rows=indices if rows is None else rows)
@@ -895,17 +1013,11 @@ class GANTrainer:
                 fake_g = self._postprocess(self.prior, self._generate(self.G, latent, sigma_out, noise, rows=indices))
                 if hasattr(self.opt_g, "bind_origin_sample"):
                     self.opt_g.bind_origin_sample(fake_g)
-                highres_unified_skip = (
-                    (
-                        recipe.effective_critic_formulation in ("unified_v11", "axiom")
-                        and real.ndim >= 2
-                        and real[0].numel() > 1024
-                    )
-                    or (
-                        recipe.effective_critic_formulation in ("unified", "unified_v4", "r4_autograd_critic", "cond_fiber")
-                        and real.ndim >= 4
-                        and real[0].numel() > 1024
-                    )
+                use_simplex = uses_simplicial_manifold_loss(
+                    recipe,
+                    real,
+                    prior=self.prior,
+                    is_discrete_prior=(self.prior_noise_generator is None),
                 )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 is_axiom_atomic = False
@@ -914,7 +1026,7 @@ class GANTrainer:
                     if rec_ax_step is not None and self.prior_noise_generator is None and hasattr(unwrap_prior(self.prior), "z"):
                         rec_ax_step._active_prior_table = unwrap_prior(self.prior).z
                         rec_ax_step._active_batch_rows = indices.detach() if indices is not None else None
-                    if not highres_unified_skip and self.prior_noise_generator is None and len(real) >= 8:
+                    if use_simplex and len(real) >= 8:
                         from ._axiom.transport import compute_discrete_atomic_gate, project_transport_features
                         _y_proj = project_transport_features(real.detach(), max_spatial=getattr(prim_op, "max_spatial", 8))
                         _cs = getattr(rec_ax_step, "chart_state", None) if rec_ax_step is not None else None
@@ -928,14 +1040,10 @@ class GANTrainer:
                         is_axiom_atomic = compute_discrete_atomic_gate(_y_proj, charts=_ch, radii=_rd) > 0.5
                 if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                     simplicial_active = (
-                        not highres_unified_skip
+                        use_simplex
                         and not is_axiom_atomic
-                        and recipe.rhbi_simplex_weight > 0.0
                         and recipe.rhbi_simplex_chart_weight > 0.0
                         and (recipe.effective_critic_formulation == "axiom" or recipe.rhbi_simplex_macro_settle)
-                        and self.prior_noise_generator is None
-                        and self.prior.z.requires_grad
-                        and len(self.prior.z) >= 2
                     )
                     prim_op.bind_discrete_prior_step(
                         self.prior_noise_generator is None,
@@ -992,15 +1100,7 @@ class GANTrainer:
                 if recipe.kinetic_transport_local_weight:
                     loss_g = loss_g + transport_local
                 simplex_loss = None
-                if (
-                    not highres_unified_skip
-                    and not is_axiom_atomic
-                    and recipe.rhbi_simplex_weight > 0.0
-                    and self.prior_noise_generator is None
-                    and self.prior.z.requires_grad
-                    and len(self.prior.z) >= 2
-                    and prim_op is not None
-                ):
+                if use_simplex and not is_axiom_atomic and prim_op is not None:
                     raw_base = unwrap_prior(self.prior).z
                     base_table = raw_base if recipe.num_particles <= 1024 else raw_base[torch.unique(indices)]
                     if recipe.effective_critic_formulation == "axiom":

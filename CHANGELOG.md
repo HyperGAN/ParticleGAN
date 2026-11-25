@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased
+
+- **Public training-precision & recipe-gating helpers (`particlegan`, `particlegan.training`) and Unified-v11/v12 BF16 `fwAD` hardening:**
+  - Exported `float_output`, `uses_channels_last`, `uses_bf16_autocast`, `configure_bf16_autocast`, `critic_source_context`, and `uses_simplicial_manifold_loss` (with `_float_output` / `_convolution_autocast` retained as compatibility aliases) so external hosts like HyperGAN share exact `GANTrainer` BF16+NHWC and simplicial-manifold-loss parity without duplicating private capture-attribute lists, `_t2_pending_source_key` tracking, or recipe-version logic.
+  - Generalized `float_output` to preserve all non-reserved Python capture attributes attached to BF16 tensors (automatically supporting current and future formulations, including `_bispf_record`, `_t1c_bypassed`, `_nash_v3_*`, and `_minimal_*`), `dict` subclass containers, and `fwAD` dual tangents.
+  - Added canonical `_particlegan_bf16_autocast` flag support across probe evaluators (with legacy formulation flag compatibility) so `configure_bf16_autocast` works for arbitrary/future recipes including `unified_v14`.
+  - Extended `UnifiedV11CriticPenalty._eval_image_fwad_sq` to attach the BF16 dual hook to `_InstanceNorm` layers and cleanly fall back to FP32 `fwAD` whenever BF16 is active on a non-BN critic.
+  - Vectorized `UnifiedV12Optimizer`'s `stiff_gate > 0` moment update path (`_apply_slow_moment_batch_foreach`), secant `applied_deltas` rescaling, and zero-pad-copy `_sketch_grad_67_finite` flip-controller using `torch._foreach_*` (eliminating ~6,500 per-parameter CUDA kernel launches/step; 4.1x–9.8x faster stiff `opt_g.step()` on RTX A6000 with exact parity and zero `new_tensor` allocations).
+
 ## 0.12.0 — 2026-11-23
 
 - **Promote `unified_v12` (`DEFAULT_RECIPE = "unified_v12"`) as the energy-optimal 4-Law research default (PR #615, PR #620).**

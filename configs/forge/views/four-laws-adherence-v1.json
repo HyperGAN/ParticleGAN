@@ -1,0 +1,322 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "law": "prerequisite",
+      "order": 0,
+      "qualification_tier": 1,
+      "role": "prerequisite",
+      "task": "mode_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "prerequisite",
+      "order": 1,
+      "qualification_tier": 1,
+      "role": "prerequisite",
+      "task": "ring_hold"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "prerequisite",
+      "order": 2,
+      "qualification_tier": 1,
+      "role": "prerequisite",
+      "task": "zero_tanh_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "prerequisite",
+      "order": 3,
+      "qualification_tier": 1,
+      "role": "prerequisite",
+      "task": "gaussian1d_smoke"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 4,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "grid100"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 5,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "staggered100"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 6,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "bytegan_hypercube8"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 7,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "bytegan_bigan_dictionary"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 8,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "interp_sparse_arc"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 9,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "interp_saddle_barycentric"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 10,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law1_aniso_unequal_modes"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law1",
+      "order": 11,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law1_noisy_atomic_codebook"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 12,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "img_bars4"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 13,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "img_stripes2"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 14,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "nash_overpowered_critic_ring16"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 15,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "dcgan_performance_r256"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 16,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law2_pure_adversarial_codim1"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law2",
+      "order": 17,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law2_groupnorm_and_vit_sprites"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 18,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "t3_iso_scale_mass_8x"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 19,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "t3_iso_horizon_saddle_shift"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 20,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "ring_extension"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 21,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "target_shift_recovery"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 22,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "model_ae_ddgan_gaussian_chain"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law3",
+      "order": 23,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law3_highd_orphan_d32"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 24,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "grid100_mlp16"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 25,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "grid100_res16_tanh"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 26,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "zero_tanh_rail_escape"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 27,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "clockfree_audit_measurement_v1"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 28,
+      "qualification_tier": 1,
+      "role": "anchor",
+      "task": "gaussian1d_stability"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 29,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law41_trust_rare1pct_tanh"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 30,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law42_swap_deep_critic_16l"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 31,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law42_deep_resbn_and_conv1x1"
+    },
+    {
+      "importance": "diagnostic",
+      "law": "law4",
+      "order": 32,
+      "qualification_tier": 1,
+      "role": "four_laws_probe",
+      "task": "fl_law44_highd_sparse_prior_and_shock"
+    }
+  ],
+  "calibration": {
+    "adoption_blocker": "Four Laws Adherence diagnostic suite combines 20 curated Forge anchors (+ 4 required prerequisite smoke/hold dependencies) with 9 new public-API dynamical falsification probes targeting Laws 1-4; supplies research diagnostic telemetry only and no ordinary qualification or default-adoption credit.",
+    "status": "provisional"
+  },
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "discriminator_stability",
+  "id": "four-laws-adherence-v1",
+  "law_groups": {
+    "law1": [
+      "grid100",
+      "staggered100",
+      "bytegan_hypercube8",
+      "bytegan_bigan_dictionary",
+      "interp_sparse_arc",
+      "interp_saddle_barycentric",
+      "fl_law1_aniso_unequal_modes",
+      "fl_law1_noisy_atomic_codebook"
+    ],
+    "law2": [
+      "img_bars4",
+      "img_stripes2",
+      "nash_overpowered_critic_ring16",
+      "dcgan_performance_r256",
+      "fl_law2_pure_adversarial_codim1",
+      "fl_law2_groupnorm_and_vit_sprites"
+    ],
+    "law3": [
+      "t3_iso_scale_mass_8x",
+      "t3_iso_horizon_saddle_shift",
+      "ring_extension",
+      "target_shift_recovery",
+      "model_ae_ddgan_gaussian_chain",
+      "fl_law3_highd_orphan_d32"
+    ],
+    "law4": [
+      "grid100_mlp16",
+      "grid100_res16_tanh",
+      "zero_tanh_rail_escape",
+      "clockfree_audit_measurement_v1",
+      "gaussian1d_stability",
+      "fl_law41_trust_rare1pct_tanh",
+      "fl_law42_swap_deep_critic_16l",
+      "fl_law42_deep_resbn_and_conv1x1",
+      "fl_law44_highd_sparse_prior_and_shock"
+    ]
+  },
+  "policy_change_reason": "Unified Four Laws Adherence diagnostic view combining 20 curated existing Forge anchors (+ 4 prerequisite dependencies: mode_hold, ring_hold, zero_tanh_smoke, gaussian1d_smoke) with 9 new public-API dynamical falsification probes spanning Laws 1-4 (anisotropic unequal-mass streaming charts, noisy non-hypercube atomic codebooks, pure-adversarial codimension-1 orbits, GroupNorm+ViT sprite critics, Haar-rotated R^32 orphan mixtures, rare-1% tanh trust, swapped 16L deep critics, deep ResBN + 4D 1x1 Conv2d parity, and high-D masked RMSNorm prior transport & scale shocks). Retains every frozen target, architecture, initialization, budget, cadence, and live sampling law. No ordinary qualification credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **205 tasks**; **167 assigned** to at least one view; **38 unassigned**. Showing **41/41 views**.
+Catalog: **214 tasks**; **176 assigned** to at least one view; **38 unassigned**. Showing **42/42 views**.
 
-Declared priors across the catalog: **91 MoGParticlePrior**, **114 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **100 MoGParticlePrior**, **114 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -50,6 +50,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [ddgan-conditional-repair-v1](../../configs/forge/views/ddgan-conditional-repair-v1.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [discriminator_stability](../../configs/forge/views/discriminator_stability.json) | 20 | 11 required, 4 stretch, 2 diagnostic | 18 required, 7 stretch, 7 held | 1 required, 1 held, 1 diagnostic (1 removed from the count) | 11 stretch, 5 held | provisional |
 | [formulation_comparison](../../configs/forge/views/formulation_comparison.json) | 3 | 3 required | 12 required, 7 held, 15 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
+| [four-laws-adherence-v1](../../configs/forge/views/four-laws-adherence-v1.json) | 1 | 33 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [host_profile_transfer](../../configs/forge/views/host_profile_transfer.json) | 6 | 3 required | 12 required, 7 held, 13 diagnostic | 1 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [k3p_two_pole_horizon](../../configs/forge/views/k3p_two_pole_horizon.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [lazy_cadence_coverage](../../configs/forge/views/lazy_cadence_coverage.json) | 1 | 30 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
@@ -873,6 +874,76 @@ Candidate outcomes, metrics and measured costs: [leaderboard](leaderboards/formu
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [ring_hold](../../configs/forge/tasks/ring_hold.json) | [removed: phase of ring_extension (counted there)](test-dispositions-20261015/README.md#ring_hold) | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_hold | up to 7500 total | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate); group: ring_endurance (uninterrupted) |
 | [ring_extension](../../configs/forge/tasks/ring_extension.json) | required | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_extension | up to 7500 total; 300 extension | 3600 | [ring_hold](../../configs/forge/tasks/ring_hold.json) (checkpoint); group: ring_endurance (uninterrupted) |
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## four-laws-adherence-v1
+
+Declaration: [four-laws-adherence-v1](../../configs/forge/views/four-laws-adherence-v1.json); revision 1; goal: `discriminator_stability`.
+
+Declared calibration status: **provisional**.
+
+Four Laws Adherence diagnostic suite combines 20 curated Forge anchors (+ 4 required prerequisite smoke/hold dependencies) with 9 new public-API dynamical falsification probes targeting Laws 1-4; supplies research diagnostic telemetry only and no ordinary qualification or default-adoption credit.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+33 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [mode_hold](../../configs/forge/tasks/mode_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | transfer_behavior / transfer_sustained | 1200 | 1800 | — |
+| [ring_hold](../../configs/forge/tasks/ring_hold.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_hold | up to 7500 total | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate); group: ring_endurance (uninterrupted) |
+| [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-smoke) | transfer_vector / zero_tanh_smoke | 1000 | 120 | — |
+| [gaussian1d_smoke](../../configs/forge/tasks/gaussian1d_smoke.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_smoke | 1000 | 120 | — |
+| [grid100](../../configs/forge/tasks/grid100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [staggered100](../../configs/forge/tasks/staggered100.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-staggered100) | native100 / native_accuracy | 7000 | 3600 | — |
+| [bytegan_hypercube8](../../configs/forge/tasks/bytegan_hypercube8.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-hypercube8) | bytegan / bytegan_hypercube8 | 4000 | 600 | — |
+| [bytegan_bigan_dictionary](../../configs/forge/tasks/bytegan_bigan_dictionary.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bytegan-bigan-dictionary) | bytegan_bigan / bytegan_bigan_dictionary | 6000 | 900 | — |
+| [interp_sparse_arc](../../configs/forge/tasks/interp_sparse_arc.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-sparse-arc) | particle_interpolation / interp_sparse_arc | 600 | 300 | — |
+| [interp_saddle_barycentric](../../configs/forge/tasks/interp_saddle_barycentric.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-interp-saddle-barycentric) | particle_interpolation / interp_saddle_barycentric | 800 | 300 | — |
+| [fl_law1_aniso_unequal_modes](../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law1-aniso-unequal-modes) | four_laws / fl_law1_aniso_unequal_modes | 1500 | 600 | — |
+| [fl_law1_noisy_atomic_codebook](../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json) | diagnostic | MoGParticlePrior (sigma=0.015) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law1-noisy-atomic-codebook) | four_laws / fl_law1_noisy_atomic_codebook | 1600 | 600 | — |
+| [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
+| [img_stripes2](../../configs/forge/tasks/img_stripes2.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-stripes2) | transfer_image / transfer_sustained | 600 | 1800 | — |
+| [nash_overpowered_critic_ring16](../../configs/forge/tasks/nash_overpowered_critic_ring16.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-nash-overpowered-critic-ring16) | imbalance_nash / nash_overpowered_critic_ring16 | 1600 | 300 | — |
+| [dcgan_performance_r256](../../configs/forge/tasks/dcgan_performance_r256.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; — | [Question, results, GIFs](#experiment-dcgan-performance-r256) | dcgan_performance_v1 / image_training_performance | 13 | 300 | — |
+| [fl_law2_pure_adversarial_codim1](../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law2-pure-adversarial-codim1) | four_laws / fl_law2_pure_adversarial_codim1 | 1200 | 600 | — |
+| [fl_law2_groupnorm_and_vit_sprites](../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law2-groupnorm-and-vit-sprites) | four_laws / fl_law2_groupnorm_and_vit_sprites | 600 | 600 | — |
+| [t3_iso_scale_mass_8x](../../configs/forge/tasks/t3_iso_scale_mass_8x.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-scale-mass-8x) | t3_isolation / t3_iso_scale_mass_8x | 800 | 300 | — |
+| [t3_iso_horizon_saddle_shift](../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) | diagnostic | ParticlePrior (sigma=0; not sampled) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-t3-iso-horizon-saddle-shift) | t3_isolation / t3_iso_horizon_saddle_shift | 1000 | 300 | — |
+| [ring_extension](../../configs/forge/tasks/ring_extension.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | ring_endurance / ring_extension | up to 7500 total; 300 extension | 3600 | [ring_hold](../../configs/forge/tasks/ring_hold.json) (checkpoint); group: ring_endurance (uninterrupted) |
+| [target_shift_recovery](../../configs/forge/tasks/target_shift_recovery.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-mode-hold) | paired_adaptation / paired_adaptation | 3600 | 3600 | [mode_hold](../../configs/forge/tasks/mode_hold.json) (gate) |
+| [model_ae_ddgan_gaussian_chain](../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) | diagnostic | MoGParticlePrior (sigma=0.25) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-api-model-ae-ddgan-gaussian-chain) | public_api_model_toy / transfer_sustained | 2500 | 180 | — |
+| [fl_law3_highd_orphan_d32](../../configs/forge/tasks/fl_law3_highd_orphan_d32.json) | diagnostic | MoGParticlePrior (sigma=0.05) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law3-highd-orphan-d32) | four_laws / fl_law3_highd_orphan_d32 | 1200 | 600 | — |
+| [grid100_mlp16](../../configs/forge/tasks/grid100_mlp16.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [grid100_res16_tanh](../../configs/forge/tasks/grid100_res16_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-grid100) | native100 / native_accuracy | 7000 | 3600 | [grid100](../../configs/forge/tasks/grid100.json) (gate) |
+| [zero_tanh_rail_escape](../../configs/forge/tasks/zero_tanh_rail_escape.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-zero-tanh-rail-escape) | transfer_vector / zero_tanh_rail_escape | 2000 | 300 | [zero_tanh_smoke](../../configs/forge/tasks/zero_tanh_smoke.json) (gate) |
+| [clockfree_audit_measurement_v1](../../configs/forge/tasks/clockfree_audit_measurement_v1.json) | diagnostic | MoGParticlePrior (sigma=0.025) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-clockfree-audit-measurement-v1) | clockfree_audit / clockfree_parity | 24 | 300 | — |
+| [gaussian1d_stability](../../configs/forge/tasks/gaussian1d_stability.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-gaussian1d-acquisition) | transfer_vector / gaussian_stability | 6000 | 600 | [gaussian1d_smoke](../../configs/forge/tasks/gaussian1d_smoke.json) (checkpoint) |
+| [fl_law41_trust_rare1pct_tanh](../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json) | diagnostic | MoGParticlePrior (sigma=0.08) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law41-trust-rare1pct-tanh) | four_laws / fl_law41_trust_rare1pct_tanh | 800 | 600 | — |
+| [fl_law42_swap_deep_critic_16l](../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json) | diagnostic | MoGParticlePrior (sigma=0.08) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law42-swap-deep-critic-16l) | four_laws / fl_law42_swap_deep_critic_16l | 800 | 600 | — |
+| [fl_law42_deep_resbn_and_conv1x1](../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law42-deep-resbn-and-conv1x1) | four_laws / fl_law42_deep_resbn_and_conv1x1 | 500 | 600 | — |
+| [fl_law44_highd_sparse_prior_and_shock](../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-fl-law44-highd-sparse-prior-and-shock) | four_laws / fl_law44_highd_sparse_prior_and_shock | 400 | 600 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
 
 ### Tier 4: stress_and_formulations
 
@@ -3598,6 +3669,299 @@ Related public-API demonstrations, with their own recorded contracts:
 | [image-five-word-joint-hold-confirmed-v1](../toy_audit/api_contract/five_word_smoke_hold/media/five_word_joint_hold.gif) | Continue this candidate's earliest confirmed five-word acquisition state for 4,000 updates. Every scheduled generation and inverse check, including the exact restored state, must pass. Scope: task-only selected BCAP DualNorm verification; no ordinary family qualification | ParticlePrior (sigma=0) | COMPLETE / FAIL; 4000/4000 updates | bcap / unrecorded / 3c82db6c7b24 | [definition](../toy_audit/api_contract/five_word_smoke_hold/publication.json); [readout](../toy_audit/api_contract/five_word_smoke_hold/publication.json); [recipe and provenance](../toy_audit/api_contract/five_word_smoke_hold/publication.json) |
 | [image-five-word-joint-smoke-confirmed-v1](../toy_audit/api_contract/five_word_smoke_hold/media/five_word_joint_smoke.gif) | Can public joint BiGAN training acquire all five words and confidently reconstruct every paired input at one independently confirmed scheduled state? Complete all 20,001 updates. Scope: task-only selected BCAP DualNorm verification; no ordinary family qualification | ParticlePrior (sigma=0) | COMPLETE / PASS; 20001/20001 updates | bcap / unrecorded / 3c82db6c7b24 | [definition](../toy_audit/api_contract/five_word_smoke_hold/publication.json); [readout](../toy_audit/api_contract/five_word_smoke_hold/publication.json); [recipe and provenance](../toy_audit/api_contract/five_word_smoke_hold/publication.json) |
 | [image-five-words-joint-ae](../toy_audit/api_contract/media/image-five-words-joint-ae.gif) | Generate the five equally likely canonical words with confident normalized token probabilities, and reconstruct each of the five matched inputs including underscore padding. Scope: Finite vocabulary apple/grape/lemon/melon/berry only. Joint BiGAN inverse reconstruction; no unseen words or natural-language generation. New API-policy variant, not reuse of historical EMA PASS. | ParticlePrior (sigma=0) | COMPLETE / PASS; 20001/20001 updates | ka2 / cpu / 39eff89a9223 | [definition](../toy_audit/api_contract/cases.json); [readout](../toy_audit/api_contract/readout.json); [recipe and provenance](../toy_audit/api_contract/runs.json) |
+
+### Experiment: fl-law1-aniso-unequal-modes
+
+Recover all 8 rotated 10:1 anisotropic Gaussian ellipses with 4:1 unequal mode weights under B_f < K streaming chart pressure, preserving per-mode covariance eigenvalue ratios and skewed mode masses.
+
+Forge declarations: [fl_law1_aniso_unequal_modes](../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law1_aniso_unequal_modes](../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| mode_recall | >= 1 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+| min_cov_eig_ratio | >= 0.35 |
+| max_cov_eig_ratio | <= 2.2 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.05) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law1-noisy-atomic-codebook
+
+Capture all 64 non-hypercube hexagonal codebook atoms under sigma/Delta=0.02 Gaussian jitter, 8:1 Zipf mass skew, and M=96 != K=64 particles without barycentric ghosts or mass flattening.
+
+Forge declarations: [fl_law1_noisy_atomic_codebook](../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law1_noisy_atomic_codebook](../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| atom_recall | >= 0.96 |
+| mass_tv | <= 0.12 |
+| rms_nearest_dist | <= 0.08 |
+| outlier_rate | <= 0.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.015) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law2-groupnorm-and-vit-sprites
+
+Learn all 4 structured 32x32 RGB geometric sprite classes with crisp template fidelity and balanced mass using a compact ResNet+GroupNorm + Patch-4 ViT critic.
+
+Forge declarations: [fl_law2_groupnorm_and_vit_sprites](../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law2_groupnorm_and_vit_sprites](../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| mode_coverage | >= 1 |
+| sprite_hq | >= 0.85 |
+| template_rmse | <= 0.12 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.05) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law2-pure-adversarial-codim1
+
+Converge smoothly onto a zero-thickness 1D circle embedded in R^2 (R=1.5, sigma_perp=0) without late-window normal-direction limit cycles or arc collapse.
+
+Forge declarations: [fl_law2_pure_adversarial_codim1](../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law2_pure_adversarial_codim1](../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| normal_orbit_r_tail | <= 0.06 |
+| normal_orbit_ptp | <= 0.12 |
+| manifold_mae | <= 0.06 |
+| manifold_coverage | >= 0.9375 |
+| angular_tv | <= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.05) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law3-highd-orphan-d32
+
+Recover all 4 multi-scale core clusters and a distant 8% orphan cluster in a Haar-rotated R^32 mixture (dim=32 > 16) with calibrated full-32D covariances and accurate unequal masses.
+
+Forge declarations: [fl_law3_highd_orphan_d32](../../configs/forge/tasks/fl_law3_highd_orphan_d32.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law3_highd_orphan_d32](../../configs/forge/tasks/fl_law3_highd_orphan_d32.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| core_eig_min | >= 0.25 |
+| orphan_recall | >= 0.5 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.05) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law41-trust-rare1pct-tanh
+
+Learn a 2D 5-mode mixture with 4 major modes (99% mass) and 1 separated 1% minority mode near the saturating 3*tanh rail (5/5 modes, rare_mode_recall >= 0.45, precision >= 0.85, mass_tv <= 0.10).
+
+Forge declarations: [fl_law41_trust_rare1pct_tanh](../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law41_trust_rare1pct_tanh](../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| rare_mode_recall | >= 0.45 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.1 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.08) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law42-deep-resbn-and-conv1x1
+
+Learn a 64-mode R^128 Gaussian mixture on an 8-block ResBN trunk (sw1 <= 0.10, var_ratio_err <= 0.25) with matching generated output quality on its isomorphic 4D Conv2d 1x1 twin (conv1x1_sw1 <= 0.10, conv1x1_sw1_ratio <= 1.05).
+
+Forge declarations: [fl_law42_deep_resbn_and_conv1x1](../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law42_deep_resbn_and_conv1x1](../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| sw1 | <= 0.1 |
+| var_ratio_err | <= 0.25 |
+| conv1x1_sw1 | <= 0.1 |
+| conv1x1_sw1_ratio | <= 1.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law42-swap-deep-critic-16l
+
+Learn an 8-mode 2D Gaussian ring (8/8 modes, hq >= 0.85, mass_tv <= 0.12, valley_fraction <= 0.05) when depth asymmetry is inverted onto a deep 16L skip-free LeakyReLU critic.
+
+Forge declarations: [fl_law42_swap_deep_critic_16l](../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law42_swap_deep_critic_16l](../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 8 |
+| hq | >= 0.85 |
+| mass_tv | <= 0.12 |
+| valley_fraction | <= 0.05 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.08) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
+
+### Experiment: fl-law44-highd-sparse-prior-and-shock
+
+Learn a 64-mode 10%-masked R^512 bounded manifold (sw1 <= 0.14, mode_recall >= 0.75, var_ratio_err <= 0.25) AND recover generated-sample quality on a 1e-5x-scaled 4-mode target after a transient 1e4x mid-run scale spike and mode shift (shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35).
+
+Forge declarations: [fl_law44_highd_sparse_prior_and_shock](../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json).
+
+Declared Forge numerical gates and sampling:
+
+[fl_law44_highd_sparse_prior_and_shock](../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| sw1 | <= 0.14 |
+| mode_recall | >= 0.75 |
+| var_ratio_err | <= 0.25 |
+| shock_modes | == 4 |
+| shock_hq | >= 0.65 |
+| shock_sw1 | <= 0.35 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
 
 ### Experiment: gaussian1d-acquisition
 
@@ -7168,6 +7532,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `f7b625ce9e54d8bf8ed60ef4e33d3534e91df8af7e9328b147dc0bc5bbe70658`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `dacdff9dbb3b9b516247e8864326257db4d03402942c99f4650ca1888acdf4bf`. The JSON form includes the individual task and view file hashes.
 
 Published artifact input digest: `538feddc53137a7468c1aab29819f9ec48140c7248a6c0f4a6340fb1aaebd6d5`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
