@@ -1172,7 +1172,7 @@ def _update_isolated_component_ledger(
     b_real_f = float(max(1, real_batch_size))
     ema_var_fac = (0.02 / 1.98) / b_real_f
     hyst = [
-        max(0.85, 2.6 * float(p_total) * math.sqrt(max(ema_var_fac * cw_list[c] * max(1.0 - cw_list[c], 0.0), 0.0)))
+        max(0.85, 3.6 * float(p_total) * math.sqrt(max(ema_var_fac * cw_list[c] * max(1.0 - cw_list[c], 0.0), 0.0)))
         for c in range(m_comp)
     ]
     n_zero_need = sum(1 for c in range(m_comp) if occ[c] == 0 and q_list[c] >= 1)
@@ -1739,6 +1739,9 @@ def unified_v15_pullback_step(
     sc_med_dt = sigma_cell_med.to(fake_flat.dtype)
     if x_ctr_all_grad is not None and ledger_assigned is not None and ledger_comp_c is not None and ledger_comp_sig is not None and ledger_comp_w is not None:
         # Pin ALL P isolated-component centers simultaneously -> zero B < P whiplash on unvisited modes.
+        # Law 1 topological separation: when target mode c already has >= 1 settled particle, exclude
+        # in-flight migrating particles from Part A G-pull so Part B (prior.z) moves them across latent
+        # space without stretching G's continuous Jacobian sheet on their source mode.
         with torch.no_grad():
             m_comp_f = float(len(ledger_comp_w))
             inv_w_all = (1.0 / (m_comp_f * ledger_comp_w[ledger_assigned]).clamp_min(1e-4)).clamp(0.25, 6.0).to(fake_flat.dtype)
@@ -1747,8 +1750,17 @@ def unified_v15_pullback_step(
                 sat_all.index_copy_(0, indices.to(device=yr.device, dtype=torch.long), w_sat_vec)
             y_ot_all = ledger_comp_c[ledger_assigned].to(fake_flat.dtype)
             sc_ot_all = ledger_comp_sig[ledger_assigned].to(fake_flat.dtype)
+            d_ot_all = (x_ctr_all_grad.detach().float() - ledger_comp_c[ledger_assigned]).norm(dim=-1)
+            in_mode_all = d_ot_all <= (3.5 * math.sqrt(float(dim)) * ledger_comp_sig[ledger_assigned])
+            in_cnt_comp = d_ot_all.new_zeros((len(ledger_comp_w),))
+            in_cnt_comp.index_add_(0, ledger_assigned, in_mode_all.float())
+            ot_inlier_w = torch.where(
+                in_cnt_comp[ledger_assigned] >= 1.0,
+                in_mode_all.to(fake_flat.dtype),
+                sat_all.new_ones(len(ledger_assigned)),
+            )
         sq_ot_all = (x_ctr_all_grad - y_ot_all).square().sum(dim=-1)
-        loss_g_ot = (sat_all * inv_w_all * (torch.sqrt(sc_ot_all.square() + sq_ot_all) - sc_ot_all) / ot_scale_dt).mean()
+        loss_g_ot = (ot_inlier_w * sat_all * inv_w_all * (torch.sqrt(sc_ot_all.square() + sq_ot_all) - sc_ot_all) / ot_scale_dt).mean()
     else:
         x_ot_src = x_ctr_flat if all_coal_flag else (fake_flat if not any_coal_i_flag else torch.where(is_coal_i.unsqueeze(1), x_ctr_flat, fake_flat))
         sq_ot = (x_ot_src - y_ot).square().sum(dim=-1)

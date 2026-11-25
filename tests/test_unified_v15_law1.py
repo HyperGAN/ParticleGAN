@@ -57,6 +57,7 @@ from particlegan._unified_v15.prior import (
     _compute_pythagorean_smoothed_cells_v15,
     _is_point_mass_batch,
     _sym_eig2x2_exact,
+    _update_isolated_component_ledger,
 )
 
 REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
@@ -589,3 +590,40 @@ def test_semantic_negative_control_damage_proto_cov_changes_step() -> None:
     assert unwrap_prior(tr_clean.prior) is tr_clean.prior
     l1, l2, _, _ = _sym_eig2x2_exact(tr_clean.prior_regularizer.proto_cov)
     assert bool((l1 >= l2).all()) and bool((l2 > 0.0).all())
+
+
+def test_d07_settled_ledger_hysteresis_resists_small_ema_jitter() -> None:
+    """Settled isolated-component ledger must resist 2.8-SE EMA weight jitter yet immediately rescue 0-occ modes."""
+    reg = UnifiedV15PriorRegularizer(max_prototypes=16)
+    centers = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]], dtype=torch.float32)
+    covs = 0.04 * torch.eye(2).unsqueeze(0).expand(4, 2, 2).clone()
+    sigs = torch.full((4,), 0.2, dtype=torch.float32)
+    w_mat = torch.eye(4, dtype=torch.float32)
+    p_total = 256
+    rows = torch.arange(p_total, dtype=torch.long)
+
+    # Start with exact equal occupancy (64 per mode) on settled positions
+    reg.proto_w = torch.full((4,), 0.25, dtype=torch.float32)
+    x_settled = centers.repeat_interleave(64, dim=0)
+    assigned0, *_ = _update_isolated_component_ledger(
+        reg, x_settled, rows, p_total, centers, covs, sigs, w_mat, need_whiten=False, real_batch_size=16
+    )
+    assert torch.bincount(assigned0, minlength=4).tolist() == [64, 64, 64, 64]
+
+    # Inject a realistic 2.8-SE EMA weight jitter at B=16 (SE = 256*sqrt((0.02/1.98)/16*0.25*0.75) ~= 2.78 -> ~7.8)
+    reg.proto_w = torch.tensor([0.28, 0.22, 0.25, 0.25], dtype=torch.float32)
+    assigned1, *_ = _update_isolated_component_ledger(
+        reg, x_settled, rows, p_total, centers, covs, sigs, w_mat, need_whiten=False, real_batch_size=16
+    )
+    assert torch.equal(assigned1, assigned0), "settled particles were evicted by sub-3.6-SE EMA jitter"
+
+    # Conversely, a newly added 5th mode with 0 occupancy must be rescued immediately on the very next call
+    centers5 = torch.cat((centers, torch.tensor([[0.0, 0.0]])), dim=0)
+    covs5 = 0.04 * torch.eye(2).unsqueeze(0).expand(5, 2, 2).clone()
+    sigs5 = torch.full((5,), 0.2, dtype=torch.float32)
+    w_mat5 = torch.eye(5, dtype=torch.float32)
+    reg.proto_w = torch.tensor([0.24, 0.24, 0.24, 0.24, 0.04], dtype=torch.float32)
+    assigned2, *_ = _update_isolated_component_ledger(
+        reg, x_settled, rows, p_total, centers5, covs5, sigs5, w_mat5, need_whiten=False, real_batch_size=16
+    )
+    assert int((assigned2 == 4).sum().item()) >= 1, "zero-occupancy mode was not rescued immediately"
