@@ -79,7 +79,8 @@ zero-state polar-matched 4D Conv2d Frobenius-MP with `0` Conv2d NS, Law 4.4 asym
 2D critic with generator-free 2D NS fallback, CountSketch spectral preconditioning on stiff deep
 2D generators, zero-`pinv` analytic `direction_blend`, and `bf16_channels_last` conv training at
 constant rates).
-Explicit `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
+Explicit `get_recipe("axiom")` (`2,436`-LOC clean-slate opt-in Four-Laws core; see the
+[Axiom comparative study](reports/axiom/axiom-study.md)), `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
 `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
 `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
 **[The Four Laws of Stable, Energy-Efficient GAN Convergence](docs/four-laws.md)** for the
@@ -135,7 +136,17 @@ What the evidence does and does not show today:
   `68/78` Tier 2), **`40/69` full-suite passes**, and **`50/68` stretch view assignments** — ahead
   of `rhbi_optimized` (`rhbi-v12`, `83/115`, `33/69`), `empf` (`empf-v8`, `83/115`, `23/69`), and
   `bispf_optimized` (`81/115`, `18/69`), while `get_recipe("minimal")` offers an `899`-LOC
-  zero-Newton-Schulz fast core (`55.50 ms/step` on `r256`). Forge's screening calibration remains
+  zero-Newton-Schulz fast core (`55.50 ms/step` on `r256`). Opt-in **`get_recipe("axiom")`**
+  (`2,436`-LOC clean-slate Four-Laws core; `DEFAULT_RECIPE = "unified_v12"` remains untouched)
+  sets repository records on solo idle RTX A6000 `r256` Conv2d (**`32.94 ms/step`**,
+  **`805.8 MiB`** VRAM, **`6.969 J/step`** NVML energy; `6/6` `dcgan_performance`),
+  **`2/2`** `bytegan_stretch` (`256/256` zero-collision bijection), **`2/2`**
+  `t3_causal_isolation_stretch` (`core_min_eigen_ratio = 0.5234`), and **`9/9`** Four-Laws
+  structural adversarial controls (vs `0/9` for legacy families), alongside `10/18` on
+  untouched `r3-tier3-long-horizon-holdout-v1` and an honest `11/17` Tier-1 PASS on
+  `discriminator_stability` ([Axiom study](reports/axiom/axiom-study.md),
+  [design spec](reports/axiom/design-spec.md),
+  [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md)). Forge's screening calibration remains
   provisional (`BLOCKED` under `criteria-v1.json`; see
   [r3-calibration-holdout](reports/forge/studies/r3-calibration-holdout.md)), Tier 2/3 full-tier
   qualification is incomplete, and remaining non-passes (`interp_img_patch_shift`,
@@ -213,7 +224,7 @@ acquisition, settling, endurance and recovery required again.
 **Changing the default.** A promotion changes one line in
 [particlegan/recipes.py](particlegan/recipes.py): `DEFAULT_RECIPE = "unified_v12"`.
 All model-family factories inherit that trainer preset. Explicit presets such as
-`get_recipe("unified_v11")`, `get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
+`get_recipe("axiom")`, `get_recipe("unified_v11")`, `get_recipe("minimal")`, `get_recipe("empf")`, `get_recipe("rhbi_optimized")`,
 `get_recipe("rhbi")`, `get_recipe("bispf_optimized")` and
 `get_recipe("ka2")` remain available. This is the owner-selected research default;
 Forge calibration remains provisional (`BLOCKED`), Tier 2/3 qualification is incomplete,
@@ -293,6 +304,7 @@ transport their parent's Adam history at half mass.
 
 ## Learn more
 
+- [Axiom 4-Law family](reports/axiom/axiom-study.md): opt-in `get_recipe("axiom")` comparative Forge study (`2,436`-LOC clean-slate core, `32.94 ms` / `805.8 MiB` / `6.969 J/step` on `r256`, `2/2` ByteGAN, `2/2` `t3_iso`, `9/9` Four-Laws controls, `11/17` Tier-1 `disc-stab`), [design spec](reports/axiom/design-spec.md), and [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md)
 - [Optimized BISPF settings and measured behavior](reports/forge/bispf-optimized/README.md)
 - [BISPF continuous vs. categorical input domains](docs/bispf-input-domains.md): explicit penalty domain declarations (`input_domain="continuous"` or `"categorical"`) for wide continuous vectors (`dim >= 170`) and categorical codebooks
 - [Historical KA2 formulation](docs/ka2.md), including several critics and conditional critics
