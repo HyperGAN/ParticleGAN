@@ -113,6 +113,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 46.01 kJ | abs_cov_trace_bias=0.0649, accuracy_score=0.5342, center_max_sigma=0.1834, center_rms_sigma=0.08341 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 15.58 kJ | abs_cov_trace_bias=0.06785, accuracy_score=0.6053, center_max_sigma=0.212, center_rms_sigma=0.08669 | [c2f715fec46b4a61b0dd84e45be2e0ce.json](../technique-receipts/c2f715fec46b4a61b0dd84e45be2e0ce.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 24.98 kJ | abs_cov_trace_bias=0.001079, accuracy_score=0.2688, center_max_sigma=0.3161, center_rms_sigma=0.07026 | [be55e8f7b4c24af5a20a3e5cd5554dd1.json](../technique-receipts/be55e8f7b4c24af5a20a3e5cd5554dd1.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 19.59 kJ | abs_cov_trace_bias=0.0622, accuracy_score=0.5955, center_max_sigma=0.1916, center_rms_sigma=0.09625 | [faeb8f38abad4a83ad59a171ebdf14b8.json](../technique-receipts/faeb8f38abad4a83ad59a171ebdf14b8.json) |

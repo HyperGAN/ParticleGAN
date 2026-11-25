@@ -100,6 +100,8 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | `+0.000` | 845 J (J-to-PASS) | diag_critic_r_stable=1, diag_valley_sep=0.668, finite_fraction=1, hq=0.9851 | [0adf7fa8d27844af8aaac980f820ba25.json](../technique-receipts/0adf7fa8d27844af8aaac980f820ba25.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | `+0.000` | 2.14 kJ (J-to-PASS) | diag_critic_r_stable=1.001, diag_valley_sep=0.6387, finite_fraction=1, hq=1 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | `+0.000` | 2.03 kJ (J-to-PASS) | diag_critic_r_stable=1.078, diag_valley_sep=0.5391, finite_fraction=1, hq=1 | [be358e85f54f4fe7865713de3a8fbb0c.json](../technique-receipts/be358e85f54f4fe7865713de3a8fbb0c.json) |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **PASS** | `+0.000` | 1.51 kJ (J-to-PASS) | diag_critic_r_stable=1.153, diag_valley_sep=0.7793, finite_fraction=1, hq=0.8997 | [55224c993b964e7db2d5c3c44aaf617a.json](../technique-receipts/55224c993b964e7db2d5c3c44aaf617a.json) |
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **PASS** | `+0.000` | 1.59 kJ (J-to-PASS) | diag_critic_r_stable=1.101, diag_valley_sep=0.793, finite_fraction=1, hq=0.896 | [ea52a6624e5843c1bfee55939257a244.json](../technique-receipts/ea52a6624e5843c1bfee55939257a244.json) |

@@ -99,6 +99,7 @@ No fixed scalar threshold list declared (see evaluator contract above).
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 20.02 kJ | — | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 7.93 kJ | — | [434e74270dd340c4848a2743a07c0145.json](../technique-receipts/434e74270dd340c4848a2743a07c0145.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 8.11 kJ | — | [49e38a634c304da9a209931875bd0e63.json](../technique-receipts/49e38a634c304da9a209931875bd0e63.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 9.33 kJ | — | [f54082b52daa41709e4a623a816b30fd.json](../technique-receipts/f54082b52daa41709e4a623a816b30fd.json) |

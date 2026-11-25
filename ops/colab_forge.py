@@ -1283,7 +1283,7 @@ class ColabWorker:
             ACTUAL=$(git rev-parse HEAD)
             if [ "$ACTUAL" != "{sha}" ]; then
               if [ -f /content/branch.bundle ]; then
-                git fetch /content/branch.bundle HEAD:refs/heads/colab-branch
+                git fetch /content/branch.bundle HEAD:refs/heads/colab-branch || (git fetch --unshallow origin develop && git fetch /content/branch.bundle HEAD:refs/heads/colab-branch)
                 git checkout {sha}
               else
                 git fetch --depth 1 origin {sha}

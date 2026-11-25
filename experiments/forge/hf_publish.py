@@ -191,7 +191,11 @@ def _resolve_candidate_family(
         return cand_to_family[candidate_id]
     idea = _load_idea_meta(root, idea_cache, candidate_id)
     if isinstance(idea, dict):
-        return _opt_str(idea.get("trainer_family"))
+        fam = _opt_str(idea.get("trainer_family"))
+        if fam:
+            return fam
+    if candidate_id.startswith("axiom"):
+        return "axiom"
     return None
 
 
@@ -884,6 +888,191 @@ def _load_family_doc_enrichment(
         "quickstart": quickstart,
         "tags": tags,
         "pages_url": f"{base}/families/{fam_id}/",
+    }
+
+
+def _build_four_laws_adherence_l4_payload(
+    root: Path,
+    *,
+    pages_base_url: str = DEFAULT_PAGES_BASE_URL,
+) -> dict | None:
+    """Build matched NVIDIA L4 diagnostic Four Laws Adherence summary from committed receipts."""
+    try:
+        from . import experiment_docs as _experiment_docs  # type: ignore
+
+        catalog = _experiment_docs.build_experiment_catalog(root)
+    except Exception:
+        return None
+    exps = catalog.get("experiments") if isinstance(catalog, dict) else None
+    if not isinstance(exps, dict):
+        return None
+
+    fl_probes = [
+        e
+        for e in exps.values()
+        if isinstance(e, dict)
+        and isinstance(e.get("four_laws_adherence"), dict)
+        and e["four_laws_adherence"].get("role") == "four_laws_probe"
+    ]
+    if not fl_probes:
+        return None
+    fl_probes.sort(key=lambda e: (str(e["four_laws_adherence"].get("law") or ""), str(e["task_id"])))
+    probe_ids = [str(e["task_id"]) for e in fl_probes]
+    law_of = {str(e["task_id"]): str(e["four_laws_adherence"].get("law") or "") for e in fl_probes}
+
+    short_labels = {
+        "fl_law1_aniso_unequal_modes": "L1 Aniso",
+        "fl_law1_noisy_atomic_codebook": "L1 Noisy",
+        "fl_law2_pure_adversarial_codim1": "L2 Codim1",
+        "fl_law2_groupnorm_and_vit_sprites": "L2 GN+ViT",
+        "fl_law3_highd_orphan_d32": "L3 R32",
+        "fl_law41_trust_rare1pct_tanh": "L4.1 Rare1%",
+        "fl_law42_swap_deep_critic_16l": "L4.2 Swap16L",
+        "fl_law42_deep_resbn_and_conv1x1": "L4.2 ResBN",
+        "fl_law44_highd_sparse_prior_and_shock": "L4.4 R512",
+    }
+    base = pages_base_url.rstrip("/")
+
+    by_cand: dict[str, dict[str, dict]] = {}
+    cand_family: dict[str, str] = {}
+    for tid in [*probe_ids, "bytegan_hypercube8", "bytegan_bigan_dictionary"]:
+        entry = exps.get(tid)
+        if not isinstance(entry, dict):
+            continue
+        for dr in entry.get("four_laws_readouts") or []:
+            if not isinstance(dr, dict) or dr.get("gpu_name") != "NVIDIA L4":
+                continue
+            cid = str(dr.get("candidate_id") or "")
+            if not cid:
+                continue
+            by_cand.setdefault(cid, {})[tid] = dr
+            if dr.get("family_id"):
+                cand_family[cid] = str(dr["family_id"])
+
+    l4_probe_cands = [cid for cid, m in by_cand.items() if any(pid in m for pid in probe_ids)]
+    if not l4_probe_cands:
+        return None
+
+    law_order = ("law1", "law2", "law3", "law4")
+    probes_by_law = {lid: [pid for pid in probe_ids if law_of[pid] == lid] for lid in law_order}
+
+    def _sort_key(cid: str) -> tuple:
+        m = by_cand[cid]
+        passes = sum(1 for pid in probe_ids if (m.get(pid) or {}).get("status") == "PASS")
+        bg_passes = sum(
+            1 for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary")
+            if (m.get(tid) or {}).get("status") == "PASS"
+        )
+        margins = [
+            m[pid]["min_margin"]
+            for pid in probe_ids
+            if pid in m and isinstance(m[pid].get("min_margin"), (int, float))
+        ]
+        mean_m = sum(margins) / len(margins) if margins else -1e9
+        return (-passes, -bg_passes, -mean_m, cid)
+
+    rows: list[dict] = []
+    for cid in sorted(l4_probe_cands, key=_sort_key):
+        m = by_cand[cid]
+        laws_summary: dict[str, dict] = {}
+        total_pass = 0
+        total_measured = 0
+        for lid in law_order:
+            lpids = probes_by_law[lid]
+            lp = sum(1 for pid in lpids if (m.get(pid) or {}).get("status") == "PASS")
+            lm = sum(1 for pid in lpids if pid in m)
+            total_pass += lp
+            total_measured += lm
+            laws_summary[lid] = {"pass": lp, "measured": lm, "total": len(lpids)}
+
+        total_j = 0.0
+        has_j = False
+        probe_cells: dict[str, dict] = {}
+        for pid in probe_ids:
+            dr = m.get(pid)
+            if not dr:
+                continue
+            jt = _opt_float(dr.get("joules_total"))
+            if jt is not None:
+                total_j += jt
+                has_j = True
+            probe_cells[pid] = {
+                "status": str(dr.get("status") or "UNKNOWN"),
+                "min_margin": _opt_float(dr.get("min_margin")),
+                "joules_to_pass": _opt_float(dr.get("joules_to_pass")),
+                "joules_total": jt,
+                "receipt": _opt_str(dr.get("readout")),
+            }
+
+        bg_measured = [tid for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary") if tid in m]
+        bg_pass = sum(1 for tid in bg_measured if m[tid].get("status") == "PASS")
+        bg_j_to_pass = {
+            tid: _opt_float(m[tid].get("joules_to_pass"))
+            for tid in bg_measured
+            if m[tid].get("status") == "PASS" and _opt_float(m[tid].get("joules_to_pass")) is not None
+        }
+        rows.append(
+            {
+                "candidate_id": cid,
+                "family_id": cand_family.get(cid) or None,
+                "blocked": False,
+                "blocked_reason": None,
+                "laws": laws_summary,
+                "probes_pass": total_pass,
+                "probes_measured": total_measured,
+                "probes_total": len(probe_ids),
+                "bytegan_pass": bg_pass if bg_measured else None,
+                "bytegan_measured": len(bg_measured),
+                "bytegan_j_to_pass": bg_j_to_pass,
+                "nine_probe_joules_total": round(total_j, 2) if has_j else None,
+                "probes": probe_cells,
+            }
+        )
+
+    for blocked_cid, blocked_fam, reason in (
+        ("atlas-particle-normal-v4", "atlas", "requires MoGParticlePrior"),
+        ("e22", "e22", "clean/live policy contract"),
+    ):
+        if blocked_cid not in by_cand or not any(pid in by_cand[blocked_cid] for pid in probe_ids):
+            bg_m = [
+                tid
+                for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary")
+                if tid in by_cand.get(blocked_cid, {})
+            ]
+            bg_p = sum(1 for tid in bg_m if by_cand[blocked_cid][tid].get("status") == "PASS") if bg_m else None
+            rows.append(
+                {
+                    "candidate_id": blocked_cid,
+                    "family_id": blocked_fam,
+                    "blocked": True,
+                    "blocked_reason": reason,
+                    "laws": {lid: {"pass": 0, "measured": 0, "total": len(probes_by_law[lid])} for lid in law_order},
+                    "probes_pass": 0,
+                    "probes_measured": 0,
+                    "probes_total": len(probe_ids),
+                    "bytegan_pass": bg_p,
+                    "bytegan_measured": len(bg_m),
+                    "bytegan_j_to_pass": {},
+                    "nine_probe_joules_total": None,
+                    "probes": {},
+                }
+            )
+
+    return {
+        "view_id": "four-laws-adherence-v1",
+        "hardware_gpu": "NVIDIA L4",
+        "evidence_scope": "research_diagnostic",
+        "seed": 0,
+        "probes": [
+            {
+                "task_id": pid,
+                "short_label": short_labels.get(pid, pid),
+                "law": law_of[pid],
+                "pages_url": f"{base}/experiments/{pid}/",
+            }
+            for pid in probe_ids
+        ],
+        "rows": rows,
     }
 
 
@@ -1810,6 +1999,7 @@ def build_inventory_exports(
     git_commit = _git_head_commit(root)
     timestamp = generated_at or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     declared_view_revisions = {view["id"]: int(view["revision"]) for view in summed}
+    four_laws_l4 = _build_four_laws_adherence_l4_payload(root, pages_base_url=pages_base_url)
 
     leaderboard_payload = {
         "schema_version": 1,
@@ -1824,6 +2014,7 @@ def build_inventory_exports(
         "declared_view_revisions": declared_view_revisions,
         "laws_meta": laws_meta,
         "laws": laws_list,
+        "four_laws_adherence_l4": four_laws_l4,
         "full_suite_list": (
             {
                 "id": fixed["id"],

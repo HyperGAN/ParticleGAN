@@ -534,6 +534,8 @@ def _resolve_candidate_family_map(root: Path) -> dict[str, str]:
                 fam = "bispf"
             elif cid.startswith("atlas"):
                 fam = "atlas"
+            elif cid.startswith("axiom"):
+                fam = "axiom"
         if fam:
             mapping[cid] = fam
     return mapping
@@ -587,11 +589,12 @@ def _load_four_laws_readouts(
                 doc = json.loads(text)
             except Exception:
                 continue
-            if doc.get("view") != "four-laws-adherence-v1":
+            scope = (doc.get("study") or {}).get("scope") if isinstance(doc.get("study"), dict) else {}
+            view_id = doc.get("view") or (scope or {}).get("view")
+            if view_id != "four-laws-adherence-v1":
                 continue
             cand = str(doc.get("candidate_id") or (doc.get("candidate") or {}).get("id") or path.stem)
             fam = str(doc.get("trainer_family") or (doc.get("candidate") or {}).get("trainer_family") or fam_map.get(cand, ""))
-            scope = (doc.get("study") or {}).get("scope") if isinstance(doc.get("study"), dict) else {}
             default_gpu = str((scope or {}).get("cuda_model") or "")
             for tr in doc.get("task_results") or []:
                 if not isinstance(tr, dict):

@@ -99,6 +99,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 1.52 kJ (J-to-PASS) | cover=1, effective_modes=7.551, hq=0.9951, modes=8 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 1.18 kJ (J-to-PASS) | cover=1, effective_modes=7.503, hq=1, modes=8 | [8f7d4d0011864248ba512ac81c859b4c.json](../technique-receipts/8f7d4d0011864248ba512ac81c859b4c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 576 J (J-to-PASS) | cover=1, effective_modes=7.505, hq=1, modes=8 | [e5e670cb499241d59e54c6ffa4395b45.json](../technique-receipts/e5e670cb499241d59e54c6ffa4395b45.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 1.10 kJ (J-to-PASS) | cover=1, effective_modes=7.534, hq=1, modes=8 | [7dcb980ce6a442a6b275dcbc4ae7cbc9.json](../technique-receipts/7dcb980ce6a442a6b275dcbc4ae7cbc9.json) |

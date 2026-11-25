@@ -27,10 +27,11 @@
 
 | Candidate | Family | Law 1 (2) | Law 2 (2) | Law 3 (1) | Law 4 (4) | Probes PASS | ByteGAN (L4) | 9-Probe NVML Energy |
 | --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | ---: |
+| `unified-v14` | `unified` | `0/2` | `1/2` | `0/1` | `2/4` | **3/9** | `2/2` | 31.44 kJ |
 | `unified-v13` | `unified` | `0/2` | `1/2` | `0/1` | `2/4` | **3/9** | `2/2` | 28.81 kJ |
 | `unified-v11` | `unified` | `0/2` | `1/2` | `0/1` | `2/4` | **3/9** | `0/2` | 37.37 kJ |
-| `unified-v14` | `unified` | `0/2` | `1/2` | `0/1` | `2/4` | **3/9** | — | 31.44 kJ |
 | `unified-v12` | `unified` | `0/2` | `1/2` | `0/1` | `2/4` | **3/9** | `0/2` | 29.41 kJ |
+| `axiom-v4` | `axiom` | `0/2` | `1/2` | `0/1` | `1/4` | **2/9** | `2/2` | 26.84 kJ |
 | `minimal-v2` | `minimal` | `0/2` | `1/2` | `0/1` | `1/4` | **2/9** | `0/2` | 32.02 kJ |
 | `rhbi-v12` | `rhbi` | `0/2` | `1/2` | `0/1` | `0/4` | **1/9** | `0/2` | 31.02 kJ |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | `0/2` | `0/2` | `0/1` | `1/4` | **1/9** | `0/2` | 14.07 kJ |
@@ -47,10 +48,11 @@
 
 | Candidate | [L1 Aniso](experiments/fl_law1_aniso_unequal_modes.md) | [L1 Noisy](experiments/fl_law1_noisy_atomic_codebook.md) | [L2 GN+ViT](experiments/fl_law2_groupnorm_and_vit_sprites.md) | [L2 Codim1](experiments/fl_law2_pure_adversarial_codim1.md) | [L3 R32](experiments/fl_law3_highd_orphan_d32.md) | [L4.1 Rare1%](experiments/fl_law41_trust_rare1pct_tanh.md) | [L4.2 ResBN](experiments/fl_law42_deep_resbn_and_conv1x1.md) | [L4.2 Swap16L](experiments/fl_law42_swap_deep_critic_16l.md) | [L4.4 R512](experiments/fl_law44_highd_sparse_prior_and_shock.md) |
 | --- | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: | :---: |
+| `unified-v14` | FAIL `-0.91` | FAIL `-10.85` | FAIL `-4.02` | **PASS** `+0.00` (0.77 kJ) | FAIL `-1.00` | **PASS** `+0.00` (1.33 kJ) | FAIL `-2.20` | **PASS** `+0.00` (1.13 kJ) | FAIL `-5.86` |
 | `unified-v13` | FAIL `-0.88` | FAIL `-12.26` | FAIL `-1.34` | **PASS** `+0.00` (0.69 kJ) | FAIL `-1.00` | **PASS** `+0.00` (1.32 kJ) | FAIL `-15.54` | **PASS** `+0.00` (1.01 kJ) | FAIL `-5.86` |
 | `unified-v11` | FAIL `-0.88` | FAIL `-8.13` | FAIL `-4.36` | **PASS** `+0.00` (0.76 kJ) | FAIL `-1.00` | **PASS** `+0.00` (1.94 kJ) | FAIL `-0.05` | **PASS** `+0.00` (1.47 kJ) | FAIL `-6.25` |
-| `unified-v14` | FAIL `-0.91` | FAIL `-10.85` | FAIL `-4.02` | **PASS** `+0.00` (0.77 kJ) | FAIL `-1.00` | **PASS** `+0.00` (1.33 kJ) | FAIL `-2.20` | **PASS** `+0.00` (1.13 kJ) | FAIL `-5.86` |
 | `unified-v12` | FAIL `-0.88` | FAIL `-12.26` | FAIL `-1.34` | **PASS** `+0.00` (0.70 kJ) | FAIL `-1.00` | **PASS** `+0.00` (1.26 kJ) | FAIL `-15.54` | **PASS** `+0.00` (1.09 kJ) | FAIL `-5.86` |
+| `axiom-v4` | FAIL `-1.08` | FAIL `-4.09` | FAIL `-4.36` | **PASS** `+0.00` (0.74 kJ) | FAIL `-1.00` | FAIL `-0.05` | FAIL `+0.00` | **PASS** `+0.00` (0.84 kJ) | FAIL `-1.66` |
 | `minimal-v2` | FAIL `-44.00` | FAIL `-12.62` | FAIL `-1.00` | **PASS** `+0.00` (0.89 kJ) | FAIL `-1.00` | FAIL `-0.29` | FAIL `-2.07` | **PASS** `+0.00` (2.03 kJ) | FAIL `-6915.86` |
 | `rhbi-v12` | FAIL `-1.62` | FAIL `-4.87` | FAIL `-2.57` | **PASS** `+0.00` (1.24 kJ) | FAIL `-3.54` | FAIL `-1.00` | FAIL `-0.04` | FAIL `-5.25` | FAIL `-2.47` |
 | `recipe-prior-refactor-k3p-v1` | FAIL `-0.94` | FAIL `-12.60` | FAIL `-4.34` | FAIL `+0.00` | FAIL `-1.00` | FAIL `-1.00` | FAIL `-0.55` | **PASS** `+0.00` (1.51 kJ) | FAIL `-3.05` |

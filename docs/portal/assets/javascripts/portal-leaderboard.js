@@ -877,6 +877,93 @@
       }
     }
 
+    function renderFourLawsAdherencePanel(data) {
+      const fl = data.four_laws_adherence_l4;
+      if (!fl || !Array.isArray(fl.rows) || fl.rows.length === 0) return "";
+      const rows = fl.rows
+        .map((r) => {
+          const fam = r.family_id ? `<code>${escapeHtml(r.family_id)}</code>` : "—";
+          if (r.blocked) {
+            const bgText =
+              r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "BLOCKED";
+            return `
+              <tr>
+                <td><code>${escapeHtml(r.candidate_id)}</code></td>
+                <td>${fam}</td>
+                <td><span class="pg-badge pg-badge-warn">BLOCKED</span></td>
+                <td><span class="pg-badge pg-badge-warn">BLOCKED</span></td>
+                <td><span class="pg-badge pg-badge-warn">BLOCKED</span></td>
+                <td><span class="pg-badge pg-badge-warn">BLOCKED</span></td>
+                <td><code>0/0</code> <span class="portal-muted">(${escapeHtml(r.blocked_reason || "blocked")})</span></td>
+                <td><code>${escapeHtml(bgText)}</code></td>
+                <td class="num">—</td>
+              </tr>
+            `;
+          }
+          const lawCell = (lid) => {
+            const b = (r.laws && r.laws[lid]) || {};
+            const p = b.pass ?? 0;
+            const t = b.total ?? 0;
+            const cls = p > 0 ? "pg-badge-pass" : "pg-badge-muted";
+            return `<span class="pg-badge ${cls}">${p}/${t}</span>`;
+          };
+          const bgText =
+            r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "—";
+          const bgCls =
+            r.bytegan_measured > 0 && r.bytegan_pass === r.bytegan_measured
+              ? "pg-badge-pass"
+              : "pg-badge-muted";
+          const energyText =
+            r.nine_probe_joules_total != null
+              ? `${(r.nine_probe_joules_total / 1000).toFixed(2)} kJ`
+              : "—";
+          return `
+            <tr>
+              <td><strong><code>${escapeHtml(r.candidate_id)}</code></strong></td>
+              <td>${fam}</td>
+              <td>${lawCell("law1")}</td>
+              <td>${lawCell("law2")}</td>
+              <td>${lawCell("law3")}</td>
+              <td>${lawCell("law4")}</td>
+              <td><strong>${r.probes_pass}/${r.probes_measured}</strong></td>
+              <td><span class="pg-badge ${bgCls}">${escapeHtml(bgText)}</span></td>
+              <td class="num">${escapeHtml(energyText)}</td>
+            </tr>
+          `;
+        })
+        .join("");
+
+      return `
+        <section class="portal-panel">
+          <div class="portal-panel-head">
+            <div>
+              <h2 class="portal-panel-title">Law Adherence Diagnostic Leaderboard (${escapeHtml(fl.hardware_gpu || "NVIDIA L4")})</h2>
+              <p class="portal-panel-sub">Matched ${escapeHtml(fl.hardware_gpu || "NVIDIA L4")} cohort (<code>four-laws-adherence-v1</code>, protocol seed 0, unchanged recipes). Research diagnostic telemetry only — separate from ordinary selected-cohort qualification.</p>
+            </div>
+            <a class="portal-btn" href="${escapeHtml(siteRoot)}laws/">Full Per-Probe Margins →</a>
+          </div>
+          <div class="portal-table-wrap">
+            <table class="portal-table">
+              <thead>
+                <tr>
+                  <th>Candidate</th>
+                  <th>Family</th>
+                  <th>Law 1</th>
+                  <th>Law 2</th>
+                  <th>Law 3</th>
+                  <th>Law 4</th>
+                  <th>Probes PASS</th>
+                  <th>ByteGAN (L4)</th>
+                  <th class="num">9-Probe NVML</th>
+                </tr>
+              </thead>
+              <tbody>${rows}</tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
     function render() {
       if (!state.data) return;
       rootEl.innerHTML = [
@@ -884,6 +971,7 @@
         renderLeaderboardPanel(state.data),
         renderParetoPanel(state.data),
         renderLawsMatrixPanel(state.data),
+        renderFourLawsAdherencePanel(state.data),
         renderGifPanel(state.data),
       ].join("");
       bindEvents();

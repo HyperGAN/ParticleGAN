@@ -101,6 +101,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 200 J (J-to-PASS) | cdf_ks=0.06777, finite_fraction=1, mean=1.975, mean_error_sigma=0.05042 | [c0682a1625074e3b85a20e2057cf37f9.json](../technique-receipts/c0682a1625074e3b85a20e2057cf37f9.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 2.35 kJ (J-to-PASS) | cdf_ks=0.01678, finite_fraction=1, mean=2.022, mean_error_sigma=0.04314 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 127 J (J-to-PASS) | cdf_ks=0.1371, finite_fraction=1, mean=1.917, mean_error_sigma=0.1657 | [b711be6782954f34995912bc5b554851.json](../technique-receipts/b711be6782954f34995912bc5b554851.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 973 J (J-to-PASS) | cdf_ks=0.06861, finite_fraction=1, mean=2.065, mean_error_sigma=0.1292 | [e402e6d7695d4d1e9c1335bb9e5a19cc.json](../technique-receipts/e402e6d7695d4d1e9c1335bb9e5a19cc.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 570 J (J-to-PASS) | cdf_ks=0.0282, finite_fraction=1, mean=2.01, mean_error_sigma=0.02015 | [49c68c744d8a4057a38446b73d7099d5.json](../technique-receipts/49c68c744d8a4057a38446b73d7099d5.json) |

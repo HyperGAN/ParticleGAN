@@ -43,6 +43,8 @@ def test_index_and_app_reference_dataset_and_caveats():
     assert 'id="energy-section"' in html
     assert 'id="energy-table"' in html
     assert 'id="kpi-energy"' in html
+    assert 'id="four-laws-l4-block"' in html
+    assert "four_laws_adherence_l4" in js
     for col_label in (
         "Candidate",
         "Suite Pass",

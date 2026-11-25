@@ -103,6 +103,8 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | `+0.000` | 4.90 kJ (J-to-PASS) | conv1x1_sw1=0.02095, conv1x1_sw1_ratio=0.8873, diag_d_max_s1=1.133, diag_s_therm=1 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **FAIL** | `+0.000` | 5.55 kJ | conv1x1_sw1=0.02299, conv1x1_sw1_ratio=0.9945, diag_d_max_s1=1.229, diag_s_therm=1 | [a8f879f2b1ac47bb9dd4e036284d14fd.json](../technique-receipts/a8f879f2b1ac47bb9dd4e036284d14fd.json) |
 | `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-0.036` | 7.50 kJ | conv1x1_sw1=0.02273, conv1x1_sw1_ratio=1.088, diag_d_max_s1=1.016, diag_s_therm=1 | [f5226f3cc935462a86b3c281ead4e3ae.json](../technique-receipts/f5226f3cc935462a86b3c281ead4e3ae.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | `-0.047` | 8.18 kJ | conv1x1_sw1=0.02707, conv1x1_sw1_ratio=1.099, diag_d_max_s1=1.381, diag_s_therm=1e-06 | [b336fb5b67a24e9ca46b1b2df2ec4fb5.json](../technique-receipts/b336fb5b67a24e9ca46b1b2df2ec4fb5.json) |
 | `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `-0.399` | 3.26 kJ | conv1x1_sw1=0.06786, conv1x1_sw1_ratio=0.5963, diag_d_max_s1=5.088, diag_s_therm=1 | [6e9656735f994d499d3c2ffac6b187e7.json](../technique-receipts/6e9656735f994d499d3c2ffac6b187e7.json) |

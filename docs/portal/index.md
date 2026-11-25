@@ -55,7 +55,7 @@ hide:
   <a class="portal-card" href="families/">
     <div class="portal-card-kicker">Formulations &amp; Receipts</div>
     <h3>Family Formulations</h3>
-    <p>Mathematical equations, update-loop diagrams, law-mechanism tables, and per-task receipts across Unified, RHBI, EMPF, BISPF, BCAP, Atlas, E22, K3P, KA2, R1/R2, and historical baselines.</p>
+    <p>Mathematical equations, update-loop diagrams, law-mechanism tables, and per-task receipts across Unified, Axiom, Minimal, RHBI, EMPF, BISPF, BCAP, Atlas, E22, K3P, KA2, R1/R2, and historical baselines.</p>
     <span class="portal-card-link">Compare Families →</span>
   </a>
 
@@ -112,6 +112,7 @@ Supply ordinary `torch.nn.Module` networks. `GANTrainer` binds the recipe's opti
     from particlegan import get_recipe
 
     default = get_recipe()                # unified_v12 (zero autograd.grad / SVD / eigh / pinv)
+    axiom = get_recipe("axiom")           # clean-slate 4-Law opt-in family (<=2,500 LOC, lowest r256 energy)
     fast_core = get_recipe("minimal")     # <900-LOC zero-Newton-Schulz fast core
     v11 = get_recipe("unified_v11")       # pinned 0.11.x screening cohort
     rhbi = get_recipe("rhbi_optimized")   # Relativistic Hellinger-Born-Infeld transport

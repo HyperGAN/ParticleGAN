@@ -103,6 +103,8 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-1.583` | 4.93 kJ | diag_mean_dz=0.675, diag_prior_peak_rms=0, finite_fraction=1, min_margin=-1.583 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **FAIL** | `-1.663` | 2.51 kJ | diag_mean_dz=0.6748, diag_prior_peak_rms=0, finite_fraction=1, min_margin=-1.663 | [e0153cf7062d4061b1096374309138ed.json](../technique-receipts/e0153cf7062d4061b1096374309138ed.json) |
 | `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-2.472` | 3.31 kJ | diag_mean_dz=0.009527, diag_prior_peak_rms=0, finite_fraction=1, min_margin=-2.472 | [056207f4620b434ea5fe641467a93fc7.json](../technique-receipts/056207f4620b434ea5fe641467a93fc7.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-2.903` | 1.96 kJ | diag_mean_dz=0.05395, diag_prior_peak_rms=0, finite_fraction=1, min_margin=-2.903 | [ce1c5ead6f404cea9a2a03b96d0cd3da.json](../technique-receipts/ce1c5ead6f404cea9a2a03b96d0cd3da.json) |
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-2.903` | 2.51 kJ | diag_mean_dz=0.0536, diag_prior_peak_rms=0, finite_fraction=1, min_margin=-2.903 | [bc68dd3a6cc54a0286e2029074b169e7.json](../technique-receipts/bc68dd3a6cc54a0286e2029074b169e7.json) |

@@ -100,6 +100,8 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **FAIL** | `-0.996` | 2.55 kJ | core_eig_max=2.191, core_eig_min=0.0009805, finite_fraction=1, mass_tv=0.04003 | [5ac420cb14be43ac99d1f0e048f0fefd.json](../technique-receipts/5ac420cb14be43ac99d1f0e048f0fefd.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-0.996` | 5.07 kJ | core_eig_max=2.277, core_eig_min=0.0009071, finite_fraction=1, mass_tv=0.03104 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-0.999` | 3.69 kJ | core_eig_max=4.421, core_eig_min=0.0001454, finite_fraction=1, mass_tv=0.03767 | [f6aa09cb455647379f32b4a6bba72943.json](../technique-receipts/f6aa09cb455647379f32b4a6bba72943.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | `-1.000` | 3.12 kJ | core_eig_max=3.558, core_eig_min=0.0001017, finite_fraction=1, mass_tv=0.05253 | [76624f207ca04f8cb0f104df96f68243.json](../technique-receipts/76624f207ca04f8cb0f104df96f68243.json) |
 | `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-1.000` | 3.36 kJ | core_eig_max=3.558, core_eig_min=0.0001017, finite_fraction=1, mass_tv=0.05253 | [e5fc05596e9b4fc7bc21cc506cbd7713.json](../technique-receipts/e5fc05596e9b4fc7bc21cc506cbd7713.json) |

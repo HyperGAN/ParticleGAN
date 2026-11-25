@@ -77,6 +77,7 @@
     receipts: [],
     energyBenchmarks: [],
     taskDefinitions: new Map(),
+    fourLawsL4: null,
     selectedFamilyId: null,
     selectedFormulationFamilyId: null,
     selectedLawCell: null, // { familyId, lawId }
@@ -900,6 +901,10 @@
     state.receipts = receipts;
     state.energyBenchmarks = energyBenchmarks;
     state.taskDefinitions = taskDefinitions;
+    state.fourLawsL4 =
+      raw && typeof raw.four_laws_adherence_l4 === "object" && raw.four_laws_adherence_l4
+        ? raw.four_laws_adherence_l4
+        : null;
 
     if (!state.selectedFormulationFamilyId || !families.some((f) => f.id === state.selectedFormulationFamilyId)) {
       const preferred =
@@ -1422,7 +1427,100 @@
     `;
 
     renderLawCellDrawer();
+    renderFourLawsL4Section();
     renderFamilyFormulationSection();
+  }
+
+  function renderFourLawsL4Section() {
+    const block = $("four-laws-l4-block");
+    const wrap = $("four-laws-l4-wrap");
+    if (!block || !wrap) return;
+    const fl = state.fourLawsL4;
+    if (!fl || !Array.isArray(fl.rows) || fl.rows.length === 0) {
+      block.classList.add("hidden");
+      return;
+    }
+    block.classList.remove("hidden");
+    const probes = Array.isArray(fl.probes) ? fl.probes : [];
+    const probeHeaders = probes
+      .map(
+        (p) =>
+          `<th class="num"><a href="${escapeHtml(p.pages_url || pagesUrl(`experiments/${p.task_id}/`))}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.short_label || p.task_id)}</a></th>`
+      )
+      .join("");
+    const rowsHtml = fl.rows
+      .map((r) => {
+        const famTag = r.family_id ? `<code>${escapeHtml(r.family_id)}</code>` : "—";
+        if (r.blocked) {
+          const bgTxt =
+            r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "BLOCKED";
+          return `
+            <tr>
+              <td class="sticky-col"><strong><code>${escapeHtml(r.candidate_id)}</code></strong><div class="muted" style="font-size:0.74rem">${famTag}</div></td>
+              <td class="num"><span class="badge badge-blocked">BLOCKED</span></td>
+              <td class="num"><span class="badge badge-blocked">${escapeHtml(bgTxt)}</span></td>
+              <td class="num">—</td>
+              <td colspan="${Math.max(1, probes.length)}" class="muted">Statically blocked (${escapeHtml(r.blocked_reason || "contract")})</td>
+            </tr>
+          `;
+        }
+        const bgTxt = r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "—";
+        const bgCls =
+          r.bytegan_measured > 0 && r.bytegan_pass === r.bytegan_measured
+            ? "badge-pass"
+            : "badge-notrun";
+        const energyTxt =
+          r.nine_probe_joules_total != null
+            ? `${(Number(r.nine_probe_joules_total) / 1000).toFixed(2)} kJ`
+            : "—";
+        const probeTds = probes
+          .map((p) => {
+            const cell = r.probes && r.probes[p.task_id];
+            if (!cell) return `<td class="num muted">—</td>`;
+            const st = String(cell.status || "").toUpperCase();
+            const mm =
+              typeof cell.min_margin === "number" && Number.isFinite(cell.min_margin)
+                ? `${cell.min_margin >= 0 ? "+" : ""}${cell.min_margin.toFixed(2)}`
+                : "";
+            if (st === "PASS") {
+              const jtp =
+                typeof cell.joules_to_pass === "number" && Number.isFinite(cell.joules_to_pass)
+                  ? ` · ${(cell.joules_to_pass / 1000).toFixed(2)} kJ`
+                  : "";
+              return `<td class="num"><span class="badge badge-pass">PASS${escapeHtml(jtp)}</span></td>`;
+            }
+            if (st === "FAIL") {
+              return `<td class="num"><span class="badge badge-fail">FAIL ${escapeHtml(mm)}</span></td>`;
+            }
+            return `<td class="num"><span class="badge badge-notrun">${escapeHtml(st)}</span></td>`;
+          })
+          .join("");
+        return `
+          <tr>
+            <td class="sticky-col"><strong><code>${escapeHtml(r.candidate_id)}</code></strong><div class="muted" style="font-size:0.74rem">${famTag}</div></td>
+            <td class="num"><strong>${r.probes_pass}/${r.probes_measured}</strong></td>
+            <td class="num"><span class="badge ${bgCls}">${escapeHtml(bgTxt)}</span></td>
+            <td class="num">${escapeHtml(energyTxt)}</td>
+            ${probeTds}
+          </tr>
+        `;
+      })
+      .join("");
+
+    wrap.innerHTML = `
+      <table class="data-table" id="four-laws-l4-table">
+        <thead>
+          <tr>
+            <th class="sticky-col">Candidate / Family</th>
+            <th class="num">Probes PASS</th>
+            <th class="num">ByteGAN (L4)</th>
+            <th class="num">9-Probe NVML</th>
+            ${probeHeaders}
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
   }
 
   function renderLawCellDrawer() {

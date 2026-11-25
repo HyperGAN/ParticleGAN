@@ -123,6 +123,8 @@ def test_build_docs_site_skip_mkdocs_stages_portal_and_leaves_repo_clean(tmp_pat
         docs / "experiments/index.md",
         docs / "studies/index.md",
         docs / "studies/problems.md",
+        docs / "studies/axiom/axiom-study.md",
+        docs / "studies/axiom/design-spec.md",
         docs / "reference/index.md",
         docs / "reference/api.md",
         docs / "reference/glossary.md",

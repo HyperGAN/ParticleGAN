@@ -1306,12 +1306,26 @@ def _render_experiments_fallback(leaderboard_payload: dict, root: Path) -> str:
     return "\n".join(lines)
 
 
-def _render_studies_index(study_entries: list[tuple[str, str]]) -> str:
+def _render_studies_index(
+    study_entries: list[tuple[str, str]],
+    axiom_entries: list[tuple[str, str]] | None = None,
+) -> str:
     lines = [
         "# Studies & Unresolved Problems",
         "",
         "- **[Unresolved Training Problems](problems.md)** — Outstanding Forge tasks, held failures, diagnoses, and cross-family recorded outcomes.",
         "",
+    ]
+    if axiom_entries:
+        lines += [
+            "## Axiom Family (`axiom-v4`)",
+            "",
+        ]
+        for title, rel in axiom_entries:
+            sub_rel = posixpath.relpath(rel, start="studies")
+            lines.append(f"- [{title}]({sub_rel})")
+        lines.append("")
+    lines += [
         "## Research Studies",
         "",
     ]
@@ -1560,8 +1574,21 @@ def stage_docs_site(
                     dst = f"experiments/assets/{asset.relative_to(exp_assets).as_posix()}"
                     binary_map[rel] = dst
 
-    # Studies & Problems
+    # Studies, Axiom Family reports & Problems
     _add_md("reports/forge/problems.md", "studies/problems.md")
+    axiom_dir = root / "reports/axiom"
+    axiom_entries: list[tuple[str, str]] = []
+    if axiom_dir.is_dir():
+        axiom_order = ("axiom-study.md", "design-spec.md", "four-laws-benchmark.md", "gap-analysis.md")
+        axiom_mds = sorted(
+            axiom_dir.glob("*.md"),
+            key=lambda p: (axiom_order.index(p.name) if p.name in axiom_order else 99, p.name),
+        )
+        for md in axiom_mds:
+            rel = md.relative_to(root).as_posix()
+            dst = f"studies/axiom/{md.name}"
+            markdown_map[rel] = dst
+            axiom_entries.append((_extract_h1(md, md.stem), dst))
     studies_dir = root / "reports/forge/studies"
     study_entries: list[tuple[str, str]] = []
     if studies_dir.is_dir():
@@ -1642,7 +1669,7 @@ def stage_docs_site(
 
     (docs_dir / "studies").mkdir(parents=True, exist_ok=True)
     (docs_dir / "studies/index.md").write_text(
-        _render_studies_index(study_entries), encoding="utf-8"
+        _render_studies_index(study_entries, axiom_entries), encoding="utf-8"
     )
 
     (docs_dir / "reference").mkdir(parents=True, exist_ok=True)
@@ -1690,6 +1717,8 @@ def stage_docs_site(
     studies_nav: list = ["studies/index.md"]
     if (docs_dir / "studies/problems.md").is_file():
         studies_nav.append({"Unresolved Training Problems": "studies/problems.md"})
+    if axiom_entries:
+        studies_nav.append({"Axiom Family (v4)": [{title: rel} for title, rel in axiom_entries]})
     if study_entries:
         studies_nav.append({"Research Studies": [{title: rel} for title, rel in study_entries]})
 

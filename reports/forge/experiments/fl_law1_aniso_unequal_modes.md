@@ -100,6 +100,7 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-0.750` | 11.91 kJ | finite_fraction=1, mass_tv=0.02393, max_cov_eig_ratio=3.851, mean_aspect_ratio=3.847 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-0.754` | 2.56 kJ | finite_fraction=1, mass_tv=0.08521, max_cov_eig_ratio=3.859, mean_aspect_ratio=5.002 | [12997ec0201a41d7a12cd94e464276b4.json](../technique-receipts/12997ec0201a41d7a12cd94e464276b4.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-0.800` | 2.56 kJ | finite_fraction=1, mass_tv=0.04053, max_cov_eig_ratio=3.96, mean_aspect_ratio=4.788 | [9206ab3667a440aabf79f74eaf7f3e8f.json](../technique-receipts/9206ab3667a440aabf79f74eaf7f3e8f.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-0.875` | 3.29 kJ | finite_fraction=1, mass_tv=0.07153, max_cov_eig_ratio=3.553, mean_aspect_ratio=5.198 | [43ed2dd4dd874effb0d35c90b95a4df0.json](../technique-receipts/43ed2dd4dd874effb0d35c90b95a4df0.json) |
@@ -108,6 +109,7 @@ flowchart LR
 | `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-0.875` | 3.18 kJ | finite_fraction=1, mass_tv=0.01416, max_cov_eig_ratio=4.036, mean_aspect_ratio=3.92 | [4783bc7426fd430298314cc87599dd19.json](../technique-receipts/4783bc7426fd430298314cc87599dd19.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-0.911` | 3.61 kJ | finite_fraction=1, mass_tv=0.01587, max_cov_eig_ratio=4.205, mean_aspect_ratio=4.13 | [f19cd9b6ee054250987b8568de8dcf7d.json](../technique-receipts/f19cd9b6ee054250987b8568de8dcf7d.json) |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `-0.942` | 1.38 kJ | finite_fraction=1, mass_tv=0.1343, max_cov_eig_ratio=4.272, mean_aspect_ratio=5.738 | [453fcbfece404f21a368c54fc333d505.json](../technique-receipts/453fcbfece404f21a368c54fc333d505.json) |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **FAIL** | `-1.081` | 3.41 kJ | finite_fraction=1, mass_tv=0.02222, max_cov_eig_ratio=4.579, mean_aspect_ratio=3.995 | [94dc61f0d20f413db2453d77424b2b36.json](../technique-receipts/94dc61f0d20f413db2453d77424b2b36.json) |
 | `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-1.625` | 3.09 kJ | finite_fraction=1, mass_tv=0.08667, max_cov_eig_ratio=5.775, mean_aspect_ratio=4.047 | [9921c3b4b8154285b5d6264429681b3b.json](../technique-receipts/9921c3b4b8154285b5d6264429681b3b.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-44.000` | 3.91 kJ | finite_fraction=1, mass_tv=0.1079, max_cov_eig_ratio=99, mean_aspect_ratio=4.602 | [41be53f5344d41ea8d8965f8ab3d73f7.json](../technique-receipts/41be53f5344d41ea8d8965f8ab3d73f7.json) |
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `-44.000` | 1.45 kJ | finite_fraction=1, mass_tv=0.1558, max_cov_eig_ratio=99, mean_aspect_ratio=5.837 | [1fb3e2f1981b45c9b87f0d66622a5c39.json](../technique-receipts/1fb3e2f1981b45c9b87f0d66622a5c39.json) |

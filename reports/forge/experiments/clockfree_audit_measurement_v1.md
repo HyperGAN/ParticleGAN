@@ -108,6 +108,7 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 86 J | parity_comparisons=4 | [d3334937b6e843ba81beea44234c16e0.json](../technique-receipts/d3334937b6e843ba81beea44234c16e0.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 342 J | parity_comparisons=4 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 61 J | parity_comparisons=4 | [788efc59e03743b79c2adbb4d123539f.json](../technique-receipts/788efc59e03743b79c2adbb4d123539f.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 61 J | parity_comparisons=4 | [eca7afc3fd684cf6bdf1c8ee0ea922c4.json](../technique-receipts/eca7afc3fd684cf6bdf1c8ee0ea922c4.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 76 J | parity_comparisons=4 | [764aa2f860084bb79dc376e84b46b560.json](../technique-receipts/764aa2f860084bb79dc376e84b46b560.json) |
