@@ -104,7 +104,7 @@ def _novelty_initial_charts(y_flat: torch.Tensor, k_cap: int) -> torch.Tensor:
     if b_r <= 2 or k_cap <= 2:
         k0 = min(max(1, k_cap), b_r)
         return y_flat[:k0].clone()
-    scale = y_flat.abs().amax().clamp_min(1.0)
+    scale = y_flat.abs().amax().clamp_min(1e-12)
     y_u = y_flat / scale
     d_yy_init = torch.cdist(y_u, y_u, p=2.0)
     d_max_u = d_yy_init.amax()
@@ -146,7 +146,7 @@ def _estimate_initial_sq_dev(points: torch.Tensor, y_u_ref: Optional[torch.Tenso
     k = points.shape[0]
     if k == 0:
         return torch.empty((0,), device=points.device, dtype=torch.float32)
-    scale = points.abs().amax().clamp_min(1.0)
+    scale = points.abs().amax().clamp_min(1e-12)
     if y_u_ref is not None and y_u_ref.shape[0] >= 2:
         ell_ref = _batch_nn_scale_u(y_u_ref, quantile=0.25) * scale
         d2_yc = pairwise_sq_dist(y_u_ref * scale / scale, points / scale)
@@ -155,13 +155,13 @@ def _estimate_initial_sq_dev(points: torch.Tensor, y_u_ref: Optional[torch.Tenso
         counts = oh.sum(dim=0)
         diff_sq = (y_u_ref * scale - points[assign]).square().sum(dim=1)
         sq_sum = oh.mT @ diff_sq
-        fallback = ell_ref.square().clamp_min(1e-8)
+        fallback = ell_ref.square().clamp_min((1e-8 * scale * scale).clamp_min(1e-24))
         if k >= 2:
             u_pts = points / scale
             d2_cc = pairwise_sq_dist(u_pts)
             eye_c = torch.eye(k, device=points.device, dtype=torch.bool)
             nn_cc_d2 = d2_cc.masked_fill(eye_c, float("inf")).amin(dim=1) * (scale * scale)
-            singleton_var = (0.06 * nn_cc_d2).clamp_min(1e-8)
+            singleton_var = (0.06 * nn_cc_d2).clamp_min((1e-8 * scale * scale).clamp_min(1e-24))
             fallback_vec = torch.minimum(fallback.expand(k), singleton_var)
         else:
             fallback_vec = fallback.expand(k)
@@ -171,7 +171,7 @@ def _estimate_initial_sq_dev(points: torch.Tensor, y_u_ref: Optional[torch.Tenso
             fallback_vec,
         )
     if k <= 1:
-        return torch.full((k,), 1e-3 * float((scale * scale).item()), device=points.device, dtype=torch.float32)
+        return torch.full((k,), max(1e-24, 1e-3 * float((scale * scale).item())), device=points.device, dtype=torch.float32)
     u = points / scale
     d2 = pairwise_sq_dist(u)
     eye = torch.eye(k, device=points.device, dtype=torch.bool)
@@ -179,7 +179,7 @@ def _estimate_initial_sq_dev(points: torch.Tensor, y_u_ref: Optional[torch.Tenso
     pos = nn_d2[nn_d2 > 0.0]
     fallback = pos.quantile(0.25) if pos.numel() > 0 else u.new_tensor(1e-4)
     est_u = torch.where(nn_d2 > 0.0, 0.25 * nn_d2, 0.25 * fallback).clamp_min(1e-8)
-    return est_u * (scale * scale)
+    return (est_u * (scale * scale)).clamp_min(1e-24)
 
 
 @torch.no_grad()
@@ -226,7 +226,7 @@ def update_streaming_charts(
         raise ValueError("y_real must have positive batch size and feature dimension")
 
     k_cap = max(2, int(max_charts))
-    scale_init = y.abs().amax().clamp_min(1.0)
+    scale_init = y.abs().amax().clamp_min(1e-12)
     y_u_init = y / scale_init
 
     if (
@@ -255,10 +255,10 @@ def update_streaming_charts(
         c_emp = torch.where((b_cnt0 >= 1.0).unsqueeze(1), b_sum0 / b_cnt0.clamp_min(1.0).unsqueeze(1), c_init)
         new_sum = c_emp * new_count.unsqueeze(1)
         var_init = _estimate_initial_sq_dev(c_emp, y_u_ref=y_u_init)
-        new_sq_dev = (var_init * new_count).clamp_min(1e-12)
+        new_sq_dev = (var_init * new_count).clamp_min(1e-24)
         weights = new_count / new_count.sum().clamp_min(1e-8)
         new_fake_mass = weights.clone()
-        radii = (new_sq_dev / new_count).clamp_min(1e-12).sqrt()
+        radii = (new_sq_dev / new_count).clamp_min(1e-24).sqrt()
         return (
             c_emp,
             weights,
@@ -281,8 +281,8 @@ def update_streaming_charts(
     k_cur = cur_sum.shape[0]
     if k_cur < k_cap:
         c_existing = cur_sum / cur_count.clamp_min(1e-8).unsqueeze(1)
-        r_existing = (cur_sq_dev / cur_count.clamp_min(1e-8)).clamp_min(1e-12).sqrt()
-        scale_g = torch.maximum(y.abs().amax(), c_existing.abs().amax()).clamp_min(1.0)
+        r_existing = (cur_sq_dev / cur_count.clamp_min(1e-8)).clamp_min(1e-24).sqrt()
+        scale_g = torch.maximum(y.abs().amax(), c_existing.abs().amax()).clamp_min(1e-12)
         y_ug = y / scale_g
         c_ug = c_existing / scale_g
         ell_ug = _batch_nn_scale_u(y_ug, quantile=0.25)
@@ -326,13 +326,13 @@ def update_streaming_charts(
             ell_phys = ell_ug_eff * scale_g
             var_add = torch.full(
                 (delta_k,),
-                float((ell_phys * ell_phys).clamp_min(1e-8).item()),
+                float((ell_phys * ell_phys).clamp_min((1e-8 * scale_g * scale_g).clamp_min(1e-24)).item()),
                 device=y.device,
                 dtype=torch.float32,
             )
             cur_sum = torch.cat([cur_sum, c_add * add_n.unsqueeze(1)], dim=0)
             cur_count = torch.cat([cur_count, add_n], dim=0)
-            cur_sq_dev = torch.cat([cur_sq_dev, (var_add * add_n).clamp_min(1e-12)], dim=0)
+            cur_sq_dev = torch.cat([cur_sq_dev, (var_add * add_n).clamp_min(1e-24)], dim=0)
             # Newly discovered real chart initially has zero observed fake mass until G visits it.
             cur_fake_mass = torch.cat(
                 [cur_fake_mass, torch.zeros(delta_k, device=y.device, dtype=torch.float32)],
@@ -341,7 +341,7 @@ def update_streaming_charts(
 
     k = cur_sum.shape[0]
     centroids_prev = cur_sum / cur_count.clamp_min(1e-8).unsqueeze(1)
-    scale_u = torch.maximum(y.abs().amax(), centroids_prev.abs().amax()).clamp_min(1.0)
+    scale_u = torch.maximum(y.abs().amax(), centroids_prev.abs().amax()).clamp_min(1e-12)
     y_u = y / scale_u
     c_u = centroids_prev / scale_u
 
@@ -367,7 +367,7 @@ def update_streaming_charts(
 
     pair_spread_u = (2.0 * y_u.var(dim=0, unbiased=False).sum()).clamp_min(1e-12)
     r2c_rms_t = torch.sqrt(d2_min_u.mean() / pair_spread_u)
-    prev_var = (cur_sq_dev / cur_count.clamp_min(1e-8)).clamp_min(1e-10)
+    prev_var = (cur_sq_dev / cur_count.clamp_min(1e-8)).clamp_min((1e-10 * scale_u * scale_u).clamp_min(1e-24))
     out_of_chart = (d2_min > 12.0 * prev_var[assign]).to(dtype=torch.float32).mean()
     r2c_rms, out_frac = torch.stack((r2c_rms_t, out_of_chart)).tolist()
     shock_r2c = max(0.0, min(1.0, (float(r2c_rms) - 0.50) / 0.35))
@@ -382,10 +382,10 @@ def update_streaming_charts(
         new_count = b_cnt_n.clamp_min(0.5)
         new_sum = c_new * new_count.unsqueeze(1)
         var_new = _estimate_initial_sq_dev(c_new, y_u_ref=y_u)
-        new_sq_dev = (var_new * new_count).clamp_min(1e-12)
+        new_sq_dev = (var_new * new_count).clamp_min(1e-24)
         weights = new_count / new_count.sum().clamp_min(1e-8)
         new_fake_mass = weights.clone()
-        radii = (new_sq_dev / new_count).clamp_min(1e-12).sqrt()
+        radii = (new_sq_dev / new_count).clamp_min(1e-24).sqrt()
         return (
             c_new,
             weights,
@@ -406,7 +406,7 @@ def update_streaming_charts(
     # Keep variance anchored when batch_count == 0 on an unvisited mode:
     # both new_sq_dev and new_count decay by (1 - alpha_eff), so their ratio V_k / N_k
     # remains exact on unvisited modes without decaying toward zero!
-    new_sq_dev = ((1.0 - alpha_eff) * cur_sq_dev + alpha_eff * batch_sq_dev).clamp_min(1e-12)
+    new_sq_dev = ((1.0 - alpha_eff) * cur_sq_dev + alpha_eff * batch_sq_dev).clamp_min(1e-24)
 
     mean_count = new_count.mean()
     dead_mask = new_count < (float(revival_tau) * mean_count)
@@ -415,7 +415,7 @@ def update_streaming_charts(
 
     if allow_dead_revival and bool(dead_mask.any()) and k >= 2:
         dead_indices = torch.nonzero(dead_mask, as_tuple=False).squeeze(1).tolist()
-        coord_std = y.std(dim=0, unbiased=False) + 1e-6
+        coord_std = y.std(dim=0, unbiased=False) + (1e-6 * scale_u).clamp_min(1e-15)
         dim_idx = torch.arange(1, dim + 1, device=y.device, dtype=torch.float32)
 
         for offset, d_idx in enumerate(dead_indices):
@@ -438,7 +438,7 @@ def update_streaming_charts(
                 p_idx = (d_idx + 1) % k
 
             c_donor = new_sum[p_idx] / new_count[p_idx].clamp_min(1e-8)
-            v_donor = (new_sq_dev[p_idx] / new_count[p_idx].clamp_min(1e-8)).clamp_min(1e-12)
+            v_donor = (new_sq_dev[p_idx] / new_count[p_idx].clamp_min(1e-8)).clamp_min(1e-24)
             half_total = 0.5 * (new_count[p_idx] + new_count[d_idx])
             half_fake = 0.5 * (cur_fake_mass[p_idx] + cur_fake_mass[d_idx])
             angles = dim_idx * ((phase + (offset + 1) * _PHI1) * (2.0 * math.pi))
@@ -459,7 +459,7 @@ def update_streaming_charts(
 
     centroids = new_sum / new_count.clamp_min(1e-8).unsqueeze(1)
     weights = new_count / new_count.sum().clamp_min(1e-8)
-    radii = (new_sq_dev / new_count.clamp_min(1e-8)).clamp_min(1e-12).sqrt()
+    radii = (new_sq_dev / new_count.clamp_min(1e-8)).clamp_min(1e-24).sqrt()
     return (
         centroids,
         weights,
@@ -485,7 +485,7 @@ def compute_chart_valley_gate(
     b_r = y_feat.shape[0]
     if b_r < 6 or charts.shape[0] < 2:
         return 0.0
-    scale = torch.maximum(y_feat.abs().amax(), charts.abs().amax()).clamp_min(1.0)
+    scale = torch.maximum(y_feat.abs().amax(), charts.abs().amax()).clamp_min(1e-12)
     y_u = y_feat.float() / scale
     c_u = charts.float() / scale
     d_yc = torch.cdist(y_u, c_u, p=2.0)
@@ -493,7 +493,7 @@ def compute_chart_valley_gate(
     y_mid_u = 0.5 * (y_u + torch.roll(y_u, shifts=1, dims=0))
     d_mc = torch.cdist(y_mid_u, c_u, p=2.0)
     mid_q75 = torch.quantile(d_mc.amin(dim=1), 0.75) * scale
-    denom = torch.maximum(yc_q75, ell_chart.detach().float()).clamp_min(1e-6)
+    denom = torch.maximum(yc_q75, ell_chart.detach().float()).clamp_min((1e-6 * scale).clamp_min(1e-15))
     nu_val = mid_q75 / denom
     u_val = ((nu_val - 0.85 * float(rho)) / 1.50).clamp(0.0, 1.0)
     return float((u_val * u_val * (3.0 - 2.0 * u_val)).item())
@@ -527,7 +527,7 @@ def laguerre_hard_commitment(
     scale = torch.maximum(
         torch.maximum(xf.abs().amax(), cf.abs().amax()),
         ell_chart.detach().float(),
-    ).clamp_min(1.0)
+    ).clamp_min(1e-12)
     d2_u = pairwise_sq_dist(xf / scale, cf / scale)
     ell_u = (ell_chart.detach().float() / scale).clamp_min(1e-6)
     bi_u = torch.sqrt(ell_u.square() + d2_u) - ell_u
@@ -548,22 +548,24 @@ def laguerre_hard_commitment(
     log_pi = log_kernel + u.unsqueeze(1) + v.unsqueeze(0)
     k = cf.shape[0]
     if b_f >= 2 and k >= 2:
-        # Exact quota-respecting Monge assignment: round chart weights w_k to integer
-        # quotas summing to B_f, then assign particles in descending order of Laguerre
-        # margin (max - second_max) to highest-scoring chart with remaining quota > 0.
+        # Exact quota-respecting Monge assignment with proximity-aware, index-unbiased
+        # tie-breaking (closes D-06 B_f < K deterministic index-bias eviction without
+        # distorting unequal-mass Hamilton remainders).
         w_cpu = w.detach().cpu()
         raw_q = w_cpu * float(b_f)
         quotas = torch.floor(raw_q).to(dtype=torch.long)
         rem = int(b_f - int(quotas.sum().item()))
         if rem > 0:
             frac = raw_q - quotas.to(dtype=torch.float32)
-            # Deterministic tie-break by chart index
-            frac = frac - 1e-7 * torch.arange(k, dtype=torch.float32, device="cpu")
-            top_rem = torch.topk(frac, k=min(rem, k), largest=True).indices
+            prox_k = torch.exp(-norm_cost.amin(dim=0)).detach().cpu()
+            weyl_k = torch.remainder((torch.arange(k, dtype=torch.float32, device="cpu") + 0.5) * _PHI1, 1.0)
+            rem_score = frac + 1e-4 * prox_k + 1e-7 * weyl_k
+            top_rem = torch.topk(rem_score, k=min(rem, k), largest=True).indices
             quotas[top_rem] += 1
         s_cpu = log_pi.detach().cpu()
         top2 = torch.topk(s_cpu, k=2, dim=1, largest=True).values
-        margins = top2[:, 0] - top2[:, 1] - 1e-7 * torch.arange(b_f, dtype=torch.float32, device="cpu")
+        weyl_b = torch.remainder((torch.arange(b_f, dtype=torch.float32, device="cpu") + 0.5) * _PHI1, 1.0)
+        margins = top2[:, 0] - top2[:, 1] + 1e-7 * weyl_b
         order = torch.argsort(margins, descending=True)
         win_cpu = torch.empty(b_f, dtype=torch.long, device="cpu")
         neg_inf = float("-inf")
@@ -610,20 +612,21 @@ def deconflicted_chart_routing(
     xf = x_feat_det.float()
     cf = charts.float()
     b_f, k = xf.shape[0], cf.shape[0]
-    ell_f = ell_chart.detach().float().clamp_min(1e-6)
-    scale = torch.maximum(torch.maximum(xf.abs().amax(), cf.abs().amax()), ell_f).clamp_min(1.0)
+    ell_f = ell_chart.detach().float().clamp_min(1e-12)
+    scale = torch.maximum(torch.maximum(xf.abs().amax(), cf.abs().amax()), ell_f).clamp_min(1e-12)
 
     # Strictly intra-mode halo radius: never inflate chart_radii by global/AKT ell_f,
     # and cap at 0.35 * nearest inter-chart distance so distinct modes never overlap halos.
+    dist_floor = (1e-6 * scale).clamp_min(1e-15)
     if k >= 2:
         d_cc = torch.cdist(cf / scale, cf / scale, p=2.0) * scale
         d_cc.fill_diagonal_(float("inf"))
-        nn_cc = d_cc.amin(dim=1).clamp_min(1e-6)
+        nn_cc = d_cc.amin(dim=1).clamp_min(dist_floor)
         radii_eff = chart_radii.float().clamp_min(0.02 * nn_cc)
         r_halo_all = torch.minimum(float(halo_mult) * radii_eff, 0.35 * nn_cc)
         basin_rad_all = torch.minimum(1.35 * r_halo_all, 0.45 * nn_cc)
     else:
-        radii_eff = chart_radii.float().clamp_min(1e-5)
+        radii_eff = chart_radii.float().clamp_min((1e-5 * scale).clamp_min(1e-15))
         r_halo_all = float(halo_mult) * radii_eff
         basin_rad_all = 1.35 * r_halo_all
 
@@ -654,7 +657,7 @@ def deconflicted_chart_routing(
 
     # Shield settled in-halo non-surplus samples whose chart had 0 real draws this batch (B_r < K).
     if w_valley > 1e-4 and k > 4:
-        u_in = ((r_halo_near - d_near) / (0.35 * r_halo_near).clamp_min(1e-6)).clamp(0.0, 1.0)
+        u_in = ((r_halo_near - d_near) / (0.35 * r_halo_near).clamp_min(dist_floor)).clamp(0.0, 1.0)
         s_in = u_in * u_in * (3.0 - 2.0 * u_in)
         is_absent = (batch_real_count <= 0.0).to(dtype=torch.float32)[near_idx]
         no_surplus = (surplus_k <= 1e-6).to(dtype=torch.float32)[near_idx]
@@ -669,7 +672,7 @@ def deconflicted_chart_routing(
         return cf[near_idx], r_halo_near, zeros, absent_shield, next_fake_mass
 
     # 1. Valley / out-of-halo release gate for inter-mode bridges & 0.5-ghosts.
-    u_out = ((d_near - r_halo_near) / (0.45 * r_halo_near).clamp_min(1e-6)).clamp(0.0, 1.0)
+    u_out = ((d_near - r_halo_near) / (0.45 * r_halo_near).clamp_min(dist_floor)).clamp(0.0, 1.0)
     g_valley_row = float(w_valley) * (u_out * u_out * (3.0 - 2.0 * u_out))
 
     # 2. Quota-balanced Laguerre commitment across K >= 3 charts (avoids Voronoi init asymmetry
