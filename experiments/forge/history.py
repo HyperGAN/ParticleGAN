@@ -44,6 +44,7 @@ REPORT_FAMILIES = {
     "readme-100gaussians", "sparse-ucd", "trajectory", "transition", "releases",
     "atlas-explanation", "e22-animation", "r1-integrations", "develop-gates-20261001",
     "paired-residual-toy", "toy_audit", "gram-profile", "prior-ablation-2026-10-25",
+    "axiom", "four-laws-audit",
 }
 BENCHMARK_FAMILIES = {"cifar_toy", "init_research", "learned_lr", "legacy", "locked_shared",
                       "paired_error_2d", "smart_descent", "toy100", "transfer_suite",

@@ -462,8 +462,8 @@ class Recipe:
         CoulombPriorRegularizer(softening=self.prior_coulomb_softening,
                                confinement=self.prior_coulomb_confinement,
                                neighbors=self.prior_coulomb_neighbors)
-        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal"):
-            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback, rgdt, unified, unified_v4, unified_v11, t4_arch, r4_no_pullback_iso, r4_no_coalesce_ltv, r4_no_chart_laguerre, r4_no_sat_probe or minimal")
+        if self.prior_regularizer not in ("vicreg", "none", "coulomb", "sigreg", "moment_tether", "initial_mmd", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom"):
+            raise ValueError("prior_regularizer must be vicreg, none, coulomb, sigreg, moment_tether, initial_mmd, sbnp, empf, t1_pullback, rgdt, unified, unified_v4, unified_v11, t4_arch, r4_no_pullback_iso, r4_no_coalesce_ltv, r4_no_chart_laguerre, r4_no_sat_probe, minimal or axiom")
         for t1_name, t1_pos in (
             ("t1_pullback_weight", False),
             ("t1_iso_weight", False),
@@ -510,12 +510,12 @@ class Recipe:
         if (type(self.optimizer_smoothing) not in (int, float)
                 or not math.isfinite(self.optimizer_smoothing) or self.optimizer_smoothing < 0):
             raise ValueError("optimizer_smoothing must be finite and nonnegative")
-        if self.optimizer_smoothing and self.optimizer_family not in ("dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"):
-            raise ValueError("optimizer_smoothing requires optimizer_family='dualnorm', 'unified_equil', 'unified_v11_equil', 'unified_v12_equil', 'unified_v14_equil', 'r4_mp_no_ns', 'r4_no_secant_band', 'law4_energy_v1', 'law4_energy_v2', 'law4_energy_v3', 'law4_energy_v4', 'law4_energy_v5', 'law4_energy_v6', 'law4_energy_v7', 'law4_energy_v8', 'law4_energy_v9', 'law4_energy_v10' or 'law4_energy_v11'")
+        if self.optimizer_smoothing and self.optimizer_family not in ("dualnorm", "unified_equil", "unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "axiom", "r4_mp_no_ns", "r4_no_secant_band", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"):
+            raise ValueError("optimizer_smoothing requires optimizer_family='dualnorm', 'unified_equil', 'unified_v11_equil', 'unified_v12_equil', 'unified_v14_equil', 'axiom', 'r4_mp_no_ns', 'r4_no_secant_band', 'law4_energy_v1', 'law4_energy_v2', 'law4_energy_v3', 'law4_energy_v4', 'law4_energy_v5', 'law4_energy_v6', 'law4_energy_v7', 'law4_energy_v8', 'law4_energy_v9', 'law4_energy_v10' or 'law4_energy_v11'")
         if self.constraint_geometry_mode not in ("none", "nonascent", "strict_progress", "direction_blend"):
             raise ValueError("constraint_geometry_mode must be none, nonascent, strict_progress or direction_blend")
         if self.constraint_geometry_mode != "none":
-            if self.optimizer_family in ("unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"):
+            if self.optimizer_family in ("unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "axiom", "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6", "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11"):
                 if self.constraint_geometry_mode != "direction_blend" or self.optimizer_momentum:
                     raise ValueError(f"{self.optimizer_family} constraint_geometry supports only zero-momentum direction_blend")
             elif self.optimizer_family != "dualnorm" or self.optimizer_momentum:
@@ -611,10 +611,10 @@ class Recipe:
                 raise ValueError(f"{name} must be finite and nonnegative")
         if ((self.reg_real_weight, self.reg_fake_weight) != (1., 1.)
                 and self.reg_arm not in ("a_r1r2", "b_cap")
-                and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber")):
-            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, unified_v4, unified_v11, r4_autograd_critic, or cond_fiber formulation")
+                and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "axiom")):
+            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, unified_v4, unified_v11, r4_autograd_critic, cond_fiber, or axiom formulation")
         if self.optimizer_family != "formulation":
-            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
+            if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
             if (self.d_guard_ratio != 0 or self.reg_anchor_weight != 0
                     or self.latent_damping_max_rate != 0 or self.direct_particle_gain):
@@ -631,11 +631,11 @@ class Recipe:
             raise ValueError("scheduled reg_coeff requires a fixed R1/R2 or BCap reg_arm")
         if (self.beta2_end is not None or self.reg_coeff_end is not None) and self.total_steps is None:
             raise ValueError("recipe cosine schedules require a declared total_steps horizon")
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, unified_v11, r4_autograd_critic, cond_fiber or minimal")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, unified_v11, r4_autograd_critic, cond_fiber, minimal or axiom")
         if self.critic_formulation == "bcap" and (self.optimizer_family == "formulation" or self.reg_arm != "b_cap"):
             raise ValueError("bcap formulation requires a plain optimizer and reg_arm='b_cap'")
-        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
+        if self.critic_formulation in ("bispf", "empf", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
             if self.reg_arm is not None:
                 raise ValueError(f"{self.critic_formulation} formulation does not accept a legacy reg_arm")
             if self.reg_anchor_weight != 0:
@@ -755,7 +755,7 @@ class Recipe:
             rgdt_val = getattr(self, rgdt_name)
             if type(rgdt_val) not in (int, float) or not math.isfinite(rgdt_val) or rgdt_val < 0:
                 raise ValueError(f"{rgdt_name} must be finite and nonnegative")
-        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
+        if self.reg_arm is not None and self.critic_formulation not in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
             # Keep resolved recipe/Forge provenance truthful about the optimizer
             # family selected by an explicit legacy arm.
             object.__setattr__(self, "critic_formulation", "k3p")
@@ -1072,7 +1072,7 @@ class Recipe:
             if offset is None:
                 raise ValueError("AE encoding requires offset")
             return particle_ae(query, offset, base, uniformity_weight=self.ucd_weight,
-                               coord_whiten=(self.rhbi_ae_coord_whiten or self.effective_critic_formulation in ("rgdt", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber")), **options)
+                               coord_whiten=(self.rhbi_ae_coord_whiten or self.effective_critic_formulation in ("rgdt", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "axiom")), **options)
         if self.encoder_mode in ("categorical", "hard"):
             if offset is not None:
                 raise ValueError("prior-matching VAE does not accept an offset")
@@ -1082,6 +1082,17 @@ class Recipe:
 
     def make_loss(self):
         """The selected objective: ``d_loss(real, fake)``, ``g_loss(fake, real=None)``."""
+        if self.effective_critic_formulation == "axiom":
+            from ._axiom.loss import AxiomGANLoss
+            return AxiomGANLoss(
+                self.loss,
+                labels=self.loss_labels,
+                weight=self.t1c_weight,
+                chart_capacity=self.t1c_chart_capacity,
+                chart_weight=(0.0 if self.encoder_mode != "none" else self.t1c_chart_weight),
+                halo_mult=self.t1c_halo_mult,
+                fibre_rel_blend=self.rhbi_fibre_rel_blend,
+            )
         if self.effective_critic_formulation == "unified_v11":
             from .unified_v11 import UnifiedV11GANLoss
             cond_mode = self.rhbi_cond_ot_mode if self.rhbi_cond_ot_mode in ("imq_cmmd", "diag_imq_cmmd") else "diag_imq_cmmd"
@@ -1384,6 +1395,12 @@ class Recipe:
             from ._r4_ablation import R4AutogradCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation == "cond_fiber":
             from .cond_fiber import CondFiberCriticPenalty as CriticPenalty
+        elif self.effective_critic_formulation == "axiom":
+            from ._axiom.critic import AxiomCriticPenalty
+            opts = self._penalty_options(**penalty_overrides)
+            if output is not None:
+                opts["output"] = output
+            return AxiomCriticPenalty(optimizer, collect_stats=collect_stats, **opts)
         elif self.effective_critic_formulation == "minimal":
             from .minimal import MinimalCriticPenalty as CriticPenalty
         elif self.effective_critic_formulation in ("k3p", "bcap"):
@@ -1395,8 +1412,25 @@ class Recipe:
 
     def _penalty_options(self, **overrides):
         """Resolved kernel settings for ``make_critic_penalty``."""
-        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
-            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, unified_v11, r4_autograd_critic, cond_fiber or minimal")
+        if self.critic_formulation not in ("ka2", "k3p", "bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
+            raise ValueError("critic_formulation must be ka2, k3p, bcap, bispf, empf, rhbi, t1_coupling, t2_secant, rgdt, t4_nash, t4_nash_v3, unified, unified_v4, unified_v11, r4_autograd_critic, cond_fiber, minimal or axiom")
+        if self.effective_critic_formulation == "axiom":
+            if not self.critic_r1_real:
+                raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            if self.reg_every != 1:
+                raise ValueError("axiom critic penalty is strictly clock-free and requires reg_every=1")
+            options = {
+                "coeff": self.reg_coeff,
+                "kappa": self.reg_kappa,
+                "lambda_floor": 0.005,
+                "beta_ema": 1.5,
+                "gamma_gauge": 0.03,
+                "max_lambda": 2.0,
+                **overrides,
+            }
+            if options["coeff"] < 0 or options["kappa"] <= 0 or options["lambda_floor"] < 0 or options["gamma_gauge"] < 0:
+                raise ValueError("invalid axiom penalty options")
+            return options
         if self.effective_critic_formulation == "unified_v11":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
@@ -1832,7 +1866,10 @@ class Recipe:
                     attach_generator_deconflict_hooks(owner_mod)
             opt_gen = make_normalized_optimizer(self, groups, **options)
             if module_owners and hasattr(opt_gen, "_conv_layouts"):
-                from .unified_v4 import collect_conv_layouts
+                if self.optimizer_family == "axiom":
+                    from ._axiom.optimizer import collect_conv_layouts
+                else:
+                    from .unified_v4 import collect_conv_layouts
                 opt_gen._conv_layouts.update(collect_conv_layouts(module_owners))
             return opt_gen
         if self.effective_critic_formulation == "t4_nash":
@@ -1877,7 +1914,7 @@ class Recipe:
     @property
     def effective_critic_formulation(self):
         """Explicit legacy arms retain their K3P optimizer and penalty family."""
-        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal"):
+        if self.critic_formulation in ("bcap", "bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
             return self.critic_formulation
         return "k3p" if self.reg_arm is not None else self.critic_formulation
 
@@ -1942,6 +1979,22 @@ class Recipe:
                 reg_u.thermal_source = prior._unified_record
                 reg_u.unified_record = prior._unified_record
             return reg_u
+        if self.prior_regularizer == "axiom":
+            from ._axiom.prior import AxiomPriorRegularizer
+            options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
+                       "eps": self.prior_reg_eps, "max_prototypes": self.t1_max_prototypes, **overrides}
+            if prior is not None and hasattr(prior, "z"):
+                options.setdefault("bound_device", prior.z.device)
+                options.setdefault("bound_shape", tuple(prior.z.shape))
+            elif prior is not None and hasattr(prior, "device"):
+                options.setdefault("bound_device", prior.device)
+            if self.prior_update == "frozen":
+                options["weight"] = 0.
+            reg_ax = AxiomPriorRegularizer(reference, **options)
+            rec_ax = getattr(prior, "_axiom_record", None) if prior is not None else None
+            if rec_ax is not None:
+                reg_ax.axiom_record = rec_ax
+            return reg_ax
         if self.prior_regularizer == "minimal":
             from .minimal import MinimalPriorRegularizer
             options = {"weight": self.prior_reg, "target_std": self.prior_reg_target_std,
@@ -2085,7 +2138,7 @@ class Recipe:
             state = regularizer.state_dict()
             if state:
                 return {"prior_regularizer": state}
-        if (self.prior_regularizer in ("t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal")
+        if (self.prior_regularizer in ("t1_pullback", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom")
                 and self.t1_pullback_weight > 0 and regularizer is not None):
             state = regularizer.state_dict()
             if state:
@@ -2139,7 +2192,7 @@ class Recipe:
         if self.prior_update == "learned":
             if not base.z.requires_grad:
                 raise ValueError("frozen prior contradicts Recipe.prior_update='learned'")
-            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal") and self.prior_reg > 0:
+            if self.prior_regularizer in ("moment_tether", "sbnp", "empf", "t1_pullback", "rgdt", "unified", "unified_v4", "unified_v11", "t4_arch", "r4_no_pullback_iso", "r4_no_coalesce_ltv", "r4_no_chart_laguerre", "r4_no_sat_probe", "minimal", "axiom") and self.prior_reg > 0:
                 from .moment_tether import capture_initial_moments
                 capture_initial_moments(base)
         elif base.z.requires_grad:
@@ -2405,6 +2458,20 @@ class Recipe:
             if self.optimizer_family == "formulation" and generator is not None:
                 opt_d.record._enable_secant_probe = True
                 _attach_minimal_generator_hook(generator, opt_d.record)
+        if self.effective_critic_formulation == "axiom" and hasattr(opt_d, "record"):
+            from ._axiom.critic import _attach_axiom_generator_hook
+            from ._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
+            opt_g._axiom_record = opt_d.record
+            opt_d._axiom_record = opt_d.record
+            if hasattr(opt_g, "_conv_layouts"):
+                opt_g._conv_layouts.update(_axiom_conv_layouts((generator, encoder)))
+            if hasattr(opt_g, "_gen_param_ids") and generator is not None:
+                opt_g._gen_param_ids = {id(p) for p in generator.parameters()}
+            if generator is not None and self.encoder_mode == "none" and self.model == "gan":
+                opt_d.record._enable_secant_probe = True
+                _attach_axiom_generator_hook(generator, opt_d.record)
+            if base_prior is not None:
+                base_prior._axiom_record = opt_d.record
         return opt_g, opt_d
 
 
@@ -2855,6 +2922,50 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
         "t1_laguerre_lr": 0.015,
         "t1_prior_row_lr": 0.06,
         "t1_max_prototypes": 256,
+    }
+    presets["axiom"] = {
+        "loss": "non_saturating",
+        "critic_formulation": "axiom",
+        "prior_regularizer": "axiom",
+        "optimizer_family": "axiom",
+        "constraint_geometry_mode": "direction_blend",
+        "optimizer_smoothing": 0.05,
+        "lr": 0.014,
+        "d_lr_mult": 1.5,
+        "prior_lr_mult": 2.9,
+        "betas": (0.0, 0.999),
+        "d_betas": (0.0, 0.999),
+        "prior_betas": (0.0, 0.999),
+        "lr_schedule": "cosine",
+        "lr_floor": 1.0,
+        "network_lr_floor": 1.0,
+        "network_lr_horizon_cap": None,
+        "training_precision": "bf16_channels_last",
+        "reg_arm": None,
+        "reg_coeff": 1.0,
+        "reg_kappa": 1.0,
+        "reg_every": 1,
+        "reg_anchor_weight": 0.0,
+        "d_guard_ratio": 0.0,
+        "latent_damping_max_rate": 0.0,
+        "direct_particle_gain": False,
+        "input_noise_std": 0.0,
+        "output_noise_std": 0.0,
+        "output_noise_warmup": 0.0,
+        "prior_reg": 0.02,
+        "t1_pullback_weight": 1.5,
+        "t1_iso_weight": 0.62,
+        "t1_laguerre_lr": 0.015,
+        "t1_prior_row_lr": 0.06,
+        "t1_max_prototypes": 256,
+        "t1c_weight": 1.0,
+        "t1c_chart_capacity": 256,
+        "t1c_chart_weight": 1.4,
+        "t1c_halo_mult": 2.1,
+        "rhbi_ae_coord_whiten": True,
+        "rhbi_simplex_weight": 0.35,
+        "rhbi_simplex_chart_weight": 4.0,
+        "rhbi_fibre_rel_blend": 0.50,
     }
     presets["atlas"] = {**presets["e22"], "birth_death_backend": "auto",
                          "birth_death_cells": 128, "reopen_guard": "settled"}

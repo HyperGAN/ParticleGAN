@@ -1,0 +1,267 @@
+{
+  "attempt_ids": [
+    "bc5d20cd408d4a55aa1568411a4f1098",
+    "c0d957f067ed48beac8c8653cfc380da"
+  ],
+  "candidate_id": "axiom-v1",
+  "candidate_revision": "69b0f27211ec3c89e2f52f60f97eaac9a5f9eee33a94b7029cb82a2dea14e53f",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v11/v12/v13 2/2 PASS with higher core_min_eigen_ratio margin on t3_iso_scale_mass_8x (0.5234 vs unified-v12/v13 0.4723, +0.0511) and strictly beats minimal-v2 (1/2), rhbi-v12 (0/2), and empf-v8 (0/2).",
+  "conclusion": "2/2 PASS on t3_causal_isolation_stretch (RTX A6000, seed 0, axiom-v3 37f537db8): t3_iso_scale_mass_8x PASS (4/4 modes, hq=0.9473, mass_tv=0.0295, core_min_eigen_ratio=0.5234 >= 0.45, cov_err=0.3774) and t3_iso_horizon_saddle_shift PASS (4/4 modes, hq=0.9375, mass_tv=0.0703, cov_err=0.6382). Prediction observed.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "bc5d20cd408d4a55aa1568411a4f1098",
+        "c0d957f067ed48beac8c8653cfc380da"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "1ffe533b197e21c3520e2543836c80c0bb0984ffa24763d531f12f87abbfb1a2",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 0.5233930512311553
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 0.5233930512311553
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "bc5d20cd408d4a55aa1568411a4f1098",
+          "producer_request_id": "1dd0502f108bd99ecd8ec464",
+          "producer_study_id": "axiom-v1-t3-iso-study",
+          "result_hash": "55d4b1f506a95644d5ff3eeade599ff6a12be5cf968703a8b32c96e15be2cce1",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "c0d957f067ed48beac8c8653cfc380da",
+          "producer_request_id": "1dd0502f108bd99ecd8ec464",
+          "producer_study_id": "axiom-v1-t3-iso-study",
+          "result_hash": "560ff8ef6d5190f5e69e6e08c24b8b4d7e535011451a3d36b1ab0c2784580197",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "db4d061fad26e290822ebc4d15c5031aba2c381798cfbceb021cd211a60f4a6b",
+        "contract_sha256": "1ffe533b197e21c3520e2543836c80c0bb0984ffa24763d531f12f87abbfb1a2",
+        "control_binding_sha256": "17f90f62f131fe117022158d2774ed3b5cc0cd66d9ddddcfe88853988b62624b",
+        "policy_fingerprint": "812af2163d70bd8af1ac8c17c43488639022701405caaa6b05c954fdc0b484c5",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "4c6b839c01b6e704e760151b6340374078e2e71aa7357bddbdf141e9c32f55fb"
+      },
+      "study_id": "axiom-v1-t3-iso-study",
+      "study_sha256": "4c6b839c01b6e704e760151b6340374078e2e71aa7357bddbdf141e9c32f55fb"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "t3_causal_isolation_stretch",
+  "hypothesis": "Unchanged global axiom-v1 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0 via scale-invariant k=4 local-NN density-ratio orphan rescue and direct-cloud prior smoothing.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain conformal local horizons, shock-accelerated charts, and coherence-gated Peak-RMS Tikhonov; document in reports/axiom/axiom-study.md.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "bc5d20cd408d4a55aa1568411a4f1098",
+        "result_hash": "55d4b1f506a95644d5ff3eeade599ff6a12be5cf968703a8b32c96e15be2cce1",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "c0d957f067ed48beac8c8653cfc380da",
+        "result_hash": "560ff8ef6d5190f5e69e6e08c24b8b4d7e535011451a3d36b1ab0c2784580197",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-a67cef1eb1208f825e13c67d",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/bc5d20cd408d4a55aa1568411a4f1098/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600.0,
+      "candidate_budget_seconds": 3600.0,
+      "id": "axiom-v1-t3-iso-study"
+    },
+    "candidate": "axiom-v1",
+    "competing_explanation": "If Axiom's dead-zone-free multi-scale conformal transport or beyond-horizon orphan rescue either under-triggers on shifted modes or over-triggers on the 8x broad cluster, axiom-v1 will fail t3_iso_scale_mass_8x or t3_iso_horizon_saddle_shift.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "core_min_eigen_ratio",
+      "op": "<",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "hypothesis": "Unchanged global axiom-v1 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0 via scale-invariant k=4 local-NN density-ratio orphan rescue and direct-cloud prior smoothing.",
+    "id": "axiom-v1-t3-iso-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "core_min_eigen_ratio",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "t3_iso_scale_mass_8x",
+      "threshold": 0.45
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "candidate_id": "unified-v10",
+          "candidate_revision": "72e944a156d7b1eb980c62f4a193012731111251e912b8b1ea75f02fc6db5127"
+        },
+        "path": "reports/forge/records/readout-15aafd6ce00180e64ecd23fc.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "t3_causal_isolation_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v1-t3-iso-study",
+  "study_sha256": "4c6b839c01b6e704e760151b6340374078e2e71aa7357bddbdf141e9c32f55fb",
+  "task_results": [
+    {
+      "compatibility_key": "5bfaf91426bae8fd47e94b81934c4c9c3911c1cf1ec201f491dbb5d21c12c5cb",
+      "cost": {
+        "adapter_loop_seconds": 33.281082645989954,
+        "adapter_seconds": 33.59543640096672,
+        "charged_task": "t3_iso_scale_mass_8x",
+        "completed_steps": 800,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 94.96192310341173,
+          "contended": false,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 234,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 3.978947499990463,
+          "joules_to_first_pass": 931.0737149977683,
+          "joules_to_sustained_pass": 1460.2737324964999,
+          "joules_total": 3183.1579999923706,
+          "sustained_pass_step": 367
+        },
+        "eval_seconds": 0.04633099841885269,
+        "execution_seconds": 41.288370666094124,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 35.22281227703206,
+        "train_seconds": 28.754191105486825,
+        "wall_seconds": 41.288370666094124
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.3773585477236282,
+        "core_min_eigen_ratio": 0.5233930512311553,
+        "critic_grad_med": 6.087923338782275e-06,
+        "finite_fraction": 1.0,
+        "full_component_covariance_error": 2.644703022633311,
+        "hq": 0.947265625,
+        "mass_tv": 0.029531262814998627,
+        "modes": 4,
+        "step": 800
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_scale_mass_8x"
+    },
+    {
+      "compatibility_key": "e6f200d8d33a567ae447490ff5e57724e4f06a7c07193fc7f7b0a8ad14beb689",
+      "cost": {
+        "adapter_loop_seconds": 40.164192266063765,
+        "adapter_seconds": 40.475783770903945,
+        "charged_task": "t3_iso_horizon_saddle_shift",
+        "completed_steps": 1000,
+        "device": "1",
+        "energy": {
+          "avg_power_watts": 109.44317701124615,
+          "contended": false,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 417,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 4.421209000006318,
+          "joules_to_first_pass": 1843.6441530026345,
+          "joules_to_sustained_pass": 2581.9860560036896,
+          "joules_total": 4421.209000006318,
+          "sustained_pass_step": 584
+        },
+        "eval_seconds": 0.056039169896394014,
+        "execution_seconds": 48.38285108911805,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "runner_seconds": 42.19222620688379,
+        "train_seconds": 35.64119952870533,
+        "wall_seconds": 48.38285108911805
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "core_component_covariance_error": 0.6381902886348876,
+        "critic_grad_med": 8.12252710602479e-06,
+        "finite_fraction": 1.0,
+        "frozen_control_modes": 2,
+        "hq": 0.9375,
+        "mass_tv": 0.0703125,
+        "modes": 4,
+        "pre_shift_hq": 0.9375,
+        "step": 1000
+      },
+      "raw_status": "completed",
+      "reason": "recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)",
+      "task_id": "t3_iso_horizon_saddle_shift"
+    }
+  ]
+}

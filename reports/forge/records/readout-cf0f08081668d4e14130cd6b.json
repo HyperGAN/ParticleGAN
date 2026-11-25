@@ -1,0 +1,331 @@
+{
+  "attempt_ids": [
+    "1767a9fff61c4542ba7020088b1e9558",
+    "d94b92e603b342de96c82cb5268ed97a"
+  ],
+  "candidate_id": "axiom-v4",
+  "candidate_revision": "0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6",
+  "claim_contract": {
+    "sampling_law": "task_declared",
+    "schedule": "scheduled",
+    "scoring_weights": "live"
+  },
+  "comparison": "Matches unified-v13/v14 (2/2) with substantially lower RMS bit error, and strictly beats unified-v12, rhbi-v12, empf-v8, and minimal-v2 (all 0/2).",
+  "conclusion": "PASS 2/2: axiom-v4 (758b397a5, 2,409 LOC) achieves exact 256/256 zero-collision ByteGAN bijection and 256/256 BiGAN dictionary reconstruction with improved RMS bit error.",
+  "decision_outcomes": [
+    {
+      "attempt_ids": [
+        "1767a9fff61c4542ba7020088b1e9558",
+        "d94b92e603b342de96c82cb5268ed97a"
+      ],
+      "binding_errors": [],
+      "causal_judgment": "requires_review",
+      "contract_sha256": "ea258d2c849600b386495e24da20af3959db525659ce32ccc54f9228f9562953",
+      "duplicate_task_ids": [],
+      "execution_authorized": false,
+      "max_rounds": 1,
+      "next_action": "review_saved_diagnostics",
+      "observed": {
+        "falsifier": {
+          "satisfied": false,
+          "value": 256
+        },
+        "prediction": {
+          "satisfied": true,
+          "value": 256
+        }
+      },
+      "outcome": "prediction_observed",
+      "provenance": [
+        {
+          "attempt_id": "1767a9fff61c4542ba7020088b1e9558",
+          "producer_request_id": "d90732b049b02f1352d9821b",
+          "producer_study_id": "axiom-v4-bytegan-study",
+          "result_hash": "20ca3f01e656a115008660d65717bfe74c204a0ac55d3b371819d6a4cb691d5a",
+          "valid_receipt": true
+        },
+        {
+          "attempt_id": "d94b92e603b342de96c82cb5268ed97a",
+          "producer_request_id": "d90732b049b02f1352d9821b",
+          "producer_study_id": "axiom-v4-bytegan-study",
+          "result_hash": "6417b422635ca078e67d63d8178882b5015375ff1f0da369641e903a817e9567",
+          "valid_receipt": true
+        }
+      ],
+      "qualification_input": false,
+      "reuse_note": "Compatible original receipts; overlapping readouts are not independent runs or additive costs",
+      "schema_version": 1,
+      "study_binding": {
+        "binding_sha256": "898df42f35ad47ebd23981afa0951c4cee802084a5426205d18cf6a8307c935b",
+        "contract_sha256": "ea258d2c849600b386495e24da20af3959db525659ce32ccc54f9228f9562953",
+        "control_binding_sha256": "573a05e73c274791adcec32af93fa5103d4c581146b1ace879a059cbbc628f90",
+        "policy_fingerprint": "295f07803ca0c9641fb757c1041afbd6be86741cc20c424dc6c62d2b947e39d2",
+        "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
+        "study_sha256": "bceeafd024b25efd7140b4d910af0f1f9e76e9566bab0ab1b9f99a99f7af2877"
+      },
+      "study_id": "axiom-v4-bytegan-study",
+      "study_sha256": "bceeafd024b25efd7140b4d910af0f1f9e76e9566bab0ab1b9f99a99f7af2877"
+    }
+  ],
+  "eligible": false,
+  "evidence_scope": "research_diagnostic",
+  "goal": "bytegan_stretch",
+  "hypothesis": "Unchanged global axiom-v4 passes both zero-sigma 256-byte stretch benchmarks (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection) via unified atomic ledger and joint BiGAN inverse codebook contraction.",
+  "lifecycle": "concluded",
+  "mechanism_class": "structural",
+  "next_action": "Retain as opt-in family evidence alongside the full 9-study axiom-v4 evaluation.",
+  "prior": {
+    "kind": "mog",
+    "learnable": true,
+    "sigma": 0.025,
+    "standardize": false
+  },
+  "provenance": {
+    "attempts": [
+      {
+        "attempt_id": "1767a9fff61c4542ba7020088b1e9558",
+        "result_hash": "20ca3f01e656a115008660d65717bfe74c204a0ac55d3b371819d6a4cb691d5a",
+        "valid_receipt": true
+      },
+      {
+        "attempt_id": "d94b92e603b342de96c82cb5268ed97a",
+        "result_hash": "6417b422635ca078e67d63d8178882b5015375ff1f0da369641e903a817e9567",
+        "valid_receipt": true
+      }
+    ]
+  },
+  "qualification_input": false,
+  "qualification_reuse": false,
+  "qualified_tier": 0,
+  "record_id": "readout-cf0f08081668d4e14130cd6b",
+  "record_type": "scientific",
+  "schema_version": 1,
+  "source": {
+    "path": "reports/forge/attempts/1767a9fff61c4542ba7020088b1e9558/result.json"
+  },
+  "study": {
+    "campaign": {
+      "budget_seconds": 3600,
+      "candidate_budget_seconds": 3600,
+      "id": "axiom-v4-bytegan-study"
+    },
+    "candidate": "axiom-v4",
+    "competing_explanation": "If Axiom v4's CPU-accelerated small-ledger atomic bijection, inverse codebook contraction, or V4E thermal settling fails to clear collisions or align E(x) onto exact latent particles, axiom-v4 will fall short of 256/256 valid_unique_bytes on bytegan_hypercube8 or fail bytegan_bigan_dictionary bijection.",
+    "control": {
+      "candidate_id": "unified-v12",
+      "task_map": {}
+    },
+    "falsifier": {
+      "metric": "valid_unique_bytes",
+      "op": "<",
+      "phase": "final",
+      "task_id": "bytegan_hypercube8",
+      "threshold": 256
+    },
+    "hypothesis": "Unchanged global axiom-v4 passes both zero-sigma 256-byte stretch benchmarks (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection) via unified atomic ledger and joint BiGAN inverse codebook contraction.",
+    "id": "axiom-v4-bytegan-study",
+    "max_rounds": 1,
+    "prediction": {
+      "metric": "valid_unique_bytes",
+      "op": ">=",
+      "phase": "final",
+      "task_id": "bytegan_hypercube8",
+      "threshold": 256
+    },
+    "prior_evidence": [
+      {
+        "identity": {
+          "campaign_id": "bytegan-stretch-diag-v1",
+          "cuda_model": "NVIDIA RTX A6000"
+        },
+        "path": "reports/forge/bytegan-stretch/summary.json",
+        "selector": [],
+        "use": "motivation_only"
+      }
+    ],
+    "schema_version": 1,
+    "scope": {
+      "cuda_model": "NVIDIA RTX A6000",
+      "execution_backend": "cuda",
+      "through_tier": 1,
+      "view": "bytegan_stretch"
+    },
+    "status": "ready",
+    "terminal_rules": {
+      "falsified": "stop_revision",
+      "incomplete": "request_missing_evidence",
+      "inconclusive": "stop_and_readout",
+      "prediction_observed": "review_saved_diagnostics"
+    }
+  },
+  "study_id": "axiom-v4-bytegan-study",
+  "study_sha256": "bceeafd024b25efd7140b4d910af0f1f9e76e9566bab0ab1b9f99a99f7af2877",
+  "task_results": [
+    {
+      "compatibility_key": "b99ac79fae6d01cefe656a689904907b7539c86c6363908b68bab9d4947ad299",
+      "cost": {
+        "adapter_loop_seconds": 229.9883264838718,
+        "adapter_seconds": 230.4071251039859,
+        "charged_task": "bytegan_bigan_dictionary",
+        "completed_steps": 6000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 136.49342987761074,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 1000,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 5.23989949999998,
+          "joules_to_first_pass": 5239.89949999998,
+          "joules_to_sustained_pass": 10479.79899999996,
+          "joules_total": 31439.39699999988,
+          "sustained_pass_step": 2000
+        },
+        "execution_seconds": 238.14565196307376,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 6000,
+          "encoder": 6000,
+          "generator": 6000,
+          "prior": 6000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 216.223193353042,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.18725335388444364
+            },
+            "sampling": {
+              "calls": 0,
+              "seconds": 0
+            },
+            "training_updates": {
+              "calls": 6000,
+              "seconds": 216.03593999915756
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 232.00002762116492,
+        "wall_seconds": 238.14565196307376
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "collision_count": 0,
+        "encoder_cycle_match_bytes": 256,
+        "encoder_nearest_dist_mean": 0.027313367463189853,
+        "encoder_particle_bijection_bytes": 256,
+        "finite_fraction": 1.0,
+        "latent_nn_hamming_mean": 1.0,
+        "mass_tv": 0.0,
+        "max_bit_error": 0.03638112545013428,
+        "mean_abs_bit": 0.9999437928199768,
+        "min_bit_margin": 0.9636188745498657,
+        "orphan_count": 0,
+        "recon_max_bit_error": 0.15332579612731934,
+        "recon_rms_bit_error": 0.010446060448884964,
+        "recon_sign_exact_bytes": 256,
+        "recon_valid_exact_bytes": 256,
+        "rms_bit_error": 0.0035238731652498245,
+        "step": 6000,
+        "unique_bytes": 256,
+        "valid_collision_count": 0,
+        "valid_particle_fraction": 1.0,
+        "valid_unique_bytes": 256
+      },
+      "raw_status": "completed",
+      "reason": "recomputed bytegan_bigan_dictionary gates (5/5 terminal checks passed)",
+      "task_id": "bytegan_bigan_dictionary"
+    },
+    {
+      "compatibility_key": "4f135d4fca84d1b644c1488af776f033a4ea053ea1ca87b486734d95c51a682b",
+      "cost": {
+        "adapter_loop_seconds": 174.2228581488598,
+        "adapter_seconds": 174.63842837698758,
+        "charged_task": "bytegan_hypercube8",
+        "completed_steps": 4000,
+        "device": "0",
+        "energy": {
+          "avg_power_watts": 138.081750337813,
+          "contended": true,
+          "energy_backend": "nvml_energy_counter",
+          "first_pass_step": 667,
+          "gpu_name": "NVIDIA RTX A6000",
+          "joules_per_step": 6.025906999997795,
+          "joules_to_first_pass": 4019.279968998529,
+          "joules_to_sustained_pass": 8038.559937997058,
+          "joules_total": 24103.62799999118,
+          "sustained_pass_step": 1334
+        },
+        "execution_seconds": 182.11886894982308,
+        "flops": {
+          "kind": "unavailable",
+          "value": null
+        },
+        "optimizer_updates": {
+          "discriminator": 4000,
+          "generator": 4000,
+          "prior": 4000
+        },
+        "phase_timing": {
+          "coverage": "partial_adapter",
+          "measured_seconds": 160.24524224502966,
+          "method": "exclusive_synchronized_wall_time",
+          "phases": {
+            "evaluation": {
+              "calls": 24,
+              "seconds": 0.09281060611829162
+            },
+            "sampling": {
+              "calls": 24,
+              "seconds": 0.007837124401703477
+            },
+            "training_updates": {
+              "calls": 4000,
+              "seconds": 160.14459451450966
+            }
+          },
+          "scope": "Training updates exclude input preparation; evaluation includes metrics and its artifact I/O but excludes separately measured sampling."
+        },
+        "runner_seconds": 176.26407595700584,
+        "wall_seconds": 182.11886894982308
+      },
+      "evaluator_summary": {
+        "minimum_stable_checks": 5,
+        "passed": true,
+        "terminal_passed": 5
+      },
+      "gate_status": "PASS",
+      "metrics": {
+        "collision_count": 0,
+        "finite_fraction": 1.0,
+        "latent_nn_hamming_mean": 1.03515625,
+        "mass_tv": 0.0,
+        "max_bit_error": 0.07958722114562988,
+        "mean_abs_bit": 0.9998964071273804,
+        "min_bit_margin": 0.9625601768493652,
+        "orphan_count": 0,
+        "rms_bit_error": 0.004710623994469643,
+        "step": 4000,
+        "unique_bytes": 256,
+        "valid_collision_count": 0,
+        "valid_particle_fraction": 1.0,
+        "valid_unique_bytes": 256
+      },
+      "raw_status": "completed",
+      "reason": "recomputed bytegan_hypercube8 gates (5/5 terminal checks passed)",
+      "task_id": "bytegan_hypercube8"
+    }
+  ]
+}
