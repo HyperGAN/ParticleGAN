@@ -1059,8 +1059,12 @@ code {
 
 .formulation-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(440px, 1fr));
   gap: 14px;
+}
+
+.formulation-pane-wide {
+  grid-column: 1 / -1;
 }
 
 .formulation-pane {
@@ -1679,7 +1683,7 @@ code {
 }
 
 .svg-schematic-frame {
-  background: #ffffff;
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 10px;
@@ -1687,6 +1691,7 @@ code {
   display: flex;
   align-items: center;
   justify-content: center;
+  color: var(--text-muted);
 }
 
 .svg-schematic-frame svg {

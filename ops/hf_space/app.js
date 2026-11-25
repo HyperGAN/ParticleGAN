@@ -322,8 +322,35 @@
       mermaid.initialize({
         startOnLoad: false,
         securityLevel: "strict",
-        theme: dark ? "dark" : "default",
-        flowchart: { useMaxWidth: true, htmlLabels: true },
+        theme: dark ? "dark" : "neutral",
+        themeVariables: dark
+          ? {
+              background: "#0d1117",
+              primaryColor: "#1e293b",
+              primaryTextColor: "#f1f5f9",
+              primaryBorderColor: "#818cf8",
+              lineColor: "#94a3b8",
+              secondaryColor: "#172033",
+              tertiaryColor: "#111827",
+              edgeLabelBackground: "#0f172a",
+              textColor: "#f1f5f9",
+              nodeTextColor: "#f1f5f9",
+              fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+            }
+          : {
+              background: "#f8fafc",
+              primaryColor: "#eef2ff",
+              primaryTextColor: "#0f172a",
+              primaryBorderColor: "#4338ca",
+              lineColor: "#475569",
+              secondaryColor: "#e0f2fe",
+              tertiaryColor: "#ffffff",
+              edgeLabelBackground: "#ffffff",
+              textColor: "#0f172a",
+              nodeTextColor: "#0f172a",
+              fontFamily: "Inter, ui-sans-serif, system-ui, sans-serif",
+            },
+        flowchart: { useMaxWidth: true, htmlLabels: true, curve: "basis" },
       });
     } catch {
       return;
@@ -1506,15 +1533,7 @@
       ${tagsHtml ? `<div class="tag-row">${tagsHtml}</div>` : ""}
 
       <div class="formulation-grid">
-        <div class="formulation-pane">
-          <div class="formulation-pane-head">
-            <h5>Mathematical Formulation (KaTeX)</h5>
-            <span class="badge badge-muted">${fam.equations.length} eq</span>
-          </div>
-          ${eqHtml}
-        </div>
-
-        <div class="formulation-pane">
+        <div class="formulation-pane formulation-pane-wide">
           <div class="formulation-pane-head">
             <h5>Update Loop Diagram (Mermaid)</h5>
             <span class="badge badge-muted">${fam.mermaid_diagram ? "Declared" : "Summary flow"}</span>
@@ -1522,6 +1541,14 @@
           <div class="mermaid-host" data-mermaid-source="${escapeHtml(mermaidSrc)}">
             <pre class="mermaid-fallback">${escapeHtml(mermaidSrc)}</pre>
           </div>
+        </div>
+
+        <div class="formulation-pane">
+          <div class="formulation-pane-head">
+            <h5>Mathematical Formulation (KaTeX)</h5>
+            <span class="badge badge-muted">${fam.equations.length} eq</span>
+          </div>
+          ${eqHtml}
         </div>
 
         <div class="formulation-pane">

@@ -901,19 +901,26 @@ def _load_experiment_docs_catalog(root: Path) -> dict[str, dict]:
 
     by_id: dict[str, dict] = {}
     if isinstance(catalog, dict):
-        tasks_obj = catalog.get("tasks") if "tasks" in catalog else catalog
+        if "experiments" in catalog:
+            tasks_obj = catalog.get("experiments")
+        elif "tasks" in catalog:
+            tasks_obj = catalog.get("tasks")
+        else:
+            tasks_obj = catalog
         if isinstance(tasks_obj, list):
             for entry in tasks_obj:
                 if isinstance(entry, dict):
                     tid = _opt_str(entry.get("task_id")) or _opt_str(entry.get("id"))
                     if tid:
-                        by_id[tid] = entry
+                        doc = entry.get("documentation") if isinstance(entry.get("documentation"), dict) else {}
+                        by_id[tid] = {**doc, **entry}
         elif isinstance(tasks_obj, dict):
             for tid, entry in tasks_obj.items():
                 if isinstance(entry, dict):
                     key = _opt_str(entry.get("task_id")) or _opt_str(tid)
                     if key:
-                        by_id[key] = entry
+                        doc = entry.get("documentation") if isinstance(entry.get("documentation"), dict) else {}
+                        by_id[key] = {**doc, **entry}
     return by_id
 
 
@@ -1122,7 +1129,29 @@ def _enrich_task_definitions(
     task_docs_dir = root / "configs/forge/task-documentation"
     enriched: list[dict] = []
 
-    for rec in task_defs:
+    seen_ids = {str(rec["task_id"]) for rec in task_defs}
+    extended_defs = list(task_defs)
+    # Also include Four-Laws adherence probe tasks so they have full schematics & gates in the Space.
+    for cat_tid in sorted(catalog):
+        if cat_tid in seen_ids:
+            continue
+        cat_item = catalog[cat_tid]
+        fl_meta = cat_item.get("four_laws_adherence")
+        if (isinstance(fl_meta, dict) and fl_meta.get("role") == "four_laws_probe") or cat_tid.startswith("fl_law"):
+            seen_ids.add(cat_tid)
+            extended_defs.append(
+                {
+                    "task_id": cat_tid,
+                    "tier": 1,
+                    "role": "diagnostic",
+                    "views": ["four-laws-adherence-v1 (Tier 1)"],
+                    "in_full_suite": False,
+                    "summary": _opt_str(cat_item.get("intuition")) or "",
+                    "reason": "four_laws_adherence_probe",
+                }
+            )
+
+    for rec in extended_defs:
         item = dict(rec)
         task_id = str(item["task_id"])
         cat_entry = catalog.get(task_id) or {}

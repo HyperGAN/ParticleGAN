@@ -82,9 +82,10 @@ constant rates).
 Explicit `get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
 `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
 `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
-**[The Four Laws of Stable, Energy-Efficient GAN Convergence](docs/four-laws.md)** for the
-solution-agnostic statement of the four laws, the catalog of solutions found so far (`unified_v12`,
-`unified_v11`, `minimal`, and related families), and Occam's Razor ablations, the
+**[The Four Laws of Adversarial Generative Learning](docs/four-laws.md)** for the
+solution-agnostic statement of the evolving laws (subject to revision as research progresses),
+**[Explore by Laws](reports/forge/LAWS_HUB.md)** and the **[Experiment Catalog](reports/forge/experiments/README.md)**
+for dedicated per-experiment pages, target schematics, and law-to-family cross-links, the
 [research glossary](RESEARCH_GLOSSARY.md#acronyms-and-short-names) for acronyms, and the
 [recipe settings and evidence](docs/api.md#recipes-and-defaults) for configuration details.
 
@@ -110,10 +111,11 @@ quality metrics and checkpoint continuation.
 
 ## Results and status
 
-The single current status page is the
-**[technique inventory](reports/forge/technique-inventory.md)**. It shows every recipe
-family against the same declared tests, failures included, with links to gates,
-metrics, receipts and training GIFs. Other report pages are historical records.
+Explore the live research and benchmark evidence across three synchronized views:
+
+- **[Research Portal (GitHub Pages)](https://hypergan.github.io/ParticleGAN/)** — searchable documentation portal with interactive leaderboard, NVML energy Pareto scatter, evolving laws, family narratives, and dedicated per-experiment pages.
+- **[Interactive Leaderboard Space (Hugging Face)](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard)** — live receipt explorer, Laws × Family matrix, Experiment Deep-Dive schematics, and side-by-side training GIFs streamed from [`HyperGAN/particlegan-forge-evidence`](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence).
+- **[Technique Inventory (GitHub)](reports/forge/technique-inventory.md)** — the single canonical status page in Git, alongside **[Explore by Laws](reports/forge/LAWS_HUB.md)** and the **[Experiment Catalog](reports/forge/experiments/README.md)**. Other report pages are historical records.
 
 What the evidence does and does not show today:
 

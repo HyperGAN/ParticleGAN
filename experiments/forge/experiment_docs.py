@@ -609,6 +609,16 @@ def _load_family_law_mechanisms(root: Path) -> dict[str, dict[str, Any]]:
     fam_dir = root / FAMILY_DOCS_DIR_REL
     if not fam_dir.is_dir():
         return out
+    registry_meta: dict[str, dict[str, Any]] = {}
+    reg_path = root / "configs/forge/trainer-families.json"
+    if reg_path.is_file():
+        try:
+            reg = _read_json(reg_path)
+            for item in (reg.get("families") or []) + (reg.get("historical_families") or []):
+                if isinstance(item, dict) and isinstance(item.get("id"), str):
+                    registry_meta[item["id"]] = item
+        except Exception:
+            registry_meta = {}
     for path in sorted(fam_dir.glob("*.json")):
         try:
             doc = _read_json(path)
@@ -619,10 +629,25 @@ def _load_family_law_mechanisms(root: Path) -> dict[str, dict[str, Any]]:
         fid = str(doc.get("family") or path.stem)
         mech = doc.get("law_mechanisms")
         if isinstance(mech, dict) and mech:
+            rmeta = registry_meta.get(fid, {})
+            label = str(doc.get("title") or doc.get("label") or rmeta.get("label") or fid)
+            candidate_page = f"reports/forge/families/{fid}.md"
+            if (root / candidate_page).is_file():
+                page = candidate_page
+                has_report_page = True
+            else:
+                parent_id = rmeta.get("reporting_family")
+                parent_page = f"reports/forge/families/{parent_id}.md" if isinstance(parent_id, str) else ""
+                if parent_page and (root / parent_page).is_file():
+                    page = parent_page
+                else:
+                    page = path.relative_to(root).as_posix()
+                has_report_page = False
             out[fid] = {
                 "family_id": fid,
-                "label": str(doc.get("title") or doc.get("label") or fid),
-                "page": f"reports/forge/families/{fid}.md",
+                "label": label,
+                "page": page,
+                "has_report_page": has_report_page,
                 "law_mechanisms": mech,
             }
     return out

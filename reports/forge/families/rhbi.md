@@ -2,7 +2,7 @@
 
 # RHBI
 
-[← Family leaderboard](../technique-inventory.md) · [Current Laws Framework](../../../docs/four-laws.md) · [Unresolved Problems](../problems.md) · [Research Portal](https://hypergan.github.io/ParticleGAN/) · [HF Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard)
+[← Family leaderboard](../technique-inventory.md) · [Explore by Laws](../LAWS_HUB.md) · [Experiment Catalog](../experiments/README.md) · [Unresolved Problems](../problems.md) · [Research Portal](https://hypergan.github.io/ParticleGAN/) · [HF Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard)
 
 ## Executive summary
 
@@ -45,7 +45,7 @@ Relativistic Hellinger-Born-Infeld Transport (RHBI) is a clock-free, constant-le
 
 > *"Our goal is not to preserve the four laws. Our goal is to discover the laws of learning, even if doing so ultimately requires abandoning the current four."*
 
-This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. [Current laws framework](../../../docs/four-laws.md).
+This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. [Explore by Laws hub](../LAWS_HUB.md) · [Current laws framework](../../../docs/four-laws.md).
 
 | Law | Status | Primary mechanism |
 | --- | --- | --- |
@@ -2643,7 +2643,7 @@ One evidence entry per experiment is shared by its view rows. Test-definition ch
 
 ### ae_gan_hold
 
-**ae_gan_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ae_gan_hold.json).
+**ae_gan_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ae_gan_hold.json) · [Experiment page](../experiments/ae_gan_hold.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -2722,7 +2722,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 
 ### alice_spiral_bigan
 
-**alice_spiral_bigan: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/alice_spiral_bigan.json).
+**alice_spiral_bigan: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/alice_spiral_bigan.json) · [Experiment page](../experiments/alice_spiral_bigan.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -2757,7 +2757,7 @@ Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; 
 
 ### bytegan_bigan_dictionary
 
-**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json).
+**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json) · [Experiment page](../experiments/bytegan_bigan_dictionary.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -2795,7 +2795,7 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 
 ### bytegan_hypercube8
 
-**bytegan_hypercube8: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_hypercube8.json).
+**bytegan_hypercube8: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_hypercube8.json) · [Experiment page](../experiments/bytegan_hypercube8.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -2830,7 +2830,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### cgan_overlapping_classes
 
-**cgan_overlapping_classes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cgan_overlapping_classes.json).
+**cgan_overlapping_classes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cgan_overlapping_classes.json) · [Experiment page](../experiments/cgan_overlapping_classes.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -2865,7 +2865,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### clockfree_audit
 
-**clockfree_audit: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json).
+**clockfree_audit: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json) · [Experiment page](../experiments/clockfree_audit.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -2890,7 +2890,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### clockfree_audit_measurement_v1
 
-**clockfree_audit_measurement_v1: PASS**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit_measurement_v1.json).
+**clockfree_audit_measurement_v1: PASS**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit_measurement_v1.json) · [Experiment page](../experiments/clockfree_audit_measurement_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -2952,7 +2952,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior
 
 ### cover_leftover
 
-**cover_leftover: PASS**. [Current experiment declaration](../../../configs/forge/tasks/cover_leftover.json).
+**cover_leftover: PASS**. [Current experiment declaration](../../../configs/forge/tasks/cover_leftover.json) · [Experiment page](../experiments/cover_leftover.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -3004,7 +3004,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_parameter_measureme
 
 ### cramer_energy_overlap
 
-**cramer_energy_overlap: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cramer_energy_overlap.json).
+**cramer_energy_overlap: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cramer_energy_overlap.json) · [Experiment page](../experiments/cramer_energy_overlap.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -3038,7 +3038,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### cyclegan_unpaired_constellation
 
-**cyclegan_unpaired_constellation: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cyclegan_unpaired_constellation.json).
+**cyclegan_unpaired_constellation: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/cyclegan_unpaired_constellation.json) · [Experiment page](../experiments/cyclegan_unpaired_constellation.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -3074,7 +3074,7 @@ Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; 
 
 ### dcgan_performance_b64
 
-**dcgan_performance_b64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json).
+**dcgan_performance_b64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json) · [Experiment page](../experiments/dcgan_performance_b64.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3098,7 +3098,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_cpu_smoke
 
-**dcgan_performance_cpu_smoke: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_cpu_smoke.json).
+**dcgan_performance_cpu_smoke: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_cpu_smoke.json) · [Experiment page](../experiments/dcgan_performance_cpu_smoke.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3122,7 +3122,7 @@ Current measurement: mog prior (sigma 0.1); training_update_measurement; weights
 
 ### dcgan_performance_r128
 
-**dcgan_performance_r128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json).
+**dcgan_performance_r128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json) · [Experiment page](../experiments/dcgan_performance_r128.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3146,7 +3146,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r256
 
-**dcgan_performance_r256: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json).
+**dcgan_performance_r256: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json) · [Experiment page](../experiments/dcgan_performance_r256.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3170,7 +3170,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r32
 
-**dcgan_performance_r32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json).
+**dcgan_performance_r32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json) · [Experiment page](../experiments/dcgan_performance_r32.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3194,7 +3194,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r64
 
-**dcgan_performance_r64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json).
+**dcgan_performance_r64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json) · [Experiment page](../experiments/dcgan_performance_r64.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3218,7 +3218,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_w128
 
-**dcgan_performance_w128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json).
+**dcgan_performance_w128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json) · [Experiment page](../experiments/dcgan_performance_w128.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3242,7 +3242,7 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### ddgan_repair_bimodal_chain_wall_v2
 
-**ddgan_repair_bimodal_chain_wall_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_bimodal_chain_wall_v2.json).
+**ddgan_repair_bimodal_chain_wall_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_bimodal_chain_wall_v2.json) · [Experiment page](../experiments/ddgan_repair_bimodal_chain_wall_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3317,7 +3317,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 ### ddgan_repair_gaussian_chain_v1
 
-**ddgan_repair_gaussian_chain_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_gaussian_chain_v1.json).
+**ddgan_repair_gaussian_chain_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ddgan_repair_gaussian_chain_v1.json) · [Experiment page](../experiments/ddgan_repair_gaussian_chain_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3427,7 +3427,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 
 ### five_word_joint_hold
 
-**five_word_joint_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_hold.json).
+**five_word_joint_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_hold.json) · [Experiment page](../experiments/five_word_joint_hold.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -3491,7 +3491,7 @@ Dependencies: five_word_joint_smoke (checkpoint).
 
 ### five_word_joint_smoke
 
-**five_word_joint_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_smoke.json).
+**five_word_joint_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/five_word_joint_smoke.json) · [Experiment page](../experiments/five_word_joint_smoke.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -3553,7 +3553,7 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 
 ### fl_law1_aniso_unequal_modes
 
-**fl_law1_aniso_unequal_modes: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json).
+**fl_law1_aniso_unequal_modes: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_aniso_unequal_modes.json) · [Experiment page](../experiments/fl_law1_aniso_unequal_modes.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3588,7 +3588,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law1_noisy_atomic_codebook
 
-**fl_law1_noisy_atomic_codebook: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json).
+**fl_law1_noisy_atomic_codebook: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook.json) · [Experiment page](../experiments/fl_law1_noisy_atomic_codebook.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3622,7 +3622,7 @@ Current measurement: mog prior (sigma 0.015); public_prior_without_output_noise;
 
 ### fl_law2_groupnorm_and_vit_sprites
 
-**fl_law2_groupnorm_and_vit_sprites: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json).
+**fl_law2_groupnorm_and_vit_sprites: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites.json) · [Experiment page](../experiments/fl_law2_groupnorm_and_vit_sprites.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3656,7 +3656,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law2_pure_adversarial_codim1
 
-**fl_law2_pure_adversarial_codim1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json).
+**fl_law2_pure_adversarial_codim1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json) · [Experiment page](../experiments/fl_law2_pure_adversarial_codim1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3691,7 +3691,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law3_highd_orphan_d32
 
-**fl_law3_highd_orphan_d32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32.json).
+**fl_law3_highd_orphan_d32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32.json) · [Experiment page](../experiments/fl_law3_highd_orphan_d32.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3726,7 +3726,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law41_trust_rare1pct_tanh
 
-**fl_law41_trust_rare1pct_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json).
+**fl_law41_trust_rare1pct_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law41_trust_rare1pct_tanh.json) · [Experiment page](../experiments/fl_law41_trust_rare1pct_tanh.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3760,7 +3760,7 @@ Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; 
 
 ### fl_law42_deep_resbn_and_conv1x1
 
-**fl_law42_deep_resbn_and_conv1x1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json).
+**fl_law42_deep_resbn_and_conv1x1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3794,7 +3794,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### fl_law42_swap_deep_critic_16l
 
-**fl_law42_swap_deep_critic_16l: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json).
+**fl_law42_swap_deep_critic_16l: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json) · [Experiment page](../experiments/fl_law42_swap_deep_critic_16l.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3828,7 +3828,7 @@ Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; 
 
 ### fl_law44_highd_sparse_prior_and_shock
 
-**fl_law44_highd_sparse_prior_and_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json).
+**fl_law44_highd_sparse_prior_and_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_highd_sparse_prior_and_shock.json) · [Experiment page](../experiments/fl_law44_highd_sparse_prior_and_shock.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3903,7 +3903,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior
 
 ### gaussian1d_smoke
 
-**gaussian1d_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_smoke.json).
+**gaussian1d_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_smoke.json) · [Experiment page](../experiments/gaussian1d_smoke.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -3956,7 +3956,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### gaussian1d_stability
 
-**gaussian1d_stability: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_stability.json).
+**gaussian1d_stability: PASS**. [Current experiment declaration](../../../configs/forge/tasks/gaussian1d_stability.json) · [Experiment page](../experiments/gaussian1d_stability.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4012,7 +4012,7 @@ Dependencies: gaussian1d_smoke (checkpoint).
 
 ### grid100
 
-**grid100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/grid100.json).
+**grid100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/grid100.json) · [Experiment page](../experiments/grid100.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -4084,7 +4084,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### grid100_14k
 
-**grid100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json).
+**grid100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json) · [Experiment page](../experiments/grid100_14k.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4130,7 +4130,7 @@ Dependencies: grid100 (checkpoint), clockfree_audit (gate).
 
 ### grid100_affine_paired_laws_v1
 
-**grid100_affine_paired_laws_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_paired_laws_v1.json).
+**grid100_affine_paired_laws_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_paired_laws_v1.json) · [Experiment page](../experiments/grid100_affine_paired_laws_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4174,7 +4174,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### grid100_affine_square_named_v1
 
-**grid100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_square_named_v1.json).
+**grid100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_affine_square_named_v1.json) · [Experiment page](../experiments/grid100_affine_square_named_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4218,7 +4218,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### grid100_mlp16
 
-**grid100_mlp16: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16.json).
+**grid100_mlp16: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16.json) · [Experiment page](../experiments/grid100_mlp16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -4266,7 +4266,7 @@ Dependencies: grid100 (gate).
 
 ### grid100_release07_cloud_named_v1
 
-**grid100_release07_cloud_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_release07_cloud_named_v1.json).
+**grid100_release07_cloud_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_release07_cloud_named_v1.json) · [Experiment page](../experiments/grid100_release07_cloud_named_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4310,7 +4310,7 @@ Current measurement: particle_cloud prior (sigma 0); public_prior_without_output
 
 ### grid100_res16_scaled_tanh
 
-**grid100_res16_scaled_tanh: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json).
+**grid100_res16_scaled_tanh: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json) · [Experiment page](../experiments/grid100_res16_scaled_tanh.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -4358,7 +4358,7 @@ Dependencies: grid100 (gate).
 
 ### grid100_res16_tanh
 
-**grid100_res16_tanh: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_tanh.json).
+**grid100_res16_tanh: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_tanh.json) · [Experiment page](../experiments/grid100_res16_tanh.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -4406,7 +4406,7 @@ Dependencies: grid100 (gate).
 
 ### img_bars4
 
-**img_bars4: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4.json).
+**img_bars4: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4.json) · [Experiment page](../experiments/img_bars4.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -4450,7 +4450,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_bars4_residual16
 
-**img_bars4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_residual16.json).
+**img_bars4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_residual16.json) · [Experiment page](../experiments/img_bars4_residual16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4481,7 +4481,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_bars4_w64_optimizer_diagnostic
 
-**img_bars4_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_w64_optimizer_diagnostic.json).
+**img_bars4_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_bars4_w64_optimizer_diagnostic.json) · [Experiment page](../experiments/img_bars4_w64_optimizer_diagnostic.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4512,7 +4512,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_blobs4
 
-**img_blobs4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4.json).
+**img_blobs4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4.json) · [Experiment page](../experiments/img_blobs4.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4556,7 +4556,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_blobs4_residual16
 
-**img_blobs4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4_residual16.json).
+**img_blobs4_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_blobs4_residual16.json) · [Experiment page](../experiments/img_blobs4_residual16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4587,7 +4587,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_intensity2
 
-**img_intensity2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2.json).
+**img_intensity2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2.json) · [Experiment page](../experiments/img_intensity2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4631,7 +4631,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_intensity2_residual16
 
-**img_intensity2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2_residual16.json).
+**img_intensity2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_intensity2_residual16.json) · [Experiment page](../experiments/img_intensity2_residual16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4662,7 +4662,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_stripes2
 
-**img_stripes2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2.json).
+**img_stripes2: PASS**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2.json) · [Experiment page](../experiments/img_stripes2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4706,7 +4706,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_stripes2_residual16
 
-**img_stripes2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_residual16.json).
+**img_stripes2_residual16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_residual16.json) · [Experiment page](../experiments/img_stripes2_residual16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4737,7 +4737,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### img_stripes2_w64_optimizer_diagnostic
 
-**img_stripes2_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_w64_optimizer_diagnostic.json).
+**img_stripes2_w64_optimizer_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/img_stripes2_w64_optimizer_diagnostic.json) · [Experiment page](../experiments/img_stripes2_w64_optimizer_diagnostic.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4768,7 +4768,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### infogan_anisotropic_modes
 
-**infogan_anisotropic_modes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/infogan_anisotropic_modes.json).
+**infogan_anisotropic_modes: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/infogan_anisotropic_modes.json) · [Experiment page](../experiments/infogan_anisotropic_modes.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -4804,7 +4804,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### interp_img_patch_shift
 
-**interp_img_patch_shift: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json).
+**interp_img_patch_shift: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_img_patch_shift.json) · [Experiment page](../experiments/interp_img_patch_shift.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4863,7 +4863,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### interp_saddle_barycentric
 
-**interp_saddle_barycentric: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json).
+**interp_saddle_barycentric: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_saddle_barycentric.json) · [Experiment page](../experiments/interp_saddle_barycentric.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4920,7 +4920,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### interp_sparse_arc
 
-**interp_sparse_arc: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json).
+**interp_sparse_arc: PASS**. [Current experiment declaration](../../../configs/forge/tasks/interp_sparse_arc.json) · [Experiment page](../experiments/interp_sparse_arc.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -4976,7 +4976,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 
 ### mid_scale_identity
 
-**mid_scale_identity: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mid_scale_identity.json).
+**mid_scale_identity: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mid_scale_identity.json) · [Experiment page](../experiments/mid_scale_identity.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5030,7 +5030,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_parameter_measureme
 
 ### misgan_block_neural_imputer
 
-**misgan_block_neural_imputer: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_neural_imputer.json).
+**misgan_block_neural_imputer: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_neural_imputer.json) · [Experiment page](../experiments/misgan_block_neural_imputer.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -5064,7 +5064,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### misgan_block_recovery
 
-**misgan_block_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_recovery.json).
+**misgan_block_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_block_recovery.json) · [Experiment page](../experiments/misgan_block_recovery.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -5100,7 +5100,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### misgan_mcar_p50_recovery
 
-**misgan_mcar_p50_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p50_recovery.json).
+**misgan_mcar_p50_recovery: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p50_recovery.json) · [Experiment page](../experiments/misgan_mcar_p50_recovery.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -5136,7 +5136,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### misgan_mcar_p80_anchored
 
-**misgan_mcar_p80_anchored: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p80_anchored.json).
+**misgan_mcar_p80_anchored: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/misgan_mcar_p80_anchored.json) · [Experiment page](../experiments/misgan_mcar_p80_anchored.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -5172,7 +5172,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### mode_hold
 
-**mode_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mode_hold.json).
+**mode_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/mode_hold.json) · [Experiment page](../experiments/mode_hold.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5216,7 +5216,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### model_ae_ddgan_bimodal_chain
 
-**model_ae_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_bimodal_chain.json).
+**model_ae_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_bimodal_chain.json) · [Experiment page](../experiments/model_ae_ddgan_bimodal_chain.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -5299,7 +5299,7 @@ Dependencies: model_ae_ddgan_gaussian_chain (gate).
 
 ### model_ae_ddgan_gaussian_chain
 
-**model_ae_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json).
+**model_ae_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_ddgan_gaussian_chain.json) · [Experiment page](../experiments/model_ae_ddgan_gaussian_chain.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -5426,7 +5426,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 ### model_ae_gan_multimodal
 
-**model_ae_gan_multimodal: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_gan_multimodal.json).
+**model_ae_gan_multimodal: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_gan_multimodal.json) · [Experiment page](../experiments/model_ae_gan_multimodal.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5485,7 +5485,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 ### model_ae_reconstruction
 
-**model_ae_reconstruction: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_reconstruction.json).
+**model_ae_reconstruction: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_ae_reconstruction.json) · [Experiment page](../experiments/model_ae_reconstruction.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5532,7 +5532,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 ### model_ddgan_bimodal_chain
 
-**model_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_bimodal_chain.json).
+**model_ddgan_bimodal_chain: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_bimodal_chain.json) · [Experiment page](../experiments/model_ddgan_bimodal_chain.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -5611,7 +5611,7 @@ Dependencies: model_ddgan_gaussian_chain (gate).
 
 ### model_ddgan_gaussian_chain
 
-**model_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_gaussian_chain.json).
+**model_ddgan_gaussian_chain: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/model_ddgan_gaussian_chain.json) · [Experiment page](../experiments/model_ddgan_gaussian_chain.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -5730,7 +5730,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 
 ### model_misgan_four_mode
 
-**model_misgan_four_mode: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_misgan_four_mode.json).
+**model_misgan_four_mode: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/model_misgan_four_mode.json) · [Experiment page](../experiments/model_misgan_four_mode.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -5774,7 +5774,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 ### model_vae_categorical
 
-**model_vae_categorical: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_categorical.json).
+**model_vae_categorical: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_categorical.json) · [Experiment page](../experiments/model_vae_categorical.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5842,7 +5842,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 ### model_vae_hard
 
-**model_vae_hard: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_hard.json).
+**model_vae_hard: PASS**. [Current experiment declaration](../../../configs/forge/tasks/model_vae_hard.json) · [Experiment page](../experiments/model_vae_hard.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -5910,7 +5910,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 
 ### nash_overpowered_critic_ring16
 
-**nash_overpowered_critic_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_critic_ring16.json).
+**nash_overpowered_critic_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_critic_ring16.json) · [Experiment page](../experiments/nash_overpowered_critic_ring16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -5948,7 +5948,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### nash_overpowered_generator_ring16
 
-**nash_overpowered_generator_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_generator_ring16.json).
+**nash_overpowered_generator_ring16: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_overpowered_generator_ring16.json) · [Experiment page](../experiments/nash_overpowered_generator_ring16.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -5986,7 +5986,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### nash_unequal_width_hostile_imbalance
 
-**nash_unequal_width_hostile_imbalance: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json).
+**nash_unequal_width_hostile_imbalance: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/nash_unequal_width_hostile_imbalance.json) · [Experiment page](../experiments/nash_unequal_width_hostile_imbalance.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6024,7 +6024,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### pacgan8_grid100
 
-**pacgan8_grid100: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan8_grid100.json).
+**pacgan8_grid100: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan8_grid100.json) · [Experiment page](../experiments/pacgan8_grid100.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -6057,7 +6057,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### pacgan_unequal_mass
 
-**pacgan_unequal_mass: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan_unequal_mass.json).
+**pacgan_unequal_mass: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/pacgan_unequal_mass.json) · [Experiment page](../experiments/pacgan_unequal_mass.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -6091,7 +6091,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### precision_gaussian_fp32
 
-**precision_gaussian_fp32: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_fp32.json).
+**precision_gaussian_fp32: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_fp32.json) · [Experiment page](../experiments/precision_gaussian_fp32.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6143,7 +6143,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### precision_gaussian_mxfp8
 
-**precision_gaussian_mxfp8: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_mxfp8.json).
+**precision_gaussian_mxfp8: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_mxfp8.json) · [Experiment page](../experiments/precision_gaussian_mxfp8.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6195,7 +6195,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### precision_gaussian_nvfp4
 
-**precision_gaussian_nvfp4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_nvfp4.json).
+**precision_gaussian_nvfp4: PASS**. [Current experiment declaration](../../../configs/forge/tasks/precision_gaussian_nvfp4.json) · [Experiment page](../experiments/precision_gaussian_nvfp4.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6247,7 +6247,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### residual_student
 
-**residual_student: PASS**. [Current experiment declaration](../../../configs/forge/tasks/residual_student.json).
+**residual_student: PASS**. [Current experiment declaration](../../../configs/forge/tasks/residual_student.json) · [Experiment page](../experiments/residual_student.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6293,7 +6293,7 @@ Current measurement: particle_cloud prior (sigma 0); conditional_prior_centers_w
 
 ### ring16_acquisition
 
-**ring16_acquisition: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ring16_acquisition.json).
+**ring16_acquisition: PASS**. [Current experiment declaration](../../../configs/forge/tasks/ring16_acquisition.json) · [Experiment page](../experiments/ring16_acquisition.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6382,7 +6382,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_public_prior
 
 ### ring16_bigan_continuous
 
-**ring16_bigan_continuous: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/ring16_bigan_continuous.json).
+**ring16_bigan_continuous: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/ring16_bigan_continuous.json) · [Experiment page](../experiments/ring16_bigan_continuous.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -6416,7 +6416,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### ring_extension
 
-**ring_extension: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json).
+**ring_extension: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json) · [Experiment page](../experiments/ring_extension.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6453,7 +6453,7 @@ Dependencies: ring_hold (checkpoint).
 
 ### ring_hold
 
-**ring_hold: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json).
+**ring_hold: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json) · [Experiment page](../experiments/ring_hold.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6490,7 +6490,7 @@ Dependencies: mode_hold (gate).
 
 ### rotated100
 
-**rotated100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/rotated100.json).
+**rotated100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/rotated100.json) · [Experiment page](../experiments/rotated100.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -6562,7 +6562,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### rotated100_14k
 
-**rotated100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json).
+**rotated100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json) · [Experiment page](../experiments/rotated100_14k.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6608,7 +6608,7 @@ Dependencies: rotated100 (checkpoint), clockfree_audit (gate).
 
 ### rotated100_affine_square_named_v1
 
-**rotated100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_affine_square_named_v1.json).
+**rotated100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_affine_square_named_v1.json) · [Experiment page](../experiments/rotated100_affine_square_named_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6652,7 +6652,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### staggered100
 
-**staggered100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/staggered100.json).
+**staggered100: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/staggered100.json) · [Experiment page](../experiments/staggered100.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -6724,7 +6724,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### staggered100_14k
 
-**staggered100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json).
+**staggered100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json) · [Experiment page](../experiments/staggered100_14k.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6770,7 +6770,7 @@ Dependencies: staggered100 (checkpoint), clockfree_audit (gate).
 
 ### staggered100_affine_square_named_v1
 
-**staggered100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_affine_square_named_v1.json).
+**staggered100_affine_square_named_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_affine_square_named_v1.json) · [Experiment page](../experiments/staggered100_affine_square_named_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6814,7 +6814,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### t3_iso_horizon_saddle_shift
 
-**t3_iso_horizon_saddle_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json).
+**t3_iso_horizon_saddle_shift: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_horizon_saddle_shift.json) · [Experiment page](../experiments/t3_iso_horizon_saddle_shift.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6852,7 +6852,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 ### t3_iso_scale_mass_8x
 
-**t3_iso_scale_mass_8x: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_scale_mass_8x.json).
+**t3_iso_scale_mass_8x: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/t3_iso_scale_mass_8x.json) · [Experiment page](../experiments/t3_iso_scale_mass_8x.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6890,7 +6890,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 ### target_shift_recovery
 
-**target_shift_recovery: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json).
+**target_shift_recovery: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json) · [Experiment page](../experiments/target_shift_recovery.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -6918,7 +6918,7 @@ Dependencies: mode_hold (gate).
 
 ### trajectory
 
-**trajectory: PASS**. [Current experiment declaration](../../../configs/forge/tasks/trajectory.json).
+**trajectory: PASS**. [Current experiment declaration](../../../configs/forge/tasks/trajectory.json) · [Experiment page](../experiments/trajectory.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -6960,7 +6960,7 @@ Current measurement: particle_cloud prior (sigma 0); conditional_prior_centers_w
 
 ### two_pole
 
-**two_pole: PASS**. [Current experiment declaration](../../../configs/forge/tasks/two_pole.json).
+**two_pole: PASS**. [Current experiment declaration](../../../configs/forge/tasks/two_pole.json) · [Experiment page](../experiments/two_pole.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7005,7 +7005,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 ### two_pole_800_schedule800_diagnostic_v1
 
-**two_pole_800_schedule800_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule800_diagnostic_v1.json).
+**two_pole_800_schedule800_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule800_diagnostic_v1.json) · [Experiment page](../experiments/two_pole_800_schedule800_diagnostic_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7039,7 +7039,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 ### two_pole_800_schedule80_diagnostic_v1
 
-**two_pole_800_schedule80_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule80_diagnostic_v1.json).
+**two_pole_800_schedule80_diagnostic_v1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/two_pole_800_schedule80_diagnostic_v1.json) · [Experiment page](../experiments/two_pole_800_schedule80_diagnostic_v1.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7107,7 +7107,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_learned_part
 
 ### unipolar
 
-**unipolar: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unipolar.json).
+**unipolar: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unipolar.json) · [Experiment page](../experiments/unipolar.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7153,7 +7153,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_parameter_measureme
 
 ### unused_token_hold
 
-**unused_token_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unused_token_hold.json).
+**unused_token_hold: PASS**. [Current experiment declaration](../../../configs/forge/tasks/unused_token_hold.json) · [Experiment page](../experiments/unused_token_hold.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7232,7 +7232,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_learned_para
 
 ### vector_anisotropic
 
-**vector_anisotropic: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic.json).
+**vector_anisotropic: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic.json) · [Experiment page](../experiments/vector_anisotropic.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7282,7 +7282,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_anisotropic_published
 
-**vector_anisotropic_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic_published.json).
+**vector_anisotropic_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_anisotropic_published.json) · [Experiment page](../experiments/vector_anisotropic_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7316,7 +7316,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_overlap
 
-**vector_overlap: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap.json).
+**vector_overlap: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap.json) · [Experiment page](../experiments/vector_overlap.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7362,7 +7362,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_overlap_published
 
-**vector_overlap_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap_published.json).
+**vector_overlap_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_overlap_published.json) · [Experiment page](../experiments/vector_overlap_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7394,7 +7394,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_spiral
 
-**vector_spiral: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral.json).
+**vector_spiral: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral.json) · [Experiment page](../experiments/vector_spiral.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7440,7 +7440,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_spiral_published
 
-**vector_spiral_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral_published.json).
+**vector_spiral_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_spiral_published.json) · [Experiment page](../experiments/vector_spiral_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7472,7 +7472,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_two_broad
 
-**vector_two_broad: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad.json).
+**vector_two_broad: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad.json) · [Experiment page](../experiments/vector_two_broad.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7522,7 +7522,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_two_broad_published
 
-**vector_two_broad_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad_published.json).
+**vector_two_broad_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_two_broad_published.json) · [Experiment page](../experiments/vector_two_broad_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7556,7 +7556,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_unequal_mass
 
-**vector_unequal_mass: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass.json).
+**vector_unequal_mass: PASS**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass.json) · [Experiment page](../experiments/vector_unequal_mass.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
@@ -7608,7 +7608,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_unequal_mass_published
 
-**vector_unequal_mass_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass_published.json).
+**vector_unequal_mass_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_mass_published.json) · [Experiment page](../experiments/vector_unequal_mass_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7643,7 +7643,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_unequal_width
 
-**vector_unequal_width: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width.json).
+**vector_unequal_width: FAIL**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width.json) · [Experiment page](../experiments/vector_unequal_width.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
@@ -7693,7 +7693,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### vector_unequal_width_published
 
-**vector_unequal_width_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width_published.json).
+**vector_unequal_width_published: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/vector_unequal_width_published.json) · [Experiment page](../experiments/vector_unequal_width_published.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -7727,7 +7727,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### zero_tanh_rail_escape
 
-**zero_tanh_rail_escape: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json).
+**zero_tanh_rail_escape: BLOCKED**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json) · [Experiment page](../experiments/zero_tanh_rail_escape.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (BLOCKED)</summary>
@@ -7763,7 +7763,7 @@ Dependencies: zero_tanh_smoke (gate).
 
 ### zero_tanh_smoke
 
-**zero_tanh_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_smoke.json).
+**zero_tanh_smoke: PASS**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_smoke.json) · [Experiment page](../experiments/zero_tanh_smoke.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>

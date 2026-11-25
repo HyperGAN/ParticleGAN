@@ -772,7 +772,8 @@ def build_portal_leaderboard_payload(root: Path, *, prefer_stdlib: bool = False)
                     fam["quickstart"] = fdoc["quickstart"]
 
     task_doc_dir = root / "configs/forge/task-documentation"
-    if task_doc_dir.is_dir():
+    exp_assets_dir = root / "reports/forge/experiments/assets"
+    if task_doc_dir.is_dir() or exp_assets_dir.is_dir():
         for td in payload.get("task_definitions", []):
             tid = td.get("task_id", "")
             tdoc_path = task_doc_dir / f"{tid}.json"
@@ -785,6 +786,9 @@ def build_portal_leaderboard_payload(root: Path, *, prefer_stdlib: bool = False)
                     for key in ("title", "laws", "edge_cases", "intuition", "failure_mode", "protocol_notes"):
                         if key not in td and key in tdoc:
                             td[key] = tdoc[key]
+            svg_path = exp_assets_dir / f"{tid}.svg"
+            if svg_path.is_file() and not td.get("svg_relpath"):
+                td["svg_relpath"] = f"experiments/assets/{tid}.svg"
 
     return payload
 

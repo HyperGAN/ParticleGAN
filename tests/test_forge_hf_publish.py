@@ -395,9 +395,13 @@ def test_export_leaderboard_json_enriches_committed_inventory():
     assert ring16["model_summary"] and "transfer_vector" in ring16["model_summary"]
     assert ring16["thresholds"]["modes"] == ">= 16"
     assert ring16["thresholds"]["hq"] == ">= 0.85"
-    assert ring16["mermaid"] and "flowchart TD" in ring16["mermaid"]
+    assert ring16["mermaid"] and "flowchart " in ring16["mermaid"]
     assert ring16["task_config_path"] == "configs/forge/tasks/ring16_acquisition.json"
     assert "probe" in ring16["reproduction_cmd"] and "ring16_acquisition" in ring16["reproduction_cmd"]
+    fl_law1 = next(t for t in payload["task_definitions"] if t["task_id"] == "fl_law1_aniso_unequal_modes")
+    assert "law1" in fl_law1["laws"]
+    assert fl_law1["svg_inline"] and fl_law1["svg_inline"].startswith("<svg")
+    assert fl_law1["thresholds"]
 
 
 def test_export_leaderboard_json_reads_dynamic_laws_family_mechanisms_and_task_docs(tmp_path):

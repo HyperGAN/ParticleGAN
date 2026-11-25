@@ -1,6 +1,6 @@
 # Forge family leaderboard
 
-[Research Portal (GitHub Pages)](https://hypergan.github.io/ParticleGAN/) · [Interactive HF Leaderboard Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard) · [Explore by Laws](../../docs/four-laws.md) · [Unresolved Problems](problems.md) · [Full Matrix](test-performance.md)
+[Research Portal (GitHub Pages)](https://hypergan.github.io/ParticleGAN/) · [Interactive HF Leaderboard Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard) · [Explore by Laws](LAWS_HUB.md) · [Experiment Catalog](experiments/README.md) · [Unresolved Problems](problems.md) · [Full Matrix](test-performance.md)
 
 > [!IMPORTANT]
 > **Screening & calibration scope.** A **family** can have several **recipes**. Each score belongs to one exact recipe and source. For example, BCAP's selected recipe uses DualNorm; Confidence LR, Finite critic cap and Positive evidence are separate BCAP research recipes, with their own scores.
@@ -94,7 +94,7 @@ At-a-glance snapshot combining distinct full-suite counts, per-tier view require
 
 > *"Our goal is not to preserve the four laws. Our goal is to discover the laws of learning, even if doing so ultimately requires abandoning the current four."*
 
-This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. (Status: `provisional_evolving`.) See [Current laws framework](../../docs/four-laws.md).
+This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge. (Status: `provisional_evolving`.) See [Explore by Laws hub](LAWS_HUB.md) · [Current laws framework](../../docs/four-laws.md).
 
 Each cell summarizes how the family's documented mechanism relates to the corresponding law in `configs/forge/laws.json`. Editorial mechanism notes never alter scientific grades.
 
