@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law1_aniso_unequal_modes",
+  "title": "Law 1 Probe: 8-Mode 10:1 Anisotropic Ellipses & 4:1 Skew (B_f < K)",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "anisotropic-10to1",
+    "small-batch-starvation",
+    "unequal-mass",
+    "disconnected-support"
+  ],
+  "intuition": "Falsification probe targeting Law 1 defects D-06 & D-07: places 8 rotated 10:1 anisotropic Gaussian ellipses (sigma_major=0.25, sigma_minor=0.025) with 4:1 weight skew on a ring under severe minibatch starvation (B=16 << P=256).",
+  "failure_mode": "Scalar-trace isotropic covariance coalescence collapses 10:1 ellipses (incurring >62% Frobenius error and disconnecting above kappa* = 8.665), while B_f < K eviction starves low-weight modes.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (`four-laws-adherence-v1`, 1,500 updates, B=16, P=256).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

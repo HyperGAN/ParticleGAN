@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-ring_hold",
+  "title": "8-Mode Ring First-Convergence & Hold Phase (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "long-horizon-stability",
+    "uninterrupted-endurance",
+    "checkpoint-producer",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `ring_hold` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Monitors dense first-convergence and sustained hold on an 8-mode 2D Gaussian ring (modes == 8, hq >= 0.90) using the archived K3P ConvergenceGate, producing the exact state extended by `ring_extension`.",
+  "failure_mode": "Recipes that briefly hit 8/8 modes and then drift below hq=0.90 or drop a mode fail to lock in a valid hold state.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `ring_hold` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

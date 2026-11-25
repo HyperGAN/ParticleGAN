@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v14-occam-study"
+  },
+  "candidate": "unified-v14",
+  "competing_explanation": "If unified-v14's guarded degree-0 peak_rms prior row smoothing cap (2.0), floor+flip current_stiff_gate, decoupled fg_damp, bandpass d_couple, or 2D critic Schatten-6 spectral ceiling regresses any Occam ablation probe, unified-v14 will score below 16/16 on r4-occam-ablation-v1.",
+  "control": {
+    "candidate_id": "unified-v13",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "core_min_eigen_ratio",
+    "op": "<",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global unified-v14 (optimizer_family='unified_v14_equil' with feydy_atomic) preserves 16/16 PASS on r4-occam-ablation-v1 with strictly 0 Conv2d NS, 0 neural-G Critic NS, 0 critic probes, 0 new_tensor H2D copies, and _SUPPORTS_ZEROSYNC_V4_TENSORS=True.",
+  "id": "unified-v14-occam-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "core_min_eigen_ratio",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "t3_iso_scale_mass_8x",
+    "threshold": 0.35
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-624964f4e46793593bc147e4.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "r4-occam-ablation-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

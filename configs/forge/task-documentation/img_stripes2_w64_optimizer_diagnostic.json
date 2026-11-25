@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "img_stripes2_w64_optimizer_diagnostic",
+  "title": "8x8 Procedural Images: Horizontal vs Vertical Stripes (Width-64 Optimizer Diagnostic)",
+  "laws": [
+    "law1",
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "finite-prior-enumeration",
+    "wide-conv-diagnostic"
+  ],
+  "intuition": "Wider channel (width=64) convolutional optimizer diagnostic variant of `img_stripes2`, probing how spectral conditioning and step scaling behave when Conv2d capacity increases.",
+  "failure_mode": "Unconditioned wide convolutional layers amplify step-size sensitivity or slow matrix-conditioning updates.",
+  "protocol_notes": "Diagnostic width-64 optimizer cohort derived from `img_stripes2`.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

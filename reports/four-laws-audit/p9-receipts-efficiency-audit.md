@@ -159,7 +159,7 @@ Executed via `PYTHONPATH="$PWD" /nvme/dev/hypergan/ParticleGAN/.venv/bin/python 
 | **`rhbi-v12` (native `float32`)** | `319.05` | `323.59` | `4,253.7` | `87.24` | `32.58` | `172.0` | `(0,0)->(88,57)` | Already `1.85×` faster than stale `588.75 ms` post-PR-#630. |
 | **`rhbi-v12` (matched `bf16_cl`)** | **`231.28`** | `282.00` | **`2,472.3`** | **`64.05`** | `38.43` | `108.4` | `(0,0)->(85,34)` | **Direct proof of precision confound: `-27.5%` latency, `-41.9%` VRAM, `-26.6%` energy from BF16 CL alone!** |
 
-*\*Note: Even with a 1.0s inter-arm cooldown on an idle GPU (`util=(0,0)`), NVIDIA RTX A6000 thermal/boost P-state decay causes `idle_power_watts` to vary (`77–211 W`), independently confirming why raw `dynamic_joules_per_step` is sensitive to cooldown duration unless a $\ge 10\text{s}$ thermal settle is enforced.*
+*\*Note: Even with a 1.0s inter-arm cooldown on an idle GPU (`util=(0,0)`), NVIDIA RTX A6000 thermal/boost P-state decay causes `idle_power_watts` to vary (`77–211 W`), independently confirming why raw `dynamic_joules_per_step` is sensitive to cooldown duration unless a $`\ge 10\text{s}`$ thermal settle is enforced.*
 
 ### 4.2 Synchronized CUDA-Event Component Breakdown (`r256`) & 16-Layer 2D MLP (`grid100_mlp16`)
 

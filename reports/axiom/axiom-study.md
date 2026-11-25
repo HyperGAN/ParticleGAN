@@ -168,8 +168,8 @@ Full measurements on `NVIDIA RTX A6000` (`seed = 0`, `scripts/axiom_four_laws_be
 | **2A. P1 24-Decade Scale Invariance & `1e-40`** | **`1.61e-6` / `u(1e-40)=0.0566`** (**PASS**) | `0.326` / `0.0` | `0.326` / `0.0` | `0.176` / `0.0` | `0.606` / `0.0` |
 | **2B–D. P1 Rail / `1e4x` Spike / `1/t` Decay / Chatter** | **`1.95e-5 / 1.95e-5 / 1.000 / 0.00097`** (**PASS**) | `0.015 / 3.02 / 0.001 / 1.00` | `0.015 / 3.02 / 0.001 / 1.00` | `0.0 / 2.93 / 0.020 / 1.00` | `6.85 / 3.54 / 0.0005 / 1.00` |
 | **3A–C. P4 Verified `p95` Trust + `coord_scale` + Tail** | **`0.54x / 0.0025x / 1.000x / tail=True`** (**PASS**) | `5.00x / 10.24x / 500x / False` | `5.00x / 10.24x / 500x / False` | `5.00x / 301x / 500x / False` | `5.00x / 0.00x / N/A / False` |
-| **4A–B. P6 Below-$\kappa$ Unbiased & Dim-Indep $\mu_D$** | **`1.07x` (`cos=0.990`) · `r256/2d=1.06x`** (**PASS**) | `1423.3x` · `3.60e-3` | `1423.3x` · `3.60e-3` | `0.65x` · `1953x` | `0.004x` · `7.09e-3` |
-| **5A–C. P7 Mass Conservation / LTV / $B_f<K$** | **`5.96e-8` / `(1.00, 1.00)` / `36/36`** (**PASS**) | `0.119` / `(0.27, 0.81)` / `0/36` | `0.119` / `(0.27, 0.81)` / `0/36` | `0.119` / `FAIL` | N/A |
+| **4A–B. P6 Below-$`\kappa`$ Unbiased & Dim-Indep $`\mu_D`$** | **`1.07x` (`cos=0.990`) · `r256/2d=1.06x`** (**PASS**) | `1423.3x` · `3.60e-3` | `1423.3x` · `3.60e-3` | `0.65x` · `1953x` | `0.004x` · `7.09e-3` |
+| **5A–C. P7 Mass Conservation / LTV / $`B_f<K`$** | **`5.96e-8` / `(1.00, 1.00)` / `36/36`** (**PASS**) | `0.119` / `(0.27, 0.81)` / `0/36` | `0.119` / `(0.27, 0.81)` / `0/36` | `0.119` / `FAIL` | N/A |
 | **5D. Conv2d `64x64` Latency & Host Syncs/step** | **`21.48 ms` · `4.0` syncs (`#1`)** | `22.88 ms` · `5.0` | `21.79 ms` · `5.0` | `27.96 ms` · `6.0` | `91.99 ms` · `75.0` |
 
 ---
@@ -191,7 +191,7 @@ The remaining `axiom-v4` failures decompose cleanly into four concrete, non-hack
 
 ## 7. Provenance, Official Receipts & Reproduction
 
-- **Verification on `758b397a5`:** `pytest -q tests/test_axiom_*.py` -> **69 CPU + 3 CUDA PASS** (bit-exact checkpoint roundtrip across `T3IsolationFixture`, `ByteGANToyFixture`, `ByteGANBiGANFixture`, `WordFixture`, and `ConditionalChain`), zero `svd`/`eigh`/`pinv`/`torch.compile` AST calls, `2,409 / 2,500` core LOC, `scripts/check_lint.py` clean, `scripts/check_repo_bloat.py` clean, `tests/test_docs_links.py` clean, and `experiments.forge validate` clean.
+- **Verification on `758b397a5`:** `pytest -q tests/test_axiom_*.py` -> **59 CPU + 3 CUDA PASS** (bit-exact checkpoint roundtrip across `T3IsolationFixture`, `ByteGANToyFixture`, `ByteGANBiGANFixture`, `WordFixture`, and `ConditionalChain`), zero `svd`/`eigh`/`pinv`/`torch.compile` AST calls, `2,409 / 2,500` core LOC, `scripts/check_lint.py` clean, `scripts/check_repo_bloat.py` clean, `tests/test_docs_links.py` clean, and `experiments.forge validate` clean.
 - **Official `axiom-v4` Forge Readouts (`axiom-v4@0e31275ce41d`, Commit `758b397a5`):**
   - [`readout-506977051c754e8f9694b117.json`](../forge/records/readout-506977051c754e8f9694b117.json) — `axiom-v4-dcgan-perf-study` (`6/6` unique PASS; solo GPU 1 `r256`: `34.86 ms / 805.8 MiB`)
   - [`readout-41f9c26a18492a4834dbe767.json`](../forge/records/readout-41f9c26a18492a4834dbe767.json) — `axiom-v4-t3-holdout-study` (**`18/18` PASS**)

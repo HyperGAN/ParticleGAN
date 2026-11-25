@@ -12,7 +12,9 @@ import pytest
 from experiments.forge.__main__ import main
 from experiments.forge.hf_publish import (
     DEFAULT_HF_REPO,
+    DEFAULT_PAGES_BASE_URL,
     build_inventory_exports,
+    export_leaderboard_json,
     publish_to_hf,
     render_dataset_card,
 )
@@ -368,3 +370,187 @@ def test_publish_mocked_commit_with_archive_card_records_hf_revision(tmp_path, m
 def test_publish_requires_inventory_or_archive_card(tmp_path):
     with pytest.raises(ValueError, match="--inventory or --archive-card"):
         publish_to_hf(tmp_path, dry_run=True)
+
+
+def test_export_leaderboard_json_enriches_committed_inventory():
+    payload = export_leaderboard_json(REPO_ROOT, generated_at="2026-11-24T00:00:00Z")
+    assert payload["schema_version"] == 1
+    assert payload["schema"] == "particlegan_forge_leaderboard_v1"
+    assert payload["pages_base_url"] == DEFAULT_PAGES_BASE_URL
+    assert isinstance(payload["laws_meta"], dict)
+    assert payload["laws_meta"]["epistemic_note"]
+    assert isinstance(payload["laws"], list)
+
+    unified = next(f for f in payload["families"] if f["id"] == "unified")
+    assert unified["pages_url"] == f"{DEFAULT_PAGES_BASE_URL}/families/unified/"
+    assert isinstance(unified["overview"], str) and "Unified" in unified["overview"]
+    assert isinstance(unified["equations"], list) and len(unified["equations"]) >= 1
+    assert isinstance(unified["law_mechanisms"], dict)
+    assert isinstance(unified["tags"], list) and len(unified["tags"]) >= 1
+
+    ring16 = next(t for t in payload["task_definitions"] if t["task_id"] == "ring16_acquisition")
+    assert ring16["pages_url"] == f"{DEFAULT_PAGES_BASE_URL}/experiments/ring16_acquisition/"
+    assert ring16["steps"] == 1600
+    assert ring16["prior_summary"] and "mog" in ring16["prior_summary"]
+    assert ring16["model_summary"] and "transfer_vector" in ring16["model_summary"]
+    assert ring16["thresholds"]["modes"] == ">= 16"
+    assert ring16["thresholds"]["hq"] == ">= 0.85"
+    assert ring16["mermaid"] and "flowchart " in ring16["mermaid"]
+    assert ring16["task_config_path"] == "configs/forge/tasks/ring16_acquisition.json"
+    assert "probe" in ring16["reproduction_cmd"] and "ring16_acquisition" in ring16["reproduction_cmd"]
+    fl_law1 = next(t for t in payload["task_definitions"] if t["task_id"] == "fl_law1_aniso_unequal_modes")
+    assert "law1" in fl_law1["laws"]
+    assert fl_law1["svg_inline"] and fl_law1["svg_inline"].startswith("<svg")
+    assert fl_law1["thresholds"]
+
+
+def test_export_leaderboard_json_reads_dynamic_laws_family_mechanisms_and_task_docs(tmp_path):
+    """Verify dynamic laws.json, family-documentation law_mechanisms, task-documentation sidecars, and SVGs."""
+    reports_dir = tmp_path / "reports/forge"
+    reports_dir.mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    # Dynamic 3-law synthetic taxonomy (proves zero hardcoded law count or IDs).
+    laws_cfg = {
+        "schema_version": 1,
+        "epistemic_status": "provisional_evolving",
+        "epigraph": "Test evolving epigraph.",
+        "epistemic_note": "Synthetic 3-law evolving registry note.",
+        "doc_path": "docs/four-laws.md",
+        "laws": [
+            {
+                "id": "law_a",
+                "short_label": "Law A",
+                "title": "Measure Geometry",
+                "domain_level": "Geometry",
+                "question": "Can the prior span disconnected support?",
+                "doc_anchor": "law-a",
+                "status": "active",
+                "sub_laws": [],
+            },
+            {
+                "id": "law_b",
+                "short_label": "Law B",
+                "title": "Transport Identifiability",
+                "domain_level": "Transport",
+                "question": "Is transport uniquely identifiable?",
+                "doc_anchor": "law-b",
+                "status": "active",
+                "sub_laws": [
+                    {"id": "law_b1", "short_label": "Law B1", "title": "Ray Screening", "doc_anchor": "law-b"}
+                ],
+            },
+            {
+                "id": "law_c",
+                "short_label": "Law C",
+                "title": "Coupled Dynamics",
+                "domain_level": "Dynamics",
+                "question": "Do updates contract?",
+                "doc_anchor": "law-c",
+                "status": "active",
+                "sub_laws": [],
+            },
+        ],
+    }
+    (tmp_path / "configs/forge").mkdir(parents=True)
+    (tmp_path / "configs/forge/laws.json").write_text(json.dumps(laws_cfg))
+
+    fam_doc_dir = tmp_path / "configs/forge/family-documentation"
+    fam_doc_dir.mkdir(parents=True)
+    (fam_doc_dir / "unified.json").write_text(
+        json.dumps(
+            {
+                "overview": "Synthetic Unified overview.",
+                "law_mechanisms": {
+                    "law_a": {
+                        "status": "addressed",
+                        "mechanism": "Laguerre-Pythagorean prototype chart",
+                        "how_it_works": "Maintains adaptive latent cells.",
+                        "known_limits": "Fixed particle budget.",
+                    },
+                    "law_b": {
+                        "status": "partial",
+                        "mechanism": "Local density-ratio orphan gate",
+                        "how_it_works": "Rescues isolated target modes.",
+                        "known_limits": "Struggles on staggered100.",
+                    },
+                },
+                "equations": [
+                    {"label": "Orphan ratio", "latex": "r(y) = d_k(y, X) / d_k(y, Y)", "explanation": "Local ratio."}
+                ],
+                "mermaid_diagram": 'flowchart LR\n  P["Prior"] --> G["Generator"]',
+                "quickstart": {
+                    "preset": "unified_v11",
+                    "snippet": ["from particlegan import get_recipe", 'recipe = get_recipe("unified_v11")'],
+                },
+                "tags": ["synthetic-tag"],
+            }
+        )
+    )
+
+    task_doc_dir = tmp_path / "configs/forge/task-documentation"
+    task_doc_dir.mkdir(parents=True)
+    (task_doc_dir / "ring16_acquisition.json").write_text(
+        json.dumps(
+            {
+                "title": "Ring-16 Mode Acquisition",
+                "laws": ["law_a", "law_b1"],
+                "edge_cases": ["disconnected-support", "16-mode-ring"],
+                "intuition": "Tests whether all 16 modes on a ring are acquired cleanly.",
+                "failure_mode": "Mode dropping or filament bridges between modes.",
+                "protocol_notes": "1600 steps, deterministic orthogonal init.",
+            }
+        )
+    )
+
+    tasks_dir = tmp_path / "configs/forge/tasks"
+    tasks_dir.mkdir(parents=True)
+    (tasks_dir / "ring16_acquisition.json").write_text(
+        (REPO_ROOT / "configs/forge/tasks/ring16_acquisition.json").read_text()
+    )
+
+    svg_dir = tmp_path / "reports/forge/experiments/assets"
+    svg_dir.mkdir(parents=True)
+    sample_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="40"/></svg>'
+    (svg_dir / "ring16_acquisition.svg").write_text(sample_svg)
+
+    payload = export_leaderboard_json(tmp_path, generated_at="2026-11-24T00:00:00Z")
+    assert payload["laws_meta"]["source"] == "configs/forge/laws.json"
+    assert payload["laws_meta"]["epistemic_note"] == "Synthetic 3-law evolving registry note."
+    assert [law["id"] for law in payload["laws"]] == ["law_a", "law_b", "law_c"]
+    assert payload["laws"][1]["sub_laws"][0]["id"] == "law_b1"
+
+    unified = next(f for f in payload["families"] if f["id"] == "unified")
+    assert unified["law_mechanisms"]["law_a"]["status"] == "addressed"
+    assert unified["law_mechanisms"]["law_b"]["known_limits"] == "Struggles on staggered100."
+    assert unified["mermaid_diagram"] == 'flowchart LR\n  P["Prior"] --> G["Generator"]'
+    assert unified["quickstart"]["preset"] == "unified_v11"
+    assert "synthetic-tag" in unified["tags"]
+
+    ring = next(t for t in payload["task_definitions"] if t["task_id"] == "ring16_acquisition")
+    assert ring["title"] == "Ring-16 Mode Acquisition"
+    assert ring["laws"] == ["law_a", "law_b1"]
+    assert ring["edge_cases"] == ["disconnected-support", "16-mode-ring"]
+    assert ring["intuition"].startswith("Tests whether all 16 modes")
+    assert ring["failure_mode"] == "Mode dropping or filament bridges between modes."
+    assert ring["svg_relpath"] == "reports/forge/experiments/assets/ring16_acquisition.svg"
+    assert ring["svg_inline"] == sample_svg
+
+
+def test_export_leaderboard_json_graceful_fallback_on_minimal_root(tmp_path):
+    """Minimal synthetic unit-test root without laws.json, family docs, or task JSONs never crashes."""
+    reports_dir = tmp_path / "reports/forge"
+    reports_dir.mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    payload = export_leaderboard_json(tmp_path, generated_at="2026-11-24T00:00:00Z")
+    assert payload["schema_version"] == 1
+    assert payload["laws"] == []
+    assert payload["laws_meta"]["source"] == "unavailable"
+    assert payload["laws_meta"]["epistemic_note"]
+    assert len(payload["families"]) >= 10
+    assert all(isinstance(f["law_mechanisms"], dict) for f in payload["families"])
+    assert all(f["pages_url"].startswith(DEFAULT_PAGES_BASE_URL) for f in payload["families"])
+    assert all(isinstance(t["laws"], list) and isinstance(t["thresholds"], dict) for t in payload["task_definitions"])

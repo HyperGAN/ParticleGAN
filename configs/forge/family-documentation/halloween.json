@@ -36,5 +36,31 @@
     "loss": "Least squares with fake/real/G labels (-1,1,1); joint encoder stream is explicit.",
     "noise": "No additive training input/output noise. Task-owned MoG kernel noise and clean sampling remain explicit.",
     "optimizer": "Dense TensorFlow-v1 Adam formula implemented in PyTorch; different G/D betas and epsilon, no AMSGrad or weight decay."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No adaptive multimodal prior or prior regularizer (unmeasured historical transfer)",
+      "how_it_works": "Leaves latent representation solely to the task-declared prior.",
+      "known_limits": "Unmeasured historical transfer; provides no multimodal topology or pullback control."
+    },
+    "law2": {
+      "status": "unaddressed",
+      "mechanism": "Zero critic input-gradient penalty (`reg_coeff=0.0`)",
+      "how_it_works": "Disables all input-gradient penalties and logit gauge anchors in the transfer preset.",
+      "known_limits": "Unbounded critic spatial slopes and zero normal-direction regularization."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Least-squares [-1, 1, 1] scalar critic objective only",
+      "how_it_works": "Uses scalar least-squares scores with no optimal-transport horizon or conditional fiber bank.",
+      "known_limits": "No multi-scale, beyond-horizon orphan, or conditional drift-variance identifiability."
+    },
+    "law4": {
+      "status": "unaddressed",
+      "mechanism": "Dense TensorFlow-v1 Adam with positive momentum (beta1_G=0.612, beta1_D=0.105)",
+      "how_it_works": "Transfers historical HyperGAN TensorFlow-v1 Adam constants at constant learning rates.",
+      "known_limits": "Positive first-order momentum shrinks the rotational game stability ceiling (Law 4.5); lacks spectral conditioning, pushforward trust, and settling; unmeasured."
+    }
   }
 }

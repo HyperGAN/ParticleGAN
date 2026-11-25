@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "ae_gan_hold",
+  "title": "Autoencoder-GAN Reconstruction & Hold",
+  "laws": [
+    "law1",
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "multi-objective-conflict",
+    "encoder-decoder-loop",
+    "scheduled-output-noise"
+  ],
+  "intuition": "Jointly trains an encoder, learned particle prior, decoder/generator, and critic on a compact representation-holding task. It verifies that adversarial updates do not erode autoencoder reconstruction fidelity (recon_mse <= 0.05) or drift off the protected hold subspace (hold <= 0.35).",
+  "failure_mode": "Naive adversarial gradients overwhelm the reconstruction objective, inflating recon_mse or causing the learned prior and decoder to drift away from the encoded data manifold.",
+  "protocol_notes": "Locked-shared 250-step behavioral host with public-recipe scheduled output noise; encoder receives only the original reconstruction objective.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

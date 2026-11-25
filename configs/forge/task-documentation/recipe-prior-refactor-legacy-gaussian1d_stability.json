@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-gaussian1d_stability",
+  "title": "1D Gaussian Stationary Hold & Target Shift Recovery (Legacy Prior Cohort)",
+  "laws": [
+    "law3a",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "non-stationary-shift",
+    "settling-vs-tracking",
+    "checkpoint-continuation",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `gaussian1d_stability` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Continues the candidate's own passing `gaussian1d_smoke` checkpoint to test the Law 4.4 settling-versus-tracking dilemma: first hold N(2, 0.5^2) stably across stationary updates, then rapidly re-acquire a shifted target within deadline and hold it.",
+  "failure_mode": "Recipes with aggressive LR annealing freeze and miss the shifted target, whereas recipes without settling damping oscillate around the stationary bell curve and fail hold checks.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `gaussian1d_stability` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

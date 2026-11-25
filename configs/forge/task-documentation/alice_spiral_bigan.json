@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "alice_spiral_bigan",
+  "title": "ALICE Cycle-Consistent Spiral BiGAN",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "bidirectional-encoder",
+    "continuous-manifold",
+    "cycle-consistency"
+  ],
+  "intuition": "Joint BiGAN (G(z), E(x), D(x, z)) with ALICE cycle-consistency regularization on a 2D Archimedes spiral, requiring >= 15/16 arc bins, high sample quality, accurate x and z reconstructions, and arc consistency >= 0.90.",
+  "failure_mode": "Without stable joint-distribution matching, encoder-generator pairs fold spiral turns onto one another, degrading latent_recon_rmse or arc_consistency.",
+  "protocol_notes": "Tier-4 stretch benchmark (4,000 updates, MoGParticlePrior sigma=0.06).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

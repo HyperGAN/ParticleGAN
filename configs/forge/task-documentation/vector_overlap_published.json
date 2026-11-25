@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_overlap_published",
+  "title": "Overlapping Bimodal Cloud (Unidentifiable Components) (Published Prior Cohort)",
+  "laws": [
+    "law2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "overlapping-support",
+    "distribution-matching",
+    "sustained-settling",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_overlap` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Two broad overlapping Gaussians at (-0.35, 0) and (+0.35, 0) (sigma=0.55) where component labels are not identifiable. Grades observable global mean, global covariance, and sliced W1 over a sustained terminal window.",
+  "failure_mode": "Recipes that over-segment continuous overlapping clouds into rigid discrete blobs or oscillate across late updates miss the sustained covariance and sw1 gates.",
+  "protocol_notes": "Separate published transfer cohort of `vector_overlap`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

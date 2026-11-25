@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-five_word_joint_hold",
+  "title": "Five-Word Joint BiGAN 4k Retention Hold (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3b",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder",
+    "checkpoint-continuation",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `five_word_joint_hold` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Continues the candidate's earliest passing `five_word_joint_smoke` checkpoint for 4,000 updates, requiring every single scheduled generation and inverse-reconstruction check to stay passing without drift.",
+  "failure_mode": "Even after clean acquisition, coupled BiGAN minimax dynamics gradually rotate or collapse latent word codes, causing late-window reconstruction drop or mode loss.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `five_word_joint_hold` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

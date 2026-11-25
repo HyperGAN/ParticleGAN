@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "mode_hold",
+  "title": "8-Mode Ring Sustained Mode Hold",
+  "laws": [
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "mode-retention",
+    "long-horizon-stability",
+    "ring-mixture"
+  ],
+  "intuition": "Tests whether a trainer can acquire and continuously hold all 8 modes of a 2D Gaussian ring at high sample quality (hq >= 0.90) across 1,200 updates without late-stage mode dropout or oscillation.",
+  "failure_mode": "Recipes that pass early acquisition often oscillate or shed modes over sustained updates when critic damping or minimax contraction (Law 4.5) is missing.",
+  "protocol_notes": "Required in Tier 2 and serves as a prerequisite sanity check for Four Laws Adherence.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

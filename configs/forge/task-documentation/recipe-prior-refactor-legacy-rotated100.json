@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-rotated100",
+  "title": "100-Mode Rotated Gaussian Grid (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "non-axis-aligned",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `rotated100` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Rotates the 10x10 Gaussian grid off the coordinate axes to verify that a trainer's 100-mode recovery is geometrically invariant and not exploiting axis-aligned separability.",
+  "failure_mode": "Axis-biased quantizers, separable coordinate heuristics, or poorly conditioned generators leave bridge mass along rotated diagonals and miss precision or covariance gates.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `rotated100` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

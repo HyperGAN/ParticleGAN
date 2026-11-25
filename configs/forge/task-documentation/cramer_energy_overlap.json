@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "cramer_energy_overlap",
+  "title": "CramerGAN Energy Distance on 3x3 Overlapping Mixture",
+  "laws": [
+    "law2",
+    "law3a"
+  ],
+  "edge_cases": [
+    "overlapping-support",
+    "unequal-mass",
+    "energy-distance"
+  ],
+  "intuition": "Tests two-sample unbiased energy-distance adversarial learning on a 9-mode 3x3 overlapping heterogeneous-mass 2D Gaussian mixture (weights 0.06 to 0.18), requiring 9/9 modes, low energy distance (<= 0.06), and non-collapsed covariance.",
+  "failure_mode": "Biased mini-batch gradients or weak multi-scale critics under-cover the lighter 6%-8% peripheral modes or distort overlapping shoulders.",
+  "protocol_notes": "Tier-4 stretch benchmark (3,000 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

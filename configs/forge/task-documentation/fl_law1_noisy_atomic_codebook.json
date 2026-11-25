@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law1_noisy_atomic_codebook",
+  "title": "Law 1 Probe: 64-Atom Noisy Zipf Hexagonal Codebook (P=96 != K=64)",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "noisy-atomic-codebook",
+    "zipf-8to1-skew",
+    "capacity-mismatch",
+    "disconnected-support"
+  ],
+  "intuition": "Falsification probe testing whether discrete-atomic mechanisms generalize beyond exact zero-noise hypercubes: 64 hexagonal atoms with sigma/Delta=0.02 Gaussian jitter, 8:1 Zipf weights, and mismatched P=96 particles.",
+  "failure_mode": "Exact zero-radius duplicate detectors fail to fire under 2% Gaussian jitter, while rigid 1-to-1 bijection ledgers flatten the 8:1 Zipf weights or misallocate the 32 surplus particles.",
+  "protocol_notes": "Four Laws Adherence diagnostic probe (1,600 updates, K=64 atoms, P=96 particles).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "cgan_overlapping_classes",
+  "title": "Conditional Projection GAN on Overlapping Classes",
+  "laws": [
+    "law3b",
+    "law2"
+  ],
+  "edge_cases": [
+    "conditional-class-overlap",
+    "projection-critic",
+    "within-class-variance"
+  ],
+  "intuition": "Evaluates class-conditional generation with a Projection Discriminator on 4 overlapping 2D Gaussian classes (sigma=0.35), specifically checking that within-class variance and central overlap density (>= 0.55) are preserved.",
+  "failure_mode": "Conditioned critics push classes artificially apart to make classification easier, hollowing out the true central overlap region (overlap_density_ratio < 0.55) and shrinking per-class variance.",
+  "protocol_notes": "Tier-4 stretch benchmark (3,000 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

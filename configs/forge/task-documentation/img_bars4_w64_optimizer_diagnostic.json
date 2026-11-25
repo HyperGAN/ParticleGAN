@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "img_bars4_w64_optimizer_diagnostic",
+  "title": "8x8 Procedural Images: Four Bar Positions (Width-64 Optimizer Diagnostic)",
+  "laws": [
+    "law1",
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "cross-valley-averaging",
+    "wide-conv-diagnostic"
+  ],
+  "intuition": "Wider channel (width=64) convolutional optimizer diagnostic variant of `img_bars4`, probing how spectral conditioning and step scaling behave when Conv2d capacity increases.",
+  "failure_mode": "Unconditioned wide convolutional layers amplify step-size sensitivity or slow matrix-conditioning updates.",
+  "protocol_notes": "Diagnostic width-64 optimizer cohort derived from `img_bars4`.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

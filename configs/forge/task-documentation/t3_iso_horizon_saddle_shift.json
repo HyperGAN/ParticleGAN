@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "t3_iso_horizon_saddle_shift",
+  "title": "Law 3A Isolation: Orthogonal 2->4 Shift Across 42.4-Sigma Valley",
+  "laws": [
+    "law3a"
+  ],
+  "edge_cases": [
+    "theory-isolation",
+    "non-stationary-shift",
+    "screening-horizon"
+  ],
+  "intuition": "With G = nn.Identity() and a smooth SiLU critic, expands an R^4 target at step 300 from 2 modes (+-1.5 e1) to 4 equidistant orthogonal modes (+-1.5 e1, +-1.5 e2) separated by a 42.4-sigma valley, paired with a frozen control.",
+  "failure_mode": "Beyond-horizon screening traps particles at the pre-shift symmetric saddle (remaining at 2/4 modes) because local critic forces vanish or cancel across the 42.4-sigma empty valley.",
+  "protocol_notes": "Tier-2 stretch benchmark and Four Laws Adherence Law 3 anchor (step-300 shift + paired frozen control).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

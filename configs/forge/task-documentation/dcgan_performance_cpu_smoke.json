@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_cpu_smoke",
+  "title": "DCGAN Throughput CPU Smoke (32x32, B=4)",
+  "laws": [
+    "law2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "cpu-smoke",
+    "mock-data-only"
+  ],
+  "intuition": "Lightweight CPU-runnable software smoke verification of the DCGAN performance adapter, confirming timing, guard capture, and receipt serialization without requiring a GPU.",
+  "failure_mode": "Device-hardcoded CUDA assumptions or broken public-trainer hooks fail the CPU smoke check.",
+  "protocol_notes": "CPU software smoke diagnostic only; never comparable to GPU throughput rows.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

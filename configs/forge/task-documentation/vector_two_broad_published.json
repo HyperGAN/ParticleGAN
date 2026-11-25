@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_two_broad_published",
+  "title": "Two Broad Separated 2D Gaussians (Published Prior Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "broad-modes",
+    "covariance-calibration",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_two_broad` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Baseline 2D multimodal vector task with two broad isotropic Gaussians at (-1, 0) and (+1, 0) (sigma=0.25), checking basic multimodal coverage, balanced mass, and accurate within-mode spread.",
+  "failure_mode": "Recipes that collapse mode variance to points fail component_min_eigen_ratio and component_covariance_error.",
+  "protocol_notes": "Separate published transfer cohort of `vector_two_broad`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

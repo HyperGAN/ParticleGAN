@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Law 4.2 Probe: Swapped Depth Asymmetry (Shallow G vs Deep 16L Critic)">
+<title>Law 4.2 Probe: Swapped Depth Asymmetry (Shallow G vs Deep 16L Critic) — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">Law 4.2 Probe: Swapped Depth Asymmetry (Shallow G vs</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">Shallow 3L G vs Deep 16L Skip-Free Critic (fourier=0)</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="211.0" y="78.0" font-size="10" fill="#0f172a" font-weight="700" text-anchor="middle">Shallow 3L G vs Deep 16L Skip-Free Critic (fourier=0)</text>
+<rect x="42.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.22" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="58.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.26" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="75.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.30" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="91.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.34" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="108.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.38" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="124.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.42" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="141.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.46" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="157.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.50" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="174.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.54" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="190.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.58" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="207.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.62" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="223.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.66" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="240.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.70" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="256.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.74" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="273.0" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.78" stroke="#e11d48" stroke-width="0.8"/>
+<rect x="289.5" y="106.0" width="11" height="96" rx="2" fill="#e11d48" fill-opacity="0.82" stroke="#e11d48" stroke-width="0.8"/>
+<text x="172.0" y="220.0" font-size="9" fill="#e11d48" font-weight="600" text-anchor="middle">16 layers · spectral conditioning preserves singular values</text>
+<rect x="312.0" y="106.0" width="76" height="96" rx="6" fill="#f8fafc" stroke="#e2e8f0"/>
+<circle cx="372.0" cy="154.0" r="3.5" fill="#2563eb"/>
+<circle cx="365.6" cy="169.6" r="3.5" fill="#2563eb"/>
+<circle cx="350.0" cy="176.0" r="3.5" fill="#2563eb"/>
+<circle cx="334.4" cy="169.6" r="3.5" fill="#2563eb"/>
+<circle cx="328.0" cy="154.0" r="3.5" fill="#2563eb"/>
+<circle cx="334.4" cy="138.4" r="3.5" fill="#2563eb"/>
+<circle cx="350.0" cy="132.0" r="3.5" fill="#2563eb"/>
+<circle cx="365.6" cy="138.4" r="3.5" fill="#2563eb"/>
+<text x="350.0" y="194.0" font-size="8" fill="#475569" text-anchor="middle">8-Ring</text>
+<text x="211.0" y="284.0" font-size="9" fill="#475569" text-anchor="middle">Law 4.2: deep skip-free critic gradient contraction (~1e-7 without conditioning)</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">fl_law42_swap_deep_critic_16l</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law4_2, law2</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">mog (sigma=0.08)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">800 steps · B=256</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=256 · z_dim=4</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">four_laws</text>
+</svg>

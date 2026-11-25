@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_vae_hard",
+  "title": "Particle VAE (Hard-Assigned Posterior) Fidelity & KL Identity",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "variational-posterior",
+    "hard-routing",
+    "kl-identity"
+  ],
+  "intuition": "Hard-assignment counterpart to `model_vae_categorical`, testing whether discrete hard posterior routing still maintains reconstruction accuracy, posterior mutual information, calibrated posterior noise, and exact KL identity.",
+  "failure_mode": "Hard posterior routing amplifies gradient variance and triggers dead particles or posterior collapse.",
+  "protocol_notes": "Tier-1 required public-API model task (1,200 updates).",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

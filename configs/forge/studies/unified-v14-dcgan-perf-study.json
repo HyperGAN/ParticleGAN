@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "unified-v14-dcgan-perf-study"
+  },
+  "candidate": "unified-v14",
+  "competing_explanation": "If unified-v14's guarded peak_rms prior smoothing, floor+flip current_stiff_gate, bandpass d_couple, or 2D critic Schatten-6 check adds noticeable latency or GPU memory overhead to 4D Conv2d DCGAN training, unified-v14 will exceed 65 ms/step on dcgan_performance_r256.",
+  "control": {
+    "candidate_id": "unified-v13",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 65.0
+  },
+  "hypothesis": "Unchanged global unified-v14 passes 6/6 dcgan_performance with 0 Conv2d NS and 0 Schatten-6 on 4D Conv2d DCGAN layers, preserving unified-v12/v13 latency (<=45 ms/step median uncontended on dcgan_performance_r256) and memory footprint.",
+  "id": "unified-v14-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 45.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

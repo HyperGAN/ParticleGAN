@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "dcgan_performance_b64",
+  "title": "DCGAN Throughput Benchmark: 64x64 Large Batch (B=64, W=64)",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "throughput-scaling",
+    "large-batch",
+    "mock-data-only"
+  ],
+  "intuition": "Scales batch size 4x (B=64 at 64x64 RGB) to expose O(B^2) pairwise kernel/transport bottlenecks and batch-scaling memory overhead in critic penalties and prior updates.",
+  "failure_mode": "Quadratic O(B^2) pairwise distance or transport routines scale poorly as batch size increases from 16 to 64.",
+  "protocol_notes": "Research diagnostic throughput workload only; no image-quality gate.",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}

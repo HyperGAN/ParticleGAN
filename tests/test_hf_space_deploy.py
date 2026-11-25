@@ -287,3 +287,199 @@ def test_validate_space_dir_rejects_missing_files_and_bad_frontmatter(tmp_path):
     )
     with pytest.raises(ValueError, match="colorTo"):
         deploy.validate_space_dir(tmp_path)
+
+
+def test_index_includes_upgraded_research_sections_and_dynamic_laws():
+    html = (SPACE_DIR / "index.html").read_text(encoding="utf-8")
+    js = (SPACE_DIR / "app.js").read_text(encoding="utf-8")
+
+    # Research Portal link, Laws Matrix, Pareto Scatter, Law/Edge Filters, and Experiment Deep-Dive Modal
+    assert 'id="link-pages-portal"' in html
+    assert "https://hypergan.github.io/ParticleGAN/" in html
+    assert 'id="laws-section"' in html
+    assert 'id="laws-epistemic-banner"' in html
+    assert 'id="pareto-card"' in html
+    assert 'id="filter-law"' in html
+    assert 'id="filter-edge-case"' in html
+    assert 'id="gif-law-filter"' in html
+    assert 'id="experiment-modal"' in html
+    # Never hardcode "Four Laws" in UI components — laws are loaded dynamically from data.laws
+    assert "Four Laws" not in html
+    assert "Four Laws" not in js
+
+
+def test_app_js_enriched_laws_pareto_filters_and_local_mode_if_node_available():
+    node = shutil.which("node")
+    if node is None:
+        pytest.skip("node not installed")
+    script = r"""
+const assert = require("assert");
+const app = require(process.argv[1]);
+
+// 1. Local mode and data URL resolution
+assert.strictEqual(app.isLocalMode({ localMode: false, datasetRepo: "HyperGAN/particlegan-forge-evidence", dataPath: "data/leaderboard.json" }), false);
+assert.strictEqual(app.isLocalMode({ localMode: true, datasetRepo: "HyperGAN/particlegan-forge-evidence", dataPath: "data/leaderboard.json" }), true);
+assert.strictEqual(app.isLocalMode({ localMode: false, datasetRepo: "local", dataPath: "data/leaderboard.json" }), true);
+assert.strictEqual(app.resolveDataUrl({ localMode: true, datasetRepo: "HyperGAN/particlegan-forge-evidence", dataPath: "data/leaderboard.json" }), "data/leaderboard.json");
+assert.strictEqual(
+  app.resolveDataUrl({ localMode: false, datasetRepo: "HyperGAN/particlegan-forge-evidence", requestedRev: "main", dataPath: "data/leaderboard.json" }),
+  "https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/data/leaderboard.json"
+);
+
+// 2. Hash routing & SVG sanitizer
+assert.strictEqual(app.parseExperimentHash("#experiment/ring16_acquisition"), "ring16_acquisition");
+assert.strictEqual(app.parseExperimentHash("#laws-section"), null);
+assert.strictEqual(app.sanitizeInlineSvg('<svg viewBox="0 0 10 10"><circle r="3"/></svg>').startsWith("<svg"), true);
+assert.strictEqual(app.sanitizeInlineSvg('<svg><script>alert(1)</script></svg>'), null);
+
+// 3. Enriched payload with dynamic 3-law registry, family mechanisms, task docs & multi-cohort Pareto rows
+const enriched = {
+  schema_version: 1,
+  schema: "particlegan_forge_leaderboard_v1",
+  pages_base_url: "https://hypergan.github.io/ParticleGAN",
+  laws_meta: {
+    schema_version: 1,
+    epistemic_status: "provisional_evolving",
+    epigraph: "Discover the laws of learning.",
+    epistemic_note: "Living framework note.",
+    doc_path: "docs/four-laws.md"
+  },
+  laws: [
+    { id: "law1", short_label: "Law 1", title: "Representational Geometry", question: "Q1?", sub_laws: [] },
+    {
+      id: "law3",
+      short_label: "Law 3",
+      title: "Transport Identifiability",
+      question: "Q3?",
+      sub_laws: [{ id: "law3a", short_label: "Law 3A", title: "Ray Screening" }]
+    }
+  ],
+  families: [
+    {
+      id: "unified",
+      label: "Unified",
+      candidate_id: "unified-v11",
+      overview: "Unified formulation",
+      law_mechanisms: {
+        law1: { status: "addressed", mechanism: "Prototype prior", how_it_works: "Adaptive cells", known_limits: "Fixed M" }
+      },
+      equations: [{ label: "Gate", latex: "r(y) = 1", explanation: "Demo" }],
+      mermaid_diagram: 'flowchart LR\n  A["P"] --> B["G"]',
+      quickstart: { preset: "unified_v11", snippet: ["from particlegan import get_recipe"] },
+      tags: ["constant-learning-rate"],
+      full_suite: { pass: 40, fail: 6, not_measured: 11, other: 14, total: 71 },
+      total_view_requirements: { pass: 95, total: 115 }
+    }
+  ],
+  task_definitions: [
+    {
+      task_id: "ring16_acquisition",
+      title: "Ring-16 Mode Acquisition",
+      tier: 1,
+      role: "required",
+      laws: ["law1", "law3a"],
+      edge_cases: ["disconnected-support", "16-mode-ring"],
+      intuition: "Acquire 16 modes.",
+      thresholds: { min_modes: 16 },
+      svg_inline: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10"></svg>'
+    },
+    {
+      task_id: "two_pole",
+      title: "Two Pole",
+      tier: 1,
+      role: "required",
+      laws: ["law1"],
+      edge_cases: ["bimodal"]
+    }
+  ],
+  tasks: [
+    { family_id: "unified", task_id: "ring16_acquisition", tier: 1, role: "required", status: "PASS" },
+    { family_id: "unified", task_id: "two_pole", tier: 1, role: "required", status: "PASS" }
+  ],
+  energy_benchmarks: [
+    {
+      candidate_id: "cand-fast",
+      family_id: "unified",
+      hardware_gpu: "NVIDIA RTX A6000",
+      contended: false,
+      r256_ms_per_step: 40.0,
+      r256_joules_per_step: 10.0,
+      grid100_j_to_pass: 4500.0,
+      occam_pass: 15,
+      occam_executed: 16
+    },
+    {
+      candidate_id: "cand-dominated",
+      family_id: "unified",
+      hardware_gpu: "NVIDIA RTX A6000",
+      contended: false,
+      r256_ms_per_step: 60.0,
+      r256_joules_per_step: 15.0,
+      grid100_j_to_pass: 7000.0,
+      occam_pass: 14,
+      occam_executed: 16
+    },
+    {
+      candidate_id: "cand-best",
+      family_id: "unified",
+      hardware_gpu: "NVIDIA RTX A6000",
+      contended: false,
+      r256_ms_per_step: 48.0,
+      r256_joules_per_step: 11.4,
+      grid100_j_to_pass: 5000.0,
+      occam_pass: 16,
+      occam_executed: 16
+    },
+    {
+      candidate_id: "cand-contended",
+      family_id: "unified",
+      hardware_gpu: "NVIDIA RTX A6000",
+      contended: true,
+      r256_ms_per_step: 20.0,
+      r256_joules_per_step: 5.0,
+      grid100_j_to_pass: 2000.0,
+      occam_pass: 16,
+      occam_executed: 16
+    }
+  ]
+};
+
+app.normalizeDataset(enriched, "abc123");
+assert.strictEqual(app.state.laws.length, 2);
+assert.strictEqual(app.state.lawsMeta.epistemic_note, "Living framework note.");
+assert.strictEqual(app.state.families[0].law_mechanisms.law1.status, "addressed");
+assert.strictEqual(app.state.families[0].quickstart.preset, "unified_v11");
+
+// Parent law "law3" matches task tagged with sub-law "law3a"
+const ringDef = app.state.taskDefinitions.get("ring16_acquisition");
+assert.strictEqual(app.taskMatchesLaw(ringDef, "law3"), true);
+assert.strictEqual(app.taskMatchesLaw(ringDef, "law3a"), true);
+assert.strictEqual(app.taskMatchesLaw(app.state.taskDefinitions.get("two_pole"), "law3"), false);
+
+// Explorer law and edge-case filters
+app.state.expFilters.law = "law3";
+assert.strictEqual(app.getFilteredReceipts().length, 1);
+assert.strictEqual(app.getFilteredReceipts()[0].task_id, "ring16_acquisition");
+app.state.expFilters.law = "";
+app.state.expFilters.edgeCase = "bimodal";
+assert.strictEqual(app.getFilteredReceipts().length, 1);
+assert.strictEqual(app.getFilteredReceipts()[0].task_id, "two_pole");
+app.state.expFilters.edgeCase = "";
+
+// Pareto points separate cohorts & exclude contended points from Pareto frontier
+const pareto = app.buildParetoPoints(app.state.energyBenchmarks, app.state.families, "grid100_j_to_pass", "occam");
+assert.strictEqual(pareto.points.length, 4);
+assert.strictEqual(pareto.cohorts.length, 2);
+const frontierIds = pareto.points.filter((p) => p.isFrontier).map((p) => p.candidate_id).sort();
+assert.deepStrictEqual(frontierIds, ["cand-best", "cand-fast"]);
+const contendedPt = pareto.points.find((p) => p.candidate_id === "cand-contended");
+assert.strictEqual(contendedPt.isFrontier, false);
+assert.strictEqual(contendedPt.shape, "diamond");
+
+// Switch to full_suite Y-axis and r256_ms_per_step X-axis
+const paretoFull = app.buildParetoPoints(app.state.energyBenchmarks, app.state.families, "r256_ms_per_step", "full_suite");
+assert.strictEqual(paretoFull.points.length, 4);
+assert.ok(paretoFull.points[0].y > 50 && paretoFull.points[0].y < 60);
+"""
+    done = subprocess.run([node, "-e", script, str(SPACE_DIR / "app.js")], capture_output=True, text=True)
+    assert done.returncode == 0, done.stderr

@@ -346,3 +346,142 @@ def test_illustrations_require_local_raster_assets_with_accessible_descriptions(
         data["illustration"]["alt" if change == "empty_alt" else "caption"] = " "
     with pytest.raises(ValueError, match=error):
         validate_documentation(root, data, "bcap")
+
+
+def _add_laws_registry(root):
+    doc = root / "docs/four-laws.md"
+    doc.parent.mkdir(parents=True, exist_ok=True)
+    doc.write_text("# Evolving Laws\n\n### Law X — Geometry\n\n### Law Y — Dynamics\n")
+    registry = {
+        "schema_version": 1,
+        "epistemic_status": "provisional_evolving",
+        "epigraph": "Laws are provisional.",
+        "epistemic_note": "Subject to empirical revision.",
+        "doc_path": "docs/four-laws.md",
+        "laws": [
+            {
+                "id": "law_x",
+                "short_label": "Law X",
+                "title": "Geometry",
+                "domain_level": "Geometry",
+                "question": "Can the model represent the measure?",
+                "doc_anchor": "law-x--geometry",
+                "status": "active",
+                "sub_laws": [],
+            },
+            {
+                "id": "law_y",
+                "short_label": "Law Y",
+                "title": "Dynamics",
+                "domain_level": "Dynamics",
+                "question": "Does the coupled dynamic settle?",
+                "doc_anchor": "law-y--dynamics",
+                "status": "active",
+                "sub_laws": [],
+            },
+        ],
+    }
+    atomic_json(root / "configs/forge/laws.json", registry)
+    return registry
+
+
+def test_dynamic_laws_mermaid_and_quickstart_render_without_hardcoded_ids(documented):
+    root, publication = documented
+    recorded = deepcopy(publication["rows"])
+    _add_laws_registry(root)
+    path = root / "configs/forge/family-documentation/bcap.json"
+    data = read_json(path)
+    data["law_mechanisms"] = {
+        "law_x": {
+            "status": "partial",
+            "mechanism": "Fixed prior table",
+            "how_it_works": "Learns particle locations directly.",
+            "known_limits": "No adaptive chart.",
+        },
+        "law_y": {
+            "status": "addressed",
+            "mechanism": "Bounded critic gradient cap",
+            "how_it_works": "Caps critic gradient norm smoothly.",
+            "known_limits": "Extra double-backward cost.",
+        },
+    }
+    data["mermaid_diagram"] = "flowchart LR\n    A[\"Input\"] --> B[\"Critic\"]"
+    data["quickstart"] = {
+        "preset": "bcap_dualnorm",
+        "snippet": ["from particlegan import get_recipe", "", "recipe = get_recipe('bcap_dualnorm')"],
+    }
+    atomic_json(path, data)
+    family = refresh(root, publication)
+    page = generated_pages(root, publication)[root / family["page"]]
+    inventory = render_leaderboard(root, publication, root / "reports/forge/technique-inventory.md")
+
+    assert "## Executive summary" in page
+    assert "### Quickstart" in page
+    assert "```python\nfrom particlegan import get_recipe\n\nrecipe = get_recipe('bcap_dualnorm')\n```" in page
+    assert '<a name="how-it-addresses-laws"></a>' in page
+    assert "## How BCAP addresses the current laws" in page
+    assert "### Law X — Geometry (Partial)" in page
+    assert "### Law Y — Dynamics (Addressed)" in page
+    assert "## Update loop diagram" in page
+    assert "```mermaid\nflowchart LR\n    A[\"Input\"] --> B[\"Critic\"]\n```" in page
+    assert page.index("## Executive summary") < page.index("## Technique overview")
+    assert page.index("## How BCAP addresses the current laws") < page.index("## Update loop diagram") < page.index("## Simplified pseudocode")
+    assert page.rsplit("## ", 1)[1].startswith("References\n")
+
+    assert "> [!IMPORTANT]" in inventory
+    assert "## Executive scorecard" in inventory
+    assert "## How families address the current laws" in inventory
+    assert "| Family | Law X: Geometry | Law Y: Dynamics |" in inventory
+    assert "🟡 Partial" in inventory and "✅ Addressed" in inventory
+    assert sum(line.startswith("| **[") for line in inventory.splitlines()) == 1
+    assert publication["rows"] == recorded
+    assert publication["family_progress"]["qualification_input"] is False
+
+
+@pytest.mark.parametrize(
+    "field, value, match",
+    [
+        ("law_mechanisms", {"unknown_law": {"status": "partial", "mechanism": "m", "how_it_works": "h", "known_limits": "k"}}, "unknown law id"),
+        ("law_mechanisms", {"law_x": {"status": "solved", "mechanism": "m", "how_it_works": "h", "known_limits": "k"}}, "must be one of"),
+        ("law_mechanisms", {"law_x": {"status": "partial", "mechanism": "m"}}, "needs exact fields"),
+        ("mermaid_diagram", "```mermaid\nflowchart TD\nA-->B\n```", "omit Markdown code fences"),
+        ("mermaid_diagram", "not a mermaid header\nA-->B", "supported Mermaid diagram declaration"),
+        ("quickstart", {"preset": "p", "snippet": ["```python", "x = 1", "```"]}, "Markdown code fences"),
+        ("quickstart", {"preset": "p", "snippet": ["   "]}, "nonempty list of code lines"),
+        ("quickstart", {"preset": "p"}, "exact fields"),
+    ],
+)
+def test_optional_laws_mermaid_and_quickstart_validation_rejects_bad_inputs(documented, field, value, match):
+    root, _ = documented
+    _add_laws_registry(root)
+    data = read_json(root / "configs/forge/family-documentation/bcap.json")
+    data[field] = value
+    with pytest.raises(ValueError, match=match):
+        validate_documentation(root, data, "bcap")
+
+
+def test_experiment_page_link_activates_only_when_file_exists(documented):
+    root, publication = documented
+    task = {
+        "schema_version": 1, "id": "toy_a", "adapter": "fixture",
+        "execution": {"steps": 10}, "evaluation": {"kind": "fixture"},
+        "resources": {"timeout_seconds": 10}, "requires_capabilities": [], "dependencies": [],
+    }
+    atomic_json(root / "configs/forge/tasks/toy_a.json", task)
+    atomic_json(root / "configs/forge/views/alpha.json", {
+        "id": "alpha", "revision": 1,
+        "assignments": [{"task": "toy_a", "qualification_tier": 1, "importance": "required", "order": 0}],
+        "calibration": {"status": "provisional"},
+    })
+    publication["rows"][0]["candidate_revision"] = "rev-1"
+    publication["rows"][0]["tasks"] = [{"task_id": "toy_a", "status": "PASS"}]
+    family = refresh(root, publication)
+    page_without = generated_pages(root, publication)[root / family["page"]]
+    assert "[Experiment page]" not in page_without
+
+    exp_page = root / "reports/forge/experiments/toy_a.md"
+    exp_page.parent.mkdir(parents=True, exist_ok=True)
+    exp_page.write_text("# toy_a\n")
+    page_with = generated_pages(root, publication)[root / family["page"]]
+    assert "[Experiment page](../experiments/toy_a.md)" in page_with
+

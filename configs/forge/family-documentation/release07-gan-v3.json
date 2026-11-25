@@ -1,6 +1,6 @@
 {
   "overview": "The released v0.7 GAN v3 family uses paired relativistic logistic loss with a fixed L2 cap on critic input gradients, plus latent spread regularization and a full-horizon cosine LR schedule. Its K3P-derived optimizer wrappers have the spike guard, anchor, A2 and direct-particle gain disabled. Forge's reusable card delegates host resources and auxiliary objectives explicitly; the historical MoG and cloud host cards retain their separate identities.",
-  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\\epsilon_{\\mathrm{in}})$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $(a)_+=\\max(a,0)$ and $\\operatorname{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\\nabla_x C(x)$ and $g_f=\\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\\lambda$ is penalty strength and $\\kappa$ the cap threshold. $R_{\\mathrm{prior}}$ is the VICReg-inspired latent spread term, $d_z$ the latent dimension, $\\Sigma_z$ the unbiased sample covariance and $\\epsilon=10^{-4}$ the variance stabilizer. $t$ counts completed updates, $T$ is the declared recipe horizon, $q=t/T$, $\\eta^{(0)}$ a base LR and $a(q)$ its multiplier. EMA denotes a parameter exponential moving average.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\\epsilon_{\\mathrm{in}})`$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $`(a)_+=\\max(a,0)`$ and $\\mathrm{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\\nabla_x C(x)$ and $g_f=\\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\\lambda$ is penalty strength and $\\kappa$ the cap threshold. $`R_{\\mathrm{prior}}`$ is the VICReg-inspired latent spread term, $d_z$ the latent dimension, $\\Sigma_z$ the unbiased sample covariance and $\\epsilon=10^{-4}$ the variance stabilizer. $t$ counts completed updates, $T$ is the declared recipe horizon, $q=t/T$, $\\eta^{(0)}$ a base LR and $a(q)$ its multiplier. EMA denotes a parameter exponential moving average.",
   "pseudocode": [
     "For each training iteration:",
     "  Use the resolved task horizon: hold LR through 60%, then cosine-decay toward 5% of its base value.",
@@ -19,7 +19,7 @@
   "training_details": {
     "loss": "Paired relativistic logistic, with the fixed real/fake cap regularizer below. Scalar hosts add the declared $0.05$ latent variance/covariance term; behavioral hosts keep their task-owned reconstruction, conditional or direct-particle objectives.",
     "optimizer": "K3P-derived Adam wrappers selected by the explicit fixed b_cap arm. $\\beta_1=0$, $\\beta_2=0.99$, AMSGrad off; guard, anchor, A2 and direct gain are disabled. Observer bookkeeping remains. This recipe is not selected through optimizer_family='adam', despite having its intervention switches off. Direct sample-particle hosts can retain separately declared response moments even when response gain is disabled; inspect the host binding.",
-    "learning_rates": "Reference base LR $0.00425$, critic multiplier $1$, latent-prior multiplier $2$; full resolved horizon, $60\\%$ hold followed by cosine decay to $5\\%$, with no separate short network horizon. The current selected whole variant uses $0.006375$ and prior multiplier $1$. Task-adapted fields delegate the horizon explicitly; an external cap does not redefine it.",
+    "learning_rates": "Reference base LR $0.00425$, critic multiplier $1$, latent-prior multiplier $2$; full resolved horizon, $`60\\%`$ hold followed by cosine decay to $`5\\%`$, with no separate short network horizon. The current selected whole variant uses $0.006375$ and prior multiplier $1$. Task-adapted fields delegate the horizon explicitly; an external cap does not redefine it.",
     "gradient_clipping": "No critic spike guard or global gradient-norm clipping. The cap penalizes excess critic input-gradient magnitude in the loss; it does not clamp critic parameter gradients or weights.",
     "critic_penalty": "Fixed $\\lambda=6$ and L2 cap $\\kappa=1.25$ on both real and fake samples, applied every step. No RMS normalization, K3P handover or critic-gradient proximity term.",
     "damping_and_guards": "A2, critic spike guard, critic anchor and direct sample-particle gain are all disabled. This distinguishes the full release recipe from a fixed BCap penalty swapped into an otherwise intact K3P recipe.",
@@ -69,12 +69,12 @@
   "equations": [
     {
       "label": "Default paired adversarial loss",
-      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(x)-C(y))\\right].\\end{aligned}",
+      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\left[\\mathrm{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\left[\\mathrm{softplus}(C(x)-C(y))\\right].\\end{aligned}",
       "explanation": "These scalar losses are minimized. The critic objective is $\\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise."
     },
     {
       "label": "Fixed capped input-gradient penalty",
-      "latex": "R_{\\mathrm{BCAP}}=\\frac{\\lambda}{2}\\left\\{\\mathbb E\\!\\left[(\\lVert g_r\\rVert_2-\\kappa)_+^2\\right]+\\mathbb E\\!\\left[(\\lVert g_f\\rVert_2-\\kappa)_+^2\\right]\\right\\}.",
+      "latex": "R_{\\mathrm{BCAP}}=\\frac{\\lambda}{2}\\left\\lbrace\\mathbb E\\left[(\\lVert g_r\\rVert_2-\\kappa)_+^2\\right]+\\mathbb E\\left[(\\lVert g_f\\rVert_2-\\kappa)_+^2\\right]\\right\\rbrace.",
       "explanation": "The full release recipe fixes $\\lambda=6$ and $\\kappa=1.25$, applied every critic update. This is the same soft L2 cap mechanism with stronger and wider settings; K3P handover, critic proximity and optimizer interventions are disabled."
     },
     {
@@ -84,8 +84,56 @@
     },
     {
       "label": "Full-horizon learning-rate cosine",
-      "latex": "a(q)=\\begin{cases}1,&q\\le0.6,\\\\0.05+\\dfrac{0.95}{2}\\left[1+\\cos\\!\\left(\\pi\\min\\!\\left(1,\\dfrac{q-0.6}{0.4}\\right)\\right)\\right],&q>0.6,\\end{cases}\\qquad \\eta(t)=\\eta^{(0)}a(t/T).",
-      "explanation": "Hold each role at its base rate for $60\\%$ of the declared recipe horizon, then decay to a $5\\%$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule."
+      "latex": "a(q)=\\begin{cases}1,&q\\le0.6,\\\\0.05+\\dfrac{0.95}{2}\\left[1+\\cos\\left(\\pi\\min\\left(1,\\dfrac{q-0.6}{0.4}\\right)\\right)\\right],&q>0.6,\\end{cases}\\qquad \\eta(t)=\\eta^{(0)}a(t/T).",
+      "explanation": "Hold each role at its base rate for $`60\\%`$ of the declared recipe horizon, then decay to a $`5\\%`$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "VICReg-inspired latent variance/covariance spread penalty (0.05 * R_prior)",
+      "how_it_works": "Adds a `0.05` variance-hinge and off-diagonal covariance penalty on scalar latent tables to discourage total latent collapse without enforcing a Gaussian density.",
+      "known_limits": "Isotropic variance/covariance spread does not build a multimodal prototype atlas or pullback isometry, so separated targets still incur continuous-pushforward valley bridging."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed strong real/fake one-sided squared L2 input-gradient cap (lambda=6, kappa=1.25, RoR)",
+      "how_it_works": "Penalizes real and fake critic input-gradient norms above `kappa=1.25` with strength `lambda=6` on every update via exact RoR without handover or EMA critic anchoring.",
+      "known_limits": "Zero interior normal-direction curvature (`mu_D = 0`) whenever `||grad D||_2 <= 1.25`, no zero-mean logit gauge anchor, and high exact-RoR compute cost on images."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic (RpGAN) only",
+      "how_it_works": "Evaluates paired relativistic logistic loss on raw critic scores without optimal-transport horizons, beyond-horizon orphan rescue, or conditional fiber drift-variance deconfounding.",
+      "known_limits": "Fails multi-scale width recovery, beyond-horizon shifts, and conditional reverse-diffusion stratum variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Beta1=0, beta2=0.99 Adam + full-horizon 60%-hold cosine LR decay to 5% + 1:1 alternation",
+      "how_it_works": "Runs 1:1 alternating zero-momentum Adam with full-horizon cosine learning-rate annealing and all K3P optimizer guards/damping disabled.",
+      "known_limits": "Horizon-dependent LR schedule fails clock-free invariance; `mu_D = 0` one-sided cap leaves equilibrium rotational modes undamped (Law 4.5); and ordinary Adam lacks spectral conditioning (4.2) and realized pushforward trust (4.1/4.3)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Sched[\"Law 4: Full-Horizon 60% Hold -> 5% Cosine LR\"] --> Draw[\"Draw Real x & Task Prior z; y = G(z)\"]\n    Draw --> Cap[\"Law 2: RpGAN Loss + Fixed BCap (lambda=6, kappa=1.25, RoR)\"]\n    Cap --> StepD[\"Adam D Step (beta1=0, beta2=0.99, 0 Guards)\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z)\"]\n    ReGen --> Spread[\"Law 1: RpGAN G Loss + 0.05 Latent Spread R_prior\"]\n    Spread --> StepG[\"Adam G & P Step + Optional 0.995 EMA\"]\n    StepG --> Sched",
+  "quickstart": {
+    "preset": "bcap_adam",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "# Release 0.7 GAN v3 settings via public Recipe overrides",
+      "recipe = get_recipe(",
+      "    'bcap_adam', reg_arm='b_cap', reg_coeff=6.0, reg_kappa=1.25,",
+      "    betas=(0.0, 0.99), prior_reg=0.05, lr_floor=0.05, network_lr_floor=0.05,",
+      "    ema_decay=0.995, total_steps=1000,",
+      ")",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

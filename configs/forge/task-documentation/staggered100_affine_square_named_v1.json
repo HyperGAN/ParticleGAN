@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "staggered100_affine_square_named_v1",
+  "title": "100-Mode Staggered Hex-Like Gaussian Grid (Affine-Square Init Cohort)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "staggered-lattice",
+    "affine-init-cohort"
+  ],
+  "intuition": "Explicitly scoped affine-square init cohort variant of `staggered100`. Shifts alternating rows of the 10x10 Gaussian lattice by half a spacing, breaking rectangular grid symmetry to stress streaming prototype assignment and continuous local pushforward geometry.",
+  "failure_mode": "Voronoi/Laguerre charts or coordinate-aligned representations struggle with staggered neighbor topology, causing lingering bridge samples or under-covered rows.",
+  "protocol_notes": "Explicit affine-square initialized 100-mode cohort testing initialization transfer sensitivity; separate from standard `deterministic_orthogonal`.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}
