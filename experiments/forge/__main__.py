@@ -677,9 +677,11 @@ def main(argv=None):
         from .planning import declaration_paths, load_idea
         from .studies import load_study
         from .family_documentation import validate_family_documentation
+        from .laws_registry import validate_laws_registry
         candidates = [load_idea(root, path.stem)["id"] for path in declaration_paths(root)]
         studies = [load_study(root, path.stem)["id"] for path in sorted((root / "configs/forge/studies").glob("*.json"))]
         emit({"tasks": len(tasks), "views": views, "candidates": len(candidates), "studies": studies,
+              "laws_registry": validate_laws_registry(root),
               "family_documentation": validate_family_documentation(root), "training_launched": False})
     elif command == "calibrate":
         from .calibration import calibrate

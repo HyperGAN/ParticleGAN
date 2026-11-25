@@ -28,7 +28,8 @@
     "Poisson-Weibull AKT horizon scaling (`rhbi_akt_mode='weibull'`) multiplies the $q$-th quantile real NN distance by $(\\frac{2eB_r}{-\\ln(1-q)})^{\\max(0,1/d-1/2)}$, centering 1D empirical OT horizons on continuum Gaussian scales (unlocking quantized MXFP8 and NVFP4 1D Gaussian acquisition) while remaining exact identity $1.0$ for all $d\\ge 2$ without shape branching.",
     "When discrete class labels accompany critic inputs, cross-class active pairs are masked to minus infinity in log-Sinkhorn space so unmatched class draws route cleanly into the slack reservoir; when continuous conditioning accompanies critic tuples D(c, x), rhbi_conditional_fibre='slack' routes generator updates via fibre-centered paired relativistic log-odds without cross-fibre mixing.",
     "Both passive observer records and formulation critic records checkpoint schema-4 state (ell_ema, ell_initialized, chord_phase, 6 residual EMAs including ema_tail, cond_initialized/cond_ema, het_initialized/het_ema, and thermal_scale) with zero per-step host-device synchronizations, ensuring exact bit-for-bit continuation across restarts and rejecting tampered or incompatible checkpoints.",
-    "Setting rhbi_weight=0.0 executes an exact zero-strength bypass that leaves horizon buffers and RNG streams untouched."
+    "Setting rhbi_weight=0.0 executes an exact zero-strength bypass that leaves horizon buffers and RNG streams untouched.",
+    "Audit summary (P8/P9): `rhbi-v12` spans 3,114 direct LOC across 12 cards (10.12 GPU-h selection budget), passing 34/41 `discriminator_stability` tasks including continuous manifold interpolation (`interp_saddle_barycentric` bhq=0.8358 vs. `unified-v12` 0.7027), while collapsing `img_bars4` (2/4 modes) and scoring 0/2 on `t3_causal_isolation_stretch` (`readout-8a63e947`) and unseen `ByteGAN`."
   ],
   "references": [
     {
@@ -86,7 +87,9 @@
     "configs/forge/studies/rhbi-v10-study.json",
     "configs/forge/studies/rhbi-v11-study.json",
     "configs/forge/studies/rhbi-v12-study.json",
-    "reports/forge/rhbi/README.md"
+    "reports/forge/rhbi/README.md",
+    "reports/forge/records/readout-8a63e947313fcb7d2e62a8d2.json",
+    "reports/four-laws-audit/p9-receipts-efficiency-audit.md"
   ],
   "equations": [
     {
@@ -104,5 +107,48 @@
       "latex": "R_{\\mathrm{RHBI}}(D)=\\frac{\\lambda}{2}\\sum_{u\\in\\{y,x\\}}\\mathbb E_u\\!\\left[\\phi_{\\beta_{\\mathrm{eff}}}(\\lVert\\nabla_u D(u)\\rVert_2-\\kappa)^2+\\lambda_{\\mathrm{floor}}\\lVert\\nabla_u D(u)\\rVert_2^2\\right]+\\lambda w_{\\mathrm{chord}}\\mathbb E_{\\hat x}\\!\\left[\\phi_{\\beta_{\\mathrm{eff}}}(\\lVert\\nabla_{\\hat x}D(\\hat x)\\rVert_2-\\kappa)^2\\right]+\\frac{\\gamma_{\\mathrm{gauge}}}{2}\\bar D^2",
       "explanation": "Softly caps critic input slopes at $\\kappa=1$ ($\\beta_{\\mathrm{eff}}=12+16(1-s_t)^2$, identically $12$ while $s_t=1$ during mode acquisition) on real/fake endpoints and deterministic Weyl-phased balanced-Sinkhorn geodesic interpolants ($w_{\\mathrm{chord}}=0.25$) while anchoring mean critic gauge ($\\gamma_{\\mathrm{gauge}}=0.03$) without transport-shape gates or an EMA critic anchor."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Simplicial manifold projection + H0 geodesic chart alignment + feydy_discrete + SBNP prior regularizer",
+      "how_it_works": "Regularizes discrete particle codebooks via Pareto-protected Weyl-stratified k-NN 1-simplex/2-simplex Born-Infeld manifold projection, H0-connected geodesic chart stress, 1D curve chart settling, clone-deduplicated `feydy_discrete` self-coupling, and degree-of-freedom-aware SBNP prior regularization.",
+      "known_limits": "Excels on continuous manifold interpolation (`interp_saddle_barycentric` 0.8358, `interp_img_patch_shift` PASS), but lacks an adaptive multimodal Laguerre prototype atlas for disconnected discrete clusters, failing `img_bars4` and `ByteGAN`."
+    },
+    "law2": {
+      "status": "addressed",
+      "mechanism": "Thermally coupled Born-Infeld endpoint + Weyl geodesic-chord cap + slope floor + zero-mean gauge (RoR)",
+      "how_it_works": "Applies a smooth C-infinity Born-Infeld input-gradient cap (`ebi_beta=12` settling up to `28` as thermal scale `s_t -> 0`) on real/fake endpoints and Weyl-phased balanced-Sinkhorn geodesic chords, plus an explicit slope floor (`lambda_floor=0.005`) and zero-mean gauge (`gamma_gauge=0.03`) via exact reverse-over-reverse differentiation.",
+      "known_limits": "Exact RoR double-backward combined with `float32` precision makes high-resolution Conv2d slow (588.75 ms/step and 3,750.6 MiB on DCGAN r256). P9 audited that switching `rhbi-v12` to `bf16_channels_last` alone cuts latency -27.5%, VRAM -41.9%, and NVML energy -26.6% (87.24 -> 64.05 J/st), with fresh-batch idle A6000 BF16 at 231.28 ms/step (still 6.32x slower than `unified-v12` 36.61 ms)."
+    },
+    "law3": {
+      "status": "partial",
+      "mechanism": "Slack-screened (B+1)x(B+1) unbalanced Sinkhorn + Poisson-Weibull AKT + KDE support + IMQ-CMMD fibres",
+      "how_it_works": "Screens distant outliers into a slack reservoir routed to centered critic log-odds ascent, normalizes 1D empirical OT horizons via Poisson-Weibull AKT scaling, boosts sparse-mode support with valley-gated KDE ratios, and pairs conditioned fibres with coordinate-whitened multi-scale IMQ-CMMD plus residual step damping.",
+      "known_limits": "Uses a single global Euclidean horizon `ell_t`, scoring 0/2 on `t3_causal_isolation_stretch` (`readout-8a63e947`), and lacks a cross-batch conditional fiber covariance bank for DDGAN chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm (polar_cpu_v1) + 6-channel Kantorovich-Hellinger thermal controller + direction_blend",
+      "how_it_works": "Applies exact CPU-LAPACK smoothed polar orthogonalization (`smoothing=0.0061`) on dense matrices, quintic per-offset updates on wide CUDA convolutions, `direction_blend` conflict projection, and a clock-free 6-channel thermal equilibrium controller under 1:1 alternation with beta1=0 and `lambda_floor > 0` dissipation.",
+      "known_limits": "Lacks realized generator pushforward secant trust for severe >500x Kreiss imbalance, lacks dynamic-1e-38 rail rescaling, and incurs heavy CPU-LAPACK polar transfer overhead at scale."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real y & Prior z ~ P\"] --> Gen[\"Generator x = G(z)\"]\n    Batch --> CritPen[\"Law 2: Weyl Geodesic-Chord BI Cap + Floor + Gauge (RoR)\"]\n    Gen --> CritPen\n    CritPen --> StepD[\"Law 4: DualNorm (polar_cpu_v1, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute x = G(z)\"]\n    ReGen --> CondCheck{\"Continuous conditioning?\"}\n    CondCheck -->|\"Yes\"| Fibre[\"Law 3B: Paired Relativistic + IMQ-CMMD Fibre + Step Damp\"]\n    CondCheck -->|\"No\"| Sinkhorn[\"Law 3A: (B+1)x(B+1) Slack Sinkhorn + Weibull AKT + Feydy\"]\n    Sinkhorn --> Manifold[\"Law 1: Simplicial Manifold + Geodesic Chart + SBNP\"]\n    Manifold --> Thermal[\"Law 4.4: 6-Channel KH Thermal Controller s_t\"]\n    Fibre --> Blend[\"Law 4: direction_blend + DualNorm G, P, E Step\"]\n    Thermal --> Blend\n    Blend --> Batch",
+  "quickstart": {
+    "preset": "rhbi_optimized",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('rhbi_optimized', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

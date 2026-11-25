@@ -85,5 +85,31 @@
       "latex": "a(q)=\\begin{cases}1,&q\\le0.6,\\\\0.05+\\dfrac{0.95}{2}\\left[1+\\cos\\!\\left(\\pi\\min\\!\\left(1,\\dfrac{q-0.6}{0.4}\\right)\\right)\\right],&q>0.6,\\end{cases}\\qquad \\eta(t)=\\eta^{(0)}a(t/T).",
       "explanation": "Hold each role at its base rate for $60\\%$ of the declared recipe horizon, then decay to a $5\\%$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "VICReg-inspired latent spread penalty (0.05 * R_prior) on historical learned-MoG (z_dim=2, B=2048) cohort",
+      "how_it_works": "Discourages variance below 1 and off-diagonal latent covariance on scalar latent tables.",
+      "known_limits": "Isotropic spread does not build a multimodal prototype atlas or pullback isometry across separated valleys."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed strong real/fake one-sided squared L2 cap (lambda=6, kappa=1.25, RoR)",
+      "how_it_works": "Softly bounds critic input-gradient norms above 1.25 via exact RoR on every step.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1.25`, no zero-mean logit gauge, and high RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic (RpGAN) only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber banks.",
+      "known_limits": "Fails heteroscedastic width recovery, beyond-horizon orphan rescue, and conditional chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Beta1=0, beta2=0.99 Adam + full-horizon 60%-hold cosine LR decay to 5%",
+      "how_it_works": "Runs 1:1 alternating zero-momentum Adam over fixed T=7000 horizon with K3P interventions disabled.",
+      "known_limits": "Horizon-dependent schedule fails clock-free audits; `mu_D = 0` cap lacks rotational damping; no spectral conditioning or pushforward trust."
+    }
+  }
 }

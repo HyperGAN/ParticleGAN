@@ -27,7 +27,8 @@
     "EMPF translates the online sufficient-statistics EMA and proportional-split dead-unit revival of e-means into a clock-free adversarial transport formulation without dataset-size or epoch-horizon dependencies.",
     "All prototype bank tensors (proto_sum, proto_count), low-discrepancy phases and thermal scalars live exclusively on the critic optimizer's instance-bound step record and travel bit-for-bit through state_dict() and load_state_dict() with strict corruption rejection.",
     "The EMPF prior regularizer skips global moment/covariance distortion when prior row capacity is at or below the degree-of-freedom threshold (returning exact zero on unanchored small codebooks and applying only a short-range one-sided prototype non-collision hinge on reference-anchored small discrete codebooks) while applying initial-moment tethering, scale-free k-NN log-repulsion, local scatter circularization, and a local median-normalized 1-NN revival tether on continuous particle clouds.",
-    "One global trainer configuration supplies every displayed result across Tier 1, Tier 2 and Tier 3; task-owned architectures, priors, initializations, budgets and gates remain fixed."
+    "One global trainer configuration supplies every displayed result across Tier 1, Tier 2 and Tier 3; task-owned architectures, priors, initializations, budgets and gates remain fixed.",
+    "Audit summary (P8/P9): `empf-v8` spans 1,972 direct LOC across 8 cards (8.40 GPU-h selection budget), passing 24/41 `discriminator_stability` tasks at 130.13 ms/step and 1,435.4 MiB on DCGAN r256 (`bf16_channels_last`), while scoring 0/2 on `t3_causal_isolation_stretch` (`readout-7e0c3159`) and unseen `ByteGAN`."
   ],
   "references": [
     {
@@ -72,7 +73,9 @@
     "configs/forge/studies/empf-v7-study.json",
     "configs/forge/ideas/empf-v8.json",
     "configs/forge/studies/empf-v8-rev17-a6000-study.json",
-    "reports/forge/empf/README.md"
+    "reports/forge/empf/README.md",
+    "reports/forge/records/readout-7e0c315962234ea1c2c2ba3f.json",
+    "reports/four-laws-audit/p9-receipts-efficiency-audit.md"
   ],
   "equations": [
     {
@@ -85,5 +88,48 @@
       "latex": "R_{\\mathrm{EMPF}}=\\frac{\\lambda_{\\mathrm{floor}}}{6d}\\mathbb E\\!\\left[\\lVert g_r\\rVert_2^2+\\lVert g_f\\rVert_2^2+\\lVert g_c\\rVert_2^2\\right]+\\frac{\\lambda_{\\mathrm{cap}}}{2}\\mathbb E\\!\\left[\\phi_\\beta(\\lVert g_r\\rVert_2-\\kappa)^2+(1-\\alpha_c)\\phi_\\beta(\\lVert g_f\\rVert_2-\\kappa)^2+\\alpha_c\\phi_\\beta(\\lVert g_c\\rVert_2-\\kappa)^2\\right]+\\frac{\\gamma_{\\mathrm{gauge}}}{2}\\bar D^2",
       "explanation": "Bounds critic input-gradient norms along real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords $x_{\\mathrm{chord}}=(1-u)y+u C_\\pi$ while pinning translational logit drift via $\\bar D=\\frac{1}{2}(\\mathbb E[D(x)]+\\mathbb E[D(y)])$."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Online e-means sufficient-statistics prototype bank (S, N) + degree-of-freedom-aware EMPF prior regularizer",
+      "how_it_works": "Maintains denoised online data centroids C_k = S_k / N_k with clock-free hit-rate EMA scaling and deterministic half-mass donor splitting for starved prototypes, paired with EMPF tether/repulsion/revival regularization on continuous particle clouds.",
+      "known_limits": "The prototype bank guides critic transport chords rather than building an adaptive multimodal generator latent chart with pullback isometry; `empf-v8` scored 0/7 on Tier-2 held generalization (vs. 6/7 for `t1-prior-v2`), collapsed `img_bars4` to 2/4 modes via cross-valley averaging, and scored 0/2 on unseen `ByteGAN`."
+    },
+    "law2": {
+      "status": "addressed",
+      "mechanism": "Prototype-chord Elastic Born-Infeld penalty + harmonic slope floor + zero-mean logit gauge (RoR)",
+      "how_it_works": "Evaluates an Elastic Born-Infeld potential (`ebi_beta=6.0`, tightening smoothly on cooling) with harmonic floor `lambda_floor=0.01` and zero-mean gauge `gamma_gauge=0.05` across real endpoints, fake endpoints, and mass-weighted prototype Sinkhorn chords via exact RoR.",
+      "known_limits": "Exact reverse-over-reverse double-backward increases latency and memory on high-resolution convolutional critics (130.13 ms/step and 1,435 MiB on DCGAN r256)."
+    },
+    "law3": {
+      "status": "partial",
+      "mechanism": "Mass-weighted scale-free prototype-to-fake Sinkhorn OT + conditioned-fiber bypass",
+      "how_it_works": "Couples non-uniform online prototype masses `w_k` to uniform generated batch weights via scale-free entropic Optimal Transport, bypassing the marginal prototype bank on conditioned hosts to preserve per-fiber alignment.",
+      "known_limits": "Relies on a single global transport scale without conformal per-mode horizons, k=4 orphan macro-transport, or a cross-batch conditional fiber covariance bank, scoring 0/2 on `t3_causal_isolation_stretch` (`readout-7e0c3159`) and failing DDGAN chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm (newton_schulz_hybrid_v1) + 1D quantile-W2 / Chamfer thermal cooling + direction_blend",
+      "how_it_works": "Combines size-gated exact SVD / guarded Newton-Schulz polar updates and quintic per-offset convolutions with shock-filtered transport EMA, trimmed 1D quantile-W2 / discrete Chamfer thermal cooling, and 1:1 alternation under beta1=0 and harmonic floor dissipation.",
+      "known_limits": "Lacks realized generator pushforward secant trust for severe Kreiss imbalance, lacks dynamic-1e-38 rail rescaling below its `0.001` smoothing floor, and fails deep/extreme hostile-init architectures."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Prior z ~ P\"] --> Bank[\"Law 1: Online e-means Bank (S, N) + Split Revival\"]\n    Batch --> Gen[\"Generator y = G(z)\"]\n    Bank --> OT[\"Law 3A: Mass-Weighted Prototype Sinkhorn Chords\"]\n    Gen --> OT\n    OT --> Pen[\"Law 2: Prototype-Chord EBI + Floor + Gauge (RoR)\"]\n    Pen --> StepD[\"Law 4: DualNorm (NS-Hybrid, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> GLoss[\"Generator Loss + EMPF Prior Reg + Thermal Cooling\"]\n    GLoss --> StepG[\"Law 4: direction_blend + DualNorm G, P, E Step\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "empf",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('empf', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

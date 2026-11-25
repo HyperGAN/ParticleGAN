@@ -41,7 +41,10 @@
     "configs/forge/ideas/minimal-v1.json",
     "configs/forge/ideas/minimal-v2.json",
     "reports/forge/studies/r4-minimal-core.md",
-    "reports/forge/studies/r4-occam-ablation-razor.md"
+    "reports/forge/studies/r4-occam-ablation-razor.md",
+    "reports/forge/records/readout-6bac8895ffa14ef20dcbee75.json",
+    "reports/four-laws-audit/p6-law2-autodiff-audit.md",
+    "reports/four-laws-audit/p7-law1-topology-audit.md"
   ],
   "equations": [
     {
@@ -49,5 +52,48 @@
       "latex": "\\tilde g_p = \\frac{g_p}{s_p},\\qquad \\Delta\\theta_p = -\\eta\\,\\operatorname{clip}\\!\\left(\\frac{\\tilde g_p}{\\sqrt{\\operatorname{EMA}(\\tilde g_p^2)+\\epsilon}},\\;\\tau_{\\mathrm{secant}}\\right)",
       "explanation": "Preconditions gradients across vanishing and overflowing layers in O(params) without SVD, eigh, or Newton-Schulz, bounded by realized generator pushforward secant trust."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "addressed",
+      "mechanism": "Rank-agnostic Laguerre-Pythagorean prototype quantizer + 2-probe pullback isometry",
+      "how_it_works": "Implements a compact streaming Laguerre-Pythagorean quantizer and 2-probe orthogonal pullback covariance regularizer inside `particlegan/_minimal/prior.py`, reducing inter-mode valley bridging on multimodal distributions in under 900 total lines of code.",
+      "known_limits": "Inherits ambient distance scaling limits and discrete-atlas granularity on continuous manifold interpolation; P7 audited `w_fake_ema` teleport mass drift (0.8813); scores 10/17 on Tier-1 `discriminator_stability` (`readout-6bac8895`) versus Unified's 17/17."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Parity-interleaved 1st-order concave Born-Infeld secant critic regularizer + zero-mean gauge",
+      "how_it_works": "Implements true concave Born-Infeld `(sqrt(1 + beta * ||grad_x D||^2) - 1) / beta` (`particlegan/_minimal/geometry.py:138`) without `torch.autograd.grad`, paired with a zero-mean logit gauge; in low dimensions, concave BI supplies strong Law 4.5 normal-direction curvature (mu_D = 1.0803).",
+      "known_limits": "P6 audited catastrophic finite-difference quantization collapse in the image path (`secant_eps = 1e-5` loses 100% of |x| >= 0.5 pixels even in FP32 and 99.99% in BF16, producing 6.74e10x gradient spikes at r256) and 8.31x-13x variance inflation with |cos| = 1.000 batch-wide collinearity from its 3-way probe."
+    },
+    "law3": {
+      "status": "partial",
+      "mechanism": "Sinkhorn-debiased relativistic transport + core-ball Burg covariance + 384-pair ring fiber operator",
+      "how_it_works": "Combines debiased Sinkhorn relativistic + Born-Infeld transport with low-D core-ball Burg covariance matching (2 <= dim <= 8) and a ring-only 384-pair zero-eigh conditional fiber operator without maintaining full stratum sufficient-statistics banks.",
+      "known_limits": "Passes only 1/2 causal-isolation stretch tasks and omits full density-ratio macro orphan rescue and full cross-batch stratum covariance banks, reducing coverage on heteroscedastic and conditional reverse-diffusion chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "O(params) elementwise dynamic-1e-38 MP + peak_rms scaling + realized pushforward secant trust (0 NS)",
+      "how_it_works": "Replaces all SVD, eigh, pinv, and Newton-Schulz matrix steps with pure elementwise foreach-fused scale normalization and realized generator pushforward secant trust under 1:1 alternation, achieving fast low-VRAM DCGAN r256 throughput (55.50 ms shared / 44.98 ms idle).",
+      "known_limits": "Eliminating 2D Newton-Schulz leaves deep skip-free 16-layer MLPs spectrally collapsed (`grid100_mlp16` precision = 0.0714); unscaled `+ eps = 1e-8` deadlocks deep `sech^2(14) = 2.76e-12` rails (P1); and committed screening spans 0/3 precision, 2/3 Nash, 1/2 `t3_iso`, 2/4 `t3_shift` (incomplete), and 3/7 `t4_arch` (incomplete). `r256` runs at 55.50 ms/step shared-load vs. 44.98 ms/step idle (1,344.8 MiB)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> HalfA_D[\"Half A (geometry.py): Interleaved BI Secant + Gauge\"]\n    Gen --> HalfA_D\n    HalfA_D --> StepD[\"Half B (dynamics.py): O(P) 1e-38 MP + peak_rms D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> HalfA_G[\"Half A: Debiased OT + Burg + Ring Fiber + Laguerre Prior\"]\n    HalfA_G --> Trust[\"Half B: Pushforward Secant Trust (0 SVD / 0 NS)\"]\n    Trust --> StepG[\"Elementwise G, P & E Step\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "minimal",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('minimal', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

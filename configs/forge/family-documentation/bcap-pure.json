@@ -56,7 +56,7 @@
     {
       "title": "Wasserstein GAN",
       "url": "https://arxiv.org/abs/1701.07875",
-      "component": "Wasserstein score-loss option. This BCAP recipe does not adopt the paper\u2019s weight clipping or full training algorithm."
+      "component": "Wasserstein score-loss option. This BCAP recipe does not adopt the paper’s weight clipping or full training algorithm."
     },
     {
       "title": "Least Squares Generative Adversarial Networks",
@@ -97,5 +97,49 @@
     "path": "reports/forge/families/assets/bcap-explainer.png",
     "alt": "Real and generated samples share a critic; a soft penalty discourages excessive input-gradient slopes and adds to the critic loss.",
     "caption": "Conceptual illustration of the BCAP critic-loss mechanism, not measured training results. Generator/prior updates are described below."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No adaptive multimodal prior chart or latent pullback regularizer",
+      "how_it_works": "Leaves representation entirely to the task-declared latent prior pushed through G (`prior_reg=0`), without prototype quantization, pullback isometry, or prior repulsion.",
+      "known_limits": "Separated multimodal targets force continuous generators to stretch across empty valleys, producing ghost mass, lost rare-mode share (`vector_unequal_mass`), and discrete image mode drops (`img_bars4`, `img_blobs4`)."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed real/fake one-sided squared L2 input-gradient cap (RoR)",
+      "how_it_works": "Adds `0.5 * lambda * (E[(||g_r||_2 - kappa)_+^2] + E[(||g_f||_2 - kappa)_+^2])` via exact reverse-over-reverse differentiation to softly discourage spatial slopes above `kappa = 1`.",
+      "known_limits": "P3 proved `GradientPenalty(arm=\"b_cap\")` has exact zero normal-direction curvature (`mu_D = 0.0`) on `||grad D||_2 < kappa`, leaving zero-momentum minimax games orbiting in persistent limit cycles; P2-C4 also demonstrated the median-chord Lipschitz illusion on live 200-step `bcap` (`grad_med = 0.697 <= 1.0` while `grid_max = 1.521`). Omits a zero-mean logit gauge anchor and pays exact RoR double-backward cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Standard scalar adversarial critic loss only (no multi-scale metric, orphan rescue, or fiber bank)",
+      "how_it_works": "Relies purely on selectable scalar adversarial losses (paired relativistic, non-saturating, hinge, Wasserstein, or least squares) without optimal-transport horizons, orphan detection, or conditional fiber drift-variance deconfounding.",
+      "known_limits": "Fails generator-free multi-scale and beyond-horizon causal isolation (`bcap-pure-v1` 0/2 `t3_iso`, `readout-18e9fbb0`), unequal-width and unequal-mass vector mixtures, and conditional reverse-diffusion chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Constant-LR zero-momentum Adam (pure) or DualNorm polar updates + direction_blend (selected benchmark)",
+      "how_it_works": "Runs 1:1 alternating updates with zero first-order momentum (`beta1=0`) and constant rates. The selected family benchmark (`bcap-dualnorm`, preset `'bcap'`) upgrades native Adam to smoothed DualNorm polar orthogonalization and `direction_blend` constraint projection.",
+      "known_limits": "Pure Adam BCAP lacks spectral conditioning, pushforward trust, rail rescaling, and equilibrium settling. Even selected `bcap-dualnorm` lacks realized pushforward trust (4.1/4.3), dynamic-1e-38 scale/settling (4.4), and `mu_D > 0` rotational dissipation (4.5), allowing limit cycles and failing 12/28 measured full-suite tasks."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Task Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> CritLoss[\"Critic Loss: Adversarial_D(D(x), D(y_det))\"]\n    Gen --> CritLoss\n    CritLoss --> BCap[\"Law 2: Fixed One-Sided Cap (||grad D|| - kappa)_+^2 (RoR)\"]\n    BCap --> StepD[\"Law 4: Adam (pure) or DualNorm (selected, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> GLoss[\"Adversarial_G + Task Auxiliary Losses\"]\n    GLoss --> StepG[\"Step G, P & E (Constant LR; direction_blend in DualNorm)\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "bcap_adam",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "# Pure native-Adam BCAP (use get_recipe('bcap') for selected DualNorm BCAP)",
+      "recipe = get_recipe('bcap_adam', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
   }
 }

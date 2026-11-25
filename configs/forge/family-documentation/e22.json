@@ -98,5 +98,48 @@
       "latex": "\\eta_j=\\eta_j^{(0)}s_j,\\qquad s_j^{\\mathrm{next}}=\\begin{cases}s_j/2,&\\text{stationary},\\\\\\min(1,2s_j),&\\text{drift},\\\\s_j,&\\text{no accepted rate change}.\\end{cases}",
       "explanation": "This is the stationarity ladder before policy corrections. Displacement tests use scales $b$ and $2b$; mixed or inconclusive evidence enlarges the observation window. Row-evidence holds, critic payoff damping and its relative table-rate floor can modify the applied rate. Optimizer surprise can reopen a ladder."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Independent ParticlePrior rows + critic-feature k-NN birth/death + DV12 latent perturbation",
+      "how_it_works": "Replaces poorly supported independent particle rows using split-conformal isolation and Benjamini-Hochberg selection in standardized critic feature space, perturbing latent rows from support statistics during turnover.",
+      "known_limits": "Requires the strict independent-row policy contract, causing ordinary learned-MoG and unsupported hosts to report BLOCKED (29 blocked in full-suite screening), and lacks a data-space Laguerre pullback chart."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "KA2 applied-call handover penalty + moment-surprise-gated EMA critic-gradient anchor (RoR)",
+      "how_it_works": "Combines early RMS-scaled R1 / fake-cap regularization (calls 1..799) with an equal early/late blend of L2 caps and EMA critic-gradient proximity (`lambda=3, kappa=1`) via exact RoR, modulated by policy game-trust and drift evidence.",
+      "known_limits": "Retains an explicit 800-call applied-penalty warmup clock, omits a zero-mean logit gauge anchor, and incurs high exact-RoR double-backward cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic + learnable output noise only",
+      "how_it_works": "Optimizes paired relativistic logistic loss alongside a learned output-noise scale without conformal multi-scale OT horizons, beyond-horizon orphan macro-transport, or a conditional fiber covariance bank.",
+      "known_limits": "Provides no explicit mechanism for multi-scale W1 ray-length identifiability, distant orphan mode rescue, or sparse-stratum conditional drift-variance deconfounding."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Stationarity LR ladders + AMSGrad (beta1=0) + spike guard + A2 + RowEvidence + block averaging",
+      "how_it_works": "Uses per-group displacement stationarity tests, critic payoff damping, Adam-state spike clipping, A2 sparse-row cosine damping, RowEvidence hot-row gating, optimizer-surprise ladder reopening, and state-selected `serve_average=4` serving.",
+      "known_limits": "Uses coordinatewise AMSGrad without matrix spectral conditioning (Law 4.2) or realized generator pushforward trust (4.1/4.3), and lacks Atlas's `SettledReopenGuard` to suppress false pre-anchor acquisition reopens."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Ladder[\"Law 4.4: Stationarity LR Ladder + Optimizer Surprise\"] --> Draw[\"Draw x & z; y = G(z) + Learned Output Noise\"]\n    Draw --> KA2[\"Law 2: KA2 Handover (n<800 -> Blend + EMA Anchor, RoR)\"]\n    KA2 --> StepD[\"Law 4: Spike Guard + KA2 AMSGrad D Step + Payoff Damp\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z)\"]\n    ReGen --> RowCtrl[\"Law 4: A2 Sparse-Row Damping + RowEvidence Gate\"]\n    RowCtrl --> StepG[\"K3P AMSGrad G & P Step + serve_average=4\"]\n    StepG --> BD[\"Law 1: Critic-Feature kNN Birth-Death Turnover\"]\n    BD --> Ladder",
+  "quickstart": {
+    "preset": "e22",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('e22', num_particles=256, z_dim=2, batch_size=128)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0, max_steps=1000)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

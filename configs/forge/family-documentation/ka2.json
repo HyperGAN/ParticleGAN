@@ -94,5 +94,48 @@
       "latex": "\\delta_t=1-0.1\\alpha_t,\\qquad \\bar\\theta_t=\\delta_t\\bar\\theta_{t-1}+(1-\\delta_t)\\theta_t.",
       "explanation": "After the critic Adam step, the controller records surprise and updates the started anchor using its last penalty-call tracking decision. Here $\\delta_t\\in[0.9,1]$: calm tracking can freeze the average, while surprise speeds it up. First activation and sustained-surprise reseeding copy the live critic instead of taking this ordinary EMA update."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas, pullback isometry, or prior regularizer",
+      "how_it_works": "Relies on the task-declared latent prior (`prior_reg=0`) with only A2 sparse-row cosine damping on eligible unstandardized tables.",
+      "known_limits": "Provides no representational mechanism to split disconnected mode supports or bound generator Jacobian stretching across valleys."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Critic-local KA2 handover + moment-surprise-gated adaptive EMA critic-gradient anchor (RoR)",
+      "how_it_works": "Decouples K3P's handover from LR decay by switching after 799 applied penalty calls (or second-moment readiness) to an equal blend of early RMS R1/fake-cap and late L2 caps plus an adaptive-decay EMA critic anchor released on high moment surprise.",
+      "known_limits": "Fixed applied-call warmup breaks clock-free invariance; omits a zero-mean logit gauge anchor; and relies on expensive exact RoR double-backward."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic + scheduled input/output noise only",
+      "how_it_works": "Uses paired relativistic logistic loss with scheduled additive noise and no local metric horizon, orphan macro-transport, or conditional fiber operator bank.",
+      "known_limits": "Suffers static W1 ray-length and beyond-horizon orphan non-identifiability and lacks conditional drift-variance deconfounding."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Beta1=0 KA2/K3P Adam + moment-surprise anchor tracking + spike guard + A2 + cosine LR schedule",
+      "how_it_works": "Combines 1:1 alternating beta1=0 Adam with adaptive critic spike clipping, moment-surprise tracking for critic EMA decay (`0.9..1.0`), A2 sparse-row cosine damping, and split cosine LR decay.",
+      "known_limits": "Explicit horizon schedules and step-gated warmups fail clock-free audits; coordinatewise Adam lacks spectral conditioning (Law 4.2), realized pushforward trust (4.1/4.3), and scale-free rail escape (4.4)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Sched[\"Law 4: Split Cosine LR & Noise Schedules\"] --> Draw[\"Draw x & z; Wrap D with Input Noise\"]\n    Draw --> KA2Pen[\"Law 2: KA2 799-Call Handover + Surprise-Gated EMA Anchor (RoR)\"]\n    KA2Pen --> StepD[\"Law 4: Spike Guard + KA2 Adam D Step + Surprise Update\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z) + Output Noise\"]\n    ReGen --> A2[\"Law 4: A2 Sparse-Row Cosine Damping\"]\n    A2 --> StepG[\"K3P Adam G & P Step + EMA Update\"]\n    StepG --> Sched",
+  "quickstart": {
+    "preset": "ka2",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('ka2', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

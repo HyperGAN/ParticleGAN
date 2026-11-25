@@ -86,5 +86,31 @@
       "latex": "\\begin{aligned}\\rho_i&=\\begin{cases}0.75+0.25\\operatorname{cos}(h_i,h_i^{\\mathrm{prev}}),&\\text{with row history},\\\\1,&\\text{without row history},\\end{cases}\\\\\\Delta z_i^{\\mathrm{A2}}&=\\rho_i\\Delta z_i^{\\mathrm{Adam}}.\\end{aligned}",
       "explanation": "A2 acts only on an eligible row-local table with existing Adam state, some zero-gradient rows, and cumulative observed-row fraction below the configured cutoff (baseline $0.5$). Then $\\rho_i\\in[0.5,1]$. Adam still accumulates the raw gradient second moment; unsupported or ineligible hosts keep their ordinary response."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer (K3P structural ablation)",
+      "how_it_works": "Relies on the task-declared prior without adaptive prototype charts or pullback isometry.",
+      "known_limits": "Separated multimodal supports incur continuous-pushforward stretching and ghost mass."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "K3P LR-coupled early R1/fake-cap and late L2 caps without EMA critic anchor (RoR)",
+      "how_it_works": "Retains K3P's early RMS R1/fake-cap and late L2 caps via exact RoR while setting the EMA critic-gradient proximity anchor weight to zero.",
+      "known_limits": "Requires LR schedule decay for handover, lacks a zero-mean logit gauge, and incurs exact-RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot identify heteroscedastic widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "K3P beta1=0 Adam wrappers + spike guard + split cosine LR (k3p-no-anchor)",
+      "how_it_works": "Retains K3P Adam, spike guard, A2 damping, and cosine LR while removing the critic gradient anchor.",
+      "known_limits": "Clock-dependent schedules; ordinary Adam lacks spectral conditioning (4.2), pushforward trust (4.1/4.3), and scale-free settling (4.4)."
+    }
+  }
 }

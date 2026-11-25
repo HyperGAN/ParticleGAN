@@ -74,5 +74,52 @@
       "latex": "\\begin{aligned}c(t)&=\\frac{1+\\cos\\!\\left(\\pi\\min\\!\\left(1,\\frac{t}{0.2T}\\right)\\right)}{2},\\\\\\beta_2(t)&=0.99+(0.9-0.99)c(t),\\\\\\gamma(t)&=0.1+(1-0.1)c(t).\\end{aligned}",
       "explanation": "Over the first $20\\%$ of the resolved recipe horizon $T$, the second-moment decay moves from $0.9$ to $0.99$ while penalty strength moves from $1$ to $0.1$. Both then hold. This schedule is separate from LR: the canonical card keeps $0.0002$ constant, whereas the selected $0.0085$ variant uses its declared LR cosine."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas, pullback isometry, or prior regularizer",
+      "how_it_works": "Uses the task-declared latent prior unmodified (`prior_reg=0`) with plain PyTorch Adam updates across G, D, and any learnable prior parameters.",
+      "known_limits": "Separated multimodal targets incur severe continuous-pushforward stretching and valley ghost mass without an adaptive latent chart."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Zero-centered squared L2 real (R1) and fake (R2) input-gradient penalties (RoR)",
+      "how_it_works": "Multi-law mechanism serving BOTH Law 2 (spatial slope regularity) and Law 4.5 (normal-direction interior curvature `mu_D > 0` along `ker(Sigma_Y)`, Mescheder et al. 2018): adds `0.5 * gamma(t) * (E[||g_r||_2^2] + E[||g_f||_2^2])` via exact reverse-over-reverse (RoR) differentiation on every critic update, cosine-annealing `gamma` from 1.0 to 0.1 over the first 20% of the horizon.",
+      "known_limits": "Penalizing all nonzero slopes even below kappa slows far-field transport, lacks an explicit zero-mean logit gauge anchor, and incurs expensive RoR double-backward cost on high-resolution Conv2d (whereas exact RoR remains faster and lower-bias than 1-probe RoF `fwAD` on GPU MLPs, 32^2-64^2 Conv2d, and ResNet+GN, P6)."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic (RpGAN) only",
+      "how_it_works": "Evaluates paired relativistic logistic loss on raw critic scores without optimal-transport horizons, orphan macro-transport, or conditional fiber drift-variance deconfounding.",
+      "known_limits": "Cannot resolve heteroscedastic mode widths, beyond-horizon orphan modes, or sparse-stratum conditional variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Native Adam (beta1=0, early beta2/gamma cosine) + 1:1 alternation + R1/R2 mu_D > 0 dissipation",
+      "how_it_works": "Uses zero first-order momentum (`beta1=0`) with 1:1 D-then-G alternation and R1/R2 normal-direction dissipation (Law 4.5), cosine-interpolating `beta2` from 0.9 to 0.99 over the first 20% of the declared horizon.",
+      "known_limits": "Horizon-dependent `beta2`/`gamma`/LR schedules fail clock-free audits; ordinary Adam lacks matrix spectral conditioning (Law 4.2), realized pushforward trust (4.1/4.3), and scale-free rail escape/settling (4.4)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Sched[\"Law 4: Early 20% Cosine beta2 (0.9->0.99) & gamma (1->0.1)\"] --> Draw[\"Draw Real x & Prior z; y = G(z)\"]\n    Draw --> R1R2[\"Law 2 & 4.5: RpGAN Loss + R1/R2 (||g_r||^2 + ||g_f||^2) (RoR)\"]\n    R1R2 --> StepD[\"Native Adam D Step (beta1=0, 0 Clip)\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z)\"]\n    ReGen --> GLoss[\"RpGAN Generator Loss + Task Aux Losses\"]\n    GLoss --> StepG[\"Native Adam G & P Step (beta1=0)\"]\n    StepG --> Sched",
+  "quickstart": {
+    "preset": "bcap_adam",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "# Modern R1/R2 baseline via public Recipe overrides",
+      "recipe = get_recipe(",
+      "    'bcap_adam', reg_arm='a_r1r2', reg_coeff=1.0, reg_coeff_end=0.1,",
+      "    betas=(0.0, 0.9), beta2_end=0.99, lr=0.0002, prior_lr_mult=1.0, total_steps=1000,",
+      ")",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

@@ -86,5 +86,31 @@
       "latex": "\\rho_i=1,\\qquad \\Delta z_i=\\Delta z_i^{\\mathrm{Adam}}.",
       "explanation": "Only A2 latent-row damping is disabled. Critic guarding, the gradient anchor and any separately eligible direct-particle gain remain. This identity describes the A2 hook, not a removal of all optimizer interventions."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer (K3P structural ablation)",
+      "how_it_works": "Relies on the task-declared prior without adaptive prototype charts or pullback isometry.",
+      "known_limits": "Separated multimodal supports incur continuous-pushforward stretching and ghost mass."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Inherited K3P LR-coupled phased critic penalty + EMA anchor (RoR)",
+      "how_it_works": "Retains K3P's LR-coupled handover between early RMS R1/fake-cap and late L2 caps plus EMA critic anchor via exact RoR.",
+      "known_limits": "Requires LR schedule decay for handover, lacks a zero-mean logit gauge, and incurs exact-RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot identify heteroscedastic widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "K3P beta1=0 Adam wrappers + spike guard + split cosine LR (k3p-no-a2)",
+      "how_it_works": "Removes A2 sparse latent-row cosine damping while retaining K3P Adam, spike guard, and cosine LR.",
+      "known_limits": "Clock-dependent schedules; ordinary Adam lacks spectral conditioning (4.2), pushforward trust (4.1/4.3), and scale-free settling (4.4)."
+    }
+  }
 }

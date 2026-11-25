@@ -86,5 +86,31 @@
     "path": "reports/forge/families/assets/bcap-explainer.png",
     "alt": "Real and generated samples share a critic; a soft penalty discourages excessive input-gradient slopes and adds to the critic loss.",
     "caption": "Conceptual illustration of the BCAP critic-loss mechanism, not measured training results. Generator/prior updates and K3P optimizer controls are described below."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer (K3P A2 sparse-row damping only)",
+      "how_it_works": "Uses the task-declared latent prior without adaptive charts or latent spread regularization.",
+      "known_limits": "Separated multimodal targets bridge valleys and distort mode mass shares."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed BCAP real/fake one-sided squared L2 cap (RoR) without K3P handover or anchor",
+      "how_it_works": "Replaces K3P's phased penalty with BCAP (`lambda=1, kappa=1`) via exact RoR.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1`, no logit gauge, and expensive RoR."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic + scheduled K3P noise only",
+      "how_it_works": "Lacks multi-scale OT horizons, beyond-horizon orphan rescue, and conditional fiber banks.",
+      "known_limits": "Fails multi-scale width recovery, orphan shifts, and conditional DDGAN chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "K3P beta1=0 Adam wrappers + critic spike guard + A2 damping + split cosine LR",
+      "how_it_works": "Retains K3P's optimizer controls and LR/noise schedules around the fixed BCAP penalty.",
+      "known_limits": "Clock-dependent schedules, no matrix spectral conditioning (4.2), no pushforward trust (4.1/4.3), and `mu_D = 0` leaves equilibrium orbits undamped."
+    }
   }
 }

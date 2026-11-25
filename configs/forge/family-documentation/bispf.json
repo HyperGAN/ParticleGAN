@@ -67,5 +67,48 @@
       "latex": "R_{\\mathrm{SBNP}}(P)=\\lambda_P\\left(\\mathcal T_{\\mathrm{moment}}(P)+w_{\\mathrm{repel}}\\,\\mathbb I(N>2k_{\\mathrm{nn}}+d_z)\\,\\frac{1}{N k_{\\mathrm{nn}}}\\sum_{i=1}^N\\sum_{m=1}^{k_{\\mathrm{nn}}}\\log\\!\\left(1+\\frac{\\bar r_{\\mathrm{knn}}^2}{\\lVert z_i-z_{\\mathcal N_m(i)}\\rVert_2^2+\\epsilon}\\right)\\right)",
       "explanation": "Preserves the initial latent mean and (when $N>2k_{\\mathrm{nn}}+d_z$) initial covariance while preventing local particle clumping via scale-free $k$-NN log-repulsion."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Degree-of-freedom-aware Stratified Blue-Noise Particle (SBNP) prior regularizer",
+      "how_it_works": "Preserves initial latent mean/covariance and prevents local particle clumping via scale-free k-NN log-repulsion when table capacity exceeds `2*k_nn + d_z`, while leaving tiny discrete codebooks unperturbed.",
+      "known_limits": "Does not construct an adaptive multimodal prototype chart or generator pullback isometry; separated, anisotropic, unequal-mass, and discrete image targets still exhibit mode bridging and mass-share errors."
+    },
+    "law2": {
+      "status": "addressed",
+      "mechanism": "Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR) + harmonic floor + zero-mean gauge (RoR)",
+      "how_it_works": "Evaluates a smooth Elastic Born-Infeld wall (`kappa=1`) with a harmonic floor (`lambda_floor=0.0005`) and zero-mean logit gauge (`gamma_gauge=0.0005`) on real endpoints, fake endpoints, and Sinkhorn transport chords via exact RoR without an EMA critic copy.",
+      "known_limits": "Exact RoR double-backward adds high-resolution convolutional overhead, and the small harmonic floor (`0.0005`) provides weak equilibrium damping on difficult tasks."
+    },
+    "law3": {
+      "status": "partial",
+      "mechanism": "Median-normalized global Sinkhorn coupling for transport chords and optional SRpGAN pairing",
+      "how_it_works": "Computes a doubly-stochastic Sinkhorn coupling on median-normalized batch distances to align critic transport chords and estimate bidirectional 95th-percentile transport capture.",
+      "known_limits": "Global median distance normalization fails heteroscedastic unequal-width/unequal-mass mixtures and beyond-horizon shifts, and lacks conditional fiber drift-variance deconfounding (failing DDGAN chains)."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm (batched SVD + quintic conv) + Harmonic Mode Capture cooling + direction_blend",
+      "how_it_works": "Pairs DualNorm matrix polar updates (with quintic per-offset convolution rule on wide CUDA kernels) and `direction_blend` conflict projection with Harmonic Mode Capture thermal cooling under constant learning rates and 1:1 alternation.",
+      "known_limits": "Lacks realized generator pushforward secant trust for severe Kreiss imbalance, lacks dynamic-1e-38 rail rescaling, and fails 11/29 measured full-suite tasks including heteroscedastic vectors, discrete images, and DDGAN chains."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> Sinkhorn[\"Law 3A: Median-Normalized Sinkhorn Coupling Pi\"]\n    Gen --> Sinkhorn\n    Sinkhorn --> EBI[\"Law 2: EBI-TCR Endpoints + Chords + Gauge (RoR)\"]\n    EBI --> StepD[\"Law 4: DualNorm (Quintic Conv, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> SBNP[\"Law 1: SBNP Prior Tether + k-NN Repulsion\"]\n    SBNP --> Cool[\"Law 4.4: Harmonic Mode Capture Thermal Cooling\"]\n    Cool --> StepG[\"Law 4: direction_blend + DualNorm G, P, E Step\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "bispf_optimized",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('bispf_optimized', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

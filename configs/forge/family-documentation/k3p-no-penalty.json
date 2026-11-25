@@ -80,5 +80,31 @@
       "latex": "\\begin{aligned}v_p^{\\mathrm{RMS}}&=\\frac{\\operatorname{mean}(v_p)}{1-\\beta_2^{\\tau_p}},\\\\u_p&=\\frac{\\operatorname{RMS}(g_p)}{\\sqrt{\\max(v_p^{\\mathrm{RMS}},10^{-30})}},\\\\g_p^{\\mathrm{guarded}}&=\\begin{cases}\\dfrac{c_{\\mathrm{guard}}}{u_p}g_p,&\\tau_p\\ge\\tau_{\\min}\\text{ and }u_p>c_{\\mathrm{guard}},\\\\g_p,&\\text{otherwise}.\\end{cases}\\end{aligned}",
       "explanation": "This clipping rule applies per critic tensor only after its Adam history reaches the declared warmup (baseline $\\tau_{\\min}=200$ steps). $g_p$ is its parameter gradient, $v_p$ the stored second moment, $\\tau_p$ its Adam step count and $c_{\\mathrm{guard}}=5$ the baseline threshold. With AMSGrad use its stored running maximum. Before warmup the guard leaves gradients unchanged."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer (K3P structural ablation)",
+      "how_it_works": "Relies on the task-declared prior without adaptive prototype charts or pullback isometry.",
+      "known_limits": "Separated multimodal supports incur continuous-pushforward stretching and ghost mass."
+    },
+    "law2": {
+      "status": "unaddressed",
+      "mechanism": "Critic penalty disabled (`reg_coeff=0.0` structural ablation)",
+      "how_it_works": "Sets the entire K3P critic input-gradient penalty (early R1/fake-cap, late caps, and EMA anchor) to zero.",
+      "known_limits": "Critic slopes are completely unregularized, exposing slope blowup and rotational instability."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot identify heteroscedastic widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "K3P beta1=0 Adam wrappers + spike guard + split cosine LR (k3p-no-penalty)",
+      "how_it_works": "Retains K3P Adam, spike guard, A2 damping, and cosine LR with zero critic-penalty dissipation.",
+      "known_limits": "Clock-dependent schedules; ordinary Adam lacks spectral conditioning (4.2), pushforward trust (4.1/4.3), and scale-free settling (4.4)."
+    }
+  }
 }

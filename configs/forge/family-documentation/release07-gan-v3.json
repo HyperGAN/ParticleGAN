@@ -87,5 +87,53 @@
       "latex": "a(q)=\\begin{cases}1,&q\\le0.6,\\\\0.05+\\dfrac{0.95}{2}\\left[1+\\cos\\!\\left(\\pi\\min\\!\\left(1,\\dfrac{q-0.6}{0.4}\\right)\\right)\\right],&q>0.6,\\end{cases}\\qquad \\eta(t)=\\eta^{(0)}a(t/T).",
       "explanation": "Hold each role at its base rate for $60\\%$ of the declared recipe horizon, then decay to a $5\\%$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "VICReg-inspired latent variance/covariance spread penalty (0.05 * R_prior)",
+      "how_it_works": "Adds a `0.05` variance-hinge and off-diagonal covariance penalty on scalar latent tables to discourage total latent collapse without enforcing a Gaussian density.",
+      "known_limits": "Isotropic variance/covariance spread does not build a multimodal prototype atlas or pullback isometry, so separated targets still incur continuous-pushforward valley bridging."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed strong real/fake one-sided squared L2 input-gradient cap (lambda=6, kappa=1.25, RoR)",
+      "how_it_works": "Penalizes real and fake critic input-gradient norms above `kappa=1.25` with strength `lambda=6` on every update via exact RoR without handover or EMA critic anchoring.",
+      "known_limits": "Zero interior normal-direction curvature (`mu_D = 0`) whenever `||grad D||_2 <= 1.25`, no zero-mean logit gauge anchor, and high exact-RoR compute cost on images."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic (RpGAN) only",
+      "how_it_works": "Evaluates paired relativistic logistic loss on raw critic scores without optimal-transport horizons, beyond-horizon orphan rescue, or conditional fiber drift-variance deconfounding.",
+      "known_limits": "Fails multi-scale width recovery, beyond-horizon shifts, and conditional reverse-diffusion stratum variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Beta1=0, beta2=0.99 Adam + full-horizon 60%-hold cosine LR decay to 5% + 1:1 alternation",
+      "how_it_works": "Runs 1:1 alternating zero-momentum Adam with full-horizon cosine learning-rate annealing and all K3P optimizer guards/damping disabled.",
+      "known_limits": "Horizon-dependent LR schedule fails clock-free invariance; `mu_D = 0` one-sided cap leaves equilibrium rotational modes undamped (Law 4.5); and ordinary Adam lacks spectral conditioning (4.2) and realized pushforward trust (4.1/4.3)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Sched[\"Law 4: Full-Horizon 60% Hold -> 5% Cosine LR\"] --> Draw[\"Draw Real x & Task Prior z; y = G(z)\"]\n    Draw --> Cap[\"Law 2: RpGAN Loss + Fixed BCap (lambda=6, kappa=1.25, RoR)\"]\n    Cap --> StepD[\"Adam D Step (beta1=0, beta2=0.99, 0 Guards)\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z)\"]\n    ReGen --> Spread[\"Law 1: RpGAN G Loss + 0.05 Latent Spread R_prior\"]\n    Spread --> StepG[\"Adam G & P Step + Optional 0.995 EMA\"]\n    StepG --> Sched",
+  "quickstart": {
+    "preset": "bcap_adam",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "# Release 0.7 GAN v3 settings via public Recipe overrides",
+      "recipe = get_recipe(",
+      "    'bcap_adam', reg_arm='b_cap', reg_coeff=6.0, reg_kappa=1.25,",
+      "    betas=(0.0, 0.99), prior_reg=0.05, lr_floor=0.05, network_lr_floor=0.05,",
+      "    ema_decay=0.995, total_steps=1000,",
+      ")",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

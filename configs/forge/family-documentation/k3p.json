@@ -92,5 +92,48 @@
       "latex": "\\begin{aligned}\\rho_i&=\\begin{cases}0.75+0.25\\operatorname{cos}(h_i,h_i^{\\mathrm{prev}}),&\\text{with row history},\\\\1,&\\text{without row history},\\end{cases}\\\\\\Delta z_i^{\\mathrm{A2}}&=\\rho_i\\Delta z_i^{\\mathrm{Adam}}.\\end{aligned}",
       "explanation": "A2 acts only on an eligible row-local table with existing Adam state, some zero-gradient rows, and cumulative observed-row fraction below the configured cutoff (baseline $0.5$). Then $\\rho_i\\in[0.5,1]$. Adam still accumulates the raw gradient second moment; unsupported or ineligible hosts keep their ordinary response."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas, pullback isometry, or prior regularizer",
+      "how_it_works": "Trains directly on the task-declared latent prior (`prior_reg=0`), applying only optional A2 sparse-row cosine damping to individual Adam steps without shaping support topology.",
+      "known_limits": "Continuous pushforwards across disconnected modes suffer valley ghost mass and uneven mode coverage; A2 does not activate on standardized or small dense priors."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "LR-coupled handover from early RMS R1/fake-cap to late L2 caps + fixed-decay EMA critic anchor (RoR)",
+      "how_it_works": "Blends early RMS-scaled real gradient / fake cap with late unnormalized L2 caps and EMA critic-gradient proximity (`decay=0.999`) as the critic learning rate anneals toward its floor, evaluated with exact RoR under annealed input noise.",
+      "known_limits": "Requires explicit LR schedule decay to trigger the late phase (constant LR stays locked in Phase A), omits a zero-mean logit gauge, and pays full RoR double-backward cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic + scheduled input/output noise only",
+      "how_it_works": "Uses paired relativistic logistic loss with linearly annealed critic-input noise and warmed-up generator-output noise, without optimal-transport metrics, orphan rescue, or conditional fiber operators.",
+      "known_limits": "Cannot identify heteroscedastic mode widths, beyond-horizon shifted modes, or sparse-stratum conditional covariance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Beta1=0 Adam wrappers + 200-step critic spike guard + A2 sparse-row damping + cosine LR horizon",
+      "how_it_works": "Runs 1:1 alternating beta1=0 Adam with adaptive per-tensor critic spike clipping (5x RMS after 200 steps), A2 cosine-agreement damping on sparse latent rows, and split cosine LR decay (1,600-step network cap) plus early R1 normal-direction damping.",
+      "known_limits": "Horizon-dependent cosine schedules and the 200-step spike-guard clock fail clock-free invariance; ordinary coordinatewise Adam lacks matrix spectral conditioning (4.2), realized pushforward trust (4.1/4.3), and scale-free settling (4.4)."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Sched[\"Law 4: Split Cosine LR & Noise Schedules\"] --> Draw[\"Draw x & z; Wrap D with Annealed Input Noise\"]\n    Draw --> K3PPen[\"Law 2: LR-Coupled Phase A -> Blend + EMA Anchor (RoR)\"]\n    K3PPen --> StepD[\"Law 4: 200-Step Spike Guard + K3P Adam D Step (beta1=0)\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z) + Output Noise\"]\n    ReGen --> A2[\"Law 4: A2 Sparse-Row Cosine Damping\"]\n    A2 --> StepG[\"K3P Adam G & P Step + EMA Update\"]\n    StepG --> Sched",
+  "quickstart": {
+    "preset": "k3p",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('k3p', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

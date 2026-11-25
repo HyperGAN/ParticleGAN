@@ -101,5 +101,48 @@
       "latex": "\\eta_j=\\eta_j^{(0)}s_j,\\qquad s_j^{\\mathrm{next}}=\\begin{cases}s_j/2,&\\text{stationary},\\\\\\min(1,2s_j),&\\text{drift},\\\\s_j,&\\text{no accepted rate change}.\\end{cases}",
       "explanation": "This is the stationarity ladder before policy corrections. Displacement tests use scales $b$ and $2b$; mixed or inconclusive evidence enlarges the observation window. Row-evidence holds, critic payoff damping and its relative table-rate floor can modify the applied rate. Optimizer surprise can reopen a ladder; Atlas additionally requires its settled-state guard."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Unstandardized ParticlePrior + NormalNoiseManipulator + automatic bounded critic-feature birth/death",
+      "how_it_works": "Combines an unstandardized particle table and additive normal latent perturbation (`sigma=0.0065` in selected `atlas-particle-normal-v4`) with automatic selection of bounded critic-feature cell or k-NN birth/death (`birth_death_cells=256`) that clones well-supported rows over poorly supported ones.",
+      "known_limits": "Birth/death operates in learned critic feature space rather than a mass-conserving data-space Laguerre atlas with pullback isometry, and its policy contract restricts transfer across heterogeneous frozen or non-particle hosts."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "KA2 readiness-gated R1/fake-cap handover + moment-surprise-gated EMA critic-gradient anchor (RoR)",
+      "how_it_works": "Regularizes critic input gradients via KA2 (`lambda=3, kappa=1`), switching from early RMS-scaled real R1 / fake cap to an equal blend with unnormalized L2 caps and an adaptive EMA critic-gradient proximity anchor once Adam second-moment readiness reaches 0.55085.",
+      "known_limits": "Uses exact reverse-over-reverse double-backward (high Conv2d cost), omits an explicit zero-mean logit gauge anchor, and relies on complex readiness/surprise gating."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic + critic-feature support turnover only",
+      "how_it_works": "Evaluates paired relativistic logistic loss without conformal multi-scale OT horizons, beyond-horizon density-ratio orphan macro-transport, or a cross-batch conditional fiber drift-variance bank.",
+      "known_limits": "Does not resolve static W1 ray-length ambiguity on generator-free multi-scale probes or sparse-stratum conditional reverse-diffusion chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Schedule-free stationarity LR ladders + AMSGrad (beta1=0) + RowEvidence + SettledReopenGuard + A2",
+      "how_it_works": "Adapts per-group learning rates via two-scale displacement tests without a total-step schedule, damps critic rate by payoff error, gates inconsistent rows with RowEvidence and A2 cosine damping, filters spurious pre-anchor reopens with `SettledReopenGuard`, and selects fast vs. block-averaged serving weights.",
+      "known_limits": "Uses coordinatewise Adam/AMSGrad without matrix spectral conditioning (Law 4.2) or realized generator pushforward trust (4.1/4.3); deep skip-free networks and extreme capacity-imbalanced games remain unaddressed."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Policy[\"Law 4.4: Stationarity LR Ladder + SettledReopenGuard\"] --> Draw[\"Draw x & z + NormalNoise (sigma=0.0065)\"]\n    Draw --> KA2[\"Law 2: KA2 Readiness-Gated Penalty + EMA Anchor (RoR)\"]\n    KA2 --> StepD[\"Law 4: KA2 AMSGrad D Step + Payoff Damping\"]\n    StepD --> ReGen[\"Resample z, Recompute y = G(z)\"]\n    ReGen --> Evid[\"Law 4: A2 Sparse-Row Damping + RowEvidence Hot-Row Gate\"]\n    Evid --> StepG[\"K3P AMSGrad G & P Step + Block Serving Average\"]\n    StepG --> BD[\"Law 1: Auto Feature-Cell / kNN Birth-Death Turnover\"]\n    BD --> Policy",
+  "quickstart": {
+    "preset": "atlas",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('atlas', num_particles=256, z_dim=2, batch_size=128)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0, max_steps=1000)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }
