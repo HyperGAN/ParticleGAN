@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1241. Inventory coverage: complete. Unresolved import items: 7.
+Records: 1250. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -4712,6 +4712,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-k3p-
 
 [Record and receipt provenance](records/readout-186c24688ccd9e1dbc108b9d.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-18bc7392296d5574083ccab4
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 passes 7/7 on t4-strange-architectures-v1 (including grid100_res16_tanh with center_rms_sigma <= 0.25 and unbiased cov_trace_bias) under protocol seed 0.
+
+**Observed:** {'FAIL': 2, 'PASS': 5}; wall seconds 1817.112; mechanism `structural`.
+
+grid100_res16_scaled_tanh: precision=0.98429, center_rms_sigma=0.061528, mass_tv=0.02317, radial_ks=0.029582; grid100: precision=0.98017, center_rms_sigma=0.083415, mass_tv=0.02323, radial_ks=0.027347
+
+5/7 PASS: axiom-v4 adds zero_tanh_rail_escape over axiom-v3 (4/7), passing clockfree_audit_measurement_v1, zero_tanh_smoke, zero_tanh_rail_escape, grid100, and grid100_res16_scaled_tanh; grid100_mlp16 and grid100_res16_tanh remain honest numerical FAILs.
+
+**Next:** Target 16-layer grid100 sustained settling and trace-bias margin in axiom-v5.
+
+[Record and receipt provenance](records/readout-18bc7392296d5574083ccab4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-bcap-pure-v1 · readout-18e9fbb07a4d8c24ba8e924b
 
 **Scope:** research_diagnostic; scientific; revision `6240c7eadd1add4a140e2ae9a4929ff87fecb6408bfee5e0b89c8f2359709a59`.
@@ -5944,6 +5960,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-bcap
 
 [Record and receipt provenance](records/readout-4197ba117621ba0fe1dd2c1c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-41f9c26a18492a4834dbe767
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Evaluate frozen axiom-v4 without tuning under protocol seed 0 across the full 18-task Tier-3 long-horizon holdout suite (14,000-update fresh-process continuations grid100_14k/rotated100_14k/staggered100_14k, ring_extension, five_word_joint_hold, target_shift_recovery, zero_tanh_rail_escape, and smoke/hold controls).
+
+**Observed:** {'PASS': 18}; wall seconds 3715.842; mechanism `structural`.
+
+five_word_joint_hold: modes=5, mass_tv=0.020898
+
+PASS 18/18: axiom-v4 sweeps every task on the untouched 14,000-update Tier-3 long-horizon holdout including grid100_14k, rotated100_14k, staggered100_14k, five_word_joint_hold, ring_hold, ring_extension, target_shift_recovery, and zero_tanh_rail_escape.
+
+**Next:** Publish untouched 18/18 Tier-3 endurance sweep in axiom-study.md.
+
+[Record and receipt provenance](records/readout-41f9c26a18492a4834dbe767.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### atlas-particle-normal-v4 · readout-423f82f13ee30c0a95fd266a
 
 **Scope:** research_diagnostic; scientific; revision `efebaebc63fbb814b384b2009aedaf06465137a061cb9fe618b83c9a326f82dd`.
@@ -6567,6 +6599,22 @@ Isolating bind_protected_losses onto T4NashConstraintGeneratorAdam resolves t4-n
 **Next:** Document complete Tier 1 diagnostics and Theory 4A unification roadmap in reports/forge/studies/t4-imbalance-nash.md.
 
 [Record and receipt provenance](records/readout-500c635ac3558acf8c455b48.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v4 · readout-506977051c754e8f9694b117
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 achieves <=35.0 ms/step median latency (<=33 ms/step, <=7.0 J/step NVML energy, <=850 MiB VRAM) on idle RTX A6000 dcgan_performance_r256, strictly beating unified-v12, unified-v13, and unified-v14.
+
+**Observed:** {'PASS': 7}; wall seconds 78.665; mechanism `structural`.
+
+
+
+axiom-v4 (commit 758b397a5, 2,409 core LOC) passes 6/6 official solo idle-GPU1 dcgan_performance tasks, setting the repository's lowest VRAM and #1 Conv2d latency/energy across every legacy family.
+
+**Next:** Rebuild Forge history/summaries, update reports/axiom/axiom-study.md with all 9 axiom-v4 official readouts + NVML energy, run bloat/lint/docs/forge validation, and open PR into feat/axiom-family.
+
+[Record and receipt provenance](records/readout-506977051c754e8f9694b117.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rhbi-v12 · readout-51a0d5590d041ce50f3ce174
 
@@ -8216,6 +8264,22 @@ unified-v10 passed 6/6 dcgan_performance tasks with strictly 0 SVD/eigh/pinv and
 
 [Record and receipt provenance](records/readout-90580c7aff5ec6988cfbcfad.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-9066cb4353eb435be7819b0c
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 outperforms unchanged unified-v14 across the 20 curated anchors and 9 public-API dynamical Four Laws probes in four-laws-adherence-v1 under protocol seed 0, passing high-D R^32 orphan mixtures, swapped 16L deep critics, codimension-1 thin circles, and isomorphic 4D 1x1 Conv2d ResBN twins.
+
+**Observed:** {'FAIL': 11, 'PASS': 23}; wall seconds 4037.849; mechanism `structural`.
+
+fl_law41_trust_rare1pct_tanh: modes=4, precision=0.97729, mass_tv=0.036982
+
+22/33 diagnostic PASS on four-laws-adherence-v1: passes 19/24 curated Forge anchors plus 3/9 new adversarial dynamical falsification probes (fl_law2_pure_adversarial_codim1, fl_law42_swap_deep_critic_16l, fl_law42_deep_resbn_and_conv1x1); honest diagnostic FAILs remain on the 6 hardest high-D/aniso/noisy/rare-tail/GroupNorm-ViT probes and 5 anchors.
+
+**Next:** Use the 6 failing fl_* probes to drive clean-slate Law 1-4 upgrades in axiom-v5.
+
+[Record and receipt provenance](records/readout-9066cb4353eb435be7819b0c.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### rhbi-v11 · readout-90b0065d5a734ce320912d8b
 
 **Scope:** research_diagnostic; scientific; revision `05f71faf03f06323d92bc7def373a5310d32c91bea38bf62b760725e29415f55`.
@@ -8407,6 +8471,22 @@ Completed dcgan_performance seed-0 CUDA execution for recipe-prior-refactor-rele
 **Next:** Retain source-bound readout and compiled Forge reports.
 
 [Record and receipt provenance](records/readout-99d51a04a1d1358bfd32303e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v4 · readout-9a10b57d1dda5dd13bd560e6
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 passes 3/3 on t4_imbalance_nash_stretch under protocol seed 0 with full 16-mode recovery and isotropic mode covariances on nash_overpowered_{critic,generator}_ring16.
+
+**Observed:** {'PASS': 3}; wall seconds 260.58; mechanism `structural`.
+
+nash_overpowered_generator_ring16: modes=16, hq=0.96387, mass_tv=0.04541; nash_unequal_width_hostile_imbalance: hq=0.99756, mass_tv=0.028564; nash_overpowered_critic_ring16: modes=16, hq=0.95557, mass_tv=0.040039
+
+PASS 3/3: axiom-v4 resolves both overpowered-critic and overpowered-generator ring16 Nash imbalance regressions (up from axiom-v3 1/3) while holding nash_unequal_width_hostile_imbalance.
+
+**Next:** Record 3/3 Nash parity in axiom-study.md.
+
+[Record and receipt provenance](records/readout-9a10b57d1dda5dd13bd560e6.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### rgdt-v3 · readout-9ac29cca3e759e381fb46e36
 
@@ -9272,6 +9352,22 @@ Completed dcgan_performance seed-0 CUDA execution for t1-coupling-v2 (PASS 6/6: 
 
 [Record and receipt provenance](records/readout-b5b0255afd0d8014b7e3684e.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-b6570e904053603948226d93
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 passes 2/2 t3_causal_isolation_stretch tasks (t3_iso_scale_mass_8x >= 0.45 and t3_iso_horizon_saddle_shift) under protocol seed 0 via scale-invariant k=4 local-NN density-ratio orphan rescue and V4E spectral-split prior smoothing.
+
+**Observed:** {'PASS': 2}; wall seconds 133.773; mechanism `structural`.
+
+t3_iso_horizon_saddle_shift: modes=4, hq=0.95312, mass_tv=0.0625; t3_iso_scale_mass_8x: modes=4, hq=0.96094, mass_tv=0.027578
+
+PASS 2/2: axiom-v4 passes both t3_iso_scale_mass_8x and t3_iso_horizon_saddle_shift with higher heteroscedastic eigen-ratio margin than axiom-v3 and unified-v12/v13/v14.
+
+**Next:** Preserve scale-safe _sc_safe transport scaling and record in axiom-study.md.
+
+[Record and receipt provenance](records/readout-b6570e904053603948226d93.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### unified-v7 · readout-b6662c299bb6f6ed5cc05438
 
 **Scope:** research_diagnostic; scientific; revision `8995871aa3fbf84b4626fec2725cefc1e3f44e2b5b38b471320b9df24f2842f8`.
@@ -10056,6 +10152,22 @@ PASS 6/6 dcgan_performance tasks (finite_update_fraction=1.0 on all resolutions/
 
 [Record and receipt provenance](records/readout-cedd207fc183ede3b4e66e38.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-cf0f08081668d4e14130cd6b
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 passes both zero-sigma 256-byte stretch benchmarks (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection) via unified atomic ledger and joint BiGAN inverse codebook contraction.
+
+**Observed:** {'PASS': 2}; wall seconds 420.265; mechanism `structural`.
+
+bytegan_bigan_dictionary: mass_tv=0; bytegan_hypercube8: mass_tv=0
+
+PASS 2/2: axiom-v4 (758b397a5, 2,409 LOC) achieves exact 256/256 zero-collision ByteGAN bijection and 256/256 BiGAN dictionary reconstruction with improved RMS bit error.
+
+**Next:** Retain as opt-in family evidence alongside the full 9-study axiom-v4 evaluation.
+
+[Record and receipt provenance](records/readout-cf0f08081668d4e14130cd6b.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### recipe-prior-refactor-k3p-v1 · readout-cfb9bf047c6814e0e030457c
 
 **Scope:** research_diagnostic; scientific; revision `3077116cee06431900fca4a10e85287550c6592b5f15497a34659fd1d8a04fe7`.
@@ -10232,6 +10344,22 @@ law4-energy-v7 (Law 4.4 Asymmetric 0-NS Critic Frob-MP m^0.25 + 5-step 2D Polar 
 
 [Record and receipt provenance](records/readout-d2e26497bc23a120806f8de4.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
+### axiom-v4 · readout-d3967c0e415122139e9783d8
+
+**Scope:** research_diagnostic; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 passes 5/5 on t3-shift-recovery-diagnostic-v1 (ae_gan_hold, mode_hold, zero_tanh_smoke, target_shift_recovery, and shift holdouts) under protocol seed 0.
+
+**Observed:** {'PASS': 5}; wall seconds 310.818; mechanism `structural`.
+
+
+
+PASS 5/5: axiom-v4 passes every shift-diagnostic task including target_shift_recovery (81/81 live deadline checks), zero_tanh_rail_escape, mode_hold, ae_gan_hold, and zero_tanh_smoke.
+
+**Next:** Record 5/5 shift-recovery sweep in axiom-study.md.
+
+[Record and receipt provenance](records/readout-d3967c0e415122139e9783d8.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
 ### empf-v1 · readout-d46a41a1da2da54d67d154f4
 
 **Scope:** current; scientific; revision `45a5684f2961affd93bfb3cdd35b79928763c60cfe6a3e913492dc1bc77007e4`.
@@ -10391,6 +10519,22 @@ Under 1:10 critic-to-generator LR asymmetry (d_lr_mult=0.10, >24,000x combined G
 **Next:** Include in Theory 4A LR-asymmetry leaderboard in reports/forge/studies/t4-imbalance-nash.md.
 
 [Record and receipt provenance](records/readout-d6ab351336edc15550a5972a.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
+
+### axiom-v4 · readout-d83ce97f520f7668f39996df
+
+**Scope:** current; scientific; revision `0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`.
+
+Unchanged global axiom-v4 clears Tier-1 and Tier-2 discriminator_stability (target 50-51/51 including ring16_acquisition, five_word_joint_smoke, precision_gaussian_{fp32,mxfp8,nvfp4}, bytegan_hypercube8 256/256, interp_img_patch_shift, interp_saddle_barycentric, model_ddgan_bimodal_chain, and model_ae_ddgan_bimodal_chain) on PyTorch 2.15 RTX A6000.
+
+**Observed:** {'FAIL': 7, 'PASS': 40}; wall seconds 5037.53; mechanism `structural`.
+
+staggered100: precision=0.9862, center_rms_sigma=0.069441, mass_tv=0.02268, radial_ks=0.022453
+
+40/47 executed PASS (16/17 Tier-1 PASS + full Tier-2 execution unlocked): clears all 11/11 required Tier-1 gates including five_word_joint_smoke, ring16_acquisition, mode_hold, and 3/3 precision_gaussian_{fp32,nvfp4,mxfp8}; honest numerical FAILs remain on img_blobs4, vector_spiral, interp_{sparse_arc,img_patch_shift,saddle_barycentric}, and model_{ddgan,ae_ddgan}_gaussian_chain (gating the two bimodal chains).
+
+**Next:** Target DDGAN gaussian-chain calibration, curved-manifold interpolation settling, vector_spiral, and img_blobs4 in axiom-v5 while preserving 18/18 Tier-3 holdout and 9/9 Four-Laws controls.
+
+[Record and receipt provenance](records/readout-d83ce97f520f7668f39996df.json) · [Original artifact retrieval](../../docs/forge-artifact-resolver.md). Original receipt availability is separate from this record.
 
 ### recipe-prior-refactor-r1r2-v1 · readout-d843cfa325ca7b9ac95ada9d
 
@@ -12006,4 +12150,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `b3241a2c47aa8d1d83103b38617ccd275f2635d8eb64c76f11ed6df116c06023`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `5bebf413680800405c33a7007feaf45f021a2c579388f145beaf4befe719c4f1`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
