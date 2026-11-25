@@ -66,6 +66,7 @@ def test_float_output_preserves_all_capture_metadata_containers_and_fwad() -> No
 
     raw = torch.randn(4, 1, dtype=torch.bfloat16)
     raw._bispf_input = x_in
+    raw._bispf_record = rec
     raw._empf_input = x_in
     raw._empf_record = rec
     raw._empf_conditioned = True
@@ -110,7 +111,7 @@ def test_float_output_preserves_all_capture_metadata_containers_and_fwad() -> No
     assert out.dtype == torch.float32
     assert out is not raw
     for attr in (
-        "_bispf_input",
+        "_bispf_input", "_bispf_record",
         "_empf_input", "_empf_record", "_empf_conditioned", "_empf_cond_tensors",
         "_t2_input", "_t2_record", "_t2_conditioned", "_t2_cond_tensors",
         "_rhbi_input", "_rhbi_cond", "_rhbi_cont_cond", "_rhbi_parts", "_rhbi_record", "_rhbi_thermally_scaled",

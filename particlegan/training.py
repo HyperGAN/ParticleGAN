@@ -25,7 +25,7 @@ _FORMULATION_BF16_ATTRS = {
 }
 
 _FLOAT_OUTPUT_DIRECT_ATTRS = (
-    "_bispf_input",
+    "_bispf_input", "_bispf_record",
     "_empf_input", "_empf_record", "_empf_conditioned", "_empf_cond_tensors",
     "_t2_input", "_t2_record", "_t2_conditioned", "_t2_cond_tensors",
     "_rhbi_record", "_rhbi_thermally_scaled",
@@ -643,7 +643,7 @@ class GANTrainer:
             raise ValueError("pass sampled row IDs as indices or rows, not both")
         if self._in_training_step and self._bf16_generator and latent.device.type == "cuda":
             with torch.autocast("cuda", dtype=torch.bfloat16):
-                return _float_output(self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
+                return float_output(self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
                                     rows=indices if rows is None else rows))
         return self.policy.generate(latent, sigma=sigma, stream=stream, model=model,
                                     rows=indices if rows is None else rows)

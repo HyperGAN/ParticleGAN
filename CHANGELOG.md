@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+- **Public training-precision helpers (`particlegan`, `particlegan.training`) and Unified-v11/v12 BF16 `fwAD` hardening:**
+  - Exported `float_output`, `uses_channels_last`, `uses_bf16_autocast`, `configure_bf16_autocast`, and `critic_source_context` (with `_float_output` / `_convolution_autocast` retained as compatibility aliases) so external hosts like HyperGAN share exact `GANTrainer` BF16+NHWC parity without duplicating private capture-attribute lists or `_t2_pending_source_key` tracking.
+  - Preserved `_bispf_record`, `_t1c_bypassed`, `_nash_v3_*`, and `_minimal_*` capture attributes, `dict` subclass containers, and `fwAD` dual tangents in `float_output`.
+  - Extended `UnifiedV11CriticPenalty._eval_image_fwad_sq` to attach the BF16 dual hook to `_InstanceNorm` layers and cleanly fall back to FP32 `fwAD` whenever BF16 is active on a non-BN critic.
+
 ## 0.12.0 — 2026-11-23
 
 - **Promote `unified_v12` (`DEFAULT_RECIPE = "unified_v12"`) as the energy-optimal 4-Law research default (PR #615, PR #620).**
