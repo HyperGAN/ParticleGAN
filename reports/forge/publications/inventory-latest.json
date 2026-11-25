@@ -3,8 +3,8 @@
   "dry_run": false,
   "files": {
     "README.md": {
-      "bytes": 3967,
-      "sha256": "f55f0bc2f93c18dd826742901874ca6031b979ae96b8ce1ea59fd03567059ce8"
+      "bytes": 3966,
+      "sha256": "9fc0ecd672c36453180cbe548ee477528007cf3bb4eda831946162cc81a69938"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,31 +12,31 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 12161,
-      "rows": 101,
-      "sha256": "30650e8150f408166f848d5b2f9e11b97444f5d6f43f9341e01e6f8c633675d0"
+      "bytes": 10550,
+      "rows": 35,
+      "sha256": "508b100de5deaee4f3f37deb6dc00ffb6aa03ea9f3fbf1b674d58f0e6e2e062f"
     },
     "data/leaderboard.json": {
-      "bytes": 2513945,
+      "bytes": 2509727,
       "families": 12,
-      "sha256": "624e5d346e0e6ef6867f441b23795222e9ea6fc46df16dfa0e890d64747639c4",
+      "sha256": "629c3fe7fa3129eca16cada00df95cf7c797904a90f8be2df73ea8ad18098f16",
       "tasks": 1532
     },
     "data/leaderboard.parquet": {
-      "bytes": 27575,
+      "bytes": 27686,
       "rows": 12,
-      "sha256": "ca22627c06112d3d70e8f8fdaeb6047d8cbfcdc66310d237d61fa7495bb64065"
+      "sha256": "56f56fb984508b8689a9b20b4ba599bc0f7d666e7f8fefc4fe379c4e1c5d60f4"
     },
     "data/receipts.parquet": {
-      "bytes": 808067,
-      "rows": 4009,
-      "sha256": "60d9b927f9ad7d9ae44ab8cff878c29e5dc77306f8eef61fb6a6ef58c1474ce1"
+      "bytes": 850366,
+      "rows": 4147,
+      "sha256": "ee42300a296354fc3d90195fb161a843f401eb3050e0c87c4ba2a4d4dd947d95"
     }
   },
-  "git_source_commit": "9171d67cdce58eeee4d742a8a0a94ee6ad1f9362",
-  "hf_revision": "519558716abce2015dbb856c5c8a32b66ece3575",
+  "git_source_commit": "6095773ef8ffc874a0f21d9e4b80914affb2ea17",
+  "hf_revision": "c4d7dc263ad0d24d5f33959a71b48e0ee207780f",
   "inventory": true,
-  "published_at": "2026-11-25T14:52:44Z",
+  "published_at": "2026-11-25T18:06:41Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",
