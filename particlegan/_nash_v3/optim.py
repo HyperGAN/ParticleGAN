@@ -163,7 +163,7 @@ def _eval_probe_forward(
         use_bf16 = (
             first_p is not None
             and first_p.device.type == "cuda"
-            and getattr(module, "_nash_v3_bf16_autocast", False)
+            and bool(getattr(module, "_particlegan_bf16_autocast", getattr(module, "_nash_v3_bf16_autocast", False)))
         )
         if use_bf16:
             with torch.autocast("cuda", dtype=torch.bfloat16):

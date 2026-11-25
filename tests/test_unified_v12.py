@@ -680,3 +680,115 @@ def test_unified_v12_clockfree_audit(tmp_path: Path) -> None:
     assert audit["unexplained_clock_dependencies"] == []
     assert len(comparisons) == 4
     assert all(item["reference_sha256"] == item["changed_sha256"] for item in comparisons)
+
+
+def test_unified_v12_foreach_slow_moment_and_flip_sketch_exact_parity() -> None:
+    """Vectorized foreach slow-moment path and zero-copy flip sketch match scalar fallback."""
+    torch.manual_seed(0)
+    devices = [torch.device("cpu")]
+    if torch.cuda.is_available():
+        devices.append(torch.device("cuda"))
+
+    for dev in devices:
+        # 1. _sketch_grad_67_finite matches _sketch_grad_67 across shapes, rolls, and channels_last
+        for shape, use_cl in (
+            ((3, 5), False),
+            ((8, 9), False),
+            ((67,), False),
+            ((68,), False),
+            ((134,), False),
+            ((135,), False),
+            ((16, 8, 3, 3), True),
+        ):
+            g_t = torch.randn(shape, device=dev)
+            if use_cl:
+                g_t = g_t.to(memory_format=torch.channels_last)
+            for roll in (0, 13, 66):
+                ref_sk = v12_opt_mod._sketch_grad_67(g_t, roll)
+                fast_sk = v12_opt_mod._sketch_grad_67_finite(g_t, roll)
+                assert torch.allclose(fast_sk, ref_sk, atol=1e-6, rtol=1e-6)
+
+        # 2. Multi-step stiff_gate=0.5 & 1.0 parity (4D channels_last conv + 2D NS linear + 1D bias + scalar 1D)
+        conv_a = nn.Conv2d(3, 8, 3, padding=1).to(dev)
+        lin_a = nn.Linear(8, 12).to(dev)
+        sc_a = nn.Parameter(torch.randn(1, device=dev))
+        if dev.type == "cuda":
+            conv_a.to(memory_format=torch.channels_last)
+        conv_b = nn.Conv2d(3, 8, 3, padding=1).to(dev)
+        lin_b = nn.Linear(8, 12).to(dev)
+        sc_b = nn.Parameter(sc_a.detach().clone())
+        if dev.type == "cuda":
+            conv_b.to(memory_format=torch.channels_last)
+        conv_b.load_state_dict(conv_a.state_dict())
+        lin_b.load_state_dict(lin_a.state_dict())
+
+        params_a = [*conv_a.parameters(), *lin_a.parameters(), sc_a]
+        params_b = [*conv_b.parameters(), *lin_b.parameters(), sc_b]
+        opt_vec = UnifiedV12Optimizer(
+            [{"params": params_a, "role": "generator", "lr": 0.014}],
+            smoothing=0.0061,
+            direction_blend=True,
+        )
+        opt_ref = UnifiedV12Optimizer(
+            [{"params": params_b, "role": "generator", "lr": 0.014}],
+            smoothing=0.0061,
+            direction_blend=True,
+        )
+        rec_a, rec_b = UnifiedV11StepRecord(), UnifiedV11StepRecord()
+        rec_a._thermal_scale = rec_b._thermal_scale = 1.0
+        opt_vec._unified_v11_record = rec_a
+        opt_ref._unified_v11_record = rec_b
+        opt_vec._ema_func_gain = opt_ref._ema_func_gain = 0.45  # stiff_gate = 0.5 (has_smooth=True)
+
+        def _force_scalar(batch_items, **kw):
+            return (
+                0.0,
+                0,
+                kw["v4_g_scale_f"],
+                kw["v4_pre_g_f"],
+                kw["od_f"],
+                kw["pre_gain_applied"],
+                list(batch_items),
+            )
+
+        opt_ref._apply_slow_moment_batch_foreach = _force_scalar
+
+        with mock.patch.object(torch.Tensor, "new_tensor", _forbid):
+            for step_i in range(4):
+                if step_i == 2:
+                    opt_vec._ema_func_gain = opt_ref._ema_func_gain = 0.25  # stiff_gate = 1.0
+                for idx_p, (pa, pb) in enumerate(zip(params_a, params_b)):
+                    g = torch.randn_like(pa) * (0.02 * (step_i + 1))
+                    if step_i == 3 and idx_p == 0:
+                        g = g * 1e-25  # extreme sub-threshold fallback mix
+                    elif step_i == 3 and idx_p == 1:
+                        g = torch.zeros_like(pa)
+                    elif step_i == 3 and idx_p == 2:
+                        g = g.clone()
+                        g.view(-1)[0] = float("nan")
+                    pa.grad = g.clone()
+                    pb.grad = g.clone()
+                opt_vec.bind_v4_modulation(
+                    g_scale=torch.tensor(0.9, device=dev),
+                    wakeup_boost=torch.tensor(1.1, device=dev),
+                )
+                opt_ref.bind_v4_modulation(
+                    g_scale=torch.tensor(0.9, device=dev),
+                    wakeup_boost=torch.tensor(1.1, device=dev),
+                )
+                opt_vec.bind_protected_from_grads()
+                opt_ref.bind_protected_from_grads()
+                opt_vec.step()
+                opt_ref.step()
+
+        for pa, pb in zip(params_a, params_b):
+            assert torch.allclose(pa.detach(), pb.detach(), atol=1e-5, rtol=1e-5)
+            sa, sb = opt_vec.state[pa], opt_ref.state[pb]
+            assert set(sa.keys()) == set(sb.keys())
+            for k in ("m_unit", "v_rms", "m_scale", "v_scale", "peak_rms"):
+                assert torch.allclose(sa[k], sb[k], atol=1e-5, rtol=1e-5)
+        assert abs(opt_vec._ema_flip_cos - opt_ref._ema_flip_cos) < 1e-6
+        assert abs(opt_vec._ema_func_gain - opt_ref._ema_func_gain) < 1e-6
+        if dev.type == "cuda":
+            assert conv_a.weight.is_contiguous(memory_format=torch.channels_last)
+        opt_vec.validate_state_dict(opt_vec.state_dict())

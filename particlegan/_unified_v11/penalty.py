@@ -410,6 +410,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
         salt: int,
         dim: int,
         has_batchnorm: bool,
+        has_instancenorm: bool = False,
         critic_module: Optional[nn.Module],
         quantized_fprop: bool,
     ) -> torch.Tensor:
@@ -418,25 +419,30 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
         u_p = _universal_image_unit_tangent(x_probe, phi, salt=salt)
         bn_modes = []
         bn_hooks = []
-        use_bf16_dual_hook = bool(
-            has_batchnorm
-            and x_probe.is_cuda
-            and isinstance(critic_module, nn.Module)
+        bf16_active = bool(
+            x_probe.is_cuda
             and (
-                bool(getattr(critic_module, "bf16", False))
+                (isinstance(critic_module, nn.Module) and bool(getattr(critic_module, "bf16", False)))
                 or (
                     torch.is_autocast_enabled("cuda")
                     and torch.get_autocast_dtype("cuda") == torch.bfloat16
                 )
             )
         )
-        if has_batchnorm and isinstance(critic_module, nn.Module):
+        use_bf16_dual_hook = bool(
+            (has_batchnorm or has_instancenorm)
+            and bf16_active
+            and isinstance(critic_module, nn.Module)
+        )
+        if (has_batchnorm or (has_instancenorm and use_bf16_dual_hook)) and isinstance(critic_module, nn.Module):
             for mod in critic_module.modules():
-                if isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
+                if has_batchnorm and isinstance(mod, torch.nn.modules.batchnorm._BatchNorm):
                     bn_modes.append((mod, mod.training))
                     mod.eval()
                     if use_bf16_dual_hook:
                         bn_hooks.append(mod.register_forward_hook(_bn_dual_bf16_hook))
+                elif has_instancenorm and use_bf16_dual_hook and isinstance(mod, torch.nn.modules.instancenorm._InstanceNorm):
+                    bn_hooks.append(mod.register_forward_hook(_bn_dual_bf16_hook))
         try:
             if not quantized_fprop:
                 try:
@@ -454,12 +460,12 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                     j2d = _format_logits_2d(jvp.float(), b_p)
                     return float(dim) * j2d.square().mean(dim=-1)
                 except (RuntimeError, NotImplementedError, TypeError):
-                    if use_bf16_dual_hook and isinstance(critic_module, nn.Module):
-                        # Clean FP32 fwAD fallback if an exotic custom norm layer disagrees with BF16 duals.
+                    if bf16_active:
+                        # Clean FP32 fwAD fallback if an exotic norm/custom layer disagrees with BF16 duals.
                         for h in bn_hooks:
                             h.remove()
                         bn_hooks.clear()
-                        prev_bf16 = bool(getattr(critic_module, "bf16", False))
+                        prev_bf16 = isinstance(critic_module, nn.Module) and bool(getattr(critic_module, "bf16", False))
                         if prev_bf16:
                             critic_module.bf16 = False
                         try:
@@ -505,6 +511,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
         live_rep: Optional[Callable[[torch.Tensor, int], torch.Tensor]] = None,
         quantized_fprop: bool = False,
         has_batchnorm: bool = False,
+        has_instancenorm: bool = False,
         critic_module: Optional[nn.Module] = None,
     ) -> Tuple[torch.Tensor, Dict[str, Any]]:
         is_image_tensor = x_real.ndim >= 3 and self.input_domain != "continuous"
@@ -642,6 +649,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                         salt=3,
                         dim=dim,
                         has_batchnorm=has_batchnorm,
+                        has_instancenorm=has_instancenorm,
                         critic_module=critic_module,
                         quantized_fprop=quantized_fprop,
                     )
@@ -659,6 +667,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                         salt=3,
                         dim=dim,
                         has_batchnorm=has_batchnorm,
+                        has_instancenorm=has_instancenorm,
                         critic_module=critic_module,
                         quantized_fprop=quantized_fprop,
                     )
@@ -669,6 +678,7 @@ class _UnifiedV11PenaltyKernel(_UnifiedPenaltyKernel):
                         salt=11,
                         dim=dim,
                         has_batchnorm=has_batchnorm,
+                        has_instancenorm=has_instancenorm,
                         critic_module=critic_module,
                         quantized_fprop=quantized_fprop,
                     )
@@ -774,6 +784,9 @@ class UnifiedV11CriticPenalty(_K3PCriticPenalty):
         self._has_batchnorm = isinstance(self.critic, nn.Module) and any(
             isinstance(m, torch.nn.modules.batchnorm._BatchNorm) for m in self.critic.modules()
         )
+        self._has_instancenorm = isinstance(self.critic, nn.Module) and any(
+            isinstance(m, torch.nn.modules.instancenorm._InstanceNorm) for m in self.critic.modules()
+        )
         self._has_batch_distance = isinstance(self.critic, nn.Module) and any(
             isinstance(m, BatchDistanceDiscriminator) for m in self.critic.modules()
         )
@@ -874,6 +887,7 @@ class UnifiedV11CriticPenalty(_K3PCriticPenalty):
             live_rep=live_rep,
             quantized_fprop=quantized_fprop,
             has_batchnorm=self._has_batchnorm,
+            has_instancenorm=self._has_instancenorm,
             critic_module=critic,
         )
         self.last_stats = stats
