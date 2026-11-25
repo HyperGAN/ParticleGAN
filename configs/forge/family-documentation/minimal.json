@@ -17,7 +17,7 @@
     "critic_penalty": "Parity-interleaved 1st-order Born-Infeld secant critic regularizer (`critic_formulation=\"minimal\"`, zero `torch.autograd.grad`) with zero-mean logit gauge.",
     "damping_and_guards": "MinimalStepRecord instance-bound state dict carrying transport EMA, 384-pair conditional FIFO ring, and realized pushforward secant state; strict clock-free invariance (`clockfree_audit_measurement_v1` PASS).",
     "noise": "No scheduled additive critic-input or generator-output training noise (`0.0`). Task-declared MoG intrinsic sigma is preserved.",
-    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+    "averaging": "Generator EMA decay=$`0`$ and serve_average=$`0`$; all evaluations score live unaveraged weights."
   },
   "configuration_notes": [
     "Minimal is registered as the compact <900-LOC fast core (899 LOC across 5 files, 4.8x smaller than unified-v10 and 9.6x smaller than the combined Round-3 packages) and does not replace Unified as DEFAULT_RECIPE.",
@@ -49,7 +49,7 @@
   "equations": [
     {
       "label": "Dynamic-1e-38 Scale-Normalized Elementwise Equilibration",
-      "latex": "\\tilde g_p = \\frac{g_p}{s_p},\\qquad \\Delta\\theta_p = -\\eta\\,\\operatorname{clip}\\!\\left(\\frac{\\tilde g_p}{\\sqrt{\\operatorname{EMA}(\\tilde g_p^2)+\\epsilon}},\\;\\tau_{\\mathrm{secant}}\\right)",
+      "latex": "\\tilde g_p = \\frac{g_p}{s_p},\\qquad \\Delta\\theta_p = -\\eta\\thinspace\\mathrm{clip}\\left(\\frac{\\tilde g_p}{\\sqrt{\\mathrm{EMA}(\\tilde g_p^2)+\\epsilon}},\\enspace\\tau_{\\mathrm{secant}}\\right)",
       "explanation": "Preconditions gradients across vanishing and overflowing layers in O(params) without SVD, eigh, or Newton-Schulz, bounded by realized generator pushforward secant trust."
     }
   ],

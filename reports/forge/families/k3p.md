@@ -101,12 +101,12 @@ flowchart TD
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\epsilon_{\mathrm{in}})$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $(a)_+=\max(a,0)$ and $\operatorname{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $\bar C$ evaluates the critic parameter EMA with the same fresh-input-noise law as $C$. $A$ is the early RMS-scaled penalty, $B_{\mathrm{cap}}$ the late L2 cap term and $P_{\mathrm{anchor}}$ the dimension-normalized gradient proximity. $w$ is the configured anchor weight. $r$ is last applied critic LR divided by its largest recorded LR; $f$ is the resolved network LR floor fraction; $s$ is the early-penalty weight. $h_i$ is latent row $i$'s current gradient, $h_i^{\mathrm{prev}}$ its last observed gradient, $\rho_i$ the A2 response multiplier and $\Delta z_i$ the corresponding row update. $\operatorname{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\epsilon_{\mathrm{in}})`$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $`(a)_+=\max(a,0)`$ and $\mathrm{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $\bar C$ evaluates the critic parameter EMA with the same fresh-input-noise law as $C$. $A$ is the early RMS-scaled penalty, $`B_{\mathrm{cap}}`$ the late L2 cap term and $`P_{\mathrm{anchor}}`$ the dimension-normalized gradient proximity. $w$ is the configured anchor weight. $r$ is last applied critic LR divided by its largest recorded LR; $f$ is the resolved network LR floor fraction; $s$ is the early-penalty weight. $h_i$ is latent row $i$'s current gradient, $h_i^{\mathrm{prev}}$ its last observed gradient, $\rho_i$ the A2 response multiplier and $\Delta z_i$ the corresponding row update. $\mathrm{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history.
 
 **Default paired adversarial loss**
 
 $$
-\begin{aligned}\ell_D&=\mathbb E\!\left[\operatorname{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\!\left[\operatorname{softplus}(C(x)-C(y))\right].\end{aligned}
+\begin{aligned}\ell_D&=\mathbb E\left[\mathrm{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\left[\mathrm{softplus}(C(x)-C(y))\right].\end{aligned}
 $$
 
 These scalar losses are minimized. The critic objective is $\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise.
@@ -114,23 +114,23 @@ These scalar losses are minimized. The critic objective is $\ell_D+R$; the gener
 **Early, capped and anchor terms**
 
 $$
-\begin{aligned} A&=\mathbb E\!\left[\frac{\lVert g_r\rVert_2^2}{d}\right]+\mathbb E\!\left[\left(\frac{\lVert g_f\rVert_2}{\sqrt d}-\kappa\right)_+^2\right],\\ B_{\mathrm{cap}}&=\mathbb E\!\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\!\left[(\lVert g_f\rVert_2-\kappa)_+^2\right],\\ P_{\mathrm{anchor}}&=\mathbb E\!\left[\frac{\lVert g_r-\nabla_x\bar C(x)\rVert_2^2}{d}\right].\end{aligned}
+\begin{aligned} A&=\mathbb E\left[\frac{\lVert g_r\rVert_2^2}{d}\right]+\mathbb E\left[\left(\frac{\lVert g_f\rVert_2}{\sqrt d}-\kappa\right)_+^2\right],\\ B_{\mathrm{cap}}&=\mathbb E\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\left[(\lVert g_f\rVert_2-\kappa)_+^2\right],\\ P_{\mathrm{anchor}}&=\mathbb E\left[\frac{\lVert g_r-\nabla_x\bar C(x)\rVert_2^2}{d}\right].\end{aligned}
 $$
 
-$A$ uses RMS input-gradient units; $B_{\mathrm{cap}}$ uses unnormalized L2 caps. When the anchor first starts, copy the live critic and set $P_{\mathrm{anchor}}=0$ for that call. Subsequent calls evaluate its EMA; its fresh input-noise draws follow the same law as the live critic.
+$A$ uses RMS input-gradient units; $`B_{\mathrm{cap}}`$ uses unnormalized L2 caps. When the anchor first starts, copy the live critic and set $`P_{\mathrm{anchor}}=0`$ for that call. Subsequent calls evaluate its EMA; its fresh input-noise draws follow the same law as the live critic.
 
 **K3P learning-rate handover**
 
 $$
-\begin{aligned}s&=\frac{\max\!\left(0,\min(1,2r)-2f\right)}{1-2f},\\R_{\mathrm{K3P}}&=\frac{\lambda}{2}\left[sA+(1-s)\left(B_{\mathrm{cap}}+wP_{\mathrm{anchor}}\right)\right].\end{aligned}
+\begin{aligned}s&=\frac{\max\left(0,\min(1,2r)-2f\right)}{1-2f},\\R_{\mathrm{K3P}}&=\frac{\lambda}{2}\left[sA+(1-s)\left(B_{\mathrm{cap}}+wP_{\mathrm{anchor}}\right)\right].\end{aligned}
 $$
 
-Before the first critic step, $s=1$. At $s=1$ evaluate $A$ alone; start the anchor only when $s<1$. Constant critic LR keeps the early term active. Lazy cadence $k$ applies $kR_{\mathrm{K3P}}$ every $k$th scheduled call and zero otherwise.
+Before the first critic step, $s=1$. At $s=1$ evaluate $A$ alone; start the anchor only when $`s<1`$. Constant critic LR keeps the early term active. Lazy cadence $k$ applies $`kR_{\mathrm{K3P}}`$ every $`k`$th scheduled call and zero otherwise.
 
 **A2 sparse-row response**
 
 $$
-\begin{aligned}\rho_i&=\begin{cases}0.75+0.25\operatorname{cos}(h_i,h_i^{\mathrm{prev}}),&\text{with row history},\\1,&\text{without row history},\end{cases}\\\Delta z_i^{\mathrm{A2}}&=\rho_i\Delta z_i^{\mathrm{Adam}}.\end{aligned}
+\begin{aligned}\rho_i&=\begin{cases}0.75+0.25\mathrm{cos}(h_i,h_i^{\mathrm{prev}}),&\text{with row history},\\1,&\text{without row history},\end{cases}\\\Delta z_i^{\mathrm{A2}}&=\rho_i\Delta z_i^{\mathrm{Adam}}.\end{aligned}
 $$
 
 A2 acts only on an eligible row-local table with existing Adam state, some zero-gradient rows, and cumulative observed-row fraction below the configured cutoff (baseline $0.5$). Then $\rho_i\in[0.5,1]$. Adam still accumulates the raw gradient second moment; unsupported or ineligible hosts keep their ordinary response.
@@ -169,13 +169,13 @@ For each training iteration:
 
 | Characteristic | Behavior |
 | --- | --- |
-| Adversarial loss | Paired relativistic logistic on raw scores: $D$ minimizes $\mathbb E[\operatorname{softplus}(C(y)-C(x))]$; $G$ reverses the difference. Input noise wraps the critic in both losses and the penalty; fresh noise is drawn per forward. Joint and auxiliary losses are host-owned. |
+| Adversarial loss | Paired relativistic logistic on raw scores: $D$ minimizes $\mathbb E[\mathrm{softplus}(C(y)-C(x))]$; $G$ reverses the difference. Input noise wraps the critic in both losses and the penalty; fresh noise is drawn per forward. Joint and auxiliary losses are host-owned. |
 | Optimizer | K3PCriticAdam and K3PGeneratorAdam wrap PyTorch Adam. Selected moments are $\beta_1=0$, $\beta_2=0.999$, AMSGrad off. The wrappers include critic observation/anchor updates, spike guarding, eligible A2 and optional direct-particle response. |
-| Learning rates and annealing | The public base rate is $0.00425$, critic multiplier $1$ and latent-prior multiplier $2$. The selected whole configuration uses $0.006375$ and prior multiplier $1$. $G$ and $D$ hold through $60\%$ of min(resolved task horizon,$1600$), then cosine-decay to $1\%$; the prior follows its full resolved horizon to $5\%$. Hosts may explicitly bind another horizon or transition. |
+| Learning rates and annealing | The public base rate is $0.00425$, critic multiplier $1$ and latent-prior multiplier $2$. The selected whole configuration uses $0.006375$ and prior multiplier $1$. $G$ and $D$ hold through $`60\%`$ of min(resolved task horizon, $1600$), then cosine-decay to $`1\%`$; the prior follows its full resolved horizon to $`5\%`$. Hosts may explicitly bind another horizon or transition. |
 | Parameter-gradient clipping | The spike guard is adaptive per-tensor clipping: after $200$ prior Adam steps, scale a critic tensor's gradient down when its RMS exceeds $5$ times the RMS predicted by Adam's bias-corrected second moment. It is separate from the input-gradient loss. The family adds no fixed global norm clip. |
-| Critic penalties and anchors | $\lambda=1$ and $\kappa=1$ in the public/selected base. $A$ uses RMS input-gradient units: real squared norm divided by $d$ and fake excess norm divided by $\sqrt d$. The late term adds L2 caps $B_{\mathrm{cap}}$ to weighted dimension-normalized proximity $wP_{\mathrm{anchor}}$. The applied critic LR controls their handover; constant LR keeps $A$ active. |
-| Damping and update guards | A2 is sparse latent-row damping, with $\rho_i$ in $[0.5,1]$ and $\texttt{max\_rate}=0.5$. It changes the row's Adam response while preserving the raw second-moment update. Nonstandardized row-local priors can expose this hook; standardized or unsupported hosts cannot. Direct sample-particle gain is a separate host-bound rule, up to $2$ times LR when centered gradients agree. |
-| Training and sampling noise | Base critic-input standard deviation $0.5$ decreases linearly to zero over the first $10\%$ of the resolved horizon. Generated-output training noise rises from zero to $0.029$ over its first $20\%$. Latent MoG sampling noise is task-owned. Clean gates remove generated-output noise according to their declared sampling law. |
+| Critic penalties and anchors | $\lambda=1$ and $\kappa=1$ in the public/selected base. $A$ uses RMS input-gradient units: real squared norm divided by $d$ and fake excess norm divided by $\sqrt d$. The late term adds L2 caps $`B_{\mathrm{cap}}`$ to weighted dimension-normalized proximity $`wP_{\mathrm{anchor}}`$. The applied critic LR controls their handover; constant LR keeps $A$ active. |
+| Damping and update guards | A2 is sparse latent-row damping, with $\rho_i$ in $[0.5,1]$ and $`\texttt{max\_rate}=0.5`$. It changes the row's Adam response while preserving the raw second-moment update. Nonstandardized row-local priors can expose this hook; standardized or unsupported hosts cannot. Direct sample-particle gain is a separate host-bound rule, up to $2$ times LR when centered gradients agree. |
+| Training and sampling noise | Base critic-input standard deviation $0.5$ decreases linearly to zero over the first $`10\%`$ of the resolved horizon. Generated-output training noise rises from zero to $0.029$ over its first $`20\%`$. Latent MoG sampling noise is task-owned. Clean gates remove generated-output noise according to their declared sampling law. |
 | Parameter averaging and serving | The critic anchor starts at the first blended penalty call, then its parameter EMA has decay $0.999$. Generator/prior averaging is configured at $0.995$ where the host implements it; selected ordinary gates use live weights, not an automatic EMA score. |
 
 ## Configuration differences

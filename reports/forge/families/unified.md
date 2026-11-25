@@ -108,12 +108,12 @@ flowchart TD
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch, and $y=G(z)$ the generated batch of size $B_f$. $r_{\mathrm{loc}}(y_j)=d_{k=4}(y_j,X_{\mathrm{fake}})/d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})$ is the scale-invariant local orphan density ratio, $(W_t,S_c,S_y,S_{cc},S_{cy},S_{yy})$ plus a paired-context FIFO ring ($M=384$) form the zero-eigh conditional fiber operator bank, $Z=[X,Y]\in\mathbb R^{m\times(n+m)}$ is the fused Tikhonov-augmented polar matrix, and $\Delta D_{\mathrm{sec}}$ is the first-order finite-difference / fwAD critic secant slope.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch, and $y=G(z)$ the generated batch of size $B_f$. $`r_{\mathrm{loc}}(y_j)=d_{k=4}(y_j,X_{\mathrm{fake}})/d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})`$ is the scale-invariant local orphan density ratio, $`(W_t,S_c,S_y,S_{cc},S_{cy},S_{yy})`$ plus a paired-context FIFO ring ($M=384$) form the zero-eigh conditional fiber operator bank, $Z=[X,Y]\in\mathbb R^{m\times(n+m)}$ is the fused Tikhonov-augmented polar matrix, and $`\Delta D_{\mathrm{sec}}`$ is the first-order finite-difference / fwAD critic secant slope.
 
 **Scale-Invariant Local k=4 Density-Ratio Orphan Gate**
 
 $$
-r_{\mathrm{loc}}(y_j)=\frac{d_{k=4}(y_j,X_{\mathrm{fake}})}{d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\{y_j\})},\qquad g_{\mathrm{orphan}}(y_j)=\operatorname{smoothstep}\!\left(\frac{r_{\mathrm{loc}}(y_j)-3.52}{1.30}\right)
+r_{\mathrm{loc}}(y_j)=\frac{d_{k=4}(y_j,X_{\mathrm{fake}})}{d_{k=4}(y_j,Y_{\mathrm{real}}\setminus\lbrace y_j\rbrace)},\qquad g_{\mathrm{orphan}}(y_j)=\mathrm{smoothstep}\left(\frac{r_{\mathrm{loc}}(y_j)-3.52}{1.30}\right)
 $$
 
 Detects genuinely uncaptured orphan modes invariant to per-component spatial scale, avoiding over-pulling small-scale components on heteroscedastic mixtures while rescuing equidistant shifted modes.
@@ -121,7 +121,7 @@ Detects genuinely uncaptured orphan modes invariant to per-component spatial sca
 **Zero-eigh Conditional Fiber Operator Cooling Law**
 
 $$
-r_{\mathrm{cond}}=r_{\mathrm{imq}}+\min\!\left(0.5,\;0.11\,\max(0,\;r_{\mathrm{op,worst}}-0.10)\right),\qquad s_{\mathrm{step}}=1-0.85\,\operatorname{smoothstep}\!\left(\frac{0.050-\max(0,\bar r_{\mathrm{cond}})}{0.024}\right)
+r_{\mathrm{cond}}=r_{\mathrm{imq}}+\min\left(0.5,\enspace0.11\thinspace\max(0,\enspace r_{\mathrm{op,worst}}-0.10)\right),\qquad s_{\mathrm{step}}=1-0.85\thinspace\mathrm{smoothstep}\left(\frac{0.050-\max(0,\bar r_{\mathrm{cond}})}{0.024}\right)
 $$
 
 Couples hollow multi-scale IMQ-CMMD with worst-stratum cyclic-Jacobi whitened operator discrepancy to stabilize conditional reverse-diffusion chains without torch.linalg.eigh.
@@ -146,11 +146,11 @@ For each task-owned training update:
 | Adversarial loss | Selectable non-saturating logistic (selected configuration) augmented with Sinkhorn-debiased relativistic transport, scale-invariant k=4 density-ratio orphan macro-transport, core-ball Burg covariance matching, and zero-eigh cross-batch conditional fiber operator matching (IMQ-CMMD + whitened stratum mean/covariance + paired-context ring local covariance) on conditioned hosts. |
 | Optimizer | UnifiedV11EquilibratedOptimizer (optimizer_family="unified_v11_equil", zero momentum, smoothing 0.0061, BF16 channels-last conv training, direction_blend constraint geometry): dynamic-1e-38 Marchenko-Pastur scaling, fused Z=[X,Y] 5-step Quintic Tikhonov polar (FP32 for m<64, BF16 for 64<=m<=128, zero torch.linalg.svd/eigh/pinv), realized generator pushforward secant trust band, and closed-form 1x1/2x2 analytic non-ascent projection. |
 | Learning rates and annealing | Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.014$, critic multiplier $1.5$, and prior multiplier $2.9$ (`prior_reg=0.02`). |
-| Parameter-gradient clipping | None. Step equilibration operates through dynamic-$10^{-38}$ scale normalization, fused Quintic Tikhonov polar projection, and realized pushforward secant trust without hard parameter clipping. |
+| Parameter-gradient clipping | None. Step equilibration operates through dynamic-$`10^{-38}`$ scale normalization, fused Quintic Tikhonov polar projection, and realized pushforward secant trust without hard parameter clipping. |
 | Critic penalties and anchors | First-order Born-Infeld secant critic regularizer (`critic_formulation="unified_v11"`, `ebi_beta=12.0`, `reg_coeff=1.0`, `reg_kappa=1.0`, zero `torch.autograd.grad`) evaluated along endpoints and transport chords with zero-mean logit gauge and state-driven thermal settling. |
 | Damping and update guards | Instance-bound checkpointed step record carrying shock-filtered transport EMA, conditional fiber bank sufficient statistics and 384-pair FIFO ring, worst-stratum operator-gated conditional cooling, thermal-safe precision gating, and per-group depth accounting; zero global state and zero step counters. |
 | Training and sampling noise | No scheduled additive critic-input or generator-output training noise (`input_noise_std=0.0`, `output_noise_std=0.0`). Task-declared MoG intrinsic sigma is preserved. |
-| Parameter averaging and serving | Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights. |
+| Parameter averaging and serving | Generator EMA decay=$`0`$ and serve_average=$`0`$; all evaluations score live unaveraged weights. |
 
 ## Configuration differences
 

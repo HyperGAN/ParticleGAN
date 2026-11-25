@@ -1,6 +1,6 @@
 {
   "overview": "K3P without critic penalty sets the full critic regularization coefficient to zero. That removes both its early gradient regularization and its later caps and anchor contribution from the objective. K3P's optimizer interventions remain, so this is a test of critic regularization rather than plain Adam training.",
-  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\\epsilon_{\\mathrm{in}})$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $(a)_+=\\max(a,0)$ and $\\operatorname{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $h_i$ is latent row $i$'s current gradient, $h_i^{\\mathrm{prev}}$ its last observed gradient, $\\rho_i$ the A2 response multiplier and $\\Delta z_i$ the corresponding row update. $\\operatorname{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history. For the guard, $g_p$ is a critic tensor gradient, $v_p$ its Adam second moment, $\\tau_p$ its stored step count and $c_{\\mathrm{guard}}$ its threshold.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\\epsilon_{\\mathrm{in}})`$ with a fresh draw. $\\mathbb E$ means a sample mean, $\\lVert\\cdot\\rVert_2$ is the Euclidean norm, $`(a)_+=\\max(a,0)`$ and $\\mathrm{softplus}(a)=\\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $h_i$ is latent row $i$'s current gradient, $h_i^{\\mathrm{prev}}$ its last observed gradient, $\\rho_i$ the A2 response multiplier and $\\Delta z_i$ the corresponding row update. $\\mathrm{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history. For the guard, $g_p$ is a critic tensor gradient, $v_p$ its Adam second moment, $\\tau_p$ its stored step count and $`c_{\\mathrm{guard}}`$ its threshold.",
   "pseudocode": [
     "Start from the K3P recipe and apply: coefficient = 0; penalty = 0",
     "For each training iteration:",
@@ -20,9 +20,9 @@
     "  Maintain any configured moving averages; score with the task's declared weights and sampling law."
   ],
   "training_details": {
-    "loss": "Paired relativistic logistic by default: critic $\\mathbb E[\\operatorname{softplus}(C(y)-C(x))]$; generator reverses that score difference. Task-owned joint or reconstruction terms remain separate.",
+    "loss": "Paired relativistic logistic by default: critic $\\mathbb E[\\mathrm{softplus}(C(y)-C(x))]$; generator reverses that score difference. Task-owned joint or reconstruction terms remain separate.",
     "optimizer": "Inherited K3P Adam wrappers for critic and generator/prior, with recipe-specific moments and per-role rates. This ablation does not switch to native Adam without interventions.",
-    "learning_rates": "Inherited scheduled training. $G$ and $D$ use the network cosine schedule, capped at a configured horizon; the learned prior uses its full-budget cosine schedule. In the public baseline, rates hold through $60\\%$ of their horizon before decaying to their floors. Resolved recorded configurations own exact rates and horizons.",
+    "learning_rates": "Inherited scheduled training. $G$ and $D$ use the network cosine schedule, capped at a configured horizon; the learned prior uses its full-budget cosine schedule. In the public baseline, rates hold through $`60\\%`$ of their horizon before decaying to their floors. Resolved recorded configurations own exact rates and horizons.",
     "gradient_clipping": "Adaptive per-tensor critic gradient scaling remains via the spike guard; it is clipping-like and uses Adam second-moment history rather than a fixed global norm threshold. No generic global gradient-norm clipping is added by this candidate.",
     "critic_penalty": "Disabled: coefficient zero removes the entire K3P penalty, including the anchor contribution. The optimizer can retain anchor bookkeeping, which contributes no penalty to the objective.",
     "damping_and_guards": "A2 acts only on eligible sparse latent rows: responses are scaled within $[0.5,1]$ according to consecutive gradient agreement, while Adam's second moment still tracks the raw gradient. The critic spike guard remains. Direct sample-particle gain is a separate inherited, host-dependent mechanism; it does not automatically apply to every learned prior. A2 activates only when some rows have zero gradient, the cumulative observed-row fraction is below the configured max_rate (baseline $0.5$), and Adam state exists; missing row history gives scale $1$.",
@@ -62,7 +62,7 @@
   "equations": [
     {
       "label": "Default paired adversarial loss",
-      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\!\\left[\\operatorname{softplus}(C(x)-C(y))\\right].\\end{aligned}",
+      "latex": "\\begin{aligned}\\ell_D&=\\mathbb E\\left[\\mathrm{softplus}(C(y)-C(x))\\right],\\\\\\ell_G&=\\mathbb E\\left[\\mathrm{softplus}(C(x)-C(y))\\right].\\end{aligned}",
       "explanation": "These scalar losses are minimized. The critic objective is $\\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise."
     },
     {
@@ -72,13 +72,13 @@
     },
     {
       "label": "A2 sparse-row response",
-      "latex": "\\begin{aligned}\\rho_i&=\\begin{cases}0.75+0.25\\operatorname{cos}(h_i,h_i^{\\mathrm{prev}}),&\\text{with row history},\\\\1,&\\text{without row history},\\end{cases}\\\\\\Delta z_i^{\\mathrm{A2}}&=\\rho_i\\Delta z_i^{\\mathrm{Adam}}.\\end{aligned}",
+      "latex": "\\begin{aligned}\\rho_i&=\\begin{cases}0.75+0.25\\mathrm{cos}(h_i,h_i^{\\mathrm{prev}}),&\\text{with row history},\\\\1,&\\text{without row history},\\end{cases}\\\\\\Delta z_i^{\\mathrm{A2}}&=\\rho_i\\Delta z_i^{\\mathrm{Adam}}.\\end{aligned}",
       "explanation": "A2 acts only on an eligible row-local table with existing Adam state, some zero-gradient rows, and cumulative observed-row fraction below the configured cutoff (baseline $0.5$). Then $\\rho_i\\in[0.5,1]$. Adam still accumulates the raw gradient second moment; unsupported or ineligible hosts keep their ordinary response."
     },
     {
       "label": "Adam-state critic spike guard",
-      "latex": "\\begin{aligned}v_p^{\\mathrm{RMS}}&=\\frac{\\operatorname{mean}(v_p)}{1-\\beta_2^{\\tau_p}},\\\\u_p&=\\frac{\\operatorname{RMS}(g_p)}{\\sqrt{\\max(v_p^{\\mathrm{RMS}},10^{-30})}},\\\\g_p^{\\mathrm{guarded}}&=\\begin{cases}\\dfrac{c_{\\mathrm{guard}}}{u_p}g_p,&\\tau_p\\ge\\tau_{\\min}\\text{ and }u_p>c_{\\mathrm{guard}},\\\\g_p,&\\text{otherwise}.\\end{cases}\\end{aligned}",
-      "explanation": "This clipping rule applies per critic tensor only after its Adam history reaches the declared warmup (baseline $\\tau_{\\min}=200$ steps). $g_p$ is its parameter gradient, $v_p$ the stored second moment, $\\tau_p$ its Adam step count and $c_{\\mathrm{guard}}=5$ the baseline threshold. With AMSGrad use its stored running maximum. Before warmup the guard leaves gradients unchanged."
+      "latex": "\\begin{aligned}v_p^{\\mathrm{RMS}}&=\\frac{\\mathrm{mean}(v_p)}{1-\\beta_2^{\\tau_p}},\\\\u_p&=\\frac{\\mathrm{RMS}(g_p)}{\\sqrt{\\max(v_p^{\\mathrm{RMS}},10^{-30})}},\\\\g_p^{\\mathrm{guarded}}&=\\begin{cases}\\dfrac{c_{\\mathrm{guard}}}{u_p}g_p,&\\tau_p\\ge\\tau_{\\min}\\text{ and }u_p>c_{\\mathrm{guard}},\\\\g_p,&\\text{otherwise}.\\end{cases}\\end{aligned}",
+      "explanation": "This clipping rule applies per critic tensor only after its Adam history reaches the declared warmup (baseline $`\\tau_{\\min}=200`$ steps). $g_p$ is its parameter gradient, $v_p$ the stored second moment, $\\tau_p$ its Adam step count and $`c_{\\mathrm{guard}}=5`$ the baseline threshold. With AMSGrad use its stored running maximum. Before warmup the guard leaves gradients unchanged."
     }
   ],
   "law_mechanisms": {

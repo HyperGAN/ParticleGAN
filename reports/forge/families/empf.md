@@ -104,23 +104,23 @@ flowchart TD
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch and $y=G(z)$ the generated batch of size $B_f$. $(S, N)$ is the online prototype bank of size $K=\min(K_{\max}, B_r)$ with centroids $C_k=S_k/N_k$ and normalized row masses $w_k=N_k/\sum_j N_j$. $\Pi$ is the entropic Optimal Transport coupling matching row marginals $w$ to uniform column marginals $1/B_f$, $x_{\mathrm{chord}}=(1-u)y+u C_{\pi}$ is a stratified prototype transport chord, and $g_r, g_f, g_c$ are critic input gradients.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $M$ locations in $\mathbb R^{d_z}$, $x$ a real batch of size $B_r$, $z\sim P$ a latent batch and $y=G(z)$ the generated batch of size $B_f$. $(S, N)$ is the online prototype bank of size $`K=\min(K_{\max}, B_r)`$ with centroids $C_k=S_k/N_k$ and normalized row masses $w_k=N_k/\sum_j N_j$. $\Pi$ is the entropic Optimal Transport coupling matching row marginals $w$ to uniform column marginals $1/B_f$, $`x_{\mathrm{chord}}=(1-u)y+u C_{\pi}`$ is a stratified prototype transport chord, and $g_r, g_f, g_c$ are critic input gradients.
 
 **Clock-Free Online e-means Sufficient-Statistics Prototype Update**
 
 $$
-S_k^{(t)}=(1-\alpha_{\mathrm{eff}})S_k^{(t-1)}+\alpha_{\mathrm{eff}}\sum_{i:a_i=k}x_i,\quad N_k^{(t)}=(1-\alpha_{\mathrm{eff}})N_k^{(t-1)}+\alpha_{\mathrm{eff}}\,|\{i:a_i=k\}|,\quad \alpha_{\mathrm{eff}}=\operatorname{clip}\!\left(\alpha_0(B_r/K)^\eta,\alpha_{\min},\alpha_{\max}\right)
+S_k^{(t)}=(1-\alpha_{\mathrm{eff}})S_k^{(t-1)}+\alpha_{\mathrm{eff}}\sum_{i:a_i=k}x_i,\quad N_k^{(t)}=(1-\alpha_{\mathrm{eff}})N_k^{(t-1)}+\alpha_{\mathrm{eff}}\thinspace|\lbrace i:a_i=k\rbrace|,\quad \alpha_{\mathrm{eff}}=\mathrm{clip}\left(\alpha_0(B_r/K)^\eta,\alpha_{\min},\alpha_{\max}\right)
 $$
 
-Maintains denoised online centroids $C_k=S_k/N_k$ and normalized mode-mass shares $w_k=N_k/\sum_j N_j$ without dataset-size or epoch-horizon clocks; prototypes with $N_k<\tau_{\mathrm{rev}}\bar N$ split the heaviest donor deterministically.
+Maintains denoised online centroids $C_k=S_k/N_k$ and normalized mode-mass shares $w_k=N_k/\sum_j N_j$ without dataset-size or epoch-horizon clocks; prototypes with $`N_k<\tau_{\mathrm{rev}}\bar N`$ split the heaviest donor deterministically.
 
 **Prototype-Chord Elastic Born-Infeld Penalty and Zero-Mean Gauge**
 
 $$
-R_{\mathrm{EMPF}}=\frac{\lambda_{\mathrm{floor}}}{6d}\mathbb E\!\left[\lVert g_r\rVert_2^2+\lVert g_f\rVert_2^2+\lVert g_c\rVert_2^2\right]+\frac{\lambda_{\mathrm{cap}}}{2}\mathbb E\!\left[\phi_\beta(\lVert g_r\rVert_2-\kappa)^2+(1-\alpha_c)\phi_\beta(\lVert g_f\rVert_2-\kappa)^2+\alpha_c\phi_\beta(\lVert g_c\rVert_2-\kappa)^2\right]+\frac{\gamma_{\mathrm{gauge}}}{2}\bar D^2
+R_{\mathrm{EMPF}}=\frac{\lambda_{\mathrm{floor}}}{6d}\mathbb E\left[\lVert g_r\rVert_2^2+\lVert g_f\rVert_2^2+\lVert g_c\rVert_2^2\right]+\frac{\lambda_{\mathrm{cap}}}{2}\mathbb E\left[\phi_\beta(\lVert g_r\rVert_2-\kappa)^2+(1-\alpha_c)\phi_\beta(\lVert g_f\rVert_2-\kappa)^2+\alpha_c\phi_\beta(\lVert g_c\rVert_2-\kappa)^2\right]+\frac{\gamma_{\mathrm{gauge}}}{2}\bar D^2
 $$
 
-Bounds critic input-gradient norms along real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords $x_{\mathrm{chord}}=(1-u)y+u C_\pi$ while pinning translational logit drift via $\bar D=\frac{1}{2}(\mathbb E[D(x)]+\mathbb E[D(y)])$.
+Bounds critic input-gradient norms along real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords $`x_{\mathrm{chord}}=(1-u)y+u C_\pi`$ while pinning translational logit drift via $\bar D=\frac{1}{2}(\mathbb E[D(x)]+\mathbb E[D(y)])$.
 
 ## Simplified pseudocode
 
@@ -145,10 +145,10 @@ For each task-owned training update:
 | Optimizer | Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset quintic convolution, size-gated newton_schulz_hybrid_v1 dense polar profile using exact SVD on min_dim < 64 or max_dim < 128 and guarded 32-step cubic Newton-Schulz on min_dim >= 64 and max_dim >= 128, batched SVD backend, BF16 channels-last conv training, direction-blend constraint geometry) as well as native Adam and formulation-owned EMPFCriticAdam without an EMA critic network copy. |
 | Learning rates and annealing | Strictly constant (`lr_floor=1.0`, `network_lr_floor=1.0`): global LR $0.012$, critic multiplier $1.5$ and DualNorm sampled-row prior multiplier $2.5$ (`prior_reg=0.01`), matching `bispf-throughput-v1` / `presets[bispf_optimized]`. |
 | Parameter-gradient clipping | None. Critic spike guard is disabled; gradient bounding acts smoothly through the Elastic Born-Infeld critic potential. |
-| Critic penalties and anchors | Prototype-chord Elastic Born-Infeld regularizer evaluated on real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords ($\kappa=1$, base sharpness $\beta_0=6$ tightening quadratically via cool-gated state-driven settling sharpness $\beta_{\mathrm{eff}}(r_{\mathrm{ema}}, B_r)$ once $r_{\mathrm{ema}}<0.16$, harmonic floor $\lambda_{\mathrm{floor}}=0.01$, chord blend $0.05$) plus a settling zero-mean logit gauge ($\gamma_{\mathrm{gauge}}=0.05$). Conditioned critics preserve fiber alignment automatically; no EMA critic anchor. |
-| Damping and update guards | Instance-bound shock-filtered transport EMA, trimmed central-$[0.04, 0.96]$ 1D quantile-$W_2$ floor-subtracted $1/\sqrt{B}$ smoothstep thermal cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic basin capture lock, and discrete-simplex post-acquisition Chamfer thermal cooling ($\mathrm{ema\_decay}=0.96$, smoothstep band $[0.064, 0.084]\to 0.0004$) damp post-convergence mini-batch fluctuations below DualNorm's smoothing floor while instant-reheating on abrupt distribution shifts using zero global state and zero step counters. |
+| Critic penalties and anchors | Prototype-chord Elastic Born-Infeld regularizer evaluated on real endpoints, fake endpoints and mass-weighted prototype Sinkhorn chords ($\kappa=1$, base sharpness $\beta_0=6$ tightening quadratically via cool-gated state-driven settling sharpness $`\beta_{\mathrm{eff}}(r_{\mathrm{ema}}, B_r)`$ once $`r_{\mathrm{ema}}<0.16`$, harmonic floor $`\lambda_{\mathrm{floor}}=0.01`$, chord blend $0.05$) plus a settling zero-mean logit gauge ($`\gamma_{\mathrm{gauge}}=0.05`$). Conditioned critics preserve fiber alignment automatically; no EMA critic anchor. |
+| Damping and update guards | Instance-bound shock-filtered transport EMA, trimmed central-$`[0.04, 0.96]`$ 1D quantile-$`W_2`$ floor-subtracted $1/\sqrt{B}$ smoothstep thermal cooling with 1D DualNorm step-scale damping, prototype-referenced 2D harmonic basin capture lock, and discrete-simplex post-acquisition Chamfer thermal cooling ($`\mathrm{ema\_decay}=0.96`$, smoothstep band $[0.064, 0.084]\to 0.0004$) damp post-convergence mini-batch fluctuations below DualNorm's smoothing floor while instant-reheating on abrupt distribution shifts using zero global state and zero step counters. |
 | Training and sampling noise | No scheduled additive critic-input or generator-output training noise in the selected benchmark configuration ($0.0$). Task-declared MoG intrinsic sigma is preserved. |
-| Parameter averaging and serving | Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights. |
+| Parameter averaging and serving | Generator EMA decay=$`0`$ and serve_average=$`0`$; all evaluations score live unaveraged weights. |
 
 ## Configuration differences
 

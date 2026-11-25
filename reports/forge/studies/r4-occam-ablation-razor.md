@@ -92,7 +92,7 @@ Every cell below is verified verbatim from the committed `readout-*.json` files.
 
 ## 3. Question 1 Deep Dive: Is Matrix Orthogonalization (SVD / Newton–Schulz) Irreducible or Redundant?
 
-Arm 1 (`r4-razor-no-ns` v1 & `r4-razor-no-ns-v2`, `optimizer_family="r4_mp_no_ns"`) replaces **only** `UnifiedV4EquilibratedOptimizer`'s 5-step BF16 Quintic Newton–Schulz polar orthogonalization with pure-elementwise $O(\text{params})$ $10^{-38}$-safe `peak_rms` + Marchenko–Pastur RMS-to-RMS operator normalization (`t4_nash_v3` style; strictly `0` SVD, `0` `eigh`, `0` `pinv`, `0` `autograd.grad`, and `0` Newton–Schulz). Note that v1 uncovered a `float64 -> float32` PyTorch `Optimizer.load_state_dict` dtype cast on `peak_rms` (`gaussian1d_stability` `INCOMPLETE (error)` and `clockfree` `INVALID`), which v2 fixed to `torch.float32`, achieving **`0` ERROR and `0` INVALID across all four views** (`gaussian1d_stability` PASS `cdf_ks=0.0204`, `clockfree_audit_measurement_v1` `4/4` PASS).
+Arm 1 (`r4-razor-no-ns` v1 & `r4-razor-no-ns-v2`, `optimizer_family="r4_mp_no_ns"`) replaces **only** `UnifiedV4EquilibratedOptimizer`'s 5-step BF16 Quintic Newton–Schulz polar orthogonalization with pure-elementwise $O(\text{params})$ $`10^{-38}`$-safe `peak_rms` + Marchenko–Pastur RMS-to-RMS operator normalization (`t4_nash_v3` style; strictly `0` SVD, `0` `eigh`, `0` `pinv`, `0` `autograd.grad`, and `0` Newton–Schulz). Note that v1 uncovered a `float64 -> float32` PyTorch `Optimizer.load_state_dict` dtype cast on `peak_rms` (`gaussian1d_stability` `INCOMPLETE (error)` and `clockfree` `INVALID`), which v2 fixed to `torch.float32`, achieving **`0` ERROR and `0` INVALID across all four views** (`gaussian1d_stability` PASS `cdf_ks=0.0204`, `clockfree_audit_measurement_v1` `4/4` PASS).
 
 ### 3.1 Cross-View Comparison (`unified-v10` Quintic NS vs. `r4-razor-no-ns-v2` Pure-Elementwise MP)
 
@@ -107,7 +107,7 @@ Arm 1 (`r4-razor-no-ns` v1 & `r4-razor-no-ns-v2`, `optimizer_family="r4_mp_no_ns
 | **`zero_tanh_rail_escape`** | **PASS** (`mae=0.0019`, `p99=0.0076`) | **FAIL** (`mae=0.0040`, `p99=0.0215`, missed terminal suffix) | Mild settling benefit from NS on `tanh` rail escape. |
 | **`clockfree_audit_measurement_v1`** | **PASS** (`4/4`) | **PASS** (`4/4`) | Exact clock-free & fresh-process restart parity confirmed. |
 
-**Architectural Takeaway:** Matrix orthogonalization should **never** be applied unconditionally to 4D convolutions or shallow layers. A clean minimal core should run pure-elementwise `O(params)` $10^{-38}$-safe `peak_rms` + Marchenko–Pastur everywhere by default (saving `13.5+ ms/step` at `r256`), and activate 2D Quintic NS **strictly on deep skip-free dense networks** (`deep_gate > 0` and `ndim == 2`) if `grid100_mlp16` is in scope!
+**Architectural Takeaway:** Matrix orthogonalization should **never** be applied unconditionally to 4D convolutions or shallow layers. A clean minimal core should run pure-elementwise `O(params)` $`10^{-38}`$-safe `peak_rms` + Marchenko–Pastur everywhere by default (saving `13.5+ ms/step` at `r256`), and activate 2D Quintic NS **strictly on deep skip-free dense networks** (`deep_gate > 0` and `ndim == 2`) if `grid100_mlp16` is in scope!
 
 ---
 
@@ -131,7 +131,7 @@ Arm 1 (`r4-razor-no-ns` v1 & `r4-razor-no-ns-v2`, `optimizer_family="r4_mp_no_ns
    - Simultaneously, 2nd-order `autograd.grad` EBI **regressed on 3 probes** (`grid100` `prec=0.9822, ctr=0.1757`, `img_bars4` `4/5` suffix, `zero_tanh_rail_escape`), while achieving **1 notable gain**: `t3_iso_scale_mass_8x` **PASS** (`core_min_eigen_ratio=0.5313` vs `unified-v10`'s `0.2155`), explaining why `unified-v10` regressed on that one direct-cloud stretch probe. **Verdict:** 1st-order `fwAD`/secant is strictly Pareto-dominant overall.
 7. **Arm 8 (`-sat-probe`, `r4-razor-no-sat-probe`, [`453cc0e8`](../records/readout-453cc0e86ed3223a21d247c3.json) & [`9b7edc6d`](../records/readout-9b7edc6de002e2ce4dde5bc5.json)):**
    - Knocking out Case A `_fwad_generator_probe` saturation inverse-attenuation (`w_sat_pt = 1`), Case B `w_sat_vec`/`w_iso_sat`, and coordinatewise outward column-sensitivity dead-clamp rescue **still PASSED `zero_tanh_rail_escape` (`mae=0.0026`, `p99=0.0087`)**, `zero_tanh_smoke` (`mae=0.0025`, `p99=0.0086`), and `clockfree_audit_measurement_v1` (`4/4`)!
-   - Why? Because `UnifiedV4EquilibratedOptimizer`'s **$10^{-38}$ dynamic scale normalization** already cancels scalar `sech^2` attenuation. `grid100` also passed its 100k independent holdout (`prec=0.9928, ctr=0.1300, tr=-0.0871` — sharper than `unified-v10`!) and 4/5 live suffix checks, missing only step 6250 marginally (which gated `grid100_res16_*` in `t4-arch`).
+   - Why? Because `UnifiedV4EquilibratedOptimizer`'s **$`10^{-38}`$ dynamic scale normalization** already cancels scalar `sech^2` attenuation. `grid100` also passed its 100k independent holdout (`prec=0.9928, ctr=0.1300, tr=-0.0871` — sharper than `unified-v10`!) and 4/5 live suffix checks, missing only step 6250 marginally (which gated `grid100_res16_*` in `t4-arch`).
 
 ---
 

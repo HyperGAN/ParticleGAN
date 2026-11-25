@@ -1,20 +1,27 @@
 """Lint tracked Markdown files for GitHub GFM and MkDocs MathJax pitfalls.
 
 Checks every real rendering failure mode shared by GitHub Flavored Markdown
-(cmark-gfm + MathJax) and MkDocs Material (pymdownx.arithmatex + MathJax 3):
+(cmark-gfm + GitHub MathJax) and MkDocs Material (pymdownx.arithmatex + MathJax 3):
 
 - unsupported-delimiter: ``\\(...\\)`` or ``\\[...\\]`` outside code blocks.
-- github-backtick-math: GitHub-only ``$`...`$`` syntax unsupported by MkDocs.
+- disallowed-mathjax-macro: macros rejected by GitHub's restricted MathJax
+  (e.g. ``\\operatorname``, ``\\DeclareMathOperator``, ``\\newcommand``).
+- gfm-display-math-escape: punctuation backslash escapes inside ``$$`` display
+  blocks (``\\{``, ``\\}``, ``\\|``, ``\\,``, ``\\;``, ``\\!``, ``\\_``) that
+  GitHub's cmark-gfm unescapes before MathJax runs.
+- gfm-bare-math-hazard: bare inline ``$...$`` spans vulnerable to GitHub's
+  cmark-gfm emphasis/punctuation/backslash-unescape traps (use ``$`...`$``,
+  which GitHub protects and ``scripts/build_docs_site.py`` converts for MkDocs).
 - indented-display-math: ``$$`` indented, nested in lists, or over-indented in
   blockquotes.
 - inline-display-math: ``$$`` mixed with prose on the same line or non-empty
   opening/closing fence lines.
 - display-math-blank-lines: ``$$`` block lacking surrounding blank (or blank
   blockquote) lines.
-- double-backslash-in-inline-math: ``\\\\`` inside inline ``$...$`` or
+- double-backslash-in-inline-math: ``\\\\`` inside bare inline ``$...$`` or
   single-line ``$$...$$`` (collapsed by GFM before MathJax runs).
-- table-pipe-in-math: ``|`` or ``\\|`` inside inline ``$...$`` on Markdown
-  table rows (splits table cells or unescapes before MathJax runs).
+- table-pipe-in-math: ``|`` or ``\\|`` inside inline ``$...$`` or ``$`...`$``
+  on Markdown table rows (splits table cells before MathJax runs).
 - space-padded-inline-math: leading or trailing spaces inside ``$...$``.
 - unclosed-display-math: ``$$`` display block reaching EOF without closing.
 - unmatched-dollar: unescaped single ``$`` that is not currency or a shell var.
@@ -86,6 +93,14 @@ TEXT_ONLY_MACRO_RE = re.compile(r"\\(?:text|textbf|textit|textrm|texttt|textsf)\
 ANY_LABEL_MACRO_RE = re.compile(
     r"\\(?:text|textbf|textit|textrm|texttt|textsf|mathrm|mathbf|mathsf|mathtt|operatorname)\{([^{}]*)\}"
 )
+DISALLOWED_MATHJAX_MACRO_RE = re.compile(
+    r"(?<!\\)(?:\\\\)*\\("
+    r"operatorname|DeclareMathOperator|def|newcommand|renewcommand|let|"
+    r"href|url|unicode|style|class|cssId|bbox|require|htmlClass|htmlStyle|htmlId"
+    r")\b"
+)
+GFM_DISPLAY_ESCAPE_RE = re.compile(r"(?<!\\)(?:\\\\)*\\([{}|,;!_])")
+GFM_INLINE_NONALPHA_ESCAPE_RE = re.compile(r"(?<!\\)(?:\\\\)*\\([^A-Za-z\\])")
 URL_RE = re.compile(r"https?://\S+")
 MD_LINK_DEST_RE = re.compile(r"\]\([^)\s]+(?:\s+\"[^\"]*\")?\)")
 
@@ -146,14 +161,75 @@ def _is_blank_for_depth(lines: list[str], idx: int, bq_depth: int) -> bool:
     return False
 
 
-def _mask_inline_code_and_detect_gh_backtick(
-    line: str,
+def _check_disallowed_macros(
+    inner: str,
+    *,
+    path: str,
+    line_no: int,
+    snippet: str,
+    violations: list[Violation],
+) -> None:
+    """Reject LaTeX macros disallowed by GitHub's restricted MathJax runtime."""
+    m = DISALLOWED_MATHJAX_MACRO_RE.search(inner)
+    if m:
+        macro = m.group(1)
+        hint = "use \\mathrm{...} instead of \\operatorname{...}" if macro == "operatorname" else (
+            f"remove or rewrite disallowed macro '\\{macro}'"
+        )
+        violations.append(
+            Violation(
+                path=path,
+                line=line_no,
+                rule="disallowed-mathjax-macro",
+                message=f"Macro '\\{macro}' is rejected by GitHub MathJax; {hint}",
+                snippet=snippet[:120],
+            )
+        )
+
+
+def _check_display_math_line(
+    inner: str,
     *,
     path: str,
     line_no: int,
     violations: list[Violation],
+) -> None:
+    """Validate a line inside a ``$$`` display math block."""
+    snippet = inner.strip()[:120]
+    _check_disallowed_macros(
+        inner, path=path, line_no=line_no, snippet=snippet, violations=violations
+    )
+    m_esc = GFM_DISPLAY_ESCAPE_RE.search(inner)
+    if m_esc:
+        ch = m_esc.group(1)
+        violations.append(
+            Violation(
+                path=path,
+                line=line_no,
+                rule="gfm-display-math-escape",
+                message=(
+                    f"Backslash escape '\\{ch}' inside '$$' display math is stripped by GitHub GFM; "
+                    "use \\lbrace/\\rbrace, \\lVert/\\rVert, \\thinspace/\\enspace, remove \\!, "
+                    "or use hyphens instead of \\_ inside \\text{}"
+                ),
+                snippet=snippet,
+            )
+        )
+
+
+def _mask_inline_code_and_check_gh_backtick(
+    line: str,
+    *,
+    path: str,
+    line_no: int,
+    is_table_row: bool,
+    violations: list[Violation],
 ) -> str:
-    """Replace inline code spans with spaces; flag GitHub-only ``$`...`$``."""
+    """Replace inline code spans and valid GitHub ``$`...`$`` math spans with spaces.
+
+    Validates the body of ``$`...`$`` spans for disallowed GitHub MathJax macros,
+    table pipes, and unescaped ``_`` inside ``\\text{}``.
+    """
     chars = list(line)
     i = 0
     n = len(line)
@@ -178,7 +254,8 @@ def _mask_inline_code_and_detect_gh_backtick(
                     k += 1
             if found != -1:
                 has_lead_dollar = (
-                    i >= 1
+                    ticks == 1
+                    and i >= 1
                     and line[i - 1] == "$"
                     and not _is_escaped(line, i - 1)
                     and not (i >= 2 and line[i - 2] == "$")
@@ -189,19 +266,39 @@ def _mask_inline_code_and_detect_gh_backtick(
                     and not (found + 1 < n and line[found + 1] == "$")
                 )
                 if has_lead_dollar and has_trail_dollar:
-                    snippet = line[i - 1 : found + 1][:100]
-                    violations.append(
-                        Violation(
-                            path=path,
-                            line=line_no,
-                            rule="github-backtick-math",
-                            message=(
-                                "GitHub-only $`...`$ inline math is unsupported in MkDocs; "
-                                "use $...$ or a canonical multi-line $$ block"
-                            ),
-                            snippet=snippet,
-                        )
+                    inner = line[j : found - ticks]
+                    snippet = line[i - 1 : found + 1][:120]
+                    _check_disallowed_macros(
+                        inner, path=path, line_no=line_no, snippet=snippet, violations=violations
                     )
+                    if is_table_row and "|" in inner:
+                        violations.append(
+                            Violation(
+                                path=path,
+                                line=line_no,
+                                rule="table-pipe-in-math",
+                                message=(
+                                    "Pipe '|' or '\\|' inside inline math on a Markdown table row breaks GFM tables; "
+                                    "use \\lVert...\\rVert, \\lvert...\\rvert, \\vert, or \\mid"
+                                ),
+                                snippet=snippet,
+                            )
+                        )
+                    for m_txt in TEXT_ONLY_MACRO_RE.finditer(inner):
+                        if re.search(r"(?<!\\)_", m_txt.group(1)):
+                            violations.append(
+                                Violation(
+                                    path=path,
+                                    line=line_no,
+                                    rule="emphasis-trap-in-inline-math",
+                                    message=(
+                                        "Unescaped '_' inside a LaTeX text macro breaks MathJax; "
+                                        "escape as '\\_' inside $`...`$ or use hyphenated text"
+                                    ),
+                                    snippet=snippet,
+                                )
+                            )
+                            break
                     for p in range(i - 1, found + 1):
                         chars[p] = " "
                     i = found + 1
@@ -319,6 +416,38 @@ def _compute_table_rows(lines: list[str], fenced: list[bool]) -> list[bool]:
     return is_table
 
 
+def _has_non_alnum_underscore(inner: str) -> bool:
+    """Return True if ``inner`` contains an underscore flanked by non-alnum (CommonMark emphasis)."""
+    for idx, ch in enumerate(inner):
+        if ch == "_":
+            lch = inner[idx - 1] if idx > 0 else ""
+            rch = inner[idx + 1] if idx + 1 < len(inner) else ""
+            if not (lch.isalnum() and rch.isalnum()):
+                return True
+    return False
+
+
+def _find_italic_positions(masked_without_math: str) -> list[int]:
+    """Locate single/triple '*' emphasis markers outside code and math."""
+    positions: list[int] = []
+    p = 0
+    m_bullet = re.match(r"^(\s*(?:>\s*)*)\*\s+", masked_without_math)
+    if m_bullet:
+        p = m_bullet.end()
+    n = len(masked_without_math)
+    while p < n:
+        if masked_without_math[p] == "*" and not _is_escaped(masked_without_math, p):
+            q = p
+            while q < n and masked_without_math[q] == "*":
+                q += 1
+            if (q - p) in (1, 3):
+                positions.append(p)
+            p = q
+        else:
+            p += 1
+    return positions
+
+
 def _check_inline_math_content(
     inner: str,
     *,
@@ -326,9 +455,17 @@ def _check_inline_math_content(
     line_no: int,
     is_table_row: bool,
     violations: list[Violation],
+    char_before: str = "",
+    char_after: str = "",
+    in_italics: bool = False,
 ) -> None:
-    """Validate the body of an inline ``$...$`` math span."""
+    """Validate the body and boundaries of a bare inline ``$...$`` math span."""
     snippet = f"${inner}$"[:120]
+    before_count = len(violations)
+
+    _check_disallowed_macros(
+        inner, path=path, line_no=line_no, snippet=snippet, violations=violations
+    )
 
     # Rule d: pipes (| or \|) inside table-row inline math
     if is_table_row and "|" in inner:
@@ -354,7 +491,7 @@ def _check_inline_math_content(
                 rule="double-backslash-in-inline-math",
                 message=(
                     "Double backslash '\\\\' inside inline math is collapsed by GFM before MathJax runs; "
-                    "promote matrices/cases to a multi-line $$ display block or use inline transpose notation"
+                    "promote matrices/cases to a multi-line $$ display block or use $`...`$"
                 ),
                 snippet=snippet,
             )
@@ -426,6 +563,53 @@ def _check_inline_math_content(
                     )
                 )
 
+    # Rule h: GitHub cmark-gfm bare $...$ fragility hazards (use $`...`$ instead).
+    # Skip if a more specific inline rule already flagged this span.
+    if len(violations) == before_count:
+        hazard_reason = ""
+        if in_italics:
+            hazard_reason = "bare $...$ inside *...* italic emphasis fails in GitHub GFM"
+        elif char_before and char_before not in (
+            " ",
+            "\t",
+            "(",
+            "[",
+            "{",
+            "'",
+            '"',
+            "|",
+        ):
+            hazard_reason = f"bare $...$ immediately preceded by '{char_before}' fails in GitHub GFM"
+        elif inner.endswith(")") and char_after == ")":
+            hazard_reason = "bare $...$ ending with ')' immediately followed by ')' fails in GitHub GFM"
+        elif char_after and (
+            char_after.isalnum() or char_after in ("(", "/", "-", "*", "_", "~", "$", "\\")
+        ):
+            hazard_reason = f"bare $...$ immediately followed by '{char_after}' fails in GitHub GFM"
+        elif GFM_INLINE_NONALPHA_ESCAPE_RE.search(inner):
+            m_esc = GFM_INLINE_NONALPHA_ESCAPE_RE.search(inner)
+            hazard_reason = (
+                f"backslash escape '\\{m_esc.group(1)}' inside bare $...$ is stripped by GitHub GFM"
+                if m_esc
+                else "punctuation backslash escape inside bare $...$ is stripped by GitHub GFM"
+            )
+        elif "*" in inner:
+            hazard_reason = "'*' inside bare $...$ can trigger CommonMark emphasis in GitHub GFM"
+        elif _has_non_alnum_underscore(inner):
+            hazard_reason = (
+                "underscore adjacent to punctuation/braces inside bare $...$ triggers CommonMark emphasis in GitHub GFM"
+            )
+        if hazard_reason:
+            violations.append(
+                Violation(
+                    path=path,
+                    line=line_no,
+                    rule="gfm-bare-math-hazard",
+                    message=f"{hazard_reason}; wrap in GitHub-safe $`...`$ inline math",
+                    snippet=snippet,
+                )
+            )
+
 
 def _scan_inline_dollars(
     masked: str,
@@ -484,16 +668,38 @@ def _scan_inline_dollars(
                 used.add(s)
                 used.add(e)
                 spans.append((s, e))
-                _check_inline_math_content(
-                    inner,
-                    path=path,
-                    line_no=line_no,
-                    is_table_row=is_table_row,
-                    violations=violations,
-                )
                 idx += 2
                 continue
         idx += 1
+
+    # Compute italic '*' positions outside code and matched inline math spans
+    chars_no_math = list(masked)
+    for s, e in spans:
+        for p in range(s, e + 1):
+            chars_no_math[p] = " "
+    italic_positions = _find_italic_positions("".join(chars_no_math))
+
+    def _in_italics(pos: int) -> bool:
+        if len(italic_positions) < 2:
+            return False
+        before_cnt = sum(1 for ip in italic_positions if ip < pos)
+        after_cnt = len(italic_positions) - before_cnt
+        return (before_cnt % 2 == 1) and after_cnt >= 1
+
+    for s, e in spans:
+        inner = masked[s + 1 : e]
+        char_before = masked[s - 1] if s > 0 else ""
+        char_after = masked[e + 1] if e + 1 < n else ""
+        _check_inline_math_content(
+            inner,
+            path=path,
+            line_no=line_no,
+            is_table_row=is_table_row,
+            violations=violations,
+            char_before=char_before,
+            char_after=char_after,
+            in_italics=_in_italics(s),
+        )
 
     # Pass 2: inspect remaining unmatched $ tokens.
     remaining = [pos for pos in dollars if pos not in used]
@@ -597,8 +803,12 @@ def check_markdown_text(text: str, *, path: str = "<string>") -> list[Violation]
         if fenced[idx]:
             continue
 
-        masked = _mask_inline_code_and_detect_gh_backtick(
-            line, path=path, line_no=line_no, violations=violations
+        masked = _mask_inline_code_and_check_gh_backtick(
+            line,
+            path=path,
+            line_no=line_no,
+            is_table_row=table_rows[idx],
+            violations=violations,
         )
 
         # Find unescaped $$ occurrences on this line
@@ -683,11 +893,14 @@ def check_markdown_text(text: str, *, path: str = "<string>") -> list[Violation]
                                 )
                             )
 
-                    # Inspect inner content of single-line $$...$$ for GFM \\ collapse
+                    # Inspect inner content of single-line $$...$$ for GFM \\ collapse and macros
                     for pair_i in range(0, len(body_dd) - 1, 2):
                         inner_dd = body_masked[
                             body_dd[pair_i].end() : body_dd[pair_i + 1].start()
                         ]
+                        _check_display_math_line(
+                            inner_dd, path=path, line_no=line_no, violations=violations
+                        )
                         if "\\\\" in inner_dd:
                             violations.append(
                                 Violation(
@@ -825,6 +1038,10 @@ def check_markdown_text(text: str, *, path: str = "<string>") -> list[Violation]
             continue
 
         if in_display:
+            _, disp_body = _strip_blockquote_prefix(line)
+            _check_display_math_line(
+                disp_body, path=path, line_no=line_no, violations=violations
+            )
             continue
 
         # Rule a: unsupported LaTeX delimiters \(...\) or \[...\] outside code/display math

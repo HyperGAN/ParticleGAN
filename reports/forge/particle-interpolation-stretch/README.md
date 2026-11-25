@@ -12,9 +12,9 @@ All three tasks execute through public `GANTrainer` and `ParticlePrior` (`sigma 
 
 To distinguish genuine manifold learning from memorizing lookup tables or Euclidean chord cutting, every observation evaluates:
 1. **Enumerated particle endpoints** $G(z_1), \dots, G(z_M)$,
-2. **Unseen interior latent points** along undirected latent $k$-NN chords $z_{ij}(t) = (1 - t)z_i + tz_j$ ($t \in \{0.25, 0.50, 0.75\}$) or 2D latent $k$-NN simplex barycenters $\frac{1}{3}(z_i + z_j + z_k)$,
-3. **Whole-set novelty** (`midpoint_novelty` / `barycenter_novelty`), defined as minimum distance to **all $M$ discrete particle outputs** $\{G(z_1), \dots, G(z_M)\}$ normalized by local output nearest-neighbor spacing (scoring exact `0.0` on any Voronoi/step-function lookup table, including 2nd-neighbor chords), and
-4. **Graph-alignment diagnostics** (`interp_hq` on latent $k$-NN chords vs `output_knn_interp_hq` on output-space $k$-NN chords vs `all_pairs_interp_hq` across all $\binom{M}{2}$ pairs).
+2. **Unseen interior latent points** along undirected latent $`k`$-NN chords $`z_{ij}(t) = (1 - t)z_i + tz_j`$ ($`t \in \{0.25, 0.50, 0.75\}`$) or 2D latent $`k`$-NN simplex barycenters $\frac{1}{3}(z_i + z_j + z_k)$,
+3. **Whole-set novelty** (`midpoint_novelty` / `barycenter_novelty`), defined as minimum distance to **all $M$ discrete particle outputs** $`\{G(z_1), \dots, G(z_M)\}`$ normalized by local output nearest-neighbor spacing (scoring exact `0.0` on any Voronoi/step-function lookup table, including 2nd-neighbor chords), and
+4. **Graph-alignment diagnostics** (`interp_hq` on latent $`k`$-NN chords vs `output_knn_interp_hq` on output-space $`k`$-NN chords vs `all_pairs_interp_hq` across all $\binom{M}{2}$ pairs).
 
 Ten analytic positive and negative oracle controls (`tests/test_forge_interpolation.py`) verify every scorer against smooth manifold ground truth, Euclidean chord cutters, Voronoi lookup tables, 50/50 pixel double-exposure ghosts, flat-plane regressions, and single-mode collapses.
 
@@ -25,7 +25,7 @@ Ten analytic positive and negative oracle controls (`tests/test_forge_interpolat
 ## 1. `interp_sparse_arc` (Tier 1 Stretch, 600 Steps)
 
 - **Target & Capacity:** 2D $270^\circ$ circular arc ($R = 2.0$, $\theta \in [-\pi/4, 5\pi/4]$, radial $\sigma = 0.03$) with `M = 12` discrete particles in `z_dim = 2`, 2-hidden-layer 64-wide MLP generator and Fourier-2 critic (`batch = 128`, `timeout = 300s`).
-- **Unseen Latent Query:** Undirected latent $k$-NN ($k = 3$) chords at $t \in \{0.25, 0.50, 0.75\}$.
+- **Unseen Latent Query:** Undirected latent $`k`$-NN ($k = 3$) chords at $`t \in \{0.25, 0.50, 0.75\}`$.
 - **Sustained 5-Check Gates:** `finite_fraction == 1.0`, `endpoint_hq >= 0.85`, `interp_hq >= 0.80` (`| ||y|| - R | <= 0.12`), `interp_arc_bins >= 22` of `32` (impossible for 12 discrete endpoints alone), and `midpoint_novelty >= 0.20`.
 - **Actual Training Media (`atlas-particle-normal-v4`):** [api-interp-sparse-arc.gif](../../toy_audit/api_contract/interpolation/media/api-interp-sparse-arc.gif).
 
@@ -36,7 +36,7 @@ Ten analytic positive and negative oracle controls (`tests/test_forge_interpolat
 ## 2. `interp_img_patch_shift` (Tier 2 Stretch, 800 Steps)
 
 - **Target & Capacity:** Continuous $1 \times 8 \times 8$ grayscale images containing a single unit-peak $2 \times 2$ window patch at continuous subpixel center $(u, v) \in [1.5, 6.5]^2$ (`0.01` clipped Gaussian noise), `M = 16` discrete particles in `z_dim = 4`, width-16 `residual_upsample` convolutional generator and convolutional critic (`batch = 64`, `timeout = 300s`).
-- **Unseen Latent Query:** Undirected latent $k$-NN ($k = 2$) chords at $t \in \{0.25, 0.50, 0.75\}$ projected onto the $51 \times 51$ continuous single-patch reference manifold.
+- **Unseen Latent Query:** Undirected latent $`k`$-NN ($k = 2$) chords at $`t \in \{0.25, 0.50, 0.75\}`$ projected onto the $51 \times 51$ continuous single-patch reference manifold.
 - **Sustained 5-Check Gates:** `finite_fraction == 1.0`, `endpoint_rmse <= 0.09`, `interp_rmse <= 0.10`, `interp_peak >= 0.78` (rejects 50/50 pixel-space double-exposure ghosts whose peak drops to `0.50`), `quadrant_coverage == 4`, and `midpoint_novelty >= 0.18`.
 - **Actual Training Media (`atlas-particle-normal-v4`):** [api-interp-img-patch-shift.gif](../../toy_audit/api_contract/interpolation/media/api-interp-img-patch-shift.gif).
 
@@ -47,7 +47,7 @@ Ten analytic positive and negative oracle controls (`tests/test_forge_interpolat
 ## 3. `interp_saddle_barycentric` (Tier 2 Stretch, 800 Steps)
 
 - **Target & Capacity:** Non-harmonic curved 3D saddle sheet $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y) + \mathcal{N}(0, 0.03^2)$ over $(x, y) \in [-1, 1]^2$, `M = 24` discrete particles in `z_dim = 2`, 3D-output 2-hidden-layer 64-wide MLP generator and Fourier-2 critic (`batch = 128`, `timeout = 300s`).
-- **Unseen Latent Query:** 2D simplex barycenters $\frac{1}{3}(z_i + z_j + z_k)$ of non-collinear latent $k$-NN ($k = 4$) triangles.
+- **Unseen Latent Query:** 2D simplex barycenters $\frac{1}{3}(z_i + z_j + z_k)$ of non-collinear latent $`k`$-NN ($k = 4$) triangles.
 - **Sustained 5-Check Gates:** `finite_fraction == 1.0`, `endpoint_surface_mae <= 0.08`, `barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78` (`|w - f(x, y)| <= 0.11`), `xy_bins_covered >= 12` of `16`, and `barycenter_novelty >= 0.18`.
 - **Actual Training Media (`atlas-particle-normal-v4`):** [api-interp-saddle-barycentric.gif](../../toy_audit/api_contract/interpolation/media/api-interp-saddle-barycentric.gif).
 

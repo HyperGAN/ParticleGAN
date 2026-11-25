@@ -311,6 +311,27 @@
     return `<code class="math-fallback">${escapeHtml(src)}</code>`;
   }
 
+  function renderInlineMathHtml(text) {
+    const raw = String(text || "");
+    if (!raw || !raw.includes("$")) return escapeHtml(raw);
+    const parts = [];
+    const tokenRe = /\$`([^`\n]+)`\$|\$([^\s$](?:[^$\n]*[^\s$])?)\$/g;
+    let last = 0;
+    let m;
+    while ((m = tokenRe.exec(raw)) !== null) {
+      if (m.index > last) {
+        parts.push(escapeHtml(raw.slice(last, m.index)));
+      }
+      const expr = m[1] !== undefined ? m[1] : m[2];
+      parts.push(renderLatexHtml(expr, false));
+      last = tokenRe.lastIndex;
+    }
+    if (last < raw.length) {
+      parts.push(escapeHtml(raw.slice(last)));
+    }
+    return parts.join("");
+  }
+
   function renderMermaidBlocks(container) {
     if (!container || typeof window === "undefined") return;
     const hosts = container.querySelectorAll("[data-mermaid-source]");
@@ -1496,7 +1517,7 @@
               <div class="equation-item">
                 <div class="equation-label">${escapeHtml(eq.label)}</div>
                 <div class="equation-math">${renderLatexHtml(eq.latex, true)}</div>
-                ${eq.explanation ? `<p class="equation-expl">${escapeHtml(eq.explanation)}</p>` : ""}
+                ${eq.explanation ? `<p class="equation-expl">${renderInlineMathHtml(eq.explanation)}</p>` : ""}
               </div>`
             )
             .join("")

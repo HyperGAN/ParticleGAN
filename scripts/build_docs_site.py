@@ -1009,6 +1009,98 @@ def _rewrite_line(
     return LINE_TOKEN_RE.sub(_repl, line)
 
 
+def _convert_gh_backtick_math_line(line: str) -> str:
+    """Convert GitHub inline math $`...`$ to standard $...$ for MkDocs arithmatex.
+
+    Preserves regular inline code spans (including literal ``$`x`$`` inside double backticks).
+    """
+    if "$`" not in line:
+        return line
+    out: list[str] = []
+    i = 0
+    n = len(line)
+    while i < n:
+        if line[i] == "`":
+            j = i
+            while j < n and line[j] == "`":
+                j += 1
+            ticks = j - i
+            k = j
+            found = -1
+            while k < n:
+                if line[k] == "`":
+                    m = k
+                    while m < n and line[m] == "`":
+                        m += 1
+                    if m - k == ticks:
+                        found = m
+                        break
+                    k = m
+                else:
+                    k += 1
+            if found != -1:
+                # Check whether this backtick span is GitHub $`...`$ inline math
+                # (single backtick pair wrapped by unescaped single '$' on both sides).
+                bs = 0
+                idx_bs = i - 2
+                while idx_bs >= 0 and line[idx_bs] == "\\":
+                    bs += 1
+                    idx_bs -= 1
+                is_gh_math = (
+                    ticks == 1
+                    and i >= 1
+                    and line[i - 1] == "$"
+                    and not (i >= 2 and line[i - 2] == "$")
+                    and (bs % 2 == 0)
+                    and found < n
+                    and line[found] == "$"
+                    and not (found + 1 < n and line[found + 1] == "$")
+                )
+                if is_gh_math:
+                    inner = line[j : found - ticks]
+                    # Keep the already-appended leading '$', append inner + trailing '$'
+                    out.append(inner)
+                    out.append("$")
+                    i = found + 1
+                    continue
+                out.append(line[i:found])
+                i = found
+                continue
+            out.append(line[i:j])
+            i = j
+            continue
+        out.append(line[i])
+        i += 1
+    return "".join(out)
+
+
+def convert_github_backtick_math(text: str) -> str:
+    """Convert GitHub's $`...`$ inline math spans to $...$ outside fenced code blocks."""
+    if "$`" not in text:
+        return text
+    lines = text.splitlines()
+    out: list[str] = []
+    in_fence = False
+    fence_char = ""
+    fence_len = 0
+    for line in lines:
+        m_fence = FENCE_RE.match(line)
+        if m_fence:
+            marker = m_fence.group(2)
+            if not in_fence:
+                if not (marker[0] == "`" and "`" in m_fence.group(3)):
+                    in_fence = True
+                    fence_char = marker[0]
+                    fence_len = len(marker)
+            elif marker[0] == fence_char and len(marker) >= fence_len and not m_fence.group(3).strip():
+                in_fence = False
+            out.append(line)
+            continue
+        out.append(line if in_fence else _convert_gh_backtick_math_line(line))
+    suffix = "\n" if text.endswith("\n") else ""
+    return "\n".join(out) + suffix
+
+
 def transform_markdown(
     text: str,
     *,
@@ -1020,8 +1112,8 @@ def transform_markdown(
     git_ref: str = DEFAULT_GIT_REF,
     repo_slug: str = REPO_SLUG,
 ) -> str:
-    """Apply GitHub Alert conversion, <a name> -> <a id>, and smart relative link rewriting."""
-    converted = convert_github_alerts(text)
+    """Apply GitHub Alert conversion, $`...`$ -> $...$, <a name> -> <a id>, and smart relative link rewriting."""
+    converted = convert_github_backtick_math(convert_github_alerts(text))
     lines = converted.splitlines()
     out: list[str] = []
     in_fence = False

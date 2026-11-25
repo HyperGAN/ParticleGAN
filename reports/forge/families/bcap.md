@@ -74,12 +74,12 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\epsilon_{\mathrm{in}})$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $(a)_+=\max(a,0)$ and $\operatorname{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $h_i$ is latent row $i$'s current gradient, $h_i^{\mathrm{prev}}$ its last observed gradient, $\rho_i$ the A2 response multiplier and $\Delta z_i$ the corresponding row update. $\operatorname{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history. For the separate spike guard, $g_p$ is a critic parameter gradient, $v_p$ its Adam second moment, $\tau_p$ its stored step count and $c_{\mathrm{guard}}$ its threshold.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\epsilon_{\mathrm{in}})`$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $`(a)_+=\max(a,0)`$ and $\mathrm{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $h_i$ is latent row $i$'s current gradient, $h_i^{\mathrm{prev}}$ its last observed gradient, $\rho_i$ the A2 response multiplier and $\Delta z_i$ the corresponding row update. $\mathrm{cos}$ denotes the implementation's bounded cosine similarity, including its handling of zero-length history. For the separate spike guard, $g_p$ is a critic parameter gradient, $v_p$ its Adam second moment, $\tau_p$ its stored step count and $`c_{\mathrm{guard}}`$ its threshold.
 
 **Default paired adversarial loss**
 
 $$
-\begin{aligned}\ell_D&=\mathbb E\!\left[\operatorname{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\!\left[\operatorname{softplus}(C(x)-C(y))\right].\end{aligned}
+\begin{aligned}\ell_D&=\mathbb E\left[\mathrm{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\left[\mathrm{softplus}(C(x)-C(y))\right].\end{aligned}
 $$
 
 These scalar losses are minimized. The critic objective is $\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise.
@@ -87,7 +87,7 @@ These scalar losses are minimized. The critic objective is $\ell_D+R$; the gener
 **Fixed capped input-gradient penalty**
 
 $$
-R_{\mathrm{BCAP}}=\frac{\lambda}{2}\left\{\mathbb E\!\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\!\left[(\lVert g_f\rVert_2-\kappa)_+^2\right]\right\}.
+R_{\mathrm{BCAP}}=\frac{\lambda}{2}\left\lbrace\mathbb E\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\left[(\lVert g_f\rVert_2-\kappa)_+^2\right]\right\rbrace.
 $$
 
 The cap is a soft loss penalty on real and fake critic input-gradient norms, without division by input dimension. It does not directly clip critic parameter gradients or weights. The canonical BCAP cards use $\lambda=1$ and $\kappa=1$; source-bound selected recipes may differ.
@@ -95,7 +95,7 @@ The cap is a soft loss penalty on real and fake critic input-gradient norms, wit
 **A2 sparse-row response**
 
 $$
-\begin{aligned}\rho_i&=\begin{cases}0.75+0.25\operatorname{cos}(h_i,h_i^{\mathrm{prev}}),&\text{with row history},\\1,&\text{without row history},\end{cases}\\\Delta z_i^{\mathrm{A2}}&=\rho_i\Delta z_i^{\mathrm{Adam}}.\end{aligned}
+\begin{aligned}\rho_i&=\begin{cases}0.75+0.25\mathrm{cos}(h_i,h_i^{\mathrm{prev}}),&\text{with row history},\\1,&\text{without row history},\end{cases}\\\Delta z_i^{\mathrm{A2}}&=\rho_i\Delta z_i^{\mathrm{Adam}}.\end{aligned}
 $$
 
 A2 acts only on an eligible row-local table with existing Adam state, some zero-gradient rows, and cumulative observed-row fraction below the configured cutoff (baseline $0.5$). Then $\rho_i\in[0.5,1]$. Adam still accumulates the raw gradient second moment; unsupported or ineligible hosts keep their ordinary response.
@@ -103,10 +103,10 @@ A2 acts only on an eligible row-local table with existing Adam state, some zero-
 **Adam-state critic spike guard**
 
 $$
-\begin{aligned}v_p^{\mathrm{RMS}}&=\frac{\operatorname{mean}(v_p)}{1-\beta_2^{\tau_p}},\\u_p&=\frac{\operatorname{RMS}(g_p)}{\sqrt{\max(v_p^{\mathrm{RMS}},10^{-30})}},\\g_p^{\mathrm{guarded}}&=\begin{cases}\dfrac{c_{\mathrm{guard}}}{u_p}g_p,&\tau_p\ge\tau_{\min}\text{ and }u_p>c_{\mathrm{guard}},\\g_p,&\text{otherwise}.\end{cases}\end{aligned}
+\begin{aligned}v_p^{\mathrm{RMS}}&=\frac{\mathrm{mean}(v_p)}{1-\beta_2^{\tau_p}},\\u_p&=\frac{\mathrm{RMS}(g_p)}{\sqrt{\max(v_p^{\mathrm{RMS}},10^{-30})}},\\g_p^{\mathrm{guarded}}&=\begin{cases}\dfrac{c_{\mathrm{guard}}}{u_p}g_p,&\tau_p\ge\tau_{\min}\text{ and }u_p>c_{\mathrm{guard}},\\g_p,&\text{otherwise}.\end{cases}\end{aligned}
 $$
 
-This clipping rule applies per critic tensor only after its Adam history reaches the declared warmup (baseline $\tau_{\min}=200$ steps). $g_p$ is its parameter gradient, $v_p$ the stored second moment, $\tau_p$ its Adam step count and $c_{\mathrm{guard}}=5$ the baseline threshold. With AMSGrad use its stored running maximum. Before warmup the guard leaves gradients unchanged.
+This clipping rule applies per critic tensor only after its Adam history reaches the declared warmup (baseline $`\tau_{\min}=200`$ steps). $g_p$ is its parameter gradient, $v_p$ the stored second moment, $\tau_p$ its Adam step count and $`c_{\mathrm{guard}}=5`$ the baseline threshold. With AMSGrad use its stored running maximum. Before warmup the guard leaves gradients unchanged.
 
 ## Simplified pseudocode
 
@@ -131,14 +131,14 @@ For each training update:
 
 | Characteristic | Behavior |
 | --- | --- |
-| Adversarial loss | Canonical paired relativistic logistic on raw critic scores: $D$ minimizes $\mathbb E[\operatorname{softplus}(C(y)-C(x))]$; $G$ minimizes the reverse. Host-owned auxiliary losses remain explicit. |
+| Adversarial loss | Canonical paired relativistic logistic on raw critic scores: $D$ minimizes $\mathbb E[\mathrm{softplus}(C(y)-C(x))]$; $G$ minimizes the reverse. Host-owned auxiliary losses remain explicit. |
 | Optimizer | K3PCriticAdam and K3PGeneratorAdam, built through public recipe factories. Base Adam moments default to $(\beta_1,\beta_2)=(0,0.999)$; the wrappers apply critic guards and eligible latent/direct-particle interventions. |
-| Learning rates and annealing | Annealing is retained. Canonical network LR holds for $60\%$ of min(task budget, $1600$ steps), then cosine-decays to $1\%$ and holds. Prior LR holds for $60\%$ of the full task budget, then cosine-decays to $5\%$. Canonical global LR $0.00425$, D multiplier $1$, prior multiplier $2$; recorded searches change role multipliers. Resolve the selected recipe for exact horizons/floors. |
+| Learning rates and annealing | Annealing is retained. Canonical network LR holds for $`60\%`$ of min(task budget, $1600$ steps), then cosine-decays to $`1\%`$ and holds. Prior LR holds for $`60\%`$ of the full task budget, then cosine-decays to $`5\%`$. Canonical global LR $0.00425$, D multiplier $1$, prior multiplier $2$; recorded searches change role multipliers. Resolve the selected recipe for exact horizons/floors. |
 | Parameter-gradient clipping | Adaptive tensorwise critic gradient clipping via the spike guard: after at least $200$ prior Adam steps per tensor, gradient RMS is limited to $5$ times the bias-corrected second-moment RMS. This is separate from BCAP and is not a single global norm clip. |
 | Critic penalties and anchors | Fixed BCAP real/fake squared one-sided L2 cap; canonical $\lambda=1$ and $\kappa=1$, every update. The historical search includes $\lambda=0.5$ alternatives. K3P’s LR-dependent penalty handover and EMA-anchor penalty are bypassed by reg_arm=b_cap. |
-| Damping and update guards | A2 requires an eligible sparse learnable latent table, some zero-gradient rows on the current update, and cumulative observed-row fraction below latent_damping_max_rate (canonical $0.5$). When Adam state and row history exist, it scales the row response by $0.75+0.25\operatorname{cos}(h_i,h_i^{\mathrm{prev}})$, within $[0.5,1]$; rows without history use $1$. Adam’s second moment still tracks the raw gradient. Direct sample-particle hosts may additionally use coherent-gradient gain and dedicated moments; ordinary learned-prior networks do not automatically receive that gain. |
-| Training and sampling noise | Canonical recipe retains critic input noise, starting at std $0.5$ and linearly decaying to zero over the first $10\%$ of training, and generated-output noise warming toward std $0.029$ over the first $20\%$. Task/source-specific adaptations determine actual served and training noise; clean and noisy cohorts remain separate. Critic-input noise is sampled afresh by the noise-wrapped critic on each forward, including penalty evaluation; generated-output noise is separately added to fake samples. |
-| Parameter averaging and serving | Canonical generator EMA decay=$0.995$ may be maintained by the host, but the card declares live-weight scoring. Fixed BCAP bypasses critic-anchor evaluation, even if an EMA critic copy exists in optimizer state. |
+| Damping and update guards | A2 requires an eligible sparse learnable latent table, some zero-gradient rows on the current update, and cumulative observed-row fraction below latent_damping_max_rate (canonical $0.5$). When Adam state and row history exist, it scales the row response by $0.75+0.25\mathrm{cos}(h_i,h_i^{\mathrm{prev}})$, within $[0.5,1]$; rows without history use $1$. Adam’s second moment still tracks the raw gradient. Direct sample-particle hosts may additionally use coherent-gradient gain and dedicated moments; ordinary learned-prior networks do not automatically receive that gain. |
+| Training and sampling noise | Canonical recipe retains critic input noise, starting at std $0.5$ and linearly decaying to zero over the first $`10\%`$ of training, and generated-output noise warming toward std $0.029$ over the first $`20\%`$. Task/source-specific adaptations determine actual served and training noise; clean and noisy cohorts remain separate. Critic-input noise is sampled afresh by the noise-wrapped critic on each forward, including penalty evaluation; generated-output noise is separately added to fake samples. |
+| Parameter averaging and serving | Canonical generator EMA decay=$`0.995`$ may be maintained by the host, but the card declares live-weight scoring. Fixed BCAP bypasses critic-anchor evaluation, even if an EMA critic copy exists in optimizer state. |
 
 ## Configuration differences
 

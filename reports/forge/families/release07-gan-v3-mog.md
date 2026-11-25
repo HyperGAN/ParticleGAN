@@ -70,12 +70,12 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 ## Mathematical formulation
 
-$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $D(u+\epsilon_{\mathrm{in}})$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $(a)_+=\max(a,0)$ and $\operatorname{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $R_{\mathrm{prior}}$ is the VICReg-inspired latent spread term, $d_z$ the latent dimension, $\Sigma_z$ the unbiased sample covariance and $\epsilon=10^{-4}$ the variance stabilizer. $t$ counts completed updates, $T$ is the declared recipe horizon, $q=t/T$, $\eta^{(0)}$ a base LR and $a(q)$ its multiplier. EMA denotes a parameter exponential moving average.
+$G$ is the generator, $D$ the raw-score critic, $P$ the task prior, $x$ a real batch, $z\sim P$ a latent batch and $y$ the generated batch, including any declared output noise. $C$ is the critic actually evaluated: $C=D$ without input noise; otherwise every forward evaluates $`D(u+\epsilon_{\mathrm{in}})`$ with a fresh draw. $\mathbb E$ means a sample mean, $\lVert\cdot\rVert_2$ is the Euclidean norm, $`(a)_+=\max(a,0)`$ and $\mathrm{softplus}(a)=\log(1+e^a)$. The scalar sketch detaches $y$ during the critic update and resamples differentiable $y$ after that update; joint and auxiliary hosts retain task-owned objectives. $g_r=\nabla_x C(x)$ and $g_f=\nabla_y C(y)$ are per-sample input gradients; $d$ counts critic-input coordinates. $\lambda$ is penalty strength and $\kappa$ the cap threshold. $`R_{\mathrm{prior}}`$ is the VICReg-inspired latent spread term, $d_z$ the latent dimension, $\Sigma_z$ the unbiased sample covariance and $\epsilon=10^{-4}$ the variance stabilizer. $t$ counts completed updates, $T$ is the declared recipe horizon, $q=t/T$, $\eta^{(0)}$ a base LR and $a(q)$ its multiplier. EMA denotes a parameter exponential moving average.
 
 **Default paired adversarial loss**
 
 $$
-\begin{aligned}\ell_D&=\mathbb E\!\left[\operatorname{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\!\left[\operatorname{softplus}(C(x)-C(y))\right].\end{aligned}
+\begin{aligned}\ell_D&=\mathbb E\left[\mathrm{softplus}(C(y)-C(x))\right],\\\ell_G&=\mathbb E\left[\mathrm{softplus}(C(x)-C(y))\right].\end{aligned}
 $$
 
 These scalar losses are minimized. The critic objective is $\ell_D+R$; the generator adds only its declared auxiliary objectives. Critic fakes are detached, and generator fakes and both scores are recomputed after the critic step. $C$ includes any declared fresh input noise.
@@ -83,7 +83,7 @@ These scalar losses are minimized. The critic objective is $\ell_D+R$; the gener
 **Fixed capped input-gradient penalty**
 
 $$
-R_{\mathrm{BCAP}}=\frac{\lambda}{2}\left\{\mathbb E\!\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\!\left[(\lVert g_f\rVert_2-\kappa)_+^2\right]\right\}.
+R_{\mathrm{BCAP}}=\frac{\lambda}{2}\left\lbrace\mathbb E\left[(\lVert g_r\rVert_2-\kappa)_+^2\right]+\mathbb E\left[(\lVert g_f\rVert_2-\kappa)_+^2\right]\right\rbrace.
 $$
 
 The full release recipe fixes $\lambda=6$ and $\kappa=1.25$, applied every critic update. This is the same soft L2 cap mechanism with stronger and wider settings; K3P handover, critic proximity and optimizer interventions are disabled.
@@ -99,10 +99,10 @@ For scalar hosts that expose this auxiliary, use the unbiased sample covariance 
 **Full-horizon learning-rate cosine**
 
 $$
-a(q)=\begin{cases}1,&q\le0.6,\\0.05+\dfrac{0.95}{2}\left[1+\cos\!\left(\pi\min\!\left(1,\dfrac{q-0.6}{0.4}\right)\right)\right],&q>0.6,\end{cases}\qquad \eta(t)=\eta^{(0)}a(t/T).
+a(q)=\begin{cases}1,&q\le0.6,\\0.05+\dfrac{0.95}{2}\left[1+\cos\left(\pi\min\left(1,\dfrac{q-0.6}{0.4}\right)\right)\right],&q>0.6,\end{cases}\qquad \eta(t)=\eta^{(0)}a(t/T).
 $$
 
-Hold each role at its base rate for $60\%$ of the declared recipe horizon, then decay to a $5\%$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule.
+Hold each role at its base rate for $`60\%`$ of the declared recipe horizon, then decay to a $`5\%`$ floor and hold. The reusable task-adapted card resolves $T$ explicitly; the historical native MoG/cloud cards retain $T=7000$. An external execution cap does not redefine the schedule.
 
 ## Simplified pseudocode
 
@@ -128,7 +128,7 @@ For each training iteration:
 | --- | --- |
 | Adversarial loss | Paired relativistic logistic, with the fixed real/fake cap regularizer below. Scalar hosts add the declared $0.05$ latent variance/covariance term; behavioral hosts keep their task-owned reconstruction, conditional or direct-particle objectives. |
 | Optimizer | K3P-derived Adam wrappers selected by the explicit fixed b_cap arm. $\beta_1=0$, $\beta_2=0.99$, AMSGrad off; guard, anchor, A2 and direct gain are disabled. Observer bookkeeping remains. This recipe is not selected through optimizer_family='adam', despite having its intervention switches off. Direct sample-particle hosts can retain separately declared response moments even when response gain is disabled; inspect the host binding. |
-| Learning rates and annealing | Original reference base LR $0.00425$, critic multiplier $1$, latent-prior multiplier $2$. The historical selected whole variant uses $0.006375$ and prior multiplier $1$. Both retain the $7000$-step recipe horizon, a $60\%$ hold followed by cosine decay to $5\%$, with no separate short network horizon. This native card fixes its resource fields; the later task-adapted successor delegates them explicitly without rewriting the historical recipe. |
+| Learning rates and annealing | Original reference base LR $0.00425$, critic multiplier $1$, latent-prior multiplier $2$. The historical selected whole variant uses $0.006375$ and prior multiplier $1$. Both retain the $`7000`$-step recipe horizon, a $`60\%`$ hold followed by cosine decay to $`5\%`$, with no separate short network horizon. This native card fixes its resource fields; the later task-adapted successor delegates them explicitly without rewriting the historical recipe. |
 | Parameter-gradient clipping | No critic spike guard or global gradient-norm clipping. The cap penalizes excess critic input-gradient magnitude in the loss; it does not clamp critic parameter gradients or weights. |
 | Critic penalties and anchors | Fixed $\lambda=6$ and L2 cap $\kappa=1.25$ on both real and fake samples, applied every step. No RMS normalization, K3P handover or critic-gradient proximity term. |
 | Damping and update guards | A2, critic spike guard, critic anchor and direct sample-particle gain are all disabled. This distinguishes the full release recipe from a fixed BCap penalty swapped into an otherwise intact K3P recipe. |

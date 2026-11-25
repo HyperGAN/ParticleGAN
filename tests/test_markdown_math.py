@@ -27,10 +27,34 @@ def test_unsupported_delimiters_detected_and_ignored_in_code() -> None:
     assert _rules("```latex\n\\(x^2\\)\n\\[y\\]\n```\n") == []
 
 
-def test_github_backtick_math_detected_without_flagging_inline_code() -> None:
-    assert _rules("GFM-only $`x + y`$ breaks MkDocs.") == ["github-backtick-math"]
+def test_github_backtick_math_accepted_and_validated() -> None:
+    assert _rules("GitHub-safe $`x + y`$ and $`\\mathbb{E}_x[D_\\psi(x)]`$ pass.") == []
     assert _rules("Literal code spans `$$` and `$x$` are fine.") == []
     assert _rules("Double backticks ``$`x`$`` inside code are fine.") == []
+    assert _rules("Banned macro $`\\operatorname{supp}(P_Z)`$ fails.") == ["disallowed-mathjax-macro"]
+    bad_tbl = "| A | B |\n| --- | --- |\n| 1 | $`\\|x\\|_2`$ |\n"
+    assert _rules(bad_tbl) == ["table-pipe-in-math"]
+    good_tbl = "| A | B |\n| --- | --- |\n| 1 | $`\\lVert x \\rVert_2`$ |\n"
+    assert _rules(good_tbl) == []
+
+
+def test_disallowed_mathjax_macros_and_gfm_hazards() -> None:
+    assert _rules(r"Bare $\operatorname{supp}(P_Z)$ fails.") == ["disallowed-mathjax-macro"]
+    assert _rules("\n$$\n\\operatorname{rank}(A) = 1\n$$\n") == ["disallowed-mathjax-macro"]
+    assert _rules("\n$$\n\\{1, 2\\}\n$$\n") == ["gfm-display-math-escape"]
+    assert _rules("\n$$\n\\lbrace 1, 2 \\rbrace\n$$\n") == []
+    assert _rules(r"Norm $\|J_G\|_\infty$ breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"Brace underscore $\mathbb{E}_x[D_\psi(x)]$ breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"Paren ($\kappa(J_G)$) breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"Prefix fixed-$\varepsilon$ breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"Equals decay=$0$ breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"Comma min(horizon,$1600$) breaks GFM.") == ["gfm-bare-math-hazard"]
+    assert _rules(r"*Unconstrained $W_2$ channel:*") == ["gfm-bare-math-hazard"]
+    # GitHub-safe $`...`$ forms pass cleanly
+    assert _rules(r"Norm $`\lVert J_G \rVert_\infty`$ works.") == []
+    assert _rules(r"Paren ($`\kappa(J_G)`$) works.") == []
+    assert _rules(r"Prefix fixed-$`\varepsilon`$ and decay=$`0`$ work.") == []
+    assert _rules(r"*Unconstrained $`W_2`$ channel:*") == []
 
 
 def test_indented_and_list_nested_display_math_detected() -> None:
@@ -81,8 +105,8 @@ def test_table_pipe_in_math_detected_and_safe_alternatives_pass() -> None:
     )
     assert _rules(good_table) == []
 
-    # Pipes in non-table inline math remain valid
-    assert _rules("Outside tables, $\\|x\\|_2$ and $P(Y \\mid c)$ render fine.") == []
+    # Safe norm alternatives outside tables pass cleanly
+    assert _rules("Outside tables, $\\lVert x \\rVert_2$ and $P(Y \\mid c)$ render fine.") == []
 
 
 def test_double_backslash_in_inline_and_single_line_display_math() -> None:
@@ -129,10 +153,10 @@ def test_emphasis_traps_in_inline_math() -> None:
     assert _rules(r"Text underscore $\text{foo_bar}$ breaks.") == ["emphasis-trap-in-inline-math"]
     assert _rules(r"Bare escaped underscore $foo\_bar$ breaks.") == ["emphasis-trap-in-inline-math"]
 
-    # Legitimate math subscripts and math-mode font macros must NOT trigger false positives
-    assert _rules(r"Subscripts $a_i + b_j = c_{i,j}$ are valid.") == []
-    assert _rules(r"Math font macro $\mathbf{26\|G\|_F^4}$ is valid.") == []
-    assert _rules(r"Nested text $r_{\text{stable}}$ is valid.") == []
+    # Legitimate math subscripts pass cleanly; complex punctuation-flanked subscripts use $`...`$
+    assert _rules(r"Subscripts $a_i + b_j = c_k$ are valid.") == []
+    assert _rules(r"Math font macro $`\mathbf{26\lVert G\rVert_F^4}`$ is valid.") == []
+    assert _rules(r"Nested text $`r_{\text{stable}}`$ is valid.") == []
 
 
 @pytest.mark.parametrize(
@@ -146,7 +170,7 @@ def test_emphasis_traps_in_inline_math() -> None:
         "GitHub Actions uses ${{ matrix.shard }} and ${{ github.sha }}.",
         "Inline code `$$`, `$x$`, `\\|x\\|`, and `\\mathbb{R}` are fine.",
         "~~~\n\\(x\\) $unclosed $$bad$$\n~~~\n",
-        "Speedup spans $10^2$–$10^6\\times$ across regimes.",
+        "Speedup spans $`10^2`$–$`10^6\\times`$ across regimes.",
     ],
 )
 def test_no_false_positives_on_legitimate_prose(prose: str) -> None:

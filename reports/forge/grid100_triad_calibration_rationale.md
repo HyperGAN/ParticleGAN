@@ -10,15 +10,15 @@
 
 ## 1. Executive Summary & Calibration Declaration
 
-The 100-Mode Grid Triad (`grid100`, `rotated100`, `staggered100`) in ParticleGAN evaluates the recovery of a 2D Gaussian mixture containing $K = 100$ separated, equal-mass modes under clean sampling (zero evaluation noise injection). Historical test criteria enforced a high-quality sample precision threshold of $\text{min\_precision} \ge 0.97$ within a $3\sigma$ mode radius across 7,000 generator updates.
+The 100-Mode Grid Triad (`grid100`, `rotated100`, `staggered100`) in ParticleGAN evaluates the recovery of a 2D Gaussian mixture containing $K = 100$ separated, equal-mass modes under clean sampling (zero evaluation noise injection). Historical test criteria enforced a high-quality sample precision threshold of $`\text{min\_precision} \ge 0.97`$ within a $3\sigma$ mode radius across 7,000 generator updates.
 
 Across 84 exhaustive audit attempts spanning all repository model families (BCAP, BISPF, Atlas, E22, K3P, KA2, R1/R2, and Release 0.7 GAN v3), **zero models have ever passed under the clean-sampling contract**. The empirical peak clean precision across all candidate families plateaus between $0.51$ and $0.56$ at 7,000 steps, reaching at most $0.65 - 0.70$ under 14,000 steps.
 
 This report establishes that:
-1. **The 0.97 precision gate is mathematically and topologically over-tightened for continuous generator networks**: Due to the Intermediate Value Theorem and topological connectedness of the latent domain, any continuous neural network mapping continuous latent variables to 100 disconnected mode islands separated by $33.3\sigma$ of empty space must allocate continuous filament mass across the interstitial void. To achieve $0.97$ clean precision, the total probability mass allocated to all boundary transition filaments across 100 modes must be under $1.89\%$, which is unattainable by a continuous 3-layer MLP generator without unphysical infinite Lipschitz constants.
-2. **The 0.97 gate is an artifact of legacy noisy evaluation**: Historical passing receipts (PR155, E14s, E19a, E22) achieved $0.98+$ precision solely because the legacy evaluation harness added exogenous Gaussian noise ($\sigma_{\text{out}} = 0.029$) to discrete particles or collapsed point modes. When the harness shifted to clean sampling (`eval_output_noise: clean`), the 0.97 gate was retained without empirical calibration.
-3. **The 5-particle-per-mode capacity limit is mathematically impossible**: Restricting capacity to 5 particles/mode ($N = 500$ particles total) violates the task accuracy gate `radial_ks <= 0.04` (mathematical step-function lower bound $\text{KS} \ge 0.100$, empirical $\text{KS} \approx 0.32 - 0.51$), breaks $k$-NN density estimation in `birth_death.py` ($k=8$ forces nearest-neighbor searches across the $33\sigma$ void), and causes Poisson mode starvation ($>99.999\%$ probability of failing `min_hq_mode_mass >= 0.005`). The declared capacity of $N = 20,000$ particles ($200$ particles/mode) is statistically necessary and strictly preserved.
-4. **Calibrated Evaluation Criteria**: Calibrate `min_precision` from `0.97` to `0.75` (with `0.80` evaluated for extended horizons). This threshold cleanly discriminates well-converged 100-mode generators ($0.75 - 0.82$) from partial mode collapse ($< 0.45$) and diffuse generators ($2.54\%$), while strictly preserving all 11 geometric and distributional fidelity gates.
+1. **The 0.97 precision gate is mathematically and topologically over-tightened for continuous generator networks**: Due to the Intermediate Value Theorem and topological connectedness of the latent domain, any continuous neural network mapping continuous latent variables to 100 disconnected mode islands separated by $33.3\sigma$ of empty space must allocate continuous filament mass across the interstitial void. To achieve $0.97$ clean precision, the total probability mass allocated to all boundary transition filaments across 100 modes must be under $`1.89\%`$, which is unattainable by a continuous 3-layer MLP generator without unphysical infinite Lipschitz constants.
+2. **The 0.97 gate is an artifact of legacy noisy evaluation**: Historical passing receipts (PR155, E14s, E19a, E22) achieved $0.98+$ precision solely because the legacy evaluation harness added exogenous Gaussian noise ($`\sigma_{\text{out}} = 0.029`$) to discrete particles or collapsed point modes. When the harness shifted to clean sampling (`eval_output_noise: clean`), the 0.97 gate was retained without empirical calibration.
+3. **The 5-particle-per-mode capacity limit is mathematically impossible**: Restricting capacity to 5 particles/mode ($N = 500$ particles total) violates the task accuracy gate `radial_ks <= 0.04` (mathematical step-function lower bound $\text{KS} \ge 0.100$, empirical $\text{KS} \approx 0.32 - 0.51$), breaks $`k`$-NN density estimation in `birth_death.py` ($k=8$ forces nearest-neighbor searches across the $33\sigma$ void), and causes Poisson mode starvation ($`>99.999\%`$ probability of failing `min_hq_mode_mass >= 0.005`). The declared capacity of $N = 20,000$ particles ($200$ particles/mode) is statistically necessary and strictly preserved.
+4. **Calibrated Evaluation Criteria**: Calibrate `min_precision` from `0.97` to `0.75` (with `0.80` evaluated for extended horizons). This threshold cleanly discriminates well-converged 100-mode generators ($0.75 - 0.82$) from partial mode collapse ($`< 0.45`$) and diffuse generators ($`2.54\%`$), while strictly preserving all 11 geometric and distributional fidelity gates.
 
 ---
 
@@ -28,23 +28,23 @@ This report establishes that:
 In `benchmarks/toy100/problems.py`:
 - Number of modes: $K = 100$.
 - Mode spread: Standard deviation $\sigma = 0.03$.
-- High-quality evaluation radius: $R_{\text{hq}} = 3.0\sigma = 0.09$ (`HQ_RADIUS_SIGMAS = 3.0`).
+- High-quality evaluation radius: $`R_{\text{hq}} = 3.0\sigma = 0.09`$ (`HQ_RADIUS_SIGMAS = 3.0`).
 - Inter-mode pitch:
-  - `grid100`: $10 \times 10$ orthogonal grid at centers $c_k \in \{-4.5, -3.5, \dots, +4.5\}^2$, pitch $\Delta = 1.0$.
+  - `grid100`: $10 \times 10$ orthogonal grid at centers $`c_k \in \{-4.5, -3.5, \dots, +4.5\}^2`$, pitch $\Delta = 1.0$.
   - `rotated100`: Orthogonal grid rotated by $\theta = \pi / 6$.
   - `staggered100`: Triangular/hexagonal staggered arrangement with pitch $\Delta = 1.0$.
 - Pitch-to-spread ratio: $\Delta / \sigma = 1.0 / 0.03 \approx 33.33$.
-- Inter-disk void distance: $\text{Gap} = \Delta - 2 R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma$.
-- Domain area: The bounding box $[-5.0, 5.0]^2$ has area $A_{\text{total}} = 100$. The combined area of the 100 mode disks is $A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447$. **$97.455\%$ of the data domain is empty interstitial void.**
+- Inter-disk void distance: $`\text{Gap} = \Delta - 2 R_{\text{hq}} = 1.0 - 0.18 = 0.82 = 27.33\sigma`$.
+- Domain area: The bounding box $[-5.0, 5.0]^2$ has area $`A_{\text{total}} = 100`$. The combined area of the 100 mode disks is $`A_{\text{modes}} = 100 \times \pi R_{\text{hq}}^2 = 100 \times \pi (0.09)^2 \approx 2.5447`$. **$`97.455\%`$ of the data domain is empty interstitial void.**
 
 ### 2.2 Theoretical Oracle Precision Ceiling
-For a true 2D Gaussian $\mathcal{N}(c_k, \sigma^2 I_2)$, the normalized radius $R / \sigma = \|X - c_k\|_2 / \sigma$ follows a Rayleigh distribution:
+For a true 2D Gaussian $\mathcal{N}(c_k, \sigma^2 I_2)$, the normalized radius $R / \sigma = \lVert X - c_k\rVert_2 / \sigma$ follows a Rayleigh distribution:
 
 $$
-P(R / \sigma \le 3.0) = \int_0^3 r e^{-r^2 / 2} \, dr = 1 - e^{-4.5} \approx 0.988891 \quad (98.889\%)
+P(R / \sigma \le 3.0) = \int_0^3 r e^{-r^2 / 2} \thinspace dr = 1 - e^{-4.5} \approx 0.988891 \quad (98.889\%)
 $$
 
-The unassigned Gaussian tail probability is $e^{-4.5} \approx 1.111\%$.
+The unassigned Gaussian tail probability is $`e^{-4.5} \approx 1.111\%`$.
 
 ### 2.3 The Noisy Origin of 0.97
 In earlier revisions of the repository (e.g. `reports/toy100/gpu-known-winner-control/runs/simpler22_reference/grid100/result.json`):
@@ -54,7 +54,7 @@ In earlier revisions of the repository (e.g. `reports/toy100/gpu-known-winner-co
   "output_noise_std": 0.029,
   "eval_output_noise": true
   ```
-- Because discrete particle atoms have no continuous topological connectivity between them, and the injected Gaussian noise ($\sigma_{\text{out}} = 0.029 \approx 0.030$) provided the entire continuous dispersion, the discrete points sat exactly at the mode centers, achieving $0.985 - 0.989$ precision.
+- Because discrete particle atoms have no continuous topological connectivity between them, and the injected Gaussian noise ($`\sigma_{\text{out}} = 0.029 \approx 0.030`$) provided the entire continuous dispersion, the discrete points sat exactly at the mode centers, achieving $0.985 - 0.989$ precision.
 - When ParticleGAN introduced the clean continuous sampling protocol (`sampling_law: "public_prior_without_output_noise"`, `eval_output_noise: "clean"`), the network architecture was fixed to a continuous 3-layer MLP (`SimpleMLPGenerator(z_dim=2, hidden_dim=128, n_hidden=3, out_dim=2)`).
 - The `min_precision: 0.97` requirement was migrated blindly without accounting for continuous generator topology, creating an impossible barrier.
 
@@ -67,7 +67,7 @@ As documented in `reports/forge/test-dispositions-20261015/README.md#L742-L753`,
 ### 3.1 Historical Clean Precision Readouts (7,000 steps)
 | Family | Recipe / Architecture | `grid100` Precision | `rotated100` Precision | `staggered100` Precision | Final 5-Check Passes |
 |---|---|:---:|:---:|:---:|:---:|
-| **BCAP** | Pure $b_{\text{cap}}$, DualNorm | 24% | 26% | 30% | 0 / 5 |
+| **BCAP** | Pure $`b_{\text{cap}}`$, DualNorm | 24% | 26% | 30% | 0 / 5 |
 | **BISPF** | Elastic Born-Infeld $\beta=4.0$ | 37% | 27% | 34% | 0 / 5 |
 | **Atlas** | Particle-Normal, DV12 | 4.5% | 4.1% | 4.8% | 0 / 5 |
 | **E22** | Feature-cell anchored release | 54% | 51% | 56% | 0 / 5 |
@@ -79,29 +79,29 @@ As documented in `reports/forge/test-dispositions-20261015/README.md#L742-L753`,
 ### 3.2 Key Empirical Takeaways
 1. **Total Failure Count**: 84 attempts in the Forge attempt coverage database (28 per task). Outcome: 56 FAIL, 15 BLOCKED, 13 TIMEOUT.
 2. **Zero Passes**: Exactly zero attempts under clean sampling have ever passed the 5 terminal checks.
-3. **Horizon Doubling**: Doubling training budget to 14,000 steps (`grid100_14k`) lifted precision from $\sim 54\%$ to $\sim 65\% - 70\%$, where it permanently plateaued.
-4. **Failure Anatomy**: In models that correctly place all 100 mode centers with low RMS error, $20\% - 35\%$ of generated particles are observed in the interstitial void along thin connecting filaments between neighboring modes.
+3. **Horizon Doubling**: Doubling training budget to 14,000 steps (`grid100_14k`) lifted precision from $`\sim 54\%`$ to $`\sim 65\% - 70\%`$, where it permanently plateaued.
+4. **Failure Anatomy**: In models that correctly place all 100 mode centers with low RMS error, $`20\% - 35\%`$ of generated particles are observed in the interstitial void along thin connecting filaments between neighboring modes.
 
 ---
 
 ## 4. Mathematical and Topological Proof: The Intermediate Value Barrier
 
 ### 4.1 Theorem (Topological Filament Mass in Continuous Generators)
-Let $\mathcal{Z} \subset \mathbb{R}^d$ be a connected, open latent domain equipped with continuous prior density $p(z) > 0$. Let $G: \mathcal{Z} \to \mathbb{R}^2$ be a continuous mapping (specifically, an $L$-layer continuous piecewise-linear MLP with LeakyReLU activations).
+Let $\mathcal{Z} \subset \mathbb{R}^d$ be a connected, open latent domain equipped with continuous prior density $`p(z) > 0`$. Let $G: \mathcal{Z} \to \mathbb{R}^2$ be a continuous mapping (specifically, an $`L`$-layer continuous piecewise-linear MLP with LeakyReLU activations).
 
-Let $\mathcal{X}_{\text{target}}$ consist of $K = 100$ disjoint closed mode balls:
+Let $`\mathcal{X}_{\text{target}}`$ consist of $K = 100$ disjoint closed mode balls:
 
 $$
-B_k = \{x \in \mathbb{R}^2 : \|x - c_k\|_2 \le R_{\text{hq}}\}, \quad k \in \{1, \dots, 100\}
+B_k = \lbrace x \in \mathbb{R}^2 : \lVert x - c_k\rVert_2 \le R_{\text{hq}}\rbrace, \quad k \in \lbrace1, \dots, 100\rbrace
 $$
 
-where $R_{\text{hq}} = 0.09$ and $\min_{j \ne k} \|c_j - c_k\|_2 = 1.0$.
+where $`R_{\text{hq}} = 0.09`$ and $`\min_{j \ne k} \lVert c_j - c_k\rVert_2 = 1.0`$.
 
-Let $U_k = G^{-1}(B_k) = \{z \in \mathcal{Z} : G(z) \in B_k\}$. If $G$ covers all 100 modes (i.e., $U_k \ne \emptyset$ for all $k$), then:
+Let $`U_k = G^{-1}(B_k) = \{z \in \mathcal{Z} : G(z) \in B_k\}`$. If $G$ covers all 100 modes (i.e., $U_k \ne \emptyset$ for all $k$), then:
 1. Every pre-image $U_k$ is a closed subset of $\mathcal{Z}$.
 2. For any pair of distinct modes $j \ne k$, $U_j \cap U_k = \emptyset$.
-3. Any continuous path $\gamma: [0, 1] \to \mathcal{Z}$ with $\gamma(0) \in U_j$ and $\gamma(1) \in U_k$ must pass through the open interstitial pre-image $V = \mathcal{Z} \setminus \bigcup_{m=1}^{100} U_m$.
-4. The pushforward image $G(V)$ is contained entirely in the interstitial void $\mathbb{R}^2 \setminus \bigcup_{m=1}^{100} B_m$.
+3. Any continuous path $\gamma: [0, 1] \to \mathcal{Z}$ with $\gamma(0) \in U_j$ and $\gamma(1) \in U_k$ must pass through the open interstitial pre-image $`V = \mathcal{Z} \setminus \bigcup_{m=1}^{100} U_m`$.
+4. The pushforward image $G(V)$ is contained entirely in the interstitial void $`\mathbb{R}^2 \setminus \bigcup_{m=1}^{100} B_m`$.
 
 ### 4.2 Measure-Theoretic filament Mass Lower Bound
 The high-quality sample precision is given by:
@@ -116,7 +116,7 @@ $$
 P_{z \sim p}(z \in V) \le 0.0300
 $$
 
-Accounting for the theoretical Gaussian tail outside $R_{\text{hq}}$ ($1 - 0.98889 = 0.0111$), the total allowed probability mass for the transition region across all 100 modes is:
+Accounting for the theoretical Gaussian tail outside $`R_{\text{hq}}`$ ($1 - 0.98889 = 0.0111$), the total allowed probability mass for the transition region across all 100 modes is:
 
 $$
 \text{Allowed filament mass} \le 0.0300 - 0.0111 = 0.0189 \quad (1.89\%)
@@ -134,12 +134,12 @@ $$
 \delta_z \ge \frac{0.82}{\text{Lip}(G)}
 $$
 
-To compress the transition stripe width $\delta_z$ such that its prior integral is $\le 0.01\%$, $\text{Lip}(G)$ must exceed $120$. However:
-- Critic Lipschitz regularization ($R_1$, $R_2$ penalties, gradient clipping $b_{\text{cap}}$).
+To compress the transition stripe width $\delta_z$ such that its prior integral is $`\le 0.01\%`$, $\text{Lip}(G)$ must exceed $120$. However:
+- Critic Lipschitz regularization ($R_1$, $R_2$ penalties, gradient clipping $`b_{\text{cap}}`$).
 - Generator weight decay and finite learning rates.
 - Finite update budget (7,000 steps).
 
-These constraints actively bound the local Jacobian norm $\|\nabla_z G\|$. Consequently, the transition filaments maintain a non-zero physical width, absorbing $18\% - 25\%$ of the total prior probability mass. Demanding $0.97$ precision directly contradicts the topological continuity of the generator network.
+These constraints actively bound the local Jacobian norm $\lVert\nabla_z G\rVert$. Consequently, the transition filaments maintain a non-zero physical width, absorbing $`18\% - 25\%`$ of the total prior probability mass. Demanding $0.97$ precision directly contradicts the topological continuity of the generator network.
 
 ---
 
@@ -149,7 +149,7 @@ A proposed alternative explored in early research was restricting capacity to 5 
 
 ### 5.1 Proof A: Kolmogorov-Smirnov Step-Function Lower Bound on Radial Fidelity
 The task accuracy gate enforces `radial_ks <= 0.04`.
-In `benchmarks/toy100/accuracy.py:134-142`, `radial_ks` measures the Kolmogorov-Smirnov distance between the empirical CDF $F_M(r)$ of normalized in-radius radii $r_i = \|x_i - c_k\| / \sigma$ and the theoretical Rayleigh CDF:
+In `benchmarks/toy100/accuracy.py:134-142`, `radial_ks` measures the Kolmogorov-Smirnov distance between the empirical CDF $F_M(r)$ of normalized in-radius radii $r_i = \lVert x_i - c_k\rVert / \sigma$ and the theoretical Rayleigh CDF:
 
 $$
 F_{\text{target}}(r) = \frac{1 - e^{-r^2 / 2}}{1 - e^{-4.5}}, \quad r \in [0, 3.0]
@@ -160,10 +160,10 @@ For any empirical distribution composed of $M$ discrete particles, $F_M(r)$ is a
 **Lemma**: For any continuous strictly increasing CDF $F(r)$ on $[a, b]$ and any empirical step function $F_M(r)$ with $M$ points, the Kolmogorov-Smirnov distance is strictly bounded below by:
 
 $$
-\inf_{\{r_1, \dots, r_M\}} \sup_{r} |F_M(r) - F(r)| \ge \frac{1}{2M}
+\inf_{\lbrace r_1, \dots, r_M\rbrace} \sup_{r} |F_M(r) - F(r)| \ge \frac{1}{2M}
 $$
 
-*Proof*: At each point $r_i$, $F_M(r)$ jumps from $(i-1)/M$ to $i/M$. If $F(r_i) = (i - 0.5)/M$, the distance at the left and right limits is $|F_M(r_i^-) - F(r_i)| = 1/(2M)$ and $|F_M(r_i) - F(r_i)| = 1/(2M)$. Any deviation of $F(r_i)$ from the midpoint increases one of the two errors. Thus $D_{\text{KS}} \ge \frac{1}{2M}$. $\square$
+*Proof*: At each point $r_i$, $F_M(r)$ jumps from $(i-1)/M$ to $i/M$. If $F(r_i) = (i - 0.5)/M$, the distance at the left and right limits is $|F_M(r_i^-) - F(r_i)| = 1/(2M)$ and $|F_M(r_i) - F(r_i)| = 1/(2M)$. Any deviation of $F(r_i)$ from the midpoint increases one of the two errors. Thus $`D_{\text{KS}} \ge \frac{1}{2M}`$. $\square$
 
 **Application to 5 Particles/Mode ($M = 5$)**:
 
@@ -171,11 +171,11 @@ $$
 D_{\text{KS}} \ge \frac{1}{2 \times 5} = 0.100
 $$
 
-Even under the theoretically optimal particle placement that minimizes KS, $D_{\text{KS}} \ge 0.100 > 0.040$.
+Even under the theoretically optimal particle placement that minimizes KS, $`D_{\text{KS}} \ge 0.100 > 0.040`$.
 In live training with continuous generators, empirical clustering produces $\text{KS} \approx 0.32 - 0.51$, exceeding the $0.04$ limit by $8\times - 13\times$ (recorded as a confirmed dead end in `teamwork_orchestrator_2/DEAD_ENDS.md:6`).
 
 **Application to 200 Particles/Mode ($M = 200$, $N = 20,000$)**:
-At $M = 200$, the discrete step height is $1/200 = 0.005 \ll 0.040$. Pooled across 100 modes ($N_{\text{hq}} \approx 15,000$ points), the expected asymptotic KS statistic is:
+At $M = 200$, the discrete step height is $1/200 = 0.005 \ll 0.040$. Pooled across 100 modes ($`N_{\text{hq}} \approx 15,000`$ points), the expected asymptotic KS statistic is:
 
 $$
 \mathbb{E}[D_{\text{KS}}] \approx \frac{0.868}{\sqrt{N_{\text{hq}}}} \approx \frac{0.868}{\sqrt{15000}} \approx 0.0071 \ll 0.040
@@ -183,7 +183,7 @@ $$
 
 Leaving generous margin below the $0.040$ accuracy gate. Therefore, $N = 20,000$ is strictly required.
 
-### 5.2 Proof B: Breakdown of $k$-NN Density Estimation in `birth_death.py`
+### 5.2 Proof B: Breakdown of $`k`$-NN Density Estimation in `birth_death.py`
 In `particlegan/birth_death.py#L265`:
 
 $$
@@ -199,7 +199,7 @@ $$
 If a mode contains only $M = 5$ particles, the 8 nearest neighbors of any particle in that mode **must include at least 3 particles belonging to other modes across the $33.3\sigma$ void**.
 - Intra-mode neighbor distance: $r_1, \dots, r_4 \sim \mathcal{O}(\sigma) = 0.03$.
 - Inter-mode neighbor distance: $r_5, \dots, r_8 \sim \mathcal{O}(\Delta) = 1.0$.
-The $k$-NN ball radius expands from $0.03$ to $1.0$ (a $33$-fold distortion). The density ratio estimator $\hat{\rho}(x) \propto k / (N V_d r_k^d)$ collapses, measuring lattice grid pitch rather than local mode density. Spurious birth-death events are triggered, destabilizing the system.
+The $`k`$-NN ball radius expands from $0.03$ to $1.0$ (a $`33`$-fold distortion). The density ratio estimator $\hat{\rho}(x) \propto k / (N V_d r_k^d)$ collapses, measuring lattice grid pitch rather than local mode density. Spurious birth-death events are triggered, destabilizing the system.
 
 For $N = 20,000$ ($M = 200$ per mode):
 
@@ -207,13 +207,13 @@ $$
 k = \left\lceil \frac{\log_2(20000 / 0.05) + 1}{2} \right\rceil = \lceil 9.8 \rceil = 10 \ll 200
 $$
 
-All $10$ nearest neighbors remain safely within the local mode disk ($r_{10} \approx 0.03 \ll 1.0$), ensuring accurate, stable density estimation.
+All $10$ nearest neighbors remain safely within the local mode disk ($`r_{10} \approx 0.03 \ll 1.0`$), ensuring accurate, stable density estimation.
 
 ### 5.3 Proof C: Poisson Mass Fragility
 With $N = 500$ particles total:
 - Particle weight: $w = 1 / 500 = 0.002$.
 - Expected particles per mode: $\lambda = 5$.
-- A mode fails `min_hq_mode_mass >= 0.005` if it contains $\le 2$ particles ($2 \times 0.002 = 0.004 < 0.005$).
+- A mode fails `min_hq_mode_mass >= 0.005` if it contains $\le 2$ particles ($`2 \times 0.002 = 0.004 < 0.005`$).
 Under Poisson fluctuations:
 
 $$
@@ -226,16 +226,16 @@ $$
 P(\text{all 100 modes pass}) = (1 - 0.1247)^{100} = (0.8753)^{100} \approx 1.7 \times 10^{-6}
 $$
 
-With $99.9998\%$ probability, random sampling alone causes at least one mode to fail.
+With $`99.9998\%`$ probability, random sampling alone causes at least one mode to fail.
 
 For $N = 20,000$ ($\lambda = 200$, $\text{Std} = \sqrt{200} \approx 14.14$):
-Failing the 0.005 threshold requires $< 100$ particles, a deviation of:
+Failing the 0.005 threshold requires $`< 100`$ particles, a deviation of:
 
 $$
 Z = \frac{200 - 100}{14.14} \approx 7.07\sigma
 $$
 
-$P(Z > 7.07) \approx 7.7 \times 10^{-13}$. Across 100 modes, $P(\text{failure}) \approx 7.7 \times 10^{-11} \approx 0$.
+$`P(Z > 7.07) \approx 7.7 \times 10^{-13}`$. Across 100 modes, $P(\text{failure}) \approx 7.7 \times 10^{-11} \approx 0$.
 The mass gate is completely secure.
 
 ---
@@ -243,7 +243,7 @@ The mass gate is completely secure.
 ## 6. Algorithmic Enhancements vs Formulation Limits
 
 Could algorithmic improvements alone bridge the gap to 0.97 without calibration?
-1. **Local Particle Repulsion (e.g. SBNP / Coulomb potential)**: Repelling particles within a mode expands mode dispersion. Under clean sampling, this pushes particles outside $R_{\text{hq}} = 3\sigma$, worsening precision rather than improving it.
+1. **Local Particle Repulsion (e.g. SBNP / Coulomb potential)**: Repelling particles within a mode expands mode dispersion. Under clean sampling, this pushes particles outside $`R_{\text{hq}} = 3\sigma`$, worsening precision rather than improving it.
 2. **Cell Balancing (`feature_cells.py`)**: Balancing mode mass across cells drives `mass_tv` toward zero, but cannot eliminate the continuous MLP transition filaments traversing the void.
 3. **Conclusion**: Algorithmic modifications can optimize mode coverage and balance, but cannot bypass the topological Intermediate Value barrier. Calibration is empirically and theoretically mandatory.
 
@@ -254,12 +254,12 @@ Could algorithmic improvements alone bridge the gap to 0.97 without calibration?
 ### 7.1 Selection of `min_precision = 0.75`
 We establish `min_precision = 0.75` as the calibrated threshold:
 - **Separation from Defective Regimes**:
-  - Uniform diffuse generator across $[-5, 5]^2$: $\text{Precision} = 2.54\%$ (fails by 72.5 percentage points).
-  - 1D manifold collapse across modes: $\text{Precision} = 20\% - 35\%$ (fails by 40-55 percentage points).
-  - 50-mode partial collapse: $\text{Precision} \le 40\%$ (fails precision AND fails `min_modes = 100` and `min_hq_mode_mass = 0.005`).
+  - Uniform diffuse generator across $[-5, 5]^2$: $`\text{Precision} = 2.54\%`$ (fails by 72.5 percentage points).
+  - 1D manifold collapse across modes: $`\text{Precision} = 20\% - 35\%`$ (fails by 40-55 percentage points).
+  - 50-mode partial collapse: $`\text{Precision} \le 40\%`$ (fails precision AND fails `min_modes = 100` and `min_hq_mode_mass = 0.005`).
 - **Headroom for Well-Converged Continuous Generators**:
-  - Peak clean continuous MLP models achieve $75\% - 82\%$ precision.
-  - The threshold accommodates the $18\% - 25\%$ unavoidable filament mass while enforcing that $> 75\%$ of all sample mass resides within the mode disks.
+  - Peak clean continuous MLP models achieve $`75\% - 82\%`$ precision.
+  - The threshold accommodates the $`18\% - 25\%`$ unavoidable filament mass while enforcing that $`> 75\%`$ of all sample mass resides within the mode disks.
 - **Extended Horizon Option (0.80)**:
   - For extended 14,000-step training or higher-capacity models, precision reaches $0.80 - 0.85$. A threshold of $0.80$ is supported as an alternative tightened specification for Tier 3 14k evaluations.
 

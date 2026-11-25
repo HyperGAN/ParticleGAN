@@ -261,3 +261,19 @@ def test_portal_directory_urls_and_dotfiles_preserved(tmp_path):
         assert "blob/develop/github/workflows/tests.yml" not in ci_text
         if "workflows/tests.yml" in ci_text:
             assert "blob/develop/.github/workflows/tests.yml" in ci_text
+
+
+def test_convert_github_backtick_math_preserves_code_and_fences():
+    sample = (
+        "Norm $`\\lVert J_G \\rVert_\\infty`$ and $`\\mathbb{E}_x[D_\\psi(x)]`$ and fixed-$`\\varepsilon`$.\n"
+        "Adjacent code `foo`$`x_1`$ converts cleanly.\n"
+        "Literal code ``$`x + y`$`` and `$a$` stay untouched.\n"
+        "```markdown\n"
+        "Fenced $`\\alpha_1`$ stays untouched.\n"
+        "```\n"
+    )
+    out = portal.convert_github_backtick_math(sample)
+    assert "Norm $\\lVert J_G \\rVert_\\infty$ and $\\mathbb{E}_x[D_\\psi(x)]$ and fixed-$\\varepsilon$." in out
+    assert "Adjacent code `foo`$x_1$ converts cleanly." in out
+    assert "Literal code ``$`x + y`$`` and `$a$` stay untouched." in out
+    assert "Fenced $`\\alpha_1`$ stays untouched." in out
