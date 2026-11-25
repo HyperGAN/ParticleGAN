@@ -877,3 +877,53 @@ def test_v3_case_a_per_coord_rail_2x2_eig_and_pooled_rho_mu() -> None:
         )
         assert bool(torch.isfinite(lg_c))
         assert abs(float(tr_c.prior_regularizer.proto_w.double().sum().item()) - 1.0) <= 1e-6
+
+
+def test_v4_coalesce_10_highd_box_muller_v_cprev_and_tiny_scale() -> None:
+    """Axiom-v4 regressions: cs<=10 LTV coalescence, D<=64 prime-unwrapped Box-Muller, v_cprev, 1e-5x scale."""
+    # 1. Coalescence accepts 6-cell & 10-cell isolated clusters with exact LTV, rejects 12-cell (>10).
+    c6 = torch.stack((torch.linspace(-0.25, 0.25, 6), torch.zeros(6)), dim=1)
+    c10 = torch.stack((torch.linspace(20.0, 20.45, 10), torch.zeros(10)), dim=1)
+    c_both = torch.cat((c6, c10), dim=0)
+    v_both = torch.full((16,), 0.04)
+    w_both = torch.full((16,), 1.0 / 16.0)
+    m0, tv0 = _total_scalar_trace_var(c_both, v_both, w_both)
+    cb, vb, wm, mc = coalesce_pythagorean_ltv(c_both, v_both, w_both)
+    assert bool(mc.all()), "6-cell and 10-cell isolated sibling clusters should coalesce under cs<=10"
+    m1, tv1 = _total_scalar_trace_var(cb, vb, w_both)
+    assert torch.allclose(m0, m1, atol=1e-6) and abs(tv1 - tv0) <= 1e-6 * max(1.0, tv0)
+
+    c12 = torch.stack((torch.linspace(-0.5, 0.5, 12), torch.zeros(12)), dim=1)
+    _, _, _, mc12 = coalesce_pythagorean_ltv(c12, torch.full((12,), 0.04), torch.full((12,), 1.0 / 12.0))
+    assert not bool(mc12.any()), "12-cell cluster (>10) must NOT coalesce (preserves 8-mode rings)"
+
+    # 2. _box_muller_targets has ZERO %16 prime wrapping at D=32 and D=64.
+    for d in (32, 64):
+        rows = torch.arange(32, dtype=torch.long)
+        k_idx = torch.zeros(32, dtype=torch.long)
+        comp_rep = torch.zeros(2, dtype=torch.long)
+        c_bar = torch.zeros(2, d)
+        v_mu = torch.ones(2)
+        mc_flag = torch.tensor([True, False])
+        tgt = axiom_prior._box_muller_targets(rows, k_idx, comp_rep, 2, c_bar, v_mu, mc_flag, d)
+        assert tgt.shape == (32, d) and bool(torch.isfinite(tgt).all())
+        assert not torch.allclose(tgt[:, :16], tgt[:, 16:32], atol=1e-3), f"D={d} Box-Muller wrapped %16!"
+
+    # 3. High-D pullback dispatch (D<=64 True, D=65 False) & 1e-5x scale-free Case-A + quantizer.
+    tr, _ = _make_mock_trainer(dim=32, latent_dim=4, sigma_z=0.1, seed=41)
+    assert should_use_axiom_pullback(tr, torch.randn(16, 32))
+    assert should_use_axiom_pullback(tr, torch.randn(16, 64))
+    assert not should_use_axiom_pullback(tr, torch.randn(16, 65))
+
+    tr_zero, _ = _make_mock_trainer(dim=2, latent_dim=2, sigma_z=0.0, seed=42)
+    tr_zero.prior = ParticlePrior(32, 2)
+    g = torch.Generator().manual_seed(42)
+    tiny_mix = (torch.tensor([[-1.5, 0.0], [1.5, 0.0]])[torch.arange(32) % 2] + 0.08 * torch.randn(32, 2, generator=g)) * 1e-5
+    assert not should_use_axiom_pullback(tr_zero, tiny_mix), "1e-5x non-degenerate mixture falsely trapped in Case A"
+    assert should_use_axiom_pullback(tr_zero, torch.full((32, 2), 1e-5)), "true point mass at 1e-5x should trigger Case A"
+
+    reg_tiny = AxiomPriorRegularizer(max_prototypes=16)
+    reg_tiny.update_quantizer(tiny_mix)
+    reg_tiny.update_quantizer(tiny_mix)
+    assert float(reg_tiny.proto_var.median().item()) < 1e-9, f"1e-5x proto_var floored too high: {reg_tiny.proto_var.median()}"
+    assert abs(float(reg_tiny.proto_w.double().sum().item()) - 1.0) <= 1e-6

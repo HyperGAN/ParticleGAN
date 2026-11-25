@@ -1,0 +1,54 @@
+{
+  "campaign": {
+    "budget_seconds": 28800,
+    "candidate_budget_seconds": 28800,
+    "id": "axiom-v4-four-laws-adherence-study"
+  },
+  "candidate": "axiom-v4",
+  "competing_explanation": "If Axiom v4's clean-slate Law 1-4 mechanisms fail to generalize across 10:1 anisotropic unequal-mass mixtures, noisy Zipf codebooks, codimension-1 normal-orbit stability, GroupNorm+ViT sprites, Haar-rotated R^32 orphans, 1% rare tanh modes, swapped 16L deep critics, isomorphic 4D 1x1 Conv2d ResBN twins, or 1e-5x extreme-scale shocks, axiom-v4 will record faithful negative margins and FAILs on affected four-laws-adherence-v1 probes.",
+  "control": {
+    "candidate_id": "unified-v14",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "min_margin",
+    "op": "<",
+    "phase": "final",
+    "task_id": "fl_law3_highd_orphan_d32",
+    "threshold": 0.0
+  },
+  "hypothesis": "Unchanged global axiom-v4 outperforms unchanged unified-v14 across the 20 curated anchors and 9 public-API dynamical Four Laws probes in four-laws-adherence-v1 under protocol seed 0, passing high-D R^32 orphan mixtures, swapped 16L deep critics, codimension-1 thin circles, and isomorphic 4D 1x1 Conv2d ResBN twins.",
+  "id": "axiom-v4-four-laws-adherence-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "min_margin",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "fl_law3_highd_orphan_d32",
+    "threshold": 0.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "four-laws-adherence-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

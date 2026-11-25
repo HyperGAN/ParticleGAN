@@ -563,9 +563,10 @@ def test_axiom_transport_cuda_smoke():
 
     y_a, atoms = _make_exact_atoms(k=8, n=32, d=4, seed=19, device=dev)
     w_a = torch.ones(8, device=dev) / 8.0
-    _, _, nal, _ = T._update_atomic_ledger(y_a + 0.1, torch.arange(32, device=dev), atoms, w_a, 32, None, allow_update=True)
-    _, _, nal2, _ = T._update_atomic_ledger(y_a + 0.05, torch.arange(32, device=dev), atoms, w_a, 32, nal, allow_update=True)
-    assert nal2["row_chart"].device.type == "cuda" and int((nal2["row_chart"] >= 0).sum().item()) == 32
+    tk1, nn1, nal, _ = T._update_atomic_ledger(y_a + 0.1, torch.arange(32, device=dev), atoms, w_a, 32, None, allow_update=True)
+    tk2, nn2, nal2, _ = T._update_atomic_ledger(y_a + 0.05, torch.arange(32, device=dev), atoms, w_a, 32, nal, allow_update=True)
+    assert tk1.device.type == "cuda" and tk2.device.type == "cuda" and nn1.device.type == "cuda" and nn2.device.type == "cuda"
+    assert nal2["row_chart"].device.type == "cpu" and int((nal2["row_chart"] >= 0).sum().item()) == 32
 
     z_b = torch.randn(16, 3, device=dev)
     rows_b = torch.arange(16, device=dev).repeat(2)
@@ -676,7 +677,7 @@ def test_v3_conformal_horizon_deconflicted_charts_and_atomic_absent_shield():
     _, _, rw_imb, _, fm_upd = T._deconflicted_routing(xf_imb, cf, wr, rads, torch.full((k_c,), 8.0), cur_fm_imb, torch.tensor(0.25), wv_c=1.0, halo_mult=2.1, s_th=1.0, allow_update=True)
     assert float(rw_imb[:24].amax().item()) > 0.1 and float(fm_upd[1].item()) > float(cur_fm_imb[1].item())
 
-    # 4. forward() atomic absent_shield & thermal shock_mu_ratio=0.15.
+    # 4. forward() atomic absent_shield & thermal shock_mu_ratio=0.35.
     loss_fn = T.AxiomTransportLoss()
     y_atoms, atoms8 = _make_exact_atoms(k=8, n=32, d=4, seed=71)
     # Remove atom 0 from current minibatch y_real while keeping all 8 atoms in chart_state:
@@ -687,9 +688,85 @@ def test_v3_conformal_horizon_deconflicted_charts_and_atomic_absent_shield():
     # Seed all 8 atoms into chart_state first:
     _ = loss_fn(atoms8.repeat(4, 1).requires_grad_(True), atoms8.repeat(4, 1), torch.zeros(32, requires_grad=True), torch.zeros(32), record=rec)
     assert rec.chart_state is not None and rec.atomic_ledger is not None
-    assert rec.last_shock_mu_ratio == pytest.approx(0.15)
+    assert rec.last_shock_mu_ratio == pytest.approx(0.35)
     xf_a = (atoms8.repeat(4, 1) + 0.05).requires_grad_(True)
     df_a = (xf_a.sum(1) * 0.1).requires_grad_(True)
     l_a = loss_fn(xf_a, y_no0, df_a, y_no0.sum(1) * 0.1, record=rec)
     l_a.backward()
     assert torch.isfinite(l_a) and xf_a.grad is not None and torch.isfinite(xf_a.grad).all()
+
+
+def test_v4_fast_spectral_word_bfs_cpu_guard_and_tiny_scale():
+    """Axiom-v4 transport regressions: analytic 2x2 / Pade-11 Halley / coupled NS, grad_fn BFS, CPU guard, 1e-5x scale."""
+    g = torch.Generator().manual_seed(404)
+
+    # 1. Degenerate & general 2x2 analytic zero_eigh + Pade-(1,1) Halley sym_eigensplit for d=8,16,32.
+    m2_deg = torch.tensor([[3.0, 0.0], [0.0, 3.0]], dtype=torch.float64)
+    v2, u2 = T.zero_eigh_symmetric(m2_deg)
+    assert torch.allclose(v2, torch.tensor([3.0, 3.0], dtype=torch.float64))
+    assert torch.allclose(u2.T @ u2, torch.eye(2, dtype=torch.float64), atol=1e-12)
+    for d in (2, 4, 8, 16, 32):
+        a = torch.randn(4, d, d, dtype=torch.float64, generator=g)
+        sym = 0.5 * (a + a.transpose(-1, -2))
+        ep, en = T.sym_eigensplit_zero_eigh(sym)
+        assert torch.allclose(ep + en, sym, atol=1e-12, rtol=1e-12)
+        ev_ref, ec_ref = torch.linalg.eigh(sym)
+        ep_ref = (ec_ref * ev_ref.clamp_min(0.0).unsqueeze(-2)) @ ec_ref.transpose(-1, -2)
+        assert float((ep - ep_ref).abs().max().item()) < 5e-4, f"d={d} Pade-11 eigensplit drift"
+
+    # 2. 16-step coupled NS _sym_inv_sqrt across d=1..32 (incl. rank-deficient & zero cov).
+    for d in (1, 2, 4, 8, 16, 32):
+        x = torch.randn(48, d, dtype=torch.float64, generator=g)
+        if d >= 2:
+            x[:, -1] *= 1e-4
+        c = (x.T @ x) / 48.0
+        w_ns = T._sym_inv_sqrt(c)
+        ev, ec = torch.linalg.eigh(0.5 * (c + c.T))
+        eps = max(1e-4 * max(float(ev.clamp_min(0.0).mean().item()), 1e-4), 1e-6)
+        w_ref = (ec * ((ev + eps) if d > 2 else ev.clamp_min(eps)).rsqrt().unsqueeze(0)) @ ec.T
+        assert float((w_ns - w_ref).norm().item() / w_ref.norm().item()) < 1e-5, f"d={d} _sym_inv_sqrt drift"
+    w_zero = T._sym_inv_sqrt(torch.zeros(8, 8, dtype=torch.float64))
+    assert torch.allclose(w_zero, torch.eye(8, dtype=torch.float64) * 1e3, rtol=1e-5)
+
+    # 3. _curve_gate min(D, 9) Gram handles D=1, 2, 3, 12 cleanly.
+    assert T._curve_gate(torch.linspace(-1.0, 1.0, 24).unsqueeze(1), 1.0) == 1.0
+    assert T._curve_gate(_make_arc_batch(32), 1.0) > 0.8
+    assert T._curve_gate(_make_saddle_batch(32), 1.0) < 0.2
+    assert 0.0 <= T._curve_gate(torch.randn(32, 12, generator=g), 1.0) <= 1.0
+
+    # 4. WordFixture <=8-hop grad_fn BFS recovers (ptab, active_rows) when rec._active_prior_table is None.
+    loss_fn = T.AxiomTransportLoss()
+    y_atoms, _ = _make_exact_atoms(k=8, n=32, d=4, seed=405)
+    ptab = nn.Parameter(torch.randn(16, 3, generator=g))
+    rows = torch.arange(16).repeat(2)
+    ptab._axiom_active_rows = rows.detach()
+    gen_w = nn.Sequential(nn.Linear(3, 16), nn.SiLU(), nn.Linear(16, 4))
+    rec_bfs = _StubAxiomRecord()
+    assert rec_bfs._active_prior_table is None
+    z_s = ptab[rows]
+    xf = gen_w(z_s)
+    l_f = loss_fn(xf, y_atoms, (xf.sum(1) * 0.1), y_atoms.sum(1) * 0.1, record=rec_bfs)
+    l_f.backward()
+    assert torch.isfinite(l_f) and rec_bfs.atomic_ledger is not None and getattr(ptab, "_axiom_record", None) is rec_bfs
+
+    # Also test joint_relativistic_loss BFS recovery:
+    rec_jbfs = _StubAxiomRecord()
+    ptab2 = nn.Parameter(torch.randn(16, 3, generator=g))
+    ptab2._axiom_active_rows = rows.detach()
+    z_s2 = ptab2[rows]
+    jf = torch.cat((gen_w(z_s2), z_s2), dim=1)
+    jr = torch.cat((y_atoms, torch.randn(32, 3, generator=g, requires_grad=True)), dim=1)
+    l_j = loss_fn.joint_relativistic_loss(jf, jr, jf.sum(1) * 0.1, jr.sum(1) * 0.1, record=rec_jbfs)
+    l_j.backward()
+    assert torch.isfinite(l_j) and rec_jbfs.atomic_ledger is not None and getattr(ptab2, "_axiom_record", None) is rec_jbfs
+
+    # 5. AxiomCondFiberBank CPU device guard even under non-CPU default device & 1e-5x scale-free transport.
+    bank = T.AxiomCondFiberBank()
+    assert bank._ridge(2).device.type == "cpu"
+    y_tiny = _make_disconnected_modes(32) * 1e-5
+    ell_tiny = T._batch_ell(y_tiny, 0.25)
+    assert 1e-7 < float(ell_tiny.item()) < 1e-4, f"1e-5x _batch_ell distorted: {ell_tiny.item()}"
+    c_t, ch_t = T._bi_cost((y_tiny + 1e-5).requires_grad_(True), y_tiny, ell_tiny)
+    assert torch.isfinite(c_t).all() and torch.isfinite(ch_t).all() and float(c_t.amax().item()) > 1e-7
+    _, _, rads_t, _, cs_t = T._update_charts(y_tiny, None, max_charts=8, allow_update=True)
+    assert float(rads_t.amax().item()) < 1e-4 and cs_t["data_scale"] < 1e-3
