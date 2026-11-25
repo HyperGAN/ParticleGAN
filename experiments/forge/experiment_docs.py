@@ -506,44 +506,193 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
     return per_task, scaling_by_task, hf_repo
 
 
-def _load_four_laws_readouts(root: Path) -> dict[str, list[dict[str, Any]]]:
-    """Scan compact Forge readout receipts for four-laws-adherence-v1 diagnostic results."""
-    by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
-    records_dir = root / "reports/forge/records"
-    if not records_dir.is_dir():
-        return by_task
-    seen: set[tuple[str, str]] = set()
-    for path in sorted(records_dir.glob("readout-*.json"), reverse=True):
+def _resolve_candidate_family_map(root: Path) -> dict[str, str]:
+    """Map candidate_id -> trainer_family from configs/forge/ideas/*.json (read-only)."""
+    mapping: dict[str, str] = {}
+    ideas_dir = root / "configs/forge/ideas"
+    if not ideas_dir.is_dir():
+        return mapping
+    for path in sorted(ideas_dir.glob("*.json")):
         try:
-            text = path.read_text(encoding="utf-8")
-        except OSError:
-            continue
-        if "four-laws-adherence" not in text:
-            continue
-        try:
-            doc = json.loads(text)
+            doc = json.loads(path.read_text(encoding="utf-8"))
         except Exception:
             continue
-        if doc.get("view") != "four-laws-adherence-v1":
+        if not isinstance(doc, dict):
             continue
-        cand = str(doc.get("candidate_id") or (doc.get("candidate") or {}).get("id") or path.stem)
-        fam = str(doc.get("trainer_family") or (doc.get("candidate") or {}).get("trainer_family") or "")
-        for tr in doc.get("task_results") or []:
-            if not isinstance(tr, dict):
+        cid = str(doc.get("id") or path.stem)
+        fam = str(doc.get("trainer_family") or "").strip()
+        if not fam:
+            if cid.startswith("minimal"):
+                fam = "minimal"
+            elif cid.startswith("unified"):
+                fam = "unified"
+            elif cid.startswith("rhbi"):
+                fam = "rhbi"
+            elif cid.startswith("empf"):
+                fam = "empf"
+            elif cid.startswith("bispf"):
+                fam = "bispf"
+            elif cid.startswith("atlas"):
+                fam = "atlas"
+        if fam:
+            mapping[cid] = fam
+    return mapping
+
+
+def _format_energy_cell(joules_total: float | None, joules_to_pass: float | None, status: str) -> str:
+    if status == "PASS" and isinstance(joules_to_pass, (int, float)) and joules_to_pass >= 0:
+        if joules_to_pass >= 1000.0:
+            return f"{joules_to_pass / 1000.0:.2f} kJ (J-to-PASS)"
+        return f"{joules_to_pass:.0f} J (J-to-PASS)"
+    if isinstance(joules_total, (int, float)) and joules_total > 0:
+        if joules_total >= 1000.0:
+            return f"{joules_total / 1000.0:.2f} kJ"
+        return f"{joules_total:.0f} J"
+    return "—"
+
+
+def _load_four_laws_readouts(
+    root: Path,
+    fl_task_ids: set[str] | None = None,
+) -> dict[str, list[dict[str, Any]]]:
+    """Scan compact Forge readouts and technique-receipts for four-laws-adherence-v1 diagnostic results."""
+    by_task: dict[str, list[dict[str, Any]]] = defaultdict(list)
+    fam_map = _resolve_candidate_family_map(root)
+    best_by_key: dict[tuple[str, str, str], tuple[tuple[int, int, str], dict[str, Any]]] = {}
+
+    def _consider(entry: dict[str, Any], tie_key: str) -> None:
+        tid = entry["task_id"]
+        cand = entry["candidate_id"]
+        gpu = entry.get("gpu_name") or ""
+        status = entry["status"]
+        # Prefer definitive PASS/FAIL over INCOMPLETE/TIMEOUT, then hardware NVML energy, then newest path.
+        status_rank = 2 if status in {"PASS", "FAIL"} else (1 if status == "BLOCKED" else 0)
+        energy_rank = 1 if isinstance(entry.get("joules_total"), (int, float)) else 0
+        rank = (status_rank, energy_rank, tie_key)
+        key = (tid, cand, gpu)
+        prev = best_by_key.get(key)
+        if prev is None or rank > prev[0]:
+            best_by_key[key] = (rank, entry)
+
+    records_dir = root / "reports/forge/records"
+    if records_dir.is_dir():
+        for path in sorted(records_dir.glob("readout-*.json"), reverse=True):
+            try:
+                text = path.read_text(encoding="utf-8")
+            except OSError:
                 continue
-            tid = str(tr.get("task_id") or "")
-            if not tid or (tid, cand) in seen:
+            if "four-laws-adherence" not in text:
                 continue
-            seen.add((tid, cand))
-            status = str(tr.get("gate_status") or tr.get("status") or "UNKNOWN").upper()
-            metrics = tr.get("metrics") or {}
-            by_task[tid].append({
-                "family_id": fam,
-                "candidate_id": cand,
-                "status": status,
-                "metrics": _summarize_metrics_dict(metrics),
-                "readout": path.relative_to(root).as_posix(),
-            })
+            try:
+                doc = json.loads(text)
+            except Exception:
+                continue
+            if doc.get("view") != "four-laws-adherence-v1":
+                continue
+            cand = str(doc.get("candidate_id") or (doc.get("candidate") or {}).get("id") or path.stem)
+            fam = str(doc.get("trainer_family") or (doc.get("candidate") or {}).get("trainer_family") or fam_map.get(cand, ""))
+            scope = (doc.get("study") or {}).get("scope") if isinstance(doc.get("study"), dict) else {}
+            default_gpu = str((scope or {}).get("cuda_model") or "")
+            for tr in doc.get("task_results") or []:
+                if not isinstance(tr, dict):
+                    continue
+                tid = str(tr.get("task_id") or "")
+                if not tid:
+                    continue
+                status = str(tr.get("gate_status") or tr.get("status") or "UNKNOWN").upper()
+                metrics = tr.get("metrics") if isinstance(tr.get("metrics"), dict) else {}
+                cost = tr.get("cost") if isinstance(tr.get("cost"), dict) else {}
+                en = cost.get("energy") if isinstance(cost.get("energy"), dict) else {}
+                gpu = str(en.get("gpu_name") or default_gpu or "")
+                mm = metrics.get("min_margin")
+                mm_val = float(mm) if isinstance(mm, (int, float)) and not isinstance(mm, bool) else None
+                jt = en.get("joules_total")
+                jt_val = float(jt) if isinstance(jt, (int, float)) and not isinstance(jt, bool) else None
+                jtp = en.get("joules_to_sustained_pass")
+                if jtp is None:
+                    jtp = en.get("joules_to_first_pass")
+                jtp_val = float(jtp) if isinstance(jtp, (int, float)) and not isinstance(jtp, bool) else None
+                _consider(
+                    {
+                        "task_id": tid,
+                        "family_id": fam,
+                        "candidate_id": cand,
+                        "gpu_name": gpu,
+                        "status": status,
+                        "min_margin": mm_val,
+                        "joules_total": jt_val,
+                        "joules_to_pass": jtp_val,
+                        "metrics": _summarize_metrics_dict(metrics),
+                        "readout": path.relative_to(root).as_posix(),
+                    },
+                    f"1:{path.name}",
+                )
+
+    receipts_dir = root / "reports/forge/technique-receipts"
+    if receipts_dir.is_dir():
+        allowed = fl_task_ids or set()
+        for path in sorted(receipts_dir.glob("*.json")):
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(doc, dict):
+                continue
+            cand = str(doc.get("candidate_id") or "")
+            if not cand:
+                continue
+            campaign_id = str(doc.get("campaign_id") or "")
+            is_colab = campaign_id.startswith("colab-catchup-")
+            fam = fam_map.get(cand, "")
+            for tr in doc.get("task_results") or []:
+                if not isinstance(tr, dict):
+                    continue
+                tid = str(tr.get("task_id") or "")
+                if not tid:
+                    continue
+                is_fl_probe = tid.startswith("fl_law")
+                if not is_fl_probe and not (tid in allowed and is_colab):
+                    continue
+                status = str(tr.get("gate_status") or tr.get("status") or "UNKNOWN").upper()
+                metrics = tr.get("metrics") if isinstance(tr.get("metrics"), dict) else {}
+                cost = tr.get("cost") if isinstance(tr.get("cost"), dict) else {}
+                en = cost.get("energy") if isinstance(cost.get("energy"), dict) else {}
+                gpu = str(en.get("gpu_name") or ("NVIDIA L4" if "-l4-" in campaign_id else ""))
+                mm = metrics.get("min_margin")
+                mm_val = float(mm) if isinstance(mm, (int, float)) and not isinstance(mm, bool) else None
+                jt = en.get("joules_total")
+                jt_val = float(jt) if isinstance(jt, (int, float)) and not isinstance(jt, bool) else None
+                jtp = en.get("joules_to_sustained_pass")
+                if jtp is None:
+                    jtp = en.get("joules_to_first_pass")
+                jtp_val = float(jtp) if isinstance(jtp, (int, float)) and not isinstance(jtp, bool) else None
+                _consider(
+                    {
+                        "task_id": tid,
+                        "family_id": fam,
+                        "candidate_id": cand,
+                        "gpu_name": gpu,
+                        "status": status,
+                        "min_margin": mm_val,
+                        "joules_total": jt_val,
+                        "joules_to_pass": jtp_val,
+                        "metrics": _summarize_metrics_dict(metrics),
+                        "readout": path.relative_to(root).as_posix(),
+                    },
+                    f"0:{path.name}",
+                )
+
+    for (_, _, _), (_, entry) in sorted(best_by_key.items()):
+        by_task[entry["task_id"]].append(entry)
+    for tid in by_task:
+        by_task[tid].sort(
+            key=lambda r: (
+                0 if r["status"] == "PASS" else (1 if r["status"] == "FAIL" else 2),
+                -(r["min_margin"] if isinstance(r["min_margin"], (int, float)) else -1e9),
+                r["candidate_id"],
+                r.get("gpu_name", ""),
+            )
+        )
     return by_task
 
 
@@ -927,7 +1076,12 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
     views = _load_views(root)
     problem_defs = _load_problem_definitions(root)
     family_results, scaling_by_task, hf_repo = _load_family_results(root)
-    fl_readouts = _load_four_laws_readouts(root)
+    fl_view_tasks = {
+        a["task"]
+        for a in (views.get("four-laws-adherence-v1") or {}).get("assignments", [])
+        if isinstance(a, dict) and isinstance(a.get("task"), str)
+    }
+    fl_readouts = _load_four_laws_readouts(root, fl_task_ids=fl_view_tasks)
     api_gifs = _load_api_contract_gifs(root)
     family_law_mechs = _load_family_law_mechanisms(root)
 
@@ -1315,25 +1469,31 @@ def render_experiment_page(root: Path, entry: dict[str, Any], catalog: dict[str,
                 f"{_status_badge(fr['status'])} | {_md_cell(fr['metrics']) or '—'} | {fam_link} | {media} |"
             )
         lines.append("")
-    elif entry["four_laws_readouts"]:
-        lines.extend([
-            "*Diagnostic readouts from `four-laws-adherence-v1` (research telemetry only; no ordinary qualification credit):*",
-            "",
-            "| Candidate | Family | Outcome | Key Recorded Metrics | Receipt |",
-            "| --- | --- | :---: | --- | --- |",
-        ])
-        for dr in entry["four_laws_readouts"]:
-            rec_link = _rel_link(root, page_path, dr["readout"], Path(dr["readout"]).name)
-            lines.append(
-                f"| `{_md_cell(dr['candidate_id'])}` | `{_md_cell(dr['family_id'] or '—')}` | "
-                f"{_status_badge(dr['status'])} | {_md_cell(dr['metrics']) or '—'} | {rec_link} |"
-            )
-        lines.append("")
-    else:
+    elif not entry["four_laws_readouts"]:
         lines.extend([
             "No selected-family cohort cells are recorded for this task in the current `reports/forge/technique-inventory.json`.",
             "",
         ])
+
+    if entry["four_laws_readouts"]:
+        lines.extend([
+            "### Four Laws Adherence Diagnostic Receipts (Separate Cohort)",
+            "",
+            "*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*",
+            "",
+            "| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |",
+            "| --- | --- | --- | :---: | ---: | ---: | --- | --- |",
+        ])
+        for dr in entry["four_laws_readouts"]:
+            rec_link = _rel_link(root, page_path, dr["readout"], Path(dr["readout"]).name)
+            mm_s = f"`{dr['min_margin']:+.3f}`" if isinstance(dr.get("min_margin"), (int, float)) else "—"
+            en_s = _format_energy_cell(dr.get("joules_total"), dr.get("joules_to_pass"), dr["status"])
+            lines.append(
+                f"| `{_md_cell(dr['candidate_id'])}` | `{_md_cell(dr['family_id'] or '—')}` | "
+                f"{_md_cell(dr.get('gpu_name') or '—')} | {_status_badge(dr['status'])} | "
+                f"{mm_s} | {_md_cell(en_s)} | {_md_cell(dr['metrics']) or '—'} | {rec_link} |"
+            )
+        lines.append("")
 
     if entry.get("api_contract_gif"):
         gif_link = _rel_link(root, page_path, entry["api_contract_gif"], "Actual-training reference GIF")
@@ -1522,6 +1682,166 @@ def render_experiment_catalog_readme(root: Path, catalog: dict[str, Any]) -> str
     return "\n".join(lines)
 
 
+def _render_four_laws_l4_leaderboard(exps: dict[str, dict[str, Any]]) -> list[str]:
+    """Render the matched NVIDIA L4 Four Laws Adherence diagnostic leaderboard from recorded receipts."""
+    fl_probes = [
+        e for e in exps.values()
+        if e.get("four_laws_adherence") and e["four_laws_adherence"].get("role") == "four_laws_probe"
+    ]
+    if not fl_probes:
+        return []
+
+    fl_probes.sort(key=lambda e: (e["four_laws_adherence"].get("law", ""), e["task_id"]))
+    probe_ids = [e["task_id"] for e in fl_probes]
+    law_of = {e["task_id"]: str(e["four_laws_adherence"].get("law") or "") for e in fl_probes}
+
+    # Index strictly matched NVIDIA L4 receipts for the 9 fl_law* probes + 2 ByteGAN Law-1 anchors
+    by_cand: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
+    cand_family: dict[str, str] = {}
+    for tid in [*probe_ids, "bytegan_hypercube8", "bytegan_bigan_dictionary"]:
+        entry = exps.get(tid)
+        if not entry:
+            continue
+        for dr in entry.get("four_laws_readouts") or []:
+            if dr.get("gpu_name") != "NVIDIA L4":
+                continue
+            cid = dr["candidate_id"]
+            by_cand[cid][tid] = dr
+            if dr.get("family_id"):
+                cand_family[cid] = dr["family_id"]
+
+    l4_probe_cands = [cid for cid, m in by_cand.items() if any(pid in m for pid in probe_ids)]
+    if not l4_probe_cands:
+        return []
+
+    law_order = ["law1", "law2", "law3", "law4"]
+    probes_by_law = {lid: [pid for pid in probe_ids if law_of[pid] == lid] for lid in law_order}
+
+    def _sort_key(cid: str) -> tuple:
+        m = by_cand[cid]
+        passes = sum(1 for pid in probe_ids if (m.get(pid) or {}).get("status") == "PASS")
+        bg_passes = sum(
+            1 for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary")
+            if (m.get(tid) or {}).get("status") == "PASS"
+        )
+        margins = [
+            m[pid]["min_margin"]
+            for pid in probe_ids
+            if pid in m and isinstance(m[pid].get("min_margin"), (int, float))
+        ]
+        mean_m = sum(margins) / len(margins) if margins else -1e9
+        return (-passes, -bg_passes, -mean_m, cid)
+
+    ordered_cands = sorted(l4_probe_cands, key=_sort_key)
+
+    lines: list[str] = [
+        "## Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)",
+        "",
+        "> [!IMPORTANT]",
+        "> Matched **NVIDIA L4** hardware cohort (`four-laws-adherence-v1`, protocol seed `0`, unchanged global recipes). "
+        "Supplies research diagnostic telemetry only — separate from ordinary selected-cohort qualification and confers no default-adoption credit. "
+        "Statically preflight-blocked pairs (`atlas-particle-normal-v4`: requires `MoGParticlePrior`; `e22`: requires policy-control/served-sampling contract) remain `BLOCKED` and distinct from numerical `FAIL`.",
+        "",
+        "### Cross-Technique Family × Law Summary (9 `fl_law*` Probes + ByteGAN)",
+        "",
+        f"| Candidate | Family | Law 1 ({len(probes_by_law['law1'])}) | Law 2 ({len(probes_by_law['law2'])}) | Law 3 ({len(probes_by_law['law3'])}) | Law 4 ({len(probes_by_law['law4'])}) | Probes PASS | ByteGAN (L4) | 9-Probe NVML Energy |",
+        "| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | ---: |",
+    ]
+
+    for cid in ordered_cands:
+        m = by_cand[cid]
+        law_cells = []
+        total_pass = 0
+        total_measured = 0
+        total_j = 0.0
+        has_j = False
+        for lid in law_order:
+            lpids = probes_by_law[lid]
+            lp = sum(1 for pid in lpids if (m.get(pid) or {}).get("status") == "PASS")
+            lm = sum(1 for pid in lpids if pid in m)
+            total_pass += lp
+            total_measured += lm
+            law_cells.append(f"`{lp}/{len(lpids)}`" if lm == len(lpids) else f"`{lp}/{lm}`")
+        for pid in probe_ids:
+            jt = (m.get(pid) or {}).get("joules_total")
+            if isinstance(jt, (int, float)):
+                total_j += jt
+                has_j = True
+        bg_m = [tid for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary") if tid in m]
+        if bg_m:
+            bg_p = sum(1 for tid in bg_m if m[tid]["status"] == "PASS")
+            bg_cell = f"`{bg_p}/{len(bg_m)}`"
+        else:
+            bg_cell = "—"
+        energy_cell = f"{total_j / 1000.0:.2f} kJ" if has_j else "—"
+        lines.append(
+            f"| `{_md_cell(cid)}` | `{_md_cell(cand_family.get(cid) or '—')}` | "
+            + " | ".join(law_cells)
+            + f" | **{total_pass}/{total_measured}** | {bg_cell} | {energy_cell} |"
+        )
+
+    # Also list explicitly blocked families if present in catalog without L4 probe runs
+    for blocked_cid, blocked_fam, reason in (
+        ("atlas-particle-normal-v4", "atlas", "requires `MoGParticlePrior`"),
+        ("e22", "e22", "clean/live policy contract"),
+    ):
+        if blocked_cid not in by_cand or not any(pid in by_cand[blocked_cid] for pid in probe_ids):
+            bg_m = [tid for tid in ("bytegan_hypercube8", "bytegan_bigan_dictionary") if tid in by_cand.get(blocked_cid, {})]
+            bg_cell = (
+                f"`{sum(1 for tid in bg_m if by_cand[blocked_cid][tid]['status'] == 'PASS')}/{len(bg_m)}`"
+                if bg_m
+                else "`BLOCKED`"
+            )
+            lines.append(
+                f"| `{blocked_cid}` | `{blocked_fam}` | `BLOCKED` | `BLOCKED` | `BLOCKED` | `BLOCKED` | "
+                f"`0/0` ({reason}) | {bg_cell} | — |"
+            )
+    lines.append("")
+
+    short_headers = {
+        "fl_law1_aniso_unequal_modes": "L1 Aniso",
+        "fl_law1_noisy_atomic_codebook": "L1 Noisy",
+        "fl_law2_pure_adversarial_codim1": "L2 Codim1",
+        "fl_law2_groupnorm_and_vit_sprites": "L2 GN+ViT",
+        "fl_law3_highd_orphan_d32": "L3 R32",
+        "fl_law41_trust_rare1pct_tanh": "L4.1 Rare1%",
+        "fl_law42_swap_deep_critic_16l": "L4.2 Swap16L",
+        "fl_law42_deep_resbn_and_conv1x1": "L4.2 ResBN",
+        "fl_law44_highd_sparse_prior_and_shock": "L4.4 R512",
+    }
+    header_links = [
+        f"[{short_headers.get(pid, pid)}](experiments/{pid}.md)" for pid in probe_ids
+    ]
+    lines.extend([
+        "### Per-Probe Outcomes & Signed `min_margin` (NVIDIA L4)",
+        "",
+        "| Candidate | " + " | ".join(header_links) + " |",
+        "| --- | " + " | ".join([":---:"] * len(probe_ids)) + " |",
+    ])
+    for cid in ordered_cands:
+        m = by_cand[cid]
+        cells = []
+        for pid in probe_ids:
+            dr = m.get(pid)
+            if not dr:
+                cells.append("—")
+                continue
+            st = dr["status"]
+            mm = dr.get("min_margin")
+            mm_s = f"{mm:+.2f}" if isinstance(mm, (int, float)) else ""
+            if st == "PASS":
+                jtp = dr.get("joules_to_pass")
+                j_s = f" ({jtp / 1000.0:.2f} kJ)" if isinstance(jtp, (int, float)) else ""
+                cells.append(f"**PASS** `{mm_s}`{j_s}")
+            elif st == "FAIL":
+                cells.append(f"FAIL `{mm_s}`")
+            else:
+                cells.append(f"`{st}`")
+        lines.append(f"| `{_md_cell(cid)}` | " + " | ".join(cells) + " |")
+    lines.append("")
+    return lines
+
+
 def render_laws_hub(root: Path, catalog: dict[str, Any]) -> str:
     """Render ``reports/forge/LAWS_HUB.md`` dynamically from ``configs/forge/laws.json``."""
     laws_reg = catalog["laws_registry"]
@@ -1559,6 +1879,8 @@ def render_laws_hub(root: Path, catalog: dict[str, Any]) -> str:
             f"{_md_cell(law.get('question', ''))} | {len(probing)} | {tlink} |"
         )
     lines.append("")
+
+    lines.extend(_render_four_laws_l4_leaderboard(exps))
 
     for law in laws_reg["laws"]:
         lid = law["id"]

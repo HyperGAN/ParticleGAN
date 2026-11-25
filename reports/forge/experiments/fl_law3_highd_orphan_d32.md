@@ -94,6 +94,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-0.999` | 3.69 kJ | core_eig_max=4.421, core_eig_min=0.0001454, finite_fraction=1, mass_tv=0.03767 | [f6aa09cb455647379f32b4a6bba72943.json](../technique-receipts/f6aa09cb455647379f32b4a6bba72943.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | `-1.000` | 3.12 kJ | core_eig_max=3.558, core_eig_min=0.0001017, finite_fraction=1, mass_tv=0.05253 | [76624f207ca04f8cb0f104df96f68243.json](../technique-receipts/76624f207ca04f8cb0f104df96f68243.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-1.000` | 3.36 kJ | core_eig_max=3.558, core_eig_min=0.0001017, finite_fraction=1, mass_tv=0.05253 | [e5fc05596e9b4fc7bc21cc506cbd7713.json](../technique-receipts/e5fc05596e9b4fc7bc21cc506cbd7713.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | `-1.000` | 3.89 kJ | core_eig_max=4.059, core_eig_min=6.973e-05, finite_fraction=1, mass_tv=0.06969 | [01aea7a1f18143c88de9f83fb79bfdbe.json](../technique-receipts/01aea7a1f18143c88de9f83fb79bfdbe.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-1.000` | 2.57 kJ | core_eig_max=5.419, core_eig_min=6.091e-05, finite_fraction=1, mass_tv=0.02089 | [44b20d653c7f40098e20f8caf383a416.json](../technique-receipts/44b20d653c7f40098e20f8caf383a416.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `-1.000` | 996 J | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.2618 | [27d319679737439ea28f575288726add.json](../technique-receipts/27d319679737439ea28f575288726add.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `-1.000` | 1.07 kJ | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.2618 | [4126187c8ce4446da6c991a65d3312c4.json](../technique-receipts/4126187c8ce4446da6c991a65d3312c4.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | `-1.000` | 790 J | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.2211 | [9661bba918d94adc8482cdb796c7186e.json](../technique-receipts/9661bba918d94adc8482cdb796c7186e.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `-1.140` | 813 J | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.2997 | [ad605cce15dc4b43848947e579ee37ff.json](../technique-receipts/ad605cce15dc4b43848947e579ee37ff.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-1.189` | 3.20 kJ | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.3065 | [736638cb3a274648b65b261dead23dd3.json](../technique-receipts/736638cb3a274648b65b261dead23dd3.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-2.754` | 2.01 kJ | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.5256 | [5f301be96d15484d994d9edb4b248a94.json](../technique-receipts/5f301be96d15484d994d9edb4b248a94.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-3.038` | 3.73 kJ | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.5653 | [b2b18586015d4208b743ed2218c998cf.json](../technique-receipts/b2b18586015d4208b743ed2218c998cf.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-3.542` | 3.03 kJ | core_eig_max=99, core_eig_min=0, finite_fraction=1, mass_tv=0.6359 | [51fa98e4220e4ea09ae4779df3c5e375.json](../technique-receipts/51fa98e4220e4ea09ae4779df3c5e375.json) |
+
 ## Reproduce This Experiment
 
 ```bash

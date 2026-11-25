@@ -904,7 +904,20 @@ def build_ephemeral_catchup_bundle(
                         wanted.add(dep_id)
                         frontier.append(dep_id)
         subset_assignments = [a for a in view.get("assignments", []) if a["task"] in wanted]
-        if has_deps:
+        is_diagnostic_view = view.get("evidence_scope") in {"research_diagnostic", "calibration_diagnostic"}
+        if is_diagnostic_view:
+            # Diagnostic views require every assignment to be importance="diagnostic" in Tier 1
+            # (Forge validate_view rejects non-diagnostic importance or tier > 1).
+            effective_through_tier = 1
+            remapped = [
+                {
+                    **{k: v for k, v in a.items() if k not in ("hold", "removal", "stretch")},
+                    "qualification_tier": 1,
+                    "importance": "diagnostic",
+                }
+                for a in subset_assignments
+            ]
+        elif has_deps:
             # Compress distinct original tiers onto contiguous 1..K so Forge's
             # "empty required tier: qualification tiers must be contiguous from Tier 1"
             # check always passes while strictly preserving parent-before-child gates.
@@ -935,7 +948,7 @@ def build_ephemeral_catchup_bundle(
             **{
                 k: v
                 for k, v in view.items()
-                if k not in ("id", "assignments", "revision", "previous_revision", "revision_reason")
+                if k not in ("id", "assignments", "revision", "previous_revision", "revision_reason", "law_groups")
             },
             "id": effective_view_id,
             "revision": 1,

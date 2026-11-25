@@ -269,5 +269,10 @@ def test_dcgan_r256_renders_scaling_metrics_and_repo_bloat_passes():
     r256 = (EXPERIMENTS_DIR / "dcgan_performance_r256.md").read_text(encoding="utf-8")
     assert "Median ms/step" in r256
     assert "Peak Allocated MiB" in r256
+    hub = LAWS_HUB.read_text(encoding="utf-8")
+    assert "## Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)" in hub
+    fl_page = (EXPERIMENTS_DIR / "fl_law41_trust_rare1pct_tanh.md").read_text(encoding="utf-8")
+    assert "### Four Laws Adherence Diagnostic Receipts (Separate Cohort)" in fl_page
+    assert "NVIDIA L4" in fl_page
     bloat = check_repo_bloat(ROOT)
     assert bloat["passed"], bloat["new_violations"]

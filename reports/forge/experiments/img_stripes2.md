@@ -89,6 +89,25 @@ flowchart LR
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 346 J (J-to-PASS) | distribution_tv=0, hq=1, mean_rmse=0.006249, modes=2 | [de8b74acbde3425b8a853204114e088b.json](../technique-receipts/de8b74acbde3425b8a853204114e088b.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 1.20 kJ (J-to-PASS) | distribution_tv=0.1875, hq=1, mean_rmse=0.001734, modes=2 | [54e4b034bc304af88c72ef9b1e20af3d.json](../technique-receipts/54e4b034bc304af88c72ef9b1e20af3d.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 506 J (J-to-PASS) | distribution_tv=0.09375, hq=1, mean_rmse=4.219e-05, modes=2 | [73c50630a673449f8cb683907ac54ebd.json](../technique-receipts/73c50630a673449f8cb683907ac54ebd.json) |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 887 J (J-to-PASS) | distribution_tv=0.0625, hq=1, mean_rmse=0.002811, modes=2 | [8668022fbc2f471aaa84a1bf07c3fcb0.json](../technique-receipts/8668022fbc2f471aaa84a1bf07c3fcb0.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 300 J (J-to-PASS) | distribution_tv=0.1875, hq=1, mean_rmse=0.003463, modes=2 | [263b448be20548c995cd09374d46653a.json](../technique-receipts/263b448be20548c995cd09374d46653a.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **PASS** | — | 791 J (J-to-PASS) | distribution_tv=0.09375, hq=1, mean_rmse=1.634e-09, modes=2 | [74d482d11003419fb546b3c1a94d0e1b.json](../technique-receipts/74d482d11003419fb546b3c1a94d0e1b.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **PASS** | — | 106 J (J-to-PASS) | distribution_tv=0.03125, hq=1, mean_rmse=0.007621, modes=2 | [1ce89d9a4cfb49cc947f4990fcda2b41.json](../technique-receipts/1ce89d9a4cfb49cc947f4990fcda2b41.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **PASS** | — | 104 J (J-to-PASS) | distribution_tv=0.03125, hq=1, mean_rmse=0.007845, modes=2 | [9fae680909b647d6bf3488b9ba0247d4.json](../technique-receipts/9fae680909b647d6bf3488b9ba0247d4.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **PASS** | — | 58 J (J-to-PASS) | distribution_tv=0, hq=1, mean_rmse=0.008166, modes=2 | [5f43b49f5fcf43cea9d5422eea729957.json](../technique-receipts/5f43b49f5fcf43cea9d5422eea729957.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 900 J (J-to-PASS) | distribution_tv=0.0625, hq=1, mean_rmse=0.003021, modes=2 | [951ad5bac7244767b77c8afd76cbe41e.json](../technique-receipts/951ad5bac7244767b77c8afd76cbe41e.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 846 J (J-to-PASS) | distribution_tv=0.0625, hq=1, mean_rmse=0.002811, modes=2 | [858fda28326f41548a096797ef608359.json](../technique-receipts/858fda28326f41548a096797ef608359.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 285 J | distribution_tv=0.03125, hq=0.9688, mean_rmse=0.008511, modes=2 | [78b2eab24ab240d5a5b8a6a8d6c66ddd.json](../technique-receipts/78b2eab24ab240d5a5b8a6a8d6c66ddd.json) |
+
 ## Reproduce This Experiment
 
 ```bash

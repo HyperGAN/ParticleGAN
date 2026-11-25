@@ -285,6 +285,40 @@ def test_ephemeral_view_includes_transitive_dependencies(tmp_path: Path):
         assert sdoc_chk["scope"]["through_tier"] == len(tiers)
 
 
+def test_ephemeral_view_preserves_diagnostic_scope_for_four_laws_adherence(tmp_path: Path):
+    from experiments.forge.studies import validate_study
+    from experiments.forge.views import load_tasks, validate_view
+
+    all_tasks = load_tasks(cf.REPO_ROOT)
+    for tasks in (
+        ["fl_law1_aniso_unequal_modes", "fl_law1_noisy_atomic_codebook", "fl_law2_pure_adversarial_codim1"],
+        ["ring_extension"],
+        ["zero_tanh_rail_escape"],
+        ["gaussian1d_stability"],
+        ["dcgan_performance_r256"],
+    ):
+        unit = cf.CatchupUnit(
+            unit_id=f"fl-{tasks[0][:12]}",
+            candidate_id="unified-v14",
+            view_id="four-laws-adherence-v1",
+            through_tier=1,
+            gpu="L4",
+            tasks=tasks,
+            is_full_view_slice=False,
+            estimated_seconds=1800.0,
+        )
+        vf, sf, _sid = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit, tmp_path)
+        assert vf is not None
+        vdoc = json.loads(vf.read_text(encoding="utf-8"))
+        sdoc = json.loads(sf.read_text(encoding="utf-8"))
+        validate_view(vdoc, all_tasks)
+        validate_study(sdoc)
+        assert vdoc["evidence_scope"] == "research_diagnostic"
+        assert all(a["importance"] == "diagnostic" and a["qualification_tier"] == 1 for a in vdoc["assignments"])
+        assert sdoc["scope"]["through_tier"] == 1
+        assert "law_groups" not in vdoc
+
+
 # ---------------------------------------------------------------------------
 # Hardened cmd_reap (default + isolated worker configs) & transport retries
 # ---------------------------------------------------------------------------

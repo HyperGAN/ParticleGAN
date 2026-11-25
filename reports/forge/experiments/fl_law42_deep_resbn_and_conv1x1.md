@@ -97,6 +97,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-0.036` | 7.50 kJ | conv1x1_sw1=0.02273, conv1x1_sw1_ratio=1.088, diag_d_max_s1=1.016, diag_s_therm=1 | [f5226f3cc935462a86b3c281ead4e3ae.json](../technique-receipts/f5226f3cc935462a86b3c281ead4e3ae.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | `-0.047` | 8.18 kJ | conv1x1_sw1=0.02707, conv1x1_sw1_ratio=1.099, diag_d_max_s1=1.381, diag_s_therm=1e-06 | [b336fb5b67a24e9ca46b1b2df2ec4fb5.json](../technique-receipts/b336fb5b67a24e9ca46b1b2df2ec4fb5.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `-0.399` | 3.26 kJ | conv1x1_sw1=0.06786, conv1x1_sw1_ratio=0.5963, diag_d_max_s1=5.088, diag_s_therm=1 | [6e9656735f994d499d3c2ffac6b187e7.json](../technique-receipts/6e9656735f994d499d3c2ffac6b187e7.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-0.441` | 9.17 kJ | conv1x1_sw1=0.1441, conv1x1_sw1_ratio=1.166, diag_d_max_s1=1.565, diag_s_therm=1 | [f04d01b658e74e4c9395619d0ad13d41.json](../technique-receipts/f04d01b658e74e4c9395619d0ad13d41.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `-0.550` | 3.86 kJ | conv1x1_sw1=0.155, conv1x1_sw1_ratio=1.353, diag_d_max_s1=9.301, diag_s_therm=1 | [baa62262c8f14277bc081fddc3ec3a6a.json](../technique-receipts/baa62262c8f14277bc081fddc3ec3a6a.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `-1.021` | 3.82 kJ | conv1x1_sw1=0.2021, conv1x1_sw1_ratio=1.692, diag_d_max_s1=9.347, diag_s_therm=1 | [6bc8bf2f037c42ad8ca11600eff25f14.json](../technique-receipts/6bc8bf2f037c42ad8ca11600eff25f14.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-2.066` | 6.82 kJ | conv1x1_sw1=0.3066, conv1x1_sw1_ratio=3.117, diag_d_max_s1=1.205, diag_s_therm=1 | [f69909f7eb5f461bb90a11ea3358a278.json](../technique-receipts/f69909f7eb5f461bb90a11ea3358a278.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-2.196` | 6.62 kJ | conv1x1_sw1=0.09397, conv1x1_sw1_ratio=3.356, diag_d_max_s1=2.162, diag_s_therm=1e-06 | [61f1826ef6a944328f7e1efe36857e2e.json](../technique-receipts/61f1826ef6a944328f7e1efe36857e2e.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-3.838` | 8.61 kJ | conv1x1_sw1=0.2109, conv1x1_sw1_ratio=0.5477, diag_d_max_s1=1.221, diag_s_therm=1 | [93b4050a652e4a94aab30b403c1e8a1b.json](../technique-receipts/93b4050a652e4a94aab30b403c1e8a1b.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | `-15.545` | 6.50 kJ | conv1x1_sw1=0.4592, conv1x1_sw1_ratio=17.37, diag_d_max_s1=2.655, diag_s_therm=1e-06 | [67139353ee924257840827e8be7a2fa4.json](../technique-receipts/67139353ee924257840827e8be7a2fa4.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-15.545` | 6.27 kJ | conv1x1_sw1=0.4592, conv1x1_sw1_ratio=17.37, diag_d_max_s1=2.655, diag_s_therm=1e-06 | [418a2d3efc934752b15801370625d925.json](../technique-receipts/418a2d3efc934752b15801370625d925.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | `-99.174` | 3.38 kJ | conv1x1_sw1=7.661, conv1x1_sw1_ratio=105.2, diag_d_max_s1=11.25, diag_s_therm=1 | [4d1eac0525f64e1699867bf56f3d38a8.json](../technique-receipts/4d1eac0525f64e1699867bf56f3d38a8.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-316.245` | 6.45 kJ | conv1x1_sw1=0.1013, conv1x1_sw1_ratio=0.0562, diag_d_max_s1=1.282, diag_s_therm=1 | [491ca9505def437fb2a7276290793a9c.json](../technique-receipts/491ca9505def437fb2a7276290793a9c.json) |
+
 ## Reproduce This Experiment
 
 ```bash

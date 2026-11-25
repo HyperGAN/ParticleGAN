@@ -107,6 +107,25 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **FAIL** | coverage, sustained live accuracy, or independent holdout failed | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 18.90 kJ | abs_cov_trace_bias=0.03871, accuracy_score=0.4476, center_max_sigma=0.2325, center_rms_sigma=0.09043 | [22c9dc76c68843e5b38c21ee871e2c1d.json](../technique-receipts/22c9dc76c68843e5b38c21ee871e2c1d.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 26.81 kJ | abs_cov_trace_bias=0.01851, accuracy_score=0.3363, center_max_sigma=0.2252, center_rms_sigma=0.06795 | [5c7ee8b637954c2eb32d909e9f882540.json](../technique-receipts/5c7ee8b637954c2eb32d909e9f882540.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 22.80 kJ | abs_cov_trace_bias=0.07611, accuracy_score=0.6374, center_max_sigma=0.242, center_rms_sigma=0.08875 | [a9f3d355419949758942bbe149d3dcfe.json](../technique-receipts/a9f3d355419949758942bbe149d3dcfe.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 22.67 kJ | abs_cov_trace_bias=0.06831, accuracy_score=0.5811, center_max_sigma=0.1384, center_rms_sigma=0.06433 | [e411bea11094438a896d550bf43ddc5a.json](../technique-receipts/e411bea11094438a896d550bf43ddc5a.json) |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 55.47 kJ | mass_tv=0.3661, n=100000, precision=0.1718, precision_gap=0.8171 | [cc86462d45ac4b62972498e8d976927e.json](../technique-receipts/cc86462d45ac4b62972498e8d976927e.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 17.12 kJ | mass_tv=0.1417, n=100000, precision=0.1434, precision_gap=0.8455 | [970cc79a4a9f45548f419a9fd815b30f.json](../technique-receipts/970cc79a4a9f45548f419a9fd815b30f.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 14.23 kJ | abs_cov_trace_bias=0.5769, accuracy_score=6.212, center_max_sigma=2.268, center_rms_sigma=1.209 | [a9a0e272d67c452bb57e3711191fae94.json](../technique-receipts/a9a0e272d67c452bb57e3711191fae94.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 11.01 kJ | abs_cov_trace_bias=0.5149, accuracy_score=5.829, center_max_sigma=2.469, center_rms_sigma=1.214 | [2ccb8d19ecad46fa877b29ed4d3f0b6e.json](../technique-receipts/2ccb8d19ecad46fa877b29ed4d3f0b6e.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 5.77 kJ | abs_cov_trace_bias=0.6529, accuracy_score=4.655, center_max_sigma=1.695, center_rms_sigma=0.5205 | [2be6c36bc4684c07998e2cf930a7bec7.json](../technique-receipts/2be6c36bc4684c07998e2cf930a7bec7.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 6.76 kJ | mass_tv=0.1709, n=100000, precision=0.7074, precision_gap=0.2815 | [eac1c0a94b954a4693094da82a9edbba.json](../technique-receipts/eac1c0a94b954a4693094da82a9edbba.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 5.03 kJ | abs_cov_trace_bias=0.6855, accuracy_score=4.766, center_max_sigma=1.434, center_rms_sigma=0.5834 | [4711f772692b487fa39f0c3a96ea22ce.json](../technique-receipts/4711f772692b487fa39f0c3a96ea22ce.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 4.22 kJ | mass_tv=0.2013, n=100000, precision=0.5107, precision_gap=0.4782 | [021742dafd6342b3a9042beb11457416.json](../technique-receipts/021742dafd6342b3a9042beb11457416.json) |
+
 ## Reproduce This Experiment
 
 ```bash

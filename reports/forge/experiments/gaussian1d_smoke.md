@@ -94,6 +94,26 @@ flowchart LR
 | **Unified** | `unified-v11` | **PASS** | any scheduled full pass with independent same-state confirmation | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: gaussian1d_smoke: clean/live scoring has no declared policy-con | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 200 J (J-to-PASS) | cdf_ks=0.06777, finite_fraction=1, mean=1.975, mean_error_sigma=0.05042 | [c0682a1625074e3b85a20e2057cf37f9.json](../technique-receipts/c0682a1625074e3b85a20e2057cf37f9.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 127 J (J-to-PASS) | cdf_ks=0.1371, finite_fraction=1, mean=1.917, mean_error_sigma=0.1657 | [b711be6782954f34995912bc5b554851.json](../technique-receipts/b711be6782954f34995912bc5b554851.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 973 J (J-to-PASS) | cdf_ks=0.06861, finite_fraction=1, mean=2.065, mean_error_sigma=0.1292 | [e402e6d7695d4d1e9c1335bb9e5a19cc.json](../technique-receipts/e402e6d7695d4d1e9c1335bb9e5a19cc.json) |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 570 J (J-to-PASS) | cdf_ks=0.0282, finite_fraction=1, mean=2.01, mean_error_sigma=0.02015 | [49c68c744d8a4057a38446b73d7099d5.json](../technique-receipts/49c68c744d8a4057a38446b73d7099d5.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 398 J (J-to-PASS) | cdf_ks=0.01744, finite_fraction=1, mean=1.999, mean_error_sigma=0.00282 | [d58073325f27494dab1a449a987e650f.json](../technique-receipts/d58073325f27494dab1a449a987e650f.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **PASS** | — | 488 J (J-to-PASS) | cdf_ks=0.2416, finite_fraction=1, mean=1.743, mean_error_sigma=0.5132 | [ec9dc1e31a76463dab66024aa3d1a89e.json](../technique-receipts/ec9dc1e31a76463dab66024aa3d1a89e.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **PASS** | — | 131 J (J-to-PASS) | cdf_ks=0.02049, finite_fraction=1, mean=2.007, mean_error_sigma=0.01363 | [0c42b43343b14db5b72aa51b6c1753c0.json](../technique-receipts/0c42b43343b14db5b72aa51b6c1753c0.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **PASS** | — | 105 J (J-to-PASS) | cdf_ks=0.03276, finite_fraction=1, mean=2.027, mean_error_sigma=0.05334 | [5e88d9a8052e4c0ab68f45980e2ead23.json](../technique-receipts/5e88d9a8052e4c0ab68f45980e2ead23.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **PASS** | — | 342 J (J-to-PASS) | cdf_ks=0.03312, finite_fraction=1, mean=2.035, mean_error_sigma=0.06948 | [6270e3b5f6714fa2aec0af80c3ac3006.json](../technique-receipts/6270e3b5f6714fa2aec0af80c3ac3006.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **PASS** | — | 124 J (J-to-PASS) | cdf_ks=0.08383, finite_fraction=1, mean=2.088, mean_error_sigma=0.1764 | [da02252f834246b9ad60d33337d190e9.json](../technique-receipts/da02252f834246b9ad60d33337d190e9.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **PASS** | — | 395 J (J-to-PASS) | cdf_ks=0.04817, finite_fraction=1, mean=1.999, mean_error_sigma=0.00162 | [095ee59ff9b54504bfb9c2ce161a7d78.json](../technique-receipts/095ee59ff9b54504bfb9c2ce161a7d78.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 670 J (J-to-PASS) | cdf_ks=0.02743, finite_fraction=1, mean=2.022, mean_error_sigma=0.04356 | [95a4722c588c485b9d830fb70f6a1da1.json](../technique-receipts/95a4722c588c485b9d830fb70f6a1da1.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 563 J (J-to-PASS) | cdf_ks=0.0282, finite_fraction=1, mean=2.01, mean_error_sigma=0.02015 | [66b628d15c3c47e6b90578f8ca4f722b.json](../technique-receipts/66b628d15c3c47e6b90578f8ca4f722b.json) |
+
 ## Reproduce This Experiment
 
 ```bash

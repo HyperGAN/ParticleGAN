@@ -97,6 +97,25 @@ flowchart LR
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.45 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [95e512cbb2eb45c9947b681cbce0e4ce.json](../technique-receipts/95e512cbb2eb45c9947b681cbce0e4ce.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.73 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [64f481b3ef55403aaea13c363a34a9bc.json](../technique-receipts/64f481b3ef55403aaea13c363a34a9bc.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 1.41 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [5ab75798535340179b063c0551336d89.json](../technique-receipts/5ab75798535340179b063c0551336d89.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 921 J | core_component_covariance_error=10, critic_grad_med=3.063, finite_fraction=1, frozen_control_modes=0 | [e896fa919ebb4d72b9f5d6ec09dc9b64.json](../technique-receipts/e896fa919ebb4d72b9f5d6ec09dc9b64.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 976 J | core_component_covariance_error=0.7706, critic_grad_med=0.27, finite_fraction=1, frozen_control_modes=2 | [d7d5eecb1851490dbb1f21c34f070614.json](../technique-receipts/d7d5eecb1851490dbb1f21c34f070614.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 1.80 kJ | core_component_covariance_error=0.1042, critic_grad_med=0.04421, finite_fraction=1, frozen_control_modes=2 | [7da8b0f058f44766b556a509f7bdf077.json](../technique-receipts/7da8b0f058f44766b556a509f7bdf077.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 713 J | core_component_covariance_error=0.7124, critic_grad_med=0.2888, finite_fraction=1, frozen_control_modes=2 | [854f1f9c0d5540aaaadac1c796fdd0af.json](../technique-receipts/854f1f9c0d5540aaaadac1c796fdd0af.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 590 J | core_component_covariance_error=3.114, critic_grad_med=0.3039, finite_fraction=1, frozen_control_modes=2 | [cfe842b129544b70af2b78189b0cd923.json](../technique-receipts/cfe842b129544b70af2b78189b0cd923.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 661 J | core_component_covariance_error=3.114, critic_grad_med=0.3081, finite_fraction=1, frozen_control_modes=2 | [b5d9f572f6104d8dbb3f94f3c20ede6e.json](../technique-receipts/b5d9f572f6104d8dbb3f94f3c20ede6e.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 505 J | core_component_covariance_error=0.9, critic_grad_med=0.4239, finite_fraction=1, frozen_control_modes=2 | [7f97870ed320476eaa8f1a3d99ef3f9e.json](../technique-receipts/7f97870ed320476eaa8f1a3d99ef3f9e.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 504 J | core_component_covariance_error=0.9273, critic_grad_med=0.424, finite_fraction=1, frozen_control_modes=2 | [81003b9f4e114a45bc80785f94d6f84b.json](../technique-receipts/81003b9f4e114a45bc80785f94d6f84b.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | — | 1.34 kJ | core_component_covariance_error=0.5383, critic_grad_med=3.627e-07, finite_fraction=1, frozen_control_modes=2 | [b414123820bf46db8d92ead2f7462291.json](../technique-receipts/b414123820bf46db8d92ead2f7462291.json) |
+
 ## Reproduce This Experiment
 
 ```bash

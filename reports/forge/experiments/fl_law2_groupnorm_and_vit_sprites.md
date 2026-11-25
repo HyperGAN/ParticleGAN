@@ -93,6 +93,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-1.004` | 2.34 kJ | critic_grad_finite=1, critic_grad_max=0.02785, critic_grad_med=0.01387, finite_fraction=1 | [03a0103a002a4d49978942084364edc7.json](../technique-receipts/03a0103a002a4d49978942084364edc7.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | `-1.344` | 1.70 kJ | critic_grad_finite=1, critic_grad_max=1.56, critic_grad_med=0.9796, finite_fraction=1 | [ff37c788e70242ebb12b94a615a9f246.json](../technique-receipts/ff37c788e70242ebb12b94a615a9f246.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | `-1.344` | 1.99 kJ | critic_grad_finite=1, critic_grad_max=0.6693, critic_grad_med=0.4481, finite_fraction=1 | [9fc02960556e4dcb82a36bd986a35aac.json](../technique-receipts/9fc02960556e4dcb82a36bd986a35aac.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-1.344` | 2.04 kJ | critic_grad_finite=1, critic_grad_max=0.6693, critic_grad_med=0.4481, finite_fraction=1 | [d4ed08815a034f3fa908201956c27259.json](../technique-receipts/d4ed08815a034f3fa908201956c27259.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-2.571` | 2.36 kJ | critic_grad_finite=1, critic_grad_max=1.044, critic_grad_med=0.6517, finite_fraction=1 | [4a4b3a8d89454780930e63baecc98b3d.json](../technique-receipts/4a4b3a8d89454780930e63baecc98b3d.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `-2.571` | 2.07 kJ | critic_grad_finite=1, critic_grad_max=59.52, critic_grad_med=12.24, finite_fraction=1 | [24dc72aaac2444e9b6c85ea6f352ae1d.json](../technique-receipts/24dc72aaac2444e9b6c85ea6f352ae1d.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-2.571` | 3.71 kJ | critic_grad_finite=1, critic_grad_max=0.9203, critic_grad_med=0.8716, finite_fraction=1 | [feb54a4e3b5c4bbfab0a17e54bd6047b.json](../technique-receipts/feb54a4e3b5c4bbfab0a17e54bd6047b.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-3.046` | 3.40 kJ | critic_grad_finite=1, critic_grad_max=1.133, critic_grad_med=0.9139, finite_fraction=1 | [88942c7e2977421dab73ba37fc243049.json](../technique-receipts/88942c7e2977421dab73ba37fc243049.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-4.022` | 2.09 kJ | critic_grad_finite=1, critic_grad_max=0.8591, critic_grad_med=0.2371, finite_fraction=1 | [eb8d5711e2044376870541ab9c22402d.json](../technique-receipts/eb8d5711e2044376870541ab9c22402d.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `-4.343` | 2.02 kJ | critic_grad_finite=1, critic_grad_max=1.273, critic_grad_med=0.5328, finite_fraction=1 | [526d80e2b663444cb63998358c271377.json](../technique-receipts/526d80e2b663444cb63998358c271377.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-4.357` | 3.69 kJ | critic_grad_finite=1, critic_grad_max=0.009969, critic_grad_med=0.005651, finite_fraction=1 | [bdd31dd88c904ebcb1070451d960d25f.json](../technique-receipts/bdd31dd88c904ebcb1070451d960d25f.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `-4.357` | 1.73 kJ | critic_grad_finite=1, critic_grad_max=0.08147, critic_grad_med=0.07395, finite_fraction=1 | [80a5f68992c949d6923d304b2cf7f4df.json](../technique-receipts/80a5f68992c949d6923d304b2cf7f4df.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | `-4.357` | 3.26 kJ | critic_grad_finite=1, critic_grad_max=0.8267, critic_grad_med=0.6155, finite_fraction=1 | [af864e0737dc4fd1836b5b9b7c3e5dd1.json](../technique-receipts/af864e0737dc4fd1836b5b9b7c3e5dd1.json) |
+
 ## Reproduce This Experiment
 
 ```bash

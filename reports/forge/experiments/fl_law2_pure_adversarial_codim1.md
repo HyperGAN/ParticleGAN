@@ -95,6 +95,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `empf-v8` | `empf` | NVIDIA L4 | **PASS** | `+0.000` | 729 J (J-to-PASS) | angular_tv=0.07373, finite_fraction=1, manifold_coverage=1, manifold_mae=0.05833 | [534e9c67e2944fffb43f8b0a9ce60218.json](../technique-receipts/534e9c67e2944fffb43f8b0a9ce60218.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | `+0.000` | 889 J (J-to-PASS) | angular_tv=0.05225, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01522 | [1ad660e5cfab4609bb8e23071474c32d.json](../technique-receipts/1ad660e5cfab4609bb8e23071474c32d.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **PASS** | `+0.000` | 825 J (J-to-PASS) | angular_tv=0.07666, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01275 | [8160bf46c3bf47d796b3f7efbe4e2a5c.json](../technique-receipts/8160bf46c3bf47d796b3f7efbe4e2a5c.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **PASS** | `+0.000` | 1.24 kJ (J-to-PASS) | angular_tv=0.04688, finite_fraction=1, manifold_coverage=1, manifold_mae=0.05397 | [0bb27c7514ff41fd8f5219047390be89.json](../technique-receipts/0bb27c7514ff41fd8f5219047390be89.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 761 J (J-to-PASS) | angular_tv=0.04443, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01629 | [9fc0ed0115e7437d9762d2966fd0fdbf.json](../technique-receipts/9fc0ed0115e7437d9762d2966fd0fdbf.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 702 J (J-to-PASS) | angular_tv=0.05615, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01655 | [d918c775914d44c5a78803e5d7e70699.json](../technique-receipts/d918c775914d44c5a78803e5d7e70699.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 687 J (J-to-PASS) | angular_tv=0.05615, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01655 | [f3c9dc1f0c67489890140e7ce0d023b2.json](../technique-receipts/f3c9dc1f0c67489890140e7ce0d023b2.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 770 J (J-to-PASS) | angular_tv=0.06641, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01696 | [099b3300f34548ac9bc7d673e6f03db0.json](../technique-receipts/099b3300f34548ac9bc7d673e6f03db0.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `+0.000` | 1.28 kJ | angular_tv=0.08545, finite_fraction=1, manifold_coverage=1, manifold_mae=0.05939 | [6f7a968e1a494b2f9a7ca00e6826c21d.json](../technique-receipts/6f7a968e1a494b2f9a7ca00e6826c21d.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `+0.000` | 999 J | angular_tv=0.08789, finite_fraction=1, manifold_coverage=1, manifold_mae=0.008778 | [4403242367ec46768f81e589fcfcd46a.json](../technique-receipts/4403242367ec46768f81e589fcfcd46a.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `+0.000` | 1.00 kJ | angular_tv=0.08887, finite_fraction=1, manifold_coverage=1, manifold_mae=0.008963 | [4c8038a2b52e42489d01c34178c1d658.json](../technique-receipts/4c8038a2b52e42489d01c34178c1d658.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `+0.000` | 817 J | angular_tv=0.05713, finite_fraction=1, manifold_coverage=1, manifold_mae=0.009438 | [2d66e725e23749bfadf4b3270d11dbbd.json](../technique-receipts/2d66e725e23749bfadf4b3270d11dbbd.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-0.103` | 1.82 kJ | angular_tv=0.05566, finite_fraction=1, manifold_coverage=1, manifold_mae=0.0662 | [f6323abd2654432c92f11d3431470a27.json](../technique-receipts/f6323abd2654432c92f11d3431470a27.json) |
+
 ## Reproduce This Experiment
 
 ```bash

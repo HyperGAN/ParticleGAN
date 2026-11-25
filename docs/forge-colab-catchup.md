@@ -9,7 +9,7 @@ Independent agents can work on separate branches with **zero central coordinator
 ```text
 origin/develop (caught-up cache)
   ├── Branch A: adds new experiment `foo_test`
-  │     └── `python ops/colab_forge.py catchup --through-tier 1 --workers 4`
+  │     └── `python ops/colab_forge.py catchup --through-tier 1 --workers 2`
   │         fills ONLY (existing families × foo_test)
   │         writes content-addressed ~4 KB `reports/forge/technique-receipts/<id>.json`
   │
@@ -19,7 +19,7 @@ origin/develop (caught-up cache)
   │         writes content-addressed ~4 KB `reports/forge/technique-receipts/<id>.json`
   │
   └── Branch C merges A + B:
-        └── `python ops/colab_forge.py catchup --through-tier 1 --workers 4 --publish-hf`
+        └── `python ops/colab_forge.py catchup --through-tier 1 --workers 2 --publish-hf`
             sees ONLY (bar-v1 × foo_test) is missing → spins up 1 right-sized GPU,
             fills that single cell, projects its receipt, and publishes locally to HF
 ```
@@ -50,17 +50,17 @@ origin/develop (caught-up cache)
 # 1. Preview the exact cache diff and GPU plan (0 Colab GPUs allocated)
 python ops/colab_forge.py catchup --through-tier 1 --cache-mode branch --gpu auto --plan-only
 
-# 2. Catch up missing cells in parallel on Colab (up to 4 warm GPUs)
-python ops/colab_forge.py catchup --through-tier 1 --workers 4 --gpu auto
+# 2. Catch up missing cells in parallel on Colab (default 2 warm GPUs; Colab caps concurrent GPU allocations at ~2)
+python ops/colab_forge.py catchup --through-tier 1 --workers 2 --gpu auto
 
 # 3. Catch up and immediately publish refreshed Parquet/JSON tables to Hugging Face
-python ops/colab_forge.py catchup --through-tier 1 --workers 4 --gpu auto --compile --publish-hf
+python ops/colab_forge.py catchup --through-tier 1 --workers 2 --gpu auto --compile --publish-hf
 
 # 4. Fill missing hardware NVML J-to-PASS telemetry on a matched NVIDIA L4 cohort
-python ops/colab_forge.py catchup --through-tier 1 --cache-mode energy --gpu L4 --workers 4 --publish-hf
+python ops/colab_forge.py catchup --through-tier 1 --cache-mode energy --gpu L4 --workers 2 --publish-hf
 
 # 5. Full rebuild for current source digest (e.g. after editing particlegan/)
-python ops/colab_forge.py catchup --through-tier 1 --cache-mode exact --gpu auto --workers 4
+python ops/colab_forge.py catchup --through-tier 1 --cache-mode exact --gpu auto --workers 2
 
 # 6. Run explicit CANDIDATE:STUDY pairs in parallel on matched L4s
 python ops/colab_forge.py run \

@@ -103,6 +103,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `unified-v13` | `unified` | NVIDIA L4 | **PASS** | — | 10.71 kJ (J-to-PASS) | collision_count=0, encoder_cycle_match_bytes=256, encoder_nearest_dist_mean=0.01905, encoder_particle_bijection_bytes=256 | [74449606e4b945cdaf306dc3b033fa17.json](../technique-receipts/74449606e4b945cdaf306dc3b033fa17.json) |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 4.08 kJ | collision_count=241, encoder_cycle_match_bytes=5, encoder_nearest_dist_mean=2.521, encoder_particle_bijection_bytes=100 | [59e5611ad1e14e9e9f48ee4d9f27d36a.json](../technique-receipts/59e5611ad1e14e9e9f48ee4d9f27d36a.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 11.91 kJ | collision_count=146, encoder_cycle_match_bytes=44, encoder_nearest_dist_mean=2.327, encoder_particle_bijection_bytes=134 | [26897dcbb56147219ca85982c6f7fc38.json](../technique-receipts/26897dcbb56147219ca85982c6f7fc38.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 10.26 kJ | collision_count=152, encoder_cycle_match_bytes=41, encoder_nearest_dist_mean=6.079, encoder_particle_bijection_bytes=140 | [5eda88ffca3942cdb08d88985fdf799e.json](../technique-receipts/5eda88ffca3942cdb08d88985fdf799e.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 12.30 kJ | collision_count=79, encoder_cycle_match_bytes=175, encoder_nearest_dist_mean=0.144, encoder_particle_bijection_bytes=203 | [fa43bae3923b431ea96772f35a37e31c.json](../technique-receipts/fa43bae3923b431ea96772f35a37e31c.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 9.58 kJ | collision_count=53, encoder_cycle_match_bytes=150, encoder_nearest_dist_mean=2.344, encoder_particle_bijection_bytes=178 | [b1e0820f3b704383bd7506195c178bc7.json](../technique-receipts/b1e0820f3b704383bd7506195c178bc7.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 4.28 kJ | collision_count=167, encoder_cycle_match_bytes=16, encoder_nearest_dist_mean=3.302, encoder_particle_bijection_bytes=126 | [5e74345d1f674dc69819fa6f5869bf99.json](../technique-receipts/5e74345d1f674dc69819fa6f5869bf99.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 4.59 kJ | collision_count=172, encoder_cycle_match_bytes=16, encoder_nearest_dist_mean=3.434, encoder_particle_bijection_bytes=124 | [2e042c205e6a4b7e8ca9c61748a1a7fe.json](../technique-receipts/2e042c205e6a4b7e8ca9c61748a1a7fe.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 3.19 kJ | collision_count=83, encoder_cycle_match_bytes=90, encoder_nearest_dist_mean=1.519, encoder_particle_bijection_bytes=162 | [6ce2c8cf32064eca9dec87752705a114.json](../technique-receipts/6ce2c8cf32064eca9dec87752705a114.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 3.41 kJ | collision_count=111, encoder_cycle_match_bytes=59, encoder_nearest_dist_mean=1.7, encoder_particle_bijection_bytes=162 | [fe35fa1c5625449aa73864a79f5dbb50.json](../technique-receipts/fe35fa1c5625449aa73864a79f5dbb50.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | — | 9.71 kJ | collision_count=53, encoder_cycle_match_bytes=154, encoder_nearest_dist_mean=1.875, encoder_particle_bijection_bytes=181 | [0b425f24a4274e868ffb1e50674c2970.json](../technique-receipts/0b425f24a4274e868ffb1e50674c2970.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 13.24 kJ | collision_count=61, encoder_cycle_match_bytes=46, encoder_nearest_dist_mean=2.179, encoder_particle_bijection_bytes=140 | [fd35c553adbb4974803768d36fd61626.json](../technique-receipts/fd35c553adbb4974803768d36fd61626.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | — | 9.61 kJ | collision_count=62, encoder_cycle_match_bytes=94, encoder_nearest_dist_mean=1.992, encoder_particle_bijection_bytes=153 | [719d759fea344dff867d816586fc4423.json](../technique-receipts/719d759fea344dff867d816586fc4423.json) |
+
 ## Reproduce This Experiment
 
 ```bash

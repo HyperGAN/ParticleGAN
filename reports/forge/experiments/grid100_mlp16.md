@@ -108,6 +108,17 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `BLOCKED` | native model variants require an explicit profile; grid100_mlp16: native model variants re | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 38.85 kJ | abs_cov_trace_bias=0.08094, accuracy_score=0.6505, center_max_sigma=0.139, center_rms_sigma=0.06468 | [d8337039f6ba4a45af98cea2404bbab7.json](../technique-receipts/d8337039f6ba4a45af98cea2404bbab7.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 44.59 kJ | abs_cov_trace_bias=0.07649, accuracy_score=0.6221, center_max_sigma=0.134, center_rms_sigma=0.06464 | [9c29dc49af2b447caedcf16babea49ac.json](../technique-receipts/9c29dc49af2b447caedcf16babea49ac.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 42.31 kJ | abs_cov_trace_bias=0.07521, accuracy_score=0.6223, center_max_sigma=0.1602, center_rms_sigma=0.06431 | [462dd0d4625b4578a7b3eb6567382416.json](../technique-receipts/462dd0d4625b4578a7b3eb6567382416.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 35.78 kJ | mass_tv=0.4852, n=100000, precision=0.03929, precision_gap=0.9496 | [35df9474e2784e8e830160b726085286.json](../technique-receipts/35df9474e2784e8e830160b726085286.json) |
+
 ## Reproduce This Experiment
 
 ```bash

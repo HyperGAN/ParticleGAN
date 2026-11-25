@@ -93,6 +93,16 @@ No fixed scalar threshold list declared (see evaluator contract above).
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 7.93 kJ | — | [434e74270dd340c4848a2743a07c0145.json](../technique-receipts/434e74270dd340c4848a2743a07c0145.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 8.11 kJ | — | [49e38a634c304da9a209931875bd0e63.json](../technique-receipts/49e38a634c304da9a209931875bd0e63.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 9.33 kJ | — | [f54082b52daa41709e4a623a816b30fd.json](../technique-receipts/f54082b52daa41709e4a623a816b30fd.json) |
+
 ## Reproduce This Experiment
 
 ```bash

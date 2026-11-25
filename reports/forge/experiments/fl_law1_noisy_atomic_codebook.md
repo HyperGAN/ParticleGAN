@@ -93,6 +93,26 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | `-2.755` | 2.77 kJ | atom_recall=0.9375, captured_atoms=60, finite_fraction=1, mass_tv=0.1012 | [df19165717cd40efac79a1e9c307cf6a.json](../technique-receipts/df19165717cd40efac79a1e9c307cf6a.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `-2.807` | 2.76 kJ | atom_recall=0.9375, captured_atoms=60, finite_fraction=1, mass_tv=0.1354 | [70e2f1dc5041452d9ba6852ebafe15d8.json](../technique-receipts/70e2f1dc5041452d9ba6852ebafe15d8.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-3.486` | 3.48 kJ | atom_recall=0.9531, captured_atoms=61, finite_fraction=1, mass_tv=0.1066 | [7dfcc0eaae7e4defb48a7e74670b6b74.json](../technique-receipts/7dfcc0eaae7e4defb48a7e74670b6b74.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | `-4.142` | 1.12 kJ | atom_recall=0.7969, captured_atoms=51, finite_fraction=1, mass_tv=0.2011 | [66085784c72042fbb67311c90a3e8e11.json](../technique-receipts/66085784c72042fbb67311c90a3e8e11.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | `-4.869` | 3.64 kJ | atom_recall=0.8906, captured_atoms=57, finite_fraction=1, mass_tv=0.1179 | [e63c8b9dc17a4f579a59549f294b4ce1.json](../technique-receipts/e63c8b9dc17a4f579a59549f294b4ce1.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | `-8.131` | 4.97 kJ | atom_recall=0.6562, captured_atoms=42, finite_fraction=1, mass_tv=0.2403 | [34819d31465741138120b0bca5ce1e12.json](../technique-receipts/34819d31465741138120b0bca5ce1e12.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **FAIL** | `-10.846` | 4.29 kJ | atom_recall=0.5, captured_atoms=32, finite_fraction=1, mass_tv=0.2512 | [8abf3b1670cd4a90966fbb483bf57b99.json](../technique-receipts/8abf3b1670cd4a90966fbb483bf57b99.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `-12.013` | 1.48 kJ | atom_recall=0.375, captured_atoms=24, finite_fraction=1, mass_tv=0.3601 | [d1d1dec46661498e95425023158805ea.json](../technique-receipts/d1d1dec46661498e95425023158805ea.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | `-12.257` | 4.01 kJ | atom_recall=0.5469, captured_atoms=35, finite_fraction=1, mass_tv=0.2795 | [868155f310fc4ba0be988f1f4c43cb61.json](../technique-receipts/868155f310fc4ba0be988f1f4c43cb61.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **FAIL** | `-12.257` | 3.97 kJ | atom_recall=0.5469, captured_atoms=35, finite_fraction=1, mass_tv=0.2795 | [c256b3290a3f456bbf2c103c2e1df9e1.json](../technique-receipts/c256b3290a3f456bbf2c103c2e1df9e1.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `-12.604` | 1.35 kJ | atom_recall=0.375, captured_atoms=24, finite_fraction=1, mass_tv=0.36 | [a59a58602796427a8cb5add8c39beb8a.json](../technique-receipts/a59a58602796427a8cb5add8c39beb8a.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-12.618` | 4.50 kJ | atom_recall=0.4219, captured_atoms=27, finite_fraction=1, mass_tv=0.2246 | [d095b5919ca54918a052743102f1b848.json](../technique-receipts/d095b5919ca54918a052743102f1b848.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `-13.634` | 1.13 kJ | atom_recall=0.2969, captured_atoms=19, finite_fraction=1, mass_tv=0.4433 | [3abf8d1033184945b8369f21b2e97cf1.json](../technique-receipts/3abf8d1033184945b8369f21b2e97cf1.json) |
+
 ## Reproduce This Experiment
 
 ```bash

@@ -99,6 +99,25 @@ flowchart LR
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
 | **Unified** | `unified-v11` | **FAIL** | failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78 | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 1.15 kJ | barycenter_hq=0.7895, barycenter_novelty=0.7338, barycenter_surface_mae=0.06404, edge_midpoint_surface_mae=0.06272 | [6da9bb6f437642fcb42206a97b2f4e02.json](../technique-receipts/6da9bb6f437642fcb42206a97b2f4e02.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 1.20 kJ | barycenter_hq=0.5775, barycenter_novelty=0.5692, barycenter_surface_mae=0.1031, edge_midpoint_surface_mae=0.1089 | [9ba17f8e6dc34f348ca76510297ebb4f.json](../technique-receipts/9ba17f8e6dc34f348ca76510297ebb4f.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 1.26 kJ | barycenter_hq=0, barycenter_novelty=0, barycenter_surface_mae=9.9, edge_midpoint_surface_mae=9.9 | [8cbeb2ee3f6e4089a6cacd670750e767.json](../technique-receipts/8cbeb2ee3f6e4089a6cacd670750e767.json) |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 2.23 kJ | barycenter_hq=0.6522, barycenter_novelty=0.6344, barycenter_surface_mae=0.082, edge_midpoint_surface_mae=0.07357 | [dccbfd61d443451ca06efb1811dd1a3d.json](../technique-receipts/dccbfd61d443451ca06efb1811dd1a3d.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 2.09 kJ | barycenter_hq=0.5342, barycenter_novelty=0.4962, barycenter_surface_mae=0.09831, edge_midpoint_surface_mae=0.07997 | [1984d5e0c189497e84715b7ff5c865b9.json](../technique-receipts/1984d5e0c189497e84715b7ff5c865b9.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 957 J | barycenter_hq=0.2941, barycenter_novelty=1.117, barycenter_surface_mae=0.2184, edge_midpoint_surface_mae=0.2118 | [180de1dfd43a4d9bacfb8340f94da373.json](../technique-receipts/180de1dfd43a4d9bacfb8340f94da373.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 675 J | barycenter_hq=0.7123, barycenter_novelty=0.5401, barycenter_surface_mae=0.07251, edge_midpoint_surface_mae=0.06569 | [fc2e42a8862343ec9c51dd0117f72732.json](../technique-receipts/fc2e42a8862343ec9c51dd0117f72732.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 704 J | barycenter_hq=0.7639, barycenter_novelty=0.5237, barycenter_surface_mae=0.07339, edge_midpoint_surface_mae=0.06604 | [1a4235c698a2485883481b3d78e25a69.json](../technique-receipts/1a4235c698a2485883481b3d78e25a69.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 577 J | barycenter_hq=0.6111, barycenter_novelty=0.555, barycenter_surface_mae=0.1063, edge_midpoint_surface_mae=0.1187 | [6b8c440d9f2c4ecebd93a60eb1ed86de.json](../technique-receipts/6b8c440d9f2c4ecebd93a60eb1ed86de.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 605 J | barycenter_hq=0.6883, barycenter_novelty=0.6907, barycenter_surface_mae=0.08551, edge_midpoint_surface_mae=0.06503 | [76f4ad54b69747709efe1442fbc1a288.json](../technique-receipts/76f4ad54b69747709efe1442fbc1a288.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 3.03 kJ | barycenter_hq=0.7237, barycenter_novelty=0.5686, barycenter_surface_mae=0.07482, edge_midpoint_surface_mae=0.0725 | [df76a146afb140048baccfbc3ac4eb0d.json](../technique-receipts/df76a146afb140048baccfbc3ac4eb0d.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | — | 2.53 kJ | barycenter_hq=0.6522, barycenter_novelty=0.6344, barycenter_surface_mae=0.082, edge_midpoint_surface_mae=0.07357 | [3ed326624a084e8cb932acfb464aa37a.json](../technique-receipts/3ed326624a084e8cb932acfb464aa37a.json) |
+
 ## Reproduce This Experiment
 
 ```bash
