@@ -147,9 +147,11 @@ def test_promote_rejects_dirty_source_receipt_manifest():
 
 
 def test_verify_live_surfaces_with_mocked_endpoints():
+    reg_doc = json.loads((ROOT / "configs/forge/trainer-families.json").read_text(encoding="utf-8"))
+    rep_map = {f["id"]: f.get("reporting_family", f["id"]) for f in reg_doc["families"]}
     sel_doc = json.loads((ROOT / "configs/forge/selections/family-current-v1.json").read_text(encoding="utf-8"))
     families = [
-        {"id": entry["trainer_family"], "candidate_id": entry["candidate_id"]}
+        {"id": rep_map.get(entry["trainer_family"], entry["trainer_family"]), "candidate_id": entry["candidate_id"]}
         for entry in sel_doc["selections"]
     ]
     sample_lb = json.dumps(
@@ -157,8 +159,8 @@ def test_verify_live_surfaces_with_mocked_endpoints():
             "generated_at": "2026-11-26T08:00:00Z",
             "families": families,
             "energy_benchmarks": [
-                {"candidate_id": "axiom-v5", "source_kind": "study_energy_benchmark"},
-                {"candidate_id": "unified-v15", "source_kind": "study_energy_benchmark"},
+                {"candidate_id": "axiom-v5", "evidence_scope": "study_energy_benchmark"},
+                {"candidate_id": "unified-v15", "evidence_scope": "study_energy_benchmark"},
             ],
         }
     ).encode("utf-8")

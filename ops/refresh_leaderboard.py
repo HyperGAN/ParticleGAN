@@ -1269,12 +1269,20 @@ def verify_live_surfaces(
     root = Path(root).resolve()
     pages_base = pages_url.rstrip("/")
 
-    # Expected selected families from local repo for parity check.
+    # Expected selected families from local repo for parity check (mapped via reporting_family).
+    reporting_map: dict[str, str] = {}
+    reg_path = root / "configs/forge/trainer-families.json"
+    if reg_path.is_file():
+        for fam in _read_json(reg_path).get("families", []):
+            fid = str(fam.get("id") or "")
+            if fid:
+                reporting_map[fid] = str(fam.get("reporting_family") or fid)
     expected_selected: dict[str, str] = {}
     sel_path = root / "configs/forge/selections/family-current-v1.json"
     if sel_path.is_file():
         for entry in _read_json(sel_path).get("selections", []):
-            expected_selected[str(entry["trainer_family"])] = str(entry["candidate_id"])
+            tf = str(entry["trainer_family"])
+            expected_selected[reporting_map.get(tf, tf)] = str(entry["candidate_id"])
 
     checks: dict[str, Any] = {}
 
@@ -1291,7 +1299,11 @@ def verify_live_surfaces(
             fams = {str(f["id"]): str(f.get("candidate_id") or "") for f in payload.get("families", [])}
             eb = payload.get("energy_benchmarks") or []
             study_cids = sorted(
-                {str(r.get("candidate_id") or "") for r in eb if r.get("source_kind") == "study_energy_benchmark"}
+                {
+                    str(r.get("candidate_id") or "")
+                    for r in eb
+                    if (r.get("evidence_scope") or r.get("source_kind")) == "study_energy_benchmark"
+                }
             )
             mismatches = {
                 fid: {"local": cid, "hf": fams.get(fid)}
