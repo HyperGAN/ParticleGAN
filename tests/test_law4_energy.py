@@ -84,7 +84,7 @@ def _forbid(*_args, **_kwargs):
 
 def test_law4_energy_registration_and_recipe_invariants() -> None:
     assert "law4_energy_v1" in NORMALIZED_FAMILIES
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     assert len(fields(Recipe)) == 179
 
     rec = get_recipe("unified_v11", optimizer_family="law4_energy_v1")
@@ -910,7 +910,7 @@ with open(out_path, "w") as f:
 
 def test_law4_energy_v11_generator_free_critic_ns_parity_zerosync_and_continuation(tmp_path: Path) -> None:
     assert "law4_energy_v11" in NORMALIZED_FAMILIES
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     torch.manual_seed(0)
 
     # 1. Bit-exact parity between law4_energy_v10 and law4_energy_v11 on neural-generator tasks (0 Critic NS, 0 new_tensor):

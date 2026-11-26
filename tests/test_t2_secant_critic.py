@@ -34,7 +34,7 @@ def _tiny_models(z_dim: int = 2, out_dim: int = 2, hidden: int = 16):
 
 
 def test_t2_secant_preset_and_recipe_validation():
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     recipe = get_recipe("t2_secant")
     assert recipe.critic_formulation == "t2_secant"
     assert recipe.effective_critic_formulation == "t2_secant"

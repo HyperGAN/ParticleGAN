@@ -148,10 +148,10 @@ jobs:
           assert MoGParticlePrior(sigma=0.1).sample(2)[0].shape == (2, 4)
           assert DDGAN().steps == 4
           default = get_recipe()
-          assert DEFAULT_RECIPE == "unified_v12"
-          assert default.optimizer_family == "unified_v12_equil"
-          assert default.critic_formulation == "unified_v11"
-          assert default.prior_regularizer == "unified_v11"
+          assert DEFAULT_RECIPE == "axiom"
+          assert default.optimizer_family == "axiom"
+          assert default.critic_formulation == "axiom"
+          assert default.prior_regularizer == "axiom"
           assert default.training_precision == "bf16_channels_last"
           assert default == get_recipe(DEFAULT_RECIPE)
           assert Recipe(**get_recipe_fields()) == default

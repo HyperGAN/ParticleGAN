@@ -81,7 +81,7 @@ def _forbid(*_args: object, **_kwargs: object) -> None:
 
 def test_unified_v14_registration_and_stiff_gate_regimes() -> None:
     assert "unified_v14_equil" in NORMALIZED_FAMILIES
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     rec = get_recipe("unified_v14")
     assert rec.optimizer_family == "unified_v14_equil"
     assert rec.rhbi_self_coupling == "feydy_atomic"

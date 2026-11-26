@@ -17,7 +17,7 @@ def test_mog_components_use_common_training_defaults_and_explicit_resources():
     assert prior.z.shape == (400, 2) and prior.sigma_rel == 1/40 and prior.standardize
     assert prior.sigma > 0 and prior.sigma == prior.d0 * prior.sigma_rel
     assert recipe.num_particles == 400 and recipe.total_steps == 28000
-    assert recipe.prior_lr_mult == get_recipe().prior_lr_mult and recipe.betas == (0., .999) and recipe.prior_betas is None
+    assert recipe.prior_lr_mult == get_recipe().prior_lr_mult and recipe.betas == (0., .999) and recipe.prior_betas == get_recipe().prior_betas
     assert isinstance(recipe.make_prior(), MoGParticlePrior)
     assert type(get_recipe().make_prior()) is ParticlePrior
     assert Recipe.from_dict(json.loads(json.dumps(recipe.to_dict()))) == recipe

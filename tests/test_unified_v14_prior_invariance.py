@@ -52,8 +52,8 @@ class _RMSNormCrit(nn.Module):
 
 def test_unified_v14_preset_registration_and_immutability_invariants() -> None:
     assert "unified_v14_equil" in NORMALIZED_FAMILIES
-    assert DEFAULT_RECIPE == "unified_v12"
-    assert get_recipe() == get_recipe("unified_v12") == get_recipe("gan")
+    assert DEFAULT_RECIPE == "axiom"
+    assert get_recipe() == get_recipe("axiom") == get_recipe("gan")
     assert len(fields(Recipe)) == 179
 
     r12 = get_recipe("unified_v12")

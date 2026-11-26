@@ -48,7 +48,7 @@ def _forbid(*_args: object, **_kwargs: object) -> None:
 
 
 def test_unified_v13_preset_and_v12_default_preserved() -> None:
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     assert len(fields(Recipe)) == 179
 
     r12 = get_recipe("unified_v12")
@@ -339,7 +339,7 @@ def test_unified_v13_clockfree_horizon_invariance_on_atomic_target() -> None:
 def test_fresh_process_import_order_isolation() -> None:
     code = (
         "from particlegan import DEFAULT_RECIPE, get_recipe; "
-        "assert DEFAULT_RECIPE == 'unified_v12'; "
+        "assert DEFAULT_RECIPE == 'axiom'; "
         "r12 = get_recipe('unified_v12'); r13 = get_recipe('unified_v13'); "
         "assert r12.rhbi_self_coupling == 'feydy_discrete'; "
         "assert r13.rhbi_self_coupling == 'feydy_atomic'"
