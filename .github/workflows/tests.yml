@@ -72,11 +72,20 @@ jobs:
         if: matrix.shard == 0
         run: python scripts/check_markdown_math.py
       - name: Test numerical kernels and experiment workflows
-        # Spread the slow readout tests individually, pin ancestor-history tests to shard 7,
-        # and keep other files together.
+        # Spread heavy multi-test files individually, dedicate shard 7 to ancestor-history
+        # tests (--exclusive-pin-shards), and utilize all runner vCPUs (--workers auto).
         run: >-
           python scripts/ci_pytest.py run --index ${{ matrix.shard }} --count 8
+          --workers auto
+          --exclusive-pin-shards
           --split-file tests/test_refresh_forge_readouts.py
+          --split-file tests/test_solvability_misgan.py
+          --split-file tests/test_adversarial_tier_a_stress.py
+          --split-file tests/four_laws_audit/test_p2_law3_identifiability.py
+          --split-file tests/four_laws_audit/test_p1_law42_scale_settling.py
+          --split-file tests/four_laws_audit/test_p3_game_dynamics.py
+          --split-file tests/four_laws_audit/test_p4_funcspace_generality.py
+          --split-file tests/test_forge_current_technique_inventory.py
           --pin-list 7=scripts/ci_history_tests.txt
           --receipt /tmp/pytest-shard-${{ matrix.shard }}.json --
           -q --durations=25 -o faulthandler_timeout=600

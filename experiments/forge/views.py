@@ -8,11 +8,16 @@ No function in this module launches training, rewrites receipts, or enqueues wor
 from __future__ import annotations
 
 from collections import Counter
+from contextlib import contextmanager
+from contextvars import ContextVar
 from copy import deepcopy
 import hashlib
 import json
 import math
+import os
 from pathlib import Path
+import re
+import stat
 
 from .sampling import grade_sampling, validate_declaration
 from .priors import task_prior
@@ -1438,6 +1443,188 @@ def qualify(view: dict, tasks: dict, results: list[dict], *, candidate: dict | N
             "cost_seconds": sum(row["cost"] for row in rows.values())}
 
 
+_EVIDENCE_SCOPE_SIMPLE_RE = re.compile(rb'"evidence_scope"\s*:\s*(?:"([^"\\]*)"|null)')
+_DIAG_PASS_FILE_CACHE: dict[tuple[str, str, int, int, int], tuple | None] = {}
+_DIAG_PASS_DIR_CACHE: dict[tuple[str, str, tuple], dict[str, tuple[tuple, ...]]] = {}
+_DIAG_PASS_FILE_CACHE_LIMIT = 16384
+_DIAG_PASS_DIR_CACHE_LIMIT = 64
+
+
+def _may_be_diagnostic_json_bytes(raw: bytes) -> bool:
+    """Sound pre-filter: returns False only when a file cannot qualify for compatible_diagnostic_passes."""
+    if b"\\u" in raw:
+        return True
+    raw_lower = raw.lower()
+    has_diag = b"diagnostic" in raw_lower
+    has_cert_summary = (
+        b"published_summary" in raw
+        and b"certificate_validated" in raw
+        and b"true" in raw_lower
+    )
+    if not has_diag and not has_cert_summary:
+        return False
+    count = raw.count(b'"evidence_scope"')
+    if count == 0:
+        return False
+    matches = _EVIDENCE_SCOPE_SIMPLE_RE.findall(raw)
+    if len(matches) != count:
+        return True
+    for value in matches:
+        if not value:
+            continue
+        if has_diag and b"diagnostic" in value.lower():
+            return True
+        if has_cert_summary and value == b"published_summary":
+            return True
+    return False
+
+
+def _parse_diagnostic_pass_file(path_str: str, *, kind: str, name: str, st: os.stat_result) -> tuple | None:
+    cache_key = (kind, path_str, st.st_ino, st.st_mtime_ns, st.st_size)
+    if cache_key in _DIAG_PASS_FILE_CACHE:
+        return _DIAG_PASS_FILE_CACHE[cache_key]
+
+    parsed: tuple | None = None
+    try:
+        with open(path_str, "rb") as stream:
+            raw = stream.read()
+    except OSError:
+        return None
+    if _may_be_diagnostic_json_bytes(raw):
+        try:
+            doc = json.loads(raw.decode("utf-8"))
+        except Exception:
+            doc = None
+        if isinstance(doc, dict):
+            cand = doc.get("candidate_id")
+            scope = str(doc.get("evidence_scope") or "")
+            is_diag_scope = scope in DIAGNOSTIC_SCOPES or "diagnostic" in scope.lower()
+            is_cert_summary = scope == "published_summary" and doc.get("certificate_validated") is True
+            if isinstance(cand, str) and cand and (is_diag_scope or is_cert_summary):
+                passing_tasks: list[str] = []
+                for tr in doc.get("task_results") or []:
+                    if not isinstance(tr, dict):
+                        continue
+                    tid = tr.get("task_id")
+                    status = str(tr.get("gate_status") or tr.get("status") or "").upper()
+                    if isinstance(tid, str) and tid and status == "PASS":
+                        passing_tasks.append(tid)
+                if passing_tasks:
+                    prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+                    doc_rev = doc.get("candidate_revision")
+                    doc_src = prov.get("source_digest")
+                    stem = name[:-5] if name.endswith(".json") else name
+                    if kind == "record":
+                        rel_path = f"reports/forge/records/{name}"
+                        record_id = str(doc.get("record_id") or stem)
+                        study_id = doc.get("study_id") or (doc.get("study") or {}).get("id")
+                        goal = doc.get("goal")
+                        tie_key = f"1:{name}"
+                    else:
+                        rel_path = f"reports/forge/technique-receipts/{name}"
+                        record_id = str(doc.get("attempt_id") or stem)
+                        study_id = doc.get("campaign_id")
+                        goal = None
+                        tie_key = f"0:{name}"
+                    parsed = (
+                        cand,
+                        scope,
+                        is_diag_scope,
+                        doc_rev,
+                        doc_src,
+                        record_id,
+                        rel_path,
+                        study_id,
+                        goal,
+                        tie_key,
+                        tuple(passing_tasks),
+                    )
+
+    if len(_DIAG_PASS_FILE_CACHE) >= _DIAG_PASS_FILE_CACHE_LIMIT:
+        _DIAG_PASS_FILE_CACHE.clear()
+    _DIAG_PASS_FILE_CACHE[cache_key] = parsed
+    return parsed
+
+
+def _diagnostic_pass_dir_index(directory: Path, *, kind: str) -> dict[str, tuple[tuple, ...]]:
+    dir_path = os.fspath(directory)
+    if not os.path.isdir(dir_path):
+        return {}
+    entries: list[tuple[str, str, os.stat_result]] = []
+    try:
+        with os.scandir(dir_path) as it:
+            for entry in it:
+                name = entry.name
+                if not name.endswith(".json"):
+                    continue
+                if kind == "record" and not name.startswith("readout-"):
+                    continue
+                try:
+                    st = entry.stat()
+                except OSError:
+                    continue
+                if not stat.S_ISREG(st.st_mode):
+                    continue
+                entries.append((name, entry.path, st))
+    except OSError:
+        return {}
+    entries.sort(key=lambda item: item[0])
+    sig = tuple((name, st.st_ino, st.st_mtime_ns, st.st_size) for name, _, st in entries)
+    dir_key = (kind, os.path.realpath(dir_path), sig)
+    cached = _DIAG_PASS_DIR_CACHE.get(dir_key)
+    if cached is not None:
+        return cached
+
+    by_candidate: dict[str, list[tuple]] = {}
+    for name, path_str, st in entries:
+        parsed = _parse_diagnostic_pass_file(path_str, kind=kind, name=name, st=st)
+        if parsed is not None:
+            by_candidate.setdefault(parsed[0], []).append(parsed)
+    frozen = {cand: tuple(rows) for cand, rows in by_candidate.items()}
+    if len(_DIAG_PASS_DIR_CACHE) >= _DIAG_PASS_DIR_CACHE_LIMIT:
+        _DIAG_PASS_DIR_CACHE.clear()
+    _DIAG_PASS_DIR_CACHE[dir_key] = frozen
+    return frozen
+
+
+_ACTIVE_DIAG_INDEX: ContextVar[tuple[str, tuple[dict[str, tuple[tuple, ...]], dict[str, tuple[tuple, ...]]]] | None] = ContextVar(
+    "_ACTIVE_DIAG_INDEX",
+    default=None,
+)
+
+
+def build_diagnostic_pass_index(root: Path | str) -> tuple[dict[str, tuple[tuple, ...]], dict[str, tuple[tuple, ...]]]:
+    """Snapshot diagnostic PASS indexes for records and receipts once per batch lookup."""
+    active = _ACTIVE_DIAG_INDEX.get()
+    if active is not None and active[0] == os.path.realpath(os.fspath(root)):
+        return active[1]
+    root_path = Path(root)
+    return (
+        _diagnostic_pass_dir_index(root_path / "reports/forge/records", kind="record"),
+        _diagnostic_pass_dir_index(root_path / "reports/forge/technique-receipts", kind="receipt"),
+    )
+
+
+@contextmanager
+def diagnostic_pass_cache(root: Path | str):
+    """Reuse one diagnostic PASS directory snapshot across read-only batch renders."""
+    root_key = os.path.realpath(os.fspath(root))
+    active = _ACTIVE_DIAG_INDEX.get()
+    if active is not None and active[0] == root_key:
+        yield active[1]
+        return
+    root_path = Path(root)
+    snapshot = (
+        _diagnostic_pass_dir_index(root_path / "reports/forge/records", kind="record"),
+        _diagnostic_pass_dir_index(root_path / "reports/forge/technique-receipts", kind="receipt"),
+    )
+    token = _ACTIVE_DIAG_INDEX.set((root_key, snapshot))
+    try:
+        yield snapshot
+    finally:
+        _ACTIVE_DIAG_INDEX.reset(token)
+
+
 def compatible_diagnostic_passes(
     root: Path | str,
     *,
@@ -1445,6 +1632,7 @@ def compatible_diagnostic_passes(
     candidate_revision: str | None = None,
     source_digest: str | None = None,
     allow_revision_fallback: bool = True,
+    _index: tuple[dict[str, tuple[tuple, ...]], dict[str, tuple[tuple, ...]]] | None = None,
 ) -> dict[str, dict]:
     """Index committed diagnostic PASS receipts separately from ordinary qualification.
 
@@ -1457,7 +1645,6 @@ def compatible_diagnostic_passes(
     target_cand = candidate_id.strip()
     target_rev = candidate_revision.strip() if isinstance(candidate_revision, str) and candidate_revision.strip() else None
     target_src = source_digest.strip() if isinstance(source_digest, str) and source_digest.strip() else None
-    root_path = Path(root)
 
     # Map task_id -> (rank_tuple, entry) where exact revision/source matches outrank separate diagnostic revisions.
     best: dict[str, tuple[tuple[int, int, str], dict]] = {}
@@ -1468,28 +1655,27 @@ def compatible_diagnostic_passes(
         if prev is None or rank > prev[0]:
             best[task_id] = (rank, entry)
 
-    records_dir = root_path / "reports/forge/records"
-    if records_dir.is_dir():
-        for path in sorted(records_dir.glob("readout-*.json")):
-            try:
-                doc = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
-                continue
-            scope = str(doc.get("evidence_scope") or "")
-            is_diag_scope = scope in DIAGNOSTIC_SCOPES or "diagnostic" in scope.lower()
-            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
-            doc_src = prov.get("source_digest")
+    index_pair = _index if _index is not None else build_diagnostic_pass_index(root)
+    for bucket in index_pair:
+        rows = bucket.get(target_cand)
+        if not rows:
+            continue
+        for (
+            _cand,
+            scope,
+            is_diag_scope,
+            doc_rev,
+            doc_src,
+            record_id,
+            rel_path,
+            study_id,
+            goal,
+            tie_key,
+            passing_tasks,
+        ) in rows:
             exact_src = bool(target_src and doc_src == target_src)
-            is_same_source_summary = (
-                scope == "published_summary"
-                and doc.get("certificate_validated") is True
-                and exact_src
-            )
-            if not is_diag_scope and not is_same_source_summary:
+            if not is_diag_scope and not exact_src:
                 continue
-            doc_rev = doc.get("candidate_revision")
             exact_rev = bool(target_rev and doc_rev == target_rev)
             if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
                 continue
@@ -1500,24 +1686,17 @@ def compatible_diagnostic_passes(
                 if (exact_rev or not target_rev or not doc_rev) and (exact_src or not target_src or not doc_src)
                 else "separate_diagnostic_revision"
             )
-            rel_path = f"reports/forge/records/{path.name}"
-            for tr in doc.get("task_results") or []:
-                if not isinstance(tr, dict):
-                    continue
-                tid = tr.get("task_id")
-                status = str(tr.get("gate_status") or tr.get("status") or "").upper()
-                if not isinstance(tid, str) or not tid or status != "PASS":
-                    continue
+            for tid in passing_tasks:
                 _record(
                     tid,
                     {
                         "status": "DIAG_PASS",
                         "gate_status": "PASS",
                         "evidence_scope": scope,
-                        "record_id": str(doc.get("record_id") or path.stem),
+                        "record_id": record_id,
                         "readout": rel_path,
-                        "study_id": doc.get("study_id") or (doc.get("study") or {}).get("id"),
-                        "goal": doc.get("goal"),
+                        "study_id": study_id,
+                        "goal": goal,
                         "candidate_id": target_cand,
                         "candidate_revision": doc_rev,
                         "cohort_match": cohort_match,
@@ -1526,68 +1705,7 @@ def compatible_diagnostic_passes(
                     },
                     exact_rev=exact_rev,
                     exact_src=exact_src,
-                    tie_key=f"1:{path.name}",
-                )
-
-    receipts_dir = root_path / "reports/forge/technique-receipts"
-    if receipts_dir.is_dir():
-        for path in sorted(receipts_dir.glob("*.json")):
-            try:
-                doc = json.loads(path.read_text(encoding="utf-8"))
-            except Exception:
-                continue
-            if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
-                continue
-            scope = str(doc.get("evidence_scope") or "")
-            is_diag_scope = scope in DIAGNOSTIC_SCOPES or "diagnostic" in scope.lower()
-            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
-            doc_src = prov.get("source_digest")
-            exact_src = bool(target_src and doc_src == target_src)
-            is_same_source_summary = (
-                scope == "published_summary"
-                and doc.get("certificate_validated") is True
-                and exact_src
-            )
-            if not is_diag_scope and not is_same_source_summary:
-                continue
-            doc_rev = doc.get("candidate_revision")
-            exact_rev = bool(target_rev and doc_rev == target_rev)
-            if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
-                continue
-            if target_src and doc_src and not exact_src and not allow_revision_fallback:
-                continue
-            cohort_match = (
-                "exact"
-                if (exact_rev or not target_rev or not doc_rev) and (exact_src or not target_src or not doc_src)
-                else "separate_diagnostic_revision"
-            )
-            rel_path = f"reports/forge/technique-receipts/{path.name}"
-            for tr in doc.get("task_results") or []:
-                if not isinstance(tr, dict):
-                    continue
-                tid = tr.get("task_id")
-                status = str(tr.get("gate_status") or tr.get("status") or "").upper()
-                if not isinstance(tid, str) or not tid or status != "PASS":
-                    continue
-                _record(
-                    tid,
-                    {
-                        "status": "DIAG_PASS",
-                        "gate_status": "PASS",
-                        "evidence_scope": scope,
-                        "record_id": str(doc.get("attempt_id") or path.stem),
-                        "readout": rel_path,
-                        "study_id": doc.get("campaign_id"),
-                        "goal": None,
-                        "candidate_id": target_cand,
-                        "candidate_revision": doc_rev,
-                        "cohort_match": cohort_match,
-                        "qualification_input": False,
-                        "qualification_reuse": False,
-                    },
-                    exact_rev=exact_rev,
-                    exact_src=exact_src,
-                    tie_key=f"0:{path.name}",
+                    tie_key=tie_key,
                 )
 
     return {tid: entry for tid, (_, entry) in sorted(best.items())}

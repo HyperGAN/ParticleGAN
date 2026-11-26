@@ -308,10 +308,10 @@ def test_p8_governance_calibration_and_unseen_failures() -> None:
     v12 = audit_unified_v12_receipts(ROOT)
     p8 = audit_p8_tuning_and_unseen(ROOT)
 
-    # Governance gap: DEFAULT_RECIPE promoted to unified_v12 while calibration is BLOCKED & pin still points to unified-v11
+    # Governance gap: DEFAULT_RECIPE remains unified_v12 while calibration is BLOCKED & pin points to unified-v15
     assert particlegan.DEFAULT_RECIPE == "unified_v12"
     assert v12["selection_pin_governance"]["default_adoption"] is False
-    assert v12["selection_pin_governance"]["pinned_unified_candidate"] == "unified-v11"
+    assert v12["selection_pin_governance"]["pinned_unified_candidate"] == "unified-v15"
     assert p8["calibration_adoption"] == "BLOCKED"
 
     # Substantial iterative tuning budget across unified-v1..v12 and law4-*

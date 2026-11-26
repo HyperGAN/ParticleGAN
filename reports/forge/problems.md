@@ -50,6 +50,10 @@ Passer summaries reflect the evidence audit dated **2026-10-15**. Selected-resul
 | [Interpolate unseen 2D latent triangle barycenters across a curved 3D saddle sheet from 24 zero-sigma particles](problems.md#interp_saddle_barycentric) | Train 24 zero-sigma `ParticlePrior` locations (`z_dim = 2`) and a 3D-output MLP generator on $w = 0.8(x^2 - y^2) + 0.9\cos(0.75\pi x)\cos(0.75\pi y)$ so unseen 2D latent k-NN triangle barycenters stay on the curved surface (`barycenter_surface_mae <= 0.09`, `barycenter_hq >= 0.78`, `xy_bins_covered >= 12`, `barycenter_novelty >= 0.18`) across five final live checks. | Selected recorded PASS: Axiom, RHBI. |
 | [Learn all 256 uint8 bytes on {-1, +1}^8 as an exact 1-to-1 zero-sigma particle codebook](problems.md#bytegan_hypercube8) | Train 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) and an unbounded MLP generator on uniform random `uint8` bytes encoded on `{-1, +1}^8` under protocol seed 0 so every enumerated particle lands within `bit_tol = 0.25` of a distinct hypercube corner (`valid_particle_fraction == 1.0`, `valid_unique_bytes == 256`, `rms_bit_error <= 0.12`) across five final clean live checks. | Selected recorded PASS: Axiom, Unified. |
 | [Learn a bidirectional 1-to-1 256-byte dictionary over {-1, +1}^8 with a joint BiGAN](problems.md#bytegan_bigan_dictionary) | Train a joint BiGAN `(G(z), E(x), D(x, z))` with 256 zero-sigma `ParticlePrior` codes (`z_dim = 8`) over `public_components` so forward generation forms an exact 256-byte bijection (`valid_unique_bytes == 256`, `rms_bit_error <= 0.12`), round-trip reconstruction `G(E(x))` recovers every canonical byte (`recon_valid_exact_bytes == 256`, `recon_rms_bit_error <= 0.12`), and the encoder indexes all 256 distinct particles 1-to-1 (`encoder_particle_bijection_bytes == 256`) across five final clean live checks. | No selected recorded PASS; see exact outcomes and dated diagnostic evidence below. |
+| [Learn a continuous curved 2D spiral manifold](problems.md#vector_spiral) | Match continuous curved probability mass along a 1.5-turn Archimedes spiral with radial noise (sigma = 0.08), satisfying global sliced W1, mean, and covariance fidelity across five final clean checks. | Selected recorded PASS: Axiom, BCAP, BISPF, EMPF, RHBI, Unified. |
+| [Particle VAE categorical posterior fidelity and KL identity](problems.md#model_vae_categorical) | Train a particle VAE with categorical posterior routing on two separated modes with low reconstruction MSE (<= 0.05), high shuffle-reconstruction ratio (>= 5.0), non-collapsed mutual information (>= 0.30), calibrated posterior noise variance, and exact KL identity (<= 1e-5). | Selected recorded PASS: Axiom, EMPF, RHBI, Unified, GAN v3 release 0.7. |
+| [Particle VAE hard-assigned posterior fidelity and KL identity](problems.md#model_vae_hard) | Maintain reconstruction accuracy, shuffle-reconstruction sensitivity, posterior mutual information, calibrated posterior noise, and exact KL identity under hard-assigned discrete posterior routing. | Selected recorded PASS: Axiom, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, R1/R2. |
+| [Law 3A isolation: 8x width and 6x mass disparity with G = Identity](problems.md#t3_iso_scale_mass_8x) | Eliminate generator topology distortion via G = nn.Identity() over a 512-particle cloud with a smooth SiLU critic (critic_grad_med <= 1.0), isolating Law 3A W1 ray-length non-identifiability across an 8x mode-width ratio and 6x mass ratio. | Selected recorded PASS: Axiom, Unified. |
 
 <a name="gaussian1d_stability"></a>
 
@@ -1506,3 +1510,147 @@ Test: `bytegan_bigan_dictionary` · Held for qualification; included in full-sui
 **Recommendation from the dated diagnosis.** Measure unchanged global family recipes on the `bytegan_stretch` diagnostic view under protocol seed 0 and separate forward codebook coverage failures from inverse reconstruction and encoder-particle alignment failures.
 
 Evidence: [ByteGAN stretch benchmark protocol and status](bytegan-stretch/README.md#bytegan_bigan_dictionary) · [Task declaration](../../configs/forge/tasks/bytegan_bigan_dictionary.json).
+
+
+<a name="vector_spiral"></a>
+
+## Learn a continuous curved 2D spiral manifold
+
+Test: `vector_spiral` · Required for qualification and included in full-suite results.
+
+**What it tests.** Match continuous curved probability mass along a 1.5-turn Archimedes spiral with radial noise (sigma = 0.08), satisfying global sliced W1, mean, and covariance fidelity across five final clean checks.
+
+**Historical diagnosis (2026-10-15).** Overly rigid discrete prototype charts or excessive inter-particle repulsion can quantize the smooth curved manifold into beads or cut straight chords across inner turns. Most selected families pass, while Axiom (`axiom-v4`) records a FAIL in its current selected cohort.
+
+**Historical passer evidence.** Selected recorded PASS across BCAP, BISPF, EMPF, RHBI, and Unified; FAIL on Axiom (`axiom-v4`).
+
+- BCAP, BISPF, EMPF, RHBI, and Unified pass in their current selected cohorts.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-42a130a78fc3) | [PASS](families/axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_spiral) |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-vector_spiral) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [PASS](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-vector_spiral) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-vector_spiral) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [PASS](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-vector_spiral) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [PASS](families/unified.md#cohort-cuda-42a130a78fc3-experiment-vector_spiral) |
+| [Atlas](families/atlas.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/atlas.md#cohort-cuda-daa283c8a640-experiment-vector_spiral) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [BLOCKED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-vector_spiral) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_spiral) |
+| [K3P](families/k3p.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/k3p.md#cohort-cuda-daa283c8a640-experiment-vector_spiral) |
+| [KA2](families/ka2.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/ka2.md#cohort-cuda-daa283c8a640-experiment-vector_spiral) |
+| [R1/R2](families/r1r2.md#cohort-cuda-daa283c8a640) | [NOT MEASURED](families/r1r2.md#cohort-cuda-daa283c8a640-experiment-vector_spiral) |
+
+**Recommendation from the dated diagnosis.** Preserve continuous-manifold coverage on curved supports without regressing multi-scale discrete clusters or stability.
+
+Evidence: [Experiment page](experiments/vector_spiral.md) · [Task declaration](../../configs/forge/tasks/vector_spiral.json).
+
+
+<a name="model_vae_categorical"></a>
+
+## Particle VAE categorical posterior fidelity and KL identity
+
+Test: `model_vae_categorical` · Required for qualification and included in full-suite results.
+
+**What it tests.** Train a particle VAE with categorical posterior routing on two separated modes with low reconstruction MSE (<= 0.05), high shuffle-reconstruction ratio (>= 5.0), non-collapsed mutual information (>= 0.30), calibrated posterior noise variance, and exact KL identity (<= 1e-5).
+
+**Historical diagnosis (2026-10-15).** Posterior collapse causes the decoder to ignore the encoder (low shuffle ratio or mutual information) or degrades reconstruction and KL calibration under adversarial or regularizer pressure.
+
+**Historical passer evidence.** Selected recorded PASS across Axiom, EMPF, RHBI, Unified, and GAN v3 release 0.7; FAIL on Atlas, K3P, KA2, and R1/R2 under revision-20 contracts.
+
+- Axiom, EMPF, RHBI, Unified, and GAN v3 release 0.7 pass in their current selected cohorts.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-42a130a78fc3) | [PASS](families/axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_categorical) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_categorical) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_vae_categorical) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [PASS](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-model_vae_categorical) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [PASS](families/unified.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) |
+| [Atlas](families/atlas.md#cohort-cuda-daa283c8a640) | [FAIL](families/atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_categorical) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [PASS](families/release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) |
+| [K3P](families/k3p.md#cohort-cuda-daa283c8a640) | [FAIL](families/k3p.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) |
+| [KA2](families/ka2.md#cohort-cuda-daa283c8a640) | [FAIL](families/ka2.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) |
+| [R1/R2](families/r1r2.md#cohort-cuda-daa283c8a640) | [FAIL](families/r1r2.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) |
+
+**Recommendation from the dated diagnosis.** Keep posterior routing informative and KL-calibrated across both smooth and strongly regularized critics.
+
+Evidence: [Experiment page](experiments/model_vae_categorical.md) · [Task declaration](../../configs/forge/tasks/model_vae_categorical.json).
+
+
+<a name="model_vae_hard"></a>
+
+## Particle VAE hard-assigned posterior fidelity and KL identity
+
+Test: `model_vae_hard` · Required for qualification and included in full-suite results.
+
+**What it tests.** Maintain reconstruction accuracy, shuffle-reconstruction sensitivity, posterior mutual information, calibrated posterior noise, and exact KL identity under hard-assigned discrete posterior routing.
+
+**Historical diagnosis (2026-10-15).** Hard posterior routing amplifies gradient variance and can trigger dead particles or posterior collapse when paired with adaptive critics or incompatible prior updates.
+
+**Historical passer evidence.** Selected recorded PASS across Axiom, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, and R1/R2; FAIL on Atlas (`atlas-particle-normal-v4`).
+
+- Axiom, EMPF, RHBI, Unified, GAN v3 release 0.7, K3P, KA2, and R1/R2 pass in their current selected cohorts.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-42a130a78fc3) | [PASS](families/axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_hard) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_hard) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [PASS](families/empf.md#cohort-cuda-23a94f16ca88-experiment-model_vae_hard) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [PASS](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-model_vae_hard) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [PASS](families/unified.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) |
+| [Atlas](families/atlas.md#cohort-cuda-daa283c8a640) | [FAIL](families/atlas.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-model_vae_hard) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [PASS](families/release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) |
+| [K3P](families/k3p.md#cohort-cuda-daa283c8a640) | [PASS](families/k3p.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) |
+| [KA2](families/ka2.md#cohort-cuda-daa283c8a640) | [PASS](families/ka2.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) |
+| [R1/R2](families/r1r2.md#cohort-cuda-daa283c8a640) | [PASS](families/r1r2.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) |
+
+**Recommendation from the dated diagnosis.** Prevent hard-assignment dead particles and posterior collapse without breaking categorical VAE or unconditional GAN stability.
+
+Evidence: [Experiment page](experiments/model_vae_hard.md) · [Task declaration](../../configs/forge/tasks/model_vae_hard.json).
+
+
+<a name="t3_iso_scale_mass_8x"></a>
+
+## Law 3A isolation: 8x width and 6x mass disparity with G = Identity
+
+Test: `t3_iso_scale_mass_8x` · Held for qualification; included in full-suite results.
+
+**What it tests.** Eliminate generator topology distortion via G = nn.Identity() over a 512-particle cloud with a smooth SiLU critic (critic_grad_med <= 1.0), isolating Law 3A W1 ray-length non-identifiability across an 8x mode-width ratio and 6x mass ratio.
+
+**Historical diagnosis (2026-10-15).** Pure 1-Lipschitz adversarial gradients lack width sensitivity, causing the wide sigma = 0.32 mode to shrink or misallocate mass even when G = Identity removes generator representational bottlenecks.
+
+**Historical passer evidence.** Selected recorded PASS on Axiom (`axiom-v4`) and Unified (`unified-v11`); FAIL on GAN v3 release 0.7, K3P, KA2, and R1/R2.
+
+- Axiom (`axiom-v4`) and Unified (`unified-v11`) pass in their current selected cohorts.
+
+**Selected recipes' recorded results:**
+
+| Selected recipe | Result |
+| --- | --- |
+| [Axiom](families/axiom.md#cohort-cuda-42a130a78fc3) | [PASS](families/axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) |
+| [BCAP](families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bcap-pure.md#cohort-cuda-1bf9d7d34422-experiment-t3_iso_scale_mass_8x) |
+| [BISPF](families/bispf.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/bispf.md#cohort-cuda-1bf9d7d34422-experiment-t3_iso_scale_mass_8x) |
+| [EMPF](families/empf.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/empf.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) |
+| [RHBI](families/rhbi.md#cohort-cuda-23a94f16ca88) | [NOT MEASURED](families/rhbi.md#cohort-cuda-23a94f16ca88-experiment-t3_iso_scale_mass_8x) |
+| [Unified](families/unified.md#cohort-cuda-42a130a78fc3) | [PASS](families/unified.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) |
+| [Atlas](families/atlas.md#cohort-cuda-daa283c8a640) | [BLOCKED](families/atlas.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) |
+| [E22](families/e22.md#cohort-cuda-1bf9d7d34422) | [NOT MEASURED](families/e22.md#cohort-cuda-1bf9d7d34422-experiment-t3_iso_scale_mass_8x) |
+| [GAN v3 release 0.7](families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [FAIL](families/release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) |
+| [K3P](families/k3p.md#cohort-cuda-daa283c8a640) | [FAIL](families/k3p.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) |
+| [KA2](families/ka2.md#cohort-cuda-daa283c8a640) | [FAIL](families/ka2.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) |
+| [R1/R2](families/r1r2.md#cohort-cuda-daa283c8a640) | [FAIL](families/r1r2.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) |
+
+**Recommendation from the dated diagnosis.** Provide width-sensitive transport identifiability under 1-Lipschitz critics while retaining multi-mode stability across the full suite.
+
+Evidence: [Experiment page](experiments/t3_iso_scale_mass_8x.md) · [Task declaration](../../configs/forge/tasks/t3_iso_scale_mass_8x.json).

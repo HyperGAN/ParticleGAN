@@ -6,7 +6,7 @@ constants as effective candidate settings.
 """
 from __future__ import annotations
 
-from copy import deepcopy
+from .contracts import clone_json as deepcopy
 from dataclasses import dataclass, fields
 
 from particlegan import Recipe

@@ -1348,36 +1348,61 @@ def sample_16mode_target(
     return spec["centers"][idx] + torch.einsum("nij,nj->ni", spec["chols"][idx], eps)
 
 
+class _FastLogSumExpDim1(torch.autograd.Function):
+    """Exact dim=1 logsumexp staying on the SIMD fast path without underflow traps."""
+
+    @staticmethod
+    def forward(ctx, z: torch.Tensor) -> torch.Tensor:
+        m = z.max(dim=1, keepdim=True).values
+        floor = -70.0 if z.dtype == torch.float64 else -35.0
+        shifted = (z - m).clamp_min(floor)
+        e = torch.exp(shifted)
+        s = e.sum(dim=1)
+        if z.requires_grad:
+            e.div_(s.unsqueeze(1))
+            ctx.save_for_backward(e)
+        return m.squeeze(1) + s.log()
+
+    @staticmethod
+    def backward(ctx, grad_out: torch.Tensor) -> torch.Tensor:
+        (probs,) = ctx.saved_tensors
+        return probs * grad_out.unsqueeze(1)
+
+
+def _ot_eps_sinkhorn(a: torch.Tensor, b: torch.Tensor, *, eps: float, iters: int, symmetric: bool) -> torch.Tensor:
+    n, m = a.shape[0], b.shape[0]
+    c_ab = 0.5 * torch.cdist(a, b, p=2.0).square()
+    log_k = -c_ab / eps
+    log_p = -math.log(float(n))
+    log_q = -math.log(float(m))
+    if symmetric:
+        f = torch.zeros(n, device=a.device, dtype=a.dtype)
+        for _ in range(iters):
+            f = 0.5 * (f + log_p - _FastLogSumExpDim1.apply(log_k + f.unsqueeze(0)))
+        return eps * (2.0 * f.mean())
+    log_k_t = log_k.T.contiguous()
+    f = torch.zeros(n, device=a.device, dtype=a.dtype)
+    g = torch.zeros(m, device=a.device, dtype=a.dtype)
+    for _ in range(iters):
+        g = log_q - _FastLogSumExpDim1.apply(log_k_t + f.unsqueeze(0))
+        f = log_p - _FastLogSumExpDim1.apply(log_k + g.unsqueeze(0))
+    return eps * (f.mean() + g.mean())
+
+
 def debiased_sinkhorn_divergence(
     x: torch.Tensor,
     y: torch.Tensor,
     *,
     eps: float = 0.08,
     iters: int = 20,
+    ot_yy: Optional[torch.Tensor] = None,
 ) -> torch.Tensor:
     """Exact differentiable Feydy-debiased Sinkhorn divergence S_eps(X, Y) (squared Euclidean cost)."""
-    def _ot_eps(a: torch.Tensor, b: torch.Tensor, symmetric: bool) -> torch.Tensor:
-        n, m = a.shape[0], b.shape[0]
-        c_ab = 0.5 * torch.cdist(a, b, p=2.0).square()
-        log_k = -c_ab / eps
-        log_p = -math.log(float(n))
-        log_q = -math.log(float(m))
-        if symmetric:
-            f = torch.zeros(n, device=a.device, dtype=a.dtype)
-            for _ in range(iters):
-                f = 0.5 * (f + log_p - torch.logsumexp(log_k + f.unsqueeze(0), dim=1))
-            return eps * (2.0 * f.mean())
-        f = torch.zeros(n, device=a.device, dtype=a.dtype)
-        g = torch.zeros(m, device=a.device, dtype=a.dtype)
-        for _ in range(iters):
-            g = log_q - torch.logsumexp(log_k + f.unsqueeze(1), dim=0)
-            f = log_p - torch.logsumexp(log_k + g.unsqueeze(0), dim=1)
-        return eps * (f.mean() + g.mean())
-
-    ot_xy = _ot_eps(x, y, symmetric=False)
-    ot_xx = _ot_eps(x, x, symmetric=True)
-    with torch.no_grad():
-        ot_yy = _ot_eps(y, y, symmetric=True)
+    ot_xy = _ot_eps_sinkhorn(x, y, eps=eps, iters=iters, symmetric=False)
+    ot_xx = _ot_eps_sinkhorn(x, x, eps=eps, iters=iters, symmetric=True)
+    if ot_yy is None:
+        with torch.no_grad():
+            ot_yy = _ot_eps_sinkhorn(y, y, eps=eps, iters=iters, symmetric=True)
     return (ot_xy - 0.5 * ot_xx - 0.5 * ot_yy).clamp_min(0.0)
 
 
@@ -1425,6 +1450,7 @@ def evaluate_nonadversarial_arm(
     *,
     n_eval: int = 8192,
     n_jac: int = 4096,
+    eval_ot_yy: Optional[torch.Tensor] = None,
 ) -> Dict[str, Any]:
     g_mod.eval()
     z_eval = sample_z_fn(n_eval)
@@ -1432,7 +1458,7 @@ def evaluate_nonadversarial_arm(
     y_sub = y_eval[:n_eval]
 
     sw2 = sliced_w2_distance(x_eval, y_sub)
-    s_div = float(debiased_sinkhorn_divergence(x_eval[:2048], y_sub[:2048], eps=0.05, iters=25).item())
+    s_div = float(debiased_sinkhorn_divergence(x_eval[:2048], y_sub[:2048], eps=0.05, iters=25, ot_yy=eval_ot_yy).item())
     sinkhorn_w2 = math.sqrt(max(0.0, 2.0 * s_div))
 
     # Mahalanobis distance to each of the 16 anisotropic modes:
@@ -1528,7 +1554,10 @@ def _run_exp3_body(
     y_ref2 = sample_16mode_target(spec, 8192, torch.Generator(device=device).manual_seed(54321))
     diff_ref = y_ref2.unsqueeze(1) - spec["centers"].unsqueeze(0)
     maha_ref = torch.einsum("nmi,mij,nmj->nm", diff_ref, spec["inv_covs"], diff_ref).clamp_min(0.0).sqrt().min(dim=1).values
-    oracle_sdiv = float(debiased_sinkhorn_divergence(y_ref2[:2048], y_eval[:2048], eps=0.05, iters=25).item())
+    with torch.no_grad():
+        eval_ot_yy = _ot_eps_sinkhorn(y_eval[:2048], y_eval[:2048], eps=0.05, iters=25, symmetric=True)
+        batch_ot_yy = [_ot_eps_sinkhorn(yr, yr, eps=0.08, iters=18, symmetric=True) for yr in real_batches]
+    oracle_sdiv = float(debiased_sinkhorn_divergence(y_ref2[:2048], y_eval[:2048], eps=0.05, iters=25, ot_yy=eval_ot_yy).item())
     oracle_ref = {
         "sw2": sliced_w2_distance(y_ref2, y_eval),
         "sinkhorn_w2": math.sqrt(max(0.0, 2.0 * oracle_sdiv)),
@@ -1600,12 +1629,13 @@ def _run_exp3_body(
         for step in range(1, steps + 1):
             g_mod.train()
             yr = real_batches[step - 1]
+            ot_yy_step = batch_ot_yy[step - 1]
 
             if mode == "unimodal":
                 z = torch.randn(batch_size, 2, device=device, generator=rng_z)
                 opt_g.zero_grad()
                 xf = g_mod(z)
-                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18)
+                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18, ot_yy=ot_yy_step)
                 loss.backward()
                 opt_g.step()
 
@@ -1614,7 +1644,7 @@ def _run_exp3_body(
                 z = c4_mismatch[idx] + sig4_mismatch * torch.randn(batch_size, 2, device=device, generator=rng_z)
                 opt_g.zero_grad()
                 xf = g_mod(z)
-                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18)
+                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18, ot_yy=ot_yy_step)
                 loss.backward()
                 opt_g.step()
 
@@ -1624,7 +1654,7 @@ def _run_exp3_body(
                 opt_g.zero_grad()
                 opt_prior.zero_grad()
                 xf = g_mod(z)
-                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18)
+                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18, ot_yy=ot_yy_step)
                 loss.backward()
                 opt_g.step()
                 opt_prior.step()
@@ -1637,7 +1667,7 @@ def _run_exp3_body(
                 z_raw, idx = prior.sample(batch_size, generator=rng_z)
                 opt_g.zero_grad()
                 xf = g_mod(z_raw.detach())
-                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18)
+                loss = debiased_sinkhorn_divergence(xf, yr, eps=0.08, iters=18, ot_yy=ot_yy_step)
                 loss.backward()
                 opt_g.step()
 
@@ -1716,6 +1746,7 @@ def _run_exp3_body(
                     g_mod, eval_sampler, spec, y_eval,
                     n_eval=4096 if step < steps else 8192,
                     n_jac=2048 if step < steps else 4096,
+                    eval_ot_yy=eval_ot_yy,
                 )
                 if steps_to_sw2_035 is None and metrics["sw2"] <= 0.35:
                     steps_to_sw2_035 = step

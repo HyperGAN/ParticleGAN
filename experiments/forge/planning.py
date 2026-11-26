@@ -2,7 +2,7 @@
 from __future__ import annotations
 
 from contextlib import contextmanager
-from copy import deepcopy
+from .contracts import clone_json as deepcopy
 from dataclasses import asdict
 from pathlib import Path
 import threading

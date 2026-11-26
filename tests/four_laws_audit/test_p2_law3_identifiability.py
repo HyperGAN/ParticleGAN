@@ -168,7 +168,7 @@ def test_all_analytical_critics_are_provably_globally_1_lipschitz():
     assert c3["grad_max"] <= 1.0 + 1e-6
 
 
-def test_analytic_1lip_experiments_a_b_c():
+def test_analytic_1lip_experiment_a_scale_mass_8x():
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     # Experiment A: 8x scale-mass with provably globally 1-Lipschitz analytic critics
@@ -186,6 +186,10 @@ def test_analytic_1lip_experiments_a_b_c():
     assert exp_a["signed_dist_1lip_conformal_rloc"]["passed"] is True
     assert exp_a["signed_dist_1lip_conformal_rloc"]["metrics"]["core_min_eigen_ratio"] >= 0.45
 
+
+def test_analytic_1lip_experiment_b_saddle_shift():
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
+
     # Experiment B: 42.4-sigma orthogonal saddle shift with provably globally 1-Lipschitz analytic critics
     exp_b = run_analytic_1lip_saddle_shift(post_steps=700, device=device)
     for arm, data in exp_b.items():
@@ -202,6 +206,10 @@ def test_analytic_1lip_experiments_a_b_c():
     assert exp_b["dist_w1_1lip_conformal_macro_dualnorm"]["passed"] is True
     assert exp_b["dist_w1_1lip_conformal_macro_dualnorm"]["metrics"]["modes"] == 4
     assert exp_b["batch_w1_lp_1lip_sgd"]["passed"] is True
+
+
+def test_analytic_1lip_experiment_c_conditional_fiber():
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"
 
     # Experiment C: Conditional heteroscedastic fiber task under provably globally 1-Lipschitz analytic critic
     exp_c = run_analytic_1lip_conditional_fiber(steps=1200, device=device)

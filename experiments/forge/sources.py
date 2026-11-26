@@ -98,33 +98,58 @@ def compute_profile(backend: str, cuda_model: str | None = None, *, threads: int
 
 def source_files(root: Path, extra_paths=()) -> list[Path]:
     root = Path(root).resolve()
-    paths = set()
+    root_str = str(root)
+    root_prefix = root_str if root_str.endswith(os.sep) else root_str + os.sep
+    excluded_dirs = {"__pycache__", ".venv", "runs"}
+    paths: set[Path] = set()
     for directory in SOURCE_DIRS:
-        for path in (root / directory).rglob("*"):
-            if (path.is_file() and path.suffix in SOURCE_SUFFIXES
-                    and not any(p in {"__pycache__", ".venv", "runs"} for p in path.relative_to(root).parts)):
-                rel_posix = path.relative_to(root).as_posix()
+        base = root / directory
+        if not base.exists():
+            continue
+        prefix_len = len(root_prefix)
+        for dirpath, dirnames, filenames in os.walk(base, followlinks=False):
+            dirnames[:] = [d for d in dirnames if d not in excluded_dirs]
+            for name in filenames:
+                _, ext = os.path.splitext(name)
+                if ext not in SOURCE_SUFFIXES:
+                    continue
+                full = os.path.join(dirpath, name)
+                if os.path.islink(full):
+                    raise ValueError(f"source symlinks are not snapshot inputs: {full}")
+                rel_posix = full[prefix_len:].replace(os.sep, "/")
                 if rel_posix in NON_SCIENTIFIC_SOURCE_PATHS:
                     continue
-                paths.add(path)
+                paths.add(Path(full))
     # Existing task hosts sometimes read repo configs by relative path.
-    for path in (root / "configs").rglob("*"):
-        if path.is_file() and path.suffix in SOURCE_SUFFIXES and "forge" not in path.relative_to(root).parts:
-            paths.add(path)
+    configs_base = root / "configs"
+    if configs_base.exists():
+        for dirpath, dirnames, filenames in os.walk(configs_base, followlinks=False):
+            dirnames[:] = [d for d in dirnames if d != "forge"]
+            for name in filenames:
+                _, ext = os.path.splitext(name)
+                if ext not in SOURCE_SUFFIXES:
+                    continue
+                full = os.path.join(dirpath, name)
+                if os.path.islink(full):
+                    raise ValueError(f"source symlinks are not snapshot inputs: {full}")
+                paths.add(Path(full))
     for relative in extra_paths:
-        path = (root / relative).resolve()
-        if not path.is_relative_to(root) or not path.is_file():
+        raw_path = root / relative
+        if raw_path.is_symlink():
+            raise ValueError(f"source symlinks are not snapshot inputs: {raw_path}")
+        resolved = raw_path.resolve()
+        resolved_str = str(resolved)
+        if not (resolved_str == root_str or resolved_str.startswith(root_prefix)) or not resolved.is_file():
             raise ValueError(f"declared source must be a file inside the worktree: {relative}")
-        paths.add(path)
-    for path in paths:
-        if path.is_symlink() or not path.resolve().is_relative_to(root):
-            raise ValueError(f"source symlinks are not snapshot inputs: {path}")
+        paths.add(resolved)
     return sorted(paths)
 
 
 def inspect_source(root: Path, extra_paths=()) -> dict:
     root = Path(root).resolve()
-    files = {str(p.relative_to(root)): file_hash(p) for p in source_files(root, extra_paths)}
+    root_str = str(root)
+    prefix_len = len(root_str) + (0 if root_str.endswith(os.sep) else 1)
+    files = {os.fspath(p)[prefix_len:].replace(os.sep, "/"): file_hash(p) for p in source_files(root, extra_paths)}
     try:
         commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=root, text=True, stderr=subprocess.DEVNULL).strip()
     except (subprocess.CalledProcessError, FileNotFoundError):
@@ -164,16 +189,33 @@ def snapshot_source(root: Path, queue_root: Path, manifest: dict) -> Path:
 
 def verify_snapshot(path: Path, manifest: dict | None = None) -> None:
     path = Path(path)
+    resolved_root = str(path.resolve())
+    root_prefix = resolved_root if resolved_root.endswith(os.sep) else resolved_root + os.sep
+    prefix_len = len(root_prefix)
     manifest = manifest or read_json(path / "forge-source.json")
-    if stable_hash(manifest["files"]) != manifest["digest"]:
+    manifest_files = manifest["files"]
+    if stable_hash(manifest_files) != manifest["digest"]:
         raise ValueError("invalid source manifest digest")
-    actual = {str(member.relative_to(path)) for member in path.rglob("*")
-              if member.is_file() and member.suffix in SOURCE_SUFFIXES
-              and "__pycache__" not in member.parts and member.name != "forge-source.json"}
-    unexpected = actual - set(manifest["files"])
+    actual: set[str] = set()
+    for dirpath, dirnames, filenames in os.walk(resolved_root, followlinks=False):
+        dirnames[:] = [d for d in dirnames if d != "__pycache__"]
+        for name in filenames:
+            if name == "forge-source.json":
+                continue
+            _, ext = os.path.splitext(name)
+            if ext not in SOURCE_SUFFIXES:
+                continue
+            full = os.path.join(dirpath, name)
+            rel = full[prefix_len:].replace(os.sep, "/")
+            actual.add(rel)
+    unexpected = actual - set(manifest_files)
     if unexpected:
         raise ValueError(f"undeclared files appeared in source snapshot: {sorted(unexpected)}")
-    for relative, digest in manifest["files"].items():
-        member = path / relative
-        if not member.resolve().is_relative_to(path.resolve()) or file_hash(member) != digest:
+    for relative, digest in manifest_files.items():
+        member_path = os.path.join(resolved_root, relative)
+        if os.path.islink(member_path) or ".." in relative.split("/"):
+            resolved_member = os.path.realpath(member_path)
+            if not resolved_member.startswith(root_prefix):
+                raise ValueError(f"source snapshot was changed: {relative}")
+        if not os.path.isfile(member_path) or file_hash(Path(member_path)) != digest:
             raise ValueError(f"source snapshot was changed: {relative}")

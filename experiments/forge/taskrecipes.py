@@ -4,7 +4,7 @@ Only the fields already owned by existing adapters may be delegated. Training
 mechanisms, priors, serving laws and gates cannot be removed by this contract.
 The complete reference recipe remains in the frozen candidate declaration.
 """
-from copy import deepcopy
+from .contracts import clone_json as deepcopy
 from .priors import recipe_owned_prior
 
 

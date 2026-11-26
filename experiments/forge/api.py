@@ -3,7 +3,7 @@
 There is no second optimizer or training loop here. New experiment variables
 bind explicitly to a documented public Recipe or GANTrainer argument.
 """
-from copy import deepcopy
+from .contracts import clone_json as deepcopy
 from dataclasses import asdict, dataclass, fields
 import hashlib
 import inspect
