@@ -428,7 +428,7 @@ class AxiomTransportLoss(nn.Module):
     def _cached_manifold_gates(self, yp: torch.Tensor) -> Tuple[float, float, float, torch.Tensor]:
         key = (int(yp.data_ptr()), int(yp._version), tuple(yp.shape), str(yp.device))
         if self._mg_cache is not None and self._mg_cache[0] == key: return self._mg_cache[1]
-        res = _manifold_gates(yp); self._mg_cache = (key, res); return res
+        res = _manifold_gates(yp); self._mg_cache = (key, res, yp.untyped_storage()); return res
     def _resolve_ell(self, yp: torch.Tensor, record: Any, can_mut: bool) -> torch.Tensor:
         with torch.no_grad():
             eh_t = _batch_ell(yp, 0.25)

@@ -470,8 +470,13 @@ def test_unified_v14_prior_peak_rms_live_semantic_control(use_fallback: bool) ->
     )
 
 
-def test_unified_v14_prior_checkpoint_tamper_and_fresh_process_continuation(tmp_path: Path) -> None:
+def test_unified_v14_prior_checkpoint_tamper_and_fresh_process_continuation(
+    tmp_path: Path, request: pytest.FixtureRequest
+) -> None:
     """Tamper rejection + bit-exact fresh-process continuation across active sub-s_cap peak_rms prior updates."""
+    prev_threads = torch.get_num_threads()
+    request.addfinalizer(lambda: torch.set_num_threads(prev_threads))
+    torch.set_num_threads(1)
     torch.manual_seed(0)
 
     # 1. Tamper rejection on prior peak_rms and m_prior:
@@ -546,6 +551,7 @@ def test_unified_v14_prior_checkpoint_tamper_and_fresh_process_continuation(tmp_
 
     script_opt = f"""
 import torch
+torch.set_num_threads(1)
 from torch import nn
 from particlegan._unified_v14 import UnifiedV14Optimizer
 
@@ -615,6 +621,7 @@ torch.save(
 
     script_tr = f"""
 import torch
+torch.set_num_threads(1)
 from particlegan import GANTrainer, MoGParticlePrior, Recipe
 from tests.test_unified_v14_prior_invariance import _HighDMaskedGen, _RMSNormCrit
 

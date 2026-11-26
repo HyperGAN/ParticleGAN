@@ -8,6 +8,8 @@ import re
 import subprocess
 import xml.etree.ElementTree as ET
 
+import pytest
+
 from experiments.forge.experiment_docs import (
     EXPERIMENTS_DIR_REL,
     LAWS_HUB_REL,
@@ -52,13 +54,26 @@ def _md_anchors(path: Path) -> set[str]:
 
 def test_all_base_tasks_preserve_fingerprints_and_bytes_vs_develop():
     """Every base task keeps identical execution/evaluation fingerprints (and raw bytes) vs develop."""
+    base_ref = None
+    for candidate_ref in ("develop", "origin/develop"):
+        probe = subprocess.run(
+            ["git", "rev-parse", "--verify", "--quiet", f"{candidate_ref}^{{commit}}"],
+            cwd=ROOT,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        if probe.returncode == 0:
+            base_ref = candidate_ref
+            break
+    if base_ref is None:
+        pytest.skip("develop ref unavailable in detached/shallow CI checkout")
     task_paths = _all_base_task_paths()
     assert len(task_paths) == 161
     for path in task_paths:
         rel = path.relative_to(ROOT).as_posix()
         current_bytes = path.read_bytes()
         current = json.loads(current_bytes.decode("utf-8"))
-        dev_bytes = subprocess.check_output(["git", "show", f"develop:{rel}"], cwd=ROOT)
+        dev_bytes = subprocess.check_output(["git", "show", f"{base_ref}:{rel}"], cwd=ROOT)
         dev_task = json.loads(dev_bytes.decode("utf-8"))
         assert task_execution_fingerprint(current) == task_execution_fingerprint(dev_task), rel
         assert task_evaluation_fingerprint(current) == task_evaluation_fingerprint(dev_task), rel
