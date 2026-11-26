@@ -42,6 +42,11 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert "axiom-v4" in fl_cands and fl_cands["axiom-v4"]["family_id"] == "axiom"
     assert fl_cands["axiom-v4"]["bytegan_pass"] == 2 and fl_cands["axiom-v4"]["bytegan_measured"] == 2
     assert fl_cands["unified-v14"]["bytegan_pass"] == 2 and fl_cands["unified-v14"]["bytegan_measured"] == 2
+    fl_v2 = payload["four_laws_adherence_v2_l4"]
+    assert isinstance(fl_v2, dict) and fl_v2["hardware_gpu"] == "NVIDIA L4"
+    assert fl_v2["view_id"] == "four-laws-adherence-v2"
+    assert len(fl_v2["probes"]) == 10
+    assert isinstance(fl_v2["rows"], list)
 
     # Verify committed law4-phase2-energy-benchmark.json entries are exported faithfully.
     v3 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "law4-energy-v3")

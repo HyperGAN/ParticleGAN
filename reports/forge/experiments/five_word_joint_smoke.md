@@ -10,7 +10,7 @@
 | **Edge Cases** | `discrete-vocabulary` `bidirectional-encoder` `exact-capacity-prior` |
 | **Primary View (`discriminator_stability`)** | Tier 1 (required) |
 | **Four Laws Adherence Role** | — |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `word_joint` / `word_smoke` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
 | **Update Budget** | `20001` steps |
@@ -25,7 +25,7 @@ Trains a joint BiGAN (generator, encoder, joint critic) with exactly 5 learned 2
 ## Laws & Edge Cases Targeted
 
 - **[Law 1: Representational Geometry](../LAWS_HUB.md#law1)** ([Law 1 theory](../../../docs/four-laws.md#law-1--representational-geometry)) — Can the system represent the required probability measure efficiently and faithfully?
-- **[Law 3B: Conditional Fiber & Stratum Identifiability](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3B: Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **Edge-case tags:** `discrete-vocabulary`, `bidirectional-encoder`, `exact-capacity-prior`
 
 ## Common Failure Mode
@@ -89,18 +89,18 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Atlas** | `atlas-particle-normal-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
-| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
-| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/atlas/atlas-particle-normal-v4/five_word_joint_smoke.gif) |
+| **Axiom** | `axiom-v4` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/five_word_joint_smoke.gif) |
+| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/recipe-prior-refactor/publication/media/bcap-pure-ordinary-five_word_joint_smoke.gif) |
+| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/bispf-optimized/quality-media/five_word_joint_smoke.gif) |
+| **EMPF** | `empf-v8` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/five_word_joint_smoke.gif) |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/k3p/recipe-prior-refactor-k3p-v1/five_word_joint_smoke.gif) |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/ka2/recipe-prior-refactor-ka2-v1/five_word_joint_smoke.gif) |
 | **RHBI** | `rhbi-v12` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | any scheduled full joint pass plus independent same-state confirmation | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: five_word_joint_smoke: clean/live scoring has no declared polic | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/release07-gan-v3/recipe-prior-refactor-release07-gan-v3-v1/five_word_joint_smoke.gif) |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | any scheduled full joint pass plus independent same-state confirmation | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/r1r2/recipe-prior-refactor-r1r2-v1/five_word_joint_smoke.gif) |
 
 ## Reproduce This Experiment
 

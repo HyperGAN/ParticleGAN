@@ -4,7 +4,7 @@
   "files": {
     "README.md": {
       "bytes": 3966,
-      "sha256": "abfc344045d3c647cb234382c0799279418819458c96337837493a6bcd536e0c"
+      "sha256": "d42f46b49be8f095f391489ccd07812f00e1c118e2a1911b3cb4f4e7cd9f49fc"
     },
     "data/attempts.parquet": {
       "bytes": 58245,
@@ -12,31 +12,31 @@
       "sha256": "4da9ed7dec1a7daf8528c53f70bb148e5b8b8b7742cab2194eb637b78c36a6c3"
     },
     "data/energy.parquet": {
-      "bytes": 10894,
-      "rows": 35,
-      "sha256": "9b1e274f3989c361c8b9934f6745f02b90440d785ed9050bc961522d51e16641"
+      "bytes": 11323,
+      "rows": 41,
+      "sha256": "58a37d6fba38cdbb73c9c615513b651a985c04bc1db10065c3f0cb91e28094ea"
     },
     "data/leaderboard.json": {
-      "bytes": 2787765,
+      "bytes": 2950018,
       "families": 12,
-      "sha256": "7fba1ef7ff9dc0d446ad580d44abb1cd9ad6908e93e31702230ef969eef2d63a",
-      "tasks": 1604
+      "sha256": "b5b235d559fa9ac598abdb54754fbc154650901e90f302d0b1fa4c65fb81ed41",
+      "tasks": 1628
     },
     "data/leaderboard.parquet": {
-      "bytes": 27678,
+      "bytes": 27677,
       "rows": 12,
-      "sha256": "7a21cfffc8f94f0f01aabb935d8fce8cd8fe686f83d2545a82956455b6943155"
+      "sha256": "0748c4c4cb9a32d1a58ba700f165cc83de6fc05ae2c63f62cbe31bbf46c51367"
     },
     "data/receipts.parquet": {
-      "bytes": 853859,
-      "rows": 4147,
-      "sha256": "07d5c1cae9abaf8e8c5928b495371076021dbfba0887de6d81ecce8899124db9"
+      "bytes": 945593,
+      "rows": 4475,
+      "sha256": "ac87a0066b00e7f7c68d60e9266d8bbdccc155f7b9dd9096cec22f501053dffb"
     }
   },
-  "git_source_commit": "24bbe2c49657ab8994d7654b5381794c2fd71e1d",
-  "hf_revision": "34a39180fa002f480ed1cf5e43e5ad8f51accada",
+  "git_source_commit": "f04752881bfac0ae007bab23d1e309b3f8783052",
+  "hf_revision": "b8569b00fc700b401ad98c76bfc70997d00ea0e5",
   "inventory": true,
-  "published_at": "2026-11-25T20:52:55Z",
+  "published_at": "2026-11-26T08:13:34Z",
   "qualification_input": false,
   "qualification_reuse": false,
   "repo": "HyperGAN/particlegan-forge-evidence",

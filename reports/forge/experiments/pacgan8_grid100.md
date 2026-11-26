@@ -10,7 +10,7 @@
 | **Edge Cases** | `packed-critic` `100-modes` `disconnected-support` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (stretch) |
 | **Four Laws Adherence Role** | — |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Unimplemented Tier-4 adapter backlog (planned; excluded from active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `pacgan8_grid100` |
 | **Prior** | `mog` (sigma=`0.05`, standardize=`False`) |
 | **Update Budget** | `4000` steps |

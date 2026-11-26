@@ -10,7 +10,7 @@
 | **Edge Cases** | `deep-spectral-contraction` `16-layer-mlp` `100-modes` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (held) |
 | **Four Laws Adherence Role** | law4 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `native100` / `native_accuracy` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `7000` steps |
@@ -107,7 +107,7 @@ flowchart LR
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | native model variants require an explicit profile; grid100_mlp16: native model variants re | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v11` | `DIAG_PASS` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 

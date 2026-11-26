@@ -81,6 +81,7 @@ flowchart LR
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | NVIDIA RTX A6000 | `COMPLETED` | 9.90 | 1614.5 | 90.5 | [GAN v3 release 0.7](../families/release07-gan-v3.md) |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | NVIDIA RTX A6000 | `COMPLETED` | 11.88 | 1311.6 | 90.6 | [K3P](../families/k3p.md) |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | NVIDIA RTX A6000 | `COMPLETED` | 12.42 | 1281.5 | 90.6 | [KA2](../families/ka2.md) |
+| **Axiom** | `axiom-v4` | NVIDIA RTX A6000 | **COMPLETE** | 16.21 | 982.6 | 62.1 | [Axiom](../families/axiom.md) |
 | **Atlas** | `atlas-particle-normal-v4` | NVIDIA RTX A6000 | `COMPLETED` | 22.19 | 716.6 | 132.4 | [Atlas](../families/atlas.md) |
 | **EMPF** | `empf-v8` | NVIDIA RTX A6000 | `COMPLETED` | 24.04 | 661.3 | 226.5 | [EMPF](../families/empf.md) |
 | **E22** | `e22` | NVIDIA RTX A6000 | `COMPLETED` | 24.37 | 652.9 | 134.5 | [E22](../families/e22.md) |

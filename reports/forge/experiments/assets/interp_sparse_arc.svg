@@ -70,9 +70,9 @@
 <text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
 <text x="428.0" y="156.0" font-size="10" fill="#0f172a">particle_cloud (sigma=0.0)</text>
 <text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
-<text x="428.0" y="179.0" font-size="10" fill="#0f172a">600 steps · B=128</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">900 steps · B=128</text>
 <text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
-<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=12 · z_dim=2</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=16 · z_dim=2</text>
 <text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
 <text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
 <text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>

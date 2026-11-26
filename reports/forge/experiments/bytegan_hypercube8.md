@@ -10,7 +10,7 @@
 | **Edge Cases** | `discrete-atomic` `8d-hypercube` `exact-capacity-prior` |
 | **Primary View (`discriminator_stability`)** | Tier 2 (stretch) |
 | **Four Laws Adherence Role** | law1 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `bytegan` / `bytegan_hypercube8` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
 | **Update Budget** | `4000` steps |
@@ -66,7 +66,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Architecture | `family=simple_mlp, hidden=128, layers=2, out_dim=8, fourier=2` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `bytegan_stretch` (T1 diagnostic), `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic) |
+| Assigned Views | `bytegan_stretch` (T1 diagnostic), `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -84,7 +84,7 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Axiom** | `axiom-v4` | **PASS** | recomputed bytegan_hypercube8 gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed bytegan_hypercube8 gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/bytegan_hypercube8.gif) |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
@@ -105,8 +105,10 @@ flowchart LR
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 2.77 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.039, mass_tv=0 | [420a96196e63413faf636eea84e56e14.json](../technique-receipts/420a96196e63413faf636eea84e56e14.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 8.04 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.035, mass_tv=0 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 3.09 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.094, mass_tv=0 | [ca97d2776d2e49fd9cc1cbf48045dab9.json](../technique-receipts/ca97d2776d2e49fd9cc1cbf48045dab9.json) |
 | `unified-v13` | `unified` | NVIDIA L4 | **PASS** | — | 5.33 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.059, mass_tv=0 | [80dc3923025f41cab0e45b7caedc9f52.json](../technique-receipts/80dc3923025f41cab0e45b7caedc9f52.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 7.13 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.059, mass_tv=0 | [e613162ae630405b9b6b9b25c7702b83.json](../technique-receipts/e613162ae630405b9b6b9b25c7702b83.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 4.31 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.035, mass_tv=0 | [17cebc77a81b4b6e8d7bc2915bce2cbf.json](../technique-receipts/17cebc77a81b4b6e8d7bc2915bce2cbf.json) |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 4.85 kJ | collision_count=251, finite_fraction=1, latent_nn_hamming_mean=0.02734, mass_tv=0.9512 | [29c63454d5264f249a9b3cdb9c3d3105.json](../technique-receipts/29c63454d5264f249a9b3cdb9c3d3105.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 6.30 kJ | collision_count=202, finite_fraction=1, latent_nn_hamming_mean=0.9844, mass_tv=0.7734 | [01d79df6167b485987a8b8c7b1c7ae11.json](../technique-receipts/01d79df6167b485987a8b8c7b1c7ae11.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 5.44 kJ | collision_count=220, finite_fraction=1, latent_nn_hamming_mean=0.07422, mass_tv=0.8555 | [2bd9f00c704e4427af5d39533bb5bb0d.json](../technique-receipts/2bd9f00c704e4427af5d39533bb5bb0d.json) |

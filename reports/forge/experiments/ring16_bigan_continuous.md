@@ -10,7 +10,7 @@
 | **Edge Cases** | `bidirectional-encoder` `ring-mixture` `mode-consistency` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (held) |
 | **Four Laws Adherence Role** | — |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Unimplemented Tier-4 adapter backlog (planned; excluded from active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `ring16_bigan_continuous` |
 | **Prior** | `mog` (sigma=`0.1`, standardize=`False`) |
 | **Update Budget** | `4000` steps |
@@ -25,7 +25,7 @@ Trains a joint BiGAN (G(z), E(x), D(x, z)) on a 16-mode Gaussian ring with MoGPa
 ## Laws & Edge Cases Targeted
 
 - **[Law 1: Representational Geometry](../LAWS_HUB.md#law1)** ([Law 1 theory](../../../docs/four-laws.md#law-1--representational-geometry)) — Can the system represent the required probability measure efficiently and faithfully?
-- **[Law 3B: Conditional Fiber & Stratum Identifiability](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3B: Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **Edge-case tags:** `bidirectional-encoder`, `ring-mixture`, `mode-consistency`
 
 ## Common Failure Mode

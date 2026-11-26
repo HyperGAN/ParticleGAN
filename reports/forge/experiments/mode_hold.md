@@ -10,7 +10,7 @@
 | **Edge Cases** | `mode-retention` `long-horizon-stability` `ring-mixture` |
 | **Primary View (`discriminator_stability`)** | Tier 2 (required) |
 | **Four Laws Adherence Role** | prerequisite (prerequisite) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `transfer_behavior` / `transfer_sustained` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `1200` steps |
@@ -65,7 +65,7 @@ flowchart LR
 | Sampling Law | `public_prior_without_output_noise` |
 | Evaluation Output Noise | `clean` |
 | Scoring Weights | `live` |
-| Assigned Views | `adaptation` (T2 required), `bcap-develop-integration-deeper-diagnostic-v1` (T1 diagnostic), `bispf_throughput_endurance` (T1 diagnostic), `clockfree_continuous` (T2 required), `discriminator_stability` (T2 required), `formulation_comparison` (T2 required), `four-laws-adherence-v1` (T1 diagnostic), `host_profile_transfer` (T2 required) (+9 more) |
+| Assigned Views | `adaptation` (T2 required), `bcap-develop-integration-deeper-diagnostic-v1` (T1 diagnostic), `bispf_throughput_endurance` (T1 diagnostic), `clockfree_continuous` (T2 required), `discriminator_stability` (T2 required), `formulation_comparison` (T2 required), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic) (+10 more) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -81,13 +81,13 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Axiom** | `axiom-v4` | **PASS** | recomputed complete live curve and terminal suffix | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
-| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed complete live curve and terminal suffix | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **PASS** | recomputed complete live curve and terminal suffix | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **RHBI** | `rhbi-v12` | **PASS** | recomputed complete live curve and terminal suffix | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | **PASS** | recomputed complete live curve and terminal suffix | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | recomputed complete live curve and terminal suffix | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed complete live curve and terminal suffix | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/mode_hold.gif) |
+| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed complete live curve and terminal suffix | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/bispf-optimized/quality-media/mode_hold.gif) |
+| **EMPF** | `empf-v8` | **PASS** | recomputed complete live curve and terminal suffix | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/mode_hold.gif) |
+| **RHBI** | `rhbi-v12` | **PASS** | recomputed complete live curve and terminal suffix | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/rhbi/rhbi-v12/mode_hold.gif) |
+| **Unified** | `unified-v11` | **PASS** | recomputed complete live curve and terminal suffix | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/unified/unified-v11/mode_hold.gif) |
+| **Atlas** | `atlas-particle-normal-v4` | `DIAG_PASS` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
+| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | recomputed complete live curve and terminal suffix | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/recipe-prior-refactor/publication/media/bcap-pure-ordinary-mode_hold.gif) |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: mode_hold: public components has no declared policy-control evi | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
@@ -101,15 +101,17 @@ flowchart LR
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 1.52 kJ (J-to-PASS) | cover=1, effective_modes=7.551, hq=0.9951, modes=8 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 1.88 kJ (J-to-PASS) | cover=1, effective_modes=7.491, hq=0.9167, modes=8 | [5ee918d831364b9fabac9eb86b322528.json](../technique-receipts/5ee918d831364b9fabac9eb86b322528.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 1.18 kJ (J-to-PASS) | cover=1, effective_modes=7.503, hq=1, modes=8 | [8f7d4d0011864248ba512ac81c859b4c.json](../technique-receipts/8f7d4d0011864248ba512ac81c859b4c.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 576 J (J-to-PASS) | cover=1, effective_modes=7.505, hq=1, modes=8 | [e5e670cb499241d59e54c6ffa4395b45.json](../technique-receipts/e5e670cb499241d59e54c6ffa4395b45.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 1.10 kJ (J-to-PASS) | cover=1, effective_modes=7.534, hq=1, modes=8 | [7dcb980ce6a442a6b275dcbc4ae7cbc9.json](../technique-receipts/7dcb980ce6a442a6b275dcbc4ae7cbc9.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 704 J (J-to-PASS) | cover=1, effective_modes=7.512, hq=1, modes=8 | [d597ab07e7b746d3a31a4037a32683a1.json](../technique-receipts/d597ab07e7b746d3a31a4037a32683a1.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 623 J (J-to-PASS) | cover=1, effective_modes=7.505, hq=1, modes=8 | [f66f9ddc1d184df28889747f7a6ee0f1.json](../technique-receipts/f66f9ddc1d184df28889747f7a6ee0f1.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 562 J (J-to-PASS) | cover=1, effective_modes=7.505, hq=1, modes=8 | [dcd5de2600114588a414fdca43e23ce6.json](../technique-receipts/dcd5de2600114588a414fdca43e23ce6.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 665 J (J-to-PASS) | cover=1, effective_modes=7.48, hq=0.9846, modes=8 | [4ad90f279cfe490b994e15c8f0235304.json](../technique-receipts/4ad90f279cfe490b994e15c8f0235304.json) |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 1.45 kJ | cover=0.5, effective_modes=3.457, hq=0.9231, modes=4 | [7a823a0a86cc40f283ac2951064d707f.json](../technique-receipts/7a823a0a86cc40f283ac2951064d707f.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 1.91 kJ | cover=1, effective_modes=7.578, hq=0.9509, modes=8 | [2b590e96333143cd910ea4f40e6e6ced.json](../technique-receipts/2b590e96333143cd910ea4f40e6e6ced.json) |
-| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 1.57 kJ | cover=0.875, effective_modes=6.488, hq=0.9653, modes=7 | [c92de1b3def645e09f4bc9cfc0f17ce6.json](../technique-receipts/c92de1b3def645e09f4bc9cfc0f17ce6.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 1.56 kJ | cover=0.875, effective_modes=6.488, hq=0.9653, modes=7 | [e41af40801ec4256ac8cd56d46af286a.json](../technique-receipts/e41af40801ec4256ac8cd56d46af286a.json) |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 818 J | cover=0.625, effective_modes=4.717, hq=0.9966, modes=5 | [d09f1feb138f48f9ae5b051cbdea0062.json](../technique-receipts/d09f1feb138f48f9ae5b051cbdea0062.json) |
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 825 J | cover=0.625, effective_modes=4.733, hq=0.9802, modes=5 | [c75eb93ae2474272b4934292150fad59.json](../technique-receipts/c75eb93ae2474272b4934292150fad59.json) |
 | `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 582 J | cover=0.625, effective_modes=4.589, hq=0.9272, modes=5 | [ffd06d5db5a04f3cbb2178aba25bdeb2.json](../technique-receipts/ffd06d5db5a04f3cbb2178aba25bdeb2.json) |

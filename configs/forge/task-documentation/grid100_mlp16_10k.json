@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_mlp16_10k",
+  "title": "100-Mode Grid with Deep 16-Layer Skip-Free MLP (10,000-Step Steady-State Budget)",
+  "laws": [
+    "law4_2",
+    "law1"
+  ],
+  "edge_cases": [
+    "deep-spectral-contraction",
+    "16-layer-mlp",
+    "100-modes"
+  ],
+  "intuition": "Calibrated 10,000-step accuracy budget for the 16-layer skip-free MLP `grid100` benchmark, separating steady-state Law 4.2 deep spectral conditioning from the tighter 7,000-step speed diagnostic (`grid100_mlp16`).",
+  "failure_mode": "Without pathology-driven spectral equilibration, singular-value contraction across 16 skip-free linear layers prevents full 100-mode acquisition even over 10,000 updates.",
+  "protocol_notes": "Four Laws Adherence v2 Law 4 anchor (10,000 updates, 5400s timeout); preserves legacy `grid100_mlp16` at 7,000 steps.",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

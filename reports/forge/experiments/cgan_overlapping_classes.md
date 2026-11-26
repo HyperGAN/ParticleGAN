@@ -10,7 +10,7 @@
 | **Edge Cases** | `conditional-class-overlap` `projection-critic` `within-class-variance` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (stretch) |
 | **Four Laws Adherence Role** | — |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Unimplemented Tier-4 adapter backlog (planned; excluded from active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `cgan_overlapping_classes` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `3000` steps |
@@ -24,7 +24,7 @@ Evaluates class-conditional generation with a Projection Discriminator on 4 over
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3B: Conditional Fiber & Stratum Identifiability](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3B: Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **[Law 2: Potential Geometry](../LAWS_HUB.md#law2)** ([Law 2 theory](../../../docs/four-laws.md#law-2--potential-geometry)) — Does the critic communicate useful learning forces with appropriate geometric control and computational efficiency?
 - **Edge-case tags:** `conditional-class-overlap`, `projection-critic`, `within-class-variance`
 

@@ -63,7 +63,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Architecture | `family=smooth_silu_mlp, hidden=64, layers=2, out_dim=2, in_dim=2` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `four-laws-adherence-v1` (T1 diagnostic) |
+| Assigned Views | `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -84,7 +84,7 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | No recorded result for this selected configuration and source. | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
@@ -112,11 +112,13 @@ flowchart LR
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 702 J (J-to-PASS) | angular_tv=0.05615, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01655 | [d918c775914d44c5a78803e5d7e70699.json](../technique-receipts/d918c775914d44c5a78803e5d7e70699.json) |
 | `unified-v13` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 687 J (J-to-PASS) | angular_tv=0.05615, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01655 | [f3c9dc1f0c67489890140e7ce0d023b2.json](../technique-receipts/f3c9dc1f0c67489890140e7ce0d023b2.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 770 J (J-to-PASS) | angular_tv=0.06641, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01696 | [099b3300f34548ac9bc7d673e6f03db0.json](../technique-receipts/099b3300f34548ac9bc7d673e6f03db0.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 829 J (J-to-PASS) | angular_tv=0.05566, finite_fraction=1, manifold_coverage=1, manifold_mae=0.01602 | [f66bda13a892499c9a090ec15f68b3a5.json](../technique-receipts/f66bda13a892499c9a090ec15f68b3a5.json) |
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | `+0.000` | 1.28 kJ | angular_tv=0.08545, finite_fraction=1, manifold_coverage=1, manifold_mae=0.05939 | [6f7a968e1a494b2f9a7ca00e6826c21d.json](../technique-receipts/6f7a968e1a494b2f9a7ca00e6826c21d.json) |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | `+0.000` | 999 J | angular_tv=0.08789, finite_fraction=1, manifold_coverage=1, manifold_mae=0.008778 | [4403242367ec46768f81e589fcfcd46a.json](../technique-receipts/4403242367ec46768f81e589fcfcd46a.json) |
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | `+0.000` | 1.00 kJ | angular_tv=0.08887, finite_fraction=1, manifold_coverage=1, manifold_mae=0.008963 | [4c8038a2b52e42489d01c34178c1d658.json](../technique-receipts/4c8038a2b52e42489d01c34178c1d658.json) |
 | `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | `+0.000` | 817 J | angular_tv=0.05713, finite_fraction=1, manifold_coverage=1, manifold_mae=0.009438 | [2d66e725e23749bfadf4b3270d11dbbd.json](../technique-receipts/2d66e725e23749bfadf4b3270d11dbbd.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | `-0.103` | 1.82 kJ | angular_tv=0.05566, finite_fraction=1, manifold_coverage=1, manifold_mae=0.0662 | [f6323abd2654432c92f11d3431470a27.json](../technique-receipts/f6323abd2654432c92f11d3431470a27.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | `-0.426` | 2.87 kJ | angular_tv=0.05762, finite_fraction=1, manifold_coverage=1, manifold_mae=0.03664 | [182fd4ecac90466ebc25814c2b75bd04.json](../technique-receipts/182fd4ecac90466ebc25814c2b75bd04.json) |
 
 ## Reproduce This Experiment
 

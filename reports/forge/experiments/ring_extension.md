@@ -10,7 +10,7 @@
 | **Edge Cases** | `long-horizon-stability` `checkpoint-continuation` `mode-retention` |
 | **Primary View (`discriminator_stability`)** | Tier 3 (required) |
 | **Four Laws Adherence Role** | law3 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `ring_endurance` / `ring_extension` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `7500` steps |
@@ -24,7 +24,7 @@ Continues the candidate's converged `ring_hold` state without resetting or re-an
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3A: Unconditional W1 Ray-Length & Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3A: Unconditional W1 Ray-Length & Feature-Space Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **[Law 4.4: Trajectory Scale vs. Settling](../LAWS_HUB.md#law4_4)** ([Law 4.4 theory](../../../docs/four-laws.md#law-4--functional-and-game-dynamics)) — Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?
 - **[Law 4.5: Coupled Minimax Contraction](../LAWS_HUB.md#law4_5)** ([Law 4.5 theory](../../../docs/four-laws.md#law-4--functional-and-game-dynamics)) — Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?
 - **Edge-case tags:** `long-horizon-stability`, `checkpoint-continuation`, `mode-retention`
@@ -68,7 +68,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Continuation Parent | [`ring_hold`](ring_hold.md) |
 | Dependencies | [`ring_hold`](ring_hold.md) (`checkpoint`) |
-| Assigned Views | `bispf_throughput_endurance` (T1 diagnostic), `clockfree_continuous` (T3 required), `discriminator_stability` (T3 required), `formulation_comparison` (T3 required), `four-laws-adherence-v1` (T1 diagnostic), `host_profile_transfer` (T3 required), `lazy_cadence_coverage` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic) (+1 more) |
+| Assigned Views | `bispf_throughput_endurance` (T1 diagnostic), `clockfree_continuous` (T3 required), `discriminator_stability` (T3 required), `formulation_comparison` (T3 required), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `host_profile_transfer` (T3 required), `lazy_cadence_coverage` (T1 diagnostic) (+2 more) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -85,18 +85,18 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed every extension observation without selecting another window | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **PASS** | no compatible result | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
+| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed every extension observation without selecting another window | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/bispf-optimized/quality-media/ring_extension.gif) |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | no compatible result | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: ring_extension: clean/live scoring has no declared policy-contr | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
+| **EMPF** | `empf-v8` | `DIAG_PASS` | no compatible result | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
-| **RHBI** | `rhbi-v12` | `NOT MEASURED` | no compatible result | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **RHBI** | `rhbi-v12` | `DIAG_PASS` | no compatible result | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
+| **Unified** | `unified-v11` | `DIAG_PASS` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -109,6 +109,8 @@ flowchart LR
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 3.42 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [55cf35e8da80417f9d921f4e92ad1aa3.json](../technique-receipts/55cf35e8da80417f9d921f4e92ad1aa3.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 2.27 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [d5de4369af7f46dca241b99a499339c0.json](../technique-receipts/d5de4369af7f46dca241b99a499339c0.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 2.49 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [2136c47e66e747808acefb3d265916a6.json](../technique-receipts/2136c47e66e747808acefb3d265916a6.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 3.13 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [33b3f2324540487d8aa21e3d52d11ab8.json](../technique-receipts/33b3f2324540487d8aa21e3d52d11ab8.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 11.36 kJ | confirmation_checks=200, converged_step=4116, first_hold_failure=4159, hold_budget=1200 | [646037168ffd45979b8b63fb786f3b32.json](../technique-receipts/646037168ffd45979b8b63fb786f3b32.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 7.36 kJ | confirmation_checks=200, converged_step=2816, first_hold_failure=2841, hold_budget=1200 | [bff5b9ea00b94159bc757045832938c8.json](../technique-receipts/bff5b9ea00b94159bc757045832938c8.json) |
 
 ## Reproduce This Experiment

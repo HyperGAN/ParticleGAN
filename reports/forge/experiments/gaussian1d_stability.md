@@ -10,7 +10,7 @@
 | **Edge Cases** | `non-stationary-shift` `settling-vs-tracking` `checkpoint-continuation` |
 | **Primary View (`discriminator_stability`)** | Tier 2 (required) |
 | **Four Laws Adherence Role** | law4 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `gaussian_stability` |
 | **Prior** | `mog` (sigma=`0.1`, standardize=`False`) |
 | **Update Budget** | `6000` steps |
@@ -24,7 +24,7 @@ Continues the candidate's own passing `gaussian1d_smoke` checkpoint to test the 
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3A: Unconditional W1 Ray-Length & Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3A: Unconditional W1 Ray-Length & Feature-Space Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **[Law 4.4: Trajectory Scale vs. Settling](../LAWS_HUB.md#law4_4)** ([Law 4.4 theory](../../../docs/four-laws.md#law-4--functional-and-game-dynamics)) — Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?
 - **[Law 4.5: Coupled Minimax Contraction](../LAWS_HUB.md#law4_5)** ([Law 4.5 theory](../../../docs/four-laws.md#law-4--functional-and-game-dynamics)) — Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?
 - **Edge-case tags:** `non-stationary-shift`, `settling-vs-tracking`, `checkpoint-continuation`
@@ -70,7 +70,7 @@ flowchart LR
 | Continuation Parent | [`gaussian1d_smoke`](gaussian1d_smoke.md) |
 | Dependencies | [`gaussian1d_smoke`](gaussian1d_smoke.md) (`checkpoint`) |
 | Integrity Guards | `finite_state`, `rng_isolation`, `mechanism_exercised`, `optimizer_roles` |
-| Assigned Views | `bcap-develop-integration-deeper-diagnostic-v1` (T1 diagnostic), `bcap-projection-baseline-repair-diagnostic-v1` (T1 diagnostic), `discriminator_stability` (T2 required), `four-laws-adherence-v1` (T1 diagnostic), `lazy_cadence_coverage` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `recipe-prior-refactor-k3p-diagnostic-v1` (T1 diagnostic) (+3 more) |
+| Assigned Views | `bcap-develop-integration-deeper-diagnostic-v1` (T1 diagnostic), `bcap-projection-baseline-repair-diagnostic-v1` (T1 diagnostic), `discriminator_stability` (T2 required), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `lazy_cadence_coverage` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic) (+4 more) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -90,13 +90,13 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Axiom** | `axiom-v4` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
-| **EMPF** | `empf-v8` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
+| **Axiom** | `axiom-v4` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/gaussian1d_stability.gif) |
+| **EMPF** | `empf-v8` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/gaussian1d_stability.gif) |
 | **RHBI** | `rhbi-v12` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v11` | **PASS** | stationary hold, deadline reacquisition and shifted hold | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/unified/unified-v11/gaussian1d_stability.gif) |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
-| **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
+| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/recipe-prior-refactor/publication/media/bcap-pure-ordinary-gaussian1d_stability.gif) |
+| **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | stationary hold, deadline reacquisition and shifted hold | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/bispf-optimized/quality-media/gaussian1d_stability.gif) |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: gaussian1d_stability: clean/live scoring has no declared policy | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
@@ -111,9 +111,11 @@ flowchart LR
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 2.17 kJ (J-to-PASS) | cdf_ks=0.01411, finite_fraction=1, mean=3.014, mean_error_sigma=0.02786 | [1f4ef32e69f94353972ccb75ac711639.json](../technique-receipts/1f4ef32e69f94353972ccb75ac711639.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 5.21 kJ (J-to-PASS) | cdf_ks=0.01472, finite_fraction=1, mean=3.007, mean_error_sigma=0.01369 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 509 J (J-to-PASS) | cdf_ks=0.02484, finite_fraction=1, mean=3.028, mean_error_sigma=0.05586 | [d24bd547123343f0a0cf1304905a011b.json](../technique-receipts/d24bd547123343f0a0cf1304905a011b.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.85 kJ (J-to-PASS) | cdf_ks=0.01991, finite_fraction=1, mean=3.014, mean_error_sigma=0.02763 | [f5b98ecfd28949c18e5876106cdcb3b4.json](../technique-receipts/f5b98ecfd28949c18e5876106cdcb3b4.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 2.86 kJ (J-to-PASS) | cdf_ks=0.01486, finite_fraction=1, mean=3, mean_error_sigma=0.0008137 | [c04063912f6149e5910486262cbfa945.json](../technique-receipts/c04063912f6149e5910486262cbfa945.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 2.13 kJ (J-to-PASS) | cdf_ks=0.01991, finite_fraction=1, mean=3.014, mean_error_sigma=0.02763 | [e54b50c8e1324c04a0ddc0cd12d47a3c.json](../technique-receipts/e54b50c8e1324c04a0ddc0cd12d47a3c.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 540 J (J-to-PASS) | cdf_ks=0.01411, finite_fraction=1, mean=3.007, mean_error_sigma=0.01455 | [5f5ec064605143c8894b5e07ce795de9.json](../technique-receipts/5f5ec064605143c8894b5e07ce795de9.json) |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 6.07 kJ | cdf_ks=0.06111, finite_fraction=1, mean=3.01, mean_error_sigma=0.01927 | [ea9f5f48b804429193c4109e442df60a.json](../technique-receipts/ea9f5f48b804429193c4109e442df60a.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 5.06 kJ | cdf_ks=0.1212, finite_fraction=1, mean=3.117, mean_error_sigma=0.2346 | [e8cbdd97b4a84993857ff7fb2c96415b.json](../technique-receipts/e8cbdd97b4a84993857ff7fb2c96415b.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 5.46 kJ | cdf_ks=0.0333, finite_fraction=1, mean=3.039, mean_error_sigma=0.07887 | [96032fc843ec4575b5ded52104567ec2.json](../technique-receipts/96032fc843ec4575b5ded52104567ec2.json) |

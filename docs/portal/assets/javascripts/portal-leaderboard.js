@@ -1341,6 +1341,13 @@
         );
       });
 
+      rootEl.querySelectorAll("[data-pg-fl-ver]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.fourLawsVer = btn.getAttribute("data-pg-fl-ver") || "v2";
+          render();
+        });
+      });
+
       const lbEl = rootEl.querySelector("#pg-gif-lightbox");
       if (lbEl) {
         lbEl.addEventListener("click", (e) => {
@@ -1406,8 +1413,29 @@
     }
 
     function renderFourLawsAdherencePanel(data) {
-      const fl = data.four_laws_adherence_l4;
-      if (!fl || !Array.isArray(fl.rows) || fl.rows.length === 0) return "";
+      const flV2 = data.four_laws_adherence_v2_l4;
+      const flV1 = data.four_laws_adherence_l4;
+      const hasV2 = Boolean(flV2 && Array.isArray(flV2.rows) && flV2.rows.length > 0);
+      const hasV1 = Boolean(flV1 && Array.isArray(flV1.rows) && flV1.rows.length > 0);
+      if (!hasV2 && !hasV1) return "";
+      const activeVer =
+        state.fourLawsVer === "v1" && hasV1
+          ? "v1"
+          : state.fourLawsVer === "v2" && hasV2
+            ? "v2"
+            : hasV2
+              ? "v2"
+              : "v1";
+      const fl = activeVer === "v2" ? flV2 : flV1;
+      const probeCount = Array.isArray(fl.probes) && fl.probes.length ? fl.probes.length : activeVer === "v2" ? 10 : 9;
+      const viewLabel = fl.view_id || (activeVer === "v2" ? "four-laws-adherence-v2" : "four-laws-adherence-v1");
+      const toggleHtml =
+        hasV2 && hasV1
+          ? `<div class="portal-toggle-group">
+               <button type="button" class="portal-btn ${activeVer === "v2" ? "is-active" : ""}" data-pg-fl-ver="v2">v2 Clean (${(flV2.probes || []).length || 10})</button>
+               <button type="button" class="portal-btn ${activeVer === "v1" ? "is-active" : ""}" data-pg-fl-ver="v1">v1 Historical (${(flV1.probes || []).length || 9})</button>
+             </div>`
+          : "";
       const rows = fl.rows
         .map((r) => {
           const fam = r.family_id ? `<code>${escapeHtml(r.family_id)}</code>` : "—";
@@ -1466,9 +1494,12 @@
           <div class="portal-panel-head">
             <div>
               <h2 class="portal-panel-title">Law Adherence Diagnostic Leaderboard (${escapeHtml(fl.hardware_gpu || "NVIDIA L4")})</h2>
-              <p class="portal-panel-sub">Matched ${escapeHtml(fl.hardware_gpu || "NVIDIA L4")} cohort (<code>four-laws-adherence-v1</code>, protocol seed 0, unchanged recipes). Research diagnostic telemetry only — separate from ordinary selected-cohort qualification.</p>
+              <p class="portal-panel-sub">Matched ${escapeHtml(fl.hardware_gpu || "NVIDIA L4")} cohort (<code>${escapeHtml(viewLabel)}</code>, protocol seed 0, unchanged recipes). Research diagnostic telemetry only — separate from ordinary selected-cohort qualification.</p>
             </div>
-            <a class="portal-btn" href="${escapeHtml(siteRoot)}laws/">Full Per-Probe Margins →</a>
+            <div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">
+              ${toggleHtml}
+              <a class="portal-btn" href="${escapeHtml(siteRoot)}laws/">Full Per-Probe Margins →</a>
+            </div>
           </div>
           <div class="portal-table-wrap">
             <table class="portal-table">
@@ -1482,7 +1513,7 @@
                   <th>Law 4</th>
                   <th>Probes PASS</th>
                   <th>ByteGAN (L4)</th>
-                  <th class="num">9-Probe NVML</th>
+                  <th class="num">${probeCount}-Probe NVML</th>
                 </tr>
               </thead>
               <tbody>${rows}</tbody>

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 20000,
+    "candidate_budget_seconds": 20000,
+    "id": "unified-v15-t4-arch-rtx-study"
+  },
+  "candidate": "unified-v15",
+  "competing_explanation": "If unified-v15 regresses any numerical gate or latency bound on t4-strange-architectures-v1, the affected task will record a faithful numerical FAIL.",
+  "control": {
+    "candidate_id": "unified-v14",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "center_rms_sigma",
+    "op": ">",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.35
+  },
+  "hypothesis": "Unchanged global unified-v15 (isolated particlegan/_unified_v15 package, Law 1-4 R3 assembly): evaluate on t4-strange-architectures-v1 (through tier 1, RTX A6000, protocol seed 0).",
+  "id": "unified-v15-t4-arch-rtx-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "center_rms_sigma",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "grid100_res16_tanh",
+    "threshold": 0.25
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4-strange-architectures-v1"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

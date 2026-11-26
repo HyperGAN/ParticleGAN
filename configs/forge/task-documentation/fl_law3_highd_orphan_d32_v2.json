@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law3_highd_orphan_d32_v2",
+  "title": "Law 3A Probe v2: Pure High-D Non-Local Orphan Transport in Haar-Rotated R^32",
+  "laws": [
+    "law3a"
+  ],
+  "edge_cases": [
+    "high-dimensional",
+    "distant-orphan-mode",
+    "screening-horizon",
+    "multi-scale-width"
+  ],
+  "intuition": "Cleanly isolates Law 3A high-D non-local orphan transport in Haar-rotated R^32 (dim=32 > 16) by decoupling full-32D covariance rank into `fl_law1_highd_rank_d32_v2`: requires capturing all 5 clusters including the distant 8% orphan with accurate masses and precision >= 0.85.",
+  "failure_mode": "Transport heuristics capped at low ambient dimensions (dim <= 16) or tight screening horizons leave the distant 8% orphan mode uncaptured (orphan_recall = 0).",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (1,200 updates, Haar-rotated R^32, 5 modes + 8% distant orphan).",
+  "diagram_kind": "highd_manifold",
+  "custom_mermaid": null
+}

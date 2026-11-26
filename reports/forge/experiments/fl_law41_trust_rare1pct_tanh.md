@@ -63,7 +63,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Architecture | `generator_family=saturating_tanh_mlp, g_hidden=128, g_layers=4, out_dim=2, out_bound=3.0, discriminator_family=simple_mlp, d_hidden=128, d_layers=3` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `four-laws-adherence-v1` (T1 diagnostic) |
+| Assigned Views | `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -101,10 +101,12 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | `+0.000` | 1.70 kJ (J-to-PASS) | diag_ood_disp_ratio=1.992, diag_realized_step_max=0.009734, finite_fraction=1, mass_tv=0.03149 | [afaf478de6b940b392298c7efe26946b.json](../technique-receipts/afaf478de6b940b392298c7efe26946b.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 1.94 kJ (J-to-PASS) | diag_ood_disp_ratio=1.809, diag_realized_step_max=0.03228, finite_fraction=1, mass_tv=0.05517 | [58cc4d1aaf694e6f9aee1119c9131b15.json](../technique-receipts/58cc4d1aaf694e6f9aee1119c9131b15.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 1.26 kJ (J-to-PASS) | diag_ood_disp_ratio=1.915, diag_realized_step_max=0.03226, finite_fraction=1, mass_tv=0.07251 | [6d4a5086c25f4c67a4b481647e68b24b.json](../technique-receipts/6d4a5086c25f4c67a4b481647e68b24b.json) |
 | `unified-v13` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 1.32 kJ (J-to-PASS) | diag_ood_disp_ratio=1.915, diag_realized_step_max=0.03226, finite_fraction=1, mass_tv=0.07251 | [336539c956484dae9cac31dccb6f1cdf.json](../technique-receipts/336539c956484dae9cac31dccb6f1cdf.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 1.33 kJ (J-to-PASS) | diag_ood_disp_ratio=1.915, diag_realized_step_max=0.03226, finite_fraction=1, mass_tv=0.07251 | [dc73c539ddc4435681d404c651882456.json](../technique-receipts/dc73c539ddc4435681d404c651882456.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | `+0.000` | 904 J (J-to-PASS) | diag_ood_disp_ratio=1.455, diag_realized_step_max=0.02216, finite_fraction=1, mass_tv=0.007012 | [cbf7c2442f65489ea8b969ffb6df046a.json](../technique-receipts/cbf7c2442f65489ea8b969ffb6df046a.json) |
 | `axiom-v4` | `axiom` | NVIDIA L4 | **FAIL** | `-0.051` | 2.03 kJ | diag_ood_disp_ratio=1.946, diag_realized_step_max=0.009067, finite_fraction=1, mass_tv=0.03503 | [c5992cf0a6594fefa4f68c595bfa9445.json](../technique-receipts/c5992cf0a6594fefa4f68c595bfa9445.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | `-0.291` | 2.55 kJ | diag_ood_disp_ratio=2.005, diag_realized_step_max=0.00174, finite_fraction=1, mass_tv=0.1291 | [a5e02197a0d74e429a3f199432b91a89.json](../technique-receipts/a5e02197a0d74e429a3f199432b91a89.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | `-0.620` | 5.39 kJ | diag_ood_disp_ratio=1.924, diag_realized_step_max=0.008407, finite_fraction=1, mass_tv=0.03698 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |

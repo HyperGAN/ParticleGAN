@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "five_word_joint_smoke_1800s",
+  "title": "Five-Word Discrete Vocabulary Joint BiGAN Smoke (1800s Wall Cap)",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder",
+    "exact-capacity-prior"
+  ],
+  "intuition": "Calibrated 1,800-second wall-cap variant of `five_word_joint_smoke` testing whether public joint BiGAN training with 5 learned 2D particles acquires all five words and reconstructs every paired input at one independently confirmed state over 20,001 updates.",
+  "failure_mode": "Two words collide onto one particle or encoder inversion drifts before all five discrete words settle cleanly; separates true numerical failures from 900s wall-time timeouts on slower GPUs.",
+  "protocol_notes": "Calibrated 1800s timeout variant preserving legacy `five_word_joint_smoke` at 900s byte-identical.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

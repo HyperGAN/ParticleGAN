@@ -10,7 +10,7 @@
 | **Edge Cases** | `discrete-atomic` `8d-hypercube` `bidirectional-encoder` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (stretch) |
 | **Four Laws Adherence Role** | law1 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `bytegan_bigan` / `bytegan_bigan_dictionary` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
 | **Update Budget** | `6000` steps |
@@ -25,7 +25,7 @@ Extends `bytegan_hypercube8` with a joint BiGAN encoder E(x) and joint critic D(
 ## Laws & Edge Cases Targeted
 
 - **[Law 1: Representational Geometry](../LAWS_HUB.md#law1)** ([Law 1 theory](../../../docs/four-laws.md#law-1--representational-geometry)) — Can the system represent the required probability measure efficiently and faithfully?
-- **[Law 3B: Conditional Fiber & Stratum Identifiability](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3B: Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)](../LAWS_HUB.md#law3b)** ([Law 3B theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **Edge-case tags:** `discrete-atomic`, `8d-hypercube`, `bidirectional-encoder`
 
 ## Common Failure Mode
@@ -70,7 +70,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Architecture | `family=simple_mlp_bigan, hidden=128, layers=2, x_dim=8, z_dim=8, joint_in_dim=16, fourier=2` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `bytegan_stretch` (T1 diagnostic), `discriminator_stability` (T4 stretch), `four-laws-adherence-v1` (T1 diagnostic) |
+| Assigned Views | `bytegan_stretch` (T1 diagnostic), `discriminator_stability` (T4 stretch), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -92,7 +92,7 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
@@ -115,6 +115,7 @@ flowchart LR
 | `unified-v13` | `unified` | NVIDIA L4 | **PASS** | — | 10.71 kJ (J-to-PASS) | collision_count=0, encoder_cycle_match_bytes=256, encoder_nearest_dist_mean=0.01905, encoder_particle_bijection_bytes=256 | [74449606e4b945cdaf306dc3b033fa17.json](../technique-receipts/74449606e4b945cdaf306dc3b033fa17.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 14.23 kJ (J-to-PASS) | collision_count=0, encoder_cycle_match_bytes=256, encoder_nearest_dist_mean=0.0114, encoder_particle_bijection_bytes=256 | [b93788e2f8de4674a894eb3a77219bdc.json](../technique-receipts/b93788e2f8de4674a894eb3a77219bdc.json) |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 4.08 kJ | collision_count=241, encoder_cycle_match_bytes=5, encoder_nearest_dist_mean=2.521, encoder_particle_bijection_bytes=100 | [59e5611ad1e14e9e9f48ee4d9f27d36a.json](../technique-receipts/59e5611ad1e14e9e9f48ee4d9f27d36a.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 11.56 kJ | collision_count=0, encoder_cycle_match_bytes=255, encoder_nearest_dist_mean=0.03766, encoder_particle_bijection_bytes=255 | [e5bb703576cb4e7f80aa5d99810e661f.json](../technique-receipts/e5bb703576cb4e7f80aa5d99810e661f.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 11.91 kJ | collision_count=146, encoder_cycle_match_bytes=44, encoder_nearest_dist_mean=2.327, encoder_particle_bijection_bytes=134 | [26897dcbb56147219ca85982c6f7fc38.json](../technique-receipts/26897dcbb56147219ca85982c6f7fc38.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 10.26 kJ | collision_count=152, encoder_cycle_match_bytes=41, encoder_nearest_dist_mean=6.079, encoder_particle_bijection_bytes=140 | [5eda88ffca3942cdb08d88985fdf799e.json](../technique-receipts/5eda88ffca3942cdb08d88985fdf799e.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 12.30 kJ | collision_count=79, encoder_cycle_match_bytes=175, encoder_nearest_dist_mean=0.144, encoder_particle_bijection_bytes=203 | [fa43bae3923b431ea96772f35a37e31c.json](../technique-receipts/fa43bae3923b431ea96772f35a37e31c.json) |
@@ -126,6 +127,7 @@ flowchart LR
 | `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | — | 9.71 kJ | collision_count=53, encoder_cycle_match_bytes=154, encoder_nearest_dist_mean=1.875, encoder_particle_bijection_bytes=181 | [0b425f24a4274e868ffb1e50674c2970.json](../technique-receipts/0b425f24a4274e868ffb1e50674c2970.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 13.24 kJ | collision_count=61, encoder_cycle_match_bytes=46, encoder_nearest_dist_mean=2.179, encoder_particle_bijection_bytes=140 | [fd35c553adbb4974803768d36fd61626.json](../technique-receipts/fd35c553adbb4974803768d36fd61626.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | — | 9.61 kJ | collision_count=62, encoder_cycle_match_bytes=94, encoder_nearest_dist_mean=1.992, encoder_particle_bijection_bytes=153 | [719d759fea344dff867d816586fc4423.json](../technique-receipts/719d759fea344dff867d816586fc4423.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **FAIL** | — | 18.85 kJ | collision_count=1, encoder_cycle_match_bytes=255, encoder_nearest_dist_mean=0.01234, encoder_particle_bijection_bytes=256 | [a4b7b9b282d44fa4b5a12fdcd70c1647.json](../technique-receipts/a4b7b9b282d44fa4b5a12fdcd70c1647.json) |
 
 ## Reproduce This Experiment
 

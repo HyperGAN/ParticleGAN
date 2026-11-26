@@ -49,13 +49,16 @@ if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
 # Empirically measured Colab CU/hr rates & VRAM (2026-11-22) for planning summaries.
+# `vram_mb` reflects real NVML memory.total (MiB) so tasks declaring `gpu_memory_mb`
+# above a GPU's physical MiB ceiling (e.g. 24576 MiB vs NVIDIA L4's 23034 MiB) are
+# auto-routed to A100 or explicitly marked blocked instead of poisoning a unit.
 COLAB_GPU_SPECS: dict[str, dict[str, Any]] = {
-    "cpu": {"cuda_model": None, "vram_gb": 0.0, "cu_per_hr": 0.07, "colab_flag": None},
-    "T4": {"cuda_model": "Tesla T4", "vram_gb": 15.6, "cu_per_hr": 1.15, "colab_flag": "T4"},
-    "L4": {"cuda_model": "NVIDIA L4", "vram_gb": 23.7, "cu_per_hr": 1.94, "colab_flag": "L4"},
-    "G4": {"cuda_model": "NVIDIA G4", "vram_gb": 24.0, "cu_per_hr": 3.00, "colab_flag": "G4"},
-    "A100": {"cuda_model": "NVIDIA A100-SXM4-40GB", "vram_gb": 40.0, "cu_per_hr": 6.80, "colab_flag": "A100"},
-    "H100": {"cuda_model": "NVIDIA H100 80GB HBM3", "vram_gb": 80.0, "cu_per_hr": 12.00, "colab_flag": "H100"},
+    "cpu": {"cuda_model": None, "vram_gb": 0.0, "vram_mb": 0, "cu_per_hr": 0.07, "colab_flag": None},
+    "T4": {"cuda_model": "Tesla T4", "vram_gb": 15.6, "vram_mb": 15360, "cu_per_hr": 1.15, "colab_flag": "T4"},
+    "L4": {"cuda_model": "NVIDIA L4", "vram_gb": 23.7, "vram_mb": 23034, "cu_per_hr": 1.94, "colab_flag": "L4"},
+    "G4": {"cuda_model": "NVIDIA G4", "vram_gb": 24.0, "vram_mb": 24576, "cu_per_hr": 3.00, "colab_flag": "G4"},
+    "A100": {"cuda_model": "NVIDIA A100-SXM4-40GB", "vram_gb": 40.0, "vram_mb": 40960, "cu_per_hr": 6.80, "colab_flag": "A100"},
+    "H100": {"cuda_model": "NVIDIA H100 80GB HBM3", "vram_gb": 80.0, "vram_mb": 81920, "cu_per_hr": 12.00, "colab_flag": "H100"},
 }
 
 # Tasks that empirically approach or exceed wall-time caps on L4 (e.g. five_word_joint_smoke
@@ -114,18 +117,29 @@ def choose_gpu_for_task(
     res = task_card.get("resources") or {}
     exe = task_card.get("execution") or {}
     timeout_s = float(res.get("timeout_seconds") or 0)
+    req_vram_mb = int(res.get("gpu_memory_mb") or 0)
     steps = int(exe.get("steps") or exe.get("additional_steps") or 0)
 
     if res.get("gpus", 1) == 0:
         return "cpu"
+    if req_vram_mb > int(COLAB_GPU_SPECS["A100"]["vram_mb"]):
+        return "H100"
     if (
         tier >= 3
         or any(task_id.startswith(prefix) for prefix in HEAVY_TASK_PREFIXES)
         or timeout_s >= 3600
         or steps >= 14000
+        or req_vram_mb > int(COLAB_GPU_SPECS["L4"]["vram_mb"])
     ):
         return "A100"
-    if prefer_t4 and tier == 1 and timeout_s > 0 and timeout_s <= 300 and steps <= 1000:
+    if (
+        prefer_t4
+        and tier == 1
+        and timeout_s > 0
+        and timeout_s <= 300
+        and steps <= 1000
+        and req_vram_mb <= int(COLAB_GPU_SPECS["T4"]["vram_mb"])
+    ):
         return "T4"
     return "L4"
 
@@ -549,6 +563,60 @@ def _static_task_blockers(
     return cand_blockers, per_task
 
 
+def _transitive_prerequisites(tid: str, all_tasks: dict[str, dict[str, Any]]) -> list[str]:
+    """Return transitive prerequisite task IDs declared via dependencies / continuation_of."""
+    seen: set[str] = set()
+    ordered: list[str] = []
+    frontier = [tid]
+    while frontier:
+        curr = frontier.pop()
+        tcard = all_tasks.get(curr) or {}
+        deps = list(tcard.get("dependencies") or [])
+        cont = (tcard.get("execution") or {}).get("continuation_of")
+        if cont:
+            deps.append(cont)
+        for dep in deps:
+            dep_id = dep.get("task") if isinstance(dep, dict) else dep
+            if isinstance(dep_id, str) and dep_id and dep_id != tid and dep_id not in seen:
+                seen.add(dep_id)
+                ordered.append(dep_id)
+                frontier.append(dep_id)
+    return ordered
+
+
+def _cached_failed_gate_blockers(
+    cid: str,
+    tid: str,
+    *,
+    all_tasks: dict[str, dict[str, Any]],
+    cache: dict[tuple[str, str], list[CacheEntry]],
+    source_digest: str,
+    strict_source: bool,
+    changed_candidates: set[str],
+    changed_tasks: set[str],
+) -> list[str]:
+    """Return blockers when any transitive prerequisite is already cached with no PASS."""
+    blockers: list[str] = []
+    for dep_id in _transitive_prerequisites(tid, all_tasks):
+        dep_strict = strict_source or (cid in changed_candidates) or (dep_id in changed_tasks)
+        dep_entries = [
+            e
+            for e in cache.get((cid, dep_id), [])
+            if _entry_satisfies_cache(
+                e,
+                expected_revision=None,
+                expected_source_digest=source_digest,
+                strict_source=dep_strict,
+                require_energy=False,
+                require_gpu_model=None,
+            )
+        ]
+        if dep_entries and not any(e.status == "PASS" for e in dep_entries):
+            statuses = ",".join(sorted({e.status for e in dep_entries}))
+            blockers.append(f"{tid}: prerequisite {dep_id} already cached as {statuses} (no PASS)")
+    return blockers
+
+
 def compute_catchup_plan(
     root: Path,
     *,
@@ -637,7 +705,18 @@ def compute_catchup_plan(
             tid = assignment["task"]
             tier = int(assignment.get("qualification_tier", 1))
             tcard = all_tasks[tid]
-            blockers = per_task_blockers.get(tid, [])
+            blockers = list(per_task_blockers.get(tid, []))
+            if not blockers and skip_preflight_blocked:
+                blockers = _cached_failed_gate_blockers(
+                    cid,
+                    tid,
+                    all_tasks=all_tasks,
+                    cache=cache,
+                    source_digest=source_digest,
+                    strict_source=strict_source,
+                    changed_candidates=changed_candidates,
+                    changed_tasks=changed_tasks,
+                )
             if blockers:
                 blocked_cells.append(
                     {
@@ -688,6 +767,21 @@ def compute_catchup_plan(
                 target_gpu = choose_gpu_for_task(
                     tid, tcard, tier=tier, gpu_policy=gpu_policy, prefer_t4=prefer_t4
                 )
+                req_vram_mb = int((tcard.get("resources") or {}).get("gpu_memory_mb") or 0)
+                target_vram_mb = int(COLAB_GPU_SPECS.get(target_gpu, {}).get("vram_mb") or 0)
+                if skip_preflight_blocked and target_gpu != "cpu" and req_vram_mb > target_vram_mb > 0:
+                    blocked_cells.append(
+                        {
+                            "candidate_id": cid,
+                            "task_id": tid,
+                            "tier": tier,
+                            "blockers": [
+                                f"{tid}: requires {req_vram_mb} MiB GPU memory, exceeding "
+                                f"Colab {target_gpu} VRAM ({target_vram_mb} MiB)"
+                            ],
+                        }
+                    )
+                    continue
                 timeout_s = float((tcard.get("resources") or {}).get("timeout_seconds") or 300.0)
                 missing_cells.append(
                     {
@@ -702,21 +796,23 @@ def compute_catchup_plan(
 
         for target_gpu, task_pairs in sorted(missing_by_gpu.items()):
             # Separate dependency-chained tasks from independent tasks so a prerequisite chain
-            # never delays or shares a slice with unrelated independent tasks.
+            # never delays or shares a slice with unrelated independent tasks, and group
+            # dependent tasks that share a prerequisite root so the prerequisite runs once.
             indep_pairs = [
                 (t, s)
                 for t, s in task_pairs
-                if not (all_tasks[t].get("dependencies") or (all_tasks[t].get("execution") or {}).get("continuation_of"))
+                if not _transitive_prerequisites(t, all_tasks)
             ]
-            dep_pairs = [
-                (t, s)
-                for t, s in task_pairs
-                if (all_tasks[t].get("dependencies") or (all_tasks[t].get("execution") or {}).get("continuation_of"))
-            ]
+            dep_groups: dict[str, list[tuple[str, float]]] = {}
+            for t, s in task_pairs:
+                prereqs = _transitive_prerequisites(t, all_tasks)
+                if prereqs:
+                    root_key = prereqs[-1]
+                    dep_groups.setdefault(root_key, []).append((t, s))
             buckets = [
                 indep_pairs[start : start + max(1, max_tasks_per_unit)]
                 for start in range(0, len(indep_pairs), max(1, max_tasks_per_unit))
-            ] + [[pair] for pair in dep_pairs]
+            ] + [dep_groups[k] for k in sorted(dep_groups)]
             for chunk in buckets:
                 if not chunk:
                     continue
@@ -743,6 +839,16 @@ def compute_catchup_plan(
                         estimated_seconds=est_s,
                     )
                 )
+
+    # Drain fast independent units before heavy prerequisite chains so high-signal results land quickly.
+    units.sort(
+        key=lambda u: (
+            1 if any(_transitive_prerequisites(t, all_tasks) for t in u.tasks) else 0,
+            u.estimated_seconds,
+            u.candidate_id,
+            u.unit_id,
+        )
+    )
 
     total_cells = len(cached_cells) + len(blocked_cells) + len(missing_cells)
     return {
@@ -1457,7 +1563,7 @@ def ingest_tarball(
     rendered_media_dir: Path | None = None,
 ) -> dict[str, Any]:
     """Unpack durable attempts (and optional rendered GIFs) from a Colab tarball."""
-    from experiments.forge.contracts import atomic_json, file_lock, utc_now
+    from experiments.forge.contracts import atomic_json, file_lock
 
     root = Path(root).resolve()
     attempts_root = root / "reports/forge/attempts"
@@ -1535,9 +1641,9 @@ def ingest_tarball(
                 if rid not in subs:
                     subs[rid] = {
                         "request": req,
-                        "status": "blocked",
+                        "status": "concluded",
                         "lifecycle": "awaiting_readout",
-                        "submitted_at": utc_now(),
+                        "submitted_at": time.time(),
                         "reason": "imported completed Colab Forge run",
                     }
             atomic_json(state_path, state)

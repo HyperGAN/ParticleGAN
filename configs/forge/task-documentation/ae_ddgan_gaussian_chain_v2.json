@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "ae_ddgan_gaussian_chain_v2",
+  "title": "Clean Oracle-Free v2 AE + 4-Step DDGAN Gaussian Chain",
+  "laws": [
+    "law3b",
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "latent-diffusion",
+    "multi-objective-conflict",
+    "oracle-free"
+  ],
+  "intuition": "Clean oracle-free v2 AE-DDGAN Gaussian chain coupling a learned particle autoencoder with four public DDGAN reverse steps under terminal_observations=1 and zero host-owned whitening, target-mean cluster tethering, or div_loss.",
+  "failure_mode": "Removing host-side cluster tethering exposes true AE-DDGAN coordinate drift: recipes must maintain faithful conditioned transition slices and ancestral distributions through the public API alone.",
+  "protocol_notes": "Four Laws Adherence v2 Law 3 anchor (2,500 updates, 600s timeout); preserves legacy model_ae_ddgan_gaussian_chain untouched.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

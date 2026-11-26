@@ -1048,15 +1048,19 @@ def _load_family_doc_enrichment(
 def _build_four_laws_adherence_l4_payload(
     root: Path,
     *,
+    view_id: str = "four-laws-adherence-v1",
+    field_key: str = "four_laws_adherence",
+    catalog: dict | None = None,
     pages_base_url: str = DEFAULT_PAGES_BASE_URL,
 ) -> dict | None:
     """Build matched NVIDIA L4 diagnostic Four Laws Adherence summary from committed receipts."""
-    try:
-        from . import experiment_docs as _experiment_docs  # type: ignore
+    if catalog is None:
+        try:
+            from . import experiment_docs as _experiment_docs  # type: ignore
 
-        catalog = _experiment_docs.build_experiment_catalog(root)
-    except Exception:
-        return None
+            catalog = _experiment_docs.build_experiment_catalog(root)
+        except Exception:
+            return None
     exps = catalog.get("experiments") if isinstance(catalog, dict) else None
     if not isinstance(exps, dict):
         return None
@@ -1065,25 +1069,31 @@ def _build_four_laws_adherence_l4_payload(
         e
         for e in exps.values()
         if isinstance(e, dict)
-        and isinstance(e.get("four_laws_adherence"), dict)
-        and e["four_laws_adherence"].get("role") == "four_laws_probe"
+        and isinstance(e.get(field_key), dict)
+        and e[field_key].get("role") == "four_laws_probe"
     ]
     if not fl_probes:
         return None
-    fl_probes.sort(key=lambda e: (str(e["four_laws_adherence"].get("law") or ""), str(e["task_id"])))
+    fl_probes.sort(key=lambda e: (str(e[field_key].get("law") or ""), str(e["task_id"])))
     probe_ids = [str(e["task_id"]) for e in fl_probes]
-    law_of = {str(e["task_id"]): str(e["four_laws_adherence"].get("law") or "") for e in fl_probes}
+    law_of = {str(e["task_id"]): str(e[field_key].get("law") or "") for e in fl_probes}
 
     short_labels = {
         "fl_law1_aniso_unequal_modes": "L1 Aniso",
         "fl_law1_noisy_atomic_codebook": "L1 Noisy",
+        "fl_law1_noisy_atomic_codebook_v2": "L1 Noisy v2",
+        "fl_law1_highd_rank_d32_v2": "L1 Rank32 v2",
         "fl_law2_pure_adversarial_codim1": "L2 Codim1",
         "fl_law2_groupnorm_and_vit_sprites": "L2 GN+ViT",
+        "fl_law2_groupnorm_and_vit_sprites_v2": "L2 GN+ViT v2",
         "fl_law3_highd_orphan_d32": "L3 R32",
+        "fl_law3_highd_orphan_d32_v2": "L3 Orphan v2",
         "fl_law41_trust_rare1pct_tanh": "L4.1 Rare1%",
         "fl_law42_swap_deep_critic_16l": "L4.2 Swap16L",
         "fl_law42_deep_resbn_and_conv1x1": "L4.2 ResBN",
+        "fl_law42_deep_resbn_and_conv1x1_v2": "L4.2 ResBN v2",
         "fl_law44_highd_sparse_prior_and_shock": "L4.4 R512",
+        "fl_law44_scale_shock": "L4.4 Shock",
     }
     base = pages_base_url.rstrip("/")
 
@@ -1213,7 +1223,7 @@ def _build_four_laws_adherence_l4_payload(
             )
 
     return {
-        "view_id": "four-laws-adherence-v1",
+        "view_id": view_id,
         "hardware_gpu": "NVIDIA L4",
         "evidence_scope": "research_diagnostic",
         "seed": 0,
@@ -2222,7 +2232,26 @@ def build_inventory_exports(
     git_commit = _git_head_commit(root)
     timestamp = generated_at or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     declared_view_revisions = {view["id"]: int(view["revision"]) for view in summed}
-    four_laws_l4 = _build_four_laws_adherence_l4_payload(root, pages_base_url=pages_base_url)
+    try:
+        from . import experiment_docs as _experiment_docs  # type: ignore
+
+        _shared_catalog = _experiment_docs.build_experiment_catalog(root)
+    except Exception:
+        _shared_catalog = None
+    four_laws_l4 = _build_four_laws_adherence_l4_payload(
+        root,
+        view_id="four-laws-adherence-v1",
+        field_key="four_laws_adherence",
+        catalog=_shared_catalog,
+        pages_base_url=pages_base_url,
+    )
+    four_laws_v2_l4 = _build_four_laws_adherence_l4_payload(
+        root,
+        view_id="four-laws-adherence-v2",
+        field_key="four_laws_adherence_v2",
+        catalog=_shared_catalog,
+        pages_base_url=pages_base_url,
+    )
 
     leaderboard_payload = {
         "schema_version": 1,
@@ -2238,6 +2267,7 @@ def build_inventory_exports(
         "laws_meta": laws_meta,
         "laws": laws_list,
         "four_laws_adherence_l4": four_laws_l4,
+        "four_laws_adherence_v2_l4": four_laws_v2_l4,
         "full_suite_list": (
             {
                 "id": fixed["id"],

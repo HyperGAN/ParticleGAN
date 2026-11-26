@@ -117,3 +117,83 @@ def test_colab_ingest_tarball_extracts_rendered_media_and_blocks_traversal(tmp_p
             register_submissions=False,
             rendered_media_dir=out_media,
         )
+
+
+def test_ingest_rendered_never_clobbers_higher_priority_staged_gif(tmp_path: Path, monkeypatch):
+    sel_bytes = b"GIF89a-selected-cohort-bytes"
+    sel_sha = hashlib.sha256(sel_bytes).hexdigest()
+    replay_bytes = b"GIF89a-colab-replay-bytes"
+    replay_sha = hashlib.sha256(replay_bytes).hexdigest()
+
+    rel = "media/forge/leaderboard/axiom/axiom-v4/grid100.gif"
+    idx_path = tmp_path / lm.DEFAULT_MEDIA_INDEX_RELPATH
+    idx_path.parent.mkdir(parents=True, exist_ok=True)
+    idx_path.write_text(
+        json.dumps(
+            {
+                "schema_version": 1,
+                "schema": lm.MEDIA_INDEX_SCHEMA,
+                "qualification_input": False,
+                "hf_repo": lm.DEFAULT_HF_REPO,
+                "media_prefix": lm.DEFAULT_MEDIA_PREFIX,
+                "items": [
+                    {
+                        "family_id": "axiom",
+                        "candidate_id": "axiom-v4",
+                        "task_id": "grid100",
+                        "attempt_id": "sel001",
+                        "cohort_match": "selected_cohort",
+                        "grade_matches_selected": True,
+                        "has_visual_samples": True,
+                        "gif_relpath": rel,
+                        "gif_sha256": sel_sha,
+                        "kind": "actual_training_saved_observations_gif",
+                    }
+                ],
+            }
+        ),
+        encoding="utf-8",
+    )
+    staging = tmp_path / "staging"
+    staged_gif = staging / rel
+    staged_gif.parent.mkdir(parents=True, exist_ok=True)
+    staged_gif.write_bytes(sel_bytes)
+
+    src_dir = tmp_path / "rendered" / "rep001"
+    src_dir.mkdir(parents=True, exist_ok=True)
+    (src_dir / "grid100.gif").write_bytes(replay_bytes)
+    (src_dir / "grid100.json").write_text(
+        json.dumps(
+            {
+                "kind": "actual_training_saved_observations_gif",
+                "candidate_id": "axiom-v4",
+                "task_id": "grid100",
+                "attempt_id": "rep001",
+                "recorded_grade": "PASS",
+                "gif_sha256": replay_sha,
+                "has_visual_samples": True,
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    monkeypatch.setattr(
+        lm,
+        "_selected_family_maps",
+        lambda _root: (
+            {
+                "axiom": {
+                    "candidate_id": "axiom-v4",
+                    "attempt_ids": ["sel001"],
+                    "tasks": {"grid100": {"status": "PASS"}},
+                    "source_digest": "s1",
+                }
+            },
+            {"axiom-v4": "axiom"},
+        ),
+    )
+
+    out = lm.ingest_rendered_media_dirs(tmp_path, [tmp_path / "rendered"], staging)
+    assert out["copied"] == 0
+    assert out["skipped"] == 1
+    assert staged_gif.read_bytes() == sel_bytes
