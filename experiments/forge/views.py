@@ -1478,15 +1478,21 @@ def compatible_diagnostic_passes(
             if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
                 continue
             scope = str(doc.get("evidence_scope") or "")
-            if scope not in DIAGNOSTIC_SCOPES and "diagnostic" not in scope.lower():
+            is_diag_scope = scope in DIAGNOSTIC_SCOPES or "diagnostic" in scope.lower()
+            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+            doc_src = prov.get("source_digest")
+            exact_src = bool(target_src and doc_src == target_src)
+            is_same_source_summary = (
+                scope == "published_summary"
+                and doc.get("certificate_validated") is True
+                and exact_src
+            )
+            if not is_diag_scope and not is_same_source_summary:
                 continue
             doc_rev = doc.get("candidate_revision")
             exact_rev = bool(target_rev and doc_rev == target_rev)
             if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
                 continue
-            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
-            doc_src = prov.get("source_digest")
-            exact_src = bool(target_src and doc_src == target_src)
             if target_src and doc_src and not exact_src and not allow_revision_fallback:
                 continue
             cohort_match = (
@@ -1533,15 +1539,21 @@ def compatible_diagnostic_passes(
             if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
                 continue
             scope = str(doc.get("evidence_scope") or "")
-            if scope not in DIAGNOSTIC_SCOPES and "diagnostic" not in scope.lower():
+            is_diag_scope = scope in DIAGNOSTIC_SCOPES or "diagnostic" in scope.lower()
+            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+            doc_src = prov.get("source_digest")
+            exact_src = bool(target_src and doc_src == target_src)
+            is_same_source_summary = (
+                scope == "published_summary"
+                and doc.get("certificate_validated") is True
+                and exact_src
+            )
+            if not is_diag_scope and not is_same_source_summary:
                 continue
             doc_rev = doc.get("candidate_revision")
             exact_rev = bool(target_rev and doc_rev == target_rev)
             if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
                 continue
-            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
-            doc_src = prov.get("source_digest")
-            exact_src = bool(target_src and doc_src == target_src)
             if target_src and doc_src and not exact_src and not allow_revision_fallback:
                 continue
             cohort_match = (

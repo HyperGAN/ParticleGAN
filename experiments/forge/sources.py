@@ -20,6 +20,23 @@ from .contracts import atomic_json, file_hash, read_json, stable_hash
 SOURCE_DIRS = ("particlegan", "experiments", "benchmarks", "lib")
 SOURCE_SUFFIXES = {".py", ".json", ".toml", ".yaml", ".yml", ".sh"}
 
+# Pure post-run reporting, documentation, Hugging Face publishing, media export,
+# and Colab orchestration modules inside ``experiments/forge/``. None of these
+# files are imported by any trainer, task host, evaluator, planner, or worker
+# (enforced by tests/test_forge_sources_isolation.py), so editing them must not
+# invalidate scientific source digests or force redundant GPU reruns.
+NON_SCIENTIFIC_SOURCE_PATHS = frozenset({
+    "experiments/forge/experiment_docs.py",
+    "experiments/forge/family_documentation.py",
+    "experiments/forge/family_reports.py",
+    "experiments/forge/hf_publish.py",
+    "experiments/forge/leaderboard_media.py",
+    "experiments/forge/policy_cloud_media.py",
+    "experiments/forge/publication_storage.py",
+    "experiments/forge/scaling_publication.py",
+    "experiments/forge/tier1_media.py",
+})
+
 
 def runtime_manifest() -> dict:
     packages = {}
@@ -84,7 +101,11 @@ def source_files(root: Path, extra_paths=()) -> list[Path]:
     paths = set()
     for directory in SOURCE_DIRS:
         for path in (root / directory).rglob("*"):
-            if path.is_file() and path.suffix in SOURCE_SUFFIXES and not any(p in {"__pycache__", ".venv", "runs"} for p in path.relative_to(root).parts):
+            if (path.is_file() and path.suffix in SOURCE_SUFFIXES
+                    and not any(p in {"__pycache__", ".venv", "runs"} for p in path.relative_to(root).parts)):
+                rel_posix = path.relative_to(root).as_posix()
+                if rel_posix in NON_SCIENTIFIC_SOURCE_PATHS:
+                    continue
                 paths.add(path)
     # Existing task hosts sometimes read repo configs by relative path.
     for path in (root / "configs").rglob("*"):

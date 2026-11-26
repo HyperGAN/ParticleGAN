@@ -145,17 +145,30 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert u15_rtx["occam_pass"] == 16 and u15_rtx["occam_executed"] == 16 and u15_rtx["occam_timeouts"] == 0
     assert u15_rtx["grid100_j_to_pass"] < 4500.0
 
-    # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
+    # Verify Unified and Axiom promoted rows match technique-inventory.md with matched cohort energy.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")
-    assert unified["candidate_id"] == "unified-v11"
+    assert unified["candidate_id"] == "unified-v15"
     assert unified["tier1_pass"] == 27 and unified["tier1_total"] == 27
-    assert unified["total_pass"] == 95 and unified["total_required"] == 115
-    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 59
-    assert unified["stretch_total_pass"] == 50 and unified["stretch_total"] == 70
+    assert unified["total_pass"] == 103 and unified["total_required"] == 115
+    assert unified["full_suite_pass"] == 44 and unified["full_suite_total"] == 59
+    assert unified["stretch_total_pass"] == 51 and unified["stretch_total"] == 70
     assert unified["stale"] is False
-    assert unified["r256_joules_per_step"] is None
-    assert unified["ring16_j_to_pass"] is None
-    assert unified["grid100_j_to_pass"] is None
+    assert unified["r256_joules_per_step"] == pytest.approx(12.4707, rel=1e-3)
+    assert unified["ring16_j_to_pass"] is not None
+    assert unified["grid100_j_to_pass"] is not None
+
+    axiom = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "axiom")
+    assert axiom["candidate_id"] == "axiom-v5"
+    assert axiom["tier1_pass"] == 27 and axiom["tier1_total"] == 27
+    assert axiom["total_pass"] == 102 and axiom["total_required"] == 115
+    assert axiom["full_suite_pass"] == 45 and axiom["full_suite_total"] == 59
+    assert axiom["stretch_total_pass"] == 53 and axiom["stretch_total"] == 70
+    assert axiom["stale"] is False
+    assert axiom["r256_joules_per_step"] == pytest.approx(8.2543, rel=1e-3)
+
+    # Incompatible study commits must never populate unrelated pinned families (e.g., RHBI).
+    rhbi = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "rhbi")
+    assert rhbi["r256_joules_per_step"] is None
 
     bcap = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "bcap-pure")
     assert bcap["stale"] is True
@@ -285,18 +298,19 @@ def test_receipt_energy_exports_and_strict_cohort_matching(tmp_path):
     inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
     (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
 
-    # Extract unified-v11's actual recorded source_origin_commit and source_digest.
-    unified_row = next(r for r in inv_doc["rows"] if r.get("candidate_id") == "unified-v11")
+    # Extract Unified's actual recorded candidate_id, source_origin_commit, and source_digest.
+    unified_row = next(r for r in inv_doc["rows"] if r.get("trainer_family") == "unified")
+    unified_cid = unified_row["candidate_id"]
     bindings = unified_row["bindings"]
     matched_commit = bindings["source_origin_commit"]
     matched_digest = bindings["source_digest"]
 
-    # 1. Matched receipt carrying cost.energy for unified-v11 on ring16_acquisition & grid100.
+    # 1. Matched receipt carrying cost.energy for Unified on ring16_acquisition & grid100.
     matched_receipt = {
         "attempt_id": "att-energy-matched",
         "request_id": "req-1",
         "campaign_id": "camp-1",
-        "candidate_id": "unified-v11",
+        "candidate_id": unified_cid,
         "candidate_revision": "rev-1",
         "evidence_scope": "published_summary",
         "attempt_status": "completed",
@@ -334,10 +348,10 @@ def test_receipt_energy_exports_and_strict_cohort_matching(tmp_path):
     }
     (reports_dir / "technique-receipts/att-energy-matched.json").write_text(json.dumps(matched_receipt))
 
-    # 2. Contended receipt for unified-v11 on grid100 (MUST NOT populate leaderboard summary!).
+    # 2. Contended receipt for Unified on grid100 (MUST NOT populate leaderboard summary!).
     contended_receipt = {
         "attempt_id": "att-energy-contended",
-        "candidate_id": "unified-v11",
+        "candidate_id": unified_cid,
         "evidence_scope": "published_summary",
         "attempt_status": "completed",
         "provenance": {

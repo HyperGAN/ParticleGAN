@@ -2639,7 +2639,7 @@ One evidence entry per experiment is shared by its view rows. Test-definition ch
 
 ### ae_ddgan_gaussian_chain_v2
 
-**ae_ddgan_gaussian_chain_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ae_ddgan_gaussian_chain_v2.json).
+**ae_ddgan_gaussian_chain_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ae_ddgan_gaussian_chain_v2.json) · [Experiment page](../experiments/ae_ddgan_gaussian_chain_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3577,7 +3577,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law1_highd_rank_d32_v2
 
-**fl_law1_highd_rank_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_highd_rank_d32_v2.json).
+**fl_law1_highd_rank_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_highd_rank_d32_v2.json) · [Experiment page](../experiments/fl_law1_highd_rank_d32_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3645,7 +3645,7 @@ Current measurement: mog prior (sigma 0.015); public_prior_without_output_noise;
 
 ### fl_law1_noisy_atomic_codebook_v2
 
-**fl_law1_noisy_atomic_codebook_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook_v2.json).
+**fl_law1_noisy_atomic_codebook_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook_v2.json) · [Experiment page](../experiments/fl_law1_noisy_atomic_codebook_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3713,7 +3713,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law2_groupnorm_and_vit_sprites_v2
 
-**fl_law2_groupnorm_and_vit_sprites_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites_v2.json).
+**fl_law2_groupnorm_and_vit_sprites_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites_v2.json) · [Experiment page](../experiments/fl_law2_groupnorm_and_vit_sprites_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3817,7 +3817,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law3_highd_orphan_d32_v2
 
-**fl_law3_highd_orphan_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32_v2.json).
+**fl_law3_highd_orphan_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32_v2.json) · [Experiment page](../experiments/fl_law3_highd_orphan_d32_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3920,7 +3920,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### fl_law42_deep_resbn_and_conv1x1_v2
 
-**fl_law42_deep_resbn_and_conv1x1_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1_v2.json).
+**fl_law42_deep_resbn_and_conv1x1_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1_v2.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4024,7 +4024,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### fl_law44_scale_shock
 
-**fl_law44_scale_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_scale_shock.json).
+**fl_law44_scale_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_scale_shock.json) · [Experiment page](../experiments/fl_law44_scale_shock.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -4417,7 +4417,7 @@ Dependencies: grid100 (gate).
 
 ### grid100_mlp16_10k
 
-**grid100_mlp16_10k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16_10k.json).
+**grid100_mlp16_10k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16_10k.json) · [Experiment page](../experiments/grid100_mlp16_10k.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -9906,7 +9906,7 @@ One evidence entry per experiment is shared by its view rows. Test-definition ch
 
 ### ae_ddgan_gaussian_chain_v2
 
-**ae_ddgan_gaussian_chain_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ae_ddgan_gaussian_chain_v2.json).
+**ae_ddgan_gaussian_chain_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ae_ddgan_gaussian_chain_v2.json) · [Experiment page](../experiments/ae_ddgan_gaussian_chain_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -10866,7 +10866,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law1_highd_rank_d32_v2
 
-**fl_law1_highd_rank_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_highd_rank_d32_v2.json).
+**fl_law1_highd_rank_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_highd_rank_d32_v2.json) · [Experiment page](../experiments/fl_law1_highd_rank_d32_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -10934,7 +10934,7 @@ Current measurement: mog prior (sigma 0.015); public_prior_without_output_noise;
 
 ### fl_law1_noisy_atomic_codebook_v2
 
-**fl_law1_noisy_atomic_codebook_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook_v2.json).
+**fl_law1_noisy_atomic_codebook_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook_v2.json) · [Experiment page](../experiments/fl_law1_noisy_atomic_codebook_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -11002,7 +11002,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law2_groupnorm_and_vit_sprites_v2
 
-**fl_law2_groupnorm_and_vit_sprites_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites_v2.json).
+**fl_law2_groupnorm_and_vit_sprites_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites_v2.json) · [Experiment page](../experiments/fl_law2_groupnorm_and_vit_sprites_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -11106,7 +11106,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 ### fl_law3_highd_orphan_d32_v2
 
-**fl_law3_highd_orphan_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32_v2.json).
+**fl_law3_highd_orphan_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32_v2.json) · [Experiment page](../experiments/fl_law3_highd_orphan_d32_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -11209,7 +11209,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### fl_law42_deep_resbn_and_conv1x1_v2
 
-**fl_law42_deep_resbn_and_conv1x1_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1_v2.json).
+**fl_law42_deep_resbn_and_conv1x1_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1_v2.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1_v2.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -11313,7 +11313,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### fl_law44_scale_shock
 
-**fl_law44_scale_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_scale_shock.json).
+**fl_law44_scale_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_scale_shock.json) · [Experiment page](../experiments/fl_law44_scale_shock.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -11687,7 +11687,7 @@ Dependencies: grid100 (gate).
 
 ### grid100_mlp16_10k
 
-**grid100_mlp16_10k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16_10k.json).
+**grid100_mlp16_10k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16_10k.json) · [Experiment page](../experiments/grid100_mlp16_10k.md).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
