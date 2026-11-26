@@ -1,0 +1,440 @@
+{
+  "device": "cuda:0",
+  "energy_benchmark": {
+    "axiom-v5": {
+      "cohort_note": "Uncontended NVIDIA RTX A6000 (gpu_util_before=[0,0], PyTorch 2.15.0+cu132) via experiments/law4_optimizer_profiler.py --mode energy-benchmark; matched RTX A6000 r4-occam-ablation-v1 (15/16 PASS, 1 FAIL on zero_tanh_rail_escape, 0 timeouts) and 51/59 full-suite at byte-identical particlegan/ source (73250fe3).",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "axiom-v5",
+        "optimizer_family": "axiom",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 250.2420483617742,
+          "dynamic_joules_per_step": 6.109469580102875,
+          "idle_power_watts": 65.023,
+          "images_per_second": 485.64657476887834,
+          "joules_per_step": 8.254259999990463,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 412.71299999952316,
+          "peak_allocated_mib": 849.8857421875,
+          "peak_reserved_mib": 870.0,
+          "power_poll_watts": {
+            "max": 262.958,
+            "mean": 169.25404923076923,
+            "median": 153.218,
+            "min": 74.731,
+            "p95": 262.958
+          },
+          "step_ms": {
+            "max": 35.43961715698242,
+            "mean": 32.94576927185059,
+            "median": 32.83558464050293,
+            "min": 32.445438385009766,
+            "p95": 33.44492721557617
+          },
+          "wall_seconds": 1.6492552019190043,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "axiom",
+      "grid100": {
+        "avg_power_watts": 94.00036649929883,
+        "final_center_rms_sigma": 0.11193834688462048,
+        "final_cov_frob_rms": 0.14538132093917605,
+        "final_precision": 0.988,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "axiom-v5",
+        "joules_per_step": 3.5115964285731316,
+        "joules_to_first_pass": 3511.5964285731316,
+        "joules_to_sustained_pass": 7023.192857146263,
+        "ms_per_step": 37.35726316130188,
+        "nan_step": null,
+        "optimizer_family": "axiom",
+        "peak_allocated_mib": 71.98974609375,
+        "power_poll_median_watts": 94.29050000000001,
+        "state_bytes_per_param": 0.01419239191698929,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 24581.17500001192
+      },
+      "occam_executed": 16,
+      "occam_hardware_gpu": "NVIDIA RTX A6000",
+      "occam_pass": 15,
+      "occam_receipt_ids": [
+        "19284d879ea9490895f1a20d0328a377",
+        "63e9811d2d8642e08c8a4603b38c8a42",
+        "809f9cf4181447ac85307b8f58291ad5",
+        "882e25b5ee4345db9bf05ea2fef705f8",
+        "953811f5d11d4137b5c5fc4bb6660932",
+        "9ab407a00ab8425793c6d7bf1186d76a",
+        "a1072d49b9624189bdfba6407430dceb",
+        "a74aaebf996c424fb573d0a530e9acf4",
+        "b48a0f08a9294d08bd7ca7d6303263e5",
+        "b4ad624b703d40ffa1e303f0831cfc1d",
+        "bd7aabcc4e0b4682a4debaadded61bc7",
+        "c9d41f58ef10401fb5714fdd19f67f3a",
+        "d33833400a8c470383ea892637fa449f",
+        "d6704224f9374e6aadd0f7f56bcbb7eb",
+        "dc91dad94357469d971373ae851cfd29",
+        "e391fed86259413899c79ab0ea1b028d"
+      ],
+      "occam_timeouts": 0,
+      "occam_view": "r4-occam-ablation-v1",
+      "ring16_acquisition": {
+        "avg_power_watts": 74.40457424229717,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "axiom-v5",
+        "joules_per_step": 2.5638793750107287,
+        "joules_to_first_pass": 556.3618243773282,
+        "joules_to_sustained_pass": 728.141742503047,
+        "ms_per_step": 34.458625711122295,
+        "nan_step": null,
+        "optimizer_family": "axiom",
+        "peak_allocated_mib": 33.349609375,
+        "power_poll_median_watts": 75.699,
+        "state_bytes_per_param": 0.0,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 4102.207000017166
+      },
+      "source_commit": "73250fe3bd6d3c3f6d03215535d141290661f053"
+    },
+    "unified-v14": {
+      "cohort_note": "Uncontended NVIDIA RTX A6000 (gpu_util_before=[0,0], PyTorch 2.15.0+cu132) via experiments/law4_optimizer_profiler.py --mode energy-benchmark; matched RTX A6000 r4-occam-ablation-v1 readout-f743ab4df05860dcf3966cbd.json (16/16 PASS, 0 timeouts).",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v14",
+        "optimizer_family": "unified_v14_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 4
+            },
+            "state_bytes_per_param": 3.2707786023047217e-07,
+            "state_scalar_tensor_bytes": 4,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 4
+          },
+          "state_bytes_per_param": 1.7104449346199527e-07,
+          "total_state_bytes": 4,
+          "total_state_mib": 3.814697265625e-06,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 299.26280997627833,
+          "dynamic_joules_per_step": 7.804809982761531,
+          "idle_power_watts": 109.637,
+          "images_per_second": 389.14967821138674,
+          "joules_per_step": 12.317360000014306,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 615.8680000007153,
+          "peak_allocated_mib": 1149.28466796875,
+          "peak_reserved_mib": 1182.0,
+          "power_poll_watts": {
+            "max": 295.43,
+            "mean": 231.30719704433497,
+            "median": 291.611,
+            "min": 109.545,
+            "p95": 295.43
+          },
+          "step_ms": {
+            "max": 42.31884765625,
+            "mean": 41.11528518676758,
+            "median": 41.11564826965332,
+            "min": 40.089599609375,
+            "p95": 41.79865646362305
+          },
+          "wall_seconds": 2.0579503348562866,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "unified",
+      "grid100": {
+        "avg_power_watts": 139.87196007475845,
+        "final_center_rms_sigma": 0.12901355103779039,
+        "final_cov_frob_rms": 0.14357721474922566,
+        "final_precision": 0.9899,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "unified-v14",
+        "joules_per_step": 5.920194714284369,
+        "joules_to_first_pass": 5920.194714284369,
+        "joules_to_sustained_pass": 11840.389428568738,
+        "ms_per_step": 42.325815060575096,
+        "nan_step": null,
+        "official_forge_readout": "readout-f743ab4df05860dcf3966cbd.json",
+        "optimizer_family": "unified_v14_equil",
+        "peak_allocated_mib": 191.47412109375,
+        "power_poll_median_watts": 140.09300000000002,
+        "state_bytes_per_param": 2.4896560008131057,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 41441.36299999058
+      },
+      "occam_executed": 16,
+      "occam_hardware_gpu": "NVIDIA RTX A6000",
+      "occam_pass": 16,
+      "occam_timeouts": 0,
+      "occam_view": "r4-occam-ablation-v1",
+      "official_forge_readout": "readout-f743ab4df05860dcf3966cbd.json",
+      "ring16_acquisition": {
+        "avg_power_watts": 93.00920967923769,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "unified-v14",
+        "joules_per_step": 2.850277499994263,
+        "joules_to_first_pass": 618.5102174987551,
+        "joules_to_sustained_pass": 809.4788099983707,
+        "ms_per_step": 30.64511041244259,
+        "nan_step": null,
+        "optimizer_family": "unified_v14_equil",
+        "peak_allocated_mib": 120.189453125,
+        "power_poll_median_watts": 95.14150000000001,
+        "state_bytes_per_param": 0.002272081794944618,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 4560.443999990821
+      },
+      "source_commit": "7e5612587a6423313ece75809f091cb931f985bb"
+    },
+    "unified-v15": {
+      "cohort_note": "Uncontended NVIDIA RTX A6000 (gpu_util_before=[0,0], PyTorch 2.15.0+cu132) via experiments/law4_optimizer_profiler.py --mode energy-benchmark; matched RTX A6000 r4-occam-ablation-v1 (16/16 PASS, 0 timeouts) and 55/59 full-suite at byte-identical particlegan/ source (73250fe3).",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA RTX A6000",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v15",
+        "optimizer_family": "unified_v15_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 4
+            },
+            "state_bytes_per_param": 3.2707786023047217e-07,
+            "state_scalar_tensor_bytes": 4,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 4
+          },
+          "state_bytes_per_param": 1.7104449346199527e-07,
+          "total_state_bytes": 4,
+          "total_state_mib": 3.814697265625e-06,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 282.082769541152,
+          "dynamic_joules_per_step": 8.588424213882313,
+          "idle_power_watts": 87.816,
+          "images_per_second": 362.2791222756473,
+          "joules_per_step": 12.470719999969006,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 623.5359999984503,
+          "peak_allocated_mib": 1147.728515625,
+          "peak_reserved_mib": 1180.0,
+          "power_poll_watts": {
+            "max": 288.878,
+            "mean": 229.20572350230412,
+            "median": 230.953,
+            "min": 83.866,
+            "p95": 288.878
+          },
+          "step_ms": {
+            "max": 46.19776153564453,
+            "mean": 44.16484146118164,
+            "median": 44.349952697753906,
+            "min": 42.29017639160156,
+            "p95": 45.4337272644043
+          },
+          "wall_seconds": 2.2104717739857733,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "unified",
+      "grid100": {
+        "avg_power_watts": 144.5694924894062,
+        "final_center_rms_sigma": 0.1283441468719214,
+        "final_cov_frob_rms": 0.12300833261467614,
+        "final_precision": 0.9893,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "unified-v15",
+        "joules_per_step": 5.513273857140115,
+        "joules_to_first_pass": 4134.955392855087,
+        "joules_to_sustained_pass": 9648.229249995202,
+        "ms_per_step": 38.13580418803862,
+        "nan_step": null,
+        "optimizer_family": "unified_v15_equil",
+        "peak_allocated_mib": 105.181640625,
+        "power_poll_median_watts": 145.856,
+        "state_bytes_per_param": 0.00022175612370295766,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 38592.91699998081
+      },
+      "occam_executed": 16,
+      "occam_hardware_gpu": "NVIDIA RTX A6000",
+      "occam_pass": 16,
+      "occam_receipt_ids": [
+        "10ac58b25dc247b4868e0f35481239c4",
+        "2f6ed8697cf746a3abc7204fc02c52d8",
+        "764a26e64a1140e4a7a010d280ba3432",
+        "8f1b97571c73476b95a2e5e78a47c09a",
+        "9641fceb6a5f46588a119525501b2704",
+        "9d12703c7d67405a8cf5da3cc9460187",
+        "9e77a9d1fba0494b85c24c64c5076181",
+        "a49387787dd74aebaf1caf80ed413fb1",
+        "a668ef50b9c540aebee42c3617a2b7de",
+        "acbfd72fad6b4d37b6edfd0a9f78c64a",
+        "b0588810400d4ab8af58de35945ac93e",
+        "b951bba57c854bfcb2e3eb7e33cde4be",
+        "c63bf5089b7e47588180b9c456e284b8",
+        "cbef7596a59b4f839eb6c9cf9d270934",
+        "d595d3fb6aaa4a09bcc25ed4473dae99",
+        "ee10c65bc0264b6596b8e9583f63b6ef"
+      ],
+      "occam_timeouts": 0,
+      "occam_view": "r4-occam-ablation-v1",
+      "ring16_acquisition": {
+        "avg_power_watts": 89.18282968164526,
+        "first_pass_step": 234,
+        "first_sustained_5check_step": 300,
+        "idea_id": "unified-v15",
+        "joules_per_step": 3.3979062500223516,
+        "joules_to_first_pass": 795.1100625052303,
+        "joules_to_sustained_pass": 1019.3718750067055,
+        "ms_per_step": 38.10045344100217,
+        "nan_step": null,
+        "optimizer_family": "unified_v15_equil",
+        "peak_allocated_mib": 34.09716796875,
+        "power_poll_median_watts": 91.1235,
+        "state_bytes_per_param": 0.002272081794944618,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 5436.650000035763
+      },
+      "source_commit": "73250fe3bd6d3c3f6d03215535d141290661f053"
+    }
+  },
+  "evidence_scope": "study_energy_benchmark",
+  "gpu_name": "NVIDIA RTX A6000",
+  "mode": "energy-benchmark",
+  "source_commit": "7e5612587a6423313ece75809f091cb931f985bb",
+  "timestamp_utc": "2026-11-26T14:47:55Z",
+  "torch_version": "2.15.0+cu132"
+}

@@ -491,7 +491,7 @@ def _collect_study_energy_rows(
                 )
 
                 ro_pass, ro_exec, ro_timeouts, ro_commit = _readout_occam_counts(
-                    root, grid100.get("official_forge_readout")
+                    root, grid100.get("official_forge_readout") or entry.get("official_forge_readout")
                 )
                 rec_pass, rec_exec, rec_timeouts = _receipt_ids_occam_counts(root, entry.get("occam_receipt_ids"))
                 occam_pass = _opt_int(entry.get("occam_pass"))
@@ -589,11 +589,64 @@ def _collect_study_energy_rows(
     return rows
 
 
+def _load_occam_task_ids(root: Path) -> set[str]:
+    """Load the declared Occam ablation task IDs (`r4-occam-ablation-v1`) if present."""
+    path = root / "configs/forge/views/r4-occam-ablation-v1.json"
+    if not path.is_file():
+        return set()
+    try:
+        doc = read_json(path)
+    except Exception:
+        return set()
+    assignments = doc.get("assignments")
+    if not isinstance(assignments, list):
+        return set()
+    return {
+        str(item["task"]).strip()
+        for item in assignments
+        if isinstance(item, dict) and isinstance(item.get("task"), str) and item["task"].strip()
+    }
+
+
+def _summarize_receipt_occam_cohorts(
+    occam_tasks: set[str],
+    cohort_task_outcomes: dict[tuple, dict[str, tuple[str, bool]]],
+) -> dict[tuple, tuple[int, int, int]]:
+    """Compute complete-cohort Occam (pass, executed, timeouts) from matched Forge receipts.
+
+    Requires every declared Occam task to be accounted for in the exact same
+    ``(candidate_id, source_commit, source_digest, gpu_name)`` cohort so partial
+    smoke runs never inflate Occam pass rates on the Pareto frontier.
+    """
+    if not occam_tasks:
+        return {}
+    scored_statuses = {"PASS", "FAIL", "INVALID", "ERROR"}
+    out: dict[tuple, tuple[int, int, int]] = {}
+    for cohort_key, by_task in cohort_task_outcomes.items():
+        if len(by_task) != len(occam_tasks):
+            continue
+        passed = 0
+        executed = 0
+        timeouts = 0
+        for gate, is_timeout in by_task.values():
+            if is_timeout:
+                timeouts += 1
+                continue
+            if gate == "PASS":
+                passed += 1
+            if gate in scored_statuses:
+                executed += 1
+        if executed > 0:
+            out[cohort_key] = (passed, executed, timeouts)
+    return out
+
+
 def _collect_receipt_energy_rows(
     root: Path,
     receipt_energy_entries: list[dict],
     cand_to_family: dict[str, str],
     idea_cache: dict[str, dict | None],
+    occam_cohort_counts: dict[tuple, tuple[int, int, int]] | None = None,
 ) -> list[dict]:
     """Aggregate Forge technique receipts carrying ``cost.energy`` without mixing cohorts."""
     grouped: dict[tuple, dict] = {}
@@ -609,6 +662,13 @@ def _collect_receipt_energy_rows(
         )
         row = grouped.get(key)
         if row is None:
+            occam_key = (
+                candidate_id,
+                item["source_commit"],
+                item["source_digest"],
+                item["gpu_name"],
+            )
+            occam_tuple = (occam_cohort_counts or {}).get(occam_key)
             row = {
                 "candidate_id": candidate_id,
                 "family_id": _resolve_candidate_family(root, candidate_id, cand_to_family, idea_cache),
@@ -629,9 +689,9 @@ def _collect_receipt_energy_rows(
                 "grid100_j_to_sustained_pass": None,
                 "staggered100_first_pass_step": None,
                 "staggered100_j_to_pass": None,
-                "occam_pass": None,
-                "occam_executed": None,
-                "occam_timeouts": None,
+                "occam_pass": occam_tuple[0] if occam_tuple is not None else None,
+                "occam_executed": occam_tuple[1] if occam_tuple is not None else None,
+                "occam_timeouts": occam_tuple[2] if occam_tuple is not None else None,
                 "evidence_scope": item["evidence_scope"] or "forge_receipt_energy",
                 "_source_digest": item["source_digest"],
                 "_attempt_ids": set(),
@@ -640,12 +700,28 @@ def _collect_receipt_energy_rows(
         row["_attempt_ids"].add(item["attempt_id"])
         task_id = item["task_id"]
         if task_id == "dcgan_performance_r256":
-            if row["r256_joules_per_step"] is None:
+            upd_ms = _opt_float(item.get("update_ms_median"))
+            wall_s = item.get("wall_seconds")
+            steps = item.get("completed_steps")
+            # Forge's dcgan_performance_r256 runs ~13 timed updates inside a multi-second
+            # process including model setup and warmup; dividing whole-process Joules or
+            # wall_seconds by completed_steps severely overstates sustained per-step cost.
+            whole_proc_skewed = bool(
+                upd_ms is not None
+                and upd_ms > 0.0
+                and wall_s is not None
+                and steps
+                and wall_s > 2.5 * (float(steps) * upd_ms / 1000.0)
+            )
+            if row["r256_ms_per_step"] is None:
+                if upd_ms is not None:
+                    row["r256_ms_per_step"] = upd_ms
+                elif wall_s is not None and steps:
+                    row["r256_ms_per_step"] = 1000.0 * wall_s / float(steps)
+            if row["r256_joules_per_step"] is None and not whole_proc_skewed:
                 row["r256_joules_per_step"] = item["joules_per_step"]
-            if row["r256_watts"] is None:
+            if row["r256_watts"] is None and not whole_proc_skewed:
                 row["r256_watts"] = item["avg_power_watts"]
-            if row["r256_ms_per_step"] is None and item["wall_seconds"] is not None and item["completed_steps"]:
-                row["r256_ms_per_step"] = 1000.0 * item["wall_seconds"] / float(item["completed_steps"])
         elif task_id == "ring16_acquisition":
             if row["ring16_first_pass_step"] is None:
                 row["ring16_first_pass_step"] = item["first_pass_step"]
@@ -1657,6 +1733,8 @@ def build_inventory_exports(
     receipt_rows: list[dict] = []
     receipt_energy_by_attempt_task: dict[tuple[str, str], dict] = {}
     receipt_energy_entries: list[dict] = []
+    occam_tasks = _load_occam_task_ids(root)
+    occam_cohort_outcomes: dict[tuple, dict[str, tuple[str, bool]]] = {}
     receipts_dir = root / "reports/forge/technique-receipts"
     if receipts_dir.is_dir():
         for rec_file in sorted(receipts_dir.glob("*.json")):
@@ -1728,6 +1806,21 @@ def build_inventory_exports(
                 )
                 wall_float = float(wall_sec) if isinstance(wall_sec, (int, float)) and not isinstance(wall_sec, bool) else None
                 steps_int = int(steps) if isinstance(steps, int) and not isinstance(steps, bool) else None
+                upd_ms_med = _opt_float(metrics_obj.get("update_ms_median"))
+                if occam_tasks and task_id in occam_tasks and energy_info["gpu_name"]:
+                    occam_key = (
+                        str(doc.get("candidate_id") or ""),
+                        str(source_commit) if source_commit is not None else None,
+                        str(source_digest) if source_digest is not None else None,
+                        energy_info["gpu_name"],
+                    )
+                    gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+                    is_to = _is_incomplete_timeout_result(tr, attempt_status=str(doc.get("attempt_status") or ""))
+                    if is_to or gate in {"PASS", "FAIL", "INVALID", "ERROR"}:
+                        slot = occam_cohort_outcomes.setdefault(occam_key, {})
+                        prev = slot.get(task_id)
+                        if prev is None or (prev[1] and not is_to):
+                            slot[task_id] = (gate, is_to)
                 if has_energy:
                     receipt_energy_by_attempt_task[(attempt_id, task_id)] = dict(energy_info)
                     receipt_energy_entries.append(
@@ -1740,6 +1833,7 @@ def build_inventory_exports(
                             "source_digest": str(source_digest) if source_digest is not None else None,
                             "wall_seconds": wall_float,
                             "completed_steps": steps_int,
+                            "update_ms_median": upd_ms_med,
                             "receipt_file": receipt_rel,
                             **energy_info,
                         }
@@ -1782,8 +1876,15 @@ def build_inventory_exports(
                     }
                 )
 
+    occam_cohort_counts = _summarize_receipt_occam_cohorts(occam_tasks, occam_cohort_outcomes)
     study_energy_rows = _collect_study_energy_rows(root, cand_to_family, idea_cache)
-    receipt_energy_rows_raw = _collect_receipt_energy_rows(root, receipt_energy_entries, cand_to_family, idea_cache)
+    receipt_energy_rows_raw = _collect_receipt_energy_rows(
+        root,
+        receipt_energy_entries,
+        cand_to_family,
+        idea_cache,
+        occam_cohort_counts=occam_cohort_counts,
+    )
     energy_public_keys = (
         "candidate_id",
         "family_id",

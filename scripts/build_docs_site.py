@@ -310,25 +310,89 @@ def _collect_study_energy_stdlib(root: Path, cand_to_family: dict[str, str]) -> 
                 idea_cache[cid] = None
         return idea_cache[cid]
 
-    def _readout_occam(readout_name: str | None) -> tuple[int | None, int | None, str | None]:
+    def _is_timeout_res(tr: dict, attempt_status: str = "") -> bool:
+        gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+        raw = str(tr.get("raw_status") or "").lower()
+        att = str(attempt_status or "").lower()
+        if gate in {"PASS", "FAIL"}:
+            return False
+        return gate in {"INCOMPLETE", "TIMEOUT"} or raw == "timeout" or att == "timeout"
+
+    def _readout_occam(readout_name: str | None) -> tuple[int | None, int | None, int | None, str | None]:
         if not isinstance(readout_name, str) or not readout_name.strip():
-            return None, None, None
+            return None, None, None, None
         p = root / "reports/forge/records" / readout_name.strip()
         if not p.is_file():
-            return None, None, None
+            return None, None, None, None
         try:
             doc = _read_json(p)
         except Exception:
-            return None, None, None
+            return None, None, None, None
         prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
         src_commit = _opt_str(prov.get("source_origin_commit")) or _opt_str(doc.get("source_commit"))
         trs = doc.get("task_results") or []
-        executed_statuses = {"PASS", "FAIL", "INCOMPLETE", "INVALID", "ERROR", "TIMEOUT"}
-        passed = sum(1 for tr in trs if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) == "PASS")
-        executed = sum(
-            1 for tr in trs if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) in executed_statuses
-        )
-        return (passed if executed > 0 else None), (executed if executed > 0 else None), src_commit
+        scored_statuses = {"PASS", "FAIL", "INVALID", "ERROR"}
+        passed = 0
+        executed = 0
+        timeouts = 0
+        for tr in trs:
+            if not isinstance(tr, dict):
+                continue
+            if _is_timeout_res(tr):
+                timeouts += 1
+                continue
+            gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+            if gate == "PASS":
+                passed += 1
+            if gate in scored_statuses:
+                executed += 1
+        if executed > 0 or timeouts > 0:
+            return passed, executed, timeouts, src_commit
+        return None, None, None, src_commit
+
+    def _receipt_ids_occam(receipt_ids: object) -> tuple[int | None, int | None, int | None]:
+        if not isinstance(receipt_ids, list) or not receipt_ids:
+            return None, None, None
+        receipts_dir = root / "reports/forge/technique-receipts"
+        if not receipts_dir.is_dir():
+            return None, None, None
+        scored_statuses = {"PASS", "FAIL", "INVALID", "ERROR"}
+        passed = 0
+        executed = 0
+        timeouts = 0
+        seen_any = False
+        for raw_id in receipt_ids:
+            if not isinstance(raw_id, str) or not raw_id.strip():
+                continue
+            rec_path = receipts_dir / f"{raw_id.strip()}.json"
+            if not rec_path.is_file():
+                continue
+            try:
+                doc = _read_json(rec_path)
+            except Exception:
+                continue
+            att_status = str(doc.get("attempt_status") or "")
+            trs = doc.get("task_results")
+            if not isinstance(trs, list) or not trs:
+                if att_status.lower() == "timeout":
+                    timeouts += 1
+                    seen_any = True
+                continue
+            for tr in trs:
+                if not isinstance(tr, dict):
+                    continue
+                seen_any = True
+                if _is_timeout_res(tr, attempt_status=att_status):
+                    timeouts += 1
+                    continue
+                gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+                if gate == "PASS":
+                    passed += 1
+                if gate in scored_statuses:
+                    executed += 1
+        if not seen_any:
+            return None, None, None
+        return passed, executed, timeouts
 
     for study_file in sorted(studies_dir.glob("*energy-benchmark*.json")):
         try:
@@ -356,7 +420,24 @@ def _collect_study_energy_stdlib(root: Path, cand_to_family: dict[str, str]) -> 
                 opt_state = r256.get("optimizer_state") if isinstance(r256.get("optimizer_state"), dict) else {}
                 idea = _idea(cid) or {}
                 overrides = idea.get("recipe_overrides") if isinstance(idea.get("recipe_overrides"), dict) else {}
-                ro_pass, ro_exec, ro_commit = _readout_occam(grid100.get("official_forge_readout"))
+                ro_pass, ro_exec, ro_timeouts, ro_commit = _readout_occam(
+                    grid100.get("official_forge_readout") or entry.get("official_forge_readout")
+                )
+                rec_pass, rec_exec, rec_timeouts = _receipt_ids_occam(entry.get("occam_receipt_ids"))
+                occam_pass = _opt_int(entry.get("occam_pass"))
+                occam_exec = _opt_int(entry.get("occam_executed"))
+                occam_timeouts = _opt_int(entry.get("occam_timeouts"))
+                if rec_exec is not None:
+                    occam_pass = rec_pass
+                    occam_exec = rec_exec
+                    occam_timeouts = rec_timeouts
+                else:
+                    if occam_pass is None:
+                        occam_pass = ro_pass
+                    if occam_exec is None:
+                        occam_exec = ro_exec
+                    if occam_timeouts is None:
+                        occam_timeouts = ro_timeouts if ro_timeouts is not None else (0 if occam_exec is not None else None)
                 util_before = r256.get("gpu_util_before")
                 contended = _opt_bool(entry.get("contended"))
                 if contended is None:
@@ -393,8 +474,9 @@ def _collect_study_energy_stdlib(root: Path, cand_to_family: dict[str, str]) -> 
                         "grid100_j_to_sustained_pass": _opt_float(grid100.get("joules_to_sustained_pass")),
                         "staggered100_first_pass_step": _opt_int(staggered100.get("first_pass_step")),
                         "staggered100_j_to_pass": _opt_float(staggered100.get("joules_to_first_pass")),
-                        "occam_pass": _opt_int(entry.get("occam_pass")) if _opt_int(entry.get("occam_pass")) is not None else ro_pass,
-                        "occam_executed": _opt_int(entry.get("occam_executed")) if _opt_int(entry.get("occam_executed")) is not None else ro_exec,
+                        "occam_pass": occam_pass,
+                        "occam_executed": occam_exec,
+                        "occam_timeouts": occam_timeouts,
                         "evidence_scope": _opt_str(entry.get("evidence_scope")) or "study_energy_benchmark",
                     }
                 )
@@ -1636,6 +1718,7 @@ def stage_docs_site(
         ("docs/bispf-input-domains.md", "reference/bispf-input-domains.md", "BISPF Input Domains"),
         ("docs/e22.md", "reference/e22.md", "E22 Policy"),
         ("docs/atlas.md", "reference/atlas.md", "Atlas Guide"),
+        ("docs/leaderboard-refresh.md", "reference/leaderboard-refresh.md", "Leaderboard Refresh Runbook"),
         ("RESEARCH_GLOSSARY.md", "reference/glossary.md", "Research Glossary"),
         ("EXPERIMENTATION.md", "reference/experimentation.md", "Experimentation Guide"),
     ]

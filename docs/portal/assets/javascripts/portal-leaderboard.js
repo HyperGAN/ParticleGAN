@@ -487,7 +487,7 @@
       ];
       const activeOpt = xOptions.find((o) => o.key === state.paretoX) || xOptions[0];
 
-      const points = [];
+      const deduped = new Map();
       benchmarks.forEach((row, idx) => {
         if (state.paretoIdleOnly && row.contended === true) return;
         const x = toNum(row[activeOpt.key]);
@@ -495,14 +495,33 @@
         const oe = toNum(row.occam_executed);
         if (x === null || op === null || oe === null || oe <= 0) return;
         const y = (op / oe) * 100;
-        points.push({
-          idx,
-          row,
-          x,
-          y,
-          cat: cohortCategory(row),
-        });
+        const cat = cohortCategory(row);
+        const dedupKey = `${row.candidate_id || ""}::${row.hardware_gpu || ""}::${String(row.contended)}`;
+        const isStudy = String(row.evidence_scope || "").includes("study") ? 1 : 0;
+        const filled =
+          (toNum(row.r256_joules_per_step) !== null ? 1 : 0) +
+          (toNum(row.r256_ms_per_step) !== null ? 1 : 0) +
+          (toNum(row.grid100_j_to_pass) !== null ? 1 : 0) +
+          (toNum(row.ring16_j_to_pass) !== null ? 1 : 0);
+        const prio = isStudy * 100 + filled;
+        const prev = deduped.get(dedupKey);
+        if (!prev || prio > prev.prio) {
+          deduped.set(dedupKey, { idx, row, x, y, cat, prio });
+        }
       });
+      const points = Array.from(deduped.values());
+
+      const latestByCatFam = new Map();
+      points.forEach((p) => {
+        const fid = p.row.family_id || "";
+        const m = /-v(\d+)$/i.exec(String(p.row.candidate_id || "").trim());
+        if (!fid || !m) return;
+        const ver = Number(m[1]);
+        const k = `${p.cat}::${fid}`;
+        const prev = latestByCatFam.get(k);
+        if (!prev || ver > prev.ver) latestByCatFam.set(k, { ver, idx: p.idx });
+      });
+      const latestSet = new Set(Array.from(latestByCatFam.values()).map((v) => v.idx));
 
       const idlePoints = points.filter((p) => p.cat === "idle_a6000");
       const frontier = computeParetoFrontier(idlePoints.length ? idlePoints : points);
@@ -561,21 +580,61 @@
                 .join(" ")}" />`
             : "";
 
+        const placedPortalLabels = [];
         const dots = points
           .map((p) => {
-            const cx = sx(p.x).toFixed(1);
-            const cy = sy(p.y).toFixed(1);
+            const cxNum = sx(p.x);
+            const cyNum = sy(p.y);
+            const cx = cxNum.toFixed(1);
+            const cy = cyNum.toFixed(1);
             const isSel = selectedPoint && p.idx === selectedPoint.idx;
             const isFront = frontierSet.has(p.idx);
+            const isLatest = latestSet.has(p.idx);
             const col = cohortColor(p.cat);
-            const label = isFront ? p.row.candidate_id : "";
+            const label = isFront || isLatest || isSel ? p.row.candidate_id : "";
+            let labelSvg = "";
+            if (label) {
+              const estW = Math.max(40, label.length * 6.0 + 6);
+              const offsets = [
+                [9, -6, "start"],
+                [-9, -6, "end"],
+                [9, 13, "start"],
+                [-9, 13, "end"],
+                [9, 4, "start"],
+                [-9, 4, "end"],
+              ];
+              let pick = null;
+              for (const [dx, dy, anchor] of offsets) {
+                const lx = cxNum + dx;
+                const ly = cyNum + dy;
+                const x0 = anchor === "start" ? lx : lx - estW;
+                const x1 = x0 + estW;
+                const y0 = ly - 10;
+                const y1 = ly + 2;
+                if (x0 < pad.l + 2 || x1 > W - pad.r - 2 || y0 < pad.t || y1 > H - pad.b - 2) continue;
+                const hit = placedPortalLabels.some((b) => !(x1 + 3 < b.x0 || x0 - 3 > b.x1 || y1 + 2 < b.y0 || y0 - 2 > b.y1));
+                if (!hit) {
+                  pick = { lx, ly, anchor, box: { x0, x1, y0, y1 } };
+                  break;
+                }
+              }
+              if (!pick) {
+                const anchor = cxNum > W - pad.r - 120 ? "end" : "start";
+                const lx = anchor === "end" ? cxNum - 9 : cxNum + 9;
+                const ly = Math.max(pad.t + 10, Math.min(H - pad.b - 4, cyNum - 6));
+                const x0 = anchor === "start" ? lx : lx - estW;
+                pick = { lx, ly, anchor, box: { x0, x1: x0 + estW, y0: ly - 10, y1: ly + 2 } };
+              }
+              placedPortalLabels.push(pick.box);
+              labelSvg = `<text x="${pick.lx.toFixed(1)}" y="${pick.ly.toFixed(1)}" text-anchor="${pick.anchor}" fill="var(--pg-text)" font-size="10" font-weight="600">${escapeHtml(label)}</text>`;
+            }
             return `
               <g class="pg-pareto-pt" data-energy-idx="${p.idx}" style="cursor:pointer">
                 ${isFront ? `<circle cx="${cx}" cy="${cy}" r="${isSel ? 11 : 9}" fill="none" stroke="var(--pg-accent-2)" stroke-width="1.8" opacity="0.85" />` : ""}
-                <circle cx="${cx}" cy="${cy}" r="${isSel ? 6.5 : 5}" fill="${col}" stroke="var(--pg-surface)" stroke-width="1.5">
+                <circle cx="${cx}" cy="${cy}" r="${isSel ? 6.5 : isLatest ? 5.8 : 5}" fill="${col}" stroke="var(--pg-surface)" stroke-width="1.5">
                   <title>${escapeHtml(p.row.candidate_id)}: ${escapeHtml(activeOpt.fmt(p.x))}, Occam ${escapeHtml(p.row.occam_pass)}/${escapeHtml(p.row.occam_executed)} (${p.y.toFixed(0)}%)</title>
                 </circle>
-                ${label ? `<text x="${(Number(cx) + 9).toFixed(1)}" y="${(Number(cy) - 6).toFixed(1)}" fill="var(--pg-text)" font-size="10" font-weight="600">${escapeHtml(label)}</text>` : ""}
+                ${labelSvg}
               </g>
             `;
           })
