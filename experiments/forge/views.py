@@ -219,6 +219,10 @@ def _validate_measurement_contract(task):
         validate_task(task)
         fixed.update(evaluator="experiments.forge.scaling_adapter:grade", training_feedback=False,
                      qualification_input=False)
+    elif kind == "bn_dcgan_rgb32_b256_diagnostic":
+        from .bn_dcgan_guard import validate_task
+        validate_task(task)
+        fixed.update(evaluator="experiments.forge.bn_dcgan_guard:grade", qualification_input=False)
     elif kind == "zero_tanh_smoke":
         # The implemented point-mass adapter draws 4,096 clean live samples.
         # This task has final bounds, without a sustained-suffix requirement.
@@ -479,6 +483,8 @@ def validate_view(view: dict, tasks: dict) -> None:
     diagnostic = view.get("evidence_scope") in DIAGNOSTIC_SCOPES
     if any(tasks[name]["adapter"] == "dcgan_performance_v1" for name in index) and view.get("evidence_scope") != "research_diagnostic":
         raise ValueError("image performance tasks require a separate research_diagnostic view and cannot grant qualification")
+    if any(tasks[name]["adapter"] == "bn_dcgan_guard" for name in index) and view.get("evidence_scope") != "research_diagnostic":
+        raise ValueError("bn_dcgan_guard tasks require a separate research_diagnostic view and cannot grant qualification")
     if diagnostic and any(a["importance"] != "diagnostic" or a["qualification_tier"] != 1 for a in assignments):
         raise ValueError("diagnostic views require only diagnostic tasks in Tier 1")
     if not diagnostic and required_tiers != set(range(1, highest + 1)):
@@ -1164,12 +1170,14 @@ def grade_result(task: dict, result: dict | None, *, diagnostic=False) -> dict:
         from .gaussian_tasks import grade as gaussian_grade
     from .word_tasks import grade as word_grade
     from .scaling_adapter import grade as performance_grade
+    from .bn_dcgan_guard import grade as bn_dcgan_guard_grade
     graders = {"gaussian_smoke": gaussian_grade, "gaussian_stability": gaussian_grade,
                "word_smoke": word_grade, "word_hold": word_grade,
                "transfer_sustained": _transfer, "native_accuracy": _native,
                "ring_hold": _ring, "ring_extension": _ring,
                "paired_adaptation": _adaptation, "clockfree_parity": _clockfree,
                "image_training_performance": performance_grade,
+               "bn_dcgan_rgb32_b256_diagnostic": bn_dcgan_guard_grade,
                "zero_tanh_smoke": _zero_tanh_smoke,
                **{kind: _stretch_thresholds for kind in STRETCH_EVALUATOR_KINDS},
                **{kind: _stretch_thresholds for kind in FOUR_LAWS_EVALUATOR_KINDS}}

@@ -273,6 +273,9 @@ def adapter_preflight(task, candidate, *, root=None, _context=None):
     if adapter == "four_laws":
         from .four_laws import preflight
         return preflight(task, candidate, root=root)
+    if adapter == "bn_dcgan_guard":
+        from .bn_dcgan_guard import preflight
+        return preflight(task, candidate, root=root)
     from .tier1_policy import is_policy_task
     if is_policy_task(task):
         from .tier1_policy import validate
@@ -1080,6 +1083,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
         return run(request, task, output_dir, device)
     if adapter == "four_laws":
         from .four_laws import run
+        return run(request, task, output_dir, device)
+    if adapter == "bn_dcgan_guard":
+        from .bn_dcgan_guard import run
         return run(request, task, output_dir, device)
     from .tier1_policy import blocked_host, is_policy_task
     if blocked_host(task) is not None:
