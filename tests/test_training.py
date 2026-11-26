@@ -520,3 +520,322 @@ def test_cuda_accepts_current_device_streams_and_restores_checkpoint():
     with pytest.raises(ValueError, match="RNG state"):
         trainer.load_state_dict(invalid)
     assert_checkpoint_equal(before, trainer.state_dict())
+
+
+def _bn_buffer_snapshot(module):
+    return {
+        name: (
+            child.running_mean.detach().clone(),
+            child.running_var.detach().clone(),
+            child.num_batches_tracked.detach().clone(),
+        )
+        for name, child in module.named_modules()
+        if isinstance(child, nn.modules.batchnorm._BatchNorm) and child.running_mean is not None
+    }
+
+
+def _make_bn_critic_trainer(*, preset="gan", dropout=False, track_running_stats=True, seed=0):
+    torch.manual_seed(seed)
+    recipe = get_recipe(preset, num_particles=12, z_dim=3, batch_size=6, total_steps=10)
+    generator = nn.Sequential(nn.Linear(3, 8), nn.BatchNorm1d(8), nn.LeakyReLU(.2), nn.Linear(8, 4))
+    layers = [
+        nn.Linear(4, 8, bias=False),
+        nn.BatchNorm1d(8, track_running_stats=track_running_stats),
+        nn.LeakyReLU(.2),
+    ]
+    if dropout:
+        layers.append(nn.Dropout(.5))
+    layers.append(nn.Linear(8, 1))
+    discriminator = nn.Sequential(*layers)
+    return GANTrainer(recipe, generator, discriminator, seed=seed)
+
+
+@pytest.mark.parametrize("track_running_stats", [True, False])
+def test_bn_critic_uses_batch_stats_in_g_step_without_mutating_running_stats(track_running_stats):
+    trainer = _make_bn_critic_trainer(track_running_stats=track_running_stats)
+    bn = trainer.D[1]
+    real = torch.arange(24, dtype=torch.float32).reshape(6, 4) / 6.0 - 0.5
+    # Prime running stats with a distinct scale so batch-stat vs eval-stat outputs clearly diverge.
+    if track_running_stats:
+        with torch.no_grad():
+            bn.running_mean.fill_(5.0)
+            bn.running_var.fill_(9.0)
+
+    phase = {"in_g": False, "post_d_buffers": None}
+    g_root_obs, g_bn_obs, g_num_checks = [], [], []
+    orig_after_d = trainer.policy.after_critic_step
+    orig_after_g = trainer.policy.after_generator_step
+
+    def _after_d():
+        orig_after_d()
+        phase["in_g"] = True
+        phase["post_d_buffers"] = _bn_buffer_snapshot(trainer.D)
+
+    def _after_g():
+        orig_after_g()
+        if track_running_stats:
+            after_g_buffers = _bn_buffer_snapshot(trainer.D)
+            for key, (mean0, var0, num0) in phase["post_d_buffers"].items():
+                mean1, var1, num1 = after_g_buffers[key]
+                assert torch.equal(mean0, mean1)
+                assert torch.equal(var0, var1)
+                assert torch.equal(num0, num1)
+        phase["in_g"] = False
+
+    trainer.policy.after_critic_step = _after_d
+    trainer.policy.after_generator_step = _after_g
+
+    def _root_pre(mod, _inp):
+        if phase["in_g"]:
+            g_root_obs.append((mod.training, [p.requires_grad for p in mod.parameters()]))
+
+    def _bn_fwd(mod, inp, out):
+        if phase["in_g"]:
+            g_bn_obs.append((mod.training, mod.track_running_stats))
+            x = inp[0].detach()
+            expected_batch = nn.functional.batch_norm(
+                x, None, None, mod.weight.detach(), mod.bias.detach(), True, 0.0, mod.eps
+            )
+            assert torch.allclose(out.detach(), expected_batch, atol=1e-6, rtol=1e-6)
+            if track_running_stats:
+                eval_out = nn.functional.batch_norm(
+                    x, mod.running_mean, mod.running_var, mod.weight.detach(), mod.bias.detach(), False, 0.0, mod.eps
+                )
+                assert not torch.allclose(out.detach(), eval_out, atol=1e-2)
+            g_num_checks.append(1)
+
+    h_root = trainer.D.register_forward_pre_hook(_root_pre)
+    h_bn = bn.register_forward_hook(_bn_fwd)
+    try:
+        trainer.step(real)
+    finally:
+        h_root.remove()
+        h_bn.remove()
+
+    assert g_root_obs and all(not training and not any(flags) for training, flags in g_root_obs)
+    assert g_bn_obs and all(training and not tracking for training, tracking in g_bn_obs)
+    assert len(g_num_checks) >= 2
+    assert not trainer.D.training and not bn.training
+    assert bn.track_running_stats is track_running_stats
+    assert all(p.requires_grad for p in trainer.D.parameters())
+    if track_running_stats:
+        # Exactly two D-step forwards (real + fake) updated num_batches_tracked; G-step added zero.
+        assert bn.num_batches_tracked.item() == 2
+
+
+def test_frozen_eval_only_bn_submodule_stays_in_eval_during_g_step():
+    class _FrozenBackboneMixedCritic(nn.Module):
+        """Mimics ResNet18FeatureCritic32: frozen eval-only BN backbone + trainable head with BN."""
+
+        def __init__(self):
+            super().__init__()
+            self.backbone = nn.Sequential(
+                nn.Conv2d(3, 6, kernel_size=3, padding=1, bias=False),
+                nn.BatchNorm2d(6),
+                nn.ReLU(),
+            )
+            with torch.no_grad():
+                self.backbone[1].running_mean.copy_(torch.linspace(-1.5, 1.5, 6))
+                self.backbone[1].running_var.copy_(torch.linspace(0.5, 2.5, 6))
+                self.backbone[1].num_batches_tracked.fill_(42)
+            for p in self.backbone.parameters():
+                p.requires_grad_(False)
+            self.backbone.eval()
+            self.head = nn.Sequential(
+                nn.AdaptiveAvgPool2d((1, 1)),
+                nn.Flatten(),
+                nn.Linear(6, 8, bias=False),
+                nn.BatchNorm1d(8),
+                nn.LeakyReLU(.2),
+                nn.Linear(8, 1),
+            )
+
+        def train(self, mode=True):
+            super().train(mode)
+            self.backbone.eval()
+            return self
+
+        def forward(self, x):
+            return self.head(self.backbone(x))
+
+    torch.manual_seed(0)
+    recipe = get_recipe("gan", num_particles=8, z_dim=4, batch_size=6, total_steps=6)
+    generator = nn.Sequential(
+        nn.Linear(4, 3 * 4 * 4),
+        nn.Unflatten(1, (3, 4, 4)),
+    )
+    critic = _FrozenBackboneMixedCritic()
+    trainer = GANTrainer(recipe, generator, critic, seed=0)
+
+    frozen_bn = critic.backbone[1]
+    head_bn = critic.head[3]
+    init_frozen_buffers = _bn_buffer_snapshot(critic.backbone)
+    init_flags = [p.requires_grad for p in critic.parameters()]
+
+    phase = {"in_g": False, "post_d_head": None}
+    frozen_modes, head_g_modes, frozen_eval_checks = [], [], []
+    orig_after_d = trainer.policy.after_critic_step
+    orig_after_g = trainer.policy.after_generator_step
+
+    def _after_d():
+        orig_after_d()
+        phase["in_g"] = True
+        phase["post_d_head"] = _bn_buffer_snapshot(critic.head)
+
+    def _after_g():
+        orig_after_g()
+        for key, (m0, v0, n0) in phase["post_d_head"].items():
+            m1, v1, n1 = _bn_buffer_snapshot(critic.head)[key]
+            assert torch.equal(m0, m1) and torch.equal(v0, v1) and torch.equal(n0, n1)
+        phase["in_g"] = False
+
+    trainer.policy.after_critic_step = _after_d
+    trainer.policy.after_generator_step = _after_g
+
+    def _frozen_hook(mod, inp, out):
+        frozen_modes.append((phase["in_g"], mod.training, mod.track_running_stats))
+        expected_eval = nn.functional.batch_norm(
+            inp[0].detach(), mod.running_mean, mod.running_var,
+            mod.weight.detach(), mod.bias.detach(), False, 0.0, mod.eps,
+        )
+        assert torch.allclose(out.detach(), expected_eval, atol=1e-6, rtol=1e-6)
+        frozen_eval_checks.append(phase["in_g"])
+
+    def _head_hook(mod, _inp):
+        if phase["in_g"]:
+            head_g_modes.append((mod.training, mod.track_running_stats))
+
+    h1 = frozen_bn.register_forward_hook(_frozen_hook)
+    h2 = head_bn.register_forward_pre_hook(_head_hook)
+    try:
+        trainer.step(torch.randn(6, 3, 4, 4))
+    finally:
+        h1.remove()
+        h2.remove()
+
+    # Frozen backbone BN stayed strictly in eval() across BOTH D step and G step.
+    assert any(in_g for in_g in frozen_eval_checks) and any(not in_g for in_g in frozen_eval_checks)
+    assert all((not training) and tracking for _, training, tracking in frozen_modes)
+    end_frozen_buffers = _bn_buffer_snapshot(critic.backbone)
+    for key, (m0, v0, n0) in init_frozen_buffers.items():
+        m1, v1, n1 = end_frozen_buffers[key]
+        assert torch.equal(m0, m1) and torch.equal(v0, v1) and torch.equal(n0, n1)
+
+    # Trainable head BN stayed in non-tracking batch-stat mode during G step, then restored cleanly.
+    assert head_g_modes and all(training and not tracking for training, tracking in head_g_modes)
+    assert not head_bn.training and head_bn.track_running_stats
+    assert not frozen_bn.training and frozen_bn.track_running_stats
+    assert [p.requires_grad for p in critic.parameters()] == init_flags
+
+
+def test_dropout_stays_in_eval_while_bn_uses_batch_stats_in_g_step():
+    trainer = _make_bn_critic_trainer(dropout=True)
+    bn = trainer.D[1]
+    drop = trainer.D[3]
+    phase = {"in_g": False}
+    orig_after_d = trainer.policy.after_critic_step
+    orig_after_g = trainer.policy.after_generator_step
+    trainer.policy.after_critic_step = lambda: (orig_after_d(), phase.__setitem__("in_g", True))
+    trainer.policy.after_generator_step = lambda: (orig_after_g(), phase.__setitem__("in_g", False))
+
+    drop_d_modes, drop_g_modes, bn_g_modes = [], [], []
+
+    def _drop_hook(mod, inp, out):
+        if phase["in_g"]:
+            drop_g_modes.append(mod.training)
+            assert torch.equal(out.detach(), inp[0].detach())
+        else:
+            drop_d_modes.append(mod.training)
+
+    def _bn_hook(mod, _inp):
+        if phase["in_g"]:
+            bn_g_modes.append((mod.training, mod.track_running_stats))
+
+    h_drop = drop.register_forward_hook(_drop_hook)
+    h_bn = bn.register_forward_pre_hook(_bn_hook)
+    try:
+        trainer.step(torch.randn(6, 4))
+    finally:
+        h_drop.remove()
+        h_bn.remove()
+
+    assert drop_d_modes and any(drop_d_modes)
+    assert drop_g_modes and all(not training for training in drop_g_modes)
+    assert bn_g_modes and all(training and not tracking for training, tracking in bn_g_modes)
+    assert not trainer.D.training and not drop.training and not bn.training and bn.track_running_stats
+
+
+@pytest.mark.parametrize("failure_point", ["callback", "critic_forward"])
+def test_bn_modes_buffers_and_freeze_restored_when_g_step_raises(failure_point):
+    trainer = _make_bn_critic_trainer(dropout=True)
+    trainer.D[-1].bias.requires_grad_(False)
+    bn = trainer.D[1]
+    original_flags = [p.requires_grad for p in trainer.D.parameters()]
+    real = torch.randn(6, 4)
+
+    phase = {"in_g": False, "post_d_buffers": None}
+    orig_after_d = trainer.policy.after_critic_step
+
+    def _after_d():
+        orig_after_d()
+        phase["in_g"] = True
+        phase["post_d_buffers"] = _bn_buffer_snapshot(trainer.D)
+
+    trainer.policy.after_critic_step = _after_d
+
+    handle = None
+    if failure_point == "critic_forward":
+        def _boom(_mod, _inp):
+            if phase["in_g"]:
+                raise RuntimeError("g-step critic failure")
+        handle = trainer.D.register_forward_pre_hook(_boom)
+
+    def _fail_callback():
+        raise RuntimeError("caller failure")
+
+    try:
+        with pytest.raises(RuntimeError, match="caller failure|g-step critic failure"):
+            trainer.step(real, generator_real=_fail_callback if failure_point == "callback" else None)
+    finally:
+        if handle is not None:
+            handle.remove()
+        trainer.policy.after_critic_step = orig_after_d
+
+    assert not trainer.D.training
+    assert not bn.training
+    assert bn.track_running_stats is True
+    assert [p.requires_grad for p in trainer.D.parameters()] == original_flags
+    for key, (m0, v0, n0) in phase["post_d_buffers"].items():
+        m1, v1, n1 = _bn_buffer_snapshot(trainer.D)[key]
+        assert torch.equal(m0, m1) and torch.equal(v0, v1) and torch.equal(n0, n1)
+
+    # Next valid step must still track running stats normally during D step.
+    tracked_before = bn.num_batches_tracked.item()
+    trainer.step(real)
+    assert bn.num_batches_tracked.item() == tracked_before + 2
+
+
+@pytest.mark.parametrize("preset", ["gan", "axiom"])
+def test_checkpoint_exact_continuation_with_bn_critic(preset, tmp_path):
+    trainer = _make_bn_critic_trainer(preset=preset, dropout=True, seed=7)
+    real = torch.arange(24, dtype=torch.float32).reshape(6, 4) / 12.0 - 0.5
+    trainer.step(real)
+    trainer.step(real.flip(0))
+    checkpoint = trainer.state_dict()
+    torch.save(checkpoint, tmp_path / f"bn_{preset}.pt")
+    loaded = torch.load(tmp_path / f"bn_{preset}.pt", map_location="cpu", weights_only=True)
+    preserved = deepcopy(loaded)
+
+    expected_stats = trainer.step(real)
+    expected_state = trainer.state_dict()
+
+    restored = _make_bn_critic_trainer(preset=preset, dropout=True, seed=99)
+    restored.step(real + 1.0)
+    restored.load_state_dict(loaded)
+    assert_checkpoint_equal(loaded, restored.state_dict())
+
+    actual_stats = restored.step(real)
+    assert_checkpoint_equal(expected_state, restored.state_dict())
+    for key in ("loss_d", "loss_g", "loss_gan", "prior_regularization", "penalty"):
+        assert torch.equal(expected_stats[key], actual_stats[key])
+    assert_checkpoint_equal(loaded, preserved)

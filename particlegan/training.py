@@ -243,6 +243,47 @@ def critic_source_context(critic, source):
             target._axiom_pending_source_key = None if prev_axiom is sentinel else prev_axiom
 
 
+def _enter_critic_g_step_mode(critic):
+    """Switch ``critic`` into G-step evaluation mode and return restoration state.
+
+    Non-BatchNorm modules (including the critic root and Dropout layers) enter
+    ``eval()`` and all critic parameters are temporarily frozen. Any
+    ``_BatchNorm`` submodule that was actively in training mode during the D
+    step remains in batch-statistics mode with ``track_running_stats=False`` so
+    G-step logits match the D-step normalization law without mutating
+    ``running_mean``, ``running_var``, or ``num_batches_tracked``. Frozen
+    eval-only BatchNorm backbones (e.g. ``ResNet18FeatureCritic32``) stay
+    strictly in ``eval()``.
+    """
+    active_bns = [
+        (module, module.track_running_stats)
+        for module in critic.modules()
+        if isinstance(module, nn.modules.batchnorm._BatchNorm) and module.training
+    ]
+    critic.eval()
+    bn_states = [(module, module.training, track) for module, track in active_bns]
+    flags = [p.requires_grad for p in critic.parameters()]
+    try:
+        critic.requires_grad_(False)
+        for module, _, _ in bn_states:
+            module.training = True
+            module.track_running_stats = False
+    except BaseException:
+        _exit_critic_g_step_mode(critic, (bn_states, flags))
+        raise
+    return bn_states, flags
+
+
+def _exit_critic_g_step_mode(critic, state):
+    """Restore critic BatchNorm modes/tracking flags and parameter ``requires_grad``."""
+    bn_states, flags = state
+    for module, eval_training, track in bn_states:
+        module.training = eval_training
+        module.track_running_stats = track
+    for parameter, flag in zip(critic.parameters(), flags):
+        parameter.requires_grad_(flag)
+
+
 class InputNoise(nn.Module):
     """``critic(x + std * eps, ...)`` with fresh ``eps`` per call from ``generator``.
 
@@ -857,11 +898,9 @@ class GANTrainer:
         self.opt_d.step()
         self.policy.after_critic_step()
 
-        self.D.eval()
-        self.G.train()
-        flags = [p.requires_grad for p in self.D.parameters()]
+        g_step_critic_state = _enter_critic_g_step_mode(self.D)
         try:
-            self.D.requires_grad_(False)
+            self.G.train()
             latent, indices = self._sample_training_prior(len(real))
             use_unified_v15_pb = False
             if recipe.prior_regularizer == "unified_v15" and recipe.t1_pullback_weight > 0.0:
@@ -1218,8 +1257,7 @@ class GANTrainer:
                 prim_cleanup.bind_discrete_prior_step(False)
             if hasattr(self.loss, "bind_discrete_prior_step"):
                 self.loss.bind_discrete_prior_step(False)
-            for parameter, flag in zip(self.D.parameters(), flags):
-                parameter.requires_grad_(flag)
+            _exit_critic_g_step_mode(self.D, g_step_critic_state)
         self.policy.finish_step()
         if self.serve_after_step:
             self._serve_apply()
