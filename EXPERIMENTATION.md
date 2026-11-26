@@ -62,6 +62,10 @@ sections below describe.
   GPU right-sizing, decentralized branch-merge catch-up, crash-proof VM teardown, and
   local Hugging Face publication), see the
   [Colab Forge catch-up guide](docs/forge-colab-catchup.md).
+- To refresh leaderboards across GitHub, Hugging Face Dataset/Space, and GitHub Pages
+  (including Pareto energy benchmarks and clean-commit family promotions), see the
+  [Leaderboard Refresh Runbook](docs/leaderboard-refresh.md) and
+  [`ops/refresh_leaderboard.py`](ops/refresh_leaderboard.py).
 
 Register ordinary new questions as required Tier 1 tasks in the existing
 `discriminator_stability` view, or assign frontier/extra-credit/optional questions

@@ -119,6 +119,32 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert v12_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
     assert v12_l4["r256_joules_per_step"] == pytest.approx(5.5738, rel=1e-3)
 
+    # Verify new uncontended RTX A6000 study energy benchmarks (axiom-v5, unified-v15, unified-v14).
+    ax5_rtx = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "axiom-v5"
+        and row["hardware_gpu"] == "NVIDIA RTX A6000"
+        and row["evidence_scope"] == "study_energy_benchmark"
+    )
+    assert ax5_rtx["family_id"] == "axiom"
+    assert ax5_rtx["contended"] is False
+    assert ax5_rtx["occam_pass"] == 15 and ax5_rtx["occam_executed"] == 16 and ax5_rtx["occam_timeouts"] == 0
+    assert ax5_rtx["r256_joules_per_step"] < 9.0
+    assert ax5_rtx["grid100_j_to_pass"] < 4000.0
+
+    u15_rtx = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v15"
+        and row["hardware_gpu"] == "NVIDIA RTX A6000"
+        and row["evidence_scope"] == "study_energy_benchmark"
+    )
+    assert u15_rtx["family_id"] == "unified"
+    assert u15_rtx["contended"] is False
+    assert u15_rtx["occam_pass"] == 16 and u15_rtx["occam_executed"] == 16 and u15_rtx["occam_timeouts"] == 0
+    assert u15_rtx["grid100_j_to_pass"] < 4500.0
+
     # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")
     assert unified["candidate_id"] == "unified-v11"
@@ -596,3 +622,62 @@ def test_export_leaderboard_json_graceful_fallback_on_minimal_root(tmp_path):
     assert all(isinstance(f["law_mechanisms"], dict) for f in payload["families"])
     assert all(f["pages_url"].startswith(DEFAULT_PAGES_BASE_URL) for f in payload["families"])
     assert all(isinstance(t["laws"], list) and isinstance(t["thresholds"], dict) for t in payload["task_definitions"])
+
+
+def test_receipt_energy_uses_r256_median_ms_and_complete_occam_cohorts(tmp_path):
+    """Receipt aggregation uses update_ms_median (suppressing startup-skewed J/step) and counts complete Occam cohorts."""
+    reports_dir = tmp_path / "reports/forge"
+    (reports_dir / "technique-receipts").mkdir(parents=True)
+    (reports_dir / "studies").mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    views_dir = tmp_path / "configs/forge/views"
+    views_dir.mkdir(parents=True)
+    occam_tasks = ["grid100", "ring16_acquisition", "zero_tanh_rail_escape"]
+    (views_dir / "r4-occam-ablation-v1.json").write_text(
+        json.dumps({"id": "r4-occam-ablation-v1", "assignments": [{"task": t} for t in occam_tasks]})
+    )
+
+    def _write_rec(aid: str, cid: str, task_id: str, gate: str, energy: dict, *, wall_s: float = 10.0, steps: int = 100, metrics: dict | None = None):
+        doc = {
+            "attempt_id": aid,
+            "candidate_id": cid,
+            "evidence_scope": "published_summary",
+            "attempt_status": "completed",
+            "provenance": {"canonical_result_hash": "c" * 64, "source_origin_commit": "deadbeef", "source_digest": "d" * 64},
+            "task_results": [{
+                "task_id": task_id,
+                "status": gate,
+                "gate_status": gate,
+                "raw_status": "completed",
+                "metrics": metrics or {},
+                "cost": {"wall_seconds": wall_s, "completed_steps": steps, "energy": energy},
+            }],
+        }
+        (reports_dir / f"technique-receipts/{aid}.json").write_text(json.dumps(doc))
+
+    gpu = "NVIDIA RTX A6000"
+    # Complete Occam cohort (2 PASS, 1 FAIL) + startup-skewed dcgan_performance_r256 receipt
+    _write_rec("r1", "cand-full", "grid100", "PASS", {"joules_total": 30000.0, "joules_per_step": 4.0, "avg_power_watts": 100.0, "first_pass_step": 750, "joules_to_first_pass": 3000.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=250.0, steps=7000)
+    _write_rec("r2", "cand-full", "ring16_acquisition", "PASS", {"joules_total": 4000.0, "joules_per_step": 2.5, "avg_power_watts": 80.0, "first_pass_step": 200, "joules_to_first_pass": 500.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=50.0, steps=1600)
+    _write_rec("r3", "cand-full", "zero_tanh_rail_escape", "FAIL", {"joules_total": 1000.0, "joules_per_step": 1.0, "avg_power_watts": 70.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=15.0, steps=1000)
+    _write_rec("r4", "cand-full", "dcgan_performance_r256", "PASS", {"joules_total": 460.0, "joules_per_step": 35.38, "avg_power_watts": 84.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=11.9, steps=13, metrics={"update_ms_median": 34.4})
+
+    # Partial Occam cohort (only 1 of 3 tasks) MUST keep occam_pass/occam_executed as None!
+    _write_rec("p1", "cand-partial", "grid100", "PASS", {"joules_total": 20000.0, "joules_per_step": 3.0, "avg_power_watts": 90.0, "first_pass_step": 1000, "joules_to_first_pass": 3000.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=200.0, steps=7000)
+
+    exports = build_inventory_exports(tmp_path, generated_at="2026-11-26T00:00:00Z")
+    by_cid = {r["candidate_id"]: r for r in exports["energy_rows"]}
+    full = by_cid["cand-full"]
+    assert full["r256_ms_per_step"] == pytest.approx(34.4)
+    assert full["r256_joules_per_step"] is None
+    assert full["r256_watts"] is None
+    assert full["grid100_j_to_pass"] == pytest.approx(3000.0)
+    assert full["occam_pass"] == 2
+    assert full["occam_executed"] == 3
+    assert full["occam_timeouts"] == 0
+
+    partial = by_cid["cand-partial"]
+    assert partial["occam_pass"] is None
+    assert partial["occam_executed"] is None

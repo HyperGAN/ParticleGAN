@@ -492,6 +492,51 @@ const paretoFull = app.buildParetoPoints(app.state.energyBenchmarks, app.state.f
 assert.strictEqual(paretoFull.points.length, 4);
 assert.ok(paretoFull.points[0].y > 50 && paretoFull.points[0].y < 60);
 
+// Deduplicate study_energy_benchmark over receipt row for same (candidate_id, cohort) and flag latest family version
+const dedupRows = [
+  {
+    key: "u15-rec",
+    candidate_id: "unified-v15",
+    family_id: "unified",
+    hardware_gpu: "NVIDIA RTX A6000",
+    contended: false,
+    evidence_scope: "published_summary",
+    grid100_j_to_pass: 5400,
+    occam_pass: 16,
+    occam_executed: 16
+  },
+  {
+    key: "u15-study",
+    candidate_id: "unified-v15",
+    family_id: "unified",
+    hardware_gpu: "NVIDIA RTX A6000",
+    contended: false,
+    evidence_scope: "study_energy_benchmark",
+    grid100_j_to_pass: 5200,
+    r256_joules_per_step: 12.1,
+    occam_pass: 16,
+    occam_executed: 16
+  },
+  {
+    key: "u12-study",
+    candidate_id: "unified-v12",
+    family_id: "unified",
+    hardware_gpu: "NVIDIA RTX A6000",
+    contended: false,
+    evidence_scope: "study_energy_benchmark",
+    grid100_j_to_pass: 4512,
+    r256_joules_per_step: 11.4,
+    occam_pass: 16,
+    occam_executed: 16
+  }
+];
+const paretoDedup = app.buildParetoPoints(dedupRows, app.state.families, "grid100_j_to_pass", "occam");
+assert.strictEqual(paretoDedup.points.length, 2);
+const u15Pt = paretoDedup.points.find((p) => p.candidate_id === "unified-v15");
+assert.strictEqual(u15Pt.x, 5200);
+assert.strictEqual(u15Pt.isLatestFamily, true);
+assert.strictEqual(paretoDedup.points.find((p) => p.candidate_id === "unified-v12").isLatestFamily, false);
+
 // Best-performing family ranking & smart GIF defaults
 const sampleFams = [
   { id: "atlas", label: "Atlas", full_pass: 7, total_pass: 17, tier1_pass: 17, full_fail: 8, stale: false },

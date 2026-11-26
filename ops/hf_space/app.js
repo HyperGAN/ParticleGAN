@@ -708,6 +708,7 @@
       staggered100_j_to_pass: toNullableNum(rawRow.staggered100_j_to_pass),
       occam_pass: toNullableNum(rawRow.occam_pass),
       occam_executed: toNullableNum(rawRow.occam_executed),
+      occam_timeouts: toNullableNum(rawRow.occam_timeouts),
       evidence_scope: evidenceScope,
       raw: rawRow,
     };
@@ -956,11 +957,31 @@
 
   const COHORT_PALETTE = ["#4f46e5", "#0284c7", "#059669", "#d97706", "#db2777", "#7c3aed", "#0d9488"];
 
+  function energyRowPriority(row) {
+    const scope = String(row.evidence_scope || "");
+    const isStudy = scope.includes("study") ? 1 : 0;
+    const filled =
+      (row.r256_joules_per_step != null ? 1 : 0) +
+      (row.r256_ms_per_step != null ? 1 : 0) +
+      (row.grid100_j_to_pass != null ? 1 : 0) +
+      (row.ring16_j_to_pass != null ? 1 : 0) +
+      (row.state_bytes_per_param != null ? 1 : 0);
+    return isStudy * 100 + filled;
+  }
+
+  function candidateVersionNumber(candidateId) {
+    const m = /-v(\d+)$/i.exec(String(candidateId || "").trim());
+    return m ? Number(m[1]) : -1;
+  }
+
   function buildParetoPoints(rows, families, xKey = "grid100_j_to_pass", yMode = "occam") {
     const famMap = new Map((families || []).map((f) => [f.id, f]));
     const cohortIndex = new Map();
-    const points = [];
+    const candidateBest = new Map();
 
+    // When both a dedicated study benchmark and receipt-aggregated row exist for the
+    // exact same (candidate_id, hardware_gpu, contended), plot the richer study benchmark
+    // once rather than double-plotting the same candidate on "All Cohorts".
     for (const row of rows || []) {
       const x = row[xKey];
       if (x == null || !Number.isFinite(x)) continue;
@@ -975,7 +996,8 @@
         }
       } else if (row.occam_pass != null && row.occam_executed != null && row.occam_executed > 0) {
         y = (row.occam_pass / row.occam_executed) * 100;
-        yLabel = `${row.occam_pass}/${row.occam_executed} (${y.toFixed(1)}%)`;
+        const toNote = row.occam_timeouts > 0 ? `, ${row.occam_timeouts} timeout` : "";
+        yLabel = `${row.occam_pass}/${row.occam_executed} (${y.toFixed(1)}%${toNote})`;
       }
       if (y == null || !Number.isFinite(y)) continue;
 
@@ -983,6 +1005,17 @@
       const contendLabel =
         row.contended === false ? "Uncontended" : row.contended === true ? "Contended" : "Contention unknown";
       const cohortKey = `${gpu} · ${contendLabel}`;
+      const dedupKey = `${row.candidate_id}::${cohortKey}`;
+      const prio = energyRowPriority(row);
+      const prev = candidateBest.get(dedupKey);
+      if (!prev || prio > prev.prio) {
+        candidateBest.set(dedupKey, { row, x, y, yLabel, gpu, cohortKey, prio });
+      }
+    }
+
+    const points = [];
+    for (const item of candidateBest.values()) {
+      const { row, x, y, yLabel, gpu, cohortKey } = item;
       if (!cohortIndex.has(cohortKey)) {
         cohortIndex.set(cohortKey, {
           key: cohortKey,
@@ -1012,6 +1045,7 @@
         source_file: row.source_file,
         row,
         isFrontier: false,
+        isLatestFamily: false,
       });
     }
 
@@ -1024,6 +1058,19 @@
     }
     for (const [cohortKey, group] of byCohort.entries()) {
       const cohort = cohortIndex.get(cohortKey);
+      // Mark the latest versioned candidate per family_id in each cohort so major releases stay labeled.
+      const latestByFam = new Map();
+      for (const pt of group) {
+        if (!pt.family_id) continue;
+        const ver = candidateVersionNumber(pt.candidate_id);
+        if (ver < 0) continue;
+        const prev = latestByFam.get(pt.family_id);
+        if (!prev || ver > prev.ver) latestByFam.set(pt.family_id, { ver, pt });
+      }
+      for (const { pt } of latestByFam.values()) {
+        pt.isLatestFamily = true;
+      }
+
       if (cohort.contended === true) continue;
       const ordered = [...group].sort((a, b) => a.x - b.x || b.y - a.y);
       const chain = [];
@@ -1763,6 +1810,7 @@
   function paretoAxisTitle(xKey) {
     if (xKey === "r256_ms_per_step") return "DCGAN r256 Step Time (ms/step · lower is faster)";
     if (xKey === "r256_joules_per_step") return "DCGAN r256 Step Energy (J/step · lower is leaner)";
+    if (xKey === "ring16_j_to_pass") return "ring16 J-to-PASS (Joules to first PASS · lower is better)";
     return "grid100 J-to-PASS (Joules to first PASS · lower is better)";
   }
 
@@ -1850,13 +1898,65 @@
       frontierSvg += `<path d="${d}" fill="none" stroke="${chain[0].color}" stroke-width="2.2" stroke-dasharray="6 4" opacity="0.85" />`;
     }
 
-    // Points + labels for frontier/selected points
+    // Points + collision-avoided labels for frontier, latest-per-family, and selected points
+    const placedLabels = [];
+    const labelPlacements = new Map();
+    const labelCandidates = points
+      .map((pt, idx) => ({ pt, idx, cx: sx(pt.x), cy: sy(pt.y), selected: state.selectedEnergyKey === pt.key }))
+      .filter(({ pt, selected }) => selected || pt.isFrontier || pt.isLatestFamily || points.length <= 10)
+      .sort((a, b) => {
+        const pa = (a.selected ? 4 : 0) + (a.pt.isFrontier ? 2 : 0) + (a.pt.isLatestFamily ? 1 : 0);
+        const pb = (b.selected ? 4 : 0) + (b.pt.isFrontier ? 2 : 0) + (b.pt.isLatestFamily ? 1 : 0);
+        return pb - pa || a.cx - b.cx;
+      });
+    const labelOffsets = [
+      [10, 4, "start"],
+      [-10, 4, "end"],
+      [10, -10, "start"],
+      [-10, -10, "end"],
+      [10, 16, "start"],
+      [-10, 16, "end"],
+      [0, -13, "middle"],
+      [0, 19, "middle"],
+    ];
+    for (const item of labelCandidates) {
+      const estW = Math.max(42, item.pt.candidate_id.length * 6.3 + 6);
+      const estH = 13;
+      let chosen = null;
+      for (const [dx, dy, anchor] of labelOffsets) {
+        const lx = item.cx + dx;
+        const ly = item.cy + dy;
+        const x0 = anchor === "start" ? lx : anchor === "end" ? lx - estW : lx - estW / 2;
+        const x1 = x0 + estW;
+        const y0 = ly - estH + 2;
+        const y1 = ly + 2;
+        if (x0 < pad.left + 2 || x1 > W - pad.right - 2 || y0 < pad.top - 4 || y1 > H - pad.bottom - 2) continue;
+        const overlaps = placedLabels.some((b) => !(x1 + 3 < b.x0 || x0 - 3 > b.x1 || y1 + 2 < b.y0 || y0 - 2 > b.y1));
+        if (!overlaps) {
+          chosen = { lx, ly, anchor, box: { x0, x1, y0, y1 } };
+          break;
+        }
+      }
+      if (!chosen && (item.selected || item.pt.isFrontier || item.pt.isLatestFamily)) {
+        const anchorRight = item.cx > W - pad.right - 135;
+        const lx = anchorRight ? item.cx - 10 : item.cx + 10;
+        const anchor = anchorRight ? "end" : "start";
+        const ly = Math.min(H - pad.bottom - 6, Math.max(pad.top + 10, item.cy + 4));
+        const x0 = anchor === "start" ? lx : lx - estW;
+        chosen = { lx, ly, anchor, box: { x0, x1: x0 + estW, y0: ly - estH + 2, y1: ly + 2 } };
+      }
+      if (chosen) {
+        placedLabels.push(chosen.box);
+        labelPlacements.set(item.idx, chosen);
+      }
+    }
+
     const pointsSvg = points
       .map((pt, idx) => {
         const cx = sx(pt.x);
         const cy = sy(pt.y);
         const selected = state.selectedEnergyKey === pt.key;
-        const r = selected ? 8 : pt.isFrontier ? 6.5 : 5.2;
+        const r = selected ? 8 : pt.isFrontier ? 6.5 : pt.isLatestFamily ? 6.0 : 5.2;
         const stroke = selected ? "var(--text)" : "var(--surface)";
         const strokeW = selected ? 2.5 : 1.6;
         let marker = "";
@@ -1869,12 +1969,9 @@
         const halo = pt.isFrontier
           ? `<circle cx="${cx.toFixed(1)}" cy="${cy.toFixed(1)}" r="${r + 3.5}" fill="none" stroke="${pt.color}" stroke-width="1.2" opacity="0.45" />`
           : "";
-        const anchorRight = cx > W - pad.right - 135;
-        const lblX = anchorRight ? cx - 10 : cx + 10;
-        const lblAnchor = anchorRight ? "end" : "start";
-        const showLabel = pt.isFrontier || selected || points.length <= 10;
-        const label = showLabel
-          ? `<text x="${lblX.toFixed(1)}" y="${(cy + 4).toFixed(1)}" text-anchor="${lblAnchor}" fill="var(--text)" font-size="10.5" font-weight="${pt.isFrontier ? "700" : "500"}">${escapeHtml(pt.candidate_id)}</text>`
+        const placement = labelPlacements.get(idx);
+        const label = placement
+          ? `<text x="${placement.lx.toFixed(1)}" y="${placement.ly.toFixed(1)}" text-anchor="${placement.anchor}" fill="var(--text)" font-size="10.5" font-weight="${pt.isFrontier || pt.isLatestFamily ? "700" : "500"}">${escapeHtml(pt.candidate_id)}</text>`
           : "";
         return `<g class="pareto-point" data-pareto-idx="${idx}" data-energy-key="${escapeHtml(pt.key)}" tabindex="0" role="button" aria-label="${escapeHtml(`${pt.candidate_id}: ${formatParetoAxisValue(state.paretoX, pt.x)}, ${pt.yLabel}`)}">${halo}${marker}${label}</g>`;
       })
