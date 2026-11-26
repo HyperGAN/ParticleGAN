@@ -231,7 +231,10 @@ def _load_hf_revision(root: Path) -> str:
     return "main"
 
 
-def _load_scaling_r256_ms(root: Path) -> dict[str, float]:
+def _load_scaling_r256_ms(
+    root: Path,
+    selected_candidates: dict[str, str] | None = None,
+) -> dict[str, float]:
     """Extract matched idle r256 median update latency (ms/step) by family id if present."""
     path = root / "reports/forge/scaling-performance.json"
     if not path.is_file():
@@ -240,26 +243,52 @@ def _load_scaling_r256_ms(root: Path) -> dict[str, float]:
         doc = _read_json(path)
     except Exception:
         return {}
-    out: dict[str, float] = {}
-    records = doc.get("records") or doc.get("measurements") or doc.get("entries") or []
-    if isinstance(records, dict):
-        records = list(records.values())
-    for rec in records:
-        if not isinstance(rec, dict):
+    by_fam_cand: dict[tuple[str, str], float] = {}
+    by_fam: dict[str, float] = {}
+    all_records: list[dict] = []
+    for key in ("records", "measurements", "entries"):
+        section = doc.get(key)
+        if isinstance(section, dict):
+            all_records.extend(v for v in section.values() if isinstance(v, dict))
+        elif isinstance(section, list):
+            all_records.extend(v for v in section if isinstance(v, dict))
+    for rec in all_records:
+        if rec.get("contended") is True:
+            continue
+        status = rec.get("status")
+        if isinstance(status, str) and status.upper() != "COMPLETE":
             continue
         task = rec.get("task") or rec.get("task_id") or ""
         if task != "dcgan_performance_r256":
             continue
-        fam = _opt_str(rec.get("family")) or _opt_str(rec.get("family_id")) or _opt_str(rec.get("reporting_family"))
+        fam = (
+            _opt_str(rec.get("trainer_family"))
+            or _opt_str(rec.get("family"))
+            or _opt_str(rec.get("family_id"))
+            or _opt_str(rec.get("reporting_family"))
+        )
+        cid = _opt_str(rec.get("candidate_id"))
+        res = rec.get("result") if isinstance(rec.get("result"), dict) else {}
         ms = (
             _opt_float(rec.get("median_ms"))
             or _opt_float(rec.get("median_update_ms"))
             or _opt_float((rec.get("timing") or {}).get("median_ms"))
+            or _opt_float((rec.get("metrics") or {}).get("update_ms_median"))
+            or _opt_float((res.get("metrics") or {}).get("update_ms_median"))
         )
         if fam and ms is not None:
-            out.setdefault(fam, ms)
+            if cid:
+                by_fam_cand.setdefault((fam, cid), ms)
+                if fam == "bcap-dualnorm":
+                    by_fam_cand.setdefault(("bcap-pure", cid), ms)
+            by_fam.setdefault(fam, ms)
             if fam == "bcap-dualnorm":
-                out.setdefault("bcap-pure", ms)
+                by_fam.setdefault("bcap-pure", ms)
+    out = dict(by_fam)
+    if selected_candidates:
+        for fid, cid in selected_candidates.items():
+            if (fid, cid) in by_fam_cand:
+                out[fid] = by_fam_cand[(fid, cid)]
     return out
 
 
@@ -864,7 +893,12 @@ def build_portal_leaderboard_payload(root: Path, *, prefer_stdlib: bool = False)
             "doc_path": laws_reg.get("doc_path", "docs/four-laws.md"),
         }
 
-    scaling_ms = _load_scaling_r256_ms(root)
+    selected_candidates = {
+        str(fam["id"]): str(fam["candidate_id"])
+        for fam in payload.get("families", [])
+        if isinstance(fam, dict) and fam.get("id") and fam.get("candidate_id")
+    }
+    scaling_ms = _load_scaling_r256_ms(root, selected_candidates=selected_candidates)
     for fam in payload.get("families", []):
         fid = fam.get("id", "")
         if fid in scaling_ms and fam.get("scaling_r256_ms") is None:

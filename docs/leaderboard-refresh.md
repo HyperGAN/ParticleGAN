@@ -38,7 +38,7 @@ python ops/refresh_leaderboard.py sync
 
 Runs, in order:
 
-1. `python -m experiments.forge compile`
+1. `python -m experiments.forge compile --summaries-only`
 2. `python reports/forge/regenerate_technique_inventory.py --refresh-publication`
 3. `python -m experiments.forge.experiment_docs`
 4. `python scripts/build_docs_site.py --skip-mkdocs` (add `--check-mkdocs` to run `mkdocs build --strict` locally)
@@ -112,11 +112,14 @@ Then run `python ops/refresh_leaderboard.py sync --publish` and merge into `deve
 
 [`reports/forge/technique-inventory.md`](../reports/forge/technique-inventory.md) and [`reports/forge/families/`](../reports/forge/families/) display the exact whole-row cohorts pinned in [`configs/forge/selections/family-current-v1.json`](../configs/forge/selections/family-current-v1.json).
 
-> [!CAUTION]
-> **Clean-commit requirement:** `regenerate_technique_inventory.py --source-commit <SHA>`
-> reconstructs the exact scientific source tree from Git and refuses receipts whose recorded
-> file hashes differ from `<SHA>` (e.g., runs executed on a dirty working tree). Always run
-> promotion screening from a clean committed `develop` checkout (`git status --porcelain` empty).
+> [!NOTE]
+> **Unrelated edits do not invalidate experiments:** Pure post-run reporting, docs, Hugging Face
+> publishing, media export, and Colab helper scripts (`experiments/forge/NON_SCIENTIFIC_SOURCE_PATHS`)
+> are excluded from the scientific `source_digest` (enforced by
+> [`tests/test_forge_sources_isolation.py`](../tests/test_forge_sources_isolation.py)). If an older
+> run was recorded before that split (or across a multi-GPU commit), pass `--source-snapshot`,
+> `--study-commit`, and `--cuda-model` to `promote` to cryptographically verify every recorded file
+> hash against the exact frozen snapshot without re-running GPUs.
 
 1. **Run ordinary screening from a clean commit on `develop`:**
 

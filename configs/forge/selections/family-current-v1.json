@@ -867,8 +867,8 @@
   },
   "policy_fingerprint": "fcb7ac52465e555fc6d88a1d53d92c485ae340216eafaa6fe49b03981c8f175a",
   "previous_selection": {
-    "path": "configs/forge/selections/history/family-current-9f51dcd00bdb494dab4e98e3e1f30a32fbcc05d942108c8b52143944690e65af.json",
-    "sha256": "9f51dcd00bdb494dab4e98e3e1f30a32fbcc05d942108c8b52143944690e65af"
+    "path": "configs/forge/selections/history/family-current-129c456a78b0622dd8004e2e837ed02f0554a98f49058ddc2e41a3475159c034.json",
+    "sha256": "129c456a78b0622dd8004e2e837ed02f0554a98f49058ddc2e41a3475159c034"
   },
   "schema_version": 1,
   "scope": "whole_candidate_family_current",
@@ -893,22 +893,22 @@
       "trainer_family": "atlas"
     },
     {
-      "candidate_id": "axiom-v4",
-      "candidate_revision": "264cae8cbe0aa368eeecedf07bfdab0a2a41e0c35a04f779c0563e0d2afa9ec1",
-      "cohort": "7f84496d73bd0570d8c7a9608f837081450150a3961c393866bf4bc4d3006be7",
+      "candidate_id": "axiom-v5",
+      "candidate_revision": "db04aaf2adc95c601b002da64bfd3061311b14ef2ce348cc9201370b2f5304d2",
+      "cohort": "c0b7b1584c3ec53183a6750edf072fa1c17b6f60ee9edaeaa5de1f7e722feecc",
       "execution_backend": "cuda",
       "measurement_views": [
         "discriminator_stability"
       ],
       "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
-      "reason": "Select axiom-v4 (clean-slate 2,409-LOC 4-Law formulation combining mass-conserving GPU-resident Laguerre-Pythagorean prototype atlas with 4-step LTV coalescence & central-offset pullback isometry, compute-regime-dispatched exact RoR / Weyl-phase sub-batch fwAD R1+R2 critic regularizer with detached-EMA linear-in-s_hat scaling, mu_D=0.005 floor & zero-mean gauge, conformal k=3 Voronoi Sinkhorn transport + dead-zone-free orphan macro-transport + zero-eigh Pade-(1,1) Halley conditional fiber bank + charts-first atomic bijection, and IEEE-754 mantissa-exponent degree-0 equilibration with spectral-split Tikhonov NS, exact 4D 1x1 Conv2d==Linear parity, 3-kernel foreach fast path, stratified p95 trust & 1-sync 2x2 KKT direction_blend) following ordinary discriminator_stability revision-20 CUDA measurement on NVIDIA RTX A6000 (11/11 required Tier 1 PASS, 6/6 projected v9 Tier 1 PASS, 19/21 projected v9 Tier 2 PASS, 3/3 100-mode grid triad grid100/rotated100/staggered100 PASS, five_word_joint_hold PASS, 3/3 precision fp32/mxfp8/nvfp4 PASS, 2/2 causal isolation PASS, 3/3 extreme Nash imbalance PASS, bytegan_hypercube8 PASS; 40/47 executed discriminator_stability tasks PASS with 6 honest numerical failures \u2014 img_blobs4, interp_img_patch_shift, interp_saddle_barycentric, interp_sparse_arc, model_ddgan_gaussian_chain, vector_spiral \u2014 and 1 INCOMPLETE wall-time timeout on model_ae_ddgan_gaussian_chain under 2-worker GPU sharing, matching 40/47 PASS in solo RTX A6000 readout-d83ce97f). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
-      "recipe_sha256": "af7588e082cc27995a340b8f3fad53d836ef8d696f351cf8526de324bde3c4b7",
+      "reason": "Promote axiom-v5 as the selected axiom configuration following ordinary clean-commit discriminator_stability CUDA measurement on CUDA (6/6 projected Tier 1 PASS; 46/60 executed tasks PASS; honest numerical failures: model_ae_ddgan_gaussian_chain, model_ddgan_bimodal_chain). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
+      "recipe_sha256": "0785243fcec49efd80b9e7df4c1c9d60778d8d0fcc92cc853c92180ae587cacb",
       "rng_sha256": "ea1838dd2440d16754beb1e1d4f3066e9e4858a393fb6a7ae0e341e34a7a744a",
-      "runtime_cohort_sha256": "daa283c8a640abc2e6adc669f79de118ccb0c45d38dfc62bf75b0d831038c1a1",
-      "scientific_row_sha256": "e23540fd4adb9024b27fac2d402140da2228a07fd4a51cbbd6097b32cd4b11b6",
+      "runtime_cohort_sha256": "42a130a78fc32c9220dd9c0fb6ecb99d6f26199d26d0dcdf467caff9ab9e3162",
+      "scientific_row_sha256": "996cd84298ce023dbb835e7d593c4b489dc329f34e51751852f135350eb27590",
       "selection_kind": "current_measurement",
-      "source_digest": "181b8ef0e8883ab4436059ba56931ee6bbb196ba923e7c111f433ab45e1342d2",
-      "task_keys_sha256": "b7a77a4ce175b8ed0c9e04175c558539400ed609fa2e7c19ccb2972b04c1ba3a",
+      "source_digest": "876222b5dde8c803f22ead52d320baf4ba333d06ed782ed440b3ddb31eaf0ded",
+      "task_keys_sha256": "ac3614d0e506a985d0564c1502b26c781cb0bc90b1f26e1d857bf228e9a63a77",
       "trainer_family": "axiom"
     },
     {
@@ -1080,22 +1080,22 @@
       "trainer_family": "rhbi"
     },
     {
-      "candidate_id": "unified-v11",
-      "candidate_revision": "0b9627afbd1057fa01e132ced2ed235c260f277fb912b853c5d1071d94e065d8",
-      "cohort": "491299fab237a41952c80be8bd19ce5ab7d5f6cce68a788106f7aa55870d4e08",
+      "candidate_id": "unified-v15",
+      "candidate_revision": "41258f2d1fd862f58968075a6de000b369c44d6a93f42e0062fb0819bb203a90",
+      "cohort": "11f2878eba422711ea07ab54fd1055aa8eeca0af386282e0827421286381115f",
       "execution_backend": "cuda",
       "measurement_views": [
         "discriminator_stability"
       ],
       "protocol_sha256": "7b975bab8008c880a88e04d9e9bbdf4d1ab549d46d1d894b9e42369fdc0931b2",
-      "reason": "Select unified-v11 (Unified 4-Law zero-autograd.grad / zero-SVD / zero-eigh / zero-pinv formulation combining streaming Laguerre-Pythagorean prototype prior & orthogonal pullback isometry, first-order fwAD/secant Born-Infeld critic with zero-mean gauge, scale-invariant k=4 density-ratio orphan macro-transport & zero-eigh cyclic-Jacobi cross-batch conditional fiber bank, and fused Z=[X,Y] Quintic Tikhonov equilibration with analytic direction_blend) following ordinary discriminator_stability CUDA measurement on NVIDIA RTX A6000 (11/11 required Tier 1 PASS, 3/3 precision fp32/mxfp8/nvfp4 PASS, 2/2 causal isolation PASS, 3/3 extreme Nash imbalance PASS, model_ddgan_gaussian_chain PASS, 4/4 discrete images PASS, 6/6 vectors PASS, grid100 & rotated100 PASS; 41/47 executed discriminator_stability tasks PASS with 0 ERROR/TIMEOUT/BLOCKED; 6 honest numerical failures explicitly visible: five_word_joint_hold, interp_img_patch_shift, interp_saddle_barycentric, model_ae_ddgan_gaussian_chain, model_ddgan_bimodal_chain, staggered100). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
-      "recipe_sha256": "5a885f9e0dc29d0fb5f1f1ce4d80b861c0f21fbec2834197b2c53c7daaf13732",
+      "reason": "Promote unified-v15 as the selected unified configuration following ordinary clean-commit discriminator_stability CUDA measurement on CUDA (6/6 projected Tier 1 PASS; 45/61 executed tasks PASS; honest numerical failures: five_word_joint_hold, interp_img_patch_shift, interp_saddle_barycentric, model_ddgan_bimodal_chain). Actual executed-policy qualification and comparison-policy projection retain their separate source-bound proofs; screening calibration remains BLOCKED under criteria-v1.json and this pin carries no calibrated default_adoption claim.",
+      "recipe_sha256": "98a61f9100d0874fe358478f67249a4e7521400163debd074b217c2bfeb6e798",
       "rng_sha256": "ea1838dd2440d16754beb1e1d4f3066e9e4858a393fb6a7ae0e341e34a7a744a",
       "runtime_cohort_sha256": "42a130a78fc32c9220dd9c0fb6ecb99d6f26199d26d0dcdf467caff9ab9e3162",
-      "scientific_row_sha256": "e571c40373b11f068b7760d8913dacac40808292056e3474c2e2221c61a5284b",
+      "scientific_row_sha256": "c18eb419236faf7ddd8c4f892fad38396843bf731bce6147e2aa872dcfef21ef",
       "selection_kind": "current_measurement",
-      "source_digest": "e132cf1f36afb7dec83d173558702cb3c5facdde184405c0ad8e229f163dbdd9",
-      "task_keys_sha256": "40f4a86017b830991505f19a264e78463a2065e4dfde0b5bc86f8696a8eca335",
+      "source_digest": "876222b5dde8c803f22ead52d320baf4ba333d06ed782ed440b3ddb31eaf0ded",
+      "task_keys_sha256": "67788e75f26620bc2340f015938659661372b642d281c7d217ed385535898fd5",
       "trainer_family": "unified"
     }
   ],

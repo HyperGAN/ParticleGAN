@@ -77,8 +77,8 @@ flowchart LR
 
 | Family | Candidate | Device | Status | Median ms/step | Images/s | Peak Allocated MiB | Family Report |
 | --- | --- | --- | :---: | ---: | ---: | ---: | --- |
-| **Axiom** | `axiom-v4` | NVIDIA RTX A6000 | **COMPLETE** | 19.42 | 816.0 | 384.3 | [Axiom](../families/axiom.md) |
-| **Unified** | `unified-v11` | NVIDIA RTX A6000 | `COMPLETED` | 42.00 | 380.9 | 546.7 | [Unified](../families/unified.md) |
+| **Axiom** | `axiom-v5` | NVIDIA RTX A6000 | **COMPLETE** | 20.66 | 736.1 | 388.8 | [Axiom](../families/axiom.md) |
+| **Unified** | `unified-v15` | NVIDIA RTX A6000 | **COMPLETE** | 22.98 | 689.5 | 413.2 | [Unified](../families/unified.md) |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | NVIDIA RTX A6000 | `COMPLETED` | 55.40 | 289.2 | 715.9 | [GAN v3 release 0.7](../families/release07-gan-v3.md) |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | NVIDIA RTX A6000 | `COMPLETED` | 55.63 | 287.9 | 673.8 | [R1/R2](../families/r1r2.md) |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | NVIDIA RTX A6000 | `COMPLETED` | 56.48 | 282.3 | 716.1 | [K3P](../families/k3p.md) |

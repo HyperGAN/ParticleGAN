@@ -82,7 +82,7 @@ flowchart LR
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
 | **Atlas** | `atlas-particle-normal-v4` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v5` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [Axiom](../families/axiom.md#cohort-cuda-42a130a78fc3) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | **FAIL** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
@@ -92,7 +92,7 @@ flowchart LR
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v15` | `BLOCKED` | infogan_anisotropic_modes: no registered public Forge adapter for this stretch host; decla | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 ## Reproduce This Experiment
 

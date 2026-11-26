@@ -473,6 +473,7 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
 
     # Build family metadata list (deduplicated by family_id, preferring CUDA primary cohort)
     seen_family: set[str] = set()
+    selected_candidate_by_family: dict[str, str] = {}
     for fam, cohort in _selected_cohorts(progress):
         fam_id = str(fam["id"])
         if fam_id in seen_family:
@@ -480,6 +481,8 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
         seen_family.add(fam_id)
         row = _selected_row(publication, cohort)
         candidate_id = str(row.get("candidate_id") or "")
+        if candidate_id:
+            selected_candidate_by_family[fam_id] = candidate_id
         cand_rev = str(row.get("candidate_revision") or "")
         bindings = row.get("bindings") if isinstance(row.get("bindings"), dict) else {}
         source_digest = str(bindings.get("source_digest") or "")
@@ -611,6 +614,22 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
                 })
         except Exception:
             pass
+
+    # Deduplicate scaling records per (task_id, family_id), preferring the currently selected candidate.
+    for tid, rows in list(scaling_by_task.items()):
+        by_family: dict[str, list[dict[str, Any]]] = defaultdict(list)
+        for r in rows:
+            by_family[str(r.get("family_id") or "")].append(r)
+        filtered: list[dict[str, Any]] = []
+        for fid, fam_rows in by_family.items():
+            sel_cid = selected_candidate_by_family.get(fid)
+            if sel_cid:
+                exact = [r for r in fam_rows if str(r.get("candidate_id") or "") == sel_cid]
+                if exact:
+                    filtered.append(exact[0])
+                    continue
+            filtered.extend(fam_rows)
+        scaling_by_task[tid] = filtered
 
     return per_task, scaling_by_task, hf_repo
 

@@ -590,11 +590,15 @@ def verify_source_commit_receipts(
     root: Path,
     source_commit: str,
     candidates: list[str],
+    *,
+    source_snapshot: Path | None = None,
+    cuda_model: str | None = None,
 ) -> dict[str, Any]:
-    """Verify hydrated receipts at `source_commit` match the exact Git tree at `source_commit`.
+    """Verify hydrated receipts at `source_commit` match the Git tree or verified snapshot.
 
     Fails fast before any write or regeneration if receipts were recorded on a
-    dirty working tree or if required candidates have no receipt at `source_commit`.
+    dirty working tree (without a cryptographically verified `--source-snapshot`)
+    or if required candidates have no receipt at `source_commit`.
     """
     root = Path(root).resolve()
     resolved_commit = _git_output(root, "rev-parse", "--verify", f"{source_commit}^{{commit}}")
@@ -610,6 +614,9 @@ def verify_source_commit_receipts(
         except Exception:
             continue
         req = envelope.get("request", envelope)
+        if cuda_model is not None and req.get("execution_backend") == "cuda":
+            if (req.get("compute_profiles") or {}).get("cuda", {}).get("model") != cuda_model:
+                continue
         src = req.get("source") if isinstance(req.get("source"), dict) else {}
         if src.get("origin_commit") != resolved_commit:
             continue
@@ -627,6 +634,36 @@ def verify_source_commit_receipts(
             f"No hydrated receipts at commit {resolved_commit[:12]} for candidate(s): "
             f"{', '.join(missing)}. Run a clean-commit Forge study from {resolved_commit[:12]} first."
         )
+
+    if source_snapshot is not None:
+        snap_dir = source_snapshot if source_snapshot.is_absolute() else (root / source_snapshot)
+        snap_dir = snap_dir.resolve()
+        if not snap_dir.is_dir():
+            raise ValueError(f"Source snapshot directory does not exist: {snap_dir}")
+        snap_mismatches: list[str] = []
+        for digest, files in sorted(manifests.items()):
+            for rel_path, expected_sha in sorted(files.items()):
+                target = snap_dir / rel_path
+                if not target.is_file():
+                    snap_mismatches.append(f"{rel_path} (missing in snapshot)")
+                    continue
+                actual_sha = _sha256_file(target)
+                if actual_sha != expected_sha:
+                    snap_mismatches.append(
+                        f"{rel_path} (receipt {expected_sha[:10]} != snapshot {actual_sha[:10]})"
+                    )
+        if snap_mismatches:
+            preview = "; ".join(snap_mismatches[:5])
+            extra = f" (+{len(snap_mismatches) - 5} more)" if len(snap_mismatches) > 5 else ""
+            raise ValueError(
+                f"Source snapshot {snap_dir} does not match recorded receipt manifest: {preview}{extra}"
+            )
+        return {
+            "source_commit": resolved_commit,
+            "source_snapshot": str(snap_dir),
+            "candidates": {cid: sorted(aids) for cid, aids in matched_candidates.items()},
+            "verified_manifests": len(manifests),
+        }
 
     mismatches: list[str] = []
     for digest, files in sorted(manifests.items()):
@@ -652,7 +689,8 @@ def verify_source_commit_receipts(
         raise ValueError(
             f"Receipts recorded at {resolved_commit[:12]} do not match the clean Git tree "
             f"(likely recorded on a dirty working tree): {preview}{extra}. "
-            "Re-run the study from a clean committed checkout before promoting."
+            "Pass a cryptographically verified --source-snapshot (and --study-commit) or "
+            "re-run from a clean committed checkout."
         )
 
     return {
@@ -713,14 +751,23 @@ def promote_families(
     reasons: dict[str, str] | None = None,
     keep_canonical: bool = False,
     dry_run: bool = False,
+    source_snapshot: Path | None = None,
+    study_commit: str | None = None,
+    cuda_model: str | None = None,
 ) -> dict[str, Any]:
-    """Verify clean-commit receipts, register the snapshot, and update `family-current-v1.json`."""
+    """Verify receipts, register the frozen-source snapshot, and update `family-current-v1.json`."""
     from experiments.forge.trainer_families import family_row_pin
 
     root = Path(root).resolve()
     reasons = reasons or {}
     candidates = sorted(set(family_map.values()))
-    preflight = verify_source_commit_receipts(root, source_commit, candidates)
+    preflight = verify_source_commit_receipts(
+        root,
+        source_commit,
+        candidates,
+        source_snapshot=source_snapshot,
+        cuda_model=cuda_model,
+    )
     resolved_commit = preflight["source_commit"]
 
     reg_path = root / "configs/forge/trainer-families.json"
@@ -729,6 +776,14 @@ def promote_families(
     for fam_id in family_map:
         if fam_id not in families_by_id:
             raise ValueError(f"Unknown trainer family in configs/forge/trainer-families.json: {fam_id}")
+
+    extra_regen_args: list[str] = []
+    if source_snapshot is not None:
+        extra_regen_args.extend(["--source-snapshot", str(source_snapshot)])
+    if study_commit is not None:
+        extra_regen_args.extend(["--study-commit", str(study_commit)])
+    if cuda_model is not None:
+        extra_regen_args.extend(["--cuda-model", str(cuda_model)])
 
     # Step 1: Preview candidate rows into a temporary prefix (read-only on repo files).
     with tempfile.TemporaryDirectory(prefix="pg-promote-") as tmp:
@@ -744,6 +799,7 @@ def promote_families(
             comparison_policy,
             "--output-prefix",
             str(preview_prefix),
+            *extra_regen_args,
         ]
         for cid in candidates:
             preview_cmd.extend(["--candidate", cid])
@@ -848,6 +904,7 @@ def promote_families(
         "cuda",
         "--comparison-policy",
         comparison_policy,
+        *extra_regen_args,
     ]
     for cid in candidates:
         register_cmd.extend(["--candidate", cid])
@@ -898,8 +955,8 @@ def build_sync_steps(
         steps.append(
             {
                 "name": "forge_compile",
-                "description": "Rebuild compiled experiment memory and telemetry summaries",
-                "cmd": [py, "-m", "experiments.forge", "compile"],
+                "description": "Rebuild compiled experiment memory summaries (preserving published qualifications)",
+                "cmd": [py, "-m", "experiments.forge", "compile", "--summaries-only"],
             }
         )
 
@@ -1436,8 +1493,11 @@ def build_parser() -> argparse.ArgumentParser:
     en.add_argument("--note", default=None, help="Optional prefix for cohort_note")
     en.add_argument("--dry-run", action="store_true", help="Check GPU state and print plan without running")
 
-    pr = sub.add_parser("promote", help="Clean-commit family promotion in family-current-v1.json")
-    pr.add_argument("--source-commit", required=True, help="Exact clean Git commit SHA of executed receipts")
+    pr = sub.add_parser("promote", help="Promote verified family cohorts in family-current-v1.json")
+    pr.add_argument("--source-commit", required=True, help="Exact Git origin commit SHA recorded on executed receipts")
+    pr.add_argument("--source-snapshot", type=Path, default=None, help="Optional verified content-addressed snapshot directory (runs/forge/snapshots/<digest>)")
+    pr.add_argument("--study-commit", default=None, help="Optional Git commit holding committed study declarations (defaults to --source-commit)")
+    pr.add_argument("--cuda-model", default=None, help="Optional exact CUDA GPU model filter (e.g. 'NVIDIA RTX A6000')")
     pr.add_argument(
         "--family",
         dest="families",
@@ -1590,6 +1650,9 @@ def main(argv: list[str] | None = None) -> int:
             reasons=reason_map,
             keep_canonical=args.keep_canonical,
             dry_run=args.dry_run,
+            source_snapshot=args.source_snapshot,
+            study_commit=args.study_commit,
+            cuda_model=args.cuda_model,
         )
         print(json.dumps(result, indent=2, sort_keys=True))
         return 0

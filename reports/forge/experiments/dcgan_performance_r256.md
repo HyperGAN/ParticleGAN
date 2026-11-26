@@ -77,8 +77,8 @@ flowchart LR
 
 | Family | Candidate | Device | Status | Median ms/step | Images/s | Peak Allocated MiB | Family Report |
 | --- | --- | --- | :---: | ---: | ---: | ---: | --- |
-| **Axiom** | `axiom-v4` | NVIDIA RTX A6000 | **COMPLETE** | 34.86 | 456.3 | 805.8 | [Axiom](../families/axiom.md) |
-| **Unified** | `unified-v11` | NVIDIA RTX A6000 | `COMPLETED` | 90.24 | 177.2 | 1372.6 | [Unified](../families/unified.md) |
+| **Axiom** | `axiom-v5` | NVIDIA RTX A6000 | **COMPLETE** | 34.39 | 463.8 | 877.9 | [Axiom](../families/axiom.md) |
+| **Unified** | `unified-v15` | NVIDIA RTX A6000 | **COMPLETE** | 42.81 | 372.7 | 1147.6 | [Unified](../families/unified.md) |
 | **EMPF** | `empf-v8` | NVIDIA RTX A6000 | `COMPLETED` | 129.72 | 123.4 | 1435.4 | [EMPF](../families/empf.md) |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | NVIDIA RTX A6000 | `COMPLETED` | 252.38 | 63.4 | 2307.1 | [GAN v3 release 0.7](../families/release07-gan-v3.md) |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | NVIDIA RTX A6000 | `COMPLETED` | 253.88 | 63.0 | 2264.6 | [R1/R2](../families/r1r2.md) |

@@ -574,21 +574,20 @@ def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualificati
     assert family_reports.display_task_status({"status": "FAIL"}, diag) == "FAIL"
     assert family_reports.display_task_status({"status": "UNKNOWN"}, None) == "UNKNOWN"
 
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-26T00:00:00Z")
     lb = exports["leaderboard_json"]
     axiom_fam = next(f for f in lb["families"] if f["id"] == "axiom")
     # Strict qualification & full-suite pass counts are NEVER inflated by diagnostic passes!
-    assert axiom_fam["qualified_tier"] == 1
-    assert axiom_fam["full_suite"]["pass"] == 39
+    assert axiom_fam["candidate_id"] == "axiom-v5"
+    assert axiom_fam["qualified_tier"] == 2
+    assert axiom_fam["full_suite"]["pass"] == 45
 
     axiom_tasks = {t["task_id"]: t for t in lb["tasks"] if t["family_id"] == "axiom"}
     for tid in (
         "grid100_14k",
         "rotated100_14k",
         "staggered100_14k",
-        "target_shift_recovery",
-        "zero_tanh_rail_escape",
-        "bytegan_bigan_dictionary",
+        "grid100_mlp16",
         "grid100_res16_scaled_tanh",
     ):
         cell = axiom_tasks[tid]
@@ -598,12 +597,20 @@ def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualificati
         assert cell["diagnostic_pass"]["qualification_reuse"] is False
         assert cell["diagnostic_pass"]["gate_status"] == "PASS"
 
+    # Unified-v15 Tier-3/4 multi-view passes also surface as non-qualifying DIAG_PASS.
+    unified_tasks = {t["task_id"]: t for t in lb["tasks"] if t["family_id"] == "unified"}
+    for tid in ("ring_extension", "zero_tanh_rail_escape", "bytegan_bigan_dictionary", "grid100_res16_tanh"):
+        cell = unified_tasks[tid]
+        assert cell["status"] == "DIAG_PASS", tid
+        assert cell["recorded_status"] == "UNKNOWN", tid
+        assert cell["diagnostic_pass"]["qualification_input"] is False
+
     # Truly unmeasured tasks with no passing diagnostic receipt stay NOT_RUN/not_run.
     assert axiom_tasks["pacgan8_grid100"]["status"] != "DIAG_PASS"
 
 
 # ---------------------------------------------------------------------------
-# 8. scaling-performance.json axiom-v4 backfill & provisional Law 5 rendering
+# 8. scaling-performance.json backfill & provisional Law 5 rendering
 # ---------------------------------------------------------------------------
 
 def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_everywhere():
@@ -617,12 +624,11 @@ def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_ever
     assert manifest["input_digest"] == stable_hash(check)
 
     measurements = manifest.get("measurements")
-    assert isinstance(measurements, list) and len(measurements) == 6
+    assert isinstance(measurements, list) and len(measurements) == 18
     readout = read_json(ROOT / "reports/forge/records/readout-506977051c754e8f9694b117.json")
     readout_sha = file_hash(ROOT / "reports/forge/records/readout-506977051c754e8f9694b117.json")
 
-    by_task = {m["task_id"]: m for m in measurements}
-    assert set(by_task) == {
+    expected_tasks = {
         "dcgan_performance_r32",
         "dcgan_performance_r64",
         "dcgan_performance_b64",
@@ -630,39 +636,52 @@ def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_ever
         "dcgan_performance_r128",
         "dcgan_performance_r256",
     }
-    for m in measurements:
+    ax4_rows = [m for m in measurements if m["candidate_id"] == "axiom-v4"]
+    ax5_rows = [m for m in measurements if m["candidate_id"] == "axiom-v5"]
+    u15_rows = [m for m in measurements if m["candidate_id"] == "unified-v15"]
+    assert {m["task_id"] for m in ax4_rows} == expected_tasks
+    assert {m["task_id"] for m in ax5_rows} == expected_tasks
+    assert {m["task_id"] for m in u15_rows} == expected_tasks
+
+    for m in ax4_rows:
         assert m["trainer_family"] == "axiom"
-        assert m["candidate_id"] == "axiom-v4"
         assert m["contended"] is False
         assert m["producer_study_id"] == "axiom-v4-dcgan-perf-study"
         assert m["source_readout_sha256"] == readout_sha
         assert m["qualification_input"] is False
 
-    # Verify exact solo idle GPU 1 r256 median_ms (NOT contended 47.17 ms!).
-    solo_r256 = next(
+    # Verify exact historical solo idle GPU 1 r256 median_ms for axiom-v4 is preserved.
+    solo_r256_v4 = next(
         tr["metrics"]["update_ms_median"]
         for tr in readout["task_results"]
         if tr["task_id"] == "dcgan_performance_r256" and tr["cost"]["energy"]["contended"] is False
     )
-    assert by_task["dcgan_performance_r256"]["median_ms"] == pytest.approx(solo_r256, rel=1e-12)
-    assert by_task["dcgan_performance_r256"]["median_ms"] == pytest.approx(34.861953, rel=1e-5)
+    ax4_r256 = next(m for m in ax4_rows if m["task_id"] == "dcgan_performance_r256")
+    assert ax4_r256["median_ms"] == pytest.approx(solo_r256_v4, rel=1e-12)
+    assert ax4_r256["median_ms"] == pytest.approx(34.861953, rel=1e-5)
 
-    # Surfaces across family_reports, hf_publish, experiment_docs, and build_docs_site!
+    ax5_r256 = next(m for m in ax5_rows if m["task_id"] == "dcgan_performance_r256")
+    u15_r256 = next(m for m in u15_rows if m["task_id"] == "dcgan_performance_r256")
+    assert ax5_r256["median_ms"] == pytest.approx(34.391467, rel=1e-5)
+    assert u15_r256["median_ms"] == pytest.approx(42.812907, rel=1e-5)
+
+    # Surfaces across family_reports, hf_publish, and experiment_docs for promoted axiom-v5 & unified-v15!
     inv = read_json(ROOT / "reports/forge/technique-inventory.json")
     ax_row = next(r for r in inv["rows"] if r.get("trainer_family") == "axiom")
-    r256_ms, r256_src = family_reports._r256_measurement(inv, ax_row, root=ROOT)
-    assert r256_ms == pytest.approx(solo_r256, rel=1e-12)
-    assert r256_src == "reports/forge/records/readout-506977051c754e8f9694b117.json"
+    r256_ms, _ = family_reports._r256_measurement(inv, ax_row, root=ROOT)
+    assert r256_ms == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
 
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-26T00:00:00Z")
     axiom_fam = next(f for f in exports["leaderboard_json"]["families"] if f["id"] == "axiom")
-    assert axiom_fam["scaling_r256_ms"] == pytest.approx(solo_r256, rel=1e-12)
+    unified_fam = next(f for f in exports["leaderboard_json"]["families"] if f["id"] == "unified")
+    assert axiom_fam["scaling_r256_ms"] == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
+    assert unified_fam["scaling_r256_ms"] == pytest.approx(u15_r256["median_ms"], rel=1e-12)
 
     catalog = experiment_docs.build_experiment_catalog(ROOT)
     r256_scaling = catalog["experiments"]["dcgan_performance_r256"]["scaling_results"]
     ax_scaling = next(r for r in r256_scaling if r["family_id"] == "axiom")
-    assert ax_scaling["candidate_id"] == "axiom-v4"
-    assert ax_scaling["step_ms_median"] == pytest.approx(solo_r256, rel=1e-12)
+    assert ax_scaling["candidate_id"] == "axiom-v5"
+    assert ax_scaling["step_ms_median"] == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
 
 
 def test_provisional_law5_handled_cleanly_in_hf_publish_and_experiment_docs():
