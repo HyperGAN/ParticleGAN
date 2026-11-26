@@ -740,15 +740,18 @@ def test_live_repository_forge_readouts_are_current_and_source_clean():
     assert report["status"] == "CURRENT", json.dumps(report, indent=2, sort_keys=True)
     assert report["stale_stages"] == []
     measured = _assert_current_source_scope(report, ROOT)
-    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 66
-    assert report["stages"]["published_scaling_performance"]["missing_cells"] == 0
+    assert report["stages"]["published_scaling_performance"]["complete_cells"] == 60
+    assert report["stages"]["published_scaling_performance"]["published_missing_cells"] == 0
+    assert report["stages"]["published_scaling_performance"]["missing_cells"] == 12
+    assert report["stages"]["published_scaling_performance"]["unmeasured_new_families"] == ["axiom", "unified"]
     assert report["stages"]["published_scaling_performance"]["unavailable_cells"] == 0
     assert report["stages"]["published_scaling_performance"]["table_cohorts"] == 1
     assert report["stages"]["retained_diagnostic_integrity"]["pending"] == 0
     assert report["stages"]["retained_diagnostic_integrity"]["superseded_record_count"] == 0
     assert report["stages"]["retained_diagnostic_integrity"]["missing_by_family"] == {}
     assert report["stages"]["registered_selected_publications"]["current"] is True
-    assert report["stages"]["compiled_reports"]["unknown_performance_rows"] == 0
+    assert report["stages"]["compiled_reports"]["unexpected_unknown_performance_rows"] == 0
+    assert report["stages"]["compiled_reports"]["unknown_performance_rows"] == 6
     assert report["stages"]["compiled_reports"]["selected_diagnostic_rows_present"] is True
     assert report["stages"]["compiled_reports"]["clean_checkout_safe"] is True
     assert rfr.main(["--root", str(ROOT), "--check", "--reports-only"]) == rfr.CURRENT_EXIT
@@ -891,6 +894,25 @@ def test_compiled_reports_dynamic_diagnostics_unregistered_selection_and_markdow
             for cohort in fam.get("cohorts", []):
                 if cohort.get("candidate_id") == "atlas-particle-normal-v4":
                     cohort["candidate_id"] = "atlas-particle-normal-v5"
+                if cohort.get("anchor") == fam.get("current_cohort_anchor"):
+                    tasks_map = cohort.get("tasks", {})
+                    has_unrecorded = any(
+                        isinstance(info.get("run_attempt"), dict)
+                        and info["run_attempt"].get("attempted")
+                        and info.get("status") not in {"PASS", "FAIL"}
+                        for info in tasks_map.values()
+                    )
+                    if not has_unrecorded:
+                        # Exercise dynamic diagnostic-heading generation even when the
+                        # refreshed live cohort has no unrecorded run_attempt entries.
+                        for name, info in tasks_map.items():
+                            if info.get("status") not in {"PASS", "FAIL"}:
+                                info["run_attempt"] = {"attempted": True, "status": "PASS"}
+                                break
+                        for extra_name in ("grid100_res16_tanh", "precision_gaussian_mxfp8"):
+                            if extra_name in tasks_map and tasks_map[extra_name].get("status") not in {"PASS", "FAIL"}:
+                                tasks_map[extra_name]["run_attempt"] = {"attempted": True, "status": "PASS"}
+                                break
 
     phrases = rfr._expected_selected_diagnostic_phrases(ROOT, mutated_inv)
     assert "Selected recipe 1-for-1 baseline-35 diagnostics (atlas-particle-normal-v5); seed 0" in phrases
@@ -1515,9 +1537,10 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     _assert_current_source_scope(status, ROOT)
 
     perf = status["stages"]["published_scaling_performance"]
-    assert perf["complete_cells"] == 66
+    assert perf["complete_cells"] == 60
     assert perf["contended_cells"] == 0
-    assert perf["unpaired_tasks"] == []
+    assert perf["published_unpaired_tasks"] == []
+    assert perf["unmeasured_new_families"] == ["axiom", "unified"]
     assert perf["table_cohorts"] == 1
 
     comp = status["stages"]["compiled_reports"]
@@ -1529,7 +1552,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     perf_block = inv_md.split("<!-- Forge scaling performance: start -->", 1)[1].split(
         "<!-- Forge scaling performance: end -->", 1
     )[0]
-    assert perf_block.count("| clear |") == 66
+    assert perf_block.count("| clear |") == 60
+    assert perf_block.count("| UNKNOWN |") == 6
     assert "| contended |" not in perf_block
 
     from experiments.forge.family_reports import _selected_cohorts, _selected_row
@@ -1546,7 +1570,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         ("bcap-pure", "BCAP", "recipe-prior-refactor-bcap-pure-v1"),
         ("empf", "EMPF", "empf-v8"),
         ("rhbi", "RHBI", "rhbi-v12"),
-        ("unified", "Unified", "unified-v11"),
+        ("unified", "Unified", "unified-v15"),
+        ("axiom", "Axiom", "axiom-v5"),
         ("e22", "E22", "e22"),
     )
     assert set(selected) == {family for family, _, _ in expected_families}
@@ -1573,7 +1598,8 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
         "| [BCAP](families/bcap-pure.md) | [`recipe-prior-refactor-bcap-pure-v1`]",
         "| [EMPF](families/empf.md) | [`empf-v8`]",
         "| [RHBI](families/rhbi.md) | [`rhbi-v12`]",
-        "| [Unified](families/unified.md) | [`unified-v11`]",
+        "| [Unified](families/unified.md) | [`unified-v15`]",
+        "| [Axiom](families/axiom.md) | [`axiom-v5`]",
         "| [E22](families/e22.md) | [`e22`]",
     )
 
@@ -1622,43 +1648,57 @@ def test_live_repository_forge_readouts_are_current_uncontended_and_surface_tier
     assert corrected > 0
     assert cov_doc == coverage_before
 
-    from experiments.forge.family_reports import full_suite_tasks
+    from experiments.forge.family_reports import _diagnostic_passes_for_row, display_task_status, full_suite_tasks
+    from experiments.forge.views import diagnostic_pass_cache
     required_tasks = set(full_suite_tasks(publication["family_progress"]))
-    for family_id, original_cohort in original_cohorts.items():
-        family = selected[family_id][0]
-        fam_md = (ROOT / family["page"]).read_text()
-        view_table_header = (
-            "| View | Tier 1 tests | Tier 2 tests | Tier 3 tests | Tier 4 tests | Total distinct tests | Held (measured, not counted) |"
-        )
-        current_bench = fam_md.split(view_table_header, 1)[1].split("\n## adaptation\n", 1)[0]
-        seen = set()
-        status_index = None
-        for line in current_bench.splitlines():
-            if line.startswith("| ") and not line.startswith(("| [", "| ---")):
-                headers = [cell.strip() for cell in line.split("|")[1:-1]]
-                status_index = headers.index("Recorded result") if "Recorded result" in headers else None
-            if not line.startswith("| ["):
-                continue
-            task_id = line.split("](", 1)[0].removeprefix("| [")
-            if task_id not in original_cohort["tasks"]:
-                continue
-            cells = [cell.strip() for cell in line.split("|")[1:-1]]
-            assert status_index is not None and len(cells) > status_index
-            assert cells[status_index] == original_cohort["tasks"][task_id]["status"], (family_id, task_id, line)
-            seen.add(task_id)
-        # Gaps and operational outcomes must remain visible, never filled with
-        # diagnostic grades to satisfy an all-binary/no-unknown display rule.
-        assert required_tasks <= seen, (family_id, sorted(required_tasks - seen))
-        for task_id in ("precision_gaussian_mxfp8", "precision_gaussian_nvfp4"):
-            if family_id not in {"empf", "rhbi", "unified"}:
-                assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
-            else:
-                assert original_cohort["tasks"][task_id]["status"] in {"PASS", "FAIL"}
-            assert task_id in seen
-        if family_id == "empf":
-            for task_id in ("model_ddgan_bimodal_chain", "model_ae_ddgan_bimodal_chain"):
-                assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+    with diagnostic_pass_cache(ROOT):
+        for family_id, original_cohort in original_cohorts.items():
+            family, sel_row = selected[family_id]
+            diag_passes = _diagnostic_passes_for_row(ROOT, sel_row)
+            fam_md = (ROOT / family["page"]).read_text()
+            view_table_header = (
+                "| View | Tier 1 tests | Tier 2 tests | Tier 3 tests | Tier 4 tests | Total distinct tests | Held (measured, not counted) |"
+            )
+            current_bench = fam_md.split(view_table_header, 1)[1].split("\n## adaptation\n", 1)[0]
+            seen = set()
+            status_index = None
+            raw_status_table = False
+            for line in current_bench.splitlines():
+                if line.startswith("| ") and not line.startswith(("| [", "| ---")):
+                    headers = [cell.strip() for cell in line.split("|")[1:-1]]
+                    status_index = headers.index("Recorded result") if "Recorded result" in headers else None
+                    # Held-test and removed-test summary tables intentionally show raw recorded
+                    # selected-cohort status (family_reports.py), not DIAG_PASS overlays.
+                    raw_status_table = "Reason" in headers
+                if not line.startswith("| ["):
+                    continue
+                task_id = line.split("](", 1)[0].removeprefix("| [")
+                if task_id not in original_cohort["tasks"]:
+                    continue
+                cells = [cell.strip() for cell in line.split("|")[1:-1]]
+                assert status_index is not None and len(cells) > status_index
+                expected_display = (
+                    original_cohort["tasks"][task_id]["status"]
+                    if raw_status_table
+                    else display_task_status(
+                        original_cohort["tasks"][task_id], diag_passes.get(task_id)
+                    )
+                )
+                assert cells[status_index] == expected_display, (family_id, task_id, line)
+                seen.add(task_id)
+            # Gaps and operational outcomes must remain visible, never filled with
+            # diagnostic grades to satisfy an all-binary/no-unknown display rule.
+            assert required_tasks <= seen, (family_id, sorted(required_tasks - seen))
+            for task_id in ("precision_gaussian_mxfp8", "precision_gaussian_nvfp4"):
+                if family_id in {"bcap-pure", "bispf", "e22"}:
+                    assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+                else:
+                    assert original_cohort["tasks"][task_id]["status"] in {"PASS", "FAIL"}
                 assert task_id in seen
+            if family_id == "empf":
+                for task_id in ("model_ddgan_bimodal_chain", "model_ae_ddgan_bimodal_chain"):
+                    assert original_cohort["tasks"][task_id]["status"] == "UNKNOWN"
+                    assert task_id in seen
 
 
 
@@ -1810,12 +1850,14 @@ def test_evict_superseded_scaling_queue_jobs_matches_real_queue_schema_and_prune
 
 
 def test_republish_registered_inventory_end_to_end_recovers_missing_and_unverified_inventory(tmp_path: Path):
+    import os
     import re
     import shutil
     import subprocess
+    import uuid
     from reports.forge import regenerate_technique_inventory as rti
 
-    wt = tmp_path / "wt"
+    wt = tmp_path / f"wt-repub-{os.getpid()}-{uuid.uuid4().hex[:6]}"
     subprocess.run(
         ["git", "-C", str(ROOT), "worktree", "add", "--detach", str(wt), "HEAD"],
         check=True,
@@ -1997,6 +2039,7 @@ def _restore_recorded_source_cohort(root: Path) -> str:
             "configs/forge/trainer-families.json",
             "configs/forge/selections/family-current-v1.json",
             "reports/forge/technique-inventory.json",
+            "reports/forge/leaderboards",
         ],
         cwd=ROOT,
     )
@@ -2057,13 +2100,16 @@ def _bind_readout_software_fixture(root: Path, source_digest: str) -> None:
 
 
 def test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates_cache_on_task_change(
-    tmp_path: Path,
+    tmp_path: Path, monkeypatch
 ):
+    import os
     import shutil
     import subprocess
+    import uuid
+    from experiments.forge import sources
     from reports.forge import regenerate_technique_inventory as rti
 
-    wt = tmp_path / "wt-tier1"
+    wt = tmp_path / f"wt-tier1-{os.getpid()}-{uuid.uuid4().hex[:6]}"
     subprocess.run(
         ["git", "-C", str(ROOT), "worktree", "add", "--detach", str(wt), "HEAD"],
         check=True,
@@ -2072,6 +2118,8 @@ def test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates
     )
     try:
         _sync_tracked_worktree_edits(ROOT, wt)
+        # Replay the archived pre-isolation source cohort under its original source-inclusion contract.
+        monkeypatch.setattr(sources, "NON_SCIENTIFIC_SOURCE_PATHS", frozenset())
         _restore_recorded_source_cohort(wt)
         live_inv = read_json(wt / "reports/forge/technique-inventory.json")
         atlas_req = rti._resolve_idea_for_readout_check(
@@ -2147,7 +2195,10 @@ def test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates
         for rec_p in sorted((wt / "reports/forge/records").glob("readout-*.json")):
             if rec_p.name == "readout-tier2-only.json":
                 continue
-            rec_doc = read_json(rec_p)
+            raw_bytes = rec_p.read_bytes()
+            if b"atlas-particle-normal-v4" not in raw_bytes:
+                continue
+            rec_doc = json.loads(raw_bytes.decode("utf-8"))
             if rec_doc.get("candidate_id") == "atlas-particle-normal-v4":
                 rec_doc["candidate_revision"] = new_atlas_req["candidate_revision"]
                 rec_doc["source"] = {"digest": new_atlas_req["source"]["digest"]}
@@ -2166,26 +2217,34 @@ def test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates
         # Even after all synthetic runnable families have matching records,
         # preflight and dependency blockers retain their operational statuses.
         selected_cids = {c["candidate_id"] for c in rfr.current_family_candidates(wt)}
+        fam_reqs: dict[str, tuple[dict, dict]] = {}
+        with rfr.planning.resolution_cache(wt):
+            for cid in sorted(selected_cids):
+                fam_req = rti._resolve_idea_for_readout_check(
+                    wt,
+                    cid,
+                    view_id="discriminator_stability",
+                    through_tier=1,
+                    cuda_model="NVIDIA RTX A6000",
+                    planning_mod=rfr.planning,
+                )
+                fam_compat = {
+                    tid: job["compatibility_key"]
+                    for job in fam_req.get("jobs", [])
+                    for tid in job.get("task_ids", [job["task_id"]])
+                }
+                fam_reqs[cid] = (fam_req, fam_compat)
         for rec_p in sorted((wt / "reports/forge/records").glob("readout-*.json")):
             if rec_p.name == "readout-tier2-only.json":
                 continue
-            rec_doc = read_json(rec_p)
-            cid = rec_doc.get("candidate_id")
-            if cid not in selected_cids:
+            raw_bytes = rec_p.read_bytes()
+            if not any(cid.encode("utf-8") in raw_bytes for cid in selected_cids):
                 continue
-            fam_req = rti._resolve_idea_for_readout_check(
-                wt,
-                cid,
-                view_id="discriminator_stability",
-                through_tier=1,
-                cuda_model="NVIDIA RTX A6000",
-                planning_mod=rfr.planning,
-            )
-            fam_compat = {
-                tid: job["compatibility_key"]
-                for job in fam_req.get("jobs", [])
-                for tid in job.get("task_ids", [job["task_id"]])
-            }
+            rec_doc = json.loads(raw_bytes.decode("utf-8"))
+            cid = rec_doc.get("candidate_id")
+            if cid not in fam_reqs:
+                continue
+            fam_req, fam_compat = fam_reqs[cid]
             rec_doc["candidate_revision"] = fam_req["candidate_revision"]
             rec_doc["source"] = {"digest": fam_req["source"]["digest"]}
             rec_doc["task_results"] = [
@@ -2221,13 +2280,15 @@ def test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates
 def test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidate_task_edits(
     tmp_path: Path, monkeypatch
 ):
+    import os
     import shutil
     import subprocess
+    import uuid
     from experiments.forge import planning, sources
     from experiments.forge.family_reports import generated_pages
     from reports.forge import regenerate_technique_inventory as rti
 
-    wt = tmp_path / "wt-clean-cpu-ci"
+    wt = tmp_path / f"wt-clean-cpu-ci-{os.getpid()}-{uuid.uuid4().hex[:6]}"
     subprocess.run(
         ["git", "-C", str(ROOT), "worktree", "add", "--detach", str(wt), "HEAD"],
         check=True,
@@ -2306,10 +2367,12 @@ def test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidat
         assert status_cpu["stale_stages"] == []
         _assert_current_source_scope(status_cpu, wt)
 
+        from experiments.forge.views import diagnostic_pass_cache
         wt_inv = read_json(wt / "reports/forge/technique-inventory.json")
-        pages = generated_pages(wt, wt_inv)
-        overview_path = wt / "reports/forge/technique-inventory.md"
-        pages[overview_path] = rti._current_markdown(wt_inv, wt, overview_path)
+        with planning.resolution_cache(wt), diagnostic_pass_cache(wt):
+            pages = generated_pages(wt, wt_inv)
+            overview_path = wt / "reports/forge/technique-inventory.md"
+            pages[overview_path] = rti._current_markdown(wt_inv, wt, overview_path)
         for page_path, expected_text in pages.items():
             assert page_path.read_text() == expected_text, page_path
 
@@ -2328,6 +2391,7 @@ def test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidat
 
         # The following task/runtime tamper controls use their exact recorded
         # source cohort, independently of the latest checkout tested above.
+        monkeypatch.setattr(sources, "NON_SCIENTIFIC_SOURCE_PATHS", frozenset())
         recorded_digest = _restore_recorded_source_cohort(wt)
         wt_inv = read_json(wt / "reports/forge/technique-inventory.json")
         # The complete old view remains incomplete: Atlas has no compatible

@@ -24,19 +24,45 @@ COMMITS = {
 }
 
 
+_FIXTURE_CACHE: dict[tuple[int, int, int], dict] = {}
+_VERIFIED_BYTES_CACHE: dict[tuple, bytes] = {}
+
+
+def _load_fixture_packet():
+    st = FIXTURE.stat()
+    key = (st.st_ino, st.st_mtime_ns, st.st_size)
+    packet = _FIXTURE_CACHE.get(key)
+    if packet is None:
+        packet = json.loads(FIXTURE.read_text())
+        assert packet["schema"] == "forge_archived_software_contract_fixtures_v1"
+        assert packet["qualification_input"] is False
+        _FIXTURE_CACHE.clear()
+        _FIXTURE_CACHE[key] = packet
+    return key, packet
+
+
 def archived_contract_bytes(scope, relative):
-    packet = json.loads(FIXTURE.read_text())
-    assert packet["schema"] == "forge_archived_software_contract_fixtures_v1"
-    assert packet["qualification_input"] is False
+    fkey, packet = _load_fixture_packet()
     cohort = packet[scope]
     assert cohort["source_commit"] == COMMITS[scope]
     record = cohort["files"][relative]
-    # Unchanged committed declarations need only their original byte pins. Any
-    # later edit fails here and requires explicitly archiving the old bytes.
-    data = ((ROOT / relative).read_bytes() if record.get("repository_bytes") is True
-            else record["text"].encode("utf-8"))
+    if record.get("repository_bytes") is True:
+        src = ROOT / relative
+        st = src.stat()
+        bkey = (fkey, scope, relative, st.st_ino, st.st_mtime_ns, st.st_size)
+        cached = _VERIFIED_BYTES_CACHE.get(bkey)
+        if cached is not None:
+            return cached
+        data = src.read_bytes()
+    else:
+        bkey = (fkey, scope, relative)
+        cached = _VERIFIED_BYTES_CACHE.get(bkey)
+        if cached is not None:
+            return cached
+        data = record["text"].encode("utf-8")
     assert hashlib.sha256(data).hexdigest() == record["sha256"]
     assert hashlib.sha1(b"blob " + str(len(data)).encode() + b"\0" + data).hexdigest() == record["git_blob"]
+    _VERIFIED_BYTES_CACHE[bkey] = data
     return data
 
 
@@ -44,7 +70,7 @@ def restore_archived_contracts(root, scope):
     """Restore only private fixture bytes, with an explicit immutable origin."""
     root = Path(root).resolve()
     assert root != ROOT.resolve()
-    packet = json.loads(FIXTURE.read_text())
+    _, packet = _load_fixture_packet()
     for relative in packet[scope]["files"]:
         path = root / relative
         assert path.resolve().is_relative_to(root)

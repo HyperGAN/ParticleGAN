@@ -6,6 +6,7 @@ pass from an administrative status or a successful process exit.
 from __future__ import annotations
 
 from contextlib import contextmanager
+from copy import deepcopy
 from datetime import datetime, timezone
 import fcntl
 import hashlib
@@ -47,6 +48,20 @@ def utc_now() -> str:
 
 def read_json(path: Path):
     return json.loads(Path(path).read_text())
+
+
+def clone_json(value):
+    """Fast exact deepcopy for JSON-shaped dicts/lists/primitives; falls back to deepcopy."""
+    t = type(value)
+    if t is dict:
+        return {k: clone_json(v) for k, v in value.items()}
+    if t is list:
+        return [clone_json(v) for v in value]
+    if t is str or t is int or t is float or t is bool or value is None:
+        return value
+    if t is tuple:
+        return tuple(clone_json(v) for v in value)
+    return deepcopy(value)
 
 
 def atomic_json(path: Path, value) -> None:

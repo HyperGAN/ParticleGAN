@@ -485,6 +485,20 @@ def select_family_rows(root: Path | str, rows: list[dict], catalogs: dict, *, vi
                        historical_rows: list[dict] | None = None,
                        selection_card: dict | None = None) -> dict:
     """Choose one current whole row per family; archived policies retain cohorts."""
+    from .planning import resolution_cache
+    with resolution_cache(Path(root)):
+        return _select_family_rows_inner(
+            root, rows, catalogs, view_id=view_id, policy_fingerprint=policy_fingerprint,
+            declarations=declarations, view_policy=view_policy, execution_backend=execution_backend,
+            historical_rows=historical_rows, selection_card=selection_card,
+        )
+
+
+def _select_family_rows_inner(root: Path | str, rows: list[dict], catalogs: dict, *, view_id: str,
+                              policy_fingerprint: str, declarations: dict | None = None,
+                              view_policy: dict | None = None, execution_backend: str | None = None,
+                              historical_rows: list[dict] | None = None,
+                              selection_card: dict | None = None) -> dict:
     if view_policy is not None and (view_policy.get("id") != view_id
                                     or stable_hash(view_policy) != policy_fingerprint):
         raise ValueError("explicit family-selection view differs from its recorded policy")

@@ -22,6 +22,7 @@ def task_preflight(task: dict, candidate: dict, protocol: dict, *, root: Path, t
             continue
         if observed != digest:
             blockers.append(f"{task['id']}: evaluator source changed; revise the task definition: {relative}")
+    context = None
     try:
         context = task_formulation_context(candidate, task, protocol, root=root)
         task["field_ownership"] = context.receipt()["field_ownership"]
@@ -30,7 +31,8 @@ def task_preflight(task: dict, candidate: dict, protocol: dict, *, root: Path, t
                         for cap in sorted(set(task["requires_capabilities"]) - available))
     except ValueError as error:
         blockers.extend(getattr(error, "blockers", [str(error)]))
-    blockers.extend(adapter_preflight(task, candidate, root=root))
+    reuse_ctx = context if (context is not None and (protocol is None or protocol.get("seed", 0) == 0)) else None
+    blockers.extend(adapter_preflight(task, candidate, root=root, _context=reuse_ctx))
     blockers.extend(task_blockers(task))
     if task["adapter"] == "native100_continuation":
         from .nativeprofiles import validate_native_continuation

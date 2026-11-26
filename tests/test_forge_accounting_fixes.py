@@ -497,9 +497,19 @@ def test_decision_contract_scopes_by_producer_study_and_prefers_uncontended():
 # 5. Pareto INCOMPLETE timeout exclusion
 # ---------------------------------------------------------------------------
 
-def test_pareto_occam_excludes_incomplete_timeouts_with_transparent_count(tmp_path):
+@pytest.fixture(scope="module")
+def _live_inventory_exports():
+    return hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+
+
+@pytest.fixture(scope="module")
+def _live_experiment_catalog():
+    return experiment_docs.build_experiment_catalog(ROOT)
+
+
+def test_pareto_occam_excludes_incomplete_timeouts_with_transparent_count(tmp_path, _live_inventory_exports):
     # Live repository axiom-v4 L4 benchmark excludes five_word_joint_smoke 900s timeout (13/15 + 1 timeout).
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+    exports = _live_inventory_exports
     ax_l4 = next(
         row for row in exports["energy_rows"]
         if row["candidate_id"] == "axiom-v4" and row["hardware_gpu"] == "NVIDIA L4"
@@ -528,7 +538,7 @@ def test_pareto_occam_excludes_incomplete_timeouts_with_transparent_count(tmp_pa
 # 6. 59-runnable vs 12-backlog fixed full-suite split
 # ---------------------------------------------------------------------------
 
-def test_fixed_full_suite_59_runnable_and_12_backlog_split(tmp_path):
+def test_fixed_full_suite_59_runnable_and_12_backlog_split(tmp_path, _live_inventory_exports):
     fixed = leaderboard_contract.load_fixed_test_list(ROOT)
     prev = leaderboard_contract.load_fixed_test_list(
         ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-23.json"
@@ -553,7 +563,7 @@ def test_fixed_full_suite_59_runnable_and_12_backlog_split(tmp_path):
     with pytest.raises(ValueError, match="malformed unimplemented_backlog"):
         leaderboard_contract.load_fixed_test_list(tmp_path, bad_rel)
 
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+    exports = _live_inventory_exports
     lb = exports["leaderboard_json"]
     assert lb["summary"]["full_suite_tests"] == 59
     assert lb["summary"]["unimplemented_backlog_tests"] == 12
@@ -566,7 +576,7 @@ def test_fixed_full_suite_59_runnable_and_12_backlog_split(tmp_path):
 # 7. Diagnostic PASS (DIAG_PASS) vs UNKNOWN distinction & strict qualified_tier
 # ---------------------------------------------------------------------------
 
-def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualification():
+def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualification(_live_inventory_exports):
     # Semantic control: recorded FAIL must NEVER become DIAG_PASS!
     diag = {"status": "DIAG_PASS", "gate_status": "PASS", "qualification_input": False}
     assert family_reports.display_task_status({"status": "UNKNOWN"}, diag) == "DIAG_PASS"
@@ -574,7 +584,7 @@ def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualificati
     assert family_reports.display_task_status({"status": "FAIL"}, diag) == "FAIL"
     assert family_reports.display_task_status({"status": "UNKNOWN"}, None) == "UNKNOWN"
 
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-26T00:00:00Z")
+    exports = _live_inventory_exports
     lb = exports["leaderboard_json"]
     axiom_fam = next(f for f in lb["families"] if f["id"] == "axiom")
     # Strict qualification & full-suite pass counts are NEVER inflated by diagnostic passes!
@@ -613,7 +623,9 @@ def test_diagnostic_pass_distinguished_from_unknown_without_changing_qualificati
 # 8. scaling-performance.json backfill & provisional Law 5 rendering
 # ---------------------------------------------------------------------------
 
-def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_everywhere():
+def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_everywhere(
+    _live_inventory_exports, _live_experiment_catalog
+):
     # Existing receipt-backed manifest validation still passes with all 66 records intact.
     loaded = scaling_publication.load_performance(ROOT)
     assert loaded is not None
@@ -671,28 +683,30 @@ def test_scaling_performance_backfill_matches_readout_50697705_and_surfaces_ever
     r256_ms, _ = family_reports._r256_measurement(inv, ax_row, root=ROOT)
     assert r256_ms == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
 
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-26T00:00:00Z")
+    exports = _live_inventory_exports
     axiom_fam = next(f for f in exports["leaderboard_json"]["families"] if f["id"] == "axiom")
     unified_fam = next(f for f in exports["leaderboard_json"]["families"] if f["id"] == "unified")
     assert axiom_fam["scaling_r256_ms"] == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
     assert unified_fam["scaling_r256_ms"] == pytest.approx(u15_r256["median_ms"], rel=1e-12)
 
-    catalog = experiment_docs.build_experiment_catalog(ROOT)
+    catalog = _live_experiment_catalog
     r256_scaling = catalog["experiments"]["dcgan_performance_r256"]["scaling_results"]
     ax_scaling = next(r for r in r256_scaling if r["family_id"] == "axiom")
     assert ax_scaling["candidate_id"] == "axiom-v5"
     assert ax_scaling["step_ms_median"] == pytest.approx(ax5_r256["median_ms"], rel=1e-12)
 
 
-def test_provisional_law5_handled_cleanly_in_hf_publish_and_experiment_docs():
-    exports = hf_publish.build_inventory_exports(ROOT, generated_at="2026-11-25T00:00:00Z")
+def test_provisional_law5_handled_cleanly_in_hf_publish_and_experiment_docs(
+    _live_inventory_exports, _live_experiment_catalog
+):
+    exports = _live_inventory_exports
     lb = exports["leaderboard_json"]
     assert lb["laws_meta"]["active_law_count"] >= 4
     assert lb["laws_meta"]["provisional_law_count"] >= 1
     law5 = next(law for law in lb["laws"] if law["id"] == "law5")
     assert law5["status"] == "provisional"
 
-    catalog = experiment_docs.build_experiment_catalog(ROOT)
+    catalog = _live_experiment_catalog
     hub_md = experiment_docs.render_laws_hub(ROOT, catalog)
     assert "| **[Law 5](#law5)** | `provisional` |" in hub_md
     assert "## Law 5 — Observation & Statistical-Metric Identifiability" in hub_md

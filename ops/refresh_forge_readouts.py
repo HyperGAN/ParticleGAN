@@ -444,7 +444,32 @@ def check_scaling_performance(root: Path) -> dict[str, Any]:
         if result["identity"]["source"].get("files_sha256") != expected_files_sha:
             stale_source_cells.append(cell)
 
+    reg_id = (evidence.get("export") or {}).get("registration")
+    export_selections = (evidence.get("export") or {}).get("family_selections") or []
+    published_perf_pairs = {
+        (item["trainer_family"], item["candidate_id"])
+        for item in export_selections
+        if isinstance(item, dict) and item.get("trainer_family") and item.get("candidate_id")
+    } & expected_perf_pairs
+    published_reg_pairs = {
+        (item["registration_family"], item["candidate_id"])
+        for item in export_selections
+        if isinstance(item, dict) and item.get("registration_family") and item.get("candidate_id")
+    } & expected_reg_pairs
+    unmeasured_new_families = (
+        sorted(
+            item["family"]
+            for item in expected_choices
+            if (item.get("trainer_family") or item["family"], item["candidate_id"]) not in published_perf_pairs
+        )
+        if published_perf_pairs
+        else []
+    )
+    active_perf_pairs = published_perf_pairs or expected_perf_pairs
+    active_reg_pairs = published_reg_pairs or expected_reg_pairs
+
     unpaired_tasks = []
+    published_unpaired_tasks = []
     for tid in expected_tasks:
         unavailable_for_task = {
             (u["trainer_family"], u["candidate_id"])
@@ -457,9 +482,15 @@ def check_scaling_performance(root: Path) -> dict[str, Any]:
             or len(comp_keys_by_task.get(tid, set())) != 1
         ):
             unpaired_tasks.append(tid)
+        published_runnable = active_perf_pairs - unavailable_for_task
+        if published_runnable and (
+            (complete_pairs_by_task.get(tid, set()) & active_perf_pairs) != published_runnable
+            or len(comp_keys_by_task.get(tid, set())) != 1
+        ):
+            published_unpaired_tasks.append(tid)
 
     declaration_mismatches = []
-    reg_id = (evidence.get("export") or {}).get("registration")
+    published_declaration_mismatches = []
     if reg_id:
         reg_path = scaling.manifest_path(root, reg_id)
         if reg_path.is_file():
@@ -472,32 +503,46 @@ def check_scaling_performance(root: Path) -> dict[str, Any]:
                 idea_path = root / "configs/forge/ideas" / f"{cid}.json"
                 if by_pair.get((fam, cid)) != file_hash(idea_path):
                     declaration_mismatches.append((fam, cid))
+                    if (fam, cid) in active_reg_pairs:
+                        published_declaration_mismatches.append((fam, cid))
         else:
             declaration_mismatches.append(("registration_missing", reg_id))
+            published_declaration_mismatches.append(("registration_missing", reg_id))
 
     missing = sorted(expected_cells - complete_cells)
+    published_expected_cells = {(fam, cid, tid) for fam, cid in active_perf_pairs for tid in expected_tasks}
+    published_missing = sorted(published_expected_cells - complete_cells)
     published_source_current = (
         not unavailable
         and not non_complete
-        and not missing
+        and not published_missing
         and len(cohorts) == 1
         and not contended_cells
+        and not published_unpaired_tasks
+        and not published_declaration_mismatches
+    )
+    current_source_complete = (
+        published_source_current
+        and not missing
         and not unpaired_tasks
         and not declaration_mismatches
     )
     return {
-        "current": published_source_current and not stale_source_cells,
+        "current": current_source_complete and not stale_source_cells,
         "published_source_current": published_source_current,
         "expected_cells": len(expected_cells),
         "complete_cells": len(complete_cells),
         "missing_cells": len(missing),
+        "published_missing_cells": len(published_missing),
         "unavailable_cells": len(unavailable),
         "non_complete_cells": non_complete,
         "table_cohorts": len(cohorts),
         "contended_cells": len(contended_cells),
         "unpaired_tasks": sorted(unpaired_tasks),
+        "published_unpaired_tasks": sorted(published_unpaired_tasks),
         "stale_source_cells": len(stale_source_cells),
         "declaration_mismatches": declaration_mismatches,
+        "unmeasured_new_families": unmeasured_new_families,
     }
 
 
@@ -571,6 +616,48 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
         else []
     )
 
+    # When recorded_display_scope pins an archived display snapshot and a selected
+    # family has since been refreshed onto a new source/revision cohort, its retained
+    # archived diagnostic records remain valid historical bookkeeping if and only if
+    # their exact (candidate_id, candidate_revision, source_digest) is registered in
+    # the publication's archived evidence rows and covers every required archived task.
+    registered_archived_identities: set[tuple[str | None, str | None, str | None]] = set()
+    if scope is not None:
+        for row_key in ("evidence_rows", "archived_evidence_rows", "configuration_rows", "historical_family_rows"):
+            for row in publication.get(row_key, []):
+                if isinstance(row, dict):
+                    registered_archived_identities.add((
+                        row.get("candidate_id"),
+                        row.get("candidate_revision"),
+                        (row.get("bindings") or {}).get("source_digest"),
+                    ))
+
+    archived_cohort_by_family: dict[str, tuple[str | None, str | None, str | None]] = {}
+    if registered_archived_identities:
+        fam_identities: dict[str, set[tuple[str | None, str | None, str | None]]] = {}
+        for record in coverage.get("records", []):
+            if _is_scoped_attempt(record):
+                continue
+            fam = record.get("family")
+            if fam in expected_selected:
+                fam_identities.setdefault(fam, set()).add((
+                    record.get("candidate_id"),
+                    record.get("candidate_revision"),
+                    record.get("source_digest"),
+                ))
+        for fam, idents in fam_identities.items():
+            current_ident = expected_selected[fam][:3]
+            if len(idents) == 1:
+                only_ident = next(iter(idents))
+                if (
+                    only_ident != current_ident
+                    and only_ident[0] == current_ident[0]
+                    and only_ident in registered_archived_identities
+                ):
+                    archived_cohort_by_family[fam] = only_ident
+
+    unmeasured_refreshed_families = sorted(archived_cohort_by_family)
+
     superseded_records = []
     covered_by_family: dict[str, set[str]] = {family: set() for family in expected_selected}
     for record in coverage.get("records", []):
@@ -578,11 +665,12 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
             continue
         family = record.get("family")
         spec = expected_selected.get(family)
+        expected_ident = archived_cohort_by_family.get(family, spec[:3] if spec is not None else None)
         if spec is None or (
             record.get("candidate_id"),
             record.get("candidate_revision"),
             record.get("source_digest"),
-        ) != spec[:3]:
+        ) != expected_ident:
             superseded_records.append(
                 {
                     "family": family,
@@ -633,6 +721,7 @@ def check_retained_diagnostic_integrity(root: Path) -> dict[str, Any]:
         "missing_by_family": missing_by_family,
         "unmeasured_current_tasks": unmeasured_current_tasks,
         "unmeasured_new_families": unmeasured_new_families,
+        "unmeasured_refreshed_families": unmeasured_refreshed_families,
     }
 
 
@@ -867,15 +956,47 @@ def check_attempt_coverage(root: Path) -> dict[str, Any]:
                     "remain measurement gaps; declarations and archived verdicts cannot reconstruct them."}
 
 
+_CONCLUDED_ORDINARY_FILE_CACHE: dict[tuple[str, int, int, int], dict[str, Any] | None] = {}
+_CONCLUDED_ORDINARY_CACHE_LIMIT = 4096
+
+
 def _concluded_ordinary_records(root: Path) -> list[dict[str, Any]]:
     records_dir = Path(root) / "reports/forge/records"
-    if not records_dir.is_dir():
+    dir_str = os.fspath(records_dir)
+    if not os.path.isdir(dir_str):
         return []
+    entries: list[tuple[str, str, os.stat_result]] = []
+    with os.scandir(dir_str) as it:
+        for entry in it:
+            name = entry.name
+            if name.startswith("readout-") and name.endswith(".json"):
+                try:
+                    st = entry.stat()
+                except OSError:
+                    continue
+                entries.append((name, entry.path, st))
+    entries.sort(key=lambda item: item[0])
     result = []
-    for path in sorted(records_dir.glob("readout-*.json")):
-        doc = read_json(path)
-        if doc.get("lifecycle") == "concluded" and doc.get("evidence_scope") == "current":
-            result.append(doc)
+    real_dir = os.path.realpath(dir_str)
+    for name, path_str, st in entries:
+        cache_key = (os.path.join(real_dir, name), st.st_ino, st.st_mtime_ns, st.st_size)
+        if cache_key in _CONCLUDED_ORDINARY_FILE_CACHE:
+            cached = _CONCLUDED_ORDINARY_FILE_CACHE[cache_key]
+            if cached is not None:
+                result.append(cached)
+            continue
+        with open(path_str, "rb") as stream:
+            raw = stream.read()
+        matched: dict[str, Any] | None = None
+        if b"\\u" in raw or (b'"concluded"' in raw and b'"current"' in raw):
+            doc = json.loads(raw.decode("utf-8"))
+            if doc.get("lifecycle") == "concluded" and doc.get("evidence_scope") == "current":
+                matched = doc
+        if len(_CONCLUDED_ORDINARY_FILE_CACHE) >= _CONCLUDED_ORDINARY_CACHE_LIMIT:
+            _CONCLUDED_ORDINARY_FILE_CACHE.clear()
+        _CONCLUDED_ORDINARY_FILE_CACHE[cache_key] = matched
+        if matched is not None:
+            result.append(matched)
     return result
 
 
@@ -1299,9 +1420,15 @@ def _validate_publication_registration_sync(root: Path, inv_json: dict[str, Any]
 
 
 def _republish_registered_inventory(root: Path, *, json_mode: bool = False) -> dict[str, Any]:
+    from experiments.forge.views import diagnostic_pass_cache
     from reports.forge import regenerate_technique_inventory as rti
 
     root = Path(root).resolve()
+    with planning.resolution_cache(root), diagnostic_pass_cache(root):
+        return _republish_registered_inventory_inner(root, rti, json_mode=json_mode)
+
+
+def _republish_registered_inventory_inner(root: Path, rti: Any, *, json_mode: bool = False) -> dict[str, Any]:
     inv_json_path = root / "reports/forge/technique-inventory.json"
     manifest_path = root / "reports/forge/technique-evidence/manifest.json"
     cur_doc: dict[str, Any] | None = None
@@ -1372,7 +1499,18 @@ def _republish_registered_inventory(root: Path, *, json_mode: bool = False) -> d
         ) from exc
 
 
-def _generated_pages_synced(root: Path, inv_json: dict[str, Any], inv_md: str) -> bool:
+import contextvars
+
+_PRECOMPUTED_CURRENT_MD: contextvars.ContextVar[tuple[Path, int, str] | None] = contextvars.ContextVar(
+    "refresh_forge_readouts_precomputed_current_md", default=None
+)
+
+
+def _generated_pages_synced(
+    root: Path,
+    inv_json: dict[str, Any],
+    inv_md: str,
+) -> bool:
     root = Path(root).resolve()
     prov = inv_json.get("provenance") or {}
     input_digest = prov.get("input_digest")
@@ -1420,17 +1558,25 @@ def _generated_pages_synced(root: Path, inv_json: dict[str, Any], inv_md: str) -
         return False
     if inv_json.get("family_progress"):
         from experiments.forge.family_reports import generated_pages
+        from experiments.forge.views import diagnostic_pass_cache
         from reports.forge import regenerate_technique_inventory as rti
 
         # Archived display scores still need an integrity check when the latest
         # source has no Tier 1 payload. A digest footer alone cannot detect a
         # changed overview score or a false source-qualification claim.
-        if inv_md != rti._current_markdown(inv_json, root, root / "reports/forge/technique-inventory.md"):
+        hint = _PRECOMPUTED_CURRENT_MD.get()
+        expected_md = (
+            hint[2]
+            if hint is not None and hint[0] == root and hint[1] == id(inv_json)
+            else rti._current_markdown(inv_json, root, root / "reports/forge/technique-inventory.md")
+        )
+        if inv_md != expected_md:
             return False
 
-        for page_path, expected_text in generated_pages(root, inv_json).items():
-            if not page_path.is_file() or page_path.read_text() != expected_text:
-                return False
+        with diagnostic_pass_cache(root):
+            for page_path, expected_text in generated_pages(root, inv_json).items():
+                if not page_path.is_file() or page_path.read_text() != expected_text:
+                    return False
     if inv_json.get("view") == "discriminator_stability":
         from reports.forge.regenerate_technique_inventory import _shared_score_intro
 
@@ -1444,6 +1590,12 @@ def _generated_pages_synced(root: Path, inv_json: dict[str, Any], inv_md: str) -
 
 def check_compiled_reports(root: Path) -> dict[str, Any]:
     root = Path(root).resolve()
+    from experiments.forge.views import diagnostic_pass_cache
+    with planning.resolution_cache(root), diagnostic_pass_cache(root):
+        return _check_compiled_reports_inner(root)
+
+
+def _check_compiled_reports_inner(root: Path) -> dict[str, Any]:
     mem_status = knowledge.freshness(root)
     inv_cov = history.validate_inventory(root)
     comp_path = root / "reports/forge/compilation.json"
@@ -1468,6 +1620,7 @@ def check_compiled_reports(root: Path) -> dict[str, Any]:
     publication_registration_synced = False
     perf_synced = False
     unknown_perf_rows = -1
+    unexpected_unknown_perf_rows = -1
     diagnostic_rows_present = False
     current_source_tier1_synced = False
     refresh_docs_synced = False
@@ -1505,13 +1658,39 @@ def check_compiled_reports(root: Path) -> dict[str, Any]:
                 block = inv_md.split(scaling_publication.START, 1)[1].split(
                     scaling_publication.END, 1
                 )[0]
-                unknown_perf_rows = sum(1 for line in block.splitlines() if "| UNKNOWN |" in line)
+                unknown_lines = [line for line in block.splitlines() if "| UNKNOWN |" in line]
+                unknown_perf_rows = len(unknown_lines)
+                export_selections = (
+                    ((inv_json.get("scaling_performance") or {}).get("export") or {}).get(
+                        "family_selections"
+                    )
+                    or []
+                )
+                registered_perf_cids = {
+                    item["candidate_id"]
+                    for item in export_selections
+                    if isinstance(item, dict) and item.get("candidate_id")
+                }
+                if registered_perf_cids:
+                    unexpected_unknown_perf_rows = 0
+                    for line in unknown_lines:
+                        parts = line.split("|", 2)
+                        cell = parts[1] if len(parts) >= 3 else ""
+                        start = cell.find("`")
+                        end = cell.find("`", start + 1) if start >= 0 else -1
+                        cid = cell[start + 1 : end] if end > start + 1 else None
+                        if cid is None or cid in registered_perf_cids or cid not in selected_cids:
+                            unexpected_unknown_perf_rows += 1
+                else:
+                    unexpected_unknown_perf_rows = unknown_perf_rows
             expected_diag_phrases = _expected_selected_diagnostic_phrases(root, inv_json)
             diagnostic_rows_present = all(phrase in inv_md for phrase in expected_diag_phrases)
+            current_md = None
             if inv_json.get("family_progress"):
                 from reports.forge import regenerate_technique_inventory as rti
 
-                current_source_tier1_synced = inv_md == rti._current_markdown(inv_json, root, inv_md_path)
+                current_md = rti._current_markdown(inv_json, root, inv_md_path)
+                current_source_tier1_synced = inv_md == current_md
                 refresh_docs_synced = (
                     "python ops/refresh_forge_readouts.py --check" in inv_md
                     and "python ops/refresh_forge_readouts.py --reports-only" in inv_md
@@ -1528,7 +1707,16 @@ def check_compiled_reports(root: Path) -> dict[str, Any]:
                 )
                 attempt_summary_synced = expected_phrase in inv_md
                 attempt_markdown_synced = _attempt_coverage_markdown_synced(root, cov_doc)
-            generated_pages_synced = _generated_pages_synced(root, inv_json, inv_md)
+            token = (
+                _PRECOMPUTED_CURRENT_MD.set((root, id(inv_json), current_md))
+                if current_md is not None
+                else None
+            )
+            try:
+                generated_pages_synced = _generated_pages_synced(root, inv_json, inv_md)
+            finally:
+                if token is not None:
+                    _PRECOMPUTED_CURRENT_MD.reset(token)
 
     current = (
         bool(mem_status.get("fresh"))
@@ -1537,7 +1725,7 @@ def check_compiled_reports(root: Path) -> dict[str, Any]:
         and selected_pending_readout == []
         and publication_registration_synced
         and perf_synced
-        and unknown_perf_rows == 0
+        and unexpected_unknown_perf_rows == 0
         and diagnostic_rows_present
         and current_source_tier1_synced
         and refresh_docs_synced
@@ -1554,6 +1742,7 @@ def check_compiled_reports(root: Path) -> dict[str, Any]:
         "publication_registration_synced": publication_registration_synced,
         "scaling_performance_synced": perf_synced,
         "unknown_performance_rows": unknown_perf_rows,
+        "unexpected_unknown_performance_rows": unexpected_unknown_perf_rows,
         "selected_diagnostic_rows_present": diagnostic_rows_present,
         "current_source_tier1_synced": current_source_tier1_synced,
         "refresh_docs_synced": refresh_docs_synced,
@@ -1571,22 +1760,24 @@ def check_status(
 ) -> dict[str, Any]:
     root = Path(root).resolve()
     queue_root = Path(queue_root or (root / "runs/forge")).resolve()
-    stages = {
-        "queue": check_queue_status(root, queue_root),
-        "scaling_performance": check_scaling_performance(root),
-        "attempt_coverage": check_attempt_coverage(root),
-        "retained_diagnostic_integrity": check_retained_diagnostic_integrity(root),
-        "selected_family_readouts": check_selected_family_readouts(root, cuda_model=cuda_model),
-        "compiled_reports": check_compiled_reports(root),
-    }
-    stale = [name for name, info in stages.items() if not info.get("current")]
-    return {
-        "status": "CURRENT" if not stale else "NEEDS_REFRESH",
-        "scope": "current_source_measurements",
-        "source_digest": catalog_source_manifest(root)["digest"],
-        "stale_stages": stale,
-        "stages": stages,
-    }
+    from experiments.forge.views import diagnostic_pass_cache
+    with planning.resolution_cache(root), diagnostic_pass_cache(root):
+        stages = {
+            "queue": check_queue_status(root, queue_root),
+            "scaling_performance": check_scaling_performance(root),
+            "attempt_coverage": check_attempt_coverage(root),
+            "retained_diagnostic_integrity": check_retained_diagnostic_integrity(root),
+            "selected_family_readouts": check_selected_family_readouts(root, cuda_model=cuda_model),
+            "compiled_reports": check_compiled_reports(root),
+        }
+        stale = [name for name, info in stages.items() if not info.get("current")]
+        return {
+            "status": "CURRENT" if not stale else "NEEDS_REFRESH",
+            "scope": "current_source_measurements",
+            "source_digest": catalog_source_manifest(root)["digest"],
+            "stale_stages": stale,
+            "stages": stages,
+        }
 
 
 def check_published_status(

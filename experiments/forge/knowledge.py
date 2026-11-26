@@ -10,6 +10,7 @@ from collections import Counter, defaultdict
 from contextlib import ExitStack
 from copy import deepcopy
 import json
+import os
 from pathlib import Path
 import re
 
@@ -55,34 +56,59 @@ def leaderboard_path(root: Path, view_id: str) -> Path:
     return Path("reports/forge/leaderboards") / (view_id + ".md")
 
 
-_RECORD_FILE_CACHE: dict[tuple[str, int, int, int], tuple[dict, str, str]] = {}
+_RECORD_FILE_CACHE: dict[tuple[str, int, int, int], tuple[dict, str]] = {}
 _ATTEMPT_DIR_CACHE: dict[tuple, tuple[dict, dict | None]] = {}
 _NORMALIZE_CACHE: dict[tuple, list[dict]] = {}
-_SEARCHABLE_CACHE: dict[int, tuple[dict, str]] = {}
+_SEARCHABLE_CACHE: dict[int, tuple[dict, frozenset[str], str, frozenset[str], str]] = {}
+_WORD_RE = re.compile(r"[a-z0-9_]+")
+
+
+def _searchable_index(record: dict) -> tuple[frozenset[str], str, frozenset[str], str]:
+    """Lazily build exact token-deduplicated substring index for recall()."""
+    cached = _SEARCHABLE_CACHE.get(id(record))
+    if cached is not None and cached[0] is record:
+        return cached[1], cached[2], cached[3], cached[4]
+    raw = json.dumps(record, separators=(",", ":")).lower()
+    tokens = set(_WORD_RE.findall(raw))
+    alpha_toks = frozenset(t for t in tokens if not t.isdigit())
+    digit_toks = frozenset(t for t in tokens if t.isdigit())
+    alpha_str = " ".join(alpha_toks)
+    digit_str = " ".join(digit_toks)
+    if len(_SEARCHABLE_CACHE) >= 8192:
+        _SEARCHABLE_CACHE.clear()
+    _SEARCHABLE_CACHE[id(record)] = (record, alpha_toks, alpha_str, digit_toks, digit_str)
+    return alpha_toks, alpha_str, digit_toks, digit_str
 
 
 def _records(root: Path) -> tuple[list[dict], list[dict]]:
     indexed, indexed_hashes, conflicts = {}, {}, []
-    for path in sorted((root / "reports/forge/records").glob("*.json")):
-        stat = path.stat()
-        cache_key = (str(path.resolve()), stat.st_ino, stat.st_mtime_ns, stat.st_size)
+    records_dir = os.path.join(os.fspath(root), "reports", "forge", "records")
+    if not os.path.isdir(records_dir):
+        return [], []
+    resolved_dir = os.path.realpath(records_dir)
+    entries = []
+    with os.scandir(records_dir) as it:
+        for entry in it:
+            if entry.name.endswith(".json"):
+                entries.append((entry.name, entry.path, entry.stat()))
+    entries.sort(key=lambda item: item[0])
+    for name, path_str, st in entries:
+        cache_key = (os.path.join(resolved_dir, name), st.st_ino, st.st_mtime_ns, st.st_size)
         cached = _RECORD_FILE_CACHE.get(cache_key)
         if cached is not None:
-            record, record_hash, searchable = cached
+            record, record_hash = cached
         else:
-            record = read_json(path)
+            record = read_json(Path(path_str))
             if record.get("schema_version") != 1 or not record.get("record_id"):
-                raise ValueError(f"invalid experiment record: {path}")
+                raise ValueError(f"invalid experiment record: {path_str}")
             if not isinstance(record.get("task_results", []), list):
-                raise ValueError(f"task_results must be a list: {path}")
+                raise ValueError(f"task_results must be a list: {path_str}")
             record_hash = stable_hash(record)
-            searchable = json.dumps(record, sort_keys=True).lower()
-            _RECORD_FILE_CACHE[cache_key] = (record, record_hash, searchable)
-            _SEARCHABLE_CACHE[id(record)] = (record, searchable)
+            _RECORD_FILE_CACHE[cache_key] = (record, record_hash)
         identity = record["record_id"]
         if identity in indexed and indexed_hashes[identity] != record_hash:
             conflicts.append({"record_id": identity, "reason": "Different records have the same record_id.",
-                              "path": str(path.relative_to(root))})
+                              "path": f"reports/forge/records/{name}"})
         else:
             indexed[identity] = record
             indexed_hashes[identity] = record_hash
@@ -97,22 +123,113 @@ def _gaps(root: Path) -> dict:
     }
 
 
+_MEM_INPUT_CACHE: dict[tuple, tuple[tuple, list[dict]]] = {}
+_MEM_FIXED_FILES = (
+    "reports/forge/technique-inventory.json",
+    "reports/forge/technique-inventory.md",
+    "reports/forge/policy-family-inventory.json",
+    "reports/forge/policy-family-inventory.md",
+    "reports/forge/passive-publications.json",
+    "reports/forge/api-model-toys/publication.json",
+)
+_MEM_SCAN_DIRS = (
+    "reports/forge/configuration-search",
+    "reports/forge/technique-evidence",
+    "reports/forge/technique-receipts",
+    "reports/forge/family-winner-round1",
+)
+
+
+def _pub_fast_signature(root_os: str, extra_paths: tuple[str, ...]) -> tuple:
+    dir_entries: list[tuple] = []
+    for rel_dir in _MEM_SCAN_DIRS:
+        dpath = os.path.join(root_os, rel_dir)
+        if not os.path.isdir(dpath):
+            dir_entries.append((rel_dir, None))
+            continue
+        items: list[tuple[str, int, int, int]] = []
+        for walk_root, _, files in os.walk(dpath):
+            for fname in files:
+                if fname.endswith(".json"):
+                    fpath = os.path.join(walk_root, fname)
+                    try:
+                        st = os.stat(fpath)
+                    except OSError:
+                        continue
+                    items.append((fpath, st.st_ino, st.st_mtime_ns, st.st_size))
+        items.sort()
+        dir_entries.append((rel_dir, tuple(items)))
+    fixed: list[tuple] = []
+    for rel_file in _MEM_FIXED_FILES:
+        fpath = os.path.join(root_os, rel_file)
+        try:
+            st = os.stat(fpath)
+            fixed.append((rel_file, st.st_ino, st.st_mtime_ns, st.st_size))
+        except OSError:
+            fixed.append((rel_file, None))
+    extras: list[tuple] = []
+    for fpath in extra_paths:
+        try:
+            st = os.stat(fpath)
+            extras.append((fpath, st.st_ino, st.st_mtime_ns, st.st_size))
+        except OSError:
+            extras.append((fpath, None))
+    return (tuple(dir_entries), tuple(fixed), tuple(extras))
+
+
+import time as _time
+
+_INPUT_FILE_HASH_CACHE: dict[tuple[str, int, int, int], str] = {}
+_INPUT_FILE_HASH_CACHE_LIMIT = 32768
+_FRESH_MTIME_GUARD_NS = 50_000_000
+
+
+def _cached_file_hash(path_str: str, now_ns: int) -> str:
+    try:
+        st = os.stat(path_str)
+    except OSError:
+        return file_hash(Path(path_str))
+    if st.st_mtime_ns >= now_ns - _FRESH_MTIME_GUARD_NS:
+        return file_hash(Path(path_str))
+    key = (path_str, st.st_ino, st.st_mtime_ns, st.st_size)
+    digest = _INPUT_FILE_HASH_CACHE.get(key)
+    if digest is None:
+        digest = file_hash(Path(path_str))
+        if len(_INPUT_FILE_HASH_CACHE) >= _INPUT_FILE_HASH_CACHE_LIMIT:
+            _INPUT_FILE_HASH_CACHE.clear()
+        _INPUT_FILE_HASH_CACHE[key] = digest
+    return digest
+
+
+def _cached_normalize(root: Path) -> list[dict]:
+    from .publication_memory import input_paths, load_passive_publications, normalize
+    root_os = os.path.realpath(os.fspath(root))
+    cache_slot = (id(normalize), id(input_paths), id(load_passive_publications), root_os)
+    cached = _MEM_INPUT_CACHE.get(cache_slot)
+    if cached is not None:
+        extra_paths, prev_sig, pub_records = cached
+        if _pub_fast_signature(root_os, extra_paths) == prev_sig:
+            return pub_records
+    scan_prefixes = tuple(os.path.join(root_os, d) + os.sep for d in _MEM_SCAN_DIRS)
+    fixed_set = {os.path.join(root_os, f) for f in _MEM_FIXED_FILES}
+    extra_paths = tuple(sorted({
+        os.path.realpath(os.fspath(p))
+        for p in input_paths(root)
+        if os.path.realpath(os.fspath(p)) not in fixed_set
+        and not os.path.realpath(os.fspath(p)).startswith(scan_prefixes)
+    }))
+    sig = _pub_fast_signature(root_os, extra_paths)
+    pub_records = normalize(root)
+    if len(_MEM_INPUT_CACHE) >= 32:
+        _MEM_INPUT_CACHE.clear()
+    _MEM_INPUT_CACHE[cache_slot] = (extra_paths, sig, pub_records)
+    return pub_records
+
+
 def _memory_records(root: Path) -> tuple[list[dict], list[dict]]:
     """Publication summaries enter recall only, never the qualification reducer."""
-    from .publication_memory import input_paths, normalize
     records, conflicts = _records(root)
-    sig = []
-    for p in sorted(input_paths(root)):
-        if p.exists():
-            st = p.stat()
-            sig.append((str(p), st.st_ino, st.st_mtime_ns, st.st_size))
-    norm_key = (id(normalize), str(Path(root).resolve()), tuple(sig))
-    pub_records = _NORMALIZE_CACHE.get(norm_key)
-    if pub_records is None:
-        pub_records = normalize(root)
-        for rec in pub_records:
-            _SEARCHABLE_CACHE[id(rec)] = (rec, json.dumps(rec, sort_keys=True).lower())
-        _NORMALIZE_CACHE[norm_key] = pub_records
+    pub_records = _cached_normalize(root)
     return sorted([*records, *pub_records], key=lambda record: record["record_id"]), conflicts
 
 
@@ -125,21 +242,35 @@ def _input_hashes(root: Path, *, summaries_only: bool = False) -> dict:
     invalidate a summaries-only publication in a clean checkout.
     """
     from .publication_memory import input_paths
-    paths = set(input_paths(root))
+    root_os = os.fspath(root)
+    prefix = root_os if root_os.endswith(os.sep) else root_os + os.sep
+    prefix_len = len(prefix)
+    path_strs: set[str] = {os.fspath(p) for p in input_paths(root)}
     directories = ["reports/forge/records", "configs/forge",
                    "reports/forge/calibration-lanes", "reports/forge/promotions"]
     if not summaries_only:
         directories.append("reports/forge/attempts")
     for directory in directories:
-        paths.update((root / directory).rglob("*.json"))
+        base = os.path.join(root_os, directory)
+        if not os.path.isdir(base):
+            continue
+        for walk_root, _, files in os.walk(base):
+            for fname in files:
+                if fname.endswith(".json"):
+                    path_strs.add(os.path.join(walk_root, fname))
     # The history catalog tracks Git blobs of unrelated engineering source.
     # Its drift is reported separately and cannot make scientific recall stale.
-    paths.discard(root / "configs/forge/catalog.json")
+    path_strs.discard(os.path.join(root_os, "configs/forge/catalog.json"))
     for name in ("import-gaps.json", "history-sources.json"):
-        path = root / "reports/forge" / name
-        if path.is_file():
-            paths.add(path)
-    return {str(path.relative_to(root)): file_hash(path) for path in sorted(paths)}
+        fpath = os.path.join(root_os, "reports/forge", name)
+        if os.path.isfile(fpath):
+            path_strs.add(fpath)
+    now_ns = _time.time_ns()
+    result = {}
+    for p_str in sorted(path_strs):
+        rel = p_str[prefix_len:] if p_str.startswith(prefix) else str(Path(p_str).relative_to(root))
+        result[rel] = _cached_file_hash(p_str, now_ns)
+    return result
 
 
 def _reducer_hashes() -> dict:
@@ -150,7 +281,7 @@ def _reducer_hashes() -> dict:
 
 def freshness(root: Path) -> dict:
     """Read-only check suitable for CI and agents; no training or hydration."""
-    from .publication_memory import OUTPUT, normalize
+    from .publication_memory import OUTPUT
     root = Path(root)
     path = root / "reports/forge/compilation.json"
     manifest = read_json(path) if path.is_file() else {}
@@ -159,7 +290,7 @@ def freshness(root: Path) -> dict:
     previous = manifest.get("input_hashes", {})
     added, removed = sorted(current.keys() - previous.keys()), sorted(previous.keys() - current.keys())
     changed = sorted(name for name in current.keys() & previous.keys() if current[name] != previous[name])
-    projected = normalize(root)
+    projected = _cached_normalize(root)
     output = root / OUTPUT
     materialization_current = (output.is_file() and read_json(output).get("records") == projected)
     record_count = len(_records(root)[0]) + len(projected)
@@ -678,27 +809,34 @@ def recall(root: Path, query: str = "", goal: str | None = None, *, include_in_f
            full_provenance: bool = False) -> list[dict]:
     """Search normalized records; missing goal tags remain visible as unknown."""
     records, _ = _memory_records(Path(root))
-    words = re.findall(r"[a-z0-9_]+", query.lower())
+    query_norm = query.strip().lower()
+    words = _WORD_RE.findall(query.lower())
+    word_flags = [(word, word.isdigit()) for word in words]
     matches = []
     for record in records:
-        cached_search = _SEARCHABLE_CACHE.get(id(record))
-        if cached_search is not None and cached_search[0] is record:
-            searchable = cached_search[1]
+        declared_goal = record.get("goal")
+        if goal and declared_goal and declared_goal != goal:
+            continue
+        if word_flags:
+            alpha_toks, alpha_str, digit_toks, digit_str = _searchable_index(record)
+            score = 0
+            for word, is_digit in word_flags:
+                if is_digit:
+                    if word in digit_toks or word in alpha_str or word in digit_str:
+                        score += 1
+                else:
+                    if word in alpha_toks or word in alpha_str:
+                        score += 1
         else:
-            searchable = json.dumps(record, sort_keys=True).lower()
-            _SEARCHABLE_CACHE[id(record)] = (record, searchable)
-        score = sum(word in searchable for word in words)
+            score = 0
         identities = [str(record.get(key) or "").lower() for key in
                       ("record_id", "candidate_id", "candidate_revision", "configuration_id", "study_id")]
         # A literal complete id outranks broad token overlap (hyphens otherwise
         # split family ids into common, often misleading words).
-        exact = bool(query.strip()) and query.strip().lower() in identities
+        exact = bool(query_norm) and query_norm in identities
         if exact:
             score += len(words) + 1
         if words and score == 0:
-            continue
-        declared_goal = record.get("goal")
-        if goal and declared_goal and declared_goal != goal:
             continue
         matches.append({"record_id": record["record_id"], "candidate_id": record.get("candidate_id"),
                         "candidate_revision": record.get("candidate_revision"), "evidence_scope": record.get("evidence_scope"),

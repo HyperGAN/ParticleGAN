@@ -1316,17 +1316,18 @@ def _build_four_laws_adherence_l4_payload(
     }
 
 
-def _load_experiment_docs_catalog(root: Path) -> dict[str, dict]:
+def _load_experiment_docs_catalog(root: Path, *, catalog: dict | None = None) -> dict[str, dict]:
     """Read optional experiment catalog from ``experiments.forge.experiment_docs`` if present."""
-    try:
-        from . import experiment_docs as _experiment_docs  # type: ignore
+    if catalog is None:
+        try:
+            from . import experiment_docs as _experiment_docs  # type: ignore
 
-        builder = getattr(_experiment_docs, "build_experiment_catalog", None)
-        if not callable(builder):
+            builder = getattr(_experiment_docs, "build_experiment_catalog", None)
+            if not callable(builder):
+                return {}
+            catalog = builder(root)
+        except Exception:
             return {}
-        catalog = builder(root)
-    except Exception:
-        return {}
 
     by_id: dict[str, dict] = {}
     if isinstance(catalog, dict):
@@ -1545,6 +1546,7 @@ def _enrich_task_definitions(
     *,
     pages_base_url: str,
     default_candidate: str = "unified-v11",
+    catalog: dict | None = None,
 ) -> list[dict]:
     """Attach optional documentation, contract, diagram, and portal metadata to task definitions.
 
@@ -1553,7 +1555,7 @@ def _enrich_task_definitions(
     ``configs/forge/tasks/<task_id>.json`` metadata.
     """
     base = pages_base_url.rstrip("/")
-    catalog = _load_experiment_docs_catalog(root)
+    catalog = _load_experiment_docs_catalog(root, catalog=catalog)
     tasks_dir = root / "configs/forge/tasks"
     task_docs_dir = root / "configs/forge/task-documentation"
     enriched: list[dict] = []
@@ -1720,11 +1722,19 @@ def build_inventory_exports(
             if family["id"] == "unified":
                 default_probe_candidate = str(cid)
 
+    try:
+        from . import experiment_docs as _experiment_docs  # type: ignore
+
+        _shared_catalog = _experiment_docs.build_experiment_catalog(root)
+    except Exception:
+        _shared_catalog = None
+
     task_defs = _enrich_task_definitions(
         root,
         _collect_task_definitions(progress, full_suite_names),
         pages_base_url=pages_base_url,
         default_candidate=default_probe_candidate,
+        catalog=_shared_catalog,
     )
     task_def_by_id = {d["task_id"]: d for d in task_defs}
     idea_cache: dict[str, dict | None] = {}
@@ -1996,8 +2006,9 @@ def build_inventory_exports(
         except Exception:
             pass
 
-    from .views import compatible_diagnostic_passes
+    from .views import build_diagnostic_pass_index, compatible_diagnostic_passes
 
+    diag_index = build_diagnostic_pass_index(root)
     for family, cohort in selected:
         fam_id = family["id"]
         fam_label = family["label"]
@@ -2087,6 +2098,7 @@ def build_inventory_exports(
             candidate_id=candidate_id,
             candidate_revision=cand_rev,
             source_digest=source_digest,
+            _index=diag_index,
         )
         fam_doc = _load_family_doc_enrichment(
             root,
@@ -2333,12 +2345,6 @@ def build_inventory_exports(
     git_commit = _git_head_commit(root)
     timestamp = generated_at or datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
     declared_view_revisions = {view["id"]: int(view["revision"]) for view in summed}
-    try:
-        from . import experiment_docs as _experiment_docs  # type: ignore
-
-        _shared_catalog = _experiment_docs.build_experiment_catalog(root)
-    except Exception:
-        _shared_catalog = None
     four_laws_l4 = _build_four_laws_adherence_l4_payload(
         root,
         view_id="four-laws-adherence-v1",

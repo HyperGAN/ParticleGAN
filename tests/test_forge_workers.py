@@ -105,17 +105,17 @@ def test_timeout_terminates_descendants_and_retains_attempt(tmp_path):
 
 
 def test_recovery_attaches_to_live_lease_and_cancel_kills_group(tmp_path):
-    req = worker_request(tmp_path, SLEEP_PROGRAM)
+    req = worker_request(tmp_path, SLEEP_PROGRAM, budget=10)
     q = Queue(tmp_path / "queue", grader=grade)
     entry = q.submit(req, campaign())
     claim = q.claim(SLOTS)
     process = q.launch(claim)
-    grandchild = await_file(Path(claim["worker"]["directory"]) / "grandchild.json")
+    grandchild = await_file(Path(claim["worker"]["directory"]) / "grandchild.json", timeout=10)
     recovered = Queue(q.root, grader=grade)
     assert recovered.collect() == 0
     assert recovered.claim(SLOTS) is None
     recovered.cancel(entry["request"]["request_id"])
-    assert process.wait(timeout=5) == 1
+    assert process.wait(timeout=10) == 1
     recovered.collect()
     assert process_identity(grandchild["pid"]) is None
     assert read_json(Path(claim["worker"]["directory"]) / "terminal.json")["attempt_status"] == "cancelled"

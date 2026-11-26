@@ -136,14 +136,54 @@ def test_energy_refuses_busy_gpu_and_enriches_clean_run(tmp_path):
     assert len(entry["occam_receipt_ids"]) == 16
 
 
-def test_promote_rejects_dirty_source_receipt_manifest():
-    # Commit 73250fe3 recorded receipts on a dirty tree; preflight must refuse cleanly.
+def test_promote_rejects_dirty_source_receipt_manifest(tmp_path):
+    # Clean-checkout-safe control: verify_source_commit_receipts accepts a receipt whose
+    # source.files match the exact Git tree and rejects a dirty-tree manifest mismatch.
+    import hashlib
+
+    repo = tmp_path / "repo"
+    repo.mkdir()
+    subprocess.run(["git", "init", "-q"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.email", "ci@example.com"], cwd=repo, check=True)
+    subprocess.run(["git", "config", "user.name", "CI"], cwd=repo, check=True)
+    tracked = repo / "particlegan_dummy.py"
+    tracked_bytes = b"VALUE = 1\n"
+    tracked.write_bytes(tracked_bytes)
+    subprocess.run(["git", "add", "particlegan_dummy.py"], cwd=repo, check=True)
+    subprocess.run(["git", "commit", "-q", "-m", "clean base"], cwd=repo, check=True)
+    head = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=repo, text=True).strip()
+    clean_sha = hashlib.sha256(tracked_bytes).hexdigest()
+
+    att_dir = repo / "reports/forge/attempts/att-1"
+    att_dir.mkdir(parents=True)
+    clean_req = {
+        "request": {
+            "candidate": {"id": "unified-v15"},
+            "source": {
+                "origin_commit": head,
+                "digest": "clean-digest",
+                "files": {"particlegan_dummy.py": clean_sha},
+            },
+        }
+    }
+    (att_dir / "request.json").write_text(json.dumps(clean_req), encoding="utf-8")
+    ok = rl.verify_source_commit_receipts(repo, head, ["unified-v15"])
+    assert ok["source_commit"] == head
+    assert ok["candidates"] == {"unified-v15": ["att-1"]}
+
+    dirty_req = {
+        "request": {
+            "candidate": {"id": "unified-v15"},
+            "source": {
+                "origin_commit": head,
+                "digest": "dirty-digest",
+                "files": {"particlegan_dummy.py": "0" * 64},
+            },
+        }
+    }
+    (att_dir / "request.json").write_text(json.dumps(dirty_req), encoding="utf-8")
     with pytest.raises(ValueError, match="do not match the clean Git tree"):
-        rl.verify_source_commit_receipts(
-            ROOT,
-            "73250fe3bd6d3c3f6d03215535d141290661f053",
-            ["unified-v15"],
-        )
+        rl.verify_source_commit_receipts(repo, head, ["unified-v15"])
 
 
 def test_verify_live_surfaces_with_mocked_endpoints():

@@ -469,8 +469,9 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
                 media_by_attempt_task.setdefault(akey, rel)
     except Exception:
         pass
-    from .views import compatible_diagnostic_passes
+    from .views import build_diagnostic_pass_index, compatible_diagnostic_passes
 
+    diag_index = build_diagnostic_pass_index(root)
     # Build family metadata list (deduplicated by family_id, preferring CUDA primary cohort)
     seen_family: set[str] = set()
     selected_candidate_by_family: dict[str, str] = {}
@@ -491,6 +492,7 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
             candidate_id=candidate_id,
             candidate_revision=cand_rev,
             source_digest=source_digest,
+            _index=diag_index,
         )
         anchor = str(cohort.get("anchor") or fam.get("current_cohort_anchor") or "")
         fam_label = str(fam.get("label") or fam_id)

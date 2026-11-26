@@ -2,7 +2,7 @@
 
 Read the relevant prior evidence before declaring an idea. Historical outcomes retain their original scope. Published qualification and automation snapshots are retained without replaying unavailable originals. Compact publications enter recall as display-only summaries and grant no qualification.
 
-Records: 1255. Inventory coverage: incomplete. Unresolved import items: 7.
+Records: 1255. Inventory coverage: complete. Unresolved import items: 7.
 
 ## Goal views
 
@@ -12230,4 +12230,4 @@ These study and trial projections preserve recorded outcomes, unknowns and sourc
 
 ## Compilation provenance
 
-Reducer `forge-knowledge-v2`; input digest `9a25e12d81d0619d651865f66997e276e9f92a7d4c7552494a9ad16327b47aa0`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.
+Reducer `forge-knowledge-v2`; input digest `1e216304257d4d3a9a450c84f51c8245982d64c7852e6ad85e744d5668181632`. [Full input hashes and coverage](compilation.json). No training or image inspection occurs during compilation.

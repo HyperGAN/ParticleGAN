@@ -22,8 +22,13 @@ from experiments.forge.hf_publish import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_build_inventory_exports_matches_committed_inventory():
-    exports = build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+@pytest.fixture(scope="module")
+def committed_exports():
+    return build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+
+
+def test_build_inventory_exports_matches_committed_inventory(committed_exports):
+    exports = committed_exports
     payload = exports["leaderboard_json"]
     assert payload["schema"] == "particlegan_forge_leaderboard_v1"
     assert payload["dataset_repo"] == DEFAULT_HF_REPO
@@ -175,8 +180,8 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert bcap["total_pass"] == 71 and bcap["total_required"] == 115
 
 
-def test_dataset_card_has_valid_yaml_configs():
-    exports = build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+def test_dataset_card_has_valid_yaml_configs(committed_exports):
+    exports = committed_exports
     readme = render_dataset_card(exports)
     assert readme.startswith("---\n")
     assert "config_name: leaderboard" in readme
