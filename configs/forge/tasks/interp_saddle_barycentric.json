@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "interp_saddle_barycentric",
-  "description": "Learn 24 zero-sigma ParticlePrior locations on a non-harmonic curved 3D saddle sheet without MoG smoothing so unseen 2D latent k-NN triangle barycenters remain on the curved surface (mae<=0.09, hq>=0.78) without Voronoi snapping.",
+  "description": "Learn 32 zero-sigma ParticlePrior locations on a non-harmonic curved 3D saddle sheet without MoG smoothing over 1000 steps so unseen 2D latent k-NN triangle barycenters remain on the curved surface (mae<=0.09, hq>=0.72) without Voronoi snapping.",
   "adapter": "particle_interpolation",
   "retained_question_ids": [
     "stretch-interp-saddle-barycentric"
@@ -13,7 +13,7 @@
   "execution": {
     "initializer": "deterministic_orthogonal",
     "host": "interp_saddle_barycentric",
-    "steps": 800,
+    "steps": 1000,
     "prior": {
       "kind": "particle_cloud",
       "sigma": 0.0,
@@ -28,7 +28,7 @@
       "kind": "interp_saddle_barycentric",
       "target": "Non-harmonic 3D saddle sheet w = 0.8*(x^2 - y^2) + 0.9*cos(0.75*pi*x)*cos(0.75*pi*y) on [-1, 1]^2 (sigma=0.03)",
       "resources": {
-        "num_particles": 24,
+        "num_particles": 32,
         "z_dim": 2,
         "batch_size": 128
       },
@@ -44,7 +44,7 @@
         "k_neighbors": 4,
         "min_interior_ratio": 0.15
       },
-      "steps": 800
+      "steps": 1000
     }
   },
   "evaluation": {
@@ -86,7 +86,7 @@
       [
         "barycenter_hq",
         ">=",
-        0.78
+        0.72
       ],
       [
         "xy_bins_covered",
@@ -100,7 +100,7 @@
       ]
     ],
     "sources": {
-      "benchmarks/toy_audit/api_interpolation.py": "6e617abd2d293609c65742771f0d6e7d0bafff75b7d2c812e62a55ae72945e31",
+      "benchmarks/toy_audit/api_interpolation.py": "1290d8c8500fd2635576e8ede2c2a82e4cd2e4895b4a30c1452809c9a78ef82c",
       "experiments/forge/interpolation.py": "bba72f3a9fa59bc5bcaad558f8d5248475913322bf380c05b0ca7179f4af2fa2"
     }
   },

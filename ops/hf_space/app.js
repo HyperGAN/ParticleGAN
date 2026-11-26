@@ -77,6 +77,7 @@
     receipts: [],
     energyBenchmarks: [],
     taskDefinitions: new Map(),
+    fourLawsL4: null,
     selectedFamilyId: null,
     selectedFormulationFamilyId: null,
     selectedLawCell: null, // { familyId, lawId }
@@ -105,10 +106,15 @@
     expLimit: 100,
     gifLayout: "compare",
     gifLawFilter: "",
+    gifSearch: "",
     gifTask: "",
     gifLeft: "",
     gifRight: "",
-    gifOnlyAvailable: false,
+    gifOnlyAvailable: true,
+    gifHideMissingInGrid: false,
+    gifSyncNonce: 0,
+    gifNextSlot: "right",
+    gifLightbox: null, // { taskId, familyIds, index }
   };
 
   let mermaidRenderSeq = 0;
@@ -739,6 +745,7 @@
       energy: normalizeEnergyObj(rawItem.energy || (rawItem.cost && rawItem.cost.energy) || rawItem),
       cohort: String(rawItem.cohort || (fam && fam.cohortAnchor) || ""),
       gif_path: gifPath,
+      gif_meta: rawItem.gif_meta && typeof rawItem.gif_meta === "object" ? rawItem.gif_meta : null,
       metrics: rawItem.metrics || rawItem.metrics_summary || null,
       raw: rawItem,
     };
@@ -900,6 +907,10 @@
     state.receipts = receipts;
     state.energyBenchmarks = energyBenchmarks;
     state.taskDefinitions = taskDefinitions;
+    state.fourLawsL4 =
+      raw && typeof raw.four_laws_adherence_l4 === "object" && raw.four_laws_adherence_l4
+        ? raw.four_laws_adherence_l4
+        : null;
 
     if (!state.selectedFormulationFamilyId || !families.some((f) => f.id === state.selectedFormulationFamilyId)) {
       const preferred =
@@ -1422,7 +1433,100 @@
     `;
 
     renderLawCellDrawer();
+    renderFourLawsL4Section();
     renderFamilyFormulationSection();
+  }
+
+  function renderFourLawsL4Section() {
+    const block = $("four-laws-l4-block");
+    const wrap = $("four-laws-l4-wrap");
+    if (!block || !wrap) return;
+    const fl = state.fourLawsL4;
+    if (!fl || !Array.isArray(fl.rows) || fl.rows.length === 0) {
+      block.classList.add("hidden");
+      return;
+    }
+    block.classList.remove("hidden");
+    const probes = Array.isArray(fl.probes) ? fl.probes : [];
+    const probeHeaders = probes
+      .map(
+        (p) =>
+          `<th class="num"><a href="${escapeHtml(p.pages_url || pagesUrl(`experiments/${p.task_id}/`))}" target="_blank" rel="noopener noreferrer">${escapeHtml(p.short_label || p.task_id)}</a></th>`
+      )
+      .join("");
+    const rowsHtml = fl.rows
+      .map((r) => {
+        const famTag = r.family_id ? `<code>${escapeHtml(r.family_id)}</code>` : "—";
+        if (r.blocked) {
+          const bgTxt =
+            r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "BLOCKED";
+          return `
+            <tr>
+              <td class="sticky-col"><strong><code>${escapeHtml(r.candidate_id)}</code></strong><div class="muted" style="font-size:0.74rem">${famTag}</div></td>
+              <td class="num"><span class="badge badge-blocked">BLOCKED</span></td>
+              <td class="num"><span class="badge badge-blocked">${escapeHtml(bgTxt)}</span></td>
+              <td class="num">—</td>
+              <td colspan="${Math.max(1, probes.length)}" class="muted">Statically blocked (${escapeHtml(r.blocked_reason || "contract")})</td>
+            </tr>
+          `;
+        }
+        const bgTxt = r.bytegan_measured > 0 ? `${r.bytegan_pass}/${r.bytegan_measured}` : "—";
+        const bgCls =
+          r.bytegan_measured > 0 && r.bytegan_pass === r.bytegan_measured
+            ? "badge-pass"
+            : "badge-notrun";
+        const energyTxt =
+          r.nine_probe_joules_total != null
+            ? `${(Number(r.nine_probe_joules_total) / 1000).toFixed(2)} kJ`
+            : "—";
+        const probeTds = probes
+          .map((p) => {
+            const cell = r.probes && r.probes[p.task_id];
+            if (!cell) return `<td class="num muted">—</td>`;
+            const st = String(cell.status || "").toUpperCase();
+            const mm =
+              typeof cell.min_margin === "number" && Number.isFinite(cell.min_margin)
+                ? `${cell.min_margin >= 0 ? "+" : ""}${cell.min_margin.toFixed(2)}`
+                : "";
+            if (st === "PASS") {
+              const jtp =
+                typeof cell.joules_to_pass === "number" && Number.isFinite(cell.joules_to_pass)
+                  ? ` · ${(cell.joules_to_pass / 1000).toFixed(2)} kJ`
+                  : "";
+              return `<td class="num"><span class="badge badge-pass">PASS${escapeHtml(jtp)}</span></td>`;
+            }
+            if (st === "FAIL") {
+              return `<td class="num"><span class="badge badge-fail">FAIL ${escapeHtml(mm)}</span></td>`;
+            }
+            return `<td class="num"><span class="badge badge-notrun">${escapeHtml(st)}</span></td>`;
+          })
+          .join("");
+        return `
+          <tr>
+            <td class="sticky-col"><strong><code>${escapeHtml(r.candidate_id)}</code></strong><div class="muted" style="font-size:0.74rem">${famTag}</div></td>
+            <td class="num"><strong>${r.probes_pass}/${r.probes_measured}</strong></td>
+            <td class="num"><span class="badge ${bgCls}">${escapeHtml(bgTxt)}</span></td>
+            <td class="num">${escapeHtml(energyTxt)}</td>
+            ${probeTds}
+          </tr>
+        `;
+      })
+      .join("");
+
+    wrap.innerHTML = `
+      <table class="data-table" id="four-laws-l4-table">
+        <thead>
+          <tr>
+            <th class="sticky-col">Candidate / Family</th>
+            <th class="num">Probes PASS</th>
+            <th class="num">ByteGAN (L4)</th>
+            <th class="num">9-Probe NVML</th>
+            ${probeHeaders}
+          </tr>
+        </thead>
+        <tbody>${rowsHtml}</tbody>
+      </table>
+    `;
   }
 
   function renderLawCellDrawer() {
@@ -2204,17 +2308,222 @@
 
   /* ---------- Rendering: GIF Inspector ---------- */
 
-  function populateGifSelectors() {
+  const FLAGSHIP_VISUAL_TASKS = [
+    "ring16_acquisition",
+    "grid100",
+    "rotated100",
+    "staggered100",
+    "vector_spiral",
+    "img_bars4",
+    "img_stripes2",
+    "img_blobs4",
+    "two_pole",
+    "gaussian1d_smoke",
+    "ae_gan_hold",
+    "vector_two_broad",
+  ];
+
+  function rankFamiliesByPerformance(families) {
+    return [...(families || [])].sort((a, b) => {
+      const fpDiff = toInt(b.full_pass, 0) - toInt(a.full_pass, 0);
+      if (fpDiff !== 0) return fpDiff;
+      const tpDiff = toInt(b.total_pass, 0) - toInt(a.total_pass, 0);
+      if (tpDiff !== 0) return tpDiff;
+      const t1Diff = toInt(b.tier1_pass, 0) - toInt(a.tier1_pass, 0);
+      if (t1Diff !== 0) return t1Diff;
+      const failDiff = toInt(a.full_fail, 0) - toInt(b.full_fail, 0);
+      if (failDiff !== 0) return failDiff;
+      const staleDiff = (a.stale ? 1 : 0) - (b.stale ? 1 : 0);
+      if (staleDiff !== 0) return staleDiff;
+      return String(a.label || a.id).localeCompare(String(b.label || b.id));
+    });
+  }
+
+  function buildFamilyRankMap(families = state.families) {
+    const ranked = rankFamiliesByPerformance(families);
+    const map = new Map();
+    ranked.forEach((f, idx) => map.set(f.id, idx + 1));
+    return { ranked, rankMap: map };
+  }
+
+  function pickDefaultGifFamilies(taskId, rankedFamilies, receipts, count = 2) {
+    const ranked = Array.isArray(rankedFamilies) ? rankedFamilies : [];
+    const byFam = new Map();
+    for (const r of receipts || []) {
+      if (r.task_id === taskId) byFam.set(r.family_id, r);
+    }
+    const withGif = ranked.filter((f) => Boolean(byFam.get(f.id)?.gif_path));
+    const withoutGif = ranked.filter((f) => !byFam.get(f.id)?.gif_path);
+    return [...withGif, ...withoutGif].slice(0, count).map((f) => f.id);
+  }
+
+  function pickDefaultGifTask(tasks, rankedFamilies, receipts) {
+    if (!tasks || tasks.length === 0) return "";
+    const top4Ids = new Set((rankedFamilies || []).slice(0, 4).map((f) => f.id));
+    const top2Ids = new Set((rankedFamilies || []).slice(0, 2).map((f) => f.id));
+    const taskStats = new Map();
+    for (const t of tasks) {
+      taskStats.set(t.taskId, { taskId: t.taskId, top2: 0, top4: 0, gifCount: t.gifCount || 0 });
+    }
+    for (const r of receipts || []) {
+      if (!r.gif_path) continue;
+      const st = taskStats.get(r.task_id);
+      if (!st) continue;
+      if (top2Ids.has(r.family_id)) st.top2 += 1;
+      if (top4Ids.has(r.family_id)) st.top4 += 1;
+    }
+
+    // Prefer flagship visual benchmarks where the top-2 best-performing families have GIFs
+    for (const flagship of FLAGSHIP_VISUAL_TASKS) {
+      const st = taskStats.get(flagship);
+      if (st && st.top2 >= Math.min(2, top2Ids.size) && st.gifCount > 0) {
+        return flagship;
+      }
+    }
+    for (const flagship of FLAGSHIP_VISUAL_TASKS) {
+      const st = taskStats.get(flagship);
+      if (st && st.top4 > 0) {
+        return flagship;
+      }
+    }
+
+    const best = [...taskStats.values()].sort((a, b) => {
+      if (b.top2 !== a.top2) return b.top2 - a.top2;
+      if (b.top4 !== a.top4) return b.top4 - a.top4;
+      if (b.gifCount !== a.gifCount) return b.gifCount - a.gifCount;
+      return a.taskId.localeCompare(b.taskId);
+    })[0];
+    return best ? best.taskId : tasks[0].taskId;
+  }
+
+  function pickContrastGifPair(taskId, rankedFamilies, receipts) {
+    const byFam = new Map();
+    for (const r of receipts || []) {
+      if (r.task_id === taskId) byFam.set(r.family_id, r);
+    }
+    const passWithGif = rankedFamilies.find((f) => {
+      const r = byFam.get(f.id);
+      return r && r.gif_path && r.status === "PASS";
+    });
+    const failWithGif = rankedFamilies.find((f) => {
+      const r = byFam.get(f.id);
+      return r && r.gif_path && r.status === "FAIL";
+    });
+    if (passWithGif && failWithGif) {
+      return [passWithGif.id, failWithGif.id];
+    }
+    const passAny = rankedFamilies.find((f) => byFam.get(f.id)?.status === "PASS");
+    const failAny = rankedFamilies.find((f) => byFam.get(f.id)?.status === "FAIL");
+    if (passAny && failAny) {
+      return [passAny.id, failAny.id];
+    }
+    return pickDefaultGifFamilies(taskId, rankedFamilies, receipts, 2);
+  }
+
+  function gifDisplayUrl(gifPath) {
+    const base = hfResolveUrl(gifPath);
+    if (!base) return null;
+    if (!state.gifSyncNonce) return base;
+    const sep = base.includes("?") ? "&" : "?";
+    return `${base}${sep}replay=${state.gifSyncNonce}`;
+  }
+
+  function formatGifProvenance(receipt) {
+    const gm = receipt && receipt.gif_meta;
+    if (!gm) return null;
+    const parts = [];
+    if (gm.cohort_match === "selected_cohort") {
+      parts.push("Selected cohort");
+    } else if (gm.cohort_match === "colab_replay_media") {
+      parts.push(`Colab${gm.gpu_name ? ` ${gm.gpu_name.replace(/^NVIDIA\s+/i, "")}` : ""} seed-0 replay`);
+    } else if (gm.cohort_match) {
+      parts.push(String(gm.cohort_match));
+    }
+    parts.push(gm.has_visual_samples ? "Samples + curves" : "Metric curves");
+    if (gm.grade_matches_selected === false && gm.recorded_grade) {
+      parts.push(`GIF run: ${gm.recorded_grade}`);
+    }
+    return parts.join(" · ");
+  }
+
+  function compactGifMetricsHtml(receipt) {
+    if (!receipt) return "";
+    const pills = [];
+    if (receipt.wall_seconds != null) {
+      pills.push(`<span class="gif-metric-pill">wall ${receipt.wall_seconds.toFixed(1)}s</span>`);
+    }
+    if (receipt.energy && receipt.energy.joules_to_first_pass != null) {
+      pills.push(`<span class="gif-metric-pill">J-to-PASS ${escapeHtml(formatJoules(receipt.energy.joules_to_first_pass))}</span>`);
+    }
+    if (receipt.metrics && typeof receipt.metrics === "object") {
+      const entries = Object.entries(receipt.metrics)
+        .filter(([k, v]) => !k.startsWith("_") && (typeof v === "number" || typeof v === "boolean"))
+        .slice(0, 3);
+      for (const [k, v] of entries) {
+        const val = typeof v === "number" ? (Math.abs(v) >= 100 || Number.isInteger(v) ? String(Math.round(v * 100) / 100) : v.toFixed(3)) : String(v);
+        pills.push(`<span class="gif-metric-pill"><code>${escapeHtml(k)}</code>=${escapeHtml(val)}</span>`);
+      }
+    }
+    return pills.length > 0 ? `<div class="gif-metrics-row">${pills.join("")}</div>` : "";
+  }
+
+  function populateGifSelectors({ snapFamiliesToBest = false } = {}) {
+    const { ranked } = buildFamilyRankMap(state.families);
     const taskMap = new Map();
     for (const r of state.receipts) {
       if (!taskMap.has(r.task_id)) {
-        taskMap.set(r.task_id, { taskId: r.task_id, tier: r.tier, role: r.role, gifCount: 0 });
+        taskMap.set(r.task_id, { taskId: r.task_id, tier: r.tier, role: r.role, gifCount: 0, passCount: 0 });
       }
-      if (r.gif_path) taskMap.get(r.task_id).gifCount += 1;
+      const entry = taskMap.get(r.task_id);
+      if (r.gif_path) entry.gifCount += 1;
+      if (r.status === "PASS") entry.passCount += 1;
     }
 
-    let tasks = [...taskMap.values()].sort((a, b) => {
+    const allTasks = [...taskMap.values()];
+    const quickWrap = $("gif-quick-tasks");
+    if (quickWrap) {
+      const quickCandidates = FLAGSHIP_VISUAL_TASKS.filter((tid) => (taskMap.get(tid)?.gifCount || 0) > 0);
+      const fallbackQuick = allTasks
+        .filter((t) => t.gifCount > 0 && !quickCandidates.includes(t.taskId))
+        .sort((a, b) => b.gifCount - a.gifCount || a.taskId.localeCompare(b.taskId))
+        .map((t) => t.taskId);
+      const pills = [...quickCandidates, ...fallbackQuick].slice(0, 10);
+      if (pills.length > 0) {
+        quickWrap.innerHTML =
+          `<span class="gif-quick-label">Flagship visual tasks:</span>` +
+          pills
+            .map((tid) => {
+              const cnt = taskMap.get(tid)?.gifCount || 0;
+              const def = state.taskDefinitions.get(tid);
+              const active = tid === state.gifTask ? "active" : "";
+              return `<button type="button" class="gif-task-pill ${active}" data-quick-gif-task="${escapeHtml(tid)}" title="${escapeHtml(def?.title || tid)}"><code>${escapeHtml(tid)}</code> <span class="gif-pill-cnt">${cnt}</span></button>`;
+            })
+            .join("");
+      } else {
+        quickWrap.innerHTML = "";
+      }
+    }
+
+    const top2Ids = new Set(ranked.slice(0, 2).map((f) => f.id));
+    const top2Cov = new Map();
+    for (const r of state.receipts) {
+      if (r.gif_path && top2Ids.has(r.family_id)) {
+        top2Cov.set(r.task_id, (top2Cov.get(r.task_id) || 0) + 1);
+      }
+    }
+
+    let tasks = [...allTasks].sort((a, b) => {
+      const aFlag = FLAGSHIP_VISUAL_TASKS.indexOf(a.taskId);
+      const bFlag = FLAGSHIP_VISUAL_TASKS.indexOf(b.taskId);
+      const aHas = a.gifCount > 0 ? 1 : 0;
+      const bHas = b.gifCount > 0 ? 1 : 0;
+      if (bHas !== aHas) return bHas - aHas;
+      const aTop = top2Cov.get(a.taskId) || 0;
+      const bTop = top2Cov.get(b.taskId) || 0;
+      if (bTop !== aTop) return bTop - aTop;
       if (b.gifCount !== a.gifCount) return b.gifCount - a.gifCount;
+      if ((aFlag !== -1) !== (bFlag !== -1)) return aFlag !== -1 ? -1 : 1;
+      if (aFlag !== -1 && bFlag !== -1) return aFlag - bFlag;
       if (a.tier !== b.tier) return a.tier - b.tier;
       return a.taskId.localeCompare(b.taskId);
     });
@@ -2222,8 +2531,19 @@
     if (state.gifLawFilter) {
       tasks = tasks.filter((t) => taskMatchesLaw(state.taskDefinitions.get(t.taskId), state.gifLawFilter));
     }
+    const q = state.gifSearch.trim().toLowerCase();
+    if (q) {
+      tasks = tasks.filter((t) => {
+        const def = state.taskDefinitions.get(t.taskId);
+        const hay = `${t.taskId} ${def?.title || ""} ${(def?.edge_cases || []).join(" ")}`.toLowerCase();
+        return hay.includes(q);
+      });
+    }
     if (state.gifOnlyAvailable) {
-      tasks = tasks.filter((t) => t.gifCount > 0);
+      const withAny = tasks.filter((t) => t.gifCount > 0);
+      if (withAny.length > 0 || q || state.gifLawFilter) {
+        tasks = withAny;
+      }
     }
 
     const taskSelect = $("gif-task");
@@ -2234,46 +2554,74 @@
     } else {
       taskSelect.innerHTML = tasks
         .map((t) => {
-          const gifTag = t.gifCount > 0 ? ` [${t.gifCount} GIF${t.gifCount === 1 ? "" : "s"}]` : " [no GIF yet]";
+          const gifTag = t.gifCount > 0 ? ` [${t.gifCount}/${state.families.length} GIFs]` : " [no GIF yet]";
           const tierTag = t.tier > 0 ? `T${t.tier} · ` : "";
           return `<option value="${escapeHtml(t.taskId)}">${escapeHtml(tierTag + t.taskId + gifTag)}</option>`;
         })
         .join("");
       if (!tasks.some((t) => t.taskId === state.gifTask)) {
-        state.gifTask = tasks[0].taskId;
+        state.gifTask = pickDefaultGifTask(tasks, ranked, state.receipts);
+        snapFamiliesToBest = true;
       }
       taskSelect.value = state.gifTask;
     }
 
-    const famOptions = state.families
-      .map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.label)}</option>`)
+    // Build family selector options sorted by leaderboard rank, with GIF & status indicators for current task
+    const receiptByFam = new Map();
+    for (const r of state.receipts) {
+      if (r.task_id === state.gifTask) receiptByFam.set(r.family_id, r);
+    }
+
+    const famOptions = ranked
+      .map((f, idx) => {
+        const rec = receiptByFam.get(f.id);
+        const st = rec ? rec.status : "not_run";
+        const gifDot = rec && rec.gif_path ? "● " : "○ ";
+        const score = `${f.full_pass}/${f.full_total}`;
+        return `<option value="${escapeHtml(f.id)}">${escapeHtml(`${gifDot}#${idx + 1} ${f.label} (${score}) · ${st}`)}</option>`;
+      })
       .join("");
     $("gif-family-left").innerHTML = famOptions;
     $("gif-family-right").innerHTML = famOptions;
 
-    if (!state.families.some((f) => f.id === state.gifLeft) && state.families.length > 0) {
-      const withGif = state.receipts.filter((r) => r.task_id === state.gifTask && r.gif_path);
-      state.gifLeft = (withGif[0] && withGif[0].family_id) || state.families[0].id;
+    const bestPair = pickDefaultGifFamilies(state.gifTask, ranked, state.receipts, 2);
+    if (snapFamiliesToBest || !ranked.some((f) => f.id === state.gifLeft)) {
+      state.gifLeft = bestPair[0] || (ranked[0] && ranked[0].id) || "";
     }
-    if (!state.families.some((f) => f.id === state.gifRight) && state.families.length > 0) {
-      const withGif = state.receipts.filter((r) => r.task_id === state.gifTask && r.gif_path && r.family_id !== state.gifLeft);
+    if (snapFamiliesToBest || !ranked.some((f) => f.id === state.gifRight) || state.gifRight === state.gifLeft) {
       state.gifRight =
-        (withGif[0] && withGif[0].family_id) ||
-        (state.families.find((f) => f.id !== state.gifLeft) || state.families[0]).id;
+        bestPair.find((id) => id !== state.gifLeft) ||
+        (ranked.find((f) => f.id !== state.gifLeft) || ranked[0] || {}).id ||
+        "";
     }
     $("gif-family-left").value = state.gifLeft;
     $("gif-family-right").value = state.gifRight;
+
+    // Keep quick-task active pill synced
+    if (quickWrap) {
+      quickWrap.querySelectorAll("[data-quick-gif-task]").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.quickGifTask === state.gifTask);
+      });
+    }
   }
 
-  function renderGifCard(family, receipt, taskIdOverride = null) {
+  function renderGifCard(family, receipt, taskIdOverride = null, { rank = null, slotTag = null } = {}) {
     const taskId = taskIdOverride || state.gifTask;
     const statusHtml = receipt ? statusBadgeHtml(receipt.status) : `<span class="badge badge-not_run">not_run</span>`;
-    const gifUrl = receipt && receipt.gif_path ? hfResolveUrl(receipt.gif_path) : null;
+    const rawGifUrl = receipt && receipt.gif_path ? hfResolveUrl(receipt.gif_path) : null;
+    const displayUrl = receipt && receipt.gif_path ? gifDisplayUrl(receipt.gif_path) : null;
     const famPage = githubBlobUrl(family.pagePath);
     const hashText = (receipt && receipt.source_hash) || family.sourceHash;
+    const provText = formatGifProvenance(receipt);
+    const rankHtml = rank != null ? `<span class="gif-rank-badge" title="Leaderboard full-suite rank">#${rank}</span>` : "";
+    const slotHtml = slotTag ? `<span class="gif-slot-badge">${escapeHtml(slotTag)}</span>` : "";
+    const scoreSub = `${family.full_pass}/${family.full_total} full-suite`;
 
-    const mediaHtml = gifUrl
-      ? `<img src="${escapeHtml(gifUrl)}" alt="${escapeHtml(family.label)} training GIF for ${escapeHtml(taskId)}" loading="lazy" data-gif-img="1">`
+    const mediaHtml = displayUrl
+      ? `<div class="gif-img-wrap is-loading">
+           <img src="${escapeHtml(displayUrl)}" alt="${escapeHtml(family.label)} training GIF for ${escapeHtml(taskId)}" loading="lazy" data-gif-img="1" data-gif-zoom-task="${escapeHtml(taskId)}" data-gif-zoom-fam="${escapeHtml(family.id)}">
+           <button type="button" class="gif-zoom-btn" data-gif-zoom-task="${escapeHtml(taskId)}" data-gif-zoom-fam="${escapeHtml(family.id)}" title="Open fullscreen zoom inspector">⤢ Zoom</button>
+         </div>`
       : `<div class="gif-placeholder">
            <strong>No training GIF published yet</strong>
            <span>Recorded status for <code>${escapeHtml(taskId)}</code>: ${escapeHtml(receipt ? receipt.status : "not_run")}.</span>
@@ -2281,87 +2629,240 @@
          </div>`;
 
     return `
-      <article class="gif-card">
+      <article class="gif-card ${displayUrl ? "has-gif" : "no-gif"}">
         <div class="gif-card-head">
-          <div>
-            <div class="gif-card-title">${escapeHtml(family.label)}</div>
-            <div class="gif-card-sub">${escapeHtml(family.selectedRecipe || family.candidateId || family.id)}</div>
+          <div class="gif-card-head-left">
+            <div class="gif-card-title-row">
+              ${rankHtml}
+              <span class="gif-card-title">${escapeHtml(family.label)}</span>
+              ${slotHtml}
+            </div>
+            <div class="gif-card-sub"><code>${escapeHtml(family.candidateId || family.id)}</code> · ${escapeHtml(scoreSub)}</div>
           </div>
           ${statusHtml}
         </div>
         <div class="gif-media-box">${mediaHtml}</div>
+        ${compactGifMetricsHtml(receipt)}
         <div class="gif-card-foot">
-          <span>${hashText ? `src: <code>${escapeHtml(shortHash(hashText, 10))}</code>` : "Recorded cohort"}</span>
-          <span>
-            ${gifUrl ? `<a href="${escapeHtml(gifUrl)}" target="_blank" rel="noopener noreferrer">Raw GIF ↗</a> · ` : ""}
-            <a href="${escapeHtml(famPage)}" target="_blank" rel="noopener noreferrer">Family report ↗</a>
+          <span class="gif-prov-text">${escapeHtml(provText || (hashText ? `src: ${shortHash(hashText, 10)}` : "Recorded cohort"))}</span>
+          <span class="gif-card-links">
+            ${rawGifUrl ? `<a href="${escapeHtml(rawGifUrl)}" target="_blank" rel="noopener noreferrer">Raw GIF ↗</a> · ` : ""}
+            <a href="${escapeHtml(famPage)}" target="_blank" rel="noopener noreferrer">Report ↗</a>
           </span>
         </div>
       </article>
     `;
   }
 
-  function attachGifErrorFallbacks(container) {
+  function attachGifHandlers(container) {
     if (!container) return;
     container.querySelectorAll("img[data-gif-img]").forEach((img) => {
-      img.addEventListener("error", () => {
-        const box = img.parentElement;
-        if (!box) return;
-        box.innerHTML = `
-          <div class="gif-placeholder">
-            <strong>GIF not yet available at this revision</strong>
-            <span>Checked <code>${escapeHtml(img.getAttribute("src") || "")}</code></span>
-          </div>`;
-      });
+      const wrap = img.closest(".gif-img-wrap");
+      const markLoaded = () => {
+        if (wrap) wrap.classList.remove("is-loading");
+      };
+      if (img.complete && img.naturalWidth > 0) {
+        markLoaded();
+      } else {
+        img.addEventListener("load", markLoaded, { once: true });
+      }
+      img.addEventListener(
+        "error",
+        () => {
+          const box = img.closest(".gif-media-box") || img.parentElement;
+          if (!box) return;
+          box.innerHTML = `
+            <div class="gif-placeholder">
+              <strong>GIF unavailable at this revision</strong>
+              <span>Checked <code>${escapeHtml(img.getAttribute("src") || "")}</code></span>
+            </div>`;
+        },
+        { once: true }
+      );
     });
+  }
+
+  function openGifLightbox(taskId, familyId) {
+    const { ranked } = buildFamilyRankMap(state.families);
+    const byFam = new Map();
+    for (const r of state.receipts) {
+      if (r.task_id === taskId) byFam.set(r.family_id, r);
+    }
+    const availableIds = ranked.filter((f) => Boolean(byFam.get(f.id)?.gif_path)).map((f) => f.id);
+    const familyIds = availableIds.includes(familyId) ? availableIds : [familyId, ...availableIds];
+    const index = Math.max(0, familyIds.indexOf(familyId));
+    state.gifLightbox = { taskId, familyIds, index };
+    renderGifLightbox();
+  }
+
+  function closeGifLightbox() {
+    state.gifLightbox = null;
+    const lb = $("gif-lightbox");
+    if (lb) lb.classList.add("hidden");
+    if (typeof document !== "undefined" && !state.activeExperimentId) {
+      document.body.classList.remove("modal-open");
+    }
+  }
+
+  function renderGifLightbox() {
+    const lb = $("gif-lightbox");
+    if (!lb) return;
+    if (!state.gifLightbox) {
+      lb.classList.add("hidden");
+      return;
+    }
+    const { taskId, familyIds, index } = state.gifLightbox;
+    const { ranked, rankMap } = buildFamilyRankMap(state.families);
+    const famId = familyIds[index];
+    const fam = ranked.find((f) => f.id === famId);
+    if (!fam) {
+      closeGifLightbox();
+      return;
+    }
+    const rec = state.receipts.find((r) => r.task_id === taskId && r.family_id === famId) || null;
+    const def = state.taskDefinitions.get(taskId);
+    const rawUrl = rec && rec.gif_path ? hfResolveUrl(rec.gif_path) : null;
+    const dispUrl = rec && rec.gif_path ? gifDisplayUrl(rec.gif_path) : null;
+
+    lb.classList.remove("hidden");
+    document.body.classList.add("modal-open");
+
+    $("gif-lb-title").textContent = `#${rankMap.get(famId) || "—"} ${fam.label} (${fam.candidateId || fam.id})`;
+    $("gif-lb-task-id").textContent = `${taskId} · ${index + 1}/${familyIds.length}`;
+    const prov = formatGifProvenance(rec);
+    $("gif-lb-badges").innerHTML = [
+      rec ? statusBadgeHtml(rec.status) : `<span class="badge badge-not_run">not_run</span>`,
+      `<span class="badge badge-required">Full-Suite ${fam.full_pass}/${fam.full_total}</span>`,
+      prov ? `<span class="badge badge-muted">${escapeHtml(prov)}</span>` : "",
+      def && def.title ? `<span class="badge badge-evolving">${escapeHtml(def.title)}</span>` : "",
+    ]
+      .filter(Boolean)
+      .join("");
+
+    const rawLink = $("gif-lb-raw");
+    if (rawLink) {
+      rawLink.href = rawUrl || "#";
+      rawLink.classList.toggle("hidden", !rawUrl);
+    }
+    if ($("gif-lb-prev")) $("gif-lb-prev").disabled = familyIds.length <= 1;
+    if ($("gif-lb-next")) $("gif-lb-next").disabled = familyIds.length <= 1;
+
+    $("gif-lb-media").innerHTML = dispUrl
+      ? `<div class="gif-img-wrap is-loading"><img src="${escapeHtml(dispUrl)}" alt="${escapeHtml(fam.label)} training GIF for ${escapeHtml(taskId)}" data-gif-img="1"></div>`
+      : `<div class="gif-placeholder"><strong>No GIF available</strong><span>Status: ${escapeHtml(rec ? rec.status : "not_run")}</span></div>`;
+    attachGifHandlers($("gif-lb-media"));
+
+    const metaParts = [];
+    if (rec && rec.wall_seconds != null) metaParts.push(`Wall: ${rec.wall_seconds.toFixed(1)}s`);
+    if (rec && rec.energy && rec.energy.joules_to_first_pass != null) {
+      metaParts.push(`J-to-PASS: ${formatJoules(rec.energy.joules_to_first_pass)}`);
+    }
+    if (rec && rec.gif_meta && rec.gif_meta.attempt_id) {
+      metaParts.push(`GIF attempt: ${shortHash(rec.gif_meta.attempt_id, 12)}`);
+    }
+    if (rec && rec.reason) metaParts.push(rec.reason);
+    $("gif-lb-meta").innerHTML =
+      compactGifMetricsHtml(rec) +
+      `<div class="gif-lb-foot-note">${escapeHtml(metaParts.join(" · ") || "Use ← / → arrow keys to step across families, R to replay, Esc to close.")}</div>`;
   }
 
   function renderGifInspector() {
     const stage = $("gif-stage");
     if (!stage) return;
     const compareControls = state.gifLayout === "compare";
+    const gridControls = state.gifLayout === "grid";
     $("gif-left-group").classList.toggle("hidden", !compareControls);
     $("gif-right-group").classList.toggle("hidden", !compareControls);
     $("gif-swap-group").classList.toggle("hidden", !compareControls);
-    stage.className = compareControls ? "gif-stage gif-stage-compare" : "gif-stage gif-stage-grid";
+    if ($("gif-hide-missing-group")) $("gif-hide-missing-group").classList.toggle("hidden", !gridControls);
+    stage.className = compareControls
+      ? "gif-stage gif-stage-compare"
+      : state.gifLayout === "top4"
+        ? "gif-stage gif-stage-top4"
+        : "gif-stage gif-stage-grid";
 
     if (!state.gifTask) {
       $("gif-task-meta").textContent = "";
-      stage.innerHTML = `<div class="empty-cell">No task selected.</div>`;
+      if ($("gif-family-strip")) $("gif-family-strip").innerHTML = "";
+      stage.innerHTML = `<div class="empty-cell">No task matches the current GIF filters.</div>`;
       return;
     }
 
+    const { ranked, rankMap } = buildFamilyRankMap(state.families);
     const byFamily = new Map();
     for (const r of state.receipts) {
       if (r.task_id === state.gifTask) byFamily.set(r.family_id, r);
     }
 
     const def = state.taskDefinitions.get(state.gifTask);
-    const gifAvail = [...byFamily.values()].filter((r) => Boolean(r.gif_path)).length;
+    const gifAvail = ranked.filter((f) => Boolean(byFamily.get(f.id)?.gif_path)).length;
+    const passCount = ranked.filter((f) => byFamily.get(f.id)?.status === "PASS").length;
+    const failCount = ranked.filter((f) => byFamily.get(f.id)?.status === "FAIL").length;
     const probLink = `${githubBlobUrl("reports/forge/problems.md")}#${encodeURIComponent(state.gifTask)}`;
     $("gif-task-meta").innerHTML = `
-      <button type="button" class="btn btn-ghost btn-sm" data-open-experiment="${escapeHtml(state.gifTask)}">Deep-Dive: <code>${escapeHtml(state.gifTask)}</code></button> ·
-      ${gifAvail} of ${state.families.length} families have a published GIF ·
-      <a href="${escapeHtml(probLink)}" target="_blank" rel="noopener noreferrer">Problem specification ↗</a>
-      ${def && def.intuition ? `<div style="margin-top:6px">${escapeHtml(def.intuition)}</div>` : ""}
+      <button type="button" class="btn btn-ghost btn-sm" data-open-experiment="${escapeHtml(state.gifTask)}">Deep-Dive: <code>${escapeHtml(state.gifTask)}</code></button>
+      <span><strong>${gifAvail}/${ranked.length}</strong> families with GIF · ${passCount} PASS · ${failCount} FAIL ·</span>
+      <a href="${escapeHtml(probLink)}" target="_blank" rel="noopener noreferrer">Problem spec ↗</a>
+      ${def && def.intuition ? `<div class="gif-task-intuition">${escapeHtml(def.intuition)}</div>` : ""}
     `;
+
+    // Interactive Family Coverage Strip (leaderboard-ranked)
+    const strip = $("gif-family-strip");
+    if (strip) {
+      strip.innerHTML = ranked
+        .map((f, idx) => {
+          const rec = byFamily.get(f.id);
+          const hasGif = Boolean(rec && rec.gif_path);
+          const status = rec ? rec.status : "not_run";
+          const isLeft = compareControls && f.id === state.gifLeft;
+          const isRight = compareControls && f.id === state.gifRight;
+          const slotMark = isLeft ? `<span class="chip-slot">L</span>` : isRight ? `<span class="chip-slot">R</span>` : "";
+          const statusCls = status === "PASS" ? "chip-pass" : status === "FAIL" ? "chip-fail" : "chip-muted";
+          const activeCls = isLeft || isRight ? "is-selected" : "";
+          return `<button type="button" class="gif-fam-chip ${statusCls} ${hasGif ? "has-gif" : "no-gif"} ${activeCls}" data-gif-chip-fam="${escapeHtml(f.id)}" title="#${idx + 1} ${escapeHtml(f.label)} (${f.full_pass}/${f.full_total}) · ${escapeHtml(status)} · ${hasGif ? "Click to inspect/compare GIF" : "No GIF published yet"}">
+            <span class="chip-dot" aria-hidden="true">${hasGif ? "●" : "○"}</span>
+            <span class="chip-rank">#${idx + 1}</span>
+            <span>${escapeHtml(f.label)}</span>
+            ${slotMark}
+          </button>`;
+        })
+        .join("");
+    }
 
     let selectedFamilies = [];
     if (compareControls) {
-      const leftFam = state.families.find((f) => f.id === state.gifLeft);
-      const rightFam = state.families.find((f) => f.id === state.gifRight);
-      if (leftFam) selectedFamilies.push(leftFam);
-      if (rightFam) selectedFamilies.push(rightFam);
-    } else {
-      selectedFamilies = [...state.families].sort((a, b) => {
-        const ga = byFamily.get(a.id)?.gif_path ? 1 : 0;
-        const gb = byFamily.get(b.id)?.gif_path ? 1 : 0;
-        return gb - ga || a.label.localeCompare(b.label);
-      });
+      const leftFam = ranked.find((f) => f.id === state.gifLeft);
+      const rightFam = ranked.find((f) => f.id === state.gifRight);
+      const cards = [];
+      if (leftFam) cards.push(renderGifCard(leftFam, byFamily.get(leftFam.id), state.gifTask, { rank: rankMap.get(leftFam.id), slotTag: "Left" }));
+      if (rightFam) cards.push(renderGifCard(rightFam, byFamily.get(rightFam.id), state.gifTask, { rank: rankMap.get(rightFam.id), slotTag: "Right" }));
+      stage.innerHTML = cards.join("");
+      attachGifHandlers(stage);
+      return;
     }
 
-    stage.innerHTML = selectedFamilies.map((f) => renderGifCard(f, byFamily.get(f.id))).join("");
-    attachGifErrorFallbacks(stage);
+    if (state.gifLayout === "top4") {
+      const withGif = ranked.filter((f) => Boolean(byFamily.get(f.id)?.gif_path));
+      const withoutGif = ranked.filter((f) => !byFamily.get(f.id)?.gif_path);
+      selectedFamilies = [...withGif, ...withoutGif].slice(0, 4);
+      stage.innerHTML = selectedFamilies
+        .map((f) => renderGifCard(f, byFamily.get(f.id), state.gifTask, { rank: rankMap.get(f.id) }))
+        .join("");
+      attachGifHandlers(stage);
+      return;
+    }
+
+    // All Families Grid: ordered by GIF availability first, then strictly leaderboard performance rank
+    const withGif = ranked.filter((f) => Boolean(byFamily.get(f.id)?.gif_path));
+    const withoutGif = ranked.filter((f) => !byFamily.get(f.id)?.gif_path);
+    const rendered = withGif.map((f) => renderGifCard(f, byFamily.get(f.id), state.gifTask, { rank: rankMap.get(f.id) }));
+    if (!state.gifHideMissingInGrid && withoutGif.length > 0) {
+      for (const f of withoutGif) {
+        rendered.push(renderGifCard(f, byFamily.get(f.id), state.gifTask, { rank: rankMap.get(f.id) }));
+      }
+    }
+    stage.innerHTML = rendered.length > 0 ? rendered.join("") : `<div class="empty-cell">No families have a published GIF for this task yet.</div>`;
+    attachGifHandlers(stage);
   }
 
   /* ---------- Dedicated Experiment Deep-Dive Modal (#experiment/<task_id>) ---------- */
@@ -2374,10 +2875,8 @@
   function openExperimentModal(taskId, { pushHash = true } = {}) {
     if (!taskId) return;
     state.activeExperimentId = taskId;
-    const receiptsForTask = state.receipts.filter((r) => r.task_id === taskId);
-    const withGif = receiptsForTask.filter((r) => Boolean(r.gif_path)).map((r) => r.family_id);
-    const defaultPair = [...new Set([...withGif, ...state.families.map((f) => f.id)])].slice(0, 2);
-    state.expModalGifFamilies = defaultPair;
+    const { ranked } = buildFamilyRankMap(state.families);
+    state.expModalGifFamilies = pickDefaultGifFamilies(taskId, ranked, state.receipts, 2);
 
     if (pushHash && typeof window !== "undefined" && window.location) {
       const targetHash = `#experiment/${encodeURIComponent(taskId)}`;
@@ -2486,8 +2985,9 @@
           </table></div>`
         : `<p class="muted" style="margin:0;font-size:0.82rem">No scalar thresholds embedded in this snapshot. Inspect the Task JSON for complete evaluation rules.</p>`;
 
-    // Cross-Family Recorded Outcomes table
-    const outcomeRows = state.families
+    // Cross-Family Recorded Outcomes table (ordered by leaderboard performance rank)
+    const { ranked: rankedFams, rankMap: modalRankMap } = buildFamilyRankMap(state.families);
+    const outcomeRows = rankedFams
       .map((fam) => {
         const rec = receiptByFam.get(fam.id);
         const status = rec ? rec.status : "not_run";
@@ -2500,7 +3000,7 @@
         const inPreview = state.expModalGifFamilies.includes(fam.id);
         return `
           <tr class="clickable ${inPreview ? "selected-row" : ""}" data-modal-outcome-fam="${escapeHtml(fam.id)}">
-            <td><strong>${escapeHtml(fam.label)}</strong> ${fam.candidateId ? `<code>${escapeHtml(fam.candidateId)}</code>` : ""}</td>
+            <td><span class="gif-rank-badge">#${modalRankMap.get(fam.id)}</span> <strong>${escapeHtml(fam.label)}</strong> ${fam.candidateId ? `<code>${escapeHtml(fam.candidateId)}</code>` : ""}</td>
             <td>${statusBadgeHtml(status)}</td>
             <td class="num">${escapeHtml(wall)}</td>
             <td class="num">${escapeHtml(j2p)}</td>
@@ -2514,11 +3014,11 @@
 
     // Embedded side-by-side training GIF preview cards
     const previewFams = state.expModalGifFamilies
-      .map((fid) => state.families.find((f) => f.id === fid))
+      .map((fid) => rankedFams.find((f) => f.id === fid))
       .filter(Boolean);
     const previewHtml =
       previewFams.length > 0
-        ? previewFams.map((fam) => renderGifCard(fam, receiptByFam.get(fam.id), taskId)).join("")
+        ? previewFams.map((fam) => renderGifCard(fam, receiptByFam.get(fam.id), taskId, { rank: modalRankMap.get(fam.id) })).join("")
         : `<div class="empty-cell">Click any family row above to preview its training GIF here.</div>`;
 
     const body = $("exp-modal-body");
@@ -2621,7 +3121,7 @@
       </div>
     `;
 
-    attachGifErrorFallbacks($("exp-modal-gif-stage"));
+    attachGifHandlers($("exp-modal-gif-stage"));
     renderMermaidBlocks(body);
 
     const copyCmdBtn = $("exp-modal-copy-cmd");
@@ -3155,8 +3655,19 @@
         renderGifInspector();
       });
     }
+    if ($("gif-search")) {
+      $("gif-search").addEventListener("input", (e) => {
+        state.gifSearch = e.target.value;
+        populateGifSelectors();
+        renderGifInspector();
+      });
+    }
     $("gif-task").addEventListener("change", (e) => {
       state.gifTask = e.target.value;
+      const byFam = new Map(state.receipts.filter((r) => r.task_id === state.gifTask).map((r) => [r.family_id, r]));
+      const leftMissing = !byFam.get(state.gifLeft)?.gif_path;
+      const rightMissing = !byFam.get(state.gifRight)?.gif_path;
+      populateGifSelectors({ snapFamiliesToBest: leftMissing && rightMissing });
       renderGifInspector();
     });
     $("gif-family-left").addEventListener("change", (e) => {
@@ -3180,10 +3691,114 @@
       populateGifSelectors();
       renderGifInspector();
     });
+    if ($("gif-hide-missing")) {
+      $("gif-hide-missing").addEventListener("change", (e) => {
+        state.gifHideMissingInGrid = e.target.checked;
+        renderGifInspector();
+      });
+    }
+    if ($("gif-quick-tasks")) {
+      $("gif-quick-tasks").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-quick-gif-task]");
+        if (!btn) return;
+        state.gifTask = btn.dataset.quickGifTask;
+        state.gifLawFilter = "";
+        state.gifSearch = "";
+        if ($("gif-law-filter")) $("gif-law-filter").value = "";
+        if ($("gif-search")) $("gif-search").value = "";
+        populateGifSelectors({ snapFamiliesToBest: true });
+        renderGifInspector();
+      });
+    }
+    if ($("btn-gif-top2")) {
+      $("btn-gif-top2").addEventListener("click", () => {
+        const { ranked } = buildFamilyRankMap(state.families);
+        const pair = pickDefaultGifFamilies(state.gifTask, ranked, state.receipts, 2);
+        if (pair[0]) state.gifLeft = pair[0];
+        if (pair[1]) state.gifRight = pair[1];
+        state.gifLayout = "compare";
+        document.querySelectorAll("[data-gif-layout]").forEach((b) => b.classList.toggle("active", b.dataset.gifLayout === "compare"));
+        populateGifSelectors();
+        renderGifInspector();
+      });
+    }
+    if ($("btn-gif-contrast")) {
+      $("btn-gif-contrast").addEventListener("click", () => {
+        const { ranked } = buildFamilyRankMap(state.families);
+        const pair = pickContrastGifPair(state.gifTask, ranked, state.receipts);
+        if (pair[0]) state.gifLeft = pair[0];
+        if (pair[1]) state.gifRight = pair[1];
+        state.gifLayout = "compare";
+        document.querySelectorAll("[data-gif-layout]").forEach((b) => b.classList.toggle("active", b.dataset.gifLayout === "compare"));
+        populateGifSelectors();
+        renderGifInspector();
+      });
+    }
+    if ($("btn-gif-sync")) {
+      $("btn-gif-sync").addEventListener("click", () => {
+        state.gifSyncNonce += 1;
+        renderGifInspector();
+      });
+    }
+    if ($("gif-family-strip")) {
+      $("gif-family-strip").addEventListener("click", (e) => {
+        const chip = e.target.closest("[data-gif-chip-fam]");
+        if (!chip) return;
+        const fid = chip.dataset.gifChipFam;
+        if (state.gifLayout === "compare") {
+          if (fid === state.gifLeft || fid === state.gifRight) {
+            openGifLightbox(state.gifTask, fid);
+            return;
+          }
+          if (e.shiftKey || state.gifNextSlot === "right") {
+            state.gifRight = fid;
+            state.gifNextSlot = "left";
+          } else {
+            state.gifLeft = fid;
+            state.gifNextSlot = "right";
+          }
+          populateGifSelectors();
+          renderGifInspector();
+        } else {
+          openGifLightbox(state.gifTask, fid);
+        }
+      });
+    }
+    $("gif-stage").addEventListener("click", (e) => {
+      const zoomEl = e.target.closest("[data-gif-zoom-task]");
+      if (zoomEl) {
+        openGifLightbox(zoomEl.dataset.gifZoomTask, zoomEl.dataset.gifZoomFam);
+      }
+    });
     $("gif-task-meta").addEventListener("click", (e) => {
       const expBtn = e.target.closest("[data-open-experiment]");
       if (expBtn) openExperimentModal(expBtn.dataset.openExperiment);
     });
+
+    // Fullscreen GIF Lightbox events
+    const lightbox = $("gif-lightbox");
+    if (lightbox) {
+      $("gif-lb-close").addEventListener("click", () => closeGifLightbox());
+      lightbox.addEventListener("click", (e) => {
+        if (e.target === lightbox) closeGifLightbox();
+      });
+      $("gif-lb-prev").addEventListener("click", () => {
+        if (!state.gifLightbox) return;
+        const n = state.gifLightbox.familyIds.length;
+        state.gifLightbox.index = (state.gifLightbox.index - 1 + n) % n;
+        renderGifLightbox();
+      });
+      $("gif-lb-next").addEventListener("click", () => {
+        if (!state.gifLightbox) return;
+        const n = state.gifLightbox.familyIds.length;
+        state.gifLightbox.index = (state.gifLightbox.index + 1) % n;
+        renderGifLightbox();
+      });
+      $("gif-lb-replay").addEventListener("click", () => {
+        state.gifSyncNonce += 1;
+        renderGifLightbox();
+      });
+    }
 
     // Experiment Deep-Dive Modal interactions
     const modal = $("experiment-modal");
@@ -3192,6 +3807,11 @@
       modal.addEventListener("click", (e) => {
         if (e.target === modal) {
           closeExperimentModal();
+          return;
+        }
+        const zoomEl = e.target.closest("[data-gif-zoom-task]");
+        if (zoomEl) {
+          openGifLightbox(zoomEl.dataset.gifZoomTask, zoomEl.dataset.gifZoomFam);
           return;
         }
         const lawBtn = e.target.closest("[data-modal-filter-law]");
@@ -3222,6 +3842,23 @@
         }
       });
       document.addEventListener("keydown", (e) => {
+        if (state.gifLightbox) {
+          if (e.key === "Escape") {
+            closeGifLightbox();
+          } else if (e.key === "ArrowLeft") {
+            const n = state.gifLightbox.familyIds.length;
+            state.gifLightbox.index = (state.gifLightbox.index - 1 + n) % n;
+            renderGifLightbox();
+          } else if (e.key === "ArrowRight") {
+            const n = state.gifLightbox.familyIds.length;
+            state.gifLightbox.index = (state.gifLightbox.index + 1) % n;
+            renderGifLightbox();
+          } else if (e.key === "r" || e.key === "R") {
+            state.gifSyncNonce += 1;
+            renderGifLightbox();
+          }
+          return;
+        }
         if (e.key === "Escape" && state.activeExperimentId) {
           closeExperimentModal();
         }
@@ -3259,6 +3896,10 @@
       parseExperimentHash,
       getFilteredReceipts,
       sanitizeInlineSvg,
+      rankFamiliesByPerformance,
+      pickDefaultGifTask,
+      pickDefaultGifFamilies,
+      pickContrastGifPair,
     };
   }
 })();

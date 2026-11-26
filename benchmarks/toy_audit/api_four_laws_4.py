@@ -63,6 +63,13 @@ TASKS: tuple[str, ...] = (
     "fl_law44_highd_sparse_prior_and_shock",
 )
 
+V2_TASKS: tuple[str, ...] = (
+    "fl_law42_deep_resbn_and_conv1x1_v2",
+    "fl_law44_scale_shock",
+)
+
+ALL_TASKS: tuple[str, ...] = TASKS + V2_TASKS
+
 # ---------------------------------------------------------------------------
 # Frozen Task Geometry Constants
 # ---------------------------------------------------------------------------
@@ -347,6 +354,103 @@ SPECS: dict[str, dict[str, Any]] = {
 
 HOST_DEFINITIONS: dict[str, dict[str, Any]] = SPECS
 
+# ---------------------------------------------------------------------------
+# Calibrated v2 Law 4 Specifications & Thresholds (Preserving Frozen v1)
+# ---------------------------------------------------------------------------
+
+_V2_SHOCK_STEP: int = 300
+
+V2_THRESHOLDS: dict[str, list[list[Any]]] = {
+    "fl_law42_deep_resbn_and_conv1x1_v2": [
+        ["finite_fraction", "==", 1.0],
+        ["sw1", "<=", 0.10],
+        ["var_ratio_err", "<=", 0.25],
+        ["conv1x1_sw1", "<=", 0.10],
+        ["conv1x1_sw1_abs_diff", "<=", 0.015],
+    ],
+    "fl_law44_scale_shock": [
+        ["finite_fraction", "==", 1.0],
+        ["shock_modes", "==", 4],
+        ["shock_hq", ">=", 0.65],
+        ["shock_sw1", "<=", 0.35],
+        ["shock_mass_tv", "<=", 0.15],
+    ],
+}
+
+V2_SPECS: dict[str, dict[str, Any]] = {
+    "fl_law42_deep_resbn_and_conv1x1_v2": {
+        "task_id": "fl_law42_deep_resbn_and_conv1x1_v2",
+        "case_id": "fl_law42_deep_resbn_and_conv1x1_v2",
+        "kind": "fl_law42_deep_resbn_and_conv1x1_v2",
+        "law": "law4.2",
+        "defects": ["Bug2", "D-10", "4D-1x1-vs-2D-Linear"],
+        "title": "Law 4.2/4.5 (v2): Deep ResBN d=8 & isomorphic 4D Conv2d 1x1 absolute parity",
+        "goal": (
+            "Learn a 64-mode R^128 Gaussian mixture on an 8-block ResBN trunk (sw1 <= 0.10, "
+            "var_ratio_err <= 0.25) with matching generated output quality on its isomorphic 4D Conv2d 1x1 twin "
+            "(conv1x1_sw1 <= 0.10, abs(conv1x1_sw1 - sw1) <= 0.015)."
+        ),
+        "target": (
+            "64-mode R^128 Gaussian mixture (sigma=0.08) on paired 8-block ResBN trunks: "
+            "2D Linear primary vs mathematically isomorphic 4D Conv2d 1x1 twin"
+        ),
+        "resources": {"num_particles": 512, "z_dim": 32, "batch_size": 256},
+        "prior": {"kind": "mog", "sigma": 0.10, "standardize": False},
+        "model": {
+            "generator_family": "resbn_linear_and_conv1x1_twin",
+            "discriminator_family": "resbn_linear_and_conv1x1_twin",
+            "dim": _RESBN_DIM,
+            "width": _RESBN_WIDTH,
+            "depth": _RESBN_DEPTH,
+        },
+        "steps": 500,
+        "eval_samples": 2048,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "vector",
+    },
+    "fl_law44_scale_shock": {
+        "task_id": "fl_law44_scale_shock",
+        "case_id": "fl_law44_scale_shock",
+        "kind": "fl_law44_scale_shock",
+        "law": "law4.4",
+        "defects": ["D-03", "D-05", "Law2x4.4-scale-equivariance"],
+        "title": "Law 4.4 (v2): Standalone extreme 1e-5x scale & 1e4x shock + 45-deg rotation recovery",
+        "goal": (
+            "Recover all 4 modes on a standalone 1e-5x-scaled 2D mixture after a mid-run step-300 "
+            "transient 1e4x scale spike and 45-degree rotation with >=500 post-shock recovery steps "
+            "(shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35, shock_mass_tv <= 0.15)."
+        ),
+        "target": (
+            "Standalone 1e-5x-scaled 2D 4-mode Gaussian mixture (sigma=0.08*1e-5) with transient "
+            "1e4x scale spike at steps 300..301 and 45-degree mode rotation for steps 302..1000"
+        ),
+        "resources": {"num_particles": 128, "z_dim": 4, "batch_size": 128},
+        "prior": {"kind": "mog", "sigma": 0.08, "standardize": False},
+        "model": {
+            "generator_family": "scaled_output_mlp",
+            "discriminator_family": "simple_mlp",
+            "hidden": 64,
+            "layers": 2,
+            "out_dim": 2,
+            "fourier": 0,
+            "shock_step": _V2_SHOCK_STEP,
+            "shock_base_scale": _SHOCK_BASE_SCALE,
+            "shock_spike_scale": _SHOCK_SPIKE_SCALE,
+        },
+        "steps": 1000,
+        "eval_samples": 2048,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "vector",
+    },
+}
+
+ALL_THRESHOLDS: dict[str, list[list[Any]]] = {**THRESHOLDS, **V2_THRESHOLDS}
+ALL_SPECS: dict[str, dict[str, Any]] = {**SPECS, **V2_SPECS}
+
 
 # ---------------------------------------------------------------------------
 # Signed Normalized Margins & Threshold Checking
@@ -358,10 +462,10 @@ def signed_margins(metrics: dict[str, Any], task_id: str) -> dict[str, float]:
     Positive (``>= 0.0``) iff the bound passes; strictly negative (``< 0.0``) iff it fails.
     Missing or non-finite values always return finite ``-10.0``.
     """
-    if task_id not in THRESHOLDS:
+    if task_id not in ALL_THRESHOLDS:
         raise ValueError(f"unsupported four_laws_4 task_id: {task_id!r}")
     margins: dict[str, float] = {}
-    for name, op, bound in THRESHOLDS[task_id]:
+    for name, op, bound in ALL_THRESHOLDS[task_id]:
         b = float(bound)
         scale = max(abs(b), 1e-6) if b != 0.0 else 1.0
         val = metrics.get(name)
@@ -383,7 +487,7 @@ def signed_margins(metrics: dict[str, Any], task_id: str) -> dict[str, float]:
 
 def _check_thresholds(metrics: dict[str, Any], task_id: str) -> list[str]:
     failed: list[str] = []
-    for name, op, bound in THRESHOLDS[task_id]:
+    for name, op, bound in ALL_THRESHOLDS[task_id]:
         val = metrics.get(name)
         if val is None or isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(float(val)):
             failed.append(f"{name} {op} {bound}")
@@ -680,11 +784,26 @@ def build_models_for_spec(spec: dict[str, Any], *, z_dim: int | None = None, see
             fourier=int(cfg["fourier"]),
         )
         return g_mod, d_mod
-    if kind == "fl_law42_deep_resbn_and_conv1x1":
+    if kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2"):
         dim = int(cfg["dim"])
         w = int(cfg["width"])
         depth = int(cfg["depth"])
         return ResBNLinearNet(z_eff, dim, w, depth), ResBNLinearNet(dim, 1, w, depth)
+    if kind == "fl_law44_scale_shock":
+        g_mod = ScaledOutputGenerator(
+            z_dim=z_eff,
+            hidden=int(cfg["hidden"]),
+            layers=int(cfg["layers"]),
+            out_dim=int(cfg["out_dim"]),
+            output_scale=float(cfg["shock_base_scale"]),
+        )
+        d_mod = SimpleMLPDiscriminator(
+            in_dim=int(cfg["out_dim"]),
+            hidden_dim=int(cfg["hidden"]),
+            n_hidden=int(cfg["layers"]),
+            fourier=int(cfg.get("fourier", 0)),
+        )
+        return g_mod, d_mod
     if kind == "fl_law44_highd_sparse_prior_and_shock":
         dim = int(cfg["dim"])
         h = int(cfg["hidden"])
@@ -755,12 +874,21 @@ def sample_target_for_kind(
         idx = torch.randint(0, _RING8_MODES, (count,), generator=generator, device=gdev)
         pts = centers[idx] + _RING8_SIGMA * torch.randn((count, 2), generator=generator, device=gdev)
         return pts.to(dev)
-    if kind == "fl_law42_deep_resbn_and_conv1x1":
+    if kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2"):
         mf = _highd_manifold("resbn")
         centers = mf["centers"].to(gdev)
         idx = torch.randint(0, _RESBN_MODES, (count,), generator=generator, device=gdev)
         pts = centers[idx] + _RESBN_SIGMA * torch.randn((count, _RESBN_DIM), generator=generator, device=gdev)
         return pts.to(dev)
+    if kind == "fl_law44_scale_shock":
+        return sample_shock_target(
+            count,
+            generator,
+            step=_V2_SHOCK_STEP + 1,
+            shock_step=_V2_SHOCK_STEP,
+            device=dev,
+            eval_phase=True,
+        )
     if kind == "fl_law44_highd_sparse_prior_and_shock":
         mf = _highd_manifold("highd_sparse")
         centers = mf["centers"].to(gdev)
@@ -1427,6 +1555,138 @@ def score_fl_law44_highd_sparse_prior_and_shock(
     return _finalize_observation(task_id, metrics, views)
 
 
+@torch.no_grad()
+def score_fl_law42_deep_resbn_and_conv1x1_v2(
+    samples_linear: torch.Tensor,
+    *,
+    samples_conv1x1: torch.Tensor | None = None,
+    stiff_gate_mean: float = 0.0,
+    d_max_s1: float = 0.0,
+    s_therm: float = 1.0,
+    reference: torch.Tensor | None = None,
+    history: dict[str, list[float]] | None = None,
+) -> dict[str, Any]:
+    """Score v2 ResBN d=8 & isomorphic Conv2d 1x1 twin with absolute parity ``|sw1_conv - sw1_lin| <= 0.015``."""
+    task_id = "fl_law42_deep_resbn_and_conv1x1_v2"
+    base = score_fl_law42_deep_resbn_and_conv1x1(
+        samples_linear,
+        samples_conv1x1=samples_conv1x1,
+        stiff_gate_mean=stiff_gate_mean,
+        d_max_s1=d_max_s1,
+        s_therm=s_therm,
+        reference=reference,
+        history=history,
+    )
+    metrics = {k: v for k, v in base["metrics"].items() if k != "min_margin"}
+    if metrics.get("finite_fraction", 0.0) == 1.0 and metrics.get("sw1", 9.9) < 9.0 and metrics.get("conv1x1_sw1", 9.9) < 9.0:
+        metrics["conv1x1_sw1_abs_diff"] = float(abs(float(metrics["conv1x1_sw1"]) - float(metrics["sw1"])))
+    else:
+        metrics["conv1x1_sw1_abs_diff"] = 9.9
+    return _finalize_observation(task_id, metrics, base["views"])
+
+
+@torch.no_grad()
+def score_fl_law44_scale_shock(
+    samples: torch.Tensor,
+    *,
+    step: int = _V2_SHOCK_STEP + 1,
+    shock_step: int = _V2_SHOCK_STEP,
+    reference: torch.Tensor | None = None,
+    history: dict[str, list[float]] | None = None,
+) -> dict[str, Any]:
+    """Score standalone Law 4.4 extreme-scale (1e-5x) + transient 1e4x shock & 45-deg rotation recovery."""
+    task_id = "fl_law44_scale_shock"
+    pts = samples.detach().cpu().to(dtype=torch.float32)
+    shock_ref = reference
+    if shock_ref is None:
+        g_sref = torch.Generator(device="cpu").manual_seed(440301)
+        shock_ref = sample_shock_target(
+            1024, g_sref, step=step, shock_step=shock_step, device="cpu", eval_phase=True
+        )
+    shock_ref_unit = shock_ref.detach().cpu().to(dtype=torch.float32) / _SHOCK_BASE_SCALE
+
+    valid = pts.ndim == 2 and pts.shape[1] == 2 and len(pts) >= 4
+    all_finite = bool(torch.isfinite(pts).all().item()) if valid else False
+    finite_fraction = 1.0 if all_finite else (float(torch.isfinite(pts).all(dim=-1).float().mean().item()) if valid else 0.0)
+    if not valid or not all_finite:
+        fallback = {
+            "finite_fraction": finite_fraction,
+            "shock_modes": 0,
+            "shock_hq": 0.0,
+            "shock_sw1": 9.9,
+            "shock_mass_tv": 1.0,
+        }
+        zeros = torch.zeros((4, 2), dtype=torch.float32)
+        views = [
+            {
+                "kind": "scatter",
+                "title": "Standalone 1e-5x scale & post-1e4x shock (normalized by 1e5)",
+                "target": shock_ref_unit[:512],
+                "samples": zeros,
+                "xlim": [-3.0, 3.0],
+                "ylim": [-3.0, 3.0],
+                "aspect": "equal",
+                "xlabel": "x1 / 1e-5",
+                "ylabel": "x2 / 1e-5",
+                "caption": "Invalid/nonfinite output fallback.",
+            }
+        ]
+        return _finalize_observation(task_id, fallback, views)
+
+    s_unit = pts / _SHOCK_BASE_SCALE
+    active_centers_unit = torch.tensor(
+        _SHOCK_POST_CENTERS if int(step) > shock_step else _SHOCK_PRE_CENTERS,
+        dtype=torch.float32,
+    )
+    d_shock, idx_shock = torch.cdist(s_unit, active_centers_unit).min(dim=1)
+    hq_shock_mask = d_shock <= (3.5 * _SHOCK_SIGMA_UNIT)
+    shock_hq = float(hq_shock_mask.float().mean().item())
+    shock_counts = torch.bincount(idx_shock[hq_shock_mask], minlength=4)
+    min_cnt_shock = max(4, len(s_unit) // 32)
+    shock_modes = int((shock_counts >= min_cnt_shock).sum().item())
+    shock_sw1 = sliced_wasserstein_1(s_unit, shock_ref_unit, _shock_2d_proj())
+    emp_mass = torch.bincount(idx_shock, minlength=4).float() / float(len(s_unit))
+    shock_mass_tv = float(0.5 * (emp_mass - 0.25).abs().sum().item())
+
+    metrics = {
+        "finite_fraction": 1.0,
+        "shock_modes": shock_modes,
+        "shock_hq": float(shock_hq),
+        "shock_sw1": float(shock_sw1),
+        "shock_mass_tv": float(shock_mass_tv),
+    }
+    hist = history or {}
+    curve_steps = [int(s) for s in hist.get("steps", [0])]
+    curve_sw1 = [float(v) for v in hist.get("shock_sw1", [shock_sw1])]
+    views = [
+        {
+            "kind": "scatter",
+            "title": "Standalone 1e-5x scale & post-1e4x shock (normalized by 1e5)",
+            "target": shock_ref_unit[:512],
+            "samples": s_unit[:512].clamp(-4.0, 4.0),
+            "xlim": [-3.0, 3.0],
+            "ylim": [-3.0, 3.0],
+            "aspect": "equal",
+            "xlabel": "x1 / 1e-5",
+            "ylabel": "x2 / 1e-5",
+            "caption": (
+                f"shock_modes={shock_modes}/4, shock_hq={shock_hq:.3f} (>=0.65), "
+                f"shock_sw1={shock_sw1:.3f} (<=0.35), shock_mass_tv={shock_mass_tv:.3f}."
+            ),
+        },
+        _curve_view(
+            "Scale-shock sliced-W1 recovery trajectory (gate <= 0.35)",
+            curve_steps,
+            curve_sw1,
+            0.35,
+            ylabel="shock_sw1",
+            caption=f"Shock at step {shock_step}: 1e-5x -> 1e-1x spike -> 45-deg rotated 1e-5x modes.",
+            ylim=[0.0, max(1.0, max(curve_sw1) * 1.15)],
+        ),
+    ]
+    return _finalize_observation(task_id, metrics, views)
+
+
 # ---------------------------------------------------------------------------
 # Fast Deterministic CPU Oracle PASS & Destructive FAIL Controls
 # ---------------------------------------------------------------------------
@@ -1572,15 +1832,82 @@ def oracle_controls() -> dict[str, dict[str, Any]]:
     return controls
 
 
+def oracle_controls_v2() -> dict[str, dict[str, Any]]:
+    """Fast deterministic CPU oracle PASS + destructive FAIL controls for v2 Law 4 probes."""
+    controls: dict[str, dict[str, Any]] = {}
+
+    def _rec(name: str, expected_pass: bool, res: dict[str, Any]) -> None:
+        controls[name] = {
+            "expected_pass": expected_pass,
+            "passed": bool(res["passed"]),
+            "failed_bounds": list(res["failed_bounds"]),
+            "min_margin": float(res["min_margin"]),
+        }
+
+    # --- Task v2-1: fl_law42_deep_resbn_and_conv1x1_v2 ---
+    g3 = torch.Generator(device="cpu").manual_seed(94311)
+    ref3 = sample_target_for_kind("fl_law42_deep_resbn_and_conv1x1_v2", 1024, g3)
+    ora3_lin = sample_target_for_kind("fl_law42_deep_resbn_and_conv1x1_v2", 1024, g3)
+    ora3_conv = ora3_lin.clone()
+    _rec(
+        "fl_law42_resbn_v2_exact_oracle",
+        True,
+        score_fl_law42_deep_resbn_and_conv1x1_v2(ora3_lin, samples_conv1x1=ora3_conv, reference=ref3),
+    )
+    # Small parity divergence (0.003 diff at sw1 ~ 0.023) must PASS absolute parity <= 0.015
+    slightly_noisy_conv = ora3_lin + 0.01 * torch.randn_like(ora3_lin)
+    _rec(
+        "fl_law42_resbn_v2_small_diff_pass",
+        True,
+        score_fl_law42_deep_resbn_and_conv1x1_v2(ora3_lin, samples_conv1x1=slightly_noisy_conv, reference=ref3),
+    )
+    degraded_conv = ora3_lin * 0.45
+    _rec(
+        "fl_law42_resbn_v2_conv1x1_parity_fail",
+        False,
+        score_fl_law42_deep_resbn_and_conv1x1_v2(ora3_lin, samples_conv1x1=degraded_conv, reference=ref3),
+    )
+    nan3 = ora3_lin.clone()
+    nan3[0, 0] = float("nan")
+    _rec(
+        "fl_law42_resbn_v2_nonfinite",
+        False,
+        score_fl_law42_deep_resbn_and_conv1x1_v2(nan3, samples_conv1x1=ora3_conv, reference=ref3),
+    )
+
+    # --- Task v2-2: fl_law44_scale_shock ---
+    g4 = torch.Generator(device="cpu").manual_seed(94411)
+    sref = sample_shock_target(2048, g4, step=_V2_SHOCK_STEP + 50, shock_step=_V2_SHOCK_STEP, device="cpu", eval_phase=True)
+    sora = sample_shock_target(2048, g4, step=_V2_SHOCK_STEP + 50, shock_step=_V2_SHOCK_STEP, device="cpu", eval_phase=True)
+    _rec(
+        "fl_law44_scale_shock_exact_oracle",
+        True,
+        score_fl_law44_scale_shock(sora, step=_V2_SHOCK_STEP + 50, shock_step=_V2_SHOCK_STEP, reference=sref),
+    )
+    pre_stuck = sample_shock_target(2048, g4, step=10, shock_step=_V2_SHOCK_STEP, device="cpu", eval_phase=True)
+    _rec(
+        "fl_law44_scale_shock_frozen_pre_shift",
+        False,
+        score_fl_law44_scale_shock(pre_stuck, step=_V2_SHOCK_STEP + 50, shock_step=_V2_SHOCK_STEP, reference=sref),
+    )
+    nan4 = sora.clone()
+    nan4[0, 0] = float("nan")
+    _rec(
+        "fl_law44_scale_shock_nonfinite",
+        False,
+        score_fl_law44_scale_shock(nan4, step=_V2_SHOCK_STEP + 50, shock_step=_V2_SHOCK_STEP, reference=sref),
+    )
+    return controls
+
+
 # ---------------------------------------------------------------------------
 # Case Listing & Public-API Fixture
 # ---------------------------------------------------------------------------
 
-def list_cases() -> list[dict[str, Any]]:
-    """Return ``api_contract.validate_case``-compliant case declarations for all 4 Law 4 tasks."""
+def _build_case_records(task_ids: tuple[str, ...]) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
-    for tid in TASKS:
-        spec = SPECS[tid]
+    for tid in task_ids:
+        spec = ALL_SPECS[tid]
         res = spec["resources"]
         cases.append(
             {
@@ -1595,13 +1922,28 @@ def list_cases() -> list[dict[str, Any]]:
                 "eval_samples": int(spec["eval_samples"]),
                 "evaluation_observations": int(spec["observations"]),
                 "terminal_observations": int(spec["minimum_stable_checks"]),
-                "thresholds": {name: f"{op} {bound}" for name, op, bound in THRESHOLDS[tid]},
+                "thresholds": {name: f"{op} {bound}" for name, op, bound in ALL_THRESHOLDS[tid]},
                 "sampling": "Clean live public MoGParticlePrior samples without training output noise",
                 "default_recipe": "unified_v14",
                 "protocol_seed": DEFAULT_SEED,
             }
         )
     return cases
+
+
+def list_cases() -> list[dict[str, Any]]:
+    """Return ``api_contract.validate_case``-compliant case declarations for the 4 frozen v1 Law 4 tasks."""
+    return _build_case_records(TASKS)
+
+
+def list_v2_cases() -> list[dict[str, Any]]:
+    """Return ``api_contract.validate_case``-compliant case declarations for the 2 calibrated v2 Law 4 tasks."""
+    return _build_case_records(V2_TASKS)
+
+
+def list_all_cases() -> list[dict[str, Any]]:
+    """Return case declarations for both v1 and v2 Law 4 tasks."""
+    return _build_case_records(ALL_TASKS)
 
 
 class FourLawsFixture:
@@ -1623,19 +1965,19 @@ class FourLawsFixture:
     ) -> None:
         if isinstance(case, str):
             tid = case
-            case_obj = next((c for c in list_cases() if c["id"] == tid), None)
+            case_obj = next((c for c in list_all_cases() if c["id"] == tid), None)
             if case_obj is None:
                 raise ValueError(f"unknown four_laws_4 task case: {tid!r}")
         else:
             case_obj = deepcopy(case)
             tid = str(case_obj["id"])
-        if tid not in SPECS:
+        if tid not in ALL_SPECS:
             raise ValueError(f"unknown four_laws_4 task case: {tid!r}")
 
         self.case = case_obj
         self.case_id = tid
         self.kind = tid
-        self.spec = deepcopy(SPECS[tid])
+        self.spec = deepcopy(ALL_SPECS[tid])
         self.device = torch.device(device)
         self.seed = int(seed)
         self.limit = int(self.spec["steps"] if max_steps is None else max_steps)
@@ -1714,7 +2056,7 @@ class FourLawsFixture:
             self._z_ood_probe = z_ood.to(self.device)
             ref_probe = sample_target_for_kind(self.kind, 2048, g_pr, device="cpu")
             self._data_coord_rms = float(ref_probe.square().mean().sqrt().item())
-        elif self.kind == "fl_law42_deep_resbn_and_conv1x1":
+        elif self.kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2"):
             cfg = self.spec["model"]
             dim = int(cfg["dim"])
             w = int(cfg["width"])
@@ -1875,10 +2217,21 @@ class FourLawsFixture:
                 m.training = flag
 
     def step(self) -> dict[str, Any]:
-        apply_mask = self.kind == "fl_law44_highd_sparse_prior_and_shock"
-        real_cpu = sample_target_for_kind(
-            self.kind, self.recipe.batch_size, self.data_rng, device="cpu", apply_mask=apply_mask
-        )
+        if self.kind == "fl_law44_scale_shock":
+            shock_step = int(self.spec["model"]["shock_step"])
+            real_cpu = sample_shock_target(
+                self.recipe.batch_size,
+                self.data_rng,
+                step=self.completed_steps + 1,
+                shock_step=shock_step,
+                device="cpu",
+                eval_phase=False,
+            )
+        else:
+            apply_mask = self.kind == "fl_law44_highd_sparse_prior_and_shock"
+            real_cpu = sample_target_for_kind(
+                self.kind, self.recipe.batch_size, self.data_rng, device="cpu", apply_mask=apply_mask
+            )
         step_hash = hashlib.sha256(real_cpu.numpy().tobytes()).digest()
         self._batch_sequence_sha256 = hashlib.sha256(
             bytes.fromhex(self._batch_sequence_sha256) + step_hash
@@ -1904,7 +2257,7 @@ class FourLawsFixture:
                 self._window_step_disps = self._window_step_disps[-64:]
                 self._window_ood_ratios = self._window_ood_ratios[-64:]
 
-        if self.kind == "fl_law42_deep_resbn_and_conv1x1":
+        if self.kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2"):
             stiff_fn = getattr(self.trainer.opt_g, "current_stiff_gate", None)
             stiff_v = float(stiff_fn()) if callable(stiff_fn) else 0.0
             self._window_stiff_gates.append(stiff_v)
@@ -1948,13 +2301,24 @@ class FourLawsFixture:
         eval_stream = self._eval_stream(int(seed), purpose="samples")
         eval_state_before = (
             eval_stream.get_state().clone()
-            if self.kind == "fl_law42_deep_resbn_and_conv1x1"
+            if self.kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2")
             else None
         )
         ref_rng = torch.Generator(device="cpu").manual_seed(_seed_int(f"{self.kind}:ref", self.seed))
-        ref = sample_target_for_kind(self.kind, min(4096, max(1024, eval_n)), ref_rng, device="cpu", apply_mask=False)
-        samples = self.trainer.sample(eval_n, output_noise=False, generator=eval_stream)
         step_now = self.completed_steps
+        if self.kind == "fl_law44_scale_shock":
+            shock_step = int(self.spec["model"]["shock_step"])
+            ref = sample_shock_target(
+                min(4096, max(1024, eval_n)),
+                ref_rng,
+                step=step_now,
+                shock_step=shock_step,
+                device="cpu",
+                eval_phase=True,
+            )
+        else:
+            ref = sample_target_for_kind(self.kind, min(4096, max(1024, eval_n)), ref_rng, device="cpu", apply_mask=False)
+        samples = self.trainer.sample(eval_n, output_noise=False, generator=eval_stream)
 
         if self.kind == "fl_law41_trust_rare1pct_tanh":
             step_max = max(self._window_step_disps) if self._window_step_disps else 0.0
@@ -1997,7 +2361,7 @@ class FourLawsFixture:
                 history=self._history,
             )
 
-        if self.kind == "fl_law42_deep_resbn_and_conv1x1":
+        if self.kind in ("fl_law42_deep_resbn_and_conv1x1", "fl_law42_deep_resbn_and_conv1x1_v2"):
             conv_stream = torch.Generator(device=eval_stream.device)
             assert eval_state_before is not None
             conv_stream.set_state(eval_state_before)
@@ -2019,12 +2383,35 @@ class FourLawsFixture:
                 else 9.9
             )
             self._record_history_point(step_now, {"sw1": float(sw1_now) if math.isfinite(sw1_now) else 9.9})
-            return score_fl_law42_deep_resbn_and_conv1x1(
+            scorer_fn = (
+                score_fl_law42_deep_resbn_and_conv1x1_v2
+                if self.kind == "fl_law42_deep_resbn_and_conv1x1_v2"
+                else score_fl_law42_deep_resbn_and_conv1x1
+            )
+            return scorer_fn(
                 samples,
                 samples_conv1x1=samples_conv,
                 stiff_gate_mean=stiff_mean,
                 d_max_s1=d_max_s1,
                 s_therm=s_therm,
+                reference=ref,
+                history=self._history,
+            )
+
+        if self.kind == "fl_law44_scale_shock":
+            shock_step = int(self.spec["model"]["shock_step"])
+            s_pts_cpu = samples.detach().cpu().float()
+            ref_unit = ref.detach().cpu().float() / _SHOCK_BASE_SCALE
+            sw1_now = (
+                sliced_wasserstein_1(s_pts_cpu / _SHOCK_BASE_SCALE, ref_unit, _shock_2d_proj())
+                if s_pts_cpu.ndim == 2 and s_pts_cpu.shape[1] == 2 and bool(torch.isfinite(s_pts_cpu).all())
+                else 9.9
+            )
+            self._record_history_point(step_now, {"shock_sw1": float(sw1_now) if math.isfinite(sw1_now) else 9.9})
+            return score_fl_law44_scale_shock(
+                samples,
+                step=step_now,
+                shock_step=shock_step,
                 reference=ref,
                 history=self._history,
             )
@@ -2140,9 +2527,9 @@ def build_case(
 ) -> FourLawsFixture:
     """Construct a public-API ``FourLawsFixture`` for any Law 4 task."""
     del kwargs
-    if case_id not in SPECS:
+    if case_id not in ALL_SPECS:
         raise ValueError(f"unknown four_laws_4 case: {case_id!r}")
-    case = next(c for c in list_cases() if c["id"] == case_id)
+    case = next(c for c in list_all_cases() if c["id"] == case_id)
     return FourLawsFixture(
         case,
         recipe_name=recipe_name or "unified_v14",

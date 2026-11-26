@@ -264,8 +264,9 @@ def _mixture_mode_metrics(
     m_cnt = len(weights)
     dim = means.shape[1]
     finite_mask = torch.isfinite(particles).all(dim=-1)
-    finite_fraction = float(finite_mask.float().mean().item()) if n > 0 else 0.0
-    if n == 0 or finite_fraction < 1.0:
+    all_finite = bool(finite_mask.all().item()) if n > 0 else False
+    finite_fraction = 1.0 if all_finite else (float(finite_mask.float().mean().item()) if n > 0 else 0.0)
+    if n == 0 or not all_finite:
         return {
             "finite_fraction": finite_fraction,
             "modes": 0,
@@ -475,25 +476,37 @@ def t3_isolation_oracle_controls() -> dict[str, dict[str, Any]]:
 
 
 def _bind_formulation_record(recipe: Recipe, opt_d: Any, loss_fn: Any, prior_reg_fn: Any = None) -> None:
+    record = getattr(opt_d, "record", None)
+    if record is None:
+        return
     eff = recipe.effective_critic_formulation
     if eff == "bispf":
         from particlegan.bispf import bind_thermal_source
-        bind_thermal_source(opt_d.record, loss_fn, prior_reg_fn)
+        bind_thermal_source(record, loss_fn, prior_reg_fn)
     elif eff == "empf":
         from particlegan.empf import bind_empf_record
-        bind_empf_record(opt_d.record, loss_fn, prior_reg_fn)
+        bind_empf_record(record, loss_fn, prior_reg_fn)
     elif eff == "t2_secant":
         from particlegan.t2_critic import bind_t2_record
-        bind_t2_record(opt_d.record, loss_fn, prior_reg_fn)
+        bind_t2_record(record, loss_fn, prior_reg_fn)
+    elif eff == "unified_v11":
+        from particlegan.unified_v11 import bind_unified_v11_record
+        bind_unified_v11_record(record, loss_fn, prior_reg_fn)
+    elif eff == "axiom":
+        from particlegan.axiom import bind_axiom_record
+        bind_axiom_record(record, loss_fn, prior_reg_fn)
+    elif eff == "minimal":
+        from particlegan.minimal import bind_minimal_record
+        bind_minimal_record(record, loss_fn, prior_reg_fn)
     elif eff == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
         from particlegan.rhbi import bind_rhbi_record
-        bind_rhbi_record(opt_d.record, loss_fn, prior_reg_fn)
+        bind_rhbi_record(record, loss_fn, prior_reg_fn)
     elif eff == "t1_coupling" or recipe.t1c_weight > 0:
         from particlegan.t1_coupling import bind_t1_coupling_record
-        bind_t1_coupling_record(opt_d.record, loss_fn, prior_reg_fn)
+        bind_t1_coupling_record(record, loss_fn, prior_reg_fn)
     elif eff == "rgdt":
         from particlegan.t3_dynamics import bind_rgdt_record
-        bind_rgdt_record(opt_d.record, loss_fn, prior_reg_fn)
+        bind_rgdt_record(record, loss_fn, prior_reg_fn)
 
 
 class T3IsolationFixture:
@@ -542,7 +555,17 @@ class T3IsolationFixture:
         self.prior = p_mod.to(self.device)
         self.recipe.apply_prior_policy(self.prior)
 
-        no_ema_forms = ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt")
+        no_ema_forms = (
+            "bispf",
+            "empf",
+            "rhbi",
+            "t1_coupling",
+            "t2_secant",
+            "rgdt",
+            "axiom",
+            "unified_v11",
+            "minimal",
+        )
         ema_critic = None if recipe.effective_critic_formulation in no_ema_forms else deepcopy(self.D)
         self.opt_g, self.opt_d = recipe.make_optimizers(
             self.G,

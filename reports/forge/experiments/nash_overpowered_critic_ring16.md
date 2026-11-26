@@ -84,17 +84,41 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed nash_overpowered_critic_ring16 gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `BLOCKED` | imbalance_nash requires an effective MoGParticlePrior | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
+
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 1.93 kJ (J-to-PASS) | component_core_covariance_error=0.285, component_core_min_eigen_ratio=0.4236, component_covariance_error=0.6746, component_min_eigen_ratio=0.4236 | [7ba9ad8ae0324360bbf108829764982a.json](../technique-receipts/7ba9ad8ae0324360bbf108829764982a.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 7.85 kJ (J-to-PASS) | component_core_covariance_error=0.3327, component_core_min_eigen_ratio=0.3521, component_covariance_error=0.554, component_min_eigen_ratio=0.3521 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.99 kJ (J-to-PASS) | component_core_covariance_error=0.2086, component_core_min_eigen_ratio=0.4598, component_covariance_error=0.5151, component_min_eigen_ratio=0.4598 | [cb5f86c0393a45d5a79b35b9b4c5f622.json](../technique-receipts/cb5f86c0393a45d5a79b35b9b4c5f622.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **PASS** | — | 1.95 kJ (J-to-PASS) | component_core_covariance_error=0.3713, component_core_min_eigen_ratio=0.2297, component_covariance_error=0.3946, component_min_eigen_ratio=0.2297 | [bb916eae8edc4e92a159df6c50b6ad72.json](../technique-receipts/bb916eae8edc4e92a159df6c50b6ad72.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 3.01 kJ (J-to-PASS) | component_core_covariance_error=0.3587, component_core_min_eigen_ratio=0.4566, component_covariance_error=0.5778, component_min_eigen_ratio=0.4566 | [18302fce89404ede8c476b9bc27c73f9.json](../technique-receipts/18302fce89404ede8c476b9bc27c73f9.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 2.17 kJ (J-to-PASS) | component_core_covariance_error=0.2574, component_core_min_eigen_ratio=0.5255, component_covariance_error=0.5879, component_min_eigen_ratio=0.5255 | [ac7102b2ea9f4acd93aee7bc6584ce5a.json](../technique-receipts/ac7102b2ea9f4acd93aee7bc6584ce5a.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 9.14 kJ | component_core_covariance_error=0.9512, component_core_min_eigen_ratio=0.5064, component_covariance_error=1.413, component_min_eigen_ratio=0.5064 | [bb39b4ec66984b3db235b9b8e778fcff.json](../technique-receipts/bb39b4ec66984b3db235b9b8e778fcff.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 13.08 kJ | component_core_covariance_error=1.017, component_core_min_eigen_ratio=0.7619, component_covariance_error=1.43, component_min_eigen_ratio=0.7619 | [fbe7d35c6bad45d2bfa3f6740a858341.json](../technique-receipts/fbe7d35c6bad45d2bfa3f6740a858341.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 1.61 kJ | component_core_covariance_error=1.735, component_core_min_eigen_ratio=1.6, component_covariance_error=55.57, component_min_eigen_ratio=2.851 | [9a2125e56630431f97fc9a821b9ee891.json](../technique-receipts/9a2125e56630431f97fc9a821b9ee891.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 1.71 kJ | component_core_covariance_error=1.876, component_core_min_eigen_ratio=1.45, component_covariance_error=58.18, component_min_eigen_ratio=2.793 | [123f56eb8ff44c4ebdf4442bd8e698da.json](../technique-receipts/123f56eb8ff44c4ebdf4442bd8e698da.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 1.34 kJ | component_core_covariance_error=2.401, component_core_min_eigen_ratio=0, component_covariance_error=53.47, component_min_eigen_ratio=0 | [171712585b4046c99d7d609184cedd0c.json](../technique-receipts/171712585b4046c99d7d609184cedd0c.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 1.34 kJ | component_core_covariance_error=1, component_core_min_eigen_ratio=0, component_covariance_error=4594, component_min_eigen_ratio=0 | [cf528fba1e7f414ba028ebf85df99ff4.json](../technique-receipts/cf528fba1e7f414ba028ebf85df99ff4.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | — | `INCOMPLETE` | — | — | — | [708bd9ea8c614df49b76f55bc020b589.json](../technique-receipts/708bd9ea8c614df49b76f55bc020b589.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | `INCOMPLETE` | — | — | — | [d91749c8c38d47989a55993959762089.json](../technique-receipts/d91749c8c38d47989a55993959762089.json) |
+| `rhbi-v12` | `rhbi` | — | `INCOMPLETE` | — | — | — | [50a1862e79e34c8db08d7bec95722cf7.json](../technique-receipts/50a1862e79e34c8db08d7bec95722cf7.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | `INCOMPLETE` | — | — | — | [7c311f805989402d969c98f40a810b1a.json](../technique-receipts/7c311f805989402d969c98f40a810b1a.json) |
 
 ## Reproduce This Experiment
 

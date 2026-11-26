@@ -6,7 +6,7 @@ proof. No function here trains, changes a gate, or authorizes another round.
 """
 from __future__ import annotations
 
-from collections import Counter, defaultdict
+from collections import defaultdict
 from copy import deepcopy
 import math
 from pathlib import Path
@@ -296,6 +296,76 @@ def validate_admission(request: dict, campaign: dict, *, root: Path | None) -> N
         raise ValueError("campaign exceeds the decision_contract frozen bounded-round caps")
 
 
+def _row_producer_study_id(row: dict) -> str | None:
+    if not isinstance(row, dict):
+        return None
+    direct = row.get("producer_study_id")
+    if isinstance(direct, str) and direct.strip():
+        return direct.strip()
+    prov = row.get("provenance")
+    if isinstance(prov, dict):
+        nested = prov.get("producer_study_id")
+        if isinstance(nested, str) and nested.strip():
+            return nested.strip()
+    return None
+
+
+def _row_contended(row: dict) -> bool | None:
+    if not isinstance(row, dict):
+        return None
+    cost = row.get("cost")
+    if isinstance(cost, dict):
+        energy = cost.get("energy")
+        if isinstance(energy, dict) and isinstance(energy.get("contended"), bool):
+            return energy["contended"]
+    hardware = row.get("hardware")
+    if isinstance(hardware, dict):
+        status = hardware.get("contention_status")
+        if status == "clear":
+            return False
+        if status == "contended":
+            return True
+    if isinstance(row.get("contended"), bool):
+        return row["contended"]
+    return None
+
+
+def _resolve_task_rows(request: dict, rows: list[dict], task_ids: list[str]) -> tuple[dict[str, dict], list[str]]:
+    """Select one row per scoped task, scoping by study and uncontended status.
+
+    Never mutates input rows or historical receipts. Genuine duplicate attempts
+    within the same study and contention tier remain reported as duplicates.
+    """
+    grouped: dict[str, list[dict]] = defaultdict(list)
+    for row in rows:
+        if isinstance(row, dict) and isinstance(row.get("task_id"), str):
+            grouped[row["task_id"]].append(row)
+    study = request.get("study") if isinstance(request, dict) else None
+    target_study_id = study.get("id") if isinstance(study, dict) and isinstance(study.get("id"), str) else None
+
+    by_task: dict[str, dict] = {}
+    duplicates: list[str] = []
+    for name in sorted(set(task_ids)):
+        candidates = list(grouped.get(name, ()))
+        if len(candidates) > 1 and target_study_id:
+            study_ids = [_row_producer_study_id(row) for row in candidates]
+            in_study = [row for row, sid in zip(candidates, study_ids) if sid == target_study_id]
+            has_foreign_study = any(sid is not None and sid != target_study_id for sid in study_ids)
+            if in_study and has_foreign_study:
+                candidates = in_study
+        if len(candidates) > 1:
+            contention_flags = [_row_contended(row) for row in candidates]
+            uncontended = [row for row, flag in zip(candidates, contention_flags) if flag is False]
+            has_contended = any(flag is True for flag in contention_flags)
+            if uncontended and has_contended:
+                candidates = uncontended
+        if len(candidates) == 1:
+            by_task[name] = candidates[0]
+        elif len(candidates) > 1:
+            duplicates.append(name)
+    return by_task, duplicates
+
+
 def evaluate(request: dict, rows: list[dict]) -> dict:
     """Evaluate final scalar predictions, preserving scientific gates separately."""
     from .studies import contract_for
@@ -303,9 +373,7 @@ def evaluate(request: dict, rows: list[dict]) -> dict:
     validate_shape(contract)
     if contract["status"] != "ready":
         raise ValueError("cannot conclude a draft decision_contract")
-    counts = Counter(row.get("task_id") for row in rows)
-    duplicates = sorted(name for name in contract["scope"]["task_ids"] if counts[name] > 1)
-    by_task = {row["task_id"]: row for row in rows if counts[row.get("task_id")] == 1}
+    by_task, duplicates = _resolve_task_rows(request, rows, contract["scope"]["task_ids"])
     observed = {}
     scope = contract["scope"]
     cohort_errors = []
@@ -440,7 +508,14 @@ def concluded_outcomes(attempts):
     for identity, group in sorted(groups.items()):
         selected = [attempt for attempt, _ in group]
         active = [attempt for attempt in selected if not attempt.get("superseded_by")]
-        rows = [row for attempt in active for row in attempt["task_results"]]
+        rows = []
+        for attempt in active:
+            attempt_study_id = ((attempt.get("request") or {}).get("study") or {}).get("id")
+            for row in attempt["task_results"]:
+                if isinstance(attempt_study_id, str) and attempt_study_id and "producer_study_id" not in row:
+                    rows.append({**row, "producer_study_id": attempt_study_id})
+                else:
+                    rows.append(row)
         outcome = evaluate(selected[0]["request"], rows)
         outcome.update(cohort_sha256=identity, cohort=group[0][1],
                        attempt_ids=sorted(attempt["attempt_id"] for attempt in selected),

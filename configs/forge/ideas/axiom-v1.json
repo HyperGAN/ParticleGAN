@@ -259,5 +259,6 @@
     "learned_locations",
     "named_rng"
   ],
-  "schema_version": 3
+  "schema_version": 3,
+  "trainer_family": "axiom"
 }

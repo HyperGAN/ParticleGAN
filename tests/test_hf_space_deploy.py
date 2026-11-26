@@ -43,6 +43,8 @@ def test_index_and_app_reference_dataset_and_caveats():
     assert 'id="energy-section"' in html
     assert 'id="energy-table"' in html
     assert 'id="kpi-energy"' in html
+    assert 'id="four-laws-l4-block"' in html
+    assert "four_laws_adherence_l4" in js
     for col_label in (
         "Candidate",
         "Suite Pass",
@@ -302,6 +304,13 @@ def test_index_includes_upgraded_research_sections_and_dynamic_laws():
     assert 'id="filter-law"' in html
     assert 'id="filter-edge-case"' in html
     assert 'id="gif-law-filter"' in html
+    assert 'id="gif-quick-tasks"' in html
+    assert 'id="gif-family-strip"' in html
+    assert 'id="gif-lightbox"' in html
+    assert 'id="btn-gif-sync"' in html
+    assert 'id="btn-gif-top2"' in html
+    assert 'id="btn-gif-contrast"' in html
+    assert 'data-gif-layout="top4"' in html
     assert 'id="experiment-modal"' in html
     # Never hardcode "Four Laws" in UI components — laws are loaded dynamically from data.laws
     assert "Four Laws" not in html
@@ -480,6 +489,35 @@ assert.strictEqual(contendedPt.shape, "diamond");
 const paretoFull = app.buildParetoPoints(app.state.energyBenchmarks, app.state.families, "r256_ms_per_step", "full_suite");
 assert.strictEqual(paretoFull.points.length, 4);
 assert.ok(paretoFull.points[0].y > 50 && paretoFull.points[0].y < 60);
+
+// Best-performing family ranking & smart GIF defaults
+const sampleFams = [
+  { id: "atlas", label: "Atlas", full_pass: 7, total_pass: 17, tier1_pass: 17, full_fail: 8, stale: false },
+  { id: "axiom", label: "Axiom", full_pass: 39, total_pass: 95, tier1_pass: 27, full_fail: 6, stale: false },
+  { id: "unified", label: "Unified", full_pass: 40, total_pass: 95, tier1_pass: 27, full_fail: 6, stale: false },
+  { id: "rhbi", label: "RHBI", full_pass: 33, total_pass: 83, tier1_pass: 27, full_fail: 7, stale: false },
+];
+const ranked = app.rankFamiliesByPerformance(sampleFams);
+assert.deepStrictEqual(ranked.map((f) => f.id), ["unified", "axiom", "rhbi", "atlas"]);
+
+const gifReceipts = [
+  { family_id: "atlas", task_id: "ring16_acquisition", status: "FAIL", gif_path: "media/forge/a.gif" },
+  { family_id: "unified", task_id: "ring16_acquisition", status: "PASS", gif_path: "media/forge/u.gif" },
+  { family_id: "axiom", task_id: "ring16_acquisition", status: "PASS", gif_path: "media/forge/ax.gif" },
+  { family_id: "rhbi", task_id: "ring16_acquisition", status: "FAIL", gif_path: "media/forge/r.gif" },
+  { family_id: "atlas", task_id: "two_pole", status: "FAIL", gif_path: "media/forge/a2.gif" },
+];
+assert.deepStrictEqual(app.pickDefaultGifFamilies("ring16_acquisition", ranked, gifReceipts, 2), ["unified", "axiom"]);
+assert.deepStrictEqual(app.pickDefaultGifFamilies("ring16_acquisition", ranked, gifReceipts, 4), ["unified", "axiom", "rhbi", "atlas"]);
+assert.deepStrictEqual(app.pickContrastGifPair("ring16_acquisition", ranked, gifReceipts), ["unified", "rhbi"]);
+assert.strictEqual(
+  app.pickDefaultGifTask(
+    [{ taskId: "two_pole", gifCount: 1 }, { taskId: "ring16_acquisition", gifCount: 4 }],
+    ranked,
+    gifReceipts
+  ),
+  "ring16_acquisition"
+);
 """
     done = subprocess.run([node, "-e", script, str(SPACE_DIR / "app.js")], capture_output=True, text=True)
     assert done.returncode == 0, done.stderr

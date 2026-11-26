@@ -87,15 +87,29 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | recomputed every extension observation without selecting another window | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | **PASS** | no compatible result | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | no compatible result | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: ring_extension: clean/live scoring has no declared policy-contr | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | no compatible result | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | no compatible result | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | no compatible result | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 9.19 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 2.29 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [2ce9b0dcefb0448996148bc72a949ee0.json](../technique-receipts/2ce9b0dcefb0448996148bc72a949ee0.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 3.42 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [55cf35e8da80417f9d921f4e92ad1aa3.json](../technique-receipts/55cf35e8da80417f9d921f4e92ad1aa3.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 2.27 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [d5de4369af7f46dca241b99a499339c0.json](../technique-receipts/d5de4369af7f46dca241b99a499339c0.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 2.49 kJ (J-to-PASS) | confirmation_checks=200, converged_step=1400, extension_checks=300, extension_passing=300 | [2136c47e66e747808acefb3d265916a6.json](../technique-receipts/2136c47e66e747808acefb3d265916a6.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 7.36 kJ | confirmation_checks=200, converged_step=2816, first_hold_failure=2841, hold_budget=1200 | [bff5b9ea00b94159bc757045832938c8.json](../technique-receipts/bff5b9ea00b94159bc757045832938c8.json) |
 
 ## Reproduce This Experiment
 

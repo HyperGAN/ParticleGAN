@@ -15,7 +15,7 @@ _BOOL_FIELDS = ("anchor_started", "grad_sq_initialized", "margin_initialized", "
 _THERMAL_KEYS = ("ema_ed", "ema_mu_sq", "ema_spread", "ema_q90", "ema_hmax", "ema_tail")
 _SCALAR_BOUNDS: Dict[str, Tuple[Optional[float], Optional[float], bool, bool]] = {
     "chord_phase": (0.0, 1.0, False, True), "ema_grad_sq": (0.0, None, False, False), "ema_margin": (-60.0, 60.0, False, False),
-    "ema_data_scale": (0.0, None, True, False), "ema_push_res": (0.0, None, False, False), "ell_ema": (0.0, None, False, False),
+    "ema_data_scale": (0.0, None, True, False), "last_data_scale": (0.0, None, True, False), "ema_push_res": (0.0, None, False, False), "ell_ema": (0.0, None, False, False),
     "thermal_scale": (1e-5, 1.0, False, False), "step_scale": (0.0, 1.0, True, False), "cond_ema": (-0.5, 2.0, False, False),
     "het_ema": (0.0, None, False, False), "g_func_gain": (0.0, 1.0, True, False), **{k: (None, None, False, False) for k in _THERMAL_KEYS},
 }
@@ -60,16 +60,15 @@ def _ema_prop(name: str) -> property:
 class AxiomStepRecord:
     """Standalone checkpointed state linking Axiom critic, transport, prior, and optimizer."""
     ema_grad_sq, grad_sq_initialized, ema_margin = _ema_prop("ema_grad_sq"), _ema_prop("grad_sq_initialized"), _ema_prop("ema_margin")
-    ema_data_scale, ema_push_res, margin_initialized, ell_ema = _ema_prop("ema_data_scale"), _ema_prop("ema_push_res"), _ema_prop("margin_initialized"), _ema_prop("ell_ema")
-
+    ema_data_scale, last_data_scale, ema_push_res = _ema_prop("ema_data_scale"), _ema_prop("last_data_scale"), _ema_prop("ema_push_res")
+    margin_initialized, ell_ema = _ema_prop("margin_initialized"), _ema_prop("ell_ema")
     def __init__(self) -> None:
         self.schema, self.calls, self.observed_steps, self.anchor_started, self.last_ratio, self.chord_phase = 1, 0, 0, False, None, 0.0
-        self._ema: Dict[str, Any] = {"ema_grad_sq": 1.0, "grad_sq_initialized": False, "ema_margin": 0.0, "ema_data_scale": 1.0, "ema_push_res": 1.0, "margin_initialized": False, "ell_ema": 0.0}
+        self._ema: Dict[str, Any] = {"ema_grad_sq": 1.0, "grad_sq_initialized": False, "ema_margin": 0.0, "ema_data_scale": 1.0, "last_data_scale": 1.0, "ema_push_res": 1.0, "margin_initialized": False, "ell_ema": 0.0}
         self.ell_initialized = self.thermal_initialized = self.thermal_locked = self.cond_initialized = self.het_initialized = False
         self.thermal_scale = self.step_scale = self.het_ema = self.g_func_gain = self.ema_ed = self.ema_mu_sq = self.ema_spread = self.ema_q90 = self.ema_hmax = 1.0
         self.ema_tail, self.cond_ema, self.chart_state, self.atomic_ledger, self.cond_fiber_bank = 0.0, 0.25, None, None, None
         self._reset_transient()
-
     def _reset_transient(self) -> None:
         self._ema_t: Dict[str, torch.Tensor] = {}; self._live_captures: List[List[Any]] = []; self._capture_ring: OrderedDict[Tuple[int, int, int, int], Tuple[Any, ...]] = OrderedDict()
         self._in_penalty = self._in_probe = self._in_protected_probe = self._simplicial_step = False; self._enable_secant_probe, self._disc_gate = True, 0.0
@@ -89,12 +88,10 @@ class AxiomStepRecord:
         if (cur := self._ema_t.get(name)) is not None and cur.device == dev: return cur
         if cur is not None: self._flush_ema()
         return torch.full((), float(self._ema[name]), dtype=torch.float64, device=dev)
-
     @torch.no_grad()
     def _observe_grad_sq_tensor(self, s_hat_det: torch.Tensor) -> None:
         obs = s_hat_det.detach().double().clamp(0.0, 20.0); fin, prev, pi = torch.isfinite(obs), self._dev_ema("ema_grad_sq", obs.device), self._dev_ema("grad_sq_initialized", obs.device)
         self._ema_t["ema_grad_sq"], self._ema_t["grad_sq_initialized"] = torch.where(fin, torch.where(pi > 0.5, 0.95 * prev + 0.05 * obs, obs), prev), torch.where(fin, pi.new_full((), 1.0), pi)
-
     @torch.no_grad()
     def observe_margin_and_scale(self, real_logits: torch.Tensor, fake_logits: torch.Tensor, x_real: Optional[torch.Tensor] = None, x_fake: Optional[torch.Tensor] = None) -> None:
         if self._in_penalty or self._in_probe or self._in_protected_probe: return
@@ -103,20 +100,20 @@ class AxiomStepRecord:
         self._ema_t["ema_margin"], self._ema_t["margin_initialized"] = torch.where(fm, torch.where(wi, 0.90 * pm + 0.10 * m, m), pm), torch.where(fm, pi.new_full((), 1.0), pi)
         if x_real is None or x_real.numel() == 0: return
         xr = x_real.detach().reshape(x_real.shape[0], -1).double(); xm = xr.abs().amax(); sx = torch.where(xm > 0.0, xm, xm.new_full((), 1.0))
-        sc, psc = ((xr / sx).square().sum(-1).mean().sqrt() * sx).clamp_min(1e-30), self._dev_ema("ema_data_scale", dev)
-        lp, lc = torch.log2(psc.clamp_min(1e-30)), torch.log2(sc.clamp_min(1e-30))
-        nsc = torch.where(torch.isfinite(sc) & (xm > 0.0), torch.where(wi, torch.exp2(lp + 0.05 * (lc - lp).clamp(-1.0, 1.0)), sc), psc); self._ema_t["ema_data_scale"] = nsc
+        sc, psc, lsc = ((xr / sx).square().sum(-1).mean().sqrt() * sx).clamp_min(1e-30), self._dev_ema("ema_data_scale", dev), self._dev_ema("last_data_scale", dev)
+        lp, lc, ll, ok_s = torch.log2(psc.clamp_min(1e-30)), torch.log2(sc.clamp_min(1e-30)), torch.log2(lsc.clamp_min(1e-30)), torch.isfinite(sc) & (xm > 0.0)
+        dl = lc - lp; step_l = torch.where((dl.abs() > 0.25) & ((lc - ll).abs() <= 1.5), 0.80 * dl, 0.05 * dl.clamp(-1.0, 1.0))
+        nsc = torch.where(ok_s, torch.where(wi, torch.exp2(lp + step_l), sc), psc)
+        self._ema_t["ema_data_scale"], self._ema_t["last_data_scale"] = nsc, torch.where(ok_s, torch.where(wi, torch.exp2(ll + (lc - ll).clamp(-2.5, 2.5)), sc), lsc)
         if x_fake is not None and x_fake.shape == x_real.shape:
             xf = x_fake.detach().reshape(x_fake.shape[0], -1).double()
             rg, ppr = (((xf.mean(0) - xr.mean(0)).norm() + 0.5 * (xf.std() - xr.std()).abs()) / nsc.clamp_min(1e-30)).clamp_max(10.0), self._dev_ema("ema_push_res", dev)
             self._ema_t["ema_push_res"] = torch.where(torch.isfinite(rg), torch.where(wi, 0.92 * ppr + 0.08 * rg, rg), ppr)
-
     @property
     def thermal_ema(self) -> float:
         ud, q9, hm = min(1.0, max(0.0, -float(self.ema_spread)) / 0.03), float(self.ema_q90), float(self.ema_hmax)
         return max(0.5 * max(0.0, float(self.ema_ed)), math.sqrt(max(0.0, float(self.ema_mu_sq))), 0.60 * abs(float(self.ema_spread)), max(q9, 0.60 * max(0.0, -q9) * ud), max(hm, 0.60 * max(0.0, -hm) * ud), max(0.0, float(self.ema_tail)))
     ema_residual = thermal_ema
-
     def observe_thermal(self, r_ed: float, r_mu_sq: float, r_spread: float, r_q90: float, r_hmax: float, *, r_tail: float = 0.0, tau: float = 0.084, ema_decay: float = 0.96, s_min: float = 1e-5, shock_mu_ratio: float = 0.35, shock_ed_floor: float = 0.30, lock_hysteresis: float = 0.0) -> float:
         ed_f, mu_f, tau_f = float(r_ed), float(r_mu_sq), float(tau); tp = max(0.0, tau_f); cl, ce, sed = max(0.20, 2.0 * tp), max(0.70, 4.0 * tp), max(float(shock_ed_floor), 4.0 * tp * tp)
         vals = (max(-ce, min(ed_f, ce)), max(-cl * cl, min(mu_f, cl * cl)), max(-cl, min(float(r_spread), cl)), max(-cl, min(float(r_q90), cl)), max(-cl, min(float(r_hmax), cl)), max(-cl, min(float(r_tail), cl)))
@@ -131,7 +128,6 @@ class AxiomStepRecord:
         u = min(1.0, max(0.0, (self.thermal_ema - tlo) / max(1e-8, tau_f - tlo))); th = u * u * (3.0 - 2.0 * u); sm = max(1e-5, float(s_min))
         s = 1.0 if th >= 1.0 else (sm if th <= 0.0 else max(sm, min(1.0, 0.04 * th / math.sqrt(max(1e-8, 1.0 - th * th)))))
         self.thermal_scale, self.thermal_locked = max(sm, min(1.0, s)), bool(s <= 1e-4); return self.thermal_scale
-
     def clear_transient_captures(self) -> None:
         for e in self._live_captures: e[3] = e[4] = None; e[5].clear()
         self._live_captures.clear(); self._capture_ring.clear(); self._last_probe_actual_input = None
@@ -166,14 +162,12 @@ def _extract_axiom_inputs_parts(args: Tuple[Any, ...], kwargs: Optional[Dict[str
     if not fl: return None, None, False, None
     cd, parts = (None if not ds else (ds[0] if len(ds) == 1 else torch.cat(ds, -1))), (tuple(t.reshape(b, -1) for t in fl) if len(fl) > 1 else None)
     return (fl[0] if parts is None else torch.cat(parts, -1)), cd, parts is not None, parts
-
 def _record_axiom_capture(out: Any, x_in: Optional[torch.Tensor], cond: Optional[torch.Tensor], rec: Any, *, has_cont_cond: bool = False, parts: Optional[Tuple[torch.Tensor, ...]] = None, thermally_scaled: bool = False) -> None:
     if x_in is not None and isinstance(tgt := _first_out(out), torch.Tensor) and tgt.ndim >= 1 and tgt.shape[0] == x_in.shape[0]:
         tgt._axiom_input, tgt._axiom_record, tgt._axiom_cond, tgt._axiom_cont_cond, tgt._axiom_parts, tgt._axiom_thermally_scaled = x_in, rec, cond, bool(has_cont_cond), parts, bool(thermally_scaled)
         if rec is not None and int(x_in[0].numel()) <= 4096 and isinstance(ring := getattr(rec, "_capture_ring", None), OrderedDict) and (ck := _capture_key(tgt)) is not None:
             ring[ck] = (x_in.detach(), None if cond is None else cond.detach(), rec, bool(has_cont_cond), None if parts is None else tuple(p.detach() for p in parts)); ring.move_to_end(ck)
             while len(ring) > _MAX_CAPTURE_RING: ring.popitem(last=False)
-
 @torch.no_grad()
 def eval_probe_forward(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str, Any], record: Optional[AxiomStepRecord] = None) -> Optional[torch.Tensor]:
     """Evaluate ``module(*args, **kwargs)`` in ``eval()`` without mutating RNGs, hooks, or BN buffers."""
@@ -192,7 +186,6 @@ def eval_probe_forward(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[st
         torch.set_rng_state(cpu_r); random.setstate(py_r)
         if c_r is not None and c_dev is not None: torch.cuda.set_rng_state(c_r, c_dev)
         if np_r is not None and np_m is not None: np_m.random.set_state(np_r)
-
 def _axiom_critic_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str, Any], output: Any) -> Any:
     rec, x0 = getattr(module, "_axiom_record", None), (args[0] if (args and isinstance(args[0], torch.Tensor)) else None)
     if rec is not None and (rec._in_probe or rec._in_penalty):
@@ -214,11 +207,9 @@ def _axiom_critic_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[st
     x_in, cd, hc, parts = _extract_axiom_inputs_parts(args, kwargs, int(tgt.shape[0]))
     _record_axiom_capture(output, x_in, cd, rec, has_cont_cond=hc, parts=parts, thermally_scaled=th)
     return output if mod else None
-
 def _index_arg(val: Any, b: int, idx: torch.Tensor) -> Any:
     if isinstance(val, torch.Tensor): return val.detach().index_select(0, idx.to(val.device)) if (val.ndim >= 1 and val.shape[0] == b) else val.detach()
     return type(val)(_index_arg(v, b, idx) for v in val) if isinstance(val, (tuple, list)) else ({k: _index_arg(v, b, idx) for k, v in val.items()} if isinstance(val, dict) else val)
-
 def _axiom_generator_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict[str, Any], output: Any) -> None:
     rec, raw = getattr(module, "_axiom_record", None), _first_out(output)
     if (rec is None or rec._in_probe or rec._in_penalty or rec._in_protected_probe or not rec._enable_secant_probe or not module.training or not torch.is_grad_enabled()
@@ -229,7 +220,6 @@ def _axiom_generator_hook(module: nn.Module, args: Tuple[Any, ...], kwargs: Dict
         torch.topk(raw.detach().reshape(b, -1).double().norm(dim=-1).index_fill(0, u, float("-inf")), k=_PROBE_MAX_BATCH - nu).indices), dim=0)
     pa, pk = tuple(_index_arg(a, b, idx) for a in args), {k: _index_arg(v, b, idx) for k, v in kwargs.items()}
     if (y_pre := eval_probe_forward(module, pa, pk, rec) if getattr(module, "_axiom_has_bn", False) else raw.detach().index_select(0, idx).to(torch.float32)) is not None: rec._g_probe_cache = (module, pa, pk, y_pre)
-
 def _attach_hook(mod: Optional[nn.Module], record: AxiomStepRecord, fn: Any, flag: str) -> None:
     if isinstance(mod, nn.Module):
         mod._axiom_record, mod._axiom_has_bn = record, any(isinstance(m, (nn.modules.batchnorm._BatchNorm, nn.modules.dropout._DropoutNd)) for m in mod.modules())
@@ -247,29 +237,35 @@ def _has_quantized_linear(mod: Any) -> bool:
     except Exception: EmulatedLinear = ()  # type: ignore[assignment]
     return any(isinstance(m, EmulatedLinear) or getattr(m, "format", None) in ("nvfp4", "mxfp8") or "Emulated" in type(m).__name__ for m in mod.modules())
 def _bn_dual_bf16_hook(_m: nn.Module, _i: Tuple[Any, ...], out: Any) -> Any:
-    if isinstance(out, torch.Tensor) and (t := fwAD.unpack_dual(out)[1]) is not None and ((p := fwAD.unpack_dual(out)[0]).dtype != torch.bfloat16 or t.dtype != torch.bfloat16):
-        return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
+    if isinstance(out, torch.Tensor) and (t := fwAD.unpack_dual(out)[1]) is not None and ((p := fwAD.unpack_dual(out)[0]).dtype != torch.bfloat16 or t.dtype != torch.bfloat16): return fwAD.make_dual(p.to(torch.bfloat16), t.to(torch.bfloat16))
     return out
 def _dense_rademacher(x: torch.Tensor, phi: float, salt: int) -> torch.Tensor:
     h = (torch.arange(x.numel(), device=x.device, dtype=torch.int64) * 2654435761 + ((int(phi * 1073741824.0) + salt * 7919) & 0xFFFFFFFF) * 3266489917 + 374761393) & 0xFFFFFFFF
     h = (((h ^ (h >> 15)) * 2246822519) & 0xFFFFFFFF); h = (((h ^ (h >> 13)) * 3266489917) & 0xFFFFFFFF)
     return torch.where(((h ^ (h >> 16)) & 1) == 0, 1.0, -1.0).to(dtype=x.dtype).reshape_as(x)
 _cslice = lambda val, b, s, n: val if (not isinstance(val, torch.Tensor) or val.ndim < 1 or val.shape[0] != b or n >= b) else (val[s : s + n] if s + n <= b else torch.cat((val[s:], val[: s + n - b]), dim=0))
+def _eff_dim_t(x: torch.Tensor, dim_x: int) -> torch.Tensor:
+    b = int(x.shape[0])
+    if b < 4 or dim_x <= 1: return x.new_full((), float(dim_x), dtype=torch.float64)
+    xc = x.detach().reshape(b, dim_x).float(); xc = xc - xc.mean(0, keepdim=True); sx = xc.abs().amax(); xu = xc / torch.where(sx > 0.0, sx, sx.new_ones(()))
+    g = (xu @ xu.T).double(); dg = g.diagonal(); s1, s11, s2 = dg.sum(), dg.square().sum(), g.square().sum()
+    a, c = float((b - 1) * (b - 2)), float(b * (b - 1)); num, den = a * s1 * s1 - c * s11 + 2.0 * s2, a * s2 - c * s11 + s1 * s1
+    return torch.where((sx > 0.0) & (num > 0.0), (num / den.clamp_min(1e-30)).clamp(1.0, float(dim_x)), s1.new_full((), float(dim_x)))
 
 class AxiomPenaltyKernel:
-    """Compute-regime-dispatched zero-Jensen linear-R1+R2 + Law 4.5 floor + swap-invariant gauge."""
+    """Compute-regime-dispatched scale-equivariant zero-Jensen linear-R1+R2 + Law 4.5 floor + gauge."""
     def __init__(self, *, record: Optional[AxiomStepRecord] = None, coeff: float = 1.0, kappa: float = 1.0, lambda_floor: float = 0.005, beta_ema: float = 1.5, gamma_gauge: float = 0.03, max_lambda: float = 2.0) -> None:
         self.record, self.coeff, self.kappa = (AxiomStepRecord() if record is None else record), _check_scalar(coeff, "coeff", 0.0), _check_scalar(kappa, "kappa", 0.0, slo=True)
         self.lambda_floor, self.beta_ema = _check_scalar(lambda_floor, "lambda_floor", 0.0, slo=True), _check_scalar(beta_ema, "beta_ema", 0.0)
         self.gamma_gauge, self.max_lambda = _check_scalar(gamma_gauge, "gamma_gauge", 0.0), _check_scalar(max_lambda, "max_lambda", self.lambda_floor)
         self._c_max, self._fwad_unsupported = math.log(max(1.0, self.max_lambda / self.lambda_floor)), set()
-    def _ror(self, live: Callable[..., torch.Tensor], x: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any]) -> Tuple[torch.Tensor, torch.Tensor]:
+    def _ror(self, live: Callable[..., torch.Tensor], x: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any], sc_t: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor]:
         b, xr = int(x.shape[0]), x.detach().requires_grad_(True); y2, sq = _fmt_logits(live(xr, *a, **kw), b), None
         for k in range(int(y2.shape[1])):
             if (gk := torch.autograd.grad(y2[:, k].sum(), xr, create_graph=True, allow_unused=True)[0]) is not None:
-                term = gk.reshape(b, -1).float().square().sum(dim=-1); sq = term if sq is None else (sq + term)
+                term = (gk.float() * sc_t).reshape(b, -1).square().sum(dim=-1); sq = term if sq is None else (sq + term)
         return y2, (y2.new_zeros(b, dtype=torch.float32) if sq is None else sq / float(y2.shape[1]))
-    def _fwad(self, live: Callable[..., torch.Tensor], xr: torch.Tensor, xf: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any], phi: float, *, mod: Optional[nn.Module], has_bn: bool, has_bd: bool) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
+    def _fwad(self, live: Callable[..., torch.Tensor], xr: torch.Tensor, xf: torch.Tensor, a: Tuple[Any, ...], kw: Dict[str, Any], phi: float, *, mod: Optional[nn.Module], has_bn: bool, has_bd: bool, sc_t: torch.Tensor) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor]:
         br, bf, bn_m, bn_h = int(xr.shape[0]), int(xf.shape[0]), [], []
         bf16 = bool(xr.is_cuda and isinstance(mod, nn.Module) and (getattr(mod, "bf16", False) or (torch.is_autocast_enabled("cuda") and torch.get_autocast_dtype("cuda") == torch.bfloat16)))
         if isinstance(mod, nn.Module) and (has_bn or bf16):
@@ -281,7 +277,7 @@ class AxiomPenaltyKernel:
         def _dual(xs: torch.Tensor, ca: Tuple[Any, ...], ckw: Dict[str, Any], salt: int) -> Tuple[torch.Tensor, torch.Tensor]:
             vs = _dense_rademacher(xs, phi, salt); y, j = fwAD.unpack_dual(live(fwAD.make_dual(xs.to(torch.bfloat16) if bf16 else xs, vs.to(torch.bfloat16) if bf16 else vs), *ca, **ckw))
             if j is None: raise NotImplementedError("dual tangent dropped")
-            return _fmt_logits(y, int(xs.shape[0])), _fmt_logits(j, int(xs.shape[0])).float()
+            return _fmt_logits(y, int(xs.shape[0])), _fmt_logits(j, int(xs.shape[0])).float() * sc_t
         self.record._in_penalty = True
         try:
             sr, sf = int(phi * br) % br, int(((phi + 0.5) % 1.0) * bf) % bf
@@ -308,9 +304,13 @@ class AxiomPenaltyKernel:
         if self.coeff == 0.0: self.record.clear_transient_captures(); return x_real.new_zeros(()), ({"applied": False, "pen": 0.0, "center": self.kappa} if collect_stats else {})
         self.record.calls, phi = self.record.calls + 1, float(self.record.chord_phase); self.record.chord_phase = (phi + _GOLDEN_CONJ) % 1.0
         mod = critic_module if isinstance(critic_module, nn.Module) else (live if isinstance(live, nn.Module) else None)
-        cid, has_bn = (id(mod) if mod is not None else id(live)), (isinstance(mod, nn.Module) and any(isinstance(m, nn.modules.batchnorm._BatchNorm) for m in mod.modules()))
+        cid, dim_x = (id(mod) if mod is not None else id(live)), max(1, int(x_real[0].numel()))
+        has_bn = isinstance(mod, nn.Module) and any(isinstance(m, nn.modules.batchnorm._BatchNorm) for m in mod.modules())
+        has_gn = isinstance(mod, nn.Module) and any(isinstance(m, nn.GroupNorm) for m in mod.modules())
         has_bd = isinstance(mod, nn.Module) and any("BatchDistance" in type(m).__name__ for m in mod.modules())
-        use_ror = (x_real.ndim == 2 and int(x_real[0].numel()) <= 16) or _has_quantized_linear(mod) or (cid in self._fwad_unsupported)
+        use_ror = (x_real.ndim == 2 and dim_x <= 16) or (x_real.ndim >= 4 and dim_x <= 256) or has_gn or _has_quantized_linear(mod) or (cid in self._fwad_unsupported)
+        ds, mi = self.record._dev_ema("ema_data_scale", x_real.device), self.record._dev_ema("margin_initialized", x_real.device)
+        sc_t = torch.where(mi > 0.5, (ds / _eff_dim_t(x_real, dim_x).sqrt()).clamp_min(1e-30), ds.new_ones(())).float()
         csig, kr, kf, stp = _cond_sig((x_real, *args), kwargs), _tensor_id(x_real), _tensor_id(x_fake), self.record.observed_steps
         dr_l = next((e[4] for e in reversed(self.record._live_captures) if e[0] == stp and e[1] == kr and e[2] == csig and e[5] and e[4] is not None), None)
         df_l = next((e[4] for e in reversed(self.record._live_captures) if e[0] == stp and e[1] == kf and e[2] == csig and e[5] and e[4] is not None), None)
@@ -318,27 +318,31 @@ class AxiomPenaltyKernel:
         try:
             cap_tot: Optional[torch.Tensor] = None
             if not use_ror:
-                try: dr_s, df_s, s_hat = self._fwad(live, x_real, x_fake, args, kwargs, phi, mod=mod, has_bn=has_bn, has_bd=has_bd)
+                try: dr_s, df_s, s_hat = self._fwad(live, x_real, x_fake, args, kwargs, phi, mod=mod, has_bn=has_bn, has_bd=has_bd, sc_t=sc_t)
                 except (RuntimeError, NotImplementedError, TypeError): self._fwad_unsupported.add(cid); use_ror = True
             if use_ror:
+                bn_m = [(m, m.training) for m in mod.modules() if isinstance(m, nn.modules.batchnorm._BatchNorm)] if (has_bn and isinstance(mod, nn.Module)) else []
+                for m, _ in bn_m: m.eval()
                 self.record._in_penalty = True
                 try:
                     br, bf, _cap, done = int(x_real.shape[0]), int(x_fake.shape[0]), (lambda sq: torch.relu((sq + 1e-12).sqrt() - self.kappa).square().mean()), False
                     if not has_bn and not has_bd and br == bf and x_real.shape == x_fake.shape:
                         try:
-                            if not args and not kwargs:
+                            if not args and not kwargs and x_real.ndim == 2:
                                 tc = (0.15 + 0.70 * torch.remainder((torch.arange(br, device=x_real.device, dtype=torch.float32) + 0.5) / float(br) + phi, 1.0)).to(x_real.dtype).reshape((br,) + (1,) * (x_real.ndim - 1))
-                                y3, sq3 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach(), (1.0 - tc) * x_real.detach() + tc * x_fake.detach()), dim=0), (), {})
+                                y3, sq3 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach(), (1.0 - tc) * x_real.detach() + tc * x_fake.detach()), dim=0), (), {}, sc_t)
                                 dr_s, df_s, sqr, sqf, sqc = y3[:br], y3[br : 2 * br], sq3[:br], sq3[br : 2 * br], sq3[2 * br :]
                                 s_hat, cap_tot, done = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + 0.75 * _cap(sqf) + 0.25 * _cap(sqc), True
                             else:
                                 _dup = lambda v: torch.cat((v, v), 0) if (isinstance(v, torch.Tensor) and v.ndim >= 1 and v.shape[0] == br) else v
-                                y2, sq2 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach()), 0), tuple(_dup(v) for v in args), {k: _dup(v) for k, v in kwargs.items()})
+                                y2, sq2 = self._ror(live, torch.cat((x_real.detach(), x_fake.detach()), 0), tuple(_dup(v) for v in args), {k: _dup(v) for k, v in kwargs.items()}, sc_t)
                                 dr_s, df_s, sqr, sqf = y2[:br], y2[br:], sq2[:br], sq2[br:]; s_hat, cap_tot, done = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf), True
                         except RuntimeError: pass
                     if not done:
-                        dr_s, sqr = self._ror(live, x_real, args, kwargs); df_s, sqf = self._ror(live, x_fake, args, kwargs); s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf)
-                finally: self.record._in_penalty = False
+                        dr_s, sqr = self._ror(live, x_real, args, kwargs, sc_t); df_s, sqf = self._ror(live, x_fake, args, kwargs, sc_t); s_hat, cap_tot = 0.5 * (sqr.mean() + sqf.mean()), _cap(sqr) + _cap(sqf)
+                finally:
+                    self.record._in_penalty = False
+                    for m, f in bn_m: m.training = f
             dr2, df2 = (dr_l, df_l) if reused else (dr_s, df_s)
             lam = (self.lambda_floor * torch.exp((self.beta_ema * torch.relu(self.record._dev_ema("ema_grad_sq", s_hat.device) - self.kappa * self.kappa)).clamp_max(self._c_max))).to(s_hat.dtype)
             self.record._observe_grad_sq_tensor(s_hat.detach()); pl = 0.5 * self.coeff * (lam * s_hat if cap_tot is None else (cap_tot + lam * s_hat))
@@ -351,8 +355,7 @@ class AxiomPenaltyKernel:
             pen = pl + pg
             if not collect_stats: return pen, {}
             pv, sv, lv = torch.stack((pen.detach().float(), s_hat.detach().float(), lam.detach().float())).tolist()
-            return pen, {"applied": True, "pen": float(pv), "s_hat": float(sv), "mean_grad_norm": math.sqrt(max(0.0, float(sv))), "lambda_eff": float(lv),
-                         "center": self.kappa, "regime": "ror" if use_ror else "fwad", "s_thermal": s_th, "live_endpoints_reused": bool(reused)}
+            return pen, {"applied": True, "pen": float(pv), "s_hat": float(sv), "mean_grad_norm": math.sqrt(max(0.0, float(sv))), "lambda_eff": float(lv), "center": self.kappa, "regime": "ror" if use_ror else "fwad", "s_thermal": s_th, "live_endpoints_reused": bool(reused)}
         finally: self.record.clear_transient_captures()
 
 class AxiomCriticPenalty:
@@ -363,8 +366,7 @@ class AxiomCriticPenalty:
         if not hasattr(self.optimizer, "param_groups"): raise TypeError("AxiomCriticPenalty requires a critic optimizer")
         rec = getattr(self.optimizer, "record", None) or AxiomStepRecord(); self.optimizer.record, self.optimizer._axiom_record, self.critic = rec, rec, getattr(self.optimizer, "critic", None)
         _attach_axiom_critic_hook(self.critic, rec)
-        k_opts = {"coeff": float(getattr(self.recipe, "reg_coeff", 1.0)) if coeff is None else float(coeff), "kappa": float(getattr(self.recipe, "reg_kappa", 1.0)) if kappa is None else float(kappa),
-                  **{k: options[k] for k in ("coeff", "kappa", "lambda_floor", "beta_ema", "gamma_gauge", "max_lambda") if options.get(k) is not None}}
+        k_opts = {"coeff": float(getattr(self.recipe, "reg_coeff", 1.0)) if coeff is None else float(coeff), "kappa": float(getattr(self.recipe, "reg_kappa", 1.0)) if kappa is None else float(kappa), **{k: options[k] for k in ("coeff", "kappa", "lambda_floor", "beta_ema", "gamma_gauge", "max_lambda") if options.get(k) is not None}}
         self.regularizer = AxiomPenaltyKernel(record=rec, **k_opts)
         self.initial_coeff, self.output, self.collect_stats, self.last_stats = self.regularizer.coeff, (_first_out if output is None else output), bool(collect_stats), {}
     def __call__(self, critic: Callable[..., torch.Tensor], x_real: torch.Tensor, x_fake: torch.Tensor, *args: Any, **kwargs: Any) -> torch.Tensor:
@@ -374,5 +376,4 @@ class AxiomCriticPenalty:
         r = self.regularizer.record
         return {"axiom_calls": int(r.calls), "axiom_ema_grad_sq": float(r.ema_grad_sq), "axiom_chord_phase": float(r.chord_phase), "axiom_thermal_scale": float(r.thermal_scale), "axiom_step_scale": float(r.step_scale)}
 
-__all__ = ["AxiomCriticPenalty", "AxiomPenaltyKernel", "AxiomStepRecord", "_attach_axiom_critic_hook", "_attach_axiom_generator_hook",
-           "_extract_axiom_inputs_parts", "_record_axiom_capture", "bind_axiom_record", "eval_probe_forward"]
+__all__ = ["AxiomCriticPenalty", "AxiomPenaltyKernel", "AxiomStepRecord", "_attach_axiom_critic_hook", "_attach_axiom_generator_hook", "_extract_axiom_inputs_parts", "_record_axiom_capture", "bind_axiom_record", "eval_probe_forward"]

@@ -36,18 +36,35 @@ FOUR_LAWS_4_KINDS = frozenset({
 
 FOUR_LAWS_KINDS = FOUR_LAWS_123_KINDS | FOUR_LAWS_4_KINDS
 
+FOUR_LAWS_123_V2_KINDS = frozenset({
+    "fl_law1_noisy_atomic_codebook_v2",
+    "fl_law1_highd_rank_d32_v2",
+    "fl_law2_groupnorm_and_vit_sprites_v2",
+    "fl_law3_highd_orphan_d32_v2",
+})
+
+FOUR_LAWS_4_V2_KINDS = frozenset({
+    "fl_law42_deep_resbn_and_conv1x1_v2",
+    "fl_law44_scale_shock",
+})
+
+FOUR_LAWS_V2_KINDS = FOUR_LAWS_123_V2_KINDS | FOUR_LAWS_4_V2_KINDS
+ALL_FOUR_LAWS_123_KINDS = FOUR_LAWS_123_KINDS | FOUR_LAWS_123_V2_KINDS
+ALL_FOUR_LAWS_4_KINDS = FOUR_LAWS_4_KINDS | FOUR_LAWS_4_V2_KINDS
+ALL_FOUR_LAWS_KINDS = ALL_FOUR_LAWS_123_KINDS | ALL_FOUR_LAWS_4_KINDS
+
 _ALLOWED_SAMPLING_LAWS = frozenset({
     PUBLIC_PRIOR_CLEAN,
     ENUMERATED_PRIOR_CLEAN,
 })
 
-_VERIFIED_ORACLES: dict[tuple[str, str], bool] = {}
+_VERIFIED_ORACLES: dict[tuple[str, str, bool], bool] = {}
 
 
 def provider_module_name(kind: str) -> str:
-    if kind in FOUR_LAWS_123_KINDS:
+    if kind in ALL_FOUR_LAWS_123_KINDS:
         return "benchmarks.toy_audit.api_four_laws_123"
-    if kind in FOUR_LAWS_4_KINDS:
+    if kind in ALL_FOUR_LAWS_4_KINDS:
         return "benchmarks.toy_audit.api_four_laws_4"
     raise ValueError(f"unsupported four_laws task kind: {kind!r}")
 
@@ -58,14 +75,16 @@ def _provider_module(kind: str):
 
 def _spec_and_thresholds(kind: str) -> tuple[dict, list[list]]:
     mod = _provider_module(kind)
-    if kind not in mod.SPECS or kind not in mod.THRESHOLDS:
+    specs = getattr(mod, "ALL_SPECS", mod.SPECS)
+    thresholds = getattr(mod, "ALL_THRESHOLDS", mod.THRESHOLDS)
+    if kind not in specs or kind not in thresholds:
         raise ValueError(f"four_laws provider missing spec or thresholds for {kind!r}")
-    return deepcopy(mod.SPECS[kind]), deepcopy(mod.THRESHOLDS[kind])
+    return deepcopy(specs[kind]), deepcopy(thresholds[kind])
 
 
 def expected_sampling_law(task: dict) -> str:
     kind = task.get("evaluation", {}).get("kind")
-    if not isinstance(kind, str) or kind not in FOUR_LAWS_KINDS:
+    if not isinstance(kind, str) or kind not in ALL_FOUR_LAWS_KINDS:
         raise ValueError(f"unsupported four_laws evaluation kind: {kind!r}")
     spec, _ = _spec_and_thresholds(kind)
     law = spec.get("sampling_law")
@@ -76,12 +95,13 @@ def expected_sampling_law(task: dict) -> str:
 
 def _verify_oracle_controls(kind: str) -> None:
     mod = _provider_module(kind)
+    is_v2 = kind in FOUR_LAWS_V2_KINDS
     mod_file = getattr(mod, "__file__", None)
     digest = file_hash(Path(mod_file)) if mod_file and Path(mod_file).is_file() else "memory"
-    cache_key = (mod.__name__, digest)
+    cache_key = (mod.__name__, digest, is_v2)
     if _VERIFIED_ORACLES.get(cache_key):
         return
-    controls = mod.oracle_controls()
+    controls = mod.oracle_controls_v2() if is_v2 else mod.oracle_controls()
     if not isinstance(controls, dict) or not controls:
         raise ValueError(f"four_laws provider {mod.__name__} returned empty oracle_controls")
     for name, control in controls.items():
@@ -115,7 +135,7 @@ def validate_task(task: dict, *, root: Path | None = None, allow_software_prefix
         raise TypeError("four_laws task requires execution and evaluation objects")
 
     kind = evaluation.get("kind")
-    if not isinstance(kind, str) or kind not in FOUR_LAWS_KINDS:
+    if not isinstance(kind, str) or kind not in ALL_FOUR_LAWS_KINDS:
         raise ValueError(f"unsupported four_laws evaluation.kind: {kind!r}")
     if execution.get("host") != kind:
         raise ValueError("four_laws execution.host must match evaluation.kind")

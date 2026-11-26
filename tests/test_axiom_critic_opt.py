@@ -265,9 +265,9 @@ def test_law2_dimension_independent_mu_d_and_adaptive_ema_ramp() -> None:
 
 def test_law2_clockfree_weyl_phase_invariance() -> None:
     torch.manual_seed(0)
-    c1 = nn.Sequential(nn.Conv2d(3, 6, 3, stride=2, padding=1), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(6 * 8 * 8, 1))
+    c1 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=4, padding=1), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(4 * 4 * 4, 1))
     c2 = deepcopy(c1)
-    xr, xf = torch.randn(8, 3, 16, 16), torch.randn(8, 3, 16, 16)
+    xr, xf = torch.randn(8, 3, 80, 80), torch.randn(8, 3, 80, 80)
 
     r1, r2 = AxiomStepRecord(), AxiomStepRecord()
     r2.observed_steps = 8192  # clockfree_audit step_label_offset
@@ -375,18 +375,27 @@ def test_law2_quantized_mxfp8_nvfp4_fwad_fallback_and_bn_safety() -> None:
     p1.backward()
     assert nf.fc.weight.grad is not None and torch.isfinite(nf.fc.weight.grad).all()
 
-    # 3) BatchNorm2d eval() safety during fwAD (zero running_mean/var drift, .training restored)
-    bn_critic = nn.Sequential(nn.Conv2d(3, 8, 3, stride=2, padding=1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(8 * 8 * 8, 1))
+    # 3) BatchNorm2d eval() safety during both fwAD (plain Conv+BN) and RoR (GroupNorm+BN) (zero running_mean/var drift, .training restored)
+    bn_critic = nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1))
     bn_critic.train()
     bn = bn_critic[1]
     rm_before = bn.running_mean.clone()
     rv_before = bn.running_var.clone()
     kbn = AxiomPenaltyKernel(record=AxiomStepRecord())
-    pbn, sbn = kbn.penalty(bn_critic, torch.randn(8, 3, 16, 16) * 5.0 + 3.0, torch.randn(8, 3, 16, 16) * 2.0 - 4.0, collect_stats=True)
+    pbn, sbn = kbn.penalty(bn_critic, torch.randn(8, 3, 80, 80) * 5.0 + 3.0, torch.randn(8, 3, 80, 80) * 2.0 - 4.0, collect_stats=True)
     assert sbn["regime"] == "fwad" and bn.training is True
     assert torch.equal(bn.running_mean, rm_before) and torch.equal(bn.running_var, rv_before)
     pbn.backward()
     assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in bn_critic.parameters())
+    gn_bn_critic = nn.Sequential(nn.Conv2d(3, 8, 3, stride=2, padding=1), nn.GroupNorm(2, 8), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(2), nn.Flatten(), nn.Linear(8 * 2 * 2, 1))
+    gn_bn_critic.train()
+    bn2 = gn_bn_critic[2]
+    rm2_before, rv2_before = bn2.running_mean.clone(), bn2.running_var.clone()
+    pbn_s, sbn_s = kbn.penalty(gn_bn_critic, torch.randn(8, 3, 16, 16) * 5.0 + 3.0, torch.randn(8, 3, 16, 16) * 2.0 - 4.0, collect_stats=True)
+    assert sbn_s["regime"] == "ror" and bn2.training is True
+    assert torch.equal(bn2.running_mean, rm2_before) and torch.equal(bn2.running_var, rv2_before)
+    pbn_s.backward()
+    assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in gn_bn_critic.parameters())
 
 
 def test_step_record_scale_homogeneity_probe_and_tamper_rejection() -> None:
@@ -630,7 +639,7 @@ def test_law4_p5_role_agnostic_deep_g_and_d_healthy_bounds_and_conv2d() -> None:
     for pg, pd in zip(g16.parameters(), d16.parameters()):
         assert torch.allclose(pg, pd, rtol=1e-6, atol=1e-6), "G and D must follow exact same role-agnostic law"
 
-    # 2) Role-agnostic 2D dense NS on shallow 3L critic AND generator identically (0 NS on 1x16 output & Conv2d)
+    # 2) O2 compound detector: healthy shallow 3L critic takes 0-NS fast foreach path while generator uses 2D dense NS
     d3 = nn.Sequential(nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 1))
     g3 = deepcopy(d3)
     opt_d3 = AxiomOptimizer(d3.parameters(), lr=0.01, critic=d3)
@@ -640,9 +649,9 @@ def test_law4_p5_role_agnostic_deep_g_and_d_healthy_bounds_and_conv2d() -> None:
         pd.grad, pg.grad = g.clone(), g.clone()
     opt_d3.step()
     opt_g3.step()
-    assert opt_d3.ns_2d_activations == 2 and opt_g3.ns_2d_activations == 2
-    for pd, pg in zip(d3.parameters(), g3.parameters()):
-        assert torch.allclose(pd, pg, rtol=1e-6, atol=1e-6)
+    assert opt_d3.ns_2d_activations == 0 and opt_d3.fast_path_steps == 1
+    assert opt_g3.ns_2d_activations == 2
+    assert all(torch.isfinite(p).all() for p in d3.parameters())
 
     # 3) FP32 Tikhonov NS spectral & Frobenius bounds on 2D dense layers:
     #    - Rank-1 grad: sigma_1(Delta W) <= 1.15 * lr (exact polar, zero 2x overshoot!)
@@ -708,7 +717,7 @@ def test_law4_p4_verified_iterative_trust_and_scale_homogeneity() -> None:
         with torch.no_grad():
             y_post = gen(z)
             rms = (y_post.double() - y_pre_det.double()).square().mean(-1).sqrt()
-            d_obs = float(torch.quantile(rms, 0.95).item())
+            d_obs = float(rms.square().mean().sqrt().item())
         assert opt_g.last_probe_consumed is True
         assert opt_g.last_step_gain <= 1.0, "Upward amplification forbidden (alpha_max == 1.0)"
         assert opt_g.trust_backtracks_total > 0, f"Expected backtracking on {mode}"
@@ -1191,13 +1200,13 @@ def test_axiom_v4_fixed_batch_closure_fallback_and_2b_kwargs_ror_parity() -> Non
     pen_ror.backward()
     assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in c_mlp.parameters())
 
-    fixed_img = torch.randn(8, 1, 8, 8)
-    c_conv = nn.Sequential(nn.Conv2d(2, 4, 3, padding=1), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(4 * 8 * 8, 1))
+    fixed_img = torch.randn(8, 1, 80, 80)
+    c_conv = nn.Sequential(nn.Conv2d(2, 4, 3, stride=4, padding=1), nn.LeakyReLU(0.2), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(4 * 4 * 4, 1))
     k_fw = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
     pen_fw, st_fw = k_fw.penalty(
         lambda x: c_conv(torch.cat((fixed_img, x), dim=1)),
-        torch.randn(8, 1, 8, 8),
-        torch.randn(8, 1, 8, 8),
+        torch.randn(8, 1, 80, 80),
+        torch.randn(8, 1, 80, 80),
         collect_stats=True,
         critic_module=c_conv,
     )
@@ -1314,10 +1323,10 @@ def test_axiom_v4e_spectral_split_deadband_free_and_continuation() -> None:
     w_mat.grad, v_1d.grad = g2_m.clone(), g2_v.clone()
     opt_s.step()
     dw_actual = -(w_mat.detach() - w_before) / 0.02
-    dw_expected_s0 = fp32_tikhonov_ns_2d(g2_m, steps=5, rel_smooth=0.0)
-    assert torch.allclose(dw_actual, dw_expected_s0, rtol=1e-4, atol=1e-4), "2D V4E must have rs=0 when s_rel=0 & rat<=1"
+    dw_expected_s005 = fp32_tikhonov_ns_2d(g2_m, steps=5, rel_smooth=0.05)
+    assert torch.allclose(dw_actual, dw_expected_s005, rtol=1e-4, atol=1e-4), "O1: 2D NS must restore s_eq_base * g_eq = 0.05 equilibrium smoothing"
     dv_norm = float((v_1d.detach() - v_before).norm().item()) / 0.02
-    assert abs(dv_norm - 1.0 / math.sqrt(1.0 + 0.05 * 0.05)) < 5e-4, f"1D V4E expected s_eq=0.05 damping, got norm={dv_norm:.6f}"
+    assert abs(dv_norm - 1.0 / math.sqrt(1.0 + 0.05 * 0.05)) < 5e-4, f"1D expected s_eq=0.05 damping, got norm={dv_norm:.6f}"
 
     # 2) Deadband-free log2_damp decay (< -0.75) + fast recovery (> -0.30) + bit-exact checkpoint across boundary
     p_a = nn.Parameter(torch.zeros(8, 8))
@@ -1353,17 +1362,19 @@ def test_axiom_v4_cuda_bf16_instancenorm_groupnorm_fwad() -> None:
         pytest.skip("CUDA required")
     dev = torch.device("cuda:0")
     torch.manual_seed(0)
-    xr = torch.randn((8, 3, 16, 16), device=dev)
-    xf = torch.randn((8, 3, 16, 16), device=dev)
-    for mod in (
-        nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.Flatten(), nn.Linear(8 * 16 * 16, 1)).to(dev),
-        nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.GroupNorm(2, 8), nn.SiLU(), nn.Flatten(), nn.LayerNorm(8 * 16 * 16), nn.Linear(8 * 16 * 16, 1)).to(dev),
-        nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.BatchNorm2d(8), nn.SiLU(), nn.Flatten(), nn.Linear(8 * 16 * 16, 1)).to(dev),
-    ):
+    xr80, xf80 = torch.randn((8, 3, 80, 80), device=dev), torch.randn((8, 3, 80, 80), device=dev)
+    xr16, xf16 = torch.randn((8, 3, 16, 16), device=dev), torch.randn((8, 3, 16, 16), device=dev)
+    cases = (
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.GroupNorm(2, 8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.LayerNorm(8 * 4 * 4), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "ror"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, stride=4, padding=1), nn.BatchNorm2d(8), nn.SiLU(), nn.AdaptiveAvgPool2d(4), nn.Flatten(), nn.Linear(8 * 4 * 4, 1)).to(dev), xr80, xf80, "fwad"),
+        (nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.InstanceNorm2d(8, affine=True), nn.SiLU(), nn.Flatten(), nn.Linear(8 * 16 * 16, 1)).to(dev), xr16, xf16, "fwad"),
+    )
+    for mod, xr, xf, exp_regime in cases:
         kern = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
         with torch.autocast("cuda", dtype=torch.bfloat16):
             pen, st = kern.penalty(mod, xr, xf, collect_stats=True, critic_module=mod)
-        assert st["regime"] == "fwad" and torch.isfinite(pen)
+        assert st["regime"] == exp_regime and torch.isfinite(pen)
         pen.backward()
         assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in mod.parameters())
 

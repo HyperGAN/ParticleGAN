@@ -265,9 +265,17 @@ def test_dynamic_laws_registry_and_inline_task_documentation(tmp_path: Path):
 def test_dcgan_r256_renders_scaling_metrics_and_repo_bloat_passes():
     catalog = build_experiment_catalog(ROOT)
     assert catalog["experiment_count"] == 149
-    assert catalog["full_suite_count"] == 71
+    assert catalog["full_suite_count"] == 59
+    assert catalog["unimplemented_backlog_count"] == 12
     r256 = (EXPERIMENTS_DIR / "dcgan_performance_r256.md").read_text(encoding="utf-8")
     assert "Median ms/step" in r256
     assert "Peak Allocated MiB" in r256
+    hub = LAWS_HUB.read_text(encoding="utf-8")
+    assert "## Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)" in hub
+    assert "`axiom-v4`" in hub
+    fl_page = (EXPERIMENTS_DIR / "fl_law41_trust_rare1pct_tanh.md").read_text(encoding="utf-8")
+    assert "### Four Laws Adherence Diagnostic Receipts (Separate Cohort)" in fl_page
+    assert "NVIDIA L4" in fl_page
+    assert "NVIDIA RTX A6000" in fl_page
     bloat = check_repo_bloat(ROOT)
     assert bloat["passed"], bloat["new_violations"]
