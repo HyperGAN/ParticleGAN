@@ -518,7 +518,7 @@ def test_checkpoint_continuation_and_legacy_schema_rejection(tmp_path: pathlib.P
         "import torch; "
         "from lib.toy_models import SimpleMLPDiscriminator, SimpleMLPGenerator; "
         "from particlegan import DEFAULT_RECIPE, GANTrainer, MoGParticlePrior, get_recipe, init; "
-        "assert DEFAULT_RECIPE == 'unified_v12'; "
+        "assert DEFAULT_RECIPE == 'axiom'; "
         f"payload = torch.load({str(ckpt_path)!r}, weights_only=False); "
         "gen = SimpleMLPGenerator(z_dim=4, hidden_dim=32, n_hidden=2, out_dim=2); "
         "disc = SimpleMLPDiscriminator(in_dim=2, hidden_dim=32, n_hidden=2, fourier=2); "
@@ -586,7 +586,7 @@ def test_semantic_negative_control_damage_proto_cov_changes_step() -> None:
 
     diff = sum(float((p1 - p2).abs().sum().item()) for p1, p2 in zip(tr_clean.G.parameters(), tr_dmg.G.parameters()))
     assert diff > 1e-4, "corrupting push_cov had no effect on the generator step"
-    assert DEFAULT_RECIPE == "unified_v12"
+    assert DEFAULT_RECIPE == "axiom"
     assert unwrap_prior(tr_clean.prior) is tr_clean.prior
     l1, l2, _, _ = _sym_eig2x2_exact(tr_clean.prior_regularizer.proto_cov)
     assert bool((l1 >= l2).all()) and bool((l2 > 0.0).all())

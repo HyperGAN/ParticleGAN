@@ -64,7 +64,7 @@ except (ImportError, ValueError):
     pass
 
 # Promote a registered trainer preset here; model-family factories inherit it.
-DEFAULT_RECIPE = "unified_v12"
+DEFAULT_RECIPE = "axiom"
 
 
 def _reject_table_storage_owners(table, tensors):
@@ -2634,8 +2634,25 @@ def get_recipe_fields(name="gan", *, trainer=None, **overrides):
     recipe. ``"bcap_adam"`` retains the earlier native-Adam
     preset. Both disable the guard, anchor, latent damping, extra
     regularization, EMA serving and additive training noise.
-    ``"unified_v12"`` is the selected Unified 4-Law research default
-    (``DEFAULT_RECIPE``, matching ``unified-v12``): preserves Laws 1–3
+    ``"axiom"`` is the selected energy-optimal clean-slate Four-Laws default
+    (``DEFAULT_RECIPE``, matching ``axiom-v5``): a self-contained ``<=2,500``-LOC
+    core (``particlegan/_axiom/``) with strictly zero ``torch.autograd.grad``,
+    zero SVD/``eigh``/``pinv``, and strictly clock-free dynamics. It pairs
+    ``AxiomGANLoss`` / ``AxiomTransportLoss`` (conformal local horizons,
+    deconflicted chart & atomic matching, zero-``eigh`` conditional fiber bank),
+    ``AxiomCriticPenalty`` (compute-regime-dispatched exact RoR on low-D /
+    GroupNorm / quantized critics and fast ``fwAD`` linear-R1+R2 on high-res
+    Conv2d, plus zero-mean logit gauge), ``AxiomPriorRegularizer`` (exact
+    mass/LTV Laguerre pullback with central finite-offset isometry), and
+    ``AxiomOptimizer`` (zero-state 4D Conv2d Frobenius-MP, compound-pathology
+    Critic NS fast path, verified batch-RMS trust, and zero-``pinv``
+    ``direction_blend``) plus ``bf16_channels_last`` conv training at constant
+    learning rates (``lr=0.014``, ``d_lr_mult=1.5``, ``prior_lr_mult=2.9``,
+    ``prior_reg=0.02``, ``optimizer_smoothing=0.05``).
+    ``"unified_v15"`` selects the explicit Unified-v15 Four-Laws preset
+    (matching ``unified-v15``).
+    ``"unified_v12"`` retains the explicit 0.12.0 Unified 4-Law preset
+    (matching ``unified-v12``): preserves Laws 1–3
     (``critic_formulation="unified_v11"``, ``prior_regularizer="unified_v11"``,
     zero ``autograd.grad``, zero SVD/``eigh``/``pinv``) and pairs them with
     ``UnifiedV12Optimizer`` (``optimizer_family="unified_v12_equil"``:

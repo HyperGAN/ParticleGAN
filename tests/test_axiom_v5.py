@@ -84,7 +84,7 @@ def test_v5_loc_caps_ast_hygiene_and_idea_contract() -> None:
                 assert node.attr not in FORBIDDEN_OPS, f"{path.name} calls forbidden .{node.attr}"
     assert total_loc <= 2500, f"Axiom total LOC={total_loc} > 2500"
     assert len(dataclasses.fields(pg.Recipe)) == 179
-    assert pg.DEFAULT_RECIPE == "unified_v12"
+    assert pg.DEFAULT_RECIPE == "axiom"
 
     from experiments.forge.clockfree import source_audit
     from experiments.forge.contracts import validate_idea

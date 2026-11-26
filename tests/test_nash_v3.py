@@ -57,7 +57,7 @@ def test_recipes_import_order_and_default_preserved_in_fresh_process():
         "sys.modules[spec.name] = r\n"
         "spec.loader.exec_module(r)\n"
         "assert 'torch' not in sys.modules, 'recipes.py must remain torch-free on import'\n"
-        "assert r.DEFAULT_RECIPE == 'unified_v12'\n"
+        "assert r.DEFAULT_RECIPE == 'axiom'\n"
         "fields = r.get_recipe_fields('t4_nash_v3')\n"
         "assert fields['critic_formulation'] == 't4_nash_v3'\n"
         "assert fields['optimizer_family'] == 'formulation'\n"

@@ -32,8 +32,8 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_default_recipe_unchanged_and_t4_arch_resolves():
-    """Verify DEFAULT_RECIPE is 'unified_v12' and 't4_arch' resolves cleanly."""
-    assert DEFAULT_RECIPE == "unified_v12"
+    """Verify DEFAULT_RECIPE is 'axiom' and 't4_arch' resolves cleanly."""
+    assert DEFAULT_RECIPE == "axiom"
     recipe = get_recipe("t4_arch")
     assert recipe.critic_formulation == "t2_secant"
     assert recipe.optimizer_family == "t4_equil"
@@ -211,7 +211,7 @@ from experiments.forge.state import state_digest
 from lib.toy_models import SimpleMLPDiscriminator, SimpleMLPGenerator
 from particlegan import DEFAULT_RECIPE, GANTrainer, MoGParticlePrior, get_recipe, init
 
-assert DEFAULT_RECIPE == "unified_v12"
+assert DEFAULT_RECIPE == "axiom"
 recipe = get_recipe("t4_arch", prior_kind="mog", standardize=False, batch_size=32, num_particles=64, z_dim=2, total_steps=8, training_precision="float32")
 prior = MoGParticlePrior(64, 2, sigma=0.05, standardize=False)
 init.deterministic_orthogonal_(prior, seed=102)

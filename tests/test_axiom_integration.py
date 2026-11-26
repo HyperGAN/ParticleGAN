@@ -212,7 +212,7 @@ def test_axiom_hygiene_loc_imports_and_no_forbidden_linalg():
 
 def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():
     assert len(dataclasses.fields(pg.Recipe)) == 179
-    assert pg.DEFAULT_RECIPE == "unified_v12"
+    assert pg.DEFAULT_RECIPE == "axiom"
 
     rec = pg.get_recipe("axiom")
     assert rec.critic_formulation == "axiom"
@@ -235,7 +235,7 @@ def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():
                 "m = importlib.util.module_from_spec(spec); spec.loader.exec_module(m); "
                 "assert 'torch' not in sys.modules; "
                 "assert len(dataclasses.fields(m.Recipe)) == 179; "
-                "assert m.DEFAULT_RECIPE == 'unified_v12'; "
+                "assert m.DEFAULT_RECIPE == 'axiom'; "
                 "assert m.get_recipe_fields('axiom')['critic_formulation'] == 'axiom'"
             ),
         ],
