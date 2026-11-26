@@ -3,7 +3,6 @@ from pathlib import Path
 from copy import deepcopy
 import base64
 import json
-import os
 import shutil
 from types import SimpleNamespace
 
@@ -22,10 +21,7 @@ DIGEST = "b" * 64
 
 
 def _link_or_copy(src, dst):
-    try:
-        os.link(src, dst)
-    except OSError:
-        shutil.copy2(src, dst)
+    shutil.copy2(src, dst)
 
 
 @pytest.fixture(scope="module")

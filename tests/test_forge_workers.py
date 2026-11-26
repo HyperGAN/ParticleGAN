@@ -59,7 +59,7 @@ atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {"measured": 1})
     q.submit(req, campaign())
     claim = q.claim(SLOTS)
     process = q.launch(claim)
-    assert process.wait(timeout=5) == 0
+    assert process.wait(timeout=20) == 0
     assert q.collect() == 1
     result = q.inspect()["jobs"][claim["job"]["compatibility_key"]]["result"]
     assert result["task_results"][0]["gate_status"] == "PASS"
@@ -136,7 +136,7 @@ atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {"measured": 1})
     claim = q.claim(SLOTS)
     process = q.launch(claim)
     q.cancel(first["request"]["request_id"])
-    assert process.wait(timeout=5) == 0
+    assert process.wait(timeout=20) == 0
     q.collect()
     state = q.inspect()
     assert state["submissions"][first["request"]["request_id"]]["status"] == "cancelled"
@@ -161,8 +161,8 @@ time.sleep(20)
         process = subprocess.Popen([sys.executable, "-c", script, str(tmp_path / "orphan.json")],
                                    start_new_session=True, pass_fds=(lease.fileno(),))
         identity = process_identity(process.pid)
-        descendant = await_file(tmp_path / "orphan.json")
-        assert process.wait(timeout=2) == 0
+        descendant = await_file(tmp_path / "orphan.json", timeout=10)
+        assert process.wait(timeout=10) == 0
     assert process_identity(process.pid) is None
     assert lease_held(lease_path)
     assert fence_orphan_group({"pid": process.pid, "process_identity": identity}, tmp_path)

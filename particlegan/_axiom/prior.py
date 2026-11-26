@@ -289,7 +289,7 @@ def should_use_axiom_pullback(trainer: Any, real: torch.Tensor, latent: Optional
     if r.prior_regularizer != "axiom" or float(r.t1_pullback_weight) <= 0.0 or r.encoder_mode != "none" or r.conditioning != "scalar" or real.ndim != 2 or not (1 <= int(real.shape[1]) <= 64): return False
     if int(real.shape[1]) >= 2 and has_positive_prior_sigma(trainer.prior): return True
     rf = real.detach().float(); is_pt = bool((rf.var(0, unbiased=False).sum() < (1e-11 * rf.square().sum(1).mean()).clamp_min(1e-22)).item())
-    if hasattr(getattr(trainer, "prior_regularizer", None), "_last_raw_var_cache"): trainer.prior_regularizer._last_raw_var_cache = (id(real), is_pt)
+    if hasattr(getattr(trainer, "prior_regularizer", None), "_last_raw_var_cache"): trainer.prior_regularizer._last_raw_var_cache = (real, is_pt)
     return is_pt
 
 def _finalize_gen_step(trainer: Any, base_prior: Any, loss_g: torch.Tensor, loss_gan: torch.Tensor, fake_g: torch.Tensor, real_g: torch.Tensor, fake_logits: torch.Tensor, latent: torch.Tensor, indices: torch.Tensor, loss_d: torch.Tensor, penalty: torch.Tensor, g_scale: float | torch.Tensor, wakeup_boost: float | torch.Tensor, prior_scale: float, res_ema_t: Optional[torch.Tensor] = None) -> Tuple[torch.Tensor, Optional[torch.Tensor], torch.Tensor, torch.Tensor]:
@@ -319,7 +319,7 @@ def axiom_pullback_step(trainer: Any, real: torch.Tensor, generator_real: Any, l
     """Execute Axiom Law-1 Pullback: Exact LTV + Unbiased 2-Sketch Isometry + Scale-Equivariant Laguerre."""
     reg, recipe, b = trainer.prior_regularizer, trainer.recipe, len(real); base_prior, sigma_z, can_condense = _prior_kernel_spec(trainer.prior)
     has_sigma, rv_cache = sigma_z > 0.0, getattr(reg, "_last_raw_var_cache", None); reg._last_raw_var_cache = None
-    if rv_cache is not None and rv_cache[0] == id(real): is_case_a = bool(rv_cache[1])
+    if rv_cache is not None and rv_cache[0] is real: is_case_a = bool(rv_cache[1])
     else: rf_a = real.detach().float(); is_case_a = bool((rf_a.var(0, unbiased=False).sum() < (1e-11 * rf_a.square().sum(1).mean()).clamp_min(1e-22)).item())
     gen_clean = lambda z_in: trainer._postprocess(trainer.prior, trainer._generate(trainer.G, z_in, 0.0, noise))
     if is_case_a:
