@@ -158,7 +158,7 @@ def task_owned_recipe_fields(task):
         owned |= BEHAVIOR_HOST_FIELDS
         if host != "ae_gan_hold":
             owned |= {"routing_temperature", "distance_reduction"}
-    if task.get("adapter") == "public_api_model_toy":
+    if task.get("adapter") in {"public_api_model_toy", "public_api_model_toy_v2"}:
         owned |= frozenset(task["execution"].get("recipe_fields", {}))
     if recipe_owned_prior(task):
         owned = owned - {"prior_reg"}

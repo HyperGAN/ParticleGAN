@@ -13,6 +13,7 @@ import json
 import math
 from pathlib import Path
 import shutil
+import sys
 import time
 
 import numpy as np
@@ -24,7 +25,7 @@ from .api import (CapabilityError, task_formulation_context, task_recipe_resourc
                   task_policy_blockers)
 from .artifacts import manifest_artifacts, save_provenance_checkpoint, verify_artifacts
 from .contracts import atomic_json, file_hash, read_json, stable_hash
-from .energy import EnergyMonitor, extract_pass_steps
+from .energy import EnergyMonitor, active_energy_monitor, extract_pass_steps
 from .initialization import task_initializer
 from .mechanisms import MechanismAudit, mechanism_blockers
 from .priors import task_prior
@@ -34,7 +35,72 @@ from .telemetry import PhaseTimer, normalize_adapter_costs
 from .taskrecipes import bind_task_candidate
 
 
+def _record_active_energy_checkpoint(step) -> None:
+    """Observer-only hook recording cumulative NVML Joules at a scheduled eval step."""
+    if isinstance(step, int) and not isinstance(step, bool) and step >= 0:
+        mon = active_energy_monitor()
+        if mon is not None:
+            mon.record_checkpoint(step)
+
+
+class _CheckpointObservingStream:
+    """Transparent stdout pass-through capturing observation step checkpoints for NVML telemetry.
+
+    Strictly observer-only: never modifies bytes written to stdout, RNG streams,
+    model weights, or optimizer state. Enables cumulative checkpoint Joules on
+    pinned legacy adapters (e.g. ``behavior_adapters``, ``api_run``) without
+    modifying their source bytes.
+    """
+
+    def __init__(self, wrapped, monitor: EnergyMonitor) -> None:
+        self._wrapped = wrapped
+        self._monitor = monitor
+        self._buf = ""
+
+    def _inspect_line(self, line: str) -> None:
+        text = line.strip()
+        if not text or not (text.startswith("{") and text.endswith("}")):
+            return
+        if '"step"' not in text:
+            return
+        try:
+            obj = json.loads(text)
+        except Exception:
+            return
+        if not isinstance(obj, dict):
+            return
+        step = obj.get("step")
+        if not isinstance(step, int) or isinstance(step, bool) or step < 0:
+            return
+        if obj.get("event") == "observation" or "metric_passed" in obj:
+            self._monitor.record_checkpoint(step)
+
+    def write(self, data: str):
+        written = self._wrapped.write(data)
+        if isinstance(data, str) and data:
+            self._buf += data
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                self._inspect_line(line)
+        return written
+
+    def writelines(self, lines):
+        for chunk in lines:
+            self.write(chunk)
+
+    def flush(self):
+        if self._buf:
+            self._inspect_line(self._buf)
+            self._buf = ""
+        return self._wrapped.flush()
+
+    def __getattr__(self, name: str):
+        return getattr(self._wrapped, name)
+
+
 def _event(event, **values):
+    if event == "observation":
+        _record_active_energy_checkpoint(values.get("step"))
     print(json.dumps({"event": event, **values}, sort_keys=True, allow_nan=False), flush=True)
 
 
@@ -56,6 +122,9 @@ def adapter_preflight(task, candidate, *, root=None):
     adapter = task["adapter"]
     if adapter == "public_api_model_toy":
         from .model_toy_adapter import preflight
+        return preflight(task, candidate, root=root)
+    if adapter == "public_api_model_toy_v2":
+        from .model_toy_v2_adapter import preflight
         return preflight(task, candidate, root=root)
     if adapter == "particle_interpolation":
         from .interpolation import preflight
@@ -421,6 +490,7 @@ class _Run:
             if not pure:
                 raise RuntimeError("selected-policy observation changed public training state")
         self.finite = self.finite and _finite_tree(result)
+        _record_active_energy_checkpoint(self.trainer.completed_steps)
         return result
 
     def sample(self, n, *, ema=False):
@@ -860,6 +930,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
     if adapter == "public_api_model_toy":
         from .model_toy_adapter import run
         return run(request, task, output_dir, device)
+    if adapter == "public_api_model_toy_v2":
+        from .model_toy_v2_adapter import run
+        return run(request, task, output_dir, device)
     if adapter == "particle_interpolation":
         from .interpolation import run
         return run(request, task, output_dir, device)
@@ -946,8 +1019,11 @@ def _attach_energy_summary(
     def _attach_member(member: dict, member_task: dict | None) -> dict | None:
         if not isinstance(member, dict):
             return None
+        from .energy import extract_completed_steps
         cost = member.setdefault("cost", {})
-        completed_steps = cost.get("completed_steps", cost.get("completed_updates"))
+        completed_steps = extract_completed_steps(member)
+        if completed_steps is not None and cost.get("completed_steps") is None:
+            cost["completed_steps"] = completed_steps
         fp_step, sp_step = extract_pass_steps(member_task, member)
         summary = monitor.summary(
             completed_steps,
@@ -977,9 +1053,18 @@ def _attach_energy_summary(
 def run_task(request: dict, job: dict, output_dir: Path, device: str) -> dict:
     monitor = EnergyMonitor.for_device(device)
     monitor.start()
+    prev_stdout = sys.stdout
+    if monitor.available:
+        sys.stdout = _CheckpointObservingStream(prev_stdout, monitor)
     try:
         raw = _dispatch_task(request, job, output_dir, device)
     finally:
+        if sys.stdout is not prev_stdout:
+            try:
+                sys.stdout.flush()
+            except Exception:
+                pass
+            sys.stdout = prev_stdout
         if isinstance(device, str) and device.startswith("cuda") and torch.cuda.is_available():
             try:
                 torch.cuda.synchronize(torch.device(device))

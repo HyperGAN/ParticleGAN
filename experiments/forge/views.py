@@ -145,13 +145,37 @@ def _validate_measurement_contract(task):
     elif kind == "transfer_sustained":
         from benchmarks.locked_shared.observation import OBSERVATIONS, MIN_STABLE_CHECKS
         declared = evaluation.get("evaluator") == "experiments.forge.transfer_cadence:test_verdict"
-        if declared:
+        model_toy_eval = (
+            (measured.get("adapter") == "public_api_model_toy"
+             and evaluation.get("evaluator") == "experiments.forge.model_toy_adapter:test_verdict")
+            or (measured.get("adapter") == "public_api_model_toy_v2"
+                and evaluation.get("evaluator") == "experiments.forge.model_toy_v2_adapter:test_verdict")
+        )
+        if model_toy_eval:
+            if measured.get("adapter") == "public_api_model_toy_v2":
+                from . import model_toy_v2_adapter as _mt_adapter
+                default_min_checks = 1
+            else:
+                from . import model_toy_adapter as _mt_adapter
+                default_min_checks = MIN_STABLE_CHECKS
+            case_def = _mt_adapter.definition(measured)
+            min_checks = int(case_def.get("terminal_observations", default_min_checks))
+            if min_checks < 1:
+                raise ValueError(f"{task['id']}: minimum_stable_checks must be positive")
             count = evaluation.get("observations")
-            if type(count) is not int or not MIN_STABLE_CHECKS <= count <= task["execution"]["steps"]:
+            if type(count) is not int or not min_checks <= count <= task["execution"]["steps"]:
                 raise ValueError(f"{task['id']}: declared observations must fit the full update budget")
-        fixed.update(evaluator="experiments.forge.transfer_cadence:test_verdict" if declared else "benchmarks.transfer_suite.protocol:test_verdict",
-                     observations=evaluation["observations"] if declared else OBSERVATIONS,
-                     minimum_stable_checks=MIN_STABLE_CHECKS)
+            fixed.update(evaluator=evaluation["evaluator"],
+                         observations=count,
+                         minimum_stable_checks=min_checks)
+        else:
+            if declared:
+                count = evaluation.get("observations")
+                if type(count) is not int or not MIN_STABLE_CHECKS <= count <= task["execution"]["steps"]:
+                    raise ValueError(f"{task['id']}: declared observations must fit the full update budget")
+            fixed.update(evaluator="experiments.forge.transfer_cadence:test_verdict" if declared else "benchmarks.transfer_suite.protocol:test_verdict",
+                         observations=evaluation["observations"] if declared else OBSERVATIONS,
+                         minimum_stable_checks=MIN_STABLE_CHECKS)
     elif kind == "native_accuracy":
         from benchmarks.toy100.accuracy import LIMITS
         from benchmarks.toy100.accuracy_gate import HOLDOUT_N
@@ -614,8 +638,19 @@ def _transfer(task, evidence):
 
     evaluation = task["evaluation"]
     declared = evaluation.get("evaluator") == "experiments.forge.transfer_cadence:test_verdict"
-    count = evaluation["observations"] if declared else 24
+    model_toy_eval = (
+        (task.get("adapter") == "public_api_model_toy"
+         and evaluation.get("evaluator") == "experiments.forge.model_toy_adapter:test_verdict")
+        or (task.get("adapter") == "public_api_model_toy_v2"
+            and evaluation.get("evaluator") == "experiments.forge.model_toy_v2_adapter:test_verdict")
+    )
+    count = evaluation["observations"] if (declared or model_toy_eval) else 24
     spec = {"steps": task["execution"]["steps"], "thresholds": evaluation["thresholds"], "observations": count}
+    if model_toy_eval:
+        spec["minimum_stable_checks"] = evaluation.get(
+            "minimum_stable_checks",
+            1 if task.get("adapter") == "public_api_model_toy_v2" else 5,
+        )
     expected = [math.ceil(i * spec["steps"] / count) for i in range(1, count + 1)]
     points = evidence.get("observations", evidence.get("curve"))
     try:
@@ -627,7 +662,14 @@ def _transfer(task, evidence):
     live = evidence.get("live")
     if not isinstance(live, dict) or any(not _finite(live.get(key)) for key, _, _ in spec["thresholds"]):
         return _verdict("INCOMPLETE", "missing finite final live metrics")
-    grade = (test_verdict_declared if declared else test_verdict)(spec, {"observations": points, "live": live})
+    if model_toy_eval:
+        if task.get("adapter") == "public_api_model_toy_v2":
+            from .model_toy_v2_adapter import test_verdict as test_verdict_model_toy
+        else:
+            from .model_toy_adapter import test_verdict as test_verdict_model_toy
+        grade = test_verdict_model_toy(spec, {"observations": points, "live": live})
+    else:
+        grade = (test_verdict_declared if declared else test_verdict)(spec, {"observations": points, "live": live})
     return _verdict(grade["status"], "recomputed complete live curve and terminal suffix",
                     metrics=live, evaluator_result=grade)
 
@@ -962,6 +1004,12 @@ FOUR_LAWS_EVALUATOR_KINDS = frozenset({
     "fl_law42_swap_deep_critic_16l",
     "fl_law42_deep_resbn_and_conv1x1",
     "fl_law44_highd_sparse_prior_and_shock",
+    "fl_law1_noisy_atomic_codebook_v2",
+    "fl_law1_highd_rank_d32_v2",
+    "fl_law2_groupnorm_and_vit_sprites_v2",
+    "fl_law3_highd_orphan_d32_v2",
+    "fl_law42_deep_resbn_and_conv1x1_v2",
+    "fl_law44_scale_shock",
 })
 
 
@@ -1388,3 +1436,146 @@ def qualify(view: dict, tasks: dict, results: list[dict], *, candidate: dict | N
             "stretch_tiers": [t["qualification_tier"] for t in tiers if t["status"] in {"HELD", "STRETCH"}],
             "counted_tiers": counted,
             "cost_seconds": sum(row["cost"] for row in rows.values())}
+
+
+def compatible_diagnostic_passes(
+    root: Path | str,
+    *,
+    candidate_id: str | None = None,
+    candidate_revision: str | None = None,
+    source_digest: str | None = None,
+    allow_revision_fallback: bool = True,
+) -> dict[str, dict]:
+    """Index committed diagnostic PASS receipts separately from ordinary qualification.
+
+    Strictly read-only display metadata: never grants ordinary ``qualified_tier``
+    or required-pass credit. Distinguishes compatible diagnostic passes
+    (``DIAG_PASS``) from truly unmeasured ``UNKNOWN`` / ``NOT_RUN`` cells.
+    """
+    if not isinstance(candidate_id, str) or not candidate_id.strip():
+        return {}
+    target_cand = candidate_id.strip()
+    target_rev = candidate_revision.strip() if isinstance(candidate_revision, str) and candidate_revision.strip() else None
+    target_src = source_digest.strip() if isinstance(source_digest, str) and source_digest.strip() else None
+    root_path = Path(root)
+
+    # Map task_id -> (rank_tuple, entry) where exact revision/source matches outrank separate diagnostic revisions.
+    best: dict[str, tuple[tuple[int, int, str], dict]] = {}
+
+    def _record(task_id: str, entry: dict, *, exact_rev: bool, exact_src: bool, tie_key: str) -> None:
+        rank = (1 if exact_rev else 0, 1 if exact_src else 0, tie_key)
+        prev = best.get(task_id)
+        if prev is None or rank > prev[0]:
+            best[task_id] = (rank, entry)
+
+    records_dir = root_path / "reports/forge/records"
+    if records_dir.is_dir():
+        for path in sorted(records_dir.glob("readout-*.json")):
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
+                continue
+            scope = str(doc.get("evidence_scope") or "")
+            if scope not in DIAGNOSTIC_SCOPES and "diagnostic" not in scope.lower():
+                continue
+            doc_rev = doc.get("candidate_revision")
+            exact_rev = bool(target_rev and doc_rev == target_rev)
+            if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
+                continue
+            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+            doc_src = prov.get("source_digest")
+            exact_src = bool(target_src and doc_src == target_src)
+            if target_src and doc_src and not exact_src and not allow_revision_fallback:
+                continue
+            cohort_match = (
+                "exact"
+                if (exact_rev or not target_rev or not doc_rev) and (exact_src or not target_src or not doc_src)
+                else "separate_diagnostic_revision"
+            )
+            rel_path = f"reports/forge/records/{path.name}"
+            for tr in doc.get("task_results") or []:
+                if not isinstance(tr, dict):
+                    continue
+                tid = tr.get("task_id")
+                status = str(tr.get("gate_status") or tr.get("status") or "").upper()
+                if not isinstance(tid, str) or not tid or status != "PASS":
+                    continue
+                _record(
+                    tid,
+                    {
+                        "status": "DIAG_PASS",
+                        "gate_status": "PASS",
+                        "evidence_scope": scope,
+                        "record_id": str(doc.get("record_id") or path.stem),
+                        "readout": rel_path,
+                        "study_id": doc.get("study_id") or (doc.get("study") or {}).get("id"),
+                        "goal": doc.get("goal"),
+                        "candidate_id": target_cand,
+                        "candidate_revision": doc_rev,
+                        "cohort_match": cohort_match,
+                        "qualification_input": False,
+                        "qualification_reuse": False,
+                    },
+                    exact_rev=exact_rev,
+                    exact_src=exact_src,
+                    tie_key=f"1:{path.name}",
+                )
+
+    receipts_dir = root_path / "reports/forge/technique-receipts"
+    if receipts_dir.is_dir():
+        for path in sorted(receipts_dir.glob("*.json")):
+            try:
+                doc = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                continue
+            if not isinstance(doc, dict) or doc.get("candidate_id") != target_cand:
+                continue
+            scope = str(doc.get("evidence_scope") or "")
+            if scope not in DIAGNOSTIC_SCOPES and "diagnostic" not in scope.lower():
+                continue
+            doc_rev = doc.get("candidate_revision")
+            exact_rev = bool(target_rev and doc_rev == target_rev)
+            if target_rev and doc_rev and not exact_rev and not allow_revision_fallback:
+                continue
+            prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
+            doc_src = prov.get("source_digest")
+            exact_src = bool(target_src and doc_src == target_src)
+            if target_src and doc_src and not exact_src and not allow_revision_fallback:
+                continue
+            cohort_match = (
+                "exact"
+                if (exact_rev or not target_rev or not doc_rev) and (exact_src or not target_src or not doc_src)
+                else "separate_diagnostic_revision"
+            )
+            rel_path = f"reports/forge/technique-receipts/{path.name}"
+            for tr in doc.get("task_results") or []:
+                if not isinstance(tr, dict):
+                    continue
+                tid = tr.get("task_id")
+                status = str(tr.get("gate_status") or tr.get("status") or "").upper()
+                if not isinstance(tid, str) or not tid or status != "PASS":
+                    continue
+                _record(
+                    tid,
+                    {
+                        "status": "DIAG_PASS",
+                        "gate_status": "PASS",
+                        "evidence_scope": scope,
+                        "record_id": str(doc.get("attempt_id") or path.stem),
+                        "readout": rel_path,
+                        "study_id": doc.get("campaign_id"),
+                        "goal": None,
+                        "candidate_id": target_cand,
+                        "candidate_revision": doc_rev,
+                        "cohort_match": cohort_match,
+                        "qualification_input": False,
+                        "qualification_reuse": False,
+                    },
+                    exact_rev=exact_rev,
+                    exact_src=exact_src,
+                    tie_key=f"0:{path.name}",
+                )
+
+    return {tid: entry for tid, (_, entry) in sorted(best.items())}

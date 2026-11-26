@@ -14,6 +14,7 @@ from pathlib import Path
 import re
 import subprocess
 import tempfile
+from typing import Any
 
 from .artifact_resolver import inspect_archive
 from .artifacts import HF_REPO_PATTERN
@@ -37,6 +38,7 @@ from .leaderboard_contract import (
     load_fixed_test_list,
     selection_lineage,
 )
+from .leaderboard_media import index_media_lookup
 
 DEFAULT_HF_REPO = "HyperGAN/particlegan-forge-evidence"
 DEFAULT_MEDIA_PREFIX = "media/forge/"
@@ -212,11 +214,17 @@ def _resolve_candidate_optimizer_family(
     return None
 
 
-def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -> dict:
+def _extract_receipt_energy(
+    cost: dict,
+    evaluator_summary: dict | None = None,
+    metrics: dict | None = None,
+) -> dict:
     """Extract nullable hardware energy telemetry from a receipt's ``cost`` dict.
 
     Historical receipts without ``cost["energy"]`` remain strictly ``None`` across
-    all energy fields and are never fabricated.
+    all energy fields and are never fabricated. Prefers measured per-checkpoint
+    cumulative NVML Joules when recorded, falling back to linear extrapolation
+    ``joules_per_step * pass_step`` only for legacy receipts lacking checkpoint Joules.
     """
     empty = {
         "joules_total": None,
@@ -226,6 +234,8 @@ def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -
         "sustained_pass_step": None,
         "joules_to_first_pass": None,
         "joules_to_sustained_pass": None,
+        "cumulative_joules_to_first_pass": None,
+        "cumulative_joules_to_sustained_pass": None,
         "energy_backend": None,
         "gpu_name": None,
         "contended": None,
@@ -241,6 +251,10 @@ def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -
         return empty
 
     steps = _opt_int(cost.get("completed_steps"))
+    if steps is None:
+        steps = _opt_int(cost.get("completed_updates"))
+    if steps is None and isinstance(metrics, dict):
+        steps = _opt_int(metrics.get("completed_steps")) or _opt_int(metrics.get("completed_updates"))
     if joules_per_step is None and joules_total is not None and steps is not None and steps > 0:
         joules_per_step = joules_total / float(steps)
 
@@ -258,11 +272,19 @@ def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -
                     else conv.get("stable_from_step")
                 )
 
-    j_fp = _opt_float(energy.get("joules_to_first_pass"))
+    ckpts = energy.get("checkpoint_joules")
+    cum_j_fp = _opt_float(energy.get("cumulative_joules_to_first_pass"))
+    if cum_j_fp is None and isinstance(ckpts, dict) and fp_step is not None:
+        cum_j_fp = _opt_float(ckpts.get(str(fp_step)) if str(fp_step) in ckpts else ckpts.get(fp_step))
+    cum_j_sp = _opt_float(energy.get("cumulative_joules_to_sustained_pass"))
+    if cum_j_sp is None and isinstance(ckpts, dict) and sp_step is not None:
+        cum_j_sp = _opt_float(ckpts.get(str(sp_step)) if str(sp_step) in ckpts else ckpts.get(sp_step))
+
+    j_fp = cum_j_fp if cum_j_fp is not None else _opt_float(energy.get("joules_to_first_pass"))
     if j_fp is None and joules_per_step is not None and fp_step is not None:
         j_fp = joules_per_step * float(fp_step)
 
-    j_sp = _opt_float(energy.get("joules_to_sustained_pass"))
+    j_sp = cum_j_sp if cum_j_sp is not None else _opt_float(energy.get("joules_to_sustained_pass"))
     if j_sp is None and joules_per_step is not None and sp_step is not None:
         j_sp = joules_per_step * float(sp_step)
 
@@ -274,37 +296,104 @@ def _extract_receipt_energy(cost: dict, evaluator_summary: dict | None = None) -
         "sustained_pass_step": sp_step,
         "joules_to_first_pass": j_fp,
         "joules_to_sustained_pass": j_sp,
+        "cumulative_joules_to_first_pass": cum_j_fp,
+        "cumulative_joules_to_sustained_pass": cum_j_sp,
         "energy_backend": _opt_str(energy.get("energy_backend")),
         "gpu_name": _opt_str(energy.get("gpu_name")),
         "contended": _opt_bool(energy.get("contended")),
     }
 
 
-def _readout_occam_counts(root: Path, readout_name: str | None) -> tuple[int | None, int | None, str | None]:
+def _is_incomplete_timeout_result(tr: dict, attempt_status: str = "") -> bool:
+    """Identify INCOMPLETE wall-time timeout rows excluded from Pareto accuracy denominators."""
+    gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+    raw = str(tr.get("raw_status") or "").lower()
+    att = str(attempt_status or "").lower()
+    if gate in {"PASS", "FAIL"}:
+        return False
+    return gate in {"INCOMPLETE", "TIMEOUT"} or raw == "timeout" or att == "timeout"
+
+
+def _readout_occam_counts(root: Path, readout_name: str | None) -> tuple[int | None, int | None, int | None, str | None]:
+    """Count Occam passes, scored completed executions, and excluded INCOMPLETE timeouts."""
     if not isinstance(readout_name, str) or not readout_name.strip():
-        return None, None, None
+        return None, None, None, None
     path = root / "reports/forge/records" / readout_name.strip()
     if not path.is_file():
-        return None, None, None
+        return None, None, None, None
     try:
         doc = read_json(path)
     except Exception:
-        return None, None, None
+        return None, None, None, None
     prov = doc.get("provenance") if isinstance(doc.get("provenance"), dict) else {}
     src_commit = _opt_str(prov.get("source_origin_commit")) or _opt_str(doc.get("source_commit"))
     task_results = doc.get("task_results")
     if not isinstance(task_results, list) or not task_results:
-        return None, None, src_commit
-    executed_statuses = {"PASS", "FAIL", "INCOMPLETE", "INVALID", "ERROR", "TIMEOUT"}
-    passed = sum(
-        1 for tr in task_results
-        if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) == "PASS"
-    )
-    executed = sum(
-        1 for tr in task_results
-        if isinstance(tr, dict) and (tr.get("gate_status") or tr.get("status")) in executed_statuses
-    )
-    return (passed if executed > 0 else None), (executed if executed > 0 else None), src_commit
+        return None, None, None, src_commit
+    scored_statuses = {"PASS", "FAIL", "INVALID", "ERROR"}
+    passed = 0
+    executed = 0
+    timeouts = 0
+    for tr in task_results:
+        if not isinstance(tr, dict):
+            continue
+        if _is_incomplete_timeout_result(tr):
+            timeouts += 1
+            continue
+        gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+        if gate == "PASS":
+            passed += 1
+        if gate in scored_statuses:
+            executed += 1
+    if executed > 0 or timeouts > 0:
+        return passed, executed, timeouts, src_commit
+    return None, None, None, src_commit
+
+
+def _receipt_ids_occam_counts(root: Path, receipt_ids: Any) -> tuple[int | None, int | None, int | None]:
+    """Count Occam passes, scored completed executions, and excluded timeouts from receipt IDs."""
+    if not isinstance(receipt_ids, list) or not receipt_ids:
+        return None, None, None
+    receipts_dir = root / "reports/forge/technique-receipts"
+    if not receipts_dir.is_dir():
+        return None, None, None
+    scored_statuses = {"PASS", "FAIL", "INVALID", "ERROR"}
+    passed = 0
+    executed = 0
+    timeouts = 0
+    seen_any = False
+    for raw_id in receipt_ids:
+        if not isinstance(raw_id, str) or not raw_id.strip():
+            continue
+        rec_path = receipts_dir / f"{raw_id.strip()}.json"
+        if not rec_path.is_file():
+            continue
+        try:
+            doc = read_json(rec_path)
+        except Exception:
+            continue
+        att_status = str(doc.get("attempt_status") or "")
+        task_results = doc.get("task_results")
+        if not isinstance(task_results, list) or not task_results:
+            if att_status.lower() == "timeout":
+                timeouts += 1
+                seen_any = True
+            continue
+        for tr in task_results:
+            if not isinstance(tr, dict):
+                continue
+            seen_any = True
+            if _is_incomplete_timeout_result(tr, attempt_status=att_status):
+                timeouts += 1
+                continue
+            gate = str(tr.get("gate_status") or tr.get("status") or "").upper()
+            if gate == "PASS":
+                passed += 1
+            if gate in scored_statuses:
+                executed += 1
+    if not seen_any:
+        return None, None, None
+    return passed, executed, timeouts
 
 
 def _infer_contended(entry: dict, doc: dict, r256: dict) -> bool | None:
@@ -401,13 +490,26 @@ def _collect_study_energy_rows(
                     or _resolve_candidate_optimizer_family(root, candidate_id, idea_cache)
                 )
 
-                ro_pass, ro_exec, ro_commit = _readout_occam_counts(root, grid100.get("official_forge_readout"))
+                ro_pass, ro_exec, ro_timeouts, ro_commit = _readout_occam_counts(
+                    root, grid100.get("official_forge_readout")
+                )
+                rec_pass, rec_exec, rec_timeouts = _receipt_ids_occam_counts(root, entry.get("occam_receipt_ids"))
                 occam_pass = _opt_int(entry.get("occam_pass"))
                 occam_executed = _opt_int(entry.get("occam_executed"))
-                if occam_pass is None:
-                    occam_pass = ro_pass
-                if occam_executed is None:
-                    occam_executed = ro_exec
+                occam_timeouts = _opt_int(entry.get("occam_timeouts"))
+                if rec_exec is not None:
+                    # Exclude INCOMPLETE wall-time timeouts from Pareto accuracy denominator
+                    # while preserving transparent timeout count metadata.
+                    occam_pass = rec_pass
+                    occam_executed = rec_exec
+                    occam_timeouts = rec_timeouts
+                else:
+                    if occam_pass is None:
+                        occam_pass = ro_pass
+                    if occam_executed is None:
+                        occam_executed = ro_exec
+                    if occam_timeouts is None:
+                        occam_timeouts = ro_timeouts if ro_timeouts is not None else (0 if occam_executed is not None else None)
 
                 src_commit = _opt_str(entry.get("source_commit")) or ro_commit or file_commit
                 gpu = _opt_str(r256.get("gpu_name")) or _opt_str(entry.get("hardware_gpu")) or default_gpu
@@ -442,6 +544,7 @@ def _collect_study_energy_rows(
                         "staggered100_j_to_pass": _opt_float(staggered100.get("joules_to_first_pass")),
                         "occam_pass": occam_pass,
                         "occam_executed": occam_executed,
+                        "occam_timeouts": occam_timeouts,
                         "evidence_scope": scope,
                     }
                 )
@@ -450,6 +553,10 @@ def _collect_study_energy_rows(
                 if not isinstance(entry, dict) or not _opt_str(entry.get("candidate_id")):
                     continue
                 candidate_id = str(entry["candidate_id"]).strip()
+                occam_exec_b = _opt_int(entry.get("occam_executed"))
+                occam_to_b = _opt_int(entry.get("occam_timeouts"))
+                if occam_to_b is None and occam_exec_b is not None:
+                    occam_to_b = 0
                 rows.append(
                     {
                         "candidate_id": candidate_id,
@@ -474,7 +581,8 @@ def _collect_study_energy_rows(
                         "staggered100_first_pass_step": _opt_int(entry.get("staggered100_first_pass_step")),
                         "staggered100_j_to_pass": _opt_float(entry.get("staggered100_j_to_pass")),
                         "occam_pass": _opt_int(entry.get("occam_pass")),
-                        "occam_executed": _opt_int(entry.get("occam_executed")),
+                        "occam_executed": occam_exec_b,
+                        "occam_timeouts": occam_to_b,
                         "evidence_scope": _opt_str(entry.get("evidence_scope")) or default_scope,
                     }
                 )
@@ -523,6 +631,7 @@ def _collect_receipt_energy_rows(
                 "staggered100_j_to_pass": None,
                 "occam_pass": None,
                 "occam_executed": None,
+                "occam_timeouts": None,
                 "evidence_scope": item["evidence_scope"] or "forge_receipt_energy",
                 "_source_digest": item["source_digest"],
                 "_attempt_ids": set(),
@@ -600,6 +709,37 @@ def _collect_media_index(progress: dict) -> tuple[dict[tuple[str, str], str], di
                     if attempt_id:
                         by_attempt_task.setdefault((attempt_id, task_id), rel)
     return by_family_task, by_attempt_task
+
+
+def _collect_media_with_manifest(
+    root: Path, progress: dict
+) -> tuple[dict[tuple[str, str], str], dict[tuple[str, str], str], dict[tuple[str, str], dict]]:
+    """Merge inventory training_media with committed `reports/forge/leaderboard-media-index.json`."""
+    by_family_task, by_attempt_task = _collect_media_index(progress)
+    meta_by_family_task: dict[tuple[str, str], dict] = {}
+    idx_fam, idx_att = index_media_lookup(root)
+    for key, entry in idx_fam.items():
+        rel = _gif_to_media_relpath(entry.get("gif_relpath"))
+        if not rel:
+            continue
+        # Prefer committed manifest entries when selected_cohort or when progress had no GIF
+        if key not in by_family_task or entry.get("cohort_match") == "selected_cohort":
+            by_family_task[key] = rel
+        meta_by_family_task[key] = {
+            "cohort_match": entry.get("cohort_match"),
+            "recorded_grade": entry.get("recorded_grade"),
+            "grade_matches_selected": entry.get("grade_matches_selected"),
+            "has_visual_samples": bool(entry.get("has_visual_samples")),
+            "attempt_id": entry.get("attempt_id"),
+            "gpu_name": entry.get("gpu_name"),
+            "bytes": entry.get("bytes"),
+            "observation_count": entry.get("observation_count"),
+        }
+    for akey, entry in idx_att.items():
+        rel = _gif_to_media_relpath(entry.get("gif_relpath"))
+        if rel:
+            by_attempt_task.setdefault(akey, rel)
+    return by_family_task, by_attempt_task, meta_by_family_task
 
 
 def _tier_bucket(tier_data: dict) -> dict:
@@ -822,6 +962,8 @@ def _load_laws_registry_payload(root: Path, *, pages_base_url: str) -> tuple[dic
                 "sub_laws": sub_out,
             }
         )
+    laws_meta["active_law_count"] = sum(1 for law in laws_out if law.get("status") == "active")
+    laws_meta["provisional_law_count"] = sum(1 for law in laws_out if law.get("status") == "provisional")
     return laws_meta, laws_out
 
 
@@ -965,7 +1107,7 @@ def _build_four_laws_adherence_l4_payload(
     if not l4_probe_cands:
         return None
 
-    law_order = ("law1", "law2", "law3", "law4")
+    law_order = tuple(dict.fromkeys([*("law1", "law2", "law3", "law4"), *(law_of[pid] for pid in probe_ids if law_of[pid])]))
     probes_by_law = {lid: [pid for pid in probe_ids if law_of[pid] == lid] for lid in law_order}
 
     def _sort_key(cid: str) -> tuple:
@@ -1461,11 +1603,12 @@ def build_inventory_exports(
     summed = _summed_views(progress)
     selected = list(_selected_cohorts(progress))
     stale_families = _stale_family_ids(publication)
-    media_by_family_task, media_by_attempt_task = _collect_media_index(progress)
+    media_by_family_task, media_by_attempt_task, media_meta_by_family_task = _collect_media_with_manifest(root, progress)
     laws_meta, laws_list = _load_laws_registry_payload(root, pages_base_url=pages_base_url)
 
     fixed = load_fixed_test_list(root)
     full_suite_names = list(fixed["tests"]) if fixed else full_suite_tasks(progress)
+    unimplemented_backlog = list(fixed.get("unimplemented_backlog") or []) if fixed else []
     counted_task_set = {
         a["task"] for view in summed for a in view["assignments"] if a["importance"] == "required"
     }
@@ -1561,9 +1704,13 @@ def build_inventory_exports(
                 sampling = tr.get("sampling") if isinstance(tr.get("sampling"), dict) else {}
                 wall_sec = cost.get("wall_seconds")
                 steps = cost.get("completed_steps")
+                if steps is None:
+                    steps = cost.get("completed_updates")
                 metrics_obj = tr.get("metrics") if isinstance(tr.get("metrics"), dict) else {}
+                if steps is None:
+                    steps = metrics_obj.get("completed_steps") or metrics_obj.get("completed_updates")
                 eval_summary = tr.get("evaluator_summary") if isinstance(tr.get("evaluator_summary"), dict) else None
-                energy_info = _extract_receipt_energy(cost, eval_summary)
+                energy_info = _extract_receipt_energy(cost, eval_summary, metrics=metrics_obj)
                 has_energy = (
                     energy_info["joules_total"] is not None
                     or energy_info["joules_per_step"] is not None
@@ -1649,6 +1796,7 @@ def build_inventory_exports(
         "staggered100_j_to_pass",
         "occam_pass",
         "occam_executed",
+        "occam_timeouts",
         "evidence_scope",
     )
     energy_rows: list[dict] = [
@@ -1699,6 +1847,45 @@ def build_inventory_exports(
     config_families = {
         item["id"]: item for item in progress.get("configuration_families", []) if isinstance(item, dict)
     }
+
+    # Index uncontended DCGAN r256 median latency by (family_id, candidate_id) from both
+    # receipt-backed records and provenance-bound solo measurements in scaling-performance.json.
+    scaling_r256_by_fam_cand: dict[tuple[str, str], float] = {}
+    scaling_r256_by_fam: dict[str, float] = {}
+    sp_pub = publication.get("scaling_performance") if isinstance(publication.get("scaling_performance"), dict) else {}
+    for rec in sp_pub.get("records") or []:
+        if not isinstance(rec, dict) or rec.get("task_id") != "dcgan_performance_r256":
+            continue
+        fid_s = _opt_str(rec.get("trainer_family"))
+        cid_s = _opt_str(rec.get("candidate_id"))
+        res_s = rec.get("result") if isinstance(rec.get("result"), dict) else {}
+        med = _opt_float((res_s.get("metrics") or {}).get("update_ms_median"))
+        if fid_s and med is not None:
+            if cid_s:
+                scaling_r256_by_fam_cand.setdefault((fid_s, cid_s), med)
+            scaling_r256_by_fam.setdefault(fid_s, med)
+    sp_manifest_path = root / "reports/forge/scaling-performance.json"
+    if sp_manifest_path.is_file():
+        try:
+            sp_doc = read_json(sp_manifest_path)
+            for item in sp_doc.get("measurements") or []:
+                if not isinstance(item, dict) or item.get("task_id") != "dcgan_performance_r256":
+                    continue
+                if item.get("contended") is True or str(item.get("status") or "COMPLETE").upper() != "COMPLETE":
+                    continue
+                fid_s = _opt_str(item.get("trainer_family")) or _opt_str(item.get("family_id"))
+                cid_s = _opt_str(item.get("candidate_id"))
+                med = _opt_float(item.get("median_ms"))
+                if med is None and isinstance(item.get("metrics"), dict):
+                    med = _opt_float(item["metrics"].get("update_ms_median"))
+                if fid_s and med is not None:
+                    if cid_s:
+                        scaling_r256_by_fam_cand.setdefault((fid_s, cid_s), med)
+                    scaling_r256_by_fam.setdefault(fid_s, med)
+        except Exception:
+            pass
+
+    from .views import compatible_diagnostic_passes
 
     for family, cohort in selected:
         fam_id = family["id"]
@@ -1775,6 +1962,21 @@ def build_inventory_exports(
         fam_r256_j, fam_ring16_j, fam_grid100_j = _match_family_energy(
             candidate_id, backend, source_digest, source_origin_commit, cohort_attempt_ids
         )
+        fam_r256_ms = (
+            scaling_r256_by_fam_cand.get((fam_id, candidate_id))
+            if candidate_id
+            else None
+        )
+        if fam_r256_ms is None:
+            fam_r256_ms = scaling_r256_by_fam.get(fam_id)
+        if fam_r256_ms is None and fam_id == "bcap-pure":
+            fam_r256_ms = scaling_r256_by_fam.get("bcap-dualnorm")
+        fam_diag_passes = compatible_diagnostic_passes(
+            root,
+            candidate_id=candidate_id,
+            candidate_revision=cand_rev,
+            source_digest=source_digest,
+        )
         fam_doc = _load_family_doc_enrichment(
             root,
             fam_id,
@@ -1809,6 +2011,7 @@ def build_inventory_exports(
                 "qualification_note": qual_note,
                 "tuning_budget": tuning_budget,
                 "holdout_claim": holdout_text,
+                "scaling_r256_ms": fam_r256_ms,
                 "r256_joules_per_step": fam_r256_j,
                 "ring16_j_to_pass": fam_ring16_j,
                 "grid100_j_to_pass": fam_grid100_j,
@@ -1916,16 +2119,21 @@ def build_inventory_exports(
             tdef = task_def_by_id.get(task_id, {"tier": 0, "role": "diagnostic", "views": []})
             raw_status = str(cell.get("status") or "UNKNOWN")
             coverage_state = cell.get("coverage_status") or cell.get("attempt_coverage_status")
+            diag_pass = fam_diag_passes.get(task_id) if raw_status in {"UNKNOWN", "NOT_RUN"} else None
             if raw_status == "UNKNOWN":
                 run_attempt = cell.get("run_attempt") or {}
                 if cell.get("evidence_correction"):
                     display_status = "diagnostic"
+                elif diag_pass is not None:
+                    display_status = "DIAG_PASS"
                 elif run_attempt.get("status"):
                     display_status = str(run_attempt["status"])
                 elif coverage_state:
                     display_status = str(coverage_state)
                 else:
                     display_status = "not_run"
+            elif raw_status == "NOT_RUN" and diag_pass is not None:
+                display_status = "DIAG_PASS"
             else:
                 display_status = raw_status
             attempt_id = cell.get("attempt_id") or (cell.get("run_attempt") or {}).get("attempt_id")
@@ -1938,6 +2146,7 @@ def build_inventory_exports(
                 gif_relpath = media_by_attempt_task.get((attempt_id, task_id))
             if gif_relpath is None:
                 gif_relpath = media_by_family_task.get((fam_id, task_id))
+            gif_meta = media_meta_by_family_task.get((fam_id, task_id)) if gif_relpath else None
             cost_dict = (cell.get("metrics") or {}).get("cost") if isinstance(cell.get("metrics"), dict) else None
             wall_seconds = None
             if isinstance(cost_dict, dict) and isinstance(cost_dict.get("wall_seconds"), (int, float)):
@@ -1974,6 +2183,8 @@ def build_inventory_exports(
                     "energy": cell_energy,
                     "metrics_summary": _compact_metrics_summary(cell),
                     "gif_relpath": gif_relpath,
+                    **({"gif_meta": gif_meta} if gif_meta else {}),
+                    **({"diagnostic_pass": diag_pass} if diag_pass else {}),
                 }
             )
 
@@ -2033,15 +2244,25 @@ def build_inventory_exports(
                 "dated": fixed["dated"],
                 "sha256": fixed["sha256"],
                 "count": len(full_suite_names),
+                "unimplemented_backlog_count": len(unimplemented_backlog),
+                "unimplemented_backlog": unimplemented_backlog,
             }
             if fixed
-            else {"id": "current_views", "dated": None, "sha256": None, "count": len(full_suite_names)}
+            else {
+                "id": "current_views",
+                "dated": None,
+                "sha256": None,
+                "count": len(full_suite_names),
+                "unimplemented_backlog_count": 0,
+                "unimplemented_backlog": [],
+            }
         ),
         "summary": {
             "selected_families": len(families_json),
             "counted_view_requirements": int(counted_reqs),
             "distinct_required_tests": int(distinct_required),
             "full_suite_tests": len(full_suite_names),
+            "unimplemented_backlog_tests": len(unimplemented_backlog),
             "stretch_assignments": len(stretch_assignments),
             "stretch_distinct_tests": int(stretch_distinct),
             "held_assignments": len(held_assignments),
@@ -2251,6 +2472,7 @@ def _write_parquet_tables(staging_dir: Path, exports: dict) -> dict[str, tuple[P
             ("staggered100_j_to_pass", pa.float64()),
             ("occam_pass", pa.int64()),
             ("occam_executed", pa.int64()),
+            ("occam_timeouts", pa.int64()),
             ("evidence_scope", pa.string()),
         ]
     )
@@ -2328,7 +2550,7 @@ def render_dataset_card(exports: dict, *, repo: str = DEFAULT_HF_REPO) -> str:
         "",
         "| Config | File | Description |",
         "| --- | --- | --- |",
-        "| `leaderboard` | `data/leaderboard.parquet` | Selected recipes per family with Tier 1–4 counts, full-suite 69-test counts, stretch counts, matched nullable energy summaries (`r256_joules_per_step`, `ring16_j_to_pass`, `grid100_j_to_pass`), and tuning-budget disclosures. |",
+        f"| `leaderboard` | `data/leaderboard.parquet` | Selected recipes per family with Tier 1–4 counts, full-suite {summary['full_suite_tests']}-test counts, stretch counts, matched nullable energy summaries (`r256_joules_per_step`, `ring16_j_to_pass`, `grid100_j_to_pass`), and tuning-budget disclosures. |",
         "| `receipts` | `data/receipts.parquet` | Flattened per-task Forge technique receipts with status, gate metrics, runtime cost, nullable hardware NVML energy telemetry (`joules_total`, `joules_per_step`, `avg_power_watts`, `joules_to_first_pass`, `joules_to_sustained_pass`), and source provenance. |",
         "| `attempts` | `data/attempts.parquet` | Attempt coverage records across distinct recipe/test pairs. |",
         "| `energy` | `data/energy.parquet` | Hardware NVML energy & `J-to-PASS` (Joules-to-PASS) benchmarks across matched GPU cohorts (committed study benchmarks and energy-instrumented Forge receipts), with GPU model, contention flag, optimizer state footprint, and source provenance. |",

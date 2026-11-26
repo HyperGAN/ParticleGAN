@@ -561,6 +561,7 @@ def compute_catchup_plan(
     prefer_t4: bool = False,
     strict_source: bool = False,
     require_energy: bool = False,
+    require_media: bool = False,
     require_gpu_model: str | None = None,
     changed_since: str | None = "origin/develop",
     skip_preflight_blocked: bool = True,
@@ -571,6 +572,7 @@ def compute_catchup_plan(
     Returns a structured plan listing CACHED, BLOCKED, and MISSING cells grouped into
     right-sized Colab GPU work units. Launches zero training and writes nothing.
     """
+    from experiments.forge.leaderboard_media import load_leaderboard_media_index
     from experiments.forge.planning import load_idea
     from experiments.forge.sources import inspect_source
     from experiments.forge.views import load_tasks, load_view
@@ -598,6 +600,12 @@ def compute_catchup_plan(
         raise ValueError(f"No tasks in view {view_id!r} up to tier {through_tier}")
 
     cache = index_forge_cache(root)
+    media_keys: set[tuple[str, str]] = set()
+    if require_media:
+        media_doc = load_leaderboard_media_index(root)
+        for item in media_doc.get("items", []):
+            if isinstance(item, dict) and item.get("candidate_id") and item.get("task_id"):
+                media_keys.add((str(item["candidate_id"]), str(item["task_id"])))
     source_manifest = inspect_source(root)
     source_digest = source_manifest["digest"]
     changed_candidates, changed_tasks = detect_branch_changes(root, changed_since)
@@ -644,20 +652,25 @@ def compute_catchup_plan(
             # If this candidate or task declaration changed on the branch, require current source_digest!
             cell_strict_source = strict_source or (cid in changed_candidates) or (tid in changed_tasks)
             entries = cache.get((cid, tid), [])
-            hit = next(
-                (
-                    e
-                    for e in entries
-                    if _entry_satisfies_cache(
-                        e,
-                        expected_revision=None,
-                        expected_source_digest=source_digest,
-                        strict_source=cell_strict_source,
-                        require_energy=require_energy,
-                        require_gpu_model=effective_gpu_filter,
-                    )
-                ),
-                None,
+            has_media_hit = (not require_media) or ((cid, tid) in media_keys)
+            hit = (
+                next(
+                    (
+                        e
+                        for e in entries
+                        if _entry_satisfies_cache(
+                            e,
+                            expected_revision=None,
+                            expected_source_digest=source_digest,
+                            strict_source=cell_strict_source,
+                            require_energy=require_energy,
+                            require_gpu_model=effective_gpu_filter,
+                        )
+                    ),
+                    None,
+                )
+                if has_media_hit
+                else None
             )
             if hit is not None:
                 cached_cells.append(
@@ -1294,7 +1307,7 @@ class ColabWorker:
               tar -xzf /content/worktree-overlay.tar.gz -C /content/ParticleGAN
             fi
             uv pip install --system --no-build-isolation --no-deps -e .
-            uv pip install --system 'POT>=0.9.5,<0.10' 'Pillow>=13.0.0,<14'
+            uv pip install --system 'POT>=0.9.5,<0.10' 'Pillow>=13.0.0,<14' 'matplotlib>=3.8'
             touch /content/forge_heartbeat
             echo "[vm] Bootstrap complete at $(git rev-parse --short HEAD)"
             """
@@ -1311,9 +1324,10 @@ class ColabWorker:
         study_file: Path,
         study_id: str,
         ephemeral_view_file: Path | None = None,
+        render_media: bool = True,
     ) -> dict[str, Any]:
         """Run one Forge study/catch-up unit on this warm VM and download its output tarball."""
-        self._log(f"Starting unit {unit.unit_id} (cand={unit.candidate_id}, tasks={len(unit.tasks)}, study={study_id})")
+        self._log(f"Starting unit {unit.unit_id} (cand={unit.candidate_id}, tasks={len(unit.tasks)}, study={study_id}, render_media={render_media})")
         # Upload study (and ephemeral view if partial slice)
         rc, _ = self._colab_with_transport_retry(
             ["upload", "-s", self.worker_name, str(study_file), f"/content/ParticleGAN/configs/forge/studies/{study_id}.json"],
@@ -1336,6 +1350,22 @@ class ColabWorker:
         device_arg = "cpu" if self.gpu == "cpu" else "cuda"
         tar_remote = f"/content/out-{unit.unit_id}.tar.gz"
         tar_local = self.run_dir / f"{unit.unit_id}-out.tar.gz"
+        render_media_sh = (
+            textwrap.dedent(
+                """
+                rm -rf runs/forge/rendered_media
+                mkdir -p runs/forge/rendered_media
+                while IFS= read -r d; do
+                  [ -n "$d" ] || continue
+                  python3 -m experiments.forge.leaderboard_media export-attempt "reports/forge/attempts/$d" --output "runs/forge/rendered_media/$d" || echo "[vm] media export warning for $d"
+                  touch /content/forge_heartbeat
+                done < /content/new_attempts.txt
+                [ -d runs/forge/rendered_media ] && TAR_ITEMS+=("runs/forge/rendered_media")
+                """
+            ).strip()
+            if render_media
+            else ""
+        )
 
         run_sh = textwrap.dedent(
             f"""
@@ -1362,6 +1392,7 @@ class ColabWorker:
             while IFS= read -r d; do
               [ -n "$d" ] && TAR_ITEMS+=("reports/forge/attempts/$d")
             done < /content/new_attempts.txt
+            {render_media_sh}
             for extra in runs/forge/events.jsonl runs/forge/queue/state.json; do
               [ -f "$extra" ] && TAR_ITEMS+=("$extra")
             done
@@ -1423,19 +1454,42 @@ def ingest_tarball(
     *,
     project_receipts: bool = True,
     register_submissions: bool = True,
+    rendered_media_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """Unpack durable attempts from a Colab tarball and project ~4 KB technique-receipts."""
+    """Unpack durable attempts (and optional rendered GIFs) from a Colab tarball."""
     from experiments.forge.contracts import atomic_json, file_lock, utc_now
 
     root = Path(root).resolve()
     attempts_root = root / "reports/forge/attempts"
     attempts_root.mkdir(parents=True, exist_ok=True)
+    media_root = (
+        Path(rendered_media_dir).resolve()
+        if rendered_media_dir is not None
+        else (root / "runs/forge/rendered_media").resolve()
+    )
 
     new_attempts: set[str] = set()
     imported_submissions: dict[str, dict[str, Any]] = {}
+    rendered_media_gifs: list[str] = []
 
     with tarfile.open(tar_path) as tf:
         for member in tf.getmembers():
+            if member.name.startswith("runs/forge/rendered_media/"):
+                rel_media = member.name[len("runs/forge/rendered_media/"):]
+                if not rel_media:
+                    continue
+                dest_media = (media_root / rel_media).resolve()
+                if not dest_media.is_relative_to(media_root):
+                    raise ValueError(f"Unsafe archive member path: {member.name}")
+                if member.isdir():
+                    dest_media.mkdir(parents=True, exist_ok=True)
+                elif member.isfile():
+                    dest_media.parent.mkdir(parents=True, exist_ok=True)
+                    with tf.extractfile(member) as src, dest_media.open("wb") as dst:
+                        shutil.copyfileobj(src, dst)
+                    if dest_media.suffix.lower() == ".gif":
+                        rendered_media_gifs.append(str(dest_media))
+                continue
             if not member.name.startswith("reports/forge/attempts/"):
                 continue
             dest = (root / member.name).resolve()
@@ -1511,6 +1565,7 @@ def ingest_tarball(
         "attempts_extracted": sorted(new_attempts),
         "projected_receipts": projected,
         "submissions_registered": sorted(imported_submissions),
+        "rendered_media_gifs": sorted(rendered_media_gifs),
     }
 
 
@@ -1532,6 +1587,7 @@ def execute_work_units(
     repo_url: str,
     run_dir: Path,
     project_receipts: bool = True,
+    render_media: bool = True,
     compile_memory: bool = False,
     publish_hf: bool = False,
     hf_dry_run: bool = False,
@@ -1614,6 +1670,7 @@ def execute_work_units(
                         study_file=study_file,
                         study_id=study_id,
                         ephemeral_view_file=ephemeral_view,
+                        render_media=render_media,
                     )
                     with ingest_lock:
                         results.append(res)
@@ -1622,6 +1679,7 @@ def execute_work_units(
                                 root,
                                 Path(res["tarball"]),
                                 project_receipts=project_receipts,
+                                rendered_media_dir=(run_dir / "rendered_media") if render_media else None,
                             )
                             ingested.append(ing)
                 except (RuntimeError, OSError, ValueError, tarfile.TarError, json.JSONDecodeError) as err:
@@ -1644,8 +1702,36 @@ def execute_work_units(
     if compile_memory:
         subprocess.run([sys.executable, "-m", "experiments.forge", "compile", "--summaries-only"], cwd=root, check=True)
 
+    rendered_media_dir = run_dir / "rendered_media"
+    rendered_media_gif_count = sum(len(item.get("rendered_media_gifs") or []) for item in ingested)
+    media_ingest = None
+    media_upload = None
     hf_receipt = None
     if publish_hf:
+        if render_media and rendered_media_gif_count > 0 and rendered_media_dir.is_dir():
+            from experiments.forge.leaderboard_media import (
+                ingest_rendered_media_dirs,
+                upload_staged_media_to_hf,
+            )
+
+            staging_dir = root / "runs/forge/leaderboard_media_staging"
+            media_ingest = ingest_rendered_media_dirs(
+                root,
+                [rendered_media_dir],
+                staging_dir,
+                cohort_match="colab_replay_media",
+                write_index=not hf_dry_run,
+            )
+            staged_rels = set(media_ingest.get("staged_relpaths") or [])
+            if staged_rels:
+                media_upload = upload_staged_media_to_hf(
+                    root,
+                    staging_dir,
+                    dry_run=hf_dry_run,
+                    only_relpaths=staged_rels,
+                    commit_message=f"Upload {len(staged_rels)} Colab actual-training leaderboard GIF(s)",
+                )
+
         from experiments.forge.hf_publish import publish_to_hf
 
         hf_receipt = publish_to_hf(root, inventory=True, dry_run=hf_dry_run)
@@ -1655,12 +1741,17 @@ def execute_work_units(
         "completed_at": utc_stamp(),
         "run_dir": str(run_dir),
         "branch_sync": branch_sync,
+        "render_media": render_media,
+        "rendered_media_dir": str(rendered_media_dir) if render_media else None,
+        "rendered_media_gif_count": rendered_media_gif_count,
         "workers_used": worker_plan,
         "started_by_gpu": started_by_gpu,
         "worker_errors": worker_errors,
         "units_executed": len(results),
         "results": results,
         "ingested": ingested,
+        "media_ingest": media_ingest,
+        "media_upload": media_upload,
         "hf_receipt": hf_receipt,
     }
     (run_dir / "summary.json").write_text(json.dumps(summary, indent=2, sort_keys=True) + "\n", encoding="utf-8")
@@ -1674,6 +1765,8 @@ def execute_work_units(
 
 def cmd_catchup(args: argparse.Namespace) -> int:
     root = args.root.resolve()
+    require_media = bool(args.require_media or args.cache_mode == "media")
+    render_media = bool(args.render_media or require_media)
     plan = compute_catchup_plan(
         root,
         view_id=args.view,
@@ -1685,6 +1778,7 @@ def cmd_catchup(args: argparse.Namespace) -> int:
         prefer_t4=args.prefer_t4,
         strict_source=args.strict_source or args.cache_mode == "exact",
         require_energy=args.require_energy or args.cache_mode == "energy",
+        require_media=require_media,
         require_gpu_model=args.require_gpu_model,
         changed_since=None if args.no_git_diff else args.changed_since,
         skip_preflight_blocked=not args.include_blocked,
@@ -1715,6 +1809,7 @@ def cmd_catchup(args: argparse.Namespace) -> int:
         repo_url=args.repo_url,
         run_dir=run_dir,
         project_receipts=not args.no_project_receipts,
+        render_media=render_media,
         compile_memory=args.compile,
         publish_hf=args.publish_hf,
         hf_dry_run=args.hf_dry_run,
@@ -1771,6 +1866,7 @@ def cmd_run(args: argparse.Namespace) -> int:
         repo_url=args.repo_url,
         run_dir=run_dir,
         project_receipts=not args.no_project_receipts,
+        render_media=bool(args.render_media),
         compile_memory=args.compile,
         publish_hf=args.publish_hf,
         hf_dry_run=args.hf_dry_run,
@@ -2118,6 +2214,12 @@ def build_parser() -> argparse.ArgumentParser:
         sp.add_argument("--stall-minutes", type=int, default=25, help="VM self-unassign timeout if logs stall")
         sp.add_argument("--repo-url", default=DEFAULT_REPO_URL)
         sp.add_argument("--no-project-receipts", action="store_true", help="skip projecting compact technique-receipts")
+        sp.add_argument(
+            "--render-media",
+            action=argparse.BooleanOptionalAction,
+            default=True,
+            help="render actual-training GIFs on Colab VM from saved observations and download them (default: enabled; pass --no-render-media to skip)",
+        )
         sp.add_argument("--compile", action="store_true", help="run `forge compile --summaries-only` locally after ingest")
         sp.add_argument("--publish-hf", action="store_true", help="publish `--inventory` locally to Hugging Face after ingest")
         sp.add_argument("--hf-dry-run", action="store_true", help="pass --dry-run to HF publish")
@@ -2128,10 +2230,11 @@ def build_parser() -> argparse.ArgumentParser:
     cu.add_argument("--candidate", action="append", default=[], help="extra candidate(s) to include; repeatable")
     cu.add_argument("--only-candidates", action="store_true", help="run only explicit --candidate values (skip family-current-v1)")
     cu.add_argument("--task", action="append", default=None, help="restrict catch-up to specific task id(s); repeatable")
-    cu.add_argument("--cache-mode", choices=("branch", "exact", "energy"), default="branch",
-                    help="branch=fill missing cells across merged branches; exact=strict source digest; energy=fill missing NVML J-to-PASS")
+    cu.add_argument("--cache-mode", choices=("branch", "exact", "energy", "media"), default="branch",
+                    help="branch=fill missing cells across merged branches; exact=strict source digest; energy=fill missing NVML J-to-PASS; media=fill missing actual-training GIFs")
     cu.add_argument("--strict-source", action="store_true", help="require exact current source_digest for cache hit")
     cu.add_argument("--require-energy", action="store_true", help="require hardware NVML energy telemetry for cache hit")
+    cu.add_argument("--require-media", action="store_true", help="require verified leaderboard training GIF for cache hit (implies --render-media)")
     cu.add_argument("--require-gpu-model", default=None, help="require specific GPU model (e.g. 'NVIDIA L4') for cache hit")
     cu.add_argument("--changed-since", default="origin/develop", help="git ref for smart recipe/task change invalidation")
     cu.add_argument("--no-git-diff", action="store_true", help="disable git diff recipe/task change invalidation")

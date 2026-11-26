@@ -264,7 +264,7 @@ def test_forge_idea_studies_and_clockfree_source_audit():
         idea = json.loads(idea_path.read_text())
         validate_idea(idea)
         assert idea["id"] == idea_name
-        assert "trainer_family" not in idea
+        assert idea.get("trainer_family") == "axiom"
 
         for tid in (
             "bytegan_hypercube8",

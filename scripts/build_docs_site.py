@@ -29,7 +29,7 @@ REPO_SLUG = "HyperGAN/ParticleGAN"
 DEFAULT_GIT_REF = "develop"
 DEFAULT_HF_REPO = "HyperGAN/particlegan-forge-evidence"
 DEFAULT_MEDIA_PREFIX = "media/forge/"
-FIXED_TEST_LIST_REL = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-23.json")
+FIXED_TEST_LIST_REL = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-25.json")
 
 SCIENTIFIC_CAVEATS = [
     (
@@ -505,8 +505,9 @@ def build_leaderboard_json_stdlib(root: Path, *, generated_at: str | None = None
         )
     task_defs = [task_def_map[k] for k in sorted(task_def_map)]
 
-    # Index media GIFs
+    # Index media GIFs (inventory training_media + committed leaderboard-media-index.json, stdlib-only)
     media_by_family_task: dict[tuple[str, str], str] = {}
+    media_meta_by_family_task: dict[tuple[str, str], dict] = {}
     for fam in list(progress.get("families", [])) + list(progress.get("configuration_families", [])):
         fid = fam.get("id", "")
         for cohort in fam.get("cohorts", []):
@@ -515,6 +516,33 @@ def build_leaderboard_json_stdlib(root: Path, *, generated_at: str | None = None
                     rel = _gif_to_media_relpath(art.get("gif"))
                     if rel:
                         media_by_family_task.setdefault((fid, tid), rel)
+    media_index_path = root / "reports/forge/leaderboard-media-index.json"
+    if media_index_path.is_file():
+        try:
+            media_doc = _read_json(media_index_path)
+            for item in media_doc.get("items") or []:
+                if not isinstance(item, dict):
+                    continue
+                fid = str(item.get("family_id") or "")
+                tid = str(item.get("task_id") or "")
+                rel = _gif_to_media_relpath(item.get("gif_relpath") or item.get("gif"))
+                if not fid or not tid or not rel:
+                    continue
+                key = (fid, tid)
+                if key not in media_by_family_task or item.get("cohort_match") == "selected_cohort":
+                    media_by_family_task[key] = rel
+                media_meta_by_family_task[key] = {
+                    "cohort_match": item.get("cohort_match"),
+                    "recorded_grade": item.get("recorded_grade"),
+                    "grade_matches_selected": item.get("grade_matches_selected"),
+                    "has_visual_samples": bool(item.get("has_visual_samples")),
+                    "attempt_id": item.get("attempt_id"),
+                    "gpu_name": item.get("gpu_name"),
+                    "bytes": item.get("bytes"),
+                    "observation_count": item.get("observation_count"),
+                }
+        except Exception:
+            pass
 
     selected_rows_by_key = {}
     for row in publication.get("rows", []):
@@ -644,6 +672,7 @@ def build_leaderboard_json_stdlib(root: Path, *, generated_at: str | None = None
                     break
             if gif_rel is None:
                 gif_rel = media_by_family_task.get((fam_id, tid))
+            gif_meta = media_meta_by_family_task.get((fam_id, tid)) if gif_rel else None
             raw_metrics = cell.get("metrics") if isinstance(cell.get("metrics"), dict) else {}
             cost = raw_metrics.get("cost") if isinstance(raw_metrics.get("cost"), dict) else {}
             inner = raw_metrics.get("metrics") if isinstance(raw_metrics.get("metrics"), dict) else raw_metrics
@@ -665,6 +694,7 @@ def build_leaderboard_json_stdlib(root: Path, *, generated_at: str | None = None
                     "wall_seconds": _opt_float(cost.get("wall_seconds")),
                     "metrics_summary": summary_m,
                     "gif_relpath": gif_rel,
+                    **({"gif_meta": gif_meta} if gif_meta else {}),
                 }
             )
 

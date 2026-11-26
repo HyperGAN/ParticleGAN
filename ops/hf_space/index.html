@@ -472,13 +472,16 @@
       <div class="panel-header">
         <div>
           <h2 id="gif-heading">Training GIF Inspector &amp; Side-by-Side Comparison</h2>
-          <p class="panel-desc">Actual saved training observations streamed directly from <code>HyperGAN/particlegan-forge-evidence</code>. Tasks without a published GIF display their receipt status cleanly.</p>
+          <p class="panel-desc">Actual saved training observations streamed live from <code>HyperGAN/particlegan-forge-evidence</code>, defaulted to the top-performing families. Click any GIF to zoom fullscreen or sync playback.</p>
         </div>
         <div class="segmented" role="group" aria-label="GIF inspector layout">
           <button type="button" class="seg-btn active" data-gif-layout="compare">Side-by-Side</button>
-          <button type="button" class="seg-btn" data-gif-layout="grid">All Families Grid</button>
+          <button type="button" class="seg-btn" data-gif-layout="top4">Top 4 Leaders</button>
+          <button type="button" class="seg-btn" data-gif-layout="grid">All Families</button>
         </div>
       </div>
+
+      <div id="gif-quick-tasks" class="gif-quick-tasks" role="group" aria-label="Flagship visual benchmarks"></div>
 
       <div class="gif-controls">
         <div class="filter-group">
@@ -486,6 +489,10 @@
           <select id="gif-law-filter">
             <option value="">All laws</option>
           </select>
+        </div>
+        <div class="filter-group gif-search-group">
+          <label for="gif-search">Search Task</label>
+          <input id="gif-search" type="search" placeholder="ring16, grid100, spiral, img…" autocomplete="off">
         </div>
         <div class="filter-group gif-task-select">
           <label for="gif-task">Task</label>
@@ -504,13 +511,28 @@
         </div>
         <div class="filter-group filter-check">
           <label class="checkbox-label">
-            <input id="gif-only-available" type="checkbox">
+            <input id="gif-only-available" type="checkbox" checked>
             <span>Only tasks with GIFs</span>
+          </label>
+        </div>
+        <div class="filter-group filter-check hidden" id="gif-hide-missing-group">
+          <label class="checkbox-label">
+            <input id="gif-hide-missing" type="checkbox">
+            <span>Hide families without GIF</span>
           </label>
         </div>
       </div>
 
-      <div id="gif-task-meta" class="gif-task-meta"></div>
+      <div class="gif-action-bar">
+        <div class="gif-presets" role="group" aria-label="GIF comparison presets">
+          <button id="btn-gif-top2" class="btn btn-ghost btn-sm" type="button" title="Select top 2 best-performing families with GIFs">★ Top 2 Leaders</button>
+          <button id="btn-gif-contrast" class="btn btn-ghost btn-sm" type="button" title="Compare best PASS family against top FAIL family on this task">⚡ PASS vs FAIL</button>
+          <button id="btn-gif-sync" class="btn btn-ghost btn-sm" type="button" title="Restart all visible GIFs simultaneously from frame 0">↻ Sync Replay</button>
+        </div>
+        <div id="gif-task-meta" class="gif-task-meta"></div>
+      </div>
+
+      <div id="gif-family-strip" class="gif-family-strip" aria-label="Family coverage strip for current task"></div>
 
       <div id="gif-stage" class="gif-stage gif-stage-compare">
         <div class="empty-cell">Select a task to inspect training GIFs.</div>
@@ -549,6 +571,32 @@
         </div>
       </div>
       <div id="exp-modal-body" class="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Training GIF Lightbox Modal -->
+  <div id="gif-lightbox" class="modal-backdrop hidden" role="dialog" aria-modal="true" aria-labelledby="gif-lb-title">
+    <div class="modal-dialog gif-lightbox-dialog">
+      <div class="modal-head">
+        <div>
+          <div class="modal-title-row">
+            <h2 id="gif-lb-title">Training GIF Inspector</h2>
+            <code id="gif-lb-task-id"></code>
+          </div>
+          <div id="gif-lb-badges" class="modal-badges"></div>
+        </div>
+        <div class="modal-head-actions">
+          <button id="gif-lb-prev" class="btn btn-ghost btn-sm" type="button" title="Previous family (←)">← Prev</button>
+          <button id="gif-lb-next" class="btn btn-ghost btn-sm" type="button" title="Next family (→)">Next →</button>
+          <button id="gif-lb-replay" class="btn btn-ghost btn-sm" type="button" title="Restart GIF from frame 0 (R)">↻ Replay</button>
+          <a id="gif-lb-raw" class="btn btn-ghost btn-sm" href="#" target="_blank" rel="noopener noreferrer">Raw GIF ↗</a>
+          <button id="gif-lb-close" class="btn btn-ghost btn-sm" type="button" aria-label="Close fullscreen GIF">✕ Close</button>
+        </div>
+      </div>
+      <div class="gif-lightbox-body">
+        <div id="gif-lb-media" class="gif-lightbox-media"></div>
+        <div id="gif-lb-meta" class="gif-lightbox-meta"></div>
+      </div>
     </div>
   </div>
 

@@ -13,7 +13,20 @@
       "question": "Can the system represent the required probability measure efficiently and faithfully?",
       "doc_anchor": "law-1--representational-geometry",
       "status": "active",
-      "sub_laws": []
+      "sub_laws": [
+        {
+          "id": "law1a",
+          "short_label": "Law 1A",
+          "title": "Anisotropic Local Metric & Unbiased Sketching",
+          "doc_anchor": "law-1--representational-geometry"
+        },
+        {
+          "id": "law1b",
+          "short_label": "Law 1B",
+          "title": "Discrete-Continuous Phase Continuity",
+          "doc_anchor": "law-1--representational-geometry"
+        }
+      ]
     },
     {
       "id": "law2",
@@ -37,13 +50,13 @@
         {
           "id": "law3a",
           "short_label": "Law 3A",
-          "title": "Unconditional W1 Ray-Length & Screening Identifiability",
+          "title": "Unconditional W1 Ray-Length & Feature-Space Screening Identifiability",
           "doc_anchor": "law-3--transport-identifiability"
         },
         {
           "id": "law3b",
           "short_label": "Law 3B",
-          "title": "Conditional Fiber & Stratum Identifiability",
+          "title": "Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)",
           "doc_anchor": "law-3--transport-identifiability"
         }
       ]
@@ -86,6 +99,35 @@
           "short_label": "Law 4.5",
           "title": "Coupled Minimax Contraction",
           "doc_anchor": "law-4--functional-and-game-dynamics"
+        }
+      ]
+    },
+    {
+      "id": "law5",
+      "short_label": "Law 5",
+      "title": "Observation & Statistical-Metric Identifiability",
+      "domain_level": "Observation & Statistical-Metric Identifiability",
+      "question": "Is the target probability measure identifiable through the observation channel and statistical metric from finite batches?",
+      "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+      "status": "provisional",
+      "sub_laws": [
+        {
+          "id": "law5a",
+          "short_label": "Law 5A",
+          "title": "Partial & Corrupted Observation Injectivity",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
+        },
+        {
+          "id": "law5b",
+          "short_label": "Law 5B",
+          "title": "Intrinsic & Feature-Space Metric Geometry",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
+        },
+        {
+          "id": "law5c",
+          "short_label": "Law 5C",
+          "title": "Conditional Fiber Deconfounding (Unifies Law 3B)",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
         }
       ]
     }

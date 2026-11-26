@@ -1,0 +1,128 @@
+{
+  "schema_version": 1,
+  "id": "fl_law44_scale_shock",
+  "description": "Recover all 4 modes on a standalone 1e-5x-scaled 2D mixture after a mid-run step-300 transient 1e4x scale spike and 45-degree rotation with >=500 post-shock recovery steps (shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35, shock_mass_tv <= 0.15).",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law44_scale_shock"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law44_scale_shock",
+    "steps": 1000,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.08,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law44_scale_shock",
+      "case_id": "fl_law44_scale_shock",
+      "kind": "fl_law44_scale_shock",
+      "law": "law4.4",
+      "defects": [
+        "D-03",
+        "D-05",
+        "Law2x4.4-scale-equivariance"
+      ],
+      "title": "Law 4.4 (v2): Standalone extreme 1e-5x scale & 1e4x shock + 45-deg rotation recovery",
+      "goal": "Recover all 4 modes on a standalone 1e-5x-scaled 2D mixture after a mid-run step-300 transient 1e4x scale spike and 45-degree rotation with >=500 post-shock recovery steps (shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35, shock_mass_tv <= 0.15).",
+      "target": "Standalone 1e-5x-scaled 2D 4-mode Gaussian mixture (sigma=0.08*1e-5) with transient 1e4x scale spike at steps 300..301 and 45-degree mode rotation for steps 302..1000",
+      "resources": {
+        "num_particles": 128,
+        "z_dim": 4,
+        "batch_size": 128
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.08,
+        "standardize": false
+      },
+      "model": {
+        "generator_family": "scaled_output_mlp",
+        "discriminator_family": "simple_mlp",
+        "hidden": 64,
+        "layers": 2,
+        "out_dim": 2,
+        "fourier": 0,
+        "shock_step": 300,
+        "shock_base_scale": 1e-05,
+        "shock_spike_scale": 0.1
+      },
+      "steps": 1000,
+      "eval_samples": 2048,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law44_scale_shock",
+    "eval_samples": 2048,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "shock_modes",
+        "==",
+        4
+      ],
+      [
+        "shock_hq",
+        ">=",
+        0.65
+      ],
+      [
+        "shock_sw1",
+        "<=",
+        0.35
+      ],
+      [
+        "shock_mass_tv",
+        "<=",
+        0.15
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_4.py": "4b3f530763a890ba13dc45c93397bcf298315d8e6300559eb7ab0f2756268111",
+      "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

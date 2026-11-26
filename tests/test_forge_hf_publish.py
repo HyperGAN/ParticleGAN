@@ -29,7 +29,7 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert payload["dataset_repo"] == DEFAULT_HF_REPO
     assert payload["summary"]["selected_families"] == len(exports["leaderboard_rows"])
     assert payload["summary"]["selected_families"] >= 10
-    assert payload["summary"]["full_suite_tests"] == 71
+    assert payload["summary"]["full_suite_tests"] == 59
     assert payload["summary"]["counted_view_requirements"] == 115
     assert len(exports["receipt_rows"]) > 100
     assert len(exports["attempt_rows"]) > 100
@@ -102,7 +102,7 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert ax_l4["ring16_j_to_pass"] == pytest.approx(275.7, rel=1e-2)
     assert ax_l4["grid100_j_to_pass"] == pytest.approx(1542.3, rel=1e-2)
     assert ax_l4["staggered100_j_to_pass"] == pytest.approx(1591.6, rel=1e-2)
-    assert ax_l4["occam_pass"] == 13 and ax_l4["occam_executed"] == 16
+    assert ax_l4["occam_pass"] == 13 and ax_l4["occam_executed"] == 15 and ax_l4["occam_timeouts"] == 1
 
     v12_l4 = next(
         row
@@ -119,7 +119,7 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert unified["candidate_id"] == "unified-v11"
     assert unified["tier1_pass"] == 27 and unified["tier1_total"] == 27
     assert unified["total_pass"] == 95 and unified["total_required"] == 115
-    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 71
+    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 59
     assert unified["stretch_total_pass"] == 50 and unified["stretch_total"] == 70
     assert unified["stale"] is False
     assert unified["r256_joules_per_step"] is None
@@ -232,6 +232,7 @@ def test_publish_dry_run_writes_parquet_json_and_readme_without_network(tmp_path
         "staggered100_j_to_pass",
         "occam_pass",
         "occam_executed",
+        "occam_timeouts",
         "evidence_scope",
     }
     assert set(energy_table.column_names) == expected_energy_cols

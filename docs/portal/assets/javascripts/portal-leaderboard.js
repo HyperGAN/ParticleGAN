@@ -84,6 +84,101 @@
     return "pg-badge-muted";
   }
 
+  const FLAGSHIP_VISUAL_TASKS = [
+    "ring16_acquisition",
+    "grid100",
+    "rotated100",
+    "staggered100",
+    "vector_spiral",
+    "img_bars4",
+    "img_stripes2",
+    "img_blobs4",
+    "two_pole",
+    "gaussian1d_smoke",
+    "ae_gan_hold",
+    "vector_two_broad",
+  ];
+
+  function rankFamiliesByPerformance(families) {
+    return [...(families || [])].sort((a, b) => {
+      const fpDiff = (toNum(b.full_suite?.pass) ?? 0) - (toNum(a.full_suite?.pass) ?? 0);
+      if (fpDiff !== 0) return fpDiff;
+      const tvDiff =
+        (toNum(b.total_view_requirements?.pass) ?? 0) -
+        (toNum(a.total_view_requirements?.pass) ?? 0);
+      if (tvDiff !== 0) return tvDiff;
+      const t1Diff = (toNum(b.tiers?.["1"]?.pass) ?? 0) - (toNum(a.tiers?.["1"]?.pass) ?? 0);
+      if (t1Diff !== 0) return t1Diff;
+      const failDiff = (toNum(a.full_suite?.fail) ?? 0) - (toNum(b.full_suite?.fail) ?? 0);
+      if (failDiff !== 0) return failDiff;
+      const staleDiff = (a.stale ? 1 : 0) - (b.stale ? 1 : 0);
+      if (staleDiff !== 0) return staleDiff;
+      return String(a.label || a.id).localeCompare(String(b.label || b.id));
+    });
+  }
+
+  function pickDefaultGifFamilies(taskId, rankedFamilies, tasksRows, count = 2) {
+    const byFam = new Map();
+    for (const row of tasksRows || []) {
+      if (row.task_id === taskId) byFam.set(row.family_id, row);
+    }
+    const withGif = (rankedFamilies || []).filter((f) => Boolean(byFam.get(f.id)?.gif_relpath));
+    const withoutGif = (rankedFamilies || []).filter((f) => !byFam.get(f.id)?.gif_relpath);
+    return [...withGif, ...withoutGif].slice(0, count).map((f) => f.id);
+  }
+
+  function pickDefaultGifTask(taskNames, rankedFamilies, tasksRows) {
+    if (!taskNames || !taskNames.length) return "";
+    const top2 = new Set((rankedFamilies || []).slice(0, 2).map((f) => f.id));
+    const top4 = new Set((rankedFamilies || []).slice(0, 4).map((f) => f.id));
+    const stats = new Map(taskNames.map((t) => [t, { taskId: t, top2: 0, top4: 0, total: 0 }]));
+    for (const row of tasksRows || []) {
+      if (!row.gif_relpath) continue;
+      const st = stats.get(row.task_id);
+      if (!st) continue;
+      st.total += 1;
+      if (top2.has(row.family_id)) st.top2 += 1;
+      if (top4.has(row.family_id)) st.top4 += 1;
+    }
+    for (const flagship of FLAGSHIP_VISUAL_TASKS) {
+      const st = stats.get(flagship);
+      if (st && st.top2 >= Math.min(2, top2.size) && st.total > 0) return flagship;
+    }
+    for (const flagship of FLAGSHIP_VISUAL_TASKS) {
+      const st = stats.get(flagship);
+      if (st && st.top4 > 0) return flagship;
+    }
+    const best = [...stats.values()].sort(
+      (a, b) =>
+        b.top2 - a.top2 || b.top4 - a.top4 || b.total - a.total || a.taskId.localeCompare(b.taskId)
+    )[0];
+    return best ? best.taskId : taskNames[0];
+  }
+
+  function pickContrastGifPair(taskId, rankedFamilies, tasksRows) {
+    const byFam = new Map();
+    for (const row of tasksRows || []) {
+      if (row.task_id === taskId) byFam.set(row.family_id, row);
+    }
+    const passGif = (rankedFamilies || []).find((f) => {
+      const r = byFam.get(f.id);
+      return r && r.gif_relpath && String(r.status || "").toUpperCase() === "PASS";
+    });
+    const failGif = (rankedFamilies || []).find((f) => {
+      const r = byFam.get(f.id);
+      return r && r.gif_relpath && String(r.status || "").toUpperCase() === "FAIL";
+    });
+    if (passGif && failGif) return [passGif.id, failGif.id];
+    const passAny = (rankedFamilies || []).find(
+      (f) => String(byFam.get(f.id)?.status || "").toUpperCase() === "PASS"
+    );
+    const failAny = (rankedFamilies || []).find(
+      (f) => String(byFam.get(f.id)?.status || "").toUpperCase() === "FAIL"
+    );
+    if (passAny && failAny) return [passAny.id, failAny.id];
+    return pickDefaultGifFamilies(taskId, rankedFamilies, tasksRows, 2);
+  }
+
   function sortFamilies(families, sortKey, sortDir) {
     const dir = sortDir === "asc" ? 1 : -1;
     const getter = {
@@ -166,14 +261,24 @@
       paretoIdleOnly: true,
       selectedEnergyIdx: null,
       selectedLawCell: null,
+      gifLayout: "compare", // "compare" | "top4" | "grid"
+      gifSearch: "",
       gifTask: "",
       gifFamilyA: "",
       gifFamilyB: "",
+      gifNextSlot: "b",
+      gifSyncNonce: 0,
+      gifHideMissing: false,
+      gifLightbox: null, // { taskId, familyIds, index }
     };
 
     function familyPageHref(fam) {
       const id = String(fam.id || "").trim();
       return `${siteRoot}families/${encodeURIComponent(id)}/`;
+    }
+
+    function experimentPageHref(taskId) {
+      return `${siteRoot}experiments/${encodeURIComponent(String(taskId || "").trim())}/`;
     }
 
     function lawDocHref(anchor) {
@@ -671,112 +776,322 @@
       `;
     }
 
+    function formatGifProvenance(rec) {
+      const gm = rec && rec.gif_meta;
+      if (!gm) return "Actual saved training observations";
+      const parts = [];
+      if (gm.cohort_match === "selected_cohort") {
+        parts.push("Selected cohort");
+      } else if (gm.cohort_match === "colab_replay_media") {
+        parts.push(`Colab${gm.gpu_name ? ` ${String(gm.gpu_name).replace(/^NVIDIA\s+/i, "")}` : ""} seed-0 replay`);
+      } else if (gm.cohort_match) {
+        parts.push(String(gm.cohort_match));
+      }
+      parts.push(gm.has_visual_samples ? "Samples + curves" : "Metric curves");
+      if (gm.grade_matches_selected === false && gm.recorded_grade) {
+        parts.push(`GIF run: ${gm.recorded_grade}`);
+      }
+      return parts.join(" · ");
+    }
+
     function renderGifPanel(data) {
-      const tasksWithGifs = (data.tasks || []).filter((t) => t.gif_relpath);
+      const allTasks = data.tasks || [];
+      const tasksWithGifs = allTasks.filter((t) => t.gif_relpath);
       if (!tasksWithGifs.length) return "";
 
-      const byTask = new Map();
+      const rankedFamilies = rankFamiliesByPerformance(data.families || []);
+      const rankMap = new Map(rankedFamilies.map((f, idx) => [f.id, idx + 1]));
+      const famById = new Map(rankedFamilies.map((f) => [f.id, f]));
+      const top2Set = new Set(rankedFamilies.slice(0, 2).map((f) => f.id));
+
+      const byTaskGif = new Map();
       for (const row of tasksWithGifs) {
-        if (!byTask.has(row.task_id)) byTask.set(row.task_id, []);
-        byTask.get(row.task_id).push(row);
+        if (!byTaskGif.has(row.task_id)) byTaskGif.set(row.task_id, []);
+        byTaskGif.get(row.task_id).push(row);
       }
 
-      const taskNames = Array.from(byTask.keys()).sort((a, b) => {
-        const diff = byTask.get(b).length - byTask.get(a).length;
-        return diff !== 0 ? diff : a.localeCompare(b);
+      const allGifTaskNames = Array.from(byTaskGif.keys()).sort((a, b) => {
+        const aTop = byTaskGif.get(a).filter((r) => top2Set.has(r.family_id)).length;
+        const bTop = byTaskGif.get(b).filter((r) => top2Set.has(r.family_id)).length;
+        if (bTop !== aTop) return bTop - aTop;
+        const diff = byTaskGif.get(b).length - byTaskGif.get(a).length;
+        if (diff !== 0) return diff;
+        const aF = FLAGSHIP_VISUAL_TASKS.indexOf(a);
+        const bF = FLAGSHIP_VISUAL_TASKS.indexOf(b);
+        if ((aF !== -1) !== (bF !== -1)) return aF !== -1 ? -1 : 1;
+        return a.localeCompare(b);
       });
 
-      const preferred = ["ring16_acquisition", "grid100", "ae_gan_hold", "mode_hold"];
-      if (!state.gifTask || !byTask.has(state.gifTask)) {
-        state.gifTask = preferred.find((name) => byTask.has(name)) || taskNames[0];
+      const q = state.gifSearch.trim().toLowerCase();
+      const filteredTaskNames = q
+        ? allGifTaskNames.filter((t) => t.toLowerCase().includes(q))
+        : allGifTaskNames;
+      const taskNames = filteredTaskNames.length ? filteredTaskNames : allGifTaskNames;
+
+      if (!state.gifTask || !byTaskGif.has(state.gifTask)) {
+        state.gifTask = pickDefaultGifTask(taskNames, rankedFamilies, allTasks);
+      } else if (q && filteredTaskNames.length && !filteredTaskNames.includes(state.gifTask)) {
+        state.gifTask = filteredTaskNames[0];
       }
 
-      const rowsForTask = byTask.get(state.gifTask) || [];
-      const famIds = rowsForTask.map((r) => r.family_id);
-      if (!state.gifFamilyA || !famIds.includes(state.gifFamilyA)) {
-        state.gifFamilyA = famIds.includes("unified") ? "unified" : famIds[0] || "";
+      const byFamForTask = new Map();
+      for (const row of allTasks) {
+        if (row.task_id === state.gifTask) byFamForTask.set(row.family_id, row);
       }
-      if (!state.gifFamilyB || !famIds.includes(state.gifFamilyB) || state.gifFamilyB === state.gifFamilyA) {
+
+      const bestPair = pickDefaultGifFamilies(state.gifTask, rankedFamilies, allTasks, 2);
+      if (!state.gifFamilyA || !famById.has(state.gifFamilyA)) {
+        state.gifFamilyA = bestPair[0] || rankedFamilies[0]?.id || "";
+      }
+      if (!state.gifFamilyB || !famById.has(state.gifFamilyB) || state.gifFamilyB === state.gifFamilyA) {
         state.gifFamilyB =
-          famIds.find((id) => id !== state.gifFamilyA && (id === "rhbi" || id === "bispf" || id === "bcap-pure")) ||
-          famIds.find((id) => id !== state.gifFamilyA) ||
+          bestPair.find((id) => id !== state.gifFamilyA) ||
+          rankedFamilies.find((f) => f.id !== state.gifFamilyA)?.id ||
           state.gifFamilyA;
       }
 
       const repo = data.dataset_repo || rootEl.getAttribute("data-hf-repo") || DEFAULT_HF_REPO;
       const rev = data.hf_revision || "main";
+      const displayUrl = (relpath) => {
+        const base = hfGifUrl(repo, rev, relpath);
+        if (!base) return null;
+        if (!state.gifSyncNonce) return base;
+        return `${base}${base.includes("?") ? "&" : "?"}replay=${state.gifSyncNonce}`;
+      };
 
-      const renderCard = (slotLabel, famId) => {
-        const rec = rowsForTask.find((r) => r.family_id === famId);
-        if (!rec) {
-          return `<div class="portal-gif-card"><div class="portal-gif-stage"><span class="portal-muted">No training GIF recorded for this pair.</span></div></div>`;
+      const quickTasks = [
+        ...FLAGSHIP_VISUAL_TASKS.filter((t) => byTaskGif.has(t)),
+        ...allGifTaskNames.filter((t) => !FLAGSHIP_VISUAL_TASKS.includes(t)),
+      ].slice(0, 10);
+
+      const quickPillsHtml = quickTasks
+        .map((t) => {
+          const cnt = byTaskGif.get(t).length;
+          return `<button type="button" class="pg-gif-task-pill ${t === state.gifTask ? "is-active" : ""}" data-pg-gif-quick="${escapeHtml(t)}"><code>${escapeHtml(t)}</code> <span class="pg-gif-pill-cnt">${cnt}</span></button>`;
+        })
+        .join("");
+
+      const gifAvailCount = rankedFamilies.filter((f) => Boolean(byFamForTask.get(f.id)?.gif_relpath)).length;
+      const passCount = rankedFamilies.filter(
+        (f) => String(byFamForTask.get(f.id)?.status || "").toUpperCase() === "PASS"
+      ).length;
+      const failCount = rankedFamilies.filter(
+        (f) => String(byFamForTask.get(f.id)?.status || "").toUpperCase() === "FAIL"
+      ).length;
+
+      const familyStripHtml = rankedFamilies
+        .map((f, idx) => {
+          const rec = byFamForTask.get(f.id);
+          const hasGif = Boolean(rec && rec.gif_relpath);
+          const st = String(rec?.status || "not_run").toUpperCase();
+          const isA = state.gifLayout === "compare" && f.id === state.gifFamilyA;
+          const isB = state.gifLayout === "compare" && f.id === state.gifFamilyB;
+          const slot = isA ? `<span class="pg-chip-slot">A</span>` : isB ? `<span class="pg-chip-slot">B</span>` : "";
+          const stCls = st === "PASS" ? "is-pass" : st === "FAIL" ? "is-fail" : "is-muted";
+          return `<button type="button" class="pg-gif-chip ${stCls} ${hasGif ? "has-gif" : "no-gif"} ${isA || isB ? "is-selected" : ""}" data-pg-gif-chip="${escapeHtml(f.id)}" title="#${idx + 1} ${escapeHtml(f.label)} (${f.full_suite?.pass ?? 0}/${f.full_suite?.total ?? 0}) · ${escapeHtml(st)}">
+            <span class="pg-chip-dot">${hasGif ? "●" : "○"}</span>
+            <span class="pg-chip-rank">#${idx + 1}</span>
+            <span>${escapeHtml(f.label)}</span>
+            ${slot}
+          </button>`;
+        })
+        .join("");
+
+      const renderCard = (fam, slotLabel = null) => {
+        const rec = byFamForTask.get(fam.id);
+        const rank = rankMap.get(fam.id);
+        const status = rec ? rec.status : "not_run";
+        const rawUrl = rec && rec.gif_relpath ? hfGifUrl(repo, rev, rec.gif_relpath) : null;
+        const imgUrl = rec && rec.gif_relpath ? displayUrl(rec.gif_relpath) : null;
+        const scoreStr = `${fam.full_suite?.pass ?? 0}/${fam.full_suite?.total ?? 0}`;
+
+        const metricPills = [];
+        if (rec && rec.wall_seconds != null) {
+          metricPills.push(`<span class="pg-gif-metric">wall ${escapeHtml(formatNumber(rec.wall_seconds, 1, "s"))}</span>`);
         }
-        const url = hfGifUrl(repo, rev, rec.gif_relpath);
-        const metricsEntries = Object.entries(rec.metrics_summary || {})
-          .filter(([, v]) => typeof v === "number" || typeof v === "string")
-          .slice(0, 4)
-          .map(([k, v]) => `${k}=${typeof v === "number" ? v.toFixed(3) : v}`)
-          .join(" · ");
+        if (rec && rec.energy && rec.energy.joules_to_first_pass != null) {
+          metricPills.push(`<span class="pg-gif-metric">J-to-PASS ${escapeHtml(formatJoules(rec.energy.joules_to_first_pass))}</span>`);
+        }
+        if (rec && rec.metrics_summary) {
+          Object.entries(rec.metrics_summary)
+            .filter(([k, v]) => !k.startsWith("_") && (typeof v === "number" || typeof v === "boolean"))
+            .slice(0, 3)
+            .forEach(([k, v]) => {
+              const val = typeof v === "number" ? (Number.isInteger(v) ? String(v) : v.toFixed(3)) : String(v);
+              metricPills.push(`<span class="pg-gif-metric"><code>${escapeHtml(k)}</code>=${escapeHtml(val)}</span>`);
+            });
+        }
+
+        const stageHtml = imgUrl
+          ? `<div class="portal-gif-img-wrap is-loading">
+               <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(fam.label)} training animation on ${escapeHtml(state.gifTask)}" loading="lazy"
+                 data-pg-gif-img="1" data-pg-gif-zoom="${escapeHtml(fam.id)}" />
+               <button type="button" class="pg-gif-zoom-btn" data-pg-gif-zoom="${escapeHtml(fam.id)}" title="Open fullscreen zoom">⤢ Zoom</button>
+             </div>`
+          : `<div class="portal-gif-empty">
+               <strong>No training GIF published yet</strong>
+               <span class="portal-muted">Recorded status: ${escapeHtml(status)}${rec && rec.reason ? ` — ${escapeHtml(rec.reason.slice(0, 140))}` : ""}</span>
+             </div>`;
 
         return `
-          <div class="portal-gif-card">
+          <div class="portal-gif-card ${imgUrl ? "has-gif" : "no-gif"}">
             <div class="portal-gif-header">
-              <span>${escapeHtml(slotLabel)}: ${escapeHtml(rec.family_label || rec.family_id)}</span>
-              <span class="pg-badge ${statusBadgeClass(rec.status)}">${escapeHtml(rec.status)}</span>
+              <div class="portal-gif-head-left">
+                <div class="portal-gif-title-row">
+                  <span class="pg-rank-badge">#${rank}</span>
+                  <span>${escapeHtml(fam.label)}</span>
+                  ${slotLabel ? `<span class="pg-slot-tag">${escapeHtml(slotLabel)}</span>` : ""}
+                </div>
+                <span class="portal-family-sub"><code>${escapeHtml(fam.candidate_id || fam.id)}</code> · ${escapeHtml(scoreStr)} full-suite</span>
+              </div>
+              <span class="pg-badge ${statusBadgeClass(status)}">${escapeHtml(status)}</span>
             </div>
-            <div class="portal-gif-stage">
-              <img src="${escapeHtml(url)}" alt="${escapeHtml(rec.family_label)} training animation on ${escapeHtml(rec.task_id)}" loading="lazy"
-                onerror="this.replaceWith(Object.assign(document.createElement('div'),{className:'portal-muted',textContent:'Streamed from HF Dataset (${escapeHtml(repo)}). Connect to the internet to load animation.'}))" />
-            </div>
+            <div class="portal-gif-stage">${stageHtml}</div>
+            ${metricPills.length ? `<div class="pg-gif-metrics-bar">${metricPills.join("")}</div>` : ""}
             <div class="portal-gif-meta">
-              Candidate: <code>${escapeHtml(rec.candidate_id || "—")}</code>
-              ${rec.wall_seconds != null ? ` · Wall: ${formatNumber(rec.wall_seconds, 1, "s")}` : ""}
-              ${metricsEntries ? `<br/>${escapeHtml(metricsEntries)}` : ""}
+              <span>${escapeHtml(imgUrl ? formatGifProvenance(rec) : "No GIF artifact recorded")}</span>
+              <span class="pg-gif-links">
+                ${rawUrl ? `<a href="${escapeHtml(rawUrl)}" target="_blank" rel="noopener">Raw GIF ↗</a> · ` : ""}
+                <a href="${escapeHtml(familyPageHref(fam))}">Family →</a>
+              </span>
             </div>
           </div>
         `;
       };
 
+      let cardsHtml = "";
+      let gridClass = "portal-gif-grid";
+      if (state.gifLayout === "compare") {
+        const famA = famById.get(state.gifFamilyA);
+        const famB = famById.get(state.gifFamilyB);
+        cardsHtml = [famA ? renderCard(famA, "A") : "", famB ? renderCard(famB, "B") : ""].join("");
+      } else if (state.gifLayout === "top4") {
+        gridClass = "portal-gif-grid portal-gif-grid-top4";
+        const withGif = rankedFamilies.filter((f) => Boolean(byFamForTask.get(f.id)?.gif_relpath));
+        const withoutGif = rankedFamilies.filter((f) => !byFamForTask.get(f.id)?.gif_relpath);
+        cardsHtml = [...withGif, ...withoutGif].slice(0, 4).map((f) => renderCard(f)).join("");
+      } else {
+        gridClass = "portal-gif-grid portal-gif-grid-all";
+        const withGif = rankedFamilies.filter((f) => Boolean(byFamForTask.get(f.id)?.gif_relpath));
+        const withoutGif = rankedFamilies.filter((f) => !byFamForTask.get(f.id)?.gif_relpath);
+        const list = state.gifHideMissing ? withGif : [...withGif, ...withoutGif];
+        cardsHtml = list.map((f) => renderCard(f)).join("");
+      }
+
+      const famOptionsHtml = (selectedId) =>
+        rankedFamilies
+          .map((f, idx) => {
+            const rec = byFamForTask.get(f.id);
+            const dot = rec && rec.gif_relpath ? "● " : "○ ";
+            const st = rec ? rec.status : "not_run";
+            const score = `${f.full_suite?.pass ?? 0}/${f.full_suite?.total ?? 0}`;
+            return `<option value="${escapeHtml(f.id)}" ${f.id === selectedId ? "selected" : ""}>${escapeHtml(`${dot}#${idx + 1} ${f.label} (${score}) · ${st}`)}</option>`;
+          })
+          .join("");
+
       return `
-        <section class="portal-panel">
+        <section class="portal-panel" id="pg-gif-panel">
           <div class="portal-panel-head">
             <div>
               <h2 class="portal-panel-title">Live-Streamed Training GIF Comparison</h2>
-              <p class="portal-panel-sub">Streamed directly from <code>${escapeHtml(repo)}</code> — zero binary GIFs committed in Git.</p>
+              <p class="portal-panel-sub">Defaulted to the top-performing families · streamed live from <code>${escapeHtml(repo)}</code> (zero binary GIFs in Git). Click any GIF to inspect fullscreen.</p>
             </div>
+            <div class="portal-btn-group" role="group" aria-label="GIF layout mode">
+              <button type="button" class="portal-btn ${state.gifLayout === "compare" ? "is-active" : ""}" data-pg-gif-layout="compare">Side-by-Side</button>
+              <button type="button" class="portal-btn ${state.gifLayout === "top4" ? "is-active" : ""}" data-pg-gif-layout="top4">Top 4 Leaders</button>
+              <button type="button" class="portal-btn ${state.gifLayout === "grid" ? "is-active" : ""}" data-pg-gif-layout="grid">All Families</button>
+            </div>
+          </div>
+
+          <div class="pg-gif-quick-row">
+            <span class="pg-gif-quick-label">Flagship tasks:</span>
+            ${quickPillsHtml}
+          </div>
+
+          <div class="pg-gif-toolbar">
+            <input class="portal-input pg-gif-search" type="search" id="pg-gif-search" placeholder="Search GIF task…" value="${escapeHtml(state.gifSearch)}" aria-label="Search GIF tasks" />
+            <select class="portal-select" id="pg-gif-task" aria-label="Select task">
+              ${taskNames
+                .map(
+                  (t) =>
+                    `<option value="${escapeHtml(t)}" ${t === state.gifTask ? "selected" : ""}>${escapeHtml(t)} (${byTaskGif.get(t).length}/${rankedFamilies.length} GIFs)</option>`
+                )
+                .join("")}
+            </select>
+            ${
+              state.gifLayout === "compare"
+                ? `
+                  <select class="portal-select" id="pg-gif-fam-a" aria-label="Left family">${famOptionsHtml(state.gifFamilyA)}</select>
+                  <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-gif-swap" title="Swap families">⇄ Swap</button>
+                  <select class="portal-select" id="pg-gif-fam-b" aria-label="Right family">${famOptionsHtml(state.gifFamilyB)}</select>
+                `
+                : state.gifLayout === "grid"
+                  ? `<label class="pg-gif-check"><input type="checkbox" id="pg-gif-hide-missing" ${state.gifHideMissing ? "checked" : ""} /> Hide families without GIF</label>`
+                  : ""
+            }
+          </div>
+
+          <div class="pg-gif-action-bar">
             <div class="portal-controls">
-              <label class="portal-muted" for="pg-gif-task">Task:</label>
-              <select class="portal-select" id="pg-gif-task">
-                ${taskNames
-                  .map(
-                    (t) =>
-                      `<option value="${escapeHtml(t)}" ${t === state.gifTask ? "selected" : ""}>${escapeHtml(t)} (${byTask.get(t).length})</option>`
-                  )
-                  .join("")}
-              </select>
-              <select class="portal-select" id="pg-gif-fam-a" aria-label="Left family">
-                ${rowsForTask
-                  .map(
-                    (r) =>
-                      `<option value="${escapeHtml(r.family_id)}" ${r.family_id === state.gifFamilyA ? "selected" : ""}>A: ${escapeHtml(r.family_label)} (${escapeHtml(r.status)})</option>`
-                  )
-                  .join("")}
-              </select>
-              <select class="portal-select" id="pg-gif-fam-b" aria-label="Right family">
-                ${rowsForTask
-                  .map(
-                    (r) =>
-                      `<option value="${escapeHtml(r.family_id)}" ${r.family_id === state.gifFamilyB ? "selected" : ""}>B: ${escapeHtml(r.family_label)} (${escapeHtml(r.status)})</option>`
-                  )
-                  .join("")}
-              </select>
+              <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-gif-top2">★ Top 2 Leaders</button>
+              <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-gif-contrast">⚡ PASS vs FAIL</button>
+              <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-gif-sync">↻ Sync Replay</button>
+            </div>
+            <div class="portal-muted">
+              <strong>${gifAvailCount}/${rankedFamilies.length}</strong> families with GIF · ${passCount} PASS · ${failCount} FAIL ·
+              <a href="${escapeHtml(experimentPageHref(state.gifTask))}">Open <code>${escapeHtml(state.gifTask)}</code> spec →</a>
             </div>
           </div>
-          <div class="portal-gif-grid">
-            ${renderCard("Family A", state.gifFamilyA)}
-            ${renderCard("Family B", state.gifFamilyB)}
-          </div>
+
+          <div class="pg-gif-strip" aria-label="Family GIF coverage">${familyStripHtml}</div>
+
+          <div class="${gridClass}">${cardsHtml}</div>
+          ${renderGifLightboxHtml(data, rankedFamilies, rankMap, byFamForTask, repo, rev, displayUrl)}
         </section>
+      `;
+    }
+
+    function renderGifLightboxHtml(data, rankedFamilies, rankMap, byFamForTask, repo, rev, displayUrl) {
+      if (!state.gifLightbox) return "";
+      const { taskId, familyIds, index } = state.gifLightbox;
+      const famId = familyIds[index];
+      const fam = rankedFamilies.find((f) => f.id === famId);
+      if (!fam) return "";
+      const rec = byFamForTask.get(famId) || (data.tasks || []).find((r) => r.task_id === taskId && r.family_id === famId);
+      const rawUrl = rec && rec.gif_relpath ? hfGifUrl(repo, rev, rec.gif_relpath) : null;
+      const imgUrl = rec && rec.gif_relpath ? displayUrl(rec.gif_relpath) : null;
+      return `
+        <div class="pg-lightbox-backdrop" id="pg-gif-lightbox" role="dialog" aria-modal="true" aria-label="Fullscreen training GIF">
+          <div class="pg-lightbox-dialog">
+            <div class="pg-lightbox-head">
+              <div>
+                <strong>#${rankMap.get(famId)} ${escapeHtml(fam.label)}</strong>
+                <code>${escapeHtml(fam.candidate_id || fam.id)}</code> ·
+                <code>${escapeHtml(taskId)}</code>
+                <span class="pg-badge ${statusBadgeClass(rec ? rec.status : "not_run")}" style="margin-left:0.4rem">${escapeHtml(rec ? rec.status : "not_run")}</span>
+                <span class="portal-muted" style="margin-left:0.4rem">(${index + 1}/${familyIds.length})</span>
+              </div>
+              <div class="portal-controls">
+                <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-lb-prev" ${familyIds.length <= 1 ? "disabled" : ""}>← Prev</button>
+                <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-lb-next" ${familyIds.length <= 1 ? "disabled" : ""}>Next →</button>
+                <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-lb-replay">↻ Replay</button>
+                ${rawUrl ? `<a class="portal-btn pg-gif-tool-btn" href="${escapeHtml(rawUrl)}" target="_blank" rel="noopener">Raw GIF ↗</a>` : ""}
+                <button type="button" class="portal-btn pg-gif-tool-btn" id="pg-lb-close">✕ Close</button>
+              </div>
+            </div>
+            <div class="pg-lightbox-body">
+              ${
+                imgUrl
+                  ? `<div class="portal-gif-img-wrap is-loading"><img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(fam.label)} training animation on ${escapeHtml(taskId)}" data-pg-gif-img="1" /></div>`
+                  : `<div class="portal-muted">No GIF recorded for this family on ${escapeHtml(taskId)}.</div>`
+              }
+            </div>
+            <div class="pg-lightbox-foot">
+              <span>${escapeHtml(formatGifProvenance(rec))} · Full-suite ${escapeHtml(fam.full_suite?.pass ?? 0)}/${escapeHtml(fam.full_suite?.total ?? 0)}</span>
+              <span>Tip: ← / → step families · R replay · Esc close</span>
+            </div>
+          </div>
+        </div>
       `;
     }
 
@@ -854,10 +1169,64 @@
         });
       });
 
+      const openLightbox = (famId) => {
+        const ranked = rankFamiliesByPerformance(state.data?.families || []);
+        const allTasks = state.data?.tasks || [];
+        const byFam = new Map(allTasks.filter((r) => r.task_id === state.gifTask).map((r) => [r.family_id, r]));
+        const avail = ranked.filter((f) => Boolean(byFam.get(f.id)?.gif_relpath)).map((f) => f.id);
+        const familyIds = avail.includes(famId) ? avail : [famId, ...avail];
+        state.gifLightbox = {
+          taskId: state.gifTask,
+          familyIds,
+          index: Math.max(0, familyIds.indexOf(famId)),
+        };
+        render();
+      };
+
+      rootEl.querySelectorAll("[data-pg-gif-layout]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.gifLayout = btn.getAttribute("data-pg-gif-layout") || "compare";
+          render();
+        });
+      });
+
+      rootEl.querySelectorAll("[data-pg-gif-quick]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          state.gifTask = btn.getAttribute("data-pg-gif-quick") || "";
+          state.gifSearch = "";
+          const ranked = rankFamiliesByPerformance(state.data?.families || []);
+          const pair = pickDefaultGifFamilies(state.gifTask, ranked, state.data?.tasks || [], 2);
+          if (pair[0]) state.gifFamilyA = pair[0];
+          if (pair[1]) state.gifFamilyB = pair[1];
+          render();
+        });
+      });
+
+      const gifSearchEl = rootEl.querySelector("#pg-gif-search");
+      if (gifSearchEl) {
+        gifSearchEl.addEventListener("input", (e) => {
+          state.gifSearch = e.target.value || "";
+          render();
+          const next = rootEl.querySelector("#pg-gif-search");
+          if (next) {
+            next.focus();
+            next.setSelectionRange(next.value.length, next.value.length);
+          }
+        });
+      }
+
       const gifTaskEl = rootEl.querySelector("#pg-gif-task");
       if (gifTaskEl) {
         gifTaskEl.addEventListener("change", (e) => {
           state.gifTask = e.target.value;
+          const allTasks = state.data?.tasks || [];
+          const byFam = new Map(allTasks.filter((r) => r.task_id === state.gifTask).map((r) => [r.family_id, r]));
+          if (!byFam.get(state.gifFamilyA)?.gif_relpath && !byFam.get(state.gifFamilyB)?.gif_relpath) {
+            const ranked = rankFamiliesByPerformance(state.data?.families || []);
+            const pair = pickDefaultGifFamilies(state.gifTask, ranked, allTasks, 2);
+            if (pair[0]) state.gifFamilyA = pair[0];
+            if (pair[1]) state.gifFamilyB = pair[1];
+          }
           render();
         });
       }
@@ -875,6 +1244,165 @@
           render();
         });
       }
+      const swapBtn = rootEl.querySelector("#pg-gif-swap");
+      if (swapBtn) {
+        swapBtn.addEventListener("click", () => {
+          const tmp = state.gifFamilyA;
+          state.gifFamilyA = state.gifFamilyB;
+          state.gifFamilyB = tmp;
+          render();
+        });
+      }
+      const hideMissingEl = rootEl.querySelector("#pg-gif-hide-missing");
+      if (hideMissingEl) {
+        hideMissingEl.addEventListener("change", (e) => {
+          state.gifHideMissing = e.target.checked;
+          render();
+        });
+      }
+      const top2Btn = rootEl.querySelector("#pg-gif-top2");
+      if (top2Btn) {
+        top2Btn.addEventListener("click", () => {
+          const ranked = rankFamiliesByPerformance(state.data?.families || []);
+          const pair = pickDefaultGifFamilies(state.gifTask, ranked, state.data?.tasks || [], 2);
+          if (pair[0]) state.gifFamilyA = pair[0];
+          if (pair[1]) state.gifFamilyB = pair[1];
+          state.gifLayout = "compare";
+          render();
+        });
+      }
+      const contrastBtn = rootEl.querySelector("#pg-gif-contrast");
+      if (contrastBtn) {
+        contrastBtn.addEventListener("click", () => {
+          const ranked = rankFamiliesByPerformance(state.data?.families || []);
+          const pair = pickContrastGifPair(state.gifTask, ranked, state.data?.tasks || []);
+          if (pair[0]) state.gifFamilyA = pair[0];
+          if (pair[1]) state.gifFamilyB = pair[1];
+          state.gifLayout = "compare";
+          render();
+        });
+      }
+      const syncBtn = rootEl.querySelector("#pg-gif-sync");
+      if (syncBtn) {
+        syncBtn.addEventListener("click", () => {
+          state.gifSyncNonce += 1;
+          render();
+        });
+      }
+
+      rootEl.querySelectorAll("[data-pg-gif-chip]").forEach((chip) => {
+        chip.addEventListener("click", (e) => {
+          const fid = chip.getAttribute("data-pg-gif-chip");
+          if (!fid) return;
+          if (state.gifLayout === "compare") {
+            if (fid === state.gifFamilyA || fid === state.gifFamilyB) {
+              openLightbox(fid);
+              return;
+            }
+            if (e.shiftKey || state.gifNextSlot === "b") {
+              state.gifFamilyB = fid;
+              state.gifNextSlot = "a";
+            } else {
+              state.gifFamilyA = fid;
+              state.gifNextSlot = "b";
+            }
+            render();
+          } else {
+            openLightbox(fid);
+          }
+        });
+      });
+
+      rootEl.querySelectorAll("[data-pg-gif-zoom]").forEach((el) => {
+        el.addEventListener("click", (e) => {
+          e.stopPropagation();
+          const fid = el.getAttribute("data-pg-gif-zoom");
+          if (fid) openLightbox(fid);
+        });
+      });
+
+      rootEl.querySelectorAll("img[data-pg-gif-img]").forEach((img) => {
+        const wrap = img.closest(".portal-gif-img-wrap");
+        const done = () => wrap && wrap.classList.remove("is-loading");
+        if (img.complete && img.naturalWidth > 0) {
+          done();
+        } else {
+          img.addEventListener("load", done, { once: true });
+        }
+        img.addEventListener(
+          "error",
+          () => {
+            const stage = img.closest(".portal-gif-stage") || img.parentElement;
+            if (stage) {
+              stage.innerHTML = `<div class="portal-muted">Streamed from HF Dataset. Connect to load animation or check HF revision.</div>`;
+            }
+          },
+          { once: true }
+        );
+      });
+
+      const lbEl = rootEl.querySelector("#pg-gif-lightbox");
+      if (lbEl) {
+        lbEl.addEventListener("click", (e) => {
+          if (e.target === lbEl) {
+            state.gifLightbox = null;
+            render();
+          }
+        });
+        const closeBtn = rootEl.querySelector("#pg-lb-close");
+        if (closeBtn) {
+          closeBtn.addEventListener("click", () => {
+            state.gifLightbox = null;
+            render();
+          });
+        }
+        const prevBtn = rootEl.querySelector("#pg-lb-prev");
+        if (prevBtn) {
+          prevBtn.addEventListener("click", () => {
+            if (!state.gifLightbox) return;
+            const n = state.gifLightbox.familyIds.length;
+            state.gifLightbox.index = (state.gifLightbox.index - 1 + n) % n;
+            render();
+          });
+        }
+        const nextBtn = rootEl.querySelector("#pg-lb-next");
+        if (nextBtn) {
+          nextBtn.addEventListener("click", () => {
+            if (!state.gifLightbox) return;
+            const n = state.gifLightbox.familyIds.length;
+            state.gifLightbox.index = (state.gifLightbox.index + 1) % n;
+            render();
+          });
+        }
+        const repBtn = rootEl.querySelector("#pg-lb-replay");
+        if (repBtn) {
+          repBtn.addEventListener("click", () => {
+            state.gifSyncNonce += 1;
+            render();
+          });
+        }
+      }
+    }
+
+    if (typeof document !== "undefined") {
+      document.addEventListener("keydown", (e) => {
+        if (!state.gifLightbox) return;
+        if (e.key === "Escape") {
+          state.gifLightbox = null;
+          render();
+        } else if (e.key === "ArrowLeft") {
+          const n = state.gifLightbox.familyIds.length;
+          state.gifLightbox.index = (state.gifLightbox.index - 1 + n) % n;
+          render();
+        } else if (e.key === "ArrowRight") {
+          const n = state.gifLightbox.familyIds.length;
+          state.gifLightbox.index = (state.gifLightbox.index + 1) % n;
+          render();
+        } else if (e.key === "r" || e.key === "R") {
+          state.gifSyncNonce += 1;
+          render();
+        }
+      });
     }
 
     function renderFourLawsAdherencePanel(data) {
@@ -1008,6 +1536,10 @@
     module.exports = {
       computeParetoFrontier,
       sortFamilies,
+      rankFamiliesByPerformance,
+      pickDefaultGifTask,
+      pickDefaultGifFamilies,
+      pickContrastGifPair,
       hfGifUrl,
       formatNumber,
       formatJoules,

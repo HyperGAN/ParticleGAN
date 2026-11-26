@@ -37,10 +37,11 @@ from typing import Any
 from .experiment_svg import BADGE_TEXT, infer_diagram_kind, write_task_svg
 from .family_reports import _selected_cohorts, _selected_row
 from .hf_publish import DEFAULT_HF_REPO, _collect_media_index, _gif_to_media_relpath
+from .leaderboard_contract import FIXED_TEST_LIST
 
 ROOT = Path(__file__).resolve().parents[2]
 RESEARCH_PORTAL_URL = "https://hypergan.github.io/ParticleGAN/"
-FULL_SUITE_LIST_REL = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-23.json")
+FULL_SUITE_LIST_REL = FIXED_TEST_LIST
 LAWS_REGISTRY_REL = Path("configs/forge/laws.json")
 TASK_DOCS_DIR_REL = Path("configs/forge/task-documentation")
 FAMILY_DOCS_DIR_REL = Path("configs/forge/family-documentation")
@@ -73,7 +74,20 @@ DEFAULT_LAWS_REGISTRY: dict[str, Any] = {
             "question": "Can the system represent the required probability measure efficiently and faithfully?",
             "doc_anchor": "law-1--representational-geometry",
             "status": "active",
-            "sub_laws": [],
+            "sub_laws": [
+                {
+                    "id": "law1a",
+                    "short_label": "Law 1A",
+                    "title": "Anisotropic Local Metric & Unbiased Sketching",
+                    "doc_anchor": "law-1--representational-geometry",
+                },
+                {
+                    "id": "law1b",
+                    "short_label": "Law 1B",
+                    "title": "Discrete-Continuous Phase Continuity",
+                    "doc_anchor": "law-1--representational-geometry",
+                },
+            ],
         },
         {
             "id": "law2",
@@ -149,6 +163,35 @@ DEFAULT_LAWS_REGISTRY: dict[str, Any] = {
                 },
             ],
         },
+        {
+            "id": "law5",
+            "short_label": "Law 5",
+            "title": "Observation & Statistical-Metric Identifiability",
+            "domain_level": "Observation & Statistical-Metric Identifiability",
+            "question": "Is the target probability measure identifiable through the observation channel and statistical metric from finite batches?",
+            "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+            "status": "provisional",
+            "sub_laws": [
+                {
+                    "id": "law5a",
+                    "short_label": "Law 5A",
+                    "title": "Partial & Corrupted Observation Injectivity",
+                    "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+                },
+                {
+                    "id": "law5b",
+                    "short_label": "Law 5B",
+                    "title": "Intrinsic & Feature-Space Metric Geometry",
+                    "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+                },
+                {
+                    "id": "law5c",
+                    "short_label": "Law 5C",
+                    "title": "Conditional Fiber Deconfounding (Unifies Law 3B)",
+                    "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+                },
+            ],
+        },
     ],
 }
 
@@ -191,6 +234,7 @@ def _law_lookup(registry: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], di
             "short_label": law.get("short_label", lid),
             "title": law.get("title", lid),
             "question": law.get("question", ""),
+            "status": law.get("status", "active"),
             "doc_path": doc_path,
             "doc_anchor": law.get("doc_anchor", ""),
             "parent_id": None,
@@ -204,6 +248,7 @@ def _law_lookup(registry: dict[str, Any]) -> tuple[dict[str, dict[str, Any]], di
                 "short_label": sub.get("short_label", sid),
                 "title": sub.get("title", sid),
                 "question": sub.get("question", law.get("question", "")),
+                "status": law.get("status", "active"),
                 "doc_path": doc_path,
                 "doc_anchor": sub.get("doc_anchor", law.get("doc_anchor", "")),
                 "parent_id": lid,
@@ -410,6 +455,22 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
         return per_task, scaling_by_task, hf_repo
 
     media_by_family_task, media_by_attempt_task = _collect_media_index(progress)
+    try:
+        from .leaderboard_media import index_media_lookup
+
+        idx_fam, idx_att = index_media_lookup(root)
+        for key, entry in idx_fam.items():
+            rel = _gif_to_media_relpath(entry.get("gif_relpath"))
+            if rel and (key not in media_by_family_task or entry.get("cohort_match") == "selected_cohort"):
+                media_by_family_task[key] = rel
+        for akey, entry in idx_att.items():
+            rel = _gif_to_media_relpath(entry.get("gif_relpath"))
+            if rel:
+                media_by_attempt_task.setdefault(akey, rel)
+    except Exception:
+        pass
+    from .views import compatible_diagnostic_passes
+
     # Build family metadata list (deduplicated by family_id, preferring CUDA primary cohort)
     seen_family: set[str] = set()
     for fam, cohort in _selected_cohorts(progress):
@@ -419,6 +480,15 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
         seen_family.add(fam_id)
         row = _selected_row(publication, cohort)
         candidate_id = str(row.get("candidate_id") or "")
+        cand_rev = str(row.get("candidate_revision") or "")
+        bindings = row.get("bindings") if isinstance(row.get("bindings"), dict) else {}
+        source_digest = str(bindings.get("source_digest") or "")
+        diag_passes = compatible_diagnostic_passes(
+            root,
+            candidate_id=candidate_id,
+            candidate_revision=cand_rev,
+            source_digest=source_digest,
+        )
         anchor = str(cohort.get("anchor") or fam.get("current_cohort_anchor") or "")
         fam_label = str(fam.get("label") or fam_id)
         page = str(fam.get("page") or f"reports/forge/families/{fam_id}.md")
@@ -426,16 +496,21 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
         for task_id, cell in cohort_tasks.items():
             raw_status = str(cell.get("status") or "UNKNOWN")
             coverage_state = cell.get("coverage_status") or cell.get("attempt_coverage_status")
+            diag_pass = diag_passes.get(task_id) if raw_status in {"UNKNOWN", "NOT_RUN"} else None
             if raw_status == "UNKNOWN":
                 run_attempt = cell.get("run_attempt") or {}
                 if cell.get("evidence_correction"):
                     display_status = "DIAGNOSTIC"
+                elif diag_pass is not None:
+                    display_status = "DIAG_PASS"
                 elif run_attempt.get("status"):
                     display_status = str(run_attempt["status"]).upper()
                 elif coverage_state:
                     display_status = str(coverage_state).upper().replace("_", " ")
                 else:
                     display_status = "NOT MEASURED"
+            elif raw_status == "NOT_RUN" and diag_pass is not None:
+                display_status = "DIAG_PASS"
             else:
                 display_status = raw_status.upper()
 
@@ -468,12 +543,14 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
                 "metrics": metrics_str,
                 "gif_relpath": gif_relpath,
                 "gif_url": gif_url,
+                **({"diagnostic_pass": diag_pass} if diag_pass else {}),
             })
 
     # Scaling performance records for dcgan_performance_* tasks
     fam_labels = {str(f["id"]): str(f.get("label") or f["id"]) for f in progress.get("families", []) if isinstance(f, dict)}
     fam_pages = {str(f["id"]): str(f.get("page") or f"reports/forge/families/{f['id']}.md") for f in progress.get("families", []) if isinstance(f, dict)}
     sp = publication.get("scaling_performance") or {}
+    seen_scaling_keys: set[tuple[str, str, str]] = set()
     for rec in sp.get("records") or []:
         if not isinstance(rec, dict):
             continue
@@ -491,17 +568,49 @@ def _load_family_results(root: Path) -> tuple[dict[str, list[dict[str, Any]]], d
         if peak_mib is None and isinstance(metrics.get("gpu_memory_mib"), dict):
             peak_mib = metrics["gpu_memory_mib"].get("peak_allocated")
         fid = str(rec.get("trainer_family") or "")
+        cid = str(rec.get("candidate_id") or res.get("candidate_id") or "")
+        seen_scaling_keys.add((tid, fid, cid))
         scaling_by_task[tid].append({
             "family_id": fid,
             "family_label": fam_labels.get(fid, fid),
             "page": fam_pages.get(fid, f"reports/forge/families/{fid}.md"),
-            "candidate_id": str(rec.get("candidate_id") or res.get("candidate_id") or ""),
+            "candidate_id": cid,
             "status": str(res.get("benchmark_status") or res.get("status") or "COMPLETE").upper(),
             "device": str(hw.get("name") or hw.get("type") or "CUDA"),
             "step_ms_median": step_ms,
             "images_per_second": img_s,
             "peak_allocated_mib": peak_mib,
         })
+
+    # Include provenance-bound solo measurements stored in reports/forge/scaling-performance.json
+    perf_manifest_path = root / "reports/forge/scaling-performance.json"
+    if perf_manifest_path.is_file():
+        try:
+            perf_doc = _read_json(perf_manifest_path)
+            for item in perf_doc.get("measurements") or []:
+                if not isinstance(item, dict) or item.get("contended") is True:
+                    continue
+                tid = str(item.get("task_id") or "")
+                fid = str(item.get("trainer_family") or item.get("family_id") or "")
+                cid = str(item.get("candidate_id") or "")
+                if not tid or not fid or (tid, fid, cid) in seen_scaling_keys:
+                    continue
+                seen_scaling_keys.add((tid, fid, cid))
+                metrics = item.get("metrics") if isinstance(item.get("metrics"), dict) else {}
+                hw = item.get("hardware") if isinstance(item.get("hardware"), dict) else {}
+                scaling_by_task[tid].append({
+                    "family_id": fid,
+                    "family_label": fam_labels.get(fid, fid),
+                    "page": fam_pages.get(fid, f"reports/forge/families/{fid}.md"),
+                    "candidate_id": cid,
+                    "status": str(item.get("status") or "COMPLETE").upper(),
+                    "device": str(hw.get("name") or item.get("hardware_gpu") or "CUDA"),
+                    "step_ms_median": item.get("median_ms") if item.get("median_ms") is not None else metrics.get("update_ms_median"),
+                    "images_per_second": item.get("images_per_second") if item.get("images_per_second") is not None else metrics.get("images_per_second"),
+                    "peak_allocated_mib": item.get("peak_allocated_mib") if item.get("peak_allocated_mib") is not None else metrics.get("peak_allocated_mib"),
+                })
+        except Exception:
+            pass
 
     return per_task, scaling_by_task, hf_repo
 
@@ -1089,9 +1198,12 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
     family_law_mechs = _load_family_law_mechanisms(root)
 
     full_suite_set: set[str] = set()
+    backlog_set: set[str] = set()
     fs_path = root / FULL_SUITE_LIST_REL
     if fs_path.is_file():
-        full_suite_set = set(_read_json(fs_path).get("tests", []))
+        fs_doc = _read_json(fs_path)
+        full_suite_set = set(fs_doc.get("tests", []))
+        backlog_set = set(fs_doc.get("unimplemented_backlog", fs_doc.get("blocked_placeholders", [])) or [])
 
     # Pre-index view memberships
     view_memberships: dict[str, list[dict[str, Any]]] = defaultdict(list)
@@ -1211,6 +1323,7 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
             "adapter": task.get("adapter", ""),
             "evaluation_kind": ev.get("kind", ""),
             "in_full_suite": tid in full_suite_set,
+            "in_unimplemented_backlog": tid in backlog_set,
             "discriminator_stability": ds_assign,
             "four_laws_adherence": fl_assign,
             "views": view_memberships[tid],
@@ -1244,6 +1357,8 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
         "family_law_mechanisms": family_law_mechs,
         "experiment_count": len(experiments),
         "full_suite_count": sum(1 for e in experiments.values() if e["in_full_suite"]),
+        "unimplemented_backlog_count": sum(1 for e in experiments.values() if e["in_unimplemented_backlog"]),
+        "unimplemented_backlog": sorted(tid for tid, e in experiments.items() if e["in_unimplemented_backlog"]),
         "experiments": experiments,
     }
 
@@ -1291,7 +1406,14 @@ def render_experiment_page(root: Path, entry: dict[str, Any], catalog: dict[str,
     fl = entry["four_laws_adherence"]
     ds_text = f"Tier {ds['tier']} ({ds['importance']})" if ds else "Not in `discriminator_stability`"
     fl_text = f"{fl['law']} ({fl['role']})" if fl else "—"
-    suite_text = "Yes (71-test fixed denominator)" if entry["in_full_suite"] else "No (diagnostic / auxiliary cohort)"
+    fs_count = catalog.get("full_suite_count", 59)
+    suite_text = (
+        f"Yes ({fs_count}-test active runnable denominator)"
+        if entry["in_full_suite"]
+        else "Unimplemented Tier-4 adapter backlog (planned; excluded from active runnable denominator)"
+        if entry.get("in_unimplemented_backlog")
+        else "No (diagnostic / auxiliary cohort)"
+    )
     law_badges = " · ".join(
         f"[{law_by_id[lid]['short_label']}](../LAWS_HUB.md#{lid})"
         for lid in doc["laws"]
@@ -1869,16 +1991,17 @@ def render_laws_hub(root: Path, catalog: dict[str, Any]) -> str:
         "",
         "## Current Laws Overview",
         "",
-        "| Law | Domain Level | Fundamental Question | Probing Experiments | Theory |",
-        "| --- | --- | --- | ---: | --- |",
+        "| Law | Status | Domain Level | Fundamental Question | Probing Experiments | Theory |",
+        "| --- | :---: | --- | --- | ---: | --- |",
     ]
 
     for law in laws_reg["laws"]:
         lid = law["id"]
         probing = [e for e in exps.values() if lid in e["top_laws"]]
         tlink = _rel_link(root, hub_path, doc_path, f"{law['short_label']} Section", law.get("doc_anchor"))
+        law_status = str(law.get("status") or "active")
         lines.append(
-            f"| **[{law['short_label']}](#{lid})** | {_md_cell(law.get('domain_level', law['title']))} | "
+            f"| **[{law['short_label']}](#{lid})** | `{_md_cell(law_status)}` | {_md_cell(law.get('domain_level', law['title']))} | "
             f"{_md_cell(law.get('question', ''))} | {len(probing)} | {tlink} |"
         )
     lines.append("")

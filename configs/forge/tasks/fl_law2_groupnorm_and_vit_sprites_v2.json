@@ -1,0 +1,126 @@
+{
+  "schema_version": 1,
+  "id": "fl_law2_groupnorm_and_vit_sprites_v2",
+  "description": "Learn all 4 structured 32x32 RGB geometric sprite classes with crisp template fidelity and balanced mass using a compact ResNet+GroupNorm + Patch-4 ViT critic over a calibrated 1600-step budget.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law2_groupnorm_and_vit_sprites_v2"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law2_groupnorm_and_vit_sprites_v2",
+    "steps": 1600,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.05,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law2_groupnorm_and_vit_sprites_v2",
+      "case_id": "fl_law2_groupnorm_and_vit_sprites_v2",
+      "kind": "fl_law2_groupnorm_and_vit_sprites_v2",
+      "law": "law2",
+      "defects": [
+        "L2-5",
+        "G4"
+      ],
+      "title": "Law 2 (v2): 32x32 4-class RGB sprites with ResNet+GroupNorm + Patch-4 ViT critic (1600 steps)",
+      "goal": "Learn all 4 structured 32x32 RGB geometric sprite classes with crisp template fidelity and balanced mass using a compact ResNet+GroupNorm + Patch-4 ViT critic over a calibrated 1600-step budget.",
+      "target": "4-class uniform 32x32x3 RGB geometric sprites (red ring, green cross, blue frame, gold diamond) in [0, 1] with sigma=0.02 pixel jitter.",
+      "resources": {
+        "num_particles": 64,
+        "z_dim": 8,
+        "batch_size": 32
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.05,
+        "standardize": false
+      },
+      "model": {
+        "family": "resnet_gn_vit_sprites32",
+        "image_size": 32,
+        "channels": 3,
+        "gen_channels": 32,
+        "critic_channels": 16,
+        "vit_dim": 32,
+        "vit_heads": 4,
+        "patch_size": 4
+      },
+      "steps": 1600,
+      "eval_samples": 512,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "image"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law2_groupnorm_and_vit_sprites_v2",
+    "eval_samples": 512,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "mode_coverage",
+        ">=",
+        1.0
+      ],
+      [
+        "sprite_hq",
+        ">=",
+        0.85
+      ],
+      [
+        "template_rmse",
+        "<=",
+        0.12
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.14
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_123.py": "ba76986d5fd69d474518a9430b757311cfc998ec76666d067ae43b62edc2b86a",
+      "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 4096,
+    "cpu_threads": 1,
+    "timeout_seconds": 1500
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

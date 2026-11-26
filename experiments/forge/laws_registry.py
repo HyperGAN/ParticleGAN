@@ -6,6 +6,7 @@ replaced as mathematical and empirical evidence advances.
 """
 from __future__ import annotations
 
+from collections.abc import Iterable
 from copy import deepcopy
 from pathlib import Path
 import re
@@ -132,6 +133,32 @@ def top_level_laws(root: Path | str, load=None) -> list[dict]:
     """Return ordered top-level law definitions from ``configs/forge/laws.json``."""
     registry = load_laws(root, load=load)
     return list(registry["laws"]) if registry is not None else []
+
+
+def laws_by_status(
+    root: Path | str,
+    statuses: str | Iterable[str],
+    load=None,
+) -> list[dict]:
+    """Return ordered top-level laws whose ``status`` matches ``statuses``."""
+    allowed = {statuses} if isinstance(statuses, str) else set(statuses)
+    if not allowed or not allowed.issubset(VALID_LAW_STATUSES):
+        invalid = sorted(allowed - VALID_LAW_STATUSES)
+        raise ValueError(
+            f"laws registry: status filter {invalid or sorted(allowed)!r} "
+            f"must be one of {sorted(VALID_LAW_STATUSES)}"
+        )
+    return [law for law in top_level_laws(root, load=load) if law["status"] in allowed]
+
+
+def active_laws(root: Path | str, load=None) -> list[dict]:
+    """Return ordered top-level laws with ``status == 'active'``."""
+    return laws_by_status(root, "active", load=load)
+
+
+def provisional_laws(root: Path | str, load=None) -> list[dict]:
+    """Return ordered top-level laws with ``status == 'provisional'``."""
+    return laws_by_status(root, "provisional", load=load)
 
 
 def top_level_law_ids(root: Path | str, load=None) -> list[str]:
