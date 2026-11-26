@@ -186,6 +186,7 @@ def test_fixed_denominator_counts_held_and_missing_tests():
 
 def test_committed_inventory_reports_against_the_fixed_dated_list():
     fixed = load_fixed_test_list(ROOT)
+    prior_1123 = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-23.json")
     prior_1118 = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-18.json")
     prior_1112 = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-12.json")
     prior_list = load_fixed_test_list(ROOT, "configs/forge/leaderboards/technique-inventory-full-suite-2026-11-06.json")
@@ -194,14 +195,19 @@ def test_committed_inventory_reports_against_the_fixed_dated_list():
     assert prior_list and prior_list["dated"] == "2026-11-06" and len(prior_list["tests"]) == 61
     assert prior_1112 and prior_1112["dated"] == "2026-11-12" and len(prior_1112["tests"]) == 64
     assert prior_1118 and prior_1118["dated"] == "2026-11-18" and len(prior_1118["tests"]) == 69
-    assert fixed and fixed["dated"] == "2026-11-23" and len(fixed["tests"]) == 71
+    assert prior_1123 and prior_1123["dated"] == "2026-11-23" and len(prior_1123["tests"]) == 71
+    assert fixed and fixed["dated"] == "2026-11-25" and len(fixed["tests"]) == 59
+    assert len(fixed["unimplemented_backlog"]) == 12
+    assert set(fixed["tests"]) | set(fixed["unimplemented_backlog"]) == set(prior_1123["tests"])
+    assert not (set(fixed["tests"]) & set(fixed["unimplemented_backlog"]))
     view = views.load_view(ROOT, "discriminator_stability")
-    assert set(fixed["tests"]) - set(previous["tests"]) == {a["task"] for a in view["assignments"] if a["importance"] == "stretch"}
+    assert set(prior_1123["tests"]) - set(previous["tests"]) == {a["task"] for a in view["assignments"] if a["importance"] == "stretch"}
     text = (ROOT / "reports/forge/technique-inventory.md").read_text()
     section = text.split("## Full-suite results — failures included", 1)[1].split("## ", 1)[0]
-    assert f"fixed test list `{fixed['id']}`" in section
+    published_list = fixed if f"fixed test list `{fixed['id']}`" in section else prior_1123
+    assert f"fixed test list `{published_list['id']}`" in section
     rows = [line for line in section.splitlines() if line.startswith("| [")]
-    assert rows and all(line.split(" | ")[6] == str(len(fixed["tests"])) for line in rows)
+    assert rows and all(line.split(" | ")[6] == str(len(published_list["tests"])) for line in rows)
     assert all("declared candidate card" in line for line in rows)
 
 

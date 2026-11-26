@@ -89,6 +89,14 @@ flowchart LR
 | **RHBI** | `rhbi-v12` | NVIDIA RTX A6000 | `COMPLETED` | 590.59 | 27.1 | 3706.6 | [RHBI](../families/rhbi.md) |
 | **bcap-dualnorm** | `recipe-prior-refactor-bcap-pure-v1` | NVIDIA RTX A6000 | `COMPLETED` | 3116.94 | 5.0 | 2086.3 | [bcap-dualnorm](../families/bcap-dualnorm.md) |
 
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 558 J | completed_updates=13, finite_update_fraction=1, first_update_ms=739.3, images_per_second=456.3 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+
 ## Reproduce This Experiment
 
 ```bash

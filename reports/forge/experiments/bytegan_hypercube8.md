@@ -84,17 +84,41 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-bc3debd3fa5e) | — |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed bytegan_hypercube8 gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-1bf9d7d34422) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-1bf9d7d34422) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-1bf9d7d34422) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-1bf9d7d34422) | — |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+
+### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
+
+*Diagnostic readouts and Colab matched-GPU receipts for `four-laws-adherence-v1` (protocol seed `0`, unchanged recipes; research telemetry only — separate from ordinary selected-cohort qualification above and confers no qualification or default-adoption credit):*
+
+| Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
+| --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 2.77 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.039, mass_tv=0 | [420a96196e63413faf636eea84e56e14.json](../technique-receipts/420a96196e63413faf636eea84e56e14.json) |
+| `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 8.04 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.035, mass_tv=0 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `unified-v13` | `unified` | NVIDIA L4 | **PASS** | — | 5.33 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.059, mass_tv=0 | [80dc3923025f41cab0e45b7caedc9f52.json](../technique-receipts/80dc3923025f41cab0e45b7caedc9f52.json) |
+| `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 7.13 kJ (J-to-PASS) | collision_count=0, finite_fraction=1, latent_nn_hamming_mean=1.059, mass_tv=0 | [e613162ae630405b9b6b9b25c7702b83.json](../technique-receipts/e613162ae630405b9b6b9b25c7702b83.json) |
+| `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 4.85 kJ | collision_count=251, finite_fraction=1, latent_nn_hamming_mean=0.02734, mass_tv=0.9512 | [29c63454d5264f249a9b3cdb9c3d3105.json](../technique-receipts/29c63454d5264f249a9b3cdb9c3d3105.json) |
+| `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 6.30 kJ | collision_count=202, finite_fraction=1, latent_nn_hamming_mean=0.9844, mass_tv=0.7734 | [01d79df6167b485987a8b8c7b1c7ae11.json](../technique-receipts/01d79df6167b485987a8b8c7b1c7ae11.json) |
+| `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 5.44 kJ | collision_count=220, finite_fraction=1, latent_nn_hamming_mean=0.07422, mass_tv=0.8555 | [2bd9f00c704e4427af5d39533bb5bb0d.json](../technique-receipts/2bd9f00c704e4427af5d39533bb5bb0d.json) |
+| `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 7.91 kJ | collision_count=68, finite_fraction=1, latent_nn_hamming_mean=0.6641, mass_tv=0.3184 | [1e3d404cf45d4447976d18dafc3329d0.json](../technique-receipts/1e3d404cf45d4447976d18dafc3329d0.json) |
+| `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **FAIL** | — | 4.84 kJ | collision_count=172, finite_fraction=1, latent_nn_hamming_mean=0.2031, mass_tv=0.6777 | [9f51b50fba5547ff8047c402d6995ef5.json](../technique-receipts/9f51b50fba5547ff8047c402d6995ef5.json) |
+| `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 2.70 kJ | collision_count=180, finite_fraction=1, latent_nn_hamming_mean=0.2812, mass_tv=0.7031 | [d70e447e7f29442b9a1c089171293e50.json](../technique-receipts/d70e447e7f29442b9a1c089171293e50.json) |
+| `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 2.98 kJ | collision_count=182, finite_fraction=1, latent_nn_hamming_mean=0.3047, mass_tv=0.7168 | [eba0337fea974ce79b6014be5984db0b.json](../technique-receipts/eba0337fea974ce79b6014be5984db0b.json) |
+| `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 2.06 kJ | collision_count=203, finite_fraction=1, latent_nn_hamming_mean=0.1523, mass_tv=0.7773 | [603658014ba445d2936e6291ff5722f3.json](../technique-receipts/603658014ba445d2936e6291ff5722f3.json) |
+| `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 2.07 kJ | collision_count=202, finite_fraction=1, latent_nn_hamming_mean=0.2148, mass_tv=0.7031 | [db45cd86fb354b76899614af93ef1d83.json](../technique-receipts/db45cd86fb354b76899614af93ef1d83.json) |
+| `rhbi-v12` | `rhbi` | NVIDIA L4 | **FAIL** | — | 15.10 kJ | collision_count=131, finite_fraction=1, latent_nn_hamming_mean=0.3398, mass_tv=0.4902 | [223f1f23f6c645638571613e8602c673.json](../technique-receipts/223f1f23f6c645638571613e8602c673.json) |
+| `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 19.11 kJ | collision_count=111, finite_fraction=1, latent_nn_hamming_mean=0.2891, mass_tv=0.418 | [a6b4d33aba6943eda1e376b0bf5b844f.json](../technique-receipts/a6b4d33aba6943eda1e376b0bf5b844f.json) |
+| `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | — | 17.48 kJ | collision_count=101, finite_fraction=1, latent_nn_hamming_mean=0.3828, mass_tv=0.373 | [4cbcb43f206c4c668c381b268d433d50.json](../technique-receipts/4cbcb43f206c4c668c381b268d433d50.json) |
 
 ## Reproduce This Experiment
 

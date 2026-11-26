@@ -43,7 +43,7 @@ def delegated_fields(candidate, task):
         owned = BEHAVIOR_HOST_FIELDS
         if host != "ae_gan_hold":
             owned = owned | {"routing_temperature", "distance_reduction"}
-    elif task.get("adapter") == "public_api_model_toy":
+    elif task.get("adapter") in {"public_api_model_toy", "public_api_model_toy_v2"}:
         owned = RESOURCE_FIELDS | set(task["execution"].get("recipe_fields", {}))
     else:
         owned = RESOURCE_FIELDS

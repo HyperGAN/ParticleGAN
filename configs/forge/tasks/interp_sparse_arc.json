@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
   "id": "interp_sparse_arc",
-  "description": "Learn 12 zero-sigma ParticlePrior locations on a 270-degree 2D circular arc (R=2.0, sigma=0.03) without MoG smoothing so unseen latent k-NN chords remain on the curved manifold, cover >=22/32 arc bins, and progress smoothly without Voronoi snapping.",
+  "description": "Learn 16 zero-sigma ParticlePrior locations on a 270-degree 2D circular arc (R=2.0, sigma=0.03) without MoG smoothing over 900 steps so unseen latent k-NN chords remain on the curved manifold, cover >=22/32 arc bins, and progress smoothly without Voronoi snapping.",
   "adapter": "particle_interpolation",
   "retained_question_ids": [
     "stretch-interp-sparse-arc"
@@ -13,7 +13,7 @@
   "execution": {
     "initializer": "deterministic_orthogonal",
     "host": "interp_sparse_arc",
-    "steps": 600,
+    "steps": 900,
     "prior": {
       "kind": "particle_cloud",
       "sigma": 0.0,
@@ -28,7 +28,7 @@
       "kind": "interp_sparse_arc",
       "target": "270-degree 2D circular arc (R=2.0, theta in [-pi/4, 5pi/4], sigma=0.03)",
       "resources": {
-        "num_particles": 12,
+        "num_particles": 16,
         "z_dim": 2,
         "batch_size": 128
       },
@@ -48,7 +48,7 @@
           0.75
         ]
       },
-      "steps": 600
+      "steps": 900
     }
   },
   "evaluation": {
@@ -99,7 +99,7 @@
       ]
     ],
     "sources": {
-      "benchmarks/toy_audit/api_interpolation.py": "6e617abd2d293609c65742771f0d6e7d0bafff75b7d2c812e62a55ae72945e31",
+      "benchmarks/toy_audit/api_interpolation.py": "1290d8c8500fd2635576e8ede2c2a82e4cd2e4895b4a30c1452809c9a78ef82c",
       "experiments/forge/interpolation.py": "bba72f3a9fa59bc5bcaad558f8d5248475913322bf380c05b0ca7179f4af2fa2"
     }
   },

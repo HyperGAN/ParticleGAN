@@ -271,18 +271,22 @@ def test_law3a_connectedness_conformal_horizon_and_dead_zone_free_orphan():
     assert torch.allclose(exy_m, exx_m, atol=1e-6), "Feydy symmetry violated at X == Y"
     assert float(exy_m[:32, :32].mean().item()) < 0.7 * float(exy_m[32:, 32:].mean().item())
 
-    # Dead-zone-free orphan macro: shifted orphan at ~2.0 * rho (inside legacy [1.5, 2.8] rho dead zone!)
+    # T1 orphan macro thresholds: silent at 2.0*rho (<=2.80*rho), active at 3.5*rho (>2.80*rho, r_loc>3.52)
     rho = 3.0
     y_mode0 = torch.zeros(24, 2) + 0.1 * torch.randn(24, 2, generator=g)
     y_orphan = torch.tensor([6.5, 0.0]) + 0.1 * torch.randn(24, 2, generator=g)
     y_two = torch.cat([y_mode0, y_orphan], dim=0)
     x_stuck = (torch.zeros(48, 2) + 0.1 * torch.randn(48, 2, generator=g)).requires_grad_(True)
     ch_xy = torch.full((48, 48), 0.2)
-    ch_xy[:, 24:] = 2.0 * rho  # strictly inside legacy dead zone (< 2.80 * rho), active under 1.35 * rho!
+    ch_xy[:, 24:] = 2.0 * rho
     prs = torch.full((48,), 0.5 / 48.0)
     pcs = torch.cat([torch.zeros(24), torch.full((24,), 1.0 / 48.0)])
-    l_orph = T._orphan_macro_loss(x_stuck, y_two, ch_xy, prs, pcs, rho=rho, g_conn=0.0)
-    assert float(l_orph.item()) > 0.05, f"Dead-zone-free orphan macro failed to activate at 2.0*rho: {l_orph}"
+    l_near = T._orphan_macro_loss(x_stuck, y_two, ch_xy, prs, pcs, rho=rho, g_conn=0.0)
+    assert float(l_near.item()) == 0.0, f"T1 orphan macro false-triggered at 2.0*rho: {l_near}"
+    ch_xy_far = ch_xy.clone()
+    ch_xy_far[:, 24:] = 3.5 * rho  # strictly above 2.80 * rho with r_loc > 3.52
+    l_orph = T._orphan_macro_loss(x_stuck, y_two, ch_xy_far, prs, pcs, rho=rho, g_conn=0.0)
+    assert float(l_orph.item()) > 0.05, f"T1 orphan macro failed to activate at 3.5*rho: {l_orph}"
     l_orph.backward()
     assert x_stuck.grad is not None and float(x_stuck.grad[:, 0].mean().item()) < -1e-4  # pulls toward +6.5!
 

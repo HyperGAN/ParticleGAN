@@ -1105,7 +1105,12 @@ def _full_suite_section(root, publication, page, selected):
     if claims:
         lines += ["Selection versus holdout for recipes that descend from a registered search:", "", *claims, ""]
     if fixed:
-        added = sorted(set(current) - set(names))
+        backlog = list(fixed.get("unimplemented_backlog") or [])
+        if backlog:
+            lines += [f"Unimplemented Tier-4 adapter backlog ({len(backlog)} planned tests, kept out of the "
+                      f"{len(names)}-test active runnable denominator): "
+                      + ", ".join(f"`{name}`" for name in backlog) + ".", ""]
+        added = sorted(set(current) - set(names) - set(backlog))
         retired = sorted(set(names) - set(current))
         if added:
             lines += [f"Tests added to the views after {fixed['dated']} (outside this fixed denominator; "
@@ -1423,25 +1428,53 @@ def _quick_nav_bar(root, page, progress, *, on_leaderboard=False):
     return " · ".join(items)
 
 
-def _r256_measurement(publication, row):
+def _r256_measurement(publication, row, *, root=None):
     """Return (update_ms_median, receipt_path) for dcgan_performance_r256 of this exact recipe, else (None, None)."""
-    evidence = publication.get("scaling_performance")
-    if not evidence or not row:
+    if not row:
         return None, None
     family_id = row.get("trainer_family")
     candidate_id = row.get("candidate_id")
     if not family_id or not candidate_id:
         return None, None
-    from .scaling_publication import performance_status
-    for record in evidence.get("records", []):
-        if (record.get("task_id") == "dcgan_performance_r256"
-                and record.get("trainer_family") == family_id
-                and record.get("candidate_id") == candidate_id):
-            result = record.get("result", {})
-            if performance_status(result) == "COMPLETE":
-                median = result.get("metrics", {}).get("update_ms_median")
-                if isinstance(median, (int, float)):
-                    return float(median), record.get("receipt")
+    evidence = publication.get("scaling_performance")
+    if evidence:
+        from .scaling_publication import performance_status
+        for record in evidence.get("records", []):
+            if (record.get("task_id") == "dcgan_performance_r256"
+                    and record.get("trainer_family") == family_id
+                    and record.get("candidate_id") == candidate_id):
+                result = record.get("result", {})
+                if performance_status(result) == "COMPLETE":
+                    median = result.get("metrics", {}).get("update_ms_median")
+                    if isinstance(median, (int, float)):
+                        return float(median), record.get("receipt")
+
+    # Fallback to provenance-bound solo measurements stored in scaling-performance.json.
+    measurement_sources = []
+    if isinstance(evidence, dict) and isinstance(evidence.get("measurements"), list):
+        measurement_sources.extend(evidence["measurements"])
+    if root is not None:
+        perf_path = Path(root) / "reports/forge/scaling-performance.json"
+        if perf_path.is_file():
+            try:
+                manifest = read_json(perf_path)
+                if isinstance(manifest.get("measurements"), list):
+                    measurement_sources.extend(manifest["measurements"])
+            except Exception:
+                pass
+    for item in measurement_sources:
+        if not isinstance(item, dict):
+            continue
+        if (item.get("task_id") == "dcgan_performance_r256"
+                and (item.get("trainer_family") or item.get("family_id")) == family_id
+                and item.get("candidate_id") == candidate_id
+                and item.get("contended") is not True
+                and str(item.get("status") or "COMPLETE").upper() == "COMPLETE"):
+            median = item.get("median_ms")
+            if median is None and isinstance(item.get("metrics"), dict):
+                median = item["metrics"].get("update_ms_median")
+            if isinstance(median, (int, float)) and not isinstance(median, bool):
+                return float(median), item.get("source_readout") or item.get("receipt")
     return None, None
 
 
@@ -1514,7 +1547,7 @@ def _executive_scorecard_section(root, publication, page, selected, report_tiers
             f"T{t}: {cohort['tiers'][t]['passed']}/{cohort['tiers'][t]['total']}"
             for t in report_tiers
         )
-        r256_ms, r256_receipt = _r256_measurement(publication, row)
+        r256_ms, r256_receipt = _r256_measurement(publication, row, root=root)
         if r256_ms is not None:
             speed_text = f"{r256_ms:,.2f} ms"
             if r256_receipt and (root / r256_receipt).is_file():
@@ -1540,7 +1573,11 @@ def _laws_matrix_section(root, progress, page, selected):
     if doc_path and (root / doc_path).is_file():
         ref_links.append(_doc_link(root, page, "Current laws framework", doc_path))
     ref_suffix = (" See " + " · ".join(ref_links) + "." if ref_links else "")
-    header = "| Family | " + " | ".join(f"{cell(law['short_label'])}: {cell(law['title'])}" for law in laws) + " |"
+    header = "| Family | " + " | ".join(
+        f"{cell(law['short_label'])}: {cell(law['title'])}"
+        + (" *(provisional)*" if law.get("status") == "provisional" else "")
+        for law in laws
+    ) + " |"
     divider = "| --- | " + " | ".join(["---"] * len(laws)) + " |"
     lines = [
         "## How families address the current laws", "",
@@ -1580,7 +1617,7 @@ def _family_executive_summary(root, publication, page, family, report_tiers):
     row = _cohort_row(publication, cohort)
     candidate_id = row.get("candidate_id", "unavailable")
     counts, fixed = _cohort_full_suite_counts(root, progress, cohort)
-    r256_ms, r256_receipt = _r256_measurement(publication, row)
+    r256_ms, r256_receipt = _r256_measurement(publication, row, root=root)
     if r256_ms is not None:
         speed_text = f"{r256_ms:,.2f} ms/step"
         if r256_receipt and (root / r256_receipt).is_file():
@@ -1654,7 +1691,7 @@ def _family_laws_section(root, page, family, laws_registry_data):
         entry = mechanisms.get(law["id"])
         if not entry:
             continue
-        law_label = f"{law['short_label']}: {law['title']}"
+        law_label = f"{law['short_label']}: {law['title']}" + (" (provisional)" if law.get("status") == "provisional" else "")
         if doc_path and (root / doc_path).is_file():
             law_cell = _doc_link(root, page, law_label, doc_path, law.get("doc_anchor"))
         else:
@@ -1667,8 +1704,9 @@ def _family_laws_section(root, page, family, laws_registry_data):
         if not entry:
             continue
         status_label = _LAW_STATUS_DISPLAY.get(entry["status"], entry["status"])
+        prov_tag = " · provisional law" if law.get("status") == "provisional" else ""
         lines += [
-            f"### {law['short_label']} — {law['title']} ({status_label})", "",
+            f"### {law['short_label']} — {law['title']} ({status_label}{prov_tag})", "",
             f"*{law['question']}*", "",
             f"- **Mechanism:** {entry['mechanism']}",
             f"- **How it works:** {entry['how_it_works']}",
@@ -2045,6 +2083,31 @@ def _displayed_for(view, family_id):
     return families is None or family_id in families
 
 
+def _diagnostic_passes_for_row(root, row):
+    """Read-only lookup of compatible diagnostic PASS receipts for one selected row."""
+    if not isinstance(row, dict) or not row.get("candidate_id"):
+        return {}
+    from .views import compatible_diagnostic_passes
+    bindings = row.get("bindings") if isinstance(row.get("bindings"), dict) else {}
+    return compatible_diagnostic_passes(
+        root,
+        candidate_id=row.get("candidate_id"),
+        candidate_revision=row.get("candidate_revision"),
+        source_digest=bindings.get("source_digest"),
+    )
+
+
+def display_task_status(result, diag_pass=None):
+    """Display status separating compatible diagnostic passes from UNKNOWN/NOT_RUN.
+
+    Never alters recorded ``result["status"]``, qualification tier, or selected pass totals.
+    """
+    status = str(result.get("status") or "UNKNOWN") if isinstance(result, dict) else "UNKNOWN"
+    if status in {"UNKNOWN", "NOT_RUN"} and isinstance(diag_pass, dict) and diag_pass.get("gate_status") == "PASS":
+        return "DIAG_PASS"
+    return status
+
+
 def render_family(root: Path, publication: dict, family: dict) -> str:
     page = root / family["page"]
     progress = publication["family_progress"]
@@ -2081,6 +2144,7 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
                     if is_stretch(entry["assignment"])]
     for cohort in family["cohorts"]:
         row = (publication["rows"] + publication.get("historical_family_rows", []))[cohort["row_index"]]
+        diag_passes = _diagnostic_passes_for_row(root, row)
         base = cohort["anchor"]
         held_views = any("held" in view for view in cohort["views"])
         config = Path("configs/forge/configurations") / (row["candidate_id"] + ".json")
@@ -2184,7 +2248,8 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
                     for name, memberships in sorted(group.items())]
 
             def outcome(result, _):
-                return [result["status"], _definition_label(result)]
+                shown = display_task_status(result, diag_passes.get(result.get("task_id")))
+                return [shown, _definition_label(result)]
 
             lines += [*_heading(3, "Tier " + tier + " across views", base + "-tier-" + tier),
                       "Shared experiments appear once in this list; the family numerator/denominator count their view requirements.", "",
@@ -2274,9 +2339,10 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
                 for assignment in assignments:
                     name = assignment["task"]
                     result = cohort["tasks"][name]
+                    shown = display_task_status(result, diag_passes.get(name))
                     lines.append("| " + " | ".join([
                         link(root, page, name, family["page"], base + "-experiment-" + name),
-                        role_cell(root, page, assignment), result["status"], _definition_label(result)]) + " |")
+                        role_cell(root, page, assignment), shown, _definition_label(result)]) + " |")
                 lines += ["", "</details>", ""]
         lines += [*_heading(2, "Experiment metrics and pass criteria", base + "-experiments"), "One evidence entry per experiment is shared by its view rows. "
                   "Test-definition changes describe differences from the recorded run, independently of whether it was executed. "
@@ -2288,12 +2354,24 @@ def render_family(root: Path, publication: dict, family: dict) -> str:
             header_links = [_existing_link(root, page, "Current experiment declaration", task_path)]
             if (root / exp_page).is_file():
                 header_links.append(link(root, page, "Experiment page", exp_page.as_posix()))
-            lines += [*_heading(3, name, base + "-experiment-" + name), f"**{name}: {result['status']}**. " +
+            diag_pass = diag_passes.get(name)
+            shown_status = display_task_status(result, diag_pass)
+            lines += [*_heading(3, name, base + "-experiment-" + name), f"**{name}: {shown_status}**" +
+                      (f" *(recorded selected-cohort status: `{result['status']}`; separate diagnostic pass does not alter qualification)*"
+                       if shown_status == "DIAG_PASS" else "") + ". " +
                       " · ".join(header_links) + ".", "",
                       "<details>",
-                      f"<summary>Metrics, pass criteria &amp; provenance ({cell(result['status'])})</summary>", "",
+                      f"<summary>Metrics, pass criteria &amp; provenance ({cell(shown_status)})</summary>", "",
                       "Test definition: **" + _definition_label(result) + "**. " + cell(result["coverage_reason"]) +
                       " " + cell(result["reason"]), ""]
+            if shown_status == "DIAG_PASS" and diag_pass:
+                lines += [
+                    f"Separate diagnostic evidence: **DIAG_PASS** (`{cell(diag_pass.get('evidence_scope'))}`, "
+                    f"cohort match `{cell(diag_pass.get('cohort_match'))}`, "
+                    + _existing_link(root, page, str(diag_pass.get("record_id") or "diagnostic readout"), diag_pass["readout"])
+                    + "; excluded from ordinary qualification and selected-cohort pass counts).",
+                    "",
+                ]
             attempt = result.get("run_attempt")
             correction = result.get("evidence_correction") or (attempt or {}).get("evidence_correction")
             if correction:

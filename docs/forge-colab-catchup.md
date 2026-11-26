@@ -9,7 +9,7 @@ Independent agents can work on separate branches with **zero central coordinator
 ```text
 origin/develop (caught-up cache)
   ├── Branch A: adds new experiment `foo_test`
-  │     └── `python ops/colab_forge.py catchup --through-tier 1 --workers 4`
+  │     └── `python ops/colab_forge.py catchup --through-tier 1 --workers 2`
   │         fills ONLY (existing families × foo_test)
   │         writes content-addressed ~4 KB `reports/forge/technique-receipts/<id>.json`
   │
@@ -19,16 +19,18 @@ origin/develop (caught-up cache)
   │         writes content-addressed ~4 KB `reports/forge/technique-receipts/<id>.json`
   │
   └── Branch C merges A + B:
-        └── `python ops/colab_forge.py catchup --through-tier 1 --workers 4 --publish-hf`
+        └── `python ops/colab_forge.py catchup --through-tier 1 --workers 2 --publish-hf`
             sees ONLY (bar-v1 × foo_test) is missing → spins up 1 right-sized GPU,
             fills that single cell, projects its receipt, and publishes locally to HF
 ```
 
 ### Why it stays fast and conflict-free
 - **Content-addressed receipts:** Every completed Forge attempt projects via Forge's official `project_receipt()` to `reports/forge/technique-receipts/<attempt_id>.json` (~4 KB, passes `scripts/check_repo_bloat.py`, includes native hardware NVML `J-to-PASS` energy telemetry). Independent branches never touch the same receipt file.
+- **Actual-training GIF capture enabled by default (`--render-media`):** Both `catchup` and `run` automatically render certified actual-training GIFs on the Colab VM from saved observations (`optimizer_updates_added=0`, `sampling_draws_added=0`, `qualification_input=false`) and download them to `runs/forge/colab/<run-id>/rendered_media/` (pass `--no-render-media` to opt out). When `--publish-hf` is passed, newly rendered selected-family GIFs are automatically ingested into `reports/forge/leaderboard-media-index.json` and uploaded to Hugging Face right before refreshing `data/leaderboard.json`.
 - **Smart cache invalidation:**
   - `--cache-mode branch` *(default)*: skips every `(candidate, task)` cell already satisfied by a committed receipt or local attempt. Automatically checks `git diff --name-only origin/develop...HEAD` so **modifying `configs/forge/ideas/<cand>.json` invalidates only that candidate**, and **modifying `configs/forge/tasks/<task>.json` invalidates only that task** across families, without rerunning unchanged work.
   - `--cache-mode energy`: fills any cell missing hardware NVML `J-to-PASS` telemetry (`cost.energy`).
+  - `--cache-mode media`: fills any cell missing a verified actual-training GIF in `reports/forge/leaderboard-media-index.json` (always keeps `--render-media` enabled even if `--no-render-media` was passed).
   - `--cache-mode exact` (or `--strict-source`): requires matching current `source_digest` (rebuilds everything after core `particlegan/` changes).
   - Statically preflight-blocked `(candidate, task)` pairs (e.g., unsupported prior/formulation combinations) are reported under `blocked_count` and never allocate Colab GPUs.
 - **Unpushed branches work out of the box:** If `HEAD` is not yet pushed to `origin`, `colab_forge.py` packs a tiny `git bundle` (`merge-base(origin/develop, HEAD)..HEAD`) plus an overlay tarball of any dirty `particlegan/` / `experiments/` / `configs/forge/` files and syncs them to each warm VM.
@@ -50,17 +52,17 @@ origin/develop (caught-up cache)
 # 1. Preview the exact cache diff and GPU plan (0 Colab GPUs allocated)
 python ops/colab_forge.py catchup --through-tier 1 --cache-mode branch --gpu auto --plan-only
 
-# 2. Catch up missing cells in parallel on Colab (up to 4 warm GPUs)
-python ops/colab_forge.py catchup --through-tier 1 --workers 4 --gpu auto
+# 2. Catch up missing cells in parallel on Colab (default 2 warm GPUs; Colab caps concurrent GPU allocations at ~2)
+python ops/colab_forge.py catchup --through-tier 1 --workers 2 --gpu auto
 
 # 3. Catch up and immediately publish refreshed Parquet/JSON tables to Hugging Face
-python ops/colab_forge.py catchup --through-tier 1 --workers 4 --gpu auto --compile --publish-hf
+python ops/colab_forge.py catchup --through-tier 1 --workers 2 --gpu auto --compile --publish-hf
 
 # 4. Fill missing hardware NVML J-to-PASS telemetry on a matched NVIDIA L4 cohort
-python ops/colab_forge.py catchup --through-tier 1 --cache-mode energy --gpu L4 --workers 4 --publish-hf
+python ops/colab_forge.py catchup --through-tier 1 --cache-mode energy --gpu L4 --workers 2 --publish-hf
 
 # 5. Full rebuild for current source digest (e.g. after editing particlegan/)
-python ops/colab_forge.py catchup --through-tier 1 --cache-mode exact --gpu auto --workers 4
+python ops/colab_forge.py catchup --through-tier 1 --cache-mode exact --gpu auto --workers 2
 
 # 6. Run explicit CANDIDATE:STUDY pairs in parallel on matched L4s
 python ops/colab_forge.py run \

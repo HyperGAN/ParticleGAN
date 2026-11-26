@@ -285,6 +285,40 @@ def test_ephemeral_view_includes_transitive_dependencies(tmp_path: Path):
         assert sdoc_chk["scope"]["through_tier"] == len(tiers)
 
 
+def test_ephemeral_view_preserves_diagnostic_scope_for_four_laws_adherence(tmp_path: Path):
+    from experiments.forge.studies import validate_study
+    from experiments.forge.views import load_tasks, validate_view
+
+    all_tasks = load_tasks(cf.REPO_ROOT)
+    for tasks in (
+        ["fl_law1_aniso_unequal_modes", "fl_law1_noisy_atomic_codebook", "fl_law2_pure_adversarial_codim1"],
+        ["ring_extension"],
+        ["zero_tanh_rail_escape"],
+        ["gaussian1d_stability"],
+        ["dcgan_performance_r256"],
+    ):
+        unit = cf.CatchupUnit(
+            unit_id=f"fl-{tasks[0][:12]}",
+            candidate_id="unified-v14",
+            view_id="four-laws-adherence-v1",
+            through_tier=1,
+            gpu="L4",
+            tasks=tasks,
+            is_full_view_slice=False,
+            estimated_seconds=1800.0,
+        )
+        vf, sf, _sid = cf.build_ephemeral_catchup_bundle(cf.REPO_ROOT, unit, tmp_path)
+        assert vf is not None
+        vdoc = json.loads(vf.read_text(encoding="utf-8"))
+        sdoc = json.loads(sf.read_text(encoding="utf-8"))
+        validate_view(vdoc, all_tasks)
+        validate_study(sdoc)
+        assert vdoc["evidence_scope"] == "research_diagnostic"
+        assert all(a["importance"] == "diagnostic" and a["qualification_tier"] == 1 for a in vdoc["assignments"])
+        assert sdoc["scope"]["through_tier"] == 1
+        assert "law_groups" not in vdoc
+
+
 # ---------------------------------------------------------------------------
 # Hardened cmd_reap (default + isolated worker configs) & transport retries
 # ---------------------------------------------------------------------------
@@ -614,3 +648,129 @@ def test_start_retries_branch_bundle_upload_on_rc124(tmp_path: Path, monkeypatch
         assert upload_attempts == 2
     finally:
         cf._GLOBAL_REGISTRY.unregister(worker.worker_name)
+
+
+def test_render_media_enabled_by_default_with_opt_out():
+    parser = cf.build_parser()
+    catchup_default = parser.parse_args(["catchup"])
+    assert catchup_default.render_media is True
+
+    catchup_explicit = parser.parse_args(["catchup", "--render-media"])
+    assert catchup_explicit.render_media is True
+
+    catchup_disabled = parser.parse_args(["catchup", "--no-render-media"])
+    assert catchup_disabled.render_media is False
+
+    run_default = parser.parse_args(["run", "--job", "unified-v11:study-a"])
+    assert run_default.render_media is True
+
+    run_disabled = parser.parse_args(["run", "--job", "unified-v11:study-a", "--no-render-media"])
+    assert run_disabled.render_media is False
+
+
+def test_run_unit_renders_media_on_vm_by_default_and_skips_when_disabled(tmp_path: Path, monkeypatch):
+    worker = _make_test_worker(tmp_path)
+    unit = _make_test_unit()
+    study_file = tmp_path / "study.json"
+    study_file.write_text("{}", encoding="utf-8")
+
+    ssh_scripts: list[str] = []
+
+    def fake_run(cmd: list[str], **_kwargs) -> tuple[int, str]:
+        if "ssh" in cmd:
+            ssh_scripts.append(cmd[-1])
+        return 0, ""
+
+    monkeypatch.setattr(cf, "run_with_hard_timeout", fake_run)
+
+    worker.run_unit(unit, study_file=study_file, study_id="study-1")
+    worker.run_unit(unit, study_file=study_file, study_id="study-1", render_media=False)
+
+    assert len(ssh_scripts) == 2
+    assert "experiments.forge.leaderboard_media export-attempt" in ssh_scripts[0]
+    assert 'TAR_ITEMS+=("runs/forge/rendered_media")' in ssh_scripts[0]
+    assert "experiments.forge.leaderboard_media export-attempt" not in ssh_scripts[1]
+
+
+def test_execute_work_units_ingests_and_uploads_media_before_hf_inventory_publish(tmp_path: Path, monkeypatch):
+    run_dir = tmp_path / "run"
+    unit = _make_test_unit()
+    study_file = tmp_path / "study.json"
+    study_file.write_text("{}", encoding="utf-8")
+    unit.study_id = "study-1"
+    unit.study_path = str(study_file)
+
+    tar_path = run_dir / "unit-out.tar.gz"
+    gif_src = tmp_path / "ring16.gif"
+    gif_src.write_bytes(b"GIF89a\x01\x00\x01\x00\x00\x00\x00;")
+    run_dir.mkdir(parents=True, exist_ok=True)
+    with tarfile.open(tar_path, "w:gz") as tf:
+        tf.add(gif_src, arcname="runs/forge/rendered_media/att01/ring16_acquisition.gif")
+
+    events: list[str] = []
+
+    monkeypatch.setattr(cf, "prepare_branch_bundle", lambda _r, _d: {"sha": "a" * 40, "pushed": True})
+    monkeypatch.setattr(cf.ColabWorker, "start", lambda self: None)
+    monkeypatch.setattr(cf.ColabWorker, "stop", lambda self: None)
+
+    def fake_run_unit(self, u, *, study_file, study_id, ephemeral_view_file=None, render_media=True):
+        assert render_media is True
+        return {
+            "unit_id": u.unit_id,
+            "candidate_id": u.candidate_id,
+            "study_id": study_id,
+            "gpu": self.gpu,
+            "tasks": u.tasks,
+            "run_rc": 0,
+            "download_rc": 0,
+            "tarball": str(tar_path),
+            "elapsed_seconds": 1.0,
+        }
+
+    monkeypatch.setattr(cf.ColabWorker, "run_unit", fake_run_unit)
+
+    from experiments.forge import hf_publish, leaderboard_media
+
+    def fake_ingest(root, source_dirs, staging_dir, *, cohort_match="colab_replay_media", write_index=True):
+        events.append(f"ingest:{write_index}:{len(source_dirs)}")
+        return {
+            "copied": 1,
+            "skipped": 0,
+            "total_items": 1,
+            "staged_relpaths": ["media/forge/leaderboard/unified/unified-v12/ring16_acquisition.gif"],
+        }
+
+    def fake_upload(root, staging_dir, *, dry_run=False, only_relpaths=None, commit_message=None):
+        events.append(f"upload:{dry_run}:{sorted(only_relpaths or [])}")
+        return {"file_count": 1, "dry_run": dry_run}
+
+    def fake_publish(root, *, inventory=False, dry_run=False):
+        events.append(f"publish:{inventory}:{dry_run}")
+        return {"hf_revision": "deadbeef" * 5}
+
+    monkeypatch.setattr(leaderboard_media, "ingest_rendered_media_dirs", fake_ingest)
+    monkeypatch.setattr(leaderboard_media, "upload_staged_media_to_hf", fake_upload)
+    monkeypatch.setattr(hf_publish, "publish_to_hf", fake_publish)
+
+    summary = cf.execute_work_units(
+        tmp_path,
+        [unit],
+        workers=1,
+        stagger_seconds=0.0,
+        boot_timeout=30,
+        max_minutes=30,
+        idle_grace_minutes=5,
+        stall_minutes=10,
+        repo_url=cf.DEFAULT_REPO_URL,
+        run_dir=run_dir,
+        project_receipts=False,
+        publish_hf=True,
+        hf_dry_run=False,
+    )
+    assert summary["render_media"] is True
+    assert summary["rendered_media_gif_count"] == 1
+    assert events == [
+        "ingest:True:1",
+        "upload:False:['media/forge/leaderboard/unified/unified-v12/ring16_acquisition.gif']",
+        "publish:True:False",
+    ]

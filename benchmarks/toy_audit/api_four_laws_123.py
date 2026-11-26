@@ -60,6 +60,15 @@ TASKS: tuple[str, ...] = (
     "fl_law3_highd_orphan_d32",
 )
 
+V2_TASKS: tuple[str, ...] = (
+    "fl_law1_noisy_atomic_codebook_v2",
+    "fl_law1_highd_rank_d32_v2",
+    "fl_law2_groupnorm_and_vit_sprites_v2",
+    "fl_law3_highd_orphan_d32_v2",
+)
+
+ALL_TASKS: tuple[str, ...] = TASKS + V2_TASKS
+
 # ---------------------------------------------------------------------------
 # Frozen Task Specifications & Pre-Run Numerical Thresholds
 # ---------------------------------------------------------------------------
@@ -277,6 +286,184 @@ SPECS: dict[str, dict[str, Any]] = {
 HOST_DEFINITIONS: dict[str, dict[str, Any]] = SPECS
 
 # ---------------------------------------------------------------------------
+# Calibrated v2 Specifications & Thresholds (Preserving Frozen v1 Untouched)
+# ---------------------------------------------------------------------------
+
+V2_THRESHOLDS: dict[str, list[list[Any]]] = {
+    "fl_law1_noisy_atomic_codebook_v2": [
+        ["finite_fraction", "==", 1.0],
+        ["atom_recall", ">=", 0.96],
+        ["mass_tv", "<=", 0.15],
+        ["rms_nearest_dist", "<=", 0.08],
+        ["outlier_rate", "<=", 0.10],
+    ],
+    "fl_law1_highd_rank_d32_v2": [
+        ["finite_fraction", "==", 1.0],
+        ["modes", "==", 5],
+        ["core_eig_min", ">=", 0.25],
+        ["precision", ">=", 0.85],
+        ["mass_tv", "<=", 0.14],
+    ],
+    "fl_law2_groupnorm_and_vit_sprites_v2": [
+        ["finite_fraction", "==", 1.0],
+        ["mode_coverage", ">=", 1.0],
+        ["sprite_hq", ">=", 0.85],
+        ["template_rmse", "<=", 0.12],
+        ["mass_tv", "<=", 0.14],
+    ],
+    "fl_law3_highd_orphan_d32_v2": [
+        ["finite_fraction", "==", 1.0],
+        ["modes", "==", 5],
+        ["orphan_recall", ">=", 0.50],
+        ["precision", ">=", 0.85],
+        ["mass_tv", "<=", 0.14],
+        ["canon_plane_eig_min", ">=", 0.25],
+    ],
+}
+
+V2_SPECS: dict[str, dict[str, Any]] = {
+    "fl_law1_noisy_atomic_codebook_v2": {
+        "task_id": "fl_law1_noisy_atomic_codebook_v2",
+        "case_id": "fl_law1_noisy_atomic_codebook_v2",
+        "kind": "fl_law1_noisy_atomic_codebook_v2",
+        "law": "law1",
+        "defects": ["E10", "D-06", "Law1B-continuous-atom-ratio"],
+        "title": "Law 1 (v2): 64-atom noisy Zipf hexagonal codebook with P=160 & matched prior sigma",
+        "goal": (
+            "Capture all 64 non-hypercube hexagonal codebook atoms under sigma/Delta=0.02 "
+            "Gaussian jitter and 8:1 Zipf mass skew with P=160 particles and prior.sigma=0.010 <= target_sigma "
+            "(atom_recall>=0.96, mass_tv<=0.15, rms_nearest_dist<=0.08, outlier_rate<=0.10)."
+        ),
+        "target": (
+            "2D 8x8 staggered hexagonal 64-atom constellation (spacing Delta=0.65) with "
+            "Gaussian jitter sigma=0.02*Delta (0.013) and permuted Zipf(s=0.50) weights (8:1 skew)."
+        ),
+        "resources": {"num_particles": 160, "z_dim": 4, "batch_size": 128},
+        "prior": {"kind": "mog", "sigma": 0.010, "standardize": False},
+        "model": {
+            "family": "simple_mlp",
+            "hidden": 128,
+            "layers": 3,
+            "out_dim": 2,
+            "in_dim": 2,
+            "fourier": 3,
+        },
+        "steps": 1600,
+        "eval_samples": 4096,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "vector",
+    },
+    "fl_law1_highd_rank_d32_v2": {
+        "task_id": "fl_law1_highd_rank_d32_v2",
+        "case_id": "fl_law1_highd_rank_d32_v2",
+        "kind": "fl_law1_highd_rank_d32_v2",
+        "law": "law1",
+        "defects": ["L1-highd-rank", "P2-sketch-bias"],
+        "title": "Law 1 (v2): Haar-rotated R^32 full-32D covariance rank with P=512 particles",
+        "goal": (
+            "Preserve full 32D intra-mode covariance rank (core_eig_min>=0.25) across all 5 Haar-rotated "
+            "R^32 clusters with P=512 particles (>32 particles even on the 8% minority mode), without "
+            "subspace collapse or sketch Jensen shrinkage."
+        ),
+        "target": (
+            "Haar-rotated R^32 5-mode Gaussian mixture: 4 core modes at (+-2.2, +-2.2) with "
+            "widths [0.05, 0.09, 0.15, 0.22] and weights [0.36, 0.26, 0.18, 0.12] plus "
+            "distant 8% mode at (+7.5, 0.0) with width 0.08."
+        ),
+        "resources": {"num_particles": 512, "z_dim": 32, "batch_size": 128},
+        "prior": {"kind": "mog", "sigma": 0.05, "standardize": False},
+        "model": {
+            "family": "simple_mlp",
+            "hidden": 192,
+            "layers": 3,
+            "out_dim": 32,
+            "in_dim": 32,
+            "fourier": 0,
+        },
+        "steps": 1400,
+        "eval_samples": 6144,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "vector",
+    },
+    "fl_law2_groupnorm_and_vit_sprites_v2": {
+        "task_id": "fl_law2_groupnorm_and_vit_sprites_v2",
+        "case_id": "fl_law2_groupnorm_and_vit_sprites_v2",
+        "kind": "fl_law2_groupnorm_and_vit_sprites_v2",
+        "law": "law2",
+        "defects": ["L2-5", "G4"],
+        "title": "Law 2 (v2): 32x32 4-class RGB sprites with ResNet+GroupNorm + Patch-4 ViT critic (1600 steps)",
+        "goal": (
+            "Learn all 4 structured 32x32 RGB geometric sprite classes with crisp template "
+            "fidelity and balanced mass using a compact ResNet+GroupNorm + Patch-4 ViT critic "
+            "over a calibrated 1600-step budget."
+        ),
+        "target": (
+            "4-class uniform 32x32x3 RGB geometric sprites (red ring, green cross, blue frame, "
+            "gold diamond) in [0, 1] with sigma=0.02 pixel jitter."
+        ),
+        "resources": {"num_particles": 64, "z_dim": 8, "batch_size": 32},
+        "prior": {"kind": "mog", "sigma": 0.05, "standardize": False},
+        "model": {
+            "family": "resnet_gn_vit_sprites32",
+            "image_size": 32,
+            "channels": 3,
+            "gen_channels": 32,
+            "critic_channels": 16,
+            "vit_dim": 32,
+            "vit_heads": 4,
+            "patch_size": 4,
+        },
+        "steps": 1600,
+        "eval_samples": 512,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "image",
+    },
+    "fl_law3_highd_orphan_d32_v2": {
+        "task_id": "fl_law3_highd_orphan_d32_v2",
+        "case_id": "fl_law3_highd_orphan_d32_v2",
+        "kind": "fl_law3_highd_orphan_d32_v2",
+        "law": "law3",
+        "defects": ["L3-7", "D-08"],
+        "title": "Law 3A (v2): Haar-rotated R^32 multi-scale unequal-mass orphan transport",
+        "goal": (
+            "Isolate Law 3A high-D non-local orphan transport in Haar-rotated R^32 (dim=32 > 16): "
+            "recover all 5 modes including the distant 8% orphan with accurate unequal masses, "
+            "precision >= 0.85, and non-collapsed canonical-plane covariance."
+        ),
+        "target": (
+            "Haar-rotated R^32 5-mode Gaussian mixture: 4 core modes at (+-2.2, +-2.2) with "
+            "widths [0.05, 0.09, 0.15, 0.22] and weights [0.36, 0.26, 0.18, 0.12] plus "
+            "distant 8% orphan at (+7.5, 0.0) with width 0.08."
+        ),
+        "resources": {"num_particles": 256, "z_dim": 32, "batch_size": 128},
+        "prior": {"kind": "mog", "sigma": 0.05, "standardize": False},
+        "model": {
+            "family": "simple_mlp",
+            "hidden": 192,
+            "layers": 3,
+            "out_dim": 32,
+            "in_dim": 32,
+            "fourier": 0,
+        },
+        "steps": 1200,
+        "eval_samples": 6144,
+        "observations": 24,
+        "minimum_stable_checks": 5,
+        "sampling_law": "public_prior_without_output_noise",
+        "view_kind": "vector",
+    },
+}
+
+ALL_THRESHOLDS: dict[str, list[list[Any]]] = {**THRESHOLDS, **V2_THRESHOLDS}
+ALL_SPECS: dict[str, dict[str, Any]] = {**SPECS, **V2_SPECS}
+
+# ---------------------------------------------------------------------------
 # Deterministic Geometry & Target Distributions
 # ---------------------------------------------------------------------------
 
@@ -466,7 +653,7 @@ def sample_target_for_kind(
         pts = means[idx] + torch.bmm(chol[idx], eps.unsqueeze(-1)).squeeze(-1)
         return pts.to(dev)
 
-    if kind == "fl_law1_noisy_atomic_codebook":
+    if kind in ("fl_law1_noisy_atomic_codebook", "fl_law1_noisy_atomic_codebook_v2"):
         weights, centers, sigma, _ = noisy_codebook_parameters("cpu")
         idx = torch.multinomial(weights, count, replacement=True, generator=generator).cpu()
         eps = torch.randn((count, 2), generator=generator, device=g_dev, dtype=torch.float32).cpu()
@@ -481,7 +668,7 @@ def sample_target_for_kind(
         pts = torch.stack((_CODIM1_RADIUS * torch.cos(theta), _CODIM1_RADIUS * torch.sin(theta)), dim=1)
         return pts.to(dev)
 
-    if kind == "fl_law2_groupnorm_and_vit_sprites":
+    if kind in ("fl_law2_groupnorm_and_vit_sprites", "fl_law2_groupnorm_and_vit_sprites_v2"):
         templates = sprite_templates("cpu")
         cls = torch.randint(0, _SPRITE_CLASSES, (count,), generator=generator, device=g_dev).cpu()
         noise = torch.randn(
@@ -493,7 +680,7 @@ def sample_target_for_kind(
         imgs = (templates[cls] + _SPRITE_JITTER * noise).clamp(0.0, 1.0)
         return imgs.to(dev)
 
-    if kind == "fl_law3_highd_orphan_d32":
+    if kind in ("fl_law3_highd_orphan_d32", "fl_law3_highd_orphan_d32_v2", "fl_law1_highd_rank_d32_v2"):
         weights, means, sigmas, _ = highd_orphan_parameters("cpu")
         idx = torch.multinomial(weights, count, replacement=True, generator=generator).cpu()
         eps = torch.randn((count, _HIGHD_DIM), generator=generator, device=g_dev, dtype=torch.float32).cpu()
@@ -708,10 +895,10 @@ def signed_margins(metrics: dict[str, Any], task_id: str) -> dict[str, float]:
     Positive/zero (``>= 0.0``) iff the gate passes; strictly negative (``< 0.0``) iff it
     fails. Missing or nonfinite values fail closed with ``-10.0`` (always finite for JSON).
     """
-    if task_id not in THRESHOLDS:
+    if task_id not in ALL_THRESHOLDS:
         raise ValueError(f"unknown Four Laws task_id: {task_id!r}")
     out: dict[str, float] = {}
-    for name, op, bound in THRESHOLDS[task_id]:
+    for name, op, bound in ALL_THRESHOLDS[task_id]:
         b = float(bound)
         scale = max(abs(b), 1e-6) if b != 0.0 else 1.0
         raw = metrics.get(name)
@@ -733,7 +920,7 @@ def signed_margins(metrics: dict[str, Any], task_id: str) -> dict[str, float]:
 
 def _check_thresholds(metrics: dict[str, Any], task_id: str) -> list[str]:
     failed: list[str] = []
-    for name, op, bound in THRESHOLDS[task_id]:
+    for name, op, bound in ALL_THRESHOLDS[task_id]:
         raw = metrics.get(name)
         if isinstance(raw, bool) or not isinstance(raw, (int, float)) or not math.isfinite(float(raw)):
             failed.append(f"{name} {op} {bound}")
@@ -1483,12 +1670,210 @@ def score_fl_law3_highd_orphan_d32(
     return _finalize_score(tid, metrics, views)
 
 
+@torch.no_grad()
+def score_fl_law1_noisy_atomic_codebook_v2(
+    samples: torch.Tensor,
+    *,
+    reference: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    """Score calibrated v2 64-atom noisy hexagonal Zipf codebook (P=160, sigma_prior=0.010)."""
+    base = score_fl_law1_noisy_atomic_codebook(samples, reference=reference)
+    metrics = {k: v for k, v in base["metrics"].items() if k != "min_margin"}
+    return _finalize_score("fl_law1_noisy_atomic_codebook_v2", metrics, base["views"])
+
+
+@torch.no_grad()
+def score_fl_law2_groupnorm_and_vit_sprites_v2(
+    samples: torch.Tensor,
+    *,
+    critic_grad_finite: float = 1.0,
+    critic_grad_med: float = 0.25,
+    critic_grad_max: float = 0.50,
+    mean_step_ms: float = 20.0,
+    reference: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    """Score calibrated 1600-step v2 32x32 RGB sprites with ResNet+GroupNorm+ViT critic."""
+    base = score_fl_law2_groupnorm_and_vit_sprites(
+        samples,
+        critic_grad_finite=critic_grad_finite,
+        critic_grad_med=critic_grad_med,
+        critic_grad_max=critic_grad_max,
+        mean_step_ms=mean_step_ms,
+        reference=reference,
+    )
+    metrics = {k: v for k, v in base["metrics"].items() if k != "min_margin"}
+    return _finalize_score("fl_law2_groupnorm_and_vit_sprites_v2", metrics, base["views"])
+
+
+@torch.no_grad()
+def _score_highd_d32_common(
+    tid: str,
+    samples: torch.Tensor,
+    *,
+    reference: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    """Shared scorer for Law 3A high-D orphan transport (v2) and Law 1 full-32D rank (v2)."""
+    weights, means, sigmas, q = highd_orphan_parameters("cpu")
+    proj2 = q[:, :2]
+    ref = _default_reference(tid, 1024, 91005) if reference is None else reference.detach().cpu().to(torch.float32)
+    ref_2d = ref[:1024] @ proj2
+
+    valid = (
+        isinstance(samples, torch.Tensor)
+        and samples.ndim == 2
+        and samples.shape[0] >= 32
+        and samples.shape[1] == _HIGHD_DIM
+    )
+    if valid:
+        pts = samples.detach().cpu().to(torch.float32)
+        all_finite = bool(torch.isfinite(pts).all().item())
+        finite_fraction = 1.0 if all_finite else float(torch.isfinite(pts).all(dim=-1).float().mean().item())
+    else:
+        pts = torch.zeros((2, _HIGHD_DIM), dtype=torch.float32)
+        all_finite = False
+        finite_fraction = 0.0
+
+    if not valid or not all_finite:
+        fallback_metrics: dict[str, float | int] = {
+            "finite_fraction": finite_fraction,
+            "modes": 0,
+            "core_eig_min": 0.0,
+            "core_eig_max": 99.0,
+            "canon_plane_eig_min": 0.0,
+            "orphan_recall": 0.0,
+            "precision": 0.0,
+            "mass_tv": 1.0,
+        }
+        views = [
+            {
+                "kind": "scatter",
+                "title": f"{tid}: R^32 canonical 2D projection",
+                "target": ref_2d,
+                "samples": torch.zeros((2, 2), dtype=torch.float32),
+                "xlim": [-4.5, 9.5],
+                "ylim": [-4.5, 4.5],
+                "aspect": "equal",
+                "xlabel": "q0 (canonical axis 0)",
+                "ylabel": "q1 (canonical axis 1)",
+                "caption": "Nonfinite or invalid-shape outputs fail closed.",
+            },
+            {
+                "kind": "bar",
+                "title": "5-mode unequal mass + 8% orphan profile",
+                "target": weights,
+                "samples": torch.zeros_like(weights),
+                "xlabel": "mode index (4 = orphan)",
+                "ylabel": "mass",
+                "caption": "Nonfinite outputs fail closed.",
+            },
+        ]
+        return _finalize_score(tid, fallback_metrics, views)
+
+    n = int(pts.shape[0])
+    k_cnt = int(means.shape[0])
+    dists = torch.cdist(pts, means)
+    min_dist, assign = dists.min(dim=1)
+    z_norm = min_dist / sigmas[assign]
+    in_core = z_norm <= _HIGHD_CORE_Z_RADIUS
+    precision = float(in_core.float().mean().item())
+
+    counts = torch.bincount(assign, minlength=k_cnt).float() / float(n)
+    mass_tv = float(0.5 * (counts - weights).abs().sum().item())
+
+    core_shares = torch.bincount(assign[in_core], minlength=k_cnt).float() / float(n)
+    modes = int((core_shares >= (0.40 * weights)).sum().item())
+    orphan_recall = float(core_shares[4].item() / weights[4].item())
+
+    min_eigs: list[float] = []
+    max_eigs: list[float] = []
+    canon_min_eigs: list[float] = []
+    for k in range(k_cnt):
+        pts_k = pts[(assign == k) & in_core]
+        target_var = float(sigmas[k].item()) ** 2
+        if len(pts_k) >= _HIGHD_DIM + 2:
+            cov_k = torch.cov(pts_k.T, correction=0).double()
+            ev = torch.linalg.eigvalsh(cov_k).clamp_min(0.0)
+            min_eigs.append(float(ev[0].item() / max(target_var, 1e-12)))
+            max_eigs.append(float(ev[-1].item() / max(target_var, 1e-12)))
+        else:
+            min_eigs.append(0.0)
+            max_eigs.append(99.0)
+        if len(pts_k) >= 6:
+            pts_k_2d = pts_k @ proj2
+            cov_2d = torch.cov(pts_k_2d.T, correction=0).double()
+            ev_2d = torch.linalg.eigvalsh(cov_2d).clamp_min(0.0)
+            canon_min_eigs.append(float(ev_2d[0].item() / max(target_var, 1e-12)))
+        else:
+            canon_min_eigs.append(0.0)
+
+    pts_2d = (pts[:1024] @ proj2).clamp(-4.45, 9.45)
+    pts_2d[:, 1] = pts_2d[:, 1].clamp(-4.45, 4.45)
+    metrics: dict[str, float | int] = {
+        "finite_fraction": 1.0,
+        "modes": modes,
+        "core_eig_min": float(min(min_eigs)),
+        "core_eig_max": float(max(max_eigs)),
+        "canon_plane_eig_min": float(min(canon_min_eigs)),
+        "orphan_recall": orphan_recall,
+        "precision": precision,
+        "mass_tv": mass_tv,
+    }
+    views = [
+        {
+            "kind": "scatter",
+            "title": f"{tid}: R^32 canonical 2D projection",
+            "target": ref_2d,
+            "samples": pts_2d,
+            "xlim": [-4.5, 9.5],
+            "ylim": [-4.5, 4.5],
+            "aspect": "equal",
+            "xlabel": "q0 (canonical axis 0)",
+            "ylabel": "q1 (canonical axis 1)",
+            "caption": "Haar-rotated R^32 (dim > 16): 4 multi-scale cores + distant 8% orphan at (+7.5, 0).",
+        },
+        {
+            "kind": "bar",
+            "title": "5-mode unequal mass + 8% orphan profile",
+            "target": weights,
+            "samples": counts,
+            "xlabel": "mode index (4 = orphan)",
+            "ylabel": "mass",
+            "caption": "Target weights [0.36, 0.26, 0.18, 0.12, 0.08 orphan].",
+        },
+    ]
+    return _finalize_score(tid, metrics, views)
+
+
+@torch.no_grad()
+def score_fl_law3_highd_orphan_d32_v2(
+    samples: torch.Tensor,
+    *,
+    reference: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    """Score v2 Law 3A Haar-rotated R^32 orphan transport (canonical-plane eig, decoupled from 32D rank)."""
+    return _score_highd_d32_common("fl_law3_highd_orphan_d32_v2", samples, reference=reference)
+
+
+@torch.no_grad()
+def score_fl_law1_highd_rank_d32_v2(
+    samples: torch.Tensor,
+    *,
+    reference: torch.Tensor | None = None,
+) -> dict[str, Any]:
+    """Score v2 Law 1 full-32D covariance rank with P=512 particles."""
+    return _score_highd_d32_common("fl_law1_highd_rank_d32_v2", samples, reference=reference)
+
+
 _SCORERS = {
     "fl_law1_aniso_unequal_modes": score_fl_law1_aniso_unequal_modes,
     "fl_law1_noisy_atomic_codebook": score_fl_law1_noisy_atomic_codebook,
     "fl_law2_pure_adversarial_codim1": score_fl_law2_pure_adversarial_codim1,
     "fl_law2_groupnorm_and_vit_sprites": score_fl_law2_groupnorm_and_vit_sprites,
     "fl_law3_highd_orphan_d32": score_fl_law3_highd_orphan_d32,
+    "fl_law1_noisy_atomic_codebook_v2": score_fl_law1_noisy_atomic_codebook_v2,
+    "fl_law1_highd_rank_d32_v2": score_fl_law1_highd_rank_d32_v2,
+    "fl_law2_groupnorm_and_vit_sprites_v2": score_fl_law2_groupnorm_and_vit_sprites_v2,
+    "fl_law3_highd_orphan_d32_v2": score_fl_law3_highd_orphan_d32_v2,
 }
 
 
@@ -1671,16 +2056,95 @@ def oracle_controls() -> dict[str, dict[str, Any]]:
     return controls
 
 
+def oracle_controls_v2() -> dict[str, dict[str, Any]]:
+    """Fast deterministic CPU positive oracle + destructive controls for all 4 v2 Laws 1-3 probes."""
+    controls: dict[str, dict[str, Any]] = {}
+    rng = torch.Generator(device="cpu").manual_seed(20261126)
+
+    # --- 1. fl_law1_noisy_atomic_codebook_v2 ---
+    t1 = "fl_law1_noisy_atomic_codebook_v2"
+    ref1 = sample_target_for_kind(t1, 1024, rng)
+    ora1 = sample_target_for_kind(t1, 4096, rng)
+    controls[f"{t1}_oracle_pass"] = _control_entry(
+        score_fl_law1_noisy_atomic_codebook_v2(ora1, reference=ref1), expected_pass=True
+    )
+    _, c1, s1, _ = noisy_codebook_parameters("cpu")
+    unif_idx = torch.randint(0, _CODEBOOK_NUM_ATOMS, (4096,), generator=rng)
+    ghost_pts = 0.5 * (c1[unif_idx] + c1[(unif_idx + 1) % _CODEBOOK_NUM_ATOMS])
+    controls[f"{t1}_barycentric_ghosts_fail"] = _control_entry(
+        score_fl_law1_noisy_atomic_codebook_v2(ghost_pts, reference=ref1), expected_pass=False
+    )
+    half_pts = c1[torch.randint(0, 32, (4096,), generator=rng)] + s1 * torch.randn((4096, 2), generator=rng)
+    controls[f"{t1}_half_codebook_fail"] = _control_entry(
+        score_fl_law1_noisy_atomic_codebook_v2(half_pts, reference=ref1), expected_pass=False
+    )
+
+    # --- 2. fl_law2_groupnorm_and_vit_sprites_v2 ---
+    t2 = "fl_law2_groupnorm_and_vit_sprites_v2"
+    tpl2 = sprite_templates("cpu")
+    ora2 = sample_target_for_kind(t2, 256, rng)
+    controls[f"{t2}_oracle_pass"] = _control_entry(
+        score_fl_law2_groupnorm_and_vit_sprites_v2(ora2, reference=tpl2), expected_pass=True
+    )
+    controls[f"{t2}_single_class_fail"] = _control_entry(
+        score_fl_law2_groupnorm_and_vit_sprites_v2(tpl2[0:1].expand(256, -1, -1, -1).clone(), reference=tpl2),
+        expected_pass=False,
+    )
+    controls[f"{t2}_noise_fail"] = _control_entry(
+        score_fl_law2_groupnorm_and_vit_sprites_v2(
+            torch.rand((256, _SPRITE_CHANNELS, _SPRITE_SIZE, _SPRITE_SIZE), generator=rng), reference=tpl2
+        ),
+        expected_pass=False,
+    )
+
+    # --- 3. fl_law3_highd_orphan_d32_v2 (Law 3A orphan transport, canonical-plane eig) ---
+    t3 = "fl_law3_highd_orphan_d32_v2"
+    ref3 = sample_target_for_kind(t3, 1024, rng)
+    ora3 = sample_target_for_kind(t3, 6144, rng)
+    controls[f"{t3}_oracle_pass"] = _control_entry(
+        score_fl_law3_highd_orphan_d32_v2(ora3, reference=ref3), expected_pass=True
+    )
+    w5, m5, s5, q5 = highd_orphan_parameters("cpu")
+    w_no = w5[:4] / w5[:4].sum()
+    idx_no = torch.multinomial(w_no, 6144, replacement=True, generator=rng)
+    no_orphan = m5[idx_no] + s5[idx_no].unsqueeze(1) * torch.randn((6144, _HIGHD_DIM), generator=rng)
+    controls[f"{t3}_missing_orphan_fail"] = _control_entry(
+        score_fl_law3_highd_orphan_d32_v2(no_orphan, reference=ref3), expected_pass=False
+    )
+    idx_all = torch.multinomial(w5, 6144, replacement=True, generator=rng)
+    collapsed_canon = m5[idx_all] + 0.002 * torch.randn((6144, _HIGHD_DIM), generator=rng)
+    controls[f"{t3}_collapsed_canon_fail"] = _control_entry(
+        score_fl_law3_highd_orphan_d32_v2(collapsed_canon, reference=ref3), expected_pass=False
+    )
+
+    # --- 4. fl_law1_highd_rank_d32_v2 (Law 1 full-32D rank) ---
+    t4 = "fl_law1_highd_rank_d32_v2"
+    controls[f"{t4}_oracle_pass"] = _control_entry(
+        score_fl_law1_highd_rank_d32_v2(ora3, reference=ref3), expected_pass=True
+    )
+    z_lowrank = torch.zeros((6144, _HIGHD_DIM), dtype=torch.float32)
+    z_lowrank[:, :8] = torch.randn((6144, 8), generator=rng)
+    lowrank_pts = m5[idx_all] + s5[idx_all].unsqueeze(1) * (z_lowrank @ q5.T)
+    controls[f"{t4}_rank8_collapse_fail"] = _control_entry(
+        score_fl_law1_highd_rank_d32_v2(lowrank_pts, reference=ref3), expected_pass=False
+    )
+    nan4 = ora3.clone()
+    nan4[0, 3] = float("nan")
+    controls[f"{t4}_nonfinite_fail"] = _control_entry(
+        score_fl_law1_highd_rank_d32_v2(nan4, reference=ref3), expected_pass=False
+    )
+    return controls
+
+
 # ---------------------------------------------------------------------------
 # Case Listing, Public-API Fixture & GIF Helper
 # ---------------------------------------------------------------------------
 
 
-def list_cases() -> list[dict[str, Any]]:
-    """Return ``api_contract.validate_case``-compliant case metadata for all 5 tasks."""
+def _build_case_records(task_ids: tuple[str, ...]) -> list[dict[str, Any]]:
     cases: list[dict[str, Any]] = []
-    for tid in TASKS:
-        spec = SPECS[tid]
+    for tid in task_ids:
+        spec = ALL_SPECS[tid]
         cases.append(
             {
                 "id": tid,
@@ -1697,13 +2161,28 @@ def list_cases() -> list[dict[str, Any]]:
                 "eval_samples": int(spec["eval_samples"]),
                 "evaluation_observations": int(spec["observations"]),
                 "terminal_observations": int(spec["minimum_stable_checks"]),
-                "thresholds": {name: f"{op} {bound}" for name, op, bound in THRESHOLDS[tid]},
+                "thresholds": {name: f"{op} {bound}" for name, op, bound in ALL_THRESHOLDS[tid]},
                 "sampling": "Clean live public prior samples without additive output noise.",
                 "default_recipe": "unified_v14",
                 "protocol_seed": DEFAULT_SEED,
             }
         )
     return cases
+
+
+def list_cases() -> list[dict[str, Any]]:
+    """Return ``api_contract.validate_case``-compliant case metadata for the 5 frozen v1 tasks."""
+    return _build_case_records(TASKS)
+
+
+def list_v2_cases() -> list[dict[str, Any]]:
+    """Return ``api_contract.validate_case``-compliant case metadata for the 4 calibrated v2 tasks."""
+    return _build_case_records(V2_TASKS)
+
+
+def list_all_cases() -> list[dict[str, Any]]:
+    """Return case metadata for both v1 and v2 Laws 1-3 tasks."""
+    return _build_case_records(ALL_TASKS)
 
 
 def _seed_int(tag: str, seed: int) -> int:
@@ -1789,13 +2268,13 @@ class FourLawsFixture:
         max_steps: int | None = None,
         components: Any = None,
     ) -> None:
-        if case_id not in SPECS:
+        if case_id not in ALL_SPECS:
             raise ValueError(f"unknown Four Laws 1-3 task: {case_id!r}")
         self.task_id = case_id
         self.case_id = case_id
         self.kind = case_id
-        self.spec = deepcopy(SPECS[case_id])
-        self.case = next(c for c in list_cases() if c["id"] == case_id)
+        self.spec = deepcopy(ALL_SPECS[case_id])
+        self.case = next(c for c in list_all_cases() if c["id"] == case_id)
         self.device = torch.device(device)
         self.seed = int(seed)
         self.limit = int(self.spec["steps"] if max_steps is None else max_steps)
@@ -2014,6 +2493,9 @@ class FourLawsFixture:
                 if self.task_id == "fl_law1_noisy_atomic_codebook":
                     return score_fl_law1_noisy_atomic_codebook(samples, reference=reference)
 
+                if self.task_id == "fl_law1_noisy_atomic_codebook_v2":
+                    return score_fl_law1_noisy_atomic_codebook_v2(samples, reference=reference)
+
                 if self.task_id == "fl_law2_pure_adversarial_codim1":
                     probe_pts = torch.cat((reference[:64], samples.detach().cpu()[:64]), dim=0)
                     grad_mean, grad_max = _measure_normal_critic_grad(self.trainer.D, probe_pts)
@@ -2025,7 +2507,7 @@ class FourLawsFixture:
                         reference=reference,
                     )
 
-                if self.task_id == "fl_law2_groupnorm_and_vit_sprites":
+                if self.task_id in ("fl_law2_groupnorm_and_vit_sprites", "fl_law2_groupnorm_and_vit_sprites_v2"):
                     probe_imgs = torch.cat((reference[:8], samples.detach().cpu()[:8]), dim=0)
                     g_fin, g_med, g_max = _measure_sprite_critic_grad(self.trainer.D, probe_imgs)
                     mean_ms = (
@@ -2033,7 +2515,12 @@ class FourLawsFixture:
                         if self._step_times_ms
                         else 0.0
                     )
-                    return score_fl_law2_groupnorm_and_vit_sprites(
+                    scorer_fn = (
+                        score_fl_law2_groupnorm_and_vit_sprites_v2
+                        if self.task_id == "fl_law2_groupnorm_and_vit_sprites_v2"
+                        else score_fl_law2_groupnorm_and_vit_sprites
+                    )
+                    return scorer_fn(
                         samples,
                         critic_grad_finite=g_fin,
                         critic_grad_med=g_med,
@@ -2044,6 +2531,12 @@ class FourLawsFixture:
 
                 if self.task_id == "fl_law3_highd_orphan_d32":
                     return score_fl_law3_highd_orphan_d32(samples, reference=reference)
+
+                if self.task_id == "fl_law3_highd_orphan_d32_v2":
+                    return score_fl_law3_highd_orphan_d32_v2(samples, reference=reference)
+
+                if self.task_id == "fl_law1_highd_rank_d32_v2":
+                    return score_fl_law1_highd_rank_d32_v2(samples, reference=reference)
 
                 raise ValueError(f"unsupported task_id: {self.task_id!r}")
         finally:
@@ -2096,7 +2589,7 @@ def build_case(
 ) -> FourLawsFixture:
     """Build a public-API ``FourLawsFixture`` for any Law 1, 2, or 3 task."""
     del kwargs
-    if case_id not in SPECS:
+    if case_id not in ALL_SPECS:
         raise ValueError(f"unknown Four Laws 1-3 toy case: {case_id!r}")
     return FourLawsFixture(
         case_id,
@@ -2123,7 +2616,7 @@ def render_task_gif(
     from .api_run import render_gif
 
     if isinstance(case_or_task_id, str):
-        case = next(c for c in list_cases() if c["id"] == case_or_task_id)
+        case = next(c for c in list_all_cases() if c["id"] == case_or_task_id)
     else:
         case = case_or_task_id
     steps = int(case["default_steps"] if requested_steps is None else requested_steps)

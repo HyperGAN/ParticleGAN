@@ -7,7 +7,7 @@ import torch
 import torch.nn.functional as F
 
 from ..gan_loss import GANLoss
-from .transport import AxiomTransportLoss, _manifold_gates, project_transport_features
+from .transport import AxiomTransportLoss, project_transport_features
 
 
 def _lookup_capture(
@@ -137,8 +137,8 @@ class AxiomGANLoss(GANLoss):
                 rec.observe_margin_and_scale(real_logits, fake_logits)
         if self.loss != "non_saturating" or self.transport.weight == 0.0 or self.fibre_rel_blend <= 0.0:
             return base
-        dim_d = max(1, int(x_r[0].numel())) if int(x_r.shape[0]) > 0 else 0
-        if (not captured) or has_cc or (x_r.ndim >= 2 and dim_d > 1024):
+        dim_d = int(x_r[0].numel()) if x_r.shape[0] > 0 else 0
+        if (not captured) or has_cc or (x_r.ndim >= 2 and dim_d > (4096 if x_r.ndim >= 4 else 1024)):
             pair_d = _scalar_pair_rel(real_logits, fake_logits)
             if pair_d is not None:
                 return (1.0 - self.fibre_rel_blend) * base + self.fibre_rel_blend * pair_d
@@ -176,8 +176,8 @@ class AxiomGANLoss(GANLoss):
                             total = total * s_th + total.detach() * (1.0 - s_th)
                     return self.transport.weight * total
             return self.transport.weight * rel_term
-        dim = max(1, int(x_r[0].numel())) if b_r > 0 else 0
-        if x_r.ndim >= 2 and dim > 1024:
+        dim = int(x_r[0].numel()) if x_r.shape[0] > 0 else 0
+        if x_r.ndim >= 2 and dim > (4096 if x_r.ndim >= 4 else 1024):
             self.transport.bind_discrete_prior_step(False, simplicial_active=False)
             if rec is not None:
                 if hasattr(rec, "_disc_gate"):
@@ -188,7 +188,7 @@ class AxiomGANLoss(GANLoss):
         allow = bool(torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False) and not getattr(rec, "_in_probe", False))
         prev_simp = bool(self.transport._simplicial_step)
         if prev_simp and b_r >= 4:
-            _, g_mac_fwd, _, _ = _manifold_gates(project_transport_features(x_r.detach(), self.transport.max_spatial))
+            _, g_mac_fwd, _, _ = self.transport._cached_manifold_gates(project_transport_features(x_r.detach(), self.transport.max_spatial))
             eff_simp = bool(g_mac_fwd > 1e-4)
             self.transport._simplicial_step = eff_simp
             if rec is not None and hasattr(rec, "_simplicial_step"):

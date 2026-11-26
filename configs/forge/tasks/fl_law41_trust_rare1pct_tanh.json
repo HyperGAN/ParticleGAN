@@ -106,8 +106,8 @@
       ]
     ],
     "sources": {
-      "benchmarks/toy_audit/api_four_laws_4.py": "f6296814007f9dfd42d5528e075133ebbd6c302816ab870f08702e208c49b611",
-      "experiments/forge/four_laws.py": "104dde82a609076f20e44ec2006f62446d65e6a196dc510b3f02b104460a87ce"
+      "benchmarks/toy_audit/api_four_laws_4.py": "4b3f530763a890ba13dc45c93397bcf298315d8e6300559eb7ab0f2756268111",
+      "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
     }
   },
   "resources": {

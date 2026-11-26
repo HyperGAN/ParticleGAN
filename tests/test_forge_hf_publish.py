@@ -29,13 +29,19 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert payload["dataset_repo"] == DEFAULT_HF_REPO
     assert payload["summary"]["selected_families"] == len(exports["leaderboard_rows"])
     assert payload["summary"]["selected_families"] >= 10
-    assert payload["summary"]["full_suite_tests"] == 71
+    assert payload["summary"]["full_suite_tests"] == 59
     assert payload["summary"]["counted_view_requirements"] == 115
     assert len(exports["receipt_rows"]) > 100
     assert len(exports["attempt_rows"]) > 100
     assert len(exports["energy_rows"]) >= 10
     assert payload["summary"]["energy_benchmark_rows"] == len(exports["energy_rows"])
     assert len(payload["energy_benchmarks"]) == len(exports["energy_rows"])
+    fl_l4 = payload["four_laws_adherence_l4"]
+    assert isinstance(fl_l4, dict) and fl_l4["hardware_gpu"] == "NVIDIA L4"
+    fl_cands = {row["candidate_id"]: row for row in fl_l4["rows"]}
+    assert "axiom-v4" in fl_cands and fl_cands["axiom-v4"]["family_id"] == "axiom"
+    assert fl_cands["axiom-v4"]["bytegan_pass"] == 2 and fl_cands["axiom-v4"]["bytegan_measured"] == 2
+    assert fl_cands["unified-v14"]["bytegan_pass"] == 2 and fl_cands["unified-v14"]["bytegan_measured"] == 2
 
     # Verify committed law4-phase2-energy-benchmark.json entries are exported faithfully.
     v3 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "law4-energy-v3")
@@ -68,8 +74,12 @@ def test_build_inventory_exports_matches_committed_inventory():
         row["joules_total"] >= 0.0 and isinstance(row["energy_backend"], str) and row["energy_backend"]
         for row in with_energy
     )
-    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully.
-    v12 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "unified-v12")
+    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully (RTX A6000 cohort).
+    v12 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA RTX A6000"
+    )
     assert v12["optimizer_family"] == "unified_v12_equil"
     assert v12["family_id"] == "unified"
     assert v12["contended"] is False
@@ -78,12 +88,38 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert v12["grid100_j_to_pass"] == pytest.approx(4512.9094, rel=1e-4)
     assert v12["occam_pass"] == 16 and v12["occam_executed"] == 16
 
+    # Verify separate uncontended NVIDIA L4 energy cohort (Axiom v4 + Unified v12..v14 matched L4 baselines).
+    ax_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "axiom-v4" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert ax_l4["family_id"] == "axiom"
+    assert ax_l4["optimizer_family"] == "axiom"
+    assert ax_l4["contended"] is False
+    assert ax_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert ax_l4["r256_joules_per_step"] == pytest.approx(4.3849, rel=1e-3)
+    assert ax_l4["ring16_j_to_pass"] == pytest.approx(275.7, rel=1e-2)
+    assert ax_l4["grid100_j_to_pass"] == pytest.approx(1542.3, rel=1e-2)
+    assert ax_l4["staggered100_j_to_pass"] == pytest.approx(1591.6, rel=1e-2)
+    assert ax_l4["occam_pass"] == 13 and ax_l4["occam_executed"] == 15 and ax_l4["occam_timeouts"] == 1
+
+    v12_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert v12_l4["family_id"] == "unified"
+    assert v12_l4["contended"] is False
+    assert v12_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert v12_l4["r256_joules_per_step"] == pytest.approx(5.5738, rel=1e-3)
+
     # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")
     assert unified["candidate_id"] == "unified-v11"
     assert unified["tier1_pass"] == 27 and unified["tier1_total"] == 27
     assert unified["total_pass"] == 95 and unified["total_required"] == 115
-    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 71
+    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 59
     assert unified["stretch_total_pass"] == 50 and unified["stretch_total"] == 70
     assert unified["stale"] is False
     assert unified["r256_joules_per_step"] is None
@@ -196,6 +232,7 @@ def test_publish_dry_run_writes_parquet_json_and_readme_without_network(tmp_path
         "staggered100_j_to_pass",
         "occam_pass",
         "occam_executed",
+        "occam_timeouts",
         "evidence_scope",
     }
     assert set(energy_table.column_names) == expected_energy_cols
