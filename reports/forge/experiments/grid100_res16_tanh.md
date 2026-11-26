@@ -10,7 +10,7 @@
 | **Edge Cases** | `deep-spectral-contraction` `tanh-saturation` `100-modes` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (held) |
 | **Four Laws Adherence Role** | law4 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `native100` / `native_accuracy` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `7000` steps |
@@ -67,7 +67,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Architecture | `hidden=128, layers=16, architecture=residual_mlp, output_activation=tanh, tanh_scale=5.25, fourier=2` |
 | Dependencies | [`grid100`](grid100.md) (`gate`) |
-| Assigned Views | `discriminator_stability` (T4 held), `four-laws-adherence-v1` (T1 diagnostic), `r3-tier4-frontier-holdout-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T4 held), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `r3-tier4-frontier-holdout-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -116,7 +116,9 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 47.68 kJ | abs_cov_trace_bias=0.04863, accuracy_score=0.537, center_max_sigma=0.2501, center_rms_sigma=0.1317 | [802cb4457d9a4fe098dece5ead1aa18f.json](../technique-receipts/802cb4457d9a4fe098dece5ead1aa18f.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | — | 82.38 kJ | abs_cov_trace_bias=0.1184, accuracy_score=0.8709, center_max_sigma=0.263, center_rms_sigma=0.1043 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 26.36 kJ | abs_cov_trace_bias=0.1158, accuracy_score=0.852, center_max_sigma=0.3076, center_rms_sigma=0.111 | [2d1afe34620b42ffb72bca3186f30183.json](../technique-receipts/2d1afe34620b42ffb72bca3186f30183.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 32.75 kJ | abs_cov_trace_bias=0.0256, accuracy_score=3.013, center_max_sigma=2.128, center_rms_sigma=1.149 | [eac1b8d0434748a6b498adef6b650cf1.json](../technique-receipts/eac1b8d0434748a6b498adef6b650cf1.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 39.56 kJ | abs_cov_trace_bias=0.2068, accuracy_score=1.56, center_max_sigma=0.3382, center_rms_sigma=0.07136 | [4a556b59196f4df5870dbd0adc2355bb.json](../technique-receipts/4a556b59196f4df5870dbd0adc2355bb.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 32.02 kJ | abs_cov_trace_bias=0.005972, accuracy_score=2.421, center_max_sigma=1.593, center_rms_sigma=0.9632 | [a5e3ef619a3a46969a795e603a1a3a55.json](../technique-receipts/a5e3ef619a3a46969a795e603a1a3a55.json) |

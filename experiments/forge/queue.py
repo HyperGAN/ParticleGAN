@@ -451,7 +451,7 @@ class Queue:
 
     def _refresh(self, state):
         for entry in state["submissions"].values():
-            if entry["status"] in {"cancelled", "concluded"}:
+            if entry["status"] in {"cancelled", "concluded"} or entry.get("reason") == "imported completed Colab Forge run":
                 continue
             eligible, reason, running = self._eligible(state, entry)
             campaign = state["campaigns"][entry["request"]["campaign_id"]]
@@ -501,8 +501,28 @@ class Queue:
             exclusive = {device_key(entry["worker"]["device"]) for entry in policy
                          if entry["worker"].get("exclusive_device")}
             free = [slot for slot in free if device_key(slot["device"]) not in exclusive]
-            pending = sorted(state["submissions"].items(), key=lambda kv: (
-                -(kv[1]["request"].get("priority", 0) + (time.time() - kv[1]["submitted_at"]) / 300), kv[0]))
+            pending = sorted(
+                (
+                    (rid, sub)
+                    for rid, sub in state["submissions"].items()
+                    if sub.get("status") in {"queued", "running"}
+                ),
+                key=lambda kv: (
+                    -(
+                        kv[1]["request"].get("priority", 0)
+                        + (
+                            time.time()
+                            - (
+                                float(kv[1]["submitted_at"])
+                                if isinstance(kv[1].get("submitted_at"), (int, float))
+                                else 0.0
+                            )
+                        )
+                        / 300
+                    ),
+                    kv[0],
+                ),
+            )
             open_cache: dict[tuple[str | None, str | None], str | None] = {}
             for request_id, entry in pending:
                 if request_filter is not None and request_id != request_filter:

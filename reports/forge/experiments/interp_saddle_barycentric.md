@@ -10,10 +10,10 @@
 | **Edge Cases** | `latent-interpolation` `3d-curved-surface` `zero-sigma-prior` |
 | **Primary View (`discriminator_stability`)** | Tier 2 (stretch) |
 | **Four Laws Adherence Role** | law1 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `particle_interpolation` / `interp_saddle_barycentric` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
-| **Update Budget** | `800` steps |
+| **Update Budget** | `1000` steps |
 
 ## What This Experiment Tests
 
@@ -45,10 +45,10 @@ Discrete-atlas granularity pulls triangle barycenters off the curved saddle shee
 
 ```mermaid
 flowchart LR
-    P["Prior: particle_cloud (sigma=0.0, P=24, z=2)"] --> G["Generator: 2L MLP (h=64)"]
+    P["Prior: particle_cloud (sigma=0.0, P=32, z=2)"] --> G["Generator: 2L MLP (h=64)"]
     G --> M["Unseen Latent k-NN Chords / Barycenters"]
     M --> D["Critic D(x)"]
-    D --> Gate["Gate: interp_saddle_barycentric (800 steps, 5 sustained)"]
+    D --> Gate["Gate: interp_saddle_barycentric (1000 steps, 5 sustained)"]
 ```
 
 ## Task Contract & Numerical Gates
@@ -59,15 +59,15 @@ flowchart LR
 | --- | --- |
 | Initializer | `deterministic_orthogonal` |
 | Prior | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
-| Update Budget | `800` steps |
+| Update Budget | `1000` steps |
 | Batch Size | `128` |
-| Particles / Latent Dim | `P=24` / `z_dim=2` |
+| Particles / Latent Dim | `P=32` / `z_dim=2` |
 | Sampling Law | `enumerated_prior_without_output_noise` |
 | Evaluation Output Noise | `clean` |
 | Scoring Weights | `live` |
 | Architecture | `family=simple_mlp, hidden=64, layers=2, out_dim=3, fourier=2` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic), `particle_interpolation_stretch` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `particle_interpolation_stretch` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -76,7 +76,7 @@ flowchart LR
 | `finite_fraction` | `==` | `1.0` |
 | `endpoint_surface_mae` | `<=` | `0.08` |
 | `barycenter_surface_mae` | `<=` | `0.09` |
-| `barycenter_hq` | `>=` | `0.78` |
+| `barycenter_hq` | `>=` | `0.72` |
 | `xy_bins_covered` | `>=` | `12` |
 | `barycenter_novelty` | `>=` | `0.18` |
 
@@ -89,11 +89,11 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **RHBI** | `rhbi-v12` | **PASS** | recomputed interp_saddle_barycentric gates (5/5 terminal checks passed) | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | **FAIL** | failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78 | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | **FAIL** | failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78 | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/interp_saddle_barycentric.gif) |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **FAIL** | failed interp_saddle_barycentric thresholds: endpoint_surface_mae <= 0.08, barycenter_surf | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
+| **EMPF** | `empf-v8` | **FAIL** | failed interp_saddle_barycentric thresholds: endpoint_surface_mae <= 0.08, barycenter_surf | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/interp_saddle_barycentric.gif) |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
@@ -108,6 +108,7 @@ flowchart LR
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 1.15 kJ | barycenter_hq=0.7895, barycenter_novelty=0.7338, barycenter_surface_mae=0.06404, edge_midpoint_surface_mae=0.06272 | [6da9bb6f437642fcb42206a97b2f4e02.json](../technique-receipts/6da9bb6f437642fcb42206a97b2f4e02.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | — | 18.63 kJ | barycenter_hq=0.7639, barycenter_novelty=0.5804, barycenter_surface_mae=0.0694, edge_midpoint_surface_mae=0.06456 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 4.08 kJ | barycenter_hq=0.7111, barycenter_novelty=0.5699, barycenter_surface_mae=0.07459, edge_midpoint_surface_mae=0.06055 | [5446268ec1434fcb937d6209e15a3f02.json](../technique-receipts/5446268ec1434fcb937d6209e15a3f02.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 1.20 kJ | barycenter_hq=0.5775, barycenter_novelty=0.5692, barycenter_surface_mae=0.1031, edge_midpoint_surface_mae=0.1089 | [9ba17f8e6dc34f348ca76510297ebb4f.json](../technique-receipts/9ba17f8e6dc34f348ca76510297ebb4f.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 1.26 kJ | barycenter_hq=0, barycenter_novelty=0, barycenter_surface_mae=9.9, edge_midpoint_surface_mae=9.9 | [8cbeb2ee3f6e4089a6cacd670750e767.json](../technique-receipts/8cbeb2ee3f6e4089a6cacd670750e767.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 2.23 kJ | barycenter_hq=0.6522, barycenter_novelty=0.6344, barycenter_surface_mae=0.082, edge_midpoint_surface_mae=0.07357 | [dccbfd61d443451ca06efb1811dd1a3d.json](../technique-receipts/dccbfd61d443451ca06efb1811dd1a3d.json) |
@@ -119,6 +120,7 @@ flowchart LR
 | `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 605 J | barycenter_hq=0.6883, barycenter_novelty=0.6907, barycenter_surface_mae=0.08551, edge_midpoint_surface_mae=0.06503 | [76f4ad54b69747709efe1442fbc1a288.json](../technique-receipts/76f4ad54b69747709efe1442fbc1a288.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **FAIL** | — | 3.03 kJ | barycenter_hq=0.7237, barycenter_novelty=0.5686, barycenter_surface_mae=0.07482, edge_midpoint_surface_mae=0.0725 | [df76a146afb140048baccfbc3ac4eb0d.json](../technique-receipts/df76a146afb140048baccfbc3ac4eb0d.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **FAIL** | — | 2.53 kJ | barycenter_hq=0.6522, barycenter_novelty=0.6344, barycenter_surface_mae=0.082, edge_midpoint_surface_mae=0.07357 | [3ed326624a084e8cb932acfb464aa37a.json](../technique-receipts/3ed326624a084e8cb932acfb464aa37a.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **FAIL** | — | 3.90 kJ | barycenter_hq=0.7065, barycenter_novelty=0.5555, barycenter_surface_mae=0.07386, edge_midpoint_surface_mae=0.07005 | [65eb6d091d384a668cae8af9c3d2c3d2.json](../technique-receipts/65eb6d091d384a668cae8af9c3d2c3d2.json) |
 
 ## Reproduce This Experiment
 

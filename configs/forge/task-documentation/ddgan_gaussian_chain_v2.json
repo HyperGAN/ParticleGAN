@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "ddgan_gaussian_chain_v2",
+  "title": "Clean Oracle-Free v2 4-Step DDGAN Gaussian Chain",
+  "laws": [
+    "law3b",
+    "law1"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "oracle-free"
+  ],
+  "intuition": "Clean oracle-free v2 DDGAN Gaussian chain testing public conditional reverse transitions and final ancestral distribution accuracy with calibrated terminal_observations=1 and zero host-owned target-variance div_loss.",
+  "failure_mode": "Recipes that relied on host-side variance penalties underestimate conditional spread or drift away from the correlated Gaussian transition kernel.",
+  "protocol_notes": "Clean oracle-free v2 benchmark (2,500 updates, 600s timeout); preserves legacy model_ddgan_gaussian_chain untouched.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

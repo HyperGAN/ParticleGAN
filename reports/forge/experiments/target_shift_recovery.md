@@ -10,7 +10,7 @@
 | **Edge Cases** | `non-stationary-shift` `paired-frozen-control` `settling-vs-tracking` |
 | **Primary View (`discriminator_stability`)** | Not in `discriminator_stability` |
 | **Four Laws Adherence Role** | law3 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `paired_adaptation` / `paired_adaptation` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `3600` steps |
@@ -24,7 +24,7 @@ Tests whether a converged multimodal model adapts cleanly when the target distri
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3A: Unconditional W1 Ray-Length & Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3A: Unconditional W1 Ray-Length & Feature-Space Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **[Law 4.4: Trajectory Scale vs. Settling](../LAWS_HUB.md#law4_4)** ([Law 4.4 theory](../../../docs/four-laws.md#law-4--functional-and-game-dynamics)) — Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?
 - **Edge-case tags:** `non-stationary-shift`, `paired-frozen-control`, `settling-vs-tracking`
 
@@ -68,7 +68,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Shift Step | `2400` |
 | Dependencies | [`mode_hold`](mode_hold.md) (`gate`) |
-| Assigned Views | `adaptation` (T3 required), `clockfree_continuous` (T3 required), `four-laws-adherence-v1` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic) |
+| Assigned Views | `adaptation` (T3 required), `clockfree_continuous` (T3 required), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -81,18 +81,18 @@ No fixed scalar threshold list declared (see evaluator contract above).
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **EMPF** | `empf-v8` | **PASS** | No recorded result for this selected configuration and source. | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | No recorded result for this selected configuration and source. | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | Executable: completed in a separate-runtime diagnostic. This ordinary cohort remains not r | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | **FAIL** | Skipped incompatible test: target_shift_recovery: clean/live scoring has no declared polic | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
+| **EMPF** | `empf-v8` | `DIAG_PASS` | No recorded result for this selected configuration and source. | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v11` | `DIAG_PASS` | No recorded result for this selected configuration and source. | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -103,7 +103,9 @@ No fixed scalar threshold list declared (see evaluator contract above).
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 20.02 kJ | — | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 7.93 kJ | — | [434e74270dd340c4848a2743a07c0145.json](../technique-receipts/434e74270dd340c4848a2743a07c0145.json) |
 | `unified-v14` | `unified` | NVIDIA L4 | **PASS** | — | 8.11 kJ | — | [49e38a634c304da9a209931875bd0e63.json](../technique-receipts/49e38a634c304da9a209931875bd0e63.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 9.43 kJ | — | [984d9eb113444c47904838cd0cc8b755.json](../technique-receipts/984d9eb113444c47904838cd0cc8b755.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 9.33 kJ | — | [f54082b52daa41709e4a623a816b30fd.json](../technique-receipts/f54082b52daa41709e4a623a816b30fd.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **FAIL** | — | 9.78 kJ | — | [2fdaf2f5e9714da29ced2c96c593c01f.json](../technique-receipts/2fdaf2f5e9714da29ced2c96c593c01f.json) |
 
 ## Reproduce This Experiment
 

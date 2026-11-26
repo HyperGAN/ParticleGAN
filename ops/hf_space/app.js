@@ -78,6 +78,8 @@
     energyBenchmarks: [],
     taskDefinitions: new Map(),
     fourLawsL4: null,
+    fourLawsV2L4: null,
+    fourLawsVersion: "auto",
     selectedFamilyId: null,
     selectedFormulationFamilyId: null,
     selectedLawCell: null, // { familyId, lawId }
@@ -911,6 +913,10 @@
       raw && typeof raw.four_laws_adherence_l4 === "object" && raw.four_laws_adherence_l4
         ? raw.four_laws_adherence_l4
         : null;
+    state.fourLawsV2L4 =
+      raw && typeof raw.four_laws_adherence_v2_l4 === "object" && raw.four_laws_adherence_v2_l4
+        ? raw.four_laws_adherence_v2_l4
+        : null;
 
     if (!state.selectedFormulationFamilyId || !families.some((f) => f.id === state.selectedFormulationFamilyId)) {
       const preferred =
@@ -1441,13 +1447,50 @@
     const block = $("four-laws-l4-block");
     const wrap = $("four-laws-l4-wrap");
     if (!block || !wrap) return;
-    const fl = state.fourLawsL4;
-    if (!fl || !Array.isArray(fl.rows) || fl.rows.length === 0) {
+    const hasV2 = Boolean(state.fourLawsV2L4 && Array.isArray(state.fourLawsV2L4.rows) && state.fourLawsV2L4.rows.length > 0);
+    const hasV1 = Boolean(state.fourLawsL4 && Array.isArray(state.fourLawsL4.rows) && state.fourLawsL4.rows.length > 0);
+    if (!hasV2 && !hasV1) {
       block.classList.add("hidden");
       return;
     }
+    const activeVer =
+      state.fourLawsVersion === "v1" && hasV1
+        ? "v1"
+        : state.fourLawsVersion === "v2" && hasV2
+          ? "v2"
+          : hasV2
+            ? "v2"
+            : "v1";
+    const fl = activeVer === "v2" ? state.fourLawsV2L4 : state.fourLawsL4;
     block.classList.remove("hidden");
+
+    const toggleEl = $("four-laws-l4-toggle");
+    if (toggleEl) {
+      if (hasV2 && hasV1) {
+        const v2Cnt = (state.fourLawsV2L4.probes || []).length || 10;
+        const v1Cnt = (state.fourLawsL4.probes || []).length || 9;
+        toggleEl.innerHTML = `
+          <button type="button" class="seg-btn ${activeVer === "v2" ? "active" : ""}" data-fl-ver="v2">v2 Clean (${v2Cnt})</button>
+          <button type="button" class="seg-btn ${activeVer === "v1" ? "active" : ""}" data-fl-ver="v1">v1 Historical (${v1Cnt})</button>
+        `;
+        toggleEl.querySelectorAll("[data-fl-ver]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            state.fourLawsVersion = btn.getAttribute("data-fl-ver") || "v2";
+            renderFourLawsL4Section();
+          });
+        });
+      } else {
+        toggleEl.innerHTML = "";
+      }
+    }
+    const descEl = $("four-laws-l4-desc");
+    if (descEl) {
+      const viewLabel = fl.view_id || (activeVer === "v2" ? "four-laws-adherence-v2" : "four-laws-adherence-v1");
+      descEl.innerHTML = `Matched ${escapeHtml(fl.hardware_gpu || "NVIDIA L4")} hardware cohort (<code>${escapeHtml(viewLabel)}</code>, protocol seed 0, unchanged recipes; research diagnostic telemetry only — separate from ordinary selected-cohort qualification).`;
+    }
+
     const probes = Array.isArray(fl.probes) ? fl.probes : [];
+    const energyColLabel = `${probes.length || 9}-Probe NVML`;
     const probeHeaders = probes
       .map(
         (p) =>
@@ -1520,7 +1563,7 @@
             <th class="sticky-col">Candidate / Family</th>
             <th class="num">Probes PASS</th>
             <th class="num">ByteGAN (L4)</th>
-            <th class="num">9-Probe NVML</th>
+            <th class="num">${escapeHtml(energyColLabel)}</th>
             ${probeHeaders}
           </tr>
         </thead>

@@ -10,10 +10,10 @@
 | **Edge Cases** | `latent-interpolation` `zero-sigma-prior` `continuous-manifold` |
 | **Primary View (`discriminator_stability`)** | Tier 1 (stretch) |
 | **Four Laws Adherence Role** | law1 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `particle_interpolation` / `interp_sparse_arc` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
-| **Update Budget** | `600` steps |
+| **Update Budget** | `900` steps |
 
 ## What This Experiment Tests
 
@@ -45,10 +45,10 @@ Discrete prototype atlases often act like piecewise-constant lookup tables (Voro
 
 ```mermaid
 flowchart LR
-    P["Prior: particle_cloud (sigma=0.0, P=12, z=2)"] --> G["Generator: 2L MLP (h=64)"]
+    P["Prior: particle_cloud (sigma=0.0, P=16, z=2)"] --> G["Generator: 2L MLP (h=64)"]
     G --> M["Unseen Latent k-NN Chords / Barycenters"]
     M --> D["Critic D(x)"]
-    D --> Gate["Gate: interp_sparse_arc (600 steps, 5 sustained)"]
+    D --> Gate["Gate: interp_sparse_arc (900 steps, 5 sustained)"]
 ```
 
 ## Task Contract & Numerical Gates
@@ -59,15 +59,15 @@ flowchart LR
 | --- | --- |
 | Initializer | `deterministic_orthogonal` |
 | Prior | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
-| Update Budget | `600` steps |
+| Update Budget | `900` steps |
 | Batch Size | `128` |
-| Particles / Latent Dim | `P=12` / `z_dim=2` |
+| Particles / Latent Dim | `P=16` / `z_dim=2` |
 | Sampling Law | `enumerated_prior_without_output_noise` |
 | Evaluation Output Noise | `clean` |
 | Scoring Weights | `live` |
 | Architecture | `family=simple_mlp, hidden=64, layers=2, out_dim=2, fourier=2` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `discriminator_stability` (T1 stretch), `four-laws-adherence-v1` (T1 diagnostic), `particle_interpolation_stretch` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T1 stretch), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `particle_interpolation_stretch` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -88,16 +88,16 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **RHBI** | `rhbi-v12` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
 | **Unified** | `unified-v11` | **PASS** | recomputed interp_sparse_arc gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
-| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/atlas/atlas-particle-normal-v4/interp_sparse_arc.gif) |
+| **Axiom** | `axiom-v4` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/interp_sparse_arc.gif) |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8, interp_arc_bin | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8 | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
+| **EMPF** | `empf-v8` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8, interp_arc_bin | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/interp_sparse_arc.gif) |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8 | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/release07-gan-v3/recipe-prior-refactor-release07-gan-v3-v1/interp_sparse_arc.gif) |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/k3p/recipe-prior-refactor-k3p-v1/interp_sparse_arc.gif) |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85 | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/ka2/recipe-prior-refactor-ka2-v1/interp_sparse_arc.gif) |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | failed interp_sparse_arc thresholds: endpoint_hq >= 0.85, interp_hq >= 0.8 | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/r1r2/recipe-prior-refactor-r1r2-v1/interp_sparse_arc.gif) |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -105,8 +105,10 @@ flowchart LR
 
 | Candidate | Family | GPU | Outcome | `min_margin` | NVML Energy | Key Recorded Metrics | Receipt |
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 732 J (J-to-PASS) | all_pairs_interp_hq=0.2667, edge_count=30, endpoint_arc_bins=16, endpoint_hq=1 | [50a3e670e25f43f3a5f71ad76d31b48f.json](../technique-receipts/50a3e670e25f43f3a5f71ad76d31b48f.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 699 J (J-to-PASS) | all_pairs_interp_hq=0.2727, edge_count=23, endpoint_arc_bins=12, endpoint_hq=1 | [9d153996853845f6857a612a78c068e8.json](../technique-receipts/9d153996853845f6857a612a78c068e8.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 791 J (J-to-PASS) | all_pairs_interp_hq=0.2727, edge_count=23, endpoint_arc_bins=12, endpoint_hq=1 | [2cf9fb2d4e58433d9716dc985644f28a.json](../technique-receipts/2cf9fb2d4e58433d9716dc985644f28a.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 986 J (J-to-PASS) | all_pairs_interp_hq=0.2333, edge_count=28, endpoint_arc_bins=16, endpoint_hq=1 | [a13af02ab1a1411d8b02b923b7f91f38.json](../technique-receipts/a13af02ab1a1411d8b02b923b7f91f38.json) |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **FAIL** | — | 923 J | all_pairs_interp_hq=0.5758, edge_count=23, endpoint_arc_bins=12, endpoint_hq=1 | [aee31683ae6443c1803367aacafcea07.json](../technique-receipts/aee31683ae6443c1803367aacafcea07.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **FAIL** | — | 6.87 kJ | all_pairs_interp_hq=0.2879, edge_count=24, endpoint_arc_bins=12, endpoint_hq=1 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 899 J | all_pairs_interp_hq=0.3636, edge_count=22, endpoint_arc_bins=9, endpoint_hq=0.75 | [aa9a2c0837b54d1fb17f4756fb46bd5f.json](../technique-receipts/aa9a2c0837b54d1fb17f4756fb46bd5f.json) |

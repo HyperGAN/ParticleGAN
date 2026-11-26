@@ -10,7 +10,7 @@
 | **Edge Cases** | `deep-spectral-contraction` `tanh-saturation` `100-modes` |
 | **Primary View (`discriminator_stability`)** | Tier 4 (stretch) |
 | **Four Laws Adherence Role** | — |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `native100` / `native_accuracy` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `7000` steps |
@@ -97,14 +97,14 @@ flowchart LR
 | **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **E22** | `e22` | **PASS** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **EMPF** | `empf-v8` | `BLOCKED` | native model variants require an explicit profile; grid100_res16_scaled_tanh: native model | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
 | **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | `NOT MEASURED` | no compatible result | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
 | **K3P** | `recipe-prior-refactor-k3p-v1` | `NOT MEASURED` | no compatible result | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | native model variants require an explicit profile; grid100_res16_scaled_tanh: native model | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v11` | `DIAG_PASS` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 - **Reference API-contract media:** [Actual-training reference GIF](../../toy_audit/api_contract/api-grid100-res16-scaled-tanh/goal.gif)
 

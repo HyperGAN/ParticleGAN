@@ -657,8 +657,10 @@ def ingest_rendered_media_dirs(
     staging_media_dir = Path(staging_media_dir).resolve()
     by_fam, cand_to_fam = _selected_family_maps(root)
 
-    incoming: list[dict[str, Any]] = []
-    copied = 0
+    existing_doc = load_leaderboard_media_index(root)
+    existing_items = existing_doc.get("items", [])
+
+    candidates: list[tuple[dict[str, Any], Path, Path]] = []
     skipped = 0
     for src_root in source_dirs:
         src_root = Path(src_root).resolve()
@@ -688,37 +690,47 @@ def ingest_rendered_media_dirs(
             fam_info = by_fam[fid]
             tid = str(rec.get("task_id") or sp.stem)
             aid = str(rec.get("attempt_id") or sp.parent.name)
-            dest = staging_media_dir / LEADERBOARD_MEDIA_SUBDIR / fid / cid / f"{tid}.gif"
-            dest.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(gp, dest)
-            shutil.copy2(sp, dest.with_suffix(".json"))
-            copied += 1
-
             coh_grade = (fam_info["tasks"].get(tid) or {}).get("status")
             effective_match = "selected_cohort" if aid in set(fam_info["attempt_ids"]) else cohort_match
-            incoming.append(
-                _manifest_entry(
-                    family_id=fid,
-                    candidate_id=cid,
-                    task_id=tid,
-                    attempt_id=aid,
-                    recorded_grade=str(rec.get("recorded_grade") or ""),
-                    selected_cohort_grade=coh_grade,
-                    cohort_match=effective_match,
-                    gif_relpath=f"{LEADERBOARD_MEDIA_SUBDIR}/{fid}/{cid}/{tid}.gif",
-                    gif_sha256=actual_sha,
-                    size_bytes=dest.stat().st_size,
-                    observation_count=rec.get("observation_count"),
-                    observations_sha256=rec.get("observations_sha256"),
-                    has_visual_samples=bool(rec.get("has_visual_samples") or rec.get("source_inputs")),
-                    source_digest=rec.get("source_digest"),
-                    gpu_name=rec.get("gpu_name"),
-                )
+            entry = _manifest_entry(
+                family_id=fid,
+                candidate_id=cid,
+                task_id=tid,
+                attempt_id=aid,
+                recorded_grade=str(rec.get("recorded_grade") or ""),
+                selected_cohort_grade=coh_grade,
+                cohort_match=effective_match,
+                gif_relpath=f"{LEADERBOARD_MEDIA_SUBDIR}/{fid}/{cid}/{tid}.gif",
+                gif_sha256=actual_sha,
+                size_bytes=gp.stat().st_size,
+                observation_count=rec.get("observation_count"),
+                observations_sha256=rec.get("observations_sha256"),
+                has_visual_samples=bool(rec.get("has_visual_samples") or rec.get("source_inputs")),
+                source_digest=rec.get("source_digest"),
+                gpu_name=rec.get("gpu_name"),
             )
+            candidates.append((entry, gp, sp))
 
-    staged_relpaths = sorted({str(it["gif_relpath"]) for it in incoming if it.get("gif_relpath")})
-    existing_doc = load_leaderboard_media_index(root)
-    merged_items = _merge_items(existing_doc.get("items", []), incoming)
+    merged_items = _merge_items(existing_items, [entry for entry, _, _ in candidates])
+    winners = {
+        (str(it.get("family_id") or ""), str(it.get("task_id") or "")): str(it.get("gif_sha256") or "")
+        for it in merged_items
+    }
+    copied = 0
+    staged_relpaths_set: set[str] = set()
+    for entry, gp, sp in candidates:
+        key = (str(entry["family_id"]), str(entry["task_id"]))
+        if winners.get(key) != entry["gif_sha256"]:
+            skipped += 1
+            continue
+        dest = staging_media_dir / str(entry["gif_relpath"])
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(gp, dest)
+        shutil.copy2(sp, dest.with_suffix(".json"))
+        copied += 1
+        staged_relpaths_set.add(str(entry["gif_relpath"]))
+
+    staged_relpaths = sorted(staged_relpaths_set)
     payload = {
         "schema_version": 1,
         "schema": MEDIA_INDEX_SCHEMA,

@@ -774,3 +774,171 @@ def test_execute_work_units_ingests_and_uploads_media_before_hf_inventory_publis
         "upload:False:['media/forge/leaderboard/unified/unified-v12/ring16_acquisition.gif']",
         "publish:True:False",
     ]
+
+
+def test_compute_catchup_plan_skips_tasks_with_cached_failed_gate_and_groups_shared_prereq(tmp_path: Path, monkeypatch):
+    for cid in ("fam-pass", "fam-fail"):
+        _write_json(tmp_path / "configs/forge/ideas" / f"{cid}.json", {"id": cid})
+    _write_json(
+        tmp_path / "configs/forge/tasks/parent_gate.json",
+        {"id": "parent_gate", "resources": {"timeout_seconds": 300, "gpus": 1}, "execution": {"steps": 500}},
+    )
+    for child in ("child_a", "child_b"):
+        _write_json(
+            tmp_path / "configs/forge/tasks" / f"{child}.json",
+            {
+                "id": child,
+                "dependencies": [{"task": "parent_gate", "kind": "gate"}],
+                "resources": {"timeout_seconds": 600, "gpus": 1},
+                "execution": {"steps": 1000},
+            },
+        )
+    _write_json(
+        tmp_path / "configs/forge/tasks/indep_fast.json",
+        {"id": "indep_fast", "resources": {"timeout_seconds": 120, "gpus": 1}, "execution": {"steps": 200}},
+    )
+    _write_json(
+        tmp_path / "configs/forge/views/gate_view.json",
+        {
+            "id": "gate_view",
+            "revision": 1,
+            "assignments": [
+                {"task": "parent_gate", "qualification_tier": 1, "importance": "required"},
+                {"task": "child_a", "qualification_tier": 1, "importance": "required"},
+                {"task": "child_b", "qualification_tier": 1, "importance": "required"},
+                {"task": "indep_fast", "qualification_tier": 1, "importance": "required"},
+            ],
+        },
+    )
+    monkeypatch.setattr(cf, "_git_head", lambda _root: "deadbeef" * 5)
+    monkeypatch.setattr("experiments.forge.sources.inspect_source", lambda _root: {"digest": "src1"})
+    monkeypatch.setattr("experiments.forge.planning.load_idea", lambda r, cid: json.loads((r / "configs/forge/ideas" / f"{cid}.json").read_text()))
+    monkeypatch.setattr("experiments.forge.views.load_view", lambda r, vid: json.loads((r / "configs/forge/views" / f"{vid}.json").read_text()))
+    monkeypatch.setattr("experiments.forge.views.load_tasks", lambda r: {p.stem: json.loads(p.read_text()) for p in (r / "configs/forge/tasks").glob("*.json")})
+
+    _write_receipt(tmp_path, "p01", "fam-pass", "parent_gate", status="PASS")
+    _write_receipt(tmp_path, "f01", "fam-fail", "parent_gate", status="FAIL")
+
+    plan = cf.compute_catchup_plan(
+        tmp_path,
+        view_id="gate_view",
+        through_tier=1,
+        candidates=["fam-pass", "fam-fail"],
+        include_selected_families=False,
+        gpu_policy="L4",
+        changed_since=None,
+    )
+    # fam-fail's child_a & child_b are gate-blocked (never waste GPU re-running failed parent_gate)
+    assert plan["blocked_count"] == 2
+    assert sorted((m["candidate_id"], m["task_id"]) for m in plan["missing_cells"]) == [
+        ("fam-fail", "indep_fast"),
+        ("fam-pass", "child_a"),
+        ("fam-pass", "child_b"),
+        ("fam-pass", "indep_fast"),
+    ]
+    # Fast independent units are scheduled first; child_a & child_b grouped into 1 unit sharing parent_gate
+    unit_tasks = [(u["candidate_id"], sorted(u["tasks"])) for u in plan["work_units"]]
+    assert unit_tasks[:2] == [("fam-fail", ["indep_fast"]), ("fam-pass", ["indep_fast"])]
+    assert unit_tasks[2] == ("fam-pass", ["child_a", "child_b"])
+
+
+def test_compute_catchup_plan_blocks_over_vram_tasks_on_pinned_gpu_and_auto_routes_to_a100(tmp_path: Path, monkeypatch):
+    _write_json(tmp_path / "configs/forge/ideas/fam-vram.json", {"id": "fam-vram"})
+    _write_json(
+        tmp_path / "configs/forge/tasks/small_task.json",
+        {"id": "small_task", "resources": {"timeout_seconds": 300, "gpus": 1, "gpu_memory_mb": 2048}, "execution": {"steps": 500}},
+    )
+    _write_json(
+        tmp_path / "configs/forge/tasks/big_vram_task.json",
+        {"id": "big_vram_task", "resources": {"timeout_seconds": 300, "gpus": 1, "gpu_memory_mb": 24576}, "execution": {"steps": 13}},
+    )
+    _write_json(
+        tmp_path / "configs/forge/views/vram_view.json",
+        {
+            "id": "vram_view",
+            "revision": 1,
+            "assignments": [
+                {"task": "small_task", "qualification_tier": 1, "importance": "diagnostic"},
+                {"task": "big_vram_task", "qualification_tier": 1, "importance": "diagnostic"},
+            ],
+        },
+    )
+    monkeypatch.setattr(cf, "_git_head", lambda _root: "deadbeef" * 5)
+    monkeypatch.setattr("experiments.forge.sources.inspect_source", lambda _root: {"digest": "src1"})
+    monkeypatch.setattr("experiments.forge.planning.load_idea", lambda r, cid: json.loads((r / "configs/forge/ideas" / f"{cid}.json").read_text()))
+    monkeypatch.setattr("experiments.forge.views.load_view", lambda r, vid: json.loads((r / "configs/forge/views" / f"{vid}.json").read_text()))
+    monkeypatch.setattr("experiments.forge.views.load_tasks", lambda r: {p.stem: json.loads(p.read_text()) for p in (r / "configs/forge/tasks").glob("*.json")})
+
+    # Pinned L4 (23034 MiB): big_vram_task (24576 MiB) is blocked instead of poisoning small_task's unit.
+    plan_l4 = cf.compute_catchup_plan(
+        tmp_path,
+        view_id="vram_view",
+        through_tier=1,
+        candidates=["fam-vram"],
+        include_selected_families=False,
+        gpu_policy="L4",
+        changed_since=None,
+    )
+    assert plan_l4["blocked_count"] == 1
+    assert plan_l4["blocked_sample"][0]["task_id"] == "big_vram_task"
+    assert "24576 MiB" in plan_l4["blocked_sample"][0]["blockers"][0]
+    assert [u["tasks"] for u in plan_l4["work_units"]] == [["small_task"]]
+
+    # Auto GPU policy upgrades big_vram_task to A100 while keeping small_task on L4.
+    plan_auto = cf.compute_catchup_plan(
+        tmp_path,
+        view_id="vram_view",
+        through_tier=1,
+        candidates=["fam-vram"],
+        include_selected_families=False,
+        gpu_policy="auto",
+        changed_since=None,
+    )
+    assert plan_auto["blocked_count"] == 0
+    gpu_by_task = {m["task_id"]: m["target_gpu"] for m in plan_auto["missing_cells"]}
+    assert gpu_by_task == {"small_task": "L4", "big_vram_task": "A100"}
+
+
+def test_ingest_tarball_marks_submission_concluded_with_numeric_timestamp_and_queue_ignores_it(tmp_path: Path):
+    import tarfile
+    from experiments.forge.queue import Queue
+
+    aid = "a" * 32
+    attempt_dir = tmp_path / "staging" / "reports/forge/attempts" / aid
+    attempt_dir.mkdir(parents=True)
+    req_doc = {
+        "request_id": "req1234567890abcdef12345",
+        "request": {
+            "request_id": "req1234567890abcdef12345",
+            "campaign_id": "colab-test-camp",
+            "candidate": {"id": "unified-v15"},
+            "jobs": [{"compatibility_key": "ck1", "task_id": "ring16_acquisition", "budget_seconds": 60}],
+            "view": {"id": "v1", "goal": "g1", "assignments": [{"task": "ring16_acquisition", "qualification_tier": 1, "importance": "required"}]},
+            "through_tier": 1,
+        },
+        "job": {"compatibility_key": "ck1", "task_id": "ring16_acquisition", "budget_seconds": 60},
+    }
+    res_doc = {
+        "attempt_id": aid,
+        "candidate_id": "unified-v15",
+        "candidate_revision": "rev1",
+        "task_results": [{"task_id": "ring16_acquisition", "gate_status": "PASS"}],
+    }
+    _write_json(attempt_dir / "request.json", req_doc)
+    _write_json(attempt_dir / "result.json", res_doc)
+    _write_json(attempt_dir / "evidence.json", {"attempt_id": aid})
+
+    tar_path = tmp_path / "out.tar.gz"
+    with tarfile.open(tar_path, "w:gz") as tf:
+        tf.add(attempt_dir, arcname=f"reports/forge/attempts/{aid}")
+
+    out = cf.ingest_tarball(tmp_path, tar_path, project_receipts=False)
+    assert out["attempts_extracted"] == [aid]
+    state = json.loads((tmp_path / "runs/forge/queue/state.json").read_text())
+    sub = state["submissions"]["req1234567890abcdef12345"]
+    assert sub["status"] == "concluded"
+    assert isinstance(sub["submitted_at"], (int, float))
+
+    # Queue.claim() must not crash or touch the imported Colab submission even if jobs dict is empty.
+    q = Queue(tmp_path / "runs/forge")
+    assert q.claim([{"device": "cpu", "slot": 0, "memory_mb": 4096}]) is None

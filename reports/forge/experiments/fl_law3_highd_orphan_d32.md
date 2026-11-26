@@ -24,7 +24,7 @@ Exposes the dim <= 16 Law 3A ceiling and beyond-horizon screening dead zone: pla
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3A: Unconditional W1 Ray-Length & Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3A: Unconditional W1 Ray-Length & Feature-Space Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **Edge-case tags:** `high-dimensional`, `distant-orphan-mode`, `screening-horizon`, `multi-scale-width`
 
 ## Common Failure Mode

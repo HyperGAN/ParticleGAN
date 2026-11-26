@@ -10,7 +10,7 @@
 | **Edge Cases** | `clock-invariance` `restart-parity` `state-hygiene` |
 | **Primary View (`discriminator_stability`)** | Tier 1 (diagnostic) |
 | **Four Laws Adherence Role** | law4 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `clockfree_audit` / `clockfree_parity` |
 | **Prior** | `mog` (sigma=`0.025`, standardize=`False`) |
 | **Update Budget** | `24` steps |
@@ -71,7 +71,7 @@ flowchart LR
 | Evaluation Output Noise | `clean` |
 | Scoring Weights | `live` |
 | Architecture | `fourier=2, hidden=16, layers=2` |
-| Assigned Views | `clockfree_continuous` (T1 required), `discriminator_stability` (T1 diagnostic), `four-laws-adherence-v1` (T1 diagnostic), `lazy_cadence_coverage` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
+| Assigned Views | `clockfree_continuous` (T1 required), `discriminator_stability` (T1 diagnostic), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `lazy_cadence_coverage` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -89,18 +89,18 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Atlas** | `atlas-particle-normal-v4` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
-| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/pure-bcap/media/5ea5bdbb2d71/clockfree_audit_measurement_v1.gif) |
-| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **RHBI** | `rhbi-v12` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/atlas/atlas-particle-normal-v4/clockfree_audit_measurement_v1.gif) |
+| **Axiom** | `axiom-v4` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/clockfree_audit_measurement_v1.gif) |
+| **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/pure-bcap/media/023915c9fd7c/clockfree_audit_measurement_v1.gif) |
+| **BISPF** | `bispf-optimized-quintic-v1` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/bispf-optimized/quality-media/clockfree_audit_measurement_v1.gif) |
+| **EMPF** | `empf-v8` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/clockfree_audit_measurement_v1.gif) |
+| **RHBI** | `rhbi-v12` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/rhbi/rhbi-v12/clockfree_audit_measurement_v1.gif) |
+| **Unified** | `unified-v11` | **PASS** | declared state/horizon/cadence/restart comparisons agree; source audit bound | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/unified/unified-v11/clockfree_audit_measurement_v1.gif) |
 | **E22** | `e22` | `BLOCKED` | Skipped incompatible test: clockfree_audit_measurement_v1: clean/live scoring has no decla | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | step_label changed the update or common-prefix state | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/tier1-completion/media/release07-gan-v3/10087734b6b3445ea5db443693bf02a0/clockfree_audit_measurement_v1.gif) |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | step_label changed the update or common-prefix state | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/tier1-completion/media/k3p/eb7b95dbf5b34f69a0c41e97626df6cb/clockfree_audit_measurement_v1.gif) |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | step_label changed the update or common-prefix state | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/tier1-completion/media/ka2/ce6eec65990e41269dd54b438e68625c/clockfree_audit_measurement_v1.gif) |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | step_label changed the update or common-prefix state | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/tier1-completion/media/r1r2/5b7aef86733c4079a953578e2c00a67b/clockfree_audit_measurement_v1.gif) |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **FAIL** | step_label changed the update or common-prefix state | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/release07-gan-v3/recipe-prior-refactor-release07-gan-v3-v1/clockfree_audit_measurement_v1.gif) |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **FAIL** | step_label changed the update or common-prefix state | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/k3p/recipe-prior-refactor-k3p-v1/clockfree_audit_measurement_v1.gif) |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **FAIL** | step_label changed the update or common-prefix state | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/ka2/recipe-prior-refactor-ka2-v1/clockfree_audit_measurement_v1.gif) |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **FAIL** | step_label changed the update or common-prefix state | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/r1r2/recipe-prior-refactor-r1r2-v1/clockfree_audit_measurement_v1.gif) |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -110,6 +110,7 @@ flowchart LR
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 86 J | parity_comparisons=4 | [d3334937b6e843ba81beea44234c16e0.json](../technique-receipts/d3334937b6e843ba81beea44234c16e0.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 342 J | parity_comparisons=4 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 96 J | parity_comparisons=4 | [4d9753e5f98247948dc89273a928373b.json](../technique-receipts/4d9753e5f98247948dc89273a928373b.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 61 J | parity_comparisons=4 | [788efc59e03743b79c2adbb4d123539f.json](../technique-receipts/788efc59e03743b79c2adbb4d123539f.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 61 J | parity_comparisons=4 | [eca7afc3fd684cf6bdf1c8ee0ea922c4.json](../technique-receipts/eca7afc3fd684cf6bdf1c8ee0ea922c4.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 76 J | parity_comparisons=4 | [764aa2f860084bb79dc376e84b46b560.json](../technique-receipts/764aa2f860084bb79dc376e84b46b560.json) |
@@ -117,6 +118,7 @@ flowchart LR
 | `recipe-prior-refactor-bcap-pure-v1` | `bcap-dualnorm` | NVIDIA L4 | **PASS** | — | 48 J | parity_comparisons=4 | [f7301189384a46f6bce812a4b1252903.json](../technique-receipts/f7301189384a46f6bce812a4b1252903.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 99 J | parity_comparisons=4 | [6465bbfccfb847b188ffe8d796b9f56d.json](../technique-receipts/6465bbfccfb847b188ffe8d796b9f56d.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 88 J | parity_comparisons=4 | [df76048f9461415b85ea0d921e20f419.json](../technique-receipts/df76048f9461415b85ea0d921e20f419.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 82 J | parity_comparisons=4 | [ba8a49489ca843a59874808a8c96d150.json](../technique-receipts/ba8a49489ca843a59874808a8c96d150.json) |
 | `recipe-prior-refactor-k3p-v1` | `k3p` | NVIDIA L4 | **FAIL** | — | 52 J | — | [a78c0d4a97f04c479bd5ee10ed7a5816.json](../technique-receipts/a78c0d4a97f04c479bd5ee10ed7a5816.json) |
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **FAIL** | — | 52 J | — | [d1d114df069e498ea8226728aad1c7c7.json](../technique-receipts/d1d114df069e498ea8226728aad1c7c7.json) |
 | `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 45 J | — | [5f3bd9897e9343cea1a22a18352fb27b.json](../technique-receipts/5f3bd9897e9343cea1a22a18352fb27b.json) |

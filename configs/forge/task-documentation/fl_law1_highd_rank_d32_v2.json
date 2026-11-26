@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law1_highd_rank_d32_v2",
+  "title": "Law 1 Probe v2: Full-32D Intra-Mode Covariance Rank (P=512)",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "high-dimensional",
+    "intra-mode-rank",
+    "multi-scale-width"
+  ],
+  "intuition": "Split out from v1's compound R^32 probe to isolate Law 1 full-32D covariance rank: requires core_eig_min >= 0.25 across all 5 Haar-rotated R^32 clusters with P=512 particles (>32 particles even on the 8% minority mode).",
+  "failure_mode": "Low-rank projection sketches, Jensen covariance shrinkage, or particle under-allocation collapse intra-cluster covariance eigenvalues in R^32 even when cluster centers are found.",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (1,400 updates, Haar-rotated R^32, P=512).",
+  "diagram_kind": "highd_manifold",
+  "custom_mermaid": null
+}

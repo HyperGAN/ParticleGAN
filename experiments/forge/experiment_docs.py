@@ -700,7 +700,7 @@ def _load_four_laws_readouts(
                 continue
             scope = (doc.get("study") or {}).get("scope") if isinstance(doc.get("study"), dict) else {}
             view_id = doc.get("view") or (scope or {}).get("view")
-            if view_id != "four-laws-adherence-v1":
+            if view_id not in {"four-laws-adherence-v1", "four-laws-adherence-v2"}:
                 continue
             cand = str(doc.get("candidate_id") or (doc.get("candidate") or {}).get("id") or path.stem)
             fam = str(doc.get("trainer_family") or (doc.get("candidate") or {}).get("trainer_family") or fam_map.get(cand, ""))
@@ -1190,7 +1190,8 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
     family_results, scaling_by_task, hf_repo = _load_family_results(root)
     fl_view_tasks = {
         a["task"]
-        for a in (views.get("four-laws-adherence-v1") or {}).get("assignments", [])
+        for vid in ("four-laws-adherence-v1", "four-laws-adherence-v2")
+        for a in (views.get(vid) or {}).get("assignments", [])
         if isinstance(a, dict) and isinstance(a.get("task"), str)
     }
     fl_readouts = _load_four_laws_readouts(root, fl_task_ids=fl_view_tasks)
@@ -1294,7 +1295,14 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
                 or "Incomplete or uncalibrated GAN formulations fail to satisfy the declared numerical gates consistently."
             )
         if not isinstance(editorial.get("laws"), list):
-            fl_law = next((m["law"] for m in view_memberships[tid] if m["view"] == "four-laws-adherence-v1" and m.get("law") in valid_law_ids), None)
+            fl_law = next(
+                (
+                    m["law"]
+                    for m in view_memberships[tid]
+                    if m["view"] in {"four-laws-adherence-v2", "four-laws-adherence-v1"} and m.get("law") in valid_law_ids
+                ),
+                None,
+            )
             editorial["laws"] = [fl_law] if fl_law else []
         if not isinstance(editorial.get("edge_cases"), list):
             editorial["edge_cases"] = []
@@ -1313,6 +1321,7 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
 
         ds_assign = next((m for m in view_memberships[tid] if m["view"] == "discriminator_stability"), None)
         fl_assign = next((m for m in view_memberships[tid] if m["view"] == "four-laws-adherence-v1"), None)
+        fl_v2_assign = next((m for m in view_memberships[tid] if m["view"] == "four-laws-adherence-v2"), None)
 
         thresholds = _extract_thresholds(task, ast_thresh)
         mermaid_src = generate_mermaid_diagram(task, editorial)
@@ -1326,6 +1335,7 @@ def build_experiment_catalog(root: Path | str = ROOT) -> dict[str, Any]:
             "in_unimplemented_backlog": tid in backlog_set,
             "discriminator_stability": ds_assign,
             "four_laws_adherence": fl_assign,
+            "four_laws_adherence_v2": fl_v2_assign,
             "views": view_memberships[tid],
             "documentation": editorial,
             "top_laws": top_laws,
@@ -1761,6 +1771,13 @@ def render_experiment_catalog_readme(root: Path, catalog: dict[str, Any]) -> str
         tier_items = [e for e in exps.values() if e["discriminator_stability"] and e["discriminator_stability"]["tier"] == tier]
         _emit_table(f"Tier {tier} (`discriminator_stability`)", tier_items)
 
+    fl_probes_v2 = [
+        e for e in exps.values()
+        if e.get("four_laws_adherence_v2") and e["four_laws_adherence_v2"].get("role") == "four_laws_probe"
+    ]
+    if fl_probes_v2:
+        _emit_table("Four Laws Adherence v2 Clean Dynamical Probes (`four-laws-adherence-v2`)", fl_probes_v2)
+
     fl_probes = [e for e in exps.values() if e["four_laws_adherence"] and e["four_laws_adherence"].get("role") == "four_laws_probe"]
     _emit_table("Four Laws Adherence Dynamical Falsification Probes (`four-laws-adherence-v1`)", fl_probes)
 
@@ -1772,6 +1789,7 @@ def render_experiment_catalog_readme(root: Path, catalog: dict[str, Any]) -> str
         for e in exps.values()
         if e["discriminator_stability"] or e["adapter"] == "dcgan_performance_v1"
         or (e["four_laws_adherence"] and e["four_laws_adherence"].get("role") == "four_laws_probe")
+        or (e.get("four_laws_adherence_v2") and e["four_laws_adherence_v2"].get("role") == "four_laws_probe")
     }
     remaining = [e for e in exps.values() if e["task_id"] not in covered]
     fs_rem = [e for e in remaining if e["in_full_suite"]]
@@ -1807,20 +1825,26 @@ def render_experiment_catalog_readme(root: Path, catalog: dict[str, Any]) -> str
     return "\n".join(lines)
 
 
-def _render_four_laws_l4_leaderboard(exps: dict[str, dict[str, Any]]) -> list[str]:
-    """Render the matched NVIDIA L4 Four Laws Adherence diagnostic leaderboard from recorded receipts."""
+def _render_four_laws_l4_leaderboard(
+    exps: dict[str, dict[str, Any]],
+    *,
+    field_key: str = "four_laws_adherence",
+    view_id: str = "four-laws-adherence-v1",
+    heading: str = "Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)",
+) -> list[str]:
+    """Render a matched NVIDIA L4 Four Laws Adherence diagnostic leaderboard from recorded receipts."""
     fl_probes = [
         e for e in exps.values()
-        if e.get("four_laws_adherence") and e["four_laws_adherence"].get("role") == "four_laws_probe"
+        if e.get(field_key) and e[field_key].get("role") == "four_laws_probe"
     ]
     if not fl_probes:
         return []
 
-    fl_probes.sort(key=lambda e: (e["four_laws_adherence"].get("law", ""), e["task_id"]))
+    fl_probes.sort(key=lambda e: (e[field_key].get("law", ""), e["task_id"]))
     probe_ids = [e["task_id"] for e in fl_probes]
-    law_of = {e["task_id"]: str(e["four_laws_adherence"].get("law") or "") for e in fl_probes}
+    law_of = {e["task_id"]: str(e[field_key].get("law") or "") for e in fl_probes}
 
-    # Index strictly matched NVIDIA L4 receipts for the 9 fl_law* probes + 2 ByteGAN Law-1 anchors
+    # Index strictly matched NVIDIA L4 receipts for the fl_law* probes + 2 ByteGAN Law-1 anchors
     by_cand: dict[str, dict[str, dict[str, Any]]] = defaultdict(dict)
     cand_family: dict[str, str] = {}
     for tid in [*probe_ids, "bytegan_hypercube8", "bytegan_bigan_dictionary"]:
@@ -1860,16 +1884,16 @@ def _render_four_laws_l4_leaderboard(exps: dict[str, dict[str, Any]]) -> list[st
     ordered_cands = sorted(l4_probe_cands, key=_sort_key)
 
     lines: list[str] = [
-        "## Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)",
+        f"## {heading}",
         "",
         "> [!IMPORTANT]",
-        "> Matched **NVIDIA L4** hardware cohort (`four-laws-adherence-v1`, protocol seed `0`, unchanged global recipes). "
+        f"> Matched **NVIDIA L4** hardware cohort (`{view_id}`, protocol seed `0`, unchanged global recipes). "
         "Supplies research diagnostic telemetry only — separate from ordinary selected-cohort qualification and confers no default-adoption credit. "
         "Statically preflight-blocked pairs (`atlas-particle-normal-v4`: requires `MoGParticlePrior`; `e22`: requires policy-control/served-sampling contract) remain `BLOCKED` and distinct from numerical `FAIL`.",
         "",
-        "### Cross-Technique Family × Law Summary (9 `fl_law*` Probes + ByteGAN)",
+        f"### Cross-Technique Family × Law Summary ({len(probe_ids)} `fl_law*` Probes + ByteGAN)",
         "",
-        f"| Candidate | Family | Law 1 ({len(probes_by_law['law1'])}) | Law 2 ({len(probes_by_law['law2'])}) | Law 3 ({len(probes_by_law['law3'])}) | Law 4 ({len(probes_by_law['law4'])}) | Probes PASS | ByteGAN (L4) | 9-Probe NVML Energy |",
+        f"| Candidate | Family | Law 1 ({len(probes_by_law['law1'])}) | Law 2 ({len(probes_by_law['law2'])}) | Law 3 ({len(probes_by_law['law3'])}) | Law 4 ({len(probes_by_law['law4'])}) | Probes PASS | ByteGAN (L4) | {len(probe_ids)}-Probe NVML Energy |",
         "| --- | --- | :---: | :---: | :---: | :---: | :---: | :---: | ---: |",
     ]
 
@@ -1926,13 +1950,19 @@ def _render_four_laws_l4_leaderboard(exps: dict[str, dict[str, Any]]) -> list[st
     short_headers = {
         "fl_law1_aniso_unequal_modes": "L1 Aniso",
         "fl_law1_noisy_atomic_codebook": "L1 Noisy",
+        "fl_law1_noisy_atomic_codebook_v2": "L1 Noisy v2",
+        "fl_law1_highd_rank_d32_v2": "L1 Rank32 v2",
         "fl_law2_pure_adversarial_codim1": "L2 Codim1",
         "fl_law2_groupnorm_and_vit_sprites": "L2 GN+ViT",
+        "fl_law2_groupnorm_and_vit_sprites_v2": "L2 GN+ViT v2",
         "fl_law3_highd_orphan_d32": "L3 R32",
+        "fl_law3_highd_orphan_d32_v2": "L3 Orphan v2",
         "fl_law41_trust_rare1pct_tanh": "L4.1 Rare1%",
         "fl_law42_swap_deep_critic_16l": "L4.2 Swap16L",
         "fl_law42_deep_resbn_and_conv1x1": "L4.2 ResBN",
+        "fl_law42_deep_resbn_and_conv1x1_v2": "L4.2 ResBN v2",
         "fl_law44_highd_sparse_prior_and_shock": "L4.4 R512",
+        "fl_law44_scale_shock": "L4.4 Shock",
     }
     header_links = [
         f"[{short_headers.get(pid, pid)}](experiments/{pid}.md)" for pid in probe_ids
@@ -2006,7 +2036,22 @@ def render_laws_hub(root: Path, catalog: dict[str, Any]) -> str:
         )
     lines.append("")
 
-    lines.extend(_render_four_laws_l4_leaderboard(exps))
+    lines.extend(
+        _render_four_laws_l4_leaderboard(
+            exps,
+            field_key="four_laws_adherence_v2",
+            view_id="four-laws-adherence-v2",
+            heading="Four Laws Adherence v2 Diagnostic Leaderboard (NVIDIA L4 Cohort)",
+        )
+    )
+    lines.extend(
+        _render_four_laws_l4_leaderboard(
+            exps,
+            field_key="four_laws_adherence",
+            view_id="four-laws-adherence-v1",
+            heading="Four Laws Adherence Diagnostic Leaderboard (NVIDIA L4 Cohort)",
+        )
+    )
 
     for law in laws_reg["laws"]:
         lid = law["id"]

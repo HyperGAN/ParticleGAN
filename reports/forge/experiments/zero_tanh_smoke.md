@@ -10,7 +10,7 @@
 | **Edge Cases** | `tanh-saturation` `point-mass-dirac` `checkpoint-producer` |
 | **Primary View (`discriminator_stability`)** | Tier 1 (required) |
 | **Four Laws Adherence Role** | prerequisite (prerequisite) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `zero_tanh_smoke` |
 | **Prior** | `mog` (sigma=`0.1`, standardize=`False`) |
 | **Update Budget** | `1000` steps |
@@ -61,7 +61,7 @@ flowchart LR
 | Sampling Law | `public_prior_without_output_noise` |
 | Evaluation Output Noise | `clean` |
 | Scoring Weights | `live` |
-| Assigned Views | `discriminator_stability` (T1 required), `four-laws-adherence-v1` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T1 required), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -79,16 +79,16 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Atlas** | `atlas-particle-normal-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Atlas** | `atlas-particle-normal-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/atlas/atlas-particle-normal-v4/zero_tanh_smoke.gif) |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed the declared final zero-tanh bounds | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/zero_tanh_smoke.gif) |
 | **E22** | `e22` | **PASS** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
-| **EMPF** | `empf-v8` | **PASS** | recomputed the declared final zero-tanh bounds | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
-| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | — |
-| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | — |
-| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
-| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
-| **RHBI** | `rhbi-v12` | **PASS** | recomputed the declared final zero-tanh bounds | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | **PASS** | recomputed the declared final zero-tanh bounds | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **EMPF** | `empf-v8` | **PASS** | recomputed the declared final zero-tanh bounds | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/empf/empf-v8/zero_tanh_smoke.gif) |
+| **GAN v3 release 0.7** | `recipe-prior-refactor-release07-gan-v3-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [GAN v3 release 0.7](../families/release07-gan-v3.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/release07-gan-v3/recipe-prior-refactor-release07-gan-v3-v1/zero_tanh_smoke.gif) |
+| **K3P** | `recipe-prior-refactor-k3p-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [K3P](../families/k3p.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/k3p/recipe-prior-refactor-k3p-v1/zero_tanh_smoke.gif) |
+| **KA2** | `recipe-prior-refactor-ka2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/ka2/recipe-prior-refactor-ka2-v1/zero_tanh_smoke.gif) |
+| **R1/R2** | `recipe-prior-refactor-r1r2-v1` | **PASS** | recomputed the declared final zero-tanh bounds | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/r1r2/recipe-prior-refactor-r1r2-v1/zero_tanh_smoke.gif) |
+| **RHBI** | `rhbi-v12` | **PASS** | recomputed the declared final zero-tanh bounds | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/rhbi/rhbi-v12/zero_tanh_smoke.gif) |
+| **Unified** | `unified-v11` | **PASS** | recomputed the declared final zero-tanh bounds | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/unified/unified-v11/zero_tanh_smoke.gif) |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 
@@ -101,6 +101,7 @@ flowchart LR
 | `atlas-particle-normal-v4` | `atlas` | NVIDIA L4 | **PASS** | — | 409 J (J-to-PASS) | mean_abs_error=0.001996, p99_abs_error=0.007618, rms_error=0.002508, saturated_fraction=0 | [91b5b661538b4f56a628886e9a286b8e.json](../technique-receipts/91b5b661538b4f56a628886e9a286b8e.json) |
 | `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 297 J (J-to-PASS) | mean_abs_error=0.002121, p99_abs_error=0.01618, rms_error=0.003806, saturated_fraction=0 | [caf808b3dd6142adb43bc96595a02a33.json](../technique-receipts/caf808b3dd6142adb43bc96595a02a33.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 1.29 kJ (J-to-PASS) | mean_abs_error=0.002037, p99_abs_error=0.01572, rms_error=0.00363, saturated_fraction=0 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 381 J (J-to-PASS) | mean_abs_error=0.002953, p99_abs_error=0.01756, rms_error=0.004696, saturated_fraction=0 | [8870f30d704e4151a420e99fccceb364.json](../technique-receipts/8870f30d704e4151a420e99fccceb364.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **PASS** | — | 497 J (J-to-PASS) | mean_abs_error=0.00264, p99_abs_error=0.01034, rms_error=0.003506, saturated_fraction=0 | [398e2ca2bc524599b37f03c18367e0ac.json](../technique-receipts/398e2ca2bc524599b37f03c18367e0ac.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **PASS** | — | 460 J (J-to-PASS) | mean_abs_error=0.002195, p99_abs_error=0.008354, rms_error=0.002884, saturated_fraction=0 | [89f3e83c01a44d9f8337f9ba2fd62f4a.json](../technique-receipts/89f3e83c01a44d9f8337f9ba2fd62f4a.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 496 J (J-to-PASS) | mean_abs_error=0.001224, p99_abs_error=0.01102, rms_error=0.002518, saturated_fraction=0 | [fe350a41b9274265ab54b1273d52eefe.json](../technique-receipts/fe350a41b9274265ab54b1273d52eefe.json) |
@@ -111,6 +112,7 @@ flowchart LR
 | `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **PASS** | — | 139 J (J-to-PASS) | mean_abs_error=0.001291, p99_abs_error=0.005825, rms_error=0.001798, saturated_fraction=0 | [8b4f80eb94d34fac9117eec7eeabbc8c.json](../technique-receipts/8b4f80eb94d34fac9117eec7eeabbc8c.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 439 J (J-to-PASS) | mean_abs_error=0.001703, p99_abs_error=0.01183, rms_error=0.002936, saturated_fraction=0 | [219afeda72564b0c98ded425ed329642.json](../technique-receipts/219afeda72564b0c98ded425ed329642.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 571 J (J-to-PASS) | mean_abs_error=0.001193, p99_abs_error=0.01115, rms_error=0.002571, saturated_fraction=0 | [64ca441018b94a158387f5ccc3a71500.json](../technique-receipts/64ca441018b94a158387f5ccc3a71500.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 505 J (J-to-PASS) | mean_abs_error=0.001973, p99_abs_error=0.01246, rms_error=0.003204, saturated_fraction=0 | [71cc65d8e8794f68874739eb8a2a38a2.json](../technique-receipts/71cc65d8e8794f68874739eb8a2a38a2.json) |
 
 ## Reproduce This Experiment
 

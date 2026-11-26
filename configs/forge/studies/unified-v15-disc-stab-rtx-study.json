@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v15-disc-stab-rtx-study"
+  },
+  "candidate": "unified-v15",
+  "competing_explanation": "If unified-v15 regresses any numerical gate or latency bound on discriminator_stability, the affected task will record a faithful numerical FAIL.",
+  "control": {
+    "candidate_id": "unified-v14",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global unified-v15 (isolated particlegan/_unified_v15 package, Law 1-4 R3 assembly): evaluate on discriminator_stability (through tier 2, RTX A6000, protocol seed 0).",
+  "id": "unified-v15-disc-stab-rtx-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

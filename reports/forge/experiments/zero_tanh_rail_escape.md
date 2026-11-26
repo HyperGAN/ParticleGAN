@@ -10,7 +10,7 @@
 | **Edge Cases** | `tanh-saturation` `vanishing-jacobian` `non-stationary-shift` |
 | **Primary View (`discriminator_stability`)** | Tier 3 (held) |
 | **Four Laws Adherence Role** | law4 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `transfer_vector` / `zero_tanh_rail_escape` |
 | **Prior** | `mog` (sigma=`0.1`, standardize=`False`) |
 | **Update Budget** | `2000` steps |
@@ -69,7 +69,7 @@ flowchart LR
 | Scoring Weights | `live` |
 | Shift Step | `1001` |
 | Dependencies | [`zero_tanh_smoke`](zero_tanh_smoke.md) (`gate`) |
-| Assigned Views | `discriminator_stability` (T3 held), `four-laws-adherence-v1` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T3 held), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `prior-ablation-full-suite-v1` (T1 diagnostic), `r3-tier3-long-horizon-holdout-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3-shift-recovery-diagnostic-v1` (T1 diagnostic), `t4-strange-architectures-v1` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -89,7 +89,7 @@ flowchart LR
 | --- | --- | :---: | --- | --- | --- |
 | **E22** | `e22` | **PASS** | No recorded result for this selected configuration and source. | [E22](../families/e22.md#cohort-cuda-1bf9d7d34422) | — |
 | **Atlas** | `atlas-particle-normal-v4` | `NOT MEASURED` | no compatible result | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
-| **Axiom** | `axiom-v4` | `NOT MEASURED` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | `DIAG_PASS` | no compatible result | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
 | **BISPF** | `bispf-optimized-quintic-v1` | **FAIL** | No recorded result for this selected configuration and source. | [BISPF](../families/bispf.md#cohort-cuda-1bf9d7d34422) | — |
 | **EMPF** | `empf-v8` | `BLOCKED` | zero_tanh_rail_escape: zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; | [EMPF](../families/empf.md#cohort-cuda-23a94f16ca88) | — |
@@ -98,7 +98,7 @@ flowchart LR
 | **KA2** | `recipe-prior-refactor-ka2-v1` | `NOT MEASURED` | no compatible result | [KA2](../families/ka2.md#cohort-cuda-daa283c8a640) | — |
 | **R1/R2** | `recipe-prior-refactor-r1r2-v1` | `NOT MEASURED` | no compatible result | [R1/R2](../families/r1r2.md#cohort-cuda-daa283c8a640) | — |
 | **RHBI** | `rhbi-v12` | `BLOCKED` | zero_tanh_rail_escape: zero_tanh_rail_escape: unsupported tanh host zero_tanh_rail_escape; | [RHBI](../families/rhbi.md#cohort-cuda-23a94f16ca88) | — |
-| **Unified** | `unified-v11` | `NOT MEASURED` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
+| **Unified** | `unified-v11` | `DIAG_PASS` | no compatible result | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 
 ### Four Laws Adherence Diagnostic Receipts (Separate Cohort)
 
@@ -115,6 +115,8 @@ flowchart LR
 | `recipe-prior-refactor-ka2-v1` | `ka2` | NVIDIA L4 | **PASS** | — | 870 J (J-to-PASS) | mean_abs_error=0.001048, p99_abs_error=0.004045, rms_error=0.001437, saturated_fraction=0 | [0224b37e31b84cc79209c4bb3f4ff0d5.json](../technique-receipts/0224b37e31b84cc79209c4bb3f4ff0d5.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 703 J (J-to-PASS) | mean_abs_error=0.001431, p99_abs_error=0.006468, rms_error=0.002003, saturated_fraction=0 | [916e4a6a23ed47028b97e4c0ab7fb5ba.json](../technique-receipts/916e4a6a23ed47028b97e4c0ab7fb5ba.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 491 J (J-to-PASS) | mean_abs_error=0.001636, p99_abs_error=0.01005, rms_error=0.002673, saturated_fraction=0 | [10948fa21d2147d3b97bffead27e3d2e.json](../technique-receipts/10948fa21d2147d3b97bffead27e3d2e.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 511 J (J-to-PASS) | mean_abs_error=0.001129, p99_abs_error=0.006383, rms_error=0.001749, saturated_fraction=0 | [8d911fe8db054f9186eefc9eab10099b.json](../technique-receipts/8d911fe8db054f9186eefc9eab10099b.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **FAIL** | — | 2.12 kJ | mean_abs_error=0.003509, p99_abs_error=0.03004, rms_error=0.006688, saturated_fraction=0 | [1b314dfcd90241ab8bd2002d06666535.json](../technique-receipts/1b314dfcd90241ab8bd2002d06666535.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 2.20 kJ | mean_abs_error=0.003191, p99_abs_error=0.01423, rms_error=0.004307, saturated_fraction=0 | [e1b97daee53c4d29b7c5c12d5240a4b7.json](../technique-receipts/e1b97daee53c4d29b7c5c12d5240a4b7.json) |
 | `recipe-prior-refactor-r1r2-v1` | `r1r2` | NVIDIA L4 | **FAIL** | — | 862 J | mean_abs_error=0.002675, p99_abs_error=0.008516, rms_error=0.003251, saturated_fraction=0 | [461c27264f3548d6a7ed461ee3e1308a.json](../technique-receipts/461c27264f3548d6a7ed461ee3e1308a.json) |
 | `recipe-prior-refactor-release07-gan-v3-v1` | `release07-gan-v3` | NVIDIA L4 | **FAIL** | — | 935 J | mean_abs_error=0.001408, p99_abs_error=0.005257, rms_error=0.001831, saturated_fraction=0 | [0bf36ce7c62444b9b06e491e09c07d19.json](../technique-receipts/0bf36ce7c62444b9b06e491e09c07d19.json) |

@@ -10,7 +10,7 @@
 | **Edge Cases** | `theory-isolation` `non-stationary-shift` `screening-horizon` |
 | **Primary View (`discriminator_stability`)** | Tier 2 (stretch) |
 | **Four Laws Adherence Role** | law3 (anchor) |
-| **Fixed Full-Suite Denominator** | Yes (71-test fixed denominator) |
+| **Fixed Full-Suite Denominator** | Yes (59-test active runnable denominator) |
 | **Adapter / Domain** | `t3_isolation` / `t3_iso_horizon_saddle_shift` |
 | **Prior** | `particle_cloud` (sigma=`0.0`, standardize=`False`) |
 | **Update Budget** | `1000` steps |
@@ -24,7 +24,7 @@ With G = nn.Identity() and a smooth SiLU critic, expands an R^4 target at step 3
 
 ## Laws & Edge Cases Targeted
 
-- **[Law 3A: Unconditional W1 Ray-Length & Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
+- **[Law 3A: Unconditional W1 Ray-Length & Feature-Space Screening Identifiability](../LAWS_HUB.md#law3a)** ([Law 3A theory](../../../docs/four-laws.md#law-3--transport-identifiability)) — Does the learning system possess enough information to determine appropriate transport?
 - **Edge-case tags:** `theory-isolation`, `non-stationary-shift`, `screening-horizon`
 
 ## Common Failure Mode
@@ -64,7 +64,7 @@ flowchart LR
 | Architecture | `generator=nn.Identity (0 trainable parameters; direct data-space ParticlePrior), discriminator_family=smooth_silu_mlp, hidden=64, layers=2, in_dim=4` |
 | Shift Step | `300` |
 | Integrity Guards | `finite_state`, `optimizer_roles`, `exact_optimizer_updates`, `mechanism_exercised`, `rng_isolation` |
-| Assigned Views | `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3_causal_isolation_stretch` (T1 diagnostic), `t3_factorial_ablation` (T1 diagnostic) |
+| Assigned Views | `discriminator_stability` (T2 stretch), `four-laws-adherence-v1` (T1 diagnostic), `four-laws-adherence-v2` (T1 diagnostic), `r4-occam-ablation-v1` (T1 diagnostic), `t3_causal_isolation_stretch` (T1 diagnostic), `t3_factorial_ablation` (T1 diagnostic) |
 
 ### Numerical Pass/Fail Thresholds
 
@@ -85,7 +85,7 @@ flowchart LR
 
 | Family | Selected Candidate | Outcome | Key Recorded Metrics | Family Report | Training Media |
 | --- | --- | :---: | --- | --- | --- |
-| **Axiom** | `axiom-v4` | **PASS** | recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | — |
+| **Axiom** | `axiom-v4` | **PASS** | recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed) | [Axiom](../families/axiom.md#cohort-cuda-daa283c8a640) | [HF GIF](https://huggingface.co/datasets/HyperGAN/particlegan-forge-evidence/resolve/main/media/forge/leaderboard/axiom/axiom-v4/t3_iso_horizon_saddle_shift.gif) |
 | **Unified** | `unified-v11` | **PASS** | recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed) | [Unified](../families/unified.md#cohort-cuda-42a130a78fc3) | — |
 | **Atlas** | `atlas-particle-normal-v4` | `BLOCKED` | t3_iso_horizon_saddle_shift: clean/live scoring has no declared policy-control evidence an | [Atlas](../families/atlas.md#cohort-cuda-daa283c8a640) | — |
 | **BCAP** | `recipe-prior-refactor-bcap-pure-v1` | `NOT MEASURED` | No recorded result for this selected configuration and source. | [BCAP](../families/bcap-pure.md#cohort-cuda-1bf9d7d34422) | — |
@@ -106,9 +106,11 @@ flowchart LR
 | --- | --- | --- | :---: | ---: | ---: | --- | --- |
 | `axiom-v4` | `axiom` | NVIDIA L4 | **PASS** | — | 1.43 kJ (J-to-PASS) | core_component_covariance_error=0.591, critic_grad_med=7.893e-06, finite_fraction=1, frozen_control_modes=2 | [afcecfe2bb134ae0a12d4d65ec248a36.json](../technique-receipts/afcecfe2bb134ae0a12d4d65ec248a36.json) |
 | `axiom-v4` | `axiom` | NVIDIA RTX A6000 | **PASS** | — | 6.11 kJ (J-to-PASS) | core_component_covariance_error=0.6081, critic_grad_med=8.083e-06, finite_fraction=1, frozen_control_modes=2 | [readout-9066cb4353eb435be7819b0c.json](../records/readout-9066cb4353eb435be7819b0c.json) |
+| `axiom-v5` | `axiom` | NVIDIA L4 | **PASS** | — | 1.43 kJ (J-to-PASS) | core_component_covariance_error=0.6097, critic_grad_med=6.857e-06, finite_fraction=1, frozen_control_modes=2 | [d9118052c92f4e758e11623889a76f7f.json](../technique-receipts/d9118052c92f4e758e11623889a76f7f.json) |
 | `law4-energy-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.45 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [95e512cbb2eb45c9947b681cbce0e4ce.json](../technique-receipts/95e512cbb2eb45c9947b681cbce0e4ce.json) |
 | `unified-v11` | `unified` | NVIDIA L4 | **PASS** | — | 1.73 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [64f481b3ef55403aaea13c363a34a9bc.json](../technique-receipts/64f481b3ef55403aaea13c363a34a9bc.json) |
 | `unified-v12` | `unified` | NVIDIA L4 | **PASS** | — | 1.41 kJ (J-to-PASS) | core_component_covariance_error=0.6394, critic_grad_med=7.43e-07, finite_fraction=1, frozen_control_modes=2 | [5ab75798535340179b063c0551336d89.json](../technique-receipts/5ab75798535340179b063c0551336d89.json) |
+| `unified-v15` | `unified` | NVIDIA L4 | **PASS** | — | 1.46 kJ (J-to-PASS) | core_component_covariance_error=0.6625, critic_grad_med=7.478e-07, finite_fraction=1, frozen_control_modes=2 | [3891cd9606be4527bad9aab7a9ddd2f0.json](../technique-receipts/3891cd9606be4527bad9aab7a9ddd2f0.json) |
 | `bispf-optimized-quintic-v1` | `bispf` | NVIDIA L4 | **FAIL** | — | 921 J | core_component_covariance_error=10, critic_grad_med=3.063, finite_fraction=1, frozen_control_modes=0 | [e896fa919ebb4d72b9f5d6ec09dc9b64.json](../technique-receipts/e896fa919ebb4d72b9f5d6ec09dc9b64.json) |
 | `empf-v8` | `empf` | NVIDIA L4 | **FAIL** | — | 976 J | core_component_covariance_error=0.7706, critic_grad_med=0.27, finite_fraction=1, frozen_control_modes=2 | [d7d5eecb1851490dbb1f21c34f070614.json](../technique-receipts/d7d5eecb1851490dbb1f21c34f070614.json) |
 | `minimal-v2` | `minimal` | NVIDIA L4 | **FAIL** | — | 1.80 kJ | core_component_covariance_error=0.1042, critic_grad_med=0.04421, finite_fraction=1, frozen_control_modes=2 | [7da8b0f058f44766b556a509f7bdf077.json](../technique-receipts/7da8b0f058f44766b556a509f7bdf077.json) |

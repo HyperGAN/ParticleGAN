@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "axiom-v5-dcgan-perf-rtx-study"
+  },
+  "candidate": "axiom-v5",
+  "competing_explanation": "If axiom-v5 regresses any numerical gate or latency bound on dcgan_performance, the affected task will record a faithful numerical FAIL.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 35.0
+  },
+  "hypothesis": "Unchanged global axiom-v5 (Track B surgical bug and host-sync fixes B1-B4 on top of axiom-v4): evaluate on dcgan_performance (through tier 1, RTX A6000, protocol seed 0).",
+  "id": "axiom-v5-dcgan-perf-rtx-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 35.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}
