@@ -594,19 +594,39 @@ def test_b3_orphan_thresholds_weyl_tiebreak_projected_transport_and_ror_crossove
     l_simp.backward()
     assert z_tab.grad is not None and torch.isfinite(z_tab.grad).all()
 
-    # (d) Transport dim gate in AxiomGANLoss: 32x32x3 (3072 <= 4096) ACTIVATES transport (with no lossy thermal lock),
-    #     while 64x64x3 (12288 > 4096) and flat 2D 2048 > 1024 skip transport for fast DCGAN throughput!
-    rec_img = AxiomStepRecord()
+    # (d) Principled spatial cluster gate in AxiomGANLoss:
+    #     - Continuous/Gaussian 32x32x3 (3072 in (1024, 4096]) SKIPS transport & retains 0.5*pair_relativistic in d_loss/g_loss;
+    #     - Clustered discrete 32x32x3 sprites ACTIVATES transport (with no lossy thermal lock);
+    #     - 64x64x3 (12288 > 4096) and flat 2D 2048 > 1024 skip transport for fast DCGAN throughput!
+    rec_cont = AxiomStepRecord()
     crit_img = nn.Sequential(nn.Conv2d(3, 4, 3, stride=2, padding=1), nn.Flatten(), nn.Linear(4 * 16 * 16, 1))
-    _attach_axiom_critic_hook(crit_img, rec_img)
-    loss_img = AxiomGANLoss(record=rec_img)
-    xr_32 = torch.randn(8, 3, 32, 32)
-    xf_32 = torch.randn(8, 3, 32, 32, requires_grad=True)
-    dr_32, df_32 = crit_img(xr_32).squeeze(-1), crit_img(xf_32).squeeze(-1)
-    lg_32 = loss_img.g_loss(df_32, dr_32)
-    assert torch.isfinite(lg_32)
-    assert rec_img.ell_initialized is True, "32x32x3 (raw_dim=3072 <= 4096) must activate AxiomTransportLoss"
-    assert rec_img.thermal_initialized is False, "Lossy 32x32->8x8 downsampled transport must NOT trigger observe_thermal"
+    _attach_axiom_critic_hook(crit_img, rec_cont)
+    loss_cont = AxiomGANLoss(record=rec_cont)
+    g_32 = torch.Generator().manual_seed(42)
+    xr_gauss = torch.randn((16, 3, 32, 32), generator=g_32)
+    xf_gauss = torch.randn((16, 3, 32, 32), generator=g_32, requires_grad=True)
+    dr_g, df_g = crit_img(xr_gauss).squeeze(-1), crit_img(xf_gauss).squeeze(-1)
+    ld_g = loss_cont.d_loss(dr_g, df_g)
+    lg_g = loss_cont.g_loss(df_g, dr_g)
+    assert torch.isfinite(ld_g) and torch.isfinite(lg_g)
+    assert rec_cont.ell_initialized is False, "Continuous Gaussian 32x32x3 must skip AxiomTransportLoss"
+    exp_d = 0.5 * pg.GANLoss("non_saturating").d_loss(dr_g, df_g) + 0.5 * torch.nn.functional.softplus(df_g - dr_g).mean()
+    exp_g = 0.5 * pg.GANLoss("non_saturating").g_loss(df_g, dr_g) + 0.5 * torch.nn.functional.softplus(dr_g.detach() - df_g).mean()
+    assert torch.allclose(ld_g, exp_d, atol=1e-5), "Continuous 32x32 d_loss must retain 0.5*pair_relativistic"
+    assert torch.allclose(lg_g, exp_g, atol=1e-5), "Continuous 32x32 g_loss must retain 0.5*pair_relativistic"
+
+    from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
+    rec_sp = AxiomStepRecord()
+    crit_sp = nn.Sequential(nn.Conv2d(3, 4, 3, stride=2, padding=1), nn.Flatten(), nn.Linear(4 * 16 * 16, 1))
+    _attach_axiom_critic_hook(crit_sp, rec_sp)
+    loss_sp = AxiomGANLoss(record=rec_sp)
+    xr_sp = sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites_v2", 16, torch.Generator().manual_seed(7))
+    xf_sp = torch.randn((16, 3, 32, 32), generator=g_32, requires_grad=True)
+    dr_sp, df_sp = crit_sp(xr_sp).squeeze(-1), crit_sp(xf_sp).squeeze(-1)
+    lg_sp = loss_sp.g_loss(df_sp, dr_sp)
+    assert torch.isfinite(lg_sp)
+    assert rec_sp.ell_initialized is True, "Clustered 32x32x3 sprites must activate AxiomTransportLoss"
+    assert rec_sp.thermal_initialized is False, "Lossy 32x32->8x8 downsampled transport must NOT trigger observe_thermal"
 
     rec_64 = AxiomStepRecord()
     crit_64 = nn.Sequential(nn.Conv2d(3, 4, 3, stride=4, padding=1), nn.Flatten(), nn.Linear(4 * 16 * 16, 1))
@@ -810,3 +830,72 @@ else:
     assert a["opt_d"]["crit_skew_ema"] == b["opt_d"]["crit_skew_ema"]
     assert torch.equal(a["reg"]["proto_hits"], b["reg"]["proto_hits"])
     assert torch.equal(a["reg"]["proto_var"], b["reg"]["proto_var"])
+
+
+# ---------------------------------------------------------------------------
+# 7. Issue #1: Spatial Cluster Gate Invariances, Bounded c_rel_w, Large-B Cap
+# ---------------------------------------------------------------------------
+
+
+def test_issue1_spatial_cluster_gate_invariances_bounded_crel_and_large_b() -> None:
+    from benchmarks.cifar_toy.data import make_synthetic_cifar_dataset
+    from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
+    from particlegan._axiom.loss import _SPATIAL_CLUSTER_THRESH, _spatial_cluster_ratio
+
+    g = torch.Generator().manual_seed(11)
+    sp = sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites_v2", 256, g)
+    syn_ds = make_synthetic_cifar_dataset(512, seed=0)
+    syn_c = syn_ds.to_float_tensor(torch.randint(0, syn_ds.size, (256,), generator=g))
+    unif = torch.empty((256, 3, 32, 32)).uniform_(-1.0, 1.0, generator=g)
+    smooth = torch.nn.functional.interpolate(torch.randn((256, 3, 4, 4), generator=g), size=(32, 32), mode="bilinear", align_corners=False).tanh()
+
+    # 1. Clean separation between discrete sprites and continuous/synthetic 32x32 datasets
+    r_sp = _spatial_cluster_ratio(sp)
+    r_syn = _spatial_cluster_ratio(syn_c)
+    r_unif = _spatial_cluster_ratio(unif)
+    r_sm = _spatial_cluster_ratio(smooth)
+    assert r_sp < 0.06 < _SPATIAL_CLUSTER_THRESH, f"sprites ratio too high: {r_sp}"
+    assert r_syn > _SPATIAL_CLUSTER_THRESH, f"synthetic CIFAR ratio too low: {r_syn}"
+    assert r_sm > 0.50 and r_unif > 0.70
+
+    # 2. Exact scale-, shift-, and permutation-invariance on B=256 (bounded <=64 slice)
+    perm = torch.randperm(256, generator=g)
+    for x_ref, r_ref in ((sp, r_sp), (syn_c, r_syn)):
+        assert math.isclose(_spatial_cluster_ratio(x_ref * 1e-4), r_ref, rel_tol=1e-4, abs_tol=1e-5)
+        assert math.isclose(_spatial_cluster_ratio(x_ref * 1e4), r_ref, rel_tol=1e-4, abs_tol=1e-5)
+        assert math.isclose(_spatial_cluster_ratio(x_ref.double() + 500.0), r_ref, rel_tol=1e-4, abs_tol=1e-5)
+        assert math.isclose(_spatial_cluster_ratio(x_ref + 500.0), r_ref, rel_tol=5e-3, abs_tol=5e-4)
+        assert math.isclose(_spatial_cluster_ratio(x_ref[perm]), r_ref, rel_tol=1e-4, abs_tol=1e-5)
+
+    # 3. Transient cache hits across d_loss -> g_loss on the same batch & dim<=1024 stays untouched
+    loss_fn = AxiomGANLoss(record=AxiomStepRecord())
+    assert loss_fn._skip_spatial_transport(torch.randn((16, 1, 8, 8), generator=g)) is False
+    assert loss_fn._sc_cache is None, "dim<=1024 must not touch spatial cluster gate or cache"
+    assert loss_fn._skip_spatial_transport(syn_c) is True
+    cached_entry = loss_fn._sc_cache
+    assert cached_entry is not None and cached_entry[1] is True
+    assert loss_fn._skip_spatial_transport(syn_c) is True
+    assert loss_fn._sc_cache is cached_entry, "Repeated check on same x_r must hit transient cache"
+
+    # 4. Bounded c_rel_w (no 75-85x ell blowup) & large-B (B=256) active spatial transport
+    tr = AxiomTransportLoss()
+    rec = AxiomStepRecord()
+    xf_big = torch.randn((256, 3, 32, 32), generator=g, requires_grad=True)
+    df_big = torch.zeros(256, requires_grad=True)
+    dr_big = torch.ones(256)
+    # Verify c_rel_w is decoupled from ell blowup (high-ell uniform 32x32 stays bounded vs old 75-85x * tau)
+    l_unif_a = tr(xf_big, unif, df_big, torch.zeros(256), record=AxiomStepRecord())
+    l_unif_b = tr(xf_big, unif, df_big, torch.full((256,), 2.0), record=AxiomStepRecord())
+    assert torch.isfinite(l_unif_a) and torch.isfinite(l_unif_b)
+    # Delta from dr=+2 vs dr=0 must be bounded by O(rms_y) (~14), never inflated by 2.5*ell*tau (~85)!
+    assert abs(float((l_unif_b - l_unif_a).item())) < 35.0, f"c_rel_w blowup: delta={float((l_unif_b - l_unif_a).item())}"
+
+    # On active clustered sprites at B=256: bounded <=64 Sinkhorn slack, ALL 256 fake logits receive finite nonzero grad!
+    l_sp256 = tr(xf_big, sp, df_big, dr_big, record=rec)
+    assert torch.isfinite(l_sp256)
+    assert tr.last_p_xy_slack is not None and tr.last_p_xy_slack.shape[0] == 64
+    l_sp256.backward()
+    assert df_big.grad is not None and torch.isfinite(df_big.grad).all()
+    assert bool((df_big.grad.abs() > 0).all()), "All 256 fake logits must receive gradients under large-B spatial cap"
+    assert xf_big.grad is not None and torch.isfinite(xf_big.grad).all()
+

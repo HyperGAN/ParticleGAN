@@ -458,6 +458,11 @@ class AxiomTransportLoss(nn.Module):
         if self.weight == 0.0: return x_fake[:0].sum()
         disc_step, simp_step = bool(self._discrete_step), bool(self._simplicial_step); self._discrete_step = self._simplicial_step = False
         bf, br, can_mut, cond_p = x_fake.shape[0], y_real.shape[0], _can_mut(record, allow_state_update), (cond_fake is not None or cond_real is not None)
+        is_dn, full_df, full_dr, i_f = (x_fake.ndim >= 4 and (int(x_fake.shape[-2]) > self.max_spatial or int(x_fake.shape[-1]) > self.max_spatial)), None, None, None
+        if is_dn and (bf > 64 or br > 64):
+            full_df, full_dr, phi = d_fake, d_real, (float(getattr(record, "chord_phase", 0.0)) if record is not None else 0.0)
+            if bf > 64: i_f = ((torch.arange(64, device=x_fake.device) * bf) // 64 + int(phi * bf)) % bf; x_fake, d_fake, cond_fake, bf = x_fake[i_f], d_fake[i_f], (None if cond_fake is None else cond_fake[i_f]), 64
+            if br > 64: i_r = ((torch.arange(64, device=y_real.device) * br) // 64 + int(phi * br)) % br; y_real, d_real, cond_real, br = y_real[i_r], d_real[i_r], (None if cond_real is None else cond_real[i_r]), 64
         xp, yp = project_transport_features(x_fake, self.max_spatial), project_transport_features(y_real.detach(), self.max_spatial)
         ell, (g_conn, _, _, _) = self._resolve_ell(yp, record, can_mut), self._cached_manifold_gates(yp)
         if record is not None and hasattr(record, "_disc_gate"): record._disc_gate = 1.0 - g_conn
@@ -466,6 +471,7 @@ class AxiomTransportLoss(nn.Module):
         if not cond_p and self.chart_weight > 0.0 and br >= 4 and bf >= 2:
             ptab, brows = (getattr(record, "_active_prior_table", None), getattr(record, "_active_batch_rows", None)) if record is not None else (None, None)
             if ptab is None or brows is None: ptab, brows = _recover_prior_rows(x_fake, record)
+            brows = brows[i_f.to(brows.device)] if (i_f is not None and brows is not None and brows.ndim == 1 and brows.shape[0] == full_df.shape[0]) else brows
             has_pt = ptab is not None and brows is not None and ptab.ndim == 2 and brows.ndim == 1 and brows.shape[0] == bf
             if has_pt or (1.0 - g_conn) > 1e-4:
                 charts, wr, rads, bcnt, ncs = _update_charts(yp.float(), getattr(record, "chart_state", None) if record is not None else None, max_charts=self.chart_capacity, allow_update=can_mut, loc_ell=ey_ms)
@@ -509,9 +515,9 @@ class AxiomTransportLoss(nn.Module):
             if s_near is not None: af = (af + 0.50 * s_near.to(af.dtype)).clamp(0.0, 1.0)
             sf = (float(bf) * Pxy_s).clamp(0.0, 1.0); p_sl = Pxy_s * (1.0 + 0.35 * sf) * ((1.0 - ab_sh.to(Pxy_s.dtype)) if ab_sh is not None else 1.0)
         coord = (Pxy_a * cxy).sum() - 0.5 * (Pxx_a * torch.sqrt(af.unsqueeze(1) * af.unsqueeze(0)) * cxx).sum()
-        is_dn = x_fake.ndim >= 4 and (int(x_fake.shape[-2]) > self.max_spatial or int(x_fake.shape[-1]) > self.max_spatial)
-        c_rel_w = (2.5 * torch.maximum(ell.detach(), 0.20 * (yp.float() - yp.float().mean(0, keepdim=True)).square().sum(-1).mean().sqrt().to(ell.dtype))) if is_dn else 0.03
+        c_rel_w = (0.50 * (yp.float() - yp.float().mean(0, keepdim=True)).square().sum(-1).mean().sqrt().to(ell.dtype)) if is_dn else 0.03
         critic_t, r_tail_t = -(p_sl * (0.5 * self.tau * dft)).sum() + (c_rel_w * self.tau) * (Pxy_a * (F.softplus(drt.unsqueeze(0) - dft.unsqueeze(1)) - math.log(2.0))).sum(), ell.new_zeros((), dtype=torch.float32)
+        if full_df is not None and full_df.shape[0] == full_dr.shape[0]: ff_a, rf_a = self._log_odds(full_df, full_dr); critic_t = critic_t + (0.5 * c_rel_w * self.tau) * (F.softplus(rf_a - ff_a).mean() - math.log(2.0))
         if am is not None: coord, r_tail_t = coord + self.chart_weight * am[0].to(coord.dtype), ell.new_full((), float(am[3]), dtype=torch.float32)
         elif c_tgt is not None and c_rw is not None:
             ec = ell.detach().float().clamp_min(1e-24); diff = xp.float() - c_tgt.detach(); sd = _sc_safe(torch.maximum(diff.detach().abs().amax(), ec))

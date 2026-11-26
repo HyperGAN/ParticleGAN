@@ -6,6 +6,7 @@ Self-contained Law 3 coupling and loss module importing directly from
 from __future__ import annotations
 
 import math
+import weakref
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
@@ -817,6 +818,35 @@ class _UnifiedV15CouplingBase(nn.Module):
 
         b_f = x_fake.shape[0]
         b_r = y_real.shape[0]
+        is_dn_spatial = (
+            not symmetric
+            and x_fake.ndim >= 4
+            and (int(x_fake.shape[-2]) > 8 or int(x_fake.shape[-1]) > 8)
+        )
+        full_df: Optional[torch.Tensor] = None
+        full_dr: Optional[torch.Tensor] = None
+        idx_f_sub: Optional[torch.Tensor] = None
+        if is_dn_spatial and (b_f > 64 or b_r > 64):
+            full_df, full_dr = d_fake, d_real
+            phi_s = float(getattr(record, "t1c_chord_phase", 0.0)) if record is not None else 0.0
+            if b_f > 64:
+                idx_f_sub = ((torch.arange(64, device=x_fake.device) * b_f) // 64 + int(phi_s * b_f)) % b_f
+                x_fake = x_fake[idx_f_sub]
+                d_fake = d_fake[idx_f_sub]
+                if feat_fake is not None:
+                    feat_fake = feat_fake[idx_f_sub]
+                if cond_fake is not None:
+                    cond_fake = cond_fake[idx_f_sub]
+                b_f = 64
+            if b_r > 64:
+                idx_r_sub = ((torch.arange(64, device=y_real.device) * b_r) // 64 + int(phi_s * b_r)) % b_r
+                y_real = y_real[idx_r_sub]
+                d_real = d_real[idx_r_sub]
+                if feat_real is not None:
+                    feat_real = feat_real[idx_r_sub]
+                if cond_real is not None:
+                    cond_real = cond_real[idx_r_sub]
+                b_r = 64
         grad_enabled = torch.is_grad_enabled()
         in_probe = bool(getattr(record, "_in_protected_probe", False)) if record is not None else False
         can_mutate = bool(allow_ell_update and grad_enabled and not in_probe)
@@ -941,6 +971,15 @@ class _UnifiedV15CouplingBase(nn.Module):
 
             prior_table_act = getattr(record, "_active_prior_table", None) if record is not None else None
             batch_rows_act = getattr(record, "_active_batch_rows", None) if record is not None else None
+            if (
+                idx_f_sub is not None
+                and batch_rows_act is not None
+                and isinstance(batch_rows_act, torch.Tensor)
+                and batch_rows_act.ndim == 1
+                and full_df is not None
+                and int(batch_rows_act.shape[0]) == int(full_df.shape[0])
+            ):
+                batch_rows_act = batch_rows_act[idx_f_sub.to(batch_rows_act.device)]
             use_atomic_ledger = (
                 self.self_coupling in ("feydy_atomic", "feydy_atomic_v15")
                 and g_atom_fwd > 0.5
@@ -1234,6 +1273,10 @@ class _UnifiedV15CouplingBase(nn.Module):
                 ).sum()
 
         critic_total = local_critic_slack
+        if full_df is not None and full_dr is not None and full_df.shape[0] == full_dr.shape[0]:
+            ff_all, rf_all = self._centered_log_odds(full_df, full_dr, ell=ell, detach_real=True)
+            rel_scale = (self.relativistic_weight if self.relativistic_weight > 0.0 else 0.03 * self.tau) * slack_scale
+            critic_total = critic_total + 0.5 * rel_scale * (F.softplus(rf_all - ff_all).mean() - math.log(2.0))
         if symmetric:
             ell_yy_sym = (
                 torch.sqrt(ell_y_loc.unsqueeze(1) * ell_y_loc.unsqueeze(0))
@@ -3783,6 +3826,30 @@ def unified_v15_sparse_obs_wiener_loss(
     return zero.to(dtype=x_fake.dtype)
 
 
+_V15_SPATIAL_CLUSTER_THRESH = 0.12
+
+
+@torch.no_grad()
+def _v15_spatial_cluster_ratio(x: torch.Tensor, *, max_spatial: int = 8, max_b: int = 64) -> float:
+    b = int(x.shape[0])
+    if b < 4:
+        return 1.0
+    xd = x.detach()
+    z = project_transport_features(xd - xd.mean(dim=0, keepdim=True), max_spatial=max_spatial).float()
+    sc = z.abs().amax()
+    zu = z / sc.clamp_min(1e-30)
+    if b > max_b:
+        w = torch.remainder((torch.arange(zu.shape[1], device=zu.device, dtype=torch.float32) + 0.5) * 0.6180339887498949, 1.0) - 0.5
+        order = torch.argsort(zu @ (w / w.norm().clamp_min(1e-12)), stable=True)
+        zu = zu.index_select(0, order.index_select(0, (torch.arange(max_b, device=zu.device, dtype=torch.long) * b) // max_b))
+    n = int(zu.shape[0])
+    dmat = torch.cdist(zu, zu, p=2.0)
+    off = ~torch.eye(n, dtype=torch.bool, device=zu.device)
+    med_all = torch.quantile(dmat[off], 0.50).clamp_min(1e-12)
+    med_nn = torch.quantile(dmat.masked_fill(~off, float("inf")).amin(dim=1), 0.50)
+    return float(torch.where(sc > 1e-30, med_nn / med_all, med_nn.new_zeros(())).item())
+
+
 class UnifiedV15GANLoss(GANLoss):
     """Unified-v15 4-Law + Zero-`eigh` CondFiber GANLoss."""
 
@@ -3890,6 +3957,25 @@ class UnifiedV15GANLoss(GANLoss):
             cond_drift_deconflict=cond_drift_deconflict,
         )
         self.last_metrics: Dict[str, float] = {}
+        self._sc_cache: Any = None
+
+    def _skip_spatial_transport(self, x_r: torch.Tensor) -> bool:
+        if x_r.ndim < 2 or x_r.shape[0] <= 0:
+            return False
+        dim = int(x_r[0].numel())
+        if not _has_spatial_dims(x_r):
+            return dim > 1024
+        if dim <= 1024:
+            return False
+        if dim > 4096:
+            return True
+        key = (id(x_r), int(x_r.data_ptr()), int(x_r._version), tuple(x_r.shape), str(x_r.device))
+        cached = self._sc_cache
+        if cached is not None and cached[0] == key and cached[2]() is x_r:
+            return cached[1]
+        skip = _v15_spatial_cluster_ratio(x_r, max_spatial=8) >= _V15_SPATIAL_CLUSTER_THRESH
+        self._sc_cache = (key, skip, weakref.ref(x_r))
+        return skip
 
     def _resolve_pair_parts(
         self,
@@ -3976,9 +4062,7 @@ class UnifiedV15GANLoss(GANLoss):
             return base
         if self.conditional_fibre == "calibrated" and has_cont_cond:
             return base
-        dim_d = max(1, x_r[0].numel()) if x_r.shape[0] > 0 else 0
-        max_t1c_dim_d = 4096 if _has_spatial_dims(x_r) else 1024
-        if not has_cont_cond and x_r.ndim >= 2 and dim_d > max_t1c_dim_d:
+        if not has_cont_cond and self._skip_spatial_transport(x_r):
             if self.loss == "non_saturating" and self.t1c.weight > 0.0 and self.fibre_rel_blend > 0.0:
                 pair_d = self._scalar_pair_relativistic(real_logits, fake_logits)
                 if pair_d is not None:
@@ -4070,11 +4154,10 @@ class UnifiedV15GANLoss(GANLoss):
                 return self.t1c.weight * rel_term
             return self.t1c.weight * super().g_loss(fake_logits, real_logits)
 
-        # 2. High-dimensional domains (dim > 4096 on images e.g. 64x64..256x256, or dim > 1024 on flat vectors):
+        # 2. High-dimensional / continuous spatial domains (dim > 4096 on images, continuous 32x32, or dim > 1024 on flat vectors):
         dim = max(1, x_r[0].numel()) if b_r > 0 else 0
         has_spatial = _has_spatial_dims(x_r)
-        max_t1c_dim = 4096 if has_spatial else 1024
-        if x_r.ndim >= 2 and dim > max_t1c_dim:
+        if self._skip_spatial_transport(x_r):
             self.t1c._discrete_prior_step = False
             self.t1c._simplicial_active_step = False
             if rec is not None and hasattr(rec, "_t1c_disc_gate"):
