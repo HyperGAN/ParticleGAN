@@ -19,9 +19,9 @@ The first wave crossed zero output, fixed or learned output widths 0.005–0.2, 
 
 I then tested a distinct, data-derived rule: flatten the first real discriminator batch, and choose a positive isotropic Gaussian kernel bandwidth maximizing its leave-one-out log likelihood,
 
-\[
-\sum_i \log\left[\frac{1}{n-1}\sum_{j\ne i}\frac{\exp(-\|x_i-x_j\|^2/(2h^2))}{(2\pi h^2)^{d/2}}\right].
-\]
+$$
+\sum_i \log\left[\frac{1}{n-1}\sum_{j\ne i}\frac{\exp(-\lVert x_i-x_j\rVert^2/(2h^2))}{(2\pi h^2)^{d/2}}\right].
+$$
 
 This is a recognized kernel-density bandwidth criterion [likelihood cross-validation study](https://www.tandfonline.com/doi/abs/10.1080/10485259108832513). The implementation uses no labels, centers, mode count, true component width, neighbor count, or chosen quantile. Search bounds come from observed nonzero pair distances and batch size; a bound hit raises rather than silently imposing a fallback bandwidth. If **every** observation has an exact duplicate, the criterion tends upward as the width approaches zero, so the estimator returns zero. A mixture of duplicated and singleton observations retains a positive optimum; focused tests cover both cases. The rule assumes Euclidean flattened data space, an isotropic Gaussian density kernel, and a representative calibration batch. Its selected *density-smoothing width* need not equal the optimal output-noise width for an adversarial generator.
 

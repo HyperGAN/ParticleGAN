@@ -42,7 +42,16 @@ from .recipes import (
     scale_learning_rates,
 )
 from .routing import RoutedBatch, RoutedCandidate, RoutedExecution, RoutedRows
-from .training import GANTrainer, InputNoise
+from .training import (
+    GANTrainer,
+    InputNoise,
+    configure_bf16_autocast,
+    critic_source_context,
+    float_output,
+    uses_bf16_autocast,
+    uses_channels_last,
+    uses_simplicial_manifold_loss,
+)
 from .tensorflow_adam import TensorFlowV1Adam
 from .vicreg_loss import ParticleRegularizer
 from .coulomb_prior import CoulombPriorRegularizer
@@ -167,6 +176,17 @@ from .minimal import (
     MinimalStepRecord,
     bind_minimal_record,
 )
+from .axiom import (
+    AxiomCondFiberBank,
+    AxiomCriticPenalty,
+    AxiomGANLoss,
+    AxiomOptimizer,
+    AxiomPenaltyKernel,
+    AxiomPriorRegularizer,
+    AxiomStepRecord,
+    AxiomTransportLoss,
+    bind_axiom_record,
+)
 from . import init
 
 __all__ = [
@@ -198,9 +218,11 @@ __all__ = [
     "UnifiedV11CondFiberBank", "UnifiedV11CriticAdam", "UnifiedV11CriticPenalty", "UnifiedV11EquilibratedOptimizer", "UnifiedV11GANLoss", "UnifiedV11PriorRegularizer", "UnifiedV11StepRecord", "bind_unified_v11_record", "record_unified_v11_generator_probe",
     "CondFiberBank", "CondFiberCriticAdam", "CondFiberCriticPenalty", "CondFiberGANLoss", "CondFiberStepRecord", "bind_cond_fiber_record",
     "MinimalConstraintGeneratorOptimizer", "MinimalCriticOptimizer", "MinimalCriticPenalty", "MinimalGeneratorOptimizer", "MinimalLoss", "MinimalPriorRegularizer", "MinimalStepRecord", "bind_minimal_record",
+    "AxiomCondFiberBank", "AxiomCriticPenalty", "AxiomGANLoss", "AxiomOptimizer", "AxiomPenaltyKernel", "AxiomPriorRegularizer", "AxiomStepRecord", "AxiomTransportLoss", "bind_axiom_record",
     "DDGAN", "UCD", "ucd_labels", "ucd_loss", "ucd_scores",
     "conditional_energy_score", "joint_reconstruction_loss",
     "masked_mixture_nll", "NeuralComponentImputer", "masked_quantile_transport_loss",
     "DEFAULT_RECIPE", "Recipe", "NetworkLRTransition", "DataDriftController", "get_recipe", "get_recipe_fields", "learning_rate_scale", "learning_rate_scales", "scale_learning_rates", "GANTrainer", "InputNoise",
+    "configure_bf16_autocast", "critic_source_context", "float_output", "uses_bf16_autocast", "uses_channels_last", "uses_simplicial_manifold_loss",
     "BatchDistanceDiscriminator", "LinearSkipDiscriminator",
 ]

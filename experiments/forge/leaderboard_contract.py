@@ -23,8 +23,22 @@ from pathlib import Path
 
 from .contracts import file_hash, read_json
 
-FIXED_TEST_LIST = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-18.json")
+FIXED_TEST_LIST = Path("configs/forge/leaderboards/technique-inventory-full-suite-2026-11-25.json")
 FIXED_TEST_LIST_SCHEMA = "forge_fixed_test_list_v1"
+UNIMPLEMENTED_TIER4_BACKLOG = (
+    "alice_spiral_bigan",
+    "cgan_overlapping_classes",
+    "cramer_energy_overlap",
+    "cyclegan_unpaired_constellation",
+    "infogan_anisotropic_modes",
+    "misgan_block_neural_imputer",
+    "misgan_block_recovery",
+    "misgan_mcar_p50_recovery",
+    "misgan_mcar_p80_anchored",
+    "pacgan8_grid100",
+    "pacgan_unequal_mass",
+    "ring16_bigan_continuous",
+)
 NOT_MEASURED = frozenset({"UNKNOWN", "NOT_RUN"})
 # Only a recorded FAIL is a scientific failure, matching ``fixed_outcomes``
 # (INVALID and other non-PASS outcomes are "other": no pass credit, not a failure).
@@ -43,7 +57,20 @@ def load_fixed_test_list(root, relative=FIXED_TEST_LIST) -> dict | None:
             or not isinstance(tests, list) or not tests or len(set(tests)) != len(tests)
             or not all(isinstance(name, str) and name for name in tests)):
         raise ValueError(f"malformed fixed leaderboard test list: {relative}")
-    return {**data, "path": Path(relative).as_posix(), "sha256": file_hash(path)}
+    backlog = data.get("unimplemented_backlog")
+    if backlog is None:
+        backlog = data.get("blocked_placeholders")
+    if backlog is not None:
+        if (not isinstance(backlog, list) or len(set(backlog)) != len(backlog)
+                or not all(isinstance(name, str) and name for name in backlog)
+                or (set(backlog) & set(tests))):
+            raise ValueError(f"malformed unimplemented_backlog in fixed test list: {relative}")
+    return {
+        **data,
+        "unimplemented_backlog": list(backlog) if backlog is not None else [],
+        "path": Path(relative).as_posix(),
+        "sha256": file_hash(path),
+    }
 
 
 def fixed_outcomes(statuses: dict, tests, not_counted) -> dict:

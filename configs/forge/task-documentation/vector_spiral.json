@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_spiral",
+  "title": "Continuous Curved 2D Spiral Manifold",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "continuous-manifold",
+    "curved-support"
+  ],
+  "intuition": "Tests continuous curved probability mass (1.5-turn Archimedes spiral with radial noise sigma=0.08) rather than a finite table of point clusters, checking global sliced W1, mean, and covariance fidelity.",
+  "failure_mode": "Overly rigid discrete prototype charts quantize the smooth spiral into beads or cut straight chords across inner turns.",
+  "protocol_notes": "Tier-2 required transfer-vector task (1,600 updates).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "img_blobs4",
+  "title": "8x8 Procedural Images: Four Corner Blobs",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "localized-spatial-modes",
+    "conv2d-critic"
+  ],
+  "intuition": "Four localized 2x2 bright patches placed in the four corners of an 8x8 canvas. Requires sustained coverage of all 4 corners with >= 90% crisp templates across 5 consecutive terminal checks.",
+  "failure_mode": "Convolutional generators frequently drop 1-2 corners or drift to a 3-corner equilibrium with blurry double blobs.",
+  "protocol_notes": "Tier-2 held image task (600 updates, exact 32-particle enumeration).",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

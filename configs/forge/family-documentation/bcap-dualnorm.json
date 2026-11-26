@@ -40,5 +40,48 @@
     "loss": "Current BCAP paired relativistic logistic; joint hosts retain their explicit two-stream generator/encoder objective and existing auxiliary terms.",
     "noise": "Zero additive training input/output noise. Task-declared prior sampling, named streams and data batches remain unchanged.",
     "optimizer": "For matrix weights, use momentum m=mu*m+g and the polar update sqrt(max(1, fan_out/fan_in))*polar(m). Normalize bias/vector momentum per tensor. Skip matrix gradients below epsilon. Sampled prior rows receive independent normalized-gradient steps with no momentum; unsampled rows do not move. No Adam components."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "Task-declared prior with sampled-row normalized steps only (no adaptive chart or prior regularizer)",
+      "how_it_works": "Updates only sampled rows of `prior.z` via independent normalized-gradient steps without constructing a multimodal prototype atlas, pullback isometry, or latent spread regularizer.",
+      "known_limits": "Continuous pushforwards of unimodal or unregularized priors bridge separated valleys and lose rare-mode or unequal-width fidelity (`vector_unequal_mass`, `img_bars4`, `img_blobs4`)."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed real/fake one-sided squared L2 input-gradient cap (RoR)",
+      "how_it_works": "Retains BCAP's fixed `lambda=1, kappa=1` one-sided squared L2 penalty on real and fake critic input gradients via exact RoR without an EMA critic anchor.",
+      "known_limits": "Exact zero normal-direction curvature (`mu_D = 0.0`) on `||grad D||_2 < 1` leaves pure adversarial games orbiting without an independent contraction mechanism (P3); omits a zero-mean logit gauge anchor and incurs expensive exact RoR double-backward cost on high-resolution Conv2d."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Standard scalar adversarial critic loss only (no transport horizon, orphan rescue, or fiber bank)",
+      "how_it_works": "Uses scalar non-saturating or paired relativistic adversarial losses with no conformal local horizon, no beyond-horizon orphan macro-transport, and no conditional fiber bank.",
+      "known_limits": "Cannot identify multi-scale mode widths, beyond-horizon shifted modes, or sparse-stratum conditional variance; fails heteroscedastic vector tasks and DDGAN chains."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm polar orthogonalization + per-offset conv + direction_blend",
+      "how_it_works": "Preconditions matrix weights via smoothed polar orthogonalization `sqrt(max(1, fan_out/fan_in)) * polar(g)` (Law 4.2), normalizes bias vectors and sampled prior rows independently, blends conflicting protected objectives, and runs 1:1 alternation with `mu = 0` at constant learning rates.",
+      "known_limits": "Lacks realized generator pushforward secant trust (4.1/4.3), lacks dynamic-1e-38 scale and settling control (4.4), and `mu_D = 0` provides no normal-direction rotational dissipation (4.5); exact SVD on large matrices is slow on DCGAN r256."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Task Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> BCap[\"Law 2: Fixed One-Sided BCAP Penalty (lambda=1, kappa=1, RoR)\"]\n    Gen --> BCap\n    BCap --> StepD[\"Law 4.2: DualNorm Polar Step on D (mu=0, lr_D=0.018)\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> GLoss[\"Adversarial_G + Task Aux Losses\"]\n    GLoss --> Blend[\"Law 4: direction_blend + DualNorm Polar G & RowNorm Prior\"]\n    Blend --> Batch",
+  "quickstart": {
+    "preset": "bcap",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('bcap', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
   }
 }

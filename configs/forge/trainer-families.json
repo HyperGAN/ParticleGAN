@@ -714,9 +714,13 @@
         "unified-v8",
         "unified-v9",
         "unified-v10",
-        "unified-v11"
+        "unified-v11",
+        "unified-v12",
+        "unified-v13",
+        "unified-v14",
+        "unified-v15"
       ],
-      "canonical_candidate": "unified-v11",
+      "canonical_candidate": "unified-v15",
       "id": "unified",
       "label": "Unified",
       "rationale": "Unified 4-Law Zero-SVD / Zero-eigh / Zero-pinv / Zero-autograd.grad Formulation: combines Law 1 (streaming Laguerre-Pythagorean prototype quantization, orthogonal pullback covariance isometry, and fwAD rail-escape weighting), Law 2 (first-order Born-Infeld secant critic regularization with zero-mean logit gauge and zero torch.autograd.grad), Law 3 (scale-invariant k=4 density-ratio orphan macro-transport, core-ball Burg covariance matching, and zero-eigh cyclic-Jacobi cross-batch conditional fiber operator bank), and Law 4 (fused Z=[X,Y] Quintic Tikhonov polar equilibration with dynamic-1e-38 Marchenko-Pastur scaling, realized generator pushforward secant trust band, and zero-autograd.grad / zero-pinv analytic 1x1/2x2 non-ascent direction_blend projection) under constant learning rates.",
@@ -739,6 +743,25 @@
       "label": "Minimal",
       "rationale": "Minimal-Principle 4-Law Core (<900 LOC, zero sibling-package imports, zero torch.autograd.grad, zero SVD/eigh/pinv, zero Newton-Schulz): collapses Measure & Potential Geometry (parity-interleaved 1st-order Born-Infeld secant critic, Sinkhorn-debiased relativistic transport, ring-only zero-eigh conditional fiber operator, and rank-agnostic Laguerre-Pythagorean prior) and Function-Space Two-Player Dynamics (elementwise 1e-38 Marchenko-Pastur + peak_rms scaling and realized generator pushforward secant trust) into five compact files for fast low-VRAM scaling.",
       "reporting_family": "unified",
+      "tags": [
+        "adversarial-training",
+        "capped-input-gradients",
+        "constant-learning-rate",
+        "critic-gradient-penalty",
+        "optimizer-interventions",
+        "selectable-loss"
+      ]
+    },
+    {
+      "candidates": [
+        "axiom-v1",
+        "axiom-v4",
+        "axiom-v5"
+      ],
+      "canonical_candidate": "axiom-v5",
+      "id": "axiom",
+      "label": "Axiom",
+      "rationale": "Clean-Slate 4-Law Formulation (<=2,500 LOC across 7 modules, zero legacy sibling imports, zero SVD/eigh/pinv/torch.compile, zero new Recipe fields, strictly clock-free, opt-in preset='axiom'): combines mass-conserving Laguerre-Pythagorean prototype coalescence and central-offset pullback isometry (Law 1), compute-regime-dispatched exact RoR / Weyl-phase sub-batch fwAD R1+R2 with detached-EMA adaptive scaling and zero-mean gauge (Law 2), conformal k=3 Voronoi horizons, dead-zone-free orphan macro-transport, zero-eigh Pade-(1,1) Halley conditional fiber operator bank, and GPU-vectorized atomic bijection ledger (Law 3), and IEEE-754 mantissa-exponent degree-0 normalization, deadband-free step-cosine & spectral-split Tikhonov NS with exact 4D 1x1 Conv2d == 2D Linear parity, stratified p95 pushforward trust, and 1-sync closed-form 2x2 KKT direction_blend (Law 4).",
       "tags": [
         "adversarial-training",
         "capped-input-gradients",

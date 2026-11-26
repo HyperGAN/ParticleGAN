@@ -17,19 +17,31 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_public_default_matches_every_selected_candidate_field_except_label():
-    unified_candidate = json.loads((ROOT / "configs/forge/ideas/unified-v12.json").read_text())
+    axiom_candidate = json.loads((ROOT / "configs/forge/ideas/axiom-v5.json").read_text())
     actual = json.loads(json.dumps(asdict(get_recipe())))
-    assert DEFAULT_RECIPE == actual["name"] == "unified_v12"
-    for field, value in unified_candidate["recipe_overrides"].items():
+    assert DEFAULT_RECIPE == actual["name"] == "axiom"
+    for field, value in axiom_candidate["recipe_overrides"].items():
         if field != "name":
             assert actual[field] == value, field
-    assert get_recipe() == get_recipe("unified_v12")
+    assert get_recipe() == get_recipe("axiom")
     assert Recipe.from_dict(get_recipe().to_dict()) == get_recipe()
-    assert actual["optimizer_family"] == "unified_v12_equil"
-    assert actual["critic_formulation"] == "unified_v11"
-    assert actual["prior_regularizer"] == "unified_v11"
+    assert actual["optimizer_family"] == "axiom"
+    assert actual["critic_formulation"] == "axiom"
+    assert actual["prior_regularizer"] == "axiom"
     assert actual["training_precision"] == "bf16_channels_last"
-    # Explicit unified_v11, empf, rhbi_optimized, bispf_optimized, historical snapshot restoration, and presets keep their meaning.
+    # Explicit unified_v15, unified_v12, unified_v11, empf, rhbi_optimized, bispf_optimized, historical snapshot restoration, and presets keep their meaning.
+    v15_candidate = json.loads((ROOT / "configs/forge/ideas/unified-v15.json").read_text())
+    v15_actual = json.loads(json.dumps(asdict(get_recipe("unified_v15"))))
+    for field, value in v15_candidate["recipe_overrides"].items():
+        if field != "name":
+            assert v15_actual[field] == value, field
+    assert v15_actual["optimizer_family"] == "unified_v15_equil"
+    v12_candidate = json.loads((ROOT / "configs/forge/ideas/unified-v12.json").read_text())
+    v12_actual = json.loads(json.dumps(asdict(get_recipe("unified_v12"))))
+    for field, value in v12_candidate["recipe_overrides"].items():
+        if field != "name":
+            assert v12_actual[field] == value, field
+    assert v12_actual["optimizer_family"] == "unified_v12_equil"
     v11_candidate = json.loads((ROOT / "configs/forge/ideas/unified-v11.json").read_text())
     v11_actual = json.loads(json.dumps(asdict(get_recipe("unified_v11"))))
     for field, value in v11_candidate["recipe_overrides"].items():
@@ -63,7 +75,7 @@ def test_public_default_matches_every_selected_candidate_field_except_label():
     assert get_recipe("bispf").prior_reg == .05
 
 
-@pytest.mark.parametrize("name", ["gan", "unified_v12", "unified_v11", "minimal", "rhbi_optimized", "rhbi", "empf", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
+@pytest.mark.parametrize("name", ["gan", "axiom", "unified_v15", "unified_v12", "unified_v11", "minimal", "rhbi_optimized", "rhbi", "empf", "bispf_optimized", "bispf", "mog", "ae_ddgan", "ka2"])
 def test_plain_fields_match_validated_recipe(name):
     assert get_recipe_fields(name) == asdict(get_recipe(name))
 
@@ -83,9 +95,9 @@ sys.modules[spec.name] = module
 spec.loader.exec_module(module)
 values = module.get_recipe_fields('ae_gan', z_dim=3)
 assert values['name'] == 'ae_gan'
-assert values['z_dim'] == 3 and values['optimizer_family'] == 'unified_v12_equil'
-assert values['critic_formulation'] == 'unified_v11'
-assert values['prior_regularizer'] == 'unified_v11'
+assert values['z_dim'] == 3 and values['optimizer_family'] == 'axiom'
+assert values['critic_formulation'] == 'axiom'
+assert values['prior_regularizer'] == 'axiom'
 assert values['constraint_geometry_mode'] == 'direction_blend'
 assert values['training_precision'] == 'bf16_channels_last'
 assert 'torch' not in sys.modules and 'particlegan' not in sys.modules

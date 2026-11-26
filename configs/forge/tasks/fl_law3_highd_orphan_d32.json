@@ -1,0 +1,129 @@
+{
+  "schema_version": 1,
+  "id": "fl_law3_highd_orphan_d32",
+  "description": "Recover all 4 multi-scale core clusters and a distant 8% orphan cluster in a Haar-rotated R^32 mixture (dim=32 > 16) with calibrated full-32D covariances and accurate unequal masses.",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law3_highd_orphan_d32"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law3_highd_orphan_d32",
+    "steps": 1200,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.05,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law3_highd_orphan_d32",
+      "case_id": "fl_law3_highd_orphan_d32",
+      "kind": "fl_law3_highd_orphan_d32",
+      "law": "law3",
+      "defects": [
+        "L3-7",
+        "D-08"
+      ],
+      "title": "Law 3A: Haar-rotated R^32 multi-scale unequal-mass mixture + distant orphan",
+      "goal": "Recover all 4 multi-scale core clusters and a distant 8% orphan cluster in a Haar-rotated R^32 mixture (dim=32 > 16) with calibrated full-32D covariances and accurate unequal masses.",
+      "target": "Haar-rotated R^32 5-mode Gaussian mixture: 4 core modes at (+-2.2, +-2.2) with widths [0.05, 0.09, 0.15, 0.22] and weights [0.36, 0.26, 0.18, 0.12] plus distant 8% orphan at (+7.5, 0.0) with width 0.08.",
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 32,
+        "batch_size": 128
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.05,
+        "standardize": false
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 192,
+        "layers": 3,
+        "out_dim": 32,
+        "in_dim": 32,
+        "fourier": 0
+      },
+      "steps": 1200,
+      "eval_samples": 6144,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law3_highd_orphan_d32",
+    "eval_samples": 6144,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "modes",
+        "==",
+        5
+      ],
+      [
+        "core_eig_min",
+        ">=",
+        0.25
+      ],
+      [
+        "orphan_recall",
+        ">=",
+        0.5
+      ],
+      [
+        "precision",
+        ">=",
+        0.85
+      ],
+      [
+        "mass_tv",
+        "<=",
+        0.14
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_123.py": "ba76986d5fd69d474518a9430b757311cfc998ec76666d067ae43b62edc2b86a",
+      "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

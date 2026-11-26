@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "two_pole_800_schedule80_diagnostic_v1",
+  "title": "Two-Pole 800-Step Horizon (Schedule=80 Mismatch Diagnostic)",
+  "laws": [
+    "law2",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "horizon-sensitivity",
+    "schedule-mismatch",
+    "behavioral-probe"
+  ],
+  "intuition": "Runs `two_pole` for 800 updates while holding the recipe schedule horizon at 80 steps, isolating clock/horizon-mismatch behavior compared to clock-free recipes.",
+  "failure_mode": "Step-scheduled recipes freeze or decay prematurely past step 80, exposing horizon fragility.",
+  "protocol_notes": "Diagnostic schedule-mismatch arm paired with `two_pole_800_schedule800_diagnostic_v1`.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

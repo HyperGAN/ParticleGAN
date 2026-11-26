@@ -25,8 +25,8 @@ from particlegan.empf import (
 
 
 def test_default_recipe_and_incumbent_presets_unchanged():
-    assert DEFAULT_RECIPE == "unified_v12"
-    assert get_recipe() == get_recipe("unified_v12")
+    assert DEFAULT_RECIPE == "axiom"
+    assert get_recipe() == get_recipe("axiom")
     empf = get_recipe("empf")
     assert empf.effective_critic_formulation == "empf"
     assert empf.prior_regularizer == "empf"
@@ -366,7 +366,7 @@ def test_empf_fresh_process_import_order_and_incumbent_hashes():
     out_a = json.loads(subprocess.check_output([sys.executable, "-c", probe_a], cwd=root, text=True))
     out_b = json.loads(subprocess.check_output([sys.executable, "-c", probe_b], cwd=root, text=True))
     assert out_a == out_b
-    assert out_a["default"] == "unified_v12"
+    assert out_a["default"] == "axiom"
     assert out_a["hashes"]["bispf_optimized"].startswith("a59d78806e67")
     assert out_a["hashes"]["bispf"].startswith("6bb9c45dfbdb")
     assert out_a["hashes"]["bcap"].startswith("1c0aeefa46b0")
@@ -725,8 +725,8 @@ def test_public_default_empf_continuation_and_damage_control():
     empf_v8 = json.loads((root / "configs/forge/ideas/empf-v8.json").read_text())["recipe_overrides"]
     empf_recipe = get_recipe("empf")
     actual = json.loads(json.dumps(asdict(empf_recipe)))
-    assert DEFAULT_RECIPE == "unified_v12"
-    assert get_recipe() == get_recipe("unified_v12") == get_recipe("gan")
+    assert DEFAULT_RECIPE == "axiom"
+    assert get_recipe() == get_recipe("axiom") == get_recipe("gan")
     assert actual["name"] == "empf"
     for field, value in empf_v8.items():
         if field != "name":

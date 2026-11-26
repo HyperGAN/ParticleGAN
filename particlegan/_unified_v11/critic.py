@@ -85,7 +85,7 @@ def _eval_v11_probe_forward(
         use_bf16 = (
             first_p is not None
             and first_p.device.type == "cuda"
-            and bool(getattr(module, "_unified_v4_bf16_autocast", False))
+            and bool(getattr(module, "_particlegan_bf16_autocast", getattr(module, "_unified_v4_bf16_autocast", False)))
         )
         if use_bf16:
             with torch.autocast("cuda", dtype=torch.bfloat16):
@@ -110,7 +110,10 @@ def _eval_v11_probe_forward(
 
 
 def _validate_unified_v11_packet(packet: Any) -> Dict[str, Any]:
-    if not isinstance(packet, dict) or set(packet) != _UNIFIED_V11_PACKET_KEYS:
+    if not isinstance(packet, dict):
+        raise ValueError("invalid unified_v11 record packet fields")
+    pkeys = set(packet)
+    if pkeys != _UNIFIED_V11_PACKET_KEYS and pkeys != (_UNIFIED_V11_PACKET_KEYS | {"atomic_ledger"}):
         raise ValueError("invalid unified_v11 record packet fields")
     step_scale = packet["step_scale"]
     if (
@@ -153,6 +156,8 @@ def _validate_unified_v11_packet(packet: Any) -> Dict[str, Any]:
         raise ValueError("invalid unified_v11 g_func_gain outside (0, 1]")
     validate_v11_bank_packet(packet["cond_fiber_bank"])
     t1c_sub = {k: packet[k] for k in _T1C_PACKET_KEYS}
+    if "atomic_ledger" in packet:
+        t1c_sub["atomic_ledger"] = packet["atomic_ledger"]
     _validate_t1c_packet(t1c_sub)
     return packet
 
@@ -395,6 +400,8 @@ class _UnifiedV11RecordMixin(_T1CouplingRecordMixin):
     def _restore_unified_v11_packet(self, packet: Dict[str, Any]) -> None:
         _validate_unified_v11_packet(packet)
         t1c_sub = {k: packet[k] for k in _T1C_PACKET_KEYS}
+        if "atomic_ledger" in packet:
+            t1c_sub["atomic_ledger"] = packet["atomic_ledger"]
         self._restore_t1c_packet(t1c_sub)
         self._step_scale = float(packet["step_scale"])
         self.ema_margin = float(packet["ema_margin"])

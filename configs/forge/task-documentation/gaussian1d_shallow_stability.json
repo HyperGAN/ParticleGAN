@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "gaussian1d_shallow_stability",
+  "title": "1D Gaussian Shallow Architecture Shift Stability",
+  "laws": [
+    "law3a",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "scalar-1d",
+    "shallow-mlp",
+    "non-stationary-shift"
+  ],
+  "intuition": "Continues `gaussian1d_shallow_smoke` to test stationary hold and post-shift deadline recovery on a single-hidden-layer architecture.",
+  "failure_mode": "Oscillation during stationary hold or slow recovery after the target shift on reduced-depth networks.",
+  "protocol_notes": "Checkpoint continuation of `gaussian1d_shallow_smoke`.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

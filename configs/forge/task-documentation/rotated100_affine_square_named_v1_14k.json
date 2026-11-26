@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "rotated100_affine_square_named_v1_14k",
+  "title": "100-Mode Rotated Gaussian Grid (Affine-Square Init 14k Continuation)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "disconnected-support",
+    "100-modes",
+    "non-axis-aligned",
+    "affine-init-cohort"
+  ],
+  "intuition": "Explicitly scoped affine-square init 14k continuation variant of `rotated100`. Rotates the 10x10 Gaussian grid off the coordinate axes to verify that a trainer's 100-mode recovery is geometrically invariant and not exploiting axis-aligned separability.",
+  "failure_mode": "Axis-biased quantizers, separable coordinate heuristics, or poorly conditioned generators leave bridge mass along rotated diagonals and miss precision or covariance gates.",
+  "protocol_notes": "Explicit affine-square initialized 14k endurance continuation cohort; separate from standard deterministic_orthogonal initialization.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

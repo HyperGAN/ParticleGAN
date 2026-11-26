@@ -133,35 +133,61 @@ def bayes_posterior(problem, x, m, draws=0, generator=None):
     dev = x.device
     A = problem.A.to(dev)
     mu = grid_centers(dev, torch.float64)
-    raw = problem.raw(x)
     s2, e2 = MODE_STD ** 2, LIFT_NOISE ** 2
-    probs = torch.empty(len(x), 100, dtype=torch.float64, device=dev)
-    out = None if not draws else raw.expand(draws, -1, -1).clone()
-    keys = pattern_index(m)
-    for key in keys.unique().tolist():
-        rows = (keys == key).nonzero().squeeze(1)
-        obs = [c for c in range(DIM) if key >> c & 1]
-        miss = [c for c in range(DIM) if not key >> c & 1]
-        if obs:
-            Ao, y = A[obs], raw[rows][:, obs]
-            S = s2 * Ao @ Ao.T + e2 * torch.eye(len(obs), dtype=torch.float64, device=dev)
-            L = torch.linalg.cholesky(S)
-            r = y[:, None, :] - (mu @ Ao.T)[None]  # (n, 100, |O|)
-            z = torch.linalg.solve_triangular(L, r.reshape(-1, len(obs)).T, upper=False).T
-            logw = -0.5 * z.pow(2).sum(1).reshape(len(rows), 100)
-            cov = torch.linalg.inv(torch.eye(2, dtype=torch.float64, device=dev) / s2 + Ao.T @ Ao / e2)
-        else:
-            logw = torch.zeros(len(rows), 100, dtype=torch.float64, device=dev)
-            cov = s2 * torch.eye(2, dtype=torch.float64, device=dev)
-        p = logw.softmax(1)
-        probs[rows] = p
-        if draws and miss:
-            k = torch.multinomial(p.float(), draws, replacement=True, generator=generator).T  # (draws, n)
-            mean = mu[k] / s2  # (draws, n, 2)
+    use_test_cache = (
+        x is getattr(problem, "x_test", None)
+        and m is getattr(problem, "m_test", None)
+    )
+    cached = getattr(problem, "_bayes_test_cache", None) if use_test_cache else None
+    if cached is not None and cached["dev"] == dev and cached["x_ver"] == x._version and cached["m_ver"] == m._version:
+        raw = cached["raw"]
+        probs = cached["probs"]
+        patterns = cached["patterns"]
+    else:
+        raw = problem.raw(x)
+        probs = torch.empty(len(x), 100, dtype=torch.float64, device=dev)
+        keys = pattern_index(m)
+        patterns = []
+        for key in keys.unique().tolist():
+            rows = (keys == key).nonzero().squeeze(1)
+            obs = [c for c in range(DIM) if key >> c & 1]
+            miss = [c for c in range(DIM) if not key >> c & 1]
             if obs:
-                mean = mean + (y @ Ao / e2)[None]
+                Ao, y = A[obs], raw[rows][:, obs]
+                S = s2 * Ao @ Ao.T + e2 * torch.eye(len(obs), dtype=torch.float64, device=dev)
+                L = torch.linalg.cholesky(S)
+                y_t = torch.linalg.solve_triangular(L, y.T, upper=False).T
+                mu_t = torch.linalg.solve_triangular(L, Ao @ mu.T, upper=False).T
+                logw = -0.5 * torch.cdist(y_t, mu_t, compute_mode="donot_use_mm_for_euclid_dist").square()
+                cov = torch.linalg.inv(torch.eye(2, dtype=torch.float64, device=dev) / s2 + Ao.T @ Ao / e2)
+                obs_term = (y @ Ao / e2)[None]
+            else:
+                logw = torch.zeros(len(rows), 100, dtype=torch.float64, device=dev)
+                cov = s2 * torch.eye(2, dtype=torch.float64, device=dev)
+                obs_term = None
+            p = logw.softmax(1)
+            probs[rows] = p
+            chol = torch.linalg.cholesky(cov) if miss else None
+            patterns.append((rows, miss, p.float(), cov, chol, obs_term))
+        if use_test_cache:
+            problem._bayes_test_cache = {
+                "dev": dev,
+                "x_ver": x._version,
+                "m_ver": m._version,
+                "raw": raw,
+                "probs": probs,
+                "patterns": patterns,
+            }
+    if not draws:
+        return probs.float(), None
+    out = raw.expand(draws, -1, -1).clone()
+    for rows, miss, p_f32, cov, chol, obs_term in patterns:
+        if miss:
+            k = torch.multinomial(p_f32, draws, replacement=True, generator=generator).T  # (draws, n)
+            mean = mu[k] / s2  # (draws, n, 2)
+            if obs_term is not None:
+                mean = mean + obs_term
             mean = mean @ cov.T
-            chol = torch.linalg.cholesky(cov)
             eps = torch.randn(draws, len(rows), 2, generator=generator, device=dev, dtype=torch.float64)
             x2 = mean + eps @ chol.T
             noise = torch.randn(draws, len(rows), len(miss), generator=generator, device=dev, dtype=torch.float64)
@@ -169,7 +195,6 @@ def bayes_posterior(problem, x, m, draws=0, generator=None):
             block = out[:, rows]
             block[:, :, miss] = vals
             out[:, rows] = block
-    if draws:
-        out = problem.standardize(out).float()
-        out = m * x + (1 - m) * out
+    out = problem.standardize(out).float()
+    out = m * x + (1 - m) * out
     return probs.float(), out

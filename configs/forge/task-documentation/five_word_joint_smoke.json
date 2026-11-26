@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "five_word_joint_smoke",
+  "title": "Five-Word Discrete Vocabulary Joint BiGAN Smoke",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "discrete-vocabulary",
+    "bidirectional-encoder",
+    "exact-capacity-prior"
+  ],
+  "intuition": "Trains a joint BiGAN (generator, encoder, joint critic) with exactly 5 learned 2D particles on a 5-word discrete vocabulary ('apple', 'grape', 'lemon', 'melon', 'berry'). Must generate all 5 words cleanly and reconstruct every word with >= 0.90 token confidence.",
+  "failure_mode": "Two words collide onto one particle or the encoder fails to invert the generator's discrete assignments, breaking exact reconstruction.",
+  "protocol_notes": "Tier-1 required gate; produces the checkpoint continued by `five_word_joint_hold`.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

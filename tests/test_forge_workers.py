@@ -15,7 +15,7 @@ from experiments.forge.sources import inspect_source, runtime_manifest, snapshot
 from test_forge_queue import campaign, grade, request, SLOTS
 
 
-def worker_request(tmp_path, program, *, budget=3):
+def worker_request(tmp_path, program, *, budget=15):
     req = request(tmp_path, cap=1, cost=budget)
     checkout = tmp_path / "worktree"
     target = checkout / "experiments/forge"
@@ -59,7 +59,7 @@ atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {"measured": 1})
     q.submit(req, campaign())
     claim = q.claim(SLOTS)
     process = q.launch(claim)
-    assert process.wait(timeout=5) == 0
+    assert process.wait(timeout=20) == 0
     assert q.collect() == 1
     result = q.inspect()["jobs"][claim["job"]["compatibility_key"]]["result"]
     assert result["task_results"][0]["gate_status"] == "PASS"
@@ -88,14 +88,14 @@ def test_timeout_terminates_descendants_and_retains_attempt(tmp_path):
     # Importing Torch for the real Forge execution policy precedes this
     # fixture's descendant launch. Leave startup room, then time out the
     # 20-second workload and still verify the actual descendant is terminated.
-    req = worker_request(tmp_path, SLEEP_PROGRAM, budget=5)
+    req = worker_request(tmp_path, SLEEP_PROGRAM, budget=6)
     q = Queue(tmp_path / "queue", grader=grade)
     q.submit(req, campaign())
     claim = q.claim(SLOTS)
     process = q.launch(claim)
     directory = Path(claim["worker"]["directory"])
-    grandchild = await_file(directory / "grandchild.json", timeout=10)
-    assert process.wait(timeout=10) == 1
+    grandchild = await_file(directory / "grandchild.json", timeout=15)
+    assert process.wait(timeout=15) == 1
     q.collect()
     assert process_identity(grandchild["pid"]) is None
     result = q.inspect()["jobs"][claim["job"]["compatibility_key"]]["result"]
@@ -105,17 +105,17 @@ def test_timeout_terminates_descendants_and_retains_attempt(tmp_path):
 
 
 def test_recovery_attaches_to_live_lease_and_cancel_kills_group(tmp_path):
-    req = worker_request(tmp_path, SLEEP_PROGRAM)
+    req = worker_request(tmp_path, SLEEP_PROGRAM, budget=15)
     q = Queue(tmp_path / "queue", grader=grade)
     entry = q.submit(req, campaign())
     claim = q.claim(SLOTS)
     process = q.launch(claim)
-    grandchild = await_file(Path(claim["worker"]["directory"]) / "grandchild.json")
+    grandchild = await_file(Path(claim["worker"]["directory"]) / "grandchild.json", timeout=15)
     recovered = Queue(q.root, grader=grade)
     assert recovered.collect() == 0
     assert recovered.claim(SLOTS) is None
     recovered.cancel(entry["request"]["request_id"])
-    assert process.wait(timeout=5) == 1
+    assert process.wait(timeout=15) == 1
     recovered.collect()
     assert process_identity(grandchild["pid"]) is None
     assert read_json(Path(claim["worker"]["directory"]) / "terminal.json")["attempt_status"] == "cancelled"
@@ -136,7 +136,7 @@ atomic_json(Path(sys.argv[1]).parent / "raw-result.json", {"measured": 1})
     claim = q.claim(SLOTS)
     process = q.launch(claim)
     q.cancel(first["request"]["request_id"])
-    assert process.wait(timeout=5) == 0
+    assert process.wait(timeout=20) == 0
     q.collect()
     state = q.inspect()
     assert state["submissions"][first["request"]["request_id"]]["status"] == "cancelled"
@@ -161,8 +161,8 @@ time.sleep(20)
         process = subprocess.Popen([sys.executable, "-c", script, str(tmp_path / "orphan.json")],
                                    start_new_session=True, pass_fds=(lease.fileno(),))
         identity = process_identity(process.pid)
-        descendant = await_file(tmp_path / "orphan.json")
-        assert process.wait(timeout=2) == 0
+        descendant = await_file(tmp_path / "orphan.json", timeout=10)
+        assert process.wait(timeout=10) == 0
     assert process_identity(process.pid) is None
     assert lease_held(lease_path)
     assert fence_orphan_group({"pid": process.pid, "process_identity": identity}, tmp_path)

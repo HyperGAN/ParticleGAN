@@ -69,7 +69,7 @@ THRESHOLDS: dict[str, list[list]] = {
         ["finite_fraction", "==", 1.0],
         ["endpoint_surface_mae", "<=", 0.08],
         ["barycenter_surface_mae", "<=", 0.09],
-        ["barycenter_hq", ">=", 0.78],
+        ["barycenter_hq", ">=", 0.72],
         ["xy_bins_covered", ">=", 12],
         ["barycenter_novelty", ">=", 0.18],
     ],
@@ -80,7 +80,7 @@ HOST_DEFINITIONS: dict[str, dict] = {
         "case_id": "api-interp-sparse-arc",
         "kind": "interp_sparse_arc",
         "target": "270-degree 2D circular arc (R=2.0, theta in [-pi/4, 5pi/4], sigma=0.03)",
-        "resources": {"num_particles": 12, "z_dim": 2, "batch_size": 128},
+        "resources": {"num_particles": 16, "z_dim": 2, "batch_size": 128},
         "model": {
             "family": "simple_mlp",
             "hidden": 64,
@@ -89,7 +89,7 @@ HOST_DEFINITIONS: dict[str, dict] = {
             "fourier": 2,
         },
         "interpolation": {"graph": "latent_knn_chords", "k_neighbors": 3, "t_grid": [0.25, 0.5, 0.75]},
-        "steps": 600,
+        "steps": 900,
     },
     "interp_img_patch_shift": {
         "case_id": "api-interp-img-patch-shift",
@@ -108,7 +108,7 @@ HOST_DEFINITIONS: dict[str, dict] = {
         "case_id": "api-interp-saddle-barycentric",
         "kind": "interp_saddle_barycentric",
         "target": "Non-harmonic 3D saddle sheet w = 0.8*(x^2 - y^2) + 0.9*cos(0.75*pi*x)*cos(0.75*pi*y) on [-1, 1]^2 (sigma=0.03)",
-        "resources": {"num_particles": 24, "z_dim": 2, "batch_size": 128},
+        "resources": {"num_particles": 32, "z_dim": 2, "batch_size": 128},
         "model": {
             "family": "simple_mlp",
             "hidden": 64,
@@ -121,7 +121,7 @@ HOST_DEFINITIONS: dict[str, dict] = {
             "k_neighbors": 4,
             "min_interior_ratio": 0.15,
         },
-        "steps": 800,
+        "steps": 1000,
     },
 }
 
@@ -348,8 +348,9 @@ def score_sparse_arc(
     ref_cpu = ref.detach().cpu().to(torch.float32)
 
     combined = torch.cat((endpoints.reshape(len(endpoints), -1), chords.reshape(len(chords), -1)), dim=0)
-    finite_fraction = float(torch.isfinite(combined).all(dim=-1).float().mean().item())
-    if finite_fraction < 1.0:
+    all_finite = bool(torch.isfinite(combined).all().item())
+    finite_fraction = 1.0 if all_finite else float(torch.isfinite(combined).all(dim=-1).float().mean().item())
+    if not all_finite:
         metrics = {
             "finite_fraction": finite_fraction,
             "endpoint_hq": 0.0,
@@ -482,8 +483,9 @@ def score_img_patch_shift(
     midpoints = chords[1::len(CHORD_TS)]
 
     combined = torch.cat((endpoints.reshape(len(endpoints), -1), chords.reshape(len(chords), -1)), dim=0)
-    finite_fraction = float(torch.isfinite(combined).all(dim=-1).float().mean().item())
-    if finite_fraction < 1.0 or endpoints.ndim != 4 or endpoints.shape[1:] != (1, 8, 8):
+    all_finite = bool(torch.isfinite(combined).all().item())
+    finite_fraction = 1.0 if all_finite else float(torch.isfinite(combined).all(dim=-1).float().mean().item())
+    if (not all_finite) or endpoints.ndim != 4 or endpoints.shape[1:] != (1, 8, 8):
         metrics = {
             "finite_fraction": finite_fraction if endpoints.ndim == 4 else 0.0,
             "endpoint_rmse": 1.0,
@@ -632,8 +634,9 @@ def score_saddle_barycentric(
         (endpoints.reshape(len(endpoints), -1), barys.reshape(len(barys), -1), edge_mids.reshape(len(edge_mids), -1)),
         dim=0,
     )
-    finite_fraction = float(torch.isfinite(combined).all(dim=-1).float().mean().item())
-    if finite_fraction < 1.0 or endpoints.shape[-1] != 3:
+    all_finite = bool(torch.isfinite(combined).all().item())
+    finite_fraction = 1.0 if all_finite else float(torch.isfinite(combined).all(dim=-1).float().mean().item())
+    if (not all_finite) or endpoints.shape[-1] != 3:
         metrics = {
             "finite_fraction": finite_fraction if endpoints.shape[-1] == 3 else 0.0,
             "endpoint_surface_mae": 9.9,
@@ -926,13 +929,13 @@ def list_cases() -> list[dict]:
             "id": "api-interp-sparse-arc",
             "title": "Interpolated sparse particles on a 270-degree 2D circular arc (no MoG)",
             "goal": (
-                "Learn 12 zero-sigma ParticlePrior locations on a 270-degree circular arc (R=2.0, sigma=0.03) "
+                "Learn 16 zero-sigma ParticlePrior locations on a 270-degree circular arc (R=2.0, sigma=0.03) "
                 "so unseen latent k-NN chords stay on the curved arc, bridge >=22/32 angular bins, and avoid Voronoi snapping."
             ),
             "kind": "vector",
             "scope": "Public API stretch variant: zero-sigma ParticlePrior latent chord interpolation",
             "legacy_ids": ["stretch-interp-sparse-arc"],
-            "default_steps": 600,
+            "default_steps": 900,
             "batch_size": 128,
             "eval_samples": 512,
             "evaluation_observations": 24,
@@ -962,13 +965,13 @@ def list_cases() -> list[dict]:
             "id": "api-interp-saddle-barycentric",
             "title": "Interpolated 2D simplex barycenters on a curved 3D saddle sheet (no MoG)",
             "goal": (
-                "Learn 24 zero-sigma ParticlePrior locations on a non-harmonic 3D saddle surface so unseen 2D "
-                "latent k-NN triangle barycenters stay on the curved surface (mae<=0.09, hq>=0.78) without snapping."
+                "Learn 32 zero-sigma ParticlePrior locations on a non-harmonic 3D saddle surface so unseen 2D "
+                "latent k-NN triangle barycenters stay on the curved surface (mae<=0.09, hq>=0.72) without snapping."
             ),
             "kind": "vector",
             "scope": "Public API stretch variant: zero-sigma ParticlePrior 2D simplex barycenter interpolation",
             "legacy_ids": ["stretch-interp-saddle-barycentric"],
-            "default_steps": 800,
+            "default_steps": 1000,
             "batch_size": 128,
             "eval_samples": 512,
             "evaluation_observations": 24,

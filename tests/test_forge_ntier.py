@@ -572,11 +572,18 @@ def test_stretch_formulation_tasks_graders_and_preflight():
     """Unsupported hosts refuse admission; numerical graders retain their exact gates."""
     from benchmarks.toy_audit.api_imbalance_nash import build_models_for_spec
     from experiments.forge.adapters import adapter_preflight
+    from experiments.forge.bytegan import BYTEGAN_KINDS, _contract_payload as _bytegan_contract_payload
     from experiments.forge.imbalance_nash import IMBALANCE_NASH_KINDS, _contract_payload as _nash_contract_payload
     from experiments.forge.interpolation import INTERPOLATION_KINDS, _contract_payload
     from experiments.forge.mechanisms import NAMES as MECHANISM_NAMES
     from experiments.forge.priors import RECIPE_PRIOR_CONTRACT
-    from experiments.forge.sampling import ENUMERATED_PRIOR_CLEAN, PARTICLES_AND_GRADIENT, PUBLIC_PRIOR_CLEAN, executed_receipt
+    from experiments.forge.sampling import (
+        ENUMERATED_PRIOR_CLEAN,
+        JOINT_WORDS_CLEAN,
+        PARTICLES_AND_GRADIENT,
+        PUBLIC_PRIOR_CLEAN,
+        executed_receipt,
+    )
     from experiments.forge.t3_isolation import T3_ISOLATION_KINDS
     from experiments.forge.vectorprofiles import STRETCH_VECTOR_HOSTS
     from experiments.forge.views import STRETCH_EVALUATOR_KINDS, grade_result
@@ -584,7 +591,15 @@ def test_stretch_formulation_tasks_graders_and_preflight():
 
     tasks = load_tasks(ROOT)
     assert STRETCH_VECTOR_HOSTS == STRETCH_FIXTURE_TASKS
-    assert STRETCH_EVALUATOR_KINDS == STRETCH_FIXTURE_TASKS | {"zero_tanh_rail_escape"} | INTERPOLATION_KINDS | T3_ISOLATION_KINDS | IMBALANCE_NASH_KINDS
+    assert (
+        STRETCH_EVALUATOR_KINDS
+        == STRETCH_FIXTURE_TASKS
+        | {"zero_tanh_rail_escape"}
+        | INTERPOLATION_KINDS
+        | T3_ISOLATION_KINDS
+        | IMBALANCE_NASH_KINDS
+        | BYTEGAN_KINDS
+    )
     for tid in sorted(STRETCH_FIXTURE_TASKS):
         t = deepcopy(tasks[tid])
         for cid in ("bispf-optimized-quintic-v1", "atlas-particle-normal-v4"):
@@ -612,8 +627,11 @@ def test_stretch_formulation_tasks_graders_and_preflight():
                     steps,
                 }
             )
-        if tid in INTERPOLATION_KINDS:
+        if tid in INTERPOLATION_KINDS or tid == "bytegan_hypercube8":
             sampling_law = ENUMERATED_PRIOR_CLEAN
+            noise_mode = "clean"
+        elif tid == "bytegan_bigan_dictionary":
+            sampling_law = JOINT_WORDS_CLEAN
             noise_mode = "clean"
         elif tid in T3_ISOLATION_KINDS:
             sampling_law = PARTICLES_AND_GRADIENT
@@ -621,6 +639,13 @@ def test_stretch_formulation_tasks_graders_and_preflight():
         else:
             sampling_law = PUBLIC_PRIOR_CLEAN
             noise_mode = "clean"
+        optimizer_updates = {
+            "generator": 0 if tid in T3_ISOLATION_KINDS else steps,
+            "discriminator": steps,
+            "prior": steps,
+        }
+        if tid == "bytegan_bigan_dictionary":
+            optimizer_updates["encoder"] = steps
         base_ev = {
             **executed_receipt(sampling_law, eval_output_noise=noise_mode),
             "scoring_weights": "live",
@@ -637,11 +662,7 @@ def test_stretch_formulation_tasks_graders_and_preflight():
             },
             "guards": {
                 "all_finite": True,
-                "optimizer_updates": {
-                    "generator": 0 if tid in T3_ISOLATION_KINDS else steps,
-                    "discriminator": steps,
-                    "prior": steps,
-                },
+                "optimizer_updates": optimizer_updates,
                 "hooks_exercised": True,
                 "mechanism_audit": {
                     "mechanisms": {
@@ -654,6 +675,9 @@ def test_stretch_formulation_tasks_graders_and_preflight():
         }
         if tid in INTERPOLATION_KINDS:
             base_ev["interpolation_contract"] = _contract_payload(tid, t["execution"]["host_definition"])
+            base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
+        elif tid in BYTEGAN_KINDS:
+            base_ev["bytegan_contract"] = _bytegan_contract_payload(tid, t["execution"]["host_definition"])
             base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
         elif tid in T3_ISOLATION_KINDS:
             res_spec = t["execution"]["host_definition"]["resources"]
@@ -680,7 +704,7 @@ def test_stretch_formulation_tasks_graders_and_preflight():
             base_ev["actual_training_gif"] = {"sha256": "0" * 64, "frames": obs_count}
         obs_pass = [{"step": s, **passing_metrics} for s in ckpts]
         obs_fail = [{"step": s, **failing_metrics} for s in ckpts]
-        has_step_live = tid in (INTERPOLATION_KINDS | T3_ISOLATION_KINDS | IMBALANCE_NASH_KINDS)
+        has_step_live = tid in (INTERPOLATION_KINDS | T3_ISOLATION_KINDS | IMBALANCE_NASH_KINDS | BYTEGAN_KINDS)
         live_pass = {"step": steps, **passing_metrics} if has_step_live else passing_metrics
         live_fail = {"step": steps, **failing_metrics} if has_step_live else failing_metrics
         assert grade_result(t, {"evidence": {**base_ev, "observations": obs_pass, "live": live_pass}})["status"] == "PASS"

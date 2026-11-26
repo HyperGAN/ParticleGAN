@@ -137,25 +137,27 @@ def _load(root, registration):
 
 
 def prepare(root, queue_root, registration, *, queue):
-    manifest = _load(root, registration)
-    requests, rows = [], []
-    state = queue.inspect()
-    for selected in manifest["family_selections"]:
-        request = resolve_idea(root, selected["candidate_id"], study=selected["study"])
-        if request["protocol"]["seed"] != 0 or request["view"]["evidence_scope"] != "research_diagnostic":
-            raise ValueError("performance lane requires diagnostic seed-zero execution")
-        requests.append(request)
-        row = plan_summary(request, state)
-        rows.append({"family": selected["family"], "candidate": selected["candidate_id"],
-                     "study": selected["study"], "preflight_blockers": row["preflight_blockers"],
-                     "tasks": row["tasks"], "worst_case_seconds": row["worst_case_seconds"],
-                     "source_digest": request["source"]["digest"],
-                     "study_status": request["study_review"]["status"]})
-    return manifest, requests, {"schema": SCHEMA, "stage": "planned", "registration": manifest["id"],
-                                "campaign": manifest["campaign"], "view": manifest["view"],
-                                "execution_backend": manifest["execution_backend"], "families": rows,
-                                "declared_worst_case_seconds": sum(row["worst_case_seconds"] for row in rows),
-                                "qualification_input": False, "logs": str(Path(queue_root) / "events.jsonl")}
+    from .planning import resolution_cache
+    with resolution_cache(root):
+        manifest = _load(root, registration)
+        requests, rows = [], []
+        state = queue.inspect()
+        for selected in manifest["family_selections"]:
+            request = resolve_idea(root, selected["candidate_id"], study=selected["study"])
+            if request["protocol"]["seed"] != 0 or request["view"]["evidence_scope"] != "research_diagnostic":
+                raise ValueError("performance lane requires diagnostic seed-zero execution")
+            requests.append(request)
+            row = plan_summary(request, state)
+            rows.append({"family": selected["family"], "candidate": selected["candidate_id"],
+                         "study": selected["study"], "preflight_blockers": row["preflight_blockers"],
+                         "tasks": row["tasks"], "worst_case_seconds": row["worst_case_seconds"],
+                         "source_digest": request["source"]["digest"],
+                         "study_status": request["study_review"]["status"]})
+        return manifest, requests, {"schema": SCHEMA, "stage": "planned", "registration": manifest["id"],
+                                    "campaign": manifest["campaign"], "view": manifest["view"],
+                                    "execution_backend": manifest["execution_backend"], "families": rows,
+                                    "declared_worst_case_seconds": sum(row["worst_case_seconds"] for row in rows),
+                                    "qualification_input": False, "logs": str(Path(queue_root) / "events.jsonl")}
 
 
 def plan(root, queue_root, registration, *, queue):

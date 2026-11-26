@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "unified-v13-bytegan-study"
+  },
+  "candidate": "unified-v13",
+  "competing_explanation": "If recipe-owned discrete-atomic support detection, 1-stays/surplus-moves Hamilton-quota routing, atomic thermal settling, or joint BiGAN inverse codebook contraction fail to eliminate collisions or fail to align E(x) onto exact latent particles, unified-v13 will score below 256 valid_unique_bytes on bytegan_hypercube8 or fail exact reconstruction/bijection on bytegan_bigan_dictionary.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global unified-v13 (rhbi_self_coupling='feydy_atomic') passes both zero-sigma 256-byte stretch benchmarks (bytegan_hypercube8 256/256 valid unique bytes and bytegan_bigan_dictionary 256/256 forward, reconstruction, and encoder particle bijection across 5/5 terminal checks) relative to unchanged unified-v12 control (139/256 and 170/256 / 0/256 recon).",
+  "id": "unified-v13-bytegan-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "campaign_id": "bytegan-stretch-diag-v1",
+        "cuda_model": "NVIDIA RTX A6000"
+      },
+      "path": "reports/forge/bytegan-stretch/summary.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bytegan_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

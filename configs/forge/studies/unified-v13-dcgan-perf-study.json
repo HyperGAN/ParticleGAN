@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "unified-v13-dcgan-perf-study"
+  },
+  "candidate": "unified-v13",
+  "competing_explanation": "If feydy_atomic discrete-atomic support gating adds noticeable per-step overhead or GPU memory allocation on high-resolution 4D Conv2d DCGAN training, unified-v13 will exceed 45 ms/step on dcgan_performance_r256 relative to matched unified-v12 control.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 45.0
+  },
+  "hypothesis": "Unchanged global unified-v13 (rhbi_self_coupling='feydy_atomic') preserves unified-v12's high-resolution 4D Conv2d DCGAN latency (<=45 ms/step median on dcgan_performance_r256) and peak GPU memory with zero regression.",
+  "id": "unified-v13-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 45.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

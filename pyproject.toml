@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "particlegan"
-version = "0.12.0"
+version = "0.13.0"
 description = "Composable PyTorch primitives for learnable particle priors, GANs, and DDGAN"
 readme = "README.md"
 license = "MIT"
@@ -17,7 +17,7 @@ dependencies = [
 
 [project.urls]
 Repository = "https://github.com/HyperGAN/ParticleGAN"
-Documentation = "https://github.com/HyperGAN/ParticleGAN/blob/v0.12.0/docs/api.md"
+Documentation = "https://github.com/HyperGAN/ParticleGAN/blob/v0.13.0/docs/api.md"
 
 [project.optional-dependencies]
 mog = ["scipy>=1.10,<2"]
@@ -34,6 +34,7 @@ gym = ["gymnasium[box2d]==1.2.3", "numpy>=1.26,<3"]
 lunar = ["gymnasium[box2d]==1.2.3", "numpy>=1.26,<3", "rich>=13,<15", "Pillow>=13.0.0,<14", "imageio>=2,<3"]
 images = ["torchvision>=0.21,<1", "Pillow>=13.0.0,<14", "torch-fidelity==0.3.0", "scipy>=1.10,<1.18", "tqdm>=4.60,<5"]
 hf = ["huggingface_hub>=0.30,<3", "pyarrow>=17"]
+docs = ["mkdocs>=1.6,<2", "mkdocs-material>=9.5,<10", "pymdown-extensions>=10.7,<11"]
 
 [tool.setuptools.packages.find]
 where = ["."]

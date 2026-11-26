@@ -157,6 +157,8 @@ _STRETCH_PROVIDERS = (
     "benchmarks.toy_audit.api_cgan_overlap",
     "benchmarks.toy_audit.api_cramergan",
     "benchmarks.toy_audit.api_cyclegan",
+    "benchmarks.toy_audit.api_four_laws_123",
+    "benchmarks.toy_audit.api_four_laws_4",
 )
 
 
@@ -697,7 +699,7 @@ def misgan_masked_sqdist(x, m, table):
     return d.clamp_min(0)
 
 
-def misgan_ppost_indices(table, x, m, sigma=0.005, draws=1, generator=None, chunk=2048):
+def misgan_ppost_indices(table, x, m, sigma=0.005, draws=1, generator=None, chunk=256):
     if len(table) == 0:
         raise ValueError("candidate particle table cannot be empty")
     table_dtype = table.dtype if table.dtype.is_floating_point else torch.float32
@@ -705,6 +707,7 @@ def misgan_ppost_indices(table, x, m, sigma=0.005, draws=1, generator=None, chun
     x = x.to(device=table.device, dtype=table_dtype)
     m = m.to(device=table.device, dtype=table_dtype)
 
+    inputs_finite = bool(torch.isfinite(table).all() and torch.isfinite(x).all() and torch.isfinite(m).all())
     table_sq_t = (table * table).T
     table_t = table.T
     scale = -1.0 / (2.0 * sigma * sigma)
@@ -713,10 +716,13 @@ def misgan_ppost_indices(table, x, m, sigma=0.005, draws=1, generator=None, chun
     out = []
     for xb, mb in zip(x.split(chunk), m.split(chunk)):
         xm = xb * mb
-        d = mb @ table_sq_t - 2.0 * xm @ table_t + (xm * xb).sum(1, keepdim=True)
-        d = d.clamp_min(0.0)
-        w = torch.softmax(d * scale, dim=1)
-        if not torch.all(torch.isfinite(w)):
+        d = mb @ table_sq_t
+        d.addmm_(xm, table_t, beta=1.0, alpha=-2.0)
+        d.add_((xm * xb).sum(1, keepdim=True))
+        d.clamp_min_(0.0)
+        d.mul_(scale)
+        w = torch.softmax(d, dim=1, out=d)
+        if not inputs_finite and not torch.all(torch.isfinite(w)):
             nan_mask = ~torch.isfinite(w).all(dim=1)
             w = w.clone()
             w[nan_mask] = 1.0 / n_table

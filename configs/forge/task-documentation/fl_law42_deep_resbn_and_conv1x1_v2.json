@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law42_deep_resbn_and_conv1x1_v2",
+  "title": "Law 4.2/4.5 Probe v2: 8-Block ResBN & Isomorphic 4D Conv2d 1x1 Twin (Absolute Parity)",
+  "laws": [
+    "law4_2",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "resbn-depth",
+    "conv1x1-isomorphism",
+    "high-dimensional"
+  ],
+  "intuition": "Trains an 8-block ResBN trunk on a 64-mode R^128 Gaussian mixture alongside its mathematically isomorphic 4D `Conv2d(1x1)` twin, replacing v1's pathological inverse-quality ratio with floored absolute output parity `abs(conv1x1_sw1 - sw1) <= 0.015`.",
+  "failure_mode": "Optimizers that spectrally condition 2D Linear weights but omit or mis-transpose 4D Conv2d(1x1) weights diverge in generated quality between mathematically identical architectures.",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (500 updates, R^128 64-mode mixture, sw1 <= 0.10 & abs diff <= 0.015).",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

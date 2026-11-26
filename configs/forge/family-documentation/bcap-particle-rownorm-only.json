@@ -38,5 +38,31 @@
     "loss": "Current BCAP paired relativistic logistic; joint hosts retain their explicit two-stream generator/encoder objective and existing auxiliary terms.",
     "noise": "Zero additive training input/output noise. Task-declared prior sampling, named streams and data batches remain unchanged.",
     "optimizer": "Only prior.z rows actually sampled in the G update receive normalized-gradient steps z[i] -= etaPrior*g[i]/(norm(g[i])+epsilon). No momentum on these rows; unsampled rows do not move even under auxiliary all-table gradients. G/D/E use native Adam. A host without a sampled latent table retains native Adam and supplies no row-normalization evidence."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer",
+      "how_it_works": "Retains BCAP's task-declared prior with no prototype chart or pullback covariance isometry.",
+      "known_limits": "Separated multimodal targets bridge valleys and lose rare-mode fidelity."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed BCAP real/fake one-sided squared L2 cap (lambda=1, kappa=1, RoR)",
+      "how_it_works": "Softly penalizes excess critic input-gradient norms above 1.0 via exact RoR.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1`, no zero-mean logit gauge, and high RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot resolve multi-scale widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Sampled-row normalization on prior.z only; native Adam on G/E/D",
+      "how_it_works": "Applies unit-row gradient steps to sampled prior rows while keeping native Adam on G and D.",
+      "known_limits": "Networks lack spectral conditioning (4.2) and pushforward trust (4.1/4.3); `mu_D = 0` leaves equilibrium rotation undamped."
+    }
   }
 }

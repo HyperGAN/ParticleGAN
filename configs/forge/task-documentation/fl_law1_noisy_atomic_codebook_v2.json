@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law1_noisy_atomic_codebook_v2",
+  "title": "Law 1 Probe v2: 64-Atom Noisy Zipf Hexagonal Codebook (P=160, matched prior sigma)",
+  "laws": [
+    "law1"
+  ],
+  "edge_cases": [
+    "noisy-atomic-codebook",
+    "zipf-8to1-skew",
+    "capacity-mismatch",
+    "disconnected-support"
+  ],
+  "intuition": "Calibrated v2 falsification probe for discrete-atomic support under sigma/Delta=0.02 Gaussian jitter and 8:1 Zipf weights, using P=160 particles and matched prior.sigma=0.010 <= target_sigma so well-behaved priors are geometrically feasible.",
+  "failure_mode": "Zero-radius atomic detectors miss 2%-jittered atoms while rigid 1-to-1 particle ledgers distort the 8:1 Zipf weights or leave high outlier rates.",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (1,600 updates, K=64 atoms, P=160, prior.sigma=0.010).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

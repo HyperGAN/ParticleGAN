@@ -98,7 +98,7 @@ def test_minimal_loc_budget_and_zero_sibling_imports():
 
 
 def test_minimal_recipe_contract_and_import_order_in_fresh_process():
-    assert pg.DEFAULT_RECIPE == "unified_v12"
+    assert pg.DEFAULT_RECIPE == "axiom"
     assert len(dataclasses.fields(pg.Recipe)) == 179
     rec = pg.get_recipe("minimal")
     assert rec.critic_formulation == "minimal"
@@ -118,7 +118,7 @@ def test_minimal_recipe_contract_and_import_order_in_fresh_process():
         "sys.modules[spec.name] = r\n"
         "spec.loader.exec_module(r)\n"
         "assert 'torch' not in sys.modules\n"
-        "assert r.DEFAULT_RECIPE == 'unified_v12'\n"
+        "assert r.DEFAULT_RECIPE == 'axiom'\n"
     )
     res = subprocess.run([sys.executable, "-c", code], cwd=str(ROOT), capture_output=True, text=True, check=False)
     assert res.returncode == 0, res.stderr
@@ -129,7 +129,7 @@ def test_minimal_recipe_contract_and_import_order_in_fresh_process():
             sys.executable,
             "-c",
             "import particlegan.minimal as m, particlegan as pg; "
-            "assert pg.DEFAULT_RECIPE == 'unified_v12'; "
+            "assert pg.DEFAULT_RECIPE == 'axiom'; "
             "assert hasattr(m, 'MinimalCriticPenalty')",
         ],
         cwd=str(ROOT),

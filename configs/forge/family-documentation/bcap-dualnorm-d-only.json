@@ -38,5 +38,31 @@
     "loss": "Current BCAP paired relativistic logistic; joint hosts retain their explicit two-stream generator/encoder objective and existing auxiliary terms.",
     "noise": "Zero additive training input/output noise. Task-declared prior sampling, named streams and data batches remain unchanged.",
     "optimizer": "Apply the dualnorm matrix/vector rule only to D, with mu=0.5. Generator, encoder and latent prior use native Adam at the fixed incumbent rates and moments. Direct-coordinate controls also keep their native-Adam generator path."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No multimodal prototype atlas or prior regularizer",
+      "how_it_works": "Retains BCAP's task-declared prior with no prototype chart or pullback covariance isometry.",
+      "known_limits": "Separated multimodal targets bridge valleys and lose rare-mode fidelity."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed BCAP real/fake one-sided squared L2 cap (lambda=1, kappa=1, RoR)",
+      "how_it_works": "Softly penalizes excess critic input-gradient norms above 1.0 via exact RoR.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1`, no zero-mean logit gauge, and high RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Paired relativistic scalar critic only",
+      "how_it_works": "Lacks multi-scale OT horizons, orphan macro-transport, and conditional fiber deconfounding.",
+      "known_limits": "Cannot resolve multi-scale widths, beyond-horizon orphans, or conditional fiber variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "DualNorm polar updates on critic D only; native Adam on G/E/P (mu=0.5)",
+      "how_it_works": "Applies polar orthogonalization exclusively to critic matrices while keeping native Adam on generator and prior.",
+      "known_limits": "Positive critic momentum (`mu=0.5`) narrows rotational stability margins (4.5); generator lacks spectral conditioning (4.2) and pushforward trust (4.1/4.3)."
+    }
   }
 }

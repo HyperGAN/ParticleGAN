@@ -15,13 +15,14 @@ def test_partial_constructor_fails_before_implicit_ka2_selection(overrides):
         Recipe(**overrides)
 
 
-def test_selected_default_has_no_effective_decay_or_ema():
+def test_selected_default_has_no_effective_decay_or_ema_anchor():
     from particlegan.recipes import learning_rate_scales
     recipe = get_recipe()
-    assert recipe.name == "unified_v12"
-    assert recipe.ema_decay == recipe.reg_anchor_weight == 0
+    assert recipe.name == "axiom"
+    assert recipe.reg_anchor_weight == 0
     for step in (0, 200, 800, 960, 1600, 7000, 14000):
         assert learning_rate_scales(step, recipe) == (1., 1.)
+    assert get_recipe("unified_v12").ema_decay == 0
 
 
 def test_restoration_keeps_recorded_recipe_when_public_default_changes(monkeypatch):

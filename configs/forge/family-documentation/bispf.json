@@ -1,6 +1,6 @@
 {
   "overview": "Born-Infeld Sinkhorn Particle Flow (BISPF) is a constant-learning-rate ParticleGAN formulation with no EMA critic copy. It couples real and generated samples via scale-free entropic Optimal Transport (Sinkhorn-Knopp), regularizes critic gradients along real endpoints, fake endpoints, and Sinkhorn transport chords using a two-regime Elastic Born-Infeld potential with a zero-mean logit gauge, regularizes the particle prior with a degree-of-freedom-aware Stratified Blue-Noise Particle (SBNP) tether/repulsion law, and applies scale-free Harmonic Mode Capture thermal cooling once all modes are captured.",
-  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $N$ locations in $\\mathbb R^{d_z}$, $x$ a real batch, $z\\sim P$ a latent batch and $y=G(z)$ the generated batch. $\\Pi$ is the doubly-stochastic Sinkhorn coupling computed from median-normalized squared Euclidean distances $C_{ij}=\\lVert x_i-y_j\\rVert_2^2/\\bar d^2$. $x_{\\mathrm{chord}}=(1-u)y+u x_{\\pi}$ is a stratified Sinkhorn transport chord. $g_r=\\nabla_x D(x)$, $g_f=\\nabla_y D(y)$, and $g_c=\\nabla_{x_{\\mathrm{chord}}} D(x_{\\mathrm{chord}})$ are input gradients; $d$ counts critic-input coordinates, $\\kappa$ is the cap threshold, $\\lambda_{\\mathrm{floor}}$ the harmonic floor weight, $\\lambda_{\\mathrm{cap}}$ the elastic cap weight, and $\\gamma_{\\mathrm{gauge}}$ the zero-mean logit gauge weight.",
+  "symbols": "$G$ is the generator, $D$ the raw-score critic, $P$ the task prior with $N$ locations in $\\mathbb R^{d_z}$, $x$ a real batch, $z\\sim P$ a latent batch and $y=G(z)$ the generated batch. $\\Pi$ is the doubly-stochastic Sinkhorn coupling computed from median-normalized squared Euclidean distances $`C_{ij}=\\lVert x_i-y_j\\rVert_2^2/\\bar d^2`$. $`x_{\\mathrm{chord}}=(1-u)y+u x_{\\pi}`$ is a stratified Sinkhorn transport chord. $g_r=\\nabla_x D(x)$, $g_f=\\nabla_y D(y)$, and $`g_c=\\nabla_{x_{\\mathrm{chord}}} D(x_{\\mathrm{chord}})`$ are input gradients; $d$ counts critic-input coordinates, $\\kappa$ is the cap threshold, $`\\lambda_{\\mathrm{floor}}`$ the harmonic floor weight, $`\\lambda_{\\mathrm{cap}}`$ the elastic cap weight, and $`\\gamma_{\\mathrm{gauge}}`$ the zero-mean logit gauge weight.",
   "pseudocode": [
     "Choose an adversarial loss, optimizer and constant learning rates.",
     "For each task-owned training update:",
@@ -18,14 +18,14 @@
     "optimizer": "Supports DualNorm (selected configuration: zero momentum, smoothing 0.001, per-offset convolution) as well as native Adam and formulation-owned BISPF optimizers without an EMA critic network copy.",
     "learning_rates": "Strictly constant: selected global LR $0.012$, critic multiplier $1.5$ and prior multiplier $2.5$, with network and prior LR floors fixed at $1.0$ (zero LR annealing).",
     "gradient_clipping": "None. Critic spike guard is disabled; gradient bounding acts smoothly through the Elastic Born-Infeld critic potential.",
-    "critic_penalty": "Two-regime Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR) evaluated on real, fake and Sinkhorn transport-chord inputs ($\\kappa=1$, sharpness $\\beta=30$, harmonic floor $\\lambda_{\\mathrm{floor}}=0.0005$, chord blend $0.02$) plus a zero-mean logit gauge ($\\gamma_{\\mathrm{gauge}}=0.0005$). No EMA critic anchor.",
+    "critic_penalty": "Two-regime Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR) evaluated on real, fake and Sinkhorn transport-chord inputs ($\\kappa=1$, sharpness $\\beta=30$, harmonic floor $`\\lambda_{\\mathrm{floor}}=0.0005`$, chord blend $0.02$) plus a zero-mean logit gauge ($`\\gamma_{\\mathrm{gauge}}=0.0005`$). No EMA critic anchor.",
     "damping_and_guards": "Scale-free Harmonic Mode Capture thermal cooling damps post-convergence Poisson mini-batch fluctuations below DualNorm's smoothing floor when the bidirectional 95th-percentile nearest-neighbor distance enters the harmonic capture basin.",
     "noise": "No scheduled additive critic-input or generator-output training noise in the selected benchmark configuration ($0.0$). Task-declared MoG intrinsic sigma is preserved.",
-    "averaging": "Generator EMA decay=$0$ and serve_average=$0$; all evaluations score live unaveraged weights."
+    "averaging": "Generator EMA decay=$`0`$ and serve_average=$`0`$; all evaluations score live unaveraged weights."
   },
   "configuration_notes": [
     "BISPF combines the Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR), zero-mean logit gauge, Stratified Blue-Noise Particle (SBNP) prior regularizer, and Harmonic Mode Capture thermal cooling under constant learning rates.",
-    "The SBNP prior regularizer automatically adapts to prior table capacity: when $N \\le 2 k_{\\mathrm{nn}} + d_z$ (such as the 5-row discrete word codebook), covariance tethering and $k$-NN repulsion are disabled so discrete codebooks are unperturbed; for continuous particle clouds ($N > 2 k_{\\mathrm{nn}} + d_z$), both the initial-moment tether and scale-free $k$-NN log-repulsion are active.",
+    "The SBNP prior regularizer automatically adapts to prior table capacity: when $`N \\le 2 k_{\\mathrm{nn}} + d_z`$ (such as the 5-row discrete word codebook), covariance tethering and $`k`$-NN repulsion are disabled so discrete codebooks are unperturbed; for continuous particle clouds ($`N > 2 k_{\\mathrm{nn}} + d_z`$), both the initial-moment tether and scale-free $`k`$-NN log-repulsion are active.",
     "One global trainer configuration supplies every displayed result across Tier 1, Tier 2 and Tier 3; task-owned architectures, priors, initializations, budgets and gates remain fixed.",
     "The opt-in throughput recipe combines optimizer_svd_backend=\"batched\" with training_precision=\"bf16_channels_last\". See the [source-bound throughput and quality study](../bispf-throughput/README.md) for workload-specific measurements, unchanged failures and separate current-policy versus endurance-diagnostic results. It does not change the selected recipe or public default."
   ],
@@ -59,13 +59,56 @@
   "equations": [
     {
       "label": "Elastic Born-Infeld Transport-Chord Regularizer and Zero-Mean Gauge",
-      "latex": "R_{\\mathrm{BISPF}}=\\frac{\\lambda_{\\mathrm{floor}}}{6d}\\mathbb E\\!\\left[\\lVert g_r\\rVert_2^2+\\lVert g_f\\rVert_2^2+\\lVert g_c\\rVert_2^2\\right]+\\frac{\\lambda_{\\mathrm{cap}}}{2}\\mathbb E\\!\\left[\\phi_\\beta(\\lVert g_r\\rVert_2-\\kappa)^2+(1-\\alpha_c)\\phi_\\beta(\\lVert g_f\\rVert_2-\\kappa)^2+\\alpha_c\\phi_\\beta(\\lVert g_c\\rVert_2-\\kappa)^2\\right]+\\frac{\\gamma_{\\mathrm{gauge}}}{2}\\bar D^2",
-      "explanation": "Here $\\phi_\\beta(u)=\\beta^{-1}\\log(1+e^{\\beta u})$ is the smooth Born-Infeld elastic wall, $g_c=\\nabla_x D((1-u)y+u x_\\pi)$ is the critic gradient along Sinkhorn transport chords, and $\\bar D=\\frac{1}{2}(\\mathbb E[D(x)]+\\mathbb E[D(y)])$ pins the translational logit gauge without an EMA critic network copy."
+      "latex": "R_{\\mathrm{BISPF}}=\\frac{\\lambda_{\\mathrm{floor}}}{6d}\\mathbb E\\left[\\lVert g_r\\rVert_2^2+\\lVert g_f\\rVert_2^2+\\lVert g_c\\rVert_2^2\\right]+\\frac{\\lambda_{\\mathrm{cap}}}{2}\\mathbb E\\left[\\phi_\\beta(\\lVert g_r\\rVert_2-\\kappa)^2+(1-\\alpha_c)\\phi_\\beta(\\lVert g_f\\rVert_2-\\kappa)^2+\\alpha_c\\phi_\\beta(\\lVert g_c\\rVert_2-\\kappa)^2\\right]+\\frac{\\gamma_{\\mathrm{gauge}}}{2}\\bar D^2",
+      "explanation": "Here $`\\phi_\\beta(u)=\\beta^{-1}\\log(1+e^{\\beta u})`$ is the smooth Born-Infeld elastic wall, $`g_c=\\nabla_x D((1-u)y+u x_\\pi)`$ is the critic gradient along Sinkhorn transport chords, and $\\bar D=\\frac{1}{2}(\\mathbb E[D(x)]+\\mathbb E[D(y)])$ pins the translational logit gauge without an EMA critic network copy."
     },
     {
       "label": "Stratified Blue-Noise Particle (SBNP) Prior Regularizer",
-      "latex": "R_{\\mathrm{SBNP}}(P)=\\lambda_P\\left(\\mathcal T_{\\mathrm{moment}}(P)+w_{\\mathrm{repel}}\\,\\mathbb I(N>2k_{\\mathrm{nn}}+d_z)\\,\\frac{1}{N k_{\\mathrm{nn}}}\\sum_{i=1}^N\\sum_{m=1}^{k_{\\mathrm{nn}}}\\log\\!\\left(1+\\frac{\\bar r_{\\mathrm{knn}}^2}{\\lVert z_i-z_{\\mathcal N_m(i)}\\rVert_2^2+\\epsilon}\\right)\\right)",
-      "explanation": "Preserves the initial latent mean and (when $N>2k_{\\mathrm{nn}}+d_z$) initial covariance while preventing local particle clumping via scale-free $k$-NN log-repulsion."
+      "latex": "R_{\\mathrm{SBNP}}(P)=\\lambda_P\\left(\\mathcal T_{\\mathrm{moment}}(P)+w_{\\mathrm{repel}}\\thinspace\\mathbb I(N>2k_{\\mathrm{nn}}+d_z)\\thinspace\\frac{1}{N k_{\\mathrm{nn}}}\\sum_{i=1}^N\\sum_{m=1}^{k_{\\mathrm{nn}}}\\log\\left(1+\\frac{\\bar r_{\\mathrm{knn}}^2}{\\lVert z_i-z_{\\mathcal N_m(i)}\\rVert_2^2+\\epsilon}\\right)\\right)",
+      "explanation": "Preserves the initial latent mean and (when $`N>2k_{\\mathrm{nn}}+d_z`$) initial covariance while preventing local particle clumping via scale-free $`k`$-NN log-repulsion."
     }
-  ]
+  ],
+  "law_mechanisms": {
+    "law1": {
+      "status": "partial",
+      "mechanism": "Degree-of-freedom-aware Stratified Blue-Noise Particle (SBNP) prior regularizer",
+      "how_it_works": "Preserves initial latent mean/covariance and prevents local particle clumping via scale-free k-NN log-repulsion when table capacity exceeds `2*k_nn + d_z`, while leaving tiny discrete codebooks unperturbed.",
+      "known_limits": "Does not construct an adaptive multimodal prototype chart or generator pullback isometry; separated, anisotropic, unequal-mass, and discrete image targets still exhibit mode bridging and mass-share errors."
+    },
+    "law2": {
+      "status": "addressed",
+      "mechanism": "Elastic Born-Infeld Transport-Chord Regularizer (EBI-TCR) + harmonic floor + zero-mean gauge (RoR)",
+      "how_it_works": "Evaluates a smooth Elastic Born-Infeld wall (`kappa=1`) with a harmonic floor (`lambda_floor=0.0005`) and zero-mean logit gauge (`gamma_gauge=0.0005`) on real endpoints, fake endpoints, and Sinkhorn transport chords via exact RoR without an EMA critic copy.",
+      "known_limits": "Exact RoR double-backward adds high-resolution convolutional overhead, and the small harmonic floor (`0.0005`) provides weak equilibrium damping on difficult tasks."
+    },
+    "law3": {
+      "status": "partial",
+      "mechanism": "Median-normalized global Sinkhorn coupling for transport chords and optional SRpGAN pairing",
+      "how_it_works": "Computes a doubly-stochastic Sinkhorn coupling on median-normalized batch distances to align critic transport chords and estimate bidirectional 95th-percentile transport capture.",
+      "known_limits": "Global median distance normalization fails heteroscedastic unequal-width/unequal-mass mixtures and beyond-horizon shifts, and lacks conditional fiber drift-variance deconfounding (failing DDGAN chains)."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm (batched SVD + quintic conv) + Harmonic Mode Capture cooling + direction_blend",
+      "how_it_works": "Pairs DualNorm matrix polar updates (with quintic per-offset convolution rule on wide CUDA kernels) and `direction_blend` conflict projection with Harmonic Mode Capture thermal cooling under constant learning rates and 1:1 alternation.",
+      "known_limits": "Lacks realized generator pushforward secant trust for severe Kreiss imbalance, lacks dynamic-1e-38 rail rescaling, and fails 11/29 measured full-suite tasks including heteroscedastic vectors, discrete images, and DDGAN chains."
+    }
+  },
+  "mermaid_diagram": "flowchart TD\n    Batch[\"Real x & Prior z ~ P\"] --> Gen[\"Generator y = G(z)\"]\n    Batch --> Sinkhorn[\"Law 3A: Median-Normalized Sinkhorn Coupling Pi\"]\n    Gen --> Sinkhorn\n    Sinkhorn --> EBI[\"Law 2: EBI-TCR Endpoints + Chords + Gauge (RoR)\"]\n    EBI --> StepD[\"Law 4: DualNorm (Quintic Conv, beta1=0) D Step\"]\n    StepD --> ReGen[\"Resample z ~ P, Recompute y = G(z)\"]\n    ReGen --> SBNP[\"Law 1: SBNP Prior Tether + k-NN Repulsion\"]\n    SBNP --> Cool[\"Law 4.4: Harmonic Mode Capture Thermal Cooling\"]\n    Cool --> StepG[\"Law 4: direction_blend + DualNorm G, P, E Step\"]\n    StepG --> Batch",
+  "quickstart": {
+    "preset": "bispf_optimized",
+    "snippet": [
+      "import torch",
+      "from torch import nn",
+      "from particlegan import BatchDistanceDiscriminator, GANTrainer, get_recipe, init",
+      "",
+      "recipe = get_recipe('bispf_optimized', total_steps=1000)",
+      "G = init.deterministic_orthogonal_(nn.Sequential(",
+      "    nn.Linear(recipe.z_dim, 64), nn.LeakyReLU(0.2), nn.Linear(64, 2)), seed=0)",
+      "D = init.deterministic_orthogonal_(BatchDistanceDiscriminator(), seed=1)",
+      "prior = init.deterministic_orthogonal_(recipe.make_prior())",
+      "trainer = GANTrainer(recipe, G, D, prior=prior, seed=0)",
+      "stats = trainer.step(torch.randn(recipe.batch_size, 2))"
+    ]
+  }
 }

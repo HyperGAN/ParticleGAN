@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "img_stripes2_residual16",
+  "title": "8x8 Procedural Images: Horizontal vs Vertical Stripes (Residual-Upsample Width-16)",
+  "laws": [
+    "law1",
+    "law2"
+  ],
+  "edge_cases": [
+    "discrete-images-8x8",
+    "conv2d-critic",
+    "finite-prior-enumeration",
+    "residual-upsample-conv"
+  ],
+  "intuition": "Architectural transfer variant of `img_stripes2` replacing transposed convolutions with nearest-neighbor upsampling + width-16 residual Conv2d blocks. Smallest convolutional image transfer test: learn both 8x8 stripe orientations (horizontal and vertical) using a 32-particle prior with exact finite-prior enumeration (2/2 modes, hq >= 0.90).",
+  "failure_mode": "Unregularized Conv2d critics or cross-valley barycentric averaging produce blurry '+' cross hybrids instead of crisp stripes.",
+  "protocol_notes": "Separate residual-upsample image architecture cohort of `img_stripes2`.",
+  "diagram_kind": "image_grid_8x8",
+  "custom_mermaid": null
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ddgan_gaussian_chain",
+  "title": "4-Step DDGAN Conditional Gaussian Reverse Chain",
+  "laws": [
+    "law3b",
+    "law2"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "drift-variance-confounding",
+    "diffusion-gan"
+  ],
+  "intuition": "Probes Law 3B (Conditional Fiber Identifiability) on a 4-step Denoising Diffusion GAN learning a correlated 2D Gaussian: grades both final ancestral samples AND conditioned reverse-transition slices at t=1,2,3.",
+  "failure_mode": "Marginal matching alone hides conditional drift-variance confounding: the generator matches the unconditional average while predicting wrong conditional means or collapsed variance on specific x_t strata.",
+  "protocol_notes": "Tier-2 required public-API DDGAN task.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "vector_anisotropic_published",
+  "title": "Three Rotated Anisotropic Ellipses (Published Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "anisotropic-covariance",
+    "rotated-ellipses",
+    "disconnected-support",
+    "published-cohort"
+  ],
+  "intuition": "Published-prior cohort variant of `vector_anisotropic` with explicit `learnable=True` MoG prior declaration, testing transfer consistency across minor prior-contract differences. Three equal-mass 2D Gaussians stretched along horizontal, vertical, and diagonal axes. Tests full 2x2 covariance fidelity so that matching a wide principal axis cannot hide collapse along the narrow axis.",
+  "failure_mode": "Scalar-trace isotropic covariance trackers or misallocated prototype mass distort ellipse eccentricity and violate component_covariance_error or mass_tv.",
+  "protocol_notes": "Separate published transfer cohort of `vector_anisotropic`; historical sensitivity observed across architectures.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

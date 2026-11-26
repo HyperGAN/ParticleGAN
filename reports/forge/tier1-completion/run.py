@@ -152,30 +152,32 @@ def prepare(root=ROOT):
 
 
 def requests(root, queue_root, *, freeze=False):
+    from experiments.forge.planning import resolution_cache
     definition = read_json(root / ROUND)
     registration_specs(root, definition)
-    tasks = load_tasks(root)
-    resolved = []
-    for row in definition["candidate_roster"]:
-        if stable_hash(load_idea(root, row["candidate_id"])) != row["declaration_sha256"]:
-            raise ValueError("recipe declaration changed after roster freeze")
-        if stable_hash(load_view(root, row["view"])) != row["view_fingerprint"]:
-            raise ValueError("view changed after roster freeze")
-        if {name: stable_hash(tasks[name]) for name in row["task_ids"]} != row["task_definition_sha256"]:
-            raise ValueError("task definition changed after roster freeze")
-        req = resolve_idea(root, row["candidate_id"], view_id=row["view"], through_tier=1,
-                           execution_backend="cuda", queue_root=queue_root, freeze_source=freeze)
-        if req.get("execution_policy", {}).get("mode") != "complete_current_tier":
-            raise ValueError("merge complete-tier execution before this round")
-        if req["preflight_blockers"]:
-            raise ValueError(f"candidate admission blocked: {row['family']}: {req['preflight_blockers']}")
-        allowance = sum(job["budget_seconds"] for job in req["jobs"] if Queue._authorized(req, job))
-        if allowance != row["allowance_seconds"]:
-            raise ValueError("resolved task allowance differs from frozen budget")
-        resolved.append((row, req))
-    if len({req["source"]["digest"] for _, req in resolved}) != 1:
-        raise ValueError("one frozen implementation source is required across this round")
-    return definition, resolved
+    with resolution_cache(root):
+        tasks = load_tasks(root)
+        resolved = []
+        for row in definition["candidate_roster"]:
+            if stable_hash(load_idea(root, row["candidate_id"])) != row["declaration_sha256"]:
+                raise ValueError("recipe declaration changed after roster freeze")
+            if stable_hash(load_view(root, row["view"])) != row["view_fingerprint"]:
+                raise ValueError("view changed after roster freeze")
+            if {name: stable_hash(tasks[name]) for name in row["task_ids"]} != row["task_definition_sha256"]:
+                raise ValueError("task definition changed after roster freeze")
+            req = resolve_idea(root, row["candidate_id"], view_id=row["view"], through_tier=1,
+                               execution_backend="cuda", queue_root=queue_root, freeze_source=freeze)
+            if req.get("execution_policy", {}).get("mode") != "complete_current_tier":
+                raise ValueError("merge complete-tier execution before this round")
+            if req["preflight_blockers"]:
+                raise ValueError(f"candidate admission blocked: {row['family']}: {req['preflight_blockers']}")
+            allowance = sum(job["budget_seconds"] for job in req["jobs"] if Queue._authorized(req, job))
+            if allowance != row["allowance_seconds"]:
+                raise ValueError("resolved task allowance differs from frozen budget")
+            resolved.append((row, req))
+        if len({req["source"]["digest"] for _, req in resolved}) != 1:
+            raise ValueError("one frozen implementation source is required across this round")
+        return definition, resolved
 
 
 def plan(root, queue_root):
@@ -188,28 +190,30 @@ def plan(root, queue_root):
 
 
 def enqueue(root, queue_root):
-    definition, resolved = requests(root, queue_root, freeze=True)
-    verify_committed_source(root, resolved[0][1]["source"])
-    queue = Queue(queue_root, report_root=root / "reports/forge")
-    # Check every ordinary legacy declaration before registering configurations.
-    # Search admission itself retains the existing exact bounded-registration
-    # validation; the shared campaign and scientific requests do not change.
-    for _, req in resolved:
-        if "configuration_id" not in req["candidate"]:
-            validate_admission(req, definition["campaign"], root=root)
-    for spec in registration_specs(root, definition):
-        registered = enqueue_search(root, queue_root, spec, queue=queue)
-        if registered["submitted_count"] != 1:
-            raise ValueError("singleton configuration registration was not admitted")
-        emit("registered", study=spec["id"], candidate=spec["base_candidate"])
-    entries = []
-    for row, req in resolved:
-        entry = queue.submit(req, definition["campaign"])
-        entries.append({"family": row["family"], "candidate_id": row["candidate_id"],
-                        "request_id": entry["request"]["request_id"]})
-        emit("submitted", **entries[-1])
-    atomic_json(queue_root / ID / "roster.json", entries)
-    return queue
+    from experiments.forge.planning import resolution_cache
+    with resolution_cache(root):
+        definition, resolved = requests(root, queue_root, freeze=True)
+        verify_committed_source(root, resolved[0][1]["source"])
+        queue = Queue(queue_root, report_root=root / "reports/forge")
+        # Check every ordinary legacy declaration before registering configurations.
+        # Search admission itself retains the existing exact bounded-registration
+        # validation; the shared campaign and scientific requests do not change.
+        for _, req in resolved:
+            if "configuration_id" not in req["candidate"]:
+                validate_admission(req, definition["campaign"], root=root)
+        for spec in registration_specs(root, definition):
+            registered = enqueue_search(root, queue_root, spec, queue=queue)
+            if registered["submitted_count"] != 1:
+                raise ValueError("singleton configuration registration was not admitted")
+            emit("registered", study=spec["id"], candidate=spec["base_candidate"])
+        entries = []
+        for row, req in resolved:
+            entry = queue.submit(req, definition["campaign"])
+            entries.append({"family": row["family"], "candidate_id": row["candidate_id"],
+                            "request_id": entry["request"]["request_id"]})
+            emit("submitted", **entries[-1])
+        atomic_json(queue_root / ID / "roster.json", entries)
+        return queue
 
 
 def verify_committed_source(root, source):

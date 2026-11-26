@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ddgan_bimodal_chain_v2",
+  "title": "Clean Oracle-Free v2 4-Step DDGAN Bimodal Chain",
+  "laws": [
+    "law3b",
+    "law1"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "bimodal-posterior",
+    "oracle-free"
+  ],
+  "intuition": "Clean oracle-free v2 DDGAN bimodal chain testing whether public conditional DDGAN reverse transitions preserve both bimodal branches and final ancestral distribution with calibrated terminal_observations=1 and zero host-owned target-variance div_loss.",
+  "failure_mode": "Without host-side variance regularization, conditional reverse steps average across the two modes or lose conditioned branch fidelity.",
+  "protocol_notes": "Clean oracle-free v2 benchmark (5,000 updates, 600s timeout); preserves legacy model_ddgan_bimodal_chain untouched.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

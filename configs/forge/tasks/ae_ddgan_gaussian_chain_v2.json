@@ -1,0 +1,339 @@
+{
+  "schema_version": 1,
+  "id": "ae_ddgan_gaussian_chain_v2",
+  "adapter": "public_api_model_toy_v2",
+  "description": "Clean oracle-free v2 AE-DDGAN Gaussian chain: reconstruct held-out inputs through a learned particle AE and four public DDGAN reverse steps with calibrated terminal_observations=1, 600s timeout, and zero host-owned whitening, target-mean cluster tethering, codes_det prior tethering, or div_loss.",
+  "task_cohort": "api-model-ae-ddgan-v2",
+  "execution": {
+    "host": "api-model-ae-ddgan-gaussian-chain-v2",
+    "steps": 2500,
+    "initializer": "deterministic_orthogonal",
+    "protocol": "screening",
+    "produces_state": false,
+    "prior_contract": "recipe_owned_v1",
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.25,
+      "standardize": false
+    },
+    "execution_path": "public_components",
+    "recipe_fields": {
+      "model": "ddgan",
+      "encoder_mode": "ae",
+      "conditioning": "scalar",
+      "num_classes": null,
+      "alpha_bar": [
+        1.0,
+        0.9,
+        0.5,
+        0.05,
+        0.0001
+      ],
+      "reconstruction_weight": 1.0
+    },
+    "host_definition": {
+      "case_id": "api-model-ae-ddgan-gaussian-chain-v2",
+      "provider": "benchmarks.toy_audit.api_model_ae_ddgan_v2",
+      "resources": {
+        "num_particles": 128,
+        "z_dim": 4,
+        "batch_size": 64
+      },
+      "target": {
+        "kind": "gaussian",
+        "means": [
+          [
+            0.6000000238418579,
+            -0.3499999940395355
+          ]
+        ],
+        "variances": [
+          [
+            0.20250000059604645,
+            0.09000000357627869
+          ]
+        ],
+        "weights": [
+          1.0
+        ]
+      },
+      "networks": {
+        "generator": "MLP([xt(2),z(4),t/4],32,32,2), LeakyReLU(.2)",
+        "discriminator": "MLP([x_prev(2),xt(2),t/4],32,32,1), LeakyReLU(.2)",
+        "encoder": "MLP(clean(2),32,32,query(4)+offset(4)), LeakyReLU(.2); Recipe.encode AE"
+      },
+      "training_law": "oracle-free v2: independent D/G clean mixture draws, independent uniform per-row timestep 1..4; public DDGAN.forward_pair; predicted-clean G and public DDGAN.reverse with independent Gaussian eta; public adversarial loss+critic penalty+recipe prior regularization+pure unweighted public ParticleEncoding.reconstruction_loss (zero host whitening, zero target-mean cluster tethering, zero codes_det prior tethering, zero target-variance div_loss)",
+      "sampling_law": "Public DDGAN [1,.9,.5,.05,.0001]; N(0,I) terminal start; fresh independent learned-MoG latent/kernel noise and Gaussian reverse noise at EVERY step; eight heldout time/observation transition panels; separate paired cohort: encode held-out clean input once, hold its deterministic AE code through all four reverse steps from independent N(0,I), fresh Gaussian reverse noise each step; shuffled-code control shares identical start and reverse noise",
+      "paired_sampling_law": "Held-out clean input encoded once; hold deterministic code through reverse steps 4,3,2,1 from independent N(0,I), fresh Gaussian eta every step; shuffle code rows with identical start and reverse eta"
+    },
+    "host_source": "benchmarks/toy_audit/api_model_ae_ddgan_v2.py"
+  },
+  "evaluation": {
+    "kind": "transfer_sustained",
+    "evaluator": "experiments.forge.model_toy_v2_adapter:test_verdict",
+    "thresholds": [
+      [
+        "final_projection_cdf",
+        "<=",
+        0.2
+      ],
+      [
+        "final_normalized_mean",
+        "<=",
+        0.45
+      ],
+      [
+        "final_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "final_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t1_q0_projection_cdf",
+        "<=",
+        0.26
+      ],
+      [
+        "t1_q0_normalized_mean",
+        "<=",
+        0.65
+      ],
+      [
+        "t1_q0_covariance_eigen_min",
+        ">=",
+        0.4
+      ],
+      [
+        "t1_q0_covariance_eigen_max",
+        "<=",
+        1.8
+      ],
+      [
+        "t1_q1_projection_cdf",
+        "<=",
+        0.26
+      ],
+      [
+        "t1_q1_normalized_mean",
+        "<=",
+        0.65
+      ],
+      [
+        "t1_q1_covariance_eigen_min",
+        ">=",
+        0.4
+      ],
+      [
+        "t1_q1_covariance_eigen_max",
+        "<=",
+        1.8
+      ],
+      [
+        "t2_q0_projection_cdf",
+        "<=",
+        0.2
+      ],
+      [
+        "t2_q0_normalized_mean",
+        "<=",
+        0.35
+      ],
+      [
+        "t2_q0_covariance_eigen_min",
+        ">=",
+        0.6
+      ],
+      [
+        "t2_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t2_q1_projection_cdf",
+        "<=",
+        0.2
+      ],
+      [
+        "t2_q1_normalized_mean",
+        "<=",
+        0.35
+      ],
+      [
+        "t2_q1_covariance_eigen_min",
+        ">=",
+        0.6
+      ],
+      [
+        "t2_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t3_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t3_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t3_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t3_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t3_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t3_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t3_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t3_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t4_q0_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t4_q0_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t4_q0_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t4_q0_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "t4_q1_projection_cdf",
+        "<=",
+        0.12
+      ],
+      [
+        "t4_q1_normalized_mean",
+        "<=",
+        0.25
+      ],
+      [
+        "t4_q1_covariance_eigen_min",
+        ">=",
+        0.65
+      ],
+      [
+        "t4_q1_covariance_eigen_max",
+        "<=",
+        1.4
+      ],
+      [
+        "panel_count",
+        "==",
+        8
+      ],
+      [
+        "samples_per_panel",
+        ">=",
+        2048
+      ],
+      [
+        "paired_nmse",
+        "<=",
+        0.1
+      ],
+      [
+        "paired_worst_axis_nrmse",
+        "<=",
+        0.25
+      ],
+      [
+        "paired_shuffled_gain",
+        ">=",
+        3.0
+      ],
+      [
+        "paired_reverse_steps",
+        "==",
+        4
+      ]
+    ],
+    "observations": 24,
+    "minimum_stable_checks": 1,
+    "sampling_contract_version": 1,
+    "sampling_law": "task_model_kernel_and_posterior_without_serving_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "eval_samples": 2048,
+    "guards": {
+      "finite_state": true,
+      "rng_isolation": true,
+      "optimizer_roles": [
+        "generator",
+        "encoder",
+        "prior",
+        "discriminator"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true
+    },
+    "sources": {
+      "benchmarks/toy_audit/api_contract.py": "9fbd0b57e2ff0d3009ad96c66e0eeee816f69323e03f9058e65f8ac69bf7c210",
+      "benchmarks/toy_audit/api_model_ae_ddgan.py": "eceef3d8fce50e71f87e86796c9a9da6e0e439de141da9f1930883318a78533b",
+      "benchmarks/toy_audit/api_model_ae_ddgan_v2.py": "d977542a523e05c15d2fb8c1d0af1fea6fa8e803aac21a0530fdd0a026d46b50",
+      "benchmarks/toy_audit/api_model_ddgan.py": "1e08099717417d8eb999136c2b9957e6b99d7a3670d8cdab4911d51432137c96",
+      "benchmarks/toy_audit/api_model_ddgan_v2.py": "bbe68bd86c1cacb124e80903feae81b4d0f7e0dc465e7ee1ba21c8fccd9cd480",
+      "benchmarks/toy_audit/api_run.py": "5b03a612673e9ed86e3577f0f1fe705c7c09a25e7d7bfec2a6a75670334eeacc",
+      "benchmarks/toy_audit/reproducibility.py": "5f29fd7f9579be894e97bf4ad93bee8c77aeff104437b5d4e6dc4a4303935891",
+      "experiments/forge/model_toy_v2_adapter.py": "e43228c4721451eaf3ec1c2483124dd73ed04e3cdb57e943ccceb8c685ad2826",
+      "particlegan/policy.py": "be442dcf21f03a5d1cd364177724fc15560df8cbf401c85bd4630f62f5ea9535"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 512,
+    "cpu_threads": 1,
+    "timeout_seconds": 600,
+    "allow_cpu": true
+  },
+  "requires_capabilities": [
+    "public_components",
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": [],
+  "retained_question_ids": [
+    "api-model-ae-ddgan-gaussian-chain-v2",
+    "api-model-ae-ddgan-gaussian-chain"
+  ],
+  "research_artifacts": {
+    "readout": "reports/axiom/axiom-v4-failure-analysis.md"
+  }
+}

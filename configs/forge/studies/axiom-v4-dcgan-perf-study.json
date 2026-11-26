@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "axiom-v4-dcgan-perf-study"
+  },
+  "candidate": "axiom-v4",
+  "competing_explanation": "If Axiom v4's sub-batch dense-Rademacher fwAD R1+R2, _capture_ring <=4096 guard, or batched foreach AxiomOptimizer introduces synchronization or memory overhead on 256x256 RGB DCGAN, axiom-v4 will exceed 35.0 ms/step median on dcgan_performance_r256.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "update_ms_median",
+    "op": ">",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 35.0
+  },
+  "hypothesis": "Unchanged global axiom-v4 achieves <=35.0 ms/step median latency (<=33 ms/step, <=7.0 J/step NVML energy, <=850 MiB VRAM) on idle RTX A6000 dcgan_performance_r256, strictly beating unified-v12, unified-v13, and unified-v14.",
+  "id": "axiom-v4-dcgan-perf-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "update_ms_median",
+    "op": "<=",
+    "phase": "final",
+    "task_id": "dcgan_performance_r256",
+    "threshold": 35.0
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-59898e1a77c4b179c9aebbc1.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "dcgan_performance"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

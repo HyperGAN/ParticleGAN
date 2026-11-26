@@ -1,4 +1,20 @@
 {
+  "schema_version": 1,
+  "policy": {
+    "scope_prefix": "reports/",
+    "banned_extensions": [
+      ".ckpt",
+      ".gif",
+      ".gz",
+      ".html",
+      ".mp4",
+      ".npz",
+      ".pt",
+      ".pth",
+      ".zip"
+    ],
+    "max_json_bytes": 512000
+  },
   "allowed_paths": [
     "reports/forge/atlas-e22-policy-cloud-20261015/records.json",
     "reports/forge/atlas-named-gpu-diagnostics-native-v3-20261003/results.json",
@@ -101,10 +117,12 @@
     "reports/forge/records/lifecycle-afc11349bf0ada8bca0c4c89.json",
     "reports/forge/records/lifecycle-e90204eef53f90292d2d1750.json",
     "reports/forge/records/readout-008837c0302469dece2d3d4a.json",
+    "reports/forge/records/readout-030b754950e236c22af7add0.json",
     "reports/forge/records/readout-05eaed46ab0e45214ae8e7b4.json",
     "reports/forge/records/readout-0b7cd7995a0a857bb250cf14.json",
     "reports/forge/records/readout-0c549ac1c635a42dc43cf6dc.json",
     "reports/forge/records/readout-0df182292d888440f5fb32ce.json",
+    "reports/forge/records/readout-109bbb98231a0a7a4e6903f9.json",
     "reports/forge/records/readout-143d85d4540548b0ecec1604.json",
     "reports/forge/records/readout-1601436209f93adc811c95c6.json",
     "reports/forge/records/readout-1ca76c61c875ba5a33dca488.json",
@@ -164,6 +182,7 @@
     "reports/forge/records/readout-d1539c52c610cf0b249ed2e5.json",
     "reports/forge/records/readout-d278a74af331d2f3b7807234.json",
     "reports/forge/records/readout-d46a41a1da2da54d67d154f4.json",
+    "reports/forge/records/readout-d83ce97f520f7668f39996df.json",
     "reports/forge/records/readout-dbdfe2dd5ef42a8be8001ddc.json",
     "reports/forge/records/readout-e6cf768866c160ba1338f662.json",
     "reports/forge/records/readout-e770044794f0c855f4331e16.json",
@@ -196,6 +215,7 @@
     "reports/forge/technique-evidence/bf2ec8c977e40f847f3836a810fc8bb0c888c08c9cef1ea781a37c4c9a7915ad.json",
     "reports/forge/technique-evidence/bf46d13ea30ed217735bcdf841704fbf16e018a445e2290821c6e34a58bd9f45.json",
     "reports/forge/technique-evidence/c1ab2a9c22978670e09dbd20ee66c206bfc9a59ab1d7a0aa970c1041096d055f.json",
+    "reports/forge/technique-evidence/cd6c7a0e9946e818d197334e689992e5df13f3edd23000adba9c359b03b4d949.json",
     "reports/forge/technique-evidence/ddde64ee936114becac42863847a51e88ec0301bad9f7f69767d0a2fbc3f3d69.json",
     "reports/forge/technique-evidence/e09c650155820e13454549d67238e1ea27df10061265a297c3311087afbcf921.json",
     "reports/forge/technique-inventory.json",
@@ -235,6 +255,8 @@
     "reports/toy100/overnight-20260925/results/fa8c03203f67832818b9d972544b771b0ec7a5fd812776bcf48044a38cb9906a.json.gz",
     "reports/toy100/shared22/toy100/grid100/source.tar.gz",
     "reports/toy_audit/api_contract/api-grid100-res16-scaled-tanh/goal.gif",
+    "reports/toy_audit/api_contract/bytegan/media/api-bytegan-bigan-dictionary.gif",
+    "reports/toy_audit/api_contract/bytegan/media/api-bytegan-hypercube8.gif",
     "reports/toy_audit/api_contract/cases.json",
     "reports/toy_audit/api_contract/five_word_joint/goal.gif",
     "reports/toy_audit/api_contract/five_word_smoke_hold/media/five_word_joint_hold.gif",
@@ -300,21 +322,5 @@
     "reports/toy_audit/media/source-five-modes.gif",
     "reports/toy_audit/paired_sources/media/affine2-baseline-movable.gif",
     "reports/toy_audit/paired_sources/media/swirl2-baseline-movable.gif"
-  ],
-  "policy": {
-    "banned_extensions": [
-      ".ckpt",
-      ".gif",
-      ".gz",
-      ".html",
-      ".mp4",
-      ".npz",
-      ".pt",
-      ".pth",
-      ".zip"
-    ],
-    "max_json_bytes": 512000,
-    "scope_prefix": "reports/"
-  },
-  "schema_version": 1
+  ]
 }

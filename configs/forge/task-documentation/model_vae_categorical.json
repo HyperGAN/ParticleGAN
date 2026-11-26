@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_vae_categorical",
+  "title": "Particle VAE (Categorical Posterior) Fidelity & KL Identity",
+  "laws": [
+    "law1",
+    "law3b"
+  ],
+  "edge_cases": [
+    "variational-posterior",
+    "posterior-collapse",
+    "kl-identity"
+  ],
+  "intuition": "Tests a genuine particle VAE with categorical posterior routing on two separated modes: requires low reconstruction MSE (<= 0.05), high shuffle-reconstruction ratio (>= 5.0), non-collapsed mutual information (>= 0.30), calibrated posterior noise variance, and exact KL identity (<= 1e-5).",
+  "failure_mode": "Posterior collapse causes the decoder to ignore the encoder (low shuffle ratio / MI) or breaks the analytic KL divergence identity.",
+  "protocol_notes": "Tier-1 required public-API model task (1,200 updates).",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

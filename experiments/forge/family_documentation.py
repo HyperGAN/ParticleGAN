@@ -7,6 +7,7 @@ import re
 from urllib.parse import urlsplit
 
 from .contracts import identifier, read_json
+from .laws_registry import VALID_MECHANISM_STATUSES, load_laws
 
 
 DOCUMENTATION_DIRECTORY = Path("configs/forge/family-documentation")
@@ -23,8 +24,20 @@ TRAINING_DETAILS = (
     ("averaging", "Parameter averaging and serving"),
 )
 _TAG = re.compile(r"[a-z][a-z0-9]*(?:-[a-z0-9]+)*")
+_LAW_ID = re.compile(r"[a-z][a-z0-9_-]*")
 _PINNED_GITHUB_SOURCE = re.compile(r"/[^/]+/[^/]+/blob/[0-9a-f]{40}/.+")
 _RASTER_EXTENSIONS = {".png", ".jpg", ".jpeg", ".gif", ".webp"}
+_MERMAID_HEADERS = (
+    "flowchart ",
+    "flowchart\n",
+    "graph ",
+    "graph\n",
+    "sequenceDiagram",
+    "stateDiagram",
+    "classDiagram",
+    "erDiagram",
+    "xychart-beta",
+)
 
 
 def _text(value, label):
@@ -64,15 +77,76 @@ def _illustration(root, value):
         raise ValueError("illustration must use PNG, JPEG, GIF or WebP")
 
 
+def _law_mechanisms(root: Path, value, family_id: str) -> None:
+    if not isinstance(value, dict) or not value:
+        raise ValueError(f"law_mechanisms for {family_id} must be a nonempty mapping")
+    laws_doc = load_laws(root)
+    valid_ids = {law["id"] for law in laws_doc["laws"]} if laws_doc is not None else None
+    entry_fields = {"status", "mechanism", "how_it_works", "known_limits"}
+    valid_statuses = set(VALID_MECHANISM_STATUSES)
+    for law_id, entry in value.items():
+        if not isinstance(law_id, str) or not _LAW_ID.fullmatch(law_id):
+            raise ValueError(f"law_mechanisms for {family_id} has invalid law id {law_id!r}")
+        if valid_ids is not None and law_id not in valid_ids:
+            raise ValueError(
+                f"law_mechanisms for {family_id} references unknown law id {law_id!r}; "
+                f"expected one of {sorted(valid_ids)}"
+            )
+        if not isinstance(entry, dict) or set(entry) != entry_fields:
+            raise ValueError(
+                f"law_mechanisms[{law_id!r}] for {family_id} needs exact fields {sorted(entry_fields)}"
+            )
+        status = _text(entry["status"], f"law_mechanisms[{law_id!r}].status")
+        if status not in valid_statuses:
+            raise ValueError(
+                f"law_mechanisms[{law_id!r}].status for {family_id} must be one of {sorted(valid_statuses)}"
+            )
+        for key in ("mechanism", "how_it_works", "known_limits"):
+            _text(entry[key], f"law_mechanisms[{law_id!r}].{key}")
+
+
+def _mermaid_diagram(value, family_id: str) -> None:
+    text = _text(value, f"mermaid_diagram for {family_id}")
+    if "```" in text or "~~~" in text:
+        raise ValueError(f"mermaid_diagram for {family_id} must omit Markdown code fences")
+    header = None
+    for line in text.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("%%"):
+            continue
+        header = stripped
+        break
+    if header is None or not any(
+        header == prefix.strip() or header.startswith(prefix) for prefix in _MERMAID_HEADERS
+    ):
+        raise ValueError(
+            f"mermaid_diagram for {family_id} must begin with a supported Mermaid diagram declaration"
+        )
+
+
+def _quickstart(value, family_id: str) -> None:
+    if not isinstance(value, dict) or set(value) != {"preset", "snippet"}:
+        raise ValueError(f"quickstart for {family_id} needs exact fields ['preset', 'snippet']")
+    _text(value["preset"], f"quickstart.preset for {family_id}")
+    snippet = value["snippet"]
+    if (not isinstance(snippet, list) or not snippet
+            or not all(isinstance(line, str) for line in snippet)
+            or not any(line.strip() for line in snippet)):
+        raise ValueError(f"quickstart.snippet for {family_id} must be a nonempty list of code lines")
+    if any("```" in line or "~~~" in line for line in snippet):
+        raise ValueError(f"quickstart.snippet for {family_id} cannot contain Markdown code fences")
+
+
 def validate_documentation(root: Path, value: dict, family_id: str) -> dict:
     """Validate maintained prose and resolvable source navigation, not its claims."""
     if not isinstance(value, dict):
         raise ValueError(f"family documentation for {family_id} must be an object")
     required = {"overview", "symbols", "pseudocode", "training_details", "configuration_notes",
                 "references", "sources"}
-    if required - set(value) or set(value) - required - {"equations", "illustration"}:
+    optional = {"equations", "illustration", "law_mechanisms", "mermaid_diagram", "quickstart"}
+    if required - set(value) or set(value) - required - optional:
         raise ValueError(f"family documentation for {family_id} needs exactly the required fields {sorted(required)} "
-                         "and optional equations/illustration")
+                         f"and optional {sorted(optional)}")
     _text(value["overview"], "technique overview")
     _text(value["symbols"], "pseudocode symbols")
     _texts(value["pseudocode"], "pseudocode")
@@ -92,6 +166,12 @@ def validate_documentation(root: Path, value: dict, family_id: str) -> dict:
                 raise ValueError("equation LaTeX must omit math delimiters and Markdown fences")
     if "illustration" in value:
         _illustration(root, value["illustration"])
+    if "law_mechanisms" in value:
+        _law_mechanisms(root, value["law_mechanisms"], family_id)
+    if "mermaid_diagram" in value:
+        _mermaid_diagram(value["mermaid_diagram"], family_id)
+    if "quickstart" in value:
+        _quickstart(value["quickstart"], family_id)
     _texts(value["configuration_notes"], "configuration notes")
     details = value["training_details"]
     if not isinstance(details, dict) or set(details) != {key for key, _ in TRAINING_DETAILS}:

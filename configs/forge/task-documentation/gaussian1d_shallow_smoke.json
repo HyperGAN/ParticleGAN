@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "gaussian1d_shallow_smoke",
+  "title": "1D Gaussian Shallow Architecture Smoke",
+  "laws": [
+    "law2",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "scalar-1d",
+    "shallow-mlp",
+    "architecture-diagnostic"
+  ],
+  "intuition": "One-hidden-layer architectural diagnostic variant of `gaussian1d_smoke`, verifying whether a shallower MLP acquires N(2, 0.5^2) cleanly within 1,000 updates.",
+  "failure_mode": "Formulations tuned implicitly to deeper MLPs can over-step or under-fit on a single-hidden-layer network.",
+  "protocol_notes": "Diagnostic architecture cohort; separate from the main Tier-1 `gaussian1d_smoke` gate.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

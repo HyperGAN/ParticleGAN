@@ -12,7 +12,9 @@ import pytest
 from experiments.forge.__main__ import main
 from experiments.forge.hf_publish import (
     DEFAULT_HF_REPO,
+    DEFAULT_PAGES_BASE_URL,
     build_inventory_exports,
+    export_leaderboard_json,
     publish_to_hf,
     render_dataset_card,
 )
@@ -20,20 +22,36 @@ from experiments.forge.hf_publish import (
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
-def test_build_inventory_exports_matches_committed_inventory():
-    exports = build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+@pytest.fixture(scope="module")
+def committed_exports():
+    return build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+
+
+def test_build_inventory_exports_matches_committed_inventory(committed_exports):
+    exports = committed_exports
     payload = exports["leaderboard_json"]
     assert payload["schema"] == "particlegan_forge_leaderboard_v1"
     assert payload["dataset_repo"] == DEFAULT_HF_REPO
     assert payload["summary"]["selected_families"] == len(exports["leaderboard_rows"])
     assert payload["summary"]["selected_families"] >= 10
-    assert payload["summary"]["full_suite_tests"] == 69
+    assert payload["summary"]["full_suite_tests"] == 59
     assert payload["summary"]["counted_view_requirements"] == 115
     assert len(exports["receipt_rows"]) > 100
     assert len(exports["attempt_rows"]) > 100
     assert len(exports["energy_rows"]) >= 10
     assert payload["summary"]["energy_benchmark_rows"] == len(exports["energy_rows"])
     assert len(payload["energy_benchmarks"]) == len(exports["energy_rows"])
+    fl_l4 = payload["four_laws_adherence_l4"]
+    assert isinstance(fl_l4, dict) and fl_l4["hardware_gpu"] == "NVIDIA L4"
+    fl_cands = {row["candidate_id"]: row for row in fl_l4["rows"]}
+    assert "axiom-v4" in fl_cands and fl_cands["axiom-v4"]["family_id"] == "axiom"
+    assert fl_cands["axiom-v4"]["bytegan_pass"] == 2 and fl_cands["axiom-v4"]["bytegan_measured"] == 2
+    assert fl_cands["unified-v14"]["bytegan_pass"] == 2 and fl_cands["unified-v14"]["bytegan_measured"] == 2
+    fl_v2 = payload["four_laws_adherence_v2_l4"]
+    assert isinstance(fl_v2, dict) and fl_v2["hardware_gpu"] == "NVIDIA L4"
+    assert fl_v2["view_id"] == "four-laws-adherence-v2"
+    assert len(fl_v2["probes"]) == 10
+    assert isinstance(fl_v2["rows"], list)
 
     # Verify committed law4-phase2-energy-benchmark.json entries are exported faithfully.
     v3 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "law4-energy-v3")
@@ -66,8 +84,12 @@ def test_build_inventory_exports_matches_committed_inventory():
         row["joules_total"] >= 0.0 and isinstance(row["energy_backend"], str) and row["energy_backend"]
         for row in with_energy
     )
-    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully.
-    v12 = next(row for row in exports["energy_rows"] if row["candidate_id"] == "unified-v12")
+    # Also verify our Phase-4 unified-v12 energy benchmark row is exported faithfully (RTX A6000 cohort).
+    v12 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA RTX A6000"
+    )
     assert v12["optimizer_family"] == "unified_v12_equil"
     assert v12["family_id"] == "unified"
     assert v12["contended"] is False
@@ -76,25 +98,90 @@ def test_build_inventory_exports_matches_committed_inventory():
     assert v12["grid100_j_to_pass"] == pytest.approx(4512.9094, rel=1e-4)
     assert v12["occam_pass"] == 16 and v12["occam_executed"] == 16
 
-    # Verify Unified row numbers match technique-inventory.md AND incompatible study commit is never mixed.
+    # Verify separate uncontended NVIDIA L4 energy cohort (Axiom v4 + Unified v12..v14 matched L4 baselines).
+    ax_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "axiom-v4" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert ax_l4["family_id"] == "axiom"
+    assert ax_l4["optimizer_family"] == "axiom"
+    assert ax_l4["contended"] is False
+    assert ax_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert ax_l4["r256_joules_per_step"] == pytest.approx(4.3849, rel=1e-3)
+    assert ax_l4["ring16_j_to_pass"] == pytest.approx(275.7, rel=1e-2)
+    assert ax_l4["grid100_j_to_pass"] == pytest.approx(1542.3, rel=1e-2)
+    assert ax_l4["staggered100_j_to_pass"] == pytest.approx(1591.6, rel=1e-2)
+    assert ax_l4["occam_pass"] == 13 and ax_l4["occam_executed"] == 15 and ax_l4["occam_timeouts"] == 1
+
+    v12_l4 = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v12" and row["hardware_gpu"] == "NVIDIA L4"
+    )
+    assert v12_l4["family_id"] == "unified"
+    assert v12_l4["contended"] is False
+    assert v12_l4["source_file"] == "reports/forge/studies/axiom-v4-l4-energy-benchmark.json"
+    assert v12_l4["r256_joules_per_step"] == pytest.approx(5.5738, rel=1e-3)
+
+    # Verify new uncontended RTX A6000 study energy benchmarks (axiom-v5, unified-v15, unified-v14).
+    ax5_rtx = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "axiom-v5"
+        and row["hardware_gpu"] == "NVIDIA RTX A6000"
+        and row["evidence_scope"] == "study_energy_benchmark"
+    )
+    assert ax5_rtx["family_id"] == "axiom"
+    assert ax5_rtx["contended"] is False
+    assert ax5_rtx["occam_pass"] == 15 and ax5_rtx["occam_executed"] == 16 and ax5_rtx["occam_timeouts"] == 0
+    assert ax5_rtx["r256_joules_per_step"] < 9.0
+    assert ax5_rtx["grid100_j_to_pass"] < 4000.0
+
+    u15_rtx = next(
+        row
+        for row in exports["energy_rows"]
+        if row["candidate_id"] == "unified-v15"
+        and row["hardware_gpu"] == "NVIDIA RTX A6000"
+        and row["evidence_scope"] == "study_energy_benchmark"
+    )
+    assert u15_rtx["family_id"] == "unified"
+    assert u15_rtx["contended"] is False
+    assert u15_rtx["occam_pass"] == 16 and u15_rtx["occam_executed"] == 16 and u15_rtx["occam_timeouts"] == 0
+    assert u15_rtx["grid100_j_to_pass"] < 4500.0
+
+    # Verify Unified and Axiom promoted rows match technique-inventory.md with matched cohort energy.
     unified = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "unified")
-    assert unified["candidate_id"] == "unified-v11"
+    assert unified["candidate_id"] == "unified-v15"
     assert unified["tier1_pass"] == 27 and unified["tier1_total"] == 27
-    assert unified["total_pass"] == 95 and unified["total_required"] == 115
-    assert unified["full_suite_pass"] == 40 and unified["full_suite_total"] == 69
-    assert unified["stretch_total_pass"] == 50 and unified["stretch_total"] == 68
+    assert unified["total_pass"] == 103 and unified["total_required"] == 115
+    assert unified["full_suite_pass"] == 44 and unified["full_suite_total"] == 59
+    assert unified["stretch_total_pass"] == 51 and unified["stretch_total"] == 70
     assert unified["stale"] is False
-    assert unified["r256_joules_per_step"] is None
-    assert unified["ring16_j_to_pass"] is None
-    assert unified["grid100_j_to_pass"] is None
+    assert unified["r256_joules_per_step"] == pytest.approx(12.4707, rel=1e-3)
+    assert unified["ring16_j_to_pass"] is not None
+    assert unified["grid100_j_to_pass"] is not None
+
+    axiom = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "axiom")
+    assert axiom["candidate_id"] == "axiom-v5"
+    assert axiom["tier1_pass"] == 27 and axiom["tier1_total"] == 27
+    assert axiom["total_pass"] == 102 and axiom["total_required"] == 115
+    assert axiom["full_suite_pass"] == 45 and axiom["full_suite_total"] == 59
+    assert axiom["stretch_total_pass"] == 53 and axiom["stretch_total"] == 70
+    assert axiom["stale"] is False
+    assert axiom["r256_joules_per_step"] == pytest.approx(8.2543, rel=1e-3)
+
+    # Incompatible study commits must never populate unrelated pinned families (e.g., RHBI).
+    rhbi = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "rhbi")
+    assert rhbi["r256_joules_per_step"] is None
 
     bcap = next(row for row in exports["leaderboard_rows"] if row["family_id"] == "bcap-pure")
     assert bcap["stale"] is True
     assert bcap["total_pass"] == 71 and bcap["total_required"] == 115
 
 
-def test_dataset_card_has_valid_yaml_configs():
-    exports = build_inventory_exports(REPO_ROOT, generated_at="2026-11-21T00:00:00Z")
+def test_dataset_card_has_valid_yaml_configs(committed_exports):
+    exports = committed_exports
     readme = render_dataset_card(exports)
     assert readme.startswith("---\n")
     assert "config_name: leaderboard" in readme
@@ -194,6 +281,7 @@ def test_publish_dry_run_writes_parquet_json_and_readme_without_network(tmp_path
         "staggered100_j_to_pass",
         "occam_pass",
         "occam_executed",
+        "occam_timeouts",
         "evidence_scope",
     }
     assert set(energy_table.column_names) == expected_energy_cols
@@ -215,18 +303,19 @@ def test_receipt_energy_exports_and_strict_cohort_matching(tmp_path):
     inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
     (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
 
-    # Extract unified-v11's actual recorded source_origin_commit and source_digest.
-    unified_row = next(r for r in inv_doc["rows"] if r.get("candidate_id") == "unified-v11")
+    # Extract Unified's actual recorded candidate_id, source_origin_commit, and source_digest.
+    unified_row = next(r for r in inv_doc["rows"] if r.get("trainer_family") == "unified")
+    unified_cid = unified_row["candidate_id"]
     bindings = unified_row["bindings"]
     matched_commit = bindings["source_origin_commit"]
     matched_digest = bindings["source_digest"]
 
-    # 1. Matched receipt carrying cost.energy for unified-v11 on ring16_acquisition & grid100.
+    # 1. Matched receipt carrying cost.energy for Unified on ring16_acquisition & grid100.
     matched_receipt = {
         "attempt_id": "att-energy-matched",
         "request_id": "req-1",
         "campaign_id": "camp-1",
-        "candidate_id": "unified-v11",
+        "candidate_id": unified_cid,
         "candidate_revision": "rev-1",
         "evidence_scope": "published_summary",
         "attempt_status": "completed",
@@ -264,10 +353,10 @@ def test_receipt_energy_exports_and_strict_cohort_matching(tmp_path):
     }
     (reports_dir / "technique-receipts/att-energy-matched.json").write_text(json.dumps(matched_receipt))
 
-    # 2. Contended receipt for unified-v11 on grid100 (MUST NOT populate leaderboard summary!).
+    # 2. Contended receipt for Unified on grid100 (MUST NOT populate leaderboard summary!).
     contended_receipt = {
         "attempt_id": "att-energy-contended",
-        "candidate_id": "unified-v11",
+        "candidate_id": unified_cid,
         "evidence_scope": "published_summary",
         "attempt_status": "completed",
         "provenance": {
@@ -368,3 +457,246 @@ def test_publish_mocked_commit_with_archive_card_records_hf_revision(tmp_path, m
 def test_publish_requires_inventory_or_archive_card(tmp_path):
     with pytest.raises(ValueError, match="--inventory or --archive-card"):
         publish_to_hf(tmp_path, dry_run=True)
+
+
+def test_export_leaderboard_json_enriches_committed_inventory():
+    payload = export_leaderboard_json(REPO_ROOT, generated_at="2026-11-24T00:00:00Z")
+    assert payload["schema_version"] == 1
+    assert payload["schema"] == "particlegan_forge_leaderboard_v1"
+    assert payload["pages_base_url"] == DEFAULT_PAGES_BASE_URL
+    assert isinstance(payload["laws_meta"], dict)
+    assert payload["laws_meta"]["epistemic_note"]
+    assert isinstance(payload["laws"], list)
+
+    unified = next(f for f in payload["families"] if f["id"] == "unified")
+    assert unified["pages_url"] == f"{DEFAULT_PAGES_BASE_URL}/families/unified/"
+    assert isinstance(unified["overview"], str) and "Unified" in unified["overview"]
+    assert isinstance(unified["equations"], list) and len(unified["equations"]) >= 1
+    assert isinstance(unified["law_mechanisms"], dict)
+    assert isinstance(unified["tags"], list) and len(unified["tags"]) >= 1
+
+    ring16 = next(t for t in payload["task_definitions"] if t["task_id"] == "ring16_acquisition")
+    assert ring16["pages_url"] == f"{DEFAULT_PAGES_BASE_URL}/experiments/ring16_acquisition/"
+    assert ring16["steps"] == 1600
+    assert ring16["prior_summary"] and "mog" in ring16["prior_summary"]
+    assert ring16["model_summary"] and "transfer_vector" in ring16["model_summary"]
+    assert ring16["thresholds"]["modes"] == ">= 16"
+    assert ring16["thresholds"]["hq"] == ">= 0.85"
+    assert ring16["mermaid"] and "flowchart " in ring16["mermaid"]
+    assert ring16["task_config_path"] == "configs/forge/tasks/ring16_acquisition.json"
+    assert "probe" in ring16["reproduction_cmd"] and "ring16_acquisition" in ring16["reproduction_cmd"]
+    fl_law1 = next(t for t in payload["task_definitions"] if t["task_id"] == "fl_law1_aniso_unequal_modes")
+    assert "law1" in fl_law1["laws"]
+    assert fl_law1["svg_inline"] and fl_law1["svg_inline"].startswith("<svg")
+    assert fl_law1["thresholds"]
+
+
+def test_export_leaderboard_json_reads_dynamic_laws_family_mechanisms_and_task_docs(tmp_path):
+    """Verify dynamic laws.json, family-documentation law_mechanisms, task-documentation sidecars, and SVGs."""
+    reports_dir = tmp_path / "reports/forge"
+    reports_dir.mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    # Dynamic 3-law synthetic taxonomy (proves zero hardcoded law count or IDs).
+    laws_cfg = {
+        "schema_version": 1,
+        "epistemic_status": "provisional_evolving",
+        "epigraph": "Test evolving epigraph.",
+        "epistemic_note": "Synthetic 3-law evolving registry note.",
+        "doc_path": "docs/four-laws.md",
+        "laws": [
+            {
+                "id": "law_a",
+                "short_label": "Law A",
+                "title": "Measure Geometry",
+                "domain_level": "Geometry",
+                "question": "Can the prior span disconnected support?",
+                "doc_anchor": "law-a",
+                "status": "active",
+                "sub_laws": [],
+            },
+            {
+                "id": "law_b",
+                "short_label": "Law B",
+                "title": "Transport Identifiability",
+                "domain_level": "Transport",
+                "question": "Is transport uniquely identifiable?",
+                "doc_anchor": "law-b",
+                "status": "active",
+                "sub_laws": [
+                    {"id": "law_b1", "short_label": "Law B1", "title": "Ray Screening", "doc_anchor": "law-b"}
+                ],
+            },
+            {
+                "id": "law_c",
+                "short_label": "Law C",
+                "title": "Coupled Dynamics",
+                "domain_level": "Dynamics",
+                "question": "Do updates contract?",
+                "doc_anchor": "law-c",
+                "status": "active",
+                "sub_laws": [],
+            },
+        ],
+    }
+    (tmp_path / "configs/forge").mkdir(parents=True)
+    (tmp_path / "configs/forge/laws.json").write_text(json.dumps(laws_cfg))
+
+    fam_doc_dir = tmp_path / "configs/forge/family-documentation"
+    fam_doc_dir.mkdir(parents=True)
+    (fam_doc_dir / "unified.json").write_text(
+        json.dumps(
+            {
+                "overview": "Synthetic Unified overview.",
+                "law_mechanisms": {
+                    "law_a": {
+                        "status": "addressed",
+                        "mechanism": "Laguerre-Pythagorean prototype chart",
+                        "how_it_works": "Maintains adaptive latent cells.",
+                        "known_limits": "Fixed particle budget.",
+                    },
+                    "law_b": {
+                        "status": "partial",
+                        "mechanism": "Local density-ratio orphan gate",
+                        "how_it_works": "Rescues isolated target modes.",
+                        "known_limits": "Struggles on staggered100.",
+                    },
+                },
+                "equations": [
+                    {"label": "Orphan ratio", "latex": "r(y) = d_k(y, X) / d_k(y, Y)", "explanation": "Local ratio."}
+                ],
+                "mermaid_diagram": 'flowchart LR\n  P["Prior"] --> G["Generator"]',
+                "quickstart": {
+                    "preset": "unified_v11",
+                    "snippet": ["from particlegan import get_recipe", 'recipe = get_recipe("unified_v11")'],
+                },
+                "tags": ["synthetic-tag"],
+            }
+        )
+    )
+
+    task_doc_dir = tmp_path / "configs/forge/task-documentation"
+    task_doc_dir.mkdir(parents=True)
+    (task_doc_dir / "ring16_acquisition.json").write_text(
+        json.dumps(
+            {
+                "title": "Ring-16 Mode Acquisition",
+                "laws": ["law_a", "law_b1"],
+                "edge_cases": ["disconnected-support", "16-mode-ring"],
+                "intuition": "Tests whether all 16 modes on a ring are acquired cleanly.",
+                "failure_mode": "Mode dropping or filament bridges between modes.",
+                "protocol_notes": "1600 steps, deterministic orthogonal init.",
+            }
+        )
+    )
+
+    tasks_dir = tmp_path / "configs/forge/tasks"
+    tasks_dir.mkdir(parents=True)
+    (tasks_dir / "ring16_acquisition.json").write_text(
+        (REPO_ROOT / "configs/forge/tasks/ring16_acquisition.json").read_text()
+    )
+
+    svg_dir = tmp_path / "reports/forge/experiments/assets"
+    svg_dir.mkdir(parents=True)
+    sample_svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120"><circle cx="60" cy="60" r="40"/></svg>'
+    (svg_dir / "ring16_acquisition.svg").write_text(sample_svg)
+
+    payload = export_leaderboard_json(tmp_path, generated_at="2026-11-24T00:00:00Z")
+    assert payload["laws_meta"]["source"] == "configs/forge/laws.json"
+    assert payload["laws_meta"]["epistemic_note"] == "Synthetic 3-law evolving registry note."
+    assert [law["id"] for law in payload["laws"]] == ["law_a", "law_b", "law_c"]
+    assert payload["laws"][1]["sub_laws"][0]["id"] == "law_b1"
+
+    unified = next(f for f in payload["families"] if f["id"] == "unified")
+    assert unified["law_mechanisms"]["law_a"]["status"] == "addressed"
+    assert unified["law_mechanisms"]["law_b"]["known_limits"] == "Struggles on staggered100."
+    assert unified["mermaid_diagram"] == 'flowchart LR\n  P["Prior"] --> G["Generator"]'
+    assert unified["quickstart"]["preset"] == "unified_v11"
+    assert "synthetic-tag" in unified["tags"]
+
+    ring = next(t for t in payload["task_definitions"] if t["task_id"] == "ring16_acquisition")
+    assert ring["title"] == "Ring-16 Mode Acquisition"
+    assert ring["laws"] == ["law_a", "law_b1"]
+    assert ring["edge_cases"] == ["disconnected-support", "16-mode-ring"]
+    assert ring["intuition"].startswith("Tests whether all 16 modes")
+    assert ring["failure_mode"] == "Mode dropping or filament bridges between modes."
+    assert ring["svg_relpath"] == "reports/forge/experiments/assets/ring16_acquisition.svg"
+    assert ring["svg_inline"] == sample_svg
+
+
+def test_export_leaderboard_json_graceful_fallback_on_minimal_root(tmp_path):
+    """Minimal synthetic unit-test root without laws.json, family docs, or task JSONs never crashes."""
+    reports_dir = tmp_path / "reports/forge"
+    reports_dir.mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    payload = export_leaderboard_json(tmp_path, generated_at="2026-11-24T00:00:00Z")
+    assert payload["schema_version"] == 1
+    assert payload["laws"] == []
+    assert payload["laws_meta"]["source"] == "unavailable"
+    assert payload["laws_meta"]["epistemic_note"]
+    assert len(payload["families"]) >= 10
+    assert all(isinstance(f["law_mechanisms"], dict) for f in payload["families"])
+    assert all(f["pages_url"].startswith(DEFAULT_PAGES_BASE_URL) for f in payload["families"])
+    assert all(isinstance(t["laws"], list) and isinstance(t["thresholds"], dict) for t in payload["task_definitions"])
+
+
+def test_receipt_energy_uses_r256_median_ms_and_complete_occam_cohorts(tmp_path):
+    """Receipt aggregation uses update_ms_median (suppressing startup-skewed J/step) and counts complete Occam cohorts."""
+    reports_dir = tmp_path / "reports/forge"
+    (reports_dir / "technique-receipts").mkdir(parents=True)
+    (reports_dir / "studies").mkdir(parents=True)
+    inv_doc = json.loads((REPO_ROOT / "reports/forge/technique-inventory.json").read_text())
+    (reports_dir / "technique-inventory.json").write_text(json.dumps(inv_doc))
+
+    views_dir = tmp_path / "configs/forge/views"
+    views_dir.mkdir(parents=True)
+    occam_tasks = ["grid100", "ring16_acquisition", "zero_tanh_rail_escape"]
+    (views_dir / "r4-occam-ablation-v1.json").write_text(
+        json.dumps({"id": "r4-occam-ablation-v1", "assignments": [{"task": t} for t in occam_tasks]})
+    )
+
+    def _write_rec(aid: str, cid: str, task_id: str, gate: str, energy: dict, *, wall_s: float = 10.0, steps: int = 100, metrics: dict | None = None):
+        doc = {
+            "attempt_id": aid,
+            "candidate_id": cid,
+            "evidence_scope": "published_summary",
+            "attempt_status": "completed",
+            "provenance": {"canonical_result_hash": "c" * 64, "source_origin_commit": "deadbeef", "source_digest": "d" * 64},
+            "task_results": [{
+                "task_id": task_id,
+                "status": gate,
+                "gate_status": gate,
+                "raw_status": "completed",
+                "metrics": metrics or {},
+                "cost": {"wall_seconds": wall_s, "completed_steps": steps, "energy": energy},
+            }],
+        }
+        (reports_dir / f"technique-receipts/{aid}.json").write_text(json.dumps(doc))
+
+    gpu = "NVIDIA RTX A6000"
+    # Complete Occam cohort (2 PASS, 1 FAIL) + startup-skewed dcgan_performance_r256 receipt
+    _write_rec("r1", "cand-full", "grid100", "PASS", {"joules_total": 30000.0, "joules_per_step": 4.0, "avg_power_watts": 100.0, "first_pass_step": 750, "joules_to_first_pass": 3000.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=250.0, steps=7000)
+    _write_rec("r2", "cand-full", "ring16_acquisition", "PASS", {"joules_total": 4000.0, "joules_per_step": 2.5, "avg_power_watts": 80.0, "first_pass_step": 200, "joules_to_first_pass": 500.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=50.0, steps=1600)
+    _write_rec("r3", "cand-full", "zero_tanh_rail_escape", "FAIL", {"joules_total": 1000.0, "joules_per_step": 1.0, "avg_power_watts": 70.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=15.0, steps=1000)
+    _write_rec("r4", "cand-full", "dcgan_performance_r256", "PASS", {"joules_total": 460.0, "joules_per_step": 35.38, "avg_power_watts": 84.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=11.9, steps=13, metrics={"update_ms_median": 34.4})
+
+    # Partial Occam cohort (only 1 of 3 tasks) MUST keep occam_pass/occam_executed as None!
+    _write_rec("p1", "cand-partial", "grid100", "PASS", {"joules_total": 20000.0, "joules_per_step": 3.0, "avg_power_watts": 90.0, "first_pass_step": 1000, "joules_to_first_pass": 3000.0, "gpu_name": gpu, "contended": False, "energy_backend": "nvml_energy_counter"}, wall_s=200.0, steps=7000)
+
+    exports = build_inventory_exports(tmp_path, generated_at="2026-11-26T00:00:00Z")
+    by_cid = {r["candidate_id"]: r for r in exports["energy_rows"]}
+    full = by_cid["cand-full"]
+    assert full["r256_ms_per_step"] == pytest.approx(34.4)
+    assert full["r256_joules_per_step"] is None
+    assert full["r256_watts"] is None
+    assert full["grid100_j_to_pass"] == pytest.approx(3000.0)
+    assert full["occam_pass"] == 2
+    assert full["occam_executed"] == 3
+    assert full["occam_timeouts"] == 0
+
+    partial = by_cid["cand-partial"]
+    assert partial["occam_pass"] is None
+    assert partial["occam_executed"] is None

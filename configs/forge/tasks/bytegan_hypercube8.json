@@ -1,0 +1,106 @@
+{
+  "schema_version": 1,
+  "id": "bytegan_hypercube8",
+  "description": "Learn all 256 canonical uint8 bytes (0..255) encoded on the 8-bit binary hypercube {-1, +1}^8 using 256 zero-sigma ParticlePrior codes in an exact 1-to-1 bijection without collisions, barycentric ghosts, or amplitude blowup across five final clean live checks.",
+  "adapter": "bytegan",
+  "retained_question_ids": [
+    "stretch-bytegan-hypercube8"
+  ],
+  "research_artifacts": {
+    "readout": "reports/forge/bytegan-stretch/README.md",
+    "api_publication": "reports/toy_audit/api_contract/bytegan/publication.json"
+  },
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "bytegan_hypercube8",
+    "steps": 4000,
+    "prior": {
+      "kind": "particle_cloud",
+      "sigma": 0.0,
+      "standardize": false,
+      "exception_reason": "Exact-capacity zero-sigma discrete ParticlePrior (256 particles for 256 uint8 bytes) required to test 1-to-1 discrete byte codebook bijection without MoG kernel smoothing."
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "case_id": "api-bytegan-hypercube8",
+      "kind": "bytegan_hypercube8",
+      "target": "Uniform random uint8 bytes (0..255) encoded on the 8-bit binary hypercube {-1, +1}^8",
+      "resources": {
+        "num_particles": 256,
+        "z_dim": 8,
+        "batch_size": 128
+      },
+      "model": {
+        "family": "simple_mlp",
+        "hidden": 128,
+        "layers": 2,
+        "out_dim": 8,
+        "fourier": 2
+      },
+      "bit_tol": 0.25,
+      "steps": 4000
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "enumerated_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "bytegan_hypercube8",
+    "eval_samples": 256,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "valid_particle_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "valid_unique_bytes",
+        "==",
+        256
+      ],
+      [
+        "rms_bit_error",
+        "<=",
+        0.12
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_bytegan.py": "7a4a39808c29c80bfad7ddfb3963eb29d69a12474991cf3dcce702db16350d0a",
+      "experiments/forge/bytegan.py": "1e56d436d1204ab1d76f9e20f0215cb400425742004ff532e0f96860d6eff8f4"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 2048,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "particle_cloud"
+  ],
+  "dependencies": []
+}

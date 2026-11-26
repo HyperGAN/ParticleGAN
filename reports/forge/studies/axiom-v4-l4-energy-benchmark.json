@@ -1,0 +1,623 @@
+{
+  "device": "cuda:0",
+  "energy_benchmark": {
+    "axiom-v4": {
+      "cohort_note": "Uncontended Google Colab NVIDIA L4 (0% prior util, 0 MiB prior VRAM, 12.27 W idle, PyTorch 2.14.1+cu130) at commit 5c522b84bee42d43c20077e6dfeaa82cadfb3ca2; matched NVIDIA L4 r4-occam-ablation-v1 (13/16 PASS, 2 FAIL on grid100_mlp16 & t3_iso_scale_mass_8x, 1 INCOMPLETE 900s timeout on five_word_joint_smoke).",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA L4",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "axiom-v4",
+        "optimizer_family": "axiom",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "state_bytes_per_param": 0.0,
+          "total_state_bytes": 0,
+          "total_state_mib": 0.0,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 70.01194201360738,
+          "dynamic_joules_per_step": 2.709630640417194,
+          "idle_power_watts": 26.745,
+          "images_per_second": 255.7926187572161,
+          "joules_per_step": 4.384560000000001,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 219.22800000000007,
+          "peak_allocated_mib": 859.46923828125,
+          "peak_reserved_mib": 884.0,
+          "power_poll_watts": {
+            "max": 69.899,
+            "mean": 62.10443300653595,
+            "median": 67.436,
+            "min": 32.583,
+            "p95": 69.516
+          },
+          "step_ms": {
+            "max": 69.87264251708984,
+            "mean": 62.55067123413086,
+            "median": 62.04979133605957,
+            "min": 61.257728576660156,
+            "p95": 67.4334716796875
+          },
+          "wall_seconds": 3.1312943720000135,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "axiom",
+      "grid100": {
+        "avg_power_watts": 33.397816568681925,
+        "final_center_rms_sigma": 0.10840023694631147,
+        "final_cov_frob_rms": 0.1400968706329294,
+        "final_precision": 0.98725,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "axiom-v4",
+        "joules_per_step": 2.056457714285714,
+        "joules_to_first_pass": 1542.3432857142857,
+        "joules_to_sustained_pass": 3598.8009999999995,
+        "ms_per_step": 61.57461551585717,
+        "nan_step": null,
+        "optimizer_family": "axiom",
+        "peak_allocated_mib": 87.3544921875,
+        "power_poll_median_watts": 33.513,
+        "state_bytes_per_param": 0.0,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 14395.203999999998
+      },
+      "occam_executed": 16,
+      "occam_hardware_gpu": "NVIDIA L4",
+      "occam_pass": 13,
+      "occam_receipt_ids": [
+        "1260a715a1a44086971be1df37d2c34b",
+        "1448a1aa57d94adfa14c73f58fc6e8a0",
+        "1f4ef32e69f94353972ccb75ac711639",
+        "2ce2eabce6174cbdb52d8f6162753cc3",
+        "2f667e8cadd34d44939b2409f1385b70",
+        "4806c6959cd1428983c6b19e2b3621bf",
+        "5fb511514d7e4d2289be390c19e98ca0",
+        "603a0718d53b40d3a940afefe9a3ea40",
+        "68b5e358f9c24f81a2f305be958fd96b",
+        "6cdefb6c92094cf1bced2a543a127d1f",
+        "7ba9ad8ae0324360bbf108829764982a",
+        "afcecfe2bb134ae0a12d4d65ec248a36",
+        "c614ad45546349d8b776e055db7888e8",
+        "caf808b3dd6142adb43bc96595a02a33",
+        "e26a5ba9012444499b3622a22055cb0f",
+        "f5617007c6d247dca22cbb45a556250a"
+      ],
+      "occam_view": "r4-occam-ablation-v1",
+      "ring16_acquisition": {
+        "avg_power_watts": 30.434788994981812,
+        "first_pass_step": 150,
+        "first_sustained_5check_step": 217,
+        "idea_id": "axiom-v4",
+        "joules_per_step": 1.8381025000000009,
+        "joules_to_first_pass": 275.7153750000001,
+        "joules_to_sustained_pass": 398.8682425000002,
+        "ms_per_step": 60.39478375562496,
+        "nan_step": null,
+        "optimizer_family": "axiom",
+        "peak_allocated_mib": 34.2451171875,
+        "power_poll_median_watts": 30.5155,
+        "state_bytes_per_param": 0.0,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 2940.9640000000013
+      },
+      "source_commit": "5c522b84bee42d43c20077e6dfeaa82cadfb3ca2",
+      "staggered100": {
+        "avg_power_watts": 34.09416466620959,
+        "final_center_rms_sigma": 0.1066400785432336,
+        "final_cov_frob_rms": 0.14183676864378658,
+        "final_precision": 0.98635,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "axiom-v4",
+        "joules_per_step": 2.122129714285711,
+        "joules_to_first_pass": 1591.5972857142833,
+        "joules_to_sustained_pass": 3713.7269999999944,
+        "ms_per_step": 62.24319425514284,
+        "nan_step": null,
+        "optimizer_family": "axiom",
+        "peak_allocated_mib": 87.38720703125,
+        "power_poll_median_watts": 33.973,
+        "state_bytes_per_param": 0.0,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 14854.907999999978
+      }
+    },
+    "unified-v12": {
+      "cohort_note": "Uncontended Google Colab NVIDIA L4 (0% prior util, 0 MiB prior VRAM, 12.27 W idle, PyTorch 2.14.1+cu130) at commit 5c522b84bee42d43c20077e6dfeaa82cadfb3ca2.",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA L4",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v12",
+        "optimizer_family": "unified_v12_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 4
+            },
+            "state_bytes_per_param": 3.2707786023047217e-07,
+            "state_scalar_tensor_bytes": 4,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 4
+          },
+          "state_bytes_per_param": 1.7104449346199527e-07,
+          "total_state_bytes": 4,
+          "total_state_mib": 3.814697265625e-06,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 71.24451510912446,
+          "dynamic_joules_per_step": 3.2385812391610886,
+          "idle_power_watts": 29.849,
+          "images_per_second": 204.7032625156411,
+          "joules_per_step": 5.573819999999978,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 278.6909999999989,
+          "peak_allocated_mib": 1154.22265625,
+          "peak_reserved_mib": 1322.0,
+          "power_poll_watts": {
+            "max": 72.639,
+            "mean": 68.52537206266318,
+            "median": 70.67,
+            "min": 45.532,
+            "p95": 72.298
+          },
+          "step_ms": {
+            "max": 87.94931030273438,
+            "mean": 78.16191986083984,
+            "median": 77.76409530639648,
+            "min": 76.12313842773438,
+            "p95": 81.44486236572266
+          },
+          "wall_seconds": 3.9117537620002167,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "unified",
+      "grid100": {
+        "avg_power_watts": 39.29030519578436,
+        "final_center_rms_sigma": 0.12435998146796508,
+        "final_cov_frob_rms": 0.14860928092127187,
+        "final_precision": 0.9891,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "unified-v12",
+        "joules_per_step": 2.2648578571428577,
+        "joules_to_first_pass": 2264.8578571428575,
+        "joules_to_sustained_pass": 4529.715714285715,
+        "ms_per_step": 57.64419099971422,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 137.46142578125,
+        "power_poll_median_watts": 39.48,
+        "state_bytes_per_param": 2.489360325981502,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": false,
+        "total_train_joules": 15854.005000000005
+      },
+      "ring16_acquisition": {
+        "avg_power_watts": 32.268532834754545,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "unified-v12",
+        "joules_per_step": 1.7573443749999889,
+        "joules_to_first_pass": 381.34372937499757,
+        "joules_to_sustained_pass": 499.0858024999968,
+        "ms_per_step": 54.46000238062439,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 34.90576171875,
+        "power_poll_median_watts": 31.999499999999998,
+        "state_bytes_per_param": 0.002272081794944618,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 2811.750999999982
+      },
+      "source_commit": "5c522b84bee42d43c20077e6dfeaa82cadfb3ca2",
+      "staggered100": {
+        "avg_power_watts": 39.41255100008995,
+        "final_center_rms_sigma": 0.09542408537216662,
+        "final_cov_frob_rms": 0.14211930930479452,
+        "final_precision": 0.9915,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "unified-v12",
+        "joules_per_step": 2.343125714285717,
+        "joules_to_first_pass": 1757.3442857142877,
+        "joules_to_sustained_pass": 4100.470000000005,
+        "ms_per_step": 59.45125739971435,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 138.04833984375,
+        "power_poll_median_watts": 39.576,
+        "state_bytes_per_param": 2.4896560008131057,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 16401.88000000002
+      }
+    },
+    "unified-v13": {
+      "cohort_note": "Uncontended Google Colab NVIDIA L4 (0% prior util, 0 MiB prior VRAM, 12.27 W idle, PyTorch 2.14.1+cu130) at commit 5c522b84bee42d43c20077e6dfeaa82cadfb3ca2.",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA L4",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v13",
+        "optimizer_family": "unified_v12_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 4
+            },
+            "state_bytes_per_param": 3.2707786023047217e-07,
+            "state_scalar_tensor_bytes": 4,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 4
+          },
+          "state_bytes_per_param": 1.7104449346199527e-07,
+          "total_state_bytes": 4,
+          "total_state_mib": 3.814697265625e-06,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 72.23679193204282,
+          "dynamic_joules_per_step": 3.2586054062788086,
+          "idle_power_watts": 30.204,
+          "images_per_second": 206.57545877576533,
+          "joules_per_step": 5.600180000000109,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 280.00900000000547,
+          "peak_allocated_mib": 1154.8818359375,
+          "peak_reserved_mib": 1324.0,
+          "power_poll_watts": {
+            "max": 72.994,
+            "mean": 69.11980657894738,
+            "median": 71.84,
+            "min": 42.862,
+            "p95": 72.972
+          },
+          "step_ms": {
+            "max": 80.52941131591797,
+            "mean": 77.45353729248046,
+            "median": 77.32172775268555,
+            "min": 76.05350494384766,
+            "p95": 79.55661010742188
+          },
+          "wall_seconds": 3.8762657160000344,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "unified",
+      "grid100": {
+        "avg_power_watts": 39.39403028225616,
+        "final_center_rms_sigma": 0.12435998146796508,
+        "final_cov_frob_rms": 0.14860928092127187,
+        "final_precision": 0.9891,
+        "first_pass_step": 1000,
+        "first_sustained_5check_step": 2000,
+        "idea_id": "unified-v13",
+        "joules_per_step": 2.2762515714285754,
+        "joules_to_first_pass": 2276.2515714285755,
+        "joules_to_sustained_pass": 4552.503142857151,
+        "ms_per_step": 57.781637347571504,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 137.46142578125,
+        "power_poll_median_watts": 39.485,
+        "state_bytes_per_param": 2.489360325981502,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": false,
+        "total_train_joules": 15933.761000000028
+      },
+      "ring16_acquisition": {
+        "avg_power_watts": 32.4062017607249,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "unified-v13",
+        "joules_per_step": 1.7730437500000427,
+        "joules_to_first_pass": 384.75049375000924,
+        "joules_to_sustained_pass": 503.5444250000121,
+        "ms_per_step": 54.71309976687564,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 120.4736328125,
+        "power_poll_median_watts": 32.516999999999996,
+        "state_bytes_per_param": 0.002272081794944618,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 2836.870000000068
+      },
+      "source_commit": "5c522b84bee42d43c20077e6dfeaa82cadfb3ca2",
+      "staggered100": {
+        "avg_power_watts": 43.456850334017965,
+        "final_center_rms_sigma": 0.09542408537216662,
+        "final_cov_frob_rms": 0.14211930930479452,
+        "final_precision": 0.9915,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "unified-v13",
+        "joules_per_step": 2.591326428571425,
+        "joules_to_first_pass": 1943.4948214285687,
+        "joules_to_sustained_pass": 4534.821249999994,
+        "ms_per_step": 59.62987212957166,
+        "nan_step": null,
+        "optimizer_family": "unified_v12_equil",
+        "peak_allocated_mib": 138.04833984375,
+        "power_poll_median_watts": 44.113,
+        "state_bytes_per_param": 2.4896560008131057,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 18139.284999999974
+      }
+    },
+    "unified-v14": {
+      "cohort_note": "Uncontended Google Colab NVIDIA L4 (0% prior util, 0 MiB prior VRAM, 12.27 W idle, PyTorch 2.14.1+cu130) at commit 5c522b84bee42d43c20077e6dfeaa82cadfb3ca2.",
+      "contended": false,
+      "dcgan_r256": {
+        "device": "cuda:0",
+        "gpu_name": "NVIDIA L4",
+        "gpu_util_before": [
+          0,
+          0
+        ],
+        "idea_id": "unified-v14",
+        "optimizer_family": "unified_v14_equil",
+        "optimizer_state": {
+          "opt_d": {
+            "param_bytes": 44624896,
+            "param_count": 11156224,
+            "per_key_bytes": {},
+            "state_bytes_per_param": 0.0,
+            "state_scalar_tensor_bytes": 0,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 0
+          },
+          "opt_g_and_prior": {
+            "param_bytes": 48918016,
+            "param_count": 12229504,
+            "per_key_bytes": {
+              "peak_rms": 4
+            },
+            "state_bytes_per_param": 3.2707786023047217e-07,
+            "state_scalar_tensor_bytes": 4,
+            "state_tensor_bytes": 0,
+            "total_state_bytes": 4
+          },
+          "state_bytes_per_param": 1.7104449346199527e-07,
+          "total_state_bytes": 4,
+          "total_state_mib": 3.814697265625e-06,
+          "total_trainable_params": 23385728
+        },
+        "param_counts": {
+          "discriminator": 11156224,
+          "generator": 12196736,
+          "prior": 32768,
+          "total": 23385728
+        },
+        "phase_breakdown_ms": null,
+        "spec": {
+          "base_channels": 64,
+          "batch_size": 16,
+          "image_size": 256,
+          "latent_dim": 128,
+          "max_channels": 512,
+          "n_particles": 256
+        },
+        "sustained_uninstrumented": {
+          "avg_power_watts_from_energy": 70.69147629667334,
+          "dynamic_joules_per_step": 2.718484804319325,
+          "idle_power_watts": 36.448,
+          "images_per_second": 201.7254527315454,
+          "joules_per_step": 5.61198000000004,
+          "measured_steps": 50,
+          "nvml_energy_total_joules": 280.599000000002,
+          "peak_allocated_mib": 1154.8818359375,
+          "peak_reserved_mib": 1324.0,
+          "power_poll_watts": {
+            "max": 74.132,
+            "mean": 69.90703470437018,
+            "median": 72.18,
+            "min": 48.103,
+            "p95": 73.507
+          },
+          "step_ms": {
+            "max": 83.3443832397461,
+            "mean": 79.31572235107421,
+            "median": 79.17414474487305,
+            "min": 77.91206359863281,
+            "p95": 80.6451187133789
+          },
+          "wall_seconds": 3.969347009000103,
+          "warmup_steps": 5
+        },
+        "task_id": "dcgan_performance_r256"
+      },
+      "family_id": "unified",
+      "grid100": {
+        "avg_power_watts": 44.859654279214205,
+        "final_center_rms_sigma": 0.12277016445109729,
+        "final_cov_frob_rms": 0.1419154424461174,
+        "final_precision": 0.99085,
+        "first_pass_step": 1500,
+        "first_sustained_5check_step": 2500,
+        "idea_id": "unified-v14",
+        "joules_per_step": 2.757253714285716,
+        "joules_to_first_pass": 4135.880571428574,
+        "joules_to_sustained_pass": 6893.13428571429,
+        "ms_per_step": 61.46399829842858,
+        "nan_step": null,
+        "optimizer_family": "unified_v14_equil",
+        "peak_allocated_mib": 137.82275390625,
+        "power_poll_median_watts": 44.958,
+        "state_bytes_per_param": 2.489360325981502,
+        "steps_completed": 7000,
+        "task_id": "grid100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 19300.776000000013
+      },
+      "ring16_acquisition": {
+        "avg_power_watts": 38.534291027565885,
+        "first_pass_step": 217,
+        "first_sustained_5check_step": 284,
+        "idea_id": "unified-v14",
+        "joules_per_step": 2.2279968750000445,
+        "joules_to_first_pass": 483.4753218750097,
+        "joules_to_sustained_pass": 632.7511125000126,
+        "ms_per_step": 57.81855110312591,
+        "nan_step": null,
+        "optimizer_family": "unified_v14_equil",
+        "peak_allocated_mib": 120.4892578125,
+        "power_poll_median_watts": 38.554,
+        "state_bytes_per_param": 0.002272081794944618,
+        "steps_completed": 1600,
+        "task_id": "ring16_acquisition",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 3564.795000000071
+      },
+      "source_commit": "5c522b84bee42d43c20077e6dfeaa82cadfb3ca2",
+      "staggered100": {
+        "avg_power_watts": 43.50152636706254,
+        "final_center_rms_sigma": 0.1014816821331148,
+        "final_cov_frob_rms": 0.14135005137649098,
+        "final_precision": 0.99125,
+        "first_pass_step": 750,
+        "first_sustained_5check_step": 1750,
+        "idea_id": "unified-v14",
+        "joules_per_step": 3.399785142857149,
+        "joules_to_first_pass": 2549.838857142862,
+        "joules_to_sustained_pass": 5949.624000000011,
+        "ms_per_step": 78.15323798457148,
+        "nan_step": null,
+        "optimizer_family": "unified_v14_equil",
+        "peak_allocated_mib": 138.40966796875,
+        "power_poll_median_watts": 43.567499999999995,
+        "state_bytes_per_param": 2.4896560008131057,
+        "steps_completed": 7000,
+        "task_id": "staggered100",
+        "terminal_sustained_pass": true,
+        "total_train_joules": 23798.496000000043
+      }
+    }
+  },
+  "evidence_scope": "study_energy_benchmark",
+  "gpu_name": "NVIDIA L4",
+  "mode": "energy-benchmark",
+  "source_commit": "5c522b84bee42d43c20077e6dfeaa82cadfb3ca2",
+  "timestamp_utc": "2026-11-25T15:33:18Z",
+  "torch_version": "2.14.1+cu130"
+}

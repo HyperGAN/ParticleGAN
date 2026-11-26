@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ae_gan_multimodal",
+  "title": "Particle AE-GAN Multimodal Reconstruction & Generation",
+  "laws": [
+    "law1",
+    "law4_1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "encoder-decoder-loop",
+    "multi-objective-conflict"
+  ],
+  "intuition": "Combines particle-AE reconstruction with adversarial generation on 4 corner Gaussians, requiring both accurate held-out reconstruction (recon_mse <= 0.025) and faithful independent sampling (4/4 modes, precision >= 0.90).",
+  "failure_mode": "Adversarial updates destabilize the autoencoder latent geometry, or reconstruction dominates and leaves prior samples off-manifold.",
+  "protocol_notes": "Tier-1 required public-API model task.",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

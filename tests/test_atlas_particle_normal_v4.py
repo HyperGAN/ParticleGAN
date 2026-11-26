@@ -198,6 +198,8 @@ def test_atlas_particle_normal_v4_readout_recovers_mode_hold_with_zero_regressio
         "ring16_acquisition",
         "five_word_joint_smoke",
         "model_ae_gan_multimodal",
+        "model_vae_categorical",
+        "model_vae_hard",
         "model_ae_ddgan_gaussian_chain",
         "model_ddgan_gaussian_chain",
         "model_ddgan_bimodal_chain",
@@ -208,6 +210,10 @@ def test_atlas_particle_normal_v4_readout_recovers_mode_hold_with_zero_regressio
         "mode_hold",
         "five_word_joint_hold",
     }
+    # Under revision-20 contracts, the refreshed selected Atlas row records honest FAILs
+    # on model_vae_categorical and model_vae_hard while the archived v4_ordinary receipt retains PASS.
+    assert published_tasks["model_vae_categorical"] == "FAIL"
+    assert published_tasks["model_vae_hard"] == "FAIL"
     for item in v4_ordinary["task_results"]:
         if item["task_id"] in resolved_tasks:
             assert item["gate_status"] == "PASS"
@@ -225,7 +231,14 @@ def test_atlas_particle_normal_v4_readout_recovers_mode_hold_with_zero_regressio
     from reports.forge import regenerate_technique_inventory as rti
     display = rti._formulaic_display_payload(inventory, ROOT)
     assert display is not None
-    expected = "[18/27]" if display["scope"] == "recorded_source_formulaic_display" else "[27/27]"
+    atlas_fam = next(f for f in inventory["family_progress"]["families"] if f["id"] == "atlas")
+    atlas_cohort = next(c for c in atlas_fam["cohorts"] if c["anchor"] == atlas_fam["current_cohort_anchor"])
+    tier1_counts = atlas_cohort["tiers"]["1"]
+    expected = (
+        f"[{tier1_counts['passed']}/{tier1_counts['total']}]"
+        if display["scope"] == "recorded_source_formulaic_display"
+        else f"[{tier1_counts['total']}/{tier1_counts['total']}]"
+    )
     assert expected in atlas_top_line
     assert "invalid" not in atlas_top_line.lower()
 
@@ -249,7 +262,7 @@ def test_atlas_particle_normal_v4_readout_recovers_mode_hold_with_zero_regressio
     )
     assert (
         candidate_revision_for(atlas_row["bindings"]["source_digest"], resolved["candidate"])
-        == v4_readout["candidate_revision"]
+        == atlas_row["candidate_revision"]
     )
 
     decision = v4_readout["decision_outcomes"][0]

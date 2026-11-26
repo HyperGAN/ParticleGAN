@@ -45,8 +45,8 @@ class _TinyMLP(nn.Module):
 
 def test_default_recipe_and_incumbent_presets_byte_identical():
     validate_registry()
-    assert DEFAULT_RECIPE == "unified_v12"
-    assert get_recipe() == get_recipe("unified_v12")
+    assert DEFAULT_RECIPE == "axiom"
+    assert get_recipe() == get_recipe("axiom")
 
     for preset_name in ("empf", "rhbi_optimized", "bcap", "ka2"):
         d = get_recipe(preset_name).to_dict()

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 12000,
+    "candidate_budget_seconds": 6000,
+    "id": "axiom-v4-t4-nash-study"
+  },
+  "candidate": "axiom-v4",
+  "competing_explanation": "If cs<=10.0 Pythagorean LTV coalescence, role-agnostic bounded spectral conditioning, or dimension-independent mu_D=0.005 normal dissipation fails under extreme G/D capacity imbalance or hostile -30-logit initialization, axiom-v4 will collapse to <16 modes on nash_overpowered_critic_ring16.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "modes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "hypothesis": "Unchanged global axiom-v4 passes 3/3 on t4_imbalance_nash_stretch under protocol seed 0 with full 16-mode recovery and isotropic mode covariances on nash_overpowered_{critic,generator}_ring16.",
+  "id": "axiom-v4-t4-nash-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "modes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "nash_overpowered_critic_ring16",
+    "threshold": 16
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "t4_imbalance_nash_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

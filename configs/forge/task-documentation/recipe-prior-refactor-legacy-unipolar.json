@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-unipolar",
+  "title": "Unipolar Concept Activation & Neutral Hold (Legacy Prior Cohort)",
+  "laws": [
+    "law2",
+    "law4_1"
+  ],
+  "edge_cases": [
+    "asymmetric-activation",
+    "neutral-preservation",
+    "behavioral-probe",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `unipolar` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Activates a single positive concept direction (cover >= 0.85) while simultaneously holding neutral samples stationary (neu_hold >= 0.85) and preventing off-caption leakage (off_caption <= 0.05).",
+  "failure_mode": "Unanchored critic logits or aggressive generator steps push neutral points along the active pole, violating neu_hold or causing off-caption contamination.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `unipolar` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "behavior_probe",
+  "custom_mermaid": null
+}

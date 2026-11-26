@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "precision_gaussian_fp32",
+  "title": "Scalar Gaussian FP32 Precision Control",
+  "laws": [
+    "law2",
+    "law4_4"
+  ],
+  "edge_cases": [
+    "precision-control",
+    "scalar-1d",
+    "fp32-baseline"
+  ],
+  "intuition": "Full-precision FP32 control baseline on N(2, 0.5^2) matched bit-for-bit in data, architecture, and budget against the MXFP8 and NVFP4 low-precision tasks.",
+  "failure_mode": "If a recipe fails the FP32 control, failures on MXFP8/NVFP4 cannot be attributed to low-precision quantization.",
+  "protocol_notes": "Tier-1 diagnostic control pairing directly with `precision_gaussian_mxfp8` and `precision_gaussian_nvfp4`.",
+  "diagram_kind": "gaussian_1d_shift",
+  "custom_mermaid": null
+}

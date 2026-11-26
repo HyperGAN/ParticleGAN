@@ -1,0 +1,21 @@
+{
+  "schema_version": 1,
+  "task_id": "ae_ddgan_bimodal_chain_v2",
+  "title": "Clean Oracle-Free v2 AE + 4-Step DDGAN Bimodal Chain",
+  "laws": [
+    "law3b",
+    "law1",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "latent-diffusion",
+    "bimodal-posterior",
+    "oracle-free"
+  ],
+  "intuition": "Clean oracle-free v2 AE-DDGAN bimodal chain coupling a learned particle autoencoder with four public DDGAN reverse steps under terminal_observations=1 and a calibrated 900s budget, with zero host-owned whitening, cluster tethering, or div_loss.",
+  "failure_mode": "Without host-side whitening or cluster tethering, moving latent coordinates from AE updates destabilize multimodal conditional DDGAN reverse fibers or collapse one of the two posterior modes.",
+  "protocol_notes": "Clean oracle-free v2 benchmark (5,000 updates, 900s timeout); preserves legacy model_ae_ddgan_bimodal_chain untouched.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

@@ -16,14 +16,20 @@ def test_diagnostic_coverage_preserves_every_selected_scientific_row():
     publication = read_json(ROOT / "reports/forge/technique-inventory.json")
     archived = read_json(ROOT / "configs/forge/selections/history/family-current-138fe6eb6c13251128aed4e0171908cd676e578682f49026fc8fd4be6492b7c2.json")
     archived_pins = {pin["candidate_id"]: pin for pin in archived["selections"]}
-    rows = {row["candidate_id"]: row for row in publication["rows"]}
+    all_rows = (
+        publication.get("rows", [])
+        + publication.get("evidence_rows", [])
+        + publication.get("archived_evidence_rows", [])
+    )
+    rows = {}
     for candidate_id, pin in archived_pins.items():
-        if candidate_id not in rows:
-            evidence = next(row for row in publication["evidence_rows"]
-                            if row.get("candidate_id") == pin["candidate_id"]
-                            and row.get("candidate_revision") == pin["candidate_revision"]
-                            and row.get("cohort") == pin["cohort"])
-            rows[candidate_id] = {**evidence, "trainer_family": pin["trainer_family"]}
+        matched = next(
+            row for row in all_rows
+            if row.get("candidate_id") == pin["candidate_id"]
+            and row.get("candidate_revision") == pin["candidate_revision"]
+            and row.get("cohort") == pin["cohort"]
+        )
+        rows[candidate_id] = {**matched, "trainer_family": pin["trainer_family"]}
     assert len(report["coverage"]) == 7
     for family in report["coverage"]:
         assert scientific_row_hash(rows[family["candidate_id"]]) == family["scientific_row_sha256"]
@@ -50,13 +56,20 @@ def test_new_audit_remains_a_separate_runtime_and_does_not_fill_ordinary_tier3()
     cohort = next(c for c in family["cohorts"] if c["anchor"] == family["current_cohort_anchor"])
     assert cohort["tiers"]["3"]["passed"] == 0
     assert cohort["tasks"]["clockfree_audit"]["execution_recorded"] is False
+    archived = read_json(ROOT / "configs/forge/selections/history/family-current-138fe6eb6c13251128aed4e0171908cd676e578682f49026fc8fd4be6492b7c2.json")
+    archived_revs = {pin["trainer_family"]: pin["candidate_revision"] for pin in archived["selections"]}
     for other in publication["family_progress"]["families"]:
         if other["id"] not in {"k3p", "ka2", "r1r2", "release07-gan-v3"}:
             continue
         current = next(c for c in other["cohorts"] if c["anchor"] == other["current_cohort_anchor"])
         task = current["tasks"]["clockfree_audit"]
-        assert task["separate_diagnostic_executed"] is True
+        if current.get("candidate_revision") == archived_revs.get(other["id"]):
+            assert task["separate_diagnostic_executed"] is True
+        else:
+            # Refreshed source/revision cohorts must not inherit prior-cohort diagnostic execution.
+            assert not task.get("separate_diagnostic_executed")
         assert task["execution_recorded"] is False
+        assert current["tiers"]["3"]["passed"] == 0
         assert current["tiers"]["3"]["incompatible"] == 0
 
 

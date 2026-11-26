@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "id": "fl_law44_highd_sparse_prior_and_shock",
+  "description": "Learn a 64-mode 10%-masked R^512 bounded manifold (sw1 <= 0.14, mode_recall >= 0.75, var_ratio_err <= 0.25) AND recover generated-sample quality on a 1e-5x-scaled 4-mode target after a transient 1e4x mid-run scale spike and mode shift (shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35).",
+  "adapter": "four_laws",
+  "retained_question_ids": [
+    "four-laws-fl_law44_highd_sparse_prior_and_shock"
+  ],
+  "execution": {
+    "initializer": "deterministic_orthogonal",
+    "host": "fl_law44_highd_sparse_prior_and_shock",
+    "steps": 400,
+    "prior": {
+      "kind": "mog",
+      "sigma": 0.1,
+      "standardize": false
+    },
+    "protocol": "screening",
+    "produces_state": true,
+    "prior_contract": "recipe_owned_v1",
+    "host_definition": {
+      "task_id": "fl_law44_highd_sparse_prior_and_shock",
+      "case_id": "fl_law44_highd_sparse_prior_and_shock",
+      "kind": "fl_law44_highd_sparse_prior_and_shock",
+      "law": "law4.4",
+      "defects": [
+        "Bug1",
+        "D-03",
+        "D-05"
+      ],
+      "title": "Law 4.4: High-D sparse manifold & extreme 1e-5x scale-shock recovery",
+      "goal": "Learn a 64-mode 10%-masked R^512 bounded manifold (sw1 <= 0.14, mode_recall >= 0.75, var_ratio_err <= 0.25) AND recover generated-sample quality on a 1e-5x-scaled 4-mode target after a transient 1e4x mid-run scale spike and mode shift (shock_modes == 4, shock_hq >= 0.65, shock_sw1 <= 0.35).",
+      "target": "64-mode bounded R^512 tanh manifold (P=1600, 10% observation mask, RMSNorm critic) plus paired 1e-5x-scaled 4-mode GAN with transient 1e4x mid-run scale shock and shift",
+      "resources": {
+        "num_particles": 1600,
+        "z_dim": 32,
+        "batch_size": 256
+      },
+      "prior": {
+        "kind": "mog",
+        "sigma": 0.1,
+        "standardize": false
+      },
+      "model": {
+        "generator_family": "highd_sparse_tanh_mlp",
+        "discriminator_family": "highd_rmsnorm_mlp",
+        "dim": 512,
+        "hidden": 512,
+        "obs_prob": 0.1,
+        "shock_step": 200,
+        "shock_base_scale": 1e-05,
+        "shock_spike_scale": 0.1
+      },
+      "steps": 400,
+      "eval_samples": 2048,
+      "observations": 24,
+      "minimum_stable_checks": 5,
+      "sampling_law": "public_prior_without_output_noise",
+      "view_kind": "vector"
+    }
+  },
+  "evaluation": {
+    "sampling_contract_version": 1,
+    "sampling_law": "public_prior_without_output_noise",
+    "eval_output_noise": "clean",
+    "scoring_weights": "live",
+    "kind": "fl_law44_highd_sparse_prior_and_shock",
+    "eval_samples": 2048,
+    "observations": 24,
+    "minimum_stable_checks": 5,
+    "guards": {
+      "finite_state": true,
+      "optimizer_roles": [
+        "generator",
+        "discriminator",
+        "prior"
+      ],
+      "exact_optimizer_updates": true,
+      "mechanism_exercised": true,
+      "rng_isolation": true
+    },
+    "thresholds": [
+      [
+        "finite_fraction",
+        "==",
+        1.0
+      ],
+      [
+        "sw1",
+        "<=",
+        0.14
+      ],
+      [
+        "mode_recall",
+        ">=",
+        0.75
+      ],
+      [
+        "var_ratio_err",
+        "<=",
+        0.25
+      ],
+      [
+        "shock_modes",
+        "==",
+        4
+      ],
+      [
+        "shock_hq",
+        ">=",
+        0.65
+      ],
+      [
+        "shock_sw1",
+        "<=",
+        0.35
+      ]
+    ],
+    "sources": {
+      "benchmarks/toy_audit/api_four_laws_4.py": "4b3f530763a890ba13dc45c93397bcf298315d8e6300559eb7ab0f2756268111",
+      "experiments/forge/four_laws.py": "bb749a4e2068bd3257dc26fce8c4706ddabe55e24b53d2e1a104f2d22b27fe83"
+    }
+  },
+  "resources": {
+    "gpus": 1,
+    "gpu_memory_mb": 4096,
+    "cpu_threads": 1,
+    "timeout_seconds": 600
+  },
+  "requires_capabilities": [
+    "checkpoint",
+    "named_rng",
+    "live_sampling",
+    "mog_prior"
+  ],
+  "dependencies": []
+}

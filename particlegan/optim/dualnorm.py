@@ -18,12 +18,14 @@ from .gram_polar import GRAM_DENSE_PROFILE, guarded_gram_polar
 from .gram_svd_fallback import VERSION as FALLBACK_DENSE_PROFILE, Counters, svd_fallback_polar
 
 CPU_POLAR_DENSE_PROFILE = "polar_cpu_v1"
+_BATCHED_GRAM_MIN_DIM = 256
 
 
 NORMALIZED_FAMILIES = (
     "sgda", "nsgda_global", "nsgda_layer", "ada_nsgda", "dualnorm",
     "dualnorm_D_only", "particle_rownorm_only", "t4_equil", "unified_equil",
-    "unified_v11_equil", "unified_v12_equil", "r4_mp_no_ns", "r4_no_secant_band",
+    "unified_v11_equil", "unified_v12_equil", "unified_v14_equil", "unified_v15_equil",
+    "axiom", "r4_mp_no_ns", "r4_no_secant_band",
     "law4_energy_v1", "law4_energy_v2", "law4_energy_v3", "law4_energy_v4", "law4_energy_v5", "law4_energy_v6",
     "law4_energy_v7", "law4_energy_v8", "law4_energy_v9", "law4_energy_v10", "law4_energy_v11",
 )
@@ -334,6 +336,71 @@ def _batched_polar(matrices, *, smoothing):
     return ((left * weights.unsqueeze(-2)) @ right).to(dtype=dtype)
 
 
+def _batched_cuda_gram_polar(matrices, *, smoothing):
+    """Batched FP64 Gram polar map for large CUDA FP32 dense matrices with Weyl guard.
+
+    Computes the exact same smoothed polar formula as ``polar_factor`` using
+    scale-normalized FP64 Gram eigendecomposition in a single batched cuSOLVER
+    launch, preserving the original FP32 rank cutoff
+    ``tau = max(rows, cols) * eps_fp32 * s_max`` and absolute ``smoothing``.
+    Returns ``(output, ok)`` where any slice failing finiteness, negative
+    eigenvalue, or Weyl rank-cutoff separation bounds has ``ok[i] == False``
+    so the caller falls back to exact per-matrix ``polar_factor``.
+    """
+    transposed = matrices.shape[-2] < matrices.shape[-1]
+    work = matrices.mT if transposed else matrices
+    rows, cols = work.shape[-2], work.shape[-1]
+    input_finite = torch.isfinite(work).all(dim=(-2, -1))
+    safe_work = torch.where(input_finite[:, None, None], work, 0.)
+    value = safe_work.double()
+    scale = value.abs().amax(dim=(-2, -1), keepdim=True)
+    safe_scale = torch.where(scale == 0, torch.ones_like(scale), scale)
+    z = value / safe_scale
+    gram = z.mT @ z
+    try:
+        eigen, vectors = torch.linalg.eigh(gram, UPLO="L")
+    except torch.linalg.LinAlgError:
+        return None, torch.zeros(matrices.shape[0], dtype=torch.bool, device=matrices.device)
+    unit = torch.finfo(torch.float64).eps / 2.
+    # |||Z|^T |Z|||_F <= ||Z||_F^2 = tr(Z^T Z); ||G||_F = ||eigen||_2.
+    z_frob_sq = gram.diagonal(dim1=-2, dim2=-1).sum(dim=-1, keepdim=True).clamp_min(0.)
+    gram_norm = eigen.norm(dim=-1, keepdim=True)
+    gram_round = (rows * unit / (1. - rows * unit) + 2. * unit + unit * unit) * z_frob_sq
+    diag_round = (cols * unit / (1. - cols * unit)) * gram_norm
+    error = 8. * (gram_round + diag_round)
+    constant = max(rows, cols) * torch.finfo(torch.float32).eps
+    const_sq = constant * constant
+    largest = eigen[..., -1:].clamp_min(0.)
+    safe_keep = (eigen - error) > const_sq * (largest + error)
+    safe_drop = (eigen + error) <= const_sq * (largest - error).clamp_min(0.)
+    ok = (
+        input_finite
+        & torch.isfinite(eigen).all(dim=-1)
+        & torch.isfinite(vectors).all(dim=(-2, -1))
+        & torch.isfinite(error).all(dim=-1)
+        & (eigen[..., 0] >= -error.squeeze(-1))
+        & (safe_keep | safe_drop).all(dim=-1)
+    )
+    keep = eigen > const_sq * largest
+    singular = eigen.clamp_min(0.).sqrt()
+    if smoothing:
+        scaled_lambda = safe_scale.new_tensor(smoothing) / safe_scale.squeeze(-1)
+        lambda_finite = torch.isfinite(scaled_lambda).all(dim=-1)
+        ok = ok & lambda_finite
+        safe_lambda = torch.where(torch.isfinite(scaled_lambda), scaled_lambda, 1.)
+        inverse = torch.where(keep, torch.hypot(singular, safe_lambda).reciprocal(),
+                              torch.zeros_like(eigen))
+    else:
+        inverse = torch.where(keep, singular.clamp_min(torch.finfo(torch.float64).tiny).reciprocal(),
+                              torch.zeros_like(eigen))
+    direction64 = ((z @ vectors) * inverse.unsqueeze(-2)) @ vectors.mT
+    output = direction64.to(dtype=torch.float32)
+    ok = ok & torch.isfinite(direction64).all(dim=(-2, -1)) & torch.isfinite(output).all(dim=(-2, -1))
+    if transposed:
+        output = output.mT.contiguous()
+    return output, ok
+
+
 def _solve_batched_svd(optimizer, direction_batch):
     return _batched_polar(direction_batch, smoothing=optimizer.smoothing)
 
@@ -579,7 +646,7 @@ class NormalizedOptimizer(Optimizer):
         if not isinstance(rows, torch.Tensor) or rows.dtype != torch.long or rows.ndim != 1:
             raise ValueError("sampled rows must be a one-dimensional int64 tensor")
         rows = rows.detach().to(device=table.device)
-        if rows.numel() and (bool((rows < 0).any()) or bool((rows >= len(table)).any())):
+        if rows.numel() and bool(((rows < 0) | (rows >= len(table))).any()):
             raise ValueError("sampled row index outside the prior table")
         previous = self._sampled_rows.get(table)
         self._sampled_rows[table] = torch.unique(rows if previous is None else torch.cat((previous, rows)))
@@ -734,6 +801,7 @@ class NormalizedOptimizer(Optimizer):
         if origin_norm is not None and origin_norm < 0.05:
             origin_damping = min(1.0, origin_norm / 0.05)
         pending_cpu_polar = []
+        pending_cuda_gram_polar = []
         empf_step_scale = float(getattr(getattr(self, "_empf_record", None), "_step_scale", 1.0))
         unified_rec = getattr(
             self,
@@ -895,16 +963,39 @@ class NormalizedOptimizer(Optimizer):
                             factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
                             update = polar_factor(direction, smoothing=self.smoothing)
                             parameter.add_(update, alpha=-rate * factor)
+                        elif (
+                            parameter.device.type == "cuda"
+                            and parameter.dtype == torch.float32
+                            and min(parameter.shape) >= _BATCHED_GRAM_MIN_DIM
+                        ):
+                            pending_cuda_gram_polar.append((parameter, gradient, direction, rate, eps))
                         else:
                             pending_cpu_polar.append((parameter, gradient, direction, rate, eps))
                     elif parameter.ndim == 2:
+                        has_t1c_act = (
+                            is_generator
+                            and t1c_deconflict_blend > 0.0
+                            and getattr(parameter, "_t1c_last_act", None) is not None
+                        )
+                        if (
+                            not has_t1c_act
+                            and self.dense_profile == "default"
+                            and self.svd_backend in ("native", "batched")
+                            and parameter.device.type == "cuda"
+                            and parameter.dtype == torch.float32
+                            and min(parameter.shape) >= _BATCHED_GRAM_MIN_DIM
+                        ):
+                            if hasattr(parameter, "_t1c_last_act"):
+                                parameter._t1c_last_act = None
+                            pending_cuda_gram_polar.append((parameter, gradient, direction, rate, eps))
+                            continue
                         if bool(gradient.norm() < eps) or (direction is not gradient and bool(direction.norm() < eps)):
                             if hasattr(parameter, "_t1c_last_act"):
                                 parameter._t1c_last_act = None
                             continue
                         factor = math.sqrt(max(1., parameter.shape[0] / parameter.shape[1]))
                         update = None
-                        if is_generator and t1c_deconflict_blend > 0.0 and getattr(parameter, "_t1c_last_act", None) is not None:
+                        if has_t1c_act:
                             from .._t1_coupling.deconflict import deconflicted_polar_step
                             if (
                                 self.dense_profile == NEWTON_SCHULZ_DENSE_PROFILE
@@ -961,20 +1052,52 @@ class NormalizedOptimizer(Optimizer):
                     else:
                         norm = direction.norm()
                         if self.smoothing:
-                            if self.dense_profile == CPU_POLAR_DENSE_PROFILE:
-                                cache = getattr(self, "_smoothing_scalars", None)
-                                if cache is None:
-                                    cache = self._smoothing_scalars = {}
-                                s_key = (norm.device, norm.dtype, self.smoothing)
-                                s_val = cache.get(s_key)
-                                if s_val is None:
-                                    s_val = cache[s_key] = norm.new_tensor(self.smoothing)
-                            else:
-                                s_val = norm.new_tensor(self.smoothing)
+                            cache = getattr(self, "_smoothing_scalars", None)
+                            if cache is None:
+                                cache = self._smoothing_scalars = {}
+                            s_key = (norm.device, norm.dtype, self.smoothing)
+                            s_val = cache.get(s_key)
+                            if s_val is None:
+                                s_val = cache[s_key] = norm.new_tensor(self.smoothing)
                             denominator = torch.hypot(norm, s_val)
                         else:
                             denominator = norm + eps
                         parameter.add_(direction / denominator, alpha=-rate)
+        if pending_cuda_gram_polar:
+            by_shape = {}
+            for item in pending_cuda_gram_polar:
+                param = item[0]
+                by_shape.setdefault((param.device, tuple(param.shape)), []).append(item)
+            for (dev, _shape), items in by_shape.items():
+                dirs = torch.stack([direc for _, _, direc, _, _ in items], dim=0)
+                dir_norms = dirs.norm(dim=(-2, -1))
+                if any(grad is not direc for _, grad, direc, _, _ in items):
+                    grad_norms = torch.stack([grad for _, grad, _, _, _ in items], dim=0).norm(dim=(-2, -1))
+                else:
+                    grad_norms = dir_norms
+                eps_vec = dir_norms.new_tensor([eps_val for _, _, _, _, eps_val in items])
+                # Use `<` rather than `>=` so NaN gradients are never skipped and
+                # faithfully propagate LinAlgError through the fallback SVD path.
+                skip = (grad_norms < eps_vec) | (dir_norms < eps_vec)
+                active_idx = [idx for idx, skipped in enumerate(skip.tolist()) if not skipped]
+                if not active_idx:
+                    continue
+                active_dirs = dirs if len(active_idx) == len(items) else dirs[active_idx]
+                updates, ok = _batched_cuda_gram_polar(active_dirs, smoothing=self.smoothing)
+                ok_list = ok.tolist()
+                for batch_pos, item_idx in enumerate(active_idx):
+                    param, _grad, direc, rate, _eps_val = items[item_idx]
+                    factor = math.sqrt(max(1., param.shape[0] / param.shape[1]))
+                    if updates is not None and ok_list[batch_pos]:
+                        update = updates[batch_pos]
+                    elif self.dense_profile == CPU_POLAR_DENSE_PROFILE:
+                        update = polar_factor(
+                            direc.detach().cpu(), smoothing=self.smoothing
+                        ).to(device=dev, dtype=param.dtype)
+                    else:
+                        update = (polar_factor(direc, smoothing=self.smoothing)
+                                  if self.smoothing else polar_factor(direc))
+                    param.add_(update, alpha=-rate * factor)
         if pending_cpu_polar:
             by_stream = {}
             for item in pending_cpu_polar:
@@ -1340,6 +1463,31 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
             **options,
         )
+    elif recipe.optimizer_family == "unified_v14_equil":
+        from .._unified_v14 import UnifiedV14Optimizer
+        optimizer = UnifiedV14Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "unified_v15_equil":
+        from .._unified_v15 import UnifiedV15Optimizer
+        optimizer = UnifiedV15Optimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            **options,
+        )
+    elif recipe.optimizer_family == "axiom":
+        from .._axiom.optimizer import AxiomOptimizer
+        optimizer = AxiomOptimizer(
+            params,
+            smoothing=float(recipe.optimizer_smoothing),
+            direction_blend=(critic is None and recipe.constraint_geometry_mode == "direction_blend"),
+            critic=critic,
+            **options,
+        )
     else:
         optimizer_class = NormalizedOptimizer
         if critic is not None and recipe.critic_step_mode == "finite_cap":
@@ -1429,6 +1577,29 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v11_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "unified_v15":
+            from .._unified_v15 import (
+                _UnifiedV15ObserverStepRecord,
+                _attach_unified_v15_critic_hook,
+                collect_conv_layouts,
+            )
+            optimizer.record = _UnifiedV15ObserverStepRecord()
+            optimizer._unified_v15_record = optimizer.record
+            optimizer._unified_v11_record = optimizer.record
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
+            _attach_unified_v15_critic_hook(critic, optimizer.record)
+        elif recipe.effective_critic_formulation == "axiom":
+            from .._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            from .._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
+            optimizer.record = AxiomStepRecord()
+            optimizer._axiom_record = optimizer.record
+            if hasattr(optimizer, "_conv_layouts"):
+                optimizer._conv_layouts.update(_axiom_conv_layouts((critic,)))
+            _attach_axiom_critic_hook(critic, optimizer.record)
         elif recipe.effective_critic_formulation == "cond_fiber":
             from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()

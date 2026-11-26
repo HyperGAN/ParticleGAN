@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "unified-v14-disc-stab-study"
+  },
+  "candidate": "unified-v14",
+  "competing_explanation": "If unified-v14's guarded peak_rms prior row smoothing cap (2.0), floor+flip current_stiff_gate, decoupled fg_damp, bandpass d_couple, or 2D critic Schatten-6 spectral ceiling regresses any Tier-1 or Tier-2 discriminator_stability task relative to live unified-v13, unified-v14 will drop below 17/17 Tier 1 or regress a live unified-v13 Tier-2 pass.",
+  "control": {
+    "candidate_id": "unified-v13",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global unified-v14 preserves all 17/17 Tier-1 passes (11/11 required) and all live unified-v13 Tier-2 passes including bytegan_hypercube8 (256/256 valid unique bytes) and model_ae_ddgan_gaussian_chain on discriminator_stability Tiers 1-2.",
+  "id": "unified-v14-disc-stab-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "candidate_id": "unified-v12",
+        "candidate_revision": "f16b8465a125d20c372aacad0607555ac78d5f74545d734931b6f4c61cdd1f9f"
+      },
+      "path": "reports/forge/records/readout-b51ab67c4d97526186e23651.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 2,
+    "view": "discriminator_stability"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

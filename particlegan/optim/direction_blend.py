@@ -45,11 +45,15 @@ class DirectionBlendOptimizer(ConstraintGeometryOptimizer):
             ratio = float(applied.double().norm() / displacement.double().norm())
             blend['retained_norm_ratio_sum'] += ratio
             blend['max_retained_norm_ratio'] = max(blend['max_retained_norm_ratio'], ratio)
-        applied = torch.cat([(p - old).flatten() for p, old in zip(parameters, originals)])
+            changed = not torch.equal(applied, displacement)
+            after = normals @ applied.double()
+        else:
+            changed = False
+            after = before
         stats['steps'] += 1
-        stats['projected_steps'] += int(not torch.equal(applied, displacement))
+        stats['projected_steps'] += int(changed)
         stats['max_derivative_before'] = max(stats['max_derivative_before'], float(before.max()))
-        stats['max_derivative_after'] = max(stats['max_derivative_after'], float((normals @ applied.double()).max()))
+        stats['max_derivative_after'] = max(stats['max_derivative_after'], float(after.max()))
 
     def state_dict(self):
         saved = super().state_dict()

@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 3600,
+    "candidate_budget_seconds": 3600,
+    "id": "unified-v15-bytegan-rtx-study"
+  },
+  "candidate": "unified-v15",
+  "competing_explanation": "If unified-v15 regresses any numerical gate or latency bound on bytegan_stretch, the affected task will record a faithful numerical FAIL.",
+  "control": {
+    "candidate_id": "unified-v14",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "valid_unique_bytes",
+    "op": "<",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "hypothesis": "Unchanged global unified-v15 (isolated particlegan/_unified_v15 package, Law 1-4 R3 assembly): evaluate on bytegan_stretch (through tier 1, RTX A6000, protocol seed 0).",
+  "id": "unified-v15-bytegan-rtx-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "valid_unique_bytes",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "bytegan_hypercube8",
+    "threshold": 256
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "campaign_id": "bytegan-stretch-diag-v1",
+        "cuda_model": "NVIDIA RTX A6000"
+      },
+      "path": "reports/forge/bytegan-stretch/summary.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "bytegan_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

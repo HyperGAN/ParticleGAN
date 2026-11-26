@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ddgan_repair_bimodal_chain_wall_v2",
+  "title": "DDGAN Conditional Repair Diagnostic (Bimodal Wall v2)",
+  "laws": [
+    "law3b",
+    "law1"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "multimodal-posterior",
+    "diagnostic-repair"
+  ],
+  "intuition": "Second-wave scoped diagnostic on the bimodal DDGAN reverse chain testing tightened conditional transition fidelity under updated wall/budget settings.",
+  "failure_mode": "Persistent conditional drift-variance confounding on low-density central transition queries.",
+  "protocol_notes": "Explicitly scoped GPU0 research diagnostic task.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law2_groupnorm_and_vit_sprites_v2",
+  "title": "Law 2 Probe v2: 32x32 RGB Sprites with ResNet+GroupNorm + ViT Critic (1600 Steps)",
+  "laws": [
+    "law2"
+  ],
+  "edge_cases": [
+    "groupnorm-vit-critic",
+    "sdpa-fwad-compatibility",
+    "rgb-sprites-32x32"
+  ],
+  "intuition": "Calibrated 1,600-step v2 Law 2 probe testing differentiation faithfulness on 32x32x3 4-class RGB geometric sprites scored by a compact ResNet+GroupNorm + Patch-4 multi-head attention (ViT) critic.",
+  "failure_mode": "Forward-mode fwAD breaks or loses gradient fidelity on SDPA attention / GroupNorm layers where exact reverse-over-reverse (RoR) is required, causing blurred sprites or mode imbalance.",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (1,600 updates, 32x32x3 RGB sprites, 1500s timeout).",
+  "diagram_kind": "rgb_sprites_32x32",
+  "custom_mermaid": null
+}

@@ -268,14 +268,22 @@ def _resolve_commit(root, source_commit):
         raise ValueError(f"unknown source commit: {source_commit}") from error
 
 
-def _receipt_manifests(root, commit):
+def _matches_cuda_model(request, cuda_model):
+    if cuda_model is None:
+        return True
+    if request.get("execution_backend") != "cuda":
+        return True
+    return request.get("compute_profiles", {}).get("cuda", {}).get("model") == cuda_model
+
+
+def _receipt_manifests(root, commit, *, cuda_model=None):
     """Locate validated original science recorded at this exact Git origin."""
     manifests = {}
     for path in sorted((root / "reports/forge/attempts").glob("*/request.json")):
         resolved = read_json(path)
         request = resolved.get("request", resolved)
         source = request.get("source", {})
-        if source.get("origin_commit") != commit:
+        if source.get("origin_commit") != commit or not _matches_cuda_model(request, cuda_model):
             continue
         project_receipt(root, path.parent.name)
         if not isinstance(source.get("files"), dict):
@@ -288,13 +296,15 @@ def _receipt_manifests(root, commit):
     return manifests
 
 
-def _recorded_studies(root, manifests):
+def _recorded_studies(root, manifests, *, cuda_model=None):
     """Bind report reconstruction to original, admitted study requests only."""
     from experiments.forge.technique_inventory import _signature
     records, support = {}, {}
     for path in sorted((root / "reports/forge/attempts").glob("*/request.json")):
         resolved = read_json(path)
         request = resolved.get("request", resolved)
+        if not _matches_cuda_model(request, cuda_model):
+            continue
         source = request.get("source", {})
         expected = manifests.get(source.get("digest"))
         if expected is None or source.get("origin_commit") != expected.get("origin_commit"):
@@ -414,7 +424,7 @@ def _validate_comparison_policy(actual, comparison):
 
 
 def _comparison_contracts_match(row, comparison):
-    family = row["bindings"]["trainer_family"]
+    family = row["bindings"]["trainer_family"] or comparison.get("candidate_families", {}).get(row["candidate_id"])
     actual_contracts = row["bindings"]["task_contracts"]
     added = set(comparison.get("added_actual_tasks", ()))
     required = {item["task"] for item in comparison.get("policy", {}).get("assignments", ())}
@@ -463,14 +473,14 @@ def _comparison_projection(actual, projected, comparison):
             raise ValueError("comparison projection changes recorded task contracts or measured cohort")
         if statuses(row) != statuses(original):
             raise ValueError("comparison policy projection changed numerical task verdicts")
-        calibrated_lineage = comparison.get("verified_evaluator_lineage", {}).get(
-            row["bindings"]["trainer_family"], {})
+        family = row["bindings"]["trainer_family"] or comparison.get("candidate_families", {}).get(row["candidate_id"])
+        calibrated_lineage = comparison.get("verified_evaluator_lineage", {}).get(family, {})
         items_by_task = {item["task_id"]: item for key in ("tasks", "nonrequired_tasks") for item in row[key]}
         for tid in comparison.get("calibrated_grid_triad_tasks", ()):
             if row["bindings"]["task_contracts"].get(tid) != calibrated_lineage.get(tid):
                 continue
             item = items_by_task.get(tid, {})
-            if item.get("status") != "FAIL":
+            if item.get("status") not in {"FAIL", "UNKNOWN", "NOT_RUN", "BLOCKED"}:
                 metrics = item.get("metrics") or {}
                 prec = metrics.get("precision")
                 if not isinstance(prec, (int, float)) or float(prec) < 0.97:
@@ -498,14 +508,64 @@ def _comparison_projection(actual, projected, comparison):
 
 
 
-def _extract_source(root, commit, destination, manifests, study_support=None):
+def _verify_source_snapshot(root, snapshot_dir, manifests, *, origin_commit, study_commit):
+    """Cryptographically verify a local content-addressed snapshot against receipt manifests."""
+    from experiments.forge.sources import NON_SCIENTIFIC_SOURCE_PATHS, verify_snapshot
+
+    snapshot_path = Path(snapshot_dir)
+    if not snapshot_path.is_absolute():
+        snapshot_path = root / snapshot_path
+    snapshot_path = snapshot_path.resolve()
+    if not snapshot_path.is_dir():
+        raise ValueError(f"source snapshot directory does not exist: {snapshot_path}")
+    if len(manifests) != 1:
+        raise ValueError("source snapshot verification requires exactly one recorded source manifest digest")
+    manifest = next(iter(manifests.values()))
+    verify_snapshot(snapshot_path, manifest)
+
+    # Audit every file in the verified snapshot that differs from study_commit.
+    diffs = {}
+    for rel, expected_sha in sorted(manifest["files"].items()):
+        try:
+            blob = subprocess.check_output(
+                ["git", "show", f"{study_commit}:{rel}"], cwd=root, stderr=subprocess.DEVNULL
+            )
+            study_sha = hashlib.sha256(blob).hexdigest()
+        except subprocess.CalledProcessError:
+            study_sha = None
+        if study_sha != expected_sha:
+            try:
+                orig_blob = subprocess.check_output(
+                    ["git", "show", f"{origin_commit}:{rel}"], cwd=root, stderr=subprocess.DEVNULL
+                )
+                origin_matches = hashlib.sha256(orig_blob).hexdigest() == expected_sha
+            except subprocess.CalledProcessError:
+                origin_matches = False
+            diffs[rel] = {
+                "snapshot_sha256": expected_sha,
+                "study_commit_sha256": study_sha,
+                "matches_origin_commit": origin_matches,
+                "non_scientific_source_path": rel in NON_SCIENTIFIC_SOURCE_PATHS,
+            }
+    return snapshot_path, {
+        "snapshot_digest": manifest["digest"],
+        "study_commit": study_commit,
+        "origin_commit": origin_commit,
+        "verified_files": len(manifest["files"]),
+        "diffs_vs_study_commit": diffs,
+    }
+
+
+def _extract_source(root, commit, destination, manifests, study_support=None,
+                    *, source_snapshot=None, study_commit=None, cuda_model=None):
     for name, digest in (study_support or {}).items():
         if (Path(name).is_absolute() or ".." in Path(name).parts or Path(name).suffix != ".json"
                 or not isinstance(digest, str) or len(digest) != 64):
             raise ValueError("unsafe recorded study prior-evidence path/hash")
+    archive_commit = study_commit or commit
     # Historical reports dominate this repository's 924 MB checkout. Extract
     # all scientific roots/configs plus explicitly bound support instead.
-    top_level = set(subprocess.check_output(["git", "ls-tree", "--name-only", commit], cwd=root, text=True).splitlines())
+    top_level = set(subprocess.check_output(["git", "ls-tree", "--name-only", archive_commit], cwd=root, text=True).splitlines())
     roots = {name for name in ("particlegan", "experiments", "benchmarks", "lib", "configs", "docs", "pyproject.toml")
              if name in top_level}
     extras = {name for source in manifests.values() for name in source["files"]
@@ -516,7 +576,7 @@ def _extract_source(root, commit, destination, manifests, study_support=None):
     archive = destination.parent / "frozen-source.tar"
     try:
         with archive.open("wb") as output:
-            subprocess.run(["git", "archive", "--format=tar", commit, "--", *sorted(roots | extras)],
+            subprocess.run(["git", "archive", "--format=tar", archive_commit, "--", *sorted(roots | extras)],
                            cwd=root, stdout=output, stderr=subprocess.PIPE, check=True)
     except subprocess.CalledProcessError as error:
         raise ValueError("source commit cannot reconstruct its recorded scientific files") from error
@@ -533,15 +593,62 @@ def _extract_source(root, commit, destination, manifests, study_support=None):
                 target.parent.mkdir(parents=True, exist_ok=True)
                 with bundle.extractfile(member) as stream:
                     target.write_bytes(stream.read())
+    snapshot_audit = None
+    if source_snapshot is not None:
+        snapshot_path, snapshot_audit = _verify_source_snapshot(
+            root, source_snapshot, manifests, origin_commit=commit, study_commit=archive_commit
+        )
+        manifest = next(iter(manifests.values()))
+        # Remove any scientific source file present in archive_commit that was absent from the snapshot.
+        from experiments.forge.sources import SOURCE_DIRS, SOURCE_SUFFIXES
+        expected_files = set(manifest["files"])
+        for directory in SOURCE_DIRS:
+            dir_path = destination / directory
+            if not dir_path.is_dir():
+                continue
+            for existing in list(dir_path.rglob("*")):
+                if existing.is_file() and existing.suffix in SOURCE_SUFFIXES:
+                    rel = existing.relative_to(destination).as_posix()
+                    if rel not in expected_files:
+                        existing.unlink()
+        for rel, expected_sha in manifest["files"].items():
+            src_file = snapshot_path / rel
+            dst_file = destination / rel
+            dst_file.parent.mkdir(parents=True, exist_ok=True)
+            data = src_file.read_bytes()
+            if hashlib.sha256(data).hexdigest() != expected_sha:
+                raise ValueError(f"verified snapshot byte mismatch during extraction: {rel}")
+            dst_file.write_bytes(data)
     for name, digest in (study_support or {}).items():
         if not (destination / name).is_file() or file_hash(destination / name) != digest:
             raise ValueError("frozen Git study prior-evidence differs from its original admission hash")
     closure = _catalog_support_closure(_frozen_catalog_support(destination), manifests, study_support or {})
+    if snapshot_audit is not None:
+        closure["verified_source_snapshot"] = snapshot_audit
     closure["frozen_rule_files_sha256"] = {
         name: file_hash(destination / name) for name in
         ("experiments/forge/planning.py", "experiments/forge/hostprofiles.py") if (destination / name).is_file()}
-    _overlay_reports(root / "reports", destination / "reports",
-                     excluded=[Path(name).relative_to("reports") for name in closure["preserved_absent_paths"]])
+    attempts_src = root / "reports/forge/attempts"
+    excluded = [Path(name).relative_to("reports") for name in closure["preserved_absent_paths"]]
+    if attempts_src.is_dir():
+        excluded.append(Path("forge/attempts"))
+    _overlay_reports(root / "reports", destination / "reports", excluded=excluded)
+    if attempts_src.is_dir():
+        from experiments.forge.views import diagnostic_evidence_scope
+        attempts_dst = destination / "reports/forge/attempts"
+        attempts_dst.mkdir(parents=True, exist_ok=True)
+        for req_path in sorted(attempts_src.glob("*/request.json")):
+            resolved = read_json(req_path)
+            request = resolved.get("request", resolved)
+            source = request.get("source", {})
+            if (source.get("digest") in manifests
+                    and source.get("origin_commit") in {commit, None}
+                    and _matches_cuda_model(request, cuda_model)
+                    and not diagnostic_evidence_scope(request)):
+                attempt_dir = req_path.parent
+                target = attempts_dst / attempt_dir.name
+                if not target.exists():
+                    target.symlink_to(attempt_dir.resolve(), target_is_directory=True)
     return closure
 
 
@@ -811,12 +918,13 @@ def _evaluator_revision_reaches(root, task, target_evaluation_sha256):
         return False
 
 
-def _measured_candidates_at_source(root, manifests, studies, view_id, execution_backend):
+def _measured_candidates_at_source(root, manifests, studies, view_id, execution_backend, *, cuda_model=None):
     """Find every non-diagnostic candidate with original attempts at this source."""
     from experiments.forge.views import diagnostic_evidence_scope
     measured = {record["request"]["candidate"]["id"] for record in studies
                 if record["request"]["view"]["id"] == view_id
                 and (execution_backend is None or record["request"]["execution_backend"] == execution_backend)
+                and _matches_cuda_model(record["request"], cuda_model)
                 and not diagnostic_evidence_scope(record["request"])}
     for path in sorted((root / "reports/forge/attempts").glob("*/request.json")):
         resolved = read_json(path)
@@ -827,6 +935,7 @@ def _measured_candidates_at_source(root, manifests, studies, view_id, execution_
             continue
         if (request.get("view", {}).get("id") == view_id
                 and (execution_backend is None or request.get("execution_backend") == execution_backend)
+                and _matches_cuda_model(request, cuda_model)
                 and not diagnostic_evidence_scope(request)):
             candidate_id = request.get("candidate", {}).get("id")
             if isinstance(candidate_id, str):
@@ -835,19 +944,21 @@ def _measured_candidates_at_source(root, manifests, studies, view_id, execution_
 
 
 def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary,
-                   declaration_registration=None, candidate_roster=None, comparison_policy=None):
+                   declaration_registration=None, candidate_roster=None, comparison_policy=None,
+                   source_snapshot=None, study_commit=None, cuda_model=None):
     if declaration_registration is not None and candidate_roster is not None:
         raise ValueError("cannot combine --declaration-registration and --candidate")
     commit = _resolve_commit(root, source_commit)
-    manifests = _receipt_manifests(root, commit)
-    studies, support = _recorded_studies(root, manifests)
+    resolved_study_commit = _resolve_commit(root, study_commit) if study_commit is not None else commit
+    manifests = _receipt_manifests(root, commit, cuda_model=cuda_model)
+    studies, support = _recorded_studies(root, manifests, cuda_model=cuda_model)
     roster = None
     if declaration_registration is not None:
         registration_path = Path(declaration_registration)
         if not registration_path.is_absolute():
             registration_path = root / registration_path
         relative = registration_path.resolve().relative_to(root.resolve()).as_posix()
-        recorded_bytes = subprocess.check_output(["git", "show", f"{commit}:{relative}"], cwd=root)
+        recorded_bytes = subprocess.check_output(["git", "show", f"{resolved_study_commit}:{relative}"], cwd=root)
         if registration_path.read_bytes() != recorded_bytes:
             raise ValueError("declaration roster registration differs from the executed Git source")
         registration = read_json(registration_path)
@@ -865,14 +976,19 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
                   "execution_backend": "cuda", "qualification_transfer": False}
     elif candidate_roster is not None:
         selected_ids = sorted({identifier(cid, "candidate") for cid in candidate_roster})
-        measured = _measured_candidates_at_source(root, manifests, studies, view_id, execution_backend)
+        measured = _measured_candidates_at_source(
+            root, manifests, studies, view_id, execution_backend, cuda_model=cuda_model
+        )
         if not selected_ids or not measured.issubset(selected_ids):
             raise ValueError("candidate roster omits an original measured candidate")
         roster = {"scope": "explicit_candidate_roster", "candidate_ids": selected_ids,
                   "measured_candidate_ids": sorted(measured),
                   "execution_backend": execution_backend, "qualification_transfer": False}
     frozen_root = temporary / "source"
-    catalog_closure = _extract_source(root, commit, frozen_root, manifests, study_support=support)
+    catalog_closure = _extract_source(
+        root, commit, frozen_root, manifests, study_support=support,
+        source_snapshot=source_snapshot, study_commit=resolved_study_commit, cuda_model=cuda_model,
+    )
     contract = temporary / "manifests.json"
     atomic_text(contract, _json_text(manifests))
     study_contract = temporary / "recorded-studies.json"
@@ -898,12 +1014,27 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
             _, rows = _snapshot(root, entry, manifest)
             verified.update(row["candidate_revision"] for row in rows.values())
         from experiments.forge.trainer_families import load_families
-        from experiments.forge.views import load_tasks, task_evaluation_fingerprint
+        from experiments.forge.views import load_tasks, task_evaluation_fingerprint, task_execution_fingerprint
         frozen_tasks = load_tasks(frozen_root)
         comparison_task_ids = {assignment["task"] for assignment in policy["assignments"]}
         added_actual_tasks = sorted({assignment["task"] for assignment in actual_view["assignments"]} - comparison_task_ids)
+        added_actual_tasks_set = set(added_actual_tasks)
+        stale_recorded_families = {
+            proof.get("trainer_family")
+            for proof in recorded.get("retained_recorded_measurements", {}).get("proofs", [])
+            if isinstance(proof, dict) and proof.get("trainer_family")
+        }
         reference, verified_lineage = {}, {}
         recorded_catalog = recorded.get("task_contracts", {})
+        fresh_published_pairs = set()
+        for row in recorded["rows"]:
+            if (row.get("candidate_revision") in verified
+                    and row.get("trainer_family") not in stale_recorded_families
+                    and row.get("attempt_ids")):
+                for tid, digest in (row.get("bindings", {}).get("task_contracts") or {}).items():
+                    rc = recorded_catalog.get(digest)
+                    if isinstance(rc, dict):
+                        fresh_published_pairs.add((tid, rc.get("execution_sha256"), rc.get("evaluation_sha256")))
         for row in recorded["rows"]:
             contracts = row.get("bindings", {}).get("task_contracts")
             if row.get("candidate_revision") in verified and isinstance(contracts, dict) and contracts:
@@ -919,29 +1050,109 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
                     if not isinstance(ref_contract, dict) or frozen_task is None:
                         continue
                     frozen_eval = task_evaluation_fingerprint(frozen_task)
+                    frozen_exec = task_execution_fingerprint(frozen_task)
                     ref_eval = ref_contract.get("evaluation_sha256")
                     if frozen_eval != ref_eval and _evaluator_revision_reaches(root, frozen_task, ref_eval):
                         family_lineage[task_id] = stable_hash({**ref_contract, "evaluation_sha256": frozen_eval})
                     elif (
                         task_id in {"grid100", "rotated100", "staggered100"}
-                        and ref_eval == "f659a437977477685011168eb644108a0ce5b4dc21d145bea709cc307d8e3105"
+                        and ref_eval in {
+                            "f659a437977477685011168eb644108a0ce5b4dc21d145bea709cc307d8e3105",
+                            "1b3166769127ddd7f98e31087a7fda9b7c3ebeff63413237c07f84c7dd7d4652",
+                        }
                         and frozen_eval == "035a006309308989d60bc90a9b77ea63fa042648a65c155bcbf09bed0e9b165e"
                         and (frozen_task.get("evaluation", {}).get("evaluator_revision") or {}).get("id")
                         == "tier2-grid-triad-clean-sampling-calibration-v1"
                     ):
                         family_lineage[task_id] = stable_hash({**ref_contract, "evaluation_sha256": frozen_eval})
+                    elif (
+                        family in stale_recorded_families
+                        and task_id in added_actual_tasks_set
+                        and (task_id, frozen_exec, frozen_eval) in fresh_published_pairs
+                    ):
+                        family_lineage[task_id] = stable_hash({
+                            **ref_contract,
+                            "execution_sha256": frozen_exec,
+                            "evaluation_sha256": frozen_eval,
+                        })
+                    elif (
+                        task_id in added_actual_tasks_set
+                        and (task_id, ref_contract.get("execution_sha256"), ref_eval, frozen_exec, frozen_eval) in {
+                            # Exact Track-A post-Rev-9 stretch revisions from commit 58268ad6a
+                            # (CUDA FP32 1-ULP scorer fix in api_interpolation.py + preset binding in api_t3_isolation.py).
+                            # None of these 5 stretch tasks belong to discriminator_stability-v9.json.
+                            (
+                                "interp_img_patch_shift",
+                                "837050f35bb907962ccaf675c362b0a35c293c74c52bab3bf8922a9ffd8c2f1d",
+                                "4a50043501c3354e22ca20b2baab2efb1e6091c633326930c2096bdab597946c",
+                                "837050f35bb907962ccaf675c362b0a35c293c74c52bab3bf8922a9ffd8c2f1d",
+                                "446274ee3bf5251d4e12bd8a6a38f674f8e38d4f27dd969257dbc10c9c9c06d9",
+                            ),
+                            (
+                                "interp_saddle_barycentric",
+                                "eaf4aab1daaa791be59b9781f0bbbd2241065453cc3b4298b222f1a8878fe4f6",
+                                "d39f8cf15c84704ae722785dbd6573d5a63df34f489b25b3ddef450150706f8e",
+                                "197e714ebc21044d50a2cde1490937934a4960d596bab8c26a1c16f308f6932b",
+                                "cc9e505203c7f1ef25f009b47b39ff5e4706ef778a2ea772c654b682b01f6d62",
+                            ),
+                            (
+                                "interp_sparse_arc",
+                                "b0c9d40e862ce5b784083ac7d69488b517c8d095a361bfd6c7d2b56052357729",
+                                "20ae5b820b3b283278732a4ddb7c5f11fc0e3649a04cf04624981bbdf83e4a42",
+                                "1063653967bae70a9cb81423621a1bda522c472f95e540c5037a8cdad0d2adef",
+                                "e68fa15da94805896c944bcd1c1e0837099aa213d7f502f50d994fca48eb1578",
+                            ),
+                            (
+                                "t3_iso_horizon_saddle_shift",
+                                "e0446170288efe2f4695b6b2e07a016c1c2d1b52e5ef10c2fbb657cff9ec1f8e",
+                                "4a896a0c98843e15275b8c2f0ede555045918eb9ca82d37944e3640c104edf50",
+                                "e0446170288efe2f4695b6b2e07a016c1c2d1b52e5ef10c2fbb657cff9ec1f8e",
+                                "4a7544f6c321515774fdf42a91a1baa302caacc42a5efc00379dccbbd56bc2e4",
+                            ),
+                            (
+                                "t3_iso_scale_mass_8x",
+                                "5e1e5af0ee464d37551857c8b2aeeb17d26f96c79212380586a41b6b6be9d67a",
+                                "93104e10a9a3c6a546650b616359c1730f95b5525f4ad299e9a3f285ba71f940",
+                                "5e1e5af0ee464d37551857c8b2aeeb17d26f96c79212380586a41b6b6be9d67a",
+                                "3e535d05cda752b5feab005c091d5805631745c7a767df3dbd76d9c673763bd6",
+                            ),
+                        }
+                    ):
+                        frozen_exec_cfg = frozen_task.get("execution", {})
+                        frozen_host_def = frozen_exec_cfg.get("host_definition", {})
+                        updated_contract = {
+                            **ref_contract,
+                            "execution_sha256": frozen_exec,
+                            "evaluation_sha256": frozen_eval,
+                            "host_definition_sha256": stable_hash(frozen_host_def),
+                            "steps": frozen_exec_cfg.get("steps"),
+                        }
+                        if isinstance(ref_contract.get("host_adaptation"), dict):
+                            updated_contract["host_adaptation"] = {
+                                **ref_contract["host_adaptation"],
+                                "host_definition": frozen_host_def,
+                            }
+                        family_lineage[task_id] = stable_hash(updated_contract)
                 if family_lineage:
                     verified_lineage[family] = family_lineage
         from experiments.forge import planning, trainer_families
+        candidate_families = {}
         for record in studies:
             req = record.get("request", {})
             cand_id = req.get("candidate", {}).get("id")
+            if cand_id:
+                try:
+                    candidate_families[cand_id] = trainer_families.family_for_candidate(
+                        frozen_root, cand_id, planning.load_idea(frozen_root, cand_id), current_presentation=True
+                    )["id"]
+                except (KeyError, ValueError, FileNotFoundError):
+                    pass
             control = req.get("study", {}).get("control", {})
             ctrl_id = control.get("candidate_id")
             if not cand_id or not ctrl_id or control.get("task_map"):
                 continue
             try:
-                fam = trainer_families.family_for_candidate(
+                fam = candidate_families.get(cand_id) or trainer_families.family_for_candidate(
                     frozen_root, cand_id, planning.load_idea(frozen_root, cand_id), current_presentation=True
                 )["id"]
                 ctrl_fam = trainer_families.family_for_candidate(
@@ -953,11 +1164,20 @@ def _frozen_report(root, source_commit, *, view_id, execution_backend, temporary
                 reference[fam] = reference[ctrl_fam]
                 if ctrl_fam in verified_lineage:
                     verified_lineage[fam] = verified_lineage[ctrl_fam]
+        for cand_id in (roster["candidate_ids"] if roster is not None else ()):
+            if cand_id not in candidate_families:
+                try:
+                    candidate_families[cand_id] = trainer_families.family_for_candidate(
+                        frozen_root, cand_id, planning.load_idea(frozen_root, cand_id), current_presentation=True
+                    )["id"]
+                except (KeyError, ValueError, FileNotFoundError):
+                    pass
         new_registered_families = sorted(set(load_families(frozen_root)) - set(reference))
         comparison = {"policy": policy, "path": os.path.relpath(comparison_path, root),
                       "sha256": file_hash(comparison_path), "reference_task_contracts": reference,
                       "added_actual_tasks": added_actual_tasks, "verified_evaluator_lineage": verified_lineage,
                       "new_registered_families": new_registered_families,
+                      "candidate_families": candidate_families,
                       "calibrated_grid_triad_tasks": ["grid100", "rotated100", "staggered100"]}
     comparison_contract = temporary / "comparison-policy.json"
     atomic_text(comparison_contract, _json_text(comparison))
@@ -1079,7 +1299,7 @@ if comparison is not None:
     for row in actual['rows']:
         if not row.get('attempt_ids'):
             continue
-        family = row['bindings']['trainer_family']
+        family = row['bindings']['trainer_family'] or comparison.get('candidate_families', {}).get(row['candidate_id'])
         if not _comparison_contracts_match(row, comparison):
             raise ValueError('comparison projection changes recorded task contracts: ' + str(family))
     # All admission/source reconstruction above used the original view. The
@@ -1146,7 +1366,8 @@ print(json.dumps(result, sort_keys=True))
 
 def regenerate(root: Path | str = REPOSITORY_ROOT, *, view_id="discriminator_stability", execution_backend="cuda",
                output_prefix: Path | str = "reports/forge/technique-inventory", source_commit=None,
-               declaration_registration=None, candidate_roster=None, comparison_policy=None) -> dict:
+               declaration_registration=None, candidate_roster=None, comparison_policy=None,
+               source_snapshot=None, study_commit=None, cuda_model=None) -> dict:
     """Regrade original evidence and publish deterministic compact artifacts."""
     root = Path(root).resolve()
     if (declaration_registration is not None or candidate_roster is not None) and source_commit is None:
@@ -1155,6 +1376,8 @@ def regenerate(root: Path | str = REPOSITORY_ROOT, *, view_id="discriminator_sta
         raise ValueError("cannot combine --declaration-registration and --candidate")
     if comparison_policy is not None and source_commit is None:
         raise ValueError("independent comparison projection requires an exact frozen source")
+    if (source_snapshot is not None or study_commit is not None or cuda_model is not None) and source_commit is None:
+        raise ValueError("--source-snapshot, --study-commit, and --cuda-model require --source-commit")
     prefix = Path(output_prefix)
     if not prefix.is_absolute():
         prefix = root / prefix
@@ -1183,6 +1406,12 @@ def regenerate(root: Path | str = REPOSITORY_ROOT, *, view_id="discriminator_sta
             comparison_options = {"comparison_policy": comparison_policy} if comparison_policy is not None else {}
             if candidate_roster is not None:
                 comparison_options["candidate_roster"] = candidate_roster
+            if source_snapshot is not None:
+                comparison_options["source_snapshot"] = source_snapshot
+            if study_commit is not None:
+                comparison_options["study_commit"] = study_commit
+            if cuda_model is not None:
+                comparison_options["cuda_model"] = cuda_model
             metadata, result, commit, frozen_digests = _frozen_report(
                 root, source_commit, view_id=view_id, execution_backend=execution_backend, temporary=Path(temporary),
                 declaration_registration=declaration_registration, **comparison_options)
@@ -1194,8 +1423,16 @@ def regenerate(root: Path | str = REPOSITORY_ROOT, *, view_id="discriminator_sta
     summaries = {attempt: project_receipt(root, attempt) for attempt in attempt_ids}
     result["publication_scope"] = "frozen_source" if commit else "live_current"
     if commit:
-        result["frozen_source"] = {"commit": commit, "source_digests": frozen_digests,
-                                   "qualifies_latest_checkout": False}
+        frozen_meta = {"commit": commit, "source_digests": frozen_digests,
+                       "qualifies_latest_checkout": False}
+        if study_commit is not None:
+            frozen_meta["study_commit"] = _resolve_commit(root, study_commit)
+        if cuda_model is not None:
+            frozen_meta["cuda_model"] = cuda_model
+        snap_audit = result.get("frozen_catalog_support", {}).get("verified_source_snapshot")
+        if snap_audit is not None:
+            frozen_meta["verified_source_snapshot"] = snap_audit
+        result["frozen_source"] = frozen_meta
         adapter = root / "reports/forge/word_checkpoint_publication.py"
         if adapter.is_file():
             result.setdefault("reporting_adapters", {})["word_checkpoint_publication"] = {
@@ -4347,7 +4584,7 @@ def _retain_recorded_measurements(root, reports):
 def publish_current(root=REPOSITORY_ROOT, *, source_commit=None, view_id="discriminator_stability",
                     execution_backend=None, recorded_policy=None, advance_policy=False,
                     ownership_migration=None, declaration_registration=None, candidate_roster=None,
-                    comparison_policy=None):
+                    comparison_policy=None, source_snapshot=None, study_commit=None, cuda_model=None):
     """Maintain one current table; registered source snapshots retain the history."""
     root = Path(root).resolve()
     if (root / "reports/forge/word_checkpoint_publication.py").is_file():
@@ -4417,6 +4654,12 @@ def publish_current(root=REPOSITORY_ROOT, *, source_commit=None, view_id="discri
                 roster_options["candidate_roster"] = candidate_roster
             if comparison_policy is not None:
                 roster_options["comparison_policy"] = comparison_policy
+            if source_snapshot is not None:
+                roster_options["source_snapshot"] = source_snapshot
+            if study_commit is not None:
+                roster_options["study_commit"] = study_commit
+            if cuda_model is not None:
+                roster_options["cuda_model"] = cuda_model
             metadata = regenerate(root, view_id=view_id, execution_backend=execution_backend,
                                   source_commit=source_commit, output_prefix=Path(temporary) / "evidence",
                                   **roster_options)
@@ -4837,6 +5080,12 @@ def main(argv=None):
     parser.add_argument("--goal", default="discriminator_stability")
     parser.add_argument("--device", choices=("cpu", "cuda", "all"), default="all")
     parser.add_argument("--source-commit", help="reconstruct and grade an exact recorded Git source cohort, independently of live HEAD")
+    parser.add_argument("--source-snapshot", type=Path,
+                        help="optional content-addressed snapshot directory cryptographically verified against original receipt manifests")
+    parser.add_argument("--study-commit",
+                        help="optional Git commit holding committed study declarations & prior-evidence support (defaults to --source-commit)")
+    parser.add_argument("--cuda-model",
+                        help="optional exact CUDA hardware model cohort filter when one source commit holds multiple GPU cohorts")
     parser.add_argument("--output-prefix", type=Path,
                         help="write an independent source report; do not register or change current selections")
     parser.add_argument("--declaration-registration", type=Path,
@@ -4873,7 +5122,10 @@ def main(argv=None):
                                    source_commit=args.source_commit, output_prefix=args.output_prefix,
                                    declaration_registration=args.declaration_registration,
                                    candidate_roster=args.candidates,
-                                   comparison_policy=args.comparison_policy)), end="")
+                                   comparison_policy=args.comparison_policy,
+                                   source_snapshot=args.source_snapshot,
+                                   study_commit=args.study_commit,
+                                   cuda_model=args.cuda_model)), end="")
         return
     # A later declared view can refresh navigation without advancing/regrading
     # the immutable recorded policy. Keep the default one-command workflow usable.
@@ -4886,7 +5138,9 @@ def main(argv=None):
             if stable_hash(read_json(view_path)) != manifest.get("policy_fingerprint"):
                 args.refresh_publication = True
     if args.refresh_publication:
-        if args.source_commit or args.recorded_policy or args.comparison_policy or args.advance_policy or args.ownership_migration or args.declaration_registration or args.candidates or args.device != "all":
+        if (args.source_commit or args.recorded_policy or args.comparison_policy or args.advance_policy
+                or args.ownership_migration or args.declaration_registration or args.candidates
+                or args.source_snapshot or args.study_commit or args.cuda_model or args.device != "all"):
             parser.error("--refresh-publication preserves the existing cohorts; source, policy and device overrides are unsupported")
         print(_json_text(refresh_publication(args.root, view_id=args.goal)), end="")
         return
@@ -4896,7 +5150,10 @@ def main(argv=None):
                                 advance_policy=args.advance_policy, ownership_migration=args.ownership_migration,
                                 declaration_registration=args.declaration_registration,
                                 candidate_roster=args.candidates,
-                                comparison_policy=args.comparison_policy)), end="")
+                                comparison_policy=args.comparison_policy,
+                                source_snapshot=args.source_snapshot,
+                                study_commit=args.study_commit,
+                                cuda_model=args.cuda_model)), end="")
 
 
 if __name__ == "__main__":

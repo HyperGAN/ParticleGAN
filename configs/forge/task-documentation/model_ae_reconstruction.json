@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "model_ae_reconstruction",
+  "title": "Particle Autoencoder 4-Corner Reconstruction",
+  "laws": [
+    "law1",
+    "law4_1"
+  ],
+  "edge_cases": [
+    "encoder-decoder-loop",
+    "reconstruction-only"
+  ],
+  "intuition": "Tier-1 public-API model check: reconstruct four noisy corner Gaussians through deterministic particle-AE routing (recon_mse <= 0.025, mode_agreement >= 0.98) using an explicit reconstruction objective.",
+  "failure_mode": "Broken encoder/prior routing or unstable optimizer updates degrade reconstruction MSE or scramble corner assignments.",
+  "protocol_notes": "Tier-1 required public-API model task (64 particles, 2D latent).",
+  "diagram_kind": "latent_loop",
+  "custom_mermaid": null
+}

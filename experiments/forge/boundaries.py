@@ -6,7 +6,7 @@ constants as effective candidate settings.
 """
 from __future__ import annotations
 
-from copy import deepcopy
+from .contracts import clone_json as deepcopy
 from dataclasses import dataclass, fields
 
 from particlegan import Recipe
@@ -158,7 +158,7 @@ def task_owned_recipe_fields(task):
         owned |= BEHAVIOR_HOST_FIELDS
         if host != "ae_gan_hold":
             owned |= {"routing_temperature", "distance_reduction"}
-    if task.get("adapter") == "public_api_model_toy":
+    if task.get("adapter") in {"public_api_model_toy", "public_api_model_toy_v2"}:
         owned |= frozenset(task["execution"].get("recipe_fields", {}))
     if recipe_owned_prior(task):
         owned = owned - {"prior_reg"}
@@ -311,7 +311,7 @@ def ownership_receipt(candidate, task, resolved_recipe, protocol=None, initializ
             result[name] = _record(None, owner, "task prior-control applicability",
                                    status="not_applicable", reference_recipe_value=_json_value(value),
                                    representation=prior_binding["representation"])
-        elif name == "joint_reconstruction_weight" and task.get("adapter") != "word_joint":
+        elif name == "joint_reconstruction_weight" and task.get("adapter") not in {"word_joint", "bytegan_bigan"}:
             result[name] = _record(None, owner, "task joint-inverse reconstruction applicability",
                                    status="not_applicable", reference_recipe_value=_json_value(value))
         elif name in {"reg_real_weight", "reg_fake_weight"} and (

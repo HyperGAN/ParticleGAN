@@ -1,0 +1,135 @@
+{
+  "schema_version": 1,
+  "epistemic_status": "provisional_evolving",
+  "epigraph": "Our goal is not to preserve the four laws. Our goal is to discover the laws of learning, even if doing so ultimately requires abandoning the current four.",
+  "epistemic_note": "This law taxonomy is a living scientific framework derived from current mathematical and empirical audits. Individual laws may be refined, split, merged, or replaced as new counterexamples and evidence emerge.",
+  "doc_path": "docs/four-laws.md",
+  "laws": [
+    {
+      "id": "law1",
+      "short_label": "Law 1",
+      "title": "Representational Geometry",
+      "domain_level": "Representational Geometry",
+      "question": "Can the system represent the required probability measure efficiently and faithfully?",
+      "doc_anchor": "law-1--representational-geometry",
+      "status": "active",
+      "sub_laws": [
+        {
+          "id": "law1a",
+          "short_label": "Law 1A",
+          "title": "Anisotropic Local Metric & Unbiased Sketching",
+          "doc_anchor": "law-1--representational-geometry"
+        },
+        {
+          "id": "law1b",
+          "short_label": "Law 1B",
+          "title": "Discrete-Continuous Phase Continuity",
+          "doc_anchor": "law-1--representational-geometry"
+        }
+      ]
+    },
+    {
+      "id": "law2",
+      "short_label": "Law 2",
+      "title": "Potential Geometry",
+      "domain_level": "Potential Geometry",
+      "question": "Does the critic communicate useful learning forces with appropriate geometric control and computational efficiency?",
+      "doc_anchor": "law-2--potential-geometry",
+      "status": "active",
+      "sub_laws": []
+    },
+    {
+      "id": "law3",
+      "short_label": "Law 3",
+      "title": "Transport Identifiability",
+      "domain_level": "Transport Identifiability",
+      "question": "Does the learning system possess enough information to determine appropriate transport?",
+      "doc_anchor": "law-3--transport-identifiability",
+      "status": "active",
+      "sub_laws": [
+        {
+          "id": "law3a",
+          "short_label": "Law 3A",
+          "title": "Unconditional W1 Ray-Length & Feature-Space Screening Identifiability",
+          "doc_anchor": "law-3--transport-identifiability"
+        },
+        {
+          "id": "law3b",
+          "short_label": "Law 3B",
+          "title": "Conditional Fiber & Stratum Identifiability (Unifies with Provisional Law 5)",
+          "doc_anchor": "law-3--transport-identifiability"
+        }
+      ]
+    },
+    {
+      "id": "law4",
+      "short_label": "Law 4",
+      "title": "Functional and Game Dynamics",
+      "domain_level": "Functional and Game Dynamics",
+      "question": "Can the learning system realize useful functional changes and exhibit appropriate coupled learning dynamics?",
+      "doc_anchor": "law-4--functional-and-game-dynamics",
+      "status": "active",
+      "sub_laws": [
+        {
+          "id": "law4_1",
+          "short_label": "Law 4.1",
+          "title": "Functional Realization",
+          "doc_anchor": "law-4--functional-and-game-dynamics"
+        },
+        {
+          "id": "law4_2",
+          "short_label": "Law 4.2",
+          "title": "Pathology-Driven Spectral Conditioning",
+          "doc_anchor": "law-4--functional-and-game-dynamics"
+        },
+        {
+          "id": "law4_3",
+          "short_label": "Law 4.3",
+          "title": "Displacement & Kreiss Control",
+          "doc_anchor": "law-4--functional-and-game-dynamics"
+        },
+        {
+          "id": "law4_4",
+          "short_label": "Law 4.4",
+          "title": "Trajectory Scale vs. Settling",
+          "doc_anchor": "law-4--functional-and-game-dynamics"
+        },
+        {
+          "id": "law4_5",
+          "short_label": "Law 4.5",
+          "title": "Coupled Minimax Contraction",
+          "doc_anchor": "law-4--functional-and-game-dynamics"
+        }
+      ]
+    },
+    {
+      "id": "law5",
+      "short_label": "Law 5",
+      "title": "Observation & Statistical-Metric Identifiability",
+      "domain_level": "Observation & Statistical-Metric Identifiability",
+      "question": "Is the target probability measure identifiable through the observation channel and statistical metric from finite batches?",
+      "doc_anchor": "law-5--observation--statistical-metric-identifiability",
+      "status": "provisional",
+      "sub_laws": [
+        {
+          "id": "law5a",
+          "short_label": "Law 5A",
+          "title": "Partial & Corrupted Observation Injectivity",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
+        },
+        {
+          "id": "law5b",
+          "short_label": "Law 5B",
+          "title": "Intrinsic & Feature-Space Metric Geometry",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
+        },
+        {
+          "id": "law5c",
+          "short_label": "Law 5C",
+          "title": "Conditional Fiber Deconfounding (Unifies Law 3B)",
+          "doc_anchor": "law-5--observation--statistical-metric-identifiability"
+        }
+      ]
+    }
+  ]
+}

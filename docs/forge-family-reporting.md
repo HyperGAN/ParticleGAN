@@ -47,6 +47,50 @@ Each current or historical linked family has one file in
   with `path`, descriptive `alt`, and `caption`. The generator places it beside
   the overview and records its file hash. Explain the conceptual mechanism;
   identify conceptual images as illustrations rather than measured results.
+- Optional `law_mechanisms`: a mapping keyed by top-level law IDs declared in
+  `configs/forge/laws.json` (never hardcoded in renderers). Each entry has
+  `status` (`"addressed"`, `"partial"`, `"unaddressed"`, or `"not_applicable"`),
+  `mechanism`, `how_it_works`, and `known_limits`. State honestly when a family
+  does not address a law and explain the resulting failure modes and audited
+  defects.
+- Optional `mermaid_diagram`: Mermaid diagram source (without Markdown code
+  fences) illustrating the family's update loop or architecture flow.
+- Optional `quickstart`: an object with `preset` (a public `get_recipe` preset
+  name) and `snippet` (a list of copy-pasteable Python code lines without fences).
+
+## Evolving laws registry
+
+`configs/forge/laws.json` (validated by `experiments/forge/laws_registry.py`
+during `python -m experiments.forge validate`) is the single data-driven source
+of truth for ParticleGAN's provisional, evolving learning-laws taxonomy. Laws
+are scientific working hypotheses subject to revision, splitting, merging, or
+replacement as new evidence emerges; renderers and validators always read law
+definitions dynamically from `configs/forge/laws.json`.
+
+## Generated page layout
+
+- **Leaderboard (`reports/forge/technique-inventory.md`)**: opens with a quick
+  navigation bar (GitHub Pages portal, Hugging Face Space, laws framework / hub,
+  experiment catalog when present, unresolved problems, and full matrix) and a
+  GitHub `> [!IMPORTANT]` screening and calibration scope alert, followed by
+  `## Selected recipes`, `## Full-suite results — failures included`,
+  `## Executive scorecard` (distinct outcomes, tier summaries, separate `r256`
+  speed when measured for that exact candidate, and screening status),
+  `## How families address the current laws` (dynamically built from
+  `configs/forge/laws.json` + `law_mechanisms`), stretch/held disclosures,
+  DCGAN scaling performance, research rows, tag directory, and refresh notes.
+- **Family pages (`reports/forge/families/*.md`)**: open with quick navigation,
+  `## Executive summary` (and optional `### Quickstart`), `## Technique overview`
+  (plus optional illustration), `## How <Family> addresses the current laws`,
+  `## Update loop diagram` (`mermaid`), `## Mathematical formulation`,
+  `## Simplified pseudocode`, `## Training details`,
+  `## Configuration differences`, implementation sources, scaling performance,
+  per-cohort tables (with verbose per-view assignment and per-experiment
+  metric/criteria blocks wrapped in `<details>` while keeping every
+  `<a name="..."></a>` anchor directly reachable outside `<details>`),
+  historical diagnostics, refresh notes, and `## References` last.
+  All editorial fields remain `qualification_input = false` and never modify
+  scientific receipts or grades.
 
 For example, add these optional fields to an existing description (JSON needs
 doubled backslashes for LaTeX commands):

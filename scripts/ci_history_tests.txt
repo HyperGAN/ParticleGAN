@@ -28,8 +28,10 @@ tests/test_recipe_prior_task_migration.py
 tests/test_routed_generator_batch_identity.py
 tests/test_tier1_batch_size.py
 
-# Only these tests in test_refresh_forge_readouts.py read ancestor Git commits/blobs;
-# the rest stay split across all shards.
+# Only these tests in test_refresh_forge_readouts.py and test_experiment_docs.py
+# read ancestor Git commits/blobs; the rest stay split across all shards.
+tests/test_experiment_docs.py::test_all_base_tasks_preserve_fingerprints_and_bytes_vs_develop
 tests/test_refresh_forge_readouts.py::test_current_source_tier1_readouts_ignores_non_tier1_records_and_invalidates_cache_on_task_change
 tests/test_refresh_forge_readouts.py::test_clean_cpu_ci_and_non_a6000_hosts_match_committed_readouts_and_invalidate_task_edits
 tests/test_refresh_forge_readouts.py::test_live_repository_forge_readouts_are_current_and_source_clean
+tests/test_refresh_forge_readouts.py::test_republish_registered_inventory_end_to_end_recovers_missing_and_unverified_inventory

@@ -8,7 +8,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from experiments.forge.contracts import atomic_json, file_hash, read_json, stable_hash
+from experiments.forge.contracts import atomic_json, clone_json, file_hash, read_json, stable_hash
 from experiments.forge import tier1_publication as publication
 from experiments.forge.scoped_publications import REGISTRY, clock_audit_summary, load_publications
 from experiments.forge.family_reports import build_progress, generated_pages
@@ -20,106 +20,130 @@ COMMIT = "a" * 40
 DIGEST = "b" * 64
 
 
-@pytest.fixture
-def packet(tmp_path):
-    shutil.copytree(ROOT / "configs/forge", tmp_path / "configs/forge")
+def _link_or_copy(src, dst):
+    shutil.copy2(src, dst)
+
+
+@pytest.fixture(scope="module")
+def _packet_template(tmp_path_factory):
+    base = tmp_path_factory.mktemp("tier1-packet-template")
+    shutil.copytree(ROOT / "configs/forge", base / "configs/forge", copy_function=_link_or_copy)
     # Publication renders validated implementation links. Keep the fixture's
     # local documentation sources available without changing their contracts.
-    for card in (tmp_path / "configs/forge/family-documentation").glob("*.json"):
+    for card in (base / "configs/forge/family-documentation").glob("*.json"):
         documentation = read_json(card)
         sources = documentation.get("sources", [])
         if "illustration" in documentation:
             sources = [*sources, documentation["illustration"]["path"]]
         for source in sources:
             if "://" not in source:
-                destination = tmp_path / source
+                destination = base / source
                 destination.parent.mkdir(parents=True, exist_ok=True)
-                shutil.copyfile(ROOT / source, destination)
+                if not destination.exists():
+                    _link_or_copy(ROOT / source, destination)
     from tests.archived_forge_contracts import restore_archived_contracts
-    restore_archived_contracts(tmp_path, "tier1_completion")
+    restore_archived_contracts(base, "tier1_completion")
     # The executed eleven-family registry predates maintained family prose and
     # tag declarations. Do not combine it with later editorial contracts.
-    shutil.rmtree(tmp_path / "configs/forge/family-documentation")
+    shutil.rmtree(base / "configs/forge/family-documentation")
     # This fixture represents the concluded eleven-family round. Later family
     # registrations must not silently expand its immutable scientific roster.
-    frozen = read_json(tmp_path / publication.ROUND)
+    frozen = read_json(base / publication.ROUND)
     frozen_families = {row["family"] for row in frozen["candidate_roster"]}
     assert len(frozen_families) == len(frozen["candidate_roster"]) == 11
-    registry_path = tmp_path / "configs/forge/trainer-families.json"
+    registry_path = base / "configs/forge/trainer-families.json"
     registry = read_json(registry_path)
     registry["families"] = [family for family in registry["families"] if family["id"] in frozen_families]
     assert {family["id"] for family in registry["families"]} == frozen_families
     atomic_json(registry_path, registry)
-    choices = read_json(tmp_path / CURRENT_SELECTION)
+    choices = read_json(base / CURRENT_SELECTION)
     choices["selections"] = [pin for pin in choices["selections"] if pin["trainer_family"] in frozen_families]
     assert {pin["trainer_family"] for pin in choices["selections"]} == frozen_families
-    atomic_json(tmp_path / CURRENT_SELECTION, choices)
-    path = tmp_path / "configs/forge/views/discriminator_stability.json"
+    atomic_json(base / CURRENT_SELECTION, choices)
+    path = base / "configs/forge/views/discriminator_stability.json"
     main = read_json(path)
     if not any(row["task"] == "clockfree_audit_measurement_v1" for row in main["assignments"]):
         main["revision"] += 1
         main["assignments"].append({"task": "clockfree_audit_measurement_v1", "qualification_tier": 1,
                                     "importance": "diagnostic", "order": 100})
         atomic_json(path, main)
-    tasks = load_tasks(tmp_path)
-    main_rows, policy_rows, roster, results, catalog = [], [], [], [], {}
-    for pin in choices["selections"]:
-        family, candidate = pin["trainer_family"], pin["candidate_id"]
-        policy = family in publication.POLICY_FAMILIES
-        view = load_view(tmp_path, publication.POLICY_VIEW if policy else publication.MAIN_VIEW)
-        names = sorted(a["task"] for a in view["assignments"] if a["qualification_tier"] == 1)
-        roster.append({"family": family, "candidate_id": candidate, "view": view["id"], "task_ids": names,
-                       "measurement_tasks": [] if policy else ["clockfree_audit_measurement_v1"]})
-        def row_for(selected_view, scoped=False):
-            bindings = {}
-            statuses = []
-            for a in selected_view["assignments"]:
-                name = a["task"]
-                task = tasks[name]
-                contract = {"execution_sha256": task_execution_fingerprint(task),
-                            "evaluation_sha256": task_evaluation_fingerprint(task),
-                            "timeout_seconds": task["resources"]["timeout_seconds"],
-                            "prior": task["execution"]["prior"], "sampling": task["evaluation"]}
-                digest = stable_hash(contract)
-                catalog[digest] = contract
-                bindings[name] = digest
-                if scoped:
-                    status = "BLOCKED" if name.startswith(("unused_token_hold", "ae_gan_hold", "five_word")) else "FAIL"
-                else:
-                    status = "BLOCKED" if policy else "FAIL" if a["qualification_tier"] == 1 else "UNKNOWN"
-                statuses.append({"task_id": name, "status": status, "role": a["importance"]})
-            return {"candidate_id": candidate, "candidate_revision": stable_hash(candidate), "cohort": stable_hash(names),
-                    "runtime_cohort": {"execution_backend": "cuda", "runtime": {"python": "fixture-runtime"},
-                                       "compute_profiles": {"cuda": {"model": "fixture-gpu", "threads": 1}}}, "qualified_tier": 0,
-                    "status": "INCOMPLETE" if scoped else "BLOCKED" if policy else "FAIL",
-                    "attempt_ids": [family + "-policy-final"] if scoped else [] if policy else [family + "-final"],
-                    "bindings": {"source_digest": DIGEST, "task_contracts": bindings},
-                    "tasks": [{k: v for k, v in row.items() if k != "role"} for row in statuses if row["role"] == "required"],
-                    "nonrequired_tasks": [{k: v for k, v in row.items() if k != "role"} for row in statuses if row["role"] != "required"],
-                    "tiers": {"1": {"passed": 0, "total": sum(a["importance"] == "required" and a["qualification_tier"] == 1 for a in selected_view["assignments"])}}}
-        main_row = row_for(main)
-        main_rows.append(main_row)
-        row = row_for(view, scoped=True) if policy else main_row
-        if policy:
-            policy_rows.append(row)
-        grades = {t["task_id"]: t["status"] for t in row["tasks"] + row["nonrequired_tasks"]}
-        results.append({"family": family, "candidate_id": candidate, "source": DIGEST, "source_commit": COMMIT,
-                        "view": view["id"], "tasks": [{"task_id": name, "status": grades[name],
-                            "attempt_id": row["attempt_ids"][0] if grades[name] in {"PASS", "FAIL"} else None,
-                            "canonical_result_hash": stable_hash(family), "compatibility_key": stable_hash((family, name))}
-                            for name in names]})
-    def report(view, rows):
-        return {"view": view["id"], "policy_fingerprint": stable_hash(view), "publication_scope": "frozen_source",
-                "frozen_source": {"commit": COMMIT}, "rows": rows, "task_contracts": catalog,
-                "provenance": {"input_digest": "fixture-only"}}
-    packet = (tmp_path, {"id": "tier1-completion-v1", "candidate_roster": roster},
-              {"round": "tier1-completion-v1", "candidates": results},
-              report(main, main_rows), report(load_view(tmp_path, publication.POLICY_VIEW), policy_rows))
-    # Synthetic rows need their own exact private pins; archived real evidence
-    # must never be presented as the identity of these mocked measurements.
-    card, _, _, _, _ = publication.prepare_selection(*packet)
-    atomic_json(tmp_path / CURRENT_SELECTION, card)
-    return packet
+    from experiments.forge.planning import resolution_cache
+    with resolution_cache(base):
+        tasks = load_tasks(base)
+        main_rows, policy_rows, roster, results, catalog = [], [], [], [], {}
+        for pin in choices["selections"]:
+            family, candidate = pin["trainer_family"], pin["candidate_id"]
+            policy = family in publication.POLICY_FAMILIES
+            view = load_view(base, publication.POLICY_VIEW if policy else publication.MAIN_VIEW)
+            names = sorted(a["task"] for a in view["assignments"] if a["qualification_tier"] == 1)
+            roster.append({"family": family, "candidate_id": candidate, "view": view["id"], "task_ids": names,
+                           "measurement_tasks": [] if policy else ["clockfree_audit_measurement_v1"]})
+
+            def row_for(selected_view, scoped=False):
+                bindings = {}
+                statuses = []
+                for a in selected_view["assignments"]:
+                    name = a["task"]
+                    task = tasks[name]
+                    contract = {"execution_sha256": task_execution_fingerprint(task),
+                                "evaluation_sha256": task_evaluation_fingerprint(task),
+                                "timeout_seconds": task["resources"]["timeout_seconds"],
+                                "prior": task["execution"]["prior"], "sampling": task["evaluation"]}
+                    digest = stable_hash(contract)
+                    catalog[digest] = contract
+                    bindings[name] = digest
+                    if scoped:
+                        status = "BLOCKED" if name.startswith(("unused_token_hold", "ae_gan_hold", "five_word")) else "FAIL"
+                    else:
+                        status = "BLOCKED" if policy else "FAIL" if a["qualification_tier"] == 1 else "UNKNOWN"
+                    statuses.append({"task_id": name, "status": status, "role": a["importance"]})
+                return {"candidate_id": candidate, "candidate_revision": stable_hash(candidate), "cohort": stable_hash(names),
+                        "runtime_cohort": {"execution_backend": "cuda", "runtime": {"python": "fixture-runtime"},
+                                           "compute_profiles": {"cuda": {"model": "fixture-gpu", "threads": 1}}}, "qualified_tier": 0,
+                        "status": "INCOMPLETE" if scoped else "BLOCKED" if policy else "FAIL",
+                        "attempt_ids": [family + "-policy-final"] if scoped else [] if policy else [family + "-final"],
+                        "bindings": {"source_digest": DIGEST, "task_contracts": bindings},
+                        "tasks": [{k: v for k, v in row.items() if k != "role"} for row in statuses if row["role"] == "required"],
+                        "nonrequired_tasks": [{k: v for k, v in row.items() if k != "role"} for row in statuses if row["role"] != "required"],
+                        "tiers": {"1": {"passed": 0, "total": sum(a["importance"] == "required" and a["qualification_tier"] == 1 for a in selected_view["assignments"])}}}
+            main_row = row_for(main)
+            main_rows.append(main_row)
+            row = row_for(view, scoped=True) if policy else main_row
+            if policy:
+                policy_rows.append(row)
+            grades = {t["task_id"]: t["status"] for t in row["tasks"] + row["nonrequired_tasks"]}
+            results.append({"family": family, "candidate_id": candidate, "source": DIGEST, "source_commit": COMMIT,
+                            "view": view["id"], "tasks": [{"task_id": name, "status": grades[name],
+                                "attempt_id": row["attempt_ids"][0] if grades[name] in {"PASS", "FAIL"} else None,
+                                "canonical_result_hash": stable_hash(family), "compatibility_key": stable_hash((family, name))}
+                                for name in names]})
+
+        def report(view, rows):
+            return {"view": view["id"], "policy_fingerprint": stable_hash(view), "publication_scope": "frozen_source",
+                    "frozen_source": {"commit": COMMIT}, "rows": rows, "task_contracts": catalog,
+                    "provenance": {"input_digest": "fixture-only"}}
+        definition = {"id": "tier1-completion-v1", "candidate_roster": roster}
+        results_doc = {"round": "tier1-completion-v1", "candidates": results}
+        main_rep = report(main, main_rows)
+        scoped_rep = report(load_view(base, publication.POLICY_VIEW), policy_rows)
+        # Synthetic rows need their own exact private pins; archived real evidence
+        # must never be presented as the identity of these mocked measurements.
+        card, _, _, _, _ = publication.prepare_selection(base, definition, results_doc, main_rep, scoped_rep)
+        atomic_json(base / CURRENT_SELECTION, card)
+    return base, definition, results_doc, main_rep, scoped_rep
+
+
+@pytest.fixture
+def packet(tmp_path, _packet_template):
+    base, definition, results_doc, main_rep, scoped_rep = _packet_template
+    shutil.copytree(base, tmp_path, dirs_exist_ok=True, copy_function=_link_or_copy)
+    return (
+        tmp_path,
+        clone_json(definition),
+        clone_json(results_doc),
+        clone_json(main_rep),
+        clone_json(scoped_rep),
+    )
 
 
 def select(packet):

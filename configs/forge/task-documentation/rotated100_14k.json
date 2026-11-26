@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "rotated100_14k",
+  "title": "100-Mode Rotated Grid 14k Continuation",
+  "laws": [
+    "law1",
+    "law4_4",
+    "law4_5"
+  ],
+  "edge_cases": [
+    "100-modes",
+    "non-axis-aligned",
+    "checkpoint-continuation"
+  ],
+  "intuition": "Extends a passing 7,000-step `rotated100` checkpoint to 14,000 updates while preserving prefix parity and full 100-mode accuracy on the untouched holdout.",
+  "failure_mode": "Late-horizon drift or variance collapse drops rotated modes or pushes precision below threshold.",
+  "protocol_notes": "Strict checkpoint continuation of `rotated100`.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

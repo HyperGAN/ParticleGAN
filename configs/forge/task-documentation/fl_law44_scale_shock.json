@@ -1,0 +1,18 @@
+{
+  "schema_version": 1,
+  "task_id": "fl_law44_scale_shock",
+  "title": "Law 4.4 Probe v2: Standalone 1e-5x / 1e4x Scale Shock & 45-Deg Rotation Recovery",
+  "laws": [
+    "law4_4"
+  ],
+  "edge_cases": [
+    "scale-shock-1e4x",
+    "extreme-scale-1e-5x",
+    "non-stationary-rotation"
+  ],
+  "intuition": "Standalone Law 4.4 scale-equivariance and shock-recovery probe (retiring v1's broken compound R^512 10%-masked probe): runs a 1e-5x-scaled 4-mode 2D GAN hit by a transient 1e4x scale spike and 45-degree rotation at step 300 with >= 500 recovery steps.",
+  "failure_mode": "Absolute step floors freeze at 1e-5x data scale, while slow-decaying EMA denominators lock up permanently after the step-300 1e4x transient spike.",
+  "protocol_notes": "Four Laws Adherence v2 diagnostic probe (1,000 updates, shock_step=300, >=500 post-shock recovery steps).",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

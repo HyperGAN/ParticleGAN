@@ -553,13 +553,17 @@ def test_leaderboard_clicks_resolve_to_family_tiers_including_empty_tiers(report
 def test_committed_pages_and_every_drilldown_link_match_the_generator(tmp_path):
     # This is the current generated-artifact guard. Archived clock/selection
     # questions below deliberately use their original published task cards.
+    from experiments.forge.planning import resolution_cache
+    from experiments.forge.views import diagnostic_pass_cache
+
     root = Path(__file__).resolve().parents[1]
     publication = read_json(root / "reports/forge/technique-inventory.json")
-    assert publication["family_progress"] == build_progress(root, publication)
-    pages = generated_pages(root, publication)
-    overview = root / "reports/forge/technique-inventory.md"
-    from reports.forge.regenerate_technique_inventory import _current_markdown
-    pages[overview] = _current_markdown(publication, root, overview)
+    with resolution_cache(root), diagnostic_pass_cache(root):
+        assert publication["family_progress"] == build_progress(root, publication)
+        pages = generated_pages(root, publication)
+        overview = root / "reports/forge/technique-inventory.md"
+        from reports.forge.regenerate_technique_inventory import _current_markdown
+        pages[overview] = _current_markdown(publication, root, overview)
     linked_text_cache = {}
     for page, text in pages.items():
         assert page.read_text() == text
@@ -1100,7 +1104,7 @@ def test_real_selected_bispf_headline_keeps_all_eleven_failures_after_restoring_
     counts = full_suite_outcomes(cohort, full_suite_tasks(progress))
     # New model-mode research keeps its own source; it cannot fill eight new
     # cells in the previously selected whole recipe's ordinary evidence.
-    assert counts == {"passed": 18, "failed": 11, "other": {"UNKNOWN": 40}, "total": 69}
+    assert counts == {"passed": 18, "failed": 11, "other": {"UNKNOWN": 42}, "total": 71}
     definitions = json.loads((root / "reports/forge/problem-definitions.json").read_text())
     described = {item["task"] for item in definitions["problems"]}
     held = {a["task"] for view in progress["views"] for a in view["assignments"]

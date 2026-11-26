@@ -64,12 +64,12 @@ RUNNABLE_T4_TASKS = [
 
 
 def test_default_recipe_and_frozen_criteria_preserved():
-    assert particlegan.DEFAULT_RECIPE == "unified_v12"
-    assert particlegan.get_recipe().name == "unified_v12"
+    assert particlegan.DEFAULT_RECIPE == "axiom"
+    assert particlegan.get_recipe().name == "axiom"
     criteria_path = ROOT / "configs/forge/calibration/criteria-v1.json"
     assert file_hash(criteria_path) == CRITERIA_SHA256
     ds = load_view(ROOT, "discriminator_stability")
-    assert ds["revision"] == 19
+    assert ds["revision"] == 20
     assert ds["calibration"]["status"] == "provisional"
     cf = load_view(ROOT, "clockfree_continuous")
     assert cf["revision"] == 5

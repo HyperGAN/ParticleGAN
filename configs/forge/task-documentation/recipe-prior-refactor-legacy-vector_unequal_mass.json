@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "recipe-prior-refactor-legacy-vector_unequal_mass",
+  "title": "Unequal-Mass 4-Corner Mixture (2% Rare Mode) (Legacy Prior Cohort)",
+  "laws": [
+    "law1",
+    "law3a"
+  ],
+  "edge_cases": [
+    "rare-mode",
+    "unequal-mass",
+    "disconnected-support",
+    "legacy-prior-cohort"
+  ],
+  "intuition": "Historical pre-refactor comparison cohort of `vector_unequal_mass` retained under its original prior ownership contract so legacy baselines stay strictly separated from `recipe_owned_v1` tasks. Four corner Gaussians with highly skewed weights [55%, 30%, 13%, 2%]. Tests whether the trainer preserves both the exact share (min_mass_ratio >= 0.25, mass_tv <= 0.15) and local covariance of a rare 2% cluster.",
+  "failure_mode": "Rare clusters receive sparse minibatch signal and get either absorbed into major modes, over-equalized (destroying mass_tv), or flattened into degenerate 1D lines.",
+  "protocol_notes": "Retained legacy diagnostic cohort for `vector_unequal_mass` before the recipe-owned prior refactor; cannot substitute for current ordinary qualification cells.",
+  "diagram_kind": "gaussian_mixture_2d",
+  "custom_mermaid": null
+}

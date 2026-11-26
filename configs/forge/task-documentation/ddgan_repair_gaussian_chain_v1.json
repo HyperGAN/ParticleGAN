@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "ddgan_repair_gaussian_chain_v1",
+  "title": "DDGAN Conditional Repair Diagnostic (Gaussian Chain)",
+  "laws": [
+    "law3b",
+    "law2"
+  ],
+  "edge_cases": [
+    "conditional-chain",
+    "tight-conditional-gates",
+    "diagnostic-repair"
+  ],
+  "intuition": "GPU0 research diagnostic of `model_ddgan_gaussian_chain` with tightened conditional slice thresholds (t1_q0_projection_cdf <= 0.12) used to isolate Law 3B conditional fiber repairs.",
+  "failure_mode": "Conditional stratum bias that passes loose thresholds is exposed immediately by the tighter 0.12 CDF gate.",
+  "protocol_notes": "Explicitly scoped diagnostic task; confers no ordinary qualification credit.",
+  "diagram_kind": "ddgan_chain",
+  "custom_mermaid": null
+}

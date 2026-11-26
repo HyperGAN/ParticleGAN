@@ -36,5 +36,31 @@
     "loss": "The card explicitly declares loss=non_saturating. Original host-owned GAN and auxiliary objectives remain bound to their saved task/source contracts.",
     "noise": "Keep the original task-owned priors and isolated constructor/data/train/evaluation streams. This documentation adds no noise, draws or new data.",
     "optimizer": "The card declares DualNorm, smoothing 0.001 and per-offset convolution. The SVD backend is the original frozen effective recipe; omitted settings are read from the original resolved recipe, never today's preset."
+  },
+  "law_mechanisms": {
+    "law1": {
+      "status": "unaddressed",
+      "mechanism": "No adaptive multimodal prototype atlas or pullback regularizer",
+      "how_it_works": "Retains the task-declared prior with sampled-row DualNorm steps only.",
+      "known_limits": "Separated multimodal supports still suffer continuous-pushforward bridging and uneven mass shares."
+    },
+    "law2": {
+      "status": "partial",
+      "mechanism": "Fixed BCAP real/fake one-sided squared L2 cap (lambda=1, kappa=1, RoR)",
+      "how_it_works": "Applies BCAP's fixed one-sided squared L2 input-gradient cap (`lambda=1, kappa=1`) via exact RoR.",
+      "known_limits": "Zero interior curvature (`mu_D = 0`) below `kappa=1`, no zero-mean logit gauge, and high exact-RoR cost."
+    },
+    "law3": {
+      "status": "unaddressed",
+      "mechanism": "Scalar non-saturating adversarial critic loss only",
+      "how_it_works": "No optimal-transport horizon, orphan macro-transport, or conditional fiber operator bank.",
+      "known_limits": "Cannot identify multi-scale widths, beyond-horizon orphans, or sparse-stratum conditional variance."
+    },
+    "law4": {
+      "status": "partial",
+      "mechanism": "Zero-momentum DualNorm polar updates (historical research configuration)",
+      "how_it_works": "Uses smoothed DualNorm polar orthogonalization (`smoothing=0.001`) and per-offset convolution updates at constant rates.",
+      "known_limits": "Historical archived configuration lacking realized pushforward secant trust (4.1/4.3), dynamic-1e-38 scale/settling (4.4), and `mu_D > 0` rotational dissipation (4.5)."
+    }
   }
 }

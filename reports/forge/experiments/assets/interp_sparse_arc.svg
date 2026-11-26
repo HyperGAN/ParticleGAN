@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="320" viewBox="0 0 640 320" role="img" aria-label="Sparse 12-Particle 270-Degree Arc Interpolation">
+<title>Sparse 12-Particle 270-Degree Arc Interpolation — Target &amp; Protocol Schematic · not training output</title>
+<style>text{font-family:system-ui,-apple-system,sans-serif}</style>
+<defs>
+<marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#334155"/></marker>
+<marker id="arrow-rose" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#e11d48"/></marker>
+<marker id="arrow-blue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#2563eb"/></marker>
+<marker id="arrow-teal" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 1.5L10 5 0 8.5z" fill="#0d9488"/></marker>
+</defs>
+<rect x="1" y="1" width="638" height="318" rx="10" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.2"/>
+<text x="18.0" y="25.0" font-size="14" fill="#0f172a" font-weight="700">Sparse 12-Particle 270-Degree Arc Interpolation</text>
+<text x="18.0" y="41.0" font-size="10" fill="#475569">270-degree circular arc (R=2.0, sigma=0.03) with 12 zero-sigma particles</text>
+<rect x="388" y="10" width="236" height="22" rx="11" fill="#fef3c7" stroke="#f59e0b" stroke-width="1"/>
+<text x="506.0" y="25.0" font-size="9" fill="#92400e" font-weight="600" text-anchor="middle">Target &amp; Protocol Schematic · not training output</text>
+<rect x="18.0" y="54.0" width="386.0" height="248.0" rx="6" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<line x1="114.5" y1="54.0" x2="114.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="116.0" x2="404.0" y2="116.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="307.5" y1="54.0" x2="307.5" y2="302.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="240.0" x2="404.0" y2="240.0" stroke="#eef2f7" stroke-width="1"/>
+<line x1="18.0" y1="178.0" x2="404.0" y2="178.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<line x1="211.0" y1="54.0" x2="211.0" y2="302.0" stroke="#94a3b8" stroke-width="0.9" stroke-dasharray="3,3"/>
+<text x="211.0" y="298.0" font-size="9" fill="#64748b" text-anchor="middle">x1</text>
+<text x="24.0" y="67.0" font-size="9" fill="#64748b">x2</text>
+<polyline points="273.3,240.3 277.3,236.0 281.0,231.5 284.4,226.7 287.4,221.8 290.2,216.6 292.5,211.3 294.6,205.8 296.2,200.2 297.5,194.5 298.4,188.7 298.9,182.9 299.1,177.0 298.8,171.2 298.2,165.4 297.1,159.6 295.7,154.0 293.9,148.4 291.8,143.0 289.3,137.7 286.4,132.6 283.3,127.7 279.8,123.0 276.0,118.5 271.9,114.4 267.5,110.5 262.9,106.9 258.1,103.6 253.1,100.6 247.8,98.0 242.4,95.7 236.9,93.8 231.3,92.3 225.5,91.1 219.8,90.4 213.9,90.0 208.1,90.0 202.2,90.4 196.5,91.1 190.7,92.3 185.1,93.8 179.6,95.7 174.2,98.0 168.9,100.6 163.9,103.6 159.1,106.9 154.5,110.5 150.1,114.4 146.0,118.5 142.2,123.0 138.7,127.7 135.6,132.6 132.7,137.7 130.2,143.0 128.1,148.4 126.3,154.0 124.9,159.6 123.8,165.4 123.2,171.2 122.9,177.0 123.1,182.9 123.6,188.7 124.5,194.5 125.8,200.2 127.4,205.8 129.5,211.3 131.8,216.6 134.6,221.8 137.6,226.7 141.0,231.5 144.7,236.0 148.7,240.3" fill="none" stroke="#2563eb" stroke-width="10" stroke-opacity="0.18" stroke-linecap="round"/>
+<polyline points="273.3,240.3 277.3,236.0 281.0,231.5 284.4,226.7 287.4,221.8 290.2,216.6 292.5,211.3 294.6,205.8 296.2,200.2 297.5,194.5 298.4,188.7 298.9,182.9 299.1,177.0 298.8,171.2 298.2,165.4 297.1,159.6 295.7,154.0 293.9,148.4 291.8,143.0 289.3,137.7 286.4,132.6 283.3,127.7 279.8,123.0 276.0,118.5 271.9,114.4 267.5,110.5 262.9,106.9 258.1,103.6 253.1,100.6 247.8,98.0 242.4,95.7 236.9,93.8 231.3,92.3 225.5,91.1 219.8,90.4 213.9,90.0 208.1,90.0 202.2,90.4 196.5,91.1 190.7,92.3 185.1,93.8 179.6,95.7 174.2,98.0 168.9,100.6 163.9,103.6 159.1,106.9 154.5,110.5 150.1,114.4 146.0,118.5 142.2,123.0 138.7,127.7 135.6,132.6 132.7,137.7 130.2,143.0 128.1,148.4 126.3,154.0 124.9,159.6 123.8,165.4 123.2,171.2 122.9,177.0 123.1,182.9 123.6,188.7 124.5,194.5 125.8,200.2 127.4,205.8 129.5,211.3 131.8,216.6 134.6,221.8 137.6,226.7 141.0,231.5 144.7,236.0 148.7,240.3" fill="none" stroke="#2563eb" stroke-width="2.2" stroke-linecap="round"/>
+<line x1="273.3" y1="240.3" x2="293.5" y2="208.8" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="283.4" cy="224.5" r="3.0" fill="#e11d48"/>
+<line x1="293.5" y1="208.8" x2="298.8" y2="171.7" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="296.2" cy="190.2" r="3.0" fill="#e11d48"/>
+<line x1="298.8" y1="171.7" x2="288.3" y2="135.8" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="293.6" cy="153.8" r="3.0" fill="#e11d48"/>
+<line x1="288.3" y1="135.8" x2="263.8" y2="107.5" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="276.0" cy="121.6" r="3.0" fill="#e11d48"/>
+<line x1="263.8" y1="107.5" x2="229.7" y2="91.9" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="246.7" cy="99.7" r="3.0" fill="#e11d48"/>
+<line x1="229.7" y1="91.9" x2="192.3" y2="91.9" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="211.0" cy="91.9" r="3.0" fill="#e11d48"/>
+<line x1="192.3" y1="91.9" x2="158.2" y2="107.5" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="175.3" cy="99.7" r="3.0" fill="#e11d48"/>
+<line x1="158.2" y1="107.5" x2="133.7" y2="135.8" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="146.0" cy="121.6" r="3.0" fill="#e11d48"/>
+<line x1="133.7" y1="135.8" x2="123.2" y2="171.7" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="128.4" cy="153.8" r="3.0" fill="#e11d48"/>
+<line x1="123.2" y1="171.7" x2="128.5" y2="208.8" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="125.8" cy="190.2" r="3.0" fill="#e11d48"/>
+<line x1="128.5" y1="208.8" x2="148.7" y2="240.3" stroke="#d97706" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="138.6" cy="224.5" r="3.0" fill="#e11d48"/>
+<circle cx="273.3" cy="240.3" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="293.5" cy="208.8" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="298.8" cy="171.7" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="288.3" cy="135.8" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="263.8" cy="107.5" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="229.7" cy="91.9" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="192.3" cy="91.9" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="158.2" cy="107.5" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="133.7" cy="135.8" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="123.2" cy="171.7" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="128.5" cy="208.8" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<circle cx="148.7" cy="240.3" r="4.2" fill="#2563eb" stroke="#ffffff" stroke-width="1.2"/>
+<text x="28.0" y="288.0" font-size="9" fill="#475569">Blue: 12 learned particles · Amber: unseen k-NN chords · Rose: midpoints</text>
+<rect x="416" y="54" width="208" height="248" rx="8" fill="#ffffff" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="74.0" font-size="11" fill="#0f172a" font-weight="700">Protocol Spec</text>
+<line x1="428" y1="81" x2="612" y2="81" stroke="#e2e8f0" stroke-width="1"/>
+<text x="428.0" y="98.0" font-size="9" fill="#64748b" font-weight="600">Task ID</text>
+<text x="428.0" y="110.0" font-size="10" fill="#0f172a">interp_sparse_arc</text>
+<text x="428.0" y="121.0" font-size="9" fill="#64748b" font-weight="600">Laws Targeted</text>
+<text x="428.0" y="133.0" font-size="10" fill="#0f172a">law1</text>
+<text x="428.0" y="144.0" font-size="9" fill="#64748b" font-weight="600">Prior</text>
+<text x="428.0" y="156.0" font-size="10" fill="#0f172a">particle_cloud (sigma=0.0)</text>
+<text x="428.0" y="167.0" font-size="9" fill="#64748b" font-weight="600">Budget / Batch</text>
+<text x="428.0" y="179.0" font-size="10" fill="#0f172a">900 steps · B=128</text>
+<text x="428.0" y="190.0" font-size="9" fill="#64748b" font-weight="600">Latent</text>
+<text x="428.0" y="202.0" font-size="10" fill="#0f172a">P=16 · z_dim=2</text>
+<text x="428.0" y="213.0" font-size="9" fill="#64748b" font-weight="600">Eval Law</text>
+<text x="428.0" y="225.0" font-size="10" fill="#0f172a">clean</text>
+<text x="428.0" y="236.0" font-size="9" fill="#64748b" font-weight="600">Adapter</text>
+<text x="428.0" y="248.0" font-size="10" fill="#0f172a">particle_interpolation</text>
+</svg>

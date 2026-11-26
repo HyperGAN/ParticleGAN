@@ -116,3 +116,68 @@ def test_committed_ci_history_test_list_references_existing_tests():
         assert target.is_file(), f"missing pinned history test file: {file_part}"
         if sep:
             assert f"def {func_part}(" in target.read_text(), f"missing pinned test function: {entry}"
+
+
+def test_parallel_workers_and_exclusive_pin_shards_execute_exact_once_and_propagate_failures(tmp_path):
+    marker = tmp_path / "executed_parallel.jsonl"
+    (tmp_path / "test_hist.py").write_text('''import json, os
+from pathlib import Path
+def test_hist_1(request):
+    with Path(os.environ["CI_SHARD_EXECUTED"]).open("a") as stream:
+        stream.write(json.dumps(request.node.nodeid) + "\\n")
+def test_hist_2(request):
+    with Path(os.environ["CI_SHARD_EXECUTED"]).open("a") as stream:
+        stream.write(json.dumps(request.node.nodeid) + "\\n")
+''')
+    for name in ("alpha", "beta", "gamma", "delta"):
+        (tmp_path / f"test_{name}.py").write_text('''import json, os
+from pathlib import Path
+import pytest
+@pytest.mark.parametrize("v", [0, 1])
+def test_item(v, request):
+    with Path(os.environ["CI_SHARD_EXECUTED"]).open("a") as stream:
+        stream.write(json.dumps(request.node.nodeid) + "\\n")
+    assert v >= 0
+''')
+    pin_file = tmp_path / "pins.txt"
+    pin_file.write_text("test_hist.py\n")
+
+    receipts = []
+    for index in range(4):
+        receipt = tmp_path / f"par-receipt-{index}.json"
+        result = subprocess.run([
+            sys.executable, str(RUNNER), "run", "--index", str(index),
+            "--count", "4", "--workers", "2", "--exclusive-pin-shards",
+            "--split-file", "test_alpha.py",
+            "--pin-list", f"3={pin_file}",
+            "--receipt", str(receipt),
+            "--", "-q", str(tmp_path),
+        ], cwd=tmp_path, env={**os.environ, "CI_SHARD_EXECUTED": str(marker)},
+            capture_output=True, text=True, timeout=60)
+        assert result.returncode == 0, result.stdout + result.stderr
+        receipts.append(receipt)
+
+    spec = importlib.util.spec_from_file_location("ci_shard_runner_par", RUNNER)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    module.check_receipts(receipts)
+
+    # Shard 3 is exclusively pinned: only test_hist.py runs on shard 3.
+    shard3 = set(json.loads(receipts[3].read_text())["selected_nodeids"])
+    assert shard3 == {"test_hist.py::test_hist_1", "test_hist.py::test_hist_2"}
+    executed = [json.loads(line) for line in marker.read_text().splitlines()]
+    assert len(executed) == len(set(executed)) == 10
+
+    # Failure inside one parallel worker propagates non-zero exit code.
+    fail_dir = tmp_path / "fail_case"
+    fail_dir.mkdir()
+    (fail_dir / "test_ok.py").write_text("def test_ok(): pass\n")
+    (fail_dir / "test_bad.py").write_text("def test_bad(): assert False\n")
+    fail_res = subprocess.run([
+        sys.executable, str(RUNNER), "run", "--index", "0",
+        "--count", "1", "--workers", "2",
+        "--receipt", str(tmp_path / "fail-receipt.json"),
+        "--", "-q", str(fail_dir),
+    ], cwd=fail_dir, capture_output=True, text=True, timeout=60)
+    assert fail_res.returncode == 1
+    assert "1 failed" in fail_res.stdout

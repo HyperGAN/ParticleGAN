@@ -56,8 +56,9 @@ def _build_1d_gaussian_setup(device: torch.device, seed: int = 42):
 # Suite 1: Empirical Distribution Shift Detection (1,000 steps & abrupt shifts)
 # ==============================================================================
 
-def test_empirical_loss_surprise_stationary_1000_steps_zero_false_positives():
-    """Verify LossSurprise produces exactly 0 fires and z << 3.5 over 1,000 stationary steps."""
+@pytest.fixture(scope="module")
+def _stationary_1000_step_checkpoint():
+    """Run the deterministic 50-warmup + 1,000-stationary-step setup once for reuse."""
     device = get_device()
     trainer, data_gen = _build_1d_gaussian_setup(device, seed=42)
 
@@ -70,42 +71,62 @@ def test_empirical_loss_surprise_stationary_1000_steps_zero_false_positives():
     trainer.policy.loss_surprise = LossSurprise()
     ls = trainer.policy.loss_surprise
 
-    # 2. 1,000 stationary steps: assert zero false positives and z << 3.5
+    # 2. 1,000 stationary steps: record per-step fire/z diagnostics and checkpoint final state
     max_z = -1e9
     min_z = 1e9
+    first_fire_step = None
+    first_fire_z = None
     for step in range(1000):
         real = (2.0 + 0.5 * torch.randn(128, 1, generator=data_gen)).to(device)
         trainer.step(real)
-        assert ls.fires == 0, f"False positive fire at step {step}: fires={ls.fires}, z={ls.last_z:.4f}"
+        if ls.fires > 0 and first_fire_step is None:
+            first_fire_step = step
+            first_fire_z = ls.last_z
         max_z = max(max_z, ls.last_z)
         min_z = min(min_z, ls.last_z)
 
-    assert ls.fires == 0, f"Expected 0 fires over 1,000 stationary steps, got {ls.fires}"
-    assert max_z < LossSurprise.Z_CALM, f"Max stationary z-score unexpectedly high: {max_z:.4f} (expected < {LossSurprise.Z_CALM})"
-    assert max_z < LossSurprise.Z_THRESH, f"Stationary z-score exceeded threshold: {max_z:.4f}"
-    assert ls.armed is True, "LossSurprise should remain armed at equilibrium"
-    assert ls.calm is not None, "Calm baseline was not established"
-    assert ls.var_calm >= LossSurprise.MIN_VAR, f"Variance clamped below floor: {ls.var_calm}"
+    return {
+        "device": device,
+        "trainer_state": deepcopy(trainer.state_dict()),
+        "data_gen_state": data_gen.get_state().clone(),
+        "fires": ls.fires,
+        "max_z": max_z,
+        "min_z": min_z,
+        "first_fire_step": first_fire_step,
+        "first_fire_z": first_fire_z,
+        "armed": ls.armed,
+        "calm": ls.calm,
+        "var_calm": ls.var_calm,
+    }
+
+
+def test_empirical_loss_surprise_stationary_1000_steps_zero_false_positives(_stationary_1000_step_checkpoint):
+    """Verify LossSurprise produces exactly 0 fires and z << 3.5 over 1,000 stationary steps."""
+    ckpt = _stationary_1000_step_checkpoint
+    assert ckpt["first_fire_step"] is None, (
+        f"False positive fire at step {ckpt['first_fire_step']}: fires={ckpt['fires']}, z={ckpt['first_fire_z']:.4f}"
+    )
+    assert ckpt["fires"] == 0, f"Expected 0 fires over 1,000 stationary steps, got {ckpt['fires']}"
+    assert ckpt["max_z"] < LossSurprise.Z_CALM, (
+        f"Max stationary z-score unexpectedly high: {ckpt['max_z']:.4f} (expected < {LossSurprise.Z_CALM})"
+    )
+    assert ckpt["max_z"] < LossSurprise.Z_THRESH, f"Stationary z-score exceeded threshold: {ckpt['max_z']:.4f}"
+    assert ckpt["armed"] is True, "LossSurprise should remain armed at equilibrium"
+    assert ckpt["calm"] is not None, "Calm baseline was not established"
+    assert ckpt["var_calm"] >= LossSurprise.MIN_VAR, f"Variance clamped below floor: {ckpt['var_calm']}"
 
 
 @pytest.mark.parametrize("shift_magnitude", [3.0, 1.0])
-def test_empirical_loss_surprise_fires_on_abrupt_shift_within_2_to_3_steps(shift_magnitude: float):
+def test_empirical_loss_surprise_fires_on_abrupt_shift_within_2_to_3_steps(
+    shift_magnitude: float, _stationary_1000_step_checkpoint
+):
     """Verify LossSurprise fires within 2-3 steps of an abrupt shift (+3.0 or +1.0) with confirmed streak=2."""
-    device = get_device()
+    ckpt = _stationary_1000_step_checkpoint
+    device = ckpt["device"]
     trainer, data_gen = _build_1d_gaussian_setup(device, seed=42)
-
-    # 1. Warmup and establish stationary equilibrium
-    for _ in range(50):
-        real = (2.0 + 0.5 * torch.randn(128, 1, generator=data_gen)).to(device)
-        trainer.step(real)
-
-    trainer.policy.loss_surprise = LossSurprise()
+    trainer.load_state_dict(deepcopy(ckpt["trainer_state"]))
+    data_gen.set_state(ckpt["data_gen_state"].clone())
     ls = trainer.policy.loss_surprise
-
-    # 2. Run 1,000 stationary steps: confirms 0 fires and allows var_calm to reach MIN_VAR floor
-    for _ in range(1000):
-        real = (2.0 + 0.5 * torch.randn(128, 1, generator=data_gen)).to(device)
-        trainer.step(real)
 
     assert ls.fires == 0
     assert ls.armed is True

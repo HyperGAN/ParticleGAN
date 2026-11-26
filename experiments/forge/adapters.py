@@ -13,6 +13,7 @@ import json
 import math
 from pathlib import Path
 import shutil
+import sys
 import time
 
 import numpy as np
@@ -24,7 +25,7 @@ from .api import (CapabilityError, task_formulation_context, task_recipe_resourc
                   task_policy_blockers)
 from .artifacts import manifest_artifacts, save_provenance_checkpoint, verify_artifacts
 from .contracts import atomic_json, file_hash, read_json, stable_hash
-from .energy import EnergyMonitor, extract_pass_steps
+from .energy import EnergyMonitor, active_energy_monitor, extract_pass_steps
 from .initialization import task_initializer
 from .mechanisms import MechanismAudit, mechanism_blockers
 from .priors import task_prior
@@ -34,7 +35,72 @@ from .telemetry import PhaseTimer, normalize_adapter_costs
 from .taskrecipes import bind_task_candidate
 
 
+def _record_active_energy_checkpoint(step) -> None:
+    """Observer-only hook recording cumulative NVML Joules at a scheduled eval step."""
+    if isinstance(step, int) and not isinstance(step, bool) and step >= 0:
+        mon = active_energy_monitor()
+        if mon is not None:
+            mon.record_checkpoint(step)
+
+
+class _CheckpointObservingStream:
+    """Transparent stdout pass-through capturing observation step checkpoints for NVML telemetry.
+
+    Strictly observer-only: never modifies bytes written to stdout, RNG streams,
+    model weights, or optimizer state. Enables cumulative checkpoint Joules on
+    pinned legacy adapters (e.g. ``behavior_adapters``, ``api_run``) without
+    modifying their source bytes.
+    """
+
+    def __init__(self, wrapped, monitor: EnergyMonitor) -> None:
+        self._wrapped = wrapped
+        self._monitor = monitor
+        self._buf = ""
+
+    def _inspect_line(self, line: str) -> None:
+        text = line.strip()
+        if not text or not (text.startswith("{") and text.endswith("}")):
+            return
+        if '"step"' not in text:
+            return
+        try:
+            obj = json.loads(text)
+        except Exception:
+            return
+        if not isinstance(obj, dict):
+            return
+        step = obj.get("step")
+        if not isinstance(step, int) or isinstance(step, bool) or step < 0:
+            return
+        if obj.get("event") == "observation" or "metric_passed" in obj:
+            self._monitor.record_checkpoint(step)
+
+    def write(self, data: str):
+        written = self._wrapped.write(data)
+        if isinstance(data, str) and data:
+            self._buf += data
+            while "\n" in self._buf:
+                line, self._buf = self._buf.split("\n", 1)
+                self._inspect_line(line)
+        return written
+
+    def writelines(self, lines):
+        for chunk in lines:
+            self.write(chunk)
+
+    def flush(self):
+        if self._buf:
+            self._inspect_line(self._buf)
+            self._buf = ""
+        return self._wrapped.flush()
+
+    def __getattr__(self, name: str):
+        return getattr(self._wrapped, name)
+
+
 def _event(event, **values):
+    if event == "observation":
+        _record_active_energy_checkpoint(values.get("step"))
     print(json.dumps({"event": event, **values}, sort_keys=True, allow_nan=False), flush=True)
 
 
@@ -45,26 +111,167 @@ def _context(request, task, device, resources):
     return task_formulation_context(request["candidate"], task, request.get("protocol"), device=device)
 
 
-def adapter_preflight(task, candidate, *, root=None):
-    """Report unsupported task/host bindings before reserving training compute."""
+_TASK_VALIDATE_CACHE: dict[tuple, tuple[bool, str | None]] = {}
+_TASK_VALIDATE_CACHE_LIMIT = 512
+_ORIG_ADAPTER_FUNCS: dict[str, tuple] = {}
+
+
+def _cached_task_validate(adapter_key: str, validate_fn, oracle_fn, task: dict, *, root=None, allow_prefix: bool = False) -> str | None:
+    """Memoize pure task-level contract + oracle-control checks across candidates."""
+    sources_sig = None
+    if root is not None and adapter_key in {"bytegan", "bytegan_bigan"}:
+        root_path = Path(root)
+        sources_sig = tuple(
+            (rel, file_hash(root_path / rel) if (root_path / rel).is_file() else None)
+            for rel in sorted(task.get("evaluation", {}).get("sources", {}))
+        )
+    cache_key = (
+        adapter_key,
+        id(validate_fn),
+        id(oracle_fn),
+        allow_prefix,
+        stable_hash(task),
+        sources_sig,
+    )
+    cached = _TASK_VALIDATE_CACHE.get(cache_key)
+    if cached is not None:
+        ok, err = cached
+        return None if ok else err
     try:
-        task_prior(task)
-        task_initializer(task, candidate)
-        candidate = bind_task_candidate(candidate, task)
-    except ValueError as error:
+        validate_fn(task, root=root, allow_software_prefix=allow_prefix)
+    except (ValueError, KeyError, TypeError, OSError) as error:
+        res = (False, str(error))
+    else:
+        res = (True, None)
+    if len(_TASK_VALIDATE_CACHE) >= _TASK_VALIDATE_CACHE_LIMIT:
+        _TASK_VALIDATE_CACHE.clear()
+    _TASK_VALIDATE_CACHE[cache_key] = res
+    return None if res[0] else res[1]
+
+
+def _fast_context_preflight(
+    adapter_key: str,
+    mod,
+    oracle_fn,
+    task: dict,
+    candidate: dict,
+    *,
+    root=None,
+    context=None,
+    check_context,
+) -> list[str]:
+    orig = _ORIG_ADAPTER_FUNCS.get(adapter_key)
+    if orig is None:
+        orig = (mod.preflight, mod.validate_task)
+        _ORIG_ADAPTER_FUNCS[adapter_key] = orig
+    if mod.preflight is not orig[0] or mod.validate_task is not orig[1]:
+        return mod.preflight(task, candidate, root=root)
+    allow_prefix = str(task.get("id", "")).endswith("-software-prefix")
+    err = _cached_task_validate(adapter_key, mod.validate_task, oracle_fn, task, root=root, allow_prefix=allow_prefix)
+    if err is not None:
+        return [err]
+    try:
+        ctx = context if context is not None else task_formulation_context(
+            candidate, task, {"seed": 0}, device="cpu", root=root
+        )
+        check_context(ctx)
+    except CapabilityError as error:
+        return list(error.blockers)
+    except (ValueError, KeyError, TypeError, OSError) as error:
         return [str(error)]
+    return []
+
+
+def adapter_preflight(task, candidate, *, root=None, _context=None):
+    """Report unsupported task/host bindings before reserving training compute."""
+    if _context is None:
+        try:
+            task_prior(task)
+            task_initializer(task, candidate)
+            candidate = bind_task_candidate(candidate, task)
+        except ValueError as error:
+            return [str(error)]
+    else:
+        try:
+            candidate = bind_task_candidate(candidate, task)
+        except ValueError as error:
+            return [str(error)]
     adapter = task["adapter"]
     if adapter == "public_api_model_toy":
         from .model_toy_adapter import preflight
         return preflight(task, candidate, root=root)
-    if adapter == "particle_interpolation":
-        from .interpolation import preflight
+    if adapter == "public_api_model_toy_v2":
+        from .model_toy_v2_adapter import preflight
         return preflight(task, candidate, root=root)
+    if adapter == "particle_interpolation":
+        from . import interpolation as _interp_mod
+        from benchmarks.toy_audit import api_interpolation as _api_interp
+
+        def _check_interp(ctx):
+            if ctx.initializer != "deterministic_orthogonal":
+                raise CapabilityError(["particle interpolation requires named deterministic_orthogonal initialization"])
+            if ctx.recipe.prior_code_law != "table":
+                raise CapabilityError(["particle interpolation requires Recipe.prior_code_law == 'table'"])
+            if ctx.prior_config.get("kind") != "particle_cloud" or float(ctx.prior_config.get("sigma", -1.0)) != 0.0:
+                raise CapabilityError(["particle interpolation requires an effective zero-sigma ParticlePrior"])
+
+        return _fast_context_preflight(
+            adapter, _interp_mod, _api_interp.interpolation_oracle_controls,
+            task, candidate, root=root, context=_context, check_context=_check_interp,
+        )
     if adapter == "t3_isolation":
         from .t3_isolation import preflight
         return preflight(task, candidate, root=root)
     if adapter == "imbalance_nash":
-        from .imbalance_nash import preflight
+        from . import imbalance_nash as _nash_mod
+        from benchmarks.toy_audit import api_imbalance_nash as _api_nash
+
+        def _check_nash(ctx):
+            if ctx.initializer != "deterministic_orthogonal":
+                raise CapabilityError(["imbalance_nash requires named deterministic_orthogonal initialization"])
+            if ctx.recipe.prior_code_law != "table":
+                raise CapabilityError(["imbalance_nash requires Recipe.prior_code_law == 'table'"])
+            if ctx.prior_config.get("kind") != "mog":
+                raise CapabilityError(["imbalance_nash requires an effective MoGParticlePrior"])
+
+        return _fast_context_preflight(
+            adapter, _nash_mod, _api_nash.imbalance_nash_oracle_controls,
+            task, candidate, root=root, context=_context, check_context=_check_nash,
+        )
+    if adapter in {"bytegan", "bytegan_bigan"}:
+        from . import bytegan as _bytegan_mod
+        from benchmarks.toy_audit import api_bytegan as _api_bytegan
+        from .priors import prior_noise_sigma
+
+        def _check_bytegan(ctx):
+            if ctx.initializer != "deterministic_orthogonal":
+                raise CapabilityError(["bytegan requires named deterministic_orthogonal initialization"])
+            if ctx.recipe.prior_code_law != "table":
+                raise CapabilityError(["bytegan requires Recipe.prior_code_law == 'table'"])
+            if (
+                ctx.prior_config.get("kind") != "particle_cloud"
+                or float(ctx.prior_config.get("sigma", -1.0)) != 0.0
+                or prior_noise_sigma(ctx.prior_config) != 0.0
+            ):
+                raise CapabilityError(["bytegan requires an effective zero-sigma ParticlePrior"])
+            if adapter == "bytegan_bigan":
+                if (
+                    ctx.recipe.model != "gan"
+                    or ctx.recipe.conditioning != "scalar"
+                    or ctx.recipe.encoder_mode != "none"
+                    or ctx.recipe.row_policy != "independent"
+                ):
+                    raise CapabilityError([
+                        "bytegan_bigan binds its own encoder and joint adversarial objective; "
+                        "requires model='gan', conditioning='scalar', encoder_mode='none', row_policy='independent'"
+                    ])
+
+        return _fast_context_preflight(
+            adapter, _bytegan_mod, _api_bytegan.bytegan_oracle_controls,
+            task, candidate, root=root, context=_context, check_context=_check_bytegan,
+        )
+    if adapter == "four_laws":
+        from .four_laws import preflight
         return preflight(task, candidate, root=root)
     from .tier1_policy import is_policy_task
     if is_policy_task(task):
@@ -159,12 +366,13 @@ def adapter_preflight(task, candidate, *, root=None):
         if recipe and "lr_floor" in recipe:
             blockers.extend(source_audit(recipe, candidate.get("extensions", {}))["unexplained_clock_dependencies"])
     # Planning, preflight and execution share the exact public binding path.
-    try:
-        task_formulation_context(candidate, task, device="cpu", root=root)
-    except CapabilityError as error:
-        blockers.extend(error.blockers)
-    except ValueError as error:
-        blockers.append(str(error))
+    if _context is None:
+        try:
+            task_formulation_context(candidate, task, device="cpu", root=root)
+        except CapabilityError as error:
+            blockers.extend(error.blockers)
+        except ValueError as error:
+            blockers.append(str(error))
     return blockers
 
 
@@ -415,6 +623,7 @@ class _Run:
             if not pure:
                 raise RuntimeError("selected-policy observation changed public training state")
         self.finite = self.finite and _finite_tree(result)
+        _record_active_energy_checkpoint(self.trainer.completed_steps)
         return result
 
     def sample(self, n, *, ema=False):
@@ -854,6 +1063,9 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
     if adapter == "public_api_model_toy":
         from .model_toy_adapter import run
         return run(request, task, output_dir, device)
+    if adapter == "public_api_model_toy_v2":
+        from .model_toy_v2_adapter import run
+        return run(request, task, output_dir, device)
     if adapter == "particle_interpolation":
         from .interpolation import run
         return run(request, task, output_dir, device)
@@ -862,6 +1074,12 @@ def _dispatch_task(request: dict, job: dict, output_dir: Path, device: str) -> d
         return run(request, task, output_dir, device)
     if adapter == "imbalance_nash":
         from .imbalance_nash import run
+        return run(request, task, output_dir, device)
+    if adapter in {"bytegan", "bytegan_bigan"}:
+        from .bytegan import run
+        return run(request, task, output_dir, device)
+    if adapter == "four_laws":
+        from .four_laws import run
         return run(request, task, output_dir, device)
     from .tier1_policy import blocked_host, is_policy_task
     if blocked_host(task) is not None:
@@ -934,8 +1152,11 @@ def _attach_energy_summary(
     def _attach_member(member: dict, member_task: dict | None) -> dict | None:
         if not isinstance(member, dict):
             return None
+        from .energy import extract_completed_steps
         cost = member.setdefault("cost", {})
-        completed_steps = cost.get("completed_steps", cost.get("completed_updates"))
+        completed_steps = extract_completed_steps(member)
+        if completed_steps is not None and cost.get("completed_steps") is None:
+            cost["completed_steps"] = completed_steps
         fp_step, sp_step = extract_pass_steps(member_task, member)
         summary = monitor.summary(
             completed_steps,
@@ -965,9 +1186,18 @@ def _attach_energy_summary(
 def run_task(request: dict, job: dict, output_dir: Path, device: str) -> dict:
     monitor = EnergyMonitor.for_device(device)
     monitor.start()
+    prev_stdout = sys.stdout
+    if monitor.available:
+        sys.stdout = _CheckpointObservingStream(prev_stdout, monitor)
     try:
         raw = _dispatch_task(request, job, output_dir, device)
     finally:
+        if sys.stdout is not prev_stdout:
+            try:
+                sys.stdout.flush()
+            except Exception:
+                pass
+            sys.stdout = prev_stdout
         if isinstance(device, str) and device.startswith("cuda") and torch.cuda.is_available():
             try:
                 torch.cuda.synchronize(torch.device(device))

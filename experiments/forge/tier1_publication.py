@@ -49,7 +49,13 @@ def _one_row(report, candidate, source_digest):
 
 def prepare_selection(root, definition, results, main_report, scoped_report):
     """Require complete clean measurements; never turn measured FAIL into PASS."""
+    from .planning import resolution_cache
     root = Path(root)
+    with resolution_cache(root):
+        return _prepare_selection_inner(root, definition, results, main_report, scoped_report)
+
+
+def _prepare_selection_inner(root, definition, results, main_report, scoped_report):
     families = load_families(root)
     declarations = load_tasks(root)
     roster = {row["family"]: row for row in definition["candidate_roster"]}
