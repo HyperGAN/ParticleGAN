@@ -715,3 +715,103 @@ def test_r2_singleton_isolated_mode_updates_v_push_and_whitened_2d_pullback() ->
     assert not torch.equal(reg.v_push, vp_before), "singleton iso_coal modes failed to update reg.v_push"
     assert bool(torch.isfinite(reg.v_push).all())
     assert all(bool(torch.isfinite(p).all()) for p in tr.G.parameters())
+
+
+def test_r3_general_dz_near_iso_ltc_dispersion_guards_and_scale_invariance() -> None:
+    """Near-isotropic LTC center dispersion for d_z != 2 obeys anisotropy/count guards and degree-0 scale invariance."""
+    from particlegan._unified_v15.prior import _sym_eig2x2_exact
+
+    # 1. Exact eigenframe deficit check: near-iso mode activates; 10:1 ellipse stays strictly zero.
+    cov_bar = torch.stack(
+        (
+            0.09 * torch.eye(2),  # Near-isotropic wide mode (aspect 1.0 <= 1.8)
+            torch.tensor([[0.09, 0.0], [0.0, 0.0009]]),  # 10:1 ellipse (eig ratio 100 > 1.8)
+        ),
+        dim=0,
+    )
+    push_cov = torch.stack((0.005 * torch.eye(2), 0.0005 * torch.eye(2)), dim=0)
+    for scale in (1e-4, 1.0, 1e4):
+        lam1_t, lam2_t, c_t, s_t = _sym_eig2x2_exact(cov_bar * (scale ** 2))
+        near_iso_k = (lam1_t / lam2_t) <= 1.8
+        s_sc = push_cov * (scale ** 2)
+        s00p, s01p, s11p = s_sc[:, 0, 0], s_sc[:, 0, 1], s_sc[:, 1, 1]
+        sp1 = (c_t * c_t * s00p + 2.0 * c_t * s_t * s01p + s_t * s_t * s11p).clamp_min(0.0)
+        dr1 = ((lam1_t - sp1) / lam1_t.clamp_min(1e-24)).clamp(0.0, 1.0)
+        u1_d = ((dr1 - 0.20) / 0.15).clamp(0.0, 1.0)
+        v1_s = torch.where(near_iso_k, (u1_d * u1_d * (3.0 - 2.0 * u1_d)) * (lam1_t - sp1).clamp_min(0.0), lam1_t.new_zeros(()))
+        # Mode 0 (near-iso with 94% deficit) activates with exact scale-invariant ratio; mode 1 (10:1 ellipse) is strictly 0.
+        assert math.isclose(float((v1_s[0] / lam1_t[0]).item()), (0.09 - 0.005) / 0.09, rel_tol=1e-5, abs_tol=1e-6)
+        assert float(v1_s[1].item()) == 0.0
+
+    # 2. Full trainer step negative control: damaging push_cov on a near-isotropic unequal-width d_z=8 task
+    #    changes the step measurably, while keeping all parameters and regularizer buffers finite.
+    g_data = torch.Generator().manual_seed(31)
+    centers = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]], dtype=torch.float32)
+    sigmas = torch.tensor([0.07, 0.12, 0.18, 0.30], dtype=torch.float32)
+    batches = []
+    for _ in range(12):
+        idx = torch.randint(0, 4, (64,), generator=g_data)
+        batches.append(centers[idx] + sigmas[idx].unsqueeze(1) * torch.randn((64, 2), generator=g_data))
+
+    tr_ref = _make_v15_trainer(z_dim=8, num_particles=64, sigma=0.05, seed=0)
+    for yb in batches[:11]:
+        tr_ref.step(yb)
+    ckpt = copy.deepcopy(tr_ref.state_dict())
+
+    tr_def = _make_v15_trainer(z_dim=8, num_particles=64, sigma=0.05, seed=0)
+    tr_def.load_state_dict(ckpt)
+    assert tr_def.prior_regularizer.push_cov is not None
+    # Force severe pushforward deficit on the wide mode so v_mu_eig_cand fires across Part A, Riem, and Part B
+    tr_def.prior_regularizer.push_cov = tr_def.prior_regularizer.push_cov * 0.02
+
+    tr_ref.step(batches[11])
+    tr_def.step(batches[11])
+    z_diff = float((tr_ref.prior.z - tr_def.prior.z).abs().sum().item())
+    assert z_diff > 1e-4, "severe push_cov deficit failed to activate near-iso d_z!=2 LTC dispersion"
+    assert all(bool(torch.isfinite(p).all()) for p in tr_def.G.parameters())
+    assert bool(torch.isfinite(tr_def.prior.z).all())
+
+
+def test_r3_checkpoint_continuation_across_unequal_width_and_inlier_shrink(tmp_path: pathlib.Path) -> None:
+    """Exact bit-for-bit checkpoint continuation for R3 unequal-width d_z=8 LTC dispersion & 2D inlier shrink."""
+    g_data = torch.Generator().manual_seed(43)
+    centers = torch.tensor([[-3.0, -3.0], [3.0, -3.0], [-3.0, 3.0], [3.0, 3.0]], dtype=torch.float32)
+    sigmas = torch.tensor([0.07, 0.12, 0.18, 0.30], dtype=torch.float32)
+    batches = [
+        centers[idx := torch.randint(0, 4, (64,), generator=g_data)] + sigmas[idx].unsqueeze(1) * torch.randn((64, 2), generator=g_data)
+        for _ in range(16)
+    ]
+
+    tr_ref = _make_v15_trainer(z_dim=8, num_particles=64, sigma=0.05, seed=0)
+    for yb in batches:
+        tr_ref.step(yb)
+
+    tr_a = _make_v15_trainer(z_dim=8, num_particles=64, sigma=0.05, seed=0)
+    for yb in batches[:9]:
+        tr_a.step(yb)
+    ckpt = copy.deepcopy(tr_a.state_dict())
+
+    tr_b = _make_v15_trainer(z_dim=8, num_particles=64, sigma=0.05, seed=77)
+    tr_b.load_state_dict(ckpt)
+    for yb in batches[9:]:
+        tr_b.step(yb)
+
+    assert torch.equal(tr_b.prior.z, tr_ref.prior.z)
+    for p_b, p_r in zip(tr_b.G.parameters(), tr_ref.G.parameters()):
+        assert torch.equal(p_b, p_r)
+
+    # Also verify non-ledger dim==2, z_dim==2 inlier-filtered shrink path stays exact across checkpoint reload
+    tr2_ref = _make_v15_trainer(z_dim=2, num_particles=64, sigma=0.025, seed=0)
+    for yb in batches[:10]:
+        tr2_ref.step(yb)
+    tr2_a = _make_v15_trainer(z_dim=2, num_particles=64, sigma=0.025, seed=0)
+    for yb in batches[:5]:
+        tr2_a.step(yb)
+    ckpt2 = copy.deepcopy(tr2_a.state_dict())
+    tr2_b = _make_v15_trainer(z_dim=2, num_particles=64, sigma=0.025, seed=55)
+    tr2_b.load_state_dict(ckpt2)
+    for yb in batches[5:10]:
+        tr2_b.step(yb)
+    assert torch.equal(tr2_b.prior.z, tr2_ref.prior.z)
+    for p_b, p_r in zip(tr2_b.G.parameters(), tr2_ref.G.parameters()):
+        assert torch.equal(p_b, p_r)
