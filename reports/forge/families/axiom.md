@@ -9,9 +9,9 @@
 | Field | Value |
 | --- | --- |
 | Selected candidate | `axiom-v4` |
-| Distinct full-suite outcomes | **39 PASS** · **6 FAIL** · 13 not measured (of 71 distinct tests; fixed list `technique-inventory-full-suite-2026-11-23`) |
+| Distinct full-suite outcomes | **39 PASS** · **6 FAIL** · 13 not measured (of 59 distinct tests; fixed list `technique-inventory-full-suite-2026-11-25`) |
 | Counted view requirements | Tier 1: 27/27 · Tier 2: 68/78 (2 not run) · Tier 3: 0/10 (10 not run) · Tier 4: 0/0 · Total: 95/115 (12 not run) |
-| DCGAN r256 speed | unknown |
+| DCGAN r256 speed | [34.86 ms/step](../records/readout-506977051c754e8f9694b117.json) |
 | Screening status | Screening Tier 1 (6 fails) |
 | Tags | [adversarial-training](../technique-inventory.md#tag-adversarial-training) · [capped-input-gradients](../technique-inventory.md#tag-capped-input-gradients) · [constant-learning-rate](../technique-inventory.md#tag-constant-learning-rate) · [critic-gradient-penalty](../technique-inventory.md#tag-critic-gradient-penalty) · [optimizer-interventions](../technique-inventory.md#tag-optimizer-interventions) · [selectable-loss](../technique-inventory.md#tag-selectable-loss) |
 
@@ -38,7 +38,7 @@ stats = trainer.step(torch.randn(recipe.batch_size, 2))
 
 ## Technique overview
 
-Axiom (`preset="axiom"`, pinned screening candidate `axiom-v4`, clean-slate `2,409` LOC across 7 modules with zero sibling legacy imports, zero `torch.linalg.svd`/`eigh`/`pinv`, zero `torch.compile`, zero new `Recipe` fields, and 100% clock-free execution) implements the revised provisional Four Laws of Adversarial Generative Learning (`docs/four-laws.md`) from first principles. It unites a mass-conserving GPU-resident Laguerre-Pythagorean prototype atlas with transitive-closure LTV coalescence and central-offset pullback covariance isometry (Law 1), compute-regime-dispatched exact RoR or Weyl-phase sub-batch `b_reg = max(2, B // 4)` interleaved R1+R2 `fwAD` with detached-EMA adaptive linear-in-`s_hat` scaling, `mu_D = 0.005` floor, and swap-invariant zero-mean gauge (Law 2), conformal `k=3` Voronoi local horizons, dead-zone-free orphan macro-transport, zero-eigh Pade-(1,1) Halley conditional fiber operator matching, and charts-first atomic bijection (Law 3), and IEEE-754 mantissa-exponent degree-0 normalization, deadband-free step-cosine / spectral-split FP32 Tikhonov NS with exact 4D `1x1` Conv2d == 2D Linear parity, 3-kernel contiguous `foreach` fast path, stratified p95 pushforward trust, and 1-sync closed-form 2x2 KKT `direction_blend` (Law 4). Screening calibration remains BLOCKED under `criteria-v1.json`, `DEFAULT_RECIPE = "unified_v12"` stays untouched, and all honest remaining numerical failures stay explicitly visible.
+Axiom (`preset="axiom"`, pinned screening candidate `axiom-v4`, clean-slate `2,409` LOC across 7 modules with zero sibling legacy imports, zero `torch.linalg.svd`/`eigh`/`pinv`, zero `torch.compile`, zero new `Recipe` fields, and 100% clock-free execution) implements the revised provisional Four Laws of Adversarial Generative Learning (`docs/four-laws.md`, now accompanied by provisional Law 5) from first principles. It unites a mass-conserving GPU-resident Laguerre-Pythagorean prototype atlas with transitive-closure LTV coalescence and central-offset pullback covariance isometry (Law 1), compute-regime-dispatched exact RoR or Weyl-phase sub-batch `b_reg = max(2, B // 4)` interleaved R1+R2 `fwAD` with detached-EMA adaptive linear-in-`s_hat` scaling, `mu_D = 0.005` floor, and swap-invariant zero-mean gauge (Law 2), conformal `k=3` Voronoi local horizons, dead-zone-free orphan macro-transport, zero-eigh Pade-(1,1) Halley conditional fiber operator matching, and charts-first atomic bijection (Law 3), and IEEE-754 mantissa-exponent degree-0 normalization, deadband-free step-cosine / spectral-split FP32 Tikhonov NS with exact 4D `1x1` Conv2d == 2D Linear parity, 3-kernel contiguous `foreach` fast path, stratified p95 pushforward trust, and 1-sync closed-form 2x2 KKT `direction_blend` (Law 4). Screening calibration remains BLOCKED under `criteria-v1.json`, `DEFAULT_RECIPE = "unified_v12"` stays untouched, and all honest remaining numerical failures stay explicitly visible.
 
 <a name="how-it-addresses-laws"></a>
 
@@ -54,6 +54,7 @@ This law taxonomy is a living scientific framework derived from current mathemat
 | [Law 2: Potential Geometry](../../../docs/four-laws.md) | ✅ Addressed | Compute-regime-dispatched exact RoR / Weyl-phase sub-batch fwAD R1+R2 + detached-EMA adaptive scaling + mu_D=0.005 floor + zero-mean gauge |
 | [Law 3: Transport Identifiability](../../../docs/four-laws.md) | ✅ Addressed | Conformal k=3 Voronoi horizons + dead-zone-free orphan macro-transport (3A) + zero-eigh Pade-(1,1) Halley conditional fiber operator bank (3B) |
 | [Law 4: Functional and Game Dynamics](../../../docs/four-laws.md) | ✅ Addressed | IEEE-754 mantissa-exponent degree-0 norm + deadband-free step-cosine & spectral-split Tikhonov NS with exact 4D 1x1 Conv2d parity + stratified p95 trust + 1-sync 2x2 KKT direction_blend |
+| [Law 5: Observation & Statistical-Metric Identifiability (provisional)](../../../docs/four-laws.md) | 🟡 Partial | Zero-eigh Pade-(1,1) Halley conditional fiber deconfounding (5C/3B); partial-observation injectivity (5A) and intrinsic feature-space transport (5B) not yet implemented |
 
 ### Law 1 — Representational Geometry (Addressed)
 
@@ -61,7 +62,7 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 - **Mechanism:** Mass-conserving Laguerre-Pythagorean prototype atlas + 4-step LTV coalescence + central-offset pullback isometry + charts-first atomic bijection
 - **How it works:** Implements a GPU-resident mass-conserving Laguerre quantizer (`sum(w_fake_ema) == 1` across teleportation), 4-step transitive-closure Pythagorean LTV coalescence (`cs <= 10.0`), unbiased `v_cprev` quantizer variance, prime-wrapping-free Box-Muller central-offset pullback covariance isometry (`D <= 64`), and charts-first GPU-vectorized atomic bijection (`particlegan/_axiom/prior.py`, `particlegan/_axiom/transport.py`). Delivers 2/2 ByteGAN PASS (`rms_bit_error=0.00471` on A6000, `2.77 kJ` / `3.67 kJ` J-to-PASS on L4 — 1.93x-3.88x lower energy than `unified-v13`/`v14`), 3/3 100-mode grids + 3/3 14k continuations (`18/18` Tier-3 holdout sweep), and 2.65x-3.0x better margin than `unified-v12..v14` on `fl_law1_noisy_atomic_codebook`.
-- **Known limits:** Still fails `img_blobs4` (2/4 modes), `vector_spiral` (`sw1=0.1263`), continuous manifold interpolation (`interp_img_patch_shift`, `interp_saddle_barycentric`, `interp_sparse_arc` sustained suffix), and the two Law-1 falsification probes (`fl_law1_aniso_unequal_modes`, `fl_law1_noisy_atomic_codebook`).
+- **Known limits:** Still fails `img_blobs4` (2/4 modes), `vector_spiral` (`sw1=0.1263`), continuous manifold interpolation (`interp_saddle_barycentric`, `interp_sparse_arc` sustained suffix; `interp_img_patch_shift` raw receipt `FAIL` was audited as a CUDA FP32 `0.99999994 < 1.0` scorer bug in `reports/axiom/axiom-v4-failure-analysis.md`), and the two Law-1 falsification probes (`fl_law1_aniso_unequal_modes` scalar-trace Law 1A gap, `fl_law1_noisy_atomic_codebook` binary-gate Law 1B gap).
 
 ### Law 2 — Potential Geometry (Addressed)
 
@@ -69,7 +70,7 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 - **Mechanism:** Compute-regime-dispatched exact RoR / Weyl-phase sub-batch fwAD R1+R2 + detached-EMA adaptive scaling + mu_D=0.005 floor + zero-mean gauge
 - **How it works:** Dispatches exact RoR on low-D MLPs, EmulatedLinear MXFP8/NVFP4, and fwAD-unsupported ops, and clock-free Weyl-phase sub-batch `b_reg = max(2, B // 4)` interleaved R1+R2 dense-Rademacher `fwAD` with `BN.eval()` dual-BF16 hooks on Conv2d/high-D (`particlegan/_axiom/critic.py`, `particlegan/_axiom/loss.py`), paired with detached-EMA adaptive linear-in-`s_hat` scaling (zero Jensen bias), `mu_D=0.005` floor, log-space clamped `ema_data_scale`, and swap-invariant zero-mean gauge. Passes `fl_law2_pure_adversarial_codim1` (`0.74 kJ` L4), 3/3 precision (`fp32`/`mxfp8`/`nvfp4`), and cuts idle A6000 `dcgan_performance_r256` to `34.86 ms/step`, `805.8 MiB`, `7.307 J/step` (-29.8% energy vs `unified-v14`).
-- **Known limits:** Fails `fl_law2_groupnorm_and_vit_sprites` (`-4.36` on L4) under GroupNorm + ViT attention critics.
+- **Known limits:** Fails `fl_law2_groupnorm_and_vit_sprites` (`-4.36` on L4) under GroupNorm + ViT attention critics, and `axiom-v4` enforces unscaled `||grad_x D||_2 <= kappa` rather than whitened-coordinate `s_data ||grad_x D||_2 <= kappa` (Law 2 x 4.4 amendment).
 
 ### Law 3 — Transport Identifiability (Addressed)
 
@@ -77,7 +78,7 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 - **Mechanism:** Conformal k=3 Voronoi horizons + dead-zone-free orphan macro-transport (3A) + zero-eigh Pade-(1,1) Halley conditional fiber operator bank (3B)
 - **How it works:** Law 3A couples `(1 - g_conn)`-gated valley-capped `k=3` Voronoi conformal horizons with dead-zone-free orphan macro-transport (`1.35 rho` onset) and `shock_mu_ratio=0.35` / `cvx_mu_gain=0.58` thermal calibration (`particlegan/_axiom/transport.py`), scoring repository-best `2/2` `t3_causal_isolation_stretch` (`core_min_eigen_ratio=0.5447`, `cov_err=0.2376`). Law 3B replaces `eigh` with analytic `2x2` + 7-step RMS-scaled Pade-(1,1) Halley `sym_eigensplit_zero_eigh` and 16-step coupled NS `_sym_inv_sqrt` plus detach-surviving `_capture_ring` lookup.
-- **Known limits:** Still fails `model_ddgan_gaussian_chain` and `model_ae_ddgan_gaussian_chain` (which gate the two bimodal DDGAN chains in `discriminator_stability`), and fails `fl_law3_highd_orphan_d32` (`-1.00` on L4).
+- **Known limits:** Still fails `model_ddgan_gaussian_chain` and `model_ae_ddgan_gaussian_chain` (which gate the two bimodal DDGAN chains in `discriminator_stability`), fails `fl_law3_highd_orphan_d32` (`-1.00` on L4 due to rank-8 single-sketch covariance bias), and skips ambient transport above `dim > 1024`.
 
 ### Law 4 — Functional and Game Dynamics (Addressed)
 
@@ -85,7 +86,15 @@ This law taxonomy is a living scientific framework derived from current mathemat
 
 - **Mechanism:** IEEE-754 mantissa-exponent degree-0 norm + deadband-free step-cosine & spectral-split Tikhonov NS with exact 4D 1x1 Conv2d parity + stratified p95 trust + 1-sync 2x2 KKT direction_blend
 - **How it works:** Normalizes updates via IEEE-754 mantissa-exponent degree-0 scaling, tracks outlier-robust Winsorized log-RMS scale + deadband-free step-cosine settling, applies role-agnostic bounded spectral-split FP32 Tikhonov NS (`min(sqrt(m), 2*sqrt(r_eff))`, zero permanent `s_eq` inside 2D NS) with exact 4D `1x1` ungrouped Conv2d == 2D Linear parity and 0 NS on healthy spatial Conv2d, fuses elementwise work into a 3-kernel contiguous `foreach` path, and enforces iterative stratified p95 pushforward trust plus 1-sync closed-form 2x2 KKT `direction_blend` (`particlegan/_axiom/optimizer.py`). Passes 3/3 `t4_imbalance_nash_stretch`, 5/5 `t3-shift-recovery-diagnostic-v1`, 9/9 Four-Laws adversarial stress controls, #1 lowest L4 J-to-PASS on `fl_law42_swap_deep_critic_16l` (`0.84 kJ`), #1 best L4 margin on `fl_law44_highd_sparse_prior_and_shock` (`-1.66`), and `fl_law42_deep_resbn_and_conv1x1` PASS on RTX A6000.
-- **Known limits:** Misses the 5-check sustained window on `fl_law42_deep_resbn_and_conv1x1` on NVIDIA L4 (`min_margin=+0.000`, first pass `2.09 kJ`), nearly passes `fl_law41_trust_rare1pct_tanh` (`-0.05` L4, first pass `1.61 kJ`), and fails `grid100_mlp16` (terminal pass, missed suffix), `grid100_res16_tanh` (`cov_trace_bias=-0.1184`), and `fl_law44_highd_sparse_prior_and_shock` (`-1.66`).
+- **Known limits:** Misses the 5-check sustained window on `fl_law42_deep_resbn_and_conv1x1` on NVIDIA L4 (`min_margin=+0.000`, first pass `2.09 kJ`), nearly passes `fl_law41_trust_rare1pct_tanh` (`-0.05` L4, first pass `1.61 kJ`; global `p95` backtracking throttles `_ema_func_gain`), and fails `grid100_mlp16` (terminal pass, missed suffix), `grid100_res16_tanh` (`cov_trace_bias=-0.1184`), and `fl_law44_highd_sparse_prior_and_shock` (`-1.66`).
+
+### Law 5 — Observation & Statistical-Metric Identifiability (Partial · provisional law)
+
+*Is the target probability measure identifiable through the observation channel and statistical metric from finite batches?*
+
+- **Mechanism:** Zero-eigh Pade-(1,1) Halley conditional fiber deconfounding (5C/3B); partial-observation injectivity (5A) and intrinsic feature-space transport (5B) not yet implemented
+- **How it works:** Partially addresses provisional Law 5 via its conditional fiber operator bank (Law 5C, unifying Law 3B) using analytic 2x2 and 7-step RMS-scaled Pade-(1,1) Halley operator matching plus a detach-surviving capture ring (`particlegan/_axiom/transport.py`, `particlegan/_axiom/loss.py`). Assumes complete uncorrupted Euclidean observations and disables transport above raw ambient `dim > 1024` rather than evaluating discrepancies in a mask-consistent or learned intrinsic feature geometry.
+- **Known limits:** Fails partial 10%-masked `R^512` observation recovery (`fl_law44_highd_sparse_prior_and_shock`, where unmasked finite-batch coupling faces independent-mask expected-L2^2 shrinkage `X* = p E[Y]` and `HighDRMSNormCritic` erases observation scale), skips transport on `32x32x3` RGB sprites (`fl_law2_groupnorm_and_vit_sprites`), and lacks public mask-aware MisGAN adapters for the 12 blocked Tier-4 placeholders.
 
 ## Update loop diagram
 
@@ -139,7 +148,7 @@ Achieves exact scale invariance across 1e-5x to 1e4x shocks without step clocks,
 Fix one unchanged global clock-free recipe (`preset="axiom"`, lr=0.014, d_lr_mult=1.5, prior_lr_mult=2.9, strictly constant learning rates).
 For each task-owned training update:
   Sample real batch x and latent z from the task prior P; compute detached fake batch y_det = stop_grad(G(z)) and push compact inputs into the detach-surviving capture ring (zero-alloc when dim > 4096).
-  Evaluate critic loss plus compute-regime-dispatched R1+R2 penalty (exact RoR on low-D/quantized MLPs; Weyl-phase b_reg=max(2,B//4) interleaved fwAD with BN.eval() dual-BF16 on Conv/high-D), detached-EMA linear-in-s_hat adaptive scaling, mu_D=0.005 slope floor, and zero-mean logit gauge.
+  Evaluate critic loss plus compute-regime-dispatched R1+R2 penalty (exact RoR on low-D/quantized MLPs; Weyl-phase b_reg=max(2,B//4) interleaved fwAD with BN.eval() dual-BF16 on Conv/high-D), detached-EMA adaptive linear-in-s_hat scaling, mu_D=0.005 slope floor, and zero-mean logit gauge.
   Step D via AxiomOptimizer (IEEE-754 mantissa-exponent degree-0 normalization, deadband-free step-cosine & spectral-split Tikhonov NS, exact 4D 1x1 Conv2d == 2D Linear parity, 0 NS on healthy spatial Conv2d).
   With D fixed, recompute differentiable y = G(z) and evaluate generator loss: conformal k=3 Voronoi Sinkhorn-debiased transport + dead-zone-free orphan macro-transport + zero-eigh Pade-(1,1) Halley conditional fiber operator bank (when conditioned) + charts-first atomic bijection ledger (when discrete-atomic) + mass-conserving Laguerre-Pythagorean prototype & central-offset pullback covariance isometry.
   Project conflicting protected objectives via 1-sync closed-form 2x2 KKT direction_blend and enforce stratified p95 realized generator pushforward trust.
@@ -165,7 +174,7 @@ For each task-owned training update:
 - Opt-in research/production family (`preset="axiom"`): keeps `DEFAULT_RECIPE = "unified_v12"` unchanged and carries `default_adoption: false`; Forge calibration acceptance remains BLOCKED under `configs/forge/calibration/criteria-v1.json`.
 - Headline RTX A6000 results (`reports/axiom/axiom-study.md`): 18/18 (100%) sweep on `r3-tier3-long-horizon-holdout-v1` (including all three 14k continuations), 34.86 ms/step & 805.8 MiB peak alloc (`7.307 J/step` matched idle NVML energy, -29.8% below `unified-v14` and 13.1x below `rhbi`) on `dcgan_performance_r256`, 2/2 `bytegan_stretch` (`rms_bit_error=0.00471`, 9.3x lower than `unified-v14`), 2/2 `t3_causal_isolation_stretch` (`core_min_eigen_ratio=0.5447`), 3/3 `t4_imbalance_nash_stretch`, 5/5 `t3-shift-recovery-diagnostic-v1`, 5/7 `t4-strange-architectures-v1`, and 9/9 Four-Laws adversarial stress controls.
 - Matched NVIDIA L4 diagnostic results (`four-laws-adherence-v1`, protocol seed 0): 2/2 ByteGAN PASS at repository-best J-to-PASS (`2.77 kJ` on `bytegan_hypercube8`, 1.93x lower than `unified-v13` and 2.58x lower than `unified-v14`; `3.67 kJ` on `bytegan_bigan_dictionary`, 2.92x lower than `unified-v13` and 3.88x lower than `unified-v14`), #1 lowest J-to-PASS on `fl_law42_swap_deep_critic_16l` (`0.84 kJ`), #1 lowest 9-probe NVML total energy across full 4-Law families (`26.84 kJ`), and #1 best margin on `fl_law44_highd_sparse_prior_and_shock` (`-1.66`).
-- Honest remaining numerical failures (`axiom-v5` targets): on `discriminator_stability`, fails `model_ddgan_gaussian_chain`, `model_ae_ddgan_gaussian_chain` (gating the two bimodal chains), `interp_img_patch_shift`, `interp_saddle_barycentric`, `interp_sparse_arc`, `vector_spiral`, and `img_blobs4`; on `t4-strange-architectures-v1`, fails `grid100_mlp16` and `grid100_res16_tanh`; on `four-laws-adherence-v1`, passes `fl_law42_deep_resbn_and_conv1x1` on RTX A6000 (`readout-9066cb43`) while hitting `min_margin=+0.000` (missed 5-check sustained window) on NVIDIA L4, and fails the other 6 `fl_law*` probes.
+- Honest remaining numerical failures (`axiom-v5` targets, audited in `reports/axiom/axiom-v4-failure-analysis.md`): on `discriminator_stability`, fails `model_ddgan_gaussian_chain`, `model_ae_ddgan_gaussian_chain` (gating the two bimodal chains), `interp_img_patch_shift` (raw receipt `FAIL`; proven CUDA FP32 `0.99999994 < 1.0` scorer bug in `api_interpolation.py:485-486` after 8 consecutive observed passes), `interp_saddle_barycentric`, `interp_sparse_arc`, `vector_spiral`, and `img_blobs4`; on `t4-strange-architectures-v1`, fails `grid100_mlp16` and `grid100_res16_tanh`; on `four-laws-adherence-v1`, passes `fl_law42_deep_resbn_and_conv1x1` on RTX A6000 (`readout-9066cb43`) while hitting `min_margin=+0.000` (missed 5-check sustained window) on NVIDIA L4, and fails the other 6 `fl_law*` probes.
 
 <details>
 <summary>Implementation and recipe sources</summary>
@@ -186,6 +195,7 @@ These links support the explanation. Recorded results below remain bound to thei
 - [configs/forge/studies/axiom-v4-dcgan-perf-study.json](../../../configs/forge/studies/axiom-v4-dcgan-perf-study.json)
 - [configs/forge/studies/axiom-v4-four-laws-adherence-study.json](../../../configs/forge/studies/axiom-v4-four-laws-adherence-study.json)
 - [reports/axiom/axiom-study.md](../../axiom/axiom-study.md)
+- [reports/axiom/axiom-v4-failure-analysis.md](../../axiom/axiom-v4-failure-analysis.md)
 - [reports/axiom/design-spec.md](../../axiom/design-spec.md)
 - [reports/axiom/four-laws-benchmark.md](../../axiom/four-laws-benchmark.md)
 - [reports/axiom/gap-analysis.md](../../axiom/gap-analysis.md)
@@ -275,10 +285,10 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | changed since run |
 | [precision_gaussian_mxfp8](axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_mxfp8) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_nvfp4) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
 
 <a name="cohort-cuda-daa283c8a640-tier-2"></a>
 
@@ -315,12 +325,12 @@ Held at this tier (measured and shown, not counted):
 | [img_bars4](axiom.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | PASS | matches recorded run |
 | [img_blobs4](axiom.md#cohort-cuda-daa283c8a640-experiment-img_blobs4) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | FAIL | matches recorded run |
 | [img_intensity2](axiom.md#cohort-cuda-daa283c8a640-experiment-img_intensity2) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | PASS | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | FAIL | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | FAIL | matches recorded run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | FAIL | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | FAIL | changed since run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_generator_ring16) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | PASS | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | PASS | changed since run |
 | [vector_anisotropic](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_overlap](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_overlap) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | PASS | matches recorded run |
@@ -334,18 +344,18 @@ Shared experiments appear once in this list; the family numerator/denominator co
 
 | Experiment | Required by | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | UNKNOWN | recorded definition unavailable |
-| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | UNKNOWN | recorded definition unavailable |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) | UNKNOWN | matches recorded run |
-| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | UNKNOWN | recorded definition unavailable |
-| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | UNKNOWN | recorded definition unavailable |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-3), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | UNKNOWN | recorded definition unavailable |
+| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | DIAG_PASS | recorded definition unavailable |
+| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | DIAG_PASS | recorded definition unavailable |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3), [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3), [formulation_comparison](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3), [host_profile_transfer](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) | DIAG_PASS | matches recorded run |
+| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | DIAG_PASS | recorded definition unavailable |
+| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | DIAG_PASS | recorded definition unavailable |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | [adaptation](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-3), [clockfree_continuous](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) | DIAG_PASS | recorded definition unavailable |
 
 Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) | DIAG_PASS | matches recorded run |
 
 Removed from the count at this tier (still measured):
 
@@ -367,12 +377,12 @@ Held at this tier (measured and shown, not counted):
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [alice_spiral_bigan](axiom.md#cohort-cuda-daa283c8a640-experiment-alice_spiral_bigan) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | DIAG_PASS | matches recorded run |
 | [cgan_overlapping_classes](axiom.md#cohort-cuda-daa283c8a640-experiment-cgan_overlapping_classes) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](axiom.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](axiom.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [grid100_mlp16](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
-| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
+| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | DIAG_PASS | matches recorded run |
 | [grid100_res16_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
 | [infogan_anisotropic_modes](axiom.md#cohort-cuda-daa283c8a640-experiment-infogan_anisotropic_modes) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [misgan_block_neural_imputer](axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_neural_imputer) | [discriminator_stability](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
@@ -492,7 +502,7 @@ Calibration: **provisional**. Phase D historical calibration remains required
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | required | UNKNOWN | recorded definition unavailable |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | required | DIAG_PASS | recorded definition unavailable |
 
 </details>
 
@@ -807,7 +817,7 @@ Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do n
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [bytegan_hypercube8](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -902,13 +912,13 @@ Additional eligibility requirements:
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | required | UNKNOWN | recorded definition unavailable |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
-| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | required | UNKNOWN | recorded definition unavailable |
-| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | required | UNKNOWN | recorded definition unavailable |
-| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | required | UNKNOWN | recorded definition unavailable |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | required | UNKNOWN | recorded definition unavailable |
+| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | required | DIAG_PASS | recorded definition unavailable |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | DIAG_PASS | matches recorded run |
+| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | required | DIAG_PASS | recorded definition unavailable |
+| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | required | DIAG_PASS | recorded definition unavailable |
+| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | required | DIAG_PASS | recorded definition unavailable |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | required | DIAG_PASS | recorded definition unavailable |
 
 </details>
 
@@ -937,12 +947,12 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [dcgan_performance_r32](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r32) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [dcgan_performance_r64](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r64) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [dcgan_performance_r128](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r128) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [dcgan_performance_r256](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r256) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [dcgan_performance_b64](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_b64) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [dcgan_performance_w128](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_w128) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [dcgan_performance_r32](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r32) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [dcgan_performance_r64](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r64) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [dcgan_performance_r128](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r128) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [dcgan_performance_r256](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r256) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [dcgan_performance_b64](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_b64) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [dcgan_performance_w128](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_w128) | diagnostic | DIAG_PASS | recorded definition unavailable |
 
 </details>
 
@@ -1081,8 +1091,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [precision_gaussian_fp32](axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_fp32) | diagnostic | PASS | matches recorded run |
 | [precision_gaussian_mxfp8](axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](axiom.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
-| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | FAIL | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | FAIL | changed since run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | PASS | changed since run |
 
 </details>
 
@@ -1120,9 +1130,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | required | PASS | matches recorded run |
 | [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
 | [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | FAIL | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | FAIL | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | PASS | matches recorded run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | FAIL | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | FAIL | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | PASS | changed since run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | PASS | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | PASS | matches recorded run |
@@ -1139,9 +1149,9 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | [held: no recipe has passed its current declaration](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | DIAG_PASS | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | [held: no recipe has passed its current declaration](../test-dispositions-20261015/README.md#unresolved) | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -1168,8 +1178,8 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [cgan_overlapping_classes](axiom.md#cohort-cuda-daa283c8a640-experiment-cgan_overlapping_classes) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](axiom.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](axiom.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
-| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | matches recorded run |
+| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | DIAG_PASS | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -1253,8 +1263,8 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -1284,37 +1294,37 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [mode_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | DIAG_PASS | matches recorded run |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | PASS | matches recorded run |
 | [bytegan_hypercube8](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
-| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | FAIL | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | DIAG_PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | FAIL | changed since run |
 | [fl_law1_aniso_unequal_modes](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law1_noisy_atomic_codebook](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law1_noisy_atomic_codebook) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [img_bars4](axiom.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
 | [img_stripes2](axiom.md#cohort-cuda-daa283c8a640-experiment-img_stripes2) | diagnostic | PASS | matches recorded run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
-| [dcgan_performance_r256](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r256) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [fl_law2_pure_adversarial_codim1](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [dcgan_performance_r256](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r256) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [fl_law2_pure_adversarial_codim1](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [fl_law2_groupnorm_and_vit_sprites](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law2_groupnorm_and_vit_sprites) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | DIAG_PASS | matches recorded run |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | INCOMPLETE | matches recorded run |
 | [fl_law3_highd_orphan_d32](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law3_highd_orphan_d32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [grid100_mlp16](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
 | [fl_law41_trust_rare1pct_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law41_trust_rare1pct_tanh) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [fl_law42_swap_deep_critic_16l](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_swap_deep_critic_16l) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [fl_law42_deep_resbn_and_conv1x1](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_deep_resbn_and_conv1x1) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law42_swap_deep_critic_16l](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_swap_deep_critic_16l) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [fl_law42_deep_resbn_and_conv1x1](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_deep_resbn_and_conv1x1) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [fl_law44_highd_sparse_prior_and_shock](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law44_highd_sparse_prior_and_shock) | diagnostic | UNKNOWN | recorded definition unavailable |
 
 </details>
@@ -1332,6 +1342,80 @@ No experiments assigned.
 No experiments assigned.
 
 <a name="cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
+<a name="cohort-cuda-daa283c8a640-four-laws-adherence-v2"></a>
+
+## four-laws-adherence-v2
+
+**four-laws-adherence-v2 — revision 1**. [View declaration](../../../configs/forge/views/four-laws-adherence-v2.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **provisional**. Four Laws Adherence v2 diagnostic suite combines 20 curated Forge anchors (upgrading ae_ddgan_gaussian_chain_v2 and grid100_mlp16_10k, plus 4 required prerequisite smoke/hold dependencies) with 10 clean public-API dynamical falsification probes targeting Laws 1-4 (retiring the broken compound R^512 10%-masked probe in favor of standalone 1000-step fl_law44_scale_shock, splitting Law 3A orphan transport from Law 1 full-32D rank, replacing the pathological Conv1x1 inverse-quality ratio with absolute parity <=0.015, matching noisy codebook prior sigma <= target_sigma with P=160, and raising the RGB ViT sprite budget to 1600 steps). Supplies research diagnostic telemetry only; preserves four-laws-adherence-v1 and all historical v1 receipts untouched.
+
+<a name="cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1"></a>
+
+### Tier 1
+
+<details>
+<summary>Tier 1 assignments (34 tests)</summary>
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [mode_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | DIAG_PASS | matches recorded run |
+| [zero_tanh_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
+| [gaussian1d_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
+| [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
+| [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | PASS | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | DIAG_PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | FAIL | changed since run |
+| [fl_law1_aniso_unequal_modes](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law1_noisy_atomic_codebook_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law1_noisy_atomic_codebook_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law1_highd_rank_d32_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law1_highd_rank_d32_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [img_bars4](axiom.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
+| [img_stripes2](axiom.md#cohort-cuda-daa283c8a640-experiment-img_stripes2) | diagnostic | PASS | matches recorded run |
+| [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
+| [dcgan_performance_r256](axiom.md#cohort-cuda-daa283c8a640-experiment-dcgan_performance_r256) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [fl_law2_pure_adversarial_codim1](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [fl_law2_groupnorm_and_vit_sprites_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law2_groupnorm_and_vit_sprites_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | DIAG_PASS | matches recorded run |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [ae_ddgan_gaussian_chain_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-ae_ddgan_gaussian_chain_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law3_highd_orphan_d32_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law3_highd_orphan_d32_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_mlp16_10k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16_10k) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_res16_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
+| [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
+| [gaussian1d_stability](axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
+| [fl_law41_trust_rare1pct_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law41_trust_rare1pct_tanh) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law42_swap_deep_critic_16l](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_swap_deep_critic_16l) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [fl_law42_deep_resbn_and_conv1x1_v2](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law42_deep_resbn_and_conv1x1_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [fl_law44_scale_shock](axiom.md#cohort-cuda-daa283c8a640-experiment-fl_law44_scale_shock) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
+
+<a name="cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-4"></a>
 
 ### Tier 4
 
@@ -1415,8 +1499,8 @@ Calibration: **provisional**. Host-profile transfer and full current-cohort posi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | UNKNOWN | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | [removed: phase of ring_extension (counted there)](../test-dispositions-20261015/README.md#ring_hold) | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | required | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -1516,8 +1600,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | PASS | matches recorded run |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | DIAG_PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 
 </details>
@@ -1600,9 +1684,9 @@ Calibration: **provisional**. Three zero-sigma particle interpolation stretch to
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | diagnostic | FAIL | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | FAIL | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | diagnostic | FAIL | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | FAIL | changed since run |
 
 </details>
 
@@ -1657,7 +1741,7 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [model_vae_categorical](axiom.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
 | [model_vae_hard](axiom.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
-| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [gaussian1d_stability](axiom.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
 | [five_word_joint_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
 | [trajectory](axiom.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | PASS | matches recorded run |
@@ -1681,13 +1765,13 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | PASS | matches recorded run |
 | [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
 | [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
-| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | DIAG_PASS | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
+| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [misgan_block_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_recovery) | diagnostic | BLOCKED | matches recorded run |
 | [misgan_block_neural_imputer](axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_neural_imputer) | diagnostic | BLOCKED | matches recorded run |
 | [ring16_bigan_continuous](axiom.md#cohort-cuda-daa283c8a640-experiment-ring16_bigan_continuous) | diagnostic | BLOCKED | matches recorded run |
@@ -1844,21 +1928,21 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [two_pole](axiom.md#cohort-cuda-daa283c8a640-experiment-two_pole) | diagnostic | PASS | matches recorded run |
 | [unused_token_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
-| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
 | [five_word_joint_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
 | [five_word_joint_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
 | [mode_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
-| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
-| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [ring_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | DIAG_PASS | matches recorded run |
+| [ring_extension](axiom.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | DIAG_PASS | matches recorded run |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | PASS | matches recorded run |
-| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [grid100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [rotated100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-rotated100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
+| [staggered100_14k](axiom.md#cohort-cuda-daa283c8a640-experiment-staggered100_14k) | diagnostic | DIAG_PASS | recorded definition unavailable |
 
 </details>
 
@@ -1902,7 +1986,7 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [grid100_mlp16](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
-| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | diagnostic | UNKNOWN | matches recorded run |
+| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | diagnostic | DIAG_PASS | matches recorded run |
 | [misgan_block_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_recovery) | diagnostic | BLOCKED | matches recorded run |
 | [misgan_block_neural_imputer](axiom.md#cohort-cuda-daa283c8a640-experiment-misgan_block_neural_imputer) | diagnostic | BLOCKED | matches recorded run |
 | [ring16_bigan_continuous](axiom.md#cohort-cuda-daa283c8a640-experiment-ring16_bigan_continuous) | diagnostic | BLOCKED | matches recorded run |
@@ -1965,12 +2049,12 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
 | [five_word_joint_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
 | [grid100_mlp16](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_generator_ring16) | diagnostic | PASS | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2263,7 +2347,7 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [clockfree_audit](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 
 </details>
 
@@ -2306,9 +2390,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | --- | --- | --- | --- |
 | [ae_gan_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [mode_hold](axiom.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
-| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
+| [target_shift_recovery](axiom.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -2349,8 +2433,8 @@ Calibration: **provisional**. Two Theory-1-free, Theory-2-verified causal isolat
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2391,8 +2475,8 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 | [vector_unequal_width](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_width) | diagnostic | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
 | [vector_anisotropic](axiom.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | diagnostic | PASS | matches recorded run |
@@ -2441,11 +2525,11 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | --- | --- | --- | --- |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
+| [zero_tanh_rail_escape](axiom.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | DIAG_PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [grid100_mlp16](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
-| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | diagnostic | UNKNOWN | matches recorded run |
+| [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | diagnostic | DIAG_PASS | matches recorded run |
 
 </details>
 
@@ -2607,6 +2691,80 @@ No experiments assigned.
 
 One evidence entry per experiment is shared by its view rows. Test-definition changes describe differences from the recorded run, independently of whether it was executed. Earlier verdicts are preserved.
 
+<a name="cohort-cuda-daa283c8a640-experiment-ae_ddgan_gaussian_chain_v2"></a>
+
+### ae_ddgan_gaussian_chain_v2
+
+**ae_ddgan_gaussian_chain_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ae_ddgan_gaussian_chain_v2.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| final_projection_cdf | <= 0.2 |
+| final_normalized_mean | <= 0.45 |
+| final_covariance_eigen_min | >= 0.65 |
+| final_covariance_eigen_max | <= 1.4 |
+| t1_q0_projection_cdf | <= 0.26 |
+| t1_q0_normalized_mean | <= 0.65 |
+| t1_q0_covariance_eigen_min | >= 0.4 |
+| t1_q0_covariance_eigen_max | <= 1.8 |
+| t1_q1_projection_cdf | <= 0.26 |
+| t1_q1_normalized_mean | <= 0.65 |
+| t1_q1_covariance_eigen_min | >= 0.4 |
+| t1_q1_covariance_eigen_max | <= 1.8 |
+| t2_q0_projection_cdf | <= 0.2 |
+| t2_q0_normalized_mean | <= 0.35 |
+| t2_q0_covariance_eigen_min | >= 0.6 |
+| t2_q0_covariance_eigen_max | <= 1.4 |
+| t2_q1_projection_cdf | <= 0.2 |
+| t2_q1_normalized_mean | <= 0.35 |
+| t2_q1_covariance_eigen_min | >= 0.6 |
+| t2_q1_covariance_eigen_max | <= 1.4 |
+| t3_q0_projection_cdf | <= 0.12 |
+| t3_q0_normalized_mean | <= 0.25 |
+| t3_q0_covariance_eigen_min | >= 0.65 |
+| t3_q0_covariance_eigen_max | <= 1.4 |
+| t3_q1_projection_cdf | <= 0.12 |
+| t3_q1_normalized_mean | <= 0.25 |
+| t3_q1_covariance_eigen_min | >= 0.65 |
+| t3_q1_covariance_eigen_max | <= 1.4 |
+| t4_q0_projection_cdf | <= 0.12 |
+| t4_q0_normalized_mean | <= 0.25 |
+| t4_q0_covariance_eigen_min | >= 0.65 |
+| t4_q0_covariance_eigen_max | <= 1.4 |
+| t4_q1_projection_cdf | <= 0.12 |
+| t4_q1_normalized_mean | <= 0.25 |
+| t4_q1_covariance_eigen_min | >= 0.65 |
+| t4_q1_covariance_eigen_max | <= 1.4 |
+| panel_count | == 8 |
+| samples_per_panel | >= 2048 |
+| paired_nmse | <= 0.1 |
+| paired_worst_axis_nrmse | <= 0.25 |
+| paired_shuffled_gain | >= 3 |
+| paired_reverse_steps | == 4 |
+
+At least 1 consecutive passing terminal observations.
+All 24 declared observations and final live metrics are required.
+Execution guards: finite state = True; rng isolation = True; optimizer roles = generator, encoder, prior, discriminator; exact optimizer updates = True; mechanism exercised = True.
+
+Declared budget: 2500 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_without_serving_noise; weights live; output noise clean.
+
+[Explanation and existing training artifacts](../../axiom/axiom-v4-failure-analysis.md)
+
+</details>
+
 <a name="cohort-cuda-daa283c8a640-experiment-ae_gan_hold"></a>
 
 ### ae_gan_hold
@@ -2725,16 +2883,18 @@ Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; 
 
 ### bytegan_bigan_dictionary
 
-**bytegan_bigan_dictionary: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json) · [Experiment page](../experiments/bytegan_bigan_dictionary.md).
+**bytegan_bigan_dictionary: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/bytegan_bigan_dictionary.json) · [Experiment page](../experiments/bytegan_bigan_dictionary.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-cf0f08081668d4e14130cd6b](../records/readout-cf0f08081668d4e14130cd6b.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [bytegan_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bytegan_stretch-tier-1) · [discriminator_stability / Tier 4](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [bytegan_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bytegan_stretch-tier-1) · [discriminator_stability / Tier 4](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Recorded conditions: particle_cloud prior (sigma 0); generated_and_paired_reconstructed_prior_without_output_noise; weights live; output noise clean.
 
@@ -2774,7 +2934,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [bytegan_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bytegan_stretch-tier-1) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [bytegan_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bytegan_stretch-tier-1) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Recorded final metrics:
 
@@ -2858,12 +3018,14 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### clockfree_audit
 
-**clockfree_audit: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json) · [Experiment page](../experiments/clockfree_audit.md).
+**clockfree_audit: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/clockfree_audit.json) · [Experiment page](../experiments/clockfree_audit.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-41f9c26a18492a4834dbe767](../records/readout-41f9c26a18492a4834dbe767.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -2892,7 +3054,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [clockfree_continuous / Tier 1](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
+Used by: [clockfree_continuous / Tier 1](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1) · [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3067,12 +3229,14 @@ Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; 
 
 ### dcgan_performance_b64
 
-**dcgan_performance_b64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json) · [Experiment page](../experiments/dcgan_performance_b64.md).
+**dcgan_performance_b64: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_b64.json) · [Experiment page](../experiments/dcgan_performance_b64.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-506977051c754e8f9694b117](../records/readout-506977051c754e8f9694b117.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3115,12 +3279,14 @@ Current measurement: mog prior (sigma 0.1); training_update_measurement; weights
 
 ### dcgan_performance_r128
 
-**dcgan_performance_r128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json) · [Experiment page](../experiments/dcgan_performance_r128.md).
+**dcgan_performance_r128: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r128.json) · [Experiment page](../experiments/dcgan_performance_r128.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-506977051c754e8f9694b117](../records/readout-506977051c754e8f9694b117.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3139,16 +3305,18 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r256
 
-**dcgan_performance_r256: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json) · [Experiment page](../experiments/dcgan_performance_r256.md).
+**dcgan_performance_r256: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r256.json) · [Experiment page](../experiments/dcgan_performance_r256.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [dcgan_performance / Tier 1](axiom.md#cohort-cuda-daa283c8a640-dcgan_performance-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [dcgan_performance / Tier 1](axiom.md#cohort-cuda-daa283c8a640-dcgan_performance-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Current pass criteria:
 
@@ -3163,12 +3331,14 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r32
 
-**dcgan_performance_r32: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json) · [Experiment page](../experiments/dcgan_performance_r32.md).
+**dcgan_performance_r32: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r32.json) · [Experiment page](../experiments/dcgan_performance_r32.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-506977051c754e8f9694b117](../records/readout-506977051c754e8f9694b117.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3187,12 +3357,14 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_r64
 
-**dcgan_performance_r64: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json) · [Experiment page](../experiments/dcgan_performance_r64.md).
+**dcgan_performance_r64: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_r64.json) · [Experiment page](../experiments/dcgan_performance_r64.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-506977051c754e8f9694b117](../records/readout-506977051c754e8f9694b117.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3211,12 +3383,14 @@ Current measurement: particle_cloud prior (sigma 0); training_update_measurement
 
 ### dcgan_performance_w128
 
-**dcgan_performance_w128: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json) · [Experiment page](../experiments/dcgan_performance_w128.md).
+**dcgan_performance_w128: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/dcgan_performance_w128.json) · [Experiment page](../experiments/dcgan_performance_w128.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-506977051c754e8f9694b117](../records/readout-506977051c754e8f9694b117.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3555,7 +3729,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Current pass criteria:
 
@@ -3572,6 +3746,40 @@ At least 5 consecutive passing terminal observations.
 Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
 
 Declared budget: 1500 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law1_highd_rank_d32_v2"></a>
+
+### fl_law1_highd_rank_d32_v2
+
+**fl_law1_highd_rank_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_highd_rank_d32_v2.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| core_eig_min | >= 0.25 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1400 updates; timeout 900 seconds.
 
 Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -3611,6 +3819,40 @@ Current measurement: mog prior (sigma 0.015); public_prior_without_output_noise;
 
 </details>
 
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law1_noisy_atomic_codebook_v2"></a>
+
+### fl_law1_noisy_atomic_codebook_v2
+
+**fl_law1_noisy_atomic_codebook_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law1_noisy_atomic_codebook_v2.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| atom_recall | >= 0.96 |
+| mass_tv | <= 0.15 |
+| rms_nearest_dist | <= 0.08 |
+| outlier_rate | <= 0.1 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1600 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.01); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
 <a name="cohort-cuda-daa283c8a640-experiment-fl_law2_groupnorm_and_vit_sprites"></a>
 
 ### fl_law2_groupnorm_and_vit_sprites
@@ -3645,11 +3887,11 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 </details>
 
-<a name="cohort-cuda-daa283c8a640-experiment-fl_law2_pure_adversarial_codim1"></a>
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law2_groupnorm_and_vit_sprites_v2"></a>
 
-### fl_law2_pure_adversarial_codim1
+### fl_law2_groupnorm_and_vit_sprites_v2
 
-**fl_law2_pure_adversarial_codim1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json) · [Experiment page](../experiments/fl_law2_pure_adversarial_codim1.md).
+**fl_law2_groupnorm_and_vit_sprites_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_groupnorm_and_vit_sprites_v2.json).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3658,7 +3900,43 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| mode_coverage | >= 1 |
+| sprite_hq | >= 0.85 |
+| template_rmse | <= 0.12 |
+| mass_tv | <= 0.14 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1600 updates; timeout 1500 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law2_pure_adversarial_codim1"></a>
+
+### fl_law2_pure_adversarial_codim1
+
+**fl_law2_pure_adversarial_codim1: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/fl_law2_pure_adversarial_codim1.json) · [Experiment page](../experiments/fl_law2_pure_adversarial_codim1.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Current pass criteria:
 
@@ -3715,6 +3993,41 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 
 </details>
 
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law3_highd_orphan_d32_v2"></a>
+
+### fl_law3_highd_orphan_d32_v2
+
+**fl_law3_highd_orphan_d32_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law3_highd_orphan_d32_v2.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| modes | == 5 |
+| orphan_recall | >= 0.5 |
+| precision | >= 0.85 |
+| mass_tv | <= 0.14 |
+| canon_plane_eig_min | >= 0.25 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1200 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
 <a name="cohort-cuda-daa283c8a640-experiment-fl_law41_trust_rare1pct_tanh"></a>
 
 ### fl_law41_trust_rare1pct_tanh
@@ -3728,7 +4041,7 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Current pass criteria:
 
@@ -3753,12 +4066,14 @@ Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; 
 
 ### fl_law42_deep_resbn_and_conv1x1
 
-**fl_law42_deep_resbn_and_conv1x1: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1.md).
+**fl_law42_deep_resbn_and_conv1x1: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1.json) · [Experiment page](../experiments/fl_law42_deep_resbn_and_conv1x1.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -3783,11 +4098,11 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 </details>
 
-<a name="cohort-cuda-daa283c8a640-experiment-fl_law42_swap_deep_critic_16l"></a>
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law42_deep_resbn_and_conv1x1_v2"></a>
 
-### fl_law42_swap_deep_critic_16l
+### fl_law42_deep_resbn_and_conv1x1_v2
 
-**fl_law42_swap_deep_critic_16l: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json) · [Experiment page](../experiments/fl_law42_swap_deep_critic_16l.md).
+**fl_law42_deep_resbn_and_conv1x1_v2: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_deep_resbn_and_conv1x1_v2.json).
 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
@@ -3796,7 +4111,43 @@ Test definition: **recorded definition unavailable**. Recorded test definition u
 
 Execution: **not run**.
 
-Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1).
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| sw1 | <= 0.1 |
+| var_ratio_err | <= 0.25 |
+| conv1x1_sw1 | <= 0.1 |
+| conv1x1_sw1_abs_diff | <= 0.015 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 500 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law42_swap_deep_critic_16l"></a>
+
+### fl_law42_swap_deep_critic_16l
+
+**fl_law42_swap_deep_critic_16l: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/fl_law42_swap_deep_critic_16l.json) · [Experiment page](../experiments/fl_law42_swap_deep_critic_16l.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
 
 Current pass criteria:
 
@@ -3853,6 +4204,40 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 </details>
 
+<a name="cohort-cuda-daa283c8a640-experiment-fl_law44_scale_shock"></a>
+
+### fl_law44_scale_shock
+
+**fl_law44_scale_shock: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/fl_law44_scale_shock.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| shock_modes | == 4 |
+| shock_hq | >= 0.65 |
+| shock_sw1 | <= 0.35 |
+| shock_mass_tv | <= 0.15 |
+
+At least 5 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1000 updates; timeout 600 seconds.
+
+Current measurement: mog prior (sigma 0.08); public_prior_without_output_noise; weights live; output noise clean.
+
+</details>
+
 <a name="cohort-cuda-daa283c8a640-experiment-gaussian1d_acquisition_tier1_policy_selected_cloud_v1"></a>
 
 ### gaussian1d_acquisition_tier1_policy_selected_cloud_v1
@@ -3905,7 +4290,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -3958,7 +4343,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -4014,7 +4399,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
+Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier4-frontier-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
 
 Recorded final metrics:
 
@@ -4077,12 +4462,14 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### grid100_14k
 
-**grid100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json) · [Experiment page](../experiments/grid100_14k.md).
+**grid100_14k: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/grid100_14k.json) · [Experiment page](../experiments/grid100_14k.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-41f9c26a18492a4834dbe767](../records/readout-41f9c26a18492a4834dbe767.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -4255,6 +4642,52 @@ Dependencies: grid100 (gate).
 
 </details>
 
+<a name="cohort-cuda-daa283c8a640-experiment-grid100_mlp16_10k"></a>
+
+### grid100_mlp16_10k
+
+**grid100_mlp16_10k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_mlp16_10k.json).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| coverage.min_samples | >= 20000 |
+| coverage.min_modes | >= 100 |
+| coverage.min_hq_mode_mass | >= 0.005 |
+| coverage.min_precision | >= 0.75 |
+| coverage.max_mass_tv | <= 0.1 |
+| coverage.max_mode_mass | <= 0.02 |
+| coverage.min_cov_eig_ratio | >= 0.4 |
+| coverage.max_cov_eig_ratio | <= 1.7 |
+| coverage.min_radial_median_ratio | >= 0.65 |
+| coverage.max_radial_median_ratio | <= 1.4 |
+| coverage.all_finite | == True |
+| accuracy.mass_tv | <= 0.06 |
+| accuracy.center_rms_sigma | <= 0.2 |
+| accuracy.abs_cov_trace_bias | <= 0.1 |
+| accuracy.radial_ks | <= 0.04 |
+
+At least 5 consecutive passing terminal observations.
+Both sustained coverage and independent holdout accuracy must pass.
+
+Declared budget: 10000 updates; timeout 5400 seconds.
+
+Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
+
+Dependencies: grid100 (gate).
+
+</details>
+
 <a name="cohort-cuda-daa283c8a640-experiment-grid100_release07_cloud_named_v1"></a>
 
 ### grid100_release07_cloud_named_v1
@@ -4303,12 +4736,14 @@ Current measurement: particle_cloud prior (sigma 0); public_prior_without_output
 
 ### grid100_res16_scaled_tanh
 
-**grid100_res16_scaled_tanh: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json) · [Experiment page](../experiments/grid100_res16_scaled_tanh.md).
+**grid100_res16_scaled_tanh: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/grid100_res16_scaled_tanh.json) · [Experiment page](../experiments/grid100_res16_scaled_tanh.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-18bc7392296d5574083ccab4](../records/readout-18bc7392296d5574083ccab4.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -4360,7 +4795,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 4](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 4](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [r3-tier4-frontier-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier4-frontier-holdout-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -4408,7 +4843,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
+Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
 
 Recorded final metric checks:
 
@@ -4664,7 +5099,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap_convolution_images / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap_convolution_images-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -4802,7 +5237,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. failed interp_img_patch_shift thresholds: finite_fraction == 1.0, endpoint_rmse <= 0.09, interp_rmse <= 0.1, interp_peak >= 0.78, quadrant_coverage == 4, midpoint_novelty >= 0.18
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. failed interp_img_patch_shift thresholds: finite_fraction == 1.0, endpoint_rmse <= 0.09, interp_rmse <= 0.1, interp_peak >= 0.78, quadrant_coverage == 4, midpoint_novelty >= 0.18
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -4861,11 +5296,11 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78
+Test definition: **changed since run**. Test definition changed since this run: execution (host, recipe binding, prior, initialization or budget); evaluation (gates or sampling law). Earlier verdict preserved. failed interp_saddle_barycentric thresholds: barycenter_hq >= 0.78
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [particle_interpolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [particle_interpolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-particle_interpolation_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -4894,14 +5329,14 @@ Current pass criteria:
 | finite_fraction | == 1 |
 | endpoint_surface_mae | <= 0.08 |
 | barycenter_surface_mae | <= 0.09 |
-| barycenter_hq | >= 0.78 |
+| barycenter_hq | >= 0.72 |
 | xy_bins_covered | >= 12 |
 | barycenter_novelty | >= 0.18 |
 
 At least 5 consecutive passing terminal observations.
 Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
 
-Declared budget: 800 updates; timeout 300 seconds.
+Declared budget: 1000 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
@@ -4918,11 +5353,11 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85
+Test definition: **changed since run**. Test definition changed since this run: execution (host, recipe binding, prior, initialization or budget); evaluation (gates or sampling law). Earlier verdict preserved. failed interp_sparse_arc thresholds: interp_hq >= 0.8, endpoint_hq >= 0.85
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [particle_interpolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-particle_interpolation_stretch-tier-1).
+Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [particle_interpolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-particle_interpolation_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -4957,7 +5392,7 @@ Current pass criteria:
 At least 5 consecutive passing terminal observations.
 Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
 
-Declared budget: 600 updates; timeout 300 seconds.
+Declared budget: 900 updates; timeout 300 seconds.
 
 Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_output_noise; weights live; output noise clean.
 
@@ -5174,7 +5609,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Recorded final metric checks:
 
@@ -5867,7 +6302,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t4_imbalance_nash_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4_imbalance_nash_stretch-tier-1).
+Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t4_imbalance_nash_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4_imbalance_nash_stretch-tier-1).
 
 Recorded final metrics:
 
@@ -6449,16 +6884,18 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 
 ### ring_extension
 
-**ring_extension: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json) · [Experiment page](../experiments/ring_extension.md).
+**ring_extension: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/ring_extension.json) · [Experiment page](../experiments/ring_extension.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 3](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 3](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -6486,16 +6923,18 @@ Dependencies: ring_hold (checkpoint).
 
 ### ring_hold
 
-**ring_hold: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json) · [Experiment page](../experiments/ring_hold.md).
+**ring_hold: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/ring_hold.json) · [Experiment page](../experiments/ring_hold.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-9066cb4353eb435be7819b0c](../records/readout-9066cb4353eb435be7819b0c.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 3](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1).
+Used by: [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [formulation_comparison / Tier 3](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 3](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-3) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.025); public_prior_without_output_noise; weights live; output noise clean.
 
@@ -6595,12 +7034,14 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### rotated100_14k
 
-**rotated100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json) · [Experiment page](../experiments/rotated100_14k.md).
+**rotated100_14k: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/rotated100_14k.json) · [Experiment page](../experiments/rotated100_14k.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-41f9c26a18492a4834dbe767](../records/readout-41f9c26a18492a4834dbe767.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -6694,7 +7135,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 2](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-2) · [bcap-develop-integration-deeper-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-develop-integration-deeper-diagnostic-v1-tier-1) · [bcap-projection-baseline-repair-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-bcap-projection-baseline-repair-diagnostic-v1-tier-1) · [clockfree_continuous / Tier 2](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2) · [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [formulation_comparison / Tier 2](axiom.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [host_profile_transfer / Tier 2](axiom.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2) · [lazy_cadence_coverage / Tier 1](axiom.md#cohort-cuda-daa283c8a640-lazy_cadence_coverage-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [quality_coverage / Tier 2](axiom.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [recipe-prior-refactor-k3p-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-k3p-diagnostic-v1-tier-1) · [recipe-prior-refactor-ka2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-ka2-diagnostic-v1-tier-1) · [recipe-prior-refactor-r1r2-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-r1r2-diagnostic-v1-tier-1) · [recipe-prior-refactor-release07-gan-v3-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-recipe-prior-refactor-release07-gan-v3-diagnostic-v1-tier-1).
 
 Recorded final metrics:
 
@@ -6757,12 +7198,14 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### staggered100_14k
 
-**staggered100_14k: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json) · [Experiment page](../experiments/staggered100_14k.md).
+**staggered100_14k: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/staggered100_14k.json) · [Experiment page](../experiments/staggered100_14k.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-41f9c26a18492a4834dbe767](../records/readout-41f9c26a18492a4834dbe767.json); excluded from ordinary qualification and selected-cohort pass counts).
 
 Execution: **not run**.
 
@@ -6852,11 +7295,11 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
+Used by: [discriminator_stability / Tier 2](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
 
 Recorded final metrics:
 
@@ -6908,11 +7351,11 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
+Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3_causal_isolation_stretch / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_causal_isolation_stretch-tier-1) · [t3_factorial_ablation / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3_factorial_ablation-tier-1).
 
 Recorded final metrics:
 
@@ -6959,16 +7402,18 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 
 ### target_shift_recovery
 
-**target_shift_recovery: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json) · [Experiment page](../experiments/target_shift_recovery.md).
+**target_shift_recovery: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/target_shift_recovery.json) · [Experiment page](../experiments/target_shift_recovery.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-d3967c0e415122139e9783d8](../records/readout-d3967c0e415122139e9783d8.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [adaptation / Tier 3](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-3) · [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1).
+Used by: [adaptation / Tier 3](axiom.md#cohort-cuda-daa283c8a640-adaptation-tier-3) · [clockfree_continuous / Tier 3](axiom.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1).
 
 Current pass criteria:
 
@@ -7796,16 +8241,18 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 
 ### zero_tanh_rail_escape
 
-**zero_tanh_rail_escape: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json) · [Experiment page](../experiments/zero_tanh_rail_escape.md).
+**zero_tanh_rail_escape: DIAG_PASS** *(recorded selected-cohort status: `UNKNOWN`; separate diagnostic pass does not alter qualification)*. [Current experiment declaration](../../../configs/forge/tasks/zero_tanh_rail_escape.json) · [Experiment page](../experiments/zero_tanh_rail_escape.md).
 
 <details>
-<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+<summary>Metrics, pass criteria &amp; provenance (DIAG_PASS)</summary>
 
 Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
 
+Separate diagnostic evidence: **DIAG_PASS** (`research_diagnostic`, cohort match `separate_diagnostic_revision`, [readout-d3967c0e415122139e9783d8](../records/readout-d3967c0e415122139e9783d8.json); excluded from ordinary qualification and selected-cohort pass counts).
+
 Execution: **not run**.
 
-Used by: [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 3](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-3) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
 
 Recorded conditions: mog prior (sigma 0.1); public_prior_without_output_noise; weights unavailable; output noise clean.
 
@@ -7841,7 +8288,7 @@ Test definition: **matches recorded run**. Test definition matches the recorded 
 
 Actual task device: `1` (recorded execution receipt).
 
-Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
+Used by: [discriminator_stability / Tier 1](axiom.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) · [four-laws-adherence-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v1-tier-1) · [four-laws-adherence-v2 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-four-laws-adherence-v2-tier-1) · [prior-ablation-full-suite-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-prior-ablation-full-suite-v1-tier-1) · [r3-tier3-long-horizon-holdout-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r3-tier3-long-horizon-holdout-v1-tier-1) · [r4-occam-ablation-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-r4-occam-ablation-v1-tier-1) · [t3-shift-recovery-diagnostic-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t3-shift-recovery-diagnostic-v1-tier-1) · [t4-strange-architectures-v1 / Tier 1](axiom.md#cohort-cuda-daa283c8a640-t4-strange-architectures-v1-tier-1).
 
 Recorded final metric checks:
 
