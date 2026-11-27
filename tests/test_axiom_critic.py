@@ -64,18 +64,12 @@ def test_critic_module_ast_hygiene_and_zero_forbidden_ops() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
             assert node.attr not in forbidden_attrs, f"Forbidden op {node.attr!r}"
-            if (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
-            ):
+            if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
                 raise AssertionError("Forbidden torch.autograd.grad found in critic.py")
 
     # Zero class-name string sniffing.
     for sniff in ("BatchDistance", "Emulated", "nvfp4", "mxfp8"):
-        assert sniff not in source, (
-            f"Forbidden class-name sniffing string {sniff!r} found in critic.py"
-        )
+        assert sniff not in source, f"Forbidden class-name sniffing string {sniff!r} found in critic.py"
 
 
 # ---------------------------------------------------------------------------
@@ -90,21 +84,21 @@ def test_effective_dimension_and_continuous_probe_schedule() -> None:
     d_iso = float(effective_dimension(x_iso).item())
     assert 48.0 <= d_iso <= 64.0
     q, _ = torch.linalg.qr(torch.randn(64, 64))
-    assert math.isclose(
-        float(effective_dimension(x_iso @ q).item()), d_iso, rel_tol=1e-4
-    )
+    assert math.isclose(float(effective_dimension(x_iso @ q).item()), d_iso, rel_tol=1e-4)
 
     low_rank = torch.randn(64, 3) @ torch.randn(3, 64)
     d_lr = float(effective_dimension(low_rank).item())
     assert 1.5 <= d_lr <= 4.5
 
-    # Scale invariance across 1e-6 .. 1e6 and constant point-mass safety.
-    assert math.isclose(
-        float(effective_dimension(x_iso * 1e-6).item()), d_iso, rel_tol=1e-4
-    )
-    assert math.isclose(
-        float(effective_dimension(x_iso * 1e6).item()), d_iso, rel_tol=1e-4
-    )
+    # Scale invariance across 1e-6 .. 1e6, channels_last layout invariance, and constant point-mass safety.
+    assert math.isclose(float(effective_dimension(x_iso * 1e-6).item()), d_iso, rel_tol=1e-4)
+    assert math.isclose(float(effective_dimension(x_iso * 1e6).item()), d_iso, rel_tol=1e-4)
+    img = torch.randn(8, 3, 16, 16)
+    img_before = img.clone()
+    d_nchw = float(effective_dimension(img).item())
+    d_nhwc = float(effective_dimension(img.to(memory_format=torch.channels_last)).item())
+    assert math.isclose(d_nchw, d_nhwc, rel_tol=1e-5)
+    assert torch.equal(img, img_before)
     assert float(effective_dimension(torch.ones(16, 4)).item()) == 4.0
 
     # Continuous element-budget probe/sub-batch schedule.
@@ -126,9 +120,7 @@ def test_scale_equivariance_across_ten_decades_standalone_and_tracked() -> None:
         for scale in (1e-5, 1.0, 1e5):
             rec = AxiomStepRecord()
             if track_margin:
-                rec.observe_margin_and_scale(
-                    torch.ones(16, 1), -torch.ones(16, 1), xr0 * scale, xf0 * scale
-                )
+                rec.observe_margin_and_scale(torch.ones(16, 1), -torch.ones(16, 1), xr0 * scale, xf0 * scale)
             kern = AxiomPenaltyKernel(record=rec, coeff=1.0, kappa=1.0)
             pen, stats = kern.penalty(
                 lambda x, c=scale: (x / c) @ w_lin,
@@ -190,19 +182,14 @@ def test_fwad_accuracy_on_mlp_conv_bn_groupnorm_and_vit_plus_bn_preservation() -
     nb0 = conv_bn[1].num_batches_tracked.clone()
 
     k_bn = AxiomPenaltyKernel(record=AxiomStepRecord())
-    pen_bn, st_bn = k_bn.penalty(
-        conv_bn, x_img, torch.randn_like(x_img), collect_stats=True
-    )
+    pen_bn, st_bn = k_bn.penalty(conv_bn, x_img, torch.randn_like(x_img), collect_stats=True)
     assert st_bn["regime"] == "fwad" and torch.isfinite(pen_bn)
     assert conv_bn.training is True and conv_bn[1].training is True
     assert torch.equal(conv_bn[1].running_mean, rm0)
     assert torch.equal(conv_bn[1].running_var, rv0)
     assert torch.equal(conv_bn[1].num_batches_tracked, nb0)
     pen_bn.backward()
-    assert all(
-        p.grad is not None and bool(torch.isfinite(p.grad).all())
-        for p in conv_bn.parameters()
-    )
+    assert all(p.grad is not None and bool(torch.isfinite(p.grad).all()) for p in conv_bn.parameters())
 
     # 3) GroupNorm + Conv2d runs natively on fwAD (no autograd.grad fallback!).
     gn_net = nn.Sequential(
@@ -242,10 +229,7 @@ def test_fwad_accuracy_on_mlp_conv_bn_groupnorm_and_vit_plus_bn_preservation() -
     )
     assert st_vit["regime"] == "fwad" and torch.isfinite(pen_vit)
     pen_vit.backward()
-    assert all(
-        p.grad is not None and bool(torch.isfinite(p.grad).all())
-        for p in vit_smooth.parameters()
-    )
+    assert all(p.grad is not None and bool(torch.isfinite(p.grad).all()) for p in vit_smooth.parameters())
 
     class _FlashMHACritic(nn.Module):
         def __init__(self) -> None:
@@ -265,10 +249,7 @@ def test_fwad_accuracy_on_mlp_conv_bn_groupnorm_and_vit_plus_bn_preservation() -
     )
     assert st_mha["regime"] == "secant" and torch.isfinite(pen_mha)
     pen_mha.backward()
-    assert all(
-        p.grad is not None and bool(torch.isfinite(p.grad).all())
-        for p in vit_mha.parameters()
-    )
+    assert all(p.grad is not None and bool(torch.isfinite(p.grad).all()) for p in vit_mha.parameters())
 
 
 # ---------------------------------------------------------------------------
@@ -276,9 +257,7 @@ def test_fwad_accuracy_on_mlp_conv_bn_groupnorm_and_vit_plus_bn_preservation() -
 # ---------------------------------------------------------------------------
 
 
-def test_automatic_secant_fallback_on_emulated_quantized_and_low_precision_ulp() -> (
-    None
-):
+def test_automatic_secant_fallback_on_emulated_quantized_and_low_precision_ulp() -> None:
     torch.manual_seed(0)
 
     # 1) EmulatedLinear (MXFP8 & NVFP4) automatically triggers secant fallback and caches id.
@@ -288,17 +267,10 @@ def test_automatic_secant_fallback_on_emulated_quantized_and_low_precision_ulp()
         kern = AxiomPenaltyKernel(record=AxiomStepRecord(), coeff=1.0, kappa=1.0)
         xr, xf = torch.randn(16, 2), torch.randn(16, 2)
         pen1, st1 = kern.penalty(critic, xr, xf, collect_stats=True)
-        assert (
-            st1["regime"] == "secant"
-            and torch.isfinite(pen1)
-            and float(pen1.item()) > 0.0
-        )
+        assert st1["regime"] == "secant" and torch.isfinite(pen1) and float(pen1.item()) > 0.0
         assert id(critic) in kern._fwad_unsupported
         pen1.backward()
-        assert any(
-            p.grad is not None and float(p.grad.abs().sum().item()) > 0.0
-            for p in critic.parameters()
-        )
+        assert any(p.grad is not None and float(p.grad.abs().sum().item()) > 0.0 for p in critic.parameters())
         # Second call goes directly to secant via cached capability flag.
         pen2, st2 = kern.penalty(critic, xr, xf, collect_stats=True)
         assert st2["regime"] == "secant" and torch.isfinite(pen2)
@@ -358,9 +330,7 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
         rec = AxiomStepRecord()
         rec.chord_phase = phase
         rec.observe_margin_and_scale(torch.ones(32, 1), -torch.ones(32, 1), xr3, xf3)
-        _, st = AxiomPenaltyKernel(record=rec).penalty(
-            lin3, xr3, xf3, collect_stats=True
-        )
+        _, st = AxiomPenaltyKernel(record=rec).penalty(lin3, xr3, xf3, collect_stats=True)
         shats_3.append(st["s_hat"])
     assert math.isclose(shats_3[0], shats_3[1], rel_tol=1e-6)
     assert math.isclose(shats_3[1], shats_3[2], rel_tol=1e-6)
@@ -382,17 +352,28 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
         pen, st = kern32.penalty(lin32, xr32, xf32, collect_stats=True)
         shat_samples.append(st["s_hat"])
         # Exact linearity check: pen == 0.5 * coeff * lambda_eff * s_hat!
-        assert math.isclose(
-            float(pen.item()), 0.5 * st["lambda_eff"] * st["s_hat"], rel_tol=1e-5
-        )
+        assert math.isclose(float(pen.item()), 0.5 * st["lambda_eff"] * st["s_hat"], rel_tol=1e-5)
     d_eff32 = float(effective_dimension(xr32).item())
     s_sc32 = float(rec32.ema_data_scale) / math.sqrt(d_eff32)
     true_shat32 = (s_sc32**2) * float(w32.square().sum().item())
-    assert math.isclose(
-        sum(shat_samples) / len(shat_samples), true_shat32, rel_tol=0.15
-    )
+    assert math.isclose(sum(shat_samples) / len(shat_samples), true_shat32, rel_tol=0.15)
 
-    # Above EMA gate (ema_g / kappa^2 >= 0.40) for d >= 5, Lipschitz hinge activates cleanly.
+    # Suite-4A-equivalent zero-Jensen check at ||g|| = 0.65 (ema_g / kappa^2 = 0.4225 < 0.65 onset):
+    # EMA-gated hinge stays strictly 0 so loss is exactly linear in s_hat!
+    w24 = torch.randn(24, 1)
+    xr24, xf24 = torch.randn(64, 24), torch.randn(64, 24)
+    rec24 = AxiomStepRecord()
+    rec24.observe_margin_and_scale(torch.ones(64, 1), -torch.ones(64, 1), xr24, xf24)
+    s_sc24 = float(rec24.ema_data_scale) / math.sqrt(float(effective_dimension(xr24).item()))
+    lin24 = nn.Linear(24, 1, bias=False)
+    with torch.no_grad():
+        lin24.weight.copy_((w24 * (0.65 / (float(w24.norm().item()) * s_sc24))).T)
+    kern24 = AxiomPenaltyKernel(record=rec24, coeff=1.0, kappa=1.0, gamma_gauge=0.0)
+    for _ in range(10):
+        pen24, st24 = kern24.penalty(lin24, xr24, xf24, collect_stats=True)
+        assert math.isclose(float(pen24.item()), 0.5 * st24["lambda_eff"] * st24["s_hat"], rel_tol=1e-5)
+
+    # Above EMA gate (ema_g / kappa^2 >= 0.90) for d >= 5, Lipschitz hinge activates cleanly.
     lin_hi = nn.Linear(32, 1, bias=False)
     with torch.no_grad():
         lin_hi.weight.copy_(torch.randn(1, 32) * 2.5)
@@ -401,6 +382,18 @@ def test_exact_basis_zero_variance_vs_stochastic_unbiased_and_zero_jensen() -> N
     kern_hi = AxiomPenaltyKernel(record=rec_hi, coeff=1.0, kappa=1.0, gamma_gauge=0.0)
     pen_hi, st_hi = kern_hi.penalty(lin_hi, xr32, xf32, collect_stats=True)
     assert float(pen_hi.item()) > 0.5 * st_hi["lambda_eff"] * st_hi["s_hat"] + 1e-3
+
+    # Exact-basis (K == d) full 1.0x real+fake Lipschitz hinge wall above kappa.
+    lin2 = nn.Linear(2, 1, bias=False)
+    with torch.no_grad():
+        lin2.weight.copy_(torch.tensor([[2.0, 0.0]]))
+    xr2, xf2 = torch.randn(16, 2), torch.randn(16, 2)
+    rec2 = AxiomStepRecord()
+    rec2.observe_margin_and_scale(torch.ones(16, 1), -torch.ones(16, 1), xr2, xf2)
+    kern2 = AxiomPenaltyKernel(record=rec2, coeff=1.0, kappa=1.0, gamma_gauge=0.0)
+    pen2, st2 = kern2.penalty(lin2, xr2, xf2, collect_stats=True)
+    exp_hinge2 = 2.0 * (math.sqrt(st2["s_hat"] + 1e-12) - 1.0) ** 2
+    assert math.isclose(float(pen2.item()), 0.5 * (st2["lambda_eff"] * st2["s_hat"] + exp_hinge2), rel_tol=1e-4)
 
 
 def test_live_endpoint_reuse_fixed_batch_fallback_wrapper_and_zero_global_rng() -> None:
@@ -423,9 +416,7 @@ def test_live_endpoint_reuse_fixed_batch_fallback_wrapper_and_zero_global_rng() 
     np_before = deepcopy(np.random.get_state())
 
     pen = penalty_fn(critic, xr, xf)
-    assert (
-        torch.isfinite(pen) and penalty_fn.last_stats["live_endpoints_reused"] is True
-    )
+    assert torch.isfinite(pen) and penalty_fn.last_stats["live_endpoints_reused"] is True
     assert penalty_fn.diagnostics()["axiom_calls"] == 1
     assert torch.equal(torch.get_rng_state(), cpu_before)
     assert random.getstate() == py_before
@@ -480,7 +471,4 @@ def test_fwad_bf16_autocast_conv_bn_and_groupnorm_on_cuda() -> None:
     assert torch.equal(critic[1].running_mean, rm0)
     assert torch.equal(torch.cuda.get_rng_state(dev), cuda_before)
     pen.backward()
-    assert all(
-        p.grad is not None and bool(torch.isfinite(p.grad).all())
-        for p in critic.parameters()
-    )
+    assert all(p.grad is not None and bool(torch.isfinite(p.grad).all()) for p in critic.parameters())

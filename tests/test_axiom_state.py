@@ -56,12 +56,8 @@ def test_state_module_l0_purity_and_zero_forbidden_ops() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom):
             mod = node.module or ""
-            assert node.level == 0, (
-                f"L0 state.py must have zero relative imports, got level={node.level} mod={mod!r}"
-            )
-            assert "_axiom" not in mod, (
-                f"L0 state.py must not import internal _axiom modules: {mod!r}"
-            )
+            assert node.level == 0, f"L0 state.py must have zero relative imports, got level={node.level} mod={mod!r}"
+            assert "_axiom" not in mod, f"L0 state.py must not import internal _axiom modules: {mod!r}"
             for legacy in (
                 "_unified",
                 "bispf",
@@ -76,9 +72,7 @@ def test_state_module_l0_purity_and_zero_forbidden_ops() -> None:
                 "_t3",
                 "_t4",
             ):
-                assert legacy not in mod, (
-                    f"L0 state.py imported forbidden legacy module: {mod!r}"
-                )
+                assert legacy not in mod, f"L0 state.py imported forbidden legacy module: {mod!r}"
         elif isinstance(node, ast.Import):
             for alias in node.names:
                 assert "_axiom" not in alias.name
@@ -87,14 +81,8 @@ def test_state_module_l0_purity_and_zero_forbidden_ops() -> None:
     forbidden_attrs = {"svd", "svdvals", "eigh", "eigvalsh", "pinv", "compile"}
     for node in ast.walk(tree):
         if isinstance(node, ast.Attribute):
-            assert node.attr not in forbidden_attrs, (
-                f"Forbidden op {node.attr!r} found in state.py"
-            )
-            if (
-                node.attr == "grad"
-                and isinstance(node.value, ast.Attribute)
-                and node.value.attr == "autograd"
-            ):
+            assert node.attr not in forbidden_attrs, f"Forbidden op {node.attr!r} found in state.py"
+            if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
                 raise AssertionError("Forbidden torch.autograd.grad found in state.py")
 
 
@@ -151,9 +139,7 @@ def test_step_record_schema2_roundtrip_copy_and_fail_closed_rejection() -> None:
     finally:
         torch.Tensor.item = orig_item  # type: ignore[assignment]
         torch.Tensor.tolist = orig_tolist  # type: ignore[assignment]
-    assert sync_count["n"] <= 1, (
-        f"Expected <=1 packed flush sync on state_dict(), got {sync_count['n']}"
-    )
+    assert sync_count["n"] <= 1, f"Expected <=1 packed flush sync on state_dict(), got {sync_count['n']}"
     assert sd["schema"] == 2
     assert rec.take_pending_ema_tensors() == ([], [])
 
@@ -178,11 +164,7 @@ def test_step_record_schema2_roundtrip_copy_and_fail_closed_rejection() -> None:
         "calls",
         "observed_steps",
     }
-    assert (
-        base["calls"] == 11
-        and base["observed_steps"] == 9
-        and base["anchor_started"] is False
-    )
+    assert base["calls"] == 11 and base["observed_steps"] == 9 and base["anchor_started"] is False
 
     # copy() and deepcopy() produce independent state copies.
     rec._enable_secant_probe = False
@@ -232,27 +214,35 @@ def test_step_record_schema2_roundtrip_copy_and_fail_closed_rejection() -> None:
             rec2.load_state_dict(bad)
         with pytest.raises(ValueError):
             AxiomStepRecord.base_state(bad)
-    assert (
-        rec2.calls == before_sd["calls"]
-        and rec2.observed_steps == before_sd["observed_steps"]
-    )
+    assert rec2.calls == before_sd["calls"] and rec2.observed_steps == before_sd["observed_steps"]
 
 
-def test_observe_margin_and_scale_homogeneity_spike_immunity_and_2step_shock_reset() -> (
-    None
-):
+def test_observe_margin_and_scale_homogeneity_spike_immunity_and_2step_shock_reset() -> None:
     torch.manual_seed(0)
     xr0, xf0 = torch.randn(16, 4), torch.randn(16, 4)
     z1, z0 = torch.ones(16, 1), -torch.ones(16, 1)
 
-    # Exact degree-1 scale homogeneity across 1e-6 .. 1e6.
+    # Exact degree-1 scale homogeneity across 1e-20 .. 1e20 and channels_last layout invariance.
     normed = []
-    for scale in (1e-6, 1.0, 1e6):
+    for scale in (1e-20, 1e-6, 1.0, 1e6, 1e20):
         rec = AxiomStepRecord()
         rec.observe_margin_and_scale(z1, z0, xr0 * scale, xf0 * scale)
         normed.append(rec.ema_data_scale / scale)
-    assert math.isclose(normed[0], normed[1], rel_tol=1e-5)
-    assert math.isclose(normed[1], normed[2], rel_tol=1e-5)
+    for val in normed[1:]:
+        assert math.isclose(normed[0], val, rel_tol=1e-5)
+
+    img_r = torch.randn(8, 3, 16, 16)
+    img_f = torch.randn(8, 3, 16, 16) * 0.5
+    rec_c, rec_cl = AxiomStepRecord(), AxiomStepRecord()
+    rec_c.observe_margin_and_scale(z1[:8], z0[:8], img_r, img_f)
+    rec_cl.observe_margin_and_scale(
+        z1[:8],
+        z0[:8],
+        img_r.to(memory_format=torch.channels_last),
+        img_f.to(memory_format=torch.channels_last),
+    )
+    assert math.isclose(rec_c.ema_data_scale, rec_cl.ema_data_scale, rel_tol=1e-5)
+    assert math.isclose(rec_c.ema_push_res, rec_cl.ema_push_res, rel_tol=1e-4)
 
     # 1-step transient 1e4x spike stays <= 1.04x; 2nd consecutive batch confirms shift and recovers in <= 5 steps.
     rec = AxiomStepRecord()
@@ -431,9 +421,7 @@ def test_detached_logit_capture_resolution_float_output_and_memory_bounds() -> N
             super().__init__()
             self.net = nn.Linear(6, 1)
 
-        def forward(
-            self, x: torch.Tensor, *, xt: torch.Tensor, t: torch.Tensor
-        ) -> torch.Tensor:
+        def forward(self, x: torch.Tensor, *, xt: torch.Tensor, t: torch.Tensor) -> torch.Tensor:
             return self.net(torch.cat((x, xt), dim=-1)) + 0.01 * t.float().unsqueeze(-1)
 
     critic = _CondCritic()
@@ -453,9 +441,7 @@ def test_detached_logit_capture_resolution_float_output_and_memory_bounds() -> N
     assert entry.record is rec and entry.has_cont_cond is True
     assert entry.parts is not None and len(entry.parts) == 2
     assert torch.equal(entry.parts[0], xr) and torch.equal(entry.parts[1], xt)
-    assert entry.cond is not None and torch.equal(
-        entry.cond.reshape(-1), t_idx.to(torch.int64)
-    )
+    assert entry.cond is not None and torch.equal(entry.cond.reshape(-1), t_idx.to(torch.int64))
 
     # Frozen immutability check.
     with pytest.raises(AttributeError):
@@ -478,50 +464,35 @@ def test_detached_logit_capture_resolution_float_output_and_memory_bounds() -> N
         assert resolved is not None
         assert resolved.record is rec and resolved.has_cont_cond is True
         assert resolved.parts is not None and len(resolved.parts) == 2
-        assert not resolved.x_in.requires_grad and all(
-            not p.requires_grad for p in resolved.parts
-        )
-        assert torch.allclose(resolved.parts[0], xr.detach()) and torch.allclose(
-            resolved.parts[1], xt
-        )
+        assert not resolved.x_in.requires_grad and all(not p.requires_grad for p in resolved.parts)
+        assert torch.allclose(resolved.parts[0], xr.detach()) and torch.allclose(resolved.parts[1], xt)
 
     # override_axiom_capture_input replaces noisy x with clean x on both attr and ring.
     x_clean = torch.zeros_like(xr)
     updated = override_axiom_capture_input(raw, x_clean, critic=critic)
     assert updated is not None and updated.parts is not None
     assert torch.equal(updated.parts[0], x_clean)
-    assert torch.equal(
-        lookup_axiom_capture(raw.detach(), rec).parts[0], x_clean.detach()
-    )
+    assert torch.equal(lookup_axiom_capture(raw.detach(), rec).parts[0], x_clean.detach())
 
     # Bounded LRU cap & step cleanup.
     for _ in range(24):
         _ = critic(torch.randn(8, 4), xt=xt, t=t_idx)
     assert rec.captures.ring_size <= 16
     rec.record_step()
-    assert (
-        rec.captures.ring_size == 0
-        and rec.captures.ring_bytes == 0
-        and rec.captures.live_count == 0
-    )
+    assert rec.captures.ring_size == 0 and rec.captures.ring_bytes == 0 and rec.captures.live_count == 0
 
     # High-res VRAM guard (> 16 KiB / sample never cached in detached ring).
     big_critic = nn.Sequential(nn.Flatten(), nn.Linear(3 * 64 * 64, 1))
     big_rec = AxiomStepRecord()
     _attach_axiom_critic_hook(big_critic, big_rec)
     big_out = big_critic(torch.randn(2, 3, 64, 64)).detach()
-    assert (
-        big_rec.captures.ring_size == 0
-        and lookup_axiom_capture(big_out, big_rec) is None
-    )
+    assert big_rec.captures.ring_size == 0 and lookup_axiom_capture(big_out, big_rec) is None
 
     # Explicit total-byte eviction check on CaptureRegistry.
     small_reg = CaptureRegistry(max_ring=16, max_sample_bytes=1024, max_total_bytes=64)
     for _ in range(5):
         lg = torch.randn(2, 1)
-        small_reg.put_detached(
-            lg, CaptureEntry(x_in=torch.randn(2, 4))
-        )  # 32 bytes each
+        small_reg.put_detached(lg, CaptureEntry(x_in=torch.randn(2, 4)))  # 32 bytes each
     assert small_reg.ring_bytes <= 64 and small_reg.ring_size <= 2
 
 
@@ -617,9 +588,7 @@ def test_eval_probe_forward_zero_rng_mutation_and_bn_stat_preservation() -> None
     y1 = eval_probe_forward(net, (x_probe,), {}, rec)
     assert y1 is not None and y1.shape == (8, 2) and y1.dtype == torch.float32
     assert rec._in_probe is False
-    assert (
-        net.training is True and net.bn.training is True and net.drop.training is True
-    )
+    assert net.training is True and net.bn.training is True and net.drop.training is True
 
     # BN running stats must be bit-identically untouched!
     assert torch.equal(net.bn.running_mean, rm_before)
@@ -680,8 +649,6 @@ def test_eval_probe_forward_cuda_rng_and_packed_ema_sync() -> None:
 
     # Packed EMA GPU shadow flush roundtrips cleanly.
     rec.observe_grad_sq_tensor(torch.tensor(1.75, device=dev))
-    rec.observe_margin_and_scale(
-        torch.ones(8, 1, device=dev), -torch.ones(8, 1, device=dev), x, x * 0.5
-    )
+    rec.observe_margin_and_scale(torch.ones(8, 1, device=dev), -torch.ones(8, 1, device=dev), x, x * 0.5)
     sd = rec.state_dict()
     assert sd["schema"] == 2 and math.isclose(sd["ema_grad_sq"], 1.75)

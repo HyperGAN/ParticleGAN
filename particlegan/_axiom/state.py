@@ -236,9 +236,13 @@ class CaptureEntry(
         "_CE", "x_in cond record has_cont_cond parts thermally_scaled", defaults=(None, None, False, None, False)
     )
 ):
+    """Frozen per-forward critic input capture attached to logit tensors."""
+
     def detached(self):
         return self._replace(
-            **{k: _walk_payload(getattr(self, k), torch.Tensor.detach, False) for k in ("x_in", "cond", "parts")}
+            x_in=self.x_in.detach(),
+            cond=None if self.cond is None else self.cond.detach(),
+            parts=None if self.parts is None else tuple(part.detach() for part in self.parts),
         )
 
     def nbytes(self):
@@ -306,7 +310,7 @@ def _is_batch(x, b):
     return isinstance(x, torch.Tensor) and x.ndim >= 1 and x.shape[0] == b and x.numel() > 0
 
 
-def extract_axiom_inputs_parts(args, kwargs, batch_size):
+def _collect_axiom_inputs(args, kwargs, batch_size):
     fl, ds = [], []
     for x in (*args, *(kwargs[k] for k in sorted(kwargs or ()))):
         if _is_batch(x, batch_size):
@@ -314,6 +318,19 @@ def extract_axiom_inputs_parts(args, kwargs, batch_size):
                 fl.append(x)
             elif not x.is_complex():
                 ds.append(x.detach().to(torch.int64).reshape(batch_size, -1))
+    return fl, ds
+
+
+def extract_axiom_inputs_parts(args, kwargs, batch_size):
+    """Extract primary continuous input, discrete conditioning, and split continuous parts."""
+    if not kwargs and len(args) == 1:
+        x0 = args[0]
+        return (
+            (x0, None, False, None)
+            if (_is_batch(x0, batch_size) and x0.is_floating_point())
+            else (None, None, False, None)
+        )
+    fl, ds = _collect_axiom_inputs(args, kwargs, batch_size)
     if not fl:
         return None, None, False, None
     cond = None if not ds else (ds[0] if len(ds) == 1 else torch.cat(ds, -1))
@@ -441,46 +458,60 @@ class AxiomStepRecord:
     def _ema_upd(self, key, val, decay, was, init_key=None):
         fin, dev = torch.isfinite(val), val.device
         prev = self.dev_ema(key, dev)
-        self._ema_t[key] = torch.where(fin, torch.where(was, decay * prev + (1 - decay) * val, val), prev)
-        if init_key:
+        upd = decay * prev + (1.0 - decay) * val
+        nxt = upd if was is True else torch.where(was, upd, val)
+        self._ema_t[key] = torch.where(fin, nxt, prev)
+        if init_key and not self._ema[init_key]:
             pi = self.dev_ema(init_key, dev)
-            self._ema_t[init_key] = torch.where(fin, pi.new_ones(()), pi)
+            self._ema_t[init_key] = torch.where(fin, 1.0, pi)
 
     @torch.no_grad()
     def observe_grad_sq_tensor(self, s_hat_det):
         obs = s_hat_det.detach().double().clamp(0, 20)
-        self._ema_upd(
-            "ema_grad_sq", obs, 0.95, self.dev_ema("grad_sq_initialized", obs.device) > 0.5, "grad_sq_initialized"
-        )
+        was = True if self._ema["grad_sq_initialized"] else (self.dev_ema("grad_sq_initialized", obs.device) > 0.5)
+        self._ema_upd("ema_grad_sq", obs, 0.95, was, "grad_sq_initialized")
 
     _observe_grad_sq_tensor = observe_grad_sq_tensor
 
-    @torch.no_grad()
-    def observe_margin_and_scale(self, real_logits, fake_logits, x_real=None, x_fake=None):
-        if self._in_penalty or self._in_probe or self._in_protected_probe:
-            return
-        m = (real_logits.detach().float().mean().double() - fake_logits.detach().float().mean().double()).clamp(-50, 50)
-        was = self.dev_ema("margin_initialized", m.device) > 0.5
-        self._ema_upd("ema_margin", m, 0.9, was, "margin_initialized")
-        if x_real is None or not x_real.numel():
-            return
+    def _observe_scale_and_residual(self, x_real, x_fake, was):
+        """Update 2-step shock-aware data scale and pushforward residual without FP64 full copies."""
         dev = x_real.device
-        xr = x_real.detach().reshape(x_real.shape[0], -1).double()
+        work_dt = torch.float64 if x_real.dtype == torch.float64 else torch.float32
+        xr = x_real.detach()
+        if xr.dtype != work_dt:
+            xr = xr.to(work_dt)
         xm = xr.abs().amax()
-        sx = torch.where(xm > 0, xm, xm.new_ones(()))
-        sc = ((xr / sx).square().sum(-1).mean().sqrt() * sx).clamp(1e-30, 1e30)
+        sx = torch.where(xm > 0, xm, 1.0)
+        xru = xr / sx
+        sc = (torch.linalg.vector_norm(xru).double() * (sx.double() / math.sqrt(xr.shape[0]))).clamp(1e-30, 1e30)
         psc, lsc = self.dev_ema("ema_data_scale", dev), self.dev_ema("last_data_scale", dev)
-        lp, lc, ll = (torch.log2(t.clamp_min(1e-30)) for t in (psc, sc, lsc))
+        lp, lc, ll = torch.log2(torch.stack((psc, sc, lsc)).clamp_min(1e-30)).unbind()
         ok, dl = torch.isfinite(sc) & (xm > 0), lc - lp
         sl = torch.where((dl.abs() > 0.25) & ((lc - ll).abs() <= 1.5), 0.8 * dl, 0.05 * dl.clamp(-1, 1))
-        nxt = torch.where(ok, torch.where(was, torch.exp2(lp + sl), sc), psc)
+        upd = torch.exp2(lp + sl)
+        nxt = torch.where(ok, upd if was is True else torch.where(was, upd, sc), psc)
         self._ema_t["ema_data_scale"], self._ema_t["last_data_scale"] = nxt, torch.where(ok, sc, lsc)
         if x_fake is not None and x_fake.shape == x_real.shape:
-            xf = x_fake.detach().reshape(x_fake.shape[0], -1).double()
-            raw = (
-                ((xf.mean(0) - xr.mean(0)).norm() + 0.5 * (xf.std() - xr.std()).abs()) / nxt.clamp_min(1e-30)
-            ).clamp_max(10)
+            xf = x_fake.detach()
+            if xf.dtype != work_dt:
+                xf = xf.to(work_dt)
+            s_max = torch.maximum(sx, xf.abs().amax())
+            wr = sx / s_max
+            xfu = xf / s_max
+            diff_u = (xfu.mean(0) - xru.mean(0) * wr).norm() + 0.5 * (xfu.std() - xru.std() * wr).abs()
+            raw = (diff_u.double() * (s_max.double() / nxt.clamp_min(1e-30))).clamp_max(10.0)
             self._ema_upd("ema_push_res", raw, 0.92, was)
+
+    @torch.no_grad()
+    def observe_margin_and_scale(self, real_logits, fake_logits, x_real=None, x_fake=None):
+        """Track critic logit margin, 2-step shock-aware data scale, and pushforward residual."""
+        if self._in_penalty or self._in_probe or self._in_protected_probe:
+            return
+        m = (real_logits.detach().float().mean() - fake_logits.detach().float().mean()).double().clamp(-50, 50)
+        was = True if self._ema["margin_initialized"] else (self.dev_ema("margin_initialized", m.device) > 0.5)
+        self._ema_upd("ema_margin", m, 0.9, was, "margin_initialized")
+        if x_real is not None and x_real.numel():
+            self._observe_scale_and_residual(x_real, x_fake, was)
 
     @property
     def thermal_ema(self):
