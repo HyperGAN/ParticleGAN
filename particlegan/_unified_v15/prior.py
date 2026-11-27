@@ -408,13 +408,19 @@ class UnifiedV15PriorRegularizer(nn.Module):
         self.max_prototypes = int(max_prototypes)
         from dataclasses import replace as _dc_replace
 
-        base_gates = BISPFGates() if gates is None else gates
+        if gates is None:
+            base_gates: Any = BISPFGates(shape_gates=False)
+        elif isinstance(gates, BISPFGates):
+            base_gates = _dc_replace(gates, shape_gates=False)
+        else:
+            base_gates = gates
         self._active_iso_enabled = bool(base_gates.active("sbnp_active_iso"))
         self._active_iso_above = int(base_gates.sbnp_active_iso_above)
         self._active_iso_weight = float(base_gates.sbnp_active_iso_weight)
         no_eig_gates = (
             _dc_replace(
                 base_gates,
+                shape_gates=False,
                 sbnp_active_iso_enabled=False,
                 sbnp_thermal_full_max_dim=max(int(base_gates.sbnp_thermal_full_max_dim), 1 << 30),
             )
@@ -740,10 +746,18 @@ class UnifiedV15PriorRegularizer(nn.Module):
         self.quantizer_initialized = bool(validated["quantizer_initialized"])
         for key in (
             "proto_c", "proto_var", "proto_cov", "push_cov", "proto_w", "proto_hits",
-            "v_push", "psi", "w_fake_ema", "row_m", "row_v", "row_n",
+            "v_push", "psi", "w_fake_ema",
             "row_pos", "row_tgt_pos", "row_valid",
         ):
             setattr(self, key, _mv(validated[key]))
+        for key in ("row_m", "row_v", "row_n"):
+            t_r = validated[key]
+            if t_r is None:
+                setattr(self, key, None)
+            elif dev is not None:
+                setattr(self, key, t_r.to(device=dev, dtype=torch.float32).detach().clone())
+            else:
+                setattr(self, key, t_r.to(dtype=torch.float32).detach().clone())
         self.phase = float(validated["phase"])
         self.iso_initialized = bool(validated["iso_initialized"])
         self.iso_ema = float(validated["iso_ema"])
@@ -2364,10 +2378,14 @@ def unified_v15_pullback_step(
             loss_mu_total.backward()
 
             if not reg.rows_initialized or reg.row_m is None or reg.row_m.shape != base_prior.z.shape:
-                reg.row_m = torch.zeros_like(base_prior.z)
-                reg.row_v = torch.zeros(len(base_prior.z), 1, device=base_prior.z.device, dtype=base_prior.z.dtype)
-                reg.row_n = torch.zeros(len(base_prior.z), 1, device=base_prior.z.device, dtype=base_prior.z.dtype)
+                reg.row_m = torch.zeros(base_prior.z.shape, device=base_prior.z.device, dtype=torch.float32)
+                reg.row_v = torch.zeros((len(base_prior.z), 1), device=base_prior.z.device, dtype=torch.float32)
+                reg.row_n = torch.zeros((len(base_prior.z), 1), device=base_prior.z.device, dtype=torch.float32)
                 reg.rows_initialized = True
+            elif reg.row_m.dtype != torch.float32 or reg.row_v.dtype != torch.float32 or reg.row_n.dtype != torch.float32:
+                reg.row_m = reg.row_m.float()
+                reg.row_v = reg.row_v.float()
+                reg.row_n = reg.row_n.float()
 
             with torch.no_grad():
                 g_rows = (base_prior.z.grad[u_rows] * n_eff).clone()
@@ -2385,11 +2403,14 @@ def unified_v15_pullback_step(
                     probe_idx = torch.cat([far_idx, in_idx], dim=0)
                     c_probe = c_u[probe_idx].detach()
                     x_probe = xu_det[probe_idx]
+                    eps_fd = 1e-2 if c_probe.dtype == torch.bfloat16 else 1e-3
                     out_sgn = torch.where(c_probe >= 0.0, 1.0, -1.0)
-                    eye_z = torch.eye(d_z_u, device=c_u.device, dtype=c_u.dtype)
-                    c_pert = (c_probe.unsqueeze(1) + (1e-3 * out_sgn).unsqueeze(2) * eye_z.unsqueeze(0)).reshape(-1, d_z_u)
+                    eye_z = torch.eye(d_z_u, device=c_u.device, dtype=torch.float32)
+                    c_pert = (
+                        c_probe.float().unsqueeze(1) + (eps_fd * out_sgn).unsqueeze(2) * eye_z.unsqueeze(0)
+                    ).reshape(-1, d_z_u).to(dtype=c_probe.dtype)
                     x_pert = trainer._postprocess(trainer.prior, trainer._generate(trainer.G, c_pert, 0.0, noise)).float().reshape(len(probe_idx), d_z_u, dim)
-                    col_sens = (x_pert - x_probe.unsqueeze(1)).norm(dim=-1) / 1e-3
+                    col_sens = (x_pert - x_probe.unsqueeze(1)).norm(dim=-1) / eps_fd
                     s_ref_col = torch.quantile(col_sens[len(far_idx) :], 0.5, dim=0, keepdim=True).clamp_min(1e-12)
                     dead_far = col_sens[: len(far_idx)] < (0.04 * s_ref_col)
                     if bool(dead_far.any()):
@@ -2401,16 +2422,18 @@ def unified_v15_pullback_step(
                         g_rows[far_idx] = torch.where(dead_far, inward_grad, gu_far)
                         part_scale[far_idx] = torch.where(dead_far.any(dim=1).unsqueeze(1), torch.ones_like(part_scale[far_idx]), part_scale[far_idx])
 
-                m = reg.row_m[u_rows] * 0.80 + 0.20 * g_rows
-                v = reg.row_v[u_rows] * 0.80 + 0.20 * g_rows.square().sum(dim=-1, keepdim=True)
+                g_rows_f = g_rows.float()
+                m = reg.row_m[u_rows] * 0.80 + 0.20 * g_rows_f
+                v = reg.row_v[u_rows] * 0.80 + 0.20 * g_rows_f.square().sum(dim=-1, keepdim=True)
                 n = reg.row_n[u_rows] + 1.0
                 reg.row_m[u_rows] = m
                 reg.row_v[u_rows] = v
                 reg.row_n[u_rows] = n
                 bc = 1.0 - (0.80 ** n)
                 step_vec = (m / bc) / ((v / bc).sqrt() + 1e-8)
-                row_alpha = ((-float(recipe.t1_prior_row_lr)) * row_settle64).to(base_prior.z.dtype)
-                base_prior.z.index_add_(0, u_rows, (step_vec * part_scale) * row_alpha, alpha=1.0)
+                row_alpha = (-float(recipe.t1_prior_row_lr)) * row_settle64.float()
+                row_delta = ((step_vec * part_scale.float()) * row_alpha).to(base_prior.z.dtype)
+                base_prior.z.index_add_(0, u_rows, row_delta, alpha=1.0)
         finally:
             for p, flag in zip(trainer.G.parameters(), g_flags):
                 p.requires_grad_(flag)

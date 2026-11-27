@@ -815,3 +815,52 @@ def test_r3_checkpoint_continuation_across_unequal_width_and_inlier_shrink(tmp_p
     assert torch.equal(tr2_b.prior.z, tr2_ref.prior.z)
     for p_b, p_r in zip(tr2_b.G.parameters(), tr2_ref.G.parameters()):
         assert torch.equal(p_b, p_r)
+
+
+def test_v15_prior_disables_bispf_shape_gates_and_keeps_bf16_row_n_fp32() -> None:
+    """UnifiedV15PriorRegularizer must default shape_gates=False and keep BF16 row_n/row_m/row_v in FP32 past 256."""
+    reg = UnifiedV15PriorRegularizer(max_prototypes=16)
+    assert reg.fallback.gates.shape_gates is False
+
+    # Run BF16 GANTrainer with unified_v15 so unified_v15_pullback_step allocates & increments row_m/row_v/row_n
+    g_mod = SimpleMLPGenerator(z_dim=4, hidden_dim=16, n_hidden=1, out_dim=2).to(torch.bfloat16)
+    d_mod = SimpleMLPDiscriminator(in_dim=2, hidden_dim=16, n_hidden=1, fourier=2).to(torch.bfloat16)
+    prior = MoGParticlePrior(num_particles=16, z_dim=4, sigma=0.05).to(torch.bfloat16)
+    init.deterministic_orthogonal_(g_mod, seed=11)
+    init.deterministic_orthogonal_(d_mod, seed=12)
+    init.deterministic_orthogonal_(prior, seed=13)
+    rec = get_recipe("unified_v15").replace(z_dim=4, num_particles=16, prior_kind="mog", total_steps=50)
+    tr = GANTrainer(rec, g_mod, d_mod, prior=prior, seed=0)
+    reg_live = tr.prior_regularizer
+    assert isinstance(reg_live, UnifiedV15PriorRegularizer)
+    assert reg_live.fallback.gates.shape_gates is False
+
+    rng = torch.Generator().manual_seed(0)
+    centers = torch.tensor([[-2.0, -2.0], [2.0, -2.0], [-2.0, 2.0], [2.0, 2.0]], dtype=torch.bfloat16)
+    for _ in range(4):
+        idx = torch.randint(0, 4, (16,), generator=rng)
+        yb = centers[idx] + (0.05 * torch.randn((16, 2), generator=rng)).to(torch.bfloat16)
+        tr.step(yb)
+
+    assert reg_live.row_n is not None and reg_live.row_m is not None and reg_live.row_v is not None
+    assert reg_live.row_n.dtype == torch.float32
+    assert reg_live.row_m.dtype == torch.float32
+    assert reg_live.row_v.dtype == torch.float32
+
+    # Advance row_n to 256.0 and verify the next step increments past 256 (BF16 saturates at 256.0 + 1 == 256.0!)
+    reg_live.row_n.fill_(256.0)
+    idx = torch.randint(0, 4, (16,), generator=rng)
+    yb = centers[idx] + (0.05 * torch.randn((16, 2), generator=rng)).to(torch.bfloat16)
+    tr.step(yb)
+    assert reg_live.row_n.dtype == torch.float32
+    assert float(reg_live.row_n.max().item()) >= 257.0, f"BF16 row_n saturated at {reg_live.row_n.max().item()}"
+
+    # Checkpoint roundtrip must also preserve FP32 dtype on row_n/row_m/row_v
+    sd = copy.deepcopy(reg_live.state_dict())
+    reg2 = UnifiedV15PriorRegularizer(max_prototypes=16)
+    reg2.load_state_dict(sd)
+    assert reg2.row_n is not None and reg2.row_n.dtype == torch.float32
+    assert reg2.row_m is not None and reg2.row_m.dtype == torch.float32
+    assert reg2.row_v is not None and reg2.row_v.dtype == torch.float32
+    assert torch.equal(reg2.row_n, reg_live.row_n)
+

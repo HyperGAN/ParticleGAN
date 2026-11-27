@@ -6,7 +6,6 @@ Self-contained Law 3 coupling and loss module importing directly from
 from __future__ import annotations
 
 import math
-import weakref
 from typing import Any, Dict, List, Optional, Tuple
 
 import torch
@@ -34,6 +33,44 @@ from .charts import (
     project_transport_features,
     update_streaming_charts,
 )
+
+
+_PHI1 = 0.6180339887498949
+_PHI2 = 0.7548776662466927
+
+
+@torch.no_grad()
+def _principal_axis_power(gram: torch.Tensor, iters: int = 6) -> torch.Tensor:
+    """Deterministic zero-RNG power-iteration top eigenvector on symmetric PSD ``[D, D]`` (`0` `eigh`/`svd`)."""
+    d = int(gram.shape[0])
+    idx = torch.arange(1, d + 1, device=gram.device, dtype=gram.dtype)
+    v = torch.remainder(idx * _PHI1 + 0.25, 1.0) - 0.5
+    v = v / v.norm().clamp_min(1e-12)
+    for _ in range(iters):
+        gv = gram @ v
+        nrm = gv.norm()
+        v = torch.where(nrm > 1e-20, gv / nrm.clamp_min(1e-20), v)
+    nz = v.abs() > 1e-6
+    if bool(nz.any()):
+        first = v[torch.nonzero(nz, as_tuple=False)[0, 0]]
+        v = torch.where(first < 0, -v, v)
+    return v
+
+
+def _rayleigh_spec_sq(z_cf: torch.Tensor, iters: int = 6) -> torch.Tensor:
+    """Differentiable top squared singular value ``||z_cf||_2^2`` via detached power iteration + Rayleigh quotient (`0` SVD)."""
+    if z_cf.shape[1] == 2:
+        g00 = (z_cf[:, 0] * z_cf[:, 0]).sum()
+        g01 = (z_cf[:, 0] * z_cf[:, 1]).sum()
+        g11 = (z_cf[:, 1] * z_cf[:, 1]).sum()
+        tr = g00 + g11
+        disc = torch.sqrt((g00 - g11).square() + 4.0 * g01.square() + 1e-20)
+        return 0.5 * (tr + disc)
+    with torch.no_grad():
+        zd = z_cf.detach()
+        gram = zd.T @ zd
+        v_top = _principal_axis_power(gram, iters=iters)
+    return (z_cf @ v_top).square().sum()
 
 
 class _UnifiedV15CouplingBase(nn.Module):
@@ -657,6 +694,7 @@ class _UnifiedV15CouplingBase(nn.Module):
     @staticmethod
     @torch.no_grad()
     def _compute_curve_gate(y_flat: torch.Tensor, g_conn: float) -> float:
+        """Compute local 1D-curve intrinsic dimension gate via batched power iteration + deflation (`0` `eigvalsh`)."""
         b_r = y_flat.shape[0]
         if g_conn <= 1e-4 or b_r < 12:
             return 0.0
@@ -664,13 +702,33 @@ class _UnifiedV15CouplingBase(nn.Module):
         y_u = y_flat.float() / y_scale
         d_yy = torch.cdist(y_u, y_u, p=2.0)
         k_loc = min(9, b_r)
+        if k_loc < 2:
+            return float(g_conn)
         idx_k = torch.topk(d_yy, k=k_loc, dim=-1, largest=False).indices
         patches = y_u[idx_k]
         centered = patches - patches.mean(dim=1, keepdim=True)
-        gram = torch.bmm(centered, centered.transpose(1, 2))
-        evals = torch.linalg.eigvalsh(gram).clamp_min(0.0)
-        lam1 = evals[:, -1]
-        lam2 = evals[:, -2] if k_loc >= 2 else torch.zeros_like(lam1)
+        gram = torch.bmm(centered, centered.transpose(1, 2))  # [B, k_loc, k_loc]
+
+        ks = torch.arange(1, k_loc + 1, device=gram.device, dtype=torch.float32)
+        v1 = (torch.remainder(ks * _PHI1 + 0.13, 1.0) - 0.5).view(1, k_loc, 1).expand(b_r, k_loc, 1).clone()
+        v1 = v1 / v1.norm(dim=1, keepdim=True).clamp_min(1e-12)
+        for _ in range(6):
+            gv = torch.bmm(gram, v1)
+            nrm = gv.norm(dim=1, keepdim=True)
+            v1 = torch.where(nrm > 1e-18, gv / nrm.clamp_min(1e-18), v1)
+        lam1 = (v1 * torch.bmm(gram, v1)).sum(dim=(1, 2)).clamp_min(0.0)
+
+        gram_def = gram - lam1.view(b_r, 1, 1) * torch.bmm(v1, v1.transpose(1, 2))
+        v2 = (torch.remainder(ks * _PHI2 + 0.37, 1.0) - 0.5).view(1, k_loc, 1).expand(b_r, k_loc, 1).clone()
+        v2 = v2 - (v2 * v1).sum(dim=1, keepdim=True) * v1
+        v2 = v2 / v2.norm(dim=1, keepdim=True).clamp_min(1e-12)
+        for _ in range(6):
+            gv2 = torch.bmm(gram_def, v2)
+            gv2 = gv2 - (gv2 * v1).sum(dim=1, keepdim=True) * v1
+            nrm2 = gv2.norm(dim=1, keepdim=True)
+            v2 = torch.where(nrm2 > 1e-18, gv2 / nrm2.clamp_min(1e-18), v2)
+        lam2 = (v2 * torch.bmm(gram_def, v2)).sum(dim=(1, 2)).clamp_min(0.0)
+
         ratio_21 = torch.median(lam2 / lam1.clamp_min(1e-12))
         u_1d = ((0.11 - ratio_21) / 0.06).clamp(0.0, 1.0)
         s_1d = u_1d * u_1d * (3.0 - 2.0 * u_1d)
@@ -2119,7 +2177,7 @@ class _UnifiedV15CouplingBase(nn.Module):
                 if g_curve > 1e-4 and z_table.shape[1] >= 2:
                     z_cf = z_table.float() - z_table.float().mean(dim=0, keepdim=True)
                     frob_sq = z_cf.square().sum().clamp_min(1e-12)
-                    spec_sq = torch.linalg.matrix_norm(z_cf, ord=2).square()
+                    spec_sq = _rayleigh_spec_sq(z_cf, iters=6)
                     collinear_loss = ((frob_sq - spec_sq).clamp_min(0.0) / frob_sq).to(total.dtype)
                     z_chart_total = z_chart_total + (
                         3.2 * g_conn * g_curve * float(chart_weight)
@@ -2132,90 +2190,8 @@ class _UnifiedV15CouplingBase(nn.Module):
         return self.weight * total
 
 
-_PHI1 = 0.6180339887498949
-_PHI2 = 0.7548776662466927
-
-
-@torch.no_grad()
-def _principal_axis_power(gram: torch.Tensor, iters: int = 6) -> torch.Tensor:
-    """Deterministic zero-RNG power-iteration top eigenvector on symmetric PSD ``[D, D]`` (`0` `eigh`/`svd`)."""
-    d = int(gram.shape[0])
-    idx = torch.arange(1, d + 1, device=gram.device, dtype=gram.dtype)
-    v = torch.remainder(idx * _PHI1 + 0.25, 1.0) - 0.5
-    v = v / v.norm().clamp_min(1e-12)
-    for _ in range(iters):
-        gv = gram @ v
-        nrm = gv.norm()
-        v = torch.where(nrm > 1e-20, gv / nrm.clamp_min(1e-20), v)
-    nz = v.abs() > 1e-6
-    if bool(nz.any()):
-        first = v[torch.nonzero(nz, as_tuple=False)[0, 0]]
-        v = torch.where(first < 0, -v, v)
-    return v
-
-
-def _rayleigh_spec_sq(z_cf: torch.Tensor, iters: int = 6) -> torch.Tensor:
-    """Differentiable top squared singular value ``||z_cf||_2^2`` via detached power iteration + Rayleigh quotient (`0` SVD)."""
-    if z_cf.shape[1] == 2:
-        # Exact closed-form 2x2 symmetric quadratic formula (zero iterations, machine precision):
-        g00 = (z_cf[:, 0] * z_cf[:, 0]).sum()
-        g01 = (z_cf[:, 0] * z_cf[:, 1]).sum()
-        g11 = (z_cf[:, 1] * z_cf[:, 1]).sum()
-        tr = g00 + g11
-        disc = torch.sqrt((g00 - g11).square() + 4.0 * g01.square() + 1e-20)
-        return 0.5 * (tr + disc)
-    with torch.no_grad():
-        zd = z_cf.detach()
-        gram = zd.T @ zd
-        v_top = _principal_axis_power(gram, iters=iters)
-    return (z_cf @ v_top).square().sum()
-
-
 class _UnifiedV15CouplingV4Base(_UnifiedV15CouplingBase):
     """Zero-`eigvalsh` / zero-`svdvals` subclass of `T1CouplingLoss`."""
-
-    @staticmethod
-    @torch.no_grad()
-    def _compute_curve_gate(y_flat: torch.Tensor, g_conn: float) -> float:
-        """Compute local 1D-curve intrinsic dimension gate via batched power iteration + deflation (`0` `eigvalsh`)."""
-        b_r = y_flat.shape[0]
-        if g_conn <= 1e-4 or b_r < 12:
-            return 0.0
-        y_scale = y_flat.float().abs().amax().clamp_min(1.0)
-        y_u = y_flat.float() / y_scale
-        d_yy = torch.cdist(y_u, y_u, p=2.0)
-        k_loc = min(9, b_r)
-        if k_loc < 2:
-            return float(g_conn)
-        idx_k = torch.topk(d_yy, k=k_loc, dim=-1, largest=False).indices
-        patches = y_u[idx_k]
-        centered = patches - patches.mean(dim=1, keepdim=True)
-        gram = torch.bmm(centered, centered.transpose(1, 2))  # [B, k_loc, k_loc]
-
-        ks = torch.arange(1, k_loc + 1, device=gram.device, dtype=torch.float32)
-        v1 = (torch.remainder(ks * _PHI1 + 0.13, 1.0) - 0.5).view(1, k_loc, 1).expand(b_r, k_loc, 1).clone()
-        v1 = v1 / v1.norm(dim=1, keepdim=True).clamp_min(1e-12)
-        for _ in range(6):
-            gv = torch.bmm(gram, v1)
-            nrm = gv.norm(dim=1, keepdim=True)
-            v1 = torch.where(nrm > 1e-18, gv / nrm.clamp_min(1e-18), v1)
-        lam1 = (v1 * torch.bmm(gram, v1)).sum(dim=(1, 2)).clamp_min(0.0)
-
-        gram_def = gram - lam1.view(b_r, 1, 1) * torch.bmm(v1, v1.transpose(1, 2))
-        v2 = (torch.remainder(ks * _PHI2 + 0.37, 1.0) - 0.5).view(1, k_loc, 1).expand(b_r, k_loc, 1).clone()
-        v2 = v2 - (v2 * v1).sum(dim=1, keepdim=True) * v1
-        v2 = v2 / v2.norm(dim=1, keepdim=True).clamp_min(1e-12)
-        for _ in range(6):
-            gv2 = torch.bmm(gram_def, v2)
-            gv2 = gv2 - (gv2 * v1).sum(dim=1, keepdim=True) * v1
-            nrm2 = gv2.norm(dim=1, keepdim=True)
-            v2 = torch.where(nrm2 > 1e-18, gv2 / nrm2.clamp_min(1e-18), v2)
-        lam2 = (v2 * torch.bmm(gram_def, v2)).sum(dim=(1, 2)).clamp_min(0.0)
-
-        ratio_21 = torch.median(lam2 / lam1.clamp_min(1e-12))
-        u_1d = ((0.11 - ratio_21) / 0.06).clamp(0.0, 1.0)
-        s_1d = u_1d * u_1d * (3.0 - 2.0 * u_1d)
-        return float((float(g_conn) * s_1d).item())
 
     def simplicial_manifold_loss(
         self,
@@ -3072,782 +3048,9 @@ def unified_v15_conditional_loss(
     return (imq_scale * loss_imq + loss_op).clamp(-fmax, fmax).to(x_flat.dtype)
 
 
-@torch.no_grad()
-def _highd_bank_assign_and_update(
-    bank: Any,
-    x_det: torch.Tensor,
-    y_det: torch.Tensor,
-) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, bool]:
-    """Update checkpointed high-D streaming basin statistics (0 eigh, Haar-O(d) invariant)."""
-    dev = y_det.device
-    yf = y_det.double()
-    xf = x_det.double()
-    b_r, d = yf.shape
-    if bank.k > 0 and bank.dim != d:
-        bank.reset()
-    bank.dim = int(d)
-
-    d_yy = torch.cdist(yf, yf, p=2.0)
-    d_yy_inf = d_yy.clone()
-    d_yy_inf.fill_diagonal_(float("inf"))
-    k_loc = min(3, max(1, b_r - 1))
-    r_loc = torch.topk(d_yy_inf, k=k_loc, dim=1, largest=False).values[:, -1].clamp_min(1e-6)
-
-    if bank.k == 0 or bank.mu_y is None:
-        first = int(r_loc.argmin().item())
-        seeds = [first]
-        seed_r = [float(r_loc[first].item())]
-        while len(seeds) < bank.max_basins:
-            ratios = [
-                d_yy[:, s_idx] / torch.maximum(r_loc, torch.full_like(r_loc, sr))
-                for s_idx, sr in zip(seeds, seed_r)
-            ]
-            far_val, far_idx = torch.stack(ratios, dim=1).amin(dim=1).max(dim=0)
-            if float(far_val.item()) <= 1.85:
-                break
-            fi = int(far_idx.item())
-            seeds.append(fi)
-            seed_r.append(float(r_loc[fi].item()))
-        bank.k = len(seeds)
-        centers = yf[seeds].clone()
-        seed_r_t = torch.tensor(seed_r, dtype=torch.float64, device=dev)
-        d_yc0 = torch.cdist(yf, centers, p=2.0)
-        denom0 = torch.maximum(r_loc.unsqueeze(1), seed_r_t.unsqueeze(0)).clamp_min(1e-6)
-        min_r0, asg_y = (d_yc0 / denom0).min(dim=1)
-        overflow = (bank.k >= bank.max_basins) and (int((min_r0 > 1.95).sum().item()) >= 3)
-        bank.w_y = torch.zeros(bank.k, dtype=torch.float64, device=dev)
-        bank.mu_y = centers.clone()
-        bank.cov_y = torch.zeros((bank.k, d, d), dtype=torch.float64, device=dev)
-        bank.rad_y = seed_r_t.clone()
-        bank.w_x = torch.zeros(bank.k, dtype=torch.float64, device=dev)
-        bank.mu_x = centers.clone()
-        bank.cov_x = torch.zeros((bank.k, d, d), dtype=torch.float64, device=dev)
-        for c in range(bank.k):
-            mc = asg_y == c
-            nc = int(mc.sum().item())
-            if nc >= 1:
-                yc = yf[mc]
-                mu = yc.mean(dim=0)
-                bank.w_y[c] = float(nc)
-                bank.mu_y[c] = mu
-                ry = yc - mu
-                bank.cov_y[c] = (ry.T @ ry) / float(nc)
-                bank.rad_y[c] = r_loc[mc].median().clamp_min(1e-6)
-    else:
-        if bank.mu_y.device != dev:
-            bank.restore_device(dev)
-        d_yc = torch.cdist(yf, bank.mu_y, p=2.0)
-        denom_yc = torch.maximum(r_loc.unsqueeze(1), bank.rad_y.unsqueeze(0)).clamp_min(1e-6)
-        min_ratio, asg_y = (d_yc / denom_yc).min(dim=1)
-        far_mask = min_ratio > 1.95
-        overflow = (bank.k >= bank.max_basins) and (int(far_mask.sum().item()) >= 3)
-        if bank.k < bank.max_basins and int(far_mask.sum().item()) >= 3:
-            far_idx_all = far_mask.nonzero(as_tuple=False).squeeze(-1)
-            fi = int(far_idx_all[r_loc[far_idx_all].argmin()].item())
-            new_c = yf[fi : fi + 1]
-            new_r = r_loc[fi : fi + 1]
-            bank.k += 1
-            bank.mu_y = torch.cat([bank.mu_y, new_c], dim=0)
-            bank.rad_y = torch.cat([bank.rad_y, new_r], dim=0)
-            bank.w_y = torch.cat([bank.w_y, torch.zeros(1, dtype=torch.float64, device=dev)], dim=0)
-            bank.cov_y = torch.cat([bank.cov_y, torch.zeros((1, d, d), dtype=torch.float64, device=dev)], dim=0)
-            bank.mu_x = torch.cat([bank.mu_x, new_c.clone()], dim=0)
-            bank.w_x = torch.cat([bank.w_x, torch.zeros(1, dtype=torch.float64, device=dev)], dim=0)
-            bank.cov_x = torch.cat([bank.cov_x, torch.zeros((1, d, d), dtype=torch.float64, device=dev)], dim=0)
-            d_yc = torch.cdist(yf, bank.mu_y, p=2.0)
-            denom_yc = torch.maximum(r_loc.unsqueeze(1), bank.rad_y.unsqueeze(0)).clamp_min(1e-6)
-            min_ratio, asg_y = (d_yc / denom_yc).min(dim=1)
-
-        bank.w_y.mul_(bank.gamma)
-        for c in range(bank.k):
-            mc = (asg_y == c) & (min_ratio <= 1.95)
-            nc = int(mc.sum().item())
-            if nc >= 1:
-                yc = yf[mc]
-                w_new = float(bank.w_y[c].item()) + float(nc)
-                alpha = float(nc) / max(w_new, 1e-8)
-                mu_b = yc.mean(dim=0)
-                delta = mu_b - bank.mu_y[c]
-                ry = yc - mu_b
-                cov_b = (ry.T @ ry) / float(nc)
-                bank.cov_y[c] = (
-                    (1.0 - alpha) * bank.cov_y[c]
-                    + alpha * cov_b
-                    + alpha * (1.0 - alpha) * torch.outer(delta, delta)
-                )
-                bank.mu_y[c] = bank.mu_y[c] + alpha * delta
-                bank.w_y[c] = w_new
-                bank.rad_y[c] = (1.0 - alpha) * bank.rad_y[c] + alpha * r_loc[mc].median()
-
-    d_xc = torch.cdist(xf, bank.mu_y, p=2.0)
-    min_rx, asg_x = (d_xc / bank.rad_y.unsqueeze(0).clamp_min(1e-6)).min(dim=1)
-    in_basin_x = min_rx <= 2.2
-    bank.w_x.mul_(bank.gamma)
-    for c in range(bank.k):
-        mc = (asg_x == c) & in_basin_x
-        nc = int(mc.sum().item())
-        if nc >= 1:
-            xc = xf[mc]
-            w_old = float(bank.w_x[c].item())
-            w_new = w_old + float(nc)
-            alpha = float(nc) / max(w_new, 1e-8)
-            mu_b = xc.mean(dim=0)
-            rx = xc - mu_b
-            cov_b = (rx.T @ rx) / float(nc)
-            if w_old < 1e-6:
-                bank.mu_x[c] = mu_b
-                bank.cov_x[c] = cov_b
-            else:
-                delta = mu_b - bank.mu_x[c]
-                bank.cov_x[c] = (
-                    (1.0 - alpha) * bank.cov_x[c]
-                    + alpha * cov_b
-                    + alpha * (1.0 - alpha) * torch.outer(delta, delta)
-                )
-                bank.mu_x[c] = bank.mu_x[c] + alpha * delta
-            bank.w_x[c] = w_new
-    return d_xc, min_rx, asg_x, overflow
-
-
 def _has_spatial_dims(x: torch.Tensor) -> bool:
     """Return True iff ``x`` has non-singleton spatial dimensions beyond ``(B, C)``."""
     return x.ndim >= 3 and any(int(s) > 1 for s in x.shape[2:])
-
-
-def unified_v15_highd_basin_stein_loss(
-    x_fake: torch.Tensor,
-    y_real: torch.Tensor,
-    *,
-    record: Any = None,
-    generator: Optional[nn.Module] = None,
-    z_batch: Optional[torch.Tensor] = None,
-    allow_update: bool = True,
-    w_jac: float = 0.90,
-    w_x: float = 0.85,
-    w_mu: float = 1.45,
-    w_bridge: float = 1.55,
-) -> Tuple[torch.Tensor, float]:
-    """Zero-`eigh`, Haar-O(d)-invariant, scale-equivariant High-D Basin Wiener-Stein & shell-bridge operator (L3-7)."""
-    zero = x_fake[:0].sum()
-    bank = getattr(record, "highd_basin_bank", None) if record is not None else None
-    if bank is None or x_fake.ndim < 2 or y_real.ndim < 2 or _has_spatial_dims(x_fake) or _has_spatial_dims(y_real):
-        return zero, 0.0
-    x_fake = x_fake.reshape(int(x_fake.shape[0]), -1)
-    y_real = y_real.reshape(int(y_real.shape[0]), -1)
-    b_f, d = int(x_fake.shape[0]), int(x_fake.shape[1])
-    b_r = int(y_real.shape[0])
-    if b_f < 8 or b_r < 8 or d <= 16 or d > 256:
-        return zero, 0.0
-
-    z_tail: Tuple[int, ...] = ()
-    z_2d: Optional[torch.Tensor] = None
-    if z_batch is not None and z_batch.ndim >= 2 and not _has_spatial_dims(z_batch):
-        z_tail = tuple(z_batch.shape[2:])
-        z_2d = z_batch.reshape(int(z_batch.shape[0]), -1)
-
-    with torch.no_grad():
-        if allow_update:
-            d_xc, min_rx, asg_x, overflow = _highd_bank_assign_and_update(bank, x_fake.detach(), y_real.detach())
-            if overflow:
-                return zero, 0.0
-            if z_2d is not None and z_2d.shape[0] >= 4 and z_2d.shape[1] >= 1:
-                zf = z_2d.detach().float()
-                d_zz = torch.cdist(zf, zf, p=2.0)
-                d_zz.fill_diagonal_(float("inf"))
-                est_sig = max(1e-4, float(torch.quantile(d_zz.amin(dim=1), 0.10).item()) / math.sqrt(2.0 * float(zf.shape[1])))
-                bank.sigma_z_ema = est_sig if not bank.sigma_z_init else (0.90 * bank.sigma_z_ema + 0.10 * est_sig)
-                bank.sigma_z_init = True
-        else:
-            if bank.k == 0 or bank.mu_y is None or bank.dim != d:
-                return zero, 0.0
-            if bank.mu_y.device != x_fake.device:
-                bank.restore_device(x_fake.device)
-            if bank.k >= bank.max_basins:
-                d_yc_ro = torch.cdist(y_real.detach().double(), bank.mu_y, p=2.0)
-                min_ry_ro = (d_yc_ro / bank.rad_y.unsqueeze(0).clamp_min(1e-6)).amin(dim=1)
-                if int((min_ry_ro > 1.95).sum().item()) >= 3:
-                    return zero, 0.0
-            d_xc = torch.cdist(x_fake.detach().double(), bank.mu_y, p=2.0)
-            min_rx, asg_x = (d_xc / bank.rad_y.unsqueeze(0).clamp_min(1e-6)).min(dim=1)
-
-        # Dimension-derived chi_d 3-sigma shell boundary: 1 + 3 / sqrt(2*d)
-        r_shell = 1.0 + 3.0 / math.sqrt(2.0 * float(d))
-        in_basin_x = min_rx <= (r_shell + 0.65)
-        mature_y = bank.w_y >= float(d) * 0.4
-        if not bool(mature_y.any()):
-            return zero, 0.0
-        min_cov_ratio = float((bank.w_x[mature_y] / bank.w_y[mature_y].clamp_min(1e-6)).amin().item())
-        u_cov = max(0.0, min(1.0, (min_cov_ratio - 0.50) / 0.25))
-        cov_gate = u_cov * u_cov * (3.0 - 2.0 * u_cov)
-        if cov_gate <= 1e-4:
-            return zero, 1.0
-        euclid_asg = d_xc.argmin(dim=1)
-
-    total_loss = zero
-    if w_bridge > 0.0 and bank.k >= 1:
-        u_br = ((min_rx.float() - r_shell) / 0.55).clamp(0.0, 1.0)
-        g_br = torch.where(mature_y[euclid_asg], u_br * u_br * (3.0 - 2.0 * u_br), torch.zeros_like(u_br))
-        if bool((g_br > 1e-4).any()):
-            mu_tgt = bank.mu_y.float()[euclid_asg]
-            rad_tgt = bank.rad_y.float()[euclid_asg].clamp_min(1e-5)
-            bi_dist = (rad_tgt.square() + (x_fake.float() - mu_tgt).square().sum(dim=-1)).sqrt() - rad_tgt
-            total_loss = total_loss + (float(w_bridge) * float(cov_gate)) * (
-                (g_br * bi_dist).sum() / float(b_f)
-            ).to(dtype=x_fake.dtype)
-
-    has_jac_inputs = (
-        generator is not None
-        and z_2d is not None
-        and z_2d.shape[0] == b_f
-        and 1 <= z_2d.shape[1] <= 128
-        and bank.sigma_z_init
-        and w_jac > 0.0
-    )
-    with torch.no_grad():
-        eye = torch.eye(d, dtype=torch.float64, device=x_fake.device)
-        op_x = torch.zeros((bank.k, d, d), dtype=torch.float32, device=x_fake.device)
-        mu_force = torch.zeros((bank.k, d), dtype=torch.float32, device=x_fake.device)
-        sig_y_vec = torch.zeros(bank.k, dtype=torch.float32, device=x_fake.device)
-        valid_c = torch.zeros(bank.k, dtype=torch.bool, device=x_fake.device)
-        anchors: List[torch.Tensor] = []
-        t_mats: List[torch.Tensor] = []
-        t_invs: List[torch.Tensor] = []
-        anc_sigs: List[float] = []
-        worst_def = 0.0
-        eps_x = 0.12
-
-        for c in range(bank.k):
-            if float(bank.w_y[c].item()) < float(d) * 0.4 or float(bank.w_x[c].item()) < 4.0:
-                continue
-            cy = bank.cov_y[c]
-            var_y = float(torch.diagonal(cy).sum().item()) / float(d)
-            if var_y <= 1e-10:
-                continue
-            sigma_y = math.sqrt(var_y)
-            shrink = min(0.25, float(d) / (float(d) + 4.0 * float(bank.w_y[c].item())))
-            cy_reg = (1.0 - shrink) * cy + (shrink * var_y) * eye
-            Ly, info_y = torch.linalg.cholesky_ex(0.5 * (cy_reg + cy_reg.T))
-            if int(info_y.item()) != 0:
-                continue
-            cy_inv = torch.cholesky_inverse(Ly)
-
-            cx = 0.5 * (bank.cov_x[c] + bank.cov_x[c].T)
-            var_x = float(torch.diagonal(cx).sum().item()) / float(d)
-            # Symmetric shrinkage on cx (exact cx_reg == cy_reg -> op_x == 0 at equilibrium!)
-            cx_reg = (1.0 - shrink) * cx + (shrink * min(var_x, var_y)) * eye
-            Lx_x, info_x = torch.linalg.cholesky_ex(cx_reg + eps_x * cy_reg)
-            if int(info_x.item()) != 0:
-                continue
-            cx_inv = torch.cholesky_inverse(Lx_x)
-            Lx_ref, info_xr = torch.linalg.cholesky_ex(cx_reg + 0.01 * cy_reg)
-            if int(info_xr.item()) == 0:
-                ld_gap = float((2.0 * torch.diagonal(Ly).log().sum() - 2.0 * torch.diagonal(Lx_ref).log().sum()).item()) / float(d)
-                if ld_gap > worst_def:
-                    worst_def = ld_gap
-
-            op_x[c] = ((1.0 / (1.0 + eps_x)) * cy_inv - cx_inv).float()
-            dm_c = bank.mu_x[c] - bank.mu_y[c]
-            mf_c = cy_inv @ dm_c
-            dm_w_norm = math.sqrt(max(0.0, float((dm_c * mf_c).sum().item())) / float(d))
-            if dm_w_norm > 2.0:
-                mf_c = mf_c * (2.0 / dm_w_norm)
-            mu_force[c] = mf_c.float()
-            sig_y_vec[c] = float(sigma_y)
-            valid_c[c] = True
-
-            if has_jac_inputs:
-                mc = (asg_x == c) & (min_rx <= 2.4)
-                if bool(mc.any()):
-                    # Golden-Ratio Wiener matrix residual target: T_c^{-1} = C_y^{-1} + C_y^{-1} C_x C_y^{-1}
-                    # Strictly SPD, zero-eigh, Haar-O(d) & scale equivariant: expands collapsed eigendirections
-                    # (tau -> 1) while suppressing local Jacobian puffing on already-wide eigendirections!
-                    t_inv = cy_inv + (cy_inv @ cx_reg @ cy_inv)
-                    t_inv = 0.5 * (t_inv + t_inv.T)
-                    L_ti, info_ti = torch.linalg.cholesky_ex(t_inv)
-                    if int(info_ti.item()) == 0:
-                        t_c = torch.cholesky_inverse(L_ti)
-                        cand_idx = mc.nonzero(as_tuple=False).squeeze(-1)
-                        order_c = torch.argsort(d_xc[cand_idx, c])
-                        nc = len(order_c)
-                        pick_pos = [0] if nc == 1 else ([0, 1] if nc == 2 else [0, nc // 3, (2 * nc) // 3])
-                        for pp in pick_pos:
-                            anchors.append(z_2d.detach()[int(cand_idx[int(order_c[pp].item())].item())])
-                            t_mats.append(t_c)
-                            t_invs.append(t_inv)
-                            anc_sigs.append(sigma_y)
-
-    if not bool(valid_c.any()):
-        return total_loss, worst_def
-
-    if anchors and generator is not None and z_2d is not None:
-        m_act = len(anchors)
-        d_z = int(z_2d.shape[1])
-        z_anc = torch.stack(anchors, dim=0)
-        eye_z = torch.eye(d_z, dtype=z_anc.dtype, device=z_anc.device) * float(bank.sigma_z_ema)
-        z_all = torch.cat(
-            [
-                (z_anc.unsqueeze(1) + eye_z.unsqueeze(0)).reshape(m_act * d_z, d_z),
-                (z_anc.unsqueeze(1) - eye_z.unsqueeze(0)).reshape(m_act * d_z, d_z),
-            ],
-            dim=0,
-        )
-        if z_tail:
-            z_all = z_all.reshape(2 * m_act * d_z, d_z, *z_tail)
-        prev_probe = bool(getattr(record, "_in_probe", False)) if record is not None else False
-        bn_modes = []
-        for mod in generator.modules():
-            if isinstance(mod, (torch.nn.modules.batchnorm._BatchNorm, torch.nn.modules.dropout._DropoutNd)):
-                bn_modes.append((mod, mod.training))
-                mod.eval()
-        if record is not None:
-            record._in_probe = True
-        try:
-            y_out = generator(z_all)
-        finally:
-            if record is not None:
-                record._in_probe = prev_probe
-            for mod, flag in bn_modes:
-                mod.training = flag
-        y_all = y_out[0] if isinstance(y_out, (tuple, list)) and y_out else y_out
-        if isinstance(y_all, torch.Tensor) and y_all.shape[0] == 2 * m_act * d_z:
-            y_p = y_all[: m_act * d_z].reshape(m_act, d_z, d)
-            y_m = y_all[m_act * d_z :].reshape(m_act, d_z, d)
-            J_all = (0.5 * (y_p - y_m)).double()
-            eps_r = 1e-4
-            t_stack = torch.stack(t_mats, dim=0)
-            t_inv_stack = torch.stack(t_invs, dim=0)
-            L_all = torch.matmul(J_all.transpose(1, 2), J_all)
-            tr_term = (1.0 / (1.0 + eps_r)) * (t_inv_stack * L_all).sum(dim=(-2, -1))
-            L_reg = 0.5 * (L_all + L_all.transpose(-1, -2)) + eps_r * t_stack
-            chol_L = torch.linalg.cholesky(L_reg)
-            logdet_L = 2.0 * torch.diagonal(chol_L, dim1=-2, dim2=-1).log().sum(dim=-1)
-            with torch.no_grad():
-                chol_T = torch.linalg.cholesky((1.0 + eps_r) * t_stack)
-                logdet_T = 2.0 * torch.diagonal(chol_T, dim1=-2, dim2=-1).log().sum(dim=-1)
-            stein_b = 0.5 * (tr_term - logdet_L + logdet_T - float(d) / (1.0 + eps_r)) / math.sqrt(float(d))
-            sig_anc_t = torch.tensor(anc_sigs, dtype=torch.float64, device=x_fake.device)
-            mean_sig = sig_anc_t.mean().clamp_min(1e-8)
-            jac_loss = ((sig_anc_t.square() / mean_sig) * stein_b).mean()
-            total_loss = total_loss + (float(w_jac) * float(cov_gate)) * jac_loss.to(dtype=x_fake.dtype)
-
-    row_valid = in_basin_x & valid_c[asg_x]
-    if bool(row_valid.any()) and (w_x > 0.0 or w_mu > 0.0):
-        idx = asg_x[row_valid]
-        xf_v = x_fake.float()[row_valid]
-        rx = xf_v - bank.mu_x.float()[idx]
-        sig = sig_y_vec[idx]
-        r2_dimless = rx.square().sum(dim=-1, keepdim=True) / (float(d) * sig.square().unsqueeze(-1).clamp_min(1e-10))
-        rx_s = rx * torch.rsqrt(1.0 + 0.05 * r2_dimless)
-        counts = torch.bincount(idx, minlength=bank.k).clamp_min(1).float()
-        n_active = float((counts[valid_c] > 0).sum().clamp_min(1).item())
-        w_row = 1.0 / (n_active * counts[idx])
-        if w_x > 0.0:
-            quad = 0.5 * torch.einsum("ni,nij,nj->n", rx_s, op_x[idx], rx_s)
-            phys_x = (sig / math.sqrt(float(d))) * quad
-            total_loss = total_loss + (float(w_x) * float(cov_gate)) * (w_row * phys_x).sum().to(dtype=x_fake.dtype)
-        if w_mu > 0.0:
-            mu_inner = (xf_v * mu_force[idx]).sum(dim=-1)
-            phys_mu = (sig / math.sqrt(float(d))) * mu_inner
-            total_loss = total_loss + (float(w_mu) * float(cov_gate)) * (w_row * phys_mu).sum().to(dtype=x_fake.dtype)
-
-    return total_loss, worst_def
-
-
-@torch.no_grad()
-def _det_sparse_unit_cands(seed_id: int, n_cand: int, dz: int, device: torch.device) -> torch.Tensor:
-    """Zero-RNG Murmur32 Box-Muller unit directions on ``S^{dz-1}`` (identical on CPU and CUDA)."""
-    idx = torch.arange(n_cand * dz, device=device, dtype=torch.int64)
-    h = (idx ^ (int(seed_id) * 0x9E3779B1)) & 0xFFFFFFFF
-    h = ((h ^ (h >> 16)) * 0x85EBCA6B) & 0xFFFFFFFF
-    h = ((h ^ (h >> 13)) * 0xC2B2AE35) & 0xFFFFFFFF
-    h = (h ^ (h >> 16)) & 0xFFFFFFFF
-    u1 = (h.float() + 0.5) / 4294967296.0
-    h2 = (h * 0x27D4EB2D + 0x165667B1) & 0xFFFFFFFF
-    u2 = (h2.float() + 0.5) / 4294967296.0
-    g = torch.sqrt(-2.0 * torch.log(u1.clamp_min(1e-7))) * torch.cos(6.283185307179586 * u2)
-    return F.normalize(g.view(n_cand, dz), dim=1)
-
-
-def _safe_cholesky_solve_spd(mat: torch.Tensor, rhs: torch.Tensor, eye: torch.Tensor, base_scale: torch.Tensor) -> Optional[torch.Tensor]:
-    """Solve ``mat @ X = rhs`` via guaranteed-SPD Cholesky with adaptive ridge escalation (0 eigh/svd/pinv)."""
-    chol, info = torch.linalg.cholesky_ex(mat)
-    if int(info.item()) == 0:
-        return torch.cholesky_solve(rhs, chol)
-    for mult in (1e-2, 1e-1, 1.0):
-        chol, info = torch.linalg.cholesky_ex(mat + (mult * base_scale.clamp_min(1e-24)) * eye)
-        if int(info.item()) == 0:
-            return torch.cholesky_solve(rhs, chol)
-    return None
-
-
-def unified_v15_sparse_obs_wiener_loss(
-    x_fake: torch.Tensor,
-    y_real: torch.Tensor,
-    *,
-    record: Any = None,
-    z_batch: Optional[torch.Tensor] = None,
-    z_live: Optional[torch.Tensor] = None,
-    allow_update: bool = True,
-    start_proto_step: int = 8,
-    merge_cos: float = 0.55,
-    k_nlm: int = 24,
-    eta_b: float = 0.15,
-    z_pull: float = 1.0,
-) -> torch.Tensor:
-    """Zero-`eigh`, zero-RNG, scale-homogeneous Wiener-NLM + Laguerre transport for coordinate-masked vectors.
-
-    Recovers dense signal targets strictly from coordinate-masked observations ``y_obs = m * y`` via
-    guaranteed-SPD Linear-MMSE Wiener filtering ``W^T = (1/p) * (I - (1-p) S^{-1} diag(S))`` + 2-pass
-    Non-Local Means, and transports masked generator outputs via a deterministic semi-discrete Laguerre
-    partition in latent space (zero calls to ``G.eval()``, zero oracle, bit-exact checkpointed state).
-    """
-    xf = x_fake.reshape(int(x_fake.shape[0]), -1).float()
-    xr = y_real.detach().reshape(int(y_real.shape[0]), -1).float()
-    b_f, dim = int(xf.shape[0]), int(xf.shape[1])
-    b_r = int(xr.shape[0])
-    zero = 0.0 * xf.sum()
-    bank = getattr(record, "sparse_obs_bank", None) if record is not None else None
-    if bank is None or b_f < 2 or b_r < 2 or dim < 16:
-        return zero.to(dtype=x_fake.dtype)
-
-    dev = xf.device
-    mr = (xr != 0).float()
-    mf_m = (xf.detach() != 0).float()
-    z_2d: Optional[torch.Tensor] = None
-    dz = 0
-    if z_batch is not None and z_batch.ndim >= 2 and not _has_spatial_dims(z_batch) and int(z_batch.shape[0]) == b_f:
-        z_2d = z_batch.detach().reshape(b_f, -1).float().to(device=dev)
-        dz = int(z_2d.shape[1])
-    z_live_2d: Optional[torch.Tensor] = None
-    if (
-        float(z_pull) > 0.0
-        and z_live is not None
-        and z_live.requires_grad
-        and z_live.ndim >= 2
-        and not _has_spatial_dims(z_live)
-        and int(z_live.shape[0]) == b_f
-    ):
-        cand_zl = z_live.reshape(b_f, -1).float().to(device=dev)
-        if dz > 0 and int(cand_zl.shape[1]) == dz:
-            z_live_2d = cand_zl
-
-    if not allow_update:
-        if bank.step == 0 or bank.S_y is None or bank.mu_y is None or bank.dim != dim:
-            return zero.to(dtype=x_fake.dtype)
-        if bank.S_y.device != dev:
-            bank.restore_device(dev)
-        p_y = max(1e-4, float(bank.p_y))
-        p_x = max(1e-4, float(bank.p_x))
-        diag_sy = bank.S_y.diagonal().clamp_min(1e-24)
-        sc_y = (diag_sy.sum() / p_y).clamp_min(1e-24)
-        if bank.proto_k > 0 and bank.proto_y is not None and z_2d is not None and dz == bank.dz:
-            pk = int(bank.proto_k)
-            pw_all = bank.proto_w[:pk]
-            mat_mask = pw_all >= 2.0
-            if not bool(mat_mask.any()):
-                mat_mask = torch.ones_like(pw_all, dtype=torch.bool)
-            act_idx = mat_mask.nonzero(as_tuple=False).squeeze(-1)
-            zu = F.normalize(z_2d, dim=1)
-            scores = zu @ bank.proto_z[act_idx].T + bank.proto_b[act_idx].unsqueeze(0)
-            asg_loc = scores.argmax(dim=1)
-            tgt_dense = bank.proto_y[act_idx][asg_loc]
-            loss_nlm = ((xf - mf_m * tgt_dense).pow(2).sum(dim=1).mean()) / (p_x * sc_y)
-            if z_live_2d is not None:
-                tgt_z_ro = bank.proto_z[act_idx][asg_loc].detach()
-                z_u_live = F.normalize(z_live_2d, dim=1)
-                loss_nlm = loss_nlm + float(z_pull) * (1.0 - (z_u_live * tgt_z_ro).sum(dim=1)).mean()
-            return loss_nlm.to(dtype=x_fake.dtype)
-        zx = xf - mf_m * bank.mu_y.unsqueeze(0)
-        sig_y = (bank.S_y - (1.0 - p_y) * torch.diag(diag_sy)) / (p_y * p_y)
-        sig_x = (bank.S_x - (1.0 - p_x) * torch.diag(bank.S_x.diagonal())) / (p_x * p_x)
-        diff_sig = (sig_x - sig_y).detach()
-        diff_d = diff_sig.diagonal()
-        diff_o = diff_sig - torch.diag(diff_d)
-        norm_sig = sig_y.pow(2).sum().clamp_min(1e-24)
-        s_cur = (zx.T @ zx) / float(b_f)
-        loss_cov = ((diff_o * s_cur).sum() / (p_x * p_x) + (diff_d * s_cur.diagonal()).sum() / p_x) / norm_sig
-        diff_mu = (bank.mu_x - bank.mu_y).detach()
-        mu_cur = xf.mean(dim=0) / p_x
-        loss_mu = (diff_mu * mu_cur).sum() / sc_y
-        return (loss_cov + loss_mu).to(dtype=x_fake.dtype)
-
-    with torch.no_grad():
-        if bank.step > 0 and (bank.dim != dim or (bank.dz > 0 and dz > 0 and bank.dz != dz)):
-            bank.reset()
-        if bank.step > 0 and bank.S_y is not None and bank.S_y.device != dev:
-            bank.restore_device(dev)
-        bank.step += 1
-        st_n = int(bank.step)
-        bank.dim = int(dim)
-        if dz > 0:
-            bank.dz = int(dz)
-
-        by = 1.0 / float(min(st_n, 400))
-        bx = 1.0 / float(min(st_n, 10))
-        pr_b = float(mr.mean().clamp_min(1e-4).item())
-        px_b = float(mf_m.mean().clamp_min(1e-4).item())
-        mur_b = xr.mean(dim=0) / pr_b
-        mux_b = xf.detach().mean(dim=0) / px_b
-
-        if bank.S_y is None:
-            bank.p_y = pr_b
-            bank.mu_y = mur_b
-            bank.p_x = px_b
-            bank.mu_x = mux_b
-        else:
-            bank.p_y = (1.0 - by) * bank.p_y + by * pr_b
-            bank.mu_y = (1.0 - by) * bank.mu_y + by * mur_b
-            bank.p_x = (1.0 - bx) * bank.p_x + bx * px_b
-            bank.mu_x = (1.0 - bx) * bank.mu_x + bx * mux_b
-
-        zr = xr - mr * bank.mu_y.unsqueeze(0)
-        zx_det = xf.detach() - mf_m * bank.mu_y.unsqueeze(0)
-        sy_b = (zr.T @ zr) / float(b_r)
-        sx_b = (zx_det.T @ zx_det) / float(b_f)
-        sx_prev = None if bank.S_x is None else bank.S_x.clone()
-        if bank.S_y is None:
-            bank.S_y = sy_b
-            bank.S_x = sx_b
-        else:
-            bank.S_y = (1.0 - by) * bank.S_y + by * sy_b
-            bank.S_x = (1.0 - bx) * bank.S_x + bx * sx_b
-
-        p_y = max(1e-4, float(bank.p_y))
-        p_x = max(1e-4, float(bank.p_x))
-        diag_sy = bank.S_y.diagonal().clamp_min(1e-24)
-        diag_mean = diag_sy.mean().clamp_min(1e-24)
-        eye_d = torch.eye(dim, device=dev, dtype=torch.float32)
-        n_eff = float(min(st_n, 400) * b_r)
-        ridge_f = max(0.02, min(1.0, float(dim) / max(n_eff, 1.0)))
-        s_spd = bank.S_y + (ridge_f * diag_mean) * eye_d
-        inv_s_diag = _safe_cholesky_solve_spd(s_spd, torch.diag(diag_sy), eye_d, diag_mean)
-        if inv_s_diag is None:
-            w_t = eye_d
-        else:
-            w_t = (eye_d - (1.0 - p_y) * inv_s_diag) / p_y
-        sc_y = (diag_sy.sum() / p_y).clamp_min(1e-24)
-
-        if z_2d is not None and dz > 0:
-            z_u = z_2d - z_2d.mean(dim=0, keepdim=True)
-            szz_b = (z_u.T @ z_u) / float(b_f)
-            szx_b = (z_u.T @ (xf.detach() - mf_m * bank.mu_x.unsqueeze(0))) / (float(b_f) * p_x)
-            bz = 1.0 / float(min(st_n, 15))
-            if bank.S_zz is None:
-                bank.S_zz = szz_b
-                bank.S_zx = szx_b
-            else:
-                bank.S_zz = (1.0 - bz) * bank.S_zz + bz * szz_b
-                bank.S_zx = (1.0 - bz) * bank.S_zx + bz * szx_b
-
-        max_b = int(bank.max_buf)
-        if bank.buf_y is None or bank.buf_m is None:
-            bank.buf_y = torch.zeros((max_b, dim), device=dev, dtype=torch.float32)
-            bank.buf_m = torch.zeros((max_b, dim), device=dev, dtype=torch.bool)
-        ptr = int(bank.buf_ptr)
-        take = min(b_r, max_b)
-        end = min(max_b, ptr + take)
-        n1 = end - ptr
-        bank.buf_y[ptr:end] = xr[:n1]
-        bank.buf_m[ptr:end] = xr[:n1] != 0
-        if n1 < take:
-            rem = take - n1
-            bank.buf_y[:rem] = xr[n1 : n1 + rem]
-            bank.buf_m[:rem] = xr[n1 : n1 + rem] != 0
-        bank.buf_ptr = (ptr + take) % max_b
-        bank.buf_n = min(max_b, int(bank.buf_n) + take)
-
-        n_b = int(bank.buf_n)
-        yb = bank.buf_y[:n_b]
-        mb = bank.buf_m[:n_b].float()
-        zb_w = (yb - mb * bank.mu_y.unsqueeze(0)) @ w_t
-        zr_w = zr @ w_t
-        sim1 = F.normalize(zr_w, dim=1) @ F.normalize(zb_w, dim=1).T
-        kk = min(int(k_nlm), n_b)
-        top_s, top_i = torch.topk(sim1, k=kk, dim=1)
-        w_full = torch.zeros((b_r, n_b), device=dev, dtype=torch.float32)
-        w_full.scatter_(1, top_i, F.softmax(top_s * 18.0, dim=1))
-        num = w_full @ yb
-        den = w_full @ mb
-        y_mmse = bank.mu_y.unsqueeze(0) + zr_w
-        y_clean = torch.where(den > 1e-4, num / den.clamp_min(1e-4), y_mmse)
-
-        if n_b >= 256:
-            dot2 = y_clean @ yb.T
-            n_c2 = (y_clean.pow(2) @ mb.T).clamp_min(1e-24).sqrt()
-            n_b2 = yb.pow(2).sum(dim=1, keepdim=True).T.clamp_min(1e-24).sqrt()
-            cos2 = dot2 / (n_c2 * n_b2)
-            top_s2, top_i2 = torch.topk(cos2, k=kk, dim=1)
-            w_full2 = torch.zeros((b_r, n_b), device=dev, dtype=torch.float32)
-            w_full2.scatter_(1, top_i2, F.softmax(top_s2 * 14.0, dim=1))
-            num2 = w_full2 @ yb
-            den2 = w_full2 @ mb
-            y_clean = torch.where(den2 > 1e-4, num2 / den2.clamp_min(1e-4), y_clean)
-
-        tgt_dense: Optional[torch.Tensor] = None
-        tgt_z_dir: Optional[torch.Tensor] = None
-        if st_n >= int(start_proto_step) and z_2d is not None and dz > 0:
-            max_p = int(bank.max_protos)
-            yc_c = y_clean - bank.mu_y.unsqueeze(0)
-            yc_u = F.normalize(yc_c, dim=1)
-            if bank.proto_y is None:
-                bank.proto_y = torch.zeros((max_p, dim), device=dev, dtype=torch.float32)
-                bank.proto_w = torch.zeros((max_p,), device=dev, dtype=torch.float32)
-                bank.proto_z = torch.zeros((max_p, dz), device=dev, dtype=torch.float32)
-                bank.proto_b = torch.zeros((max_p,), device=dev, dtype=torch.float32)
-            pk = int(bank.proto_k)
-            matched_mask = torch.zeros(b_r, dtype=torch.bool, device=dev)
-            if pk > 0:
-                py_u = F.normalize(bank.proto_y[:pk] - bank.mu_y.unsqueeze(0), dim=1)
-                sims_all = yc_u @ py_u.T
-                best_s, best_j = sims_all.max(dim=1)
-                matched_mask = (best_s >= float(merge_cos)) | (pk >= max_p)
-                if bool(matched_mask.any()):
-                    mj = best_j[matched_mask]
-                    my = y_clean[matched_mask]
-                    cnt = torch.bincount(mj, minlength=pk).float()
-                    sum_y = torch.zeros((pk, dim), device=dev, dtype=torch.float32)
-                    sum_y.index_add_(0, mj, my)
-                    upd = cnt > 0
-                    w_old = bank.proto_w[:pk]
-                    w_new = (w_old + cnt).clamp_max(300.0)
-                    alpha = torch.where(upd, (cnt / w_new.clamp_min(1.0)).clamp_min(0.04), torch.zeros_like(cnt))
-                    mean_y = sum_y / cnt.clamp_min(1.0).unsqueeze(1)
-                    bank.proto_y[:pk] = torch.where(
-                        upd.unsqueeze(1),
-                        (1.0 - alpha.unsqueeze(1)) * bank.proto_y[:pk] + alpha.unsqueeze(1) * mean_y,
-                        bank.proto_y[:pk],
-                    )
-                    bank.proto_w[:pk] = torch.where(upd, w_new, w_old)
-
-            novel_idx = (~matched_mask).nonzero(as_tuple=False).squeeze(-1)
-            if int(novel_idx.numel()) > 0 and pk < max_p:
-                a_z: Optional[torch.Tensor] = None
-                if bank.S_zz is not None and bank.S_zx is not None:
-                    eye_z = torch.eye(dz, device=dev, dtype=torch.float32)
-                    z_diag = bank.S_zz.diagonal().mean().clamp_min(1e-12)
-                    a_z = _safe_cholesky_solve_spd(bank.S_zz + (0.05 * z_diag) * eye_z, bank.S_zx, eye_z, z_diag)
-                for bi_t in novel_idx.tolist():
-                    if pk == 0:
-                        bank.proto_y[0] = y_clean[bi_t]
-                        bank.proto_w[0] = 1.0
-                        if a_z is not None:
-                            z_dir = F.normalize(a_z @ yc_c[bi_t], dim=0)
-                            if float(z_dir.norm().item()) < 0.5:
-                                z_dir = _det_sparse_unit_cands(0, 1, dz, dev)[0]
-                        else:
-                            z_dir = _det_sparse_unit_cands(0, 1, dz, dev)[0]
-                        bank.proto_z[0] = z_dir
-                        bank.proto_b[0] = 0.0
-                        pk = 1
-                        continue
-                    py_c = bank.proto_y[:pk] - bank.mu_y.unsqueeze(0)
-                    sims = (yc_u[bi_t : bi_t + 1] @ F.normalize(py_c, dim=1).T).squeeze(0)
-                    bs, bj = sims.max(dim=0)
-                    if float(bs.item()) >= float(merge_cos) or pk >= max_p:
-                        j = int(bj.item())
-                        w_new_j = min(300.0, float(bank.proto_w[j].item()) + 1.0)
-                        a_j = max(0.04, 1.0 / w_new_j)
-                        bank.proto_y[j] = (1.0 - a_j) * bank.proto_y[j] + a_j * y_clean[bi_t]
-                        bank.proto_w[j] = w_new_j
-                    else:
-                        bank.proto_y[pk] = y_clean[bi_t]
-                        bank.proto_w[pk] = 1.0
-                        if a_z is not None:
-                            z_dir = F.normalize(a_z @ yc_c[bi_t], dim=0)
-                        else:
-                            z_dir = _det_sparse_unit_cands(pk, 1, dz, dev)[0]
-                        if float(z_dir.norm().item()) < 0.5 or float((bank.proto_z[:pk] @ z_dir).max().item()) > 0.25:
-                            cand = _det_sparse_unit_cands(pk + 17, 64, dz, dev)
-                            z_dir = cand[(cand @ bank.proto_z[:pk].T).max(dim=1).values.argmin()]
-                        bank.proto_z[pk] = z_dir
-                        bank.proto_b[pk] = 0.0
-                        pk += 1
-                bank.proto_k = pk
-
-            pw_all = bank.proto_w[:pk]
-            mat_mask = pw_all >= 2.0
-            if not bool(mat_mask.any()):
-                mat_mask = torch.ones_like(pw_all, dtype=torch.bool)
-            act_idx = mat_mask.nonzero(as_tuple=False).squeeze(-1)
-            k_act = int(act_idx.numel())
-            py_act = bank.proto_y[act_idx]
-            pz_act = bank.proto_z[act_idx]
-            pw_act = pw_all[act_idx]
-            pb_act = bank.proto_b[act_idx]
-
-            zu = F.normalize(z_2d, dim=1)
-            scores = zu @ pz_act.T + pb_act.unsqueeze(0)
-            asg_loc = scores.argmax(dim=1)
-            p_tgt = pw_act / pw_act.sum().clamp_min(1e-8)
-            counts = torch.bincount(asg_loc, minlength=k_act).float() / float(b_f)
-            age = max(0, st_n - int(start_proto_step))
-            eta_eff = float(eta_b) / math.sqrt(1.0 + float(age) / 10.0)
-            pb_new = pb_act + eta_eff * (p_tgt - counts)
-            pb_new = (pb_new - pb_new.mean()).clamp(-0.6, 0.6)
-            bank.proto_b[act_idx] = pb_new
-            if age < 40:
-                zc = torch.bincount(asg_loc, minlength=k_act).float()
-                zsum = torch.zeros_like(pz_act)
-                zsum.index_add_(0, asg_loc, zu)
-                zhit = zc > 0
-                if bool(zhit.any()):
-                    zmean = F.normalize(zsum[zhit], dim=1)
-                    bank.proto_z[act_idx[zhit]] = F.normalize(0.80 * pz_act[zhit] + 0.20 * zmean, dim=1)
-            tgt_dense = py_act[asg_loc]
-            tgt_z_dir = bank.proto_z[act_idx][asg_loc]
-
-    zx = xf - mf_m * bank.mu_y.unsqueeze(0)
-    if tgt_dense is not None:
-        loss_nlm = ((xf - mf_m * tgt_dense).pow(2).sum(dim=1).mean()) / (p_x * sc_y)
-        if hasattr(record, "observe_sparse_push_res"):
-            record.observe_sparse_push_res(float(loss_nlm.detach().sqrt().clamp(0.0, 2.0).item()))
-        if z_live_2d is not None and tgt_z_dir is not None:
-            z_u_live = F.normalize(z_live_2d, dim=1)
-            loss_nlm = loss_nlm + float(z_pull) * (1.0 - (z_u_live * tgt_z_dir.detach()).sum(dim=1)).mean()
-        return loss_nlm.to(dtype=x_fake.dtype)
-
-    if sx_prev is not None:
-        sig_y = (bank.S_y - (1.0 - p_y) * torch.diag(diag_sy)) / (p_y * p_y)
-        sig_x_prev = (sx_prev - (1.0 - p_x) * torch.diag(sx_prev.diagonal())) / (p_x * p_x)
-        diff_sig = (sig_x_prev - sig_y).detach()
-        diff_d = diff_sig.diagonal()
-        diff_o = diff_sig - torch.diag(diff_d)
-        norm_sig = sig_y.pow(2).sum().clamp_min(1e-24)
-        s_cur = (zx.T @ zx) / float(b_f)
-        loss_cov = ((diff_o * s_cur).sum() / (p_x * p_x) + (diff_d * s_cur.diagonal()).sum() / p_x) / norm_sig
-        diff_mu = (bank.mu_x - bank.mu_y).detach()
-        mu_cur = xf.mean(dim=0) / p_x
-        loss_mu = (diff_mu * mu_cur).sum() / sc_y
-        if hasattr(record, "observe_sparse_push_res"):
-            cov_rel = float((diff_sig.pow(2).sum() / norm_sig).sqrt().clamp(0.0, 2.0).item())
-            record.observe_sparse_push_res(cov_rel)
-        return (loss_cov + loss_mu).to(dtype=x_fake.dtype)
-
-    return zero.to(dtype=x_fake.dtype)
-
-
-_V15_SPATIAL_CLUSTER_THRESH = 0.12
-
-
-@torch.no_grad()
-def _v15_spatial_cluster_ratio(x: torch.Tensor, *, max_spatial: int = 8, max_b: int = 64) -> float:
-    b = int(x.shape[0])
-    if b < 4:
-        return 1.0
-    xd = x.detach()
-    z = project_transport_features(xd - xd.mean(dim=0, keepdim=True), max_spatial=max_spatial).float()
-    sc = z.abs().amax()
-    zu = z / sc.clamp_min(1e-30)
-    if b > max_b:
-        w = torch.remainder((torch.arange(zu.shape[1], device=zu.device, dtype=torch.float32) + 0.5) * 0.6180339887498949, 1.0) - 0.5
-        order = torch.argsort(zu @ (w / w.norm().clamp_min(1e-12)), stable=True)
-        zu = zu.index_select(0, order.index_select(0, (torch.arange(max_b, device=zu.device, dtype=torch.long) * b) // max_b))
-    n = int(zu.shape[0])
-    dmat = torch.cdist(zu, zu, p=2.0)
-    off = ~torch.eye(n, dtype=torch.bool, device=zu.device)
-    med_all = torch.quantile(dmat[off], 0.50).clamp_min(1e-12)
-    med_nn = torch.quantile(dmat.masked_fill(~off, float("inf")).amin(dim=1), 0.50)
-    return float(torch.where(sc > 1e-30, med_nn / med_all, med_nn.new_zeros(())).item())
 
 
 class UnifiedV15GANLoss(GANLoss):
@@ -3957,25 +3160,13 @@ class UnifiedV15GANLoss(GANLoss):
             cond_drift_deconflict=cond_drift_deconflict,
         )
         self.last_metrics: Dict[str, float] = {}
-        self._sc_cache: Any = None
 
-    def _skip_spatial_transport(self, x_r: torch.Tensor) -> bool:
+    @staticmethod
+    def _exceeds_transport_dim(x_r: torch.Tensor) -> bool:
         if x_r.ndim < 2 or x_r.shape[0] <= 0:
             return False
         dim = int(x_r[0].numel())
-        if not _has_spatial_dims(x_r):
-            return dim > 1024
-        if dim <= 1024:
-            return False
-        if dim > 4096:
-            return True
-        key = (id(x_r), int(x_r.data_ptr()), int(x_r._version), tuple(x_r.shape), str(x_r.device))
-        cached = self._sc_cache
-        if cached is not None and cached[0] == key and cached[2]() is x_r:
-            return cached[1]
-        skip = _v15_spatial_cluster_ratio(x_r, max_spatial=8) >= _V15_SPATIAL_CLUSTER_THRESH
-        self._sc_cache = (key, skip, weakref.ref(x_r))
-        return skip
+        return dim > (4096 if _has_spatial_dims(x_r) else 1024)
 
     def _resolve_pair_parts(
         self,
@@ -4062,7 +3253,7 @@ class UnifiedV15GANLoss(GANLoss):
             return base
         if self.conditional_fibre == "calibrated" and has_cont_cond:
             return base
-        if not has_cont_cond and self._skip_spatial_transport(x_r):
+        if not has_cont_cond and self._exceeds_transport_dim(x_r):
             if self.loss == "non_saturating" and self.t1c.weight > 0.0 and self.fibre_rel_blend > 0.0:
                 pair_d = self._scalar_pair_relativistic(real_logits, fake_logits)
                 if pair_d is not None:
@@ -4093,9 +3284,6 @@ class UnifiedV15GANLoss(GANLoss):
         x_f, x_r, cond_f, cond_r, rec, has_cont_cond, parts_f, parts_r, captured = self._resolve_pair_parts(
             fake_logits, real_logits
         )
-        g_lat_live = getattr(rec, "_g_last_latent_live", None) if rec is not None else None
-        if rec is not None and hasattr(rec, "_g_last_latent_live"):
-            rec._g_last_latent_live = None
         if not captured:
             base_g = super().g_loss(fake_logits, real_logits)
             if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
@@ -4154,10 +3342,10 @@ class UnifiedV15GANLoss(GANLoss):
                 return self.t1c.weight * rel_term
             return self.t1c.weight * super().g_loss(fake_logits, real_logits)
 
-        # 2. High-dimensional / continuous spatial domains (dim > 4096 on images, continuous 32x32, or dim > 1024 on flat vectors):
+        # 2. High-dimensional domains (dim > 4096 on spatial tensors, or dim > 1024 on flat vectors):
         dim = max(1, x_r[0].numel()) if b_r > 0 else 0
         has_spatial = _has_spatial_dims(x_r)
-        if self._skip_spatial_transport(x_r):
+        if self._exceeds_transport_dim(x_r):
             self.t1c._discrete_prior_step = False
             self.t1c._simplicial_active_step = False
             if rec is not None and hasattr(rec, "_t1c_disc_gate"):
@@ -4169,49 +3357,10 @@ class UnifiedV15GANLoss(GANLoss):
                 pair_g = self._scalar_pair_relativistic(fake_logits, real_logits, detach_neg=True)
                 if pair_g is not None:
                     return self.t1c.weight * ((1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g)
-            return base_g
+            return self.t1c.weight * base_g
 
-        # 2b. High-D coordinate-masked sparse-observation Wiener-NLM + semi-discrete Laguerre transport
-        #     coupled alongside live adversarial critic loss (never bypasses fake_logits!):
         allow_ell = torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False)
         is_flat_vec = x_f.ndim >= 2 and not _has_spatial_dims(x_f) and not has_spatial
-        if (
-            rec is not None
-            and hasattr(rec, "sparse_obs_bank")
-            and cond_f is None
-            and cond_r is None
-            and is_flat_vec
-            and 128 <= dim <= 1024
-            and b_f >= 8
-            and b_r >= 8
-        ):
-            zf_r = float((x_r.detach() == 0).float().mean().item())
-            zf_f = float((x_f.detach() == 0).float().mean().item())
-            if 0.50 < zf_r < 0.995 and 0.50 < zf_f < 0.995:
-                self.t1c._discrete_prior_step = False
-                self.t1c._simplicial_active_step = False
-                if hasattr(rec, "_t1c_disc_gate"):
-                    rec._t1c_disc_gate = 0.0
-                if hasattr(rec, "_simplicial_step"):
-                    rec._simplicial_step = False
-                g_lat_sp = getattr(rec, "_g_last_latent", None)
-                z_sp = g_lat_sp[1] if g_lat_sp is not None else None
-                z_live_sp = g_lat_live[1] if g_lat_live is not None else None
-                sp_loss = unified_v15_sparse_obs_wiener_loss(
-                    x_f,
-                    x_r,
-                    record=rec,
-                    z_batch=z_sp,
-                    z_live=z_live_sp,
-                    allow_update=allow_ell,
-                )
-                base_g = super().g_loss(fake_logits, real_logits)
-                adv_g = base_g
-                if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
-                    pair_g = self._scalar_pair_relativistic(fake_logits, real_logits, detach_neg=True)
-                    if pair_g is not None:
-                        adv_g = (1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g
-                return self.t1c.weight * (adv_g + 16.0 * sp_loss.to(dtype=fake_logits.dtype))
 
         # 3. H_0-connectedness-gated chart coupling + zero-eigh orphan macro-transport:
         is_discrete = bool(self.t1c._discrete_prior_step)
@@ -4300,32 +3449,6 @@ class UnifiedV15GANLoss(GANLoss):
                 macro_loss = macro_loss * s_th + macro_loss.detach() * (1.0 - s_th)
             loss_val = loss_val + (self.t1c.weight * self.macro_slack_weight) * macro_loss
 
-        if (
-            rec is not None
-            and cond_f is None
-            and cond_r is None
-            and is_flat_vec
-            and 16 < dim <= 256
-            and b_f >= 8
-            and b_r >= 8
-        ):
-            g_lat = getattr(rec, "_g_last_latent", None)
-            g_mod = g_lat[0] if g_lat is not None else None
-            z_b = g_lat[1] if g_lat is not None else None
-            stein_loss, worst_def = unified_v15_highd_basin_stein_loss(
-                x_f,
-                x_r,
-                record=rec,
-                generator=g_mod,
-                z_batch=z_b,
-                allow_update=allow_ell,
-            )
-            if allow_ell and hasattr(rec, "_thermal_scale"):
-                u_def = max(0.0, min(1.0, (worst_def - 0.12) / 0.55))
-                s_def = 0.12 + 0.88 * (u_def * u_def * (3.0 - 2.0 * u_def))
-                rec._thermal_scale = max(float(rec._thermal_scale), s_def)
-            loss_val = loss_val + self.t1c.weight * stein_loss.to(dtype=loss_val.dtype)
-
         return loss_val
 
     def joint_g_loss(self, fake_logits: torch.Tensor, real_logits: torch.Tensor) -> torch.Tensor:
@@ -4355,6 +3478,4 @@ __all__ = [
     "UnifiedV15CouplingLoss",
     "UnifiedV15GANLoss",
     "unified_v15_conditional_loss",
-    "unified_v15_highd_basin_stein_loss",
-    "unified_v15_sparse_obs_wiener_loss",
 ]
