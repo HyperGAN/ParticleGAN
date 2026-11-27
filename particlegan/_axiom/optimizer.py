@@ -572,22 +572,14 @@ class AxiomOptimizer(Optimizer):
         buckets, out = {}, [None] * len(critic_2d)
         for pos, (net_idx, (_, g, *_, (rows, cols, min_d), _)) in enumerate(critic_2d):
             pair = norm_map.get(net_idx)
-            g_norm = pair[0] if (pair is not None and 1e-17 < pair[0] < 1e17) else None
-            buckets.setdefault((rows, cols, g.device, g_norm is not None), []).append(
-                (pos, g.reshape(rows, cols), min_d, g_norm)
-            )
+            pre = pair is not None and 1e-8 < pair[0] < 1e8
+            mat = g.reshape(rows, cols) / pair[0] if pre else g.reshape(rows, cols)
+            buckets.setdefault((rows, cols, g.device, pre), []).append((pos, mat, min_d))
         for (_, _, _, pre), items in buckets.items():
-            cap = sqrt(items[0][2])
-            if len(items) == 1:
-                pos, mat, _, g_norm = items[0]
-                rank = stable_rank_power(mat, frob_norm=g_norm)
-                out[pos] = (2.0 * rank.sqrt()).clamp_max(cap)
-            else:
-                stacked = torch.stack([m / gn if pre else m for _, m, _, gn in items])
-                ranks = stable_rank_power(stacked, pre_normalized=pre)
-                gammas = (2.0 * ranks.sqrt()).clamp_max(cap)
-                for j, (pos, *_) in enumerate(items):
-                    out[pos] = gammas[j]
+            ranks = stable_rank_power(torch.stack([item[1] for item in items]), pre_normalized=pre)
+            gammas = (2.0 * ranks.sqrt()).clamp_max(sqrt(items[0][2])).double()
+            for j, (pos, _, _) in enumerate(items):
+                out[pos] = gammas[j]
         return out
 
     def _two_obj_pyth(self):
@@ -730,11 +722,10 @@ class AxiomOptimizer(Optimizer):
                 if gamma_t is None:
                     param.add_(grad, alpha=alpha)
                 else:
-                    gt = gamma_t if gamma_t.dtype == param.dtype else gamma_t.to(param.dtype)
-                    param.addcmul_(grad, gt, value=alpha)
+                    param.addcmul_(grad, (gamma_t * alpha).to(param.dtype))
         for bucket in ns_b.values():
             self.ns_2d_activations += len(bucket)
-            mats = bucket[0][1].unsqueeze(0) if len(bucket) == 1 else torch.stack([b[1] for b in bucket])
+            mats = torch.stack([b[1] for b in bucket])
             smooths = [b[4] for b in bucket]
             lo, hi = min(smooths), max(smooths)
             rel_sm = 0.0 if hi <= 0.0 else (lo if lo == hi else smooths)
@@ -742,8 +733,9 @@ class AxiomOptimizer(Optimizer):
             if orth.dtype != _F32:
                 orth = orth.float()
             for j, (param, _, trans, mult, _) in enumerate(bucket):
-                delta = orth[j].transpose(0, int(trans)).reshape(param.shape)
-                param.add_(delta if delta.dtype == param.dtype else delta.to(param.dtype), alpha=-mult)
+                delta = (orth[j].transpose(0, int(trans)) * (-mult)).reshape_as(param)
+                upd_p.append(param)
+                upd_d.append(delta if delta.dtype == param.dtype else delta.to(param.dtype))
         _add_deltas(upd_p, upd_d, dev)
 
     @staticmethod

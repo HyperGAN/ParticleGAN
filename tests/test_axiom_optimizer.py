@@ -268,6 +268,16 @@ def test_conv1x1_linear_parity_and_spectral_bounded_critic_vs_deep16_pathology()
     opt_iso.step()
     assert math.isclose(float(c_iso.weight.detach().norm().item()), math.sqrt(64.0) * lr, rel_tol=1e-4)
 
+    # Tiny equilibrium critic gradients (1e-6, 1e-12) retain exact FP64 gamma*alpha step magnitude.
+    for scale in (1e-6, 1e-12):
+        c_tiny = nn.Linear(32, 32, bias=False)
+        with torch.no_grad():
+            c_tiny.weight.zero_()
+        opt_tiny = AxiomOptimizer(c_tiny.parameters(), lr=lr, critic=c_tiny)
+        c_tiny.weight.grad = torch.eye(32) * scale
+        opt_tiny.step()
+        assert math.isclose(float(c_tiny.weight.detach().norm().item()), math.sqrt(32.0) * lr, rel_tol=1e-4)
+
     # Deep 16L pathological critic (skew > 4x AND rank-1) triggers FP32 Tikhonov NS identically to G.
     g16 = nn.Sequential(*[nn.Linear(16, 16, bias=False) for _ in range(16)])
     d16 = deepcopy(g16)
