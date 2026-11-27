@@ -32,6 +32,10 @@ Tests a genuine particle VAE with categorical posterior routing on two separated
 
 Posterior collapse causes the decoder to ignore the encoder (low shuffle ratio / MI) or breaks the analytic KL divergence identity.
 
+**Historical audit diagnosis** (`reports/forge/problem-definitions.json`): Posterior collapse causes the decoder to ignore the encoder (low shuffle ratio or mutual information) or degrades reconstruction and KL calibration under adversarial or regularizer pressure.
+
+- *Recommended research focus:* Keep posterior routing informative and KL-calibrated across both smooth and strongly regularized critics.
+
 ## Visual Schematic
 
 ![Target and protocol schematic for model_vae_categorical](assets/model_vae_categorical.svg)

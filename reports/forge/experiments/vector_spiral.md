@@ -32,6 +32,10 @@ Tests continuous curved probability mass (1.5-turn Archimedes spiral with radial
 
 Overly rigid discrete prototype charts quantize the smooth spiral into beads or cut straight chords across inner turns.
 
+**Historical audit diagnosis** (`reports/forge/problem-definitions.json`): Overly rigid discrete prototype charts or excessive inter-particle repulsion can quantize the smooth curved manifold into beads or cut straight chords across inner turns. Most selected families pass, while Axiom (`axiom-v4`) records a FAIL in its current selected cohort.
+
+- *Recommended research focus:* Preserve continuous-manifold coverage on curved supports without regressing multi-scale discrete clusters or stability.
+
 ## Visual Schematic
 
 ![Target and protocol schematic for vector_spiral](assets/vector_spiral.svg)

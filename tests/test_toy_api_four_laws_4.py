@@ -103,9 +103,9 @@ def test_exports_specs_problem_only_thresholds_and_cases_contract() -> None:
         assert case["default_recipe"] == "unified_v14"
         assert case["legacy_ids"] == [f"four-laws-{case['id']}"]
 
-    # Guardrail: all 9 Four Laws cases are registered alongside the 205 existing cases
+    # Guardrail: all 9 Four Laws cases are registered alongside the 205 existing cases + BN-DCGAN guard
     discovered = api_contract.discover()
-    assert len(discovered) == 214
+    assert len(discovered) == 215
     assert set(fl4.TASKS) <= set(discovered)
 
 

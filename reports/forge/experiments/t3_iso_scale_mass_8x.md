@@ -31,6 +31,10 @@ Eliminates Law 1 completely via parameterless G = nn.Identity() over a direct 51
 
 Pure 1-Lipschitz adversarial gradients lack width sensitivity, causing the wide sigma=0.32 mode to shrink or misallocate mass even with zero generator topology distortion.
 
+**Historical audit diagnosis** (`reports/forge/problem-definitions.json`): Pure 1-Lipschitz adversarial gradients lack width sensitivity, causing the wide sigma = 0.32 mode to shrink or misallocate mass even when G = Identity removes generator representational bottlenecks.
+
+- *Recommended research focus:* Provide width-sensitive transport identifiability under 1-Lipschitz critics while retaining multi-mode stability across the full suite.
+
 ## Visual Schematic
 
 ![Target and protocol schematic for t3_iso_scale_mass_8x](assets/t3_iso_scale_mass_8x.svg)

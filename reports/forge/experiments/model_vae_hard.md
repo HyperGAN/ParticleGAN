@@ -32,6 +32,10 @@ Hard-assignment counterpart to `model_vae_categorical`, testing whether discrete
 
 Hard posterior routing amplifies gradient variance and triggers dead particles or posterior collapse.
 
+**Historical audit diagnosis** (`reports/forge/problem-definitions.json`): Hard posterior routing amplifies gradient variance and can trigger dead particles or posterior collapse when paired with adaptive critics or incompatible prior updates.
+
+- *Recommended research focus:* Prevent hard-assignment dead particles and posterior collapse without breaking categorical VAE or unconditional GAN stability.
+
 ## Visual Schematic
 
 ![Target and protocol schematic for model_vae_hard](assets/model_vae_hard.svg)

@@ -1,0 +1,20 @@
+{
+  "schema_version": 1,
+  "task_id": "bn_dcgan_rgb32_b256_diagnostic",
+  "title": "Radford 32x32 BN-DCGAN Convergence & B=256 Throughput Guard",
+  "laws": [
+    "law2",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "batchnorm-critic-mode",
+    "batchnorm-optimizer-stability",
+    "continuous-rgb32-b256",
+    "throughput-scaling"
+  ],
+  "intuition": "Bounded hermetic 1,200-step diagnostic guard running a standard Radford 32x32 BatchNorm DCGAN (B=256, z_dim=128) on a continuous 10-class RGB image distribution (pooled 8x8 nn/med > 0.50) to catch BatchNorm critic train/eval collapse, optimizer period-2 limit cycles, natural-image quality regressions, and O(B^2) spatial-transport latency cliffs before promotion.",
+  "failure_mode": "Switching active critic BatchNorm layers to eval() during the G step causes immediate critic collapse; firing O(B^2) pixel-space transport on continuous 32x32 images pushes B=256 latency above 38 ms/step and degrades quality; BatchNorm optimizer limit cycles or low-rank critic penalty inflation stall convergence.",
+  "protocol_notes": "Hermetic research_diagnostic task (qualification_input=false; 1,200 updates, B=256, seed 0, deterministic_orthogonal_ init, isolated RNGs, SHA-256 verified updates.jsonl latency trace, actual-training goal.gif).",
+  "diagram_kind": "dcgan_scaling",
+  "custom_mermaid": null
+}
