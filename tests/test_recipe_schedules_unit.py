@@ -91,3 +91,43 @@ def test_plain_adam_checkpoint_validation_rejects_bad_observer_and_schedule_stat
         validate_plain_adam_state(optimizer, [])
     # Optimizers outside the plain-Adam family are not this validator's concern.
     validate_plain_adam_state(torch.optim.SGD(critic.parameters(), lr=.1), [])
+
+
+@pytest.mark.parametrize("formulation,expected_cls_name", [
+    ("unified_v15", "_UnifiedV15ObserverStepRecord"),
+    ("axiom", "AxiomStepRecord"),
+    ("minimal", "MinimalStepRecord"),
+])
+def test_explicit_formulations_precede_rhbi_weight_in_plain_adam_dualnorm_and_binding(formulation, expected_cls_name):
+    from particlegan import bind_formulation_records, get_recipe
+    from particlegan.optim.dualnorm import make_normalized_optimizer
+
+    critic = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 1))
+    # Explicit formulation with rhbi_weight > 0 must NOT be shadowed by RHBI observer
+    r_adam = get_recipe(
+        formulation,
+        optimizer_family="adam",
+        optimizer_smoothing=0.0,
+        constraint_geometry_mode="none",
+        rhbi_weight=0.5,
+    )
+    opt_adam = make_plain_adam(r_adam, list(critic.parameters()), critic=critic, lr=1e-3)
+    assert type(opt_adam.record).__name__ == expected_cls_name
+    validate_plain_adam_state(opt_adam, opt_adam.state_dict())
+    opt_adam.load_state_dict(opt_adam.state_dict())
+
+    r_norm = get_recipe(
+        formulation,
+        optimizer_family="dualnorm",
+        optimizer_smoothing=0.0,
+        constraint_geometry_mode="none",
+        rhbi_weight=0.5,
+    )
+    opt_norm = make_normalized_optimizer(r_norm, [{"params": list(critic.parameters()), "role": "critic"}], critic=critic, lr=1e-3)
+    assert type(opt_norm.record).__name__ == expected_cls_name
+
+    # bind_formulation_records binds the formulation's own record (not shadowed by rhbi_weight)
+    loss = r_norm.make_loss()
+    reg = r_norm.make_prior_regularizer()
+    rec = bind_formulation_records(r_norm, opt_norm, loss, reg, generator=nn.Linear(2, 2))
+    assert rec is opt_norm.record

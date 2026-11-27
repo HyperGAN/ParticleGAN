@@ -110,13 +110,22 @@ def test_normal_noise_manipulator_attributes_and_config():
     assert m.additive_transform is True
     assert m.is_additive_transform is True
     assert m.normal_noise is True
-    assert m.config_fields == ("sigma",)
+    assert m.config_fields == ("sigma", "kappa_radial")
 
     cfg = m.config()
-    assert cfg == {"penalty_weight": 2.0, "sigma": 0.035}
+    assert cfg == {"penalty_weight": 2.0, "sigma": 0.035, "kappa_radial": 1.0}
     spec = m.manipulator_spec()
     assert spec["class"].endswith("NormalNoiseManipulator")
     assert spec["config"] == cfg
+
+    for bad_kappa in (float("nan"), float("inf"), float("-inf"), -1.0, True):
+        with pytest.raises(ValueError, match="kappa_radial"):
+            NormalNoiseManipulator(sigma=0.035, kappa_radial=bad_kappa)
+
+    m_a = NormalNoiseManipulator(sigma=0.035, kappa_radial=1.5)
+    m_b = NormalNoiseManipulator(sigma=0.035, kappa_radial=2.5)
+    with pytest.raises(ValueError, match="manipulator config"):
+        m_b.load_state_dict(m_a.state_dict())
 
 
 def test_normal_noise_manipulator_transform_statistics():

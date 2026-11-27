@@ -63,3 +63,74 @@ def test_restored_values_and_unknown_fields_still_validate():
         Recipe.from_dict({"lrr": .02})
     with pytest.raises(TypeError, match="Unknown recipe field"):
         get_recipe().replace(lrr=.02)
+
+
+def test_recipe_validation_and_standalone_axiom_critic_optimizer():
+    import torch
+    from torch import nn
+    from particlegan import AxiomCriticPenalty, AxiomOptimizer, AxiomStepRecord, scale_learning_rates
+    from particlegan.priors import ManipulatedPrior, SimplexRoutingManipulator
+
+    # 1. kappa_radial rejects nan/inf
+    for bad in (float("nan"), float("inf"), float("-inf")):
+        with pytest.raises(ValueError, match="kappa_radial"):
+            get_recipe("axiom", kappa_radial=bad)
+
+    # 2. axiom and minimal reject unknown penalty_overrides with TypeError and non-default real/fake weights
+    for preset in ("axiom", "minimal"):
+        r = get_recipe(preset)
+        with pytest.raises(TypeError, match="unknown"):
+            r._penalty_options(unknown_key=1.0)
+        with pytest.raises(ValueError, match="real/fake penalty weights"):
+            r.replace(reg_real_weight=2.0)
+        with pytest.raises(ValueError, match="real/fake penalty weights"):
+            r.replace(reg_fake_weight=0.5)
+
+    # 3. make_critic_optimizer on axiom with optimizer_family="formulation" works standalone with AxiomCriticPenalty
+    r_ax = get_recipe(
+        "axiom",
+        optimizer_family="formulation",
+        optimizer_smoothing=0.0,
+        constraint_geometry_mode="none",
+    )
+    critic = nn.Sequential(nn.Linear(2, 8), nn.LeakyReLU(0.2), nn.Linear(8, 1))
+    opt_d = r_ax.make_critic_optimizer(critic)
+    assert isinstance(opt_d, AxiomOptimizer)
+    assert isinstance(opt_d.record, AxiomStepRecord)
+    penalty = r_ax.make_critic_penalty(opt_d)
+    assert isinstance(penalty, AxiomCriticPenalty)
+    real, fake = torch.randn(8, 2), torch.randn(8, 2)
+    pen = penalty(critic, real, fake)
+    assert torch.isfinite(pen)
+    pen.backward()
+    opt_d.step()
+    assert opt_d.record.observed_steps == 1
+
+    # 4. scale_learning_rates classifies router params as network (not prior) and applies penalty annealing
+    r_sched = get_recipe(
+        "bcap_adam",
+        num_particles=16,
+        z_dim=2,
+        total_steps=20,
+        lr_anneal_start=0.0,
+        lr_floor=0.1,
+        network_lr_floor=0.5,
+        reg_coeff=1.0,
+        reg_coeff_end=0.1,
+        reg_coeff_anneal_end=0.2,
+    )
+    base_prior = r_sched.make_prior()
+    router = SimplexRoutingManipulator(num_modes=4, z_dim=2, learnable_projection=True)
+    wrapped_prior = ManipulatedPrior(base_prior, [router])
+    gen = nn.Linear(2, 2)
+    crit = nn.Linear(2, 1)
+    opt_g, opt_d = r_sched.make_optimizers(gen, crit, wrapped_prior)
+    base_lrs = [[g["lr"] for g in opt.param_groups] for opt in (opt_g, opt_d)]
+    pen_obj = r_sched.make_critic_penalty(opt_d)
+    net_s, prior_s = scale_learning_rates(4, r_sched, (opt_g, opt_d), base_lrs, wrapped_prior, penalty=pen_obj)
+    assert net_s != prior_s
+    # Param groups of opt_g: [generator, prior table, router]
+    assert opt_g.param_groups[0]["lr"] == pytest.approx(base_lrs[0][0] * net_s)
+    assert opt_g.param_groups[1]["lr"] == pytest.approx(base_lrs[0][1] * prior_s)
+    assert opt_g.param_groups[2]["lr"] == pytest.approx(base_lrs[0][2] * net_s)
+    assert pen_obj.regularizer.coeff == pytest.approx(0.1)

@@ -55,6 +55,7 @@ def _validate_optimizer_state(optimizer, state):
         optimizer.validate_state_dict(state)
     ema_critic = getattr(optimizer, "ema_critic", None)
     if ema_critic is not None:
+        from .low_precision import validate_emulated_extra_states
         saved_ema = state.get("regularizer", {}).get("ema") if isinstance(state, dict) else None
         expected_ema = ema_critic.state_dict()
         if not isinstance(saved_ema, dict) or saved_ema.keys() != expected_ema.keys():
@@ -63,6 +64,7 @@ def _validate_optimizer_state(optimizer, state):
             value = saved_ema[key]
             if not isinstance(value, torch.Tensor) or value.shape != tensor.shape or value.dtype != tensor.dtype:
                 raise ValueError(f"checkpoint EMA critic tensor {key} does not match its dtype or shape")
+        validate_emulated_extra_states(ema_critic, saved_ema)
     # BISPF optimizer loaders also restore a device-local thermal cache. A
     # copied optimizer is only a validation probe: neither a successful probe
     # nor a later rejected trainer checkpoint may change that live runtime state.
@@ -681,6 +683,9 @@ class UpdatePolicy:
                 loss_reopen = False
                 if self.loss_surprise is not None:
                     loss_reopen = self.loss_surprise.decide(self.completed_steps, guard=self.reopen_guard)
+                if loss_reopen:
+                    for group, tester in self.lr_settle.pairs(self.optimizers):
+                        tester.restart(group["params"], reopen=True)
                 loss_surprised = self.loss_surprise is not None and self.loss_surprise.is_surprised
                 if self.reopen_guard is None:
                     opt_reopen = self.surprise.decide(self.completed_steps)
@@ -692,15 +697,16 @@ class UpdatePolicy:
                 if reopen:
                     self._reopen_moments()
                 if recipe.reopen_anchor == "release":
-                    self._anchor_release(opt_reopen)
+                    self._anchor_release(reopen)
             else:
                 self.controller.observe_blind()
                 reopen = False
-            for group, tester in self.lr_settle.pairs(self.optimizers):
-                if reopen:
-                    tester.restart(group["params"], reopen=True)
-                else:
-                    tester.begin(group["params"])
+            if not (recipe.reopen_signal == "optimizer" and loss_reopen):
+                for group, tester in self.lr_settle.pairs(self.optimizers):
+                    if reopen:
+                        tester.restart(group["params"], reopen=True)
+                    else:
+                        tester.begin(group["params"])
             scales = [tester.s for index, row in enumerate(self.lr_settle.testers) if index != 1
                       for tester, role in zip(row, self.roles[index])
                       if role == "table" and tester is not None and tester.s is not None]
@@ -1345,11 +1351,14 @@ class UpdatePolicy:
         # checkpoint budget. The host validates its own external execution cap.
         if type(steps) is not int or steps < 0:
             raise ValueError("invalid policy checkpoint step count")
+        from .low_precision import validate_emulated_extra_states
         for label in ("models", "averages"):
             if not isinstance(state[label], dict) or state[label].keys() != expected[label].keys():
                 raise ValueError(f"incompatible policy {label}")
+            modules = self._training_modules() if label == "models" else self._average_modules()
             for name in expected[label]:
                 self._check_tensors(state[label][name], expected[label][name], f"{label}/{name}")
+                validate_emulated_extra_states(modules[name], state[label][name])
         for name in ("table", "averaged_table", "output_noise"):
             value, current = state[name], expected[name]
             if current is None:
@@ -1468,8 +1477,11 @@ class UpdatePolicy:
             self.routed_control.load_state_dict(state["routing"])
         if self.surprise is not None:
             self.surprise.load_state_dict(state["surprise"])
-        if self.loss_surprise is not None and "loss_surprise" in state:
-            self.loss_surprise.load_state_dict(state["loss_surprise"])
+        if self.loss_surprise is not None:
+            if "loss_surprise" in state:
+                self.loss_surprise.load_state_dict(state["loss_surprise"])
+            else:
+                self.loss_surprise.reset()
         if self.reopen_guard is not None:
             self.reopen_guard.load_state_dict(state["reopen_guard"], roles=self.roles,
                                               completed_steps=state["completed_steps"],

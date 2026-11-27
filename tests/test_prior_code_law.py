@@ -133,3 +133,28 @@ def test_forge_context_builds_a_fresh_gaussian_prior_for_a_vector_task():
     assert prior.code_law == "fresh_gaussian" and not prior.z.requires_grad
     codes, rows = prior.sample(8, torch.Generator().manual_seed(0))
     assert codes.shape == (8, prior.z_dim) and rows.shape == (8,)
+
+
+def test_manipulated_prior_sample_supports_fresh_gaussian_bases():
+    from particlegan.particle_prior import GaussianPrior
+    from particlegan.priors import ManipulatedPrior, NormalNoiseManipulator
+
+    pp = ParticlePrior(32, 3, learnable=False, generator=torch.Generator().manual_seed(0))
+    pp.set_code_law("fresh_gaussian")
+    mp_pp = ManipulatedPrior(pp, [NormalNoiseManipulator(sigma=0.05)])
+    codes, idx = mp_pp.sample(16, torch.Generator().manual_seed(1), noise_generator=torch.Generator().manual_seed(2))
+    assert codes.shape == (16, 3) and idx.shape == (16,) and torch.isfinite(codes).all()
+
+    mog = _mog()
+    rows = mog.z.detach()
+    del mog.z
+    mog.register_buffer("z", rows)
+    mog.set_code_law("fresh_gaussian")
+    mp_mog = ManipulatedPrior(mog, [NormalNoiseManipulator(sigma=0.05)])
+    codes_m, idx_m = mp_mog.sample(16, torch.Generator().manual_seed(1), noise_generator=torch.Generator().manual_seed(2))
+    assert codes_m.shape == (16, 3) and idx_m.shape == (16,) and torch.isfinite(codes_m).all()
+
+    gp = GaussianPrior(3)
+    mp_gp = ManipulatedPrior(gp, [NormalNoiseManipulator(sigma=0.05)])
+    codes_g, idx_g = mp_gp.sample(16, torch.Generator().manual_seed(1))
+    assert codes_g.shape == (16, 3) and idx_g is None and torch.isfinite(codes_g).all()

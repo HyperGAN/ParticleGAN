@@ -611,8 +611,8 @@ class Recipe:
                 raise ValueError(f"{name} must be finite and nonnegative")
         if ((self.reg_real_weight, self.reg_fake_weight) != (1., 1.)
                 and self.reg_arm not in ("a_r1r2", "b_cap")
-                and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "unified_v4", "unified_v11", "unified_v15", "r4_autograd_critic", "cond_fiber", "axiom")):
-            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, unified_v4, unified_v11, unified_v15, r4_autograd_critic, cond_fiber, or axiom formulation")
+                and self.critic_formulation not in ("rhbi", "t1_coupling", "rgdt", "unified", "unified_v4", "unified_v11", "unified_v15", "r4_autograd_critic", "cond_fiber")):
+            raise ValueError("real/fake penalty weights require an explicit fixed R1/R2, BCap, RHBI, t1_coupling, RGDT, unified, unified_v4, unified_v11, unified_v15, r4_autograd_critic, or cond_fiber formulation")
         if self.optimizer_family != "formulation":
             if self.reg_arm not in ("a_r1r2", "b_cap") and self.critic_formulation not in ("bispf", "empf", "rhbi", "t1_coupling", "t2_secant", "rgdt", "t4_nash", "t4_nash_v3", "unified", "unified_v4", "unified_v11", "unified_v15", "r4_autograd_critic", "cond_fiber", "minimal", "axiom"):
                 raise ValueError("plain optimizers require an explicit fixed R1/R2 or BCap reg_arm")
@@ -840,8 +840,8 @@ class Recipe:
             raise ValueError("kinetic_transport_local_weight must be finite and nonnegative")
         if type(self.kappa_radial) not in (int, float) or isinstance(self.kappa_radial, bool):
             raise TypeError(f"kappa_radial must be a float, got {type(self.kappa_radial).__name__}")
-        if self.kappa_radial <= 0:
-            raise ValueError(f"kappa_radial must be positive, got {self.kappa_radial}")
+        if not math.isfinite(self.kappa_radial) or self.kappa_radial <= 0:
+            raise ValueError(f"kappa_radial must be finite and positive, got {self.kappa_radial}")
         if type(self.kinetic_transport_projections) is not int or self.kinetic_transport_projections < 1:
             raise ValueError("kinetic_transport_projections must be a positive integer")
         if type(self.amsgrad) is not bool:
@@ -1485,6 +1485,9 @@ class Recipe:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
             if self.reg_every != 1:
                 raise ValueError("axiom critic penalty is strictly clock-free and requires reg_every=1")
+            unknown = set(overrides) - {"coeff", "kappa", "lambda_floor", "beta_ema", "gamma_gauge", "max_lambda"}
+            if unknown:
+                raise TypeError(f"unknown axiom critic penalty options: {sorted(unknown)}")
             options = {
                 "coeff": self.reg_coeff,
                 "kappa": self.reg_kappa,
@@ -1494,8 +1497,8 @@ class Recipe:
                 "max_lambda": 2.0,
                 **overrides,
             }
-            if options["coeff"] < 0 or options["kappa"] <= 0 or options["lambda_floor"] < 0 or options["gamma_gauge"] < 0:
-                raise ValueError("invalid axiom penalty options")
+            from ._axiom.critic import AxiomPenaltyKernel
+            AxiomPenaltyKernel(**options)
             return options
         if self.effective_critic_formulation == "unified_v11":
             if not self.critic_r1_real:
@@ -1523,10 +1526,24 @@ class Recipe:
         if self.effective_critic_formulation == "minimal":
             if not self.critic_r1_real:
                 raise ValueError("critic_r1_real=False requires the KA2 formulation")
+            unknown = set(overrides) - {"coeff", "kappa", "lazy_k", "anchor_weight", "ebi_beta", "max_prototypes", "secant_eps"}
+            if unknown:
+                raise TypeError(f"unknown minimal critic penalty options: {sorted(unknown)}")
             options = {"coeff": self.reg_coeff, "kappa": self.reg_kappa, "lazy_k": self.reg_every,
                        "anchor_weight": self.reg_anchor_weight, "ebi_beta": self.ebi_beta,
                        "max_prototypes": self.t1_max_prototypes, **overrides}
-            if options["coeff"] < 0 or options["kappa"] <= 0 or options["lazy_k"] < 1 or options["ebi_beta"] <= 0:
+            for key in ("coeff", "kappa", "anchor_weight", "ebi_beta"):
+                val = options[key]
+                if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val):
+                    raise ValueError(f"invalid minimal penalty option {key}")
+            if "secant_eps" in options:
+                val = options["secant_eps"]
+                if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val) or val <= 0:
+                    raise ValueError("invalid minimal penalty option secant_eps")
+            if (type(options["lazy_k"]) is not int or options["lazy_k"] < 1
+                    or type(options["max_prototypes"]) is not int or options["max_prototypes"] < 2
+                    or options["coeff"] < 0 or options["kappa"] <= 0
+                    or options["anchor_weight"] != 0 or options["ebi_beta"] <= 0):
                 raise ValueError("invalid minimal penalty options")
             return options
         if self.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
@@ -1803,6 +1820,21 @@ class Recipe:
             return CondFiberCriticAdam([p for p in critic.parameters() if p.requires_grad], critic=critic,
                                        ema_critic=ema_critic,
                                        guard_ratio=self.d_guard_ratio, guard_min_steps=self.d_guard_min_steps, **options)
+        if self.effective_critic_formulation == "axiom":
+            from ._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+            from ._axiom.optimizer import AxiomOptimizer
+            record = AxiomStepRecord()
+            optimizer = AxiomOptimizer(
+                [p for p in critic.parameters() if p.requires_grad],
+                smoothing=float(self.optimizer_smoothing),
+                direction_blend=False,
+                critic=critic,
+                record=record,
+                **options,
+            )
+            optimizer.bind_module_layouts((critic,))
+            _attach_axiom_critic_hook(critic, record)
+            return optimizer
         if self.effective_critic_formulation == "minimal":
             from .minimal import MinimalCriticOptimizer
             return MinimalCriticOptimizer([p for p in critic.parameters() if p.requires_grad], critic=critic,
@@ -3253,13 +3285,16 @@ def learning_rate_scales(step, recipe, *, network_transition=None, controller=No
 
 
 def scale_learning_rates(step, recipe, optimizers, base_rates, prior=None, *,
-                         network_transition=None, controller=None, critic=None):
+                         network_transition=None, controller=None, critic=None, penalty=None):
     """Set every group's LR from ``learning_rate_scales(step, recipe)``.
 
     ``base_rates`` holds each optimizer's unscaled group LRs (read them once
-    after construction). Groups whose parameters all belong to ``prior`` get
-    the prior multiplier; every other group gets the network one, so a custom
-    loop follows the recipe's split network/prior schedules.
+    after construction). Groups whose parameters all belong to ``prior``'s
+    underlying table (unwrapped via ``unwrap_prior`` so routing parameters keep
+    the network schedule) get the prior multiplier; every other group gets the
+    network one, so a custom loop follows the recipe's split network/prior
+    schedules. Pass ``penalty=`` to also apply scheduled penalty-coefficient
+    annealing (``reg_coeff_end``).
     Pass a ``NetworkLRTransition`` to choose the network decay from validation
     while retaining the ordinary prior schedule. Returns ``(network, prior)``
     multipliers. Continuous recipes require their matching ``controller``.
@@ -3273,8 +3308,12 @@ def scale_learning_rates(step, recipe, optimizers, base_rates, prior=None, *,
     network, prior_scale = learning_rate_scales(step, recipe, network_transition=network_transition, controller=controller)
     optimizers = tuple(optimizers)
     from .recipe_schedules import apply_training_schedules
-    apply_training_schedules(step, recipe, optimizers)
-    prior_ids = set() if prior is None else {id(p) for p in prior.parameters()}
+    apply_training_schedules(step, recipe, optimizers, penalty=penalty)
+    if prior is None:
+        prior_ids = set()
+    else:
+        from .priors import unwrap_prior
+        prior_ids = {id(p) for p in unwrap_prior(prior).parameters()}
     from .drift_variants import drift_features
     if drift_features(recipe.continuous_policy).critic_balance:
         from torch import Tensor, nn
@@ -3317,6 +3356,6 @@ def scale_learning_rates(step, recipe, optimizers, base_rates, prior=None, *,
         return network, prior_scale
     for optimizer, rates in zip(optimizers, base_rates):
         for group, rate in zip(optimizer.param_groups, rates):
-            is_prior = bool(prior_ids) and all(id(p) in prior_ids for p in group["params"])
+            is_prior = bool(prior_ids) and bool(group["params"]) and all(id(p) in prior_ids for p in group["params"])
             group["lr"] = rate * (prior_scale if is_prior else network)
     return network, prior_scale

@@ -79,19 +79,20 @@ def validate_plain_adam_state(optimizer, state):
         record = extra["record"]
         if hasattr(optimizer.record, "base_state"):
             record = optimizer.record.base_state(record)
-        if not isinstance(record, dict) or set(record) != set(CriticStepRecord.KEYS):
-            raise ValueError("invalid plain Adam critic step record")
-        for key in ("calls", "observed_steps"):
-            if type(record[key]) is not int or record[key] < 0:
-                raise ValueError("invalid plain Adam critic step count")
-        if record["anchor_started"] is not False:
-            raise ValueError("plain Adam cannot restore a critic anchor")
-        for key in ("lr_max", "lr_last"):
-            value = record[key]
-            if key == "lr_last" and value is None:
-                continue
-            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
-                raise ValueError("invalid plain Adam critic LR record")
+        if type(optimizer.record) is CriticStepRecord or hasattr(optimizer.record, "base_state"):
+            if not isinstance(record, dict) or set(record) != set(CriticStepRecord.KEYS):
+                raise ValueError("invalid plain Adam critic step record")
+            for key in ("calls", "observed_steps"):
+                if type(record[key]) is not int or record[key] < 0:
+                    raise ValueError("invalid plain Adam critic step count")
+            if record["anchor_started"] is not False:
+                raise ValueError("plain Adam cannot restore a critic anchor")
+            for key in ("lr_max", "lr_last"):
+                value = record[key]
+                if key == "lr_last" and value is None:
+                    continue
+                if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value < 0:
+                    raise ValueError("invalid plain Adam critic LR record")
         copy(optimizer.record).load_state_dict(extra["record"])
     groups = state.get("param_groups", [])
     for actual, saved in zip(optimizer.param_groups, groups):
@@ -136,63 +137,81 @@ def make_plain_adam(recipe, params, *, critic=None, **options):
     else:
         optimizer.critic = critic
         optimizer.ema_critic = optimizer.anchor = optimizer.guard = None
-        if recipe.effective_critic_formulation == "bispf":
+        formulation = recipe.effective_critic_formulation
+        if formulation == "bispf":
             from .bispf import _BISPFObserverStepRecord
             optimizer.record = _BISPFObserverStepRecord()
-        elif recipe.effective_critic_formulation == "empf":
+        elif formulation == "empf":
             from .empf import _EMPFObserverStepRecord
             from ._empf.critic import _attach_empf_critic_hook
             optimizer.record = _EMPFObserverStepRecord()
             _attach_empf_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t2_secant":
+        elif formulation == "t2_secant":
             from .t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
             optimizer.record = _T2SecantObserverStepRecord()
             _attach_t2_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+        elif formulation == "rhbi":
             from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             _attach_rhbi_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified":
+        elif formulation == "unified":
             from .unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
             optimizer.record = _UnifiedObserverStepRecord()
             _attach_unified_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
+        elif formulation in ("unified_v4", "r4_autograd_critic"):
             from .unified_v4 import _UnifiedV4ObserverStepRecord, _attach_unified_v4_critic_hook
             optimizer.record = _UnifiedV4ObserverStepRecord()
             _attach_unified_v4_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified_v11":
+        elif formulation == "unified_v11":
             from .unified_v11 import _UnifiedV11ObserverStepRecord, _attach_unified_v11_critic_hook
             optimizer.record = _UnifiedV11ObserverStepRecord()
             _attach_unified_v11_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "cond_fiber":
+        elif formulation == "unified_v15":
+            from ._unified_v15 import _UnifiedV15ObserverStepRecord, _attach_unified_v15_critic_hook
+            optimizer.record = _UnifiedV15ObserverStepRecord()
+            optimizer._unified_v15_record = optimizer.record
+            optimizer._unified_v11_record = optimizer.record
+            optimizer._unified_record = optimizer.record
+            optimizer._t1c_record = optimizer.record
+            optimizer._t2_record = optimizer.record
+            _attach_unified_v15_critic_hook(critic, optimizer.record)
+        elif formulation == "cond_fiber":
             from .cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()
             _attach_cond_fiber_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "axiom":
+        elif formulation == "axiom":
             from ._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
             optimizer.record = AxiomStepRecord()
             optimizer._axiom_record = optimizer.record
             _attach_axiom_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+        elif formulation == "t1_coupling":
             from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
             _attach_t1_coupling_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "rgdt":
+        elif formulation == "rgdt":
             from .t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
             optimizer.record = _RGDTObserverStepRecord()
             _attach_rgdt_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t4_nash":
+        elif formulation == "t4_nash":
             from .t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
             optimizer.record = _T4NashObserverStepRecord()
             _attach_t4_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t4_nash_v3":
+        elif formulation == "t4_nash_v3":
             from .nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
             optimizer.record = _NashV3ObserverStepRecord()
             _attach_nash_v3_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "minimal":
+        elif formulation == "minimal":
             from .minimal import MinimalStepRecord, _attach_minimal_critic_hook
             optimizer.record = MinimalStepRecord()
             _attach_minimal_critic_hook(critic, optimizer.record)
+        elif recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+            from .rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
+            optimizer.record = _RHBIObserverStepRecord()
+            _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif getattr(recipe, "t1c_weight", 0.0) > 0:
+            from .t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
         optimizer.register_step_post_hook(_observe_critic_step)

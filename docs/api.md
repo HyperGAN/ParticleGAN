@@ -985,7 +985,7 @@ Transport weights remain zero, `critic_step_mode="none"`, and
 `optimizer_svd_backend="native"`. Use
 `get_recipe("bcap", constraint_geometry_mode="none")` for the earlier winning
 DualNorm recipe. Pin `trainer="bcap"` on a model family to select these settings;
-the shared default is Unified (`unified_v12`). `Recipe()` and partial constructors are
+the shared default is Axiom (`axiom`). `Recipe()` and partial constructors are
 disabled. Use `get_recipe()` for new runs and `Recipe.from_dict(saved_fields)` for checkpoint restoration.
 Each setting can be overridden explicitly.
 `optimizer_svd_backend="newton_schulz"` selects a separate numerical backend
@@ -1076,8 +1076,8 @@ second derivatives use explicit straight-through quantizer surrogates. The
 defines the format/scaling rules, higher-precision operations, gates and native
 validation still needed. Existing precision settings and recipes are unchanged.
 
-Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"unified_v12"`
-default and explicit `"unified_v11"` select `training_precision="bf16_channels_last"` with
+Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"axiom"`
+default and explicit `"unified_v12"` / `"unified_v11"` select `training_precision="bf16_channels_last"` with
 zero-SVD Law-4 equilibration, while explicit `"rhbi_optimized"` uses `optimizer_svd_backend="native"`,
 `optimizer_dense_profile="polar_cpu_v1"` and `training_precision="float32"`):
 
@@ -1499,21 +1499,21 @@ opt_g, opt_d = recipe.make_optimizers(G, D, prior)
 | `z_dim`, `num_particles` | `2`, `20_000` |
 | `prior_kind`, `sigma_rel`, `standardize` | `particles`, `0`, `True` (standardize applies only to MoG) |
 | `lr`, `d_lr_mult`, `prior_lr_mult` | `.014`, `1.5`, `2.9` |
-| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `unified_v12_equil`, `0`, `.0061` |
+| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `axiom`, `0`, `.05` |
 | `optimizer_dense_profile`, `training_precision` | `default`, `bf16_channels_last` |
 | `optimizer_convolution`, `optimizer_svd_backend` | `none`, `native` |
-| `optimizer_convolution_rule` | `polar` (unused by `unified_v12_equil`) |
-| `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `None`, `None` (role overrides inherit shared betas) |
+| `optimizer_convolution_rule` | `polar` (unused by `axiom`) |
+| `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `(0, .999)`, `(0, .999)` |
 | `eps`, `d_eps`, `prior_eps` | `1e-8`, `None`, `None` (role overrides inherit shared epsilon) |
 | `adam_variant`, `loss_labels` | `pytorch`, `(0,1,1)` |
 | `lr_schedule` | `cosine` (also `constant`, `exponential`) |
 | `lr_decay_rate`, `lr_decay_steps`, `lr_decay_staircase` | `.96`, `50000`, `False` (exponential schedule only) |
 | `loss` | `non_saturating` (also `relativistic`, `hinge`, `wasserstein`, `least_squares`) |
 | `constraint_geometry_mode` | `direction_blend` |
-| `critic_formulation`, `reg_arm` | `unified_v11`, `None` |
-| `reg_coeff`, `reg_kappa`, `ebi_beta` | `1`, `1`, `12` (Unified first-order Born-Infeld secant penalty strength, cap and sharpness) |
-| `reg_every` | `1` (apply the penalty every k-th step at k× coefficient) |
-| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `unified_v11`, `.02`, `0`, `0` |
+| `critic_formulation`, `reg_arm` | `axiom`, `None` |
+| `reg_coeff`, `reg_kappa`, `ebi_beta` | `1`, `1`, `30` (Axiom scale-equivariant critic penalty strength and cap; `ebi_beta` is unused by `axiom`) |
+| `reg_every` | `1` (Axiom critic penalty is clock-free and requires `reg_every=1`) |
+| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `axiom`, `.02`, `0`, `.995` |
 | `lr_anneal_start`, `lr_floor` | `.6`, `1` (constant prior rate) |
 | `network_lr_horizon_cap`, `network_lr_floor` | `None`, `1` (constant G/D rates) |
 | `reg_anchor_min_decay`, `reg_anchor_weight`, `critic_r1_real` | `.9`, `0`, `True` (inactive KA2 settings) |
@@ -1540,6 +1540,8 @@ caller.
 | `recipe.make_prior_regularizer(prior=None, reference=None, **kwargs)` | Selected prior penalty, including SBNP, with `weight=recipe.prior_reg` applied once. `prior` and `reference` are aliases for the same initialized prior or tuple of priors. |
 | `recipe.prior_regularizer_checkpoint(module)` | Optional state for an active stochastic prior regularizer |
 | `recipe.restore_prior_regularizer(module, state)` | Validate/restore regularizer state for exact caller-owned continuation |
+| `bind_formulation_records(recipe, opt_d, loss=None, prior_regularizer=None, *, generator=None)` | Bind `opt_d.record` to `loss` and `prior_regularizer` (and attach `_bound_device` when applicable) for caller-owned training loops |
+| `critic_g_step_mode(critic, *, restore_training=True)` | Context manager that freezes critic parameter gradients during G-step while keeping active training BatchNorm layers in stat-preserving batch mode and leaving frozen `eval()` BatchNorm backbones untouched |
 
 ### Regularization factories
 
@@ -1553,7 +1555,7 @@ The previous K3P critic replays through
 `benchmarks.legacy.recipe` ([K3P](k3p.md#replaying-k3p)).
 
 The following loop and Adam controller descriptions use the explicit KA2 recipe.
-The default Unified recipe (`"unified_v12"`) and explicit `"axiom"`, `"unified_v11"`, `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below.
+The default Axiom recipe (`"axiom"`) and explicit `"unified_v15"`, `"unified_v12"`, `"unified_v11"`, `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below, and caller-owned loops should wire `bind_formulation_records` and `critic_g_step_mode` (as shown in `examples/pytorch_loop.py`).
 
 When binding G and E to `UpdatePolicy`, pass `separate_encoder_groups=True`.
 Native Adam then uses distinct homogeneous generator and encoder groups with
