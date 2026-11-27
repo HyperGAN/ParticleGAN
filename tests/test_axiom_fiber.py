@@ -21,9 +21,7 @@ from particlegan._axiom.fiber import (
     validate_fiber_bank_state,
 )
 
-_FIBER_PATH = (
-    Path(__file__).resolve().parents[1] / "particlegan" / "_axiom" / "fiber.py"
-)
+_FIBER_PATH = Path(__file__).resolve().parents[1] / "particlegan" / "_axiom" / "fiber.py"
 
 
 def _random_orthogonal(dim: int, gen: torch.Generator) -> torch.Tensor:
@@ -78,15 +76,9 @@ def test_static_hygiene_and_acyclic_imports() -> None:
     for node in ast.walk(tree):
         if isinstance(node, ast.ImportFrom) and node.level > 0:
             internal_imports.append(node.module)
-        elif (
-            isinstance(node, ast.ImportFrom)
-            and node.module
-            and "particlegan" in node.module
-        ):
+        elif isinstance(node, ast.ImportFrom) and node.module and "particlegan" in node.module:
             internal_imports.append(node.module)
-    assert internal_imports == ["math_ops"], (
-        f"unexpected internal imports: {internal_imports}"
-    )
+    assert internal_imports == ["math_ops"], f"unexpected internal imports: {internal_imports}"
 
     for forbidden in (
         "autograd.grad",
@@ -114,14 +106,10 @@ def test_conditional_gaussian_and_bimodal_recovery_gradients(dim: int) -> None:
     for _ in range(4):
         c = torch.randn(batch, dim, generator=g)
         y = c @ a_mat + 0.25 * torch.randn(batch, dim, generator=g)
-        x = (
-            0.2 * (c @ a_mat) + 0.60 * torch.randn(batch, dim, generator=g)
-        ).requires_grad_(True)
+        x = (0.2 * (c @ a_mat) + 0.60 * torch.randn(batch, dim, generator=g)).requires_grad_(True)
         loss = conditional_fiber_loss(x, y, c, cond_disc=disc, bank=bank)
         loss.backward()
-        assert (
-            torch.isfinite(loss) and x.grad is not None and torch.isfinite(x.grad).all()
-        )
+        assert torch.isfinite(loss) and x.grad is not None and torch.isfinite(x.grad).all()
     assert (1,) in bank.strata
 
     # Probe slope=0.2 -> 1.0 and over-dispersed scale=0.60 -> 0.25
@@ -131,9 +119,7 @@ def test_conditional_gaussian_and_bimodal_recovery_gradients(dim: int) -> None:
     slope = torch.tensor(0.2, requires_grad=True)
     scale = torch.tensor(0.60, requires_grad=True)
     x_p = slope * (c_p @ a_mat) + scale * eps_x
-    loss_p = conditional_fiber_loss(
-        x_p, y_p, c_p, cond_disc=disc, bank=bank, allow_state_update=False
-    )
+    loss_p = conditional_fiber_loss(x_p, y_p, c_p, cond_disc=disc, bank=bank, allow_state_update=False)
     loss_p.backward()
     assert slope.grad is not None and float(slope.grad.item()) < -0.02
     assert scale.grad is not None and float(scale.grad.item()) > 0.02
@@ -143,42 +129,28 @@ def test_conditional_gaussian_and_bimodal_recovery_gradients(dim: int) -> None:
     for _ in range(4):
         c = torch.randn(batch, dim, generator=g)
         y = c @ a_mat + 0.30 * torch.randn(batch, dim, generator=g)
-        x = (c @ a_mat + 0.05 * torch.randn(batch, dim, generator=g)).requires_grad_(
-            True
-        )
+        x = (c @ a_mat + 0.05 * torch.randn(batch, dim, generator=g)).requires_grad_(True)
         conditional_fiber_loss(x, y, c, cond_disc=disc, bank=bank_u).backward()
     c_u = torch.randn(batch, dim, generator=g)
     y_u = c_u @ a_mat + 0.30 * torch.randn(batch, dim, generator=g)
     scale_u = torch.tensor(0.05, requires_grad=True)
     x_u = c_u @ a_mat + scale_u * torch.randn(batch, dim, generator=g)
-    conditional_fiber_loss(
-        x_u, y_u, c_u, cond_disc=disc, bank=bank_u, allow_state_update=False
-    ).backward()
+    conditional_fiber_loss(x_u, y_u, c_u, cond_disc=disc, bank=bank_u, allow_state_update=False).backward()
     assert scale_u.grad is not None and float(scale_u.grad.item()) < -0.01
 
     # Conditional bimodal fiber: collapsed unimodal generator pushed toward bimodal separation
     bank_bi = AxiomCondFiberBank()
     for _ in range(4):
         c_b, y_b = _sample_bimodal_fiber(batch, dim, g)
-        x_b = (0.45 * c_b + 0.15 * torch.randn(batch, dim, generator=g)).requires_grad_(
-            True
-        )
+        x_b = (0.45 * c_b + 0.15 * torch.randn(batch, dim, generator=g)).requires_grad_(True)
         conditional_fiber_loss(x_b, y_b, c_b, bank=bank_bi).backward()
     c_bp, y_bp = _sample_bimodal_fiber(batch, dim, g)
     sep = torch.tensor(0.10, requires_grad=True)
-    signs_p = torch.where(
-        torch.rand(batch, generator=g) < torch.sigmoid(1.5 * c_bp[:, 0]), 1.0, -1.0
-    )
+    signs_p = torch.where(torch.rand(batch, generator=g) < torch.sigmoid(1.5 * c_bp[:, 0]), 1.0, -1.0)
     axis = torch.zeros(1, dim)
     axis[0, 0] = 1.0
-    x_bp = (
-        0.45 * c_bp
-        + (sep * signs_p.unsqueeze(1)) * axis
-        + 0.18 * torch.randn(batch, dim, generator=g)
-    )
-    conditional_fiber_loss(
-        x_bp, y_bp, c_bp, bank=bank_bi, allow_state_update=False
-    ).backward()
+    x_bp = 0.45 * c_bp + (sep * signs_p.unsqueeze(1)) * axis + 0.18 * torch.randn(batch, dim, generator=g)
+    conditional_fiber_loss(x_bp, y_bp, c_bp, bank=bank_bi, allow_state_update=False).backward()
     assert sep.grad is not None and float(sep.grad.item()) < -0.01
 
 
@@ -192,16 +164,10 @@ def test_asymmetric_and_high_dim_context_no_dc32_cliff() -> None:
         for _ in range(2):
             c = torch.randn(batch, d_c, generator=g)
             y = c @ proj + 0.2 * torch.randn(batch, d_x, generator=g)
-            x = (
-                0.4 * (c @ proj) + 0.3 * torch.randn(batch, d_x, generator=g)
-            ).requires_grad_(True)
+            x = (0.4 * (c @ proj) + 0.3 * torch.randn(batch, d_x, generator=g)).requires_grad_(True)
             lv = conditional_fiber_loss(x, y, c, bank=bank)
             lv.backward()
-            assert (
-                torch.isfinite(lv)
-                and x.grad is not None
-                and torch.isfinite(x.grad).all()
-            )
+            assert torch.isfinite(lv) and x.grad is not None and torch.isfinite(x.grad).all()
         q = bank.query_stratum((0,), c[:16], x.detach()[:16], y[:16])
         assert q is not None, f"bank failed to activate for d_c={d_c}, d_x={d_x}"
         assert q["m_pool"].shape == (16, d_x) and q["w_mat"].shape == (d_x, d_x)
@@ -262,14 +228,25 @@ def test_exact_zero_loss_equilibrium_and_swap_invariance() -> None:
             losses.append(float(lv.item()))
             g_scales.append(float(alpha.grad.item()))
             g_shifts.append(float(shift.grad.mean().item()))
-    for label, vals in (("loss", losses), ("g_scale", g_scales), ("g_shift", g_shifts)):
+    for label, vals in (("loss", losses), ("g_shift", g_shifts)):
         mean_v = sum(vals) / len(vals)
-        se_v = math.sqrt(sum((v - mean_v) ** 2 for v in vals) / len(vals)) / math.sqrt(
-            len(vals)
-        )
-        assert abs(mean_v) < 3.5 * max(se_v, 2e-3), (
-            f"equilibrium {label} biased: mean={mean_v:.5f}, se={se_v:.5f}"
-        )
+        se_v = math.sqrt(sum((v - mean_v) ** 2 for v in vals) / len(vals)) / math.sqrt(len(vals))
+        assert abs(mean_v) < 3.5 * max(se_v, 2e-3), f"equilibrium {label} biased: mean={mean_v:.5f}, se={se_v:.5f}"
+    # Bounded Lyapunov safety margin at equilibrium: no variance collapse (restores outward by alpha=0.90)
+    assert abs(sum(g_scales) / len(g_scales)) < 0.04
+    rec_lo = _stub_record()
+    g_lo = torch.Generator().manual_seed(303)
+    g_scales_lo = []
+    for step in range(80):
+        c_b = torch.randn(32, 2, generator=g_lo)
+        t_b = torch.ones(32, 1, dtype=torch.long)
+        alpha_lo = torch.tensor(0.90, requires_grad=True)
+        x_b = 0.7 * c_b + alpha_lo * 0.25 * torch.randn(32, 2, generator=g_lo)
+        y_b = 0.7 * c_b + 0.25 * torch.randn(32, 2, generator=g_lo)
+        conditional_fiber_loss(x_b, y_b, c_b, cond_disc=t_b, record=rec_lo).backward()
+        if step >= 20:
+            g_scales_lo.append(float(alpha_lo.grad.item()))
+    assert sum(g_scales_lo) / len(g_scales_lo) < -0.01
 
 
 def test_tail_leverage_sensitivity_on_outer_5pct_context_bins() -> None:
@@ -280,9 +257,7 @@ def test_tail_leverage_sensitivity_on_outer_5pct_context_bins() -> None:
     assert bank_tail.gamma_fast == pytest.approx(0.88)
 
     # Create conditional target y = 0.8*c + noise; generator has outer-5% tail-only mean distortion
-    r_cut = (
-        2.45  # ~95th percentile of 2D chi radius (chi^2_2(0.95) = 5.99 -> r = 2.448)
-    )
+    r_cut = 2.45  # ~95th percentile of 2D chi radius (chi^2_2(0.95) = 5.99 -> r = 2.448)
     for _ in range(10):
         c = torch.randn(64, 2, generator=g)
         y = 0.8 * c + 0.20 * torch.randn(64, 2, generator=g)
@@ -298,9 +273,7 @@ def test_tail_leverage_sensitivity_on_outer_5pct_context_bins() -> None:
     y_all = 0.8 * c_all + 0.20 * torch.randn(80, 2, generator=g)
     q_tail = bank_tail.query_stratum((1,), c_all, y_all, y_all)
     assert q_tail is not None
-    assert float(q_tail["omega"][-4:].mean().item()) > 3.0 * float(
-        q_tail["omega"][:76].mean().item()
-    )
+    assert float(q_tail["omega"][-4:].mean().item()) > 3.0 * float(q_tail["omega"][:76].mean().item())
 
     # Compare outer-5% tail corrective gradient magnitude with vs without tail leverage
     grads_outer = []
@@ -308,11 +281,7 @@ def test_tail_leverage_sensitivity_on_outer_5pct_context_bins() -> None:
         tail_bias = torch.tensor(0.90, requires_grad=True)
         mask_outer = torch.zeros(80, 1)
         mask_outer[-4:] = 1.0
-        x_all = (
-            0.8 * c_all
-            + mask_outer * tail_bias
-            + 0.20 * torch.randn(80, 2, generator=g)
-        )
+        x_all = 0.8 * c_all + mask_outer * tail_bias + 0.20 * torch.randn(80, 2, generator=g)
         lv = conditional_fiber_loss(
             x_all,
             y_all,
@@ -353,31 +322,21 @@ def test_joint_od_equivariance_across_dimensions_no_solver_cliffs(dim: int) -> N
     g = torch.Generator().manual_seed(500 + dim)
     q_c = _random_orthogonal(dim, g)
     q_x = _random_orthogonal(dim, g)
-    aniso_c = torch.randn(dim, dim, generator=g, dtype=torch.float64) * (
-        0.8 / math.sqrt(dim)
-    )
-    slope_m = torch.randn(dim, dim, generator=g, dtype=torch.float64) * (
-        0.7 / math.sqrt(dim)
-    )
+    aniso_c = torch.randn(dim, dim, generator=g, dtype=torch.float64) * (0.8 / math.sqrt(dim))
+    slope_m = torch.randn(dim, dim, generator=g, dtype=torch.float64) * (0.7 / math.sqrt(dim))
 
     bank_a, bank_b = AxiomCondFiberBank(), AxiomCondFiberBank()
     batch = max(24, AxiomCondFiberBank.basis_dim(dim) + 6)
     for _ in range(3):
         c = torch.randn(batch, dim, generator=g, dtype=torch.float64) @ aniso_c
-        y = c @ slope_m + 0.25 * torch.randn(
-            batch, dim, generator=g, dtype=torch.float64
-        )
-        x = 0.5 * (c @ slope_m) + 0.40 * torch.randn(
-            batch, dim, generator=g, dtype=torch.float64
-        )
+        y = c @ slope_m + 0.25 * torch.randn(batch, dim, generator=g, dtype=torch.float64)
+        x = 0.5 * (c @ slope_m) + 0.40 * torch.randn(batch, dim, generator=g, dtype=torch.float64)
         bank_a.update_stratum((1,), c, x, y)
         bank_b.update_stratum((1,), c @ q_c.T, x @ q_x.T, y @ q_x.T)
 
     cq = torch.randn(20, dim, generator=g, dtype=torch.float64) @ aniso_c
     yq = cq @ slope_m + 0.25 * torch.randn(20, dim, generator=g, dtype=torch.float64)
-    xq = 0.5 * (cq @ slope_m) + 0.40 * torch.randn(
-        20, dim, generator=g, dtype=torch.float64
-    )
+    xq = 0.5 * (cq @ slope_m) + 0.40 * torch.randn(20, dim, generator=g, dtype=torch.float64)
 
     qa = bank_a.query_stratum((1,), cq, xq, yq)
     qb = bank_b.query_stratum((1,), cq @ q_c.T, xq @ q_x.T, yq @ q_x.T)
@@ -385,12 +344,8 @@ def test_joint_od_equivariance_across_dimensions_no_solver_cliffs(dim: int) -> N
     assert torch.allclose(qa["omega"], qb["omega"], atol=1e-10, rtol=1e-10)
     assert torch.allclose(qa["m_pool"] @ q_x.T, qb["m_pool"], atol=1e-10, rtol=1e-10)
     assert torch.allclose(qa["m_x"] @ q_x.T, qb["m_x"], atol=1e-10, rtol=1e-10)
-    assert torch.allclose(
-        qa["delta_m_bank"] @ q_x.T, qb["delta_m_bank"], atol=1e-10, rtol=1e-10
-    )
-    assert torch.allclose(
-        qa["delta_m_loo"] @ q_x.T, qb["delta_m_loo"], atol=1e-10, rtol=1e-10
-    )
+    assert torch.allclose(qa["delta_m_bank"] @ q_x.T, qb["delta_m_bank"], atol=1e-10, rtol=1e-10)
+    assert torch.allclose(qa["delta_m_loo"] @ q_x.T, qb["delta_m_loo"], atol=1e-10, rtol=1e-10)
     assert torch.allclose(q_x @ qa["w_mat"] @ q_x.T, qb["w_mat"], atol=1e-9, rtol=1e-9)
     dcov_rot = torch.einsum("ab,nbc,dc->nad", q_x, qa["delta_cov_loc"], q_x)
     assert torch.allclose(dcov_rot, qb["delta_cov_loc"], atol=1e-10, rtol=1e-10)
@@ -401,9 +356,7 @@ def test_joint_od_equivariance_across_dimensions_no_solver_cliffs(dim: int) -> N
     xa = xq.clone().requires_grad_(True)
     xb = (xq @ q_x.T).clone().requires_grad_(True)
     disc = torch.ones(20, 1, dtype=torch.long)
-    la = conditional_fiber_loss(
-        xa, yq, cq, cond_disc=disc, bank=bank_a, allow_state_update=False
-    )
+    la = conditional_fiber_loss(xa, yq, cq, cond_disc=disc, bank=bank_a, allow_state_update=False)
     lb = conditional_fiber_loss(
         xb,
         yq @ q_x.T,
@@ -524,16 +477,10 @@ def test_schema2_tamper_and_schema1_rejection() -> None:
         lambda p: p["strata"][0].__setitem__("n_eff", -1.0),
         lambda p: p["strata"][0].__setitem__("n_eff", True),
         lambda p: p["strata"][0].__setitem__("w_fast", float("nan")),
-        lambda p: p["strata"][0].__setitem__(
-            "ring_c", p["strata"][0]["ring_c"].float()
-        ),
+        lambda p: p["strata"][0].__setitem__("ring_c", p["strata"][0]["ring_c"].float()),
         lambda p: p["strata"][0].__setitem__("ring_x", p["strata"][0]["ring_x"][:-1]),
-        lambda p: p["strata"][0].__setitem__(
-            "ring_y", torch.zeros(400, 2, dtype=torch.float64)
-        ),
-        lambda p: p["strata"][0].__setitem__(
-            "mu_c", torch.zeros(3, dtype=torch.float64)
-        ),
+        lambda p: p["strata"][0].__setitem__("ring_y", torch.zeros(400, 2, dtype=torch.float64)),
+        lambda p: p["strata"][0].__setitem__("mu_c", torch.zeros(3, dtype=torch.float64)),
         lambda p: p["strata"][0]["s_cc"].__setitem__((0, 0), -0.1),
         lambda p: p["strata"][0]["g_pp"].__setitem__((0, 0), -1.0),
         lambda p: p["strata"][0]["s_xx"].__setitem__((0, 0), float("nan")),
@@ -585,21 +532,15 @@ def test_probe_guards_clock_freedom_edge_cases_and_zero_rng_consumption() -> Non
         allow_state_update=False,
     )
     rec._in_probe = True
-    conditional_fiber_loss(
-        x0.clone().requires_grad_(True), y, c, cond_disc=disc, record=rec
-    )
+    conditional_fiber_loss(x0.clone().requires_grad_(True), y, c, cond_disc=disc, record=rec)
     rec._in_probe = False
     rec._in_protected_probe = True
-    conditional_fiber_loss(
-        x0.clone().requires_grad_(True), y, c, cond_disc=disc, record=rec
-    )
+    conditional_fiber_loss(x0.clone().requires_grad_(True), y, c, cond_disc=disc, record=rec)
     rec._in_protected_probe = False
     assert rec.cond_ema == snap_ema
     after_pkt = rec._cond_bank_obj.state_dict()
     assert after_pkt["strata"][0]["n_eff"] == snap_pkt["strata"][0]["n_eff"]
-    assert torch.equal(
-        after_pkt["strata"][0]["ring_c"], snap_pkt["strata"][0]["ring_c"]
-    )
+    assert torch.equal(after_pkt["strata"][0]["ring_c"], snap_pkt["strata"][0]["ring_c"])
 
     # 3. Strict clock-freedom: shifting calls & observed_steps by +10000 yields bit-identical outputs
     rec1 = _stub_record(calls=0, observed_steps=0)
@@ -614,20 +555,13 @@ def test_probe_guards_clock_freedom_edge_cases_and_zero_rng_consumption() -> Non
     # 4. Degenerate inputs: bn <= 1, singleton strata, constant c / constant y
     assert float(conditional_fiber_loss(x0[:1], y[:1], c[:1]).item()) == 0.0
     uniq_disc = torch.arange(8).unsqueeze(1)
-    assert (
-        float(conditional_fiber_loss(x0[:8], y[:8], c[:8], cond_disc=uniq_disc).item())
-        == 0.0
-    )
+    assert float(conditional_fiber_loss(x0[:8], y[:8], c[:8], cond_disc=uniq_disc).item()) == 0.0
     c_const = torch.ones(24, 2)
     y_const = torch.zeros(24, 2)
     x_const = torch.randn(24, 2, generator=g, requires_grad=True)
     lv_c = conditional_fiber_loss(x_const, y_const, c_const, bank=AxiomCondFiberBank())
     lv_c.backward()
-    assert (
-        torch.isfinite(lv_c)
-        and x_const.grad is not None
-        and torch.isfinite(x_const.grad).all()
-    )
+    assert torch.isfinite(lv_c) and x_const.grad is not None and torch.isfinite(x_const.grad).all()
 
 
 @pytest.mark.cuda
@@ -647,17 +581,11 @@ def test_fiber_cuda_device_restoration_and_zero_rng() -> None:
         for _ in range(3):
             c = torch.randn(batch, dim, generator=g, device=dev)
             y = 1.1 * c + 0.2 * torch.randn(batch, dim, generator=g, device=dev)
-            x = (
-                0.8 * c + 0.3 * torch.randn(batch, dim, generator=g, device=dev)
-            ).requires_grad_(True)
+            x = (0.8 * c + 0.3 * torch.randn(batch, dim, generator=g, device=dev)).requires_grad_(True)
             lv = conditional_fiber_loss(x, y, c, cond_disc=disc, bank=bank)
             lv.backward()
             assert lv.device == dev and torch.isfinite(lv)
-            assert (
-                x.grad is not None
-                and x.grad.device == dev
-                and torch.isfinite(x.grad).all()
-            )
+            assert x.grad is not None and x.grad.device == dev and torch.isfinite(x.grad).all()
         q = bank.query_stratum((0,), c[:12], x.detach()[:12], y[:12])
         assert q is not None and q["m_pool"].device == dev and q["w_mat"].device == dev
         # Roundtrip through CPU state_dict and restore on CUDA
@@ -673,9 +601,50 @@ def test_fiber_cuda_device_restoration_and_zero_rng() -> None:
     for _ in range(3):
         c2 = torch.randn(32, 2, generator=g, device=dev)
         y2 = 1.2 * c2 + 0.2 * torch.randn(32, 2, generator=g, device=dev)
-        x2 = (
-            0.9 * c2 + 0.3 * torch.randn(32, 2, generator=g, device=dev)
-        ).requires_grad_(True)
+        x2 = (0.9 * c2 + 0.3 * torch.randn(32, 2, generator=g, device=dev)).requires_grad_(True)
         conditional_fiber_loss(x2, y2, c2, record=rec).backward()
     assert rec.cond_initialized
     assert torch.equal(torch.cuda.get_rng_state(dev), cuda_rng_before)
+
+
+def test_quadratic_tail_curvature_and_smooth_negative_lyapunov_damping() -> None:
+    """Verify O(d_c) quadratic basis detects cross-term curvature & E_- stays smoothly damped."""
+    g = torch.Generator().manual_seed(909)
+    bank = AxiomCondFiberBank()
+    assert AxiomCondFiberBank.basis_dim(2) == 8
+    assert AxiomCondFiberBank.basis_dim(4) == 19
+
+    # Conditional target has pure quadratic curvature y = [c0*c1, c0^2 - c1^2] + noise; generator is flat
+    for _ in range(8):
+        c = torch.randn(64, 2, generator=g)
+        quad_true = torch.stack((c[:, 0] * c[:, 1], 0.5 * (c[:, 0].square() - c[:, 1].square())), dim=1)
+        y = 0.6 * c + 0.35 * quad_true + 0.15 * torch.randn(64, 2, generator=g)
+        x = 0.6 * c + 0.15 * torch.randn(64, 2, generator=g)
+        bank.update_stratum((1,), c, x, y)
+
+    c_p = torch.randn(64, 2, generator=g)
+    quad_p = torch.stack((c_p[:, 0] * c_p[:, 1], 0.5 * (c_p[:, 0].square() - c_p[:, 1].square())), dim=1)
+    y_p = 0.6 * c_p + 0.35 * quad_p + 0.15 * torch.randn(64, 2, generator=g)
+    curv = torch.tensor(0.0, requires_grad=True)
+    x_p = 0.6 * c_p + curv * quad_p + 0.15 * torch.randn(64, 2, generator=g)
+    lv = conditional_fiber_loss(
+        x_p, y_p, c_p, cond_disc=torch.ones(64, 1, dtype=torch.long), bank=bank, allow_state_update=False
+    )
+    lv.backward()
+    assert curv.grad is not None and float(curv.grad.item()) < -0.05
+
+    # Smooth Lyapunov damping bounds negative-eigenvalue expansion gradient for large residuals
+    w_op = torch.eye(2, dtype=torch.float64)[None]
+    err_pos = torch.zeros(1, 2, 2, dtype=torch.float64)
+    err_neg = -torch.eye(2, dtype=torch.float64)[None]
+    zero_v = torch.zeros(1, 2, dtype=torch.float64)
+    row_w = torch.ones(1, dtype=torch.float64)
+    grads = []
+    for rad in (1.0, 4.0, 20.0):
+        xr = torch.tensor([[rad, 0.0]], dtype=torch.float64, requires_grad=True)
+        op_l = Fb._fiber_operator_loss(
+            xr, zero_v, w_op, (zero_v, zero_v, err_pos, err_neg, row_w), 0.0, 1.0, torch.float64
+        )
+        op_l.backward()
+        grads.append(float(xr.grad.norm().item()))
+    assert grads[0] > 0.0 and grads[2] < grads[1] < 1.0

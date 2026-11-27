@@ -49,7 +49,7 @@ _BANK_DEFAULTS: dict[str, Any] = {
     "ring_capacity": MAX_RING_CAPACITY,
     "knn_k": 20,
     "tail_leverage_gain": 0.9,
-    "knn_res_weight": 0.3,
+    "knn_res_weight": 0.0,
 }
 
 
@@ -79,11 +79,16 @@ def _whiten_cov(cov, floor: float = 1e-4):
 
 def _eval_basis(c, mu_c, w_c, tail_gain: float):
     u = (c - mu_c[None]) @ w_c
-    r_sq = u.square().mean(1)
+    d_c = u.shape[1]
+    u_sq_sum = u.square().sum(1)
+    r_sq = u_sq_sum / max(1, d_c)
     r = r_sq.clamp_min(1e-6).sqrt()
-    h = (2 * (F.softplus(r - 1) - 0.3133))[:, None]
-    q = (2 * (F.softplus(r - 0.8) - 0.3711) / (1 + 0.25 * r))[:, None]
-    return cat((c.new_ones((c.shape[0], 1)), u, h, q * u), 1), 1 + tail_gain * r_sq.clamp_max(4.5), u
+    q = (2.0 * (F.softplus(r - 0.8) - 0.3711) / (1.0 + 0.25 * r))[:, None]
+    ia, ib = torch.triu_indices(d_c, d_c, offset=0, device=c.device)
+    scale_ij = where(ia == ib, u.new_ones(()), u.new_full((), math.sqrt(2.0)))
+    quad = (u[:, ia] * u[:, ib] * scale_ij[None]) / (1.0 + 0.15 * u_sq_sum).sqrt()[:, None]
+    phi = cat((c.new_ones((c.shape[0], 1)), u, q * u, quad), 1)
+    return phi, 1.0 + tail_gain * r_sq.clamp_max(4.5), u
 
 
 def _imq_kernel_3scale(a, b, eps):
@@ -168,7 +173,8 @@ class AxiomCondFiberBank:
 
     @staticmethod
     def basis_dim(d_c: int) -> int:
-        return 2 + 2 * int(d_c)
+        dim = int(d_c)
+        return 1 + 2 * dim + (dim * (dim + 1)) // 2
 
     def reset(self) -> None:
         self.d_c, self.d_x, self.strata = None, None, {}
@@ -179,7 +185,7 @@ class AxiomCondFiberBank:
         return dup
 
     def _ridge_vec(self, d_c: int):
-        ridge = full((self.basis_dim(d_c),), self.nl_ridge * math.sqrt(d_c), dtype=_F64, device="cpu")
+        ridge = full((self.basis_dim(d_c),), self.nl_ridge, dtype=_F64, device="cpu")
         ridge[: 1 + d_c] = self.lin_ridge
         return ridge
 
@@ -220,7 +226,7 @@ class AxiomCondFiberBank:
             b_fast = solve_spd_cholesky(
                 st["g_pp_fast"] * inv_wf, (st["g_px_fast"] - st["g_py_fast"]) * inv_wf, ridge=ridge
             )[0]
-            delta_m_bank = 0.5 * (phi_q @ b_fast + m_x - m_y)
+            delta_m_bank = phi_q @ b_fast
             if n_g >= 2 and mat_inv is not None:
                 diff_xy, w_phi, proj = x - y, phi_q * omega[:, None], phi_q @ mat_inv
                 loo_den = (omega.sum().item() - omega).clamp_min(1)[:, None]
@@ -238,7 +244,11 @@ class AxiomCondFiberBank:
             res_x_r, res_y_r = ring_x - m_pool_r, ring_y - m_pool_r
             dcov_r = res_x_r[:, :, None] * res_x_r[:, None] - res_y_r[:, :, None] * res_y_r[:, None]
             delta_cov_loc = einsum("nm,mij->nij", alpha, dcov_r)
-            knn_diff = alpha @ ((ring_x - phi_r @ b_x) - (ring_y - phi_r @ b_y))
+            m_x_loc = m_pool + 0.5 * (alpha @ (res_x_r - res_y_r))
+            if self.knn_res_weight != 0.0:
+                delta_m_bank = delta_m_bank + self.knn_res_weight * (
+                    alpha @ ((ring_x - phi_r @ b_x) - (ring_y - phi_r @ b_y))
+                )
             mean_err_sq = max(
                 0.0, ((b_x - b_y) @ w_mat).square().sum().item() / max(1, d_x) - 2 * p_dim / max(n_eff, 1)
             )
@@ -249,10 +259,10 @@ class AxiomCondFiberBank:
                 "n_eff": n_eff,
                 "ring_len": ring_len,
                 "omega": omega,
-                "m_x": m_x + 0.5 * knn_diff,
+                "m_x": m_x_loc,
                 "m_pool": m_pool,
                 "w_mat": w_mat,
-                "delta_m_bank": delta_m_bank + self.knn_res_weight * knn_diff,
+                "delta_m_bank": delta_m_bank,
                 "delta_m_loo": delta_m_loo,
                 "delta_cov_loc": delta_cov_loc,
                 "mean_err_sq": mean_err_sq,
@@ -435,8 +445,7 @@ def _fiber_operator_loss(x_w, y_det, w_op, ops, mean_w: float, cov_w: float, out
         loss = loss + mean_w * (row_w * (proj_diff * delta_m).sum(-1) * inv_d).mean().to(out_dt)
     if cov_w > 0:
         res_x = einsum("nij,nj->ni", w_op, x_w - m_x)
-        excess = F.relu(res_x.square().sum(-1, keepdim=True) * inv_d - (1 + 5 * math.sqrt(2 * inv_d)))
-        res_soft = res_x * (1 + 0.25 * excess.square() / (1 + excess)).rsqrt()
+        res_soft = res_x * (1.0 + 0.25 * res_x.square().sum(-1, keepdim=True) * inv_d).rsqrt()
         q_pos = einsum("ni,nij,nj->n", res_x, err_pos, res_x)
         q_neg = einsum("ni,nij,nj->n", res_soft, err_neg, res_soft)
         loss = loss + cov_w * (row_w * 0.5 * (q_pos + q_neg) * inv_d).mean().to(out_dt)
@@ -466,7 +475,7 @@ def conditional_fiber_loss(
     mean_op_weight: float = 0.36,
     cov_op_weight: float = 0.35,
     imq_active_scale: float = 0.40,
-    bank_mean_blend: float = 0.75,
+    bank_mean_blend: float = 0.85,
     allow_state_update: bool = True,
 ) -> Tensor:
     """Law 3B conditional fiber loss combining 3-scale IMQ and bank drift/covariance operators."""
