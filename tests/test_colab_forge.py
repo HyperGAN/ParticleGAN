@@ -942,3 +942,122 @@ def test_ingest_tarball_marks_submission_concluded_with_numeric_timestamp_and_qu
     # Queue.claim() must not crash or touch the imported Colab submission even if jobs dict is empty.
     q = Queue(tmp_path / "runs/forge")
     assert q.claim([{"device": "cpu", "slot": 0, "memory_mb": 4096}]) is None
+
+
+def test_colab_worker_shell_quotes_injected_parameters(tmp_path: Path, monkeypatch):
+    """All shell-interpolated params in bootstrap_sh and run_sh must be shlex.quote-escaped."""
+    import shlex
+
+    evil_repo = "https://example.com/repo.git; touch /tmp/pwn"
+    evil_sha = "deadbeef$(id)"
+    evil_cand = "cand'; rm -rf / #"
+    evil_study = "study $(whoami)"
+    evil_unit = "unit`uname`"
+
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(parents=True, exist_ok=True)
+    worker = cf.ColabWorker(
+        worker_name="forge-l4-w1-sec",
+        gpu="L4",
+        run_dir=run_dir,
+        repo_root=tmp_path,
+        repo_url=evil_repo,
+        branch_sync={"sha": evil_sha, "pushed": True},
+    )
+    unit = cf.CatchupUnit(
+        unit_id=evil_unit,
+        candidate_id=evil_cand,
+        view_id="discriminator_stability",
+        through_tier=1,
+        gpu="L4",
+        tasks=["ring16_acquisition"],
+        is_full_view_slice=False,
+        estimated_seconds=60.0,
+    )
+    study_file = tmp_path / "study.json"
+    study_file.write_text("{}", encoding="utf-8")
+
+    ssh_scripts: list[str] = []
+
+    def fake_run(cmd: list[str], **_kwargs) -> tuple[int, str]:
+        if "ssh" in cmd and "bash" in cmd:
+            ssh_scripts.append(cmd[-1])
+        return 0, ""
+
+    monkeypatch.setattr(cf, "run_with_hard_timeout", fake_run)
+    try:
+        worker.start()
+        worker.run_unit(unit, study_file=study_file, study_id=evil_study, render_media=False)
+    finally:
+        cf._GLOBAL_REGISTRY.unregister(worker.worker_name)
+
+    assert len(ssh_scripts) == 2
+    bootstrap_sh, run_sh = ssh_scripts
+    assert shlex.quote(evil_repo) in bootstrap_sh
+    assert shlex.quote(evil_sha) in bootstrap_sh
+    assert f'"{evil_sha}"' not in bootstrap_sh
+
+    assert shlex.quote(evil_cand) in run_sh
+    assert shlex.quote(evil_study) in run_sh
+    assert shlex.quote(evil_unit) in run_sh
+    assert shlex.quote(f"/content/out-{evil_unit}.tar.gz") in run_sh
+    assert f"'{evil_cand}'" not in run_sh
+
+
+def test_ingest_tarball_verifies_result_hash_and_fails_closed_on_conflicts(tmp_path: Path):
+    """ingest_tarball verifies certificate result_hash and refuses conflicting overwrites fail-closed."""
+    from experiments.forge.contracts import stable_hash
+
+    aid = "b" * 32
+    res_v1 = {
+        "attempt_id": aid,
+        "candidate_id": "axiom-v5",
+        "candidate_revision": "rev1",
+        "task_results": [{"task_id": "ring16_acquisition", "gate_status": "PASS"}],
+    }
+    cert_v1 = {"result_hash": stable_hash(res_v1), "source": "s1"}
+
+    def _make_tar(name: str, files: dict[str, dict]) -> Path:
+        stage = tmp_path / f"stage_{name}" / "reports/forge/attempts" / aid
+        stage.mkdir(parents=True, exist_ok=True)
+        for fname, payload in files.items():
+            _write_json(stage / fname, payload)
+        tpath = tmp_path / f"{name}.tar.gz"
+        with tarfile.open(tpath, "w:gz") as tf:
+            tf.add(stage, arcname=f"reports/forge/attempts/{aid}")
+        return tpath
+
+    # 1. Valid archive with matching certificate result_hash ingests cleanly and is idempotent.
+    tar_good = _make_tar("good", {"result.json": res_v1, "certificate.json": cert_v1})
+    out1 = cf.ingest_tarball(tmp_path, tar_good, project_receipts=False, register_submissions=False)
+    assert out1["attempts_extracted"] == [aid]
+    orig_bytes = (tmp_path / "reports/forge/attempts" / aid / "result.json").read_bytes()
+    out2 = cf.ingest_tarball(tmp_path, tar_good, project_receipts=False, register_submissions=False)
+    assert out2["attempts_extracted"] == [aid]
+
+    # 2. Conflicting result.json/certificate.json for existing attempt fails closed WITHOUT overwriting disk.
+    res_v2 = {**res_v1, "task_results": [{"task_id": "ring16_acquisition", "gate_status": "FAIL"}]}
+    cert_v2 = {"result_hash": stable_hash(res_v2), "source": "s1"}
+    tar_conflict = _make_tar("conflict", {"result.json": res_v2, "certificate.json": cert_v2})
+    with pytest.raises(ValueError, match="Conflicting (result_hash/)?digest"):
+        cf.ingest_tarball(tmp_path, tar_conflict, project_receipts=False, register_submissions=False)
+    assert (tmp_path / "reports/forge/attempts" / aid / "result.json").read_bytes() == orig_bytes
+
+    # 2b. Conflicting result.json alone (matched against existing on-disk certificate/result) also fails closed.
+    tar_res_only = _make_tar("conflict_res", {"result.json": res_v2})
+    with pytest.raises(ValueError, match="mismatch|Conflicting"):
+        cf.ingest_tarball(tmp_path, tar_res_only, project_receipts=False, register_submissions=False)
+    assert (tmp_path / "reports/forge/attempts" / aid / "result.json").read_bytes() == orig_bytes
+
+    # 3. Tampered certificate.json result_hash fails closed on a brand-new attempt.
+    aid_bad = "c" * 32
+    stage_bad = tmp_path / "stage_bad" / "reports/forge/attempts" / aid_bad
+    stage_bad.mkdir(parents=True, exist_ok=True)
+    _write_json(stage_bad / "result.json", {**res_v1, "attempt_id": aid_bad})
+    _write_json(stage_bad / "certificate.json", {"result_hash": "0" * 64, "source": "s1"})
+    tar_bad_cert = tmp_path / "bad_cert.tar.gz"
+    with tarfile.open(tar_bad_cert, "w:gz") as tf:
+        tf.add(stage_bad, arcname=f"reports/forge/attempts/{aid_bad}")
+    with pytest.raises(ValueError, match="certificate result_hash mismatch"):
+        cf.ingest_tarball(tmp_path, tar_bad_cert, project_receipts=False, register_submissions=False)
+    assert not (tmp_path / "reports/forge/attempts" / aid_bad / "result.json").exists()

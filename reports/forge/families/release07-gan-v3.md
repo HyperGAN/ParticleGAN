@@ -274,12 +274,12 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | --- | --- | --- | --- |
 | [ae_gan_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1) | FAIL | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | changed since run |
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | PASS | changed since run |
 | [ring16_acquisition](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1) | FAIL | matches recorded run |
 | [two_pole](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-two_pole) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | PASS | matches recorded run |
 | [unused_token_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-1), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-1), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-1), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-1), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-1), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-1) | PASS | matches recorded run |
@@ -303,16 +303,16 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | Experiment | Required by | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [cover_leftover](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cover_leftover) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_stripes2](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_stripes2) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [mid_scale_identity](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-mid_scale_identity) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [mode_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [rotated100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-rotated100) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [staggered100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-staggered100) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
@@ -325,7 +325,7 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2) | UNKNOWN | changed since run |
 | [img_bars4](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_blobs4](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_blobs4) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
 | [img_intensity2](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_intensity2) | [adaptation](release07-gan-v3.md#cohort-cuda-daa283c8a640-adaptation-tier-2), [clockfree_continuous](release07-gan-v3.md#cohort-cuda-daa283c8a640-clockfree_continuous-tier-2), [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-2), [formulation_comparison](release07-gan-v3.md#cohort-cuda-daa283c8a640-formulation_comparison-tier-2), [host_profile_transfer](release07-gan-v3.md#cohort-cuda-daa283c8a640-host_profile_transfer-tier-2), [quality_coverage](release07-gan-v3.md#cohort-cuda-daa283c8a640-quality_coverage-tier-2) | UNKNOWN | matches recorded run |
@@ -381,7 +381,7 @@ Held at this tier (measured and shown, not counted):
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [alice_spiral_bigan](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-alice_spiral_bigan) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
-| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | UNKNOWN | changed since run |
 | [cgan_overlapping_classes](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cgan_overlapping_classes) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [discriminator_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
@@ -601,9 +601,9 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 | [unused_token_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [vector_unequal_mass](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
@@ -861,8 +861,8 @@ Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do n
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -1126,12 +1126,12 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [unused_token_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 | [ring16_acquisition](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | required | FAIL | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | required | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | required | FAIL | changed since run |
 | [zero_tanh_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | required | PASS | matches recorded run |
-| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | required | PASS | matches recorded run |
-| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | required | PASS | matches recorded run |
-| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | required | PASS | matches recorded run |
-| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | required | PASS | matches recorded run |
+| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | required | PASS | changed since run |
+| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | required | PASS | changed since run |
+| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | required | PASS | changed since run |
+| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | required | PASS | changed since run |
 | [clockfree_audit_measurement_v1](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | FAIL | matches recorded run |
 | [precision_gaussian_fp32](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_fp32) | diagnostic | FAIL | matches recorded run |
 | [precision_gaussian_mxfp8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | FAIL | matches recorded run |
@@ -1151,17 +1151,17 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | required | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | required | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | required | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | required | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | required | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | required | UNKNOWN | matches recorded run |
 | [cover_leftover](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cover_leftover) | required | UNKNOWN | matches recorded run |
 | [mid_scale_identity](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-mid_scale_identity) | required | UNKNOWN | matches recorded run |
 | [mode_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | required | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | required | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | required | UNKNOWN | changed since run |
 | [vector_two_broad](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_two_broad) | required | UNKNOWN | matches recorded run |
 | [vector_unequal_mass](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | required | UNKNOWN | matches recorded run |
+| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | required | UNKNOWN | changed since run |
 | [vector_unequal_width](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_width) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_width) | UNKNOWN | matches recorded run |
 | [vector_anisotropic](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | UNKNOWN | matches recorded run |
 | [vector_overlap](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_overlap) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | UNKNOWN | matches recorded run |
@@ -1173,15 +1173,15 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | required | UNKNOWN | matches recorded run |
 | [rotated100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-rotated100) | required | UNKNOWN | matches recorded run |
 | [staggered100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-staggered100) | required | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | required | UNKNOWN | changed since run |
 | [interp_img_patch_shift](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | DIAG_PASS | changed since run |
 | [interp_saddle_barycentric](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | UNKNOWN | changed since run |
 | [t3_iso_horizon_saddle_shift](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | UNKNOWN | changed since run |
 | [nash_overpowered_critic_ring16](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | UNKNOWN | matches recorded run |
 | [nash_overpowered_generator_ring16](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | UNKNOWN | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | UNKNOWN | matches recorded run |
-| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | UNKNOWN | changed since run |
 
 </details>
 
@@ -1224,7 +1224,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [cramer_energy_overlap](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cramer_energy_overlap) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-cyclegan_unpaired_constellation) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [grid100_res16_scaled_tanh](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | changed since run |
 
 </details>
 
@@ -1344,8 +1344,8 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 | [interp_sparse_arc](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
 | [interp_saddle_barycentric](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | changed since run |
 | [fl_law1_aniso_unequal_modes](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -1360,7 +1360,7 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [t3_iso_horizon_saddle_shift](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-t3_iso_horizon_saddle_shift) | diagnostic | UNKNOWN | changed since run |
 | [ring_extension](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [target_shift_recovery](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
 | [fl_law3_highd_orphan_d32](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-fl_law3_highd_orphan_d32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [grid100_mlp16](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_res16_tanh](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
@@ -1417,8 +1417,8 @@ Calibration: **provisional**. Four Laws Adherence v2 diagnostic suite combines 2
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | matches recorded run |
-| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_hypercube8) | diagnostic | UNKNOWN | changed since run |
+| [bytegan_bigan_dictionary](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 | [interp_sparse_arc](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_sparse_arc) | diagnostic | FAIL | changed since run |
 | [interp_saddle_barycentric](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-interp_saddle_barycentric) | diagnostic | UNKNOWN | changed since run |
 | [fl_law1_aniso_unequal_modes](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -1623,9 +1623,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -1777,18 +1777,18 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring16_acquisition) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [zero_tanh_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | diagnostic | PASS | matches recorded run |
-| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | diagnostic | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
-| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ae_gan_multimodal](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_gan_multimodal) | diagnostic | PASS | changed since run |
+| [model_ae_reconstruction](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_reconstruction) | diagnostic | PASS | changed since run |
+| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | PASS | changed since run |
+| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | PASS | changed since run |
 | [clockfree_audit_measurement_v1](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit_measurement_v1) | diagnostic | FAIL | matches recorded run |
 | [clockfree_audit](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -1808,8 +1808,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
 | [rotated100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-rotated100) | diagnostic | UNKNOWN | matches recorded run |
 | [staggered100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-staggered100) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_bimodal_chain) | diagnostic | UNKNOWN | changed since run |
 | [ring_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [zero_tanh_rail_escape](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
@@ -1928,8 +1928,8 @@ Calibration: **provisional**. Own-checkpoint word retention only; no ordinary ti
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -1976,8 +1976,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [clockfree_audit](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-clockfree_audit) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [zero_tanh_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
 | [zero_tanh_rail_escape](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [mode_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-mode_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
@@ -2092,8 +2092,8 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 | [vector_unequal_mass](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
 | [img_bars4](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [zero_tanh_rail_escape](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_mlp16](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-grid100_mlp16) | diagnostic | UNKNOWN | matches recorded run |
 | [nash_overpowered_critic_ring16](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-nash_overpowered_critic_ring16) | diagnostic | UNKNOWN | matches recorded run |
@@ -2140,10 +2140,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -2203,10 +2203,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -2266,10 +2266,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -2329,10 +2329,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | matches recorded run |
+| [five_word_joint_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_smoke) | diagnostic | FAIL | changed since run |
 | [gaussian1d_smoke](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-gaussian1d_stability) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | matches recorded run |
+| [five_word_joint_hold](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-five_word_joint_hold) | diagnostic | UNKNOWN | changed since run |
 | [trajectory](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-trajectory) | diagnostic | UNKNOWN | matches recorded run |
 | [residual_student](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-residual_student) | diagnostic | UNKNOWN | matches recorded run |
 | [unipolar](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-unipolar) | diagnostic | UNKNOWN | matches recorded run |
@@ -2526,8 +2526,8 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 | [vector_unequal_mass](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_unequal_mass) | diagnostic | UNKNOWN | matches recorded run |
 | [vector_anisotropic](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-vector_anisotropic) | diagnostic | UNKNOWN | matches recorded run |
 | [img_bars4](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-img_bars4) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | matches recorded run |
+| [model_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ae_ddgan_gaussian_chain](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -2707,8 +2707,8 @@ Calibration: **provisional**. Two toy gates do not establish screen calibration 
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
-| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
+| [model_vae_hard](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_hard) | diagnostic | PASS | changed since run |
+| [model_vae_categorical](release07-gan-v3.md#cohort-cuda-daa283c8a640-experiment-model_vae_categorical) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2969,7 +2969,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3009,7 +3009,7 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3634,7 +3634,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3674,7 +3674,7 @@ Dependencies: five_word_joint_smoke (checkpoint).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. any scheduled full joint pass plus independent same-state confirmation
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. any scheduled full joint pass plus independent same-state confirmation
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -3884,6 +3884,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -3918,6 +3919,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -5503,7 +5505,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -5586,7 +5588,7 @@ Dependencies: model_ae_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -5662,7 +5664,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -5721,7 +5723,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -5768,7 +5770,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -5847,7 +5849,7 @@ Dependencies: model_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -5963,7 +5965,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -6031,7 +6033,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -11470,6 +11472,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -11504,6 +11507,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -18801,6 +18805,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -18835,6 +18840,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |

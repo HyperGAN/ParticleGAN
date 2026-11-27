@@ -69,6 +69,7 @@ flowchart LR
 | Metric | Operator | Threshold |
 | --- | :---: | ---: |
 | `finite_fraction` | `==` | `1.0` |
+| `critic_grad_finite` | `==` | `1.0` |
 | `mode_coverage` | `>=` | `1.0` |
 | `sprite_hq` | `>=` | `0.85` |
 | `template_rmse` | `<=` | `0.12` |

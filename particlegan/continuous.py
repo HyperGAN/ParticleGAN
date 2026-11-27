@@ -1212,7 +1212,23 @@ class LossSurprise:
     COOLDOWN = 16
     MIN_VAR = 5e-6
 
+    _STATE_KEYS = frozenset({
+        "fast",
+        "calm",
+        "var_calm",
+        "streak",
+        "armed",
+        "since_calm",
+        "since_fire",
+        "fires",
+        "last_z",
+        "pending_loss",
+    })
+
     def __init__(self):
+        self.reset()
+
+    def reset(self):
         self.fast = None
         self.calm = None
         self.var_calm = 0.01
@@ -1313,6 +1329,38 @@ class LossSurprise:
         })
 
     def load_state_dict(self, state):
-        if not isinstance(state, dict):
+        if not isinstance(state, dict) or set(state.keys()) != self._STATE_KEYS:
             raise ValueError("incompatible loss-surprise state")
-        self.__dict__.update(deepcopy(state))
+        validated = {}
+        for key in ("fast", "calm", "pending_loss"):
+            val = state[key]
+            if val is not None:
+                if type(val) not in (int, float) or not math.isfinite(val):
+                    raise ValueError(f"incompatible loss-surprise state: invalid {key}")
+                val = float(val)
+            validated[key] = val
+        if (validated["fast"] is None) != (validated["calm"] is None):
+            raise ValueError("incompatible loss-surprise state: fast and calm must both be set or None")
+        var_calm = state["var_calm"]
+        if type(var_calm) not in (int, float) or not math.isfinite(var_calm) or var_calm < 0.0:
+            raise ValueError("incompatible loss-surprise state: invalid var_calm")
+        validated["var_calm"] = float(var_calm)
+        last_z = state["last_z"]
+        if type(last_z) not in (int, float) or not math.isfinite(last_z):
+            raise ValueError("incompatible loss-surprise state: invalid last_z")
+        validated["last_z"] = float(last_z)
+        armed = state["armed"]
+        if type(armed) is not bool:
+            raise ValueError("incompatible loss-surprise state: invalid armed")
+        validated["armed"] = armed
+        for key in ("streak", "since_calm", "fires"):
+            val = state[key]
+            if type(val) is not int or val < 0:
+                raise ValueError(f"incompatible loss-surprise state: invalid {key}")
+            validated[key] = val
+        since_fire = state["since_fire"]
+        if since_fire is not None and (type(since_fire) is not int or since_fire < 0):
+            raise ValueError("incompatible loss-surprise state: invalid since_fire")
+        validated["since_fire"] = since_fire
+        for key, value in validated.items():
+            setattr(self, key, value)

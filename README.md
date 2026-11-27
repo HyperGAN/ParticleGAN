@@ -17,7 +17,7 @@ critic penalty and prior regularizer.
 Requires Python 3.11+. PyTorch and NumPy are installed as dependencies.
 
 ```bash
-python -m pip install particlegan           # the library (0.13.1)
+python -m pip install particlegan           # the library (0.14.0)
 ```
 
 To run the examples, experiments and tests, install from source with the extras you need:
@@ -68,23 +68,31 @@ samples = trainer.sample(1024)
 ```
 
 `get_recipe()` returns the default recipe, **Axiom** (`DEFAULT_RECIPE = "axiom"` in
-[particlegan/recipes.py](particlegan/recipes.py), matching `axiom-v5`).
-It is our clean-slate, energy-optimal Four-Laws core (`2,396` LOC in `particlegan/_axiom/`,
-`<=2,500`-LOC cap) with strictly **zero `torch.autograd.grad`, zero SVD, zero `eigh`, zero `pinv`,
-and strictly clock-free dynamics**, pairing: for Law 1, `AxiomPriorRegularizer` (exact mass/LTV
-Laguerre pullback with central finite-offset isometry, `prior_reg = 0.02`); for Law 2,
-`AxiomCriticPenalty` (compute-regime-dispatched exact RoR on low-D / GroupNorm / quantized critics
-and fast `fwAD` linear-R1+R2 on high-res Conv2d, with zero-mean logit gauge); for Law 3,
-`AxiomGANLoss` / `AxiomTransportLoss` (conformal local horizons, deconflicted chart & atomic
-matching, and a zero-`eigh` conditional fiber bank); and for Law 4, `AxiomOptimizer` (zero-state
-4D Conv2d Frobenius-MP, compound-pathology Critic NS fast path, verified batch-RMS trust,
-zero-`pinv` analytic `direction_blend`, `optimizer_smoothing = 0.05`, and `bf16_channels_last`
-conv training at constant rates).
-Explicit `get_recipe("unified_v15")` (highest-coverage Unified Four-Laws preset, `74/79` measured
-receipts, `16/16` Occam), `get_recipe("unified_v12")` (0.12.0 default), `get_recipe("unified_v11")`
-(0.11.x preset), `get_recipe("minimal")` (`<900`-LOC zero-Newton-Schulz fast core),
-`get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")` (`rhbi-v12`),
-`get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
+[particlegan/recipes.py](particlegan/recipes.py), matching `axiom-v6`).
+It is our clean-slate, 9-module acyclic Four-Laws core (`particlegan/_axiom/`, zero sibling
+imports, Ruff `C901 <= 10`, Radon `BoolCC <= 15`, zero semicolon-packed lines, schema-2
+fail-closed checkpoints) with strictly **zero `torch.autograd.grad`, zero SVD, zero `eigh`,
+zero `pinv`, zero `torch.compile`, and strictly clock-free dynamics** across `axiom`,
+`unified_v15`, and `minimal`, pairing: for Law 1, `PrototypeAtlas` + `AxiomPriorRegularizer`
+(anisotropic LTC prototype atlas with Wishart/MP shrinkage, continuous annular-gap `rho_atom`,
+deterministic GPU `HamiltonCommitmentLedger`, and curvature-compensated `GL(D)`-invariant
+Whitened Burg Log-Det pullback, `prior_reg = 0.02`); for Law 2, `AxiomCriticPenalty` (U-statistic
+effective dimension, continuous element-budget probe law, strictly zero-`autograd.grad` native
+`fwAD` including `EmulatedLinear.jvp` on MXFP8/NVFP4 with capability-based central-secant
+fallback for Attention/SDPA/non-JVP ops, zero-Jensen EMA-gated Lipschitz hinge, and zero-mean
+logit gauge); for Law 3, `AxiomCondFiberBank` + `AxiomTransportLoss` / `AxiomGANLoss` (FP64
+zero-`eigh` Halley/NS `O(d_c) x O(d_x)`-equivariant conditional fiber bank, continuous
+`kappa_struct` contrast confidence, zero-sync GPU quota-balanced routing, and Nadaraya-Watson
+simplicial manifold projection); and for Law 4, `AxiomOptimizer` (genuine `0.0 B/param`
+architecture-agnostic 4D Conv2d state with zero `_bn_net_ids`/`m_u`, IEEE-754 mantissa-exponent
+normalization, prime-67 sketch, compound-pathology 2D NS + Schatten-6 ceiling, single `fork_rng`
+verified batch-RMS trust, single-backward zero-`pinv` `direction_blend`, `optimizer_smoothing = 0.05`,
+and `bf16_channels_last` conv training at constant rates).
+Explicit `get_recipe("unified_v15")` (highest-coverage Unified Four-Laws preset, `74/79` recorded
+pre-remediation receipts, `16/16` Occam), `get_recipe("unified_v12")` (0.12.0 default),
+`get_recipe("unified_v11")` (0.11.x preset), `get_recipe("minimal")` (compact, un-minified
+zero-Newton-Schulz fast core), `get_recipe("empf")` (`empf-v8`), `get_recipe("rhbi_optimized")`
+(`rhbi-v12`), `get_recipe("rhbi")` and `get_recipe("bispf_optimized")` retain named presets. See
 **[The Four Laws of Adversarial Generative Learning](docs/four-laws.md)** for the
 solution-agnostic statement of the evolving laws (subject to revision as research progresses),
 **[Explore by Laws](reports/forge/LAWS_HUB.md)** and the **[Experiment Catalog](reports/forge/experiments/README.md)**
@@ -123,32 +131,43 @@ Explore the live research and benchmark evidence across three synchronized views
 What the evidence does and does not show today:
 
 - **The default is a research selection, not a qualified winner.** In the
+  [Axiom v6 official 11-study Forge report](reports/axiom/axiom-v6-study.md) (`feat/axiom-v6 @ edc18e43c`,
+  `seed = 0`, `deterministic_orthogonal_`, 2x RTX A6000), the promoted **`axiom`** default
+  (`DEFAULT_RECIPE = "axiom"`, matching `axiom-v6`, 9-module clean-slate Four-Laws core) reaches
+  **`55/65` unique executed tasks PASS (`0` INCOMPLETE, `0` ERROR)** and clears all 6 `axiom-v5`
+  regressions — sweeping `r3-tier3-long-horizon-holdout-v1` (**`18/18`**), `dcgan_performance`
+  (**`6/6`**, solo idle GPU-1 NVML `r256`: **`31.76 ms/step` / `9.007 J/step` / `779.8 MiB`**,
+  `0.0 B/param` optimizer state — `-18.1%` J/step and `-36.1%` VRAM vs `unified_v14`),
+  `t3-shift-recovery-diagnostic-v1` (**`5/5`**), `t4_imbalance_nash_stretch` (**`3/3`**),
+  `bytegan_stretch` (**`2/2`**), and `t3_causal_isolation_stretch` (**`2/2`**), alongside
+  **`8/10`** `fl_law*` (`28/34` `four-laws-adherence-v2`), **`13/16`** `r4-occam-ablation-v1`,
+  and **`16/17`** Tier-1 `discriminator_stability` (`32/35` cross-study T1–2). On the canonical
   [technique inventory](reports/forge/technique-inventory.md) and
   [RTX A6000 energy study](reports/forge/studies/rtx-a6000-v14-v15-axiom-v5-energy-benchmark.json),
-  the promoted **`axiom`** default (`DEFAULT_RECIPE = "axiom"`, matching `axiom-v5`,
-  `2,396`-LOC clean-slate core) reaches **`45 PASS / 2 FAIL / 12 not measured`** on the 59-task
-  fixed suite, **`102/115` counted view requirements** (`27/27` Tier 1, `75/78` Tier 2;
-  **Screening Tier 2** on the Rev-9 comparison projection), **`53/70` stretch assignments**,
-  and **`6/6` `dcgan_performance`** at **`32.84 ms/step` / `8.25 J/step`** solo idle RTX A6000
-  NVML (`34.39 ms/step` Forge, `0.0 B/param` optimizer state — **`16%` faster / `-27%` J/step**
-  vs `unified-v12` and **`26%` faster / `-34%` J/step** vs `unified-v15`, plus **`3,511.6 J`**
-  `grid100` J-to-first-PASS and **`556.4 J`** `ring16`). Explicit
-  **`get_recipe("unified_v15")`** leads broad receipt coverage at **`44/59`** fixed suite,
-  **`103/115`** counted view requirements (`27/27` Tier 1, `76/78` Tier 2), **`16/16`** Occam,
-  and **`74/79` (`93.7%`)** measured receipts at `44.35 ms/step` / `12.47 J/step` (`4,135.0 J`
-  `grid100`), ahead of `rhbi_optimized` (`rhbi-v12`, `83/115`), `empf` (`empf-v8`, `83/115`),
-  and `bispf_optimized` (`81/115`), while `get_recipe("minimal")` offers an `<900`-LOC
-  zero-Newton-Schulz fast core and `get_recipe("unified_v12")` retains the 0.12.0 default.
-  See the [Axiom family report](reports/forge/families/axiom.md),
-  [Unified family report](reports/forge/families/unified.md), and
-  [Axiom comparative study](reports/axiom/axiom-study.md). Forge's screening calibration remains
+  the `axiom` family row currently retains its pinned pre-remediation `axiom-v5` cohort
+  (`45 PASS / 2 FAIL / 12 not measured`, `102/115` counted view requirements, Screening Tier 2,
+  `32.84 ms/step` / `8.25 J/step`) until a clean-commit `develop` promotion run hydrates `axiom-v6`
+  for `family-current-v1.json`. Explicit **`get_recipe("unified_v15")`** leads broad archived
+  receipt coverage at **`44/59`** fixed suite, **`103/115`** counted view requirements (`27/27`
+  Tier 1, `76/78` Tier 2), **`16/16`** Occam, and **`74/79` (`93.7%`)** measured receipts at
+  `44.35 ms/step` / `12.47 J/step` (`4,135.0 J` `grid100`), ahead of `rhbi_optimized` (`rhbi-v12`,
+  `83/115`), `empf` (`empf-v8`, `83/115`), and `bispf_optimized` (`81/115`), while
+  `get_recipe("minimal")` offers a compact zero-Newton-Schulz fast core and
+  `get_recipe("unified_v12")` retains the 0.12.0 default. Source-bound scope corrections in
+  [`reports/forge/evidence-corrections-2026-11-08.json`](reports/forge/evidence-corrections-2026-11-08.json)
+  and [`reports/forge/evidence-corrections-2026-11-26.json`](reports/forge/evidence-corrections-2026-11-26.json)
+  mark archived `grid100_res16_scaled_tanh` (`preserve_latent_norm=True` identity lock; replaced
+  for new runs by clean `grid100_res16_scaled_tanh_v2`) and v1 DDGAN observations as
+  `archived_contract_diagnostic` without rewriting historical receipts.
+  See the [Axiom v6 study](reports/axiom/axiom-v6-study.md),
+  [Axiom family report](reports/forge/families/axiom.md), and
+  [Unified family report](reports/forge/families/unified.md). Forge's screening calibration remains
   provisional (`BLOCKED` under `criteria-v1.json`; see
   [r3-calibration-holdout](reports/forge/studies/r3-calibration-holdout.md)), Tier 2/3 full-tier
-  qualification is incomplete, and remaining `axiom-v5` non-passes (`66/78` all measured receipts,
-  `15/16` Occam via `zero_tanh_rail_escape`, drift adaptation tasks `ring_hold` / `ring_extension` /
-  `target_shift_recovery`, DDGAN chain tasks `model_ddgan_bimodal_chain` / `model_ae_ddgan_gaussian_chain`,
-  `grid100_res16_tanh`, `bytegan_bigan_dictionary`, and Law 1A–1B tasks deferred to `axiom-v6`)
-  stay visible.
+  qualification is incomplete, and remaining `axiom-v6` non-passes (`10/65`: `ring16_acquisition`,
+  `interp_saddle_barycentric`, `vector_unequal_mass`, 4 deep 16-layer grid architectures,
+  `fl_law1_aniso_unequal_modes`, `fl_law2_groupnorm_and_vit_sprites_v2`, and
+  `ae_ddgan_gaussian_chain_v2`) stay visible.
 - **Controlled prior comparison** ([matched prior ablation, 2026-10-25](reports/prior-ablation-2026-10-25/README.md)).
   Each arm changes only the prior policy. Architecture, data, budget, seed 0 and
   the initial table are the same. These are one-seed diagnostics with no
@@ -300,7 +319,7 @@ transport their parent's Adam history at half mass.
 
 ## Learn more
 
-- [Axiom 4-Law family](reports/axiom/axiom-study.md): opt-in `get_recipe("axiom")` comparative Forge study (`2,409`-LOC clean-slate core, `18/18` `t3-holdout`, `40/47` Tiers 1–2 `disc-stab` [`16/17` T1], `34.86 ms` / `805.8 MiB` / `7.307 J/step` solo idle `r256`, `2/2` ByteGAN `rms=0.00471`, `2/2` `t3_iso` `eig=0.5447`, `3/3` `t4-nash`, `5/5` `shift-diagnostic`, `5/7` `t4-arch`, `22/33` `four-laws-adherence-v1`, `9/9` Four-Laws controls), [design spec](reports/axiom/design-spec.md), and [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md)
+- [Axiom v6 clean-slate 4-Law study](reports/axiom/axiom-v6-study.md): official 11-study Forge evaluation of the current `0.14.0` default (`55/65` unique executed tasks PASS, `18/18` `t3-holdout`, `6/6` `dcgan_performance`, `8/10` `fl_law*`, `9/9` Four-Laws structural benchmark). Historical `axiom-v4` (`758b397a5`) comparative readouts stay archived in [axiom-study.md](reports/axiom/axiom-study.md), [design spec](reports/axiom/design-spec.md), and [Four-Laws benchmark](reports/axiom/four-laws-benchmark.md) (historical `9/9 PASS vs 0/9` table retracted; `scripts/axiom_four_laws_benchmark.py` repaired).
 - [Optimized BISPF settings and measured behavior](reports/forge/bispf-optimized/README.md)
 - [BISPF continuous vs. categorical input domains](docs/bispf-input-domains.md): explicit penalty domain declarations (`input_domain="continuous"` or `"categorical"`) for wide continuous vectors (`dim >= 170`) and categorical codebooks
 - [Historical KA2 formulation](docs/ka2.md), including several critics and conditional critics

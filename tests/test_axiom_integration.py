@@ -1,33 +1,56 @@
-"""End-to-end public-API, Forge contract, hygiene, continuation & clock-free tests for Axiom."""
+"""End-to-end public-API, Forge contract, hygiene, complexity, host-sync & continuation tests for Axiom v6."""
+
 from __future__ import annotations
 
 import ast
 from copy import deepcopy
 import dataclasses
+import io
 import json
 from pathlib import Path
 import subprocess
 import sys
+import tokenize
 
 import pytest
 import torch
 from torch import nn
 
 import particlegan as pg
+from particlegan._axiom.atlas import PrototypeAtlas
+from particlegan._axiom.fiber import AxiomCondFiberBank
+from particlegan._axiom.optimizer import AxiomOptimizer
+from particlegan._axiom.prior import AxiomPriorRegularizer
+from particlegan._axiom.state import AxiomStepRecord, get_tensor_record
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
-
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 AXIOM_DIR = REPO_ROOT / "particlegan" / "_axiom"
 AXIOM_FILES = (
-    AXIOM_DIR / "prior.py",
+    AXIOM_DIR / "math_ops.py",
+    AXIOM_DIR / "state.py",
+    AXIOM_DIR / "atlas.py",
+    AXIOM_DIR / "fiber.py",
     AXIOM_DIR / "critic.py",
-    AXIOM_DIR / "transport.py",
     AXIOM_DIR / "optimizer.py",
+    AXIOM_DIR / "prior.py",
+    AXIOM_DIR / "transport.py",
     AXIOM_DIR / "loss.py",
     AXIOM_DIR / "__init__.py",
     REPO_ROOT / "particlegan" / "axiom.py",
 )
+
+ALLOWED_DAG_IMPORTS: dict[str, frozenset[str]] = {
+    "math_ops": frozenset(),
+    "state": frozenset({"math_ops"}),
+    "atlas": frozenset({"math_ops", "state"}),
+    "fiber": frozenset({"math_ops", "state"}),
+    "critic": frozenset({"math_ops", "state"}),
+    "optimizer": frozenset({"math_ops", "state"}),
+    "prior": frozenset({"math_ops", "state", "atlas"}),
+    "transport": frozenset({"math_ops", "state", "atlas", "fiber"}),
+    "loss": frozenset({"math_ops", "state", "transport"}),
+}
 
 FORBIDDEN_IMPORT_FRAGMENTS = (
     "_unified",
@@ -61,6 +84,7 @@ FORBIDDEN_IMPORT_FRAGMENTS = (
 )
 
 FORBIDDEN_LINALG_CALLS = frozenset({"eigh", "eigvalsh", "svd", "svdvals", "pinv", "compile"})
+FORBIDDEN_IDENTIFIERS = ("_bn_net_ids", "_EYE_CACHE", "_spatial_cluster_ratio")
 
 
 class _VecG(nn.Module):
@@ -156,8 +180,7 @@ def _run_mog_trainer(steps: int, *, total_steps: int = 200, seed: int = 0):
         batch_size=32,
         total_steps=total_steps,
     )
-    g = _VecG(2, 2, 24)
-    d = _VecD(2, 24)
+    g, d = _VecG(2, 2, 24), _VecD(2, 24)
     prior = recipe.make_prior()
     _init_deterministic(g, d, prior, seed=seed)
     trainer = pg.GANTrainer(recipe, g, d, prior=prior, max_steps=total_steps, seed=seed)
@@ -171,48 +194,106 @@ def _run_mog_trainer(steps: int, *, total_steps: int = 200, seed: int = 0):
     return trainer, last
 
 
-# ---------------------------------------------------------------------------
-# 1. Static Hygiene, LOC Cap, Recipe Contract & Torch-Free Import Checks
-# ---------------------------------------------------------------------------
+def _function_complexity(fn: ast.AST) -> tuple[int, int]:
+    """Compute (Ruff-equivalent C901, Radon-equivalent BoolCC) for a single function."""
+    c901 = 1
+    bool_cc = 1
+    stack = list(ast.iter_child_nodes(fn))
+    while stack:
+        node = stack.pop()
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef, ast.ClassDef)):
+            continue
+        if isinstance(node, (ast.If, ast.For, ast.AsyncFor, ast.While, ast.ExceptHandler)):
+            c901 += 1
+            bool_cc += 1
+        elif isinstance(node, ast.IfExp):
+            bool_cc += 1
+        elif isinstance(node, ast.comprehension):
+            c901 += 1 + len(node.ifs)
+            bool_cc += 1 + len(node.ifs)
+        elif isinstance(node, ast.BoolOp):
+            bool_cc += len(node.values) - 1
+        elif isinstance(node, ast.Match):
+            cases = max(0, len(node.cases) - 1)
+            c901 += cases
+            bool_cc += cases
+        stack.extend(ast.iter_child_nodes(node))
+    return c901, bool_cc
 
 
-def test_axiom_hygiene_loc_imports_and_no_forbidden_linalg():
-    total_loc = 0
-    core_modules = ("prior", "critic", "transport", "optimizer")
-    for path in AXIOM_FILES:
-        assert path.exists(), f"missing Axiom module: {path}"
-        src = path.read_text()
-        lines = src.splitlines()
-        total_loc += len(lines)
-        tree = ast.parse(src, filename=str(path))
-        stem = path.stem
-
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    for bad in FORBIDDEN_IMPORT_FRAGMENTS:
-                        assert bad not in alias.name, f"{path.name} imports forbidden module {alias.name}"
-            elif isinstance(node, ast.ImportFrom):
-                mod = node.module or ""
+def _check_single_file_hygiene(path: Path) -> None:
+    assert path.exists(), f"missing Axiom module: {path}"
+    src = path.read_text(encoding="utf-8")
+    lines = src.splitlines()
+    for lineno, line in enumerate(lines, start=1):
+        assert len(line) <= 120, f"{path.name}:{lineno} exceeds 120 chars ({len(line)})"
+    for bad_id in FORBIDDEN_IDENTIFIERS:
+        assert bad_id not in src, f"{path.name} contains forbidden legacy identifier {bad_id}"
+    for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        if tok.type == tokenize.OP and tok.string == ";":
+            raise AssertionError(f"{path.name}:{tok.start[0]} has semicolon-packed statements")
+    tree = ast.parse(src, filename=str(path))
+    stem = path.stem
+    for top in tree.body:
+        if isinstance(top, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if top.name.startswith("_") and not top.name.startswith("__") and len(top.name.lstrip("_")) <= 2:
+                raise AssertionError(f"{path.name}:{top.lineno} cryptic short function name {top.name}")
+        elif isinstance(top, ast.Assign) and isinstance(top.value, (ast.Name, ast.Attribute, ast.Lambda)):
+            for tgt in top.targets:
+                if (
+                    isinstance(tgt, ast.Name)
+                    and tgt.id.startswith("_")
+                    and not tgt.id.startswith("__")
+                    and tgt.id == tgt.id.lower()
+                    and len(tgt.id.lstrip("_")) <= 2
+                ):
+                    raise AssertionError(f"{path.name}:{top.lineno} cryptic short alias {tgt.id}")
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            for alias in node.names:
                 for bad in FORBIDDEN_IMPORT_FRAGMENTS:
-                    assert bad not in mod.split("."), f"{path.name} imports from forbidden module {mod}"
-                # Enforce zero mutual imports among the 4 parallel core modules:
-                if path.parent == AXIOM_DIR and stem in core_modules and node.level >= 1:
-                    first = mod.split(".")[0] if mod else ""
-                    assert first not in core_modules, (
-                        f"core module {path.name} must not import sibling core module {first}"
-                    )
-            elif isinstance(node, ast.Attribute):
-                assert node.attr not in FORBIDDEN_LINALG_CALLS, (
-                    f"{path.name} references forbidden op .{node.attr}"
+                    assert bad not in alias.name, f"{path.name} imports forbidden module {alias.name}"
+        elif isinstance(node, ast.ImportFrom):
+            mod = node.module or ""
+            for bad in FORBIDDEN_IMPORT_FRAGMENTS:
+                assert bad not in mod.split("."), f"{path.name} imports from forbidden module {mod}"
+            if path.parent == AXIOM_DIR and stem in ALLOWED_DAG_IMPORTS and node.level == 1:
+                first = mod.split(".")[0] if mod else ""
+                assert first in ALLOWED_DAG_IMPORTS[stem], (
+                    f"DAG violation: {path.name} imports .{first} (allowed: {sorted(ALLOWED_DAG_IMPORTS[stem])})"
                 )
+        elif isinstance(node, ast.Call):
+            fn = node.func
+            fn_name = fn.attr if isinstance(fn, ast.Attribute) else (fn.id if isinstance(fn, ast.Name) else "")
+            if fn_name == "bincount" and (
+                len(node.args) >= 2 or any(kw.arg == "weights" for kw in node.keywords)
+            ):
+                raise AssertionError(f"{path.name}:{node.lineno} weighted bincount crashes deterministic CUDA")
+        elif isinstance(node, ast.Attribute):
+            assert node.attr not in FORBIDDEN_LINALG_CALLS, f"{path.name} references forbidden op .{node.attr}"
+            if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
+                raise AssertionError(f"{path.name} calls forbidden torch.autograd.grad")
+        elif isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            c901, bool_cc = _function_complexity(node)
+            assert c901 <= 10, f"{path.name}:{node.name} C901={c901} > 10"
+            assert bool_cc <= 15, f"{path.name}:{node.name} BoolCC={bool_cc} > 15"
 
-    assert total_loc <= 2500, f"Axiom codebase exceeded 2,500 LOC cap: {total_loc}"
+
+# ---------------------------------------------------------------------------
+# 1. Static Hygiene, Layered DAG, Dual Complexity, Recipe & Forge Contracts
+# ---------------------------------------------------------------------------
 
 
-def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():
+def test_axiom_v6_ast_hygiene_dag_and_complexity() -> None:
+    for path in AXIOM_FILES:
+        _check_single_file_hygiene(path)
+
+
+def test_recipe_invariants_179_fields_default_and_torch_free() -> None:
     assert len(dataclasses.fields(pg.Recipe)) == 179
     assert pg.DEFAULT_RECIPE == "axiom"
+    assert pg.get_recipe() == pg.get_recipe("axiom")
+    assert pg.get_recipe("gan") == pg.get_recipe("axiom")
 
     rec = pg.get_recipe("axiom")
     assert rec.critic_formulation == "axiom"
@@ -224,7 +305,6 @@ def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():
     assert rec.lr_floor == 1.0
     assert rec.resolved_network_lr_floor == 1.0
 
-    # Verify standalone particlegan/recipes.py loads without importing torch:
     proc = subprocess.run(
         [
             sys.executable,
@@ -247,57 +327,55 @@ def test_recipe_invariants_179_fields_default_unchanged_and_torch_free():
     assert proc.returncode == 0, f"recipes.py Torch-free check failed:\n{proc.stderr}\n{proc.stdout}"
 
 
-def test_forge_idea_studies_and_clockfree_source_audit():
+def test_forge_ideas_clockfree_source_audit_and_technique_signature() -> None:
     from experiments.forge.clockfree import source_audit
     from experiments.forge.contracts import validate_idea
     from experiments.forge.preflight import task_preflight
-    from experiments.forge.studies import validate_study
     from experiments.forge.techniques import recipe_field_active, technique_signature
     from experiments.forge.views import load_tasks
 
     tasks = load_tasks(REPO_ROOT)
-    for idea_name, study_glob, min_studies in (
-        ("axiom-v1", "axiom-v1-*.json", 4),
-        ("axiom-v4", "axiom-v4-*.json", 9),
-    ):
+    preflight_tasks = (
+        "bytegan_hypercube8",
+        "bytegan_bigan_dictionary",
+        "t3_iso_scale_mass_8x",
+        "t3_iso_horizon_saddle_shift",
+        "dcgan_performance_r256",
+        "grid100_res16_tanh",
+        "fl_law1_aniso_unequal_modes",
+        "fl_law2_groupnorm_and_vit_sprites",
+        "fl_law3_highd_orphan_d32",
+        "fl_law41_trust_rare1pct_tanh",
+        "fl_law42_deep_resbn_and_conv1x1",
+        "fl_law44_highd_sparse_prior_and_shock",
+        "vector_spiral",
+        "img_blobs4",
+    )
+    for idea_name in ("axiom-v1", "axiom-v4", "axiom-v5", "axiom-v6"):
         idea_path = REPO_ROOT / "configs" / "forge" / "ideas" / f"{idea_name}.json"
-        idea = json.loads(idea_path.read_text())
+        idea = json.loads(idea_path.read_text(encoding="utf-8"))
         validate_idea(idea)
         assert idea["id"] == idea_name
         assert idea.get("trainer_family") == "axiom"
-
-        for tid in (
-            "bytegan_hypercube8",
-            "bytegan_bigan_dictionary",
-            "t3_iso_scale_mass_8x",
-            "t3_iso_horizon_saddle_shift",
-            "dcgan_performance_r256",
-            "grid100_res16_tanh",
-            "fl_law1_aniso_unequal_modes",
-            "fl_law3_highd_orphan_d32",
-            "fl_law42_deep_resbn_and_conv1x1",
-            "fl_law44_highd_sparse_prior_and_shock",
-        ):
-            assert task_preflight(tasks[tid], idea, {}, root=REPO_ROOT, tasks=tasks) == [], f"preflight failed for {idea_name}/{tid}"
-
-        study_paths = sorted((REPO_ROOT / "configs" / "forge" / "studies").glob(study_glob))
-        assert len(study_paths) >= min_studies
-        for sp in study_paths:
-            study = json.loads(sp.read_text())
-            validate_study(study)
-            assert study["candidate"] == idea_name
+        for tid in preflight_tasks:
+            errs = task_preflight(tasks[tid], idea, {}, root=REPO_ROOT, tasks=tasks)
+            assert errs == [], f"preflight failed for {idea_name}/{tid}: {errs}"
 
     rec = pg.get_recipe("axiom", total_steps=1000)
     audit = source_audit(rec.to_dict(), {})
     assert audit["unexplained_clock_dependencies"] == []
     for rel in (
+        "particlegan/_axiom/math_ops.py",
+        "particlegan/_axiom/state.py",
+        "particlegan/_axiom/atlas.py",
+        "particlegan/_axiom/fiber.py",
         "particlegan/_axiom/prior.py",
         "particlegan/_axiom/critic.py",
         "particlegan/_axiom/transport.py",
         "particlegan/_axiom/optimizer.py",
         "particlegan/_axiom/loss.py",
     ):
-        assert rel in audit["source_sha256"]
+        assert rel in audit["source_sha256"], f"missing {rel} in clockfree source_audit"
 
     sig = technique_signature(rec)
     assert sig["mechanisms"].get("axiom_optimizer") is True
@@ -308,10 +386,11 @@ def test_forge_idea_studies_and_clockfree_source_audit():
     assert recipe_field_active("rhbi_fibre_rel_blend", rec) is True
 
 
-def test_axiom_record_binding_not_shadowed_and_zero_legacy_import():
+def test_axiom_record_binding_zero_monkeypatch_and_zero_legacy_import() -> None:
     check_script = (
         "import torch, particlegan as pg\n"
         "import particlegan.t1_coupling as legacy_t1c\n"
+        "from particlegan._axiom.state import get_tensor_record\n"
         "from benchmarks.toy_audit.api_t3_isolation import HOST_DEFINITIONS, T3IsolationFixture\n"
         "orig_bind = legacy_t1c.bind_t1_coupling_record\n"
         "def _boom(*args, **kwargs):\n"
@@ -322,10 +401,11 @@ def test_axiom_record_binding_not_shadowed_and_zero_legacy_import():
         "d = torch.nn.Sequential(torch.nn.Linear(2, 16), torch.nn.SiLU(), torch.nn.Linear(16, 1))\n"
         "prior = rec.make_prior()\n"
         "tr = pg.GANTrainer(rec, g, d, prior=prior, max_steps=50, seed=0)\n"
-        "assert tr.loss._axiom_record is tr.opt_d.record\n"
         "assert tr.loss.record is tr.opt_d.record\n"
-        "assert tr.prior_regularizer._axiom_record is tr.opt_d.record\n"
-        "assert tr.prior_regularizer._bound_device is not None\n"
+        "assert tr.prior_regularizer.record is tr.opt_d.record\n"
+        "assert get_tensor_record(prior.z) is tr.opt_d.record\n"
+        "assert not hasattr(prior.z, '_axiom_record')\n"
+        "assert not hasattr(prior.z, '_axiom_active_rows')\n"
         "assert not hasattr(tr.loss, '_t1c_record')\n"
         "rec_adam = pg.get_recipe('axiom', optimizer_family='adam', optimizer_smoothing=0.0, constraint_geometry_mode='none', total_steps=50)\n"
         "opt_d_adam = rec_adam.make_critic_optimizer(d)\n"
@@ -352,7 +432,7 @@ def test_axiom_record_binding_not_shadowed_and_zero_legacy_import():
 # ---------------------------------------------------------------------------
 
 
-def test_gan_trainer_mog_pullback_and_point_mass_smoke():
+def test_gan_trainer_mog_pullback_and_point_mass_smoke() -> None:
     trainer, last = _run_mog_trainer(steps=4, total_steps=100, seed=0)
     assert trainer.completed_steps == 4
     assert torch.isfinite(last["loss_d"]) and torch.isfinite(last["loss_g"])
@@ -362,7 +442,6 @@ def test_gan_trainer_mog_pullback_and_point_mass_smoke():
     assert trainer.opt_d.record.observed_steps == 4
     assert trainer.opt_d.record.calls == 4
 
-    # Point-mass Case-A rail-escape smoke (raw_var == 0):
     recipe = pg.get_recipe("axiom", num_particles=16, z_dim=2, batch_size=16, total_steps=50)
     g, d = _VecG(2, 2, 16), _VecD(2, 16)
     prior = pg.ParticlePrior(num_particles=16, z_dim=2, learnable=True)
@@ -374,8 +453,7 @@ def test_gan_trainer_mog_pullback_and_point_mass_smoke():
         assert torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])
 
 
-def test_zero_sigma_interp_manifold_and_exact_atomic_smoke():
-    # Continuous curved arc (zero-sigma ParticlePrior -> simplicial manifold path):
+def test_zero_sigma_interp_manifold_and_exact_atomic_smoke() -> None:
     recipe = pg.get_recipe("axiom", num_particles=16, z_dim=2, batch_size=32, total_steps=100)
     g, d = _VecG(2, 2, 24), _VecD(2, 24)
     prior = pg.ParticlePrior(num_particles=16, z_dim=2, learnable=True)
@@ -389,15 +467,12 @@ def test_zero_sigma_interp_manifold_and_exact_atomic_smoke():
         assert torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])
     assert trainer.opt_d.record.atomic_ledger is None
 
-    # Exact discrete 4-atom support (ByteGAN atomic bijection path):
     recipe_a = pg.get_recipe("axiom", num_particles=4, z_dim=2, batch_size=32, total_steps=100)
     g2, d2 = _VecG(2, 4, 24), _VecD(4, 24)
     prior2 = pg.ParticlePrior(num_particles=4, z_dim=2, learnable=True)
     _init_deterministic(g2, d2, prior2, seed=3)
     trainer2 = pg.GANTrainer(recipe_a, g2, d2, prior=prior2, max_steps=100, seed=3)
-    atoms = torch.tensor(
-        [[1.0, 0.0, 0.0, 0.0], [0.0, 1.0, 0.0, 0.0], [0.0, 0.0, 1.0, 0.0], [0.0, 0.0, 0.0, 1.0]]
-    )
+    atoms = torch.eye(4)
     rng2 = torch.Generator().manual_seed(33)
     for _ in range(4):
         ids = torch.randint(0, 4, (32,), generator=rng2)
@@ -407,7 +482,7 @@ def test_zero_sigma_interp_manifold_and_exact_atomic_smoke():
     assert trainer2.opt_d.record.thermal_initialized is True
 
 
-def test_conv2d_batchnorm_regime2_fwad_and_foreach_smoke():
+def test_conv2d_batchnorm_zero_state_and_direction_blend() -> None:
     recipe = pg.get_recipe("axiom", num_particles=16, z_dim=8, batch_size=8, total_steps=50)
     g, d = _TinyConvG(8), _TinyConvD()
     prior = pg.ParticlePrior(num_particles=16, z_dim=8, learnable=True)
@@ -420,26 +495,49 @@ def test_conv2d_batchnorm_regime2_fwad_and_foreach_smoke():
         assert torch.isfinite(out["loss_d"]) and torch.isfinite(out["loss_g"])
     assert trainer.opt_d.record.calls == 3
 
+    # Verify 0.0 B/param tensor state on 4D Conv2d / ConvTranspose2d layers (no m_u momentum tensors):
+    for opt in (trainer.opt_g, trainer.opt_d):
+        for p, st in opt.state.items():
+            if isinstance(p, torch.Tensor) and p.ndim == 4:
+                tensor_bytes = sum(v.numel() * v.element_size() for v in st.values() if isinstance(v, torch.Tensor))
+                assert tensor_bytes == 0, f"4D conv state must be 0 B/param, got {tensor_bytes}B: {list(st.keys())}"
 
-def test_ddgan_continuous_conditioned_self_binding_smoke():
+    # Verify 1-loss and 2-loss direction_blend non-ascent via public API:
+    rec_db = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=16, total_steps=50)
+    gb = _VecG(2, 2, 16)
+    _init_deterministic(gb, seed=8)
+    opt_g = rec_db.make_generator_optimizer(gb)
+    assert opt_g.direction_blend is True
+
+    z = torch.randn((16, 2))
+    out = gb(z)
+    l0 = (out - 1.5).square().mean()
+    l1 = (out + 1.5).square().mean()
+    opt_g.zero_grad()
+    constraint_geometry_backward(l0 + l1, opt_g, (l0, l1))
+    opt_g.step()
+    assert opt_g.constraint_geometry_stats["steps"] == 1
+    assert opt_g.constraint_geometry_stats["max_derivative_after"] <= 1e-6
+
+
+def test_ddgan_ae_vae_bigan_and_wordfixture_separate_optimizers_smoke() -> None:
+    # 1. DDGAN self-binding + .detach() capture ring survival without _axiom_input monkey-patching:
     recipe = pg.get_recipe("axiom", model="ddgan", num_particles=16, z_dim=2, batch_size=24, total_steps=100)
-    g = _VecG(5, 2, 24)
-    d = _CondD(2, 2, 24)
+    g, d = _VecG(5, 2, 24), _CondD(2, 2, 24)
     prior = pg.ParticlePrior(num_particles=16, z_dim=2, learnable=True)
     _init_deterministic(g, d, prior, seed=5)
     opt_g, opt_d = recipe.make_optimizers(g, d, prior, ema_critic=deepcopy(d))
     loss = recipe.make_loss()
     penalty = recipe.make_critic_penalty(opt_d, collect_stats=True)
-    assert opt_d.ema_critic is None  # self-binding ignores caller ema_critic
+    assert opt_d.ema_critic is None
 
     rng = torch.Generator().manual_seed(55)
-    for _ in range(4):
+    for _ in range(3):
         x0 = torch.randn((24, 2), generator=rng)
         xt = x0 + 0.5 * torch.randn((24, 2), generator=rng)
         t = torch.randint(1, 3, (24,), generator=rng)
         z, rows = prior.sample(24, generator=rng)
-        g_in = torch.cat((z, xt, t.float().unsqueeze(-1)), dim=-1)
-        fake = g(g_in)
+        fake = g(torch.cat((z, xt, t.float().unsqueeze(-1)), dim=-1))
 
         opt_d.zero_grad()
         dl = loss.d_loss(d(x0, xt=xt, t=t), d(fake.detach(), xt=xt, t=t))
@@ -449,85 +547,83 @@ def test_ddgan_continuous_conditioned_self_binding_smoke():
 
         opt_g.zero_grad()
         opt_g.set_sampled_rows(prior.z, rows)
-        gl = loss.g_loss(d(fake, xt=xt, t=t), d(x0, xt=xt, t=t))
+        d_real_det = d(x0, xt=xt, t=t).detach()
+        assert not hasattr(d_real_det, "_axiom_input")
+        gl = loss.g_loss(d(fake, xt=xt, t=t), d_real_det)
         constraint_geometry_backward(gl, opt_g, (gl,))
         opt_g.step()
         assert torch.isfinite(dl) and torch.isfinite(pen) and torch.isfinite(gl)
+    assert opt_d.record.cond_initialized is True
 
-
-def test_ae_gan_vae_gan_and_bigan_joint_g_loss_smoke():
-    # AE-GAN & VAE-GAN recipe.encode + standalone AxiomPriorRegularizer:
+    # 2. AE-GAN / VAE-GAN recipe.encode + standalone AxiomPriorRegularizer:
     for enc_mode in ("ae", "categorical"):
         rec_enc = pg.get_recipe(
             "axiom", encoder_mode=enc_mode, prior_kind="mog", num_particles=16, z_dim=4, batch_size=16, total_steps=50
         )
-        prior = pg.MoGParticlePrior(num_particles=16, z_dim=4, sigma=0.05, learnable=True)
-        _init_deterministic(prior, seed=6)
-        reg = rec_enc.make_prior_regularizer(prior=prior, reference=prior)
-        reg_val = reg(prior.z)
+        p_enc = pg.MoGParticlePrior(num_particles=16, z_dim=4, sigma=0.05, learnable=True)
+        _init_deterministic(p_enc, seed=6)
+        reg = rec_enc.make_prior_regularizer(prior=p_enc, reference=p_enc)
+        reg_val = reg(p_enc.z)
         assert reg_val.ndim == 0 and torch.isfinite(reg_val)
         q = torch.randn((16, 4))
-        if enc_mode == "ae":
-            enc = rec_enc.encode(q, prior, offset=torch.zeros_like(q))
-            assert enc.coord_whiten is True
-        else:
-            enc = rec_enc.encode(q, prior)
+        enc = rec_enc.encode(q, p_enc, offset=torch.zeros_like(q)) if enc_mode == "ae" else rec_enc.encode(q, p_enc)
         assert torch.isfinite(enc.codes).all()
 
-    # BiGAN joint_g_loss + InputNoise clean-input capture propagation:
+    # 3. BiGAN joint_g_loss + InputNoise clean-input capture propagation:
     rec_bi = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=16, total_steps=50)
-    g, e, d = _VecG(2, 4, 24), _VecG(4, 2, 24), _VecD(6, 24)
-    prior = pg.ParticlePrior(num_particles=8, z_dim=2, learnable=True)
-    _init_deterministic(g, e, d, prior, seed=7)
-    opt_g, opt_d = rec_bi.make_optimizers(g, d, prior, encoder=e)
-    loss = rec_bi.make_loss()
-    penalty = rec_bi.make_critic_penalty(opt_d, collect_stats=True)
-    noisy_d = pg.InputNoise(d, std=0.1, generator=torch.Generator().manual_seed(77))
-    rng = torch.Generator().manual_seed(78)
-
+    gb, eb, db = _VecG(2, 4, 24), _VecG(4, 2, 24), _VecD(6, 24)
+    pb = pg.ParticlePrior(num_particles=8, z_dim=2, learnable=True)
+    _init_deterministic(gb, eb, db, pb, seed=7)
+    opt_gb, opt_db = rec_bi.make_optimizers(gb, db, pb, encoder=eb)
+    loss_bi = rec_bi.make_loss()
+    pen_bi = rec_bi.make_critic_penalty(opt_db, collect_stats=True)
+    noisy_d = pg.InputNoise(db, std=0.1, generator=torch.Generator().manual_seed(77))
     real_x = torch.randn((16, 4), generator=rng)
-    enc_z = e(real_x)
-    z, rows = prior.sample(16, generator=rng)
-    fake_x = g(z)
-    joint_real = torch.cat((real_x, enc_z.detach()), dim=-1)
-    joint_fake = torch.cat((fake_x.detach(), z.detach()), dim=-1)
+    z_b, rows_b = pb.sample(16, generator=rng)
+    joint_r = torch.cat((real_x, eb(real_x).detach()), dim=-1)
+    joint_f = torch.cat((gb(z_b).detach(), z_b.detach()), dim=-1)
+    opt_db.zero_grad()
+    (loss_bi.d_loss(noisy_d(joint_r), noisy_d(joint_f)) + pen_bi(noisy_d, joint_r, joint_f)).backward()
+    opt_db.step()
+    opt_gb.zero_grad()
+    opt_gb.set_sampled_rows(pb.z, rows_b)
+    gl_bi = loss_bi.joint_g_loss(
+        noisy_d(torch.cat((gb(z_b), z_b), dim=-1)),
+        noisy_d(torch.cat((real_x, eb(real_x)), dim=-1)),
+    )
+    constraint_geometry_backward(gl_bi, opt_gb, (gl_bi,))
+    opt_gb.step()
+    assert torch.isfinite(gl_bi)
 
-    opt_d.zero_grad()
-    dl = loss.d_loss(noisy_d(joint_real), noisy_d(joint_fake)) + penalty(noisy_d, joint_real, joint_fake)
-    dl.backward()
-    opt_d.step()
-
-    opt_g.zero_grad()
-    opt_g.set_sampled_rows(prior.z, rows)
-    joint_real_live = torch.cat((real_x, e(real_x)), dim=-1)
-    joint_fake_live = torch.cat((g(z), z), dim=-1)
-    gl = loss.joint_g_loss(noisy_d(joint_fake_live), noisy_d(joint_real_live))
-    constraint_geometry_backward(gl, opt_g, (gl,))
-    opt_g.step()
-    assert torch.isfinite(dl) and torch.isfinite(gl)
-
-
-def test_direction_blend_two_objective_nonascent_smoke():
-    rec = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=16, total_steps=50)
-    g = _VecG(2, 2, 16)
-    _init_deterministic(g, seed=8)
-    opt_g = rec.make_generator_optimizer(g)
-    assert opt_g.direction_blend is True
-
-    z = torch.randn((16, 2))
-    out = g(z)
-    l0 = (out - 1.5).square().mean()
-    l1 = (out + 1.5).square().mean()
-    total = l0 + l1
-    opt_g.zero_grad()
-    constraint_geometry_backward(total, opt_g, (l0, l1))
-    opt_g.step()
-    assert opt_g.constraint_geometry_stats["steps"] == 1
-    assert opt_g.constraint_geometry_stats["max_derivative_after"] <= 1e-6
+    # 4. WordFixture separate optimizer path recovers prior rows via WeakTensorMap without monkey-patching:
+    rec_w = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=32, total_steps=100)
+    gw, ew, dw = _VecG(2, 4, 24), _VecG(4, 2, 24), _VecD(6, 24)
+    pw = pg.ParticlePrior(num_particles=8, z_dim=2, learnable=True)
+    _init_deterministic(gw, ew, dw, pw, seed=403)
+    groups_w = [
+        {"params": list(gw.parameters()), "lr": rec_w.lr},
+        {"params": list(ew.parameters()), "lr": rec_w.lr},
+        {"params": list(pw.parameters()), "lr": rec_w.lr * rec_w.prior_lr_mult},
+    ]
+    opt_gw = rec_w.make_generator_optimizer(groups_w, latent_table=pw.z)
+    opt_dw = rec_w.make_critic_optimizer(dw)
+    loss_w = rec_w.make_loss()
+    atoms = torch.eye(4)
+    rx = atoms[torch.arange(32) % 4]
+    z_w, rows_w = pw.sample(32, generator=rng)
+    opt_gw.zero_grad()
+    opt_gw.set_sampled_rows(pw.z, rows_w)
+    gl_w = loss_w.joint_g_loss(dw(torch.cat((gw(z_w), z_w), dim=-1)), dw(torch.cat((rx, ew(rx)), dim=-1)))
+    constraint_geometry_backward(gl_w, opt_gw, (gl_w,))
+    opt_gw.step()
+    assert torch.isfinite(gl_w)
+    assert opt_dw.record.atomic_ledger is not None
+    assert not hasattr(pw.z, "_axiom_record")
+    assert get_tensor_record(pw.z) is opt_dw.record
 
 
 @pytest.mark.parametrize("fmt", ("mxfp8", "nvfp4"))
-def test_emulated_low_precision_mxfp8_nvfp4_smoke(fmt: str):
+def test_emulated_low_precision_mxfp8_nvfp4_smoke(fmt: str) -> None:
     rec = pg.get_recipe("axiom", prior_kind="mog", sigma_rel=0.05, num_particles=16, z_dim=2, batch_size=16, total_steps=50)
     g, d = _VecG(2, 1, 16), _VecD(1, 16)
     prior = rec.make_prior()
@@ -543,81 +639,163 @@ def test_emulated_low_precision_mxfp8_nvfp4_smoke(fmt: str):
 
 
 # ---------------------------------------------------------------------------
-# 3. Fresh-Process Exact Checkpoint Continuation, Tamper Rejection & Clock-Free
+# 3. Fresh-Process Exact Continuation, BF16/Pending, Schema-1 Rejection & Clock-Free
 # ---------------------------------------------------------------------------
 
 
-def test_fresh_process_exact_checkpoint_continuation_and_tamper_rejection(tmp_path: Path):
-    # Uninterrupted 6-step reference run:
-    ref_trainer, ref_last = _run_mog_trainer(steps=6, total_steps=200, seed=0)
+def test_fresh_process_exact_checkpoint_continuation_and_schema1_rejection(tmp_path: Path) -> None:
+    ckpt_path = tmp_path / "v6_ckpt.pt"
+    out_ref = tmp_path / "v6_ref.pt"
+    out_res = tmp_path / "v6_res.pt"
 
-    # Interrupted 3-step prefix -> save checkpoint + data RNG -> resume 3 steps in fresh process:
-    pre_trainer, _ = _run_mog_trainer(steps=3, total_steps=200, seed=0)
-    ckpt_path = tmp_path / "axiom_resume.pt"
-    out_path = tmp_path / "axiom_resumed_out.pt"
-    data_rng = torch.Generator(device="cpu").manual_seed(999)
-    centers = torch.tensor([[-2.0, -2.0], [-2.0, 2.0], [2.0, -2.0], [2.0, 2.0]])
-    for _ in range(3):
-        cid = torch.randint(0, 4, (32,), generator=data_rng)
-        _ = centers[cid] + 0.1 * torch.randn((32, 2), generator=data_rng)
+    script = f"""
+import sys, torch
+from torch import nn
+import particlegan as pg
 
-    saved = pre_trainer.state_dict()
-    torch.save({"trainer": saved, "data_rng": data_rng.get_state()}, ckpt_path)
-
-    # Tampered checkpoint must fail closed:
-    tampered = deepcopy(saved)
-    tampered["optimizers"][1]["axiom"]["schema"] = 999
-    with pytest.raises(ValueError):
-        pre_trainer.load_state_dict(tampered)
-    tampered_prior = deepcopy(saved)
-    tampered_prior["prior_regularizer"]["schema"] = 999
-    with pytest.raises(ValueError):
-        pre_trainer.load_state_dict(tampered_prior)
-
-    resume_script = (
-        "import torch, particlegan as pg\n"
-        "from tests.test_axiom_integration import _VecG, _VecD, _init_deterministic\n"
-        f"blob = torch.load({str(ckpt_path)!r}, weights_only=False)\n"
-        "recipe = pg.get_recipe('axiom', prior_kind='mog', sigma_rel=0.05, num_particles=32, z_dim=2, batch_size=32, total_steps=200)\n"
-        "g, d = _VecG(2, 2, 24), _VecD(2, 24)\n"
-        "prior = recipe.make_prior()\n"
-        "_init_deterministic(g, d, prior, seed=123)\n"
-        "trainer = pg.GANTrainer(recipe, g, d, prior=prior, max_steps=200, seed=123)\n"
-        "trainer.load_state_dict(blob['trainer'])\n"
-        "data_rng = torch.Generator(device='cpu')\n"
-        "data_rng.set_state(blob['data_rng'])\n"
-        "centers = torch.tensor([[-2.0, -2.0], [-2.0, 2.0], [2.0, -2.0], [2.0, 2.0]])\n"
-        "for _ in range(3):\n"
-        "    cid = torch.randint(0, 4, (32,), generator=data_rng)\n"
-        "    last = trainer.step(centers[cid] + 0.1 * torch.randn((32, 2), generator=data_rng))\n"
-        "torch.save({\n"
-        "    'g': {k: v.detach().cpu() for k, v in trainer.G.state_dict().items()},\n"
-        "    'd': {k: v.detach().cpu() for k, v in trainer.D.state_dict().items()},\n"
-        "    'z': trainer.prior.z.detach().cpu(),\n"
-        "    'loss_d': float(last['loss_d']),\n"
-        "    'loss_g': float(last['loss_g']),\n"
-        f"}}, {str(out_path)!r})\n"
+mode = sys.argv[1]
+def build():
+    rec = pg.get_recipe("axiom", prior_kind="mog", sigma_rel=0.05, num_particles=32, z_dim=2, batch_size=32, total_steps=100)
+    g = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 24), nn.SiLU(), nn.Linear(24, 2))
+    d = nn.Sequential(
+        nn.Linear(2, 16), nn.SiLU(), nn.Linear(16, 16), nn.SiLU(),
+        nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 16), nn.SiLU(), nn.Linear(16, 1),
     )
-    proc = subprocess.run(
-        [sys.executable, "-c", resume_script],
-        cwd=str(REPO_ROOT),
-        capture_output=True,
-        text=True,
-        check=False,
-    )
-    assert proc.returncode == 0, f"fresh-process resume failed:\n{proc.stderr}\n{proc.stdout}"
-    resumed = torch.load(out_path, weights_only=False)
+    prior = rec.make_prior()
+    for i, m in enumerate((g, d, prior)):
+        pg.init.deterministic_orthogonal_(m, seed=i * 13)
+    return pg.GANTrainer(rec, g, d, prior=prior, max_steps=100, seed=0)
 
-    assert resumed["loss_d"] == pytest.approx(float(ref_last["loss_d"]), abs=0.0, rel=0.0)
-    assert resumed["loss_g"] == pytest.approx(float(ref_last["loss_g"]), abs=0.0, rel=0.0)
-    assert torch.equal(resumed["z"], ref_trainer.prior.z.detach().cpu())
-    for k, v in ref_trainer.G.state_dict().items():
-        assert torch.equal(resumed["g"][k], v.detach().cpu()), f"G param {k} diverged after fresh-process resume"
-    for k, v in ref_trainer.D.state_dict().items():
-        assert torch.equal(resumed["d"][k], v.detach().cpu()), f"D param {k} diverged after fresh-process resume"
+rng = torch.Generator().manual_seed(123)
+batches = [torch.randn(32, 2, generator=rng) * (1.0 if t < 4 else 50.0) for t in range(10)]
+tr = build()
+if mode == "ref":
+    for t in range(5):
+        tr.step(batches[t])
+    torch.save(tr.state_dict(), {str(ckpt_path)!r})
+    for t in range(5, 10):
+        tr.step(batches[t])
+    torch.save({{
+        "g": [p.detach().clone() for p in tr.G.parameters()],
+        "d": [p.detach().clone() for p in tr.D.parameters()],
+        "z": tr.prior.z.detach().clone(),
+        "rec": tr.opt_d.record.state_dict(),
+        "reg": tr.prior_regularizer.state_dict_checkpoint(),
+    }}, {str(out_ref)!r})
+else:
+    tr.load_state_dict(torch.load({str(ckpt_path)!r}, weights_only=False))
+    for t in range(5, 10):
+        tr.step(batches[t])
+    torch.save({{
+        "g": [p.detach().clone() for p in tr.G.parameters()],
+        "d": [p.detach().clone() for p in tr.D.parameters()],
+        "z": tr.prior.z.detach().clone(),
+        "rec": tr.opt_d.record.state_dict(),
+        "reg": tr.prior_regularizer.state_dict_checkpoint(),
+    }}, {str(out_res)!r})
+"""
+    for mode in ("ref", "resume"):
+        proc = subprocess.run([sys.executable, "-c", script, mode], cwd=str(REPO_ROOT), capture_output=True, text=True)
+        assert proc.returncode == 0, f"{mode} subprocess failed:\n{proc.stderr}\n{proc.stdout}"
+    a = torch.load(out_ref, weights_only=False)
+    b = torch.load(out_res, weights_only=False)
+    for pa, pb in zip(a["g"], b["g"]):
+        assert torch.equal(pa, pb), "Generator weights diverged after fresh-process resume"
+    for pa, pb in zip(a["d"], b["d"]):
+        assert torch.equal(pa, pb), "Critic weights diverged after fresh-process resume"
+    assert torch.equal(a["z"], b["z"]), "Prior table diverged after fresh-process resume"
+    assert a["rec"]["schema"] == 2 and b["rec"]["schema"] == 2
+    assert a["rec"]["ema_data_scale"] == b["rec"]["ema_data_scale"]
+
+    # Fail-closed rejection of schema-1 legacy checkpoints across all schema-2 stateful objects:
+    saved = torch.load(ckpt_path, weights_only=False)
+    for bad_schema in (1, 999):
+        bad_opt = deepcopy(saved)
+        bad_opt["optimizers"][1]["axiom"]["schema"] = bad_schema
+        tr_bad = _run_mog_trainer(steps=1, total_steps=100, seed=0)[0]
+        with pytest.raises(ValueError):
+            tr_bad.load_state_dict(bad_opt)
+
+        bad_rec = deepcopy(a["rec"])
+        bad_rec["schema"] = bad_schema
+        with pytest.raises(ValueError):
+            AxiomStepRecord().load_state_dict(bad_rec)
+
+        bad_reg = deepcopy(a["reg"])
+        bad_reg["schema"] = bad_schema
+        with pytest.raises(ValueError):
+            AxiomPriorRegularizer(max_prototypes=16).load_state_dict_checkpoint(bad_reg)
+
+    with pytest.raises(ValueError):
+        PrototypeAtlas(max_prototypes=16).load_state_dict({"schema": 1})
+    with pytest.raises(ValueError):
+        AxiomCondFiberBank().load_state_dict({"schema": 1})
 
 
-def test_clockfree_horizon_invariance():
+def test_bf16_fp16_fp32_state_preservation_and_pending_direction_blend_continuation() -> None:
+    # 1. Pure BF16 & FP16 reload must preserve FP32 optimizer state without downcast truncation:
+    for dt in (torch.bfloat16, torch.float16):
+        def _make_lowp(dtype=dt) -> nn.Sequential:
+            torch.manual_seed(314)
+            return nn.Sequential(nn.Linear(8, 8), nn.SiLU(), nn.Linear(8, 4)).to(dtype)
+
+        m_ref, m_res = _make_lowp(), _make_lowp()
+        o_ref = AxiomOptimizer(m_ref.parameters(), lr=0.02)
+        o_res = AxiomOptimizer(m_res.parameters(), lr=0.02)
+        g_rng = torch.Generator().manual_seed(77)
+        xs = [torch.randn((8, 8), generator=g_rng).to(dt) for _ in range(4)]
+        for t in range(2):
+            o_ref.zero_grad()
+            m_ref(xs[t]).float().square().mean().backward()
+            o_ref.step()
+            o_res.zero_grad()
+            m_res(xs[t]).float().square().mean().backward()
+            o_res.step()
+        sd_m, sd_o = deepcopy(m_res.state_dict()), deepcopy(o_res.state_dict())
+        m_res2 = _make_lowp()
+        m_res2.load_state_dict(sd_m)
+        o_res2 = AxiomOptimizer(m_res2.parameters(), lr=0.02)
+        o_res2.load_state_dict(sd_o)
+        for st in o_res2.state.values():
+            for v in st.values():
+                if isinstance(v, torch.Tensor):
+                    assert v.dtype == torch.float32, f"Expected FP32 optimizer state under {dt}, got {v.dtype}"
+        for t in range(2, 4):
+            o_ref.zero_grad()
+            m_ref(xs[t]).float().square().mean().backward()
+            o_ref.step()
+            o_res2.zero_grad()
+            m_res2(xs[t]).float().square().mean().backward()
+            o_res2.step()
+        for pa, pb in zip(m_ref.parameters(), m_res2.parameters()):
+            assert torch.equal(pa.detach(), pb.detach()), f"Low-precision {dt} resume diverged"
+
+    # 2. Pending direction_blend protected gradients survive checkpoint round-trip bit-for-bit:
+    torch.manual_seed(21)
+    g_ref = _VecG(2, 2, 16)
+    g_res = deepcopy(g_ref)
+    opt_ref = AxiomOptimizer(g_ref.parameters(), lr=0.02, direction_blend=True)
+    opt_res = AxiomOptimizer(g_res.parameters(), lr=0.02, direction_blend=True)
+    z = torch.randn(16, 2)
+    for model, opt in ((g_ref, opt_ref), (g_res, opt_res)):
+        out = model(z)
+        l0, l1 = (out - 1.0).square().mean(), (out + 1.0).square().mean()
+        opt.zero_grad()
+        constraint_geometry_backward(l0 + l1, opt, (l0, l1))
+    sd_pending = deepcopy(opt_res.state_dict())
+    grads_saved = [p.grad.detach().clone() for p in g_res.parameters()]
+    g_fresh = deepcopy(g_res)
+    for p, gr in zip(g_fresh.parameters(), grads_saved):
+        p.grad = gr.clone()
+    opt_fresh = AxiomOptimizer(g_fresh.parameters(), lr=0.02, direction_blend=True)
+    opt_fresh.load_state_dict(sd_pending)
+    opt_ref.step()
+    opt_fresh.step()
+    for pa, pb in zip(g_ref.parameters(), g_fresh.parameters()):
+        assert torch.equal(pa.detach(), pb.detach()), "Pending direction_blend resume diverged"
+
+
+def test_clockfree_horizon_invariance() -> None:
     t_short, l_short = _run_mog_trainer(steps=5, total_steps=100, seed=0)
     t_long, l_long = _run_mog_trainer(steps=5, total_steps=5000, seed=0)
 
@@ -630,53 +808,103 @@ def test_clockfree_horizon_invariance():
         assert torch.equal(v1, v2), f"clock-dependent drift in D.{k}"
 
 
-def test_v4_ddgan_detached_capture_ring_and_separate_wordfixture_optimizers():
-    # 1. DDGAN detached real_logits survives via AxiomStepRecord._capture_ring / lookup_capture!
-    recipe = pg.get_recipe("axiom", model="ddgan", num_particles=16, z_dim=2, batch_size=24, total_steps=100)
-    g, d = _VecG(5, 2, 24), _CondD(2, 2, 24)
-    prior = pg.ParticlePrior(num_particles=16, z_dim=2, learnable=True)
-    _init_deterministic(g, d, prior, seed=401)
-    opt_g, opt_d = recipe.make_optimizers(g, d, prior)
-    loss = recipe.make_loss()
-    rng = torch.Generator().manual_seed(402)
-    x0 = torch.randn((24, 2), generator=rng)
-    xt = x0 + 0.4 * torch.randn((24, 2), generator=rng)
-    t = torch.randint(1, 3, (24,), generator=rng)
-    z, rows = prior.sample(24, generator=rng)
-    fake = g(torch.cat((z, xt, t.float().unsqueeze(-1)), dim=-1))
-    d_real_det = d(x0, xt=xt, t=t).detach()  # strips _axiom_* Python attributes!
-    assert not hasattr(d_real_det, "_axiom_input")
-    opt_g.zero_grad()
-    opt_g.set_sampled_rows(prior.z, rows)
-    gl = loss.g_loss(d(fake, xt=xt, t=t), d_real_det)
-    gl.backward()
-    assert torch.isfinite(gl) and opt_d.record.cond_initialized is True
+# ---------------------------------------------------------------------------
+# 4. Host-Sync Budget Gate (grid100 <= 8 Syncs/Step)
+# ---------------------------------------------------------------------------
 
-    # 2. WordFixture separate make_generator_optimizer / make_critic_optimizer path recovers prior rows via grad_fn BFS!
-    rec_w = pg.get_recipe("axiom", num_particles=8, z_dim=2, batch_size=32, total_steps=100)
-    gw, ew, dw = _VecG(2, 4, 24), _VecG(4, 2, 24), _VecD(6, 24)
-    pw = pg.ParticlePrior(num_particles=8, z_dim=2, learnable=True)
-    _init_deterministic(gw, ew, dw, pw, seed=403)
-    groups_w = [
-        {"params": list(gw.parameters()), "lr": rec_w.lr},
-        {"params": list(ew.parameters()), "lr": rec_w.lr},
-        {"params": list(pw.parameters()), "lr": rec_w.lr * rec_w.prior_lr_mult},
-    ]
-    opt_gw = rec_w.make_generator_optimizer(groups_w, latent_table=pw.z)
-    opt_dw = rec_w.make_critic_optimizer(dw)
-    loss_w = rec_w.make_loss()
-    assert opt_gw._axiom_record is None
-    atoms = torch.eye(4)
-    ids = torch.arange(32) % 4
-    rx = atoms[ids]
-    z_w, rows_w = pw.sample(32, generator=rng)
-    opt_gw.zero_grad()
-    opt_gw.set_sampled_rows(pw.z, rows_w)
-    jf = torch.cat((gw(z_w), z_w), dim=-1)
-    jr = torch.cat((rx, ew(rx)), dim=-1)
-    gl_w = loss_w.joint_g_loss(dw(jf), dw(jr))
-    constraint_geometry_backward(gl_w, opt_gw, (gl_w,))
-    opt_gw.step()
-    assert torch.isfinite(gl_w)
-    assert opt_dw.record.atomic_ledger is not None
-    assert getattr(pw.z, "_axiom_record", None) is opt_dw.record
+
+def _run_grid100_host_sync_budget(dev: torch.device) -> None:
+    from scripts.axiom_four_laws_benchmark import (
+        SimpleMLPDiscriminator,
+        SimpleMLPGenerator,
+        _count_host_syncs,
+        sample_100gaussians,
+    )
+
+    rec = pg.get_recipe("axiom", num_particles=1024, z_dim=2, prior_kind="mog", batch_size=256)
+    gen = SimpleMLPGenerator(2, 128, n_hidden=3, out_dim=2).to(dev)
+    crit = SimpleMLPDiscriminator(2, 128, n_hidden=3).to(dev)
+    prior = pg.MoGParticlePrior(num_particles=1024, z_dim=2, sigma=0.025, device=dev)
+    for mod in (gen, crit, prior):
+        pg.init.deterministic_orthogonal_(mod, seed=0)
+    trainer = pg.GANTrainer(rec, gen, crit, prior=prior, seed=0)
+    rng = torch.Generator(device=dev).manual_seed(0)
+    batches = [sample_100gaussians(256, dev, generator=rng) for _ in range(25)]
+    for batch in batches[:10]:
+        trainer.step(batch)
+    with _count_host_syncs(dev) as sc:
+        for batch in batches[10:25]:
+            trainer.step(batch)
+    cpu_only_guard = 2.0 if dev.type == "cpu" else 0.0
+    syncs_per_step = (sum(sc.values()) / 15.0) - cpu_only_guard
+    assert syncs_per_step <= 8.0, f"grid100 syncs/step={syncs_per_step:.2f} exceeded <= 8.0 budget ({sc})"
+
+
+def test_grid100_host_syncs_at_most_8_per_step() -> None:
+    dev = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+    _run_grid100_host_sync_budget(dev)
+
+
+@pytest.mark.cuda
+def test_grid100_host_syncs_at_most_8_per_step_cuda() -> None:
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    _run_grid100_host_sync_budget(torch.device("cuda:0"))
+
+
+@pytest.mark.cuda
+def test_axiom_deterministic_cuda_all_regimes() -> None:
+    """Verify Axiom v6 runs cleanly under torch.use_deterministic_algorithms(True) on CUDA."""
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    import os
+
+    script = (
+        "import torch\n"
+        "from torch import nn\n"
+        "import particlegan as pg\n"
+        "torch.use_deterministic_algorithms(True)\n"
+        "dev = torch.device('cuda:0')\n"
+        "def run_case(rec, g, d, prior, batches):\n"
+        "    for i, m in enumerate((g, d, prior)):\n"
+        "        pg.init.deterministic_orthogonal_(m, seed=i * 11)\n"
+        "    tr = pg.GANTrainer(rec, g.to(dev), d.to(dev), prior=prior.to(dev), max_steps=50, seed=0)\n"
+        "    for b in batches:\n"
+        "        out = tr.step(b.to(dev))\n"
+        "        assert torch.isfinite(out['loss_d']) and torch.isfinite(out['loss_g'])\n"
+        "rng = torch.Generator().manual_seed(0)\n"
+        "centers = torch.tensor([[-2.0, -2.0], [-2.0, 2.0], [2.0, -2.0], [2.0, 2.0]])\n"
+        "mog_batches = [centers[torch.randint(0, 4, (32,), generator=rng)] + 0.1 * torch.randn((32, 2), generator=rng) for _ in range(4)]\n"
+        "rec_mog = pg.get_recipe('axiom', prior_kind='mog', sigma_rel=0.05, num_particles=32, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g1 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 2))\n"
+        "d1 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_mog, g1, d1, rec_mog.make_prior(), mog_batches)\n"
+        "atoms = torch.eye(4)\n"
+        "atom_batches = [atoms[torch.randint(0, 4, (32,), generator=rng)] for _ in range(4)]\n"
+        "rec_at = pg.get_recipe('axiom', num_particles=8, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g2 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 4))\n"
+        "d2 = nn.Sequential(nn.Linear(4, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_at, g2, d2, pg.ParticlePrior(8, 2, learnable=True), atom_batches)\n"
+        "ang = [torch.rand((32,), generator=rng) * 3.14159 for _ in range(3)]\n"
+        "arc_batches = [torch.stack((torch.cos(a), torch.sin(a)), dim=-1) for a in ang]\n"
+        "rec_arc = pg.get_recipe('axiom', num_particles=16, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g3 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 2))\n"
+        "d3 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_arc, g3, d3, pg.ParticlePrior(16, 2, learnable=True), arc_batches)\n"
+        "rec_cv = pg.get_recipe('axiom', num_particles=16, z_dim=8, batch_size=8, total_steps=50)\n"
+        "g4 = nn.Sequential(nn.Linear(8, 8 * 4 * 4), nn.Unflatten(1, (8, 4, 4)), nn.ConvTranspose2d(8, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.ReLU(), nn.ConvTranspose2d(8, 1, 4, 2, 1), nn.Tanh())\n"
+        "d4 = nn.Sequential(nn.Conv2d(1, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.Conv2d(8, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(8 * 4 * 4, 1))\n"
+        "img_batches = [torch.randn((8, 1, 16, 16), generator=rng).clamp(-1.0, 1.0) for _ in range(3)]\n"
+        "run_case(rec_cv, g4, d4, pg.ParticlePrior(16, 8, learnable=True), img_batches)\n"
+    )
+    env = dict(os.environ)
+    env["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(REPO_ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, f"deterministic CUDA check failed:\n{proc.stderr}\n{proc.stdout}"

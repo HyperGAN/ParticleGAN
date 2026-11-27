@@ -24,9 +24,9 @@ zero-SVD, zero-`pinv`, zero-`autograd.grad`, zero-extra-sync GPU efficiency:
    - Exact ``C^1``-smooth ``_band_scale`` with exact ``1.0`` deadband (``0`` extra forwards
      inside the deadband) and up to 4-step verified iterative backtracking whenever
      ``alpha != 1.0`` (``0`` post-rescale overshoots on saturating or superlinear maps).
-   - Scale-homogeneous ``coord_scale`` (no fixed ``0.05`` floor) and ``origin_damping``
-     relative to tracked ``ema_data_scale``, plus mode-matched ``eval()`` ``y_pre`` capture
-     before generator updates for custom training-masked generators.
+   - Scale-homogeneous ``coord_scale`` (no fixed ``0.05`` floor) relative to tracked
+     ``ema_data_scale``, plus mode-matched ``eval()`` ``y_pre`` capture before generator
+     updates for custom training-masked generators.
 5. **D-05 Ceiling-Free Degree-0 & Spike-Immune Two-Player Scale Reference (Defects A, B, F):**
    - Replaces the fixed ``s_base`` ceiling and unguarded peak ratchet with a Huber-capped
      scale reference ``peak_new = max(peak_prev * p_dec, min(cur, 4 * peak_prev))``
@@ -431,6 +431,89 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
         for grp in self.param_groups:
             if grp["algorithm"] == "unified_v11_equil":
                 grp["algorithm"] = self.family
+
+    def bind_origin_sample(self, sample: Optional[torch.Tensor]) -> None:
+        """No-op hook preserving caller API compatibility without step-clock origin damping."""
+        del sample
+        self._origin_norm = None
+        self._origin_norm_t = None
+
+    def bind_protected_from_grads(self) -> None:
+        """Capture current parameter gradients into ``_protected`` for single-loss non-ascent enforcement."""
+        if not self.direction_blend:
+            return
+        if self._protected is not None:
+            raise ValueError("unified_v15 direction_blend losses already pending")
+        pieces: List[torch.Tensor] = []
+        for grp in self.param_groups:
+            is_prior_sampled = grp["algorithm"] == "unified_prior" and grp.get("sampled_rows_required", True)
+            for p in grp["params"]:
+                g = p.grad
+                if g is None:
+                    pieces.append(p.new_zeros(p.numel()))
+                elif is_prior_sampled:
+                    rows = self.sampled_rows_for(p)
+                    if rows is None:
+                        raise ValueError("direction_blend requires explicit sampled rows")
+                    masked = torch.zeros_like(g)
+                    masked[rows] = g.detach()[rows]
+                    pieces.append(masked.reshape(-1))
+                else:
+                    pieces.append(g.detach().reshape(-1))
+        normal = torch.cat(pieces) if pieces else torch.empty(0)
+        stacked = normal.unsqueeze(0)
+        if not bool(torch.isfinite(stacked).all()):
+            self._protected = None
+            raise ValueError("nonfinite direction_blend protected gradient")
+        self._protected = stacked
+
+    def bind_protected_losses(self, losses: Iterable[torch.Tensor], *, protected_evaluator: Any = None) -> None:
+        """Compute protected-loss normals for 1 or 2 losses using ``.backward(..., inputs=...)`` (`0` `autograd.grad`)."""
+        del protected_evaluator
+        if not self.direction_blend:
+            return
+        if self._protected is not None:
+            raise ValueError("unified_v15 direction_blend losses already pending")
+        loss_tuple = tuple(losses)
+        if not 1 <= len(loss_tuple) <= 2 or any(
+            not isinstance(loss, torch.Tensor) or loss.ndim != 0 or not loss.requires_grad for loss in loss_tuple
+        ):
+            raise ValueError("one or two active scalar protected losses required")
+        parameters = self._parameters()
+        trainable_p = [p for p in parameters if p.requires_grad]
+        saved_grads = [None if p.grad is None else p.grad.detach().clone() for p in parameters]
+        normals: List[torch.Tensor] = []
+        try:
+            for loss_k in loss_tuple:
+                for p in parameters:
+                    p.grad = None
+                if trainable_p:
+                    loss_k.backward(retain_graph=True, inputs=trainable_p)
+                pieces: List[torch.Tensor] = []
+                for grp in self.param_groups:
+                    is_prior_sampled = grp["algorithm"] == "unified_prior" and grp.get("sampled_rows_required", True)
+                    for p in grp["params"]:
+                        g = p.grad
+                        if g is None:
+                            pieces.append(p.new_zeros(p.numel()))
+                        elif is_prior_sampled:
+                            rows = self.sampled_rows_for(p)
+                            if rows is None:
+                                raise ValueError("direction_blend requires explicit sampled rows")
+                            masked = torch.zeros_like(g)
+                            masked[rows] = g.detach()[rows]
+                            pieces.append(masked.reshape(-1))
+                        else:
+                            pieces.append(g.detach().reshape(-1))
+                normals.append(torch.cat(pieces))
+        finally:
+            for p, sg in zip(parameters, saved_grads):
+                p.grad = sg
+        stacked = torch.stack(normals)
+        if not bool(torch.isfinite(stacked).all()):
+            self._protected = None
+            raise ValueError("nonfinite direction_blend protected gradient")
+        self._protected = stacked
 
     def _is_spatial_conv(self, p: torch.Tensor) -> bool:
         """True strictly for registered Conv2d/ConvTranspose2d weights excluding ungrouped 1x1 Conv2d."""
@@ -1036,7 +1119,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             with torch.enable_grad():
                 loss = closure()
 
-        if self.direction_blend and (closure is not None or (self._protected is None and not self._protected_single)):
+        if self.direction_blend and (closure is not None or self._protected is None):
             self.abort_pending()
             raise ValueError("direction_blend step requires explicit protected-loss backward")
 
@@ -1074,16 +1157,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 and int(self._protected.shape[0]) == 2
             )
             p_dec = 0.9995 if (is_two_obj_cond and s_therm >= 0.5) else 1.0
-
-            # Scale-homogeneous origin collapse guard relative to tracked data scale (never crushes 1e-5x targets):
-            data_scale_ref = max(1e-12, float(getattr(rec, "ema_data_scale", 1.0))) if rec is not None else 1.0
-            od_thresh = 0.05 * data_scale_ref
-            origin_damping = 1.0
-            origin_damping_t: Optional[torch.Tensor] = None
-            if self._origin_norm_t is not None:
-                origin_damping_t = (self._origin_norm_t / od_thresh).clamp_max(1.0)
-            elif self._origin_norm is not None and self._origin_norm < od_thresh:
-                origin_damping = min(1.0, self._origin_norm / od_thresh)
 
             if not is_critic_opt:
                 self._update_period2_flip_feedback(s_therm=s_therm)
@@ -1231,7 +1304,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
 
                     pyth_m = pyth_param_mults.get(id(p), 1.0)
                     lr_p_no_v4 = lr_no_v4 * pyth_m
-                    apply_od = role == "generator" and step_t > 80
                     track_secant = gen_probe_active and (not self._gen_param_ids or id(p) in self._gen_param_ids)
                     is_scalar_1d = p.ndim == 1 and p.numel() == 1
                     is_conv = self._is_spatial_conv(p)
@@ -1248,7 +1320,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                             fast_grads.append(grad)
                             fast_meta.append(
                                 (
-                                    p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                                    p, grad, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                                     c_rel, factor, sv_denom_sqrt, stiff_gate, track_secant,
                                     is_critic_role, factor, 1, 1, 1, -1,
                                 )
@@ -1259,7 +1331,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                                 fast_grads.append(grad)
                                 fast_meta.append(
                                     (
-                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                                         c_rel, aspect_factor, sv_denom_sqrt, stiff_gate, track_secant,
                                         is_critic_role, aspect_factor, r_d, c_d, m_dim, -1,
                                     )
@@ -1273,7 +1345,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                                 fast_grads.append(grad)
                                 fast_meta.append(
                                     (
-                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                                         c_rel, factor_d, sv_denom_sqrt, stiff_gate, track_secant,
                                         True, aspect_factor, r_d, c_d, m_dim, s6_norm_idx,
                                     )
@@ -1282,7 +1354,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                                 dense2d_grads.append(grad)
                                 dense2d_meta.append(
                                     (
-                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                                        p, grad, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                                         c_rel, aspect_factor, sv_denom_sqrt, track_secant, r_d, c_d,
                                     )
                                 )
@@ -1290,7 +1362,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                             fast_grads.append(grad)
                             fast_meta.append(
                                 (
-                                    p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                                    p, grad, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                                     c_rel, 1.0, 1.0, stiff_gate, track_secant,
                                     is_critic_role, 1.0, 1, 1, 1, -1,
                                 )
@@ -1298,7 +1370,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                     else:
                         slow_queue.append(
                             (
-                                p, grad, step_t, lr_p_no_v4, is_gen_v4, apply_od, b1_eff, b2_eff,
+                                p, grad, step_t, lr_p_no_v4, is_gen_v4, b1_eff, b2_eff,
                                 c_rel, stiff_gate, is_critic_role, track_secant,
                             )
                         )
@@ -1310,7 +1382,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             all_norm_vals: List[float] = []
             v4_g_scale_f: Optional[float] = None if isinstance(self._v4_g_scale, torch.Tensor) else float(self._v4_g_scale)
             v4_pre_g_f: Optional[float] = None if pre_g_tensor is not None else pre_g_float
-            od_f: Optional[float] = None if origin_damping_t is not None else origin_damping
             g_pub_t_rec: Optional[torch.Tensor] = (
                 getattr(rec, "_v15_g_peak_ref_t", None) if (is_critic_opt and rec is not None) else None
             )
@@ -1323,7 +1394,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 norms = torch._foreach_norm(all_norm_tensors)
                 ref_dev = all_norm_tensors[0].device
                 extra_t: List[torch.Tensor] = []
-                idx_gs = idx_pg = idx_od = idx_gpub = -1
+                idx_gs = idx_pg = idx_gpub = -1
                 dc_ema_keys: List[str] = []
                 idx_dc_ema = -1
                 if isinstance(self._v4_g_scale, torch.Tensor):
@@ -1332,9 +1403,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 if pre_g_tensor is not None:
                     idx_pg = len(norms) + len(extra_t)
                     extra_t.append(pre_g_tensor.to(device=ref_dev, dtype=torch.float32))
-                if origin_damping_t is not None:
-                    idx_od = len(norms) + len(extra_t)
-                    extra_t.append(origin_damping_t.to(device=ref_dev, dtype=torch.float32))
                 if g_pub_t_rec is not None and g_pub_t_rec.device == ref_dev:
                     idx_gpub = len(norms) + len(extra_t)
                     extra_t.append(g_pub_t_rec.to(device=ref_dev, dtype=torch.float32))
@@ -1353,8 +1421,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 if idx_pg >= 0:
                     v4_pre_g_f = float(packed[idx_pg])
                     pre_gain_applied = v4_pre_g_f
-                if idx_od >= 0:
-                    od_f = float(packed[idx_od])
                 if idx_gpub >= 0:
                     gp_val = float(packed[idx_gpub])
                     if math.isfinite(gp_val) and gp_val > 0.0:
@@ -1395,7 +1461,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
 
             for idx_f, item_f in enumerate(fast_meta):
                 (
-                    p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                    p, g, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                     s_base_p, factor, sv_denom_sqrt, stiff_gate, track_sec,
                     is_critic_role, aspect_factor, r_d, c_d, m_dim, s6_norm_idx,
                 ) = item_f
@@ -1403,7 +1469,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 if not math.isfinite(g_norm) or g_norm < 1e-18 or g_norm > 1e18:
                     slow_queue.append(
                         (
-                            p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, 0.0, b2_eff,
+                            p, g, step_t, lr_p_no_v4, is_gen_v4, 0.0, b2_eff,
                             s_base_p, stiff_gate, is_critic_role, track_sec,
                         )
                     )
@@ -1421,14 +1487,14 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
 
             for idx_d, item_d in enumerate(dense2d_meta):
                 (
-                    p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                    p, g, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                     s_base_p, factor, sv_denom_sqrt, track_sec, r_d, c_d,
                 ) = item_d
                 g_norm = all_norm_vals[n_fast + idx_d]
                 if not math.isfinite(g_norm) or g_norm < 1e-18 or g_norm > 1e18:
                     slow_queue.append(
                         (
-                            p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, 0.0, b2_eff,
+                            p, g, step_t, lr_p_no_v4, is_gen_v4, 0.0, b2_eff,
                             s_base_p, 0.0, False, track_sec,
                         )
                     )
@@ -1467,7 +1533,7 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             # Zero-State, Zero-Copy Foreach Frobenius-MP Fast Path (Spatial Conv2d, Neural-G Critic D, 1D, m=1):
             for (
                 (
-                    p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                    p, g, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                     s_base_p, factor, sv_denom_sqrt, stiff_gate, track_sec,
                     is_critic_role, aspect_factor, r_d, c_d, m_dim, s6_norm_idx,
                 ),
@@ -1477,7 +1543,6 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                 rate_p = (
                     lr_p_no_v4
                     * (gen_v4_mult_f if is_gen_v4 else (d_couple_f if is_critic_role else 1.0))
-                    * (od_f if apply_od else 1.0)
                 )
                 if rate_p <= 0.0:
                     continue
@@ -1507,13 +1572,13 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             # 1b. Non-stiff Generator 2D Dense & Ungrouped 1x1 Conv2d Matrices (min(r, c) >= 2 -> batched Quintic NS):
             for (
                 (
-                    p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b2_eff,
+                    p, g, step_t, lr_p_no_v4, is_gen_v4, b2_eff,
                     s_base_p, factor, sv_denom_sqrt, track_sec, r_d, c_d,
                 ),
                 g_norm,
                 peak_new,
             ) in dense2d_ready:
-                rate_p = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else 1.0) * (od_f if apply_od else 1.0)
+                rate_p = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else 1.0)
                 if rate_p <= 0.0:
                     continue
                 has_s = s_base_p > 0.0
@@ -1583,22 +1648,15 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
                     slow_g_ref_t = _REL_SMOOTH_PRIOR_REF * slow_s_ref_t
 
             for idx_s, (
-                p, g, step_t, lr_p_no_v4, is_gen_v4, apply_od, b1_eff, b2_eff,
+                p, g, step_t, lr_p_no_v4, is_gen_v4, b1_eff, b2_eff,
                 s_base_p, stiff_gate, is_critic_role, track_sec,
             ) in enumerate(slow_queue):
                 if is_gen_v4 and gen_v4_mult_f is None and gen_v4_mult_t is not None:
                     rate_val: float | torch.Tensor = lr_p_no_v4 * gen_v4_mult_t
-                    if apply_od:
-                        rate_val = rate_val * (origin_damping_t if origin_damping_t is not None else origin_damping)
                     rate_pos = lr_p_no_v4 > 0.0
                 else:
-                    base_r = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else (d_couple_f if is_critic_role else 1.0))
-                    if apply_od and origin_damping_t is not None and od_f is None:
-                        rate_val = base_r * origin_damping_t
-                        rate_pos = base_r > 0.0
-                    else:
-                        rate_val = base_r * ((od_f if od_f is not None else origin_damping) if apply_od else 1.0)
-                        rate_pos = float(rate_val) > 0.0
+                    rate_val = lr_p_no_v4 * (gen_v4_mult_f if is_gen_v4 else (d_couple_f if is_critic_role else 1.0))
+                    rate_pos = float(rate_val) > 0.0
                 self._apply_slow_param_zerosync(
                     p,
                     g,
@@ -1954,7 +2012,15 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             ):
                 raise ValueError("invalid UnifiedV15Optimizer direction_blend checkpoint")
             if cg["pending"] is not None:
-                if not isinstance(cg["pending"], torch.Tensor) or not bool(torch.isfinite(cg["pending"]).all()):
+                pend = cg["pending"]
+                total_numel = sum(p.numel() for p in self._parameters())
+                if (
+                    not isinstance(pend, torch.Tensor)
+                    or pend.ndim != 2
+                    or not (1 <= int(pend.shape[0]) <= 2)
+                    or int(pend.shape[1]) != total_numel
+                    or not bool(torch.isfinite(pend).all())
+                ):
                     raise ValueError("invalid pending direction_blend tensor")
         if not isinstance(saved["param_groups"], list) or len(saved["param_groups"]) != len(self.param_groups):
             raise ValueError("UnifiedV15Optimizer group count mismatch")
@@ -1999,6 +2065,17 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
         meta = state_dict["unified_v15_equil"]
         clean = {k: v for k, v in state_dict.items() if k not in ("unified_v15_equil", "regularizer")}
         Optimizer.load_state_dict(self, clean)
+        # Preserve full FP32 precision for all internal optimizer state tensors even when parameters are BF16:
+        saved_state_map = state_dict["state"]
+        for cur_grp, sav_grp in zip(self.param_groups, state_dict["param_groups"]):
+            for p, sav_pid in zip(cur_grp["params"], sav_grp["params"]):
+                sav_st = saved_state_map.get(sav_pid)
+                if not sav_st:
+                    continue
+                live_st = self.state[p]
+                for t_key in ("m_unit", "m_scale", "v_rms", "v_scale", "m_prior", "peak_rms"):
+                    if t_key in sav_st and isinstance(sav_st[t_key], torch.Tensor):
+                        live_st[t_key] = sav_st[t_key].detach().to(device=p.device, dtype=torch.float32).clone()
         self.clear_sampled_rows()
         self.last_step_gain = float(meta["last_step_gain"])
         self._ema_func_gain = float(meta["ema_func_gain"])
@@ -2006,15 +2083,12 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
         g_ref_saved = float(meta["g_peak_ref"])
         self._g_peak_ref = g_ref_saved
         self._g_peak_ref_t = None
+        all_p = self._parameters()
+        ref_dev = all_p[0].device if all_p else torch.device("cpu")
         prev_sk = meta["prev_flip_sketch"]
         if prev_sk is None:
             self._prev_flip_sketch = None
         else:
-            ref_dev = (
-                self.param_groups[0]["params"][0].device
-                if (self.param_groups and self.param_groups[0]["params"])
-                else torch.device("cpu")
-            )
             self._prev_flip_sketch = torch.tensor(prev_sk, dtype=torch.float32, device=ref_dev)
         self._generator_free = bool(meta["generator_free"])
         self.last_probe_consumed = False
@@ -2033,7 +2107,11 @@ class UnifiedV15Optimizer(UnifiedV11EquilibratedOptimizer):
             cg = meta["constraint_geometry"]
             self.constraint_geometry_stats = deepcopy(cg["stats"])
             self.direction_blend_stats = deepcopy(cg["blend_stats"])
-            self._protected = None if cg["pending"] is None else cg["pending"].detach().clone()
+            self._protected = (
+                None
+                if cg["pending"] is None
+                else cg["pending"].detach().to(device=ref_dev).clone()
+            )
         else:
             self._protected = None
         if hasattr(self, "record") and self.record is not None:

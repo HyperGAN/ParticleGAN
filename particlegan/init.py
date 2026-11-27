@@ -443,9 +443,13 @@ def _attention(module):
 
 
 register(nn.MultiheadAttention, _attention)
+def _norm_declarations(module):
+    return {name: KEEP for name in ("weight", "bias") if getattr(module, name, None) is not None}
+
+
 for _cls in (nn.LayerNorm, nn.GroupNorm, nn.modules.batchnorm._BatchNorm,
              nn.modules.instancenorm._InstanceNorm, nn.RMSNorm):
-    register(_cls, {"weight": KEEP, "bias": KEEP})
+    register(_cls, _norm_declarations)
 register(nn.PReLU, {"weight": KEEP})
 
 

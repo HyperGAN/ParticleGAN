@@ -273,12 +273,12 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | --- | --- | --- | --- |
 | [ae_gan_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-1), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-1), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-1), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-1) | PASS | matches recorded run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1) | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
+| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
 | [ring16_acquisition](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
 | [two_pole](axiom.md#cohort-cuda-42a130a78fc3-experiment-two_pole) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-1), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-1), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-1), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-1) | PASS | matches recorded run |
 | [unused_token_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-1), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-1), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-1), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-1), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-1) | PASS | matches recorded run |
@@ -288,10 +288,10 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
 | [precision_gaussian_mxfp8](axiom.md#cohort-cuda-42a130a78fc3-experiment-precision_gaussian_mxfp8) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](axiom.md#cohort-cuda-42a130a78fc3-experiment-precision_gaussian_nvfp4) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-1) | PASS | changed since run |
 
 <a name="cohort-cuda-42a130a78fc3-tier-2"></a>
 
@@ -302,16 +302,16 @@ Shared experiments appear once in this list; the family numerator/denominator co
 | Experiment | Required by | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [cover_leftover](axiom.md#cohort-cuda-42a130a78fc3-experiment-cover_leftover) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [img_stripes2](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_stripes2) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [mid_scale_identity](axiom.md#cohort-cuda-42a130a78fc3-experiment-mid_scale_identity) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [mode_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-mode_hold) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | UNKNOWN | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | FAIL | matches recorded run |
-| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | FAIL | matches recorded run |
-| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | UNKNOWN | changed since run |
+| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | FAIL | changed since run |
+| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | FAIL | changed since run |
+| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [rotated100](axiom.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
@@ -324,16 +324,16 @@ Held at this tier (measured and shown, not counted):
 
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
 | [img_bars4](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [img_blobs4](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_blobs4) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [img_intensity2](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_intensity2) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_unequal_width_hostile_imbalance) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | matches recorded run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2) | PASS | changed since run |
 | [vector_anisotropic](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_anisotropic) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_overlap](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_overlap) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass) | [adaptation](axiom.md#cohort-cuda-42a130a78fc3-adaptation-tier-2), [clockfree_continuous](axiom.md#cohort-cuda-42a130a78fc3-clockfree_continuous-tier-2), [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-2), [formulation_comparison](axiom.md#cohort-cuda-42a130a78fc3-formulation_comparison-tier-2), [host_profile_transfer](axiom.md#cohort-cuda-42a130a78fc3-host_profile_transfer-tier-2), [quality_coverage](axiom.md#cohort-cuda-42a130a78fc3-quality_coverage-tier-2) | PASS | matches recorded run |
@@ -380,7 +380,7 @@ Held at this tier (measured and shown, not counted):
 | Experiment | Held in | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [alice_spiral_bigan](axiom.md#cohort-cuda-42a130a78fc3-experiment-alice_spiral_bigan) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | UNKNOWN | changed since run |
 | [cgan_overlapping_classes](axiom.md#cohort-cuda-42a130a78fc3-experiment-cgan_overlapping_classes) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cramer_energy_overlap](axiom.md#cohort-cuda-42a130a78fc3-experiment-cramer_energy_overlap) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](axiom.md#cohort-cuda-42a130a78fc3-experiment-cyclegan_unpaired_constellation) | [discriminator_stability](axiom.md#cohort-cuda-42a130a78fc3-discriminator_stability-tier-4) | BLOCKED | matches recorded run |
@@ -600,9 +600,9 @@ Calibration: **provisional**. Revision8 acquisition/hold separation is provision
 | [unused_token_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
@@ -860,8 +860,8 @@ Calibration: **provisional**. Two zero-sigma 256-byte codebook stretch toys do n
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | changed since run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
 
 </details>
 
@@ -1125,18 +1125,18 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [unused_token_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | required | PASS | matches recorded run |
 | [ae_gan_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | required | PASS | matches recorded run |
 | [ring16_acquisition](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition) | required | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | required | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | required | PASS | changed since run |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke) | required | PASS | matches recorded run |
-| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | required | PASS | matches recorded run |
-| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | required | PASS | matches recorded run |
-| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | required | PASS | matches recorded run |
-| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | required | PASS | matches recorded run |
+| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | required | PASS | changed since run |
+| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | required | PASS | changed since run |
+| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | required | PASS | changed since run |
+| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | required | PASS | changed since run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [precision_gaussian_fp32](axiom.md#cohort-cuda-42a130a78fc3-experiment-precision_gaussian_fp32) | diagnostic | PASS | matches recorded run |
 | [precision_gaussian_mxfp8](axiom.md#cohort-cuda-42a130a78fc3-experiment-precision_gaussian_mxfp8) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
 | [precision_gaussian_nvfp4](axiom.md#cohort-cuda-42a130a78fc3-experiment-precision_gaussian_nvfp4) | [stretch: frontier stretch benchmark beyond the required suite](../precision-stretch/README.md#precision-stretch) | PASS | matches recorded run |
-| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | PASS | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_sparse_arc) | PASS | changed since run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_scale_mass_8x) | PASS | changed since run |
 
 </details>
 
@@ -1150,17 +1150,17 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | required | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | required | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | required | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | required | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | required | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | required | PASS | matches recorded run |
 | [cover_leftover](axiom.md#cohort-cuda-42a130a78fc3-experiment-cover_leftover) | required | PASS | matches recorded run |
 | [mid_scale_identity](axiom.md#cohort-cuda-42a130a78fc3-experiment-mid_scale_identity) | required | PASS | matches recorded run |
 | [mode_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-mode_hold) | required | PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | required | FAIL | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | required | FAIL | changed since run |
 | [vector_two_broad](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_two_broad) | required | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_mass) | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | required | PASS | matches recorded run |
+| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | required | PASS | changed since run |
 | [vector_unequal_width](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_width) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_unequal_width) | PASS | matches recorded run |
 | [vector_anisotropic](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_anisotropic) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_anisotropic) | PASS | matches recorded run |
 | [vector_overlap](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_overlap) | [held: no one recipe passes it together with the counted tests](../test-dispositions-20261015/README.md#vector_overlap) | PASS | matches recorded run |
@@ -1172,15 +1172,15 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | required | PASS | matches recorded run |
 | [rotated100](axiom.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | required | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | required | PASS | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | required | FAIL | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | PASS | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | PASS | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | required | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | required | FAIL | changed since run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_img_patch_shift) | PASS | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | [stretch: frontier stretch benchmark beyond the required suite](../particle-interpolation-stretch/README.md#interp_saddle_barycentric) | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t3-third-piece-proof.md#t3_iso_horizon_saddle_shift) | PASS | changed since run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_critic_ring16) | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_overpowered_generator_ring16) | PASS | matches recorded run |
 | [nash_unequal_width_hostile_imbalance](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_unequal_width_hostile_imbalance) | [stretch: frontier stretch benchmark beyond the required suite](../studies/t4-imbalance-nash.md#nash_unequal_width_hostile_imbalance) | PASS | matches recorded run |
-| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | PASS | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_hypercube8) | PASS | changed since run |
 
 </details>
 
@@ -1223,7 +1223,7 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 | [cramer_energy_overlap](axiom.md#cohort-cuda-42a130a78fc3-experiment-cramer_energy_overlap) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [cyclegan_unpaired_constellation](axiom.md#cohort-cuda-42a130a78fc3-experiment-cyclegan_unpaired_constellation) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | BLOCKED | matches recorded run |
 | [grid100_res16_scaled_tanh](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_scaled_tanh) | [stretch: frontier stretch benchmark beyond the required suite](../test-dispositions-20261015/README.md#unresolved) | DIAG_PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | matches recorded run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | [stretch: frontier stretch benchmark beyond the required suite](../bytegan-stretch/README.md#bytegan_bigan_dictionary) | UNKNOWN | changed since run |
 
 </details>
 
@@ -1343,10 +1343,10 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | PASS | matches recorded run |
-| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
-| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | changed since run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | changed since run |
 | [fl_law1_aniso_unequal_modes](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law1_noisy_atomic_codebook](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_noisy_atomic_codebook) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [img_bars4](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
@@ -1355,11 +1355,11 @@ Calibration: **provisional**. Four Laws Adherence diagnostic suite combines 20 c
 | [dcgan_performance_r256](axiom.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r256) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [fl_law2_pure_adversarial_codim1](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law2_groupnorm_and_vit_sprites](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_groupnorm_and_vit_sprites) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 | [ring_extension](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [target_shift_recovery](axiom.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | changed since run |
 | [fl_law3_highd_orphan_d32](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law3_highd_orphan_d32) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [grid100_mlp16](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100_mlp16) | diagnostic | DIAG_PASS | matches recorded run |
 | [grid100_res16_tanh](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100_res16_tanh) | diagnostic | UNKNOWN | matches recorded run |
@@ -1416,10 +1416,10 @@ Calibration: **provisional**. Four Laws Adherence v2 diagnostic suite combines 2
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | PASS | matches recorded run |
-| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | matches recorded run |
-| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | matches recorded run |
-| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | matches recorded run |
+| [bytegan_hypercube8](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_hypercube8) | diagnostic | PASS | changed since run |
+| [bytegan_bigan_dictionary](axiom.md#cohort-cuda-42a130a78fc3-experiment-bytegan_bigan_dictionary) | diagnostic | UNKNOWN | changed since run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | changed since run |
 | [fl_law1_aniso_unequal_modes](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_aniso_unequal_modes) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law1_noisy_atomic_codebook_v2](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_noisy_atomic_codebook_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law1_highd_rank_d32_v2](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law1_highd_rank_d32_v2) | diagnostic | DIAG_PASS | recorded definition unavailable |
@@ -1429,8 +1429,8 @@ Calibration: **provisional**. Four Laws Adherence v2 diagnostic suite combines 2
 | [dcgan_performance_r256](axiom.md#cohort-cuda-42a130a78fc3-experiment-dcgan_performance_r256) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [fl_law2_pure_adversarial_codim1](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_pure_adversarial_codim1) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [fl_law2_groupnorm_and_vit_sprites_v2](axiom.md#cohort-cuda-42a130a78fc3-experiment-fl_law2_groupnorm_and_vit_sprites_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 | [ring_extension](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [target_shift_recovery](axiom.md#cohort-cuda-42a130a78fc3-experiment-target_shift_recovery) | diagnostic | UNKNOWN | recorded definition unavailable |
 | [ae_ddgan_gaussian_chain_v2](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_ddgan_gaussian_chain_v2) | diagnostic | UNKNOWN | recorded definition unavailable |
@@ -1622,9 +1622,9 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -1728,9 +1728,9 @@ Calibration: **provisional**. Three zero-sigma particle interpolation stretch to
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | matches recorded run |
-| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | diagnostic | PASS | matches recorded run |
-| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | matches recorded run |
+| [interp_sparse_arc](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_sparse_arc) | diagnostic | PASS | changed since run |
+| [interp_img_patch_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_img_patch_shift) | diagnostic | PASS | changed since run |
+| [interp_saddle_barycentric](axiom.md#cohort-cuda-42a130a78fc3-experiment-interp_saddle_barycentric) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -1776,18 +1776,18 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [unused_token_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-unused_token_hold) | diagnostic | PASS | matches recorded run |
 | [ae_gan_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ae_gan_hold) | diagnostic | PASS | matches recorded run |
 | [ring16_acquisition](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring16_acquisition) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
-| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | diagnostic | PASS | matches recorded run |
-| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | diagnostic | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | matches recorded run |
-| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
-| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
+| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | changed since run |
+| [model_ae_gan_multimodal](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_gan_multimodal) | diagnostic | PASS | changed since run |
+| [model_ae_reconstruction](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_reconstruction) | diagnostic | PASS | changed since run |
+| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | changed since run |
+| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | diagnostic | PASS | changed since run |
+| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | diagnostic | PASS | changed since run |
 | [clockfree_audit_measurement_v1](axiom.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit_measurement_v1) | diagnostic | PASS | matches recorded run |
 | [clockfree_audit](axiom.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -1807,8 +1807,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
 | [rotated100](axiom.md#cohort-cuda-42a130a78fc3-experiment-rotated100) | diagnostic | PASS | matches recorded run |
 | [staggered100](axiom.md#cohort-cuda-42a130a78fc3-experiment-staggered100) | diagnostic | PASS | matches recorded run |
-| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | matches recorded run |
-| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | diagnostic | FAIL | matches recorded run |
+| [model_ae_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_bimodal_chain) | diagnostic | UNKNOWN | changed since run |
+| [model_ddgan_bimodal_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_bimodal_chain) | diagnostic | FAIL | changed since run |
 | [ring_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
 | [zero_tanh_rail_escape](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
@@ -1927,8 +1927,8 @@ Calibration: **provisional**. Own-checkpoint word retention only; no ordinary ti
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -1975,8 +1975,8 @@ Calibration: **undeclared**. Calibration and robustness are separate from record
 | [clockfree_audit](axiom.md#cohort-cuda-42a130a78fc3-experiment-clockfree_audit) | diagnostic | DIAG_PASS | recorded definition unavailable |
 | [zero_tanh_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_smoke) | diagnostic | PASS | matches recorded run |
 | [zero_tanh_rail_escape](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [mode_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-mode_hold) | diagnostic | PASS | matches recorded run |
 | [ring_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_hold) | diagnostic | UNKNOWN | matches recorded run |
 | [ring_extension](axiom.md#cohort-cuda-42a130a78fc3-experiment-ring_extension) | diagnostic | UNKNOWN | matches recorded run |
@@ -2091,14 +2091,14 @@ Calibration: **provisional**. Fourteen surgical probes plus two prerequisite smo
 | [vector_unequal_mass](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
 | [img_bars4](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
 | [grid100](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100) | diagnostic | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | changed since run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [zero_tanh_rail_escape](axiom.md#cohort-cuda-42a130a78fc3-experiment-zero_tanh_rail_escape) | diagnostic | UNKNOWN | matches recorded run |
 | [grid100_mlp16](axiom.md#cohort-cuda-42a130a78fc3-experiment-grid100_mlp16) | diagnostic | DIAG_PASS | matches recorded run |
 | [nash_overpowered_critic_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_critic_ring16) | diagnostic | PASS | matches recorded run |
 | [nash_overpowered_generator_ring16](axiom.md#cohort-cuda-42a130a78fc3-experiment-nash_overpowered_generator_ring16) | diagnostic | PASS | matches recorded run |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2139,10 +2139,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -2202,10 +2202,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -2265,10 +2265,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -2328,10 +2328,10 @@ Calibration: **provisional**. Revision9 recipe-owned prior comparisons are provi
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_smoke) | diagnostic | PASS | changed since run |
 | [gaussian1d_smoke](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_smoke) | diagnostic | PASS | matches recorded run |
 | [gaussian1d_stability](axiom.md#cohort-cuda-42a130a78fc3-experiment-gaussian1d_stability) | diagnostic | PASS | matches recorded run |
-| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | matches recorded run |
+| [five_word_joint_hold](axiom.md#cohort-cuda-42a130a78fc3-experiment-five_word_joint_hold) | diagnostic | PASS | changed since run |
 | [trajectory](axiom.md#cohort-cuda-42a130a78fc3-experiment-trajectory) | diagnostic | PASS | matches recorded run |
 | [residual_student](axiom.md#cohort-cuda-42a130a78fc3-experiment-residual_student) | diagnostic | PASS | matches recorded run |
 | [unipolar](axiom.md#cohort-cuda-42a130a78fc3-experiment-unipolar) | diagnostic | PASS | matches recorded run |
@@ -2477,8 +2477,8 @@ Calibration: **provisional**. Two Theory-1-free, Theory-2-verified causal isolat
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2519,14 +2519,14 @@ Calibration: **provisional**. Bounded 8-task factorial ablation isolating RGDT P
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | matches recorded run |
-| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | matches recorded run |
+| [t3_iso_scale_mass_8x](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_scale_mass_8x) | diagnostic | PASS | changed since run |
+| [t3_iso_horizon_saddle_shift](axiom.md#cohort-cuda-42a130a78fc3-experiment-t3_iso_horizon_saddle_shift) | diagnostic | PASS | changed since run |
 | [vector_unequal_width](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_width) | diagnostic | PASS | matches recorded run |
 | [vector_unequal_mass](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_unequal_mass) | diagnostic | PASS | matches recorded run |
 | [vector_anisotropic](axiom.md#cohort-cuda-42a130a78fc3-experiment-vector_anisotropic) | diagnostic | PASS | matches recorded run |
 | [img_bars4](axiom.md#cohort-cuda-42a130a78fc3-experiment-img_bars4) | diagnostic | PASS | matches recorded run |
-| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | matches recorded run |
-| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | matches recorded run |
+| [model_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ddgan_gaussian_chain) | diagnostic | PASS | changed since run |
+| [model_ae_ddgan_gaussian_chain](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_ae_ddgan_gaussian_chain) | diagnostic | FAIL | changed since run |
 
 </details>
 
@@ -2706,8 +2706,8 @@ Calibration: **provisional**. Two toy gates do not establish screen calibration 
 
 | Experiment | Role | Recorded result | Test definition |
 | --- | --- | --- | --- |
-| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | diagnostic | PASS | matches recorded run |
-| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | diagnostic | PASS | matches recorded run |
+| [model_vae_hard](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_hard) | diagnostic | PASS | changed since run |
+| [model_vae_categorical](axiom.md#cohort-cuda-42a130a78fc3-experiment-model_vae_categorical) | diagnostic | PASS | changed since run |
 
 </details>
 
@@ -2968,7 +2968,7 @@ Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; w
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -3008,7 +3008,7 @@ Current measurement: particle_cloud prior (sigma 0); generated_and_paired_recons
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed bytegan_hypercube8 gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed bytegan_hypercube8 gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -3677,7 +3677,7 @@ Current measurement: particle_cloud prior (sigma 0); tier1_selected_generated_an
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. every joint generation/inverse check throughout the fixed continuation window
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. every joint generation/inverse check throughout the fixed continuation window
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -3741,7 +3741,7 @@ Dependencies: five_word_joint_smoke (checkpoint).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. any scheduled full joint pass plus independent same-state confirmation
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. any scheduled full joint pass plus independent same-state confirmation
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -3953,6 +3953,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -3987,6 +3988,7 @@ Current pass criteria:
 | Metric | Required bound |
 | --- | --- |
 | finite_fraction | == 1 |
+| critic_grad_finite | == 1 |
 | mode_coverage | >= 1 |
 | sprite_hq | >= 0.85 |
 | template_rmse | <= 0.12 |
@@ -5313,7 +5315,7 @@ Current measurement: mog prior (sigma 0.05); public_prior_without_output_noise; 
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed interp_img_patch_shift gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed interp_img_patch_shift gates (5/5 terminal checks passed)
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -5372,7 +5374,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed interp_saddle_barycentric gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed interp_saddle_barycentric gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -5429,7 +5431,7 @@ Current measurement: particle_cloud prior (sigma 0); enumerated_prior_without_ou
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed interp_sparse_arc gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed interp_sparse_arc gates (5/5 terminal checks passed)
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -5725,7 +5727,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 <details>
 <summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. no compatible result
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. no compatible result
 
 Execution: **not run**.
 
@@ -5808,7 +5810,7 @@ Dependencies: model_ae_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -5935,7 +5937,7 @@ Current measurement: mog prior (sigma 0.25); task_model_kernel_and_posterior_wit
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -5994,7 +5996,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -6041,7 +6043,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (FAIL)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `1` (recorded execution receipt).
 
@@ -6172,7 +6174,7 @@ Dependencies: model_ddgan_gaussian_chain (gate).
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -6335,7 +6337,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -6403,7 +6405,7 @@ Current measurement: mog prior (sigma 0.025); task_model_kernel_and_posterior_wi
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed complete live curve and terminal suffix
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed complete live curve and terminal suffix
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -7464,7 +7466,7 @@ Current measurement: mog prior (sigma 0.025); public_prior_without_output_noise;
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed t3_iso_horizon_saddle_shift gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 
@@ -7520,7 +7522,7 @@ Current measurement: particle_cloud prior (sigma 0); learned_particles_and_criti
 <details>
 <summary>Metrics, pass criteria &amp; provenance (PASS)</summary>
 
-Test definition: **matches recorded run**. Test definition matches the recorded conditions. recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)
+Test definition: **changed since run**. Test definition changed since this run: evaluation (gates or sampling law). Earlier verdict preserved. recomputed t3_iso_scale_mass_8x gates (5/5 terminal checks passed)
 
 Actual task device: `0` (recorded execution receipt).
 

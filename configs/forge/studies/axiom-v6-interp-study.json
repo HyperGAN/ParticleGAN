@@ -1,0 +1,55 @@
+{
+  "campaign": {
+    "budget_seconds": 86400,
+    "candidate_budget_seconds": 86400,
+    "id": "axiom-v6-interp-study"
+  },
+  "candidate": "axiom-v6",
+  "competing_explanation": "Faithful numerical FAIL if axiom-v6 misses any gate on particle_interpolation_stretch.",
+  "control": {
+    "candidate_id": "unified-v12",
+    "task_map": {}
+  },
+  "falsifier": {
+    "metric": "interp_hq",
+    "op": "<",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.78
+  },
+  "hypothesis": "Unchanged global axiom-v6 (1157930ef) on particle_interpolation_stretch (RTX A6000, seed 0).",
+  "id": "axiom-v6-interp-study",
+  "max_rounds": 1,
+  "prediction": {
+    "metric": "interp_hq",
+    "op": ">=",
+    "phase": "final",
+    "task_id": "interp_sparse_arc",
+    "threshold": 0.78
+  },
+  "prior_evidence": [
+    {
+      "identity": {
+        "campaign_id": "bytegan-stretch-diag-v1",
+        "cuda_model": "NVIDIA RTX A6000"
+      },
+      "path": "reports/forge/bytegan-stretch/summary.json",
+      "selector": [],
+      "use": "motivation_only"
+    }
+  ],
+  "schema_version": 1,
+  "scope": {
+    "cuda_model": "NVIDIA RTX A6000",
+    "execution_backend": "cuda",
+    "through_tier": 1,
+    "view": "particle_interpolation_stretch"
+  },
+  "status": "ready",
+  "terminal_rules": {
+    "falsified": "stop_revision",
+    "incomplete": "request_missing_evidence",
+    "inconclusive": "stop_and_readout",
+    "prediction_observed": "review_saved_diagnostics"
+  }
+}

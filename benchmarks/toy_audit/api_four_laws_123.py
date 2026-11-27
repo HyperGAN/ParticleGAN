@@ -99,6 +99,7 @@ THRESHOLDS: dict[str, list[list[Any]]] = {
     ],
     "fl_law2_groupnorm_and_vit_sprites": [
         ["finite_fraction", "==", 1.0],
+        ["critic_grad_finite", "==", 1.0],
         ["mode_coverage", ">=", 1.0],
         ["sprite_hq", ">=", 0.85],
         ["template_rmse", "<=", 0.12],
@@ -306,6 +307,7 @@ V2_THRESHOLDS: dict[str, list[list[Any]]] = {
     ],
     "fl_law2_groupnorm_and_vit_sprites_v2": [
         ["finite_fraction", "==", 1.0],
+        ["critic_grad_finite", "==", 1.0],
         ["mode_coverage", ">=", 1.0],
         ["sprite_hq", ">=", 0.85],
         ["template_rmse", "<=", 0.12],
@@ -789,8 +791,8 @@ class ResNetGroupNormViTCritic(nn.Module):
         pos = self._sinusoidal_pos_2d(8, 8, d)
         self.register_buffer("pos_embed", pos, persistent=True)
 
-        # Stage 2: Lightweight ViT Multi-Head Self-Attention block (smooth C^infinity
-        # normalized sigmoid attention, natively compatible with both fwAD and RoR autodiff)
+        # Stage 2: Lightweight ViT Multi-Head Self-Attention block using real
+        # F.scaled_dot_product_attention (exposes true SDPA / softmax JVP handling).
         self.ln1 = nn.LayerNorm(d)
         self.qkv = nn.Linear(d, 3 * d)
         self.proj = nn.Linear(d, d)
@@ -832,10 +834,7 @@ class ResNetGroupNormViTCritic(nn.Module):
         q = q.reshape(b, n_tok, self.vit_heads, self.head_dim).transpose(1, 2)
         k = k.reshape(b, n_tok, self.vit_heads, self.head_dim).transpose(1, 2)
         v = v.reshape(b, n_tok, self.vit_heads, self.head_dim).transpose(1, 2)
-        scores = torch.matmul(q, k.transpose(-2, -1)) * (float(self.head_dim) ** -0.5)
-        weights = torch.sigmoid(scores)
-        weights = weights / weights.sum(dim=-1, keepdim=True).clamp_min(1e-6)
-        attn = torch.matmul(weights, v)
+        attn = F.scaled_dot_product_attention(q, k, v)
         attn = attn.transpose(1, 2).reshape(b, n_tok, d)
         tok = tok + self.proj(attn)
         tok = tok + self.mlp(self.ln2(tok))
@@ -2207,21 +2206,21 @@ def _measure_normal_critic_grad(critic: nn.Module, pts: torch.Tensor) -> tuple[f
             probes = pts[:n].detach().to(device=dev, dtype=torch.float32).clone().requires_grad_(True)
             with torch.enable_grad():
                 out = critic(probes)
+                if not bool(torch.isfinite(out).all()):
+                    return float("nan"), float("nan")
                 grad = torch.autograd.grad(out.sum(), probes, create_graph=False)[0]
         if not bool(torch.isfinite(grad).all()):
             return float("nan"), float("nan")
         n_hat = probes.detach() / probes.detach().norm(dim=1, keepdim=True).clamp_min(1e-6)
         proj = (grad.detach() * n_hat).sum(dim=1).abs()
         return float(proj.mean().item()), float(proj.max().item())
-    except Exception:
-        return float("nan"), float("nan")
     finally:
         for m, flag in modes:
             m.training = flag
 
 
 def _measure_sprite_critic_grad(critic: nn.Module, imgs: torch.Tensor) -> tuple[float, float, float]:
-    """Optional non-gating diagnostic: finite input gradient check on sprite probes."""
+    """Gating finite input gradient check on sprite probes."""
     n = min(len(imgs), 16)
     if n < 1 or not bool(torch.isfinite(imgs).all()):
         return 0.0, float("nan"), float("nan")
@@ -2244,8 +2243,6 @@ def _measure_sprite_critic_grad(critic: nn.Module, imgs: torch.Tensor) -> tuple[
             return 0.0, float("nan"), float("nan")
         norms = grad.detach().reshape(n, -1).norm(dim=1)
         return 1.0, float(norms.median().item()), float(norms.max().item())
-    except Exception:
-        return 0.0, float("nan"), float("nan")
     finally:
         for m, flag in modes:
             m.training = flag

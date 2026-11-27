@@ -1,0 +1,19 @@
+{
+  "schema_version": 1,
+  "task_id": "grid100_res16_scaled_tanh_v2",
+  "title": "100-Mode Grid with Clean Un-Neutered 16-Block ResNet + Scaled Tanh (v2)",
+  "laws": [
+    "law4_1",
+    "law4_2"
+  ],
+  "edge_cases": [
+    "deep-spectral-contraction",
+    "tanh-saturation",
+    "100-modes"
+  ],
+  "intuition": "Clean v2 cohort of `grid100_res16_scaled_tanh` with `preserve_latent_norm=false`, removing the legacy `atanh(tanh)` and `LayerNorm` algebraic identity lock so the 16-block residual tanh generator must genuinely learn the 100-mode map.",
+  "failure_mode": "Residual branch drift saturates internal or output tanh layers when step scaling is uncalibrated for depth.",
+  "protocol_notes": "Clean un-neutered Tier-4 stretch cohort with `max_saturated_fraction` gate; separate cohort from archived `grid100_res16_scaled_tanh`.",
+  "diagram_kind": "deep_spectral_flow",
+  "custom_mermaid": null
+}

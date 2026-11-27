@@ -213,34 +213,33 @@ def critic_source_context(critic, source):
     conversion or additive input noise) allocates a new tensor storage pointer so
     formulation hooks still match ``source`` during critic penalty evaluation.
     """
+    from ._axiom.state import axiom_source_context
+
     target = critic
-    if target is not None and not (hasattr(target, "_t2_record") or hasattr(target, "_axiom_record")):
+    if target is not None and not hasattr(target, "_t2_record"):
         inner = getattr(target, "critic", None)
-        if inner is not None and (hasattr(inner, "_t2_record") or hasattr(inner, "_axiom_record")):
+        if inner is not None and hasattr(inner, "_t2_record"):
             target = inner
     has_t2 = target is not None and source is not None and hasattr(target, "_t2_record")
-    has_axiom = target is not None and source is not None and hasattr(target, "_axiom_record")
-    if not (has_t2 or has_axiom):
-        yield
-        return
     sentinel = object()
     prev_t2 = sentinel
-    prev_axiom = sentinel
     if has_t2:
         from ._t2_critic.critic import _tensor_identity_key
         prev_t2 = getattr(target, "_t2_pending_source_key", sentinel)
         target._t2_pending_source_key = _tensor_identity_key(source)
-    if has_axiom:
-        from ._axiom.critic import _tensor_id
-        prev_axiom = getattr(target, "_axiom_pending_source_key", sentinel)
-        target._axiom_pending_source_key = _tensor_id(source)
     try:
-        yield
+        with axiom_source_context(critic, source):
+            yield
     finally:
         if has_t2:
             target._t2_pending_source_key = None if prev_t2 is sentinel else prev_t2
-        if has_axiom:
-            target._axiom_pending_source_key = None if prev_axiom is sentinel else prev_axiom
+
+
+def _is_frozen_bn(module):
+    if not isinstance(module, nn.modules.batchnorm._BatchNorm):
+        return False
+    params = list(module.parameters(recurse=False))
+    return bool(params) and not any(p.requires_grad for p in params)
 
 
 def _enter_critic_g_step_mode(critic):
@@ -282,6 +281,107 @@ def _exit_critic_g_step_mode(critic, state):
         module.track_running_stats = track
     for parameter, flag in zip(critic.parameters(), flags):
         parameter.requires_grad_(flag)
+
+
+@contextmanager
+def critic_g_step_mode(critic, *, restore_training=True):
+    """Context manager for generator-step critic evaluation.
+
+    Freezes critic parameter gradients while preserving input-gradient flow
+    through ``critic(fake)``. Active training BatchNorm layers stay in
+    batch-statistics mode with ``track_running_stats=False`` so G-step logits
+    match the D-step normalization law without mutating running statistics,
+    while frozen eval-only BatchNorm backbones remain strictly in ``eval()``.
+
+    When ``restore_training=True`` (default, for caller-owned loops), every
+    submodule's original ``training`` mode is restored on exit. Pass
+    ``restore_training=False`` to leave ``critic`` in ``eval()`` after exit.
+    """
+    saved_modes = [(module, module.training) for module in critic.modules()] if restore_training else None
+    state = _enter_critic_g_step_mode(critic)
+    try:
+        yield critic
+    finally:
+        _exit_critic_g_step_mode(critic, state)
+        if saved_modes is not None:
+            for module, was_training in saved_modes:
+                module.training = was_training
+
+
+def bind_formulation_records(recipe, opt_d, loss=None, prior_regularizer=None, *, generator=None):
+    """Bind the critic optimizer's formulation step record to ``loss`` and ``prior_regularizer``.
+
+    Centralizes formulation record wiring and ``_bound_device`` attachment so
+    ``GANTrainer`` and caller-owned training loops share identical record
+    binding without duplicating recipe-version dispatch.
+    """
+    record = getattr(opt_d, "record", None)
+    if record is None:
+        return None
+    formulation = recipe.effective_critic_formulation
+    if formulation == "bispf":
+        # Readers of the critic thermal scale use this trainer's checkpointed
+        # critic record, never another trainer's state.
+        from .bispf import bind_thermal_source
+        bind_thermal_source(record, loss, prior_regularizer)
+    elif formulation == "empf":
+        from .empf import bind_empf_record
+        bind_empf_record(record, loss, prior_regularizer)
+    elif formulation == "t2_secant":
+        from .t2_critic import bind_t2_record
+        bind_t2_record(record, loss, prior_regularizer)
+    elif formulation == "unified":
+        from .unified import bind_unified_record
+        bind_unified_record(record, loss, prior_regularizer)
+    elif formulation in ("unified_v4", "r4_autograd_critic"):
+        from .unified_v4 import bind_unified_v4_record
+        bind_unified_v4_record(record, loss, prior_regularizer)
+    elif formulation == "unified_v11":
+        from .unified_v11 import bind_unified_v11_record
+        bind_unified_v11_record(record, loss, prior_regularizer)
+    elif formulation == "unified_v15":
+        from ._unified_v15 import bind_unified_v15_record
+        bind_unified_v15_record(record, loss, prior_regularizer)
+    elif formulation == "cond_fiber":
+        from .cond_fiber import bind_cond_fiber_record
+        bind_cond_fiber_record(record, loss, prior_regularizer)
+    elif formulation == "axiom":
+        from ._axiom.state import bind_axiom_record
+        bind_axiom_record(record, loss, prior_regularizer)
+    elif formulation == "rhbi":
+        from .rhbi import bind_rhbi_record
+        bind_rhbi_record(record, loss, prior_regularizer)
+    elif formulation == "t1_coupling":
+        from .t1_coupling import bind_t1_coupling_record
+        bind_t1_coupling_record(record, loss, prior_regularizer)
+    elif formulation == "rgdt":
+        from .t3_dynamics import bind_rgdt_record
+        bind_rgdt_record(record, loss, prior_regularizer)
+    elif formulation == "t4_nash":
+        from .t4_nash import bind_t4_nash_record
+        bind_t4_nash_record(record, loss, prior_regularizer)
+    elif formulation == "t4_nash_v3":
+        from .nash_v3 import bind_nash_v3_record
+        bind_nash_v3_record(record, loss, prior_regularizer)
+    elif formulation == "minimal":
+        from .minimal import bind_minimal_record
+        bind_minimal_record(record, loss, prior_regularizer)
+    elif recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+        from .rhbi import bind_rhbi_record
+        bind_rhbi_record(record, loss, prior_regularizer)
+    elif getattr(recipe, "t1c_weight", 0.0) > 0:
+        from .t1_coupling import bind_t1_coupling_record
+        bind_t1_coupling_record(record, loss, prior_regularizer)
+    if (
+        formulation in ("unified_v4", "r4_autograd_critic", "unified_v11", "unified_v15", "axiom", "minimal")
+        and prior_regularizer is not None
+        and getattr(prior_regularizer, "_bound_device", None) is None
+        and generator is not None
+    ):
+        g_dev = next((p.device for p in generator.parameters()), None)
+        if g_dev is not None:
+            prior_regularizer._bound_device = g_dev
+    return record
 
 
 class InputNoise(nn.Module):
@@ -371,15 +471,8 @@ class InputNoise(nn.Module):
                         float_parts=float_parts,
                         overwrite=True,
                     )
-            if hasattr(target, "_axiom_input") or hasattr(self.critic, "_axiom_record"):
-                rec_ax = getattr(target, "_axiom_record", getattr(self.critic, "_axiom_record", None))
-                if rec_ax is None or not getattr(rec_ax, "_in_penalty", False):
-                    target._axiom_input = x
-                    if rec_ax is not None:
-                        target._axiom_record = rec_ax
-                    prev_parts = getattr(target, "_axiom_parts", None)
-                    if isinstance(prev_parts, tuple) and prev_parts:
-                        target._axiom_parts = (x, *prev_parts[1:])
+            from ._axiom.state import override_axiom_capture_input
+            override_axiom_capture_input(out, x, critic=self.critic, args=args, kwargs=kwargs)
         return out
 
 
@@ -540,6 +633,8 @@ class GANTrainer:
                 or recipe.encoder_mode != "none"):
             raise ValueError("GANTrainer supports unconditional scalar GANs with particle priors and no encoder")
         self.recipe, self.G, self.D = recipe, generator, discriminator
+        self._eval_bns = set()
+        self._record_eval_bns(initial=True)
         for module in (self.G, self.D):
             if uses_channels_last(module, recipe.training_precision):
                 module.to(memory_format=torch.channels_last)
@@ -608,79 +703,13 @@ class GANTrainer:
         self._gradient_response = None
         if getattr(recipe, "generator_gradient_response", "none") != "none":
             from .gradient_response import GradientCoherence
-            self._gradient_response = GradientCoherence()
+            self._gradient_response = GradientCoherence.for_mode(recipe.generator_gradient_response)
         self.loss = recipe.make_loss()
         self.prior_regularizer = recipe.make_prior_regularizer(
             weight=1.0 if recipe.prior_regularizer == "vicreg" or recipe.prior_reg > 0 else 0.,
             prior=self.prior, reference=self.prior)
         self.penalty = recipe.make_critic_penalty(self.opt_d, **self.penalty_options)
-        if recipe.effective_critic_formulation == "bispf":
-            # Readers of the critic thermal scale use this trainer's checkpointed
-            # critic record, never another trainer's state.
-            from .bispf import bind_thermal_source
-            bind_thermal_source(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "empf":
-            from .empf import bind_empf_record
-            bind_empf_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "t2_secant":
-            from .t2_critic import bind_t2_record
-            bind_t2_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "unified":
-            from .unified import bind_unified_record
-            bind_unified_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation in ("unified_v4", "r4_autograd_critic"):
-            from .unified_v4 import bind_unified_v4_record
-            bind_unified_v4_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
-        elif recipe.effective_critic_formulation == "unified_v11":
-            from .unified_v11 import bind_unified_v11_record
-            bind_unified_v11_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
-        elif recipe.effective_critic_formulation == "unified_v15":
-            from ._unified_v15 import bind_unified_v15_record
-            bind_unified_v15_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
-        elif recipe.effective_critic_formulation == "cond_fiber":
-            from .cond_fiber import bind_cond_fiber_record
-            bind_cond_fiber_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "axiom":
-            from ._axiom.critic import bind_axiom_record
-            bind_axiom_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
-        elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
-            from .rhbi import bind_rhbi_record
-            bind_rhbi_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "t1_coupling" or recipe.t1c_weight > 0:
-            from .t1_coupling import bind_t1_coupling_record
-            bind_t1_coupling_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "rgdt":
-            from .t3_dynamics import bind_rgdt_record
-            bind_rgdt_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "t4_nash":
-            from .t4_nash import bind_t4_nash_record
-            bind_t4_nash_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "t4_nash_v3":
-            from .nash_v3 import bind_nash_v3_record
-            bind_nash_v3_record(self.opt_d.record, self.loss, self.prior_regularizer)
-        elif recipe.effective_critic_formulation == "minimal":
-            from .minimal import bind_minimal_record
-            bind_minimal_record(self.opt_d.record, self.loss, self.prior_regularizer)
-            if self.prior_regularizer is not None and getattr(self.prior_regularizer, "_bound_device", None) is None:
-                g_dev = next((p.device for p in self.G.parameters()), None)
-                if g_dev is not None:
-                    self.prior_regularizer._bound_device = g_dev
+        bind_formulation_records(recipe, self.opt_d, self.loss, self.prior_regularizer, generator=self.G)
         if eval_generator is not None and any(eval_generator is stream for stream in (
                 latent_generator, penalty_generator, noise_generator, input_noise_generator,
                 prior_noise_generator, model_generator)):
@@ -863,6 +892,76 @@ class GANTrainer:
         self.max_steps = max_total_steps
         return self.max_steps
 
+    def _record_eval_bns(self, *, initial=False):
+        for module in self.D.modules():
+            if not isinstance(module, nn.modules.batchnorm._BatchNorm):
+                continue
+            if module.training:
+                self._eval_bns.discard(module)
+            elif initial or self.D.training or _is_frozen_bn(module):
+                self._eval_bns.add(module)
+
+    def _trainable_generator_params(self):
+        return [p for p in self.G.parameters() if p.requires_grad]
+
+    def _step_with_gradient_response(self, step_fn, *args, **kwargs):
+        params = self._trainable_generator_params()
+        grads = [torch.zeros_like(p) if p.grad is None else p.grad for p in params]
+        gain = self._gradient_response.observe(grads)
+        weight = self._gradient_response.packet["weight"]
+        # Replace noisy stochastic parameter gradients with bias-corrected EMA mean
+        # on trainable parameters only (never write .grad onto frozen parameters).
+        for p, m in zip(params, self._gradient_response.packet["means"]):
+            p.grad = (m / weight).to(p).clone()
+        # Temporarily scale generator proposal learning rate (works for both
+        # DualNorm groups carrying "role" and plain/formulation groups via policy.roles).
+        policy_roles = self.policy.roles[0]
+        saved_lrs = []
+        for idx, group in enumerate(self.opt_g.param_groups):
+            saved_lrs.append(group["lr"])
+            role = group.get("role")
+            if role is None and idx < len(policy_roles):
+                role = policy_roles[idx]
+            if role == "generator":
+                group["lr"] = group["lr"] * gain
+        try:
+            result = step_fn(*args, **kwargs)
+        finally:
+            for group, lr in zip(self.opt_g.param_groups, saved_lrs):
+                group["lr"] = lr
+        self._gradient_response.response["applied_steps"] += 1
+        return result
+
+    @contextmanager
+    def _gradient_response_step_scope(self):
+        if self._gradient_response is None:
+            yield
+            return
+        had_instance_step = "step" in self.opt_g.__dict__
+        prev_instance_step = self.opt_g.__dict__.get("step")
+        base_step = self.opt_g.step
+        def wrapped_step(*args, **kwargs):
+            return self._step_with_gradient_response(base_step, *args, **kwargs)
+        self.opt_g.step = wrapped_step
+        try:
+            yield
+        finally:
+            if had_instance_step:
+                self.opt_g.step = prev_instance_step
+            else:
+                self.opt_g.__dict__.pop("step", None)
+
+    @contextmanager
+    def _discrete_prior_step_scope(self):
+        try:
+            yield
+        finally:
+            prim_cleanup = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
+            if prim_cleanup is not None and hasattr(prim_cleanup, "bind_discrete_prior_step"):
+                prim_cleanup.bind_discrete_prior_step(False)
+            if hasattr(self.loss, "bind_discrete_prior_step"):
+                self.loss.bind_discrete_prior_step(False)
+
     def _step(self, real, *, generator_real=None, collect_stats=False):
         self._serve_release()
         recipe = self.recipe
@@ -881,7 +980,10 @@ class GANTrainer:
         noise = self.noise_generator
         critic = self._noisy_D
         critic.std = sigma_in
+        self._record_eval_bns()
         self.D.train()
+        for module in self._eval_bns:
+            module.eval()
         self.G.eval()
         with torch.no_grad():
             latent, indices_d = self._sample_training_prior(len(real))
@@ -898,8 +1000,11 @@ class GANTrainer:
         self.opt_d.step()
         self.policy.after_critic_step()
 
-        g_step_critic_state = _enter_critic_g_step_mode(self.D)
-        try:
+        with (
+            critic_g_step_mode(self.D, restore_training=False),
+            self._gradient_response_step_scope(),
+            self._discrete_prior_step_scope(),
+        ):
             self.G.train()
             latent, indices = self._sample_training_prior(len(real))
             use_unified_v15_pb = False
@@ -1087,36 +1192,33 @@ class GANTrainer:
                 )
                 prim_op = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
                 is_axiom_atomic = False
-                rec_ax_step = getattr(self.opt_d, "record", None) if recipe.effective_critic_formulation == "axiom" else None
                 if recipe.effective_critic_formulation == "axiom":
-                    if rec_ax_step is not None and self.prior_noise_generator is None and hasattr(unwrap_prior(self.prior), "z"):
-                        rec_ax_step._active_prior_table = unwrap_prior(self.prior).z
-                        rec_ax_step._active_batch_rows = indices.detach() if indices is not None else None
-                    if use_simplex and len(real) >= 8:
-                        from ._axiom.transport import compute_discrete_atomic_gate, project_transport_features
-                        _y_proj = project_transport_features(real.detach(), max_spatial=getattr(prim_op, "max_spatial", 8))
-                        _cs = getattr(rec_ax_step, "chart_state", None) if rec_ax_step is not None else None
-                        _ch = None
-                        _rd = None
-                        if isinstance(_cs, dict) and isinstance(_cs.get("sum"), torch.Tensor) and isinstance(_cs.get("count"), torch.Tensor) and _cs["sum"].shape[1] == _y_proj.shape[1]:
-                            _cc = _cs["count"].to(device=real.device, dtype=torch.float32).clamp_min(1e-8)
-                            _ch = _cs["sum"].to(device=real.device, dtype=torch.float32) / _cc.unsqueeze(1)
-                            if isinstance(_cs.get("sq_dev"), torch.Tensor):
-                                _rd = (_cs["sq_dev"].to(device=real.device, dtype=torch.float32) / _cc).clamp_min(1e-12).sqrt()
-                        is_axiom_atomic = compute_discrete_atomic_gate(_y_proj, charts=_ch, radii=_rd) > 0.5
-                if prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
+                    from ._axiom.transport import prepare_axiom_transport_step
+                    rec_ax_step = getattr(self.opt_d, "record", None)
+                    base_p = unwrap_prior(self.prior)
+                    simplicial_active = prepare_axiom_transport_step(
+                        prim_op,
+                        rec_ax_step,
+                        real,
+                        prior_table=getattr(base_p, "z", None),
+                        batch_rows=indices,
+                        is_discrete_prior=(self.prior_noise_generator is None),
+                        use_simplex=use_simplex,
+                        simplex_chart_weight=recipe.rhbi_simplex_chart_weight,
+                    )
+                    is_axiom_atomic = bool(
+                        use_simplex and recipe.rhbi_simplex_chart_weight > 0.0 and not simplicial_active
+                    )
+                elif prim_op is not None and hasattr(prim_op, "bind_discrete_prior_step"):
                     simplicial_active = (
                         use_simplex
-                        and not is_axiom_atomic
                         and recipe.rhbi_simplex_chart_weight > 0.0
-                        and (recipe.effective_critic_formulation == "axiom" or recipe.rhbi_simplex_macro_settle)
+                        and recipe.rhbi_simplex_macro_settle
                     )
                     prim_op.bind_discrete_prior_step(
                         self.prior_noise_generator is None,
                         simplicial_active=simplicial_active,
                     )
-                    if rec_ax_step is not None and hasattr(rec_ax_step, "_simplicial_step"):
-                        rec_ax_step._simplicial_step = bool(simplicial_active)
                 if hasattr(self.loss, "bind_discrete_prior_step") and hasattr(self.loss, "manifold_chart_loss"):
                     rgdt_manifold_active = (
                         recipe.rgdt_manifold_chart_weight > 0.0
@@ -1147,9 +1249,14 @@ class GANTrainer:
                     # Its contribution to the training objective is recipe.prior_reg.
                     raw = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
                     prior_reg = self.prior_regularizer(raw)
+                aux_terms = []
+                if recipe.prior_reg > 0 and prior_reg.requires_grad:
+                    aux_terms.append(recipe.prior_reg * prior_reg)
                 loss_g = loss_gan + recipe.prior_reg * prior_reg
                 if self.prior.z.requires_grad and recipe.prior_l2 > 0:
-                    loss_g = loss_g + recipe.prior_l2 * self.prior.z.square().mean()
+                    l2_term = recipe.prior_l2 * self.prior.z.square().mean()
+                    aux_terms.append(l2_term)
+                    loss_g = loss_g + l2_term
                 prior_manip_loss = None
                 if self._prior_penalty:
                     raw_rows = self.prior.z if recipe.num_particles <= 1024 else self.prior.z[torch.unique(indices)]
@@ -1187,6 +1294,8 @@ class GANTrainer:
                             macro_settle=recipe.rhbi_simplex_macro_settle,
                             curve_settle=recipe.rhbi_simplex_curve_settle,
                         )
+                    if simplex_loss.requires_grad:
+                        aux_terms.append(simplex_loss)
                     loss_g = loss_g + simplex_loss
                 rgdt_chart_loss = None
                 if (
@@ -1203,6 +1312,8 @@ class GANTrainer:
                         real_g,
                         record=getattr(self.opt_d, "record", None),
                     )
+                    if rgdt_chart_loss.requires_grad:
+                        aux_terms.append(rgdt_chart_loss)
                     loss_g = loss_g + rgdt_chart_loss
                 self.opt_g.zero_grad()
                 protected_evaluator = None
@@ -1225,39 +1336,24 @@ class GANTrainer:
                         finally:
                             if rec is not None:
                                 rec._in_protected_probe = prev_probe
-                constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
-                                             protected_evaluator=protected_evaluator)
+                use_axiom_single_bw = (
+                    recipe.optimizer_family == "axiom"
+                    and recipe.constraint_geometry_mode == "direction_blend"
+                    and hasattr(self.opt_g, "backward_with_protected")
+                    and not self._prior_penalty
+                    and not recipe.kinetic_transport_weight
+                    and not recipe.kinetic_transport_local_weight
+                )
+                if use_axiom_single_bw:
+                    aux_loss = sum(aux_terms[1:], aux_terms[0]) if aux_terms else None
+                    self.opt_g.backward_with_protected(loss_gan, aux_loss)
+                else:
+                    constraint_geometry_backward(loss_g, self.opt_g, (loss_gan,),
+                                                 protected_evaluator=protected_evaluator)
                 self.policy.after_generator_backward(
                     loss_gan=loss_gan.detach(), loss_critic=(loss_d - penalty).detach())
-                if self._gradient_response is not None:
-                    params = list(self.G.parameters())
-                    grads = [torch.zeros_like(p) if p.grad is None else p.grad for p in params]
-                    gain = self._gradient_response.observe(grads)
-                    # Replace noisy stochastic parameter gradients with bias-corrected EMA mean
-                    for p, m in zip(params, self._gradient_response.packet["means"]):
-                        p.grad = (m / self._gradient_response.packet["weight"]).to(p).clone()
-                    # Temporarily scale generator proposal learning rate
-                    saved_lrs = []
-                    for group in self.opt_g.param_groups:
-                        saved_lrs.append(group["lr"])
-                        if group.get("role") == "generator":
-                            group["lr"] = group["lr"] * gain
-                    try:
-                        self.opt_g.step()
-                    finally:
-                        for group, lr in zip(self.opt_g.param_groups, saved_lrs):
-                            group["lr"] = lr
-                        self._gradient_response.response["applied_steps"] += 1
-                else:
-                    self.opt_g.step()
+                self.opt_g.step()
                 self.policy.after_generator_step()
-        finally:
-            prim_cleanup = getattr(self.loss, "t1c", None) or getattr(self.loss, "rhbi", None)
-            if prim_cleanup is not None and hasattr(prim_cleanup, "bind_discrete_prior_step"):
-                prim_cleanup.bind_discrete_prior_step(False)
-            if hasattr(self.loss, "bind_discrete_prior_step"):
-                self.loss.bind_discrete_prior_step(False)
-            _exit_critic_g_step_mode(self.D, g_step_critic_state)
         self.policy.finish_step()
         if self.serve_after_step:
             self._serve_apply()
@@ -1442,7 +1538,7 @@ class GANTrainer:
         gradient_response = None
         if self._gradient_response is not None:
             gradient_response = deepcopy(self._gradient_response)
-            gradient_response.load_state_dict(state["gradient_response"], self.G.parameters())
+            gradient_response.load_state_dict(state["gradient_response"], self._trainable_generator_params())
             if steps and (gradient_response.packet is None
                           or gradient_response.packet["count"] < steps
                           or gradient_response.response["applied_steps"] < steps):
@@ -1456,6 +1552,7 @@ class GANTrainer:
                 or state["models"].keys() != expected["models"].keys()
                 or state["streams"].keys() != expected["streams"].keys()):
             raise ValueError("invalid checkpoint model or RNG schema")
+        from .low_precision import validate_emulated_extra_states
         for name, tensors in state["models"].items():
             current = expected["models"][name]
             if not isinstance(tensors, dict) or tensors.keys() != current.keys():
@@ -1468,6 +1565,7 @@ class GANTrainer:
                         raise ValueError(f"checkpoint model {name} has incompatible tensors")
                 elif saved != value:
                     raise ValueError(f"checkpoint model {name} has incompatible state")
+            validate_emulated_extra_states(getattr(self, name), tensors)
         if self.recipe.prior_regularizer == "coulomb" and self.recipe.prior_reg > 0 and self.recipe.prior_update == "learned":
             from .coulomb_prior import CENTER_BUFFER, RADIUS_BUFFER
             for name in ("prior", "ema_prior"):
@@ -1574,8 +1672,11 @@ class GANTrainer:
             self.row_evidence.load_state_dict(state["row_evidence"])
         if self.policy.surprise is not None:
             self.policy.surprise.load_state_dict(_state_to_device(state["surprise"], self.device))
-        if self.policy.loss_surprise is not None and "loss_surprise" in state:
-            self.policy.loss_surprise.load_state_dict(_state_to_device(state["loss_surprise"], self.device))
+        if self.policy.loss_surprise is not None:
+            if "loss_surprise" in state:
+                self.policy.loss_surprise.load_state_dict(_state_to_device(state["loss_surprise"], self.device))
+            else:
+                self.policy.loss_surprise.reset()
         if self.policy.reopen_guard is not None:
             self.policy.reopen_guard.load_state_dict(state["reopen_guard"], roles=self.policy.roles,
                                                      completed_steps=state["completed_steps"],

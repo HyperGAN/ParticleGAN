@@ -1,8 +1,14 @@
-# Axiom Family Comparative Forge Study (`axiom-v4` Release)
+# Axiom Family Comparative Forge Study (Historical `axiom-v4` Snapshot)
+
+> [!WARNING]
+> **Historical Snapshot & Audit Retraction Notice (2026-11-26):**
+> 1. **Superseded `axiom-v4` snapshot:** All Forge metrics in this study (`18/18` `t3-holdout`, `2/2` ByteGAN, `7.307 J/step`, `40/47` `disc-stab`, etc.) record the historical **`axiom-v4` (`758b397a5`)** evaluation — NOT current `axiom-v5` or post-remediation `develop`. Historical Forge readouts under `reports/forge/records/` are preserved byte-for-byte.
+> 2. **Four-Laws `9/9 PASS vs 0/9` benchmark claims RETRACTED:** The `9/9` vs `0/9` Four-Laws adversarial stress control claims in Section 1 (item 5), Section 2 (last row), and Section 5 are **retracted** because the original `scripts/axiom_four_laws_benchmark.py` used mismatched competitor ground-truth formulas in Suite 4A, hardcoded mocks in Suites 3B/5B/5C, targeted tail indices (`126..127`) in Suite 3C, and omitted `torch.nonzero` sync counting in Suite 5D (see [four-laws-benchmark.md](four-laws-benchmark.md)). `scripts/axiom_four_laws_benchmark.py` has been repaired and fresh benchmark runs are pending; no replacement numbers are fabricated here.
+> 3. **Post-remediation code & task-scope updates:** The historical `2,409` / `<= 2,500` LOC figure reflected semicolon-packed formatting; `particlegan/_axiom/` has since been un-minified into readable PEP-8 Python (LOC caps are heuristics, not hard gates), all `torch.autograd.grad` / RoR paths have been removed in favor of `fwad_exact` / `fwad_debiased` / `secant_debiased`, and the archived `grid100_res16_scaled_tanh` task (`preserve_latent_norm=True` `atanh(tanh)` identity lock) is scope-corrected in [`reports/forge/evidence-corrections-2026-11-26.json`](../forge/evidence-corrections-2026-11-26.json) and superseded for new evaluations by clean `grid100_res16_scaled_tanh_v2`.
 
 - **Candidate:** `axiom-v4` (`preset="axiom"`, [axiom-v4.json](../../configs/forge/ideas/axiom-v4.json); parent [`axiom-v1.json`](../../configs/forge/ideas/axiom-v1.json))
 - **Source & Revision:** `origin/feat/axiom-family` commit `758b397a5` (PR #672, `axiom-v4` complete), Forge `candidate_revision = 0e31275ce41d6a1e161a3f8e8ed8c10e5781b8c9829789a73c57010aae08f2f6`
-- **Core Footprint:** **`2,409` LOC** across 7 clean-slate modules ([`__init__.py`](../../particlegan/_axiom/__init__.py) 70, [`critic.py`](../../particlegan/_axiom/critic.py) 378, [`loss.py`](../../particlegan/_axiom/loss.py) 213, [`optimizer.py`](../../particlegan/_axiom/optimizer.py) 550, [`prior.py`](../../particlegan/_axiom/prior.py) 468, [`transport.py`](../../particlegan/_axiom/transport.py) 694, [`axiom.py`](../../particlegan/axiom.py) 36; strictly `<= 2,500` LOC cap; zero legacy sibling imports, zero `svd`/`eigh`/`pinv`/`torch.compile`, zero new `Recipe` fields, 100% clock-free).
+- **Historical `758b397a5` Footprint (archived, minified):** `2,409` physical lines across 7 clean-slate modules ([`__init__.py`](../../particlegan/_axiom/__init__.py) 70, [`critic.py`](../../particlegan/_axiom/critic.py) 378, [`loss.py`](../../particlegan/_axiom/loss.py) 213, [`optimizer.py`](../../particlegan/_axiom/optimizer.py) 550, [`prior.py`](../../particlegan/_axiom/prior.py) 468, [`transport.py`](../../particlegan/_axiom/transport.py) 694, [`axiom.py`](../../particlegan/axiom.py) 36; subsequently un-minified into readable PEP-8 Python — LOC caps are heuristics, not hard gates; zero legacy sibling imports, zero `svd`/`eigh`/`pinv`/`torch.compile`, zero new `Recipe` fields, 100% clock-free).
 - **Protocol & Hardware:** Protocol `seed = 0`, public `deterministic_orthogonal_` initializer, clean live weights, fixed global recipe across every task, `NVIDIA RTX A6000` (PyTorch `2.15.0+cu132`, `dcgan_performance` + matched 6-recipe NVML energy executed solo on pristine uncontended physical GPU 1 `GPU-548116b7-9dbe-de58-b3d9-a6e27b0f74ce`, pre-run `0%` util, `15 MiB` VRAM, `25.98 W` idle).
 - **Companion Documents:** [Design Spec](design-spec.md) · [Stage-1 Gap Analysis](gap-analysis.md) · [Four-Laws Benchmark](four-laws-benchmark.md) · [Forge Family Leaderboard](../forge/technique-inventory.md) · [Unified ByteGAN Study](../forge/studies/unified-bytegan-bijection.md)
 
@@ -11,8 +17,8 @@
 ## 1. Executive Summary & Recommendation
 
 > [!IMPORTANT]
-> **Recommendation: MERGE `feat/axiom-family` into `develop` as an opt-in research/production family (`preset="axiom"`).**
-> Keep `DEFAULT_RECIPE = "unified_v12"` and `configs/forge/selections/family-current-v1.json` **untouched**. Scientific superiority and default adoption require accepted compatible calibration and full Tier-1/Tier-2 parity; `axiom-v4` delivers major repository breakthroughs across untouched 14,000-update endurance (`18/18` sweep), Conv2d throughput/VRAM/NVML energy, ByteGAN accuracy, `t3_iso` covariance margin, Nash imbalance (`3/3`), shift recovery (`5/5`), and Four-Laws structural controls (`9/9`), while cleanly documenting honest remaining Tier-2 and `fl_*` diagnostic gaps for `axiom-v5`.
+> **Historical Recommendation (archived `axiom-v4`):** MERGE `feat/axiom-family` into `develop` as an opt-in research/production family (`preset="axiom"`).
+> Keep `DEFAULT_RECIPE = "unified_v12"` and `configs/forge/selections/family-current-v1.json` **untouched**. Scientific superiority and default adoption require accepted compatible calibration and full Tier-1/Tier-2 parity; historical `axiom-v4` delivered strong results across untouched 14,000-update endurance (`18/18` sweep), Conv2d throughput/VRAM/NVML energy, ByteGAN accuracy, `t3_iso` covariance margin, Nash imbalance (`3/3`), and shift recovery (`5/5`), while documenting remaining Tier-2 and `fl_*` diagnostic gaps for `axiom-v5`. *(Note: the original `9/9` Four-Laws structural controls claim has been **retracted** — see top notice and [four-laws-benchmark.md](four-laws-benchmark.md).)*
 
 ### Headline Breakthroughs (`axiom-v4`, `758b397a5`)
 
@@ -29,9 +35,9 @@
    - `bytegan_hypercube8`: **`256/256`** unique valid bytes, `0` collisions, `0` orphans, `mass_tv=0.0`, **`rms_bit_error = 0.00471`** (**`9.3x` lower** than `unified-v14` `0.04393`, **`9.4x` lower** than `unified-v13` `0.0445`), `max_bit_error = 0.0796` (`2.0x` lower than `unified-v14` `0.1605`), `min_bit_margin = 0.9626` (vs `unified-v14` `0.8395`). `bytegan_bigan_dictionary`: `256/256` forward/recon/encoder bijection, `latent_nn_hamming_mean = 1.0000`.
    - `t3_iso_scale_mass_8x`: **`core_min_eigen_ratio = 0.5447`** (**`+0.0724`** above `unified-v12`/`v13`/`v14` `0.4723`) and `core_component_covariance_error = 0.2376` (beats `unified-v14` `0.2959`).
    - `t4_imbalance_nash_stretch`: **`3/3` PASS** (up from `axiom-v3` `1/3`), `t3-shift-recovery-diagnostic-v1`: **`5/5` PASS** (up from `3/5`), `t4-strange-architectures-v1`: **`5/7` PASS** (up from `4/7`).
-5. **Four-Laws Structural Controls (`9/9` PASS) & First Recorded `four-laws-adherence-v1` Diagnostic Baseline (`22/33` PASS):**
-   - Retains `9/9` PASS on the Four-Laws adversarial stress controls vs `0/9` for `unified_v12`/`v13`/`minimal`/`rhbi` ([four-laws-benchmark.md](four-laws-benchmark.md)).
-   - On the new `four-laws-adherence-v1` view (`research_diagnostic` scope only; grants zero ordinary qualification credit), achieves **`22/33` unique PASS** = **`19/24` curated Forge anchors** + **`3/9` adversarial `fl_*` probes** (`fl_law2_pure_adversarial_codim1`, `fl_law42_swap_deep_critic_16l` at `8/8, hq=1.0, valley=0.0`, and `fl_law42_deep_resbn_and_conv1x1` at `sw1=0.0236, conv1x1_sw1=0.0210`).
+5. **First Recorded `four-laws-adherence-v1` Diagnostic Baseline (`22/33` PASS); Four-Laws Structural Controls (`9/9` vs `0/9`) RETRACTED:**
+   - **[RETRACTED — 2026-11-26 Audit]:** The previously reported `9/9 PASS` vs `0/9` Four-Laws adversarial stress controls comparison ([four-laws-benchmark.md](four-laws-benchmark.md)) is retracted due to mismatched competitor ground-truth formulas in Suite 4A, hardcoded mocks in Suites 3B/5B/5C, targeted tail indices in Suite 3C, and omitted `torch.nonzero` sync counting in Suite 5D. `scripts/axiom_four_laws_benchmark.py` has been repaired and fresh benchmark runs are pending.
+   - On the `four-laws-adherence-v1` view (`research_diagnostic` scope only; grants zero ordinary qualification credit), `axiom-v4` achieved **`22/33` unique PASS** = **`19/24` curated Forge anchors** + **`3/9` adversarial `fl_*` probes** (`fl_law2_pure_adversarial_codim1`, `fl_law42_swap_deep_critic_16l` at `8/8, hq=1.0, valley=0.0`, and `fl_law42_deep_resbn_and_conv1x1` at `sw1=0.0236, conv1x1_sw1=0.0210`).
 6. **Honest Remaining Gaps (`axiom-v5` Targets):**
    - `disc-stab` `7` executed `FAIL`s: `model_ddgan_gaussian_chain` & `model_ae_ddgan_gaussian_chain` (which gate `model_{ddgan,ae_ddgan}_bimodal_chain`, leaving 2 downstream tasks unexecuted), `interp_img_patch_shift` (regressed from `v3` diagnostic pass to zero collapse), `interp_saddle_barycentric` (`0.7639` vs `0.78`, 2 triangles short), `interp_sparse_arc` (terminal `1.0` / `0.8056` passed, missed earlier suffix), `vector_spiral` (`sw1=0.1263`), and `img_blobs4` (`2/4` modes).
    - `t4-strange-architectures-v1` `2` `FAIL`s: `grid100_mlp16` (terminal `accuracy_pass=True` & `frozen_pass=True`, missed live suffix) and `grid100_res16_tanh` (`cov_trace_bias=-0.1184` vs `0.10`, `0.0%` saturation).
@@ -54,7 +60,7 @@ All `axiom-v4` rows below come from **official frozen Forge studies** (`seed = 0
 | **`t4-strange-architectures-v1` (7 tasks)** | **`5/7` PASS** ([ro](../forge/records/readout-18bc7392296d5574083ccab4.json)) | `4/7` PASS ([ro](../forge/records/readout-fa20a38c3690656c64c2a7fc.json)) | `7/7` PASS (`9b4a34dd`) | — | `7/7` PASS ([ro](../forge/records/readout-c1ee5c3bb7ac4f432532da63.json)) | `6/7` PASS ([ro](../forge/records/readout-b96d9de47bb52cc91fbb4a4f.json)) | — | — | `3/7` PASS ([ro](../forge/records/readout-6bac8895ffa14ef20dcbee75.json)) |
 | **`discriminator_stability` (T1 / T1–2)** | **`40/47` T1–2** (`16/17` T1) ([ro](../forge/records/readout-d83ce97f520f7668f39996df.json)) | `11/17` T1 (blocked) ([ro](../forge/records/readout-109bbb98231a0a7a4e6903f9.json)) | `45/49` T1–2 (`030b7549`, 1 inc.) | `17/17` T1 (`47/51` live) | `17/17` T1 (`46/48` [ro](../forge/records/readout-b51ab67c4d97526186e23651.json)) | `41/47` T1–2 ([ro](../forge/records/readout-fc5b67a767e57d748f460610.json)) | `34/41` ([ro](../forge/records/readout-47591bd9555febfe3409fd0d.json)) | `24/41` ([ro](../forge/records/readout-33f7628135472eef06f0d92a.json)) | `10/17` T1 ([ro](../forge/records/readout-889d4d1d2b24d0a08ab4017c.json)) |
 | **`four-laws-adherence-v1`** *(diagnostic only)* | **`22/33` PASS** (`19/24` + `3/9` `fl_*`) ([ro](../forge/records/readout-9066cb4353eb435be7819b0c.json)) | — | — | — | — | — | — | — | — |
-| **Four-Laws Adversarial Stress Controls** | **`9/9` PASS** ([bench](four-laws-benchmark.md)) | `9/9` PASS | — | `0/9` | `0/9` | `0/9` | `0/9` | `0/9` | `0/9` |
+| **Four-Laws Adversarial Stress Controls** | **RETRACTED** *(pending rerun; [audit notice](four-laws-benchmark.md))* | RETRACTED | — | RETRACTED | RETRACTED | RETRACTED | RETRACTED | RETRACTED | RETRACTED |
 
 ---
 
@@ -128,7 +134,7 @@ All six public recipes executed sequentially on the exact same uncontended physi
 - **`t3-shift-recovery-diagnostic-v1`** ([readout-d3967c0e](../forge/records/readout-d3967c0e415122139e9783d8.json)) — **`5/5` PASS** (up from `axiom-v3` `3/5`):
   - PASS on `ae_gan_hold` (`recon_mse=0.0103`), `mode_hold` (`8/8, hq=0.9951`), `zero_tanh_smoke` (`p99=0.0157`), `zero_tanh_rail_escape` (`p99=0.0108, sat=0.0`), and `target_shift_recovery` (live recovery + matched frozen negative control).
 - **`t4-strange-architectures-v1`** ([readout-18bc7392](../forge/records/readout-18bc7392296d5574083ccab4.json)) — **`5/7` PASS** (up from `axiom-v3` `4/7`):
-  - **PASS (5):** `clockfree_audit_measurement_v1`, `zero_tanh_smoke`, `zero_tanh_rail_escape`, `grid100` (`score=0.5342`), and `grid100_res16_scaled_tanh` (`prec=0.9843, tv=0.0232, bias=-0.0697, score=0.5325`).
+  - **PASS (5):** `clockfree_audit_measurement_v1`, `zero_tanh_smoke`, `zero_tanh_rail_escape`, `grid100` (`score=0.5342`), and `grid100_res16_scaled_tanh` (`prec=0.9843, tv=0.0232, bias=-0.0697, score=0.5325`; *archived legacy `preserve_latent_norm=True` task — scope-corrected in `reports/forge/evidence-corrections-2026-11-26.json` and superseded for new evaluations by clean `grid100_res16_scaled_tanh_v2`*).
   - **FAIL (2):** `grid100_mlp16` (terminal `accuracy_pass=True`, `frozen_pass=True`, `prec=0.9845, tv=0.0259, bias=-0.0876, score=0.6385` — missed earlier live suffix) and `grid100_res16_tanh` (`prec=0.9820, tv=0.0249, sat=0.0`, `abs_cov_trace_bias=0.1184 > 0.10`).
 
 ### 4.5 `axiom-v4-disc-stab-study` (`discriminator_stability` Tier 1 + Tier 2) — **40/47 Executed PASS** ([readout-d83ce97f](../forge/records/readout-d83ce97f520f7668f39996df.json))
@@ -157,9 +163,12 @@ All six public recipes executed sequentially on the exact same uncontended physi
 
 ---
 
-## 5. Refreshed Four-Laws Adversarial Stress Controls (`axiom-v4` vs Legacy Families)
+## 5. [RETRACTED] Four-Laws Adversarial Stress Controls (`axiom-v4` vs Legacy Families)
 
-Full measurements on `NVIDIA RTX A6000` (`seed = 0`, `scripts/axiom_four_laws_benchmark.py`, see [four-laws-benchmark.md](four-laws-benchmark.md)):
+> [!CAUTION]
+> **RETRACTED (2026-11-26 Audit):** The table below from the original `scripts/axiom_four_laws_benchmark.py` run is **invalid and retracted**. The benchmark driver used mismatched competitor ground-truth formulas in Suite 4A, hardcoded mocks in Suites 3B/5B/5C, targeted tail indices (`126..127`) in Suite 3C, and omitted `torch.nonzero` sync counting in Suite 5D. `scripts/axiom_four_laws_benchmark.py` has been repaired and fresh post-remediation runs are pending; see [four-laws-benchmark.md](four-laws-benchmark.md) for the full retraction record. Archived figures below are retained strictly for audit traceability and must NOT be cited as current results.
+
+Archived pre-retraction measurements on `NVIDIA RTX A6000` (`seed = 0`, pre-repair `scripts/axiom_four_laws_benchmark.py`, see [four-laws-benchmark.md](four-laws-benchmark.md)):
 
 | Structural Law Control | **`axiom-v4`** | `unified_v12` | `unified_v13` | `minimal` | `rhbi` |
 |---|---:|---:|---:|---:|---:|

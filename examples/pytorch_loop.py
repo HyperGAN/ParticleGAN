@@ -9,7 +9,7 @@ the same update GANTrainer performs, with the control flow in your hands:
 * role-wise LR schedule: ``learning_rate_scales`` (network horizon + prior),
 * critic input noise (``InputNoise``) / generator output noise (annealed, one stream),
 * ``recipe.make_optimizers(G, D, prior, ema_critic=copy.deepcopy(D))``:
-  recipe-owned optimizers, currently Axiom (``axiom``, matching ``axiom-v5``) energy-optimal clean-slate Four-Laws equilibration with zero-autograd/zero-pinv direction blending,
+  recipe-owned optimizers, currently Axiom (``axiom``, matching ``axiom-v6``) clean-slate 9-module Four-Laws equilibration with zero-autograd/zero-pinv direction blending,
 * sampled prior rows and protected generator loss bound before the G step,
 * ``recipe.make_critic_penalty(opt_d)``: the critic penalty, added to the
   critic loss like any other term.
@@ -30,7 +30,15 @@ import time
 import torch
 from torch import nn
 
-from particlegan import InputNoise, get_recipe, init, learning_rate_scales, scale_learning_rates
+from particlegan import (
+    InputNoise,
+    bind_formulation_records,
+    critic_g_step_mode,
+    get_recipe,
+    init,
+    learning_rate_scales,
+    scale_learning_rates,
+)
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from particlegan.training import input_noise_std, output_noise_std
 
@@ -96,6 +104,7 @@ def main():
     spread = recipe.make_prior_regularizer(prior=prior)
     base_lrs = [[group["lr"] for group in opt.param_groups] for opt in (opt_g, opt_d)]
     penalty = recipe.make_critic_penalty(opt_d)
+    bind_formulation_records(recipe, opt_d, gan, spread, generator=generator)
     noise = torch.Generator(device=device).manual_seed(43)
     noisy_critic = InputNoise(critic, generator=noise)  # fresh input noise per evaluation
 
@@ -112,7 +121,7 @@ def main():
     started = time.monotonic()
     for step in range(1, recipe.total_steps + 1):
         network, prior_scale = learning_rate_scales(step - 1, recipe)
-        scale_learning_rates(step - 1, recipe, (opt_g, opt_d), base_lrs, prior)
+        scale_learning_rates(step - 1, recipe, (opt_g, opt_d), base_lrs, prior, penalty=penalty)
         noisy_critic.std = input_noise_std(recipe, step - 1)
         sigma_out = output_noise_std(recipe, step - 1)
 
@@ -128,10 +137,8 @@ def main():
         d_loss.backward()
         opt_d.step()
 
-        # Freeze critic weights while preserving gradients through critic(fake).
-        flags = [parameter.requires_grad for parameter in critic.parameters()]
-        critic.requires_grad_(False)
-        try:
+        # Freeze critic weights (and preserve BN eval stats) while keeping gradients through critic(fake).
+        with critic_g_step_mode(critic):
             opt_g.zero_grad(set_to_none=True)
             g_loss = gan.g_loss(noisy_critic(fake), noisy_critic(real).detach())
             prior_loss = spread(prior.z[particle_ids.unique()])
@@ -140,9 +147,6 @@ def main():
                 opt_g.set_sampled_rows(prior.z, particle_ids)
             constraint_geometry_backward(total_g, opt_g, (g_loss,))
             opt_g.step()
-        finally:
-            for parameter, flag in zip(critic.parameters(), flags):
-                parameter.requires_grad_(flag)
         update_ema(ema_g, generator, recipe.ema_decay)
         update_ema(ema_prior, prior, recipe.ema_decay)
 

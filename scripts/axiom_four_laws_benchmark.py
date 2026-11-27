@@ -49,9 +49,8 @@ from particlegan._axiom.critic import AxiomStepRecord, _attach_axiom_generator_h
 from particlegan._axiom.optimizer import AxiomOptimizer, fp32_tikhonov_ns_2d
 from particlegan._axiom.prior import AxiomPriorRegularizer, allocate_deficit_quotas, coalesce_pythagorean_ltv
 from particlegan._minimal import dynamics as minimal_dynamics
-from particlegan._minimal.dynamics import MinimalGeneratorOptimizer, MinimalStepRecord
+from particlegan._minimal.dynamics import MinimalGeneratorOptimizer
 from particlegan._minimal.prior import MinimalPriorRegularizer, _coalesce_isolated
-from particlegan._t1_coupling.charts import laguerre_hard_commitment
 from particlegan._unified_v11.critic import UnifiedV11StepRecord, _attach_unified_v11_generator_hook
 from particlegan._unified_v11.optimizer import quintic_orthogonalize_2d
 from particlegan._unified_v11.prior import (
@@ -149,10 +148,12 @@ def _born_infeld_2d(
 
 
 @contextmanager
-def _track_minimal_orth():
-    """Count exact calls to minimal's 2D orthogonalizer without altering its behavior."""
+def _track_minimal_orth(opt_g: Any = None, opt_d: Any = None):
+    """Count exact calls to minimal's 2D orthogonalizer attributed accurately to G vs D."""
     state = {"active": "G", "G": 0, "D": 0}
     orig = getattr(minimal_dynamics, "_orth", None)
+    orig_g_step = getattr(opt_g, "step", None) if opt_g is not None else None
+    orig_d_step = getattr(opt_d, "step", None) if opt_d is not None else None
     if orig is None:
         yield state
         return
@@ -161,11 +162,29 @@ def _track_minimal_orth():
         state[state["active"]] += 1
         return orig(*args, **kwargs)
 
+    def _wrap_opt_step(orig_step: Any, role: str):
+        def _step(*args: Any, **kwargs: Any) -> Any:
+            prev = state["active"]
+            state["active"] = role
+            try:
+                return orig_step(*args, **kwargs)
+            finally:
+                state["active"] = prev
+        return _step
+
     minimal_dynamics._orth = _wrapped  # type: ignore[assignment]
+    if opt_g is not None and orig_g_step is not None:
+        opt_g.step = _wrap_opt_step(orig_g_step, "G")
+    if opt_d is not None and orig_d_step is not None:
+        opt_d.step = _wrap_opt_step(orig_d_step, "D")
     try:
         yield state
     finally:
         minimal_dynamics._orth = orig  # type: ignore[assignment]
+        if opt_g is not None and orig_g_step is not None:
+            opt_g.step = orig_g_step
+        if opt_d is not None and orig_d_step is not None:
+            opt_d.step = orig_d_step
 
 
 def _extract_ns_count(opt: Any, min_count: int) -> int:
@@ -182,12 +201,14 @@ def _extract_ns_count(opt: Any, min_count: int) -> int:
 
 @contextmanager
 def _count_host_syncs(device: torch.device):
-    """Count explicit Tensor.item(), Tensor.tolist(), Tensor.__bool__(), and torch.unique calls."""
-    counts = {"item": 0, "tolist": 0, "bool": 0, "unique": 0}
+    """Count explicit Tensor.item(), Tensor.tolist(), Tensor.__bool__(), torch.unique, and nonzero calls."""
+    counts = {"item": 0, "tolist": 0, "bool": 0, "unique": 0, "nonzero": 0}
     orig_item = torch.Tensor.item
     orig_tolist = torch.Tensor.tolist
     orig_bool = torch.Tensor.__bool__
     orig_unique = torch.unique
+    orig_nonzero = torch.nonzero
+    orig_tensor_nonzero = torch.Tensor.nonzero
 
     def _wrap_item(self: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
         if self.device.type == device.type:
@@ -209,10 +230,22 @@ def _count_host_syncs(device: torch.device):
             counts["unique"] += 1
         return orig_unique(inp, *args, **kwargs)
 
+    def _wrap_nonzero(inp: Any, *args: Any, **kwargs: Any) -> Any:
+        if isinstance(inp, torch.Tensor) and inp.device.type == device.type:
+            counts["nonzero"] += 1
+        return orig_nonzero(inp, *args, **kwargs)
+
+    def _wrap_tensor_nonzero(self: torch.Tensor, *args: Any, **kwargs: Any) -> Any:
+        if self.device.type == device.type:
+            counts["nonzero"] += 1
+        return orig_tensor_nonzero(self, *args, **kwargs)
+
     torch.Tensor.item = _wrap_item  # type: ignore[assignment]
     torch.Tensor.tolist = _wrap_tolist  # type: ignore[assignment]
     torch.Tensor.__bool__ = _wrap_bool  # type: ignore[assignment]
     torch.unique = _wrap_unique  # type: ignore[assignment]
+    torch.nonzero = _wrap_nonzero  # type: ignore[assignment]
+    torch.Tensor.nonzero = _wrap_tensor_nonzero  # type: ignore[assignment]
     try:
         yield counts
     finally:
@@ -220,6 +253,8 @@ def _count_host_syncs(device: torch.device):
         torch.Tensor.tolist = orig_tolist  # type: ignore[assignment]
         torch.Tensor.__bool__ = orig_bool  # type: ignore[assignment]
         torch.unique = orig_unique  # type: ignore[assignment]
+        torch.nonzero = orig_nonzero  # type: ignore[assignment]
+        torch.Tensor.nonzero = orig_tensor_nonzero  # type: ignore[assignment]
 
 
 def _make_standalone_opt(preset: str, params: List[torch.Tensor], lr: float) -> Any:
@@ -269,14 +304,23 @@ def _make_standalone_opt(preset: str, params: List[torch.Tensor], lr: float) -> 
 def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
     print("\n=== SUITE 1: Law 4.2 (P5 Deep 16L Critic/Gen + Healthy Conv2d + P0 Rank-1 NS) ===", flush=True)
 
-    # 1A: Regime B1 — Pure adversarial RpGAN + Law 2 BI (3L G + 16L skip-free D, ring8, 300 steps)
+    # 1A: Regime B1 — Pure adversarial RpGAN + each recipe's own critic penalty (3L G + 16L skip-free D, ring8, 300 steps)
     steps_b1, bsz_b1, n_p_b1 = 300, 256, 512
+    matched_lr_1, matched_d_lr_mult_1 = 0.014, 1.5
     data_rng = torch.Generator(device=device).manual_seed(0)
     real_b1 = [_sample_ring(bsz_b1, device, data_rng, n_modes=8, radius=2.5, sigma=0.08) for _ in range(steps_b1)]
 
     regime_b1: Dict[str, Any] = {}
     for preset in PRESETS:
-        rec = pg.get_recipe(preset, num_particles=n_p_b1, z_dim=2, prior_kind="mog", batch_size=bsz_b1)
+        rec = pg.get_recipe(
+            preset,
+            num_particles=n_p_b1,
+            z_dim=2,
+            prior_kind="mog",
+            batch_size=bsz_b1,
+            lr=matched_lr_1,
+            d_lr_mult=matched_d_lr_mult_1,
+        )
         gen_m = SimpleMLPGenerator(2, 128, 3, 2)
         crit_m = SimpleMLPDiscriminator(2, 128, 16, fourier=0)
         prior = MoGParticlePrior(n_p_b1, 2, sigma=0.025, standardize=False, learnable=True)
@@ -286,43 +330,41 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
         gen_m, crit_m, prior = gen_m.to(device), crit_m.to(device), prior.to(device)
         rec.apply_prior_policy(prior)
         opt_g, opt_d = rec.make_optimizers(gen_m, crit_m, prior=prior)
+        loss_fn = rec.make_loss()
+        pen_fn = rec.make_critic_penalty(opt_d)
+        pg.bind_formulation_records(rec, opt_d, loss_fn, None, generator=gen_m)
         lat_rng = torch.Generator(device=device).manual_seed(0)
         _sync(device)
         t0 = time.perf_counter()
         finite_ok = True
-        with _track_minimal_orth() as min_orth:
+        with _track_minimal_orth(opt_g, opt_d) as min_orth:
             for st in range(steps_b1):
                 real = real_b1[st]
-                # D step
-                min_orth["active"] = "D"
+                # D step (recipe's actual loss + critic penalty)
                 opt_d.zero_grad(set_to_none=True)
                 with torch.no_grad():
                     z_d, _ = prior.sample(bsz_b1, generator=lat_rng)
                     fk_d = gen_m(z_d)
                 dr, df = crit_m(real), crit_m(fk_d)
-                adv_d = F.softplus(-(dr - df)).mean()
-                pen = _born_infeld_2d(crit_m, real, fk_d, beta=2.0, kappa=1.0)
+                adv_d = loss_fn.d_loss(dr, df)
+                pen = pen_fn(crit_m, real, fk_d)
                 loss_d = adv_d + pen
                 loss_d.backward()
                 opt_d.step()
 
                 # G + prior step (purely adversarial through D)
-                min_orth["active"] = "G"
                 opt_g.zero_grad(set_to_none=True)
-                for p in crit_m.parameters():
-                    p.requires_grad_(False)
-                z_g, idx_g = prior.sample(bsz_b1, generator=lat_rng)
-                if hasattr(opt_g, "set_sampled_rows"):
-                    opt_g.set_sampled_rows(prior.z, idx_g)
-                fk_g = gen_m(z_g)
-                adv_g = F.softplus(-(crit_m(fk_g) - crit_m(real).detach())).mean()
-                if getattr(opt_g, "direction_blend", False) and hasattr(opt_g, "bind_protected_from_grads"):
-                    adv_g.backward()
-                    opt_g.bind_protected_from_grads()
-                else:
-                    constraint_geometry_backward(adv_g, opt_g, (adv_g,))
-                for p in crit_m.parameters():
-                    p.requires_grad_(True)
+                with pg.critic_g_step_mode(crit_m):
+                    z_g, idx_g = prior.sample(bsz_b1, generator=lat_rng)
+                    if hasattr(opt_g, "set_sampled_rows"):
+                        opt_g.set_sampled_rows(prior.z, idx_g)
+                    fk_g = gen_m(z_g)
+                    adv_g = loss_fn.g_loss(crit_m(fk_g), crit_m(real).detach())
+                    if getattr(opt_g, "direction_blend", False) and hasattr(opt_g, "bind_protected_from_grads"):
+                        adv_g.backward()
+                        opt_g.bind_protected_from_grads()
+                    else:
+                        constraint_geometry_backward(adv_g, opt_g, (adv_g,))
                 opt_g.step()
                 if hasattr(opt_g, "clear_sampled_rows"):
                     opt_g.clear_sampled_rows()
@@ -355,6 +397,8 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
             "ns_G": ns_g,
             "ns_D": ns_d,
             "wall_s": wall_s,
+            "matched_lr": matched_lr_1,
+            "matched_d_lr_mult": matched_d_lr_mult_1,
         }
         print(
             f"  [1A Regime B1 16L-D] {preset:12s} | modes={ev['modes']}/8 hq={ev['hq']:.4f} "
@@ -375,6 +419,8 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
             num_particles=n_p_a,
             z_dim=2,
             batch_size=bsz_a,
+            lr=matched_lr_1,
+            d_lr_mult=matched_d_lr_mult_1,
         )
         gen_m = SimpleMLPGenerator(2, 128, 16, 2)
         crit_m = SimpleMLPDiscriminator(2, 128, 3, fourier=0)
@@ -387,9 +433,8 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
         _sync(device)
         t0 = time.perf_counter()
         finite_ok = True
-        with _track_minimal_orth() as min_orth:
+        with _track_minimal_orth(trainer.opt_g, trainer.opt_d) as min_orth:
             for st in range(steps_a):
-                min_orth["active"] = "G"
                 out = trainer.step(real_a[st])
                 if not (math.isfinite(float(out["loss_d"])) and math.isfinite(float(out["loss_g"]))):
                     finite_ok = False
@@ -407,7 +452,7 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
         else:
             modes, hq = 0, 0.0
         ns_g = _extract_ns_count(trainer.opt_g, min_orth["G"])
-        ns_d = _extract_ns_count(trainer.opt_d, 0)
+        ns_d = _extract_ns_count(trainer.opt_d, min_orth["D"])
         regime_a[preset] = {
             "finite": finite_ok,
             "modes": int(modes),
@@ -415,6 +460,8 @@ def run_suite1_law42_p5_p0(device: torch.device) -> Dict[str, Any]:
             "ns_G": ns_g,
             "ns_D": ns_d,
             "wall_s": wall_s,
+            "matched_lr": matched_lr_1,
+            "matched_d_lr_mult": matched_d_lr_mult_1,
         }
         print(
             f"  [1B Regime A  16L-G] {preset:12s} | modes={modes}/100 hq={hq:.4f} "
@@ -839,39 +886,76 @@ def run_suite3_law41_43_p4() -> Dict[str, Any]:
         )
 
     # 3B: coord_scale scale homogeneity across c in {1e-4, 1e-3, 1.0, 1e4}
+    # Measure each preset's actual instantiated optimizer & scale-tracking record (no hardcoded mocks).
     coord_homog: Dict[str, Any] = {}
     x_unit = torch.randn(32, 2, generator=torch.Generator().manual_seed(0))
     x_unit = x_unit / x_unit.square().mean().sqrt()  # exact per-coord RMS = 1.0
-    for c in (1e-4, 1e-3, 1.0, 1e4):
+    z_hom = torch.ones(16, 2, dtype=torch.float32)
+    ref_disp_c1: Dict[str, float] = {}
+    raw_homog_by_c: Dict[str, Dict[str, Dict[str, float]]] = {}
+    for c in (1.0, 1e-4, 1e-3, 1e4):
         x_sc = x_unit * c
-        rec_ax = AxiomStepRecord()
-        rec_ax.observe_margin_and_scale(torch.ones(32, 1), torch.zeros(32, 1), x_sc, x_sc)
-        cs_ax = max(1e-30, float(rec_ax.ema_data_scale) / math.sqrt(2.0))
-        rec_v11 = UnifiedV11StepRecord()
-        rec_v11.observe_scale(x_sc)
-        cs_v11 = max(0.05, float(rec_v11.ema_data_scale) / math.sqrt(2.0))
-        rec_min = MinimalStepRecord()
-        rec_min.observe_transport(0.5, float(x_sc.square().sum(-1).mean().sqrt().item()))
-        cs_min = max(0.05, float(rec_min.ema_data_scale) / math.sqrt(2.0))
-        coord_homog[f"{c:.0e}"] = {
-            "true_coord_rms": c,
-            "axiom_ratio": cs_ax / c,
-            "v12_v13_ratio": cs_v11 / c,
-            "minimal_ratio": cs_min / c,
-        }
+        c_key = f"{c:.0e}"
+        raw_homog_by_c[c_key] = {}
+        for preset in PRESETS:
+            rec_api = pg.get_recipe(preset)
+            gm = _ScalarMapGen(0.0, lambda th, sc=c: sc * th)
+            d_dum = nn.Linear(2, 1)
+            deterministic_orthogonal_(d_dum, seed=0)
+            opt_g, opt_d = rec_api.make_optimizers(gm, d_dum)
+            loss_fn = rec_api.make_loss()
+            pen_fn = rec_api.make_critic_penalty(opt_d)
+            pg.bind_formulation_records(rec_api, opt_d, loss_fn, None, generator=gm)
+            # Feed scaled batch through the recipe's real critic loss + penalty so its record tracks x_sc naturally.
+            dr, df = d_dum(x_sc), d_dum(x_sc * 0.5)
+            _ = loss_fn.d_loss(dr, df)
+            _ = pen_fn(d_dum, x_sc, x_sc * 0.5)
+            for grp in opt_g.param_groups:
+                grp["lr"] = 10.0
+            with torch.no_grad():
+                y_pre = gm(z_hom).detach().clone()
+            gm.train()
+            _ = gm(z_hom)
+            opt_g.zero_grad(set_to_none=True)
+            gm.theta.grad = torch.tensor([[-1.0, -1.0]], dtype=torch.float32)
+            if getattr(opt_g, "direction_blend", False) and hasattr(opt_g, "bind_protected_from_grads"):
+                opt_g.bind_protected_from_grads()
+            elif hasattr(opt_g, "bind_protected_losses"):
+                proxy = (gm.theta * gm.theta.grad.detach()).sum()
+                opt_g.zero_grad(set_to_none=True)
+                constraint_geometry_backward(proxy, opt_g, (proxy,))
+            opt_g.step()
+            with torch.no_grad():
+                y_post = gm(z_hom).detach().clone()
+            rms_rel = float((y_post.double() - y_pre.double()).square().mean().sqrt().item()) / float(c)
+            if c == 1.0:
+                ref_disp_c1[preset] = max(rms_rel, 1e-30)
+            raw_homog_by_c[c_key][preset] = {
+                "rms_rel_disp": rms_rel,
+                "alpha": float(getattr(opt_g, "last_step_gain", 1.0)),
+            }
+    for c in (1e-4, 1e-3, 1.0, 1e4):
+        c_key = f"{c:.0e}"
+        entry: Dict[str, Any] = {"true_coord_rms": c}
+        for preset in PRESETS:
+            rel = raw_homog_by_c[c_key][preset]["rms_rel_disp"]
+            entry[f"{preset}_rms_rel_disp"] = rel
+            entry[f"{preset}_ratio_vs_c1"] = rel / ref_disp_c1[preset]
+            entry[f"{preset}_alpha"] = raw_homog_by_c[c_key][preset]["alpha"]
+        coord_homog[c_key] = entry
 
-    # 3C: Rare 1.6% tail-mode capture (B=128, indices 126..127 are a 2-sample rare tail cluster with ||z|| = 6.0)
-    # Axiom's 32-sample stratified hook puts both tail samples into its top-norm half (2/32 = 6.25% > 5%),
-    # so p95 catches AND clamps the tail displacement <= d_max, whereas v12's prefix[:16] misses it completely.
+    # 3C: Rare 1.6% tail-mode capture (B=128, 2 rare tail samples with ||z|| = 6.0 at deterministic shuffled indices)
     tail_capture: Dict[str, Any] = {}
     z_tail = 0.25 * torch.randn(128, 2, generator=torch.Generator().manual_seed(0))
-    z_tail[126] = torch.tensor([6.0, 0.0])
-    z_tail[127] = torch.tensor([0.0, 6.0])
+    perm_tail = torch.randperm(128, generator=torch.Generator().manual_seed(0))
+    tail_indices = [int(perm_tail[0].item()), int(perm_tail[1].item())]
+    z_tail[tail_indices[0]] = torch.tensor([6.0, 0.0])
+    z_tail[tail_indices[1]] = torch.tensor([0.0, 6.0])
     for preset in PRESETS:
         gm = _TailModeGen()
         g_maj = torch.tensor([[0.0, 0.0], [0.0, 0.0]])
         g_rare = torch.tensor([[-1.0, 0.0], [0.0, -1.0]])
-        tail_capture[preset] = _run_trust_probe_step(
+        res_tail = _run_trust_probe_step(
             preset,
             gm,
             z_tail,
@@ -879,6 +963,8 @@ def run_suite3_law41_43_p4() -> Dict[str, Any]:
             lr=1.0,
             push_res=0.96875,
         )
+        res_tail["tail_indices"] = list(tail_indices)
+        tail_capture[preset] = res_tail
 
     for preset in PRESETS:
         print(
@@ -977,7 +1063,14 @@ def run_suite4_law2_p6(device: torch.device) -> Dict[str, Any]:
         base_d[-1].bias.zero_()
         base_d[-1].bias.sub_(0.5 * (base_d(xr_j).mean() + base_d(xf_j).mean()))
 
-    def _exact_ror_penalty_grad(formula: str) -> Tuple[float, torch.Tensor]:
+    def _exact_ror_penalty_grad(
+        formula: str,
+        *,
+        x_chord: Optional[torch.Tensor] = None,
+        minimal_lam: Optional[float] = None,
+        minimal_d_scale: Optional[float] = None,
+    ) -> Tuple[float, torch.Tensor]:
+        """Exact RoR reference matching each recipe's actual implemented critic penalty formula."""
         d_ref = _make_calibrated_mlp(dim_j, target_gn=0.65, seed=0)
         d_ref.load_state_dict(base_d.state_dict())
         d_ref.zero_grad(set_to_none=True)
@@ -991,16 +1084,41 @@ def run_suite4_law2_p6(device: torch.device) -> Dict[str, Any]:
         s_all = 0.5 * (sr.mean() + sf.mean())
         ml = 0.5 * (yr.mean() + yf.mean())
         if formula == "axiom":
+            # Axiom: coeff=1.0, lambda_floor=0.005, gamma_gauge=0.03
             loss = 0.5 * 0.005 * s_all + 0.5 * 0.03 * ml.square()
         elif formula in ("unified_v12", "unified_v13"):
+            # Unified v12/v13: ebi_beta=12.0, chord_weight=0.25, lambda_floor=0.005, gamma_gauge=0.03
             rr, rf = torch.sqrt(sr + 1e-12), torch.sqrt(sf + 1e-12)
-            ebi = 0.5 * (F.softplus(rr - 1.0, beta=12.0).square().mean() + F.softplus(rf - 1.0, beta=12.0).square().mean())
-            loss = 0.5 * 1.0 * ebi + 0.03 * 0.5 * ml.square()
+            cap_r = F.softplus(rr - 1.0, beta=12.0).square().mean()
+            cap_f = F.softplus(rf - 1.0, beta=12.0).square().mean()
+            if x_chord is not None:
+                xc = x_chord.detach().clone().requires_grad_(True)
+                yc = d_ref(xc)
+                gc = torch.autograd.grad(yc.sum(), xc, create_graph=True)[0]
+                sc = gc.square().sum(dim=-1)
+                rc = torch.sqrt(sc + 1e-12)
+                cap_c = F.softplus(rc - 1.0, beta=12.0).square().mean()
+                total = cap_r + 0.75 * cap_f + 0.25 * cap_c
+            else:
+                total = cap_r + cap_f
+            total = total + 0.005 * (sr.mean() + sf.mean())
+            loss = 0.5 * total + 0.5 * 0.03 * ml.square()
         elif formula == "minimal":
-            loss = 0.5 * ((torch.sqrt(1.0 + sr) - 1.0).mean() + (torch.sqrt(1.0 + sf) - 1.0).mean())
+            # Minimal: ebi_beta=8.0, 0.08 * chord, gauge=0.03*(yr.mean()^2 + yf.mean()^2), lam=coeff*(0.25+0.75*step_scale)
+            lam = 1.0 if minimal_lam is None else float(minimal_lam)
+            d_scale = float(xr_j.detach().flatten(1).norm(dim=1).mean().item()) if minimal_d_scale is None else float(minimal_d_scale)
+            bi = 0.5 * (
+                ((torch.sqrt(1.0 + 8.0 * sr) - 1.0) / 8.0).mean()
+                + ((torch.sqrt(1.0 + 8.0 * sf) - 1.0) / 8.0).mean()
+            )
+            chord_dist = (xr_j - xf_j).norm(dim=1).clamp_min(1e-3 * max(1.0, d_scale))
+            chord = ((yr.squeeze(-1) - yf.squeeze(-1)) / chord_dist).square().mean()
+            gauge = 0.03 * (yr.mean().square() + yf.mean().square())
+            loss = lam * (bi + 0.08 * chord) + gauge
         elif formula == "rhbi":
+            # RHBI: ebi_beta=20.0, lambda_floor=0.0, gamma_gauge=0.0, chord_weight=0.0
             rr, rf = torch.sqrt(sr + 1e-12), torch.sqrt(sf + 1e-12)
-            loss = 0.5 * (F.softplus(rr - 1.0, beta=12.0).square().mean() + F.softplus(rf - 1.0, beta=12.0).square().mean())
+            loss = 0.5 * (F.softplus(rr - 1.0, beta=20.0).square().mean() + F.softplus(rf - 1.0, beta=20.0).square().mean())
         else:
             raise ValueError(formula)
         loss.backward()
@@ -1008,16 +1126,44 @@ def run_suite4_law2_p6(device: torch.device) -> Dict[str, Any]:
 
     jensen_results: Dict[str, Any] = {}
     for preset in PRESETS:
-        exact_loss, exact_grad = _exact_ror_penalty_grad(preset)
         rec = pg.get_recipe(preset)
         d_mc = _make_calibrated_mlp(dim_j, target_gn=0.65, seed=0)
         d_mc.load_state_dict(base_d.state_dict())
         g_dum = nn.Linear(2, 2)
         _, opt_d = rec.make_optimizers(g_dum, d_mc)
         pen_fn = rec.make_critic_penalty(opt_d, collect_stats=True)
-        acc_g = torch.zeros_like(exact_grad)
+        # Parallel exact-RoR reference tracker matching each step's exact chord phase / minimal lam:
+        exact_losses: List[float] = []
+        acc_exact_g: Optional[torch.Tensor] = None
+        acc_g: Optional[torch.Tensor] = None
         losses: List[float] = []
+        if preset in ("unified_v12", "unified_v13"):
+            _, opt_d_shadow = rec.make_optimizers(nn.Linear(2, 2), _make_calibrated_mlp(dim_j, target_gn=0.65, seed=0))
+            pen_shadow = rec.make_critic_penalty(opt_d_shadow, collect_stats=False)
+        else:
+            pen_shadow = None
+        cached_static_exact: Optional[Tuple[float, torch.Tensor]] = (
+            _exact_ror_penalty_grad(preset) if preset in ("axiom", "rhbi") else None
+        )
         for _ in range(n_mc):
+            if cached_static_exact is not None:
+                ex_l, ex_g = cached_static_exact
+            elif preset in ("unified_v12", "unified_v13"):
+                assert pen_shadow is not None
+                x_chord_i, _ = pen_shadow.regularizer._build_geodesic_chord(xr_j, xf_j, is_conditioned=False)
+                ex_l, ex_g = _exact_ror_penalty_grad(preset, x_chord=x_chord_i)
+            elif preset == "minimal":
+                _, d_scale_m = pen_fn._batch_res(xr_j, xf_j)
+                step_scale_m = float(getattr(pen_fn.record, "_step_scale", 1.0))
+                lam_m = min(1.0, max(0.01, float(pen_fn.coeff) * (0.25 + 0.75 * step_scale_m)))
+                ex_l, ex_g = _exact_ror_penalty_grad(preset, minimal_lam=lam_m, minimal_d_scale=d_scale_m)
+            else:
+                ex_l, ex_g = _exact_ror_penalty_grad(preset)
+            exact_losses.append(ex_l)
+            if acc_exact_g is None:
+                acc_exact_g = torch.zeros_like(ex_g)
+                acc_g = torch.zeros_like(ex_g)
+            acc_exact_g.add_(ex_g)
             d_mc.zero_grad(set_to_none=True)
             # Match real GANTrainer sequence: live D(xr), D(xf) run before penalty so full-batch gauge endpoints are reused!
             _ = d_mc(xr_j)
@@ -1026,6 +1172,9 @@ def run_suite4_law2_p6(device: torch.device) -> Dict[str, Any]:
             val.backward()
             acc_g.add_(_flatten_pgrads(d_mc.parameters()))
             losses.append(float(val.detach().item()))
+        assert acc_exact_g is not None and acc_g is not None
+        exact_grad = acc_exact_g / float(n_mc)
+        exact_loss = sum(exact_losses) / len(exact_losses)
         mean_g = acc_g / float(n_mc)
         mean_l = sum(losses) / len(losses)
         n_ex = float(exact_grad.norm().item())
@@ -1244,34 +1393,55 @@ def run_suite5_law1_p7(device: torch.device) -> Dict[str, Any]:
     _, _, _, coal_v11 = _compute_pythagorean_smoothed_cells_fast(pc_10x, pv_10x, pw_10x)
     _, _, _, coal_min = _coalesce_isolated(pc_10x, pv_10x, pw_10x)
 
-    # Unequal-weight coalesced psi gauge check
-    w_mat_u = torch.tensor([[0.8, 0.2, 0.0], [0.8, 0.2, 0.0], [0.0, 0.0, 1.0]], dtype=torch.float32)
-    reg_ax_psi = AxiomPriorRegularizer(max_prototypes=8)
-    reg_ax_psi.quantizer_initialized = True
-    reg_ax_psi.proto_c = torch.tensor([[0.0, 0.0], [0.1, 0.0], [5.0, 0.0]], dtype=torch.float32)
-    reg_ax_psi.proto_var = torch.full((3,), 0.05)
-    reg_ax_psi.proto_w = torch.tensor([0.4, 0.1, 0.5])
-    reg_ax_psi.w_fake_ema = torch.tensor([0.6, 0.3, 0.1])
-    reg_ax_psi.psi = torch.tensor([2.0, -2.0, 0.0])
-    reg_ax_psi.v_push = reg_ax_psi.proto_var.clone()
-    reg_ax_psi.update_laguerre_dual(
-        torch.tensor([[0.0, 0.0], [0.1, 0.0], [5.0, 0.0]]),
-        w_mat_u @ reg_ax_psi.proto_c,
-        w_mat_u,
-        torch.tensor(1.0),
-        0.015,
-    )
-    psi_err_axiom = abs(float(reg_ax_psi.psi.mean().item()))
-    psi_err_minimal = abs(float(((w_mat_u @ torch.tensor([2.0, -2.0, 0.0])) - torch.tensor([2.0, -2.0, 0.0]).mean()).mean().item()))
+    # Unequal-weight coalesced psi gauge check using each recipe's actual regularizer + real pullback step
+    def _measure_post_coalesced_psi_err(preset_name: str) -> float:
+        rec_p = pg.get_recipe(preset_name, num_particles=12, z_dim=2, prior_kind="mog", batch_size=12, standardize=False)
+        g_id = SimpleMLPGenerator(2, 16, n_hidden=1, out_dim=2)
+        d_id = SimpleMLPDiscriminator(2, 16, n_hidden=1)
+        pr_id = MoGParticlePrior(num_particles=12, z_dim=2, sigma=0.025, standardize=False, learnable=True)
+        deterministic_orthogonal_(g_id, seed=0)
+        deterministic_orthogonal_(d_id, seed=0)
+        deterministic_orthogonal_(pr_id, seed=0)
+        tr_p = GANTrainer(rec_p, g_id, d_id, prior=pr_id, seed=0)
+        reg_p = tr_p.prior_regularizer
+        assert reg_p is not None
+        reg_p.max_prototypes = 8
+        reg_p.quantizer_initialized = True
+        reg_p.proto_c = torch.tensor([[0.0, 0.0], [0.1, 0.0], [5.0, 0.0]], dtype=torch.float32)
+        reg_p.proto_var = torch.full((3,), 0.05, dtype=torch.float32)
+        reg_p.proto_w = torch.tensor([0.4, 0.1, 0.5], dtype=torch.float32)
+        reg_p.w_fake_ema = torch.tensor([0.6, 0.3, 0.1], dtype=torch.float32)
+        reg_p.psi = torch.tensor([2.0, -2.0, 0.0], dtype=torch.float32)
+        if hasattr(reg_p, "proto_hits"):
+            reg_p.proto_hits = torch.full((3,), 50.0, dtype=torch.float32)
+        if preset_name == "axiom":
+            reg_p.v_push = reg_p.proto_var.clone()
+        elif hasattr(reg_p, "v_push"):
+            reg_p.v_push = reg_p.proto_var.unsqueeze(1).expand_as(reg_p.proto_c).clone()
+        # Keep the exact unequal-weight coalesced prototype geometry while executing the real Laguerre pullback step:
+        x_coal = torch.tensor(
+            [[0.0, 0.0]] * 5 + [[0.1, 0.0]] * 1 + [[5.0, 0.0]] * 6,
+            dtype=torch.float32,
+        )
+        tr_p.step(x_coal)
+        return abs(float(reg_p.psi.mean().item()))
+
+    psi_err_axiom = _measure_post_coalesced_psi_err("axiom")
+    psi_err_v12 = _measure_post_coalesced_psi_err("unified_v12")
+    psi_err_v13 = _measure_post_coalesced_psi_err("unified_v13")
+    psi_err_minimal = _measure_post_coalesced_psi_err("minimal")
     coalesce_gauge = {
         "false_merge_10x_axiom": bool(coal_ax[0].item()),
         "false_merge_10x_v12_v13": bool(coal_v11[0].item()),
         "false_merge_10x_minimal": bool(coal_min[0].item()),
         "post_coalesced_psi_mean_err_axiom": psi_err_axiom,
+        "post_coalesced_psi_mean_err_unified_v12": psi_err_v12,
+        "post_coalesced_psi_mean_err_unified_v13": psi_err_v13,
         "post_coalesced_psi_mean_err_minimal": psi_err_minimal,
     }
 
     # 5C: B_f < K (64 < 100) starved high-index mode allocation & permutation invariance
+    # Compare actual implemented recipes (axiom, unified_v12, unified_v13, minimal) instead of legacy _t1_coupling.
     gx, gy = torch.meshgrid(torch.linspace(-4.5, 4.5, 10), torch.linspace(-4.5, 4.5, 10), indexing="ij")
     c_100 = torch.stack([gx.reshape(-1), gy.reshape(-1)], dim=1)
     w_100 = torch.full((100,), 0.01, dtype=torch.float32)
@@ -1288,19 +1458,51 @@ def run_suite5_law1_p7(device: torch.device) -> Dict[str, Any]:
     q_perm = allocate_deficit_quotas(w_100[perm], w_fake_distinct[perm], n_slots=64)
     perm_mismatch = int((q_perm != q_orig[perm]).sum().item())
 
-    # Legacy laguerre_hard_commitment on 64 particles placed directly on charts 36..99
-    x_on_high = c_100[36:100].clone()
-    _, _, win_legacy = laguerre_hard_commitment(
-        x_on_high, c_100, w_100, torch.full((100,), 0.03), torch.tensor(0.25), eps_chart=0.08, iters=8
-    )
-    legacy_high_allocated = int((win_legacy >= 64).sum().item())
-    legacy_evicted = int((win_legacy[28:] != torch.arange(64, 100)).sum().item())
+    b_lt_k_actual: Dict[str, Dict[str, Any]] = {}
+    for preset_5c in ("axiom", "unified_v12", "unified_v13", "minimal"):
+        rec_5c = pg.get_recipe(
+            preset_5c, num_particles=64, z_dim=2, prior_kind="mog", batch_size=64, standardize=False
+        )
+        g_5c = SimpleMLPGenerator(2, 32, n_hidden=2, out_dim=2)
+        d_5c = SimpleMLPDiscriminator(2, 32, n_hidden=2)
+        pr_5c = MoGParticlePrior(num_particles=64, z_dim=2, sigma=0.025, standardize=False, learnable=True)
+        deterministic_orthogonal_(g_5c, seed=0)
+        deterministic_orthogonal_(d_5c, seed=0)
+        deterministic_orthogonal_(pr_5c, seed=0)
+        tr_5c = GANTrainer(rec_5c, g_5c, d_5c, prior=pr_5c, seed=0)
+        reg_5c = tr_5c.prior_regularizer
+        assert reg_5c is not None
+        reg_5c.max_prototypes = 100
+        reg_5c.quantizer_initialized = True
+        reg_5c.proto_c = c_100.clone()
+        reg_5c.proto_var = torch.full((100,), 0.03, dtype=torch.float32)
+        reg_5c.proto_w = w_100.clone()
+        reg_5c.w_fake_ema = w_fake_starved.clone()
+        reg_5c.psi = torch.zeros(100, dtype=torch.float32)
+        if hasattr(reg_5c, "proto_hits"):
+            reg_5c.proto_hits = torch.full((100,), 50.0, dtype=torch.float32)
+        if preset_5c == "axiom":
+            reg_5c.v_push = reg_5c.proto_var.clone()
+        elif hasattr(reg_5c, "v_push"):
+            reg_5c.v_push = reg_5c.proto_var.unsqueeze(1).expand_as(reg_5c.proto_c).clone()
+        # Run 3 streaming B_f=64 < K=100 steps cycling across the 100 grid centers:
+        g_cyc = torch.Generator().manual_seed(0)
+        for _ in range(3):
+            idx_r = torch.randperm(100, generator=g_cyc)[:64]
+            tr_5c.step(c_100[idx_r])
+        high_w_fake = float(reg_5c.w_fake_ema[64:].sum().item())
+        high_psi_mean = float(reg_5c.psi[64:].mean().item())
+        low_psi_mean = float(reg_5c.psi[:64].mean().item())
+        b_lt_k_actual[preset_5c] = {
+            "starved_high_idx_w_fake_ema_sum": high_w_fake,
+            "starved_high_idx_psi_advantage": high_psi_mean - low_psi_mean,
+            "starved_high_idx_active_charts_of_36": int((reg_5c.w_fake_ema[64:] > 1e-4).sum().item()),
+        }
 
     b_lt_k = {
         "axiom_starved_high_idx_allocated_of_36": ax_high_allocated,
         "axiom_distinct_deficit_perm_mismatches": perm_mismatch,
-        "legacy_laguerre_high_idx_allocated_of_36": legacy_high_allocated,
-        "legacy_laguerre_zero_dist_evicted_of_36": legacy_evicted,
+        "actual_recipes_b64_k100": b_lt_k_actual,
     }
 
     # 5D: Real GANTrainer GPU-CPU host-sync count & ms/step on BOTH grid100 (MLP) and Conv2d 64x64
@@ -1333,7 +1535,7 @@ def run_suite5_law1_p7(device: torch.device) -> Dict[str, Any]:
         }
         print(
             f"  [5D MLP Syncs] {preset:12s} | syncs/step={tot_s:5.1f} "
-            f"(item={sc['item']/10:.1f} tolist={sc['tolist']/10:.1f} bool={sc['bool']/10:.1f} uniq={sc['unique']/10:.1f}) "
+            f"(item={sc['item']/10:.1f} tolist={sc['tolist']/10:.1f} bool={sc['bool']/10:.1f} uniq={sc['unique']/10:.1f} nz={sc['nonzero']/10:.1f}) "
             f"ms/step={ms_step:.2f}",
             flush=True,
         )
@@ -1369,7 +1571,7 @@ def run_suite5_law1_p7(device: torch.device) -> Dict[str, Any]:
         }
         print(
             f"  [5D Conv Syncs]{preset:12s} | syncs/step={tot_c:5.1f} "
-            f"(item={sc_c['item']/10:.1f} tolist={sc_c['tolist']/10:.1f} bool={sc_c['bool']/10:.1f} uniq={sc_c['unique']/10:.1f}) "
+            f"(item={sc_c['item']/10:.1f} tolist={sc_c['tolist']/10:.1f} bool={sc_c['bool']/10:.1f} uniq={sc_c['unique']/10:.1f} nz={sc_c['nonzero']/10:.1f}) "
             f"ms/step={ms_c:.2f}",
             flush=True,
         )
@@ -1380,7 +1582,9 @@ def run_suite5_law1_p7(device: torch.device) -> Dict[str, Any]:
         f"min={mass_cons['minimal']['max_w_fake_ema_sum_err']:.4f}) | "
         f"LTV_merge(ax={ltv_results['axiom']['merge_ltv_retention']:.3f}, v12={ltv_results['unified_v12']['merge_ltv_retention']:.3f}) | "
         f"LTV_split(ax={ltv_results['axiom']['split_ltv_retention']:.3f}, v12={ltv_results['unified_v12']['split_ltv_retention']:.3f}) | "
-        f"B<K(ax={ax_high_allocated}/36, legacy={legacy_high_allocated}/36)",
+        f"B<K(ax_quota={ax_high_allocated}/36, ax_live={b_lt_k_actual['axiom']['starved_high_idx_active_charts_of_36']}/36, "
+        f"v12_live={b_lt_k_actual['unified_v12']['starved_high_idx_active_charts_of_36']}/36, "
+        f"min_live={b_lt_k_actual['minimal']['starved_high_idx_active_charts_of_36']}/36)",
         flush=True,
     )
     return {

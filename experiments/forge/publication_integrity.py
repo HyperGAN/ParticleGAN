@@ -11,27 +11,36 @@ from pathlib import Path
 from .contracts import read_json, stable_hash
 
 CORRECTIONS = Path("reports/forge/evidence-corrections-2026-11-08.json")
+CORRECTIONS_FILES = (
+    CORRECTIONS,
+    Path("reports/forge/evidence-corrections-2026-11-26.json"),
+)
 IDENTITY_FIELDS = ("source_digest", "candidate_revision", "task", "execution_sha256", "evaluation_sha256")
 
 
 def load_corrections(root, load=None):
-    path = Path(root) / CORRECTIONS
-    if not path.is_file():
-        return {}
-    data = load(CORRECTIONS) if load else read_json(path)
-    if data.get("schema") != "forge_evidence_corrections_v1":
-        raise ValueError("unsupported evidence correction registry")
     corrections = {}
-    for group in data["groups"]:
-        for key in group["record_keys"]:
-            if (not isinstance(key, str) or len(key) != 64
-                    or any(c not in "0123456789abcdef" for c in key) or key in corrections):
-                raise ValueError("invalid or duplicate evidence correction key")
-            corrections[key] = {"id": group["id"], "reason": group["reason"],
-                                "registry": CORRECTIONS.as_posix(), "eligible": False,
-                                "record_sha256": group["record_sha256"][key],
-                                "scope": "archived_contract_diagnostic",
-                                "source_coverage": deepcopy(data["source_coverage"])}
+    for rel_path in CORRECTIONS_FILES:
+        path = Path(root) / rel_path
+        if not path.is_file():
+            continue
+        data = load(rel_path) if load else read_json(path)
+        if data.get("schema") != "forge_evidence_corrections_v1":
+            raise ValueError("unsupported evidence correction registry")
+        for group in data["groups"]:
+            for key in group["record_keys"]:
+                if (not isinstance(key, str) or len(key) != 64
+                        or any(c not in "0123456789abcdef" for c in key) or key in corrections):
+                    raise ValueError("invalid or duplicate evidence correction key")
+                corrections[key] = {
+                    "id": group["id"],
+                    "reason": group["reason"],
+                    "registry": rel_path.as_posix(),
+                    "eligible": False,
+                    "record_sha256": group["record_sha256"][key],
+                    "scope": "archived_contract_diagnostic",
+                    "source_coverage": deepcopy(data["source_coverage"]),
+                }
     return corrections
 
 
@@ -65,8 +74,9 @@ def annotate_publication(root, publication):
         return publication
     projected = deepcopy(publication)
     progress = projected.get("family_progress", {})
+    paths = [rel.as_posix() for rel in CORRECTIONS_FILES if (Path(root) / rel).is_file()]
     progress["evidence_corrections"] = {
-        "path": CORRECTIONS.as_posix(), "count": len(corrections),
+        "path": CORRECTIONS.as_posix(), "paths": paths, "count": len(corrections),
         "qualification_input": False, "qualification_reuse": False,
     }
     for family in (progress.get("families", []) + progress.get("configuration_families", [])

@@ -397,7 +397,7 @@ def test_d04_mode_matched_eval_probe_and_1e5_scale_homogeneity() -> None:
     _step_gen_loss(og, (gm.lin.weight * 0.01).sum())
     assert og._ema_func_gain == 1.0, f"train/eval mask mismatch crushed ema_func_gain to {og._ema_func_gain}"
 
-    # Scale-homogeneous origin_damping at step > 80 on 1e-5x data scale:
+    # No step > 80 + dim == 2 origin-damping clock: bind_origin_sample must not introduce a step-count cliff
     g1 = nn.Linear(4, 2, bias=False)
     g2 = nn.Linear(4, 2, bias=False)
     with torch.no_grad():
@@ -408,14 +408,14 @@ def test_d04_mode_matched_eval_probe_and_1e5_scale_homogeneity() -> None:
     og2._unified_v11_record = od2.record
     od1.record.ema_data_scale = 1.0
     od2.record.ema_data_scale = 1e-5
-    og1.state[g1.weight]["step"] = 100
+    og1.state[g1.weight]["step"] = 10
     og2.state[g2.weight]["step"] = 100
     og1.bind_origin_sample(torch.ones((16, 2)) * 1.0)
     og2.bind_origin_sample(torch.ones((16, 2)) * 1e-5)
     grad_t = torch.randn((2, 4), generator=torch.Generator().manual_seed(411))
     _step_gen_loss(og1, (g1.weight * grad_t).sum())
     _step_gen_loss(og2, (g2.weight * (grad_t * 1e-5)).sum())
-    assert torch.allclose(g1.weight, g2.weight, atol=1e-6, rtol=1e-5), "origin_damping broke 1e-5x scale invariance"
+    assert torch.allclose(g1.weight, g2.weight, atol=1e-6, rtol=1e-5), "step-10 vs step-100 differed (clock leak!)"
 
 
 # ---------------------------------------------------------------------------
@@ -537,7 +537,7 @@ def test_clock_free_invariance_v15() -> None:
 
 
 def test_fresh_process_checkpoint_continuation_across_boundary(tmp_path: Path) -> None:
-    """Saving across step 80 (origin_damping boundary) and resuming in a fresh subprocess must be bit-exact."""
+    """Saving at step 78 and resuming in a fresh subprocess must be bit-exact across long trajectories."""
     ckpt_path = tmp_path / "v15_ckpt.pt"
     ref_path = tmp_path / "v15_ref.pt"
     resumed_path = tmp_path / "v15_resumed.pt"
@@ -664,8 +664,10 @@ def test_zero_forbidden_primitives_and_frob_smoothing_contract(monkeypatch: pyte
         raise AssertionError("forbidden primitive called inside UnifiedV15Optimizer")
 
     monkeypatch.setattr(torch.linalg, "svd", _forbid)
+    monkeypatch.setattr(torch.linalg, "svdvals", _forbid)
     monkeypatch.setattr(torch, "svd", _forbid)
     monkeypatch.setattr(torch.linalg, "eigh", _forbid)
+    monkeypatch.setattr(torch.linalg, "eigvalsh", _forbid)
     monkeypatch.setattr(torch.linalg, "pinv", _forbid)
     monkeypatch.setattr(torch, "pinverse", _forbid)
     monkeypatch.setattr(torch.autograd, "grad", _forbid)
@@ -824,3 +826,154 @@ def test_two_player_g_peak_ref_checkpoint_load_order_and_decay() -> None:
         outs.append([p.detach().clone() for p in d_r.parameters()])
     for pa, pb in zip(outs[0], outs[1]):
         assert torch.equal(pa, pb)
+
+
+def test_bf16_checkpoint_roundtrip_preserves_fp32_state_peak_rms_and_protected() -> None:
+    """BF16 load_state_dict must preserve FP32 moments & peak_rms (0.9995 decay) and restore _protected on device."""
+    torch.set_num_threads(1)
+
+    def _make_bf16_pair():
+        g_mod = nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 4)).to(torch.bfloat16)
+        d_mod = nn.Sequential(nn.Linear(4, 16), nn.SiLU(), nn.Linear(16, 1)).to(torch.bfloat16)
+        init.deterministic_orthogonal_(g_mod, seed=701)
+        init.deterministic_orthogonal_(d_mod, seed=702)
+        prior = MoGParticlePrior(32, 8, sigma=0.05, standardize=False, learnable=True).to(torch.bfloat16)
+        init.deterministic_orthogonal_(prior, seed=703)
+        rec = get_recipe("unified_v15", num_particles=32, z_dim=8, batch_size=16)
+        opt_g, opt_d = rec.make_optimizers(g_mod, d_mod, prior)
+        return g_mod, d_mod, prior, opt_g, opt_d
+
+    g_ref, d_ref, pr_ref, og_ref, od_ref = _make_bf16_pair()
+    g_sp, d_sp, pr_sp, og_sp, od_sp = _make_bf16_pair()
+    gen = torch.Generator().manual_seed(704)
+    rows = torch.arange(16, dtype=torch.long)
+
+    def _step_pair(gm, dm, pr, og, od, g_w, p_w, d_w):
+        og.set_sampled_rows(pr.z, rows)
+        lg = sum((p * gw.to(torch.bfloat16)).sum() for p, gw in zip(gm.parameters(), g_w)) + (
+            pr.z[rows] * p_w.to(torch.bfloat16)
+        ).sum()
+        _step_gen_loss(og, lg)
+        for p, dw in zip(dm.parameters(), d_w):
+            p.grad = dw.to(torch.bfloat16).clone()
+        od.step()
+
+    steps = [
+        (
+            [torch.randn(p.shape, generator=gen) * 0.1 for p in g_ref.parameters()],
+            torch.randn((16, 8), generator=gen) * 0.1,
+            [torch.randn(p.shape, generator=gen) * 0.1 for p in d_ref.parameters()],
+        )
+        for _ in range(6)
+    ]
+
+    for g_w, p_w, d_w in steps[:3]:
+        _step_pair(g_ref, d_ref, pr_ref, og_ref, od_ref, g_w, p_w, d_w)
+        _step_pair(g_sp, d_sp, pr_sp, og_sp, od_sp, g_w, p_w, d_w)
+
+    # Also test pending _protected restoration across checkpoint save/load
+    og_sp.set_sampled_rows(pr_sp.z, rows)
+    l_pend = sum((p * 0.05).sum() for p in g_sp.parameters()) + (pr_sp.z[rows] * 0.05).sum()
+    og_sp.bind_protected_losses((l_pend,))
+    assert og_sp._protected is not None
+
+    sd_g = copy.deepcopy(og_sp.state_dict())
+    sd_d = copy.deepcopy(od_sp.state_dict())
+    sd_gm = copy.deepcopy(g_sp.state_dict())
+    sd_dm = copy.deepcopy(d_sp.state_dict())
+    sd_pr = copy.deepcopy(pr_sp.state_dict())
+
+    g_res, d_res, pr_res, og_res, od_res = _make_bf16_pair()
+    g_res.load_state_dict(sd_gm)
+    d_res.load_state_dict(sd_dm)
+    pr_res.load_state_dict(sd_pr)
+    og_res.load_state_dict(sd_g)
+    od_res.load_state_dict(sd_d)
+
+    # All FP32 optimizer state tensors (incl. prior table moments & peak_rms!) must stay float32, NEVER cast to bfloat16
+    fp32_keys = {"m_unit", "m_scale", "v_rms", "v_scale", "m_prior", "peak_rms"}
+    for opt_check in (og_res, od_res):
+        for p, st in opt_check.state.items():
+            assert p.dtype == torch.bfloat16
+            for k in fp32_keys:
+                if k in st and isinstance(st[k], torch.Tensor):
+                    assert st[k].dtype == torch.float32, f"BF16 load_state_dict downcast {k} to {st[k].dtype}"
+    assert og_res._protected is not None
+    assert og_res._protected.device == next(g_res.parameters()).device
+
+    # Prior table peak_rms must accurately decay by 0.9995 in FP32 (in BF16, 1.0 * 0.9995 rounds back to 1.0!)
+    pk_prior = og_res.state[pr_res.z]["peak_rms"]
+    assert pk_prior.dtype == torch.float32
+    pk_before = float(pk_prior.max().item())
+    assert pk_before > 0.0
+    assert float((pk_prior * 0.9995).max().item()) < pk_before
+
+    # Clear the synthetic pending constraint and verify bit-exact continuation vs uninterrupted BF16 run
+    og_res._protected = None
+    for g_w, p_w, d_w in steps[3:]:
+        _step_pair(g_ref, d_ref, pr_ref, og_ref, od_ref, g_w, p_w, d_w)
+        _step_pair(g_res, d_res, pr_res, og_res, od_res, g_w, p_w, d_w)
+
+    for pa, pb in zip(g_ref.parameters(), g_res.parameters()):
+        assert torch.equal(pa, pb)
+    for pa, pb in zip(d_ref.parameters(), d_res.parameters()):
+        assert torch.equal(pa, pb)
+    assert torch.equal(pr_ref.z, pr_res.z)
+
+
+def test_direction_blend_single_loss_enforces_non_ascent_and_no_dead_helper(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """direction_blend=True with len(losses)==1 must enforce non-ascent projection (never skip single loss)."""
+    torch.set_num_threads(1)
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("forbidden primitive called in single-loss direction_blend")
+
+    monkeypatch.setattr(torch.autograd, "grad", _forbid)
+    monkeypatch.setattr(torch.linalg, "pinv", _forbid)
+
+    # Dead helper zero_pinv_common_descent must not exist in _unified_v15/optimizer.py
+    opt_src = (Path(__file__).resolve().parents[1] / "particlegan" / "_unified_v15" / "optimizer.py").read_text()
+    assert "zero_pinv_common_descent" not in opt_src
+
+    # 1. Single protected loss conflicting with main loss gradient must trigger non-ascent projection
+    g_mod = nn.Linear(8, 4, bias=False)
+    init.deterministic_orthogonal_(g_mod, seed=801)
+    _, _, og, _ = _build_v15_pair(g_mod, nn.Linear(4, 1), smoothing=0.0)
+    assert og.direction_blend is True
+
+    u_main = torch.randn((4, 8), generator=torch.Generator().manual_seed(802))
+    u_prot = -u_main + 0.35 * torch.randn((4, 8), generator=torch.Generator().manual_seed(803))
+    w_before = g_mod.weight.detach().clone()
+
+    og.zero_grad(set_to_none=True)
+    loss_main = (g_mod.weight * u_main).sum()
+    loss_prot = (g_mod.weight * u_prot).sum()
+    constraint_geometry_backward(loss_main, og, (loss_prot,))
+    assert og._protected is not None and og._protected.shape[0] == 1
+    og.step()
+
+    applied = g_mod.weight.detach() - w_before
+    # Non-ascent condition: normal . applied <= 0 (applied must not ascend protected loss!)
+    dot_prot = float((u_prot * applied).sum().item())
+    assert og.constraint_geometry_stats["projected_steps"] >= 1
+    assert dot_prot <= 1e-6, f"Single-loss direction_blend ascended protected loss: dot={dot_prot:.4e}"
+
+    # 2. bind_protected_from_grads() also populates _protected and enforces non-ascent when momentum opposes gradient
+    g_mod2 = nn.Linear(8, 4, bias=False)
+    init.deterministic_orthogonal_(g_mod2, seed=804)
+    _, _, og2, _ = _build_v15_pair(g_mod2, nn.Linear(4, 1), smoothing=0.0)
+    # Build strong momentum in +u_main direction
+    for _ in range(4):
+        _step_gen_loss(og2, (g_mod2.weight * (-u_main)).sum())
+    # Now present opposite gradient +u_main via bind_protected_from_grads
+    w_b2 = g_mod2.weight.detach().clone()
+    og2.zero_grad(set_to_none=True)
+    ((g_mod2.weight * u_main).sum()).backward()
+    og2.bind_protected_from_grads()
+    assert og2._protected is not None and og2._protected.shape[0] == 1
+    og2.step()
+    applied2 = g_mod2.weight.detach() - w_b2
+    assert float((u_main * applied2).sum().item()) <= 1e-6
+

@@ -82,7 +82,7 @@ Supply ordinary `torch.nn.Module` networks. `GANTrainer` binds the recipe's opti
         angle = torch.randint(8, (n, 1)) * torch.pi / 4
         return torch.cat([angle.cos(), angle.sin()], 1) + 0.05 * torch.randn(n, 2)
 
-    recipe = get_recipe(total_steps=2000)  # default: "axiom" (axiom-v5 research preview)
+    recipe = get_recipe(total_steps=2000)  # default: "axiom" (axiom-v6 research preview)
     G = nn.Sequential(nn.Linear(recipe.z_dim, 128), nn.LeakyReLU(0.2), nn.Linear(128, 2))
     D = nn.Sequential(nn.Linear(2, 128), nn.LeakyReLU(0.2), nn.Linear(128, 1))
     init.deterministic_orthogonal_(G, seed=0)
@@ -111,7 +111,7 @@ Supply ordinary `torch.nn.Module` networks. `GANTrainer` binds the recipe's opti
     ```python
     from particlegan import get_recipe
 
-    default = get_recipe()                # axiom (axiom-v5: <=2,500-LOC 4-Law core, lowest r256 energy)
+    default = get_recipe()                # axiom (axiom-v6: clean-slate 9-module 4-Law core, schema-2 checkpoints)
     unified = get_recipe("unified_v15")   # Unified-v15 (74/79 receipts, 16/16 Occam, 103/115 view reqs)
     v12 = get_recipe("unified_v12")       # explicit 0.12.0 Unified-v12 preset
     fast_core = get_recipe("minimal")     # <900-LOC zero-Newton-Schulz fast core
@@ -136,7 +136,7 @@ flowchart LR
 ```
 
 !!! important "Scientific Governance & Provisional Evidence"
-    - **Research-preview default, not a qualified winner:** `DEFAULT_RECIPE = "axiom"` (matching `axiom-v5`) is the current research-preview default. Screening calibration under `configs/forge/calibration/criteria-v1.json` remains **`BLOCKED`**, and **no recipe in this repository is declared scientifically qualified**.
+    - **Research-preview default, not a qualified winner:** `DEFAULT_RECIPE = "axiom"` (matching `axiom-v6`) is the current research-preview default. Screening calibration under `configs/forge/calibration/criteria-v1.json` remains **`BLOCKED`**, and **no recipe in this repository is declared scientifically qualified**.
     - **Single-seed screening disclosure:** Forge screening runs use protocol `seed = 0` with deterministic orthogonal initialization across synthetic distributions, discrete visual benchmarks, and mock-noise DCGAN speed/energy workloads. Multi-seed and natural-image FID/Recall confirmation remain open.
     - **Failures and gaps remain visible:** Numerical `FAIL`, `BLOCKED`, `INCOMPATIBLE`, and `NOT MEASURED` outcomes stay distinct and are never dropped from fixed full-suite denominators. Tuning budgets and adaptive selection lineage are disclosed on every leaderboard row.
     - **Canonical source of truth:** See the [Canonical Forge Leaderboard](technique-inventory.md), [Unresolved Problems](studies/problems.md), and the [Interactive HF Leaderboard Space](https://huggingface.co/spaces/HyperGAN/particlegan-leaderboard).

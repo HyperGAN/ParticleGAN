@@ -1522,34 +1522,35 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
     if critic is not None:
         optimizer.critic = critic
         optimizer.ema_critic = optimizer.anchor = optimizer.guard = None
-        if recipe.effective_critic_formulation == "bispf":
+        formulation = recipe.effective_critic_formulation
+        if formulation == "bispf":
             from ..bispf import _BISPFObserverStepRecord
             optimizer.record = _BISPFObserverStepRecord()
-        elif recipe.effective_critic_formulation == "empf":
+        elif formulation == "empf":
             from ..empf import _EMPFObserverStepRecord
             from .._empf.critic import _attach_empf_critic_hook
             optimizer.record = _EMPFObserverStepRecord()
             optimizer._empf_record = optimizer.record
             _attach_empf_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t2_secant":
+        elif formulation == "t2_secant":
             from ..t2_critic import _T2SecantObserverStepRecord, _attach_t2_critic_hook
             optimizer.record = _T2SecantObserverStepRecord()
             optimizer._empf_record = optimizer.record
             optimizer._t2_record = optimizer.record
             _attach_t2_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "rhbi" or recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+        elif formulation == "rhbi":
             from ..rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
             optimizer.record = _RHBIObserverStepRecord()
             optimizer._rhbi_record = optimizer.record
             _attach_rhbi_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified":
+        elif formulation == "unified":
             from ..unified import _UnifiedObserverStepRecord, _attach_unified_critic_hook
             optimizer.record = _UnifiedObserverStepRecord()
             optimizer._unified_record = optimizer.record
             optimizer._t1c_record = optimizer.record
             optimizer._t2_record = optimizer.record
             _attach_unified_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified_v4":
+        elif formulation in ("unified_v4", "r4_autograd_critic"):
             from ..unified_v4 import (
                 _UnifiedV4ObserverStepRecord,
                 _attach_unified_v4_critic_hook,
@@ -1563,7 +1564,7 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v4_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified_v11":
+        elif formulation == "unified_v11":
             from ..unified_v11 import (
                 _UnifiedV11ObserverStepRecord,
                 _attach_unified_v11_critic_hook,
@@ -1577,7 +1578,7 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v11_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "unified_v15":
+        elif formulation == "unified_v15":
             from .._unified_v15 import (
                 _UnifiedV15ObserverStepRecord,
                 _attach_unified_v15_critic_hook,
@@ -1592,17 +1593,14 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             if hasattr(optimizer, "_conv_layouts"):
                 optimizer._conv_layouts.update(collect_conv_layouts((critic,)))
             _attach_unified_v15_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "axiom":
-            from .._axiom.critic import AxiomStepRecord, _attach_axiom_critic_hook
+        elif formulation == "axiom":
+            from .._axiom.state import AxiomStepRecord, _attach_axiom_critic_hook
             optimizer.record = AxiomStepRecord()
             optimizer._axiom_record = optimizer.record
             if hasattr(optimizer, "bind_module_layouts"):
                 optimizer.bind_module_layouts((critic,))
-            elif hasattr(optimizer, "_conv_layouts"):
-                from .._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
-                optimizer._conv_layouts.update(_axiom_conv_layouts((critic,)))
             _attach_axiom_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "cond_fiber":
+        elif formulation == "cond_fiber":
             from ..cond_fiber import _CondFiberObserverStepRecord, _attach_cond_fiber_critic_hook
             optimizer.record = _CondFiberObserverStepRecord()
             optimizer._unified_record = optimizer.record
@@ -1610,21 +1608,42 @@ def make_normalized_optimizer(recipe, params, *, critic=None, **options):
             optimizer._t2_record = optimizer.record
             optimizer._cond_fiber_record = optimizer.record
             _attach_cond_fiber_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t1_coupling" or getattr(recipe, "t1c_weight", 0.0) > 0:
+        elif formulation == "t1_coupling":
             from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
             optimizer.record = _T1CouplingObserverStepRecord()
             optimizer._t1c_record = optimizer.record
             _attach_t1_coupling_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "rgdt":
+        elif formulation == "rgdt":
             from ..t3_dynamics import _RGDTObserverStepRecord, _attach_rgdt_critic_hook
             optimizer.record = _RGDTObserverStepRecord()
             optimizer._rgdt_record = optimizer.record
             _attach_rgdt_critic_hook(critic, optimizer.record)
-        elif recipe.effective_critic_formulation == "t4_nash":
+        elif formulation == "t4_nash":
             from ..t4_nash import _T4NashObserverStepRecord, _attach_t4_critic_hook
             optimizer.record = _T4NashObserverStepRecord()
             optimizer._t4_record = optimizer.record
             _attach_t4_critic_hook(critic, optimizer.record)
+        elif formulation == "t4_nash_v3":
+            from ..nash_v3 import _NashV3ObserverStepRecord, _attach_nash_v3_critic_hook
+            optimizer.record = _NashV3ObserverStepRecord()
+            optimizer._nash_v3_record = optimizer.record
+            optimizer._t4_record = optimizer.record
+            _attach_nash_v3_critic_hook(critic, optimizer.record)
+        elif formulation == "minimal":
+            from ..minimal import MinimalStepRecord, _attach_minimal_critic_hook
+            optimizer.record = MinimalStepRecord()
+            optimizer._minimal_record = optimizer.record
+            _attach_minimal_critic_hook(critic, optimizer.record)
+        elif recipe.rhbi_weight > 0 or recipe.rhbi_critic_weight > 0:
+            from ..rhbi import _RHBIObserverStepRecord, _attach_rhbi_critic_hook
+            optimizer.record = _RHBIObserverStepRecord()
+            optimizer._rhbi_record = optimizer.record
+            _attach_rhbi_critic_hook(critic, optimizer.record)
+        elif getattr(recipe, "t1c_weight", 0.0) > 0:
+            from ..t1_coupling import _T1CouplingObserverStepRecord, _attach_t1_coupling_critic_hook
+            optimizer.record = _T1CouplingObserverStepRecord()
+            optimizer._t1c_record = optimizer.record
+            _attach_t1_coupling_critic_hook(critic, optimizer.record)
         else:
             optimizer.record = CriticStepRecord()
     return optimizer

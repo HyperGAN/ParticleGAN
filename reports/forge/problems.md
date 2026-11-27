@@ -1124,6 +1124,8 @@ Test: `model_ddgan_gaussian_chain` · Required for qualification and included in
 - Oracle transition samplers pass all 38 threshold checks in the bounded protocol, confirming scorer calibration.
 - Saved-state diagnostics isolate the failure to conditional reverse-step variance and mean drift at `t=1, 2` rather than numerical instability.
 
+**Scope correction for retained diagnostic observations.** Historical v1 DDGAN/AE-DDGAN chain observations (model_ddgan_gaussian_chain, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, model_ae_ddgan_bimodal_chain) executed v1 hosts that read target.variances (div_loss), applied oracle target-covariance whitening / target.means assignment / tether_loss, or silently discarded failed evaluation bounds via reconciled.discard. Original outcomes remain archived; they do not establish the declared unassisted recipe/task claim. [Exact observation identities](evidence-corrections-2026-11-26.json).
+
 **Selected recipes' recorded results:**
 
 | Selected recipe | Result |
@@ -1159,6 +1161,8 @@ Test: `model_ddgan_bimodal_chain` · Required for qualification and included in 
 **Historical passer evidence.** No ordinary selected-family PASS yet; research candidate `cond-fiber-v1` passed with 8 consecutive terminal checks in bounded Round-3 research.
 
 - Research candidate `cond-fiber-v1` passed `model_ddgan_bimodal_chain` (`confirmed_step = 4375`, `worst_transition_cdf = 0.2034`, `final_normalized_mean = 0.1929`, `final_covariance_eigen_max = 1.0293`) using exact SVD DualNorm smoothing + CondFiberBank (`reports/forge/studies/r3-conditional-ddgan.md`).
+
+**Scope correction for retained diagnostic observations.** Historical v1 DDGAN/AE-DDGAN chain observations (model_ddgan_gaussian_chain, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, model_ae_ddgan_bimodal_chain) executed v1 hosts that read target.variances (div_loss), applied oracle target-covariance whitening / target.means assignment / tether_loss, or silently discarded failed evaluation bounds via reconciled.discard. Original outcomes remain archived; they do not establish the declared unassisted recipe/task claim. [Exact observation identities](evidence-corrections-2026-11-26.json).
 
 **Selected recipes' recorded results:**
 
@@ -1196,6 +1200,8 @@ Test: `model_ae_ddgan_gaussian_chain` · Required for qualification and included
 
 - Both `atlas-particle-normal-v4` (ordinary CUDA) and `bispf-optimized-quintic-v1` (bounded CPU research) pass all four paired four-step reconstruction gates with >45x-134x shuffled-input error gain.
 - Oracle reverse-chain controls pass all 42 gates.
+
+**Scope correction for retained diagnostic observations.** Historical v1 DDGAN/AE-DDGAN chain observations (model_ddgan_gaussian_chain, model_ddgan_bimodal_chain, model_ae_ddgan_gaussian_chain, model_ae_ddgan_bimodal_chain) executed v1 hosts that read target.variances (div_loss), applied oracle target-covariance whitening / target.means assignment / tether_loss, or silently discarded failed evaluation bounds via reconciled.discard. Original outcomes remain archived; they do not establish the declared unassisted recipe/task claim. [Exact observation identities](evidence-corrections-2026-11-26.json).
 
 **Selected recipes' recorded results:**
 

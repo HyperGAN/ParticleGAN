@@ -321,11 +321,14 @@ def test_tier1_ring16_bigan_roundtrip_identity_mapping():
 
 @pytest.mark.tier1
 def test_tier1_pacgan4_repulsion_discriminator_feature_dimensions():
-    """F10: Verify PacGAN4RepulsionDiscriminator extracts exactly 23 features."""
-    assert issubclass(PacGANDiscriminator, PacGAN4RepulsionDiscriminator)
-    disc = PacGAN4RepulsionDiscriminator(in_pts=4, pt_dim=2, hidden_dim=128)
+    """F10: Verify PacGANDiscriminator is a clean raw-packed MLP (no hand-crafted repulsion features) while legacy PacGAN4RepulsionDiscriminator retains 23 features."""
+    assert not issubclass(PacGANDiscriminator, PacGAN4RepulsionDiscriminator)
+    clean_disc = PacGANDiscriminator(in_dim=8, hidden_dim=128)
+    assert clean_disc.net[0].in_features == 8
     x = torch.randn(16, 4, 2)
+    assert clean_disc(x).shape == (16,)
 
+    disc = PacGAN4RepulsionDiscriminator(in_pts=4, pt_dim=2, hidden_dim=128)
     feats = disc.extract_features(x)
     assert feats.shape == (16, 23)
 
@@ -1285,8 +1288,8 @@ def test_tier4_e2e_misgan_hint_conditioning_without_temperature_annealing():
 
 @pytest.mark.tier4
 def test_tier4_e2e_pacgan_unequal_mass_local_knn_repulsion():
-    """Verify PacGANUnequalMassFixture applies local k-NN intra-mode dispersion across both standard and low-sigma priors."""
-    from particlegan import ManipulatedPrior, NormalNoiseManipulator, ParticlePrior
+    """Semantic negative control: PacGANUnequalMassFixture must NEVER overwrite G weights or prior.z outside opt_g.step()."""
+    from particlegan import ManipulatedPrior, NormalNoiseManipulator, ParticlePrior, unwrap_prior
 
     for recipe_name, custom_prior in (
         ("bcap", None),
@@ -1299,14 +1302,45 @@ def test_tier4_e2e_pacgan_unequal_mass_local_knn_repulsion():
             recipe_name=recipe_name,
             prior=custom_prior,
         )
-        assert fixture.knn_repulsion_weight > 0.0
-        for _ in range(6):
-            fixture.step()
-        assert fixture._emp_peaks is not None
-        assert len(fixture._emp_peaks) == 5
+        assert not hasattr(fixture, "_apply_local_knn_particle_dispersion")
+        assert not hasattr(fixture, "_update_empirical_mode_stats")
+        assert getattr(fixture, "knn_repulsion_weight", 0.0) == 0.0
+        assert isinstance(fixture.D, PacGANDiscriminator)
+        assert not isinstance(fixture.D, PacGAN4RepulsionDiscriminator)
+        assert fixture.D.net[0].in_features == 2 * fixture.pac_size
+
+        # Wrap opt_g.step so we capture exact G/prior weights immediately after optimizer step,
+        # and verify fixture.step() performs ZERO post-optimizer overwrites even past step >= 60.
+        base_prior = unwrap_prior(fixture.prior)
+        post_opt_snapshots: dict[str, list[torch.Tensor]] = {}
+        orig_step = fixture.opt_g.step
+
+        def _wrapped_opt_step(
+            *args,
+            _orig=orig_step,
+            _snaps=post_opt_snapshots,
+            _fix=fixture,
+            _bp=base_prior,
+            **kwargs,
+        ):
+            res = _orig(*args, **kwargs)
+            _snaps["G"] = [p.detach().clone() for p in _fix.G.parameters()]
+            _snaps["z"] = [_bp.z.detach().clone()]
+            return res
+
+        fixture.opt_g.step = _wrapped_opt_step  # type: ignore[method-assign]
         fixture.step_count = 60
-        fixture._apply_local_knn_particle_dispersion()
-        obs = fixture.observe(n=2048, seed=42)
-        assert obs["metrics"]["modes"] == 5
-        assert obs["metrics"]["min_cov_eig_ratio"] >= 0.20
+        fixture.completed_steps = 60
+        fixture.step()
+        for p_now, p_after_opt in zip(fixture.G.parameters(), post_opt_snapshots["G"]):
+            assert torch.equal(p_now.detach(), p_after_opt), "Host mutated G weights outside opt_g.step()!"
+        assert torch.equal(base_prior.z.detach(), post_opt_snapshots["z"][0]), (
+            "Host mutated prior.z outside opt_g.step()!"
+        )
+
+    # Also verify PacGAN8Grid100Fixture uses true pac_size=8 matching its advertised m=8 contract.
+    from benchmarks.toy_audit.api_pacgan import PacGAN8Grid100Fixture
+    grid_fix = PacGAN8Grid100Fixture(max_steps=4, device="cpu", seed=0)
+    assert grid_fix.pac_size == 8
+    assert grid_fix.D.net[0].in_features == 16
 

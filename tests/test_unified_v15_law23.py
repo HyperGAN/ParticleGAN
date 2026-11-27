@@ -1,15 +1,15 @@
 """Unit, invariance, negative-control, and checkpoint-continuation tests for unified_v15 Law 2 & Law 3.
 
 Covers:
-- L2-4: Convex-EBI Jensen bias below kappa (exact RoR for dim < 32768 + debiased fwAD for >=128^2).
-- L2-5: Regime dispatch (GroupNorm/LayerNorm/Attention/small-res -> exact RoR with SDPBackend.MATH;
-        >=128^2 pure Conv2d DCGAN -> debiased fwAD) and D-11 b=1 guard.
+- L2-4: Convex-EBI Jensen bias below kappa (zero-autograd.grad fwad_exact / fwad_debiased / secant_debiased).
+- L2-5: Regime dispatch (low-D -> fwad_exact; Conv2d/BN/GN/LN/EmulatedLinear -> fwad_debiased;
+        Attention/SDPA/Softmax -> secant_debiased) and D-11 b=1 guard.
+- Zero forbidden primitives runtime spy (autograd.grad, eigvalsh, eigh, svd, svdvals, pinv)
+  across MLP, GN, LN, BN, EmulatedLinear, and SDPA/Attention critics in both FP32 & BF16.
 - D-09: Dimension-independent normal-axis dissipation floor (non-vanishing on r256) + negative control.
 - D-04 (critic side): scale-homogeneous observe_scale at 1e-3 & 1e-5, stratified tail-inclusive probe
         eliminating b_p=2 prefix blindness, and eval-mode baseline parity for custom `self.training` generators.
 - D-08: Screening dead-zone alignment in v15_zero_eigh_bipartite_deficit_macro_loss + covered-broad-mode guard.
-- L3-7: Haar-O(32) rotation invariance, [length]^1 scale equivariance, equilibrium zero-bias, and
-        high-D sparse hollow P_xx protection.
 - Full bit-exact checkpoint save/restore continuation (fresh object + fresh subprocess) and
   strict rejection of incompatible v11..v14 / tampered checkpoints, plus clock-free invariance.
 """
@@ -30,23 +30,18 @@ import torch.nn.functional as F
 from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init, unwrap_prior
 from particlegan._t3_dynamics.metric import born_infeld_c_hat_detached, sinkhorn_slack
 from particlegan._unified_v15.critic import (
-    UnifiedV15HighDBasinBank,
-    UnifiedV15SparseObsBank,
     UnifiedV15StepRecord,
     record_unified_v15_generator_probe,
-    validate_v15_highd_bank_packet,
-    validate_v15_sparse_obs_bank_packet,
 )
 from particlegan._unified_v15.loss import (
     UnifiedV15CouplingLoss,
-    unified_v15_highd_basin_stein_loss,
-    unified_v15_sparse_obs_wiener_loss,
     v15_zero_eigh_bipartite_deficit_macro_loss,
 )
 from particlegan._unified_v15.penalty import (
     _debiased_fwad_sq,
     _prepare_batched_highd_tangent_plans,
 )
+from particlegan.low_precision import emulate_linear_training_
 
 
 class _LinearImgCritic(nn.Module):
@@ -103,7 +98,7 @@ def _make_opt_pair(g_mod: nn.Module, d_mod: nn.Module, *, batch_size: int = 16, 
 
 
 def test_l2_4_convex_ebi_jensen_bias_below_kappa_v15() -> None:
-    """Layer-1 L2-4 contract: exact RoR on 3x16x16 gives ratio <= 5.0 (no 1015x false triggering)."""
+    """Layer-1 L2-4 contract: zero-autograd.grad fwad_debiased on 3x16x16 gives ratio <= 5.0 (no 1015x false trigger)."""
     torch.set_num_threads(1)
     crit = _LinearImgCritic((3, 16, 16), norm_val=0.80)
     rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 4), crit, batch_size=8)
@@ -117,7 +112,7 @@ def test_l2_4_convex_ebi_jensen_bias_below_kappa_v15() -> None:
 
     obs = [float(pen(crit, xr, xf).detach().item()) for _ in range(12)]
     mean_pen = sum(obs) / len(obs)
-    assert pen.last_stats["grad_mode"] == "exact_ror"
+    assert pen.last_stats["grad_mode"] == "fwad_debiased"
 
     reg = pen.regularizer
     dim = float(3 * 16 * 16)
@@ -140,11 +135,21 @@ def test_l2_4_debiased_fwad_preserves_mean_and_cuts_variance() -> None:
     assert var_ratio < 0.20, f"Debiased fwAD did not reduce variance enough: ratio={var_ratio:.3f}"
 
 
-def test_l2_5_regime_dispatch_and_sdpa_math_attention() -> None:
-    """Pure Conv2d >=128^2 stays on fwAD; GroupNorm/Attention/small-res dispatch to exact RoR with finite grads."""
+def test_l2_5_regime_dispatch_and_sdpa_secant_fallback() -> None:
+    """3-regime dispatch: low-D -> fwad_exact; Conv2d/GN -> fwad_debiased; SDPA/Attention -> secant_debiased."""
     torch.set_num_threads(1)
 
-    # 1. Pure Conv2d 128x128 DCGAN -> fwad_debiased (preserves r128/r256 speed & energy win)
+    # 1. Low-D (d <= 16) MLP -> fwad_exact (batched identity-basis fwAD)
+    mlp8 = nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 1))
+    rec_m, _, _, opt_m = _make_opt_pair(nn.Linear(4, 8), mlp8, batch_size=8)
+    pen_m = rec_m.make_critic_penalty(opt_m, collect_stats=True)
+    x_8 = torch.randn((8, 8), generator=torch.Generator().manual_seed(100))
+    val_m = pen_m(mlp8, x_8, x_8 * 0.9)
+    val_m.backward()
+    assert pen_m.last_stats["grad_mode"] == "fwad_exact"
+    assert all(torch.isfinite(p.grad).all() for p in mlp8.parameters() if p.grad is not None)
+
+    # 2. Pure Conv2d 128x128 DCGAN -> fwad_debiased
     dcgan = _PureConvDCGAN128Critic()
     rec_dc, _, _, opt_dc = _make_opt_pair(nn.Linear(4, 4), dcgan, batch_size=4)
     pen_dc = rec_dc.make_critic_penalty(opt_dc, collect_stats=True)
@@ -154,16 +159,16 @@ def test_l2_5_regime_dispatch_and_sdpa_math_attention() -> None:
     assert pen_dc.last_stats["grad_mode"] == "fwad_debiased"
     assert all(torch.isfinite(p.grad).all() for p in dcgan.parameters() if p.grad is not None)
 
-    # 2. GroupNorm + F.scaled_dot_product_attention even at 128x128 -> exact_ror + finite double-backward
+    # 3. GroupNorm + F.scaled_dot_product_attention -> secant_debiased (0 autograd.grad, finite grads)
     attn = _GroupNormAttentionCritic()
     rec_at, _, _, opt_at = _make_opt_pair(nn.Linear(4, 4), attn, batch_size=4)
     pen_at = rec_at.make_critic_penalty(opt_at, collect_stats=True)
     val_at = pen_at(attn, x_128, x_128 * 0.9)
     val_at.backward()
-    assert pen_at.last_stats["grad_mode"] == "exact_ror"
+    assert pen_at.last_stats["grad_mode"] == "secant_debiased"
     assert all(torch.isfinite(p.grad).all() for p in attn.parameters() if p.grad is not None)
 
-    # 3. D-11 b=1 edge case in _prepare_batched_highd_tangent_plans
+    # 4. D-11 b=1 edge case in _prepare_batched_highd_tangent_plans
     x_b1 = torch.randn((2, 1, 16), generator=torch.Generator().manual_seed(102))
     u_all, knn_idx, weights = _prepare_batched_highd_tangent_plans(x_b1, phase=0.25)
     assert u_all.shape == (2, 1, 16) and knn_idx.shape == (2, 1, 1)
@@ -333,56 +338,8 @@ def test_d08_macro_screening_alignment_and_broad_cluster_guard() -> None:
 
 
 # ---------------------------------------------------------------------------
-# L3-7: Haar-O(32) Rotation Invariance, Scale Equivariance, Equilibrium, Hollow R^512
+# Hollow R^512 Self-Coupling & Zero-Forbidden-Op Curve Gate / Critics (FP32 & BF16)
 # ---------------------------------------------------------------------------
-
-
-def test_l3_7_highd_stein_haar_rotation_and_scale_equivariance() -> None:
-    """High-D Basin Stein loss must be Haar-O(32)-invariant, [length]^1 scale-equivariant, and 0 at equilibrium."""
-    torch.set_num_threads(1)
-    d = 32
-    g = torch.Generator().manual_seed(3201)
-    q_mat, _ = torch.linalg.qr(torch.randn((d, d), generator=g, dtype=torch.float64))
-    q32 = q_mat.float()
-
-    # Build a 2-basin R^32 dataset and slightly collapsed fake batch
-    y1 = torch.randn((48, d), generator=g) * 0.10
-    y2 = torch.randn((48, d), generator=g) * 0.15 + torch.cat([torch.tensor([4.0]), torch.zeros(d - 1)])
-    y_base = torch.cat([y1, y2], dim=0)
-    x1 = torch.randn((48, d), generator=g) * 0.04
-    x2 = torch.randn((48, d), generator=g) * 0.06 + torch.cat([torch.tensor([4.05]), torch.zeros(d - 1)])
-    x_base = torch.cat([x1, x2], dim=0)
-
-    def _eval_transform(rot: torch.Tensor, scale: float) -> tuple[float, torch.Tensor]:
-        rec = UnifiedV15StepRecord()
-        # Warm up streaming bank for 3 identical steps so w_y >= 0.4*d and cov_gate == 1.0
-        for _ in range(3):
-            x_in = (x_base @ rot.T * scale).detach().requires_grad_(True)
-            y_in = (y_base @ rot.T * scale).detach()
-            lv, _ = unified_v15_highd_basin_stein_loss(
-                x_in, y_in, record=rec, generator=None, z_batch=None, allow_update=True
-            )
-        lv.backward()
-        assert x_in.grad is not None
-        return float(lv.detach().item()), x_in.grad.detach()
-
-    l_id, g_id = _eval_transform(torch.eye(d), 1.0)
-    l_rot, g_rot = _eval_transform(q32, 1.0)
-    l_sc, g_sc = _eval_transform(torch.eye(d), 10.0)
-
-    assert abs(l_id) > 1e-4
-    assert abs(l_rot - l_id) / max(abs(l_id), 1e-8) < 1e-4, f"Haar invariance failed: {l_rot} vs {l_id}"
-    g_rot_back = g_rot @ q32
-    assert torch.allclose(g_rot_back, g_id, atol=1e-4, rtol=1e-3), "Gradient not O(32)-equivariant!"
-    assert abs(l_sc - 10.0 * l_id) / max(abs(10.0 * l_id), 1e-8) < 1e-3, f"Scale equivariance failed: {l_sc} vs {10*l_id}"
-    assert torch.allclose(g_sc, g_id, atol=1e-4, rtol=1e-3), "Gradient should be degree-0 scale-invariant!"
-
-    # Equilibrium check: identical x == y yields ~0 loss and ~0 deficit
-    rec_eq = UnifiedV15StepRecord()
-    for _ in range(4):
-        x_eq = y_base.clone().requires_grad_(True)
-        lv_eq, def_eq = unified_v15_highd_basin_stein_loss(x_eq, y_base, record=rec_eq, allow_update=True)
-    assert abs(float(lv_eq.item())) < 1e-3 and def_eq < 0.05
 
 
 def test_highd_sparse_r512_uses_hollow_self_coupling() -> None:
@@ -424,8 +381,8 @@ def _make_d32_trainer() -> tuple[GANTrainer, torch.Generator]:
     return tr, torch.Generator().manual_seed(9876)
 
 
-def test_checkpoint_bit_exact_continuation_d32_highd_bank() -> None:
-    """Fresh-object checkpoint save/restore must continue bit-exact across high-D basin bank activation."""
+def test_checkpoint_bit_exact_continuation_d32() -> None:
+    """Fresh-object checkpoint save/restore must continue bit-exact on D=32 without removed solver banks."""
     torch.set_num_threads(1)
     tr_full, rng_full = _make_d32_trainer()
     tr_split, rng_split = _make_d32_trainer()
@@ -439,8 +396,9 @@ def test_checkpoint_bit_exact_continuation_d32_highd_bank() -> None:
         tr_full.step(_batch(rng_full))
         tr_split.step(_batch(rng_split))
 
-    assert tr_split.opt_d.record.highd_basin_bank.k >= 1
-    assert tr_split.opt_d.record.highd_basin_bank.sigma_z_init is True
+    rec_sd = tr_split.opt_d.record.state_dict()
+    assert "highd_basin_bank" not in rec_sd["unified_v15"]
+    assert "sparse_obs_bank" not in rec_sd["unified_v15"]
 
     saved = copy.deepcopy(tr_split.state_dict())
     tr_resumed, _ = _make_d32_trainer()
@@ -455,23 +413,27 @@ def test_checkpoint_bit_exact_continuation_d32_highd_bank() -> None:
     for pa, pb in zip(tr_full.D.parameters(), tr_resumed.D.parameters()):
         assert torch.equal(pa, pb)
     assert torch.equal(unwrap_prior(tr_full.prior).z, unwrap_prior(tr_resumed.prior).z)
-    b_f = tr_full.opt_d.record.highd_basin_bank
-    b_r = tr_resumed.opt_d.record.highd_basin_bank
-    assert b_f.k == b_r.k and b_f.sigma_z_ema == b_r.sigma_z_ema
-    assert torch.equal(b_f.cov_y, b_r.cov_y) and torch.equal(b_f.cov_x, b_r.cov_x)
 
 
-def test_checkpoint_rejects_incompatible_and_tampered_highd_packets() -> None:
-    """Strict checkpoint validation must reject missing/corrupted highd_basin_bank and legacy v14 packets."""
+def test_checkpoint_rejects_incompatible_and_tampered_v15_packets() -> None:
+    """Strict checkpoint validation must reject missing/extra/corrupted v15 packets and legacy v14 packets."""
     torch.set_num_threads(1)
     rec = UnifiedV15StepRecord()
     sd = rec.state_dict()
+    assert "highd_basin_bank" not in sd["unified_v15"]
+    assert "sparse_obs_bank" not in sd["unified_v15"]
 
-    # Missing highd_basin_bank (simulating legacy v14 packet)
+    # Missing required key
     bad_missing = copy.deepcopy(sd)
-    del bad_missing["unified_v15"]["highd_basin_bank"]
+    del bad_missing["unified_v15"]["cond_fiber_bank"]
     with pytest.raises(ValueError):
         UnifiedV15StepRecord().load_state_dict(bad_missing)
+
+    # Extra/legacy solver bank keys must be rejected
+    bad_extra = copy.deepcopy(sd)
+    bad_extra["unified_v15"]["highd_basin_bank"] = {}
+    with pytest.raises(ValueError):
+        UnifiedV15StepRecord().load_state_dict(bad_extra)
 
     # Wrong formulation tag
     bad_form = copy.deepcopy(sd)
@@ -479,28 +441,11 @@ def test_checkpoint_rejects_incompatible_and_tampered_highd_packets() -> None:
     with pytest.raises(ValueError):
         UnifiedV15StepRecord().load_state_dict(bad_form)
 
-    # Tampered highd bank tensor (NaN / negative weight / shape mismatch)
-    bank = UnifiedV15HighDBasinBank()
-    bank.k, bank.dim = 1, 32
-    bank.w_y = torch.tensor([10.0], dtype=torch.float64)
-    bank.mu_y = torch.zeros((1, 32), dtype=torch.float64)
-    bank.cov_y = torch.eye(32, dtype=torch.float64).unsqueeze(0)
-    bank.rad_y = torch.tensor([1.0], dtype=torch.float64)
-    bank.w_x = torch.tensor([10.0], dtype=torch.float64)
-    bank.mu_x = torch.zeros((1, 32), dtype=torch.float64)
-    bank.cov_x = torch.eye(32, dtype=torch.float64).unsqueeze(0)
-    pkt = bank.to_packet()
-    validate_v15_highd_bank_packet(pkt)
-
-    bad_neg = copy.deepcopy(pkt)
-    bad_neg["w_y"] = torch.tensor([-1.0], dtype=torch.float64)
+    # Non-finite scalar tamper
+    bad_nan = copy.deepcopy(sd)
+    bad_nan["unified_v15"]["ema_data_scale"] = float("nan")
     with pytest.raises(ValueError):
-        validate_v15_highd_bank_packet(bad_neg)
-
-    bad_nan = copy.deepcopy(pkt)
-    bad_nan["cov_x"][0, 0, 0] = float("nan")
-    with pytest.raises(ValueError):
-        validate_v15_highd_bank_packet(bad_nan)
+        UnifiedV15StepRecord().load_state_dict(bad_nan)
 
 
 def test_fresh_process_checkpoint_continuation_and_clock_free() -> None:
@@ -701,320 +646,14 @@ def test_observe_scale_spike_immunity_sparsity_and_mixed_shape() -> None:
     assert math.isfinite(rec_z0.ema_data_scale) and abs(rec_z0.ema_data_scale - 1e-12) < 1e-18
 
 
-def test_highd_basin_bank_capacity_overflow_guard() -> None:
-    """highd_basin_stein_loss must cleanly disable itself on >16-mode overflow while staying active on <=16 modes."""
-    torch.set_num_threads(1)
-    g = torch.Generator().manual_seed(701)
-
-    # 32 well-separated modes in R^128 overflow max_basins=16 -> must return (0.0, 0.0)
-    centers_32 = F.normalize(torch.randn((32, 128), generator=g), dim=1) * 6.0
-    idx_32 = torch.arange(128) % 32
-    y_32 = centers_32[idx_32] + 0.05 * torch.randn((128, 128), generator=g)
-    x_32 = (y_32 * 0.5).clone().requires_grad_(True)
-    rec_ov = UnifiedV15StepRecord()
-    loss_ov, def_ov = unified_v15_highd_basin_stein_loss(x_32, y_32, record=rec_ov, allow_update=True)
-    assert rec_ov.highd_basin_bank.k == rec_ov.highd_basin_bank.max_basins
-    assert float(loss_ov.item()) == 0.0 and def_ov == 0.0
-    # Read-only probe must also respect overflow guard
-    loss_ov_ro, def_ov_ro = unified_v15_highd_basin_stein_loss(x_32, y_32, record=rec_ov, allow_update=False)
-    assert float(loss_ov_ro.item()) == 0.0 and def_ov_ro == 0.0
-
-    # 4 well-separated modes in R^32 fit cleanly within max_basins=16 -> must stay active!
-    centers_4 = F.normalize(torch.randn((4, 32), generator=g), dim=1) * 5.0
-    idx_4 = torch.arange(64) % 4
-    y_4 = centers_4[idx_4] + 0.15 * torch.randn((64, 32), generator=g)
-    x_4 = (centers_4[idx_4] + 0.03 * torch.randn((64, 32), generator=g)).requires_grad_(True)
-    rec_ok = UnifiedV15StepRecord()
-    for _ in range(4):
-        loss_ok, def_ok = unified_v15_highd_basin_stein_loss(x_4, y_4, record=rec_ok, allow_update=True)
-    assert rec_ok.highd_basin_bank.k == 4
-    assert def_ok > 0.1 and loss_ok.requires_grad
-
-
-def test_sparse_obs_wiener_loss_invariances_validation_and_subprocess_checkpoint() -> None:
-    """Verify sparse-obs Wiener-NLM operator: scale invariance, equilibrium, read-only probe, schema checks & fresh-process resume."""
-    torch.set_num_threads(1)
-    dim, dz, n_modes, bs = 128, 16, 8, 64
-    g = torch.Generator().manual_seed(801)
-    q_orth, _ = torch.linalg.qr(torch.randn((dim, n_modes), generator=g))
-    centers = q_orth.T * 6.0  # (8, 128) orthogonal modes, norm=6.0
-
-    def _run_steps(scale: float) -> tuple[UnifiedV15StepRecord, torch.Tensor, torch.Tensor, torch.Tensor]:
-        rec = UnifiedV15StepRecord()
-        gg = torch.Generator().manual_seed(802)
-        last_loss = torch.tensor(0.0)
-        last_xf = None
-        last_z = None
-        for _ in range(20):
-            idx = torch.randint(0, n_modes, (bs,), generator=gg)
-            y_clean = (centers[idx] + 0.03 * torch.randn((bs, dim), generator=gg)) * scale
-            mr = (torch.rand((bs, dim), generator=gg) < 0.20).float()
-            mf = (torch.rand((bs, dim), generator=gg) < 0.20).float()
-            z_b = torch.randn((bs, dz), generator=gg)
-            xf = (torch.randn((bs, dim), generator=gg) * 0.2 * scale * mf).requires_grad_(True)
-            last_loss = unified_v15_sparse_obs_wiener_loss(
-                xf, y_clean * mr, record=rec, z_batch=z_b, allow_update=True, start_proto_step=10
-            )
-            last_xf = xf
-            last_z = z_b
-        return rec, last_loss, last_xf, last_z
-
-    rec_1, loss_1, xf_1, z_1 = _run_steps(1.0)
-    rec_tiny, loss_tiny, _, _ = _run_steps(1e-4)
-
-    # 1. Exact degree-0 scale invariance across 1e4x scale change
-    assert rec_1.sparse_obs_bank.proto_k >= n_modes
-    assert rec_1.sparse_obs_bank.proto_k == rec_tiny.sparse_obs_bank.proto_k
-    assert torch.allclose(loss_1.detach(), loss_tiny.detach(), atol=1e-4, rtol=1e-3), (
-        f"Sparse Wiener loss not scale-invariant: {loss_1.item():.6f} vs {loss_tiny.item():.6f}"
-    )
-
-    # 2. Prototype recovery accuracy from 20%-masked R^128 observations
-    bank = rec_1.sparse_obs_bank
-    assert isinstance(bank, UnifiedV15SparseObsBank)
-    act = bank.proto_w[: bank.proto_k] >= 2.0
-    protos = bank.proto_y[: bank.proto_k][act]
-    med_err = float(torch.cdist(protos, centers).min(dim=1).values.median().item())
-    assert med_err < 1.5, f"Wiener-NLM prototypes failed to recover centers: med_err={med_err:.3f}"
-
-    # 3. Read-only protected-probe invariance (allow_update=False mutates ZERO bank state)
-    pkt_before = copy.deepcopy(bank.to_packet())
-    loss_ro = unified_v15_sparse_obs_wiener_loss(
-        xf_1.detach().requires_grad_(True),
-        torch.zeros_like(xf_1),
-        record=rec_1,
-        z_batch=z_1,
-        allow_update=False,
-    )
-    assert loss_ro.requires_grad and torch.isfinite(loss_ro)
-    pkt_after = bank.to_packet()
-    assert pkt_before.keys() == pkt_after.keys()
-    for k in pkt_before:
-        va, vb = pkt_before[k], pkt_after[k]
-        if isinstance(va, torch.Tensor):
-            assert torch.equal(va, vb), f"Read-only probe mutated sparse_obs_bank.{k}"
-        else:
-            assert va == vb
-
-    # 4. Exact equilibrium zero-loss & zero-gradient when x_fake matches its assigned Laguerre prototype
-    act_idx = act.nonzero(as_tuple=False).squeeze(-1)
-    zu = F.normalize(z_1, dim=1)
-    asg = (zu @ bank.proto_z[act_idx].T + bank.proto_b[act_idx].unsqueeze(0)).argmax(dim=1)
-    tgt_eq = bank.proto_y[act_idx][asg]
-    mf_eq = (torch.rand((bs, dim), generator=torch.Generator().manual_seed(809)) < 0.20).float()
-    xf_eq = (tgt_eq * mf_eq).detach().requires_grad_(True)
-    loss_eq = unified_v15_sparse_obs_wiener_loss(
-        xf_eq, torch.zeros_like(xf_eq), record=rec_1, z_batch=z_1, allow_update=False
-    )
-    assert float(loss_eq.item()) == 0.0
-    grad_eq = torch.autograd.grad(loss_eq, xf_eq)[0]
-    assert float(grad_eq.abs().max().item()) == 0.0
-
-    # 5. Strict checkpoint schema rejection of missing/tampered sparse_obs_bank packets
-    sd = rec_1.state_dict()
-    bad_miss = copy.deepcopy(sd)
-    del bad_miss["unified_v15"]["sparse_obs_bank"]
-    with pytest.raises(ValueError):
-        UnifiedV15StepRecord().load_state_dict(bad_miss)
-
-    pkt_ok = bank.to_packet()
-    validate_v15_sparse_obs_bank_packet(pkt_ok)
-    bad_nan = copy.deepcopy(pkt_ok)
-    bad_nan["S_y"][0, 0] = float("nan")
-    with pytest.raises(ValueError):
-        validate_v15_sparse_obs_bank_packet(bad_nan)
-    bad_w = copy.deepcopy(pkt_ok)
-    bad_w["proto_w"][0] = -1.0
-    with pytest.raises(ValueError):
-        validate_v15_sparse_obs_bank_packet(bad_w)
-    bad_dtype = copy.deepcopy(pkt_ok)
-    bad_dtype["buf_m"] = bad_dtype["buf_m"].float()
-    with pytest.raises(ValueError):
-        validate_v15_sparse_obs_bank_packet(bad_dtype)
-
-    # 6. Fresh-subprocess bit-exact checkpoint continuation across step-8 prototype activation & recentering window!
-    class _SparseMaskedG(nn.Module):
-        def __init__(self) -> None:
-            super().__init__()
-            self.net = nn.Sequential(nn.Linear(dz, 32), nn.SiLU(), nn.Linear(32, dim))
-            self._m_gen = torch.Generator().manual_seed(909)
-
-        def forward(self, z: torch.Tensor) -> torch.Tensor:
-            out = torch.tanh(self.net(z))
-            if self.training:
-                m = (torch.rand(out.shape, generator=self._m_gen) < 0.20).to(out.dtype)
-                return out * m
-            return out
-
-    def _make_sparse_trainer() -> GANTrainer:
-        rc = get_recipe("unified_v15", num_particles=32, z_dim=dz, batch_size=32, prior_kind="mog", standardize=False)
-        gm = _SparseMaskedG()
-        dm = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))
-        pr = MoGParticlePrior(32, dz, sigma=0.05, standardize=False, learnable=True)
-        init.deterministic_orthogonal_(gm, seed=41)
-        init.deterministic_orthogonal_(dm, seed=42)
-        init.deterministic_orthogonal_(pr, seed=43)
-        return GANTrainer(rc, gm, dm, prior=pr, seed=0, max_steps=20)
-
-    tr_full = _make_sparse_trainer()
-    rng_b = torch.Generator().manual_seed(910)
-    batches = []
-    for _ in range(14):
-        idx = torch.randint(0, n_modes, (32,), generator=rng_b)
-        yc = centers[idx] + 0.03 * torch.randn((32, dim), generator=rng_b)
-        mr = (torch.rand((32, dim), generator=rng_b) < 0.20).float()
-        batches.append(yc * mr)
-
-    for b in batches[:6]:
-        tr_full.step(b)
-    assert tr_full.opt_d.record.sparse_obs_bank.step == 6
-    assert tr_full.opt_d.record.sparse_obs_bank.proto_k == 0  # pre-activation!
-
-    with tempfile.TemporaryDirectory() as td:
-        ckpt_p = Path(td) / "ckpt.pt"
-        b_p = Path(td) / "batches.pt"
-        out_p = Path(td) / "out.pt"
-        torch.save({"trainer": tr_full.state_dict(), "m_gen": tr_full.G._m_gen.get_state()}, ckpt_p)
-        torch.save(batches[6:], b_p)
-
-        for b in batches[6:]:
-            tr_full.step(b)
-        assert tr_full.opt_d.record.sparse_obs_bank.proto_k >= 1  # crossed step-8 activation & recentering!
-
-        script = (
-            "import torch\n"
-            "from torch import nn\n"
-            "from particlegan import GANTrainer, MoGParticlePrior, get_recipe, init, unwrap_prior\n"
-            "torch.set_num_threads(1)\n"
-            f"dim, dz = {dim}, {dz}\n"
-            "class _SparseMaskedG(nn.Module):\n"
-            "    def __init__(self):\n"
-            "        super().__init__()\n"
-            "        self.net = nn.Sequential(nn.Linear(dz, 32), nn.SiLU(), nn.Linear(32, dim))\n"
-            "        self._m_gen = torch.Generator().manual_seed(909)\n"
-            "    def forward(self, z):\n"
-            "        out = torch.tanh(self.net(z))\n"
-            "        if self.training:\n"
-            "            m = (torch.rand(out.shape, generator=self._m_gen) < 0.20).to(out.dtype)\n"
-            "            return out * m\n"
-            "        return out\n"
-            "rc = get_recipe('unified_v15', num_particles=32, z_dim=dz, batch_size=32, prior_kind='mog', standardize=False)\n"
-            "gm = _SparseMaskedG()\n"
-            "dm = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))\n"
-            "pr = MoGParticlePrior(32, dz, sigma=0.05, standardize=False, learnable=True)\n"
-            "init.deterministic_orthogonal_(gm, seed=41)\n"
-            "init.deterministic_orthogonal_(dm, seed=42)\n"
-            "init.deterministic_orthogonal_(pr, seed=43)\n"
-            "tr = GANTrainer(rc, gm, dm, prior=pr, seed=0, max_steps=20)\n"
-            f"blob = torch.load({str(ckpt_p)!r}, weights_only=False)\n"
-            "tr.load_state_dict(blob['trainer'])\n"
-            "tr.G._m_gen.set_state(blob['m_gen'])\n"
-            f"for b in torch.load({str(b_p)!r}, weights_only=False):\n"
-            "    tr.step(b)\n"
-            f"torch.save({{'g': [p.detach().clone() for p in tr.G.parameters()], 'd': [p.detach().clone() for p in tr.D.parameters()], 'z': unwrap_prior(tr.prior).z.detach().clone(), 'sp': tr.opt_d.record.sparse_obs_bank.to_packet()}}, {str(out_p)!r})\n"
-        )
-        proc = subprocess.run([sys.executable, "-c", script], check=True, capture_output=True, text=True)
-        assert proc.returncode == 0
-        res = torch.load(out_p, weights_only=False)
-        for pa, pb in zip(tr_full.G.parameters(), res["g"]):
-            assert torch.equal(pa.detach(), pb)
-        for pa, pb in zip(tr_full.D.parameters(), res["d"]):
-            assert torch.equal(pa.detach(), pb)
-        assert torch.equal(unwrap_prior(tr_full.prior).z.detach(), res["z"])
-        sp_full = tr_full.opt_d.record.sparse_obs_bank.to_packet()
-        sp_res = res["sp"]
-        assert sp_full.keys() == sp_res.keys()
-        for k in sp_full:
-            va, vb = sp_full[k], sp_res[k]
-            if isinstance(va, torch.Tensor):
-                assert torch.equal(va, vb), f"Subprocess sparse_obs_bank mismatch on {k}"
-            else:
-                assert va == vb
-
-
-def test_sparse_obs_g_loss_keeps_live_adversarial_critic_gradient() -> None:
-    """Semantic control (AGENTS.md): sparse-masked g_loss must keep live fake_logits critic gradient and clean transient z_live."""
-    torch.set_num_threads(1)
-    dim, dz, bs = 128, 16, 32
-
-    class _SparseG(nn.Module):
-        def __init__(self) -> None:
-            super().__init__()
-            self.fc = nn.Linear(dz, dim)
-
-        def forward(self, z: torch.Tensor) -> torch.Tensor:
-            m = (torch.rand(z.shape[0], dim, generator=torch.Generator().manual_seed(777)) < 0.15).float()
-            return torch.tanh(self.fc(z)) * m
-
-    g_mod = _SparseG()
-    d_mod = nn.Sequential(nn.Linear(dim, 32), nn.SiLU(), nn.Linear(32, 1))
-    init.deterministic_orthogonal_(g_mod, seed=71)
-    init.deterministic_orthogonal_(d_mod, seed=72)
-    rec, _, _, opt_d = _make_opt_pair(g_mod, d_mod, batch_size=bs, z_dim=dz)
-    loss_fn = rec.make_loss()
-
-    rng = torch.Generator().manual_seed(778)
-    z_live = torch.randn((bs, dz), generator=rng, requires_grad=True)
-    x_r = torch.randn((bs, dim), generator=rng) * (torch.rand((bs, dim), generator=rng) < 0.15).float()
-
-    # Warm up 8 steps so sparse prototypes are active too
-    for _ in range(9):
-        z_cur = torch.randn((bs, dz), generator=rng, requires_grad=True)
-        dr = d_mod(x_r)
-        df = d_mod(g_mod(z_cur))
-        gl = loss_fn.g_loss(df, dr)
-        assert opt_d.record._g_last_latent_live is None, "Transient _g_last_latent_live leaked after g_loss!"
-
-    # 1. Verify direct autograd sensitivity to fake_logits (must NEVER be bypassed!)
-    dr = d_mod(x_r)
-    xf = g_mod(z_live)
-    df = d_mod(xf)
-    df.retain_grad()
-    gl = loss_fn.g_loss(df, dr)
-    assert opt_d.record._g_last_latent_live is None
-    g_fake_logits = torch.autograd.grad(gl, df, retain_graph=True)[0]
-    assert float(g_fake_logits.abs().max().item()) > 1e-4, "fake_logits received zero gradient (critic bypassed!)"
-
-    # 2. Semantic damage control: perturbing critic weights must measurably change G's parameter gradient!
-    g_mod.zero_grad()
-    gl.backward()
-    grad_g_normal = g_mod.fc.weight.grad.detach().clone()
-    grad_z_normal = z_live.grad.detach().clone()
-    assert float(grad_z_normal.abs().max().item()) > 1e-5, "Learnable latent z received zero gradient"
-
-    with torch.no_grad():
-        for p in d_mod.parameters():
-            p.mul_(5.0)
-    z_live2 = z_live.detach().clone().requires_grad_(True)
-    g_mod.zero_grad()
-    dr2 = d_mod(x_r)
-    df2 = d_mod(g_mod(z_live2))
-    gl2 = loss_fn.g_loss(df2, dr2)
-    gl2.backward()
-    grad_g_scaled_d = g_mod.fc.weight.grad.detach().clone()
-    diff_g = float((grad_g_scaled_d - grad_g_normal).abs().max().item())
-    assert diff_g > 1e-5, f"Perturbing critic had zero effect on G gradient (diff={diff_g:.2e})"
-
-    # 3. Spherical Voronoi alignment term must be purely tangential to S^{dz-1} (zero radial distortion on z_live)
-    z_test = torch.randn((bs, dz), generator=rng, requires_grad=True)
-    xf_det = xf.detach()
-    sp_z = unified_v15_sparse_obs_wiener_loss(
-        xf_det, x_r, record=opt_d.record, z_batch=z_test.detach(), z_live=z_test, allow_update=False, z_pull=1.0
-    )
-    gz_only = torch.autograd.grad(sp_z, z_test)[0]
-    radial_dot = (gz_only * z_test.detach()).sum(dim=1).abs().max().item()
-    assert float(gz_only.abs().max().item()) > 1e-5
-    assert radial_dot < 1e-5, f"Voronoi latent alignment leaked radial force ({radial_dot:.2e})"
-
-
-def test_issue1_v15_spatial_cluster_gate_and_32x32_dcgan_penalty_parity() -> None:
-    """Issue #1 parity for unified_v15: 32x32 continuous skips transport & uses fwad_debiased + lambda_floor/gamma_gauge."""
+def test_v15_no_32x32_cluster_cliff_and_g_loss_weight_applied() -> None:
+    """Removed 32x32 cluster-ratio cliff: continuous & sprites both run spatial transport; BN & GN use fwad_debiased."""
     from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
 
     torch.set_num_threads(1)
     g = torch.Generator().manual_seed(321)
 
-    # 1. Pure Conv2d+BN 32x32 critic routes to fwad_debiased (not slow 2B exact_ror) with full lambda_floor=0.005
+    # 1. Pure Conv2d+BN 32x32 continuous activates spatial transport uniformly & uses fwad_debiased
     bn_dcgan32 = nn.Sequential(
         nn.Conv2d(3, 8, 4, stride=2, padding=1),
         nn.BatchNorm2d(8),
@@ -1039,10 +678,10 @@ def test_issue1_v15_spatial_cluster_gate_and_32x32_dcgan_penalty_parity() -> Non
     lg_c = loss_fn.g_loss(df_c, dr_c)
     p_val = pen(bn_dcgan32, xr_cont, xf_cont.detach())
     assert torch.isfinite(ld_c) and torch.isfinite(lg_c) and torch.isfinite(p_val)
-    assert opt_d.record.t1c_ell_initialized is False, "Continuous 32x32 must skip unified_v15 spatial transport"
+    assert opt_d.record.t1c_ell_initialized is True, "32x32 continuous must run transport uniformly (no cluster cliff)"
     assert pen.last_stats["grad_mode"] == "fwad_debiased", "Pure Conv2d+BN 32x32 must use fwad_debiased"
 
-    # 2. GroupNorm 32x32 sprites still route to exact_ror AND activate spatial transport
+    # 2. GroupNorm 32x32 sprites also route to fwad_debiased AND activate spatial transport
     gn32 = nn.Sequential(
         nn.Conv2d(3, 8, 4, stride=2, padding=1),
         nn.GroupNorm(2, 8),
@@ -1062,8 +701,8 @@ def test_issue1_v15_spatial_cluster_gate_and_32x32_dcgan_penalty_parity() -> Non
     lg_s = loss_sp.g_loss(df_s, dr_s)
     p_sp = pen_sp(gn32, xr_sp, xf_sp.detach())
     assert torch.isfinite(lg_s) and torch.isfinite(p_sp)
-    assert opt_d_sp.record.t1c_ell_initialized is True, "Clustered 32x32 sprites must activate unified_v15 transport"
-    assert pen_sp.last_stats["grad_mode"] == "exact_ror", "GroupNorm 32x32 critic must keep exact_ror"
+    assert opt_d_sp.record.t1c_ell_initialized is True
+    assert pen_sp.last_stats["grad_mode"] == "fwad_debiased", "GroupNorm 32x32 critic must use zero-autograd fwad_debiased"
 
     # 3. Large-B (B=128) active spatial transport in UnifiedV15CouplingLoss bounds Sinkhorn to <=64 & keeps full d_fake grad
     coup = UnifiedV15CouplingLoss()
@@ -1076,6 +715,198 @@ def test_issue1_v15_spatial_cluster_gate_and_32x32_dcgan_penalty_parity() -> Non
     assert coup.last_p_xy_slack is not None and coup.last_p_xy_slack.shape[0] == 64
     lc.backward()
     assert df128.grad is not None and bool((df128.grad.abs() > 0).all())
+
+    # 4. Missing self.t1c.weight * fix on UnifiedV15GANLoss.g_loss when dim exceeds transport cap (e.g. 3x64x64)
+    crit64 = nn.Sequential(nn.Conv2d(3, 4, 8, stride=8), nn.Flatten(), nn.Linear(4 * 8 * 8, 1))
+    rec_w = get_recipe("unified_v15", num_particles=16, z_dim=4, batch_size=4, loss="relativistic")
+    _, opt_dw = rec_w.make_optimizers(nn.Linear(4, 4), crit64, rec_w.make_prior())
+    loss_w1 = rec_w.make_loss()
+    loss_w1.record = opt_dw.record
+    loss_w1.t1c.weight = 1.0
+    loss_w2 = rec_w.make_loss()
+    loss_w2.record = opt_dw.record
+    loss_w2.t1c.weight = 3.5
+    xr64 = torch.randn((4, 3, 64, 64), generator=g)
+    xf64 = torch.randn((4, 3, 64, 64), generator=g, requires_grad=True)
+    dr64 = crit64(xr64).squeeze(-1)
+    df64 = crit64(xf64).squeeze(-1)
+    g1 = loss_w1.g_loss(df64, dr64)
+    # Re-evaluate to refresh critic capture for second loss call
+    dr64_b = crit64(xr64).squeeze(-1)
+    df64_b = crit64(xf64).squeeze(-1)
+    g2 = loss_w2.g_loss(df64_b, dr64_b)
+    assert torch.allclose(g2, 3.5 * g1, atol=1e-5, rtol=1e-5), f"t1c.weight not applied: {g2.item()} vs {3.5 * g1.item()}"
+
+
+def test_zero_forbidden_ops_across_critics_and_curve_gate_fp32_bf16(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Runtime spy forbidding autograd.grad/eigvalsh/eigh/svd/svdvals/pinv across MLP, GN, LN, BN, EmulatedLinear & SDPA (FP32/BF16)."""
+    torch.set_num_threads(1)
+
+    def _forbid(*_a: object, **_kw: object) -> None:
+        raise AssertionError("forbidden primitive invoked inside unified_v15 Law 2/3")
+
+    monkeypatch.setattr(torch.autograd, "grad", _forbid)
+    monkeypatch.setattr(torch.linalg, "eigvalsh", _forbid)
+    monkeypatch.setattr(torch.linalg, "eigh", _forbid)
+    monkeypatch.setattr(torch.linalg, "svd", _forbid)
+    monkeypatch.setattr(torch.linalg, "svdvals", _forbid)
+    monkeypatch.setattr(torch.linalg, "pinv", _forbid)
+    monkeypatch.setattr(torch, "svd", _forbid)
+
+    class _MHACritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.mha = nn.MultiheadAttention(8, 2, batch_first=True)
+            self.head = nn.Linear(8, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            h = x.view(x.shape[0], 4, 8)
+            out, _ = self.mha(h, h, h, need_weights=False)
+            return self.head(out.mean(dim=1)).squeeze(-1)
+
+    class _TransformerCritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.enc = nn.TransformerEncoderLayer(d_model=8, nhead=2, dim_feedforward=16, dropout=0.0, batch_first=True)
+            self.head = nn.Linear(8, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            h = self.enc(x.view(x.shape[0], 4, 8))
+            return self.head(h.mean(dim=1)).squeeze(-1)
+
+    class _SoftmaxCritic(nn.Module):
+        def __init__(self) -> None:
+            super().__init__()
+            self.proj = nn.Linear(32, 16)
+            self.sm = nn.Softmax(dim=-1)
+            self.head = nn.Linear(16, 1)
+
+        def forward(self, x: torch.Tensor) -> torch.Tensor:
+            return self.head(self.sm(self.proj(x))).squeeze(-1)
+
+    rng = torch.Generator().manual_seed(2026)
+
+    for dtype in (torch.float32, torch.bfloat16):
+        # 1. Low-D MLP (d=8 <= 16) -> fwad_exact
+        mlp8 = nn.Sequential(nn.Linear(8, 16), nn.SiLU(), nn.Linear(16, 1)).to(dtype)
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 8), mlp8, batch_size=6)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        xr = torch.randn((6, 8), generator=rng).to(dtype)
+        xf = torch.randn((6, 8), generator=rng).to(dtype)
+        val = pen(mlp8, xr, xf)
+        val.backward()
+        assert pen.last_stats["grad_mode"] == "fwad_exact"
+        assert torch.isfinite(val) and all(torch.isfinite(p.grad).all() for p in mlp8.parameters() if p.grad is not None)
+
+        # 2. High-D MLP (d=64) -> fwad_debiased
+        mlp64 = nn.Sequential(nn.Linear(64, 32), nn.SiLU(), nn.Linear(32, 1)).to(dtype)
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 64), mlp64, batch_size=6)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        xr64 = torch.randn((6, 64), generator=rng).to(dtype)
+        xf64 = torch.randn((6, 64), generator=rng).to(dtype)
+        val = pen(mlp64, xr64, xf64)
+        val.backward()
+        assert pen.last_stats["grad_mode"] == "fwad_debiased"
+        assert torch.isfinite(val) and all(torch.isfinite(p.grad).all() for p in mlp64.parameters() if p.grad is not None)
+
+        # 3. GroupNorm + Conv2d (3x16x16) -> fwad_debiased
+        gn_c = nn.Sequential(
+            nn.Conv2d(3, 8, 4, stride=2, padding=1),
+            nn.GroupNorm(2, 8),
+            nn.SiLU(),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+            nn.Linear(8, 1),
+        ).to(dtype)
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 4), gn_c, batch_size=4)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        xr_i = torch.randn((4, 3, 16, 16), generator=rng).to(dtype)
+        xf_i = torch.randn((4, 3, 16, 16), generator=rng).to(dtype)
+        val = pen(gn_c, xr_i, xf_i)
+        val.backward()
+        assert pen.last_stats["grad_mode"] == "fwad_debiased"
+        assert torch.isfinite(val) and all(torch.isfinite(p.grad).all() for p in gn_c.parameters() if p.grad is not None)
+
+        # 4. LayerNorm MLP -> fwad_debiased
+        ln_c = nn.Sequential(nn.Linear(32, 16), nn.LayerNorm(16), nn.SiLU(), nn.Linear(16, 1)).to(dtype)
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 32), ln_c, batch_size=6)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        xr32 = torch.randn((6, 32), generator=rng).to(dtype)
+        xf32 = torch.randn((6, 32), generator=rng).to(dtype)
+        val = pen(ln_c, xr32, xf32)
+        val.backward()
+        assert pen.last_stats["grad_mode"] == "fwad_debiased"
+        assert torch.isfinite(val) and all(torch.isfinite(p.grad).all() for p in ln_c.parameters() if p.grad is not None)
+
+        # 5. BatchNorm Conv2d -> fwad_debiased + BN eval/train mode preserved + running stats untouched + no mixed-batch explosion
+        bn_c = nn.Sequential(
+            nn.Conv2d(3, 8, 4, stride=2, padding=1),
+            nn.BatchNorm2d(8),
+            nn.LeakyReLU(0.2),
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+            nn.Linear(8, 1),
+        ).to(dtype)
+        bn_c.train()
+        bn_layer = bn_c[1]
+        assert isinstance(bn_layer, nn.BatchNorm2d)
+        # Prime running stats with a real forward pass
+        _ = bn_c(xr_i)
+        tracked_before = int(bn_layer.num_batches_tracked.item())
+        rm_before = bn_layer.running_mean.detach().clone()
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 4), bn_c, batch_size=4)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        # Shifted fake batch (mean +5) would trigger catastrophic mixed-batch BN explosion if real+fake were concatenated!
+        val_bn = pen(bn_c, xr_i, xf_i + 5.0)
+        val_bn.backward()
+        assert pen.last_stats["grad_mode"] == "fwad_debiased"
+        assert bn_layer.training is True, "BN training mode was not restored after penalty"
+        assert int(bn_layer.num_batches_tracked.item()) == tracked_before, "Penalty mutated BN num_batches_tracked"
+        assert torch.equal(bn_layer.running_mean, rm_before), "Penalty mutated BN running_mean"
+        assert torch.isfinite(val_bn) and all(torch.isfinite(p.grad).all() for p in bn_c.parameters() if p.grad is not None)
+
+        # 6. EmulatedLinear critic -> strictly zero autograd.grad (fwAD when jvp present, secant fallback otherwise)
+        emu_c = emulate_linear_training_(
+            nn.Sequential(nn.Linear(32, 16), nn.SiLU(), nn.Linear(16, 1)).to(dtype),
+            "mxfp8",
+        )
+        rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 32), emu_c, batch_size=6)
+        pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+        val_emu = pen(emu_c, xr32, xf32)
+        val_emu.backward()
+        assert pen.last_stats["grad_mode"] in ("fwad_debiased", "secant_debiased")
+        assert torch.isfinite(val_emu) and all(torch.isfinite(p.grad).all() for p in emu_c.parameters() if p.grad is not None)
+
+        # 7. Attention / SDPA / Softmax critics -> secant_debiased (0 autograd.grad, finite grads)
+        for att_c, x_a in (
+            (_GroupNormAttentionCritic().to(dtype), torch.randn((4, 3, 16, 16), generator=rng).to(dtype)),
+            (_MHACritic().to(dtype), xr32),
+            (_TransformerCritic().to(dtype), xr32),
+            (_SoftmaxCritic().to(dtype), xr32),
+        ):
+            rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 4), att_c, batch_size=x_a.shape[0])
+            pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+            val_a = pen(att_c, x_a, x_a * 0.9)
+            val_a.backward()
+            assert pen.last_stats["grad_mode"] == "secant_debiased"
+            assert torch.isfinite(val_a) and all(torch.isfinite(p.grad).all() for p in att_c.parameters() if p.grad is not None)
+
+    # 8. _compute_curve_gate & simplicial_manifold_loss run with 0 eigvalsh / 0 svd and separate 1D curve vs 2D cloud
+    coup = UnifiedV15CouplingLoss()
+    t = torch.linspace(-2.0, 2.0, 64)
+    y_curve = torch.stack((t, torch.sin(t)), dim=1)
+    y_blob = torch.randn((64, 2), generator=rng)
+    g_curve = coup._compute_curve_gate(y_curve, g_conn=1.0)
+    g_blob = coup._compute_curve_gate(y_blob, g_conn=1.0)
+    assert g_curve > 0.70, f"Zero-eigvalsh curve gate missed 1D curve: {g_curve:.3f}"
+    assert g_blob < 0.35, f"Zero-eigvalsh curve gate false-triggered on 2D blob: {g_blob:.3f}"
+    g_sim = nn.Linear(4, 2)
+    z_tbl = torch.randn((32, 4), generator=rng, requires_grad=True)
+    sim_loss = coup.simplicial_manifold_loss(z_tbl, g_sim, y_curve, chart_weight=1.0)
+    assert torch.isfinite(sim_loss)
+
 
 
 

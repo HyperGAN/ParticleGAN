@@ -30,7 +30,7 @@ import hashlib
 import json
 import os
 import queue as stdlib_queue
-import shutil
+import shlex
 import signal
 import subprocess
 import sys
@@ -1389,6 +1389,8 @@ class ColabWorker:
 
         # Bootstrap repo once on the warm VM
         sha = self.branch_sync["sha"]
+        repo_url_q = shlex.quote(str(self.repo_url))
+        sha_q = shlex.quote(str(sha))
         self._log(f"Bootstrapping ParticleGAN at {sha[:12]} via uv...")
         bootstrap_sh = textwrap.dedent(
             f"""
@@ -1397,16 +1399,16 @@ class ColabWorker:
             if command -v nvidia-smi >/dev/null 2>&1; then
               nvidia-smi --query-gpu=name,memory.total,driver_version --format=csv,noheader
             fi
-            git clone --depth 1 --branch develop {self.repo_url} /content/ParticleGAN
+            git clone --depth 1 --branch develop {repo_url_q} /content/ParticleGAN
             cd /content/ParticleGAN
             ACTUAL=$(git rev-parse HEAD)
-            if [ "$ACTUAL" != "{sha}" ]; then
+            if [ "$ACTUAL" != {sha_q} ]; then
               if [ -f /content/branch.bundle ]; then
                 git fetch /content/branch.bundle HEAD:refs/heads/colab-branch || (git fetch --unshallow origin develop && git fetch /content/branch.bundle HEAD:refs/heads/colab-branch)
-                git checkout {sha}
+                git checkout {sha_q}
               else
-                git fetch --depth 1 origin {sha}
-                git checkout {sha}
+                git fetch --depth 1 origin {sha_q}
+                git checkout {sha_q}
               fi
             fi
             if [ -f /content/worktree-overlay.tar.gz ]; then
@@ -1473,6 +1475,13 @@ class ColabWorker:
             else ""
         )
 
+        cand_q = shlex.quote(str(unit.candidate_id))
+        study_q = shlex.quote(str(study_id))
+        device_q = shlex.quote(str(device_arg))
+        gpus_q = shlex.quote(str(gpus_arg))
+        tar_remote_q = shlex.quote(str(tar_remote))
+        unit_id_q = shlex.quote(str(unit.unit_id))
+
         run_sh = textwrap.dedent(
             f"""
             set -euo pipefail
@@ -1486,8 +1495,8 @@ class ColabWorker:
             tail -n 0 -F runs/forge/events.jsonl 2>/dev/null &
             TAIL_PID=$!
             set +e
-            python3 -m experiments.forge plan '{unit.candidate_id}' --study '{study_id}' --device '{device_arg}'
-            python3 -m experiments.forge run '{unit.candidate_id}' --study '{study_id}' --gpus '{gpus_arg}'
+            python3 -m experiments.forge plan {cand_q} --study {study_q} --device {device_q}
+            python3 -m experiments.forge run {cand_q} --study {study_q} --gpus {gpus_q}
             RUN_RC=$?
             set -e
             kill $TAIL_PID 2>/dev/null || true
@@ -1504,10 +1513,10 @@ class ColabWorker:
             done
             [ -f /content/watchdog.log ] && TAR_ITEMS+=("/content/watchdog.log")
             if [ "${{#TAR_ITEMS[@]}}" -gt 0 ]; then
-              tar -czf '{tar_remote}' "${{TAR_ITEMS[@]}}" 2>&1 || true
+              tar -czf {tar_remote_q} "${{TAR_ITEMS[@]}}" 2>&1 || true
             fi
             touch /content/forge_heartbeat /content/forge_job.done
-            echo "[vm] unit {unit.unit_id} finished rc=$RUN_RC new_attempts=$(wc -l < /content/new_attempts.txt)"
+            printf '[vm] unit %s finished rc=%s new_attempts=%s\\n' {unit_id_q} "$RUN_RC" "$(wc -l < /content/new_attempts.txt)"
             exit $RUN_RC
             """
         ).strip()
@@ -1562,12 +1571,18 @@ def ingest_tarball(
     register_submissions: bool = True,
     rendered_media_dir: Path | None = None,
 ) -> dict[str, Any]:
-    """Unpack durable attempts (and optional rendered GIFs) from a Colab tarball."""
-    from experiments.forge.contracts import atomic_json, file_lock
+    """Unpack durable attempts (and optional rendered GIFs) from a Colab tarball.
+
+    Validates archive path safety, internal certificate ``result_hash`` consistency,
+    and SHA-256 / ``result_hash`` parity against any existing on-disk attempt or
+    projected receipt before writing any attempt files (failing closed on conflicts).
+    """
+    from experiments.forge.contracts import atomic_json, file_lock, stable_hash
 
     root = Path(root).resolve()
-    attempts_root = root / "reports/forge/attempts"
+    attempts_root = (root / "reports/forge/attempts").resolve()
     attempts_root.mkdir(parents=True, exist_ok=True)
+    receipts_dir = (root / "reports/forge/technique-receipts").resolve()
     media_root = (
         Path(rendered_media_dir).resolve()
         if rendered_media_dir is not None
@@ -1577,9 +1592,15 @@ def ingest_tarball(
     new_attempts: set[str] = set()
     imported_submissions: dict[str, dict[str, Any]] = {}
     rendered_media_gifs: list[str] = []
+    staged_media_dirs: list[Path] = []
+    staged_media_files: list[tuple[Path, bytes]] = []
+    staged_attempt_dirs: list[Path] = []
+    staged_attempts: dict[str, dict[str, tuple[Path, bytes]]] = {}
 
     with tarfile.open(tar_path) as tf:
         for member in tf.getmembers():
+            if member.issym() or member.islnk():
+                raise ValueError(f"Unsafe link archive member: {member.name}")
             if member.name.startswith("runs/forge/rendered_media/"):
                 rel_media = member.name[len("runs/forge/rendered_media/"):]
                 if not rel_media:
@@ -1588,34 +1609,124 @@ def ingest_tarball(
                 if not dest_media.is_relative_to(media_root):
                     raise ValueError(f"Unsafe archive member path: {member.name}")
                 if member.isdir():
-                    dest_media.mkdir(parents=True, exist_ok=True)
+                    staged_media_dirs.append(dest_media)
                 elif member.isfile():
-                    dest_media.parent.mkdir(parents=True, exist_ok=True)
-                    with tf.extractfile(member) as src, dest_media.open("wb") as dst:
-                        shutil.copyfileobj(src, dst)
-                    if dest_media.suffix.lower() == ".gif":
-                        rendered_media_gifs.append(str(dest_media))
+                    src = tf.extractfile(member)
+                    if src is None:
+                        continue
+                    staged_media_files.append((dest_media, src.read()))
                 continue
             if not member.name.startswith("reports/forge/attempts/"):
                 continue
             dest = (root / member.name).resolve()
-            if not dest.is_relative_to(attempts_root.resolve()):
+            if not dest.is_relative_to(attempts_root):
                 raise ValueError(f"Unsafe archive member path: {member.name}")
             parts = member.name.split("/")
-            if len(parts) >= 4:
-                new_attempts.add(parts[3])
+            if len(parts) < 4 or not parts[3]:
+                continue
+            aid = parts[3]
+            new_attempts.add(aid)
             if member.isdir():
-                dest.mkdir(parents=True, exist_ok=True)
+                staged_attempt_dirs.append(dest)
             elif member.isfile():
-                dest.parent.mkdir(parents=True, exist_ok=True)
-                with tf.extractfile(member) as src, dest.open("wb") as dst:
-                    shutil.copyfileobj(src, dst)
-                if member.name.endswith("/request.json"):
-                    env = json.loads(dest.read_text(encoding="utf-8"))
-                    rid = env.get("request_id")
-                    req = env.get("request")
-                    if rid and isinstance(req, dict) and rid not in imported_submissions:
-                        imported_submissions[rid] = req
+                src = tf.extractfile(member)
+                if src is None:
+                    continue
+                rel_in_attempt = "/".join(parts[4:])
+                staged_attempts.setdefault(aid, {})[rel_in_attempt] = (dest, src.read())
+
+    # Pre-write integrity & conflict verification (fail closed before mutating disk)
+    for aid, files in staged_attempts.items():
+        attempt_dir = attempts_root / aid
+        incoming_result_obj: dict[str, Any] | None = None
+        if "result.json" in files:
+            _, res_bytes = files["result.json"]
+            try:
+                incoming_result_obj = json.loads(res_bytes.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise ValueError(f"Invalid JSON in incoming attempt {aid!r} result.json: {exc}") from exc
+
+        # 1. Verify internal certificate.json result_hash vs result.json when both exist
+        cert_bytes = files["certificate.json"][1] if "certificate.json" in files else (
+            (attempt_dir / "certificate.json").read_bytes()
+            if (attempt_dir / "certificate.json").is_file()
+            else None
+        )
+        res_obj_for_cert = incoming_result_obj
+        if res_obj_for_cert is None and (attempt_dir / "result.json").is_file():
+            res_obj_for_cert = json.loads((attempt_dir / "result.json").read_text(encoding="utf-8"))
+        if cert_bytes is not None and res_obj_for_cert is not None:
+            try:
+                cert_obj = json.loads(cert_bytes.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+                raise ValueError(f"Invalid JSON in attempt {aid!r} certificate.json: {exc}") from exc
+            recorded_hash = cert_obj.get("result_hash") if isinstance(cert_obj, dict) else None
+            if isinstance(recorded_hash, str) and recorded_hash:
+                computed_hash = stable_hash(res_obj_for_cert)
+                if recorded_hash != computed_hash:
+                    raise ValueError(
+                        f"Attempt {aid!r} certificate result_hash mismatch: "
+                        f"certificate={recorded_hash} computed={computed_hash}"
+                    )
+
+        # 2. Verify every incoming file against existing on-disk attempt files
+        for rel_in_attempt, (dest, payload) in files.items():
+            if not dest.is_file():
+                continue
+            existing_bytes = dest.read_bytes()
+            inc_digest = hashlib.sha256(payload).hexdigest()
+            ext_digest = hashlib.sha256(existing_bytes).hexdigest()
+            if rel_in_attempt == "result.json":
+                existing_result_obj = json.loads(existing_bytes.decode("utf-8"))
+                inc_rhash = stable_hash(incoming_result_obj)
+                ext_rhash = stable_hash(existing_result_obj)
+                if inc_rhash != ext_rhash or inc_digest != ext_digest:
+                    raise ValueError(
+                        f"Conflicting result_hash/digest for existing attempt {aid!r} ({rel_in_attempt}): "
+                        f"incoming={inc_rhash[:12]}/{inc_digest[:12]} existing={ext_rhash[:12]}/{ext_digest[:12]}"
+                    )
+            elif inc_digest != ext_digest:
+                raise ValueError(
+                    f"Conflicting digest for existing attempt {aid!r} file {rel_in_attempt!r}: "
+                    f"incoming={inc_digest[:12]} existing={ext_digest[:12]}"
+                )
+
+        # 3. Verify incoming result.json against any existing projected receipt canonical_result_hash
+        existing_receipt = receipts_dir / f"{aid}.json"
+        if incoming_result_obj is not None and existing_receipt.is_file():
+            receipt_obj = json.loads(existing_receipt.read_text(encoding="utf-8"))
+            prov = receipt_obj.get("provenance") if isinstance(receipt_obj, dict) else None
+            canon_hash = prov.get("canonical_result_hash") if isinstance(prov, dict) else None
+            if isinstance(canon_hash, str) and canon_hash:
+                inc_rhash = stable_hash(incoming_result_obj)
+                if inc_rhash != canon_hash:
+                    raise ValueError(
+                        f"Conflicting result_hash against existing receipt for attempt {aid!r}: "
+                        f"incoming={inc_rhash[:12]} receipt={canon_hash[:12]}"
+                    )
+
+    # All validations passed — apply writes cleanly
+    for dest_media_dir in staged_media_dirs:
+        dest_media_dir.mkdir(parents=True, exist_ok=True)
+    for dest_media, payload in staged_media_files:
+        dest_media.parent.mkdir(parents=True, exist_ok=True)
+        dest_media.write_bytes(payload)
+        if dest_media.suffix.lower() == ".gif":
+            rendered_media_gifs.append(str(dest_media))
+
+    for dest_attempt_dir in staged_attempt_dirs:
+        dest_attempt_dir.mkdir(parents=True, exist_ok=True)
+    for files in staged_attempts.values():
+        for rel_in_attempt, (dest, payload) in files.items():
+            dest.parent.mkdir(parents=True, exist_ok=True)
+            if not dest.is_file():
+                dest.write_bytes(payload)
+            if rel_in_attempt == "request.json":
+                env = json.loads(dest.read_text(encoding="utf-8"))
+                rid = env.get("request_id")
+                req = env.get("request")
+                if rid and isinstance(req, dict) and rid not in imported_submissions:
+                    imported_submissions[rid] = req
 
     if register_submissions and imported_submissions:
         state_path = root / "runs/forge/queue/state.json"

@@ -20,11 +20,32 @@ from particlegan import (
     ManipulatedPrior,
     MoGParticlePrior,
     Recipe,
+    bind_formulation_records,
+    critic_g_step_mode,
     get_recipe,
     init,
     scale_learning_rates,
     unwrap_prior,
 )
+
+_NO_EMA_FORMULATIONS = frozenset({
+    "bispf",
+    "empf",
+    "rhbi",
+    "t1_coupling",
+    "t2_secant",
+    "rgdt",
+    "t4_nash",
+    "t4_nash_v3",
+    "unified",
+    "unified_v4",
+    "unified_v11",
+    "unified_v15",
+    "r4_autograd_critic",
+    "cond_fiber",
+    "axiom",
+    "minimal",
+})
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from .reproducibility import construction_rng
 
@@ -322,7 +343,7 @@ class InfoGANGenerator(nn.Module):
 
         c_cent = (c_d - (1.0 / self.n_disc)) * math.sqrt(self.n_disc)
         z_loc = torch.tanh(z)
-        h_mode = 3.0 * self.disc_net(c_cent)
+        h_mode = self.disc_net(c_cent)
         cont_feat = torch.cat([c_d * c_c, c_cent], dim=1)
         h_tan = 0.5 * self.cont_net(cont_feat) * c_c
         z_feat = torch.cat([c_d * z_loc[:, :1], c_d * z_loc[:, 1:2]], dim=1)
@@ -371,10 +392,9 @@ class InfoGANRecognition(nn.Module):
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        xn = x / RING_RADIUS
         r = torch.sqrt((x * x).sum(dim=1, keepdim=True) + 1e-6)
         u = x / r
-        feat = torch.cat([xn, u, xn * xn], dim=1)
+        feat = torch.cat([x, u, x / (1.0 + r)], dim=1)
         q_disc = self.disc_trunk(feat)
         probs = F.softmax(q_disc, dim=1)
         q_cont_all = self.cont_trunk(feat)
@@ -525,7 +545,11 @@ class InfoGANAnisotropicFixture:
             del base_prior.z
             base_prior.z = nn.Parameter(rows, requires_grad=True)
 
-        ema_critic = deepcopy(self.D) if self.recipe.effective_critic_formulation != "bispf" else None
+        ema_critic = (
+            None
+            if self.recipe.effective_critic_formulation in _NO_EMA_FORMULATIONS
+            else deepcopy(self.D)
+        )
         self.opt_g, self.opt_d = self.recipe.make_optimizers(
             self.G,
             self.D,
@@ -544,9 +568,7 @@ class InfoGANAnisotropicFixture:
         self.loss = self.recipe.make_loss()
         self.penalty = self.recipe.make_critic_penalty(self.opt_d)
         self.regularizer = self.recipe.make_prior_regularizer(prior=self.prior)
-        if self.recipe.effective_critic_formulation == "bispf" and hasattr(self.opt_d, "record"):
-            from particlegan.bispf import bind_thermal_source
-            bind_thermal_source(self.opt_d.record, self.loss, self.regularizer)
+        bind_formulation_records(self.recipe, self.opt_d, self.loss, self.regularizer, generator=self.G)
         return self
 
     def sample_target(self, n: int, generator: torch.Generator | None = None) -> torch.Tensor:
@@ -617,9 +639,7 @@ class InfoGANAnisotropicFixture:
         self.opt_d.step()
 
         # 2. Generator + Recognition Q + Prior step
-        flags = [p.requires_grad for p in self.D.parameters()]
-        try:
-            self.D.requires_grad_(False)
+        with critic_g_step_mode(self.D):
             z_g, idx_g, c_idx_g, c_disc_g, c_cont_g = self._sample_latent_and_codes(batch_size)
             x_fake = self.G(torch.cat([z_g, c_disc_g, c_cont_g], dim=1))
             if isinstance(self.prior, ManipulatedPrior) and self.prior.postprocesses_generated:
@@ -629,15 +649,7 @@ class InfoGANAnisotropicFixture:
             real_logits = self.D(real_x)
             loss_adv = self.loss.g_loss(fake_logits, real_logits)
 
-            if self.recipe.effective_critic_formulation == "bispf":
-                s_thermal = float(getattr(getattr(self.opt_d, "record", None), "_thermal_scale", 1.0))
-                x_for_q = x_fake * s_thermal + x_fake.detach() * (1.0 - s_thermal) if s_thermal < 1.0 else x_fake
-                info_scale = 16.0 * self.info_weight
-            else:
-                x_for_q = x_fake
-                info_scale = self.info_weight
-
-            q_out = self.Q(x_for_q)
+            q_out = self.Q(x_fake)
             q_disc = q_out[:, :NUM_MODES]
             q_cont = q_out[:, NUM_MODES : NUM_MODES + 1]
             loss_ce = F.cross_entropy(q_disc, c_idx_g)
@@ -657,7 +669,7 @@ class InfoGANAnisotropicFixture:
                     logits=fake_logits,
                 )
 
-            loss_g = loss_adv + info_scale * loss_info + loss_prior
+            loss_g = loss_adv + self.info_weight * loss_info + loss_prior
 
             self.opt_g.zero_grad(set_to_none=True)
             if hasattr(self.opt_g, "set_sampled_rows") and base_prior.z.requires_grad:
@@ -667,9 +679,6 @@ class InfoGANAnisotropicFixture:
             else:
                 loss_g.backward()
             self.opt_g.step()
-        finally:
-            for p, f in zip(self.D.parameters(), flags):
-                p.requires_grad_(f)
 
         self.completed_steps += 1
         self.last_losses = {

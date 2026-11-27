@@ -839,3 +839,172 @@ def test_checkpoint_exact_continuation_with_bn_critic(preset, tmp_path):
     for key in ("loss_d", "loss_g", "loss_gan", "prior_regularization", "penalty"):
         assert torch.equal(expected_stats[key], actual_stats[key])
     assert_checkpoint_equal(loaded, preserved)
+
+
+def test_frozen_eval_bn_backbone_without_train_override_preserved_across_steps():
+    """Frozen eval() BN submodules must not be flipped to train() by GANTrainer.step()."""
+    class BackboneHeadCritic(nn.Module):
+        def __init__(self):
+            super().__init__()
+            self.backbone = nn.Sequential(nn.Linear(4, 8), nn.BatchNorm1d(8), nn.ReLU())
+            self.head = nn.Sequential(nn.Linear(8, 8), nn.BatchNorm1d(8), nn.ReLU(), nn.Linear(8, 1))
+
+        def forward(self, x):
+            return self.head(self.backbone(x))
+
+    recipe = get_recipe("bcap", num_particles=16, z_dim=2, batch_size=6, total_steps=10)
+    G = nn.Sequential(nn.Linear(2, 8), nn.ReLU(), nn.Linear(8, 4))
+    D = BackboneHeadCritic()
+    D.backbone.eval().requires_grad_(False)
+    frozen_bn = D.backbone[1]
+    live_bn = D.head[1]
+    frozen_mean_before = frozen_bn.running_mean.clone()
+    frozen_var_before = frozen_bn.running_var.clone()
+    frozen_tracked_before = frozen_bn.num_batches_tracked.clone()
+
+    observed_frozen_modes = []
+    handle = frozen_bn.register_forward_pre_hook(lambda m, _i: observed_frozen_modes.append(m.training))
+    try:
+        trainer = GANTrainer(recipe, G, D, seed=0, max_steps=10)
+        trainer.step(torch.randn(6, 4))
+        tracked_after_1 = live_bn.num_batches_tracked.item()
+        trainer.step(torch.randn(6, 4))
+        tracked_after_2 = live_bn.num_batches_tracked.item()
+    finally:
+        handle.remove()
+
+    assert observed_frozen_modes and all(mode is False for mode in observed_frozen_modes)
+    assert frozen_bn.training is False
+    assert torch.equal(frozen_bn.running_mean, frozen_mean_before)
+    assert torch.equal(frozen_bn.running_var, frozen_var_before)
+    assert torch.equal(frozen_bn.num_batches_tracked, frozen_tracked_before)
+    assert tracked_after_1 > 0 and tracked_after_2 > tracked_after_1
+
+
+def test_public_exports_and_caller_loop_helpers():
+    import os
+    from pathlib import Path
+    import subprocess
+    import sys
+    import particlegan as pg
+
+    for name in (
+        "bind_formulation_records",
+        "critic_g_step_mode",
+        "validate_emulated_extra_states",
+        "UnifiedV15CouplingLoss",
+        "UnifiedV15CriticAdam",
+        "UnifiedV15CriticPenalty",
+        "UnifiedV15GANLoss",
+        "UnifiedV15Optimizer",
+        "UnifiedV15PriorRegularizer",
+        "UnifiedV15StepRecord",
+        "bind_unified_v15_record",
+        "record_unified_v15_generator_probe",
+    ):
+        assert hasattr(pg, name), f"missing export {name}"
+
+    # critic_g_step_mode preserves active BN stats, keeps frozen eval BN in eval(), and restores modes
+    critic = nn.Sequential(nn.Linear(4, 8), nn.BatchNorm1d(8), nn.Linear(8, 8), nn.BatchNorm1d(8), nn.Linear(8, 1))
+    critic[1].eval().requires_grad_(False)
+    live_bn, frozen_bn = critic[3], critic[1]
+    tracked_before = live_bn.num_batches_tracked.item()
+    x = torch.randn(6, 4, requires_grad=True)
+    with pg.critic_g_step_mode(critic):
+        assert frozen_bn.training is False
+        assert live_bn.training is True and live_bn.track_running_stats is False
+        assert all(not p.requires_grad for p in critic.parameters())
+        out = critic(x)
+        out.sum().backward()
+    assert x.grad is not None and torch.isfinite(x.grad).all()
+    assert live_bn.num_batches_tracked.item() == tracked_before
+    assert live_bn.training is True and live_bn.track_running_stats is True
+    assert frozen_bn.training is False and not any(p.requires_grad for p in frozen_bn.parameters())
+    assert all(p.requires_grad for p in live_bn.parameters())
+
+    # examples/pytorch_loop.py smoke test
+    root = Path(__file__).resolve().parents[1]
+    env = {**os.environ, "PYTHONPATH": str(root)}
+    proc = subprocess.run(
+        [sys.executable, str(root / "examples/pytorch_loop.py"), "--steps", "2", "--batch-size", "16"],
+        check=True, capture_output=True, text=True, env=env,
+    )
+    assert '"event": "complete"' in proc.stdout
+
+
+def test_gradient_response_pullback_checkpoint_non_dualnorm_frozen_and_exception():
+    from particlegan.gradient_response import GradientCoherence
+
+    # 1. Differentiated modes: v1 (power=1.0) vs v2 (power=2.0)
+    gc1 = GradientCoherence.for_mode("coherent_G_mean_v1")
+    gc2 = GradientCoherence.for_mode("coherent_G_damped_v2")
+    assert gc1.power != gc2.power
+    g_a = [torch.tensor([1.0, 0.0])]
+    g_b = [torch.tensor([0.0, 1.0])]
+    gc1.observe(g_a)
+    gc2.observe(g_a)
+    gain1 = gc1.observe(g_b)
+    gain2 = gc2.observe(g_b)
+    assert 0.0 < gain2 < gain1 < 1.0
+
+    # 2. Pullback G-step branch (get_recipe("mog", generator_gradient_response="coherent_G_mean_v1"))
+    recipe_mog = get_recipe(
+        "mog",
+        generator_gradient_response="coherent_G_mean_v1",
+        num_particles=32,
+        z_dim=2,
+        batch_size=16,
+        total_steps=10,
+    )
+    g_mog = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 2))
+    d_mog = nn.Sequential(nn.Linear(2, 16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    t_mog = GANTrainer(recipe_mog, g_mog, d_mog, seed=0, max_steps=10)
+    real = torch.randn(16, 2)
+    t_mog.step(real)
+    t_mog.step(real)
+    assert t_mog._gradient_response.packet["count"] == 2
+    assert t_mog._gradient_response.response["applied_steps"] == 2
+    ckpt = deepcopy(t_mog.state_dict())
+    t_mog.load_state_dict(ckpt)
+    assert t_mog._gradient_response.response["applied_steps"] == 2
+
+    # 3. Non-DualNorm optimizer (bcap_adam) scales generator LR by gain and keeps frozen param .grad=None
+    recipe_adam = get_recipe(
+        "bcap_adam",
+        generator_gradient_response="coherent_G_damped_v2",
+        num_particles=16,
+        z_dim=2,
+        batch_size=8,
+        total_steps=10,
+    )
+    g_adam = nn.Sequential(nn.Linear(2, 8), nn.Tanh(), nn.Linear(8, 2))
+    g_adam[0].bias.requires_grad_(False)
+    d_adam = nn.Sequential(nn.Linear(2, 8), nn.Tanh(), nn.Linear(8, 1))
+    t_adam = GANTrainer(recipe_adam, g_adam, d_adam, seed=0, max_steps=10)
+    assert "role" not in t_adam.opt_g.param_groups[0]
+    seen_lrs = []
+    orig_step = t_adam.opt_g.step
+    def _spy_step(*args, **kwargs):
+        seen_lrs.append([grp["lr"] for grp in t_adam.opt_g.param_groups])
+        return orig_step(*args, **kwargs)
+    t_adam.opt_g.step = _spy_step
+    base_g_lr = t_adam.opt_g.param_groups[0]["lr"]
+    base_p_lr = t_adam.opt_g.param_groups[1]["lr"]
+    t_adam.step(torch.randn(8, 2))
+    t_adam.step(torch.randn(8, 2) + 5.0)
+    assert g_adam[0].bias.grad is None, "frozen generator parameter must never receive .grad"
+    assert seen_lrs[-1][0] <= base_g_lr
+    assert t_adam.opt_g.param_groups[0]["lr"] == pytest.approx(base_g_lr)
+    assert seen_lrs[-1][1] == pytest.approx(base_p_lr)
+    # Exact checkpoint round-trip with frozen G parameter
+    t_adam.load_state_dict(deepcopy(t_adam.state_dict()))
+
+    # 4. Exception during opt_g.step() must NOT increment applied_steps and must restore LR
+    applied_before = t_adam._gradient_response.response["applied_steps"]
+    def _boom(*_args, **_kwargs):
+        raise RuntimeError("boom in opt_g.step")
+    t_adam.opt_g.step = _boom
+    with pytest.raises(RuntimeError, match="boom in opt_g.step"):
+        t_adam.step(torch.randn(8, 2))
+    assert t_adam._gradient_response.response["applied_steps"] == applied_before
+    assert t_adam.opt_g.param_groups[0]["lr"] == pytest.approx(base_g_lr)

@@ -94,14 +94,15 @@ def test_checkpoint_cannot_transfer_to_a_different_comparison_condition(changed_
 def test_every_owned_historical_question_and_all_proposal_arms_are_mapped():
     cases = api.list_cases()
     # 54 plus api-zero-tanh-smoke, api-zero-tanh-rail-escape, api-grid100-mlp16,
-    # api-grid100-res16-tanh and api-grid100-res16-scaled-tanh.
-    assert len(cases) == len({case["id"] for case in cases}) == 59
+    # api-grid100-res16-tanh, api-grid100-res16-scaled-tanh, and
+    # api-grid100-res16-scaled-tanh-v2.
+    assert len(cases) == len({case["id"] for case in cases}) == 60
     catalog = json.loads((Path(__file__).parents[1] / "reports/toy_audit/catalog.json").read_text())["cases"]
     expected = {case["id"] for case in catalog if case["id"].startswith("atlas-")
                 or case.get("spec", {}).get("kind") in {"gaussian_mixture", "spiral", "annulus"}}
     expected |= {"develop-two_pole", "develop-mode_hold", "source-family-10", "source-family-16",
                  "zero-tanh-smoke", "zero-tanh-rail-escape", "deep100g-mlp16", "deep100g-res16-tanh",
-                 "deep100g-res16-scaled-tanh"}
+                 "deep100g-res16-scaled-tanh", "deep100g-res16-scaled-tanh-v2"}
     assert {old for case in cases for old in case["legacy_ids"]} == expected
     for case in cases:
         assert case["goal"] and case["thresholds"] and case["sampling"] and case["scope"]
@@ -336,3 +337,76 @@ def test_short_draws_and_nonfinite_arrays_cannot_pass():
         api.score_case(case, torch.full((4096, 2), float("nan")))
     with pytest.raises(ValueError, match="prefix"):
         api.build_case(case["id"], max_steps=case["default_steps"] + 1)
+
+
+def test_grid100_res16_scaled_tanh_v2_unneutered_generator_and_non_identity_control():
+    """Verify v2 builds preserve_latent_norm=False and is genuinely sensitive to weight perturbations."""
+    from experiments.forge import adapters, nativeprofiles
+
+    root = Path(__file__).resolve().parents[1]
+    v2_case = deepcopy(definition("api-grid100-res16-scaled-tanh-v2"))
+    v2_case["particles"] = 64
+    v2_case["batch_size"] = 16
+    v2_fixture = api.VectorFixture(v2_case, recipe_name="k3p", max_steps=1)
+    assert isinstance(v2_fixture.trainer.G, api.ScaledResidualMLPGenerator)
+    assert v2_fixture.trainer.G.preserve_latent_norm is False
+    assert isinstance(v2_fixture.trainer.G.norm, torch.nn.LayerNorm)
+
+    legacy_case = deepcopy(definition("api-grid100-res16-scaled-tanh"))
+    legacy_case["particles"] = 64
+    legacy_case["batch_size"] = 16
+    legacy_fixture = api.VectorFixture(legacy_case, recipe_name="k3p", max_steps=1)
+    assert isinstance(legacy_fixture.trainer.G, api.ScaledResidualMLPGenerator)
+    assert legacy_fixture.trainer.G.preserve_latent_norm is True
+
+    # Forge nativeprofiles routing honors explicit preserve_latent_norm=False on v2
+    # while preserving legacy preserve_latent_norm=True when omitted on v1.
+    cand = {"recipe_preset": "k3p", "recipe_overrides": {}}
+    v2_card = json.loads((root / "configs/forge/tasks/grid100_res16_scaled_tanh_v2.json").read_text())
+    v1_card = json.loads((root / "configs/forge/tasks/grid100_res16_scaled_tanh.json").read_text())
+    assert v2_card["execution"]["model"]["preserve_latent_norm"] is False
+    assert adapters.adapter_preflight(v2_card, cand) == []
+    ctx_v2 = adapters._context({"candidate": cand, "protocol": {"seed": 0}}, v2_card, "cpu", v2_card["execution"]["resources"])
+    g_v2, d_v2 = nativeprofiles.build_declared_native_models(ctx_v2, v2_card["execution"]["model"])
+    assert isinstance(g_v2, api.ScaledResidualMLPGenerator)
+    assert g_v2.preserve_latent_norm is False
+    assert isinstance(d_v2, api.SimpleMLPDiscriminator)
+
+    ctx_v1 = adapters._context({"candidate": cand, "protocol": {"seed": 0}}, v1_card, "cpu", v1_card["execution"]["resources"])
+    g_v1, _ = nativeprofiles.build_declared_native_models(ctx_v1, v1_card["execution"]["model"])
+    assert isinstance(g_v1, api.ScaledResidualMLPGenerator)
+    assert g_v1.preserve_latent_norm is True
+
+    # Semantic non-identity control: +0.5 Gaussian weight perturbation must
+    # strongly move G(z) away from z (max |G(z) - z| > 0.1).
+    rng = torch.Generator().manual_seed(0)
+    z = torch.randn((128, 2), generator=rng)
+    with torch.no_grad():
+        for param in g_v2.parameters():
+            param.add_(0.5 * torch.randn(param.shape, generator=rng, dtype=param.dtype))
+        out_v2 = g_v2(z)
+    max_diff = float((out_v2 - z).abs().max())
+    assert max_diff > 0.1, f"expected non-identity output after +0.5 weight perturbation, got max |G(z)-z|={max_diff}"
+
+
+def test_grid100_res16_scaled_tanh_v2_passes_forge_validate():
+    """Verify grid100_res16_scaled_tanh_v2 loads and passes full experiments.forge validate."""
+    import subprocess
+    import sys
+    from experiments.forge import nativeprofiles, views
+
+    root = Path(__file__).resolve().parents[1]
+    tasks = views.load_tasks(root)
+    assert "grid100_res16_scaled_tanh_v2" in tasks
+    v2_task = tasks["grid100_res16_scaled_tanh_v2"]
+    assert v2_task["execution"]["model"]["preserve_latent_norm"] is False
+    assert nativeprofiles.resolve_native_spec(v2_task, root=root) is None
+
+    proc = subprocess.run(
+        [sys.executable, "-m", "experiments.forge", "validate"],
+        cwd=root,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, f"experiments.forge validate failed:\nSTDOUT:\n{proc.stdout}\nSTDERR:\n{proc.stderr}"

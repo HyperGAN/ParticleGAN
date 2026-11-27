@@ -437,11 +437,10 @@ def test_pacgan4_repulsion_discriminator_contract_and_gradients() -> None:
     disc = PacGAN4RepulsionDiscriminator(in_pts=4, pt_dim=2, hidden_dim=128)
     assert disc.feature_dim == 23
 
-    # Legacy discriminator subclass contract
-    assert issubclass(PacGANDiscriminator, PacGAN4RepulsionDiscriminator)
-    disc_legacy = PacGANDiscriminator(in_dim=8, hidden_dim=128)
-    assert disc_legacy.feature_dim == 23
-    assert disc_legacy.in_pts == 4
+    # Clean raw-packed MLP discriminator must NOT inherit hand-crafted repulsion features
+    assert not issubclass(PacGANDiscriminator, PacGAN4RepulsionDiscriminator)
+    disc_clean = PacGANDiscriminator(in_dim=8, hidden_dim=128)
+    assert disc_clean(torch.randn(5, 8)).shape == (5,)
 
     # Shape contract: (B, 4, 2) and flat (B, 8)
     x3d = torch.randn(5, 4, 2, requires_grad=True)

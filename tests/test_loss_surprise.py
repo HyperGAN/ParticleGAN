@@ -189,3 +189,105 @@ def test_policy_loss_surprise_integration():
     saved_state = trainer.policy.state_dict()
     trainer.policy.load_state_dict(saved_state)
     assert trainer.policy.loss_surprise.calm == saved_state["loss_surprise"]["calm"]
+
+
+def test_loss_surprise_load_state_dict_schema_whitelist_and_legacy_reset():
+    from copy import deepcopy
+
+    detector = LossSurprise()
+    for step in range(25):
+        detector.observe(0.4 + 0.01 * step)
+        detector.decide(step)
+    valid = detector.state_dict()
+    before_calm = detector.calm
+
+    # Reject unknown key (no attribute injection)
+    with pytest.raises(ValueError, match="incompatible loss-surprise state"):
+        detector.load_state_dict({**valid, "injected_attr": 123})
+    assert not hasattr(detector, "injected_attr")
+    assert detector.calm == before_calm
+
+    # Reject missing key, bad bool/non-finite/negative/mismatched fast-calm
+    bad_cases = [
+        {k: v for k, v in valid.items() if k != "fires"},
+        {**valid, "fires": True},
+        {**valid, "var_calm": -0.1},
+        {**valid, "fast": float("nan")},
+        {**valid, "fast": None, "calm": 0.5},
+        {**valid, "armed": 1},
+    ]
+    for bad in bad_cases:
+        with pytest.raises(ValueError, match="incompatible loss-surprise state"):
+            detector.load_state_dict(bad)
+        assert detector.calm == before_calm
+
+    # Legacy checkpoint omitting "loss_surprise" resets warm LossSurprise cleanly
+    recipe = get_recipe("atlas", z_dim=2, num_particles=32, batch_size=16)
+    G = nn.Sequential(nn.Linear(2, 8), nn.Linear(8, 2))
+    D = nn.Sequential(nn.Linear(2, 8), nn.Linear(8, 1))
+    deterministic_orthogonal_(G, seed=0)
+    deterministic_orthogonal_(D, seed=1)
+    prior = recipe.make_prior(sigma=0.005)
+    deterministic_orthogonal_(unwrap_prior(prior), seed=2)
+    trainer = GANTrainer(recipe, G, D, prior=prior, seed=0, serial_backward=True)
+    real = torch.randn(16, 2)
+    trainer.step(real)
+    trainer.step(real)
+    assert trainer.policy.loss_surprise.calm is not None
+
+    legacy_trainer_ckpt = deepcopy(trainer.state_dict())
+    del legacy_trainer_ckpt["loss_surprise"]
+    trainer.load_state_dict(legacy_trainer_ckpt)
+    assert trainer.policy.loss_surprise.calm is None
+    assert trainer.policy.loss_surprise.fast is None
+    assert trainer.policy.loss_surprise.pending_loss is None
+
+    trainer.step(real)
+    trainer.step(real)
+    assert trainer.policy.loss_surprise.calm is not None
+    legacy_policy_ckpt = deepcopy(trainer.policy.state_dict())
+    del legacy_policy_ckpt["loss_surprise"]
+    trainer.policy.load_state_dict(legacy_policy_ckpt)
+    assert trainer.policy.loss_surprise.calm is None
+    assert trainer.policy.loss_surprise.fast is None
+
+
+def test_policy_loss_reopen_restarts_testers_before_surprise_decide_and_releases_anchor():
+    recipe = get_recipe("atlas", z_dim=2, num_particles=32, batch_size=16)
+    G = nn.Sequential(nn.Linear(2, 8), nn.Linear(8, 2))
+    D = nn.Sequential(nn.Linear(2, 8), nn.Linear(8, 1))
+    deterministic_orthogonal_(G, seed=0)
+    deterministic_orthogonal_(D, seed=1)
+    prior = recipe.make_prior(sigma=0.005)
+    deterministic_orthogonal_(unwrap_prior(prior), seed=2)
+    trainer = GANTrainer(recipe, G, D, prior=prior, seed=0, serial_backward=True)
+    policy = trainer.policy
+    real = torch.randn(16, 2)
+    trainer.step(real)
+
+    # Contract a network tester to s < 1.0, clear calm_network, and force loss_reopen=True
+    for row in policy.lr_settle.testers:
+        for tester in row:
+            if tester is not None:
+                tester.s = 0.25
+    assert policy._contracted_network()  # non-empty before reopen
+    policy.reopen_guard.calm_network.clear()
+    anchor_calls = []
+    orig_anchor = policy._anchor_release
+    def _spy_anchor(reopened):
+        anchor_calls.append(reopened)
+        return orig_anchor(reopened)
+    policy._anchor_release = _spy_anchor
+
+    orig_loss_decide = policy.loss_surprise.decide
+    policy.loss_surprise.decide = lambda *a, **kw: True
+    try:
+        trainer.step(real)
+    finally:
+        policy.loss_surprise.decide = orig_loss_decide
+        policy._anchor_release = orig_anchor
+
+    # Testers were restarted to 1.0 BEFORE surprise.decide(network=...), so
+    # reopen_guard.calm_network must NOT contain stale pre-reopen 0.25 scales.
+    assert not policy.reopen_guard.calm_network
+    assert anchor_calls and anchor_calls[-1] is True

@@ -516,21 +516,24 @@ Schedule-free E22 and Atlas retain `total_steps=None`; pass `max_steps` to bound
 their execution without inserting a schedule. Their policy hooks use that
 external allowance without changing the formulation.
 
-`get_recipe()` constructs the selected **Axiom** clean-slate Four-Laws research recipe
-(`DEFAULT_RECIPE = "axiom"`, matching `axiom-v5`, `2,396` LOC in `particlegan/_axiom/`):
-non-saturating loss augmented with `AxiomGANLoss` / `AxiomTransportLoss` (conformal local
-horizons, deconflicted chart & atomic matching, zero-`eigh` conditional fiber bank),
-`AxiomCriticPenalty` (compute-regime-dispatched exact RoR on low-D / GroupNorm / quantized
-critics and fast `fwAD` linear-R1+R2 on high-res Conv2d, zero `torch.autograd.grad`,
-zero-mean logit gauge), `AxiomPriorRegularizer` (exact mass/LTV Laguerre pullback with
-central finite-offset isometry, `prior_reg=.02`), `AxiomOptimizer` (zero-state 4D Conv2d
-Frobenius-MP, compound-pathology Critic NS fast path, verified batch-RMS trust, zero
-SVD/`eigh`/`pinv`, `bf16_channels_last`, smoothing `.05`), zero-`pinv` analytic direction
-blending, and constant G/E, D and prior rates `.014`, `.021` and `.0406`. `GANTrainer` binds
-sampled rows and the protected adversarial objective automatically. Additive training noise
-and KA2 interventions are disabled. Explicit `get_recipe("unified_v15")`,
-`get_recipe("unified_v12")` (0.12.0 default), and `get_recipe("unified_v11")` (0.11.x preset)
-retain the Unified family presets.
+`get_recipe()` constructs the selected **Axiom** clean-slate 9-module Four-Laws research recipe
+(`DEFAULT_RECIPE = "axiom"`, matching `axiom-v6`, `particlegan/_axiom/`, schema-2 checkpoints):
+non-saturating loss augmented with `AxiomGANLoss` / `AxiomTransportLoss` / `AxiomCondFiberBank`
+(continuous `kappa_struct` contrast confidence, zero-sync GPU quota-balanced routing, Nadaraya-Watson
+simplicial manifold projection, and FP64 zero-`eigh` Halley/NS conditional fiber bank),
+`AxiomCriticPenalty` (U-statistic effective dimension, continuous element-budget probe law, strictly
+zero-`autograd.grad` native `fwAD` including `EmulatedLinear.jvp` with capability-based central-secant
+fallback for non-JVP ops, zero-Jensen EMA-gated Lipschitz hinge, and zero-mean logit gauge),
+`AxiomPriorRegularizer` + `PrototypeAtlas` (anisotropic LTC atlas with Wishart/MP shrinkage,
+continuous annular-gap `rho_atom`, deterministic GPU `HamiltonCommitmentLedger`, and curvature-compensated
+`GL(D)`-invariant Whitened Burg Log-Det pullback, `prior_reg=.02`), `AxiomOptimizer` (genuine
+`0.0 B/param` 4D Conv2d state, IEEE-754 mantissa-exponent normalization, compound-pathology 2D NS +
+Schatten-6 ceiling, single `fork_rng` verified batch-RMS trust, zero SVD/`eigh`/`pinv`,
+`bf16_channels_last`, smoothing `.05`), single-backward zero-`pinv` analytic direction blending,
+and constant G/E, D and prior rates `.014`, `.021` and `.0406`. `GANTrainer` binds sampled rows
+and the protected adversarial objective automatically. Additive training noise and KA2
+interventions are disabled. Explicit `get_recipe("unified_v15")`, `get_recipe("unified_v12")`
+(0.12.0 default), and `get_recipe("unified_v11")` (0.11.x preset) retain the Unified family presets.
 See [the selected settings and evidence](#recipes-and-defaults).
 
 `get_recipe("ka2")` retains **KA2** ([details](ka2.md)): Rp logistic, the KA2
@@ -985,7 +988,7 @@ Transport weights remain zero, `critic_step_mode="none"`, and
 `optimizer_svd_backend="native"`. Use
 `get_recipe("bcap", constraint_geometry_mode="none")` for the earlier winning
 DualNorm recipe. Pin `trainer="bcap"` on a model family to select these settings;
-the shared default is Unified (`unified_v12`). `Recipe()` and partial constructors are
+the shared default is Axiom (`axiom`). `Recipe()` and partial constructors are
 disabled. Use `get_recipe()` for new runs and `Recipe.from_dict(saved_fields)` for checkpoint restoration.
 Each setting can be overridden explicitly.
 `optimizer_svd_backend="newton_schulz"` selects a separate numerical backend
@@ -1076,8 +1079,8 @@ second derivatives use explicit straight-through quantizer surrogates. The
 defines the format/scaling rules, higher-precision operations, gates and native
 validation still needed. Existing precision settings and recipes are unchanged.
 
-Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"unified_v12"`
-default and explicit `"unified_v11"` select `training_precision="bf16_channels_last"` with
+Explicit `"empf"` and `"bispf_optimized"` select both policies (the current `"axiom"`
+default and explicit `"unified_v12"` / `"unified_v11"` select `training_precision="bf16_channels_last"` with
 zero-SVD Law-4 equilibration, while explicit `"rhbi_optimized"` uses `optimizer_svd_backend="native"`,
 `optimizer_dense_profile="polar_cpu_v1"` and `training_precision="float32"`):
 
@@ -1270,9 +1273,9 @@ examples, gradient caveats, DDGAN integration and measured evidence.
 ## Recipes and defaults
 
 ```python
-get_recipe(**overrides)        # Current default: Axiom clean-slate Four-Laws core (DEFAULT_RECIPE = "axiom", axiom-v5).
+get_recipe(**overrides)        # Current default: Axiom clean-slate 9-module Four-Laws core (DEFAULT_RECIPE = "axiom", axiom-v6).
 get_recipe("gan", **overrides) # Named components, current shared hyperparameters.
-get_recipe("axiom", **overrides) # Energy-optimal 2,396-LOC clean-slate Four-Laws core (axiom-v5).
+get_recipe("axiom", **overrides) # Clean-slate 9-module Four-Laws core (axiom-v6, schema-2 checkpoints).
 get_recipe("unified_v15", **overrides) # Explicit Unified-v15 Four-Laws zero-SVD/zero-eigh/zero-autograd recipe.
 get_recipe("unified_v12", **overrides) # Explicit 0.12.0 Unified 4-Law recipe.
 get_recipe("unified_v11", **overrides) # Explicit 0.11.x Unified 4-Law recipe.
@@ -1309,34 +1312,37 @@ The selector affects `get_recipe()`, `get_recipe("gan")` and all model-family
 recipes. Explicit presets and `Recipe.from_dict(saved_fields)` remain independent of
 it. Save resolved recipes, rather than resolving the current default when
 resuming. The selected recipe matches the complete
-[`axiom-v5` candidate](../configs/forge/ideas/axiom-v5.json) (`2,396`-LOC clean-slate
-Four-Laws core in `particlegan/_axiom/`, `45 PASS / 2 FAIL / 12 not measured` on the 59-task
-fixed suite, `102/115` counted view requirements, Screening Tier 2 on Rev-9 projection, `53/70`
-stretch assignments, `6/6` `dcgan_performance` at `32.84 ms/step` / `8.25 J/step` solo idle
-RTX A6000 NVML and `3,511.6 J` `grid100` J-to-first-PASS, documented in
-[`rtx-a6000-v14-v15-axiom-v5-energy-benchmark.json`](../reports/forge/studies/rtx-a6000-v14-v15-axiom-v5-energy-benchmark.json),
+[`axiom-v6` candidate](../configs/forge/ideas/axiom-v6.json) (clean-slate 9-module acyclic
+Four-Laws core in `particlegan/_axiom/`, Ruff `C901 <= 10`, Radon `BoolCC <= 15`, schema-2
+fail-closed checkpoints, `55/65` unique executed tasks PASS across 11 official Forge studies,
+`18/18` `r3-tier3-long-horizon-holdout-v1`, `6/6` `dcgan_performance`, `31.76 ms/step` /
+`9.007 J/step` / `779.8 MiB` solo idle RTX A6000 NVML `r256`, `8/10` `fl_law*`, `13/16` Occam,
+documented in [`axiom-v6-study.md`](../reports/axiom/axiom-v6-study.md),
 [`axiom.md`](../reports/forge/families/axiom.md),
 [The Four Laws](four-laws.md), and the
-[technique inventory](../reports/forge/technique-inventory.md)).
-The selection is an owner-directed research default prioritizing energy optimality and low
-complexity and adds no accepted calibration (`BLOCKED`), full Tier 2/3 qualification,
-universal architecture, or natural-image quality claim. Explicit `get_recipe("unified_v15")`
-retains the [`unified-v15` candidate](../configs/forge/ideas/unified-v15.json) (`44/59`
-fixed suite, `103/115` counted view requirements, `16/16` Occam, `74/79` measured receipts,
+[technique inventory](../reports/forge/technique-inventory.md), where `family-current-v1.json`
+retains its archived `axiom-v5` row until a clean-commit `develop` promotion run completes).
+The selection is an owner-directed research default prioritizing readability, special-case-free
+Four-Laws coverage, and energy optimality, and adds no accepted calibration (`BLOCKED`), full
+Tier 2/3 qualification, universal architecture, or natural-image quality claim. Explicit
+`get_recipe("unified_v15")` retains the [`unified-v15` candidate](../configs/forge/ideas/unified-v15.json)
+(`44/59` fixed suite, `103/115` counted view requirements, `16/16` Occam, `74/79` measured receipts,
 `44.35 ms/step` / `12.47 J/step` solo idle RTX A6000 `r256`), explicit
 `get_recipe("unified_v12")` retains the 0.12.0 [`unified-v12` candidate](../configs/forge/ideas/unified-v12.json)
 (`39.22 ms/step` / `11.37 J/step`), and explicit `get_recipe("unified_v11")` retains the 0.11.x
 [`unified-v11` candidate](../configs/forge/ideas/unified-v11.json). `axiom` pairs
-`AxiomGANLoss` / `AxiomTransportLoss` (conformal local horizons, deconflicted chart & atomic
-matching, and a zero-`eigh` FP64 conditional fiber bank), `AxiomCriticPenalty`
-(compute-regime-dispatched exact RoR on low-D / GroupNorm / quantized critics and fast
-`fwAD` linear-R1+R2 on high-res Conv2d, plus zero-mean logit gauge), `AxiomPriorRegularizer`
-(exact mass/LTV Laguerre pullback with central finite-offset isometry), and `AxiomOptimizer`
-(zero-state 4D Conv2d Frobenius-MP, compound-pathology Critic NS fast path, verified batch-RMS
-trust, zero-`pinv` `direction_blend`, `optimizer_smoothing=.05`, `bf16_channels_last`, and
-constant G/E, D, and prior rates `.014`, `.021`, and `.0406`). Historical Axiom-v4 comparative
-evidence stays archived in the [Axiom comparative Forge study](../reports/axiom/axiom-study.md)
-([design spec](../reports/axiom/design-spec.md),
+`AxiomGANLoss` / `AxiomTransportLoss` / `AxiomCondFiberBank` (continuous `kappa_struct`,
+zero-sync GPU quota-balanced routing, Nadaraya-Watson simplicial manifold projection, and a
+zero-`eigh` FP64 Halley/NS conditional fiber bank), `AxiomCriticPenalty` (strictly
+zero-`autograd.grad` native `fwAD` including `EmulatedLinear.jvp` with capability-based
+central-secant fallback, zero-Jensen EMA-gated Lipschitz hinge, and zero-mean logit gauge),
+`AxiomPriorRegularizer` + `PrototypeAtlas` (anisotropic LTC atlas, Wishart/MP shrinkage,
+continuous `rho_atom`, GPU `HamiltonCommitmentLedger`, and curvature-compensated Whitened Burg
+Log-Det pullback), and `AxiomOptimizer` (genuine `0.0 B/param` 4D Conv2d state, compound-pathology
+2D NS + Schatten-6 ceiling, single `fork_rng` verified batch-RMS trust, single-backward zero-`pinv`
+`direction_blend`, `optimizer_smoothing=.05`, `bf16_channels_last`, and constant G/E, D, and
+prior rates `.014`, `.021`, and `.0406`). Historical Axiom-v4 comparative evidence stays archived
+in the [Axiom comparative Forge study](../reports/axiom/axiom-study.md) ([design spec](../reports/axiom/design-spec.md),
 [Four-Laws benchmark](../reports/axiom/four-laws-benchmark.md)). Explicit `get_recipe("minimal")`
 retains the `<900`-LOC zero-Newton-Schulz fast core (`minimal-v2`),
 `get_recipe("empf")` retains the `empf-v8` preset (`83/115` counted view requirements,
@@ -1407,7 +1413,7 @@ and fields are rejected. Restore a complete saved configuration with
 | Name | Components and dimensions |
 | --- | --- |
 | `gan` (default) | Scalar GAN, 20,000 particles, latent dimension 2, no sampling noise (inherits `DEFAULT_RECIPE = "axiom"`) |
-| `axiom` | Promoted energy-optimal `2,396`-LOC clean-slate Four-Laws default (`axiom-v5`); `AxiomGANLoss`, compute-regime-dispatched exact RoR / `fwAD` `AxiomCriticPenalty`, exact-LTV `AxiomPriorRegularizer`, `AxiomOptimizer` (zero SVD/`eigh`/`pinv`, zero-state 4D Conv2d Frobenius-MP, compound-pathology Critic NS fast path, verified batch-RMS trust, `direction_blend`, `smoothing=.05`), `prior_reg=.02`, `bf16_channels_last`, and constant rates ([family report](../reports/forge/families/axiom.md), [study](../reports/axiom/axiom-study.md)) |
+| `axiom` | Promoted clean-slate 9-module Four-Laws default (`axiom-v6`, schema-2 checkpoints); `AxiomGANLoss`/`AxiomTransportLoss`/`AxiomCondFiberBank`, zero-`autograd.grad` `fwAD` + capability-based secant `AxiomCriticPenalty`, anisotropic LTC `PrototypeAtlas` + Whitened Burg Log-Det `AxiomPriorRegularizer`, `AxiomOptimizer` (`0.0 B/param` 4D Conv2d state, zero SVD/`eigh`/`pinv`, compound-pathology 2D NS + Schatten-6 ceiling, single-backward `direction_blend`, `smoothing=.05`), `prior_reg=.02`, `bf16_channels_last`, and constant rates ([v6 study](../reports/axiom/axiom-v6-study.md), [family report](../reports/forge/families/axiom.md)) |
 | `unified_v15` | Explicit Unified-v15 Four-Laws preset (`unified-v15`); `74/79` measured receipts, `16/16` Occam, zero `autograd.grad` / SVD / `eigh` / `pinv`, `unified_v15_equil`, `ebi_beta=12`, `prior_reg=.02`, and constant rates ([family report](../reports/forge/families/unified.md)) |
 | `unified_v12` | Explicit 0.12.0 Unified 4-Law preset (`unified-v12`); zero `autograd.grad`, zero SVD/`eigh`/`pinv`, `unified_v12_equil` (0 Conv2d NS, Law 4.4 0-NS 2D critic + generator-free fallback, CountSketch stiff-generator preconditioning), zero-`pinv` analytic `direction_blend`, zero-`eigh` conditional fiber bank, `ebi_beta=12`, `prior_reg=.02`, and constant rates |
 | `unified_v11` | Explicit 0.11.x Unified 4-Law preset (`unified-v11`); zero `autograd.grad`, zero SVD/`eigh`/`pinv`, fused Quintic Tikhonov equilibration, zero-`pinv` analytic `direction_blend`, zero-`eigh` conditional fiber bank, `ebi_beta=12`, `prior_reg=.02`, and constant rates |
@@ -1499,21 +1505,21 @@ opt_g, opt_d = recipe.make_optimizers(G, D, prior)
 | `z_dim`, `num_particles` | `2`, `20_000` |
 | `prior_kind`, `sigma_rel`, `standardize` | `particles`, `0`, `True` (standardize applies only to MoG) |
 | `lr`, `d_lr_mult`, `prior_lr_mult` | `.014`, `1.5`, `2.9` |
-| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `unified_v12_equil`, `0`, `.0061` |
+| `optimizer_family`, `optimizer_momentum`, `optimizer_smoothing` | `axiom`, `0`, `.05` |
 | `optimizer_dense_profile`, `training_precision` | `default`, `bf16_channels_last` |
 | `optimizer_convolution`, `optimizer_svd_backend` | `none`, `native` |
-| `optimizer_convolution_rule` | `polar` (unused by `unified_v12_equil`) |
-| `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `None`, `None` (role overrides inherit shared betas) |
+| `optimizer_convolution_rule` | `polar` (unused by `axiom`) |
+| `betas`, `d_betas`, `prior_betas` | `(0, .999)`, `(0, .999)`, `(0, .999)` |
 | `eps`, `d_eps`, `prior_eps` | `1e-8`, `None`, `None` (role overrides inherit shared epsilon) |
 | `adam_variant`, `loss_labels` | `pytorch`, `(0,1,1)` |
 | `lr_schedule` | `cosine` (also `constant`, `exponential`) |
 | `lr_decay_rate`, `lr_decay_steps`, `lr_decay_staircase` | `.96`, `50000`, `False` (exponential schedule only) |
 | `loss` | `non_saturating` (also `relativistic`, `hinge`, `wasserstein`, `least_squares`) |
 | `constraint_geometry_mode` | `direction_blend` |
-| `critic_formulation`, `reg_arm` | `unified_v11`, `None` |
-| `reg_coeff`, `reg_kappa`, `ebi_beta` | `1`, `1`, `12` (Unified first-order Born-Infeld secant penalty strength, cap and sharpness) |
-| `reg_every` | `1` (apply the penalty every k-th step at k× coefficient) |
-| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `unified_v11`, `.02`, `0`, `0` |
+| `critic_formulation`, `reg_arm` | `axiom`, `None` |
+| `reg_coeff`, `reg_kappa`, `ebi_beta` | `1`, `1`, `30` (Axiom scale-equivariant critic penalty strength and cap; `ebi_beta` is unused by `axiom`) |
+| `reg_every` | `1` (Axiom critic penalty is clock-free and requires `reg_every=1`) |
+| `prior_update`, `prior_regularizer`, `prior_reg`, `prior_l2`, `ema_decay` | `learned`, `axiom`, `.02`, `0`, `.995` |
 | `lr_anneal_start`, `lr_floor` | `.6`, `1` (constant prior rate) |
 | `network_lr_horizon_cap`, `network_lr_floor` | `None`, `1` (constant G/D rates) |
 | `reg_anchor_min_decay`, `reg_anchor_weight`, `critic_r1_real` | `.9`, `0`, `True` (inactive KA2 settings) |
@@ -1540,6 +1546,8 @@ caller.
 | `recipe.make_prior_regularizer(prior=None, reference=None, **kwargs)` | Selected prior penalty, including SBNP, with `weight=recipe.prior_reg` applied once. `prior` and `reference` are aliases for the same initialized prior or tuple of priors. |
 | `recipe.prior_regularizer_checkpoint(module)` | Optional state for an active stochastic prior regularizer |
 | `recipe.restore_prior_regularizer(module, state)` | Validate/restore regularizer state for exact caller-owned continuation |
+| `bind_formulation_records(recipe, opt_d, loss=None, prior_regularizer=None, *, generator=None)` | Bind `opt_d.record` to `loss` and `prior_regularizer` (and attach `_bound_device` when applicable) for caller-owned training loops |
+| `critic_g_step_mode(critic, *, restore_training=True)` | Context manager that freezes critic parameter gradients during G-step while keeping active training BatchNorm layers in stat-preserving batch mode and leaving frozen `eval()` BatchNorm backbones untouched |
 
 ### Regularization factories
 
@@ -1553,7 +1561,7 @@ The previous K3P critic replays through
 `benchmarks.legacy.recipe` ([K3P](k3p.md#replaying-k3p)).
 
 The following loop and Adam controller descriptions use the explicit KA2 recipe.
-The default Unified recipe (`"unified_v12"`) and explicit `"axiom"`, `"unified_v11"`, `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below.
+The default Axiom recipe (`"axiom"`) and explicit `"unified_v15"`, `"unified_v12"`, `"unified_v11"`, `"empf"`, `"rhbi_optimized"`, `"rhbi"`, and `"bispf_optimized"` recipes use the protected-backward contract below, and caller-owned loops should wire `bind_formulation_records` and `critic_g_step_mode` (as shown in `examples/pytorch_loop.py`).
 
 When binding G and E to `UpdatePolicy`, pass `separate_encoder_groups=True`.
 Native Adam then uses distinct homogeneous generator and encoder groups with

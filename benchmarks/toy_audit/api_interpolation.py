@@ -1056,7 +1056,7 @@ class InterpolationToyFixture:
         self.recipe.apply_prior_policy(prior)
 
         self.data_rng = torch.Generator(device="cpu").manual_seed(_seed_int("data:target:training", self.seed))
-        self._batch_hasher = hashlib.sha256()
+        self._batch_sequence_sha256 = hashlib.sha256().hexdigest()
         self.trainer = GANTrainer(
             self.recipe,
             G,
@@ -1086,11 +1086,14 @@ class InterpolationToyFixture:
 
     @property
     def batch_sequence_sha256(self) -> str:
-        return self._batch_hasher.hexdigest()
+        return self._batch_sequence_sha256
 
     def step(self) -> dict:
         real_cpu = sample_target_for_kind(self.kind, self.recipe.batch_size, self.data_rng, device="cpu")
-        self._batch_hasher.update(real_cpu.numpy().tobytes())
+        step_hash = hashlib.sha256(real_cpu.numpy().tobytes()).digest()
+        self._batch_sequence_sha256 = hashlib.sha256(
+            bytes.fromhex(self._batch_sequence_sha256) + step_hash
+        ).hexdigest()
         out = self.trainer.step(real_cpu.to(self.device))
         return {k: float(v.item()) if isinstance(v, torch.Tensor) else v for k, v in out.items()}
 
@@ -1116,14 +1119,18 @@ class InterpolationToyFixture:
             "case_id": self.case_id,
             "seed": self.seed,
             "limit": self.limit,
-            "data_rng": self.data_rng.get_state(),
+            "batch_sequence_sha256": self._batch_sequence_sha256,
+            "data_rng": self.data_rng.get_state().clone(),
             "trainer": self.trainer.state_dict(),
         }
 
     def load_state_dict(self, state: dict) -> None:
         if state.get("case_id") != self.case_id:
             raise ValueError("checkpoint case_id mismatch")
-        self.data_rng.set_state(state["data_rng"].cpu())
+        if "batch_sequence_sha256" not in state:
+            raise ValueError("checkpoint missing batch_sequence_sha256")
+        self._batch_sequence_sha256 = str(state["batch_sequence_sha256"])
+        self.data_rng.set_state(state["data_rng"].detach().to(device="cpu", dtype=torch.uint8).clone())
         self.trainer.load_state_dict(state["trainer"])
 
 

@@ -7,11 +7,45 @@ of those surrogate derivatives is not claimed.
 """
 from __future__ import annotations
 
+from collections.abc import Mapping
+from contextlib import nullcontext
+import hashlib
+
 import torch
 from torch import nn
 from torch.nn import functional as F
 
 FORMATS = ("nvfp4", "mxfp8")
+
+__all__ = [
+    "FORMATS",
+    "EmulatedLinear",
+    "emulate_linear_training_",
+    "quantize_dequantize",
+    "validate_emulated_extra_states",
+]
+
+
+def _no_autocast(device):
+    if device.type in ("cpu", "cuda"):
+        return torch.amp.autocast(device.type, enabled=False)
+    return nullcontext()
+
+
+def _output_dtype(x, weight, bias):
+    device_type = x.device.type
+    if device_type in ("cpu", "cuda") and torch.is_autocast_enabled(device_type):
+        return torch.get_autocast_dtype(device_type)
+    dtype = torch.result_type(x, weight)
+    if bias is not None:
+        dtype = torch.result_type(torch.empty(0, dtype=dtype), bias)
+    return dtype
+
+
+def _normalize_device(device):
+    if device.type == "cuda" and device.index is None:
+        return torch.device("cuda", torch.cuda.current_device())
+    return device
 
 
 def _fp4(values, *, generator=None):
@@ -68,8 +102,9 @@ def quantize_dequantize(values, format, *, weight=False, generator=None):
 
 
 def _quantized_proxy(values, format, **options):
-    rounded = quantize_dequantize(values, format, **options)
-    return values + (rounded - values).detach()
+    v = values if values.dtype == torch.float32 else values.to(torch.float32)
+    rounded = quantize_dequantize(v, format, **options)
+    return v + (rounded - v).detach()
 
 
 def _bf16(values):
@@ -79,45 +114,83 @@ def _bf16(values):
 def _rotate_columns(values, hadamard):
     columns = values.shape[-1]
     padded = F.pad(_bf16(values), (0, (-columns) % 16))
-    return _bf16((padded.reshape(-1, 16) @ hadamard).reshape(padded.shape))
+    h = hadamard.to(device=padded.device, dtype=padded.dtype)
+    return _bf16((padded.reshape(-1, 16) @ h).reshape(padded.shape))
 
 
 class _Linear(torch.autograd.Function):
     @staticmethod
-    def forward(ctx, x, weight, bias, owner):
-        ctx.save_for_backward(x, weight)
-        ctx.owner, ctx.has_bias = owner, bias is not None
+    def forward(x, weight, bias, owner):
+        out_dtype = _output_dtype(x, weight, bias)
         owner.calls["forward"] += 1
-        qx = quantize_dequantize(x, owner.format)
-        qw = quantize_dequantize(weight, owner.format, weight=True)
-        result = qx @ qw.T
-        if bias is not None:
-            result = result + _bf16(bias)
-        return _bf16(result)
+        with _no_autocast(x.device):
+            qx = quantize_dequantize(x, owner.format)
+            qw = quantize_dequantize(weight, owner.format, weight=True)
+            result = qx @ qw.T
+            if bias is not None:
+                bias_f = bias if bias.dtype == torch.float32 else bias.to(torch.float32)
+                result = result + _bf16(bias_f)
+            return _bf16(result).to(out_dtype)
+
+    @staticmethod
+    def setup_context(ctx, inputs, output):
+        x, weight, bias, owner = inputs
+        ctx.save_for_backward(x, weight)
+        ctx.save_for_forward(x, weight)
+        ctx.owner = owner
+        ctx.has_bias = bias is not None
+        ctx.bias_dtype = None if bias is None else bias.dtype
+        ctx.out_dtype = output.dtype
+
+    @staticmethod
+    def jvp(ctx, dx, dw, db, _d_owner):
+        x, weight = ctx.saved_tensors
+        format = ctx.owner.format
+        with _no_autocast(x.device):
+            dy = None
+            if dx is not None:
+                wq = _quantized_proxy(weight, format, weight=True)
+                dx_f = dx if dx.dtype == torch.float32 else dx.to(torch.float32)
+                dy = dx_f @ wq.T
+            if dw is not None:
+                xq = _quantized_proxy(x, format)
+                dw_f = dw if dw.dtype == torch.float32 else dw.to(torch.float32)
+                term = xq @ dw_f.T
+                dy = term if dy is None else dy + term
+            if db is not None:
+                db_f = db if db.dtype == torch.float32 else db.to(torch.float32)
+                dy = db_f if dy is None else dy + db_f
+            if dy is None:
+                return None
+            return _bf16(dy).to(ctx.out_dtype)
 
     @staticmethod
     def backward(ctx, grad):
         x, weight = ctx.saved_tensors
         owner, format = ctx.owner, ctx.owner.format
         options = {"generator": owner.rounding_rng} if format == "nvfp4" else {}
-        dx = dw = None
-        if ctx.needs_input_grad[0]:
-            owner.calls["dgrad"] += 1
-            qg = _quantized_proxy(grad, format, **options)
-            qw = (_quantized_proxy(weight, format, weight=True) if format == "nvfp4"
-                  else _quantized_proxy(weight.T, format).T)
-            dx = _bf16(qg @ qw)
-        if ctx.needs_input_grad[1]:
-            owner.calls["wgrad"] += 1
-            # WGRAD's contraction axis is the batch dimension. Rotate both
-            # transposed operands identically, then quantize them separately.
-            gt, xt = grad.T, x.T
-            if format == "nvfp4":
-                gt, xt = _rotate_columns(gt, owner.hadamard), _rotate_columns(xt, owner.hadamard)
-            qg = _quantized_proxy(gt, format, **options)
-            qx = _quantized_proxy(xt, format)
-            dw = _bf16(qg @ qx.T)
-        db = _bf16(grad.sum(0)) if ctx.has_bias and ctx.needs_input_grad[2] else None
+        dx = dw = db = None
+        with _no_autocast(grad.device):
+            grad_f = grad if grad.dtype == torch.float32 else grad.to(torch.float32)
+            if ctx.needs_input_grad[0]:
+                owner.calls["dgrad"] += 1
+                qg = _quantized_proxy(grad_f, format, **options)
+                qw = (_quantized_proxy(weight, format, weight=True) if format == "nvfp4"
+                      else _quantized_proxy(weight.T, format).T)
+                dx = _bf16(qg @ qw).to(x.dtype)
+            if ctx.needs_input_grad[1]:
+                owner.calls["wgrad"] += 1
+                # WGRAD's contraction axis is the batch dimension. Rotate both
+                # transposed operands identically, then quantize them separately.
+                x_f = x if x.dtype == torch.float32 else x.to(torch.float32)
+                gt, xt = grad_f.T, x_f.T
+                if format == "nvfp4":
+                    gt, xt = _rotate_columns(gt, owner.hadamard), _rotate_columns(xt, owner.hadamard)
+                qg = _quantized_proxy(gt, format, **options)
+                qx = _quantized_proxy(xt, format)
+                dw = _bf16(qg @ qx.T).to(weight.dtype)
+            if ctx.has_bias and ctx.needs_input_grad[2]:
+                db = _bf16(grad_f.sum(0)).to(ctx.bias_dtype)
         return dx, dw, db, None
 
 
@@ -148,20 +221,83 @@ class EmulatedLinear(nn.Linear):
         result.train(layer.training)
         return result
 
+    def _apply(self, fn, recurse=True):
+        super()._apply(fn, recurse=recurse)
+        if self.weight is not None and hasattr(self, "rounding_rng"):
+            target = _normalize_device(self.weight.device)
+            if target.type in ("cpu", "cuda"):
+                current = _normalize_device(self.rounding_rng.device)
+                if current != target:
+                    state_bytes = self.rounding_rng.get_state().cpu().clone()
+                    if current.type == target.type:
+                        new_rng = torch.Generator(device=target)
+                        new_rng.set_state(state_bytes)
+                    else:
+                        seed = int(self.rounding_rng.initial_seed())
+                        fresh = torch.Generator(device=current).manual_seed(seed).get_state().cpu()
+                        if torch.equal(state_bytes, fresh):
+                            new_rng = torch.Generator(device=target).manual_seed(seed)
+                        else:
+                            digest = hashlib.blake2b(state_bytes.numpy().tobytes(), digest_size=8).digest()
+                            derived_seed = int.from_bytes(digest, "little") & ((1 << 63) - 1)
+                            new_rng = torch.Generator(device=target).manual_seed(derived_seed)
+                    self.rounding_rng = new_rng
+        return self
+
     def forward(self, x):
         shape = x.shape
         return _Linear.apply(x.reshape(-1, shape[-1]), self.weight, self.bias, self).reshape(*shape[:-1], self.out_features)
 
+    def _expected_extra_tag(self):
+        return 4 if self.format == "nvfp4" else 8
+
     def get_extra_state(self):
         # GANTrainer checks tensor schema before restore. Keep dynamic RNG bytes
         # in a tensor, with a format tag so a cross-precision load still refuses.
-        tag = torch.tensor([4 if self.format == "nvfp4" else 8], dtype=torch.uint8)
+        tag = torch.tensor([self._expected_extra_tag()], dtype=torch.uint8)
         return torch.cat((tag, self.rounding_rng.get_state().cpu()))
 
-    def set_extra_state(self, state):
-        if not isinstance(state, torch.Tensor) or int(state[0]) != (4 if self.format == "nvfp4" else 8):
+    def validate_extra_state(self, state):
+        if (not isinstance(state, torch.Tensor) or state.ndim != 1
+                or state.dtype != torch.uint8 or state.numel() < 2):
+            raise ValueError("checkpoint linear precision extra state is malformed")
+        if int(state[0].item()) != self._expected_extra_tag():
             raise ValueError("checkpoint linear precision differs")
-        self.rounding_rng.set_state(state[1:].cpu().clone())
+        rng_bytes = state[1:].detach().cpu().contiguous().clone()
+        try:
+            torch.Generator(device=self.rounding_rng.device).set_state(rng_bytes)
+        except (TypeError, ValueError, RuntimeError) as error:
+            raise ValueError("checkpoint linear precision RNG state is invalid") from error
+        return rng_bytes
+
+    def set_extra_state(self, state):
+        rng_bytes = self.validate_extra_state(state)
+        self.rounding_rng.set_state(rng_bytes)
+
+    def _load_from_state_dict(self, state_dict, prefix, local_metadata, strict,
+                              missing_keys, unexpected_keys, error_msgs):
+        suffix = getattr(torch.nn.modules.module, "_EXTRA_STATE_KEY_SUFFIX", "_extra_state")
+        extra_key = f"{prefix}{suffix}"
+        if extra_key in state_dict:
+            self.validate_extra_state(state_dict[extra_key])
+        super()._load_from_state_dict(
+            state_dict, prefix, local_metadata, strict,
+            missing_keys, unexpected_keys, error_msgs,
+        )
+
+
+def validate_emulated_extra_states(module, state_dict, *, prefix=""):
+    """Preflight all ``EmulatedLinear`` precision tags and RNG bytes before mutating weights."""
+    if not isinstance(state_dict, Mapping):
+        raise ValueError("checkpoint state_dict must be a mapping")
+    suffix = getattr(torch.nn.modules.module, "_EXTRA_STATE_KEY_SUFFIX", "_extra_state")
+    for name, child in module.named_modules():
+        if not isinstance(child, EmulatedLinear):
+            continue
+        key = f"{prefix}{name}.{suffix}" if name else f"{prefix}{suffix}"
+        if key not in state_dict:
+            raise ValueError(f"checkpoint missing linear precision extra state: {key}")
+        child.validate_extra_state(state_dict[key])
 
 
 def emulate_linear_training_(module, format, *, seed_for=lambda name: 0, signs=None):
@@ -189,4 +325,15 @@ def emulate_linear_training_(module, format, *, seed_for=lambda name: 0, signs=N
                     setattr(parent, name, replace(child, path))
         converted[id(parent)] = result
         return result
-    return replace(module)
+    out = replace(module)
+    if out is not None and not isinstance(out, EmulatedLinear):
+        def _preflight_container(mod, state_dict, prefix, *_args):
+            suffix = getattr(torch.nn.modules.module, "_EXTRA_STATE_KEY_SUFFIX", "_extra_state")
+            for name, child in mod.named_modules():
+                if not isinstance(child, EmulatedLinear):
+                    continue
+                key = f"{prefix}{name}.{suffix}" if name else f"{prefix}{suffix}"
+                if key in state_dict:
+                    child.validate_extra_state(state_dict[key])
+        out.register_load_state_dict_pre_hook(_preflight_container)
+    return out

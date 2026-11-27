@@ -89,6 +89,15 @@ class ScaledResidualMLPGenerator(nn.Module):
     Pre-head normalization: nn.LayerNorm(hidden_dim) before final projection.
     The head soft-bounds its preactivation and applies scaled tanh. No
     backward-only forces or gradient clipping are part of this architecture.
+
+    Scope / deprecation note: ``preserve_latent_norm=True`` is archived legacy
+    behavior retained solely for historical ``api-grid100-res16-scaled-tanh`` /
+    ``grid100_res16_scaled_tanh`` compatibility (it shrinks residual weights by
+    ``gamma=1e-3``, algebraically cancels ``LayerNorm``, and applies
+    ``scale * atanh(clamp(u / scale, -0.97, 0.97))`` before ``TanhRailGuard``,
+    locking the map near identity with ``max |G(z) - z| = 2.38e-7``). New
+    evaluations MUST use ``preserve_latent_norm=False`` (see
+    ``api-grid100-res16-scaled-tanh-v2`` / ``grid100_res16_scaled_tanh_v2``).
     """
     def __init__(
         self,
@@ -715,6 +724,10 @@ def _registry():
         law=dict(kind="equal100_gaussian", problem="grid100", sigma=0.03),
         adaptation="Public GANTrainer host with 16-layer residual MLP generator (identity-initialized skip connections) and S=5.25 scaled tanh head."
     )
+    # Archived legacy case (preserve_latent_norm=True): retained intact for
+    # historical receipts and test_e2e_stretch_qualification.py; scope-corrected
+    # in reports/forge/evidence-corrections-2026-11-26.json. Use
+    # api-grid100-res16-scaled-tanh-v2 (preserve_latent_norm=False) for new runs.
     cases["api-grid100-res16-scaled-tanh"] = _case(
         "api-grid100-res16-scaled-tanh", ["deep100g-res16-scaled-tanh"], "100 Gaussians 16-layer ScaledResMLP + TanhRailGuard",
         "Recover all 100 equal-weight Gaussian modes with a paired norm-preserving 16-layer ScaledResidualMLPGenerator and S=5.25 TanhRailGuard head.",
@@ -730,6 +743,22 @@ def _registry():
         sampling="clean live public prior law without additive output noise; enabled public prior perturbations retain their declared law",
         law=dict(kind="equal100_gaussian", problem="grid100", sigma=0.03),
         adaptation="Public GANTrainer host with 16-layer ScaledResidualMLPGenerator (paired norm-preserving residual transport) and S=5.25 TanhRailGuard head."
+    )
+    cases["api-grid100-res16-scaled-tanh-v2"] = _case(
+        "api-grid100-res16-scaled-tanh-v2", ["deep100g-res16-scaled-tanh-v2"], "100 Gaussians 16-layer ScaledResMLP + TanhRailGuard (v2)",
+        "Recover all 100 equal-weight Gaussian modes with an un-neutered 16-layer ScaledResidualMLPGenerator (preserve_latent_norm=False, genuine pre-head LayerNorm, S=5.25 TanhRailGuard head) without atanh(tanh) or LayerNorm cancellation.",
+        kind="grid100_res16_scaled_tanh_v2", steps=7000, batch=2048, evaluation=20000, particles=20000, z_dim=2,
+        architecture=dict(generator="ScaledResidualMLPGenerator", linear_layers=16, hidden_width=128, residual_scale=1/math.sqrt(14), normalization="layer_norm", preserve_latent_norm=False, output_activation="soft_bounded_tanh_exact_autograd"),
+        default_recipe="k3p",
+        problem="grid100",
+        scale=5.25,
+        max_saturated_fraction=0.001,
+        profile=dict(init_std=2.88),
+        prior_options=dict(prior_kind="mog", sigma=0.025, standardize=False),
+        thresholds={"native": deepcopy(native_metrics.REQUIREMENTS), "accuracy": deepcopy(accuracy.LIMITS), "saturated_fraction": 0.001},
+        sampling="clean live public prior law without additive output noise; enabled public prior perturbations retain their declared law",
+        law=dict(kind="equal100_gaussian", problem="grid100", sigma=0.03),
+        adaptation="Public GANTrainer host with un-neutered 16-layer ScaledResidualMLPGenerator (preserve_latent_norm=False, genuine LayerNorm, S=5.25 TanhRailGuard head, zero atanh/tanh cancellation)."
     )
     return cases
 
@@ -782,7 +811,7 @@ def score_case(metadata, samples, completed_steps=0):
             metrics = dict(mean_abs_error=float("inf"), rms_error=float("inf"),
                            p99_abs_error=float("inf"), saturated_fraction=1.0, all_finite=False)
             return dict(metrics=metrics, passed=False, failed_bounds=["all_finite == true"])
-        elif kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+        elif kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
             metrics = dict(all_finite=False, modes=0, hq=0.0, precision=0.0)
             return dict(metrics=metrics, passed=False, failed_bounds=["all_finite == true"])
         raise ValueError("the vector gate needs nonempty, finite row-major points")
@@ -813,7 +842,7 @@ def score_case(metadata, samples, completed_steps=0):
                        saturated_fraction=saturated, all_finite=True,
                        target_center_x=float(target_center[0]), target_center_y=float(target_center[1]))
         failed = _bounds(metrics, metadata["thresholds"])
-    elif kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+    elif kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
         if points.shape[1] != 2:
             raise ValueError("100-mode points need two coordinates")
         theta = _native_angle(metadata, completed_steps)
@@ -829,7 +858,7 @@ def score_case(metadata, samples, completed_steps=0):
         failed.extend(_bounds(metrics, [["accuracy_" + key, "<=", value] for key, value in accuracy.LIMITS.items()]))
         if not accuracy.passes_accuracy(exact) and not any(x.startswith("accuracy_") for x in failed):
             failed.append("accuracy sample validity")
-        if kind in ("grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+        if kind in ("grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
             scale = metadata.get("scale", 5.25)
             sat = float((torch.abs(points / scale) >= 0.99).float().mean())
             metrics["saturated_fraction"] = sat
@@ -900,7 +929,7 @@ def _target(case, n, rng, step, *, device="cpu"):
             return torch.zeros((n, 2), device=device, dtype=torch.float32)
         initial = torch.tensor(case.get("initial_target", [0.90, -0.90]), device=device, dtype=torch.float32)
         return initial.expand(n, 2).clone()
-    if kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+    if kind in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
         return problems.sample_real(case["problem"], n, device=device, generator=rng) @ _rotation(_native_angle(case, step), device=device).T
     if kind == "vector":
         # Mathematical helper accepts CPU generators; the caller moves only data.
@@ -1026,6 +1055,16 @@ class VectorFixture:
                     )
                     critic = SimpleMLPDiscriminator(2, 128, 3, 3)
                     init.deterministic_orthogonal_(generator, seed=seed)
+                elif case["kind"] == "grid100_res16_scaled_tanh_v2":
+                    init.deterministic_orthogonal_(prior, seed=seed + 2)
+                    generator = ScaledResidualMLPGenerator(
+                        self.recipe.z_dim, 128, 7, 2,
+                        scale=case.get("scale", 5.25),
+                        use_norm=True,
+                        preserve_latent_norm=False,
+                    )
+                    critic = SimpleMLPDiscriminator(2, 128, 3, 3)
+                    init.deterministic_orthogonal_(generator, seed=seed)
                 elif case["kind"] in ("zero_tanh", "zero_tanh_rail_escape"):
                     init.deterministic_orthogonal_(prior, seed=seed + 2)
                     generator = ZeroTanhGenerator(self.recipe.z_dim, 32, 2)
@@ -1147,7 +1186,7 @@ class VectorFixture:
         target_rng = torch.Generator(device=rng_device).manual_seed(seed + 100003)
         target = _target(self.metadata, actual_n, target_rng, self.completed_steps, device=self.device).detach().cpu()
         views = [_view("Whole target law", target, samples, self.metadata)]
-        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
             clean = self.trainer.sample(actual_n, generator=torch.Generator(device=self.device).manual_seed(seed), output_noise=False).cpu()
             clean_score = score_case(self.metadata, clean, self.completed_steps)
             scored["metrics"].update({"clean_" + key: value for key, value in clean_score["metrics"].items()})
@@ -1172,7 +1211,7 @@ class VectorFixture:
         return scored
 
     def _centers(self):
-        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
             centers = problems.evaluation_geometry(self.metadata["problem"])[0]
             return centers @ _rotation(_native_angle(self.metadata, self.completed_steps)).T
         if self.metadata["kind"] == "zero_tanh":
@@ -1190,7 +1229,7 @@ class VectorFixture:
         return None
 
     def _zoom_sigma(self):
-        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh"):
+        if self.metadata["kind"] in ("native100", "grid100_mlp16", "grid100_res16_tanh", "grid100_res16_scaled_tanh", "grid100_res16_scaled_tanh_v2"):
             return .03
         if self.metadata["kind"] in ("zero_tanh", "zero_tanh_rail_escape"):
             return .10

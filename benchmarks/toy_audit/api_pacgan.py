@@ -12,10 +12,36 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from particlegan import MoGParticlePrior, Recipe, get_recipe, init, scale_learning_rates
-from particlegan.bispf import _attach_critic_input_hook, bind_thermal_source
+from particlegan import (
+    MoGParticlePrior,
+    Recipe,
+    bind_formulation_records,
+    critic_g_step_mode,
+    get_recipe,
+    init,
+    scale_learning_rates,
+)
 from particlegan.optim.constraint_geometry import constraint_geometry_backward
 from particlegan.priors import ManipulatedPrior, unwrap_prior
+
+_NO_EMA_FORMULATIONS = frozenset({
+    "bispf",
+    "empf",
+    "rhbi",
+    "t1_coupling",
+    "t2_secant",
+    "rgdt",
+    "t4_nash",
+    "t4_nash_v3",
+    "unified",
+    "unified_v4",
+    "unified_v11",
+    "unified_v15",
+    "r4_autograd_critic",
+    "cond_fiber",
+    "axiom",
+    "minimal",
+})
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -83,7 +109,7 @@ class _RNGStreams:
     def load_state_dict(self, state: dict[str, Any]) -> None:
         self.seed = int(state["seed"])
         for k, v in state["streams"].items():
-            self._streams[k].set_state(v)
+            self._streams[k].set_state(v.detach().to(device="cpu", dtype=torch.uint8).clone())
 
 
 def _sample_stratified_iso_gaussian(
@@ -189,8 +215,8 @@ class PacGAN4RepulsionDiscriminator(nn.Module):
         return self.net(feats).squeeze(-1)
 
 
-class PacGANDiscriminator(PacGAN4RepulsionDiscriminator):
-    """3-layer 128-wide LeakyReLU MLP packed discriminator with dispersion & repulsion features."""
+class PacGANDiscriminator(nn.Module):
+    """Standard 3-layer 128-wide LeakyReLU MLP packed discriminator over raw m-packed coordinates."""
 
     def __init__(
         self,
@@ -199,8 +225,23 @@ class PacGANDiscriminator(PacGAN4RepulsionDiscriminator):
         in_pts: int | None = None,
         pt_dim: int = 2,
     ) -> None:
-        pts = in_pts if in_pts is not None else max(1, in_dim // pt_dim)
-        super().__init__(in_pts=pts, pt_dim=pt_dim, hidden_dim=hidden_dim)
+        super().__init__()
+        self.pt_dim = int(pt_dim)
+        self.in_pts = int(in_pts) if in_pts is not None else max(1, int(in_dim) // self.pt_dim)
+        self.in_dim = self.in_pts * self.pt_dim
+        self.feature_dim = self.in_dim
+        self.net = nn.Sequential(
+            nn.Linear(self.in_dim, hidden_dim),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim, hidden_dim),
+            nn.LeakyReLU(0.2),
+            nn.Linear(hidden_dim, 1),
+        )
+
+    def forward(self, x_packed: torch.Tensor) -> torch.Tensor:
+        if x_packed.ndim == 3:
+            x_packed = x_packed.reshape(x_packed.shape[0], self.in_dim)
+        return self.net(x_packed).squeeze(-1)
 
 
 @torch.no_grad()
@@ -588,9 +629,9 @@ class _PacGANBaseFixture:
             self.recipe.apply_prior_policy(self.prior)
 
         self.ema_critic = (
-            deepcopy(self.D).to(self.device)
-            if self.recipe.effective_critic_formulation != "bispf"
-            else None
+            None
+            if self.recipe.effective_critic_formulation in _NO_EMA_FORMULATIONS
+            else deepcopy(self.D).to(self.device)
         )
         self.opt_g, self.opt_d = self.recipe.make_optimizers(
             self.G,
@@ -607,9 +648,7 @@ class _PacGANBaseFixture:
         self.penalty = self.recipe.make_critic_penalty(self.opt_d)
         self.regularizer = self.recipe.make_prior_regularizer(prior=self.prior)
         self.loss = self.recipe.make_loss()
-        if self.recipe.effective_critic_formulation == "bispf":
-            bind_thermal_source(self.opt_d.record, self.loss, self.regularizer)
-            _attach_critic_input_hook(self.D, self.opt_d.record)
+        bind_formulation_records(self.recipe, self.opt_d, self.loss, self.regularizer, generator=self.G)
 
     def _sample_prior(
         self,
@@ -657,7 +696,6 @@ class _PacGANBaseFixture:
         b = self.batch_size
         m = self.pac_size
         real_x = self.sample_target(b, generator=self.data_rng)
-        self._update_empirical_mode_stats(real_x)
 
         # Critic step on m-packed samples (B // m, 2 * m)
         z_d, _ = self._sample_prior(b, generator=self.noise_rng, noise_generator=self.noise_rng)
@@ -676,51 +714,51 @@ class _PacGANBaseFixture:
         (loss_d + reg_d).backward()
         self.opt_d.step()
 
-        # Generator + Prior step on m-packed samples
-        self.opt_g.zero_grad()
-        z_g, idx = self._sample_prior(b, generator=self.noise_rng, noise_generator=self.noise_rng)
-        fake_x_g = self.G(z_g)
-        if isinstance(self.prior, ManipulatedPrior) and self.prior.postprocesses_generated:
-            fake_x_g = self.prior.postprocess_generated(fake_x_g)
-        fake_packed_g = fake_x_g.reshape(b // m, m * 2)
+        # Generator + Prior step on m-packed samples (critic frozen via critic_g_step_mode)
+        with critic_g_step_mode(self.D):
+            self.opt_g.zero_grad()
+            z_g, idx = self._sample_prior(b, generator=self.noise_rng, noise_generator=self.noise_rng)
+            fake_x_g = self.G(z_g)
+            if isinstance(self.prior, ManipulatedPrior) and self.prior.postprocesses_generated:
+                fake_x_g = self.prior.postprocess_generated(fake_x_g)
+            fake_packed_g = fake_x_g.reshape(b // m, m * 2)
 
-        d_fake_g = self.D(fake_packed_g)
-        d_real_g = self.D(real_packed).detach() if self.recipe.loss == "relativistic" else None
-        loss_adv = self.loss.g_loss(d_fake_g, d_real_g)
+            d_fake_g = self.D(fake_packed_g)
+            d_real_g = self.D(real_packed).detach()
+            loss_adv = self.loss.g_loss(d_fake_g, d_real_g)
 
-        base_prior = unwrap_prior(self.prior)
-        if (
-            hasattr(self.opt_g, "set_sampled_rows")
-            and hasattr(base_prior, "z")
-            and base_prior.z.requires_grad
-        ):
-            self.opt_g.set_sampled_rows(base_prior.z, idx)
+            base_prior = unwrap_prior(self.prior)
+            if (
+                hasattr(self.opt_g, "set_sampled_rows")
+                and hasattr(base_prior, "z")
+                and base_prior.z.requires_grad
+            ):
+                self.opt_g.set_sampled_rows(base_prior.z, idx)
 
-        reg_prior = (
-            self.recipe.prior_regularization(
-                base_prior.z,
-                regularizer=self.regularizer,
-                prior=self.prior,
+            reg_prior = (
+                self.recipe.prior_regularization(
+                    base_prior.z,
+                    regularizer=self.regularizer,
+                    prior=self.prior,
+                )
+                if hasattr(base_prior, "z")
+                else loss_adv.new_zeros(())
             )
-            if hasattr(base_prior, "z")
-            else loss_adv.new_zeros(())
-        )
-        if isinstance(self.prior, ManipulatedPrior) and self.prior.has_regularizer:
-            reg_prior = reg_prior + self.prior.regularize(
-                base_prior.z,
-                sampled_codes=z_g,
-                indices=idx,
-                generated=fake_x_g,
-                logits=d_fake_g,
-            )
+            if isinstance(self.prior, ManipulatedPrior) and self.prior.has_regularizer:
+                reg_prior = reg_prior + self.prior.regularize(
+                    base_prior.z,
+                    sampled_codes=z_g,
+                    indices=idx,
+                    generated=fake_x_g,
+                    logits=d_fake_g,
+                )
 
-        loss_g = loss_adv + reg_prior
-        if self.recipe.constraint_geometry_mode != "none":
-            constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
-        else:
-            loss_g.backward()
-        self.opt_g.step()
-        self._apply_local_knn_particle_dispersion()
+            loss_g = loss_adv + reg_prior
+            if self.recipe.constraint_geometry_mode != "none":
+                constraint_geometry_backward(loss_g, self.opt_g, (loss_adv,))
+            else:
+                loss_g.backward()
+            self.opt_g.step()
 
         self.step_count += 1
         self.completed_steps = self.step_count
@@ -730,161 +768,6 @@ class _PacGANBaseFixture:
             "reg_d": float(reg_d.detach()),
         }
         return dict(step=self.completed_steps, **self.last_losses)
-
-    @torch.no_grad()
-    def _update_empirical_mode_stats(self, real_x: torch.Tensor) -> None:
-        weight = float(getattr(self, "knn_repulsion_weight", 0.0))
-        if weight <= 0.0 or real_x.ndim != 2 or real_x.shape[1] != 2:
-            return
-        pts = real_x.detach()
-        if not hasattr(self, "_emp_peaks") or self._emp_peaks is None:
-            self._emp_peaks = pts[:0].clone()
-            self._emp_sum_x = pts[:0].clone()
-            self._emp_sum_sq = torch.zeros(0, device=pts.device, dtype=pts.dtype)
-            self._emp_count = torch.zeros(0, device=pts.device, dtype=pts.dtype)
-
-        # Discover well-separated mode peaks (> 0.8 apart) strictly from observed training batches
-        if self._emp_peaks.shape[0] < 5:
-            for i in range(pts.shape[0]):
-                p = pts[i : i + 1]
-                if self._emp_peaks.shape[0] == 0 or torch.cdist(p, self._emp_peaks).min() > 0.8:
-                    self._emp_peaks = torch.cat([self._emp_peaks, p], dim=0)
-                    self._emp_sum_x = torch.cat([self._emp_sum_x, torch.zeros_like(p)], dim=0)
-                    self._emp_sum_sq = torch.cat(
-                        [self._emp_sum_sq, torch.zeros(1, device=pts.device, dtype=pts.dtype)], dim=0
-                    )
-                    self._emp_count = torch.cat(
-                        [self._emp_count, torch.zeros(1, device=pts.device, dtype=pts.dtype)], dim=0
-                    )
-                    if self._emp_peaks.shape[0] >= 5:
-                        angles = torch.atan2(self._emp_peaks[:, 1], self._emp_peaks[:, 0])
-                        angles = torch.remainder(angles, 2.0 * math.pi)
-                        order = torch.argsort(angles)
-                        self._emp_peaks = self._emp_peaks[order]
-                        self._emp_sum_x = self._emp_sum_x[order]
-                        self._emp_sum_sq = self._emp_sum_sq[order]
-                        self._emp_count = self._emp_count[order]
-                        break
-
-        if self._emp_peaks.shape[0] == 0:
-            return
-        cur_centers = torch.where(
-            self._emp_count.unsqueeze(1) > 0,
-            self._emp_sum_x / self._emp_count.clamp_min(1.0).unsqueeze(1),
-            self._emp_peaks,
-        )
-        dists = torch.cdist(pts, cur_centers)
-        nearest = dists.argmin(dim=1)
-        for k in range(cur_centers.shape[0]):
-            mask = nearest == k
-            cnt = float(mask.sum())
-            if cnt > 0:
-                pts_k = pts[mask]
-                self._emp_sum_x[k] += pts_k.sum(dim=0)
-                self._emp_sum_sq[k] += (pts_k.square().sum(dim=1)).sum()
-                self._emp_count[k] += cnt
-
-    @torch.no_grad()
-    def _apply_local_knn_particle_dispersion(self) -> None:
-        """Local k-NN intra-mode particle dispersion and isotropic Jacobian conditioning.
-
-        Activates after initial mode acquisition (steps >= 100, step >= 0.60 * steps, every 50 steps).
-        Uses empirically accumulated mode centers, masses, and variance from observed training
-        batches to place prior particles on an isotropic local ring around each mode while
-        conditioning the 3-layer LeakyReLU generator's local Jacobian via paired orthogonal frames.
-        """
-        weight = float(getattr(self, "knn_repulsion_weight", 0.0))
-        if weight <= 0.0 or self.prior is None or self.steps < 100:
-            return
-        next_step = self.step_count + 1
-        warmup_start = int(0.60 * max(1, self.steps))
-        if next_step < warmup_start:
-            return
-        base_prior = unwrap_prior(self.prior)
-        if not hasattr(base_prior, "z") or base_prior.z.ndim != 2 or base_prior.z.shape[1] != 2:
-            return
-        if not hasattr(self, "_emp_count") or self._emp_count.shape[0] < 2:
-            return
-
-        z = base_prior.z.data
-        n_p = z.shape[0]
-        if n_p < 10:
-            return
-
-        valid = self._emp_count > 0
-        if int(valid.sum()) < 2:
-            return
-        centers = self._emp_sum_x[valid] / self._emp_count[valid].unsqueeze(1)
-        counts_emp = self._emp_count[valid]
-        total_emp = counts_emp.sum().clamp_min(1.0)
-        emp_w = counts_emp / total_emp
-        num_modes = centers.shape[0]
-
-        var_num = (self._emp_sum_sq[valid] - counts_emp * centers.square().sum(dim=1)).sum().clamp_min(1e-6)
-        emp_sigma = float(torch.sqrt(var_num / (2.0 * total_emp)).clamp(min=0.02, max=0.25))
-
-        prior_sigma = 0.05
-        if hasattr(self.prior, "sigma"):
-            prior_sigma = float(getattr(self.prior, "sigma"))
-        elif isinstance(self.prior, ManipulatedPrior):
-            for manip in getattr(self.prior, "manipulators", ()):
-                if hasattr(manip, "sigma"):
-                    prior_sigma = float(getattr(manip, "sigma"))
-                    break
-        prior_sigma = max(prior_sigma, 0.005)
-
-        scale = (0.82 * emp_sigma) / prior_sigma
-        angle_rad = 0.75
-        c_ang, s_ang = math.cos(angle_rad), math.sin(angle_rad)
-        rot = torch.tensor([[c_ang, -s_ang], [s_ang, c_ang]], device=z.device, dtype=z.dtype)
-        shift_t = torch.tensor([1.4, -1.1], device=z.device, dtype=z.dtype)
-
-        if not hasattr(self, "_knn_ortho_frames"):
-            gen_rng = torch.Generator(device="cpu").manual_seed(self.seed + 17)
-            q1, _ = torch.linalg.qr(torch.randn(64, 2, generator=gen_rng))
-            q2, _ = torch.linalg.qr(torch.randn(64, 2, generator=gen_rng))
-            self._knn_ortho_frames = (
-                q1.to(device=z.device, dtype=z.dtype),
-                q2.to(device=z.device, dtype=z.dtype),
-            )
-        q1, q2 = self._knn_ortho_frames
-        w1 = torch.cat([q1, -q1], dim=0)
-        recon1 = torch.cat([q1.T, -q1.T], dim=1) / 1.2
-        w2 = torch.cat([q2, -q2], dim=0) @ recon1
-        recon2 = torch.cat([q2.T, -q2.T], dim=1) / 1.2
-        w3 = (scale * rot) @ recon2
-
-        self.G.net[0].weight.data.copy_(w1)
-        self.G.net[0].bias.data.zero_()
-        self.G.net[2].weight.data.copy_(w2)
-        self.G.net[2].bias.data.zero_()
-        self.G.net[4].weight.data.copy_(w3)
-        self.G.net[4].bias.data.copy_(shift_t)
-
-        # Allocate particle counts proportional to empirical mode weights with >=6 rare-mode floor
-        min_per_mode = max(4, min(6, n_p // max(1, num_modes * 2)))
-        raw_counts = torch.round(emp_w * float(n_p)).long().clamp_min(min_per_mode)
-        while int(raw_counts.sum()) > n_p:
-            idx_max = int(raw_counts.argmax())
-            if int(raw_counts[idx_max]) <= min_per_mode:
-                break
-            raw_counts[idx_max] -= 1
-        while int(raw_counts.sum()) < n_p:
-            idx_max = int((emp_w * float(n_p) - raw_counts.float()).argmax())
-            raw_counts[idx_max] += 1
-
-        ring_r = 0.45 * emp_sigma
-        z_rows = []
-        for k in range(num_modes):
-            m_k = int(raw_counts[k])
-            angles = torch.linspace(0.0, 2.0 * math.pi, m_k + 1, device=z.device, dtype=z.dtype)[:-1]
-            ring_offsets = ring_r * torch.stack([torch.cos(angles), torch.sin(angles)], dim=1)
-            x_targets = centers[k].unsqueeze(0) + ring_offsets
-            z_targets = ((x_targets - shift_t) @ rot) / scale
-            z_rows.append(z_targets)
-        z_new = torch.cat(z_rows, dim=0)
-        if z_new.shape[0] == n_p:
-            z.copy_(z_new)
 
     @torch.no_grad()
     def observe(self, n: int = 4096, seed: int | None = None) -> dict[str, Any]:
@@ -925,9 +808,11 @@ class _PacGANBaseFixture:
             "recipe": self.recipe.to_dict(),
             "G": self.G.state_dict(),
             "D": self.D.state_dict(),
+            "ema_critic": None if self.ema_critic is None else self.ema_critic.state_dict(),
             "prior": self.prior.state_dict(),
             "opt_g": self.opt_g.state_dict(),
             "opt_d": self.opt_d.state_dict(),
+            **self.recipe.prior_regularizer_checkpoint(self.regularizer),
             "rng": self._rng_streams.state_dict(),
             "last_losses": self.last_losses,
         })
@@ -935,13 +820,23 @@ class _PacGANBaseFixture:
     def load_state_dict(self, state: dict[str, Any]) -> None:
         assert self.prior is not None
         state = deepcopy(state)
+        if state.get("case_id") != self.case_id:
+            raise ValueError("checkpoint case_id mismatch")
+        if state.get("recipe") != self.recipe.to_dict():
+            raise ValueError("checkpoint recipe mismatch")
+        self.recipe.restore_prior_regularizer(
+            self.regularizer, state.get("prior_regularizer"), validate_only=True
+        )
         self.step_count = int(state["step_count"])
         self.completed_steps = int(state.get("completed_steps", self.step_count))
         self.G.load_state_dict(state["G"])
         self.D.load_state_dict(state["D"])
+        if self.ema_critic is not None and state.get("ema_critic") is not None:
+            self.ema_critic.load_state_dict(state["ema_critic"])
         self.prior.load_state_dict(state["prior"])
         self.opt_g.load_state_dict(state["opt_g"])
         self.opt_d.load_state_dict(state["opt_d"])
+        self.recipe.restore_prior_regularizer(self.regularizer, state.get("prior_regularizer"))
         self._rng_streams.load_state_dict(state["rng"])
         self.last_losses = dict(state.get("last_losses", {}))
 
@@ -958,7 +853,6 @@ class PacGANUnequalMassFixture(_PacGANBaseFixture):
     )
     DEFAULT_RECIPE = "bispf"
     EVAL_SAMPLES = 4096
-    knn_repulsion_weight = 0.025
 
     def __init__(
         self,
@@ -1053,7 +947,7 @@ class PacGAN8Grid100Fixture(_PacGANBaseFixture):
         batch_size: int = 512,
         particles: int = 512,
         z_dim: int = 2,
-        pac_size: int = 4,
+        pac_size: int = 8,
         sigma: float = 0.05,
         coords: tuple[float, ...] = GRID100_COORDS,
     ) -> None:
