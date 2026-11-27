@@ -1,16 +1,17 @@
-"""Axiom L1 Optimizer: Law 4.1-4.5 Role-Agnostic Equilibrated Dynamics."""
+"""Axiom L1 Optimizer (Law 4)."""
 
 from __future__ import annotations
 
-from copy import copy, deepcopy
-import math
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
+from copy import copy
+from math import hypot, isfinite, log2, sqrt
 
 import torch
 from torch import nn
 from torch.optim import Optimizer
 
 from .math_ops import (
+    _apply_stream,
+    _pdot,
     fp32_tikhonov_ns_2d,
     fp32_tikhonov_ns_batched,
     mantissa_exponent_normalize,
@@ -29,2129 +30,950 @@ from .state import (
     set_active_prior_rows,
 )
 
-_ALLOWED_ROLES = frozenset(
-    {"generator", "encoder", "router", "noise", "critic", "prior", "table"}
+_T = torch.Tensor
+_F32, _F64, _BOOL, _LONG = torch.float32, torch.float64, torch.bool, torch.long
+_ROLES = ("generator", "encoder", "router", "noise", "critic", "prior", "table")
+_OPT_DEF = (
+    ("weight_decay", 0.0),
+    ("amsgrad", False),
+    ("maximize", False),
+    ("differentiable", False),
+    ("capturable", False),
+    ("foreach", None),
+    ("fused", None),
 )
-_IGNORED_OPTIONS = frozenset(
-    {
-        "weight_decay",
-        "amsgrad",
-        "maximize",
-        "differentiable",
-        "capturable",
-        "foreach",
-        "fused",
-    }
+_FP32 = ("v_pow", "m_unit", "m_scale", "m_prior")
+_SCALARS = (
+    ("last_step_gain", 0.0, None, True),
+    ("ema_func_gain", 0.0, 1.0, True),
+    ("ema_step_cos", -1.0, 1.0, False),
+    ("log2_damp", -4.0, 0.0, False),
+    ("crit_skew_ema", 0.0, None, False),
 )
-_FP32_STATE_KEYS: Tuple[str, ...] = ("v_pow", "m_unit", "m_scale", "m_prior")
-_SKETCH_DIM: int = 67
-_LOG2_DAMP_FLOOR: float = -4.0
-_PYTH_CAP: float = 1.5
-_WEIGHT_LOG2_FLOOR: float = math.log2(1e-12)
+_META_KEYS = ("schema", "family", "direction_blend", "prev_step_sketch", "sampled_rows") + tuple(s[0] for s in _SCALARS)
+_SKETCH = 67
+_WL2_FL = log2(1e-12)
 
 
-def collect_conv_layouts(
-    modules: Iterable[Optional[nn.Module]],
-) -> Dict[int, Tuple[bool, int]]:
-    """Map Conv2d/ConvTranspose2d weight ``id(w)`` to ``(is_transpose, groups)``."""
-    layouts: Dict[int, Tuple[bool, int]] = {}
-    for root in modules:
-        if not isinstance(root, nn.Module):
-            continue
-        for mod in root.modules():
-            if isinstance(mod, (nn.Conv2d, nn.ConvTranspose2d)):
-                is_t = isinstance(mod, nn.ConvTranspose2d)
-                layouts[id(mod.weight)] = (is_t, int(mod.groups))
-    return layouts
+def _req(ok):
+    if not ok:
+        raise ValueError("invalid")
 
 
-def _flat_view(tensor: torch.Tensor) -> torch.Tensor:
-    if tensor.is_contiguous():
-        return tensor.view(-1)
-    if tensor.ndim == 4 and tensor.is_contiguous(memory_format=torch.channels_last):
-        return tensor.permute(0, 2, 3, 1).view(-1)
-    return tensor.reshape(-1)
+def _dkeys(d, ks):
+    _req(isinstance(d, dict) and set(d) == ks)
 
 
-def _is_fin_num(
-    val: Any,
-    lo: Optional[float] = None,
-    hi: Optional[float] = None,
-    strict_lo: bool = False,
-) -> bool:
-    if isinstance(val, bool) or not isinstance(val, (int, float)):
+def _fin(v, lo=None, hi=None, slo=False):
+    if isinstance(v, bool) or not isinstance(v, (int, float)) or not isfinite(v):
         return False
-    fv = float(val)
-    if not math.isfinite(fv):
-        return False
-    if lo is not None and (fv <= lo if strict_lo else fv < lo):
-        return False
-    return hi is None or fv <= hi
+    return (lo is None or (v > lo if slo else v >= lo)) and (hi is None or v <= hi)
 
 
-def _update_l2_ref(
-    st: Dict[str, Any],
-    lt: float,
-    g_eq: float,
-    d_eq: float,
-    has_weight: bool,
-) -> float:
-    """Huber-capped (+2 octave) cosine-gated log-norm reference tracker."""
-    if not bool(st.get("log2_init", False)):
-        if has_weight:
-            st["log2_init"] = True
-            st["log2_ref"] = float(lt)
-        return float(lt)
-    rp = float(st.get("log2_ref", 0.0))
-    if lt > rp:
-        rn = rp + 0.25 * min(2.0, lt - rp)
-    else:
-        d_eff = 0.25 * (1.0 - g_eq) + d_eq * g_eq
-        rn = rp - d_eff * min(2.0, rp - lt)
-    st["log2_ref"] = rn
+def _tfin(t):
+    return isinstance(t, _T) and torch.isfinite(t).all().item()
+
+
+def _sc(x, dev, dt=_F64):
+    return x.to(dev, dt).reshape(()) if isinstance(x, _T) else torch.full((), float(x), device=dev, dtype=dt)
+
+
+def _is_loss(v):
+    return isinstance(v, _T) and v.ndim == 0 and bool(v.requires_grad)
+
+
+def _all_fin_sync(normals):
+    bd = {}
+    for g in normals:
+        for t in g:
+            if t is not None and t.numel() > 0:
+                bd.setdefault(t.device, []).append(torch.isfinite(t).all())
+    return all(torch.stack(fs).all().item() for fs in bd.values())
+
+
+def _upd_l2(st, lt, ge, de, hw):
+    if not st.get("log2_init", False):
+        if hw:
+            st["log2_init"], st["log2_ref"] = True, lt
+        return lt
+    rp = st.get("log2_ref", 0.0)
+    st["log2_ref"] = rn = (
+        rp + 0.25 * min(2.0, lt - rp) if lt > rp else rp - (0.25 * (1.0 - ge) + de * ge) * min(2.0, rp - lt)
+    )
     return rn
 
 
-def _apply_momentum(
-    st: Dict[str, Any], param: torch.Tensor, gu: torch.Tensor, b1: float
-) -> torch.Tensor:
-    """Degree-0 unit-gradient FP32 momentum (active only when ``beta1 > 0``)."""
+def _mom(st, p, gu, b1):
     if b1 <= 0.0:
         return gu
-    mu = st.setdefault("m_unit", torch.zeros_like(param, dtype=torch.float32))
-    ms = st.setdefault(
-        "m_scale", torch.zeros((), device=param.device, dtype=torch.float32)
-    )
-    gu_new, _, _ = mantissa_exponent_normalize(b1 * mu + (1.0 - b1) * gu)
-    mu.copy_(gu_new)
+    mu = st.setdefault("m_unit", p.new_zeros(p.shape, dtype=_F32))
+    ms = st.setdefault("m_scale", p.new_zeros((), dtype=_F32))
+    gn, _, _ = mantissa_exponent_normalize(b1 * mu + (1.0 - b1) * gu)
+    mu.copy_(gn)
     ms.fill_(1.0)
-    return gu_new
+    return gn
 
 
-def _collect_reachable_params(loss: torch.Tensor, param_ids: set[int]) -> set[int]:
-    """Identify leaf parameters reachable from ``loss.grad_fn`` without autograd.grad."""
-    root = getattr(loss, "grad_fn", None)
-    if root is None:
-        return set()
-    touched: set[int] = set()
-    stack = [root]
-    seen = {id(root)}
-    while stack:
-        node = stack.pop()
-        var = getattr(node, "variable", None)
-        if isinstance(var, torch.Tensor) and id(var) in param_ids:
-            touched.add(id(var))
-        for nxt, _ in getattr(node, "next_functions", ()):
-            if nxt is not None and id(nxt) not in seen:
-                seen.add(id(nxt))
-                stack.append(nxt)
-    return touched
+def _reach(loss, pids):
+    hit, seen, stk = set(), set(), [getattr(loss, "grad_fn", None)]
+    while stk:
+        if (nd := stk.pop()) is None or id(nd) in seen:
+            continue
+        seen.add(id(nd))
+        if isinstance(v := getattr(nd, "variable", None), _T) and id(v) in pids:
+            hit.add(id(v))
+        stk.extend(nx for nx, _ in getattr(nd, "next_functions", ()))
+    return hit
 
 
-def _streaming_param_dot(
-    xs: Sequence[Optional[torch.Tensor]],
-    ys: Sequence[Optional[torch.Tensor]],
-    z0: torch.Tensor,
-) -> torch.Tensor:
-    acc = z0
-    for x_p, y_p in zip(xs, ys):
-        if x_p is not None and y_p is not None:
-            acc = acc + (x_p.double() * y_p.double()).sum()
-    return acc
+def _dots(pairs, ref):
+    z0 = ref.new_zeros((), dtype=_F64)
+    return torch.stack([_pdot(x, y, z0) for x, y in pairs]).tolist()
 
 
-def _is_active_scalar_loss(val: Any) -> bool:
-    return isinstance(val, torch.Tensor) and val.ndim == 0 and bool(val.requires_grad)
+def _blend_dots(disps, normals):
+    ps = [(normals[0], normals[0]), (normals[0], disps), (disps, disps)]
+    if len(normals) == 2:
+        ps = [ps[0], (normals[1], normals[1]), ps[1], (normals[1], disps), (normals[0], normals[1]), ps[2]]
+    v = _dots(ps, disps[0])
+    return ([v[1]], [v[0]], 0.0, v[2]) if len(normals) == 1 else ([v[2], v[3]], [v[0], v[1]], v[4], v[5])
 
 
-def _blend_dot_products(
-    disps: List[torch.Tensor],
-    normals: List[List[Optional[torch.Tensor]]],
-) -> Tuple[List[float], List[float], float, float, float]:
-    z0 = torch.zeros((), dtype=torch.float64, device=disps[0].device)
-    d2_t = _streaming_param_dot(disps, disps, z0)
-    n2_0 = _streaming_param_dot(normals[0], normals[0], z0)
-    ad_0 = _streaming_param_dot(normals[0], disps, z0)
-    if len(normals) == 1:
-        n2_v, ad_v, d2_f = torch.stack((n2_0, ad_0, d2_t)).tolist()
-        return [ad_v], [n2_v], 0.0, d2_f, ad_v
-    n2_1 = _streaming_param_dot(normals[1], normals[1], z0)
-    ad_1 = _streaming_param_dot(normals[1], disps, z0)
-    a01_t = _streaming_param_dot(normals[0], normals[1], z0)
-    v = torch.stack((n2_0, n2_1, ad_0, ad_1, a01_t, d2_t)).tolist()
-    return [v[2], v[3]], [v[0], v[1]], v[4], v[5], max(v[2], v[3])
+def _blend_post(ad, an2, a01, d2, al):
+    a0, a1 = (al[0], al[1]) if len(al) > 1 else (al[0], 0.0)
+    n0, n1, d0, d1 = (an2[0], an2[1], ad[0], ad[1]) if len(ad) > 1 else (an2[0], 0.0, ad[0], 0.0)
+    aft = max(d0 - a0 * n0 - a1 * a01, d1 - a0 * a01 - a1 * n1) if len(ad) > 1 else (d0 - a0 * n0)
+    return aft, max(0.0, d2 - 2.0 * (a0 * d0 + a1 * d1) + a0 * a0 * n0 + a1 * a1 * n1 + 2.0 * a0 * a1 * a01)
 
 
-def _apply_blend_step(
-    all_p: List[torch.Tensor],
-    origs: List[torch.Tensor],
-    disps: List[torch.Tensor],
-    normals: List[List[Optional[torch.Tensor]]],
-    alphas: Tuple[float, ...],
-) -> None:
-    active = [(a, grp) for a, grp in zip(alphas, normals) if a != 0.0]
-    for idx, (p, o, d_p) in enumerate(zip(all_p, origs, disps)):
-        acc = d_p.double()
-        for alpha, grp in active:
-            a_p = grp[idx]
-            if a_p is not None:
-                acc = acc - alpha * a_p.double()
-        p.copy_(o + acc.to(p.dtype))
+def _rms_fin(y, yp):
+    return torch.isfinite(y).all().double(), torch.where(torch.isfinite(y), y.double() - yp.double(), 0.0).reshape(
+        yp.shape[0], -1
+    ).square().mean().sqrt()
 
 
-def _blend_post_metrics(
-    ad: List[float],
-    a_n2: List[float],
-    a01: float,
-    d2: float,
-    alphas: Tuple[float, ...],
-) -> Tuple[float, float]:
-    if len(ad) == 1:
-        a0 = alphas[0]
-        after = ad[0] - a0 * a_n2[0]
-        n2 = d2 - 2.0 * a0 * ad[0] + a0 * a0 * a_n2[0]
-        return after, max(0.0, n2)
-    a0, a1 = alphas[0], alphas[1]
-    after = max(
-        ad[0] - a0 * a_n2[0] - a1 * a01,
-        ad[1] - a0 * a01 - a1 * a_n2[1],
-    )
-    n2 = (
-        d2
-        - 2.0 * (a0 * ad[0] + a1 * ad[1])
-        + a0 * a0 * a_n2[0]
-        + a1 * a1 * a_n2[1]
-        + 2.0 * a0 * a1 * a01
-    )
-    return after, max(0.0, n2)
+def _role_pyth(g0s, g1s):
+    if (ref := next((t for t in (*g0s, *g1s) if t is not None), None)) is None:
+        return None
+    a2, b2, dt = _dots(((g0s, g0s), (g1s, g1s), (g0s, g1s)), ref)
+    if a2 > 1e-24 and b2 > 1e-24 and isfinite(a2 + b2 + dt):
+        return min(1.5, max(1.0, (sqrt(a2) + sqrt(b2)) / sqrt(max(a2 + b2 + 2.0 * dt, 1e-36))))
+    return None
+
+
+def _copy_pend(pend, ps=None):
+    if pend is None:
+        return None
+    return [
+        [None if t is None else t.detach().to(p.device if ps else "cpu", t.dtype).clone() for t, p in zip(g, ps or g)]
+        for g in pend
+    ]
+
+
+def _res_norm(p, g, pair, need_u=True):
+    if pair is not None and 1e-17 < pair[0] < 1e17 and 0.0 <= pair[1] < 1e17:
+        gn, pn = pair
+        hw = pn > 1e-12
+        return (g / gn if need_u else gn), log2(gn), (log2(pn) if hw else 0.0), hw
+    gu, l2g, okg = mantissa_exponent_normalize(g)
+    if not okg.item():
+        return None
+    _, l2p, okp = mantissa_exponent_normalize(p.detach())
+    lp = l2p.item()
+    hw = okp.item() and lp > _WL2_FL
+    return gu, l2g.item(), (lp if hw else 0.0), hw
+
+
+def _add_upd(up, ud, dev):
+    if not up:
+        return
+    if all(p.device == dev and p.dtype == up[0].dtype for p in up):
+        torch._foreach_add_(up, ud)
+    else:
+        for pi, di in zip(up, ud):
+            pi.add_(di)
+
+
+def collect_conv_layouts(modules):
+    return {
+        id(m.weight): (isinstance(m, nn.ConvTranspose2d), int(m.groups))
+        for r in modules
+        if isinstance(r, nn.Module)
+        for m in r.modules()
+        if isinstance(m, (nn.Conv2d, nn.ConvTranspose2d))
+    }
 
 
 class AxiomOptimizer(Optimizer):
-    """Law 4.1-4.5 role-agnostic, BN- & scale-invariant equilibrated optimizer (schema 2)."""
-
     family = recipe_optimizer_family = "axiom"
     _SUPPORTS_ZEROSYNC_V4_TENSORS: bool = True
+    ema_critic = anchor = guard = latent_damping = latent_history = direct_response = direct_history = None
 
     def __init__(
         self,
-        params: Iterable[Any],
+        params,
         *,
-        lr: float = 0.014,
-        betas: Tuple[float, float] = (0.0, 0.999),
-        eps: float = 1e-8,
-        smoothing: float = 0.05,
-        direction_blend: bool = False,
-        critic: Optional[nn.Module] = None,
-        record: Any = None,
-        conv_layouts: Optional[Dict[int, Tuple[bool, int]]] = None,
-        **options: Any,
-    ) -> None:
-        self._validate_init_args(lr, betas, eps, smoothing, direction_blend, options)
-        self.family = self.recipe_optimizer_family = "axiom"
-        self.smoothing = float(smoothing)
-        self.direction_blend = bool(direction_blend)
-        self.critic = critic
+        lr=0.014,
+        betas=(0.0, 0.999),
+        eps=1e-8,
+        smoothing=0.05,
+        direction_blend=False,
+        critic=None,
+        record=None,
+        conv_layouts=None,
+        **options,
+    ):
+        self._check_init(lr, betas, eps, smoothing, direction_blend, options)
+        self.smoothing, self.direction_blend, self.critic = float(smoothing), direction_blend, critic
         self.record = self._axiom_record = record
-        self.ema_critic = self.anchor = self.guard = None
-        self.latent_damping = self.latent_history = None
-        self.direct_response = self.direct_history = None
-        self._conv_layouts = dict(conv_layouts) if conv_layouts else {}
-        self._sampled_rows: Dict[torch.Tensor, torch.Tensor] = {}
-        self._sampled_rows_unique: Dict[torch.Tensor, torch.Tensor] = {}
-        self._row_scales: Dict[torch.Tensor, torch.Tensor] = {}
-        self._gen_param_ids: set[int] = set()
-        self._metrics_cache: Dict[int, Tuple[float, float, int, int, int]] = {}
-        self._mod_g_scale: float | torch.Tensor = 1.0
-        self._mod_wakeup_boost: float | torch.Tensor = 1.0
-        self._mod_prior_scale = self.last_step_gain = self._ema_func_gain = 1.0
-        self._ema_step_cos_val = self._log2_damp_val = self._crit_skew_ema = 0.0
-        self._ema_step_cos_t: Optional[torch.Tensor] = None
-        self._log2_damp_t: Optional[torch.Tensor] = None
-        self._prev_step_sketch: Optional[torch.Tensor] = None
-        self._fast_cache: Optional[Dict[str, Any]] = None
-        self._protected: Optional[List[List[Optional[torch.Tensor]]]] = None
-        self.last_probe_consumed = False
-        self.constraint_geometry_stats = {
-            "steps": 0,
-            "projected_steps": 0,
-            "max_derivative_before": 0.0,
-            "max_derivative_after": 0.0,
-        }
-        self.direction_blend_stats = {
-            "conflict_steps": 0,
-            "blended_steps": 0,
-            "pareto_stalls": 0,
-            "retained_norm_ratio_sum": 0.0,
-            "max_retained_norm_ratio": 0.0,
-        }
-        self.ns_2d_activations = self.fast_path_steps = 0
-        self.trust_backtracks_total = self.probe_consumptions = 0
-
-        default_role = "critic" if critic is not None else "generator"
+        self._psk = self._prot = None
+        self._cl = dict(conv_layouts) if conv_layouts else {}
+        self._sr, self._rsc, self._gpids, self._mc = {}, {}, set(), {}
+        self._mgs = self._mwb = self._mps = self.last_step_gain = self.ema_func_gain = 1.0
+        self.ema_step_cos = self.log2_damp = self.crit_skew_ema = 0.0
+        self.constraint_geometry_stats = dict(
+            steps=0, projected_steps=0, max_derivative_before=0.0, max_derivative_after=0.0
+        )
+        self.direction_blend_stats = dict(
+            conflict_steps=0, blended_steps=0, pareto_stalls=0, retained_norm_ratio_sum=0.0, max_retained_norm_ratio=0.0
+        )
+        self._reset_counts()
+        role0 = "critic" if critic is not None else "generator"
         defaults = {
+            **dict(_OPT_DEF),
             "lr": float(lr),
             "betas": tuple(float(b) for b in betas),
             "eps": float(eps),
-            "role": default_role,
-            "weight_decay": 0.0,
-            "amsgrad": False,
-            "maximize": False,
-            "differentiable": False,
-            "capturable": False,
-            "foreach": None,
-            "fused": None,
+            "role": role0,
             **options,
         }
         super().__init__(params, defaults)
-        self._configure_param_groups(default_role)
+        for g in self.param_groups:
+            g["role"] = role = g.get("role", g.get("forge_role", role0))
+            _req(role in _ROLES)
+            is_pr = role in ("prior", "table")
+            if is_pr:
+                _req(len(g["params"]) == 1 and g["params"][0].ndim == 2)
+                g.setdefault("sampled_rows_required", role == "prior")
+            g["algorithm"] = "axiom_prior" if is_pr else "axiom"
         if isinstance(critic, nn.Module):
             self.bind_module_layouts((critic,))
 
+    def _reset_counts(self):
+        self.ns_2d_activations = self.fast_path_steps = self.trust_backtracks_total = self.probe_consumptions = 0
+        self.last_probe_consumed = False
+
     @staticmethod
-    def _validate_init_args(
-        lr: float,
-        betas: Tuple[float, float],
-        eps: float,
-        smoothing: float,
-        direction_blend: bool,
-        options: Dict[str, Any],
-    ) -> None:
-        valid_scalars = (
-            _is_fin_num(lr, 0.0)
-            and _is_fin_num(eps, 0.0, strict_lo=True)
-            and _is_fin_num(smoothing, 0.0)
-        )
-        if not valid_scalars:
-            raise ValueError("invalid AxiomOptimizer scalar hyperparameter")
-        if type(direction_blend) is not bool or len(betas) != 2:
-            raise ValueError("invalid AxiomOptimizer betas or direction_blend")
-        if any(not _is_fin_num(b, 0.0) or float(b) >= 1.0 for b in betas):
-            raise ValueError("invalid AxiomOptimizer betas")
-        for key, val in options.items():
-            if key not in _IGNORED_OPTIONS:
-                raise TypeError(f"unsupported AxiomOptimizer option: {key}")
-            if val not in (None, False, 0, 0.0):
-                raise ValueError(f"AxiomOptimizer requires disabled {key}")
+    def _check_init(lr, betas, eps, sm, db, opts):
+        _req(_fin(lr, 0.0) and _fin(eps, 0.0, slo=True) and _fin(sm, 0.0) and type(db) is bool and len(betas) == 2)
+        for b in betas:
+            _req(_fin(b, 0.0) and b < 1.0)
+        ks = {k for k, _ in _OPT_DEF}
+        for k, v in opts.items():
+            if k not in ks:
+                raise TypeError(k)
+            _req(v in (None, False, 0, 0.0))
 
-    def _configure_param_groups(self, default_role: str) -> None:
-        for grp in self.param_groups:
-            role = grp.get("role", grp.get("forge_role", default_role))
-            if role not in _ALLOWED_ROLES:
-                raise ValueError(f"unknown optimizer parameter role: {role!r}")
-            grp["role"] = role
-            if role in ("prior", "table"):
-                if len(grp["params"]) != 1 or grp["params"][0].ndim != 2:
-                    raise ValueError("prior/table group must hold one 2D latent table")
-                grp["algorithm"] = "axiom_prior"
-                grp.setdefault("sampled_rows_required", role == "prior")
-            else:
-                grp["algorithm"] = "axiom"
+    def bind_module_layouts(self, modules):
+        self._cl.update(collect_conv_layouts(modules))
+        self._mc.clear()
 
-    def bind_module_layouts(self, modules: Iterable[Optional[nn.Module]]) -> None:
-        """Register Conv2d/ConvTranspose2d layouts for exact 1x1 == Linear parity."""
-        self._conv_layouts.update(collect_conv_layouts(modules))
-        self._metrics_cache.clear()
+    def _active_record(self):
+        if (r := self.record if self.record is not None else self._axiom_record) is not None:
+            return r
+        return next((rec for p in self._parameters() if (rec := get_tensor_record(p)) is not None), None)
 
-    def _active_record(self) -> Any:
-        if self.record is not None:
-            return self.record
-        if self._axiom_record is not None:
-            return self._axiom_record
-        for grp in self.param_groups:
-            for p in grp["params"]:
-                rec = get_tensor_record(p)
-                if rec is not None:
-                    return rec
-        return None
+    def _parameters(self):
+        return [p for g in self.param_groups for p in g["params"]]
 
-    def _parameters(self) -> List[torch.Tensor]:
-        return [p for grp in self.param_groups for p in grp["params"]]
+    def set_generator_probe_parameters(self, parameters):
+        self._gpids = {id(p) for p in parameters}
 
-    def set_generator_probe_parameters(
-        self, parameters: Iterable[torch.Tensor]
-    ) -> None:
-        self._gen_param_ids = {id(p) for p in parameters}
+    def bind_origin_sample(self, sample):
+        pass
 
-    def bind_origin_sample(self, sample: Optional[torch.Tensor]) -> None:
-        del sample
-
-    def _flush_scalars(self) -> None:
-        if self._ema_step_cos_t is None and self._log2_damp_t is None:
-            return
-        tensors = [
-            t.double()
-            for t in (self._ema_step_cos_t, self._log2_damp_t)
-            if t is not None
-        ]
-        vals = (
-            torch.stack(tensors).tolist()
-            if len(tensors) > 1
-            else [float(tensors[0].item())]
-        )
-        idx = 0
-        if self._ema_step_cos_t is not None:
-            self._ema_step_cos_val, self._ema_step_cos_t = float(vals[idx]), None
-            idx += 1
-        if self._log2_damp_t is not None:
-            self._log2_damp_val, self._log2_damp_t = float(vals[idx]), None
-
-    def _flush_fast_cache(self) -> None:
-        if self._fast_cache is None:
-            return
-        refs = self._fast_cache["log2_ref"].detach().cpu().tolist()
-        inits = self._fast_cache["log2_init"].detach().cpu().tolist()
-        for p, rv, iv in zip(self._fast_cache["params"], refs, inits):
-            self.state[p]["log2_ref"] = float(rv)
-            self.state[p]["log2_init"] = bool(iv)
-
-    @property
-    def ema_step_cos(self) -> float:
-        self._flush_scalars()
-        return self._ema_step_cos_val
-
-    @property
-    def log2_damp(self) -> float:
-        self._flush_scalars()
-        return self._log2_damp_val
-
-    def _param_metrics(self, p: torch.Tensor) -> Tuple[float, float, int, int, int]:
-        cached = self._metrics_cache.get(id(p))
-        if cached is not None:
-            return cached
+    def _pmetrics(self, p):
+        if (c := self._mc.get(id(p))) is not None:
+            return c
+        if p.ndim < 2:
+            return self._mc.setdefault(id(p), (0.5 if p.numel() == 1 else 1.0, 0.0, 1, 1, 1))
         if p.ndim == 4:
-            out = self._conv_param_metrics(p)
-        elif p.ndim >= 2:
-            rd = int(p.shape[0])
-            cd = int(p.numel() // max(1, rd))
-            md = min(rd, cd)
-            fac = math.sqrt(max(1.0, rd / max(1, cd)))
-            out = (fac, 0.5 * math.log2(max(1, md)), rd, cd, md)
+            c0, c1, kh, kw = p.shape
+            it, gr = self._cl.get(id(p), (False, 1))
+            oc, ic = (c1 * gr, c0) if it else (c0, c1 * gr)
+            if not (kh == kw == gr == 1 and not it):
+                ar, fn = max(1, (kh * kw) // 4 if it else kh * kw), max(1, min(oc // max(1, gr), ic // max(1, gr)))
+                out = (sqrt(oc / max(1, ic) * gr / ar) * (fn**0.25), 0.5 * log2(max(1, min(oc, ic) * kh * kw)), 1, 1, 1)
+                return self._mc.setdefault(id(p), out)
+            rd, cd = oc, ic
         else:
-            # S^0 (0 tangential DOF) uses exact half-bracket bisection, S^{n-1} uses 1.0.
-            out = (0.5 if p.numel() == 1 else 1.0, 0.0, 1, 1, 1)
-        self._metrics_cache[id(p)] = out
-        return out
+            rd, cd = p.shape[0], p.numel() // max(1, p.shape[0])
+        md = min(rd, cd)
+        return self._mc.setdefault(id(p), (sqrt(max(1.0, rd / max(1, cd))), 0.5 * log2(max(1, md)), rd, cd, md))
 
-    def _conv_param_metrics(
-        self, p: torch.Tensor
-    ) -> Tuple[float, float, int, int, int]:
-        c0, c1, kh, kw = (int(s) for s in p.shape)
-        is_t, gr = self._conv_layouts.get(id(p), (False, 1))
-        oc, ic = (c1 * gr, c0) if is_t else (c0, c1 * gr)
-        if kh == 1 and kw == 1 and gr == 1 and not is_t:
-            md = min(oc, ic)
-            fac = math.sqrt(max(1.0, oc / max(1, ic)))
-            return fac, 0.5 * math.log2(max(1, md)), oc, ic, md
-        area = max(1, (kh * kw) // 4 if is_t else kh * kw)
-        fan = max(1, min(oc // max(1, gr), ic // max(1, gr)))
-        fac = math.sqrt(oc / max(1, ic)) * math.sqrt(gr / area) * (fan**0.25)
-        return fac, 0.5 * math.log2(max(1, min(oc, ic) * kh * kw)), 1, 1, 1
+    def set_sampled_rows(self, param, rows):
+        rt = torch.as_tensor(rows).reshape(-1).to(param.device, _LONG)
+        if rt.device.type == "cpu" and rt.numel():
+            _req(not ((rt < 0).any().item() or (rt >= len(param)).any().item()))
+        prev = self._sr.get(param)
+        self._sr[param] = rt if prev is None else torch.cat((prev, rt))
+        set_active_prior_rows(param, self._sr[param])
+        if (rec := self._active_record()) is not None:
+            rec._active_prior_table, rec._active_batch_rows = param, rt.detach()
 
-    def set_sampled_rows(self, param: torch.Tensor, rows: torch.Tensor) -> None:
-        """Register active prior table rows via weak registry (zero attr mutation)."""
-        rows_t = (
-            torch.as_tensor(rows).reshape(-1).to(dtype=torch.long, device=param.device)
-        )
-        if rows_t.device.type == "cpu" and rows_t.numel():
-            if bool((rows_t < 0).any()) or bool((rows_t >= len(param)).any()):
-                raise ValueError("sampled rows out of bounds for prior table")
-        prev = self._sampled_rows.get(param)
-        self._sampled_rows[param] = (
-            rows_t if prev is None else torch.cat((prev, rows_t))
-        )
-        self._sampled_rows_unique.pop(param, None)
-        set_active_prior_rows(param, self._sampled_rows[param])
-        rec = self._active_record()
-        if rec is not None:
-            rec._active_prior_table = param
-            rec._active_batch_rows = rows_t.detach()
+    def sampled_rows_for(self, param):
+        return None if param not in self._sr else torch.unique(self._sr[param], sorted=True).detach().clone()
 
-    def sampled_rows_for(self, param: torch.Tensor) -> Optional[torch.Tensor]:
-        if param not in self._sampled_rows:
-            return None
-        uniq = self._sampled_rows_unique.get(param)
-        if uniq is None:
-            uniq = torch.unique(self._sampled_rows[param], sorted=True)
-            self._sampled_rows_unique[param] = uniq
-        return uniq.detach().clone()
-
-    def clear_sampled_rows(self) -> None:
-        for p in self._sampled_rows:
+    def clear_sampled_rows(self):
+        for p in self._sr:
             clear_active_prior_rows(p)
-        self._sampled_rows.clear()
-        self._sampled_rows_unique.clear()
-        self._row_scales.clear()
-        rec = self._active_record()
-        if rec is not None:
+        self._sr.clear()
+        self._rsc.clear()
+        if (rec := self._active_record()) is not None:
             rec._active_prior_table = rec._active_batch_rows = None
 
-    def set_row_scales(
-        self, param: torch.Tensor, scales: Optional[torch.Tensor]
-    ) -> None:
+    def set_row_scales(self, param, scales):
         if scales is None:
-            self._row_scales.pop(param, None)
+            self._rsc.pop(param, None)
         else:
-            self._row_scales[param] = scales.detach().to(
-                device=param.device, dtype=torch.float32
-            )
+            self._rsc[param] = scales.detach().to(param.device, _F32)
 
-    def bind_axiom_modulation(
-        self,
-        *,
-        g_scale: float | torch.Tensor = 1.0,
-        wakeup_boost: float | torch.Tensor = 1.0,
-        prior_scale: float = 1.0,
-    ) -> None:
-        self._mod_g_scale = (
-            g_scale.detach().float().reshape(())
-            if isinstance(g_scale, torch.Tensor)
-            else float(g_scale)
-        )
-        self._mod_wakeup_boost = (
-            wakeup_boost.detach().float().reshape(())
-            if isinstance(wakeup_boost, torch.Tensor)
-            else float(wakeup_boost)
-        )
-        self._mod_prior_scale = float(prior_scale)
+    def bind_axiom_modulation(self, *, g_scale=1.0, wakeup_boost=1.0, prior_scale=1.0):
+        self._mgs = g_scale.detach() if isinstance(g_scale, _T) else float(g_scale)
+        self._mwb = wakeup_boost.detach() if isinstance(wakeup_boost, _T) else float(wakeup_boost)
+        self._mps = float(prior_scale)
 
     bind_v4_modulation = bind_axiom_modulation
 
-    def _mask_protected_piece(
-        self,
-        src: Optional[torch.Tensor],
-        param: torch.Tensor,
-        *,
-        is_prior_sampled: bool,
-        clone: bool,
-    ) -> Optional[torch.Tensor]:
-        if src is None:
-            return None
-        if is_prior_sampled:
-            rows = self.sampled_rows_for(param)
-            if rows is None:
-                raise ValueError("direction_blend requires explicit sampled rows")
-            piece = torch.zeros_like(src)
-            piece[rows] = src[rows]
-        else:
-            piece = src.clone() if clone else src
-        if not bool(torch.isfinite(piece).all()):
-            raise ValueError("nonfinite direction_blend protected gradient")
-        return piece
+    def _collect_normal(self, overrides=None, clone=False):
+        out = []
+        for g in self.param_groups:
+            ps = g["algorithm"] == "axiom_prior" and g.get("sampled_rows_required", True)
+            for p in g["params"]:
+                ov = overrides is not None and id(p) in overrides
+                src = overrides[id(p)] if ov else (None if p.grad is None else p.grad.detach())
+                if src is not None and ps:
+                    _req((rows := self.sampled_rows_for(p)) is not None)
+                    pc = torch.zeros_like(src)
+                    pc[rows] = src[rows]
+                    src = pc
+                elif src is not None and clone and not ov:
+                    src = src.clone()
+                out.append(src)
+        return out
 
-    def _collect_protected_normal(
-        self,
-        *,
-        overrides: Optional[Dict[int, Optional[torch.Tensor]]] = None,
-        clone: bool = False,
-    ) -> List[Optional[torch.Tensor]]:
-        normal: List[Optional[torch.Tensor]] = []
-        for grp in self.param_groups:
-            is_ps = grp["algorithm"] == "axiom_prior" and bool(
-                grp.get("sampled_rows_required", True)
-            )
-            for p in grp["params"]:
-                if overrides is not None and id(p) in overrides:
-                    src = overrides[id(p)]
-                    use_clone = False
-                else:
-                    src = None if p.grad is None else p.grad.detach()
-                    use_clone = clone
-                normal.append(
-                    self._mask_protected_piece(
-                        src, p, is_prior_sampled=is_ps, clone=use_clone
-                    )
-                )
-        return normal
+    def bind_protected_from_grads(self):
+        if self.direction_blend:
+            _req(self._prot is None)
+            self._prot = [self._collect_normal()]
 
-    def bind_protected_from_grads(self) -> None:
-        """Bind current ``p.grad`` as exact 1-loss protected normal."""
+    def bind_protected_losses(self, losses, *, protected_evaluator=None):
         if not self.direction_blend:
             return
-        if self._protected is not None:
-            raise ValueError("Axiom direction_blend losses already pending")
-        self._protected = [self._collect_protected_normal(clone=False)]
-
-    def bind_protected_losses(
-        self, losses: Sequence[torch.Tensor], *, protected_evaluator: Any = None
-    ) -> None:
-        """Bind 1 or 2 scalar protected losses via ``.backward(retain_graph=True)``."""
-        del protected_evaluator
-        if not self.direction_blend:
-            return
-        if self._protected is not None:
-            raise ValueError("Axiom direction_blend losses already pending")
-        lt = tuple(losses)
-        if not 1 <= len(lt) <= 2 or not all(_is_active_scalar_loss(x) for x in lt):
-            raise ValueError("one or two active scalar protected losses required")
-        params = self._parameters()
-        trainable = [p for p in params if p.requires_grad]
-        saved = [None if p.grad is None else p.grad.detach().clone() for p in params]
-        normals: List[List[Optional[torch.Tensor]]] = []
+        _req(self._prot is None and 1 <= len(lt := tuple(losses)) <= 2 and all(_is_loss(x) for x in lt))
+        ps, tr, sv, normals = self._parameters(), [], [], []
+        for p in ps:
+            if p.requires_grad:
+                tr.append(p)
+            sv.append(None if p.grad is None else p.grad.detach().clone())
         try:
             for lk in lt:
-                for p in params:
+                for p in ps:
                     p.grad = None
-                if trainable:
-                    lk.backward(retain_graph=True, inputs=trainable)
-                normals.append(self._collect_protected_normal(clone=True))
+                if tr:
+                    lk.backward(retain_graph=True, inputs=tr)
+                normals.append(self._collect_normal(clone=True))
         finally:
-            for p, sg in zip(params, saved):
+            for p, sg in zip(ps, sv):
                 p.grad = sg
-        self._protected = normals
+        _req(_all_fin_sync(normals))
+        self._prot = normals
 
-    def backward_with_protected(
-        self,
-        loss_gan: torch.Tensor,
-        aux_loss: Optional[torch.Tensor] = None,
-    ) -> None:
-        """Single-backward exact 1-loss protection without cloning untouched G grads."""
-        if not _is_active_scalar_loss(loss_gan):
-            raise ValueError("backward_with_protected requires active scalar loss_gan")
-        if self.direction_blend and self._protected is not None:
-            raise ValueError("Axiom direction_blend losses already pending")
-        has_aux = _is_active_scalar_loss(aux_loss)
+    def backward_with_protected(self, loss_gan, aux_loss=None):
+        _req(_is_loss(loss_gan) and not (self.direction_blend and self._prot is not None))
+        ha = _is_loss(aux_loss)
         loss_gan.backward()
         if not self.direction_blend:
-            if has_aux:
-                aux_loss.backward()  # type: ignore[union-attr]
+            if ha:
+                aux_loss.backward()
             return
-        params = self._parameters()
-        touched = (
-            _collect_reachable_params(aux_loss, {id(p) for p in params})  # type: ignore[arg-type]
-            if has_aux
-            else set()
-        )
-        saved_gan = {
-            id(p): (None if p.grad is None else p.grad.detach().clone())
-            for p in params
-            if id(p) in touched
-        }
-        if has_aux:
-            aux_loss.backward()  # type: ignore[union-attr]
-        self._protected = [self._collect_protected_normal(overrides=saved_gan)]
+        sv = None
+        if ha:
+            ps = self._parameters()
+            tch = _reach(aux_loss, {id(p) for p in ps})
+            sv = {id(p): (None if p.grad is None else p.grad.detach().clone()) for p in ps if id(p) in tch}
+            aux_loss.backward()
+        self._prot = [self._collect_normal(sv)]
 
-    def abort_pending(self) -> None:
+    def abort_pending(self):
         self.clear_sampled_rows()
-        self._mod_g_scale = self._mod_wakeup_boost = self._mod_prior_scale = 1.0
-        self._protected = None
+        self._mgs = self._mwb = self._mps = 1.0
+        self._prot = None
 
-    def _build_step_sketch(
-        self, net_pairs: List[Tuple[torch.Tensor, torch.Tensor]], dev: torch.device
-    ) -> Tuple[torch.Tensor, torch.Tensor]:
-        rows: List[torch.Tensor] = []
-        for _, g in net_pairs:
+    def _sketch(self, pairs, dev):
+        rows = []
+        for _, g in pairs:
             if g.numel() <= 0:
                 continue
-            fl = _flat_view(g.detach())
-            n = int(fl.numel())
-            if n >= _SKETCH_DIM:
-                stride = max(1, n // _SKETCH_DIM)
-                if stride > 1 and stride % 2 == 0:
-                    stride -= 1
-                rows.append(fl[::stride][:_SKETCH_DIM].float())
+            fl = (
+                (
+                    g.permute(0, 2, 3, 1).reshape(-1)
+                    if g.ndim == 4 and g.is_contiguous(memory_format=torch.channels_last)
+                    else g.reshape(-1)
+                )
+                .detach()
+                .float()
+            )
+            if (n := fl.numel()) >= _SKETCH:
+                st = max(1, n // _SKETCH)
+                rows.append(fl[:: st - (st > 1 and st % 2 == 0)][:_SKETCH])
             else:
-                pad = fl.new_zeros(_SKETCH_DIM - n, dtype=torch.float32)
-                rows.append(torch.cat((fl.float(), pad), dim=0))
+                rows.append(torch.cat((fl, fl.new_zeros(_SKETCH - n))))
         if not rows:
-            z = torch.zeros(_SKETCH_DIM, dtype=torch.float32, device=dev)
-            return z, torch.zeros((), dtype=torch.bool, device=dev)
-        unit_rows, _, _ = me_unit_rows(torch.stack(rows, dim=0).to(dev))
-        acc = unit_rows.sum(dim=0)
-        sk_n = acc.norm()
-        sk_ok = torch.isfinite(sk_n) & (sk_n > 0.0)
-        return torch.where(
-            sk_ok, acc / sk_n.clamp_min(1e-30), torch.zeros_like(acc)
-        ), sk_ok
+            return torch.zeros(_SKETCH, dtype=_F32, device=dev), torch.zeros((), dtype=_BOOL, device=dev)
+        acc = me_unit_rows(torch.stack(rows).to(dev))[0].sum(dim=0)
+        sn = acc.norm()
+        ok = torch.isfinite(sn) & (sn > 0.0)
+        return torch.where(ok, acc / sn.clamp_min(1e-30), 0.0), ok
 
-    def _update_step_cosine(
-        self,
-        net_pairs: List[Tuple[torch.Tensor, torch.Tensor]],
-        dev: torch.device,
-        ema_fg: float,
-    ) -> Tuple[torch.Tensor, torch.Tensor, torch.Tensor, torch.Tensor, bool]:
-        rho_p = (
-            self._ema_step_cos_t
-            if (self._ema_step_cos_t is not None and self._ema_step_cos_t.device == dev)
-            else torch.full((), self._ema_step_cos_val, dtype=torch.float64, device=dev)
-        )
-        damp_p = (
-            self._log2_damp_t
-            if (self._log2_damp_t is not None and self._log2_damp_t.device == dev)
-            else torch.full((), self._log2_damp_val, dtype=torch.float64, device=dev)
-        )
-        had_hist = self._prev_step_sketch is not None
-        sk_now, sk_ok = self._build_step_sketch(net_pairs, dev)
-        prev_sk = self._prev_step_sketch
-        if prev_sk is not None:
-            prev_dev = prev_sk.to(device=dev, dtype=torch.float32)
-            cos_cur = (sk_now * prev_dev).sum().double().clamp(-1.0, 1.0)
-            rho_n = torch.where(sk_ok, 0.90 * rho_p + 0.10 * cos_cur, rho_p)
-            self._prev_step_sketch = torch.where(sk_ok, sk_now, prev_dev)
-        else:
-            rho_n = rho_p
-            if net_pairs:
-                self._prev_step_sketch = sk_now
-
-        g_down = smoothstep01((-0.45 - rho_n) / 0.25)
-        g_up = smoothstep01((rho_n + 0.35) / 0.35)
-        g_osc = smoothstep01((-0.35 - rho_n) / 0.35)
-        g_eq = smoothstep01((0.55 - rho_n) / 0.30)
-        log2_d = (damp_p - 0.12 * g_down + 0.25 * g_up).clamp(_LOG2_DAMP_FLOOR, 0.0)
-        self._ema_step_cos_t, self._log2_damp_t = rho_n, log2_d
-        stiff = torch.maximum(
-            rho_n.new_full((), smoothstep01((0.18 - ema_fg) / 0.07)),
-            smoothstep01((0.60 - ema_fg) / 0.30) * g_down,
-        )
-        return torch.exp2(log2_d), float(self.smoothing) * g_osc, g_eq, stiff, had_hist
-
-    @staticmethod
-    def _critic_layer_skew(
-        crit_m4: List[Tuple[Any, ...]], ref_dev: torch.device
-    ) -> Optional[float]:
-        can_batch = all(
-            it[0].dtype == torch.float32
-            and it[1].dtype == torch.float32
-            and it[0].device == ref_dev
-            for it in crit_m4
-        )
-        if can_batch:
-            g_n = torch.stack(torch._foreach_norm([it[1] for it in crit_m4])).double()
-            p_n = torch.stack(torch._foreach_norm([it[0] for it in crit_m4])).double()
-            ok = (
-                torch.isfinite(g_n)
-                & (g_n > 1e-17)
-                & (g_n < 1e17)
-                & torch.isfinite(p_n)
-                & (p_n < 1e17)
-            )
-            l2_p = torch.where(
-                p_n > 1e-12, torch.log2(p_n.clamp_min(1e-12)), torch.zeros_like(p_n)
-            )
-            hl2 = torch.tensor(
-                [float(it[4]) for it in crit_m4], dtype=torch.float64, device=ref_dev
-            )
-            lt = torch.log2(torch.where(ok, g_n, torch.ones_like(g_n))) + l2_p - hl2
-            all_ok, sk_f = torch.stack(
-                (ok.all().double(), lt.amax() - lt.amin())
-            ).tolist()
-            if all_ok > 0.5:
-                return float(sk_f)
-        l2_vals: List[float] = []
-        for p, g, _, _, hl2, *_ in crit_m4:
-            _, l2g, okg = mantissa_exponent_normalize(g)
-            _, l2p, okp = mantissa_exponent_normalize(p.detach())
-            if not bool(okg.item()):
-                continue
-            lp_v = float(l2p.item())
-            lp_f = lp_v if (bool(okp.item()) and lp_v > _WEIGHT_LOG2_FLOOR) else 0.0
-            l2_vals.append(float(l2g.item()) + lp_f - float(hl2))
-        return (max(l2_vals) - min(l2_vals)) if len(l2_vals) >= 3 else None
-
-    def _detect_critic_pathology(
-        self, crit_m4: List[Tuple[Any, ...]], ref_dev: torch.device
-    ) -> bool:
-        """Compound Law 4.2 witness: layer skew > 4x AND min r_stable < 1.05."""
-        if len(crit_m4) < 3:
+    def _critic_path(self, cm4, nmap, dev):
+        l2s = [
+            r[1] + r[2] - hl2
+            for idx, (p, g, _, _, hl2, *_) in cm4
+            if (r := _res_norm(p, g, nmap.get(idx), False)) is not None
+        ]
+        if len(l2s) < 3:
             return False
-        skew_now = self._critic_layer_skew(crit_m4, ref_dev)
-        if skew_now is None:
+        sk = max(l2s) - min(l2s)
+        self.crit_skew_ema = max(sk, 0.97 * self.crit_skew_ema + 0.03 * sk)
+        if self.crit_skew_ema <= 2.0:
             return False
-        self._crit_skew_ema = max(
-            skew_now, 0.97 * self._crit_skew_ema + 0.03 * skew_now
-        )
-        if self._crit_skew_ema <= 2.0:
-            return False
-        r_stabs: List[torch.Tensor] = []
-        for p, g, _, _, _, rd, cd, *_ in crit_m4:
+        rs = []
+        for _, (p, g, *_, ext, _) in cm4:
             st = self.state[p]
-            r_s, v_next = stable_rank_power(
-                g.reshape(rd, cd), iters=2, init_v=st.get("v_pow"), return_v=True
-            )
-            st["v_pow"] = v_next.detach()
-            r_stabs.append(r_s.to(ref_dev))
-        return min(torch.stack(r_stabs).tolist()) < 1.05
+            r, vn = stable_rank_power(g.reshape(ext[0], ext[1]), init_v=st.get("v_pow"), return_v=True)
+            st["v_pow"] = vn.detach()
+            rs.append(r.to(dev))
+        return min(torch.stack(rs).tolist()) < 1.05
 
     @staticmethod
-    def _critic_spec_factors(crit_2d: List[Tuple[Any, ...]]) -> List[torch.Tensor]:
-        """Compute ``gamma_spec(G) = min(sqrt(m), 2*sqrt(r_stable(G)))`` per critic matrix."""
-        buckets: Dict[
-            Tuple[int, int, torch.device], List[Tuple[int, torch.Tensor, int]]
-        ] = {}
-        for idx, (_, g, _, _, _, rd, cd, md, _, _) in enumerate(crit_2d):
-            buckets.setdefault((rd, cd, g.device), []).append(
-                (idx, g.reshape(rd, cd), md)
-            )
-        out: List[Optional[torch.Tensor]] = [None] * len(crit_2d)
-        for items in buckets.values():
-            mats = torch.stack([it[1] for it in items], dim=0)
-            r_stabs = stable_rank_power(mats, iters=2)
-            md = items[0][2]
-            cap = r_stabs.new_full(r_stabs.shape, math.sqrt(float(md)))
-            gammas = torch.minimum(cap, 2.0 * r_stabs.sqrt()).double()
-            for j, (orig_idx, _, _) in enumerate(items):
-                out[orig_idx] = gammas[j]
-        return [t for t in out if t is not None]
+    def _critic_gammas(c2d):
+        bkts, out = {}, [None] * len(c2d)
+        for i, (_, (_, g, *_, (rd, cd, md), _)) in enumerate(c2d):
+            bkts.setdefault((rd, cd, g.device), []).append((i, g.reshape(rd, cd), md))
+        for its in bkts.values():
+            rs = stable_rank_power(torch.stack([x[1] for x in its]))
+            gs = torch.minimum(rs.new_full(rs.shape, sqrt(its[0][2])), 2.0 * rs.sqrt()).double()
+            for j, (oi, _, _) in enumerate(its):
+                out[oi] = gs[j]
+        return out
 
-    def _two_obj_pyth(self) -> Dict[int, float]:
-        if self._protected is None or len(self._protected) != 2:
+    def _two_obj_pyth(self):
+        if self._prot is None or len(self._prot) != 2:
             return {}
-        n0, n1 = self._protected[0], self._protected[1]
-        role_acc: Dict[
-            str,
-            Tuple[
-                List[int], List[Optional[torch.Tensor]], List[Optional[torch.Tensor]]
-            ],
-        ] = {}
-        idx = 0
-        for grp in self.param_groups:
-            pids, g0s, g1s = role_acc.setdefault(grp["role"], ([], [], []))
-            for p in grp["params"]:
+        n0, n1 = self._prot
+        acc, idx = {}, 0
+        for g in self.param_groups:
+            pids, g0s, g1s = acc.setdefault(g["role"], ([], [], []))
+            for p in g["params"]:
                 pids.append(id(p))
                 if p.grad is not None and p.numel() > 0:
                     g0s.append(n0[idx])
                     g1s.append(n1[idx])
                 idx += 1
-        result: Dict[int, float] = {}
-        for pids, g0s, g1s in role_acc.values():
-            ref = next((t for t in (*g0s, *g1s) if t is not None), None)
-            if ref is None:
-                continue
-            z0 = torch.zeros((), dtype=torch.float64, device=ref.device)
-            dots = (
-                _streaming_param_dot(g0s, g0s, z0),
-                _streaming_param_dot(g1s, g1s, z0),
-                _streaming_param_dot(g0s, g1s, z0),
-            )
-            a2, b2, dt = torch.stack(dots).tolist()
-            if a2 > 1e-24 and b2 > 1e-24 and math.isfinite(a2 + b2 + dt):
-                den = math.sqrt(max(a2 + b2 + 2.0 * dt, 1e-36))
-                boost = min(_PYTH_CAP, max(1.0, (math.sqrt(a2) + math.sqrt(b2)) / den))
+        res = {}
+        for pids, g0s, g1s in acc.values():
+            if (bo := _role_pyth(g0s, g1s)) is not None:
                 for pid in pids:
-                    result[pid] = boost
-        return result
+                    res[pid] = bo
+        return res
 
-    def _prep_prior(
-        self, p: torch.Tensor, grad: torch.Tensor, grp: Dict[str, Any], b1: float
-    ) -> Optional[Tuple[Any, ...]]:
-        st, r_sc = self.state[p], self._row_scales.get(p)
-        req = bool(grp.get("sampled_rows_required", True))
-        if req and r_sc is None:
-            raw = self._sampled_rows[p]
-            if raw.numel() == 0:
-                return None
-            ridx, _ = torch.sort(raw)
-            is_f = torch.ones(int(ridx.shape[0]), device=p.device, dtype=torch.bool)
-            if ridx.shape[0] > 1:
-                is_f[1:] = ridx[1:] != ridx[:-1]
-            rmask = is_f.unsqueeze(1)
+    def _prep_prior(self, p, grad, grp, b1):
+        st, rsc, req = self.state[p], self._rsc.get(p), grp.get("sampled_rows_required", True)
+        if req:
+            ridx = torch.sort(self._sr[p])[0] if rsc is None else self.sampled_rows_for(p)
         else:
-            ridx = (
-                self.sampled_rows_for(p)
-                if req
-                else torch.arange(len(p), device=p.device, dtype=torch.long)
-            )
-            if ridx is None or ridx.numel() == 0:
-                return None
-            rmask = torch.ones(
-                (int(ridx.shape[0]), 1), device=p.device, dtype=torch.bool
-            )
+            ridx = torch.arange(len(p), device=p.device, dtype=_LONG)
+        if ridx is None or ridx.numel() == 0:
+            return None
+        rm = ridx.new_ones(len(ridx), dtype=_BOOL)
+        if req and rsc is None:
+            rm[1:] = ridx[1:] != ridx[:-1]
+        rm = rm.unsqueeze(1)
         gr = grad[ridx].float()
         fin = torch.isfinite(gr).all(dim=-1, keepdim=True)
-        dr = torch.where(fin, gr, torch.zeros_like(gr))
+        dr = torch.where(fin, gr, 0.0)
         if b1 > 0.0:
-            mp = st.setdefault("m_prior", torch.zeros_like(p, dtype=torch.float32))
+            mp = st.setdefault("m_prior", p.new_zeros(p.shape, dtype=_F32))
             mpv = mp[ridx]
             dr = torch.where(fin, mpv.mul(b1).add(dr, alpha=1.0 - b1), mpv)
-            mp.index_add_(0, ridx, (dr - mpv) * rmask.float())
-        u_row, l2, ok0 = me_unit_rows(dr)
-        ok = rmask & ok0
-        nok = ok.float().sum()
-        mean_l2 = (l2 * ok.float()).sum() / nok.clamp_min(1.0)
-        return p, ridx, r_sc, u_row, l2, ok, nok.double(), mean_l2.double()
+            mp.index_add_(0, ridx, (dr - mpv) * rm.float())
+        ur, l2, ok0 = me_unit_rows(dr)
+        ok = rm & ok0
+        okf = ok.float()
+        nok = okf.sum()
+        return p, ridx, rsc, ur, l2, ok, nok.double(), ((l2 * okf).sum() / nok.clamp_min(1.0)).double()
 
-    def _finish_prior(
-        self,
-        pr: Tuple[Any, ...],
-        n_ok: float,
-        mean_l2: float,
-        *,
-        base_lr: float,
-        s_rel_pr: float,
-        s_peak_pr: float,
-        g_eq: float,
-        d_eq: float,
-        had_hist: bool,
-    ) -> None:
-        if base_lr <= 0.0:
-            return
-        p, ridx, r_sc, u_row, l2, ok, _, _ = pr
-        st = self.state[p]
-        ref_n = (
-            _update_l2_ref(st, mean_l2, g_eq, d_eq, True)
-            if n_ok > 0.0
-            else float(st.get("log2_ref", 0.0))
-        )
-        if had_hist:
-            rat = torch.exp2((ref_n - l2).clamp(-20.0, 20.0))
-            rs = float(s_rel_pr) * rat + float(s_peak_pr) * (rat - 1.0).clamp_min(0.0)
-            ur = torch.where(
-                ok, u_row * torch.rsqrt(1.0 + rs.square()), torch.zeros_like(u_row)
-            )
-        else:
-            ur = torch.where(ok, u_row, torch.zeros_like(u_row))
-        if r_sc is not None and len(r_sc) == len(ridx):
-            ur = ur * r_sc.unsqueeze(1)
-        p.index_add_(0, ridx, ur.to(p.dtype), alpha=-base_lr)
-
-    def _ensure_fast_cache(
-        self, items: List[Tuple[Any, ...]], dev: torch.device
-    ) -> Dict[str, Any]:
-        params = [it[0] for it in items]
-        key = tuple(id(p) for p in params)
-        lr_key = tuple(it[2] for it in items)
-        fac_key = tuple(it[3] for it in items)
-        c = self._fast_cache
-        needs_new = (
-            c is None
-            or c["key"] != key
-            or c["device"] != dev
-            or c["fac_key"] != fac_key
-        )
-        if needs_new:
-            self._flush_fast_cache()
-            c = {
-                "key": key,
-                "device": dev,
-                "params": params,
-                "lr_key": lr_key,
-                "fac_key": fac_key,
-                "lrs": torch.tensor(lr_key, dtype=torch.float64, device=dev),
-                "factors": torch.tensor(fac_key, dtype=torch.float64, device=dev),
-                "half_l2": torch.tensor(
-                    [it[4] for it in items], dtype=torch.float64, device=dev
-                ),
-                "is_gen": torch.tensor(
-                    [it[5] for it in items], dtype=torch.bool, device=dev
-                ),
-                "log2_ref": torch.tensor(
-                    [float(self.state[p].get("log2_ref", 0.0)) for p in params],
-                    dtype=torch.float64,
-                    device=dev,
-                ),
-                "log2_init": torch.tensor(
-                    [bool(self.state[p].get("log2_init", False)) for p in params],
-                    dtype=torch.bool,
-                    device=dev,
-                ),
-            }
-            self._fast_cache = c
-        elif c["lr_key"] != lr_key:
-            c["lr_key"] = lr_key
-            c["lrs"] = torch.tensor(lr_key, dtype=torch.float64, device=dev)
-        return c
-
-    @staticmethod
-    def _compute_fast_damp(
-        sn: torch.Tensor,
-        p_norms: torch.Tensor,
-        ok: torch.Tensor,
-        c: Dict[str, Any],
-        *,
-        s_osc: torch.Tensor,
-        s_base: torch.Tensor,
-        s_peak: torch.Tensor,
-        g_eq: torch.Tensor,
-        d_eq: float,
-        had_hist: bool,
-    ) -> torch.Tensor:
-        has_w = p_norms > 1e-12
-        log2_p = torch.where(
-            has_w, torch.log2(p_norms.clamp_min(1e-12)), torch.zeros_like(p_norms)
-        )
-        lt = torch.log2(sn) + log2_p - c["half_l2"]
-        rp, ip = c["log2_ref"], c["log2_init"]
-        d_eff = 0.25 * (1.0 - g_eq) + d_eq * g_eq
-        up_step = rp + 0.25 * (lt - rp).clamp(0.0, 2.0)
-        dn_step = rp - d_eff * (rp - lt).clamp(0.0, 2.0)
-        rn = torch.where(ip, torch.where(lt > rp, up_step, dn_step), lt)
-        c["log2_ref"].copy_(torch.where(ok & (ip | has_w), rn, rp))
-        c["log2_init"].copy_(ip | (ok & has_w))
-        if not had_hist:
-            return torch.ones_like(sn)
-        rat = torch.exp2((rn - lt).clamp(-20.0, 20.0))
-        s_tikh = (
-            g_eq * (s_base * rat + s_peak * (rat - 1.0).clamp_min(0.0)) + s_osc * rat
-        )
-        return torch.where(
-            ip | has_w, torch.rsqrt(1.0 + s_tikh.square()), torch.ones_like(rat)
-        )
-
-    @staticmethod
-    def _apply_partial_foreach(
-        items: List[Tuple[Any, ...]],
-        params: List[torch.Tensor],
-        grads: List[torch.Tensor],
-        sc: torch.Tensor,
-        keep: List[int],
-    ) -> List[Tuple[Any, ...]]:
-        keep_p = [params[i] for i in keep]
-        keep_g = [grads[i] for i in keep]
-        keep_s = [sc[i] for i in keep]
-        torch._foreach_addcmul_(keep_p, keep_g, keep_s)
-        keep_set = set(keep)
-        return [it for i, it in enumerate(items) if i not in keep_set]
-
-    def _run_foreach_fast(
-        self,
-        items: List[Tuple[Any, ...]],
-        *,
-        c_osc: torch.Tensor,
-        s_osc: torch.Tensor,
-        s_base: torch.Tensor,
-        s_peak: torch.Tensor,
-        g_eq: torch.Tensor,
-        d_eq: float,
-        had_hist: bool,
-        g_mult: float | torch.Tensor,
-        d_mult: float | torch.Tensor,
-    ) -> List[Tuple[Any, ...]]:
-        params, grads = zip(*((it[0], it[1]) for it in items))
-        p_list, g_list = list(params), list(grads)
-        dev = p_list[0].device
-        c = self._ensure_fast_cache(items, dev)
-        g_norms = torch.stack(torch._foreach_norm(g_list)).double()
-        p_norms = torch.stack(torch._foreach_norm(p_list)).double()
-        ok = (
-            torch.isfinite(g_norms)
-            & (g_norms > 1e-17)
-            & (g_norms < 1e17)
-            & torch.isfinite(p_norms)
-            & (p_norms < 1e17)
-        )
-        all_ok = bool(ok.all().item())
-        keep = None if all_ok else [i for i, b in enumerate(ok.tolist()) if b]
-        if keep is not None and not keep:
-            return list(items)
-
-        gm_t = (
-            g_mult.to(dev, dtype=torch.float64)
-            if isinstance(g_mult, torch.Tensor)
-            else float(g_mult)
-        )
-        dm_t = (
-            d_mult.to(dev, dtype=torch.float64)
-            if isinstance(d_mult, torch.Tensor)
-            else float(d_mult)
-        )
-        lrs = torch.where(c["is_gen"], c["lrs"] * gm_t, c["lrs"] * dm_t)
-        sn = g_norms if all_ok else torch.where(ok, g_norms, torch.ones_like(g_norms))
-        damp = self._compute_fast_damp(
-            sn,
-            p_norms,
-            ok,
-            c,
-            s_osc=s_osc,
-            s_base=s_base,
-            s_peak=s_peak,
-            g_eq=g_eq,
-            d_eq=d_eq,
-            had_hist=had_hist,
-        )
-        one = sn.new_ones(())
-        spec_t = torch.stack([one if it[6] is None else it[6] for it in items])
-        sc = (-(lrs * c["factors"] * spec_t * c_osc * damp) / sn).float()
-        self.fast_path_steps += 1
-        if keep is None:
-            torch._foreach_addcmul_(p_list, g_list, list(sc.unbind(0)))
-            return []
-        return self._apply_partial_foreach(items, p_list, g_list, sc, keep)
-
-    @staticmethod
-    def _pack_fp32_norms(
-        net_all: List[Tuple[int, Tuple[Any, ...]]],
-        ref_dev: torch.device,
-        s_vec: List[torch.Tensor],
-    ) -> Tuple[List[int], int]:
-        fp32_idx: List[int] = []
-        fp32_p: List[torch.Tensor] = []
-        fp32_g: List[torch.Tensor] = []
-        for idx, (_, it) in enumerate(net_all):
-            p, g = it[0], it[1]
-            if (
-                p.dtype == torch.float32
-                and g.dtype == torch.float32
-                and p.device == ref_dev
-                and g.numel() > 0
-            ):
-                fp32_idx.append(idx)
-                fp32_p.append(p)
-                fp32_g.append(g)
-        off = len(s_vec)
-        if fp32_g:
-            s_vec.extend(n.double() for n in torch._foreach_norm(fp32_g))
-            s_vec.extend(n.double() for n in torch._foreach_norm(fp32_p))
-        return fp32_idx, off
-
-    @staticmethod
-    def _resolve_item_norm(
-        p: torch.Tensor,
-        g: torch.Tensor,
-        norm_pair: Optional[Tuple[float, float]],
-    ) -> Optional[Tuple[torch.Tensor, float, float, bool]]:
-        if norm_pair is not None:
-            gn, pn = norm_pair
-            if (
-                math.isfinite(gn)
-                and 1e-17 < gn < 1e17
-                and math.isfinite(pn)
-                and pn < 1e17
-            ):
-                has_w = pn > 1e-12
-                return g / gn, math.log2(gn), (math.log2(pn) if has_w else 0.0), has_w
-        gu, l2g_t, okg = mantissa_exponent_normalize(g)
-        if not bool(okg.item()):
-            return None
-        _, l2p_t, okp = mantissa_exponent_normalize(p.detach())
-        lp_v = float(l2p_t.item())
-        has_w = bool(okp.item()) and lp_v > _WEIGHT_LOG2_FLOOR
-        return gu, float(l2g_t.item()), (lp_v if has_w else 0.0), has_w
-
-    @staticmethod
-    def _apply_updates(
-        upd_p: List[torch.Tensor], upd_d: List[torch.Tensor], ref_dev: torch.device
-    ) -> None:
-        if not upd_p:
-            return
-        if all(p.device == ref_dev and p.dtype == upd_p[0].dtype for p in upd_p):
-            torch._foreach_add_(upd_p, upd_d)
-        else:
-            for p_i, d_i in zip(upd_p, upd_d):
-                p_i.add_(d_i)
-
-    def _run_slow_and_ns(
-        self,
-        prior_it: List[Tuple[Any, ...]],
-        slow_it: List[Tuple[Any, ...]],
-        d2_it: List[Tuple[Any, ...]],
-        *,
-        c_osc: torch.Tensor,
-        s_osc: torch.Tensor,
-        g_eq: torch.Tensor,
-        stiff_t: torch.Tensor,
-        d_eq: float,
-        sm_r: float,
-        had_hist: bool,
-        g_mult: float | torch.Tensor,
-        d_cpl: float | torch.Tensor,
-        ref_dev: torch.device,
-    ) -> float:
-        pre_pr = [
-            (lr_p, self._prep_prior(p, g, grp, b1_p))
-            for p, g, lr_p, b1_p, grp in prior_it
-        ]
-        gm_t = (
-            g_mult.to(ref_dev, dtype=torch.float64).reshape(())
-            if isinstance(g_mult, torch.Tensor)
-            else c_osc.new_full((), float(g_mult))
-        )
-        dm_t = (
-            d_cpl.to(ref_dev, dtype=torch.float64).reshape(())
-            if isinstance(d_cpl, torch.Tensor)
-            else c_osc.new_full((), float(d_cpl))
-        )
-        s_vec: List[torch.Tensor] = [
-            c_osc.double(),
-            s_osc.double(),
-            g_eq.double(),
-            stiff_t.double(),
-            gm_t,
-            dm_t,
-        ]
-        pr_off = len(s_vec)
-        for _, pr in pre_pr:
-            if pr is not None:
-                s_vec.extend((pr[6], pr[7]))
-        net_all = [(0, x) for x in slow_it] + [(1, x) for x in d2_it]
-        fp32_idx, norm_off = self._pack_fp32_norms(net_all, ref_dev, s_vec)
-        sv = torch.stack(s_vec).tolist()
-        cosc_f, sosc_f, geq_f, stiff_f, gm_f, dm_f = [float(x) for x in sv[:6]]
-        s_base_f = sm_r * 0.05 * (1.0 - stiff_f)
-        s_peak_f = sm_r * 0.20 * (1.0 - stiff_f)
-        s_osc_f = sosc_f * (1.0 - stiff_f)
-        s_rel_pr = s_osc_f + (0.0 if self._mod_prior_scale < 1.0 else geq_f * s_base_f)
-
-        pi_k = pr_off
-        for lr_p, pr in pre_pr:
+    def _finish_priors(self, pre_pr, sv, off, so, sb, sp, ge, de, hh):
+        sr, spk, k = so + (0.0 if self._mps < 1.0 else ge * sb), 1.25 * ge * sp, off
+        for lrp, pr in pre_pr:
             if pr is None:
                 continue
-            self._finish_prior(
-                pr,
-                float(sv[pi_k]),
-                float(sv[pi_k + 1]),
-                base_lr=lr_p,
-                s_rel_pr=s_rel_pr,
-                s_peak_pr=1.25 * geq_f * s_peak_f,
-                g_eq=geq_f,
-                d_eq=d_eq,
-                had_hist=had_hist,
-            )
-            pi_k += 2
-
-        nf = len(fp32_idx)
-        norm_map = {
-            k: (float(sv[norm_off + j]), float(sv[norm_off + nf + j]))
-            for j, k in enumerate(fp32_idx)
-        }
-        upd_p, upd_d, ns_b = self._prepare_net_updates(
-            net_all,
-            norm_map,
-            cosc_f=cosc_f,
-            s_osc_f=s_osc_f,
-            s_base_f=s_base_f,
-            s_peak_f=s_peak_f,
-            geq_f=geq_f,
-            d_eq=d_eq,
-            had_hist=had_hist,
-            gm_f=gm_f,
-            dm_f=dm_f,
-        )
-        self._run_ns_buckets(ns_b, upd_p, upd_d)
-        self._apply_updates(upd_p, upd_d, ref_dev)
-        return stiff_f
-
-    def _prepare_net_updates(
-        self,
-        net_all: List[Tuple[int, Tuple[Any, ...]]],
-        norm_map: Dict[int, Tuple[float, float]],
-        *,
-        cosc_f: float,
-        s_osc_f: float,
-        s_base_f: float,
-        s_peak_f: float,
-        geq_f: float,
-        d_eq: float,
-        had_hist: bool,
-        gm_f: float,
-        dm_f: float,
-    ) -> Tuple[
-        List[torch.Tensor],
-        List[torch.Tensor],
-        Dict[Tuple[int, int], List[Tuple[Any, ...]]],
-    ]:
-        upd_p: List[torch.Tensor] = []
-        upd_d: List[torch.Tensor] = []
-        ns_b: Dict[Tuple[int, int], List[Tuple[Any, ...]]] = {}
-        for idx, (kind, it) in enumerate(net_all):
-            p, g = it[0], it[1]
-            resolved = self._resolve_item_norm(p, g, norm_map.get(idx))
-            if resolved is None:
+            nok, ml2, k = sv[k], sv[k + 1], k + 2
+            if lrp <= 0.0:
                 continue
-            gu, l2_g, l2_p, has_w = resolved
+            p, ridx, rsc, ur, l2, ok, _, _ = pr
             st = self.state[p]
-            if kind == 0:
-                _, _, lr_p, fac, hl2, b1, is_gr, spec_t = it
-                fac_eff = fac * (float(spec_t.item()) if spec_t is not None else 1.0)
-                rd = cd = 1
-            else:
-                _, _, lr_p, fac_eff, hl2, rd, cd, b1, is_gr = it
-            gu = _apply_momentum(st, p, gu, b1)
-            lt = l2_g + l2_p - float(hl2)
-            rn = _update_l2_ref(st, lt, geq_f, d_eq, has_w)
+            rn = _upd_l2(st, ml2, ge, de, True) if nok > 0.0 else st.get("log2_ref", 0.0)
+            u = torch.where(
+                ok,
+                ur
+                * torch.rsqrt(
+                    1.0
+                    + (sr * (r := torch.exp2((rn - l2).clamp(-20.0, 20.0))) + spk * (r - 1.0).clamp_min(0.0)).square()
+                )
+                if hh
+                else ur,
+                0.0,
+            )
+            if rsc is not None and len(rsc) == len(ridx):
+                u = u * rsc.unsqueeze(1)
+            p.index_add_(0, ridx, u.to(p.dtype), alpha=-lrp)
+
+    def _route_critic(self, net_all, nmap, st, dev):
+        s6, c2d = {}, [(i, it) for i, it in enumerate(net_all) if it[8]]
+        if not c2d or self._critic_path([(i, it) for i, it in c2d if it[7][2] >= 4], nmap, dev):
+            return s6
+        for (i, it), gt in zip(c2d, self._critic_gammas(c2d)):
+            p, g, lr, fac, hl2, b1, isg, (rd, cd, _), _ = it
+            net_all[i] = (p, g, lr, fac, hl2, b1, isg, gt, False)
+            if st > 0.0:
+                nt = rd > cd
+                s6.setdefault((cd, rd) if nt else (rd, cd), []).append((p, fac, nt, rd, cd, lr * st))
+        return s6
+
+    def _step_net(self, net_all, nmap, scf, gp, dev):
+        co, so, sb, sp, ge, de, hh, gm, dm = scf
+        fps, fgs, fal, fgt, up, ud, nsb = [], [], [], [], [], [], {}
+        for i, (p, g, lrp, fac, hl2, b1, isg, ext, _) in enumerate(net_all):
+            can_f = not gp and b1 == 0.0 and not isinstance(ext, tuple)
+            if (res := _res_norm(p, g, nmap.get(i), not can_f)) is None:
+                continue
+            gu, l2g, l2p, hw = res
+            st = self.state[p]
+            lt = l2g + l2p - hl2
+            rn = _upd_l2(st, lt, ge, de, hw)
             rat = 2.0 ** max(-20.0, min(20.0, rn - lt))
-            active_smooth = had_hist and (has_w or bool(st.get("log2_init", False)))
-            s_tikh = (
-                geq_f * (s_base_f * rat + s_peak_f * max(0.0, rat - 1.0))
-                + s_osc_f * rat
-                if active_smooth
+            stv = (
+                (ge * (sb * rat + sp * max(0.0, rat - 1.0)) + so * rat)
+                if (hh and (hw or st.get("log2_init", False)))
                 else 0.0
             )
-            rate = (lr_p * gm_f) if is_gr else (lr_p * dm_f)
-            if kind == 0:
-                scale = -(rate * fac_eff) * cosc_f / math.sqrt(1.0 + s_tikh * s_tikh)
-                upd_p.append(p)
-                upd_d.append((gu * scale).to(p.dtype))
-            else:
+            rate = lrp * (gm if isg else dm) * fac * co
+            eff = -rate / hypot(1.0, stv)
+            if isinstance(gu, float):
+                fps.append(p)
+                fgs.append(g)
+                fal.append(eff / gu)
+                fgt.append(ext)
+            elif isinstance(ext, tuple):
+                rd, cd, _ = ext
                 nt = rd > cd
-                mc = gu.reshape(rd, cd).T if nt else gu.reshape(rd, cd)
-                ns_b.setdefault((int(mc.shape[0]), int(mc.shape[1])), []).append(
-                    (p, mc, nt, rate * fac_eff * cosc_f, s_tikh)
-                )
-        return upd_p, upd_d, ns_b
-
-    def _run_ns_buckets(
-        self,
-        ns_b: Dict[Tuple[int, int], List[Tuple[Any, ...]]],
-        upd_p: List[torch.Tensor],
-        upd_d: List[torch.Tensor],
-    ) -> None:
-        for bkt in ns_b.values():
-            self.ns_2d_activations += len(bkt)
-            mats = torch.stack([b[1] for b in bkt], dim=0)
-            rs_vals = [b[4] for b in bkt]
-            if all(v <= 0.0 for v in rs_vals):
-                rs_arg: float | torch.Tensor = 0.0
-            elif all(v == rs_vals[0] for v in rs_vals):
-                rs_arg = rs_vals[0]
+                mc = _mom(st, p, gu, b1).float().reshape(rd, cd).transpose(0, int(nt))
+                nsb.setdefault((mc.shape[0], mc.shape[1]), []).append((p, mc, nt, rate, stv))
             else:
-                rs_arg = torch.tensor(rs_vals, dtype=torch.float32, device=mats.device)
-            orths = fp32_tikhonov_ns_batched(
-                mats, steps=5, rel_smooth=rs_arg, pre_normalized=True
-            ).float()
-            for idx, (p_i, _, nt, mult, _) in enumerate(bkt):
-                mat_i = orths[idx].T if nt else orths[idx]
-                upd_p.append(p_i)
-                upd_d.append((mat_i * (-mult)).reshape_as(p_i).to(p_i.dtype))
+                d = (_mom(st, p, gu, b1) * eff).to(p.dtype)
+                up.append(p)
+                ud.append(d if ext is None else d * ext.to(d.dtype))
+        self._apply_net_updates(fps, fgs, fal, fgt, up, ud, nsb, dev)
+
+    def _apply_net_updates(self, fps, fgs, fal, fgt, up, ud, nsb, dev):
+        if fps:
+            sc = torch.tensor(fal, dtype=_F64, device=dev)
+            if any(t is not None for t in fgt):
+                one = sc.new_ones(())
+                sc = sc * torch.stack([one if t is None else t for t in fgt])
+            self.fast_path_steps += 1
+            torch._foreach_addcmul_(fps, fgs, list(sc.float().unbind(0)))
+        for bkt in nsb.values():
+            self.ns_2d_activations += len(bkt)
+            mats, rsv = torch.stack([b[1] for b in bkt]), [b[4] for b in bkt]
+            lo, hi = min(rsv), max(rsv)
+            rsa = 0.0 if hi <= 0.0 else (lo if lo == hi else torch.tensor(rsv, dtype=_F32, device=mats.device))
+            orth = fp32_tikhonov_ns_batched(mats, rel_smooth=rsa, pre_normalized=True).float()
+            for i, (pi, _, nt, mult, _) in enumerate(bkt):
+                up.append(pi)
+                ud.append((orth[i].transpose(0, int(nt)) * (-mult)).reshape_as(pi).to(pi.dtype))
+        _add_upd(up, ud, dev)
 
     @staticmethod
-    def _apply_schatten6(
-        s6_b: Dict[Tuple[int, int], List[Tuple[Any, ...]]],
-        d_cpl: float | torch.Tensor,
-        ref_dev: torch.device,
-    ) -> None:
-        if not s6_b:
+    def _apply_s6(s6b, dm, dev):
+        if not s6b:
             return
-        dm_t = (
-            d_cpl.to(ref_dev, dtype=torch.float32).reshape(())
-            if isinstance(d_cpl, torch.Tensor)
-            else torch.full((), float(d_cpl), dtype=torch.float32, device=ref_dev)
-        )
-        for bkt in s6_b.values():
-            ws = torch.stack(
-                [
-                    (p.float().reshape(rd, cd).T if nt else p.float().reshape(rd, cd))
-                    / fac
-                    for p, fac, nt, rd, cd, _ in bkt
-                ],
-                dim=0,
+        dmt = _sc(dm, dev, _F32)
+        for bkt in s6b.values():
+            ws = torch.stack([p.float().reshape(rd, cd).transpose(0, int(nt)) / fac for p, fac, nt, rd, cd, _ in bkt])
+            ds = schatten6_decay_batched(
+                ws, torch.tensor([r for *_, r in bkt], dtype=_F32, device=ws.device) * dmt.to(ws.device)
             )
-            rates = torch.tensor(
-                [r_s for *_, r_s in bkt], dtype=torch.float32, device=ws.device
-            ) * dm_t.to(ws.device)
-            ds6 = schatten6_decay_batched(ws, rates, lam=0.25, tau=2.0)
             for i, (p, fac, nt, _, _, _) in enumerate(bkt):
-                upd = (ds6[i].T if nt else ds6[i]) * fac
-                p.add_(upd.reshape_as(p).to(p.dtype))
+                p.add_((ds[i].transpose(0, int(nt)) * fac).reshape_as(p).to(p.dtype))
 
     @staticmethod
-    def _probe_rel_rms(
-        y: Optional[torch.Tensor], y_pre: torch.Tensor, coord_sc: float
-    ) -> float:
-        if y is None or y.shape != y_pre.shape:
-            return float("inf")
-        bp = int(y_pre.shape[0])
-        diff_rms = (y.double() - y_pre.double()).reshape(bp, -1).square().mean().sqrt()
-        fin, rms = torch.stack((torch.isfinite(y).all().double(), diff_rms)).tolist()
-        return (float(rms) / coord_sc) if fin > 0.5 else float("inf")
-
-    @staticmethod
-    def _flush_trust_probe(
-        rec: Any, yp: torch.Tensor, y_pre: torch.Tensor, pre_gain: float | torch.Tensor
-    ) -> Tuple[float, float, float]:
-        bp, dev = int(y_pre.shape[0]), yp.device
-        ek, et = (
-            rec.take_pending_ema_tensors()
-            if hasattr(rec, "take_pending_ema_tensors")
-            else ([], [])
-        )
-        fin0 = torch.isfinite(yp).all().double()
-        z_zero = yp.new_zeros((), dtype=torch.float64)
-        diff0 = torch.where(torch.isfinite(yp), yp.double() - y_pre.double(), z_zero)
-        rms0 = diff0.reshape(bp, -1).square().mean().sqrt()
-        has_pg = isinstance(pre_gain, torch.Tensor)
-        can_pack = bool(et) and all(t.device == dev for t in et)
-        pack = [fin0, rms0]
-        if has_pg:
-            pack.append(pre_gain.to(device=dev, dtype=torch.float64).reshape(()))
-        if can_pack:
-            pack.extend(t.double() for t in et)
-        pv = torch.stack(pack).tolist()
-        pg_f = float(pv[2]) if has_pg else float(pre_gain)
+    def _flush_trust(rec, yp, y_pre, pg):
+        dev = yp.device
+        ek, et = rec.take_pending_ema_tensors() if hasattr(rec, "take_pending_ema_tensors") else ([], [])
+        pv = torch.stack([*_rms_fin(yp, y_pre), _sc(pg, dev), *(t.to(dev, _F64) for t in et)]).tolist()
         if et:
-            vals = (
-                [float(v) for v in pv[2 + int(has_pg) :]]
-                if can_pack
-                else [float(t.item()) for t in et]
-            )
-            rec.apply_flushed_ema_values(ek, vals)
-        return float(pv[0]), float(pv[1]), pg_f
+            rec.apply_flushed_ema_values(ek, pv[3:])
+        return pv[0], pv[1], pv[2]
 
-    def _backtrack_trust_alpha(
-        self,
-        g_mod: nn.Module,
-        pa: Tuple[Any, ...],
-        pk: Dict[str, Any],
-        rec: Any,
-        deltas: List[Tuple[torch.Tensor, torch.Tensor, torch.Tensor]],
-        y_pre: torch.Tensor,
-        coord_sc: float,
-        d_obs: float,
-        d_min: float,
-        d_max: float,
-    ) -> Tuple[float, float]:
-        alpha = 1.0
-        if d_min > 0.0 and math.isfinite(d_obs) and 1e-12 < d_obs < d_min:
-            alpha = min(16.0, max(1.0, d_min / (d_obs + d_min / 16.0)))
+    def _backtrack(self, cache, rec, deltas, csc, dobs, dmin, dmax):
+        gm, pa, pk, y_pre = cache
+
+        def _ev(a):
             for p, o, d in deltas:
-                p.copy_(o + d * alpha)
-            d_obs = self._probe_rel_rms(
-                eval_probe_forward(g_mod, pa, pk, rec), y_pre, coord_sc
-            )
+                p.copy_(o + d * a)
+            y = eval_probe_forward(gm, pa, pk, rec)
+            if y is None or y.shape != y_pre.shape:
+                return float("inf")
+            f, r = torch.stack(_rms_fin(y, y_pre)).tolist()
+            return r / csc if f > 0.5 else float("inf")
+
+        al = 1.0
+        if dmin > 0.0 and isfinite(dobs) and 1e-12 < dobs < dmin:
+            al = min(16.0, max(1.0, dmin / (dobs + dmin / 16.0)))
+            dobs = _ev(al)
         for _ in range(4):
-            if d_obs <= d_max:
+            if dobs <= dmax:
                 break
             self.trust_backtracks_total += 1
-            if math.isfinite(d_obs) and d_obs > 1e-30:
-                alpha = max(1e-6, min(0.5 * alpha, 0.9 * alpha * (d_max / d_obs)))
-            else:
-                alpha = max(1e-6, 0.1 * alpha)
+            al = max(1e-6, min(0.5 * al, 0.9 * al * dmax / dobs) if isfinite(dobs) and dobs > 1e-30 else 0.1 * al)
+            dobs = _ev(al)
+        if not isfinite(dobs) or dobs > dmax:
+            al = max(1e-6, 0.5 * al)
             for p, o, d in deltas:
-                p.copy_(o + d * alpha)
-            d_obs = self._probe_rel_rms(
-                eval_probe_forward(g_mod, pa, pk, rec), y_pre, coord_sc
-            )
-        if not math.isfinite(d_obs) or d_obs > d_max:
-            alpha = max(1e-6, 0.5 * alpha)
-            for p, o, d in deltas:
-                p.copy_(o + d * alpha)
-        return alpha, d_obs
+                p.copy_(o + d * al)
+        return al, dobs
 
-    def _update_func_gain(
-        self,
-        rec: Any,
-        *,
-        alpha: float,
-        d_obs: float,
-        d_max: float,
-        pg_f: float,
-        s_therm: float,
-        stiff_g: float,
-    ) -> None:
-        if alpha < 1.0:
-            tgt = max(0.05, min(1.0, pg_f * alpha))
-            self._ema_func_gain = 0.70 * self._ema_func_gain + 0.30 * tgt
-        elif (
-            s_therm >= 0.5 and math.isfinite(d_obs) and (alpha > 1.0 or d_obs >= 0.012)
-        ):
-            fr = (d_max / max(d_obs, 1e-12)) * pg_f
-            if fr > 1.5 and min(1.0, fr) > self._ema_func_gain:
-                tgt = max(0.05, min(1.0, fr))
-                self._ema_func_gain = 0.995 * self._ema_func_gain + 0.005 * tgt
-        rec.g_func_gain = float((1.0 - stiff_g) * self._ema_func_gain + stiff_g)
+    def _upd_fgain(self, al, dobs, dmax, pgf, st):
+        if al < 1.0:
+            self.ema_func_gain = 0.70 * self.ema_func_gain + 0.30 * max(0.05, min(1.0, pgf * al))
+        elif st >= 0.5 and isfinite(dobs) and (al > 1.0 or dobs >= 0.012):
+            if dmax / max(dobs, 1e-12) * pgf > 1.5 and self.ema_func_gain < 1.0:
+                self.ema_func_gain = 0.995 * self.ema_func_gain + 0.005
 
-    def _apply_verified_trust(
-        self,
-        rec: Any,
-        tracked: List[Tuple[torch.Tensor, torch.Tensor]],
-        *,
-        step_scale: float,
-        s_therm: float,
-        pre_gain: float | torch.Tensor,
-        is_simp: bool,
-        stiff_g: float,
-    ) -> Tuple[float, bool]:
-        cache, rec._g_probe_cache = rec._g_probe_cache, None
-        if cache is None:
+    def _finish_trust(self, rec, is_c, gp, trk, tinfo, stf):
+        if not (gp and trk):
+            if rec is not None and not is_c:
+                rec._g_probe_cache = None
             return 1.0, False
-        g_mod, pa, pk, y_pre = cache
-        deltas = [(p, o, (p - o).detach()) for p, o in tracked]
-        yp = eval_probe_forward(g_mod, pa, pk, rec)
+        cache, rec._g_probe_cache = rec._g_probe_cache, None
+        gm, pa, pk, y_pre = cache
+        deltas = [(p, o, (p - o).detach()) for p, o in trk]
+        yp = eval_probe_forward(gm, pa, pk, rec)
         if yp is None or yp.shape != y_pre.shape:
             return 1.0, False
-        fin0, rms0, pg_f = self._flush_trust_probe(rec, yp, y_pre, pre_gain)
-        per_dim = math.sqrt(max(1, int(y_pre[0].numel())))
-        coord_sc = max(1e-30, float(getattr(rec, "ema_data_scale", 1.0)) / per_dim)
-        push_res = float(getattr(rec, "ema_push_res", 0.0))
-        d_max = (0.045 + 0.16 * min(1.5, push_res)) * step_scale
-        d_min = (
-            0.012 * smoothstep01((push_res - 0.18) / 0.25) * step_scale
-            if (not is_simp and push_res > 0.18 and s_therm > 0.10)
-            else 0.0
-        )
-        d_obs0 = (rms0 / coord_sc) if fin0 > 0.5 else float("inf")
-        alpha, d_obs = self._backtrack_trust_alpha(
-            g_mod, pa, pk, rec, deltas, y_pre, coord_sc, d_obs0, d_min, d_max
-        )
-        self._update_func_gain(
-            rec,
-            alpha=alpha,
-            d_obs=d_obs,
-            d_max=d_max,
-            pg_f=pg_f,
-            s_therm=s_therm,
-            stiff_g=stiff_g,
-        )
-        return alpha, True
+        pg, ss, st, simp = tinfo
+        f0, r0, pgf = self._flush_trust(rec, yp, y_pre, pg)
+        csc = max(1e-30, float(getattr(rec, "ema_data_scale", 1.0)) / sqrt(max(1, y_pre[0].numel())))
+        pr = float(getattr(rec, "ema_push_res", 0.0))
+        dmax = (0.045 + 0.16 * min(1.5, pr)) * ss
+        dmin = 0.012 * smoothstep01((pr - 0.18) / 0.25) * ss if (not simp and st > 0.10) else 0.0
+        al, dobs = self._backtrack(cache, rec, deltas, csc, (r0 / csc) if f0 > 0.5 else float("inf"), dmin, dmax)
+        self._upd_fgain(al, dobs, dmax, pgf, st)
+        rec.g_func_gain = float((1.0 - stf) * self.ema_func_gain + stf)
+        return al, True
 
-    def _apply_direction_blend(
-        self, all_p: List[torch.Tensor], origs: List[torch.Tensor]
-    ) -> None:
-        normals = self._protected
+    def _apply_dir_blend(self, all_p, origs):
+        normals = self._prot
         if normals is None or not all_p:
             return
         disps = [p - o for p, o in zip(all_p, origs)]
-        ad, a_n2, a01_f, d2_f, bmax = _blend_dot_products(disps, normals)
-        stats, blend = self.constraint_geometry_stats, self.direction_blend_stats
-        proj, after_max = False, bmax
+        ad, an2, a01, d2 = _blend_dots(disps, normals)
+        if not all(isfinite(x) for x in (*ad, *an2, a01, d2)):
+            torch._foreach_copy_(all_p, origs)
+            raise ValueError("invalid")
+        bmax, st, bl = max(ad), self.constraint_geometry_stats, self.direction_blend_stats
+        proj, aft = False, bmax
         if bmax > 0.0:
-            blend["conflict_steps"] += 1
-            poss = True
-            if len(normals) == 2 and a_n2[0] > 0.0 and a_n2[1] > 0.0:
-                rho = max(-1.0, min(1.0, a01_f / math.sqrt(a_n2[0] * a_n2[1])))
-                poss = math.sqrt(max(0.0, 0.5 * (1.0 + rho))) > 1e-12
-            if poss:
-                alphas, is_zero, proj = solve_nonascent_multipliers(
-                    ad, a_n2, d2_f, a01_f
-                )
-                blend["blended_steps"] += 1
+            bl["conflict_steps"] += 1
+            if len(normals) == 2 and an2[0] > 0.0 and an2[1] > 0.0 and a01 / sqrt(an2[0] * an2[1]) <= -1.0 + 2e-24:
+                al, iz, proj = (0.0, 0.0), True, True
+                bl["pareto_stalls"] += 1
             else:
-                alphas, is_zero, proj = (0.0,) * len(normals), True, True
-                blend["pareto_stalls"] += 1
-            if is_zero:
+                al, iz, proj = solve_nonascent_multipliers(ad, an2, d2, a01)
+                bl["blended_steps"] += 1
+            if iz:
                 torch._foreach_copy_(all_p, origs)
-                after_max, app_n2 = 0.0, 0.0
+                aft = an = 0.0
             else:
-                _apply_blend_step(all_p, origs, disps, normals, alphas)
-                after_max, app_n2 = _blend_post_metrics(ad, a_n2, a01_f, d2_f, alphas)
-            dn = math.sqrt(max(0.0, d2_f))
-            ratio = math.sqrt(app_n2) / dn if dn > 0.0 else 0.0
-            blend["retained_norm_ratio_sum"] += ratio
-            blend["max_retained_norm_ratio"] = max(
-                blend["max_retained_norm_ratio"], ratio
-            )
-        stats["steps"] += 1
-        stats["projected_steps"] += int(proj)
-        stats["max_derivative_before"] = max(stats["max_derivative_before"], bmax)
-        stats["max_derivative_after"] = max(stats["max_derivative_after"], after_max)
+                for p, o, nd in zip(all_p, origs, _apply_stream(disps, normals, al)):
+                    p.copy_(o + nd)
+                aft, an = _blend_post(ad, an2, a01, d2, al)
+            rat = sqrt(an / d2) if d2 > 0.0 else 0.0
+            bl["retained_norm_ratio_sum"] += rat
+            bl["max_retained_norm_ratio"] = max(bl["max_retained_norm_ratio"], rat)
+        st["steps"] += 1
+        st["projected_steps"] += int(proj)
+        st["max_derivative_before"] = max(st["max_derivative_before"], bmax)
+        st["max_derivative_after"] = max(st["max_derivative_after"], aft)
 
-    def _classify_net_param(
-        self,
-        p: torch.Tensor,
-        g: torch.Tensor,
-        lr_p: float,
-        b1: float,
-        is_gr: bool,
-        gen_probe: bool,
-        d2_it: List[Any],
-        crit_2d: List[Any],
-        fast_it: List[Any],
-        slow_it: List[Any],
-    ) -> None:
-        fac, hl2, rd, cd, md = self._param_metrics(p)
-        if p.ndim in (2, 4) and md >= 2:
-            if is_gr:
-                d2_it.append((p, g, lr_p, fac, hl2, rd, cd, b1, True))
-            else:
-                crit_2d.append((p, g, lr_p, fac, hl2, rd, cd, md, b1, False))
-            return
-        can_fast = (
-            not gen_probe
-            and b1 == 0.0
-            and p.dtype == torch.float32
-            and g.dtype == torch.float32
-        )
-        if can_fast:
-            fast_it.append((p, g, lr_p, fac, hl2, is_gr, None))
-        else:
-            slow_it.append((p, g, lr_p, fac, hl2, b1, is_gr, None))
+    def _chk_grad(self, p, g, is_pr, req):
+        _req(not g.is_sparse and not g.is_complex())
+        if is_pr and req:
+            _req(p in self._sr)
 
-    def _partition_step_items(
-        self,
-        *,
-        step_scale: float,
-        s_cool: float,
-        pyth: Dict[int, float],
-        gen_probe: bool,
-    ) -> Tuple[
-        List[Any],
-        List[Any],
-        List[Any],
-        List[Any],
-        List[Any],
-        List[Tuple[torch.Tensor, torch.Tensor]],
-    ]:
-        fast_it, d2_it, slow_it, prior_it, crit_2d, tracked = [], [], [], [], [], []
+    def _partition(self, lr_sc, gp, pyth):
+        pairs, net, pit, trk, dev = [], [], [], [], None
         for grp in self.param_groups:
-            is_pr = grp["algorithm"] == "axiom_prior"
-            is_gr = grp["role"] not in ("critic", "prior", "table")
-            b1 = float(grp["betas"][0])
-            b1_p = max(b1, 0.75) if (is_pr and self._mod_prior_scale < 1.0) else b1
-            blr = (
-                float(grp["lr"])
-                * step_scale
-                * s_cool
-                * (self._mod_prior_scale if is_pr else 1.0)
-            )
+            is_pr, req = grp["algorithm"] == "axiom_prior", grp.get("sampled_rows_required", True)
+            isg, b1 = grp["role"] != "critic", grp["betas"][0]
+            blr = grp["lr"] * lr_sc * (self._mps if is_pr else 1.0)
             for p in grp["params"]:
-                g = p.grad
-                if g is None:
+                if (g := p.grad) is None:
                     continue
-                self.state[p]["step"] = int(self.state[p].get("step", 0)) + 1
-                lr_p = blr * pyth.get(id(p), 1.0)
+                self._chk_grad(p, g, is_pr, req)
+                dev = p.device if dev is None else dev
+                self.state[p]["step"] = self.state[p].get("step", 0) + 1
+                lrp = blr * pyth.get(id(p), 1.0)
                 if is_pr:
-                    prior_it.append((p, g, lr_p, b1_p, grp))
-                elif lr_p > 0.0:
-                    if gen_probe and (
-                        not self._gen_param_ids or id(p) in self._gen_param_ids
-                    ):
-                        tracked.append((p, p.detach().clone()))
-                    self._classify_net_param(
-                        p,
-                        g,
-                        lr_p,
-                        b1,
-                        is_gr,
-                        gen_probe,
-                        d2_it,
-                        crit_2d,
-                        fast_it,
-                        slow_it,
-                    )
-        return fast_it, d2_it, slow_it, prior_it, crit_2d, tracked
-
-    def _route_critic_2d(
-        self,
-        crit_2d: List[Tuple[Any, ...]],
-        d2_it: List[Any],
-        fast_it: List[Any],
-        slow_it: List[Any],
-        s_therm: float,
-        ref_dev: torch.device,
-    ) -> Dict[Tuple[int, int], List[Tuple[Any, ...]]]:
-        s6_b: Dict[Tuple[int, int], List[Tuple[Any, ...]]] = {}
-        if not crit_2d:
-            return s6_b
-        crit_m4 = [it for it in crit_2d if it[7] >= 4]
-        if self._detect_critic_pathology(crit_m4, ref_dev):
-            for p, g, lr_p, fac, hl2, rd, cd, _, b1, _ in crit_2d:
-                d2_it.append((p, g, lr_p, fac, hl2, rd, cd, b1, False))
-            return s6_b
-        for (p, g, lr_p, fac, hl2, rd, cd, _, b1, _), gamma_t in zip(
-            crit_2d, self._critic_spec_factors(crit_2d)
-        ):
-            if b1 == 0.0 and p.dtype == torch.float32 and g.dtype == torch.float32:
-                fast_it.append((p, g, lr_p, fac, hl2, False, gamma_t))
-            else:
-                slow_it.append((p, g, lr_p, fac, hl2, b1, False, gamma_t))
-            if s_therm > 0.0:
-                nt = rd > cd
-                s6_b.setdefault((cd, rd) if nt else (rd, cd), []).append(
-                    (p, fac, nt, rd, cd, lr_p * s_therm)
-                )
-        return s6_b
-
-    def _critic_coupling(
-        self, is_crit: bool, rec: Any, ref_dev: torch.device
-    ) -> float | torch.Tensor:
-        if not is_crit or rec is None:
-            return 1.0
-        g_fg = float(getattr(rec, "g_func_gain", 1.0))
-        if g_fg >= 0.75:
-            return 1.0
-        dg = max(0.12, g_fg)
-        if hasattr(rec, "dev_ema"):
-            em = rec.dev_ema("ema_margin", ref_dev)
-            mi = rec.dev_ema("margin_initialized", ref_dev)
-            gate = smoothstep01((em - 0.28) / 0.22) * smoothstep01((1.40 - em) / 0.30)
-            mg = torch.where(mi > 0.5, gate, em.new_zeros(()))
-            return (1.0 - mg) + mg * dg
-        if getattr(rec, "margin_initialized", False):
-            em_f = float(getattr(rec, "ema_margin", 0.0))
-            mg_f = smoothstep01((em_f - 0.28) / 0.22) * smoothstep01(
-                (1.40 - em_f) / 0.30
-            )
-            return (1.0 - mg_f) + mg_f * dg
-        return 1.0
-
-    def _collect_validated_pairs(
-        self,
-    ) -> Tuple[List[Tuple[torch.Tensor, torch.Tensor]], Optional[torch.device]]:
-        net_pairs: List[Tuple[torch.Tensor, torch.Tensor]] = []
-        ref_dev: Optional[torch.device] = None
-        for grp in self.param_groups:
-            is_pr = grp["algorithm"] == "axiom_prior"
-            req = bool(grp.get("sampled_rows_required", True))
-            for p in grp["params"]:
-                g = p.grad
-                if g is None:
+                    pit.append((p, g, lrp, max(b1, 0.75) if self._mps < 1.0 else b1, grp))
                     continue
-                if g.is_sparse or g.is_complex():
-                    raise ValueError("AxiomOptimizer requires dense real gradients")
-                if is_pr and req and p not in self._sampled_rows:
-                    raise ValueError(
-                        "row-normalized prior updates require actual sampled rows"
-                    )
-                ref_dev = p.device if ref_dev is None else ref_dev
-                if not is_pr:
-                    net_pairs.append((p, g))
-        return net_pairs, ref_dev
+                pairs.append((p, g))
+                if lrp <= 0.0:
+                    continue
+                if gp and (not self._gpids or id(p) in self._gpids):
+                    trk.append((p, p.detach().clone()))
+                fac, hl2, rd, cd, md = self._pmetrics(p)
+                is2 = p.ndim in (2, 4) and md >= 2
+                net.append((p, g, lrp, fac, hl2, b1, isg, (rd, cd, md) if is2 else None, is2 and not isg))
+        return pairs, net, pit, trk, dev
 
-    def _can_use_gen_probe(
-        self, rec: Any, is_crit: bool, is_simp: bool, is_cf: bool
-    ) -> bool:
-        if is_crit or rec is None or is_simp or is_cf:
-            return False
-        if self._protected is not None and len(self._protected) >= 2:
-            return False
-        return getattr(rec, "_g_probe_cache", None) is not None and bool(
-            getattr(rec, "_enable_secant_probe", True)
-        )
+    @staticmethod
+    def _coupling(is_c, rec, dev):
+        if not is_c or rec is None or (gfg := float(getattr(rec, "g_func_gain", 1.0))) >= 0.75:
+            return 1.0
+        has_d = hasattr(rec, "dev_ema")
+        if not has_d and not getattr(rec, "margin_initialized", False):
+            return 1.0
+        em = rec.dev_ema("ema_margin", dev) if has_d else float(getattr(rec, "ema_margin", 0.0))
+        mg = smoothstep01((em - 0.28) / 0.22) * smoothstep01((1.40 - em) / 0.30)
+        if has_d:
+            mg = torch.where(rec.dev_ema("margin_initialized", dev) > 0.5, mg, 0.0)
+        return 1.0 + mg * (max(0.12, gfg) - 1.0)
 
-    def _build_step_context(
-        self, rec: Any, is_crit: bool, ref_dev: torch.device
-    ) -> Dict[str, Any]:
-        step_scale = float(getattr(rec, "step_scale", 1.0)) if rec is not None else 1.0
-        s_therm = float(getattr(rec, "thermal_scale", 1.0)) if rec is not None else 1.0
-        is_simp = (
-            bool(getattr(rec, "_simplicial_step", False)) if rec is not None else False
+    def _rec_state(self, rec, is_c):
+        if rec is None:
+            return 1.0, 1.0, False, False, False
+        ss, st = float(getattr(rec, "step_scale", 1.0)), float(getattr(rec, "thermal_scale", 1.0))
+        simp, cf = bool(getattr(rec, "_simplicial_step", False)), bool(getattr(rec, "cond_initialized", False))
+        gp = not is_c and not simp and not cf and len(self._prot or ()) < 2
+        gp = (
+            gp and getattr(rec, "_g_probe_cache", None) is not None and bool(getattr(rec, "_enable_secant_probe", True))
         )
-        is_cf = (
-            bool(getattr(rec, "cond_initialized", False)) if rec is not None else False
-        )
-        ema_fg = float(self._ema_func_gain)
-        pg_b = 1.0 if ema_fg >= 0.75 else ema_fg
-        wb = self._mod_wakeup_boost
-        pre_g = (
-            (pg_b * wb.to(ref_dev)).clamp_max(1.0)
-            if isinstance(wb, torch.Tensor)
-            else min(1.0, pg_b * float(wb))
-        )
-        gs = self._mod_g_scale
-        g_mult = (gs.to(ref_dev) if isinstance(gs, torch.Tensor) else gs) * pre_g
-        return {
-            "step_scale": step_scale,
-            "s_therm": s_therm,
-            "is_simp": is_simp,
-            "is_cf": is_cf,
-            "ema_fg": ema_fg,
-            "pre_g": pre_g,
-            "g_mult": g_mult,
-            "d_cpl": self._critic_coupling(is_crit, rec, ref_dev),
-            "gen_probe": self._can_use_gen_probe(rec, is_crit, is_simp, is_cf),
-            "s_cool": 1.0
-            if s_therm >= 0.9999
-            else s_therm / math.hypot(s_therm, 0.0061),
-            "d_eq": 0.0005 if s_therm >= 0.5 else 0.0,
-        }
+        return ss, st, simp, cf, gp
 
-    def _finalize_step_post(
-        self,
-        rec: Any,
-        is_crit: bool,
-        ctx: Dict[str, Any],
-        tracked: List[Tuple[torch.Tensor, torch.Tensor]],
-        stiff_f: float,
-        all_p: Optional[List[torch.Tensor]],
-        origs: Optional[List[torch.Tensor]],
-    ) -> None:
-        if ctx["gen_probe"] and tracked and rec is not None:
-            alpha_g, p_ran = self._apply_verified_trust(
-                rec,
-                tracked,
-                step_scale=ctx["step_scale"],
-                s_therm=ctx["s_therm"],
-                pre_gain=ctx["pre_g"],
-                is_simp=ctx["is_simp"],
-                stiff_g=stiff_f,
-            )
-        else:
-            alpha_g, p_ran = 1.0, False
-            if rec is not None and not is_crit:
+    def _sync_step_pack(self, pairs, pit, net, gm, dm, dev):
+        hh = self._psk is not None
+        sk, ok = self._sketch(pairs, dev)
+        cos_t = (sk * self._psk.to(dev, _F32)).sum().double().clamp(-1.0, 1.0) if hh else ok.new_zeros((), dtype=_F64)
+        pre_pr = [(lrp, self._prep_prior(p, g, grp, b1p)) for p, g, lrp, b1p, grp in pit]
+        svec = [ok.double(), cos_t, gm, _sc(dm, dev)]
+        poff = len(svec)
+        for _, pr in pre_pr:
+            if pr is not None:
+                svec.extend((pr[6], pr[7]))
+        fidx, ps, gs = [], [], []
+        for i, (p, g, *_) in enumerate(net):
+            if p.dtype == g.dtype == _F32 and p.device == dev and g.numel() > 0:
+                fidx.append(i)
+                ps.append(p)
+                gs.append(g)
+        noff = len(svec)
+        if gs:
+            svec.extend(n.double() for n in torch._foreach_norm(gs + ps))
+        sv = torch.stack(svec).tolist()
+        if pairs and (not hh or sv[0] > 0.5):
+            self._psk = sk
+        nf = len(fidx)
+        return hh, sv, poff, pre_pr, dict(zip(fidx, zip(sv[noff : noff + nf], sv[noff + nf : noff + 2 * nf])))
+
+    def _step_core(self, all_p, origs):
+        rec, is_c = self._active_record(), self.critic is not None
+        ss, st, simp, cf, gp = self._rec_state(rec, is_c)
+        sc = 1.0 if st >= 0.9999 else st / hypot(st, 0.0061)
+        pyth = self._two_obj_pyth() if (cf and self.direction_blend) else {}
+        pairs, net, pit, trk, dev = self._partition(ss * sc, gp, pyth)
+        if dev is None:
+            self.last_step_gain, self.last_probe_consumed = 1.0, False
+            if rec is not None and not is_c:
                 rec._g_probe_cache = None
-        if self.direction_blend and all_p is not None and origs is not None:
-            self._apply_direction_blend(all_p, origs)
-        self.last_step_gain, self.last_probe_consumed = float(alpha_g), bool(p_ran)
-        self.probe_consumptions += int(p_ran)
-
-    def _execute_step_body(
-        self,
-        net_pairs: List[Tuple[torch.Tensor, torch.Tensor]],
-        ref_dev: torch.device,
-        all_p: Optional[List[torch.Tensor]],
-        origs: Optional[List[torch.Tensor]],
-    ) -> None:
-        rec, is_crit = self._active_record(), self.critic is not None
-        ctx = self._build_step_context(rec, is_crit, ref_dev)
-        pyth = self._two_obj_pyth() if (ctx["is_cf"] and self.direction_blend) else {}
-        sm_r = float(self.smoothing) / 0.05
-
-        fast_it, d2_it, slow_it, prior_it, crit_2d, tracked = (
-            self._partition_step_items(
-                step_scale=ctx["step_scale"],
-                s_cool=ctx["s_cool"],
-                pyth=pyth,
-                gen_probe=ctx["gen_probe"],
-            )
-        )
-        s6_b = self._route_critic_2d(
-            crit_2d, d2_it, fast_it, slow_it, ctx["s_therm"], ref_dev
-        )
-        c_osc, s_osc_raw, g_eq, stiff_t, had_hist = self._update_step_cosine(
-            net_pairs, ref_dev, ctx["ema_fg"]
-        )
-        if fast_it:
-            spilled = self._run_foreach_fast(
-                fast_it,
-                c_osc=c_osc,
-                s_osc=s_osc_raw * (1.0 - stiff_t),
-                s_base=(sm_r * 0.05) * (1.0 - stiff_t),
-                s_peak=(sm_r * 0.20) * (1.0 - stiff_t),
-                g_eq=g_eq,
-                d_eq=ctx["d_eq"],
-                had_hist=had_hist,
-                g_mult=ctx["g_mult"],
-                d_mult=ctx["d_cpl"],
-            )
-            if spilled:
-                self._flush_fast_cache()
-                self._fast_cache = None
-                for p, g, lr_p, fac, hl2, is_gr, spec_t in spilled:
-                    slow_it.append((p, g, lr_p, fac, hl2, 0.0, is_gr, spec_t))
-        stiff_f = 0.0
-        if prior_it or slow_it or d2_it:
-            stiff_f = self._run_slow_and_ns(
-                prior_it,
-                slow_it,
-                d2_it,
-                c_osc=c_osc,
-                s_osc=s_osc_raw,
-                g_eq=g_eq,
-                stiff_t=stiff_t,
-                d_eq=ctx["d_eq"],
-                sm_r=sm_r,
-                had_hist=had_hist,
-                g_mult=ctx["g_mult"],
-                d_cpl=ctx["d_cpl"],
-                ref_dev=ref_dev,
-            )
-        self._apply_schatten6(s6_b, ctx["d_cpl"], ref_dev)
-        self._finalize_step_post(rec, is_crit, ctx, tracked, stiff_f, all_p, origs)
+            return False
+        efg = self.ema_func_gain
+        pg = (_sc(self._mwb, dev) * (1.0 if efg >= 0.75 else efg)).clamp_max(1.0)
+        gm, dm = _sc(self._mgs, dev) * pg, self._coupling(is_c, rec, dev)
+        de = 0.0005 if st >= 0.5 else 0.0
+        hh, sv, poff, pre_pr, nmap = self._sync_step_pack(pairs, pit, net, gm, dm, dev)
+        rn = (0.90 * self.ema_step_cos + 0.10 * sv[1]) if (hh and sv[0] > 0.5) else self.ema_step_cos
+        gd, gu = smoothstep01((-0.45 - rn) / 0.25), smoothstep01((rn + 0.35) / 0.35)
+        self.ema_step_cos, self.log2_damp = rn, max(-4.0, min(0.0, self.log2_damp - 0.12 * gd + 0.25 * gu))
+        co, sor = 2.0**self.log2_damp, self.smoothing * smoothstep01((-0.35 - rn) / 0.35)
+        ge = smoothstep01((0.55 - rn) / 0.30)
+        stf = max(smoothstep01((0.18 - efg) / 0.07), smoothstep01((0.60 - efg) / 0.30) * gd)
+        s1 = 1.0 - stf
+        sb = self.smoothing * s1
+        so, sp = sor * s1, 4.0 * sb
+        self._finish_priors(pre_pr, sv, poff, so, sb, sp, ge, de, hh)
+        s6 = self._route_critic(net, nmap, st, dev)
+        self._step_net(net, nmap, (co, so, sb, sp, ge, de, hh, sv[2], sv[3]), gp, dev)
+        self._apply_s6(s6, dm, dev)
+        alg, pran = self._finish_trust(rec, is_c, gp, trk, (pg, ss, st, simp), stf)
+        if all_p is not None:
+            self._apply_dir_blend(all_p, origs)
+        self.last_step_gain, self.last_probe_consumed = float(alg), pran
+        self.probe_consumptions += int(pran)
+        return True
 
     @torch.no_grad()
-    def step(self, closure: Any = None) -> Any:
+    def step(self, closure=None):
         loss = None
         if closure is not None:
             with torch.enable_grad():
                 loss = closure()
-        if self.direction_blend and (closure is not None or self._protected is None):
+        if self.direction_blend and (closure is not None or self._prot is None):
             self.abort_pending()
-            raise ValueError(
-                "direction_blend step requires explicit protected-loss backward"
-            )
-        net_pairs, ref_dev = self._collect_validated_pairs()
-        all_p = (
-            self._parameters()
-            if (self.direction_blend and self._protected is not None)
-            else None
-        )
+            raise ValueError("invalid")
+        all_p = self._parameters() if self.direction_blend else None
         origs = [p.detach().clone() for p in all_p] if all_p is not None else None
         try:
-            if ref_dev is None:
-                self.last_step_gain, self.last_probe_consumed = 1.0, False
-                rec = self._active_record()
-                if rec is not None and self.critic is None:
-                    rec._g_probe_cache = None
-                return loss
-            self._execute_step_body(net_pairs, ref_dev, all_p, origs)
+            ran = self._step_core(all_p, origs)
         finally:
             self.abort_pending()
-        if self.record is not None:
+        if ran and self.record is not None:
             self.record.record_step(self)
         return loss
 
-    def __getstate__(self) -> Dict[str, Any]:
-        self._flush_scalars()
-        self._flush_fast_cache()
-        return {**self.__dict__, "_fast_cache": None, "_metrics_cache": {}}
+    def __getstate__(self):
+        return {**self.__dict__, "_mc": {}}
 
-    def state_dict(self) -> Dict[str, Any]:
-        self._flush_scalars()
-        self._flush_fast_cache()
+    def state_dict(self):
         res = Optimizer.state_dict(self)
-        sampled_rows: List[Optional[torch.Tensor]] = []
-        for g in self.param_groups:
-            rows = (
-                self.sampled_rows_for(g["params"][0])
-                if g["algorithm"] == "axiom_prior"
-                else None
-            )
-            sampled_rows.append(None if rows is None else rows.cpu())
-        sketch = (
-            None
-            if self._prev_step_sketch is None
-            else [float(x) for x in self._prev_step_sketch.detach().cpu().tolist()]
-        )
-        meta: Dict[str, Any] = {
+        srows = [
+            r.cpu()
+            if (g["algorithm"] == "axiom_prior" and (r := self.sampled_rows_for(g["params"][0])) is not None)
+            else None
+            for g in self.param_groups
+        ]
+        meta = {k: getattr(self, k) for k, *_ in _SCALARS} | {
             "schema": SCHEMA_VERSION,
             "family": self.family,
-            "last_step_gain": float(self.last_step_gain),
-            "ema_func_gain": float(self._ema_func_gain),
-            "ema_step_cos": float(self._ema_step_cos_val),
-            "log2_damp": float(self._log2_damp_val),
-            "crit_skew_ema": float(self._crit_skew_ema),
-            "direction_blend": bool(self.direction_blend),
-            "prev_step_sketch": sketch,
-            "sampled_rows": sampled_rows,
+            "direction_blend": self.direction_blend,
+            "prev_step_sketch": None if self._psk is None else self._psk.detach().cpu().tolist(),
+            "sampled_rows": srows,
         }
         if self.direction_blend:
-            pending = (
-                None
-                if self._protected is None
-                else [
-                    [None if t is None else t.detach().cpu().clone() for t in grp]
-                    for grp in self._protected
-                ]
+            meta["constraint_geometry"] = dict(
+                stats=dict(self.constraint_geometry_stats),
+                blend_stats=dict(self.direction_blend_stats),
+                pending=_copy_pend(self._prot),
             )
-            meta["constraint_geometry"] = {
-                "stats": deepcopy(self.constraint_geometry_stats),
-                "blend_stats": deepcopy(self.direction_blend_stats),
-                "pending": pending,
-            }
         res["axiom"] = meta
         if self.record is not None:
-            res["regularizer"] = {
-                "optimizer_family": self.family,
-                "record": self.record.state_dict(),
-                "ema": None,
-                "guard": None,
-            }
+            res["regularizer"] = dict(
+                optimizer_family=self.family, record=self.record.state_dict(), ema=None, guard=None
+            )
         return res
 
-    def _validate_pending_list(self, pending: Any) -> None:
-        params = self._parameters()
-        if not isinstance(pending, list) or not 1 <= len(pending) <= 2:
-            raise ValueError("invalid AxiomOptimizer pending protected normals")
-        for grp in pending:
-            if not isinstance(grp, list) or len(grp) != len(params):
-                raise ValueError("invalid AxiomOptimizer pending normal list length")
-            for t, p in zip(grp, params):
-                if t is None:
-                    continue
-                ok = (
-                    isinstance(t, torch.Tensor)
-                    and tuple(t.shape) == tuple(p.shape)
-                    and bool(torch.isfinite(t).all())
-                )
-                if not ok:
-                    raise ValueError("invalid AxiomOptimizer pending normal tensor")
+    def _val_cg(self, cg):
+        _dkeys(cg, {"stats", "blend_stats", "pending"})
+        _dkeys(cg["stats"], set(self.constraint_geometry_stats))
+        _dkeys(cg["blend_stats"], set(self.direction_blend_stats))
+        if (pend := cg["pending"]) is None:
+            return
+        ps = self._parameters()
+        _req(isinstance(pend, list) and 1 <= len(pend) <= 2)
+        for grp in pend:
+            _req(isinstance(grp, list) and len(grp) == len(ps))
+            for t, p in zip(grp, ps):
+                _req(t is None or (_tfin(t) and t.shape == p.shape))
 
-    def _validate_pending_cg(self, cg: Any) -> None:
-        if not isinstance(cg, dict) or set(cg) != {"stats", "blend_stats", "pending"}:
-            raise ValueError("invalid AxiomOptimizer direction_blend checkpoint")
-        bad_stats = not isinstance(cg["stats"], dict) or set(cg["stats"]) != set(
-            self.constraint_geometry_stats
+    def _val_meta(self, m):
+        _dkeys(m, set(_META_KEYS) | ({"constraint_geometry"} if self.direction_blend else set()))
+        _req(
+            type(m["schema"]) is int
+            and m["schema"] == SCHEMA_VERSION
+            and m["family"] == self.family
+            and type(m["direction_blend"]) is bool
+            and m["direction_blend"] == self.direction_blend
         )
-        bad_blend = not isinstance(cg["blend_stats"], dict) or set(
-            cg["blend_stats"]
-        ) != set(self.direction_blend_stats)
-        if bad_stats or bad_blend:
-            raise ValueError("invalid AxiomOptimizer direction_blend stats")
-        if cg["pending"] is not None:
-            self._validate_pending_list(cg["pending"])
-
-    def _validate_meta_header(self, meta: Any) -> None:
-        exp_m = {
-            "schema",
-            "family",
-            "last_step_gain",
-            "ema_func_gain",
-            "ema_step_cos",
-            "log2_damp",
-            "crit_skew_ema",
-            "prev_step_sketch",
-            "direction_blend",
-            "sampled_rows",
-        }
+        _req(isinstance(m["sampled_rows"], list) and len(m["sampled_rows"]) == len(self.param_groups))
+        _req(all(_fin(m[k], lo, hi, slo) for k, lo, hi, slo in _SCALARS))
+        if (sk := m["prev_step_sketch"]) is not None:
+            _req(isinstance(sk, list) and len(sk) == _SKETCH and all(_fin(x) for x in sk))
         if self.direction_blend:
-            exp_m.add("constraint_geometry")
-        if not isinstance(meta, dict) or set(meta) != exp_m:
-            raise ValueError("incompatible AxiomOptimizer metadata keys")
-        header_ok = (
-            type(meta["schema"]) is int
-            and meta["schema"] == SCHEMA_VERSION
-            and meta["family"] == self.family
-            and type(meta["direction_blend"]) is bool
-            and meta["direction_blend"] == self.direction_blend
-        )
-        if not header_ok:
-            raise ValueError("incompatible AxiomOptimizer schema or header")
-        sr = meta["sampled_rows"]
-        if not isinstance(sr, list) or len(sr) != len(self.param_groups):
-            raise ValueError("incompatible AxiomOptimizer sampled_rows")
-
-    def _validate_axiom_meta(self, meta: Any) -> None:
-        self._validate_meta_header(meta)
-        bounds = (
-            ("last_step_gain", 0.0, None, True),
-            ("ema_func_gain", 0.0, 1.0, True),
-            ("ema_step_cos", -1.0, 1.0, False),
-            ("log2_damp", _LOG2_DAMP_FLOOR, 0.0, False),
-            ("crit_skew_ema", 0.0, None, False),
-        )
-        if any(not _is_fin_num(meta[k], lo, hi, slo) for k, lo, hi, slo in bounds):
-            raise ValueError("invalid AxiomOptimizer scalar metadata")
-        sk = meta["prev_step_sketch"]
-        if sk is not None:
-            if (
-                not isinstance(sk, list)
-                or len(sk) != _SKETCH_DIM
-                or any(not _is_fin_num(x) for x in sk)
-            ):
-                raise ValueError("invalid AxiomOptimizer prev_step_sketch")
-        if self.direction_blend:
-            self._validate_pending_cg(meta["constraint_geometry"])
-
-    def _validate_param_groups(self, saved_groups: Any) -> Dict[Any, Tuple[int, ...]]:
-        if not isinstance(saved_groups, list) or len(saved_groups) != len(
-            self.param_groups
-        ):
-            raise ValueError("AxiomOptimizer param_groups mismatch")
-        p_shapes: Dict[Any, Tuple[int, ...]] = {}
-        for cur, sav in zip(self.param_groups, saved_groups):
-            valid = (
-                isinstance(sav, dict)
-                and len(sav.get("params", ())) == len(cur["params"])
-                and sav.get("role") == cur["role"]
-                and sav.get("algorithm") == cur["algorithm"]
-            )
-            if not valid:
-                raise ValueError("AxiomOptimizer group mismatch")
-            for p, sid in zip(cur["params"], sav["params"]):
-                p_shapes[sid] = tuple(p.shape)
-        return p_shapes
+            self._val_cg(m["constraint_geometry"])
 
     @staticmethod
-    def _validate_fp32_state_tensors(
-        sv: Dict[str, Any], expected_shape: Optional[Tuple[int, ...]]
-    ) -> None:
-        for tk in _FP32_STATE_KEYS:
-            if tk not in sv:
-                continue
-            t = sv[tk]
-            if not isinstance(t, torch.Tensor) or not bool(torch.isfinite(t).all()):
-                raise ValueError(f"invalid AxiomOptimizer tensor state {tk!r}")
-            if tk in ("m_unit", "m_prior") and expected_shape is not None:
-                if tuple(t.shape) != expected_shape:
-                    raise ValueError(f"shape mismatch for {tk!r}")
+    def _val_pstate(sv, sh):
+        _req(isinstance(sv, dict) and "m_u" not in sv and type(st := sv.get("step", 0)) is int and st >= 0)
+        _req("log2_ref" not in sv or _fin(sv["log2_ref"]))
+        _req("log2_init" not in sv or type(sv["log2_init"]) is bool)
+        for tk in _FP32:
+            if tk in sv:
+                _req(_tfin(t := sv[tk]) and (tk not in ("m_unit", "m_prior") or sh is None or t.shape == sh))
 
-    @classmethod
-    def _validate_single_param_state(
-        cls, sv: Any, expected_shape: Optional[Tuple[int, ...]]
-    ) -> None:
-        if not isinstance(sv, dict) or "m_u" in sv:
-            raise ValueError("invalid AxiomOptimizer parameter state")
-        step_val = sv.get("step", 0)
-        if type(step_val) is not int or step_val < 0:
-            raise ValueError("invalid AxiomOptimizer parameter step")
-        if "log2_ref" in sv and not _is_fin_num(sv["log2_ref"]):
-            raise ValueError("invalid AxiomOptimizer log2_ref")
-        if "log2_init" in sv and type(sv["log2_init"]) is not bool:
-            raise ValueError("invalid AxiomOptimizer log2_init")
-        cls._validate_fp32_state_tensors(sv, expected_shape)
-
-    @classmethod
-    def _validate_param_states(
-        cls, saved_state: Any, p_shapes: Dict[Any, Tuple[int, ...]]
-    ) -> None:
-        if not isinstance(saved_state, dict):
-            raise ValueError("AxiomOptimizer state must be a dict")
-        for sid, sv in saved_state.items():
-            cls._validate_single_param_state(sv, p_shapes.get(sid))
-
-    def validate_state_dict(self, saved: Any) -> None:
-        """Fail-closed schema-2 validation rejecting schema-1, missing keys, or bad state."""
-        exp_top = {"state", "param_groups", "axiom"}
-        if self.record is not None:
-            exp_top.add("regularizer")
-        if not isinstance(saved, dict) or set(saved) != exp_top:
-            raise ValueError("invalid AxiomOptimizer checkpoint schema")
-        self._validate_axiom_meta(saved["axiom"])
-        p_shapes = self._validate_param_groups(saved["param_groups"])
-        self._validate_param_states(saved["state"], p_shapes)
+    def validate_state_dict(self, saved):
+        _dkeys(saved, {"state", "param_groups", "axiom"} | ({"regularizer"} if self.record is not None else set()))
+        self._val_meta(saved["axiom"])
+        sgr, sst = saved["param_groups"], saved["state"]
+        _req(isinstance(sgr, list) and len(sgr) == len(self.param_groups) and isinstance(sst, dict))
+        shs = {}
+        for c, s in zip(self.param_groups, sgr):
+            _req(isinstance(s, dict) and s.get("role") == c["role"] and s.get("algorithm") == c["algorithm"])
+            _req(len(sp := s.get("params", ())) == len(c["params"]))
+            for p, sid in zip(c["params"], sp):
+                shs[sid] = p.shape
+        for sid, sv in sst.items():
+            self._val_pstate(sv, shs.get(sid))
         if self.record is not None:
             reg = saved["regularizer"]
-            valid_reg = (
-                isinstance(reg, dict)
-                and set(reg) == {"optimizer_family", "record", "ema", "guard"}
-                and reg["optimizer_family"] == self.family
-                and reg["ema"] is None
-                and reg["guard"] is None
-            )
-            if not valid_reg:
-                raise ValueError("invalid AxiomOptimizer regularizer checkpoint")
+            _dkeys(reg, {"optimizer_family", "record", "ema", "guard"})
+            _req(reg["optimizer_family"] == self.family and reg["ema"] is None and reg["guard"] is None)
             copy(self.record).load_state_dict(reg["record"])
 
-    def _restore_fp32_state_tensors(self, state_dict: Dict[str, Any]) -> None:
-        for cg, sg in zip(self.param_groups, state_dict["param_groups"]):
+    def _restore_fp32(self, sd):
+        for cg, sg in zip(self.param_groups, sd["param_groups"]):
             for p, sid in zip(cg["params"], sg["params"]):
-                sv = state_dict["state"].get(sid)
-                if not isinstance(sv, dict):
-                    continue
-                for tk in _FP32_STATE_KEYS:
-                    t = sv.get(tk)
-                    if isinstance(t, torch.Tensor):
-                        self.state[p][tk] = (
-                            t.detach().to(device=p.device, dtype=torch.float32).clone()
-                        )
+                if sv := sd["state"].get(sid):
+                    for tk in _FP32:
+                        if isinstance(t := sv.get(tk), _T):
+                            self.state[p][tk] = t.detach().to(p.device, _F32).clone()
 
-    def _restore_direction_blend(self, meta: Dict[str, Any]) -> None:
-        if not self.direction_blend:
-            self._protected = None
-            return
-        cg = meta["constraint_geometry"]
-        self.constraint_geometry_stats = deepcopy(cg["stats"])
-        self.direction_blend_stats = deepcopy(cg["blend_stats"])
-        if cg["pending"] is None:
-            self._protected = None
-            return
-        params = self._parameters()
-        self._protected = [
-            [
-                None
-                if t is None
-                else t.detach().to(device=p.device, dtype=t.dtype).clone()
-                for t, p in zip(grp, params)
-            ]
-            for grp in cg["pending"]
-        ]
-
-    def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
+    def load_state_dict(self, state_dict):
         self.validate_state_dict(state_dict)
         meta = state_dict["axiom"]
-        base_sd = {
-            k: v for k, v in state_dict.items() if k not in ("axiom", "regularizer")
-        }
-        Optimizer.load_state_dict(self, base_sd)
-        self._restore_fp32_state_tensors(state_dict)
-
+        Optimizer.load_state_dict(self, {"state": state_dict["state"], "param_groups": state_dict["param_groups"]})
+        self._restore_fp32(state_dict)
         self.clear_sampled_rows()
-        self._fast_cache = None
-        self._metrics_cache.clear()
-        self._ema_step_cos_t = self._log2_damp_t = None
-        self.last_step_gain = float(meta["last_step_gain"])
-        self._ema_func_gain = float(meta["ema_func_gain"])
-        self._ema_step_cos_val = float(meta["ema_step_cos"])
-        self._log2_damp_val = float(meta["log2_damp"])
-        self._crit_skew_ema = float(meta["crit_skew_ema"])
-        params = self._parameters()
-        ref_dev = params[0].device if params else torch.device("cpu")
-        sk = meta["prev_step_sketch"]
-        self._prev_step_sketch = (
-            None
-            if sk is None
-            else torch.tensor(sk, dtype=torch.float32, device=ref_dev)
-        )
-        self.ns_2d_activations = self.fast_path_steps = 0
-        self.trust_backtracks_total = self.probe_consumptions = 0
-        self.last_probe_consumed = False
-        for grp, rows in zip(self.param_groups, meta["sampled_rows"]):
-            if rows is not None and grp["algorithm"] == "axiom_prior":
-                self.set_sampled_rows(
-                    grp["params"][0], rows.to(grp["params"][0].device)
-                )
-        self._restore_direction_blend(meta)
+        self._mc.clear()
+        for k, *_ in _SCALARS:
+            setattr(self, k, float(meta[k]))
+        ps = self._parameters()
+        dev = ps[0].device if ps else torch.device("cpu")
+        self._psk = None if (sk := meta["prev_step_sketch"]) is None else torch.tensor(sk, dtype=_F32, device=dev)
+        self._reset_counts()
+        for g, rows in zip(self.param_groups, meta["sampled_rows"]):
+            if rows is not None and g["algorithm"] == "axiom_prior":
+                self.set_sampled_rows(g["params"][0], rows)
+        self._prot = None
+        if self.direction_blend:
+            cg = meta["constraint_geometry"]
+            self.constraint_geometry_stats, self.direction_blend_stats = dict(cg["stats"]), dict(cg["blend_stats"])
+            self._prot = _copy_pend(cg["pending"], ps)
         if self.record is not None:
             self.record.load_state_dict(state_dict["regularizer"]["record"])
-            self.record.restore_device_state(ref_dev)
+            self.record.restore_device_state(dev)
 
 
 __all__ = [
