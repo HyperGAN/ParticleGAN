@@ -5,10 +5,12 @@ from __future__ import annotations
 import ast
 from copy import deepcopy
 import dataclasses
+import io
 import json
 from pathlib import Path
 import subprocess
 import sys
+import tokenize
 
 import pytest
 import torch
@@ -227,15 +229,12 @@ def _check_single_file_hygiene(path: Path) -> None:
         assert len(line) <= 120, f"{path.name}:{lineno} exceeds 120 chars ({len(line)})"
     for bad_id in FORBIDDEN_IDENTIFIERS:
         assert bad_id not in src, f"{path.name} contains forbidden legacy identifier {bad_id}"
+    for tok in tokenize.generate_tokens(io.StringIO(src).readline):
+        if tok.type == tokenize.OP and tok.string == ";":
+            raise AssertionError(f"{path.name}:{tok.start[0]} has semicolon-packed statements")
     tree = ast.parse(src, filename=str(path))
     stem = path.stem
-    stmt_lines: dict[int, int] = {}
     for node in ast.walk(tree):
-        if isinstance(node, ast.stmt) and hasattr(node, "lineno") and hasattr(node, "col_offset"):
-            prev_col = stmt_lines.get(node.lineno)
-            if prev_col is not None and prev_col != node.col_offset:
-                raise AssertionError(f"{path.name}:{node.lineno} has semicolon-packed statements")
-            stmt_lines[node.lineno] = node.col_offset
         if isinstance(node, ast.Import):
             for alias in node.names:
                 for bad in FORBIDDEN_IMPORT_FRAGMENTS:
