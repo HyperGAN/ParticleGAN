@@ -1379,6 +1379,176 @@ def test_axiom_v4_cuda_bf16_instancenorm_groupnorm_fwad() -> None:
         assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in mod.parameters())
 
 
+def test_axiom_bn_scale_awareness_period2_stability_and_nonfreezing() -> None:
+    torch.manual_seed(0)
+
+    # (a) 1D BN/bias period-2 oscillation must NOT drag down global ema_step_cos / log2_damp
+    #     and ME-RMS self-damps period-2 oscillating 1D coordinates vs steady coordinates.
+    net = nn.Sequential(
+        nn.Conv2d(4, 8, 4, stride=2, padding=1, bias=True),
+        nn.BatchNorm2d(8),
+        nn.ReLU(),
+        nn.Conv2d(8, 4, 4, stride=2, padding=1, bias=True),
+    )
+    opt = AxiomOptimizer(net.parameters(), lr=0.014)
+    opt.bind_module_layouts((net,))
+    assert len(opt._bn_net_ids) == len(list(net.parameters()))
+    assert id(net[0].bias) in opt._norm_1d_ids and id(net[1].weight) in opt._norm_1d_ids
+
+    g_rng = torch.Generator().manual_seed(123)
+    steady_w = {id(p): torch.randn(p.shape, generator=g_rng) for p in net.parameters() if p.ndim >= 2}
+    osc_1d = {id(p): torch.ones_like(p) for p in net.parameters() if p.ndim == 1}
+    osc_steps: list[float] = []
+    for t in range(30):
+        sgn = 1.0 if t % 2 == 0 else -1.0
+        for p in net.parameters():
+            p.grad = steady_w[id(p)].clone() if p.ndim >= 2 else (osc_1d[id(p)] * sgn)
+        b0_before = net[0].bias.detach().clone()
+        opt.step()
+        if t >= 20:
+            osc_steps.append(float((net[0].bias.detach() - b0_before).abs().mean().item()))
+    assert opt.ema_step_cos > 0.7 and opt.log2_damp == 0.0, (
+        f"1D BN/bias chatter froze global damping: cos={opt.ema_step_cos}, log2_damp={opt.log2_damp}"
+    )
+    # Under b1=0.50, steady 1D step per coord is ~0.014 * 0.020 = 2.8e-4; period-2 is damped ~3x (~9.3e-5)
+    assert max(osc_steps) < 1.5e-4, f"ME-RMS failed to self-damp 1D period-2 oscillation: {max(osc_steps)}"
+
+    # (b) Odd-stride sketch detects power-of-2 channel oscillation on ConvTranspose2d(128, 64, 4, 4)
+    #     (where n // 128 = 1024 would alias onto a single channel!) + deadzone-free recovery.
+    ct = nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False)
+    opt_ct = AxiomOptimizer(ct.parameters(), lr=0.014, conv_layouts=collect_conv_layouts((ct,)))
+    g_ch = torch.zeros_like(ct.weight)
+    g_ch[:, 1::2, :, :] = 1.0  # odd output channels oscillate; stride 1024 would only hit channel 0!
+    for t in range(40):
+        ct.weight.grad = g_ch if t % 2 == 0 else -g_ch
+        opt_ct.step()
+    assert opt_ct.ema_step_cos < -0.5 and opt_ct.log2_damp < -0.5, (
+        f"Odd-stride sketch missed power-of-2 channel chatter: cos={opt_ct.ema_step_cos}, damp={opt_ct.log2_damp}"
+    )
+    d_lo = opt_ct.log2_damp
+    for _ in range(35):
+        ct.weight.grad = g_ch.clone()
+        opt_ct.step()
+    assert opt_ct.log2_damp > d_lo + 0.5 and opt_ct.log2_damp == 0.0, (
+        f"Deadzone-free recovery failed on spatial Conv: {d_lo} -> {opt_ct.log2_damp}"
+    )
+
+    # (c) GANTrainer + Recipe('axiom') automatically binds BN/Conv layouts on both opt_g and opt_d
+    import particlegan as pg
+
+    g_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.ReLU(), nn.Linear(16, 4))
+    d_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    rec = pg.get_recipe("axiom", z_dim=4, num_particles=64, batch_size=16)
+    tr = pg.GANTrainer(rec, g_mod, d_mod, seed=0)
+    assert len(tr.opt_g._bn_net_ids) > 0 and len(tr.opt_d._bn_net_ids) > 0
+    for _ in range(5):
+        out = tr.step(torch.randn(16, 4))
+        assert math.isfinite(float(out["loss_d"])) and math.isfinite(float(out["loss_g"]))
+    assert tr.opt_g.log2_damp == 0.0 and tr.opt_d.log2_damp == 0.0
+
+
+def test_axiom_me_rms_scale_invariance_and_nonfinite_guard() -> None:
+    torch.manual_seed(0)
+
+    def _make_bn_conv() -> nn.Sequential:
+        torch.manual_seed(42)
+        return nn.Sequential(
+            nn.ConvTranspose2d(4, 4, 4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(4),
+            nn.ReLU(),
+            nn.Conv2d(4, 3, 4, stride=2, padding=1, bias=True),
+        )
+
+    base = _make_bn_conv()
+    g_rng = torch.Generator().manual_seed(777)
+    step_grads = [[torch.randn(p.shape, generator=g_rng) for p in base.parameters()] for _ in range(5)]
+
+    ref_params: list[torch.Tensor] | None = None
+    for scale in (1e-30, 1e-18, 1.0, 1e18, 1e30):
+        mod = _make_bn_conv()
+        opt = AxiomOptimizer(mod.parameters(), lr=0.014)
+        opt.bind_module_layouts((mod,))
+        for grads in step_grads:
+            for p, g in zip(mod.parameters(), grads):
+                p.grad = g * scale
+            opt.step()
+        cur = [p.detach().clone() for p in mod.parameters()]
+        if ref_params is None:
+            ref_params = cur
+        else:
+            for a, b in zip(ref_params, cur):
+                assert torch.allclose(a, b, rtol=1e-5, atol=1e-6), f"ME-RMS scale invariance failed at scale={scale}"
+
+    # Nonfinite gradients must leave ME-RMS parameters finite and completely untouched
+    mod_nf = _make_bn_conv()
+    opt_nf = AxiomOptimizer(mod_nf.parameters(), lr=0.014)
+    opt_nf.bind_module_layouts((mod_nf,))
+    for bad in (float("inf"), float("nan")):
+        before = [p.detach().clone() for p in mod_nf.parameters()]
+        for p in mod_nf.parameters():
+            p.grad = torch.full_like(p, bad)
+        opt_nf.step()
+        for p, w0 in zip(mod_nf.parameters(), before):
+            assert torch.isfinite(p).all() and torch.equal(p.detach(), w0)
+
+
+def test_axiom_me_rms_checkpoint_continuation_and_tamper_rejection() -> None:
+    import particlegan as pg
+
+    torch.manual_seed(0)
+
+    def _make_pair():
+        torch.manual_seed(11)
+        g = nn.Sequential(nn.Linear(4, 4 * 4 * 4, bias=False), nn.Unflatten(1, (4, 4, 4)), nn.BatchNorm2d(4), nn.ReLU(), nn.ConvTranspose2d(4, 3, 4, stride=2, padding=1))
+        d = nn.Sequential(nn.Conv2d(3, 4, 4, stride=2, padding=1), nn.BatchNorm2d(4), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(4 * 4 * 4, 1))
+        return g, d
+
+    rec = pg.get_recipe("axiom", z_dim=4, num_particles=64, batch_size=8)
+    g_a, d_a = _make_pair()
+    tr_a = pg.GANTrainer(rec, g_a, d_a, seed=0)
+    g_b, d_b = _make_pair()
+    tr_b = pg.GANTrainer(rec, g_b, d_b, seed=0)
+
+    b_rng = torch.Generator().manual_seed(99)
+    batches = [torch.randn((8, 3, 8, 8), generator=b_rng) for _ in range(6)]
+    for t in range(3):
+        tr_a.step(batches[t])
+        tr_b.step(batches[t])
+
+    # Fresh trainer & models loaded from step-3 checkpoint must match uninterrupted run exactly
+    ckpt = deepcopy(tr_b.state_dict())
+    g_c, d_c = _make_pair()
+    tr_c = pg.GANTrainer(rec, g_c, d_c, seed=12345)
+    tr_c.load_state_dict(ckpt)
+    for t in range(3, 6):
+        tr_a.step(batches[t])
+        tr_c.step(batches[t])
+
+    for pa, pc in zip(tr_a.G.parameters(), tr_c.G.parameters()):
+        assert torch.allclose(pa.detach(), pc.detach(), rtol=0.0, atol=1e-6)
+    for pa, pc in zip(tr_a.D.parameters(), tr_c.D.parameters()):
+        assert torch.allclose(pa.detach(), pc.detach(), rtol=0.0, atol=1e-6)
+    assert math.isclose(tr_a.opt_g.ema_step_cos, tr_c.opt_g.ema_step_cos, rel_tol=0.0, abs_tol=1e-6)
+    assert math.isclose(tr_a.opt_d.log2_damp, tr_c.opt_d.log2_damp, rel_tol=0.0, abs_tol=1e-6)
+
+    # Strict tamper rejection on ME-RMS state (m_u / v_u)
+    base_sd = deepcopy(tr_a.opt_d.state_dict())
+    pid_rms = next(k for k, v in base_sd["state"].items() if "v_u" in v)
+    for mutate in (
+        lambda s: s["state"][pid_rms].pop("v_u"),
+        lambda s: s["state"][pid_rms].pop("m_u"),
+        lambda s: s["state"][pid_rms]["v_u"].fill_(-1e-3),
+        lambda s: s["state"][pid_rms]["m_u"].fill_(float("nan")),
+        lambda s: s["state"][pid_rms]["v_u"].fill_(float("inf")),
+        lambda s: s["state"][pid_rms].__setitem__("v_u", torch.ones(1)),
+    ):
+        bad_sd = deepcopy(base_sd)
+        mutate(bad_sd)
+        with pytest.raises(ValueError, match="invalid AxiomOptimizer parameter state"):
+            tr_a.opt_d.validate_state_dict(bad_sd)
+
+
+
 
 
 

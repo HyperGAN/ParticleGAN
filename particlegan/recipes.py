@@ -1938,10 +1938,10 @@ class Recipe:
             opt_gen = make_normalized_optimizer(self, groups, **options)
             if module_owners and hasattr(opt_gen, "_conv_layouts"):
                 if self.optimizer_family == "axiom":
-                    from ._axiom.optimizer import collect_conv_layouts
+                    opt_gen.bind_module_layouts(module_owners)
                 else:
                     from .unified_v4 import collect_conv_layouts
-                opt_gen._conv_layouts.update(collect_conv_layouts(module_owners))
+                    opt_gen._conv_layouts.update(collect_conv_layouts(module_owners))
             return opt_gen
         if self.effective_critic_formulation == "t4_nash":
             from .t4_nash import T4NashConstraintGeneratorAdam, T4NashGeneratorAdam
@@ -2581,10 +2581,12 @@ class Recipe:
                 _attach_minimal_generator_hook(generator, opt_d.record)
         if self.effective_critic_formulation == "axiom" and hasattr(opt_d, "record"):
             from ._axiom.critic import _attach_axiom_generator_hook
-            from ._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
             opt_g._axiom_record = opt_d.record
             opt_d._axiom_record = opt_d.record
-            if hasattr(opt_g, "_conv_layouts"):
+            if hasattr(opt_g, "bind_module_layouts"):
+                opt_g.bind_module_layouts((generator, encoder))
+            elif hasattr(opt_g, "_conv_layouts"):
+                from ._axiom.optimizer import collect_conv_layouts as _axiom_conv_layouts
                 opt_g._conv_layouts.update(_axiom_conv_layouts((generator, encoder)))
             if hasattr(opt_g, "_gen_param_ids") and generator is not None:
                 opt_g._gen_param_ids = {id(p) for p in generator.parameters()}
