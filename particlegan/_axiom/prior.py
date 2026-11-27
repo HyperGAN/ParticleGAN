@@ -934,7 +934,7 @@ class _PullbackStep:
         ew = solve_triangular(self.comp_chol[comp_idx], (x_src.float() - y_target).unsqueeze(-1), upper=False).squeeze(
             -1
         )
-        bi_w = ((0.25 * dim + ew.square().sum(-1)).sqrt() - 0.5 * sqrt_d) / sqrt_d
+        bi_w = (((0.25 * dim + ew.square().sum(-1)).sqrt() - 0.5 * sqrt_d) / sqrt_d) * (sigma_med / so).clamp_max(1.0)
         loss_maha = ((inv_w / inv_w.mean().clamp_min(_EPS)) * bi_w).mean().to(dt)
         loss_eucl = born_infeld_cost(x_src, y_target.to(dt), sigma_med.to(dt), aligned=True)[0].mean() / so.to(dt)
         loss_pull = where(all_iso, loss_maha, loss_eucl) + 2.0 * (
@@ -950,7 +950,9 @@ class _PullbackStep:
         g_scale = where(
             scale_ratio < 0.60,
             1.0,
-            maximum(g_floor, maximum(self.res_ema / 0.10, ((iso_err - 0.22) / 0.45).clamp(0.0, 1.0)).clamp_max(1.0)),
+            maximum(
+                g_floor, maximum(self.res_ema / 0.10, 0.35 * ((iso_err - 0.25) / 0.45).clamp(0.0, 1.0)).clamp_max(1.0)
+            ),
         )
         total_g = (
             adv_w.to(self.loss_gan.dtype) * self.loss_gan

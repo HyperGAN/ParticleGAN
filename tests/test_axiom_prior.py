@@ -771,6 +771,42 @@ def test_burg_born_infeld_compression_bounds_singular_manifold_gradient() -> Non
     assert lin.weight.grad is not None and bool(torch.isfinite(lin.weight.grad).all())
 
 
+def test_pullback_tight_multimode_grad_stays_scale_consistent() -> None:
+    """Global ``sigma_med / sigma_out`` keeps ``loss_maha`` scale-consistent when ``sigma_med << sigma_out``."""
+    grid = torch.stack(torch.meshgrid(torch.linspace(-1.8, 1.8, 4), torch.linspace(-1.8, 1.8, 4), indexing="ij"), -1)
+    centers = grid.reshape(-1, 2)
+
+    def _run_sigma(sigma: float) -> float:
+        tr, noise = _make_mock_trainer(out_shape=(2,), latent_dim=2, num_particles=64, seed=19)
+        tr.recipe.t1_iso_weight = 0.0
+        g = torch.Generator().manual_seed(3)
+        loss_g = torch.tensor(0.0)
+        for _ in range(12):
+            idx_c = torch.randint(0, len(centers), (64,), generator=g)
+            real = centers[idx_c] + sigma * torch.randn(64, 2, generator=g)
+            z_s, idx_s = tr.prior.sample(64, generator=g)
+            loss_g, _, _, _, _, _ = axiom_pullback_step(
+                tr,
+                real,
+                real,
+                z_s,
+                idx_s,
+                sigma_out=0.0,
+                noise=noise,
+                critic=tr.D,
+                loss_d=torch.tensor(1.0),
+                penalty=torch.tensor(0.05),
+            )
+            assert bool(torch.isfinite(loss_g).all())
+        return float(loss_g.detach().item())
+
+    loss_wide = _run_sigma(0.15)
+    loss_tight = _run_sigma(0.03)
+    # Without global (sigma_med / sigma_out) normalization, 5x tighter modes inflate loss_maha by ~5x.
+    assert loss_tight < 1.8 * max(loss_wide, 0.5)
+    assert loss_tight < 6.0
+
+
 @pytest.mark.cuda
 def test_cuda_deterministic_pullback_step() -> None:
     if not torch.cuda.is_available():
