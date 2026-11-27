@@ -1,89 +1,97 @@
-"""Axiom 4-Law GANLoss adapter composing AxiomTransportLoss & AxiomCondFiberBank."""
+"""Axiom L2 GANLoss Adapter composing ``state`` Captures and ``AxiomTransportLoss``."""
+
 from __future__ import annotations
 
-import math, weakref
 from typing import Any, Optional, Tuple
+
 import torch
 import torch.nn.functional as F
 
 from ..gan_loss import GANLoss
-from .transport import AxiomTransportLoss, project_transport_features
-
-_SPATIAL_CLUSTER_THRESH = 0.12
-
-
-@torch.no_grad()
-def _spatial_cluster_ratio(x: torch.Tensor, *, max_spatial: int = 8, max_b: int = 64) -> float:
-    b = int(x.shape[0])
-    if b < 4: return 1.0
-    xd = x.detach()
-    z = project_transport_features(xd - xd.mean(dim=0, keepdim=True), max_spatial=max_spatial).float()
-    sc = z.abs().amax(); zu = z / sc.clamp_min(1e-30)
-    if b > max_b:
-        w = torch.remainder((torch.arange(zu.shape[1], device=zu.device, dtype=torch.float32) + 0.5) * 0.6180339887498949, 1.0) - 0.5
-        order = torch.argsort(zu @ (w / w.norm().clamp_min(1e-12)), stable=True)
-        zu = zu.index_select(0, order.index_select(0, (torch.arange(max_b, device=zu.device, dtype=torch.long) * b) // max_b))
-    dmat, off = torch.cdist(zu, zu, p=2.0), ~torch.eye(int(zu.shape[0]), dtype=torch.bool, device=zu.device)
-    med_all = torch.quantile(dmat[off], 0.50).clamp_min(1e-12)
-    med_nn = torch.quantile(dmat.masked_fill(~off, float("inf")).amin(dim=1), 0.50)
-    return float(torch.where(sc > 1e-30, med_nn / med_all, med_nn.new_zeros(())).item())
+from .state import (
+    AxiomStepRecord,
+    CaptureEntry,
+    check_scalar,
+    format_logits_2d,
+    lookup_axiom_capture,
+)
+from .transport import (
+    AxiomTransportLoss,
+    compute_contrast_confidence,
+    project_features,
+)
 
 
-def _lookup_capture(
-    logits: torch.Tensor, fallback_record: Any = None
-) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Any, bool, Optional[Tuple[torch.Tensor, ...]]]:
-    rec = getattr(logits, "_axiom_record", None)
-    rec_use = fallback_record if rec is None else rec
-    x_in = getattr(logits, "_axiom_input", None)
-    if x_in is not None:
-        return x_in, getattr(logits, "_axiom_cond", None), rec_use, bool(getattr(logits, "_axiom_cont_cond", False)), getattr(logits, "_axiom_parts", None)
-    if rec_use is not None and hasattr(rec_use, "lookup_capture"):
-        hit = rec_use.lookup_capture(logits)
-        if hit is not None:
-            if len(hit) == 5:
-                x_h, c_h, r_h, cc_h, p_h = hit
-                return x_h, c_h, (rec_use if r_h is None else r_h), bool(cc_h), p_h
-            x_h, c_h, cc_h, p_h = hit
-            return x_h, c_h, rec_use, bool(cc_h), p_h
-    return None, None, rec_use, False, None
+def _is_shared_context_part(pf: torch.Tensor, pr: torch.Tensor) -> bool:
+    if pf.requires_grad or pf.shape != pr.shape or pf.dtype != pr.dtype:
+        return False
+    return bool(torch.equal(pf.detach(), pr.detach()))
+
+
+def _cat_parts(parts: list[torch.Tensor]) -> torch.Tensor:
+    return parts[0] if len(parts) == 1 else torch.cat(parts, dim=-1)
 
 
 def _split_shared_conditional_parts(
     parts_f: Optional[Tuple[torch.Tensor, ...]],
     parts_r: Optional[Tuple[torch.Tensor, ...]],
 ) -> Tuple[Optional[torch.Tensor], Optional[torch.Tensor], Optional[torch.Tensor]]:
-    if not parts_f or not parts_r or len(parts_f) != len(parts_r) or len(parts_f) < 2:
+    """Split multi-tensor critic inputs into ``(x_fake_sample, x_real_sample, shared_c_cont)``."""
+    if not parts_f or not parts_r:
         return None, None, None
-    b_n = int(parts_f[0].shape[0])
-    if b_n <= 0 or int(parts_r[0].shape[0]) != b_n:
+    if len(parts_f) != len(parts_r) or len(parts_f) < 2:
+        return None, None, None
+    bn = int(parts_f[0].shape[0])
+    if bn <= 0 or int(parts_r[0].shape[0]) != bn:
         return None, None, None
     sample_f, sample_r, ctx = [], [], []
     for pf, pr in zip(parts_f, parts_r):
-        if not pf.requires_grad and pf.shape == pr.shape and pf.dtype == pr.dtype and torch.equal(pf.detach(), pr.detach()):
+        if _is_shared_context_part(pf, pr):
             ctx.append(pf.detach())
         else:
             sample_f.append(pf)
             sample_r.append(pr)
     if not ctx or not sample_f:
         return None, None, None
-    x_sf = sample_f[0] if len(sample_f) == 1 else torch.cat(sample_f, dim=-1)
-    x_sr = sample_r[0] if len(sample_r) == 1 else torch.cat(sample_r, dim=-1)
-    c_cont = ctx[0] if len(ctx) == 1 else torch.cat(ctx, dim=-1)
-    return (x_sf, x_sr, c_cont) if x_sf.shape == x_sr.shape else (None, None, None)
+    x_sf, x_sr = _cat_parts(sample_f), _cat_parts(sample_r)
+    if x_sf.shape != x_sr.shape:
+        return None, None, None
+    return x_sf, x_sr, _cat_parts(ctx)
 
 
-def _scalar_pair_rel(pos: torch.Tensor, neg: torch.Tensor, *, detach_neg: bool = False) -> Optional[torch.Tensor]:
-    b_p, b_n = int(pos.shape[0]), int(neg.shape[0])
-    if b_p != b_n or b_p < 1:
+def _scalar_pair_rel(
+    pos: torch.Tensor, neg: torch.Tensor, *, detach_neg: bool = False
+) -> Optional[torch.Tensor]:
+    bp, bn = int(pos.shape[0]), int(neg.shape[0])
+    if bp != bn or bp < 1:
         return None
-    p_flat = pos.reshape(b_p, -1).mean(dim=1) if pos.ndim > 1 else pos.reshape(b_p)
+    p_flat = format_logits_2d(pos, bp).mean(dim=1)
     n_src = neg.detach() if detach_neg else neg
-    n_flat = n_src.reshape(b_n, -1).mean(dim=1) if n_src.ndim > 1 else n_src.reshape(b_n)
+    n_flat = format_logits_2d(n_src, bn).mean(dim=1)
     return F.softplus(n_flat - p_flat).mean()
 
 
+def _same_discrete_cond(
+    cond_f: Optional[torch.Tensor], cond_r: Optional[torch.Tensor]
+) -> bool:
+    if cond_f is None and cond_r is None:
+        return True
+    if cond_f is None or cond_r is None or cond_f.shape != cond_r.shape:
+        return False
+    return bool(torch.equal(cond_f, cond_r))
+
+
+def _can_mutate(record: Any) -> bool:
+    if not torch.is_grad_enabled():
+        return False
+    return not (
+        getattr(record, "_in_probe", False)
+        or getattr(record, "_in_protected_probe", False)
+    )
+
+
 class AxiomGANLoss(GANLoss):
-    """Unified Axiom 4-Law ``GANLoss`` supporting GAN, BiGAN, AE/VAE-GAN, DDGAN & ByteGAN."""
+    """Thin Axiom v6 ``GANLoss`` adapter for GAN, BiGAN, AE/VAE-GAN, DDGAN & ByteGAN."""
 
     def __init__(
         self,
@@ -104,132 +112,197 @@ class AxiomGANLoss(GANLoss):
         mean_op_weight: float = 0.36,
         cov_op_weight: float = 0.35,
         imq_active_scale: float = 0.40,
-        bank_mean_blend: float = 0.85,
-        record: Any = None,
+        bank_mean_blend: float = 0.75,
+        record: Optional[AxiomStepRecord] = None,
     ) -> None:
         super().__init__(loss, labels=labels)
-        for name, val in (("weight", weight), ("cond_ot_weight", cond_ot_weight)):
-            if isinstance(val, bool) or not isinstance(val, (int, float)) or not math.isfinite(val) or val < 0.0:
-                raise ValueError(f"{name} must be finite and nonnegative")
-        if isinstance(fibre_rel_blend, bool) or not isinstance(fibre_rel_blend, (int, float)) or not math.isfinite(fibre_rel_blend) or not (0.0 <= float(fibre_rel_blend) <= 1.0):
-            raise ValueError("fibre_rel_blend must be finite and in [0, 1]")
-        self.fibre_rel_blend, self.cond_ot_weight, self.record = float(fibre_rel_blend), float(cond_ot_weight), record
-        self.transport = AxiomTransportLoss(
-            weight=float(weight), rho=float(rho), tau=float(tau), eps=float(eps), iters=int(iters),
-            chart_capacity=int(chart_capacity), chart_weight=float(chart_weight), halo_mult=float(halo_mult),
-            max_spatial=int(max_spatial), mean_op_weight=float(mean_op_weight), cov_op_weight=float(cov_op_weight),
-            imq_active_scale=float(imq_active_scale), bank_mean_blend=float(bank_mean_blend),
+        w_val = check_scalar(weight, "weight", lo=0.0)
+        self.cond_ot_weight = check_scalar(cond_ot_weight, "cond_ot_weight", lo=0.0)
+        self.fibre_rel_blend = check_scalar(
+            fibre_rel_blend, "fibre_rel_blend", lo=0.0, hi=1.0
         )
-        self.t1c, self.last_metrics, self._sc_cache = self.transport, {}, None
-
-    def _skip_spatial_transport(self, x_r: torch.Tensor) -> bool:
-        if x_r.ndim < 2 or x_r.shape[0] <= 0: return False
-        dim = int(x_r[0].numel())
-        if x_r.ndim < 4 or not any(int(s) > 1 for s in x_r.shape[2:]): return dim > 1024
-        if dim <= 1024 or dim > 4096: return dim > 4096
-        key, c = (id(x_r), int(x_r.data_ptr()), int(x_r._version), tuple(x_r.shape), str(x_r.device)), self._sc_cache
-        if c is not None and c[0] == key and c[2]() is x_r: return c[1]
-        skip = _spatial_cluster_ratio(x_r, max_spatial=8) >= _SPATIAL_CLUSTER_THRESH
-        self._sc_cache = (key, skip, weakref.ref(x_r)); return skip
+        self.record: Optional[AxiomStepRecord] = record
+        self.transport = AxiomTransportLoss(
+            weight=w_val,
+            rho=float(rho),
+            tau=float(tau),
+            eps=float(eps),
+            iters=int(iters),
+            chart_capacity=int(chart_capacity),
+            chart_weight=float(chart_weight),
+            halo_mult=float(halo_mult),
+            max_spatial=int(max_spatial),
+            mean_op_weight=float(mean_op_weight),
+            cov_op_weight=float(cov_op_weight),
+            imq_active_scale=float(imq_active_scale),
+            bank_mean_blend=float(bank_mean_blend),
+        )
+        self.t1c = self.transport
+        self.last_metrics: dict[str, float] = {}
 
     @property
-    def axiom_record(self) -> Any: return self.record
+    def axiom_record(self) -> Optional[AxiomStepRecord]:
+        return self.record
+
     @axiom_record.setter
-    def axiom_record(self, value: Any) -> None: self.record = value
+    def axiom_record(self, value: Optional[AxiomStepRecord]) -> None:
+        self.record = value
 
-    def _resolve_pair(self, fake_logits: torch.Tensor, real_logits: torch.Tensor):
-        x_f, cond_f, rec_f, cc_f, parts_f = _lookup_capture(fake_logits, self.record)
-        x_r, cond_r, rec_r, cc_r, parts_r = _lookup_capture(real_logits, rec_f or self.record)
-        rec = rec_f if rec_f is not None else (rec_r if rec_r is not None else self.record)
-        if x_f is None or x_r is None:
-            return fake_logits.reshape(fake_logits.shape[0], -1), real_logits.reshape(real_logits.shape[0], -1), None, None, rec, False, None, None, False
-        return x_f, x_r, cond_f, cond_r, rec, bool(cc_f or cc_r), parts_f, parts_r, True
+    def _resolve_pair(
+        self, fake_logits: torch.Tensor, real_logits: torch.Tensor
+    ) -> Tuple[Optional[CaptureEntry], Optional[CaptureEntry], Any]:
+        ef = lookup_axiom_capture(fake_logits, self.record)
+        rec_hint = (
+            ef.record if (ef is not None and ef.record is not None) else self.record
+        )
+        er = lookup_axiom_capture(real_logits, rec_hint)
+        rec = (
+            rec_hint
+            if rec_hint is not None
+            else (er.record if er is not None else None)
+        )
+        return ef, er, rec
 
-    def _blended_g(self, fake_logits: torch.Tensor, real_logits: torch.Tensor) -> torch.Tensor:
+    def _blended_g(
+        self, fake_logits: torch.Tensor, real_logits: torch.Tensor
+    ) -> torch.Tensor:
         base_g = super().g_loss(fake_logits, real_logits)
         if self.loss == "non_saturating" and self.fibre_rel_blend > 0.0:
             pair_g = _scalar_pair_rel(fake_logits, real_logits, detach_neg=True)
             if pair_g is not None:
-                return self.transport.weight * ((1.0 - self.fibre_rel_blend) * base_g + self.fibre_rel_blend * pair_g)
+                b = self.fibre_rel_blend
+                return self.transport.weight * ((1.0 - b) * base_g + b * pair_g)
         return self.transport.weight * base_g
 
-    def d_loss(self, real_logits: torch.Tensor, fake_logits: torch.Tensor) -> torch.Tensor:
+    def _conditional_g_loss(
+        self,
+        fake_logits: torch.Tensor,
+        real_logits: torch.Tensor,
+        ef: CaptureEntry,
+        er: CaptureEntry,
+        rec: Any,
+    ) -> torch.Tensor:
+        if int(fake_logits.shape[0]) != int(real_logits.shape[0]):
+            return self.transport.weight * super().g_loss(fake_logits, real_logits)
+        rel_term = _scalar_pair_rel(fake_logits, real_logits, detach_neg=True)
+        if rel_term is None:
+            return self.transport.weight * super().g_loss(fake_logits, real_logits)
+        if self.cond_ot_weight <= 0.0 or not _same_discrete_cond(ef.cond, er.cond):
+            return self.transport.weight * rel_term
+        x_sf, x_sr, c_cont = _split_shared_conditional_parts(ef.parts, er.parts)
+        if x_sf is None or x_sr is None or c_cont is None:
+            return self.transport.weight * rel_term
+        cond_ot = self.transport.conditional_fiber_loss(
+            x_sf,
+            x_sr,
+            c_cont,
+            cond_disc=ef.cond,
+            record=rec,
+            allow_state_update=_can_mutate(rec),
+        )
+        if rec is not None and hasattr(rec, "_simplicial_step"):
+            rec._simplicial_step = False
+        s_th = float(getattr(rec, "thermal_scale", 1.0)) if rec is not None else 1.0
+        total = rel_term + self.cond_ot_weight * cond_ot
+        if s_th < 1.0 and total.requires_grad:
+            if ef.thermally_scaled:
+                scaled_ot = cond_ot * s_th + cond_ot.detach() * (1.0 - s_th)
+                total = rel_term + self.cond_ot_weight * scaled_ot
+            else:
+                total = total * s_th + total.detach() * (1.0 - s_th)
+        return self.transport.weight * total
+
+    def _d_rel_mix(
+        self, er: Optional[CaptureEntry], captured: bool, has_cc: bool
+    ) -> float:
+        if not captured or has_cc or er is None:
+            return self.fibre_rel_blend
+        yp = project_features(
+            er.x_in.detach(),
+            self.transport.max_spatial,
+            self.transport.max_flat_dim,
+        )
+        kappa = float(compute_contrast_confidence(yp).item())
+        return self.fibre_rel_blend * (1.0 - kappa)
+
+    def d_loss(
+        self, real_logits: torch.Tensor, fake_logits: torch.Tensor
+    ) -> torch.Tensor:
+        """Critic loss with smooth ``kappa_struct`` relativistic blend and scale observation."""
         base = super().d_loss(real_logits, fake_logits)
-        x_f, x_r, _, _, rec, has_cc, _, _, captured = self._resolve_pair(fake_logits, real_logits)
+        ef, er, rec = self._resolve_pair(fake_logits, real_logits)
+        captured = ef is not None and er is not None
+        has_cc = bool(captured and (ef.has_cont_cond or er.has_cont_cond))
         if rec is not None and hasattr(rec, "observe_margin_and_scale") and not has_cc:
             if captured:
-                rec.observe_margin_and_scale(real_logits, fake_logits, x_r, x_f)
+                rec.observe_margin_and_scale(real_logits, fake_logits, er.x_in, ef.x_in)
             else:
                 rec.observe_margin_and_scale(real_logits, fake_logits)
-        if self.loss != "non_saturating" or self.transport.weight == 0.0 or self.fibre_rel_blend <= 0.0:
+        if (
+            self.loss != "non_saturating"
+            or self.transport.weight == 0.0
+            or self.fibre_rel_blend <= 0.0
+        ):
             return base
-        if (not captured) or has_cc or self._skip_spatial_transport(x_r):
-            pair_d = _scalar_pair_rel(real_logits, fake_logits)
-            if pair_d is not None:
-                return (1.0 - self.fibre_rel_blend) * base + self.fibre_rel_blend * pair_d
-        return base
+        mix = self._d_rel_mix(er, captured, has_cc)
+        if mix <= 1e-4:
+            return base
+        pair_d = _scalar_pair_rel(real_logits, fake_logits)
+        return ((1.0 - mix) * base + mix * pair_d) if pair_d is not None else base
 
-    def g_loss(self, fake_logits: torch.Tensor, real_logits: Optional[torch.Tensor] = None) -> torch.Tensor:
+    def g_loss(
+        self, fake_logits: torch.Tensor, real_logits: Optional[torch.Tensor] = None
+    ) -> torch.Tensor:
+        """Generator loss dispatching conditional fiber or dimension-free Law 3A transport."""
         if real_logits is None:
             if self.transport.weight == 0.0:
                 return super().g_loss(fake_logits, None)
-            raise ValueError("AxiomGANLoss requires real_logits in g_loss when transport weight > 0")
+            raise ValueError(
+                "AxiomGANLoss requires real_logits in g_loss when transport weight > 0"
+            )
         if self.transport.weight == 0.0:
             return super().g_loss(fake_logits, real_logits)
-        x_f, x_r, cond_f, cond_r, rec, has_cc, parts_f, parts_r, captured = self._resolve_pair(fake_logits, real_logits)
-        if not captured:
+        ef, er, rec = self._resolve_pair(fake_logits, real_logits)
+        if ef is None or er is None:
             return self._blended_g(fake_logits, real_logits)
-        b_f, b_r = int(fake_logits.shape[0]), int(real_logits.shape[0])
-        if has_cc:
-            if b_f != b_r:
-                return self.transport.weight * super().g_loss(fake_logits, real_logits)
-            rel_term = _scalar_pair_rel(fake_logits, real_logits, detach_neg=True)
-            assert rel_term is not None
-            same_disc = (cond_f is None and cond_r is None) or (cond_f is not None and cond_r is not None and cond_f.shape == cond_r.shape and torch.equal(cond_f, cond_r))
-            if self.cond_ot_weight > 0.0 and same_disc:
-                x_sf, x_sr, c_cont = _split_shared_conditional_parts(parts_f, parts_r)
-                if x_sf is not None and x_sr is not None and c_cont is not None:
-                    cond_ot = self.transport.conditional_fiber_loss(x_sf, x_sr, c_cont, cond_disc=cond_f, record=rec)
-                    if rec is not None and hasattr(rec, "_simplicial_step"):
-                        rec._simplicial_step = False
-                    s_th = float(getattr(rec, "thermal_scale", 1.0)) if rec is not None else 1.0
-                    total = rel_term + self.cond_ot_weight * cond_ot
-                    if s_th < 1.0 and total.requires_grad:
-                        if getattr(fake_logits, "_axiom_thermally_scaled", False):
-                            total = rel_term + self.cond_ot_weight * (cond_ot * s_th + cond_ot.detach() * (1.0 - s_th))
-                        else:
-                            total = total * s_th + total.detach() * (1.0 - s_th)
-                    return self.transport.weight * total
-            return self.transport.weight * rel_term
-        if self._skip_spatial_transport(x_r):
-            self.transport.bind_discrete_prior_step(False, simplicial_active=False)
-            if rec is not None:
-                if hasattr(rec, "_disc_gate"): rec._disc_gate = 0.0
-                if hasattr(rec, "_simplicial_step"): rec._simplicial_step = False
-            return self._blended_g(fake_logits, real_logits)
-        allow = bool(torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False) and not getattr(rec, "_in_probe", False))
-        prev_simp = bool(self.transport._simplicial_step)
-        if prev_simp and b_r >= 4:
-            _, g_mac_fwd, _, _ = self.transport._cached_manifold_gates(project_transport_features(x_r.detach(), self.transport.max_spatial))
-            eff_simp = bool(g_mac_fwd > 1e-4)
-            self.transport._simplicial_step = eff_simp
-            if rec is not None and hasattr(rec, "_simplicial_step"):
-                rec._simplicial_step = eff_simp
-        try:
-            return self.transport(x_f, x_r, fake_logits, real_logits, record=rec, cond_fake=cond_f, cond_real=cond_r, allow_state_update=allow)
-        finally:
-            self.transport._simplicial_step = prev_simp
+        if ef.has_cont_cond or er.has_cont_cond:
+            return self._conditional_g_loss(fake_logits, real_logits, ef, er, rec)
+        return self.transport(
+            ef.x_in,
+            er.x_in,
+            fake_logits,
+            real_logits,
+            record=rec,
+            cond_fake=ef.cond,
+            cond_real=er.cond,
+            allow_state_update=_can_mutate(rec),
+            thermally_scaled=ef.thermally_scaled,
+        )
 
-    def joint_g_loss(self, fake_logits: torch.Tensor, real_logits: torch.Tensor) -> torch.Tensor:
+    def joint_g_loss(
+        self, fake_logits: torch.Tensor, real_logits: torch.Tensor
+    ) -> torch.Tensor:
+        """Joint BiGAN / ByteGAN generator+encoder transport loss."""
         if not fake_logits.requires_grad or not real_logits.requires_grad:
-            raise ValueError("joint_g_loss requires gradients on both generator and encoder streams")
+            raise ValueError(
+                "joint_g_loss requires gradients on both generator and encoder streams"
+            )
         if self.transport.weight == 0.0:
             return super().joint_g_loss(fake_logits, real_logits)
-        x_f, x_r, cond_f, cond_r, rec, _, _, _, captured = self._resolve_pair(fake_logits, real_logits)
-        if not captured:
+        ef, er, rec = self._resolve_pair(fake_logits, real_logits)
+        if ef is None or er is None:
             return super().joint_g_loss(fake_logits, real_logits)
-        allow = bool(torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False) and not getattr(rec, "_in_probe", False))
-        return self.transport.joint_relativistic_loss(x_f, x_r, fake_logits, real_logits, record=rec, cond_fake=cond_f, cond_real=cond_r, allow_state_update=allow)
+        return self.transport.joint_relativistic_loss(
+            ef.x_in,
+            er.x_in,
+            fake_logits,
+            real_logits,
+            record=rec,
+            cond_fake=ef.cond,
+            cond_real=er.cond,
+            allow_state_update=_can_mutate(rec),
+            thermally_scaled=ef.thermally_scaled,
+        )
 
 
 __all__ = ["AxiomGANLoss"]
