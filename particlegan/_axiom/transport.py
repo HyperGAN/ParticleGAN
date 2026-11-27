@@ -81,7 +81,7 @@ _TRANSPORT_DEFAULTS: dict[str, Any] = {
     "mean_op_weight": 0.36,
     "cov_op_weight": 0.35,
     "imq_active_scale": 0.4,
-    "bank_mean_blend": 0.75,
+    "bank_mean_blend": 0.85,
 }
 
 
@@ -141,12 +141,15 @@ def project_features(x: Tensor, max_spatial: int = 8, max_flat_dim: int = 256) -
     if x.ndim >= 4 and (x.shape[-2] > max_spatial or x.shape[-1] > max_spatial):
         h_in, w_in = x.shape[-2], x.shape[-1]
         h_out, w_out = min(max_spatial, h_in), min(max_spatial, w_in)
-        z = x.reshape(-1, x.shape[-3], h_in, w_in).float()
+        z = x if x.ndim == 4 else x.reshape(-1, x.shape[-3], h_in, w_in)
+        if z.dtype == torch.float16:
+            z = z.float()
         pad_h, pad_w = (-h_in) % h_out, (-w_in) % w_out
         if pad_h or pad_w:
             z = F.pad(z, (0, pad_w, 0, pad_h), "replicate")
-        z = z.reshape(z.shape[0], z.shape[1], h_out, (h_in + pad_h) // h_out, w_out, (w_in + pad_w) // w_out)
-        z = z.mean((3, 5)).reshape(batch_n, -1) * math.sqrt((h_in * w_in) / max(1, h_out * w_out))
+        kh, kw = (h_in + pad_h) // h_out, (w_in + pad_w) // w_out
+        z = F.avg_pool2d(z, (kh, kw), (kh, kw)).float().reshape(batch_n, -1)
+        z = z * math.sqrt((h_in * w_in) / max(1, h_out * w_out))
     else:
         z = x.reshape(batch_n, -1).float()
     dim, cap = z.shape[1], max(1, max_flat_dim)
@@ -211,7 +214,7 @@ def compute_discrete_atomic_gate(
 def _batch_ell(y, q: float = 0.25):
     batch_n = y.shape[0]
     if batch_n <= 1:
-        return y.new_tensor(1.0, dtype=_F32)
+        return y.new_ones((), dtype=_F32)
     a_exp = max(0.0, 1 / max(1, y.shape[-1]) - 0.5)
     a_fac = ((2 * math.e * batch_n) / max(1e-6, -math.log(max(1e-6, 1 - q)))) ** a_exp if a_exp > 0 else 1.0
     dist = safe_cdist(y)
@@ -685,9 +688,33 @@ class AxiomTransportLoss(nn.Module):
         self.last_p_xy_slack: Tensor | None = None
         self._atlas_local: PrototypeAtlas | None = None
         self._rec_atlases: Any = weakref.WeakKeyDictionary()
+        self._contrast_cache: tuple[Any, ...] | None = None
 
     def bind_discrete_prior_step(self, active: bool, *, simplicial_active: bool = False) -> None:
         self._discrete_step, self._simplicial_step = bool(active), bool(simplicial_active)
+
+    @no_grad()
+    def _cached_contrast(self, y_raw: Tensor) -> tuple[Tensor, Tensor]:
+        key = (
+            y_raw.untyped_storage().data_ptr(),
+            y_raw.storage_offset(),
+            y_raw.shape,
+            y_raw.stride(),
+            y_raw.dtype,
+            y_raw.device,
+            y_raw._version,
+            self.max_spatial,
+            self.max_flat_dim,
+        )
+        cached = self._contrast_cache
+        if cached is not None:
+            prev = cached[0]()
+            if prev is not None and cached[1] == key and prev._version == key[6]:
+                return cached[2], cached[3]
+        y_proj = project_features(y_raw.detach(), self.max_spatial, self.max_flat_dim)
+        kappa = compute_contrast_confidence(y_proj)
+        self._contrast_cache = (weakref.ref(y_raw), key, y_proj, kappa)
+        return y_proj, kappa
 
     def _sinkhorn_slack(self, cost: Tensor, df: Tensor, dr: Tensor, mask: Tensor | None) -> Tensor:
         return sinkhorn_with_slack(cost, df, dr, rho=self.rho, tau=self.tau, eps=self.eps, iters=self.iters, mask=mask)
@@ -700,7 +727,7 @@ class AxiomTransportLoss(nn.Module):
                 prev = (
                     record.dev_ema("ell_ema", ell_b.device).float()
                     if has_t
-                    else ell_b.new_tensor(float(record.ell_ema))
+                    else ell_b.new_full((), float(record.ell_ema))
                 )
                 if not mutate:
                     return (prev if record.ell_initialized else ell_b).to(y_proj.dtype)
@@ -792,10 +819,11 @@ class AxiomTransportLoss(nn.Module):
             return None, None, zero, zero, None
         with no_grad():
             ell_c = ell.float().clamp_min(1e-30)
+            d_yc_min, d_yc_arg = safe_cdist(y_proj, coal.comp_c).min(1)
             q_mid = quantile(safe_cdist(0.5 * (y_proj + y_proj.roll(1, 0)), coal.comp_c).amin(1), 0.75)
-            q_real = quantile(safe_cdist(y_proj, coal.comp_c).amin(1), 0.75).maximum(ell_c)
+            q_real = quantile(d_yc_min, 0.75).maximum(ell_c)
             w_cluster = smoothstep01((q_mid / q_real - 0.85 * self.rho) / 1.5) * (1 - g_conn)
-            batch_hits = bincount(safe_cdist(y_proj, coal.comp_c).argmin(1), minlength=coal.comp_c.shape[0])
+            batch_hits = bincount(d_yc_arg, minlength=coal.comp_c.shape[0])
         if assign is not None:
             comp_i = assign.batch_comp
             rho_t = atlas._rho_atom_t if atlas._rho_atom_t is not None else zero.new_full((), atlas._rho_atom_f)
@@ -902,9 +930,9 @@ class AxiomTransportLoss(nn.Module):
         self._discrete_step = self._simplicial_step = False
         n_f, n_r, mutate = x_fake.shape[0], y_real.shape[0], _can_mutate_state(record, allow_state_update)
         has_cond = cond_fake is not None or cond_real is not None
-        y_proj = project_features(y_real.detach(), self.max_spatial, self.max_flat_dim)
+        y_proj, kappa_t = self._cached_contrast(y_real)
         df, dr = _compute_log_odds(d_fake, d_real)
-        kappa = compute_contrast_confidence(y_proj).item()
+        kappa = kappa_t.item()
         rel_diff = (dr - df) if n_f == n_r else (dr[None] - df[:, None])
         c_rel = 0.5 * self.tau * (F.softplus(rel_diff).mean() - math.log(2))
         if kappa <= 1e-4:
@@ -972,6 +1000,9 @@ class AxiomTransportLoss(nn.Module):
         _observe_simplicial_thermal(x_verts, x_samples, y_flat, ell, g_man, g_curve, record)
         cost_p, c_hat = born_infeld_cost(x_samples, y_flat, ell, fp64=use_f64)
         total = (softmax(-c_hat / self.eps, 1).to(cost_p.dtype) * cost_p).sum(1).mean()
+        with no_grad():
+            y_bar = softmax(-c_hat / (2.5 * self.eps), 1).to(y_flat.dtype) @ y_flat
+        total = total + born_infeld_cost(x_samples, y_bar, 0.5 * ell, aligned=True, fp64=use_f64)[0].mean()
         eff_iso = ((1 - g_man) * iso_weight + g_man * 0.25) if g_man > 1e-4 else iso_weight
         if eff_iso > 0:
             total = total + eff_iso * _simplicial_isometry_loss(x_samples, x_verts, z_det, ell, g_man, samples, use_f64)
@@ -1001,18 +1032,16 @@ class AxiomTransportLoss(nn.Module):
             inv_tgt, ell_z = table_f[inv_idx].to(real_z.dtype), (0.25 * nn_z.median()).clamp_min(1e-4).to(real_z.dtype)
             w_mask, hi_f = has_inv.to(real_z.dtype), has_inv.float()
             inv_rel = ((real_z.float() - table_f[inv_idx]).norm(dim=-1) / nn_z[inv_idx]).clamp_max(10)
-            n_hits, bad_inv = hi_f.sum(), (((inv_rel > 0.12) & has_inv).any() | ~has_inv.all()).float()
-            hits_v, bad_v, inv_mean, tail_fwd = stack(
-                (n_hits, bad_inv, (inv_rel * hi_f).sum() / n_hits.clamp_min(1), assign.tail_residual)
-            ).tolist()
-        if hits_v > 0.5:
-            loss_inv = (
-                w_mask * born_infeld_cost(real_z, inv_tgt, ell_z, aligned=True)[0]
-            ).sum() / w_mask.sum().clamp_min(1)
-            tail_inv = max(1.6 * inv_mean, 0.2 if bad_v > 0.5 else 0.0)
-        else:
-            loss_inv, tail_inv = real_z.new_zeros(()), 0.25
-        return loss_fwd + loss_inv, max(tail_fwd, tail_inv)
+            n_hits = hi_f.sum()
+            bad_inv = ((inv_rel > 0.12) & has_inv).any() | (~has_inv.all())
+            inv_mean = (inv_rel * hi_f).sum() / n_hits.clamp_min(1)
+            tail_hit = (1.6 * inv_mean).maximum(where(bad_inv, inv_mean.new_full((), 0.2), inv_mean.new_zeros(())))
+            tail_inv = where(n_hits > 0.5, tail_hit, inv_mean.new_full((), 0.25))
+            r_tail = assign.tail_residual.float().maximum(tail_inv)
+        loss_inv = (w_mask * born_infeld_cost(real_z, inv_tgt, ell_z, aligned=True)[0]).sum() / w_mask.sum().clamp_min(
+            1
+        )
+        return loss_fwd + loss_inv, r_tail
 
     def joint_relativistic_loss(
         self,
@@ -1055,7 +1084,7 @@ class AxiomTransportLoss(nn.Module):
                 if cb is not None:
                     cb_loss, r_tail = cb
                     if mutate and hasattr(record, "observe_thermal"):
-                        record.observe_thermal(0.0, 0.0, 0.0, 0.0, 0.0, r_tail=r_tail)
+                        record.observe_thermal(0.0, 0.0, 0.0, 0.0, 0.0, r_tail=r_tail.item())
                     t_s, w_cb = float(getattr(record, "thermal_scale", 1.0)), self.weight * max(self.chart_weight, 1)
                     loss = (loss if thermally_scaled else _scale_grad(loss, t_s)) + _scale_grad(w_cb * cb_loss, t_s)
         return loss

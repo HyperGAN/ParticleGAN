@@ -266,7 +266,7 @@ def test_kappa_struct_smooth_transition_and_zero_binary_cliff():
     d_r = torch.randn(32, 1, generator=g, requires_grad=True)
     d_f = torch.randn(32, 1, generator=g, requires_grad=True)
     base_d = super(L.AxiomGANLoss, gan_loss).d_loss(d_r, d_f)
-    pair_d = L._scalar_pair_rel(d_r, d_f)
+    pair_d = L._paired_relativistic_loss(d_r, d_f)
     assert pair_d is not None
 
     rec_s = S.AxiomStepRecord()
@@ -619,7 +619,7 @@ def test_axiom_gan_loss_d_g_conditional_detach_capture_and_controls():
     # Unconditional d_loss + g_loss including .detach() capture resolution (zero logit attrs)
     rec = S.AxiomStepRecord()
     gan_loss = L.AxiomGANLoss(record=rec)
-    assert gan_loss.transport.bank_mean_blend == pytest.approx(0.75)
+    assert gan_loss.transport.bank_mean_blend == pytest.approx(0.85)
     y_real = _make_disconnected_modes(32)
     x_near = (y_real.clone() + 0.15).requires_grad_(True)
     x_far = (y_real.clone() + 4.0).requires_grad_(True)
@@ -971,3 +971,40 @@ def test_continuous_quota_routing_conservation_zero_halo_pull_and_checkpoint():
     assert int((tgt_c[:, 0] > 0.0).sum().item()) >= 16
     assert abs(float(at.w_fake_ema.sum().item()) - 1.0) <= 1e-6
     A.validate_atlas_state(at.state_dict())
+
+
+def test_contrast_cache_reuse_invalidation_and_simplicial_barycenter_pull():
+    g = torch.Generator().manual_seed(313)
+    fn = T.AxiomTransportLoss()
+
+    # Exact cache hit on reused real tensor + invalidation on in-place mutation or setting change
+    y_buf = _make_disconnected_modes(32)
+    yp1, k1 = fn._cached_contrast(y_buf)
+    yp2, k2 = fn._cached_contrast(y_buf)
+    assert yp1 is yp2 and k1 is k2
+    y_buf.add_(0.5)
+    yp3, k3 = fn._cached_contrast(y_buf)
+    assert yp3 is not yp1 and torch.allclose(yp3, T.project_features(y_buf))
+    fn.max_flat_dim = 64
+    yp4, _ = fn._cached_contrast(y_buf)
+    assert yp4 is not yp3
+
+    # bf16 channels_last 256x256 projection matches fp32 block average closely
+    img_bf16 = torch.randn(4, 3, 64, 64, generator=g, dtype=torch.bfloat16).to(memory_format=torch.channels_last)
+    proj_bf16 = T.project_features(img_bf16, max_spatial=8, max_flat_dim=256)
+    proj_ref = (img_bf16.float().reshape(4, 3, 8, 8, 8, 8).mean((3, 5)).reshape(4, -1) * 8.0).to(torch.bfloat16)
+    assert proj_bf16.dtype == torch.bfloat16 and torch.allclose(proj_bf16.float(), proj_ref.float(), atol=5e-2)
+
+    # Smooth local barycenter projection pulls an off-saddle interior sample back onto z = x * y
+    y_sad = _make_saddle_batch(96)
+    z_grid = torch.tensor([[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]], dtype=torch.float32)
+    z_off = torch.tensor(0.35, requires_grad=True)
+
+    def _saddle_lift(z: torch.Tensor) -> torch.Tensor:
+        return torch.stack((z[:, 0], z[:, 1], z[:, 0] * z[:, 1] + z_off), dim=1)
+
+    loss_s = T.AxiomTransportLoss().simplicial_manifold_loss(
+        z_grid, _saddle_lift, y_sad, record=SimpleNamespace(thermal_scale=1.0, chord_phase=0.0), chart_weight=0.0
+    )
+    loss_s.backward()
+    assert z_off.grad is not None and float(z_off.grad.item()) > 0.05
