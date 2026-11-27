@@ -1488,10 +1488,10 @@ class Recipe:
             options = {
                 "coeff": self.reg_coeff,
                 "kappa": self.reg_kappa,
-                "lambda_floor": 0.025,
+                "lambda_floor": 0.005,
                 "beta_ema": 1.5,
                 "gamma_gauge": 0.03,
-                "max_lambda": 4.0,
+                "max_lambda": 2.0,
                 **overrides,
             }
             if options["coeff"] < 0 or options["kappa"] <= 0 or options["lambda_floor"] < 0 or options["gamma_gauge"] < 0:

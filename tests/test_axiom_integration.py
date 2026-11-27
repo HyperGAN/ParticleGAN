@@ -234,6 +234,20 @@ def _check_single_file_hygiene(path: Path) -> None:
             raise AssertionError(f"{path.name}:{tok.start[0]} has semicolon-packed statements")
     tree = ast.parse(src, filename=str(path))
     stem = path.stem
+    for top in tree.body:
+        if isinstance(top, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if top.name.startswith("_") and not top.name.startswith("__") and len(top.name.lstrip("_")) <= 2:
+                raise AssertionError(f"{path.name}:{top.lineno} cryptic short function name {top.name}")
+        elif isinstance(top, ast.Assign) and isinstance(top.value, (ast.Name, ast.Attribute, ast.Lambda)):
+            for tgt in top.targets:
+                if (
+                    isinstance(tgt, ast.Name)
+                    and tgt.id.startswith("_")
+                    and not tgt.id.startswith("__")
+                    and tgt.id == tgt.id.lower()
+                    and len(tgt.id.lstrip("_")) <= 2
+                ):
+                    raise AssertionError(f"{path.name}:{top.lineno} cryptic short alias {tgt.id}")
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
             for alias in node.names:
@@ -248,6 +262,13 @@ def _check_single_file_hygiene(path: Path) -> None:
                 assert first in ALLOWED_DAG_IMPORTS[stem], (
                     f"DAG violation: {path.name} imports .{first} (allowed: {sorted(ALLOWED_DAG_IMPORTS[stem])})"
                 )
+        elif isinstance(node, ast.Call):
+            fn = node.func
+            fn_name = fn.attr if isinstance(fn, ast.Attribute) else (fn.id if isinstance(fn, ast.Name) else "")
+            if fn_name == "bincount" and (
+                len(node.args) >= 2 or any(kw.arg == "weights" for kw in node.keywords)
+            ):
+                raise AssertionError(f"{path.name}:{node.lineno} weighted bincount crashes deterministic CUDA")
         elif isinstance(node, ast.Attribute):
             assert node.attr not in FORBIDDEN_LINALG_CALLS, f"{path.name} references forbidden op .{node.attr}"
             if node.attr == "grad" and isinstance(node.value, ast.Attribute) and node.value.attr == "autograd":
@@ -829,3 +850,61 @@ def test_grid100_host_syncs_at_most_8_per_step_cuda() -> None:
     if not torch.cuda.is_available():
         pytest.skip("CUDA required")
     _run_grid100_host_sync_budget(torch.device("cuda:0"))
+
+
+@pytest.mark.cuda
+def test_axiom_deterministic_cuda_all_regimes() -> None:
+    """Verify Axiom v6 runs cleanly under torch.use_deterministic_algorithms(True) on CUDA."""
+    if not torch.cuda.is_available():
+        pytest.skip("CUDA required")
+    import os
+
+    script = (
+        "import torch\n"
+        "from torch import nn\n"
+        "import particlegan as pg\n"
+        "torch.use_deterministic_algorithms(True)\n"
+        "dev = torch.device('cuda:0')\n"
+        "def run_case(rec, g, d, prior, batches):\n"
+        "    for i, m in enumerate((g, d, prior)):\n"
+        "        pg.init.deterministic_orthogonal_(m, seed=i * 11)\n"
+        "    tr = pg.GANTrainer(rec, g.to(dev), d.to(dev), prior=prior.to(dev), max_steps=50, seed=0)\n"
+        "    for b in batches:\n"
+        "        out = tr.step(b.to(dev))\n"
+        "        assert torch.isfinite(out['loss_d']) and torch.isfinite(out['loss_g'])\n"
+        "rng = torch.Generator().manual_seed(0)\n"
+        "centers = torch.tensor([[-2.0, -2.0], [-2.0, 2.0], [2.0, -2.0], [2.0, 2.0]])\n"
+        "mog_batches = [centers[torch.randint(0, 4, (32,), generator=rng)] + 0.1 * torch.randn((32, 2), generator=rng) for _ in range(4)]\n"
+        "rec_mog = pg.get_recipe('axiom', prior_kind='mog', sigma_rel=0.05, num_particles=32, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g1 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 2))\n"
+        "d1 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_mog, g1, d1, rec_mog.make_prior(), mog_batches)\n"
+        "atoms = torch.eye(4)\n"
+        "atom_batches = [atoms[torch.randint(0, 4, (32,), generator=rng)] for _ in range(4)]\n"
+        "rec_at = pg.get_recipe('axiom', num_particles=8, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g2 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 4))\n"
+        "d2 = nn.Sequential(nn.Linear(4, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_at, g2, d2, pg.ParticlePrior(8, 2, learnable=True), atom_batches)\n"
+        "ang = [torch.rand((32,), generator=rng) * 3.14159 for _ in range(3)]\n"
+        "arc_batches = [torch.stack((torch.cos(a), torch.sin(a)), dim=-1) for a in ang]\n"
+        "rec_arc = pg.get_recipe('axiom', num_particles=16, z_dim=2, batch_size=32, total_steps=50)\n"
+        "g3 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 2))\n"
+        "d3 = nn.Sequential(nn.Linear(2, 24), nn.SiLU(), nn.Linear(24, 1))\n"
+        "run_case(rec_arc, g3, d3, pg.ParticlePrior(16, 2, learnable=True), arc_batches)\n"
+        "rec_cv = pg.get_recipe('axiom', num_particles=16, z_dim=8, batch_size=8, total_steps=50)\n"
+        "g4 = nn.Sequential(nn.Linear(8, 8 * 4 * 4), nn.Unflatten(1, (8, 4, 4)), nn.ConvTranspose2d(8, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.ReLU(), nn.ConvTranspose2d(8, 1, 4, 2, 1), nn.Tanh())\n"
+        "d4 = nn.Sequential(nn.Conv2d(1, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.Conv2d(8, 8, 4, 2, 1), nn.BatchNorm2d(8), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(8 * 4 * 4, 1))\n"
+        "img_batches = [torch.randn((8, 1, 16, 16), generator=rng).clamp(-1.0, 1.0) for _ in range(3)]\n"
+        "run_case(rec_cv, g4, d4, pg.ParticlePrior(16, 8, learnable=True), img_batches)\n"
+    )
+    env = dict(os.environ)
+    env["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+    proc = subprocess.run(
+        [sys.executable, "-c", script],
+        cwd=str(REPO_ROOT),
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    assert proc.returncode == 0, f"deterministic CUDA check failed:\n{proc.stderr}\n{proc.stdout}"
