@@ -40,9 +40,7 @@ def _cap(
     )
 
 
-def _seed_exact_atlas(
-    rec: S.AxiomStepRecord, atoms: torch.Tensor, *, max_prototypes: int = 256
-) -> None:
+def _seed_exact_atlas(rec: S.AxiomStepRecord, atoms: torch.Tensor, *, max_prototypes: int = 256) -> None:
     """Seed schema-2 PrototypeAtlas on exact atoms so ``all_iso`` is True immediately."""
     k, d = int(atoms.shape[0]), int(atoms.shape[1])
     dev = atoms.device
@@ -64,17 +62,13 @@ TRANSPORT_PATH = ROOT / "particlegan" / "_axiom" / "transport.py"
 LOSS_PATH = ROOT / "particlegan" / "_axiom" / "loss.py"
 
 
-def _make_arc_batch(
-    n: int = 64, *, device: torch.device = torch.device("cpu")
-) -> torch.Tensor:
+def _make_arc_batch(n: int = 64, *, device: torch.device = torch.device("cpu")) -> torch.Tensor:
     g = torch.Generator(device="cpu").manual_seed(11)
     t = torch.rand(n, generator=g) * math.pi
     return torch.stack((torch.cos(t), torch.sin(t)), dim=1).to(device)
 
 
-def _make_saddle_batch(
-    n: int = 64, *, device: torch.device = torch.device("cpu")
-) -> torch.Tensor:
+def _make_saddle_batch(n: int = 64, *, device: torch.device = torch.device("cpu")) -> torch.Tensor:
     g = torch.Generator(device="cpu").manual_seed(17)
     uv = torch.rand(n, 2, generator=g) * 2.0 - 1.0
     return torch.stack((uv[:, 0], uv[:, 1], uv[:, 0] * uv[:, 1]), dim=1).to(device)
@@ -99,9 +93,7 @@ def _make_exact_atoms(
 ) -> Tuple[torch.Tensor, torch.Tensor]:
     g = torch.Generator(device="cpu").manual_seed(seed)
     if k == 256 and d == 8:
-        atoms = (
-            (torch.arange(256).unsqueeze(1) >> torch.arange(8)) & 1
-        ).float() * 2.0 - 1.0
+        atoms = ((torch.arange(256).unsqueeze(1) >> torch.arange(8)) & 1).float() * 2.0 - 1.0
     else:
         atoms = (torch.randint(0, 2, (k, d), generator=g).float() * 2.0 - 1.0) * 3.0
         atoms = atoms + torch.arange(k).float().unsqueeze(1) * 0.35
@@ -109,9 +101,7 @@ def _make_exact_atoms(
     return atoms[idx].to(device), atoms.to(device)
 
 
-def _make_highd_mog(
-    n: int = 64, d: int = 32, k: int = 8, sigma: float = 0.12, seed: int = 41
-) -> torch.Tensor:
+def _make_highd_mog(n: int = 64, d: int = 32, k: int = 8, sigma: float = 0.12, seed: int = 41) -> torch.Tensor:
     g = torch.Generator(device="cpu").manual_seed(seed)
     centers = torch.randn(k, d, generator=g) * 4.0
     idx = torch.randint(0, k, (n,), generator=g)
@@ -157,21 +147,13 @@ def test_transport_and_loss_ast_hygiene_and_forbidden_ops(
             if isinstance(node, ast.Import):
                 for alias in node.names:
                     assert alias.name != "random", f"random imported in {path.name}"
-                    assert "_axiom" not in alias.name, (
-                        f"non-relative _axiom import in {path.name}"
-                    )
+                    assert "_axiom" not in alias.name, f"non-relative _axiom import in {path.name}"
             elif isinstance(node, ast.ImportFrom) and node.level > 0:
                 mod = (node.module or "").split(".")[-1]
-                assert mod in allowed_rel, (
-                    f"disallowed relative import {node.module} in {path.name}"
-                )
+                assert mod in allowed_rel, f"disallowed relative import {node.module} in {path.name}"
             elif isinstance(node, ast.Attribute):
-                assert node.attr not in forbidden_attrs, (
-                    f"forbidden .{node.attr} in {path.name}:L{node.lineno}"
-                )
-                assert node.attr not in rng_attrs, (
-                    f"RNG .{node.attr} in {path.name}:L{node.lineno}"
-                )
+                assert node.attr not in forbidden_attrs, f"forbidden .{node.attr} in {path.name}:L{node.lineno}"
+                assert node.attr not in rng_attrs, f"RNG .{node.attr} in {path.name}:L{node.lineno}"
 
     def _forbid(*_a, **_kw):
         raise AssertionError("Forbidden spectral/autograd op invoked!")
@@ -196,17 +178,11 @@ def test_transport_and_loss_ast_hygiene_and_forbidden_ops(
     d_real = y_disc.sum(dim=1) * 0.1
     l_disc = loss_fn(x_fake, y_disc, d_fake, d_real, record=rec)
     l_disc.backward()
-    assert (
-        torch.isfinite(l_disc)
-        and x_fake.grad is not None
-        and torch.isfinite(x_fake.grad).all()
-    )
+    assert torch.isfinite(l_disc) and x_fake.grad is not None and torch.isfinite(x_fake.grad).all()
 
     z_tab = torch.randn(24, 2, requires_grad=True)
     gen = nn.Sequential(nn.Linear(2, 16), nn.Tanh(), nn.Linear(16, 3))
-    l_simp = loss_fn.simplicial_manifold_loss(
-        z_tab, gen, _make_saddle_batch(48), record=rec
-    )
+    l_simp = loss_fn.simplicial_manifold_loss(z_tab, gen, _make_saddle_batch(48), record=rec)
     l_simp.backward()
     assert torch.isfinite(l_simp) and z_tab.grad is not None
 
@@ -216,9 +192,7 @@ def test_transport_and_loss_ast_hygiene_and_forbidden_ops(
         c = torch.randn(32, 2, generator=g)
         yr = c * 1.5 + 0.3 * torch.randn(32, 2, generator=g)
         xf = (c * 1.2 + 0.4 * torch.randn(32, 2, generator=g)).requires_grad_(True)
-        lc = loss_fn.conditional_fiber_loss(
-            xf, yr, c, cond_disc=torch.zeros(32, 1, dtype=torch.long), record=rec_c
-        )
+        lc = loss_fn.conditional_fiber_loss(xf, yr, c, cond_disc=torch.zeros(32, 1, dtype=torch.long), record=rec_c)
         lc.backward()
         assert torch.isfinite(lc) and xf.grad is not None
 
@@ -260,30 +234,17 @@ def test_kappa_struct_smooth_transition_and_zero_binary_cliff():
     g = torch.Generator().manual_seed(51)
     # Monotonic smooth sweep from tight clusters to isotropic noise in R^32 (no binary jump!)
     kappas = [
-        float(
-            T.compute_contrast_confidence(
-                _make_highd_mog(64, 32, 8, sigma=s, seed=52)
-            ).item()
-        )
+        float(T.compute_contrast_confidence(_make_highd_mog(64, 32, 8, sigma=s, seed=52)).item())
         for s in (0.05, 0.5, 1.5, 2.5, 4.0, 12.0)
     ]
     assert kappas[0] > 0.95 and kappas[-1] < 0.05
-    assert any(0.05 < k < 0.95 for k in kappas), (
-        f"expected smooth transition, got {kappas}"
-    )
+    assert any(0.05 < k < 0.95 for k in kappas), f"expected smooth transition, got {kappas}"
     for a, b in zip(kappas, kappas[1:]):
         assert a >= b - 1e-6, f"kappa_struct not monotone: {kappas}"
 
     # Structured targets of any dim stay near 1.0; isotropic high-D noise drops to ~0.0
-    assert (
-        float(T.compute_contrast_confidence(_make_disconnected_modes(64)).item()) > 0.95
-    )
-    assert (
-        float(
-            T.compute_contrast_confidence(_make_highd_mog(64, 128, 8, sigma=0.1)).item()
-        )
-        > 0.95
-    )
+    assert float(T.compute_contrast_confidence(_make_disconnected_modes(64)).item()) > 0.95
+    assert float(T.compute_contrast_confidence(_make_highd_mog(64, 128, 8, sigma=0.1)).item()) > 0.95
     y_iso32 = torch.randn(64, 32, generator=g)
     assert float(T.compute_contrast_confidence(y_iso32).item()) < 0.05
 
@@ -292,9 +253,7 @@ def test_kappa_struct_smooth_transition_and_zero_binary_cliff():
     x_r256 = torch.randn(16, 3, 256, 256, generator=g, requires_grad=True)
     df = torch.randn(16, generator=g, requires_grad=True)
     dr = torch.randn(16, generator=g)
-    assert (
-        float(T.compute_contrast_confidence(T.project_features(y_r256)).item()) < 1e-4
-    )
+    assert float(T.compute_contrast_confidence(T.project_features(y_r256)).item()) < 1e-4
     fn = T.AxiomTransportLoss()
     rec = S.AxiomStepRecord()
     lv = fn(x_r256, y_r256, df, dr, record=rec)
@@ -343,17 +302,11 @@ def test_scale_equivariance_across_ten_orders_of_magnitude():
             lv = fn(x, y, df, dr, allow_state_update=False)
             lv.backward()
             gn = float((x.grad * alpha).norm().item())
-            assert (
-                torch.isfinite(lv)
-                and x.grad is not None
-                and torch.isfinite(x.grad).all()
-            )
+            assert torch.isfinite(lv) and x.grad is not None and torch.isfinite(x.grad).all()
             if ref_loss is None:
                 ref_loss, ref_gnorm = float(lv.item()), gn
             else:
-                assert math.isclose(
-                    float(lv.item()), ref_loss, rel_tol=2e-2, abs_tol=1e-5
-                )
+                assert math.isclose(float(lv.item()), ref_loss, rel_tol=2e-2, abs_tol=1e-5)
                 assert math.isclose(gn, ref_gnorm, rel_tol=2e-2, abs_tol=1e-5)
 
     # _batch_ell linear scaling + 1D Weibull akt_exp lift + extreme 1e18 overflow safety
@@ -395,23 +348,13 @@ def test_zero_feydy_self_coupling_bias_and_conformal_horizon():
     # Conformal k=3 horizon: off on connected manifold & uniform mixture, on for 8x width ratio
     y_sad = _make_saddle_batch(64)
     ell_s = torch.tensor(0.25)
-    exy_s, exx_s, ex_s, ey_s, _ = T._conformal_horizon(
-        y_sad + 0.1, y_sad, ell_s, 0.9, False
-    )
+    exy_s, exx_s, ex_s, ey_s, _ = T._conformal_horizon(y_sad + 0.1, y_sad, ell_s, 0.9, False)
     assert exy_s is ell_s and exx_s is ell_s and ex_s is None and ey_s is None
 
     y_unif = _make_disconnected_modes(64, sigma=0.25)
     ell_u = T._batch_ell(y_unif, 0.25)
-    exy_u, exx_u, ex_u, ey_u, dyy_u = T._conformal_horizon(
-        y_unif, y_unif, ell_u, 0.0, False
-    )
-    assert (
-        exy_u is ell_u
-        and exx_u is ell_u
-        and ex_u is None
-        and ey_u is None
-        and dyy_u is not None
-    )
+    exy_u, exx_u, ex_u, ey_u, dyy_u = T._conformal_horizon(y_unif, y_unif, ell_u, 0.0, False)
+    assert exy_u is ell_u and exx_u is ell_u and ex_u is None and ey_u is None and dyy_u is not None
 
     ell_m = T._batch_ell(y_mix, 0.25)
     exy_m, exx_m, ex_m, ey_m, _ = T._conformal_horizon(y_mix, y_mix, ell_m, 0.0, False)
@@ -437,14 +380,7 @@ def test_high_dim_k4_orphan_macro_rescue_and_symmetry_breaking():
     x_stuck = (0.1 * torch.randn(48, 2, generator=g)).requires_grad_(True)
     ch_near = torch.full((48, 48), 0.2)
     ch_near[:, 24:] = 2.0 * rho
-    assert (
-        float(
-            T._orphan_macro_loss(
-                x_stuck, y_two, ch_near, prs, pcs, rho=rho, g_conn=0.0
-            ).item()
-        )
-        == 0.0
-    )
+    assert float(T._orphan_macro_loss(x_stuck, y_two, ch_near, prs, pcs, rho=rho, g_conn=0.0).item()) == 0.0
 
     ch_far = ch_near.clone()
     ch_far[:, 24:] = 3.5 * rho
@@ -508,20 +444,12 @@ def test_atomic_gate_unified_atlas_ledger_and_checkpoint_continuation():
     y_five, _ = _make_exact_atoms(k=5, n=64, d=4, seed=9)
     assert T.compute_discrete_atomic_gate(y_byte) == 1.0
     assert T.compute_discrete_atomic_gate(y_five) == 1.0
-    assert (
-        T.compute_discrete_atomic_gate(
-            atoms_byte[:32], charts=atoms_byte, radii=torch.full((256,), 1e-6)
-        )
-        == 1.0
-    )
+    assert T.compute_discrete_atomic_gate(atoms_byte[:32], charts=atoms_byte, radii=torch.full((256,), 1e-6)) == 1.0
     assert T.compute_discrete_atomic_gate(torch.full((32, 8), 0.7)) == 0.0
     assert T.compute_discrete_atomic_gate(_make_arc_batch(64)) == 0.0
     assert T.compute_discrete_atomic_gate(_make_saddle_batch(64)) == 0.0
     for sig in (1e-3, 1e-2, 1e-1):
-        assert (
-            T.compute_discrete_atomic_gate(_make_disconnected_modes(64, sigma=sig))
-            == 0.0
-        )
+        assert T.compute_discrete_atomic_gate(_make_disconnected_modes(64, sigma=sig)) == 0.0
 
     # Unified PrototypeAtlas + HamiltonCommitmentLedger routing + schema-2 checkpoint continuation
     g = torch.Generator().manual_seed(91)
@@ -550,9 +478,7 @@ def test_atomic_gate_unified_atlas_ledger_and_checkpoint_continuation():
             record=rec_a,
         )
         lv.backward()
-        assert (
-            torch.isfinite(lv) and xf.grad is not None and torch.isfinite(xf.grad).all()
-        )
+        assert torch.isfinite(lv) and xf.grad is not None and torch.isfinite(xf.grad).all()
     assert rec_a.chart_state is not None and rec_a.chart_state["schema"] == 2
     assert rec_a.atomic_ledger is not None and rec_a.atomic_ledger["schema"] == 2
 
@@ -567,12 +493,8 @@ def test_atomic_gate_unified_atlas_ledger_and_checkpoint_continuation():
     xf_b = xf_a.detach().clone().requires_grad_(True)
     df_a = (xf_a.sum(dim=1) * 0.1).requires_grad_(True)
     df_b = (xf_b.sum(dim=1) * 0.1).requires_grad_(True)
-    T.prepare_axiom_transport_step(
-        fn_a, rec_a, y_no0, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True
-    )
-    T.prepare_axiom_transport_step(
-        fn_b, rec_b, y_no0, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True
-    )
+    T.prepare_axiom_transport_step(fn_a, rec_a, y_no0, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True)
+    T.prepare_axiom_transport_step(fn_b, rec_b, y_no0, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True)
     la = fn_a(xf_a, y_no0, df_a, y_no0.sum(dim=1) * 0.1, record=rec_a)
     lb = fn_b(xf_b, y_no0, df_b, y_no0.sum(dim=1) * 0.1, record=rec_b)
     la.backward()
@@ -602,11 +524,7 @@ def test_bigan_joint_relativistic_and_codebook_bijection_contraction():
         z_r = torch.randn(32, 3, generator=g, requires_grad=True)
         z_f = z_table[rows].detach()
         jf = torch.cat((z_f, x_f), dim=1) if z_first else torch.cat((x_f, z_f), dim=1)
-        jr = (
-            torch.cat((z_r, y_atoms), dim=1)
-            if z_first
-            else torch.cat((y_atoms, z_r), dim=1)
-        )
+        jr = torch.cat((z_r, y_atoms), dim=1) if z_first else torch.cat((y_atoms, z_r), dim=1)
         df = (jf.sum(dim=1) * 0.1).requires_grad_(True)
         dr = (jr.sum(dim=1) * 0.1).requires_grad_(True)
         l_j = loss_fn.joint_relativistic_loss(jf, jr, df, dr, record=rec)
@@ -622,9 +540,7 @@ def test_bigan_joint_relativistic_and_codebook_bijection_contraction():
     rec_oob._active_prior_table = z_table
     rec_oob._active_batch_rows = torch.full((32,), 999, dtype=torch.long)
     jf_oob = torch.cat((y_atoms.clone(), z_table[rows]), dim=1).requires_grad_(True)
-    jr_oob = torch.cat(
-        (y_atoms.clone(), torch.randn(32, 3, generator=g)), dim=1
-    ).requires_grad_(True)
+    jr_oob = torch.cat((y_atoms.clone(), torch.randn(32, 3, generator=g)), dim=1).requires_grad_(True)
     l_oob = loss_fn.joint_relativistic_loss(
         jf_oob, jr_oob, (jf_oob.sum(1) * 0.1), (jr_oob.sum(1) * 0.1), record=rec_oob
     )
@@ -673,10 +589,7 @@ def test_simplicial_manifold_loss_gating_and_thermal_cooling():
         l_s.backward()
         assert torch.isfinite(l_s)
         assert z_tab.grad is not None and float(z_tab.grad.abs().sum().item()) > 0.0
-        assert all(
-            p.grad is not None and torch.isfinite(p.grad).all()
-            for p in gen.parameters()
-        )
+        assert all(p.grad is not None and torch.isfinite(p.grad).all() for p in gen.parameters())
 
     # Thermal scale cooling scales simplicial gradients exactly
     z_tab = torch.randn(16, 2, generator=g, requires_grad=True)
@@ -753,11 +666,7 @@ def test_axiom_gan_loss_d_g_conditional_detach_capture_and_controls():
     )
     lg_c = gan_c.g_loss(df_c, dr_c.detach())
     lg_c.backward()
-    assert (
-        torch.isfinite(lg_c)
-        and x_c.grad is not None
-        and float(x_c.grad.abs().sum().item()) > 0.0
-    )
+    assert torch.isfinite(lg_c) and x_c.grad is not None and float(x_c.grad.abs().sum().item()) > 0.0
     assert rec_c.cond_initialized
 
     # Missing real_logits raises when weight > 0, succeeds when weight == 0
@@ -780,10 +689,7 @@ def test_axiom_gan_loss_d_g_conditional_detach_capture_and_controls():
     lj = gan_j.joint_g_loss(df_j, dr_j)
     lj.backward()
     assert torch.isfinite(lj) and jf.grad is not None and jr.grad is not None
-    assert (
-        float(jf.grad.abs().sum().item()) > 0.0
-        and float(jr.grad.abs().sum().item()) > 0.0
-    )
+    assert float(jf.grad.abs().sum().item()) > 0.0 and float(jr.grad.abs().sum().item()) > 0.0
 
 
 def test_clock_freedom_no_mutation_guards_and_zero_global_rng():
@@ -825,11 +731,7 @@ def test_clock_freedom_no_mutation_guards_and_zero_global_rng():
     rec_guard._in_protected_probe = True
     fn(x0.clone().requires_grad_(True), y, x0.sum(dim=1) * 0.1, d_r, record=rec_guard)
     rec_guard._in_protected_probe = False
-    assert (
-        not rec_guard.ell_initialized
-        and rec_guard.chart_state is None
-        and not rec_guard.thermal_initialized
-    )
+    assert not rec_guard.ell_initialized and rec_guard.chart_state is None and not rec_guard.thermal_initialized
 
     # Zero global RNG consumption across all transport + loss operations
     gen_net = nn.Sequential(nn.Linear(2, 12), nn.SiLU(), nn.Linear(12, 2))
@@ -858,9 +760,7 @@ def test_clock_freedom_no_mutation_guards_and_zero_global_rng():
     _cap(df_u, xf_u, rec_r)
     gl.d_loss(dr_u, df_u).backward(retain_graph=True)
     gl.g_loss(df_u, dr_u.detach()).backward()
-    gl.transport.simplicial_manifold_loss(
-        z_tab, gen_net, y_arc, record=S.AxiomStepRecord()
-    ).backward()
+    gl.transport.simplicial_manifold_loss(z_tab, gen_net, y_arc, record=S.AxiomStepRecord()).backward()
     rec_bi = S.AxiomStepRecord()
     T.prepare_axiom_transport_step(
         gl.transport,
@@ -870,9 +770,7 @@ def test_clock_freedom_no_mutation_guards_and_zero_global_rng():
         batch_rows=rows_bi,
         is_discrete_prior=True,
     )
-    gl.transport.joint_relativistic_loss(
-        jf_bi, jr_bi, jf_bi.sum(1) * 0.1, jr_bi.sum(1) * 0.1, record=rec_bi
-    ).backward()
+    gl.transport.joint_relativistic_loss(jf_bi, jr_bi, jf_bi.sum(1) * 0.1, jr_bi.sum(1) * 0.1, record=rec_bi).backward()
     gl.transport.conditional_fiber_loss(
         x_c,
         y_c,
@@ -904,9 +802,7 @@ def test_axiom_transport_and_loss_cuda():
     dr256 = torch.randn(16, generator=g).to(dev)
     c_cu = torch.randn(32, 2, generator=g).to(dev)
     yr_cu = c_cu * 1.2 + 0.2 * torch.randn(32, 2, generator=g).to(dev)
-    xf_cu = (c_cu * 0.9 + 0.3 * torch.randn(32, 2, generator=g).to(dev)).requires_grad_(
-        True
-    )
+    xf_cu = (c_cu * 0.9 + 0.3 * torch.randn(32, 2, generator=g).to(dev)).requires_grad_(True)
 
     py_rng = random.getstate()
     cpu_rng = torch.get_rng_state()
@@ -926,15 +822,9 @@ def test_axiom_transport_and_loss_cuda():
     assert rec.chart_state is not None and rec.chart_state["proto_c"].is_cuda
 
     # Simplicial manifold loss on CUDA
-    ls = gan_loss.transport.simplicial_manifold_loss(
-        z_tab, gen, y_sad, record=S.AxiomStepRecord()
-    )
+    ls = gan_loss.transport.simplicial_manifold_loss(z_tab, gen, y_sad, record=S.AxiomStepRecord())
     ls.backward()
-    assert (
-        torch.isfinite(ls)
-        and z_tab.grad is not None
-        and torch.isfinite(z_tab.grad).all()
-    )
+    assert torch.isfinite(ls) and z_tab.grad is not None and torch.isfinite(z_tab.grad).all()
 
     # >8x8 spatial projection + r256 fast path on CUDA
     T.project_features(img65, max_spatial=8).sum().backward()
@@ -978,12 +868,106 @@ def test_axiom_transport_and_loss_cuda():
         record=S.AxiomStepRecord(),
     )
     lc.backward()
-    assert (
-        torch.isfinite(lc)
-        and xf_cu.grad is not None
-        and torch.isfinite(xf_cu.grad).all()
-    )
+    assert torch.isfinite(lc) and xf_cu.grad is not None and torch.isfinite(xf_cu.grad).all()
 
     assert random.getstate() == py_rng
     assert torch.equal(torch.get_rng_state(), cpu_rng)
     assert torch.equal(torch.cuda.get_rng_state(dev), cuda_rng)
+
+
+def test_atomic_transit_shield_and_committed_ledger_kappa_override():
+    # Absent-atom transit shield must stay active (== 1.0) for atomic targets even far outside r_eff,
+    # and committed-ledger forward must override low contrast confidence kappa (e.g. {-1,+1}^8) to 1.0.
+    _, atoms256 = _make_exact_atoms(k=256, n=64, d=8, seed=13)
+    assert float(T.compute_contrast_confidence(atoms256[:64]).item()) < 0.6
+
+    rec = S.AxiomStepRecord()
+    _seed_exact_atlas(rec, atoms256)
+    z_tab = torch.randn(256, 4, generator=torch.Generator().manual_seed(19))
+    rows = torch.arange(64)
+    y_subset = atoms256[64:128]  # atoms 0..63 are absent from this minibatch
+    fn = T.AxiomTransportLoss()
+    T.prepare_axiom_transport_step(fn, rec, y_subset, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True)
+    # Place fake particles far from their assigned absent atoms (outside r_eff)
+    x_far = (atoms256[:64] + 1.5).requires_grad_(True)
+    _, absent, _, _, assign = fn._route_charts(x_far, y_subset, x_far, torch.tensor(0.2), 0.0, rec, True)
+    assert assign is not None and absent is not None
+    # Absent committed rows get full atomic transit shielding (~1.0) despite dist_t >> r_eff
+    hits = torch.bincount(T.safe_cdist(y_subset, atoms256).argmin(1), minlength=256)
+    absent_mask = hits[assign.batch_comp] <= 0
+    assert bool(absent_mask.any())
+    assert float(absent[absent_mask].min().item()) > 0.99
+
+    # Committed ledger overrides kappa to 1.0 so route_loss is not crushed by low contrast confidence
+    x_far2 = (atoms256[:64] + 1.5).requires_grad_(True)
+    df = torch.zeros(64, requires_grad=True)
+    dr = torch.zeros(64)
+    T.prepare_axiom_transport_step(fn, rec, y_subset, prior_table=z_tab, batch_rows=rows, is_discrete_prior=True)
+    lv = fn(x_far2, y_subset, df, dr, record=rec, allow_state_update=False)
+    lv.backward()
+    assert torch.isfinite(lv) and x_far2.grad is not None and float(x_far2.grad.norm().item()) > 0.05
+
+
+def test_continuous_quota_routing_conservation_zero_halo_pull_and_checkpoint():
+    # Exact quota conservation of _gpu_quota_assign across multi-component scores
+    g = torch.Generator().manual_seed(29)
+    scores = torch.randn(64, 17, generator=g)
+    weights = torch.rand(17, generator=g).clamp_min(1e-3)
+    quotas = T.hamilton_quotas(64, weights, min_one_when_feasible=False)
+    win = T._gpu_quota_assign(scores, quotas)
+    assert win.shape == (64,) and torch.equal(torch.bincount(win, minlength=17), quotas)
+
+    # Zero pull inside balanced halos & positive surplus->deficit transfer + exact w_fake_ema continuation
+    centers = torch.tensor([[-5.0, -5.0], [-5.0, 5.0], [5.0, -5.0], [5.0, 5.0]], dtype=torch.float32)
+    at = A.PrototypeAtlas(max_prototypes=16)
+    at.initialized, at.dim = True, 2
+    at.proto_c = centers.clone()
+    at.proto_cov = A.cov_from_scalar(torch.full((4,), 0.04), 2)
+    at.proto_w = torch.full((4,), 0.25)
+    at.w_fake_ema = torch.full((4,), 0.25)
+    at.proto_n = torch.full((4,), 32.0)
+    at.psi = torch.zeros(4)
+    at.v_push = torch.full((4,), 0.04)
+    at._rho_atom_f, at._g_conn_f = 0.5, 0.0
+    coal = at.coalesce()
+    nn_d = T.safe_cdist(coal.comp_c, diag_inf=True).amin(1)
+    r_halo = (2.1 * (2.0 * A.cov_trace_mean(coal.comp_cov)).sqrt()).minimum(0.35 * nn_d)
+
+    # Balanced inside halos -> strictly zero route_w
+    x_bal = centers.repeat_interleave(16, dim=0) + 0.05 * torch.randn(64, 2, generator=g)
+    _, _, rw_bal, _ = T._continuous_quota_route(
+        x_bal,
+        at,
+        coal,
+        r_halo,
+        nn_d,
+        torch.full((4,), 16),
+        torch.tensor(0.2),
+        torch.tensor(1.0),
+        2.1,
+        1.0,
+        False,
+    )
+    assert rw_bal is not None and float(rw_bal.abs().max().item()) == 0.0
+
+    # Surplus on modes 0,1 and deficit on modes 2,3 -> routes surplus particles to modes 2,3 and conserves unit mass
+    at.w_fake_ema = torch.tensor([0.5, 0.5, 0.0, 0.0])
+    x_sur = centers[:2].repeat_interleave(32, dim=0) + 0.05 * torch.randn(64, 2, generator=g)
+    tgt_c, _, rw_reb, _ = T._continuous_quota_route(
+        x_sur,
+        at,
+        coal,
+        r_halo,
+        nn_d,
+        torch.full((4,), 16),
+        torch.tensor(0.2),
+        torch.tensor(1.0),
+        2.1,
+        1.0,
+        True,
+    )
+    assert tgt_c is not None and rw_reb is not None
+    assert int((rw_reb > 0).sum().item()) >= 16
+    assert int((tgt_c[:, 0] > 0.0).sum().item()) >= 16
+    assert abs(float(at.w_fake_ema.sum().item()) - 1.0) <= 1e-6
+    A.validate_atlas_state(at.state_dict())

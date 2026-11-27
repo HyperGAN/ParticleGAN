@@ -6,7 +6,7 @@ import math
 from typing import Any
 
 import torch
-from torch import Tensor, arange, cat, einsum, eye, full, ones, softmax, tensor, where, zeros, zeros_like
+from torch import Tensor, arange, cat, einsum, eye, full, no_grad, ones, softmax, tensor, where, zeros, zeros_like
 import torch.nn.functional as F
 
 from .math_ops import (
@@ -20,6 +20,7 @@ from .math_ops import (
 SCHEMA_VERSION = 2
 MAX_STRATA = 64
 MAX_RING_CAPACITY = 384
+_F32, _F64, _BOOL, _LONG = torch.float32, torch.float64, torch.bool, torch.long
 
 _PACKET_KEYS = frozenset(("schema", "d_c", "d_x", "strata"))
 _SCALAR_KEYS = ("n_eff", "n_fast", "w_eff", "w_fast")
@@ -57,28 +58,26 @@ def _require(cond: bool, msg: str = "invalid fiber bank state") -> None:
         raise ValueError(msg)
 
 
-def _can_mutate_state(record: Any, allow_update: bool) -> bool:
+def _can_mutate_state(record, allow_update: bool) -> bool:
     in_probe = getattr(record, "_in_probe", False) or getattr(record, "_in_protected_probe", False)
     return allow_update and torch.is_grad_enabled() and not in_probe
 
 
-def _clone_stratum(entry: dict[str, Any]) -> dict[str, Any]:
+def _clone_stratum(entry):
     return {
         **{k: float(entry[k]) for k in _SCALAR_KEYS},
         **{k: entry[k].detach().cpu().double().clone() for k in _F64_KEYS},
     }
 
 
-def _whiten_cov(cov: Tensor, floor: float = 1e-4) -> Tensor:
-    """Symmetric FP64 inverse-square-root whitener via Newton-Schulz."""
+def _whiten_cov(cov, floor: float = 1e-4):
     sym = 0.5 * (cov + cov.mT)
     diag_mean = sym.diagonal().mean().clamp_min(0).item()
     eps = max(1e-4 * max(diag_mean, floor), 1e-6) if floor > 0 else (1e-4 * diag_mean if diag_mean > 1e-12 else 1e-6)
     return sym_inv_sqrt_ns(sym, eps=eps)
 
 
-def _eval_basis(c: Tensor, mu_c: Tensor, w_c: Tensor, tail_gain: float):
-    """Evaluate whitened context basis, tail-leverage weights, and whitened coordinates."""
+def _eval_basis(c, mu_c, w_c, tail_gain: float):
     u = (c - mu_c[None]) @ w_c
     r_sq = u.square().mean(1)
     r = r_sq.clamp_min(1e-6).sqrt()
@@ -87,8 +86,7 @@ def _eval_basis(c: Tensor, mu_c: Tensor, w_c: Tensor, tail_gain: float):
     return cat((c.new_ones((c.shape[0], 1)), u, h, q * u), 1), 1 + tail_gain * r_sq.clamp_max(4.5), u
 
 
-def _imq_kernel_3scale(a: Tensor, b: Tensor, eps: Tensor) -> Tensor:
-    """Three-scale IMQ kernel on whitened conditional fiber residuals."""
+def _imq_kernel_3scale(a, b, eps):
     sq_dist = a.square().sum(-1, keepdim=True) + b.square().sum(-1)[None] - 2 * (a @ b.T)
     sq_dist = sq_dist + (sq_dist.detach().clamp_min(0) - sq_dist.detach())
     acc = sq_dist.new_zeros(sq_dist.shape)
@@ -99,13 +97,13 @@ def _imq_kernel_3scale(a: Tensor, b: Tensor, eps: Tensor) -> Tensor:
     return acc * (1 / 3)
 
 
-def _check_f64_tensor(val: Any, shape: tuple[int, ...] | None = None) -> Tensor:
-    _require(isinstance(val, Tensor) and val.dtype == torch.float64 and (shape is None or tuple(val.shape) == shape))
+def _check_f64_tensor(val, shape=None):
+    _require(isinstance(val, Tensor) and val.dtype == _F64 and (shape is None or tuple(val.shape) == shape))
     _require(bool(val.isfinite().all()))
     return val
 
 
-def _validate_stratum(entry: Any, d_c: int, d_x: int, p_dim: int, seen: set[tuple[int, ...]]) -> None:
+def _validate_stratum(entry, d_c: int, d_x: int, p_dim: int, seen) -> None:
     _require(isinstance(entry, dict) and set(entry) == _STRATUM_KEYS)
     key = entry["key"]
     _require(isinstance(key, tuple) and bool(key) and all(type(v) is int for v in key) and key not in seen)
@@ -180,8 +178,8 @@ class AxiomCondFiberBank:
         dup.load_state_dict(self.state_dict())
         return dup
 
-    def _ridge_vec(self, d_c: int) -> Tensor:
-        ridge = full((self.basis_dim(d_c),), self.nl_ridge * math.sqrt(d_c), dtype=torch.float64, device="cpu")
+    def _ridge_vec(self, d_c: int):
+        ridge = full((self.basis_dim(d_c),), self.nl_ridge * math.sqrt(d_c), dtype=_F64, device="cpu")
         ridge[: 1 + d_c] = self.lin_ridge
         return ridge
 
@@ -199,7 +197,7 @@ class AxiomCondFiberBank:
     validate_state_dict = staticmethod(validate_fiber_bank_state)
     to_packet, load_packet, validate_packet = state_dict, load_state_dict, validate_state_dict
 
-    @torch.no_grad()
+    @no_grad()
     def query_stratum(self, key: tuple[int, ...], c_g: Tensor, x_g: Tensor, y_g: Tensor) -> dict[str, Any] | None:
         """Query pre-update FP64 stratum drift, whitener, and local covariance operators."""
         d_c, d_x, dev = c_g.shape[1], x_g.shape[1], c_g.device
@@ -234,7 +232,7 @@ class AxiomCondFiberBank:
             dist_qr = torch.cdist(u_q, u_r, p=2.0)
             k_eff = min(self.knn_k, max(6, ring_len // 5), ring_len)
             bw = dist_qr.topk(k_eff, 1, largest=False).values[:, -1].clamp_min(0.25 * math.sqrt(d_c))
-            age = arange(ring_len - 1, -1, -1, dtype=torch.float64, device=u_q.device) / 128
+            age = arange(ring_len - 1, -1, -1, dtype=_F64, device=u_q.device) / 128
             logits = -0.5 * (dist_qr / bw[:, None]).square() - age[None]
             alpha, m_pool_r = softmax(logits - logits.amax(1, keepdim=True), 1), phi_r @ b_pool
             res_x_r, res_y_r = ring_x - m_pool_r, ring_y - m_pool_r
@@ -266,7 +264,7 @@ class AxiomCondFiberBank:
                     out[k] = v.to(dev)
         return out
 
-    @torch.no_grad()
+    @no_grad()
     def update_stratum(
         self, key: tuple[int, ...], c_g: Tensor, x_g: Tensor, y_g: Tensor, *, z_innov: float = 0.0
     ) -> None:
@@ -336,17 +334,17 @@ class AxiomCondFiberBank:
             self.strata[key] = dict(zip(_SCALAR_KEYS + _F64_KEYS, vals))
 
 
-def _partition_strata(batch_n: int, cond_disc: Tensor | None):
+def _partition_strata(batch_n: int, cond_disc):
     if cond_disc is None:
-        return [((0,), arange(batch_n, dtype=torch.long))], ones((batch_n, batch_n), dtype=torch.bool)
-    rows = cond_disc.detach().reshape(batch_n, -1).to("cpu", torch.int64)
+        return [((0,), arange(batch_n, dtype=_LONG))], ones((batch_n, batch_n), dtype=_BOOL)
+    rows = cond_disc.detach().reshape(batch_n, -1).to("cpu", _LONG)
     buckets: dict[tuple[int, ...], list[int]] = {}
     for idx, row in enumerate(rows.tolist()):
         buckets.setdefault(tuple(int(v) for v in row), []).append(idx)
-    return [(k, tensor(buckets[k], dtype=torch.long)) for k in sorted(buckets)], (rows[:, None] == rows[None]).all(-1)
+    return [(k, tensor(buckets[k], dtype=_LONG)) for k in sorted(buckets)], (rows[:, None] == rows[None]).all(-1)
 
 
-def _fallback_midpoint_regression(c: Tensor, z: Tensor, groups):
+def _fallback_midpoint_regression(c, z, groups):
     d_c, m_hat = c.shape[1], zeros_like(z)
     for _, idx in groups:
         z_g, z_mean = z[idx], z[idx].mean(0)
@@ -359,13 +357,9 @@ def _fallback_midpoint_regression(c: Tensor, z: Tensor, groups):
     return m_hat
 
 
-def _query_and_update_bank(bank, groups, c: Tensor, x: Tensor, y: Tensor, mutate: bool, mean_blend: float):
-    """Query pre-update bank operators per stratum, apply cold-start fallback, then update."""
+def _query_and_update_bank(bank, groups, c, x, y, mutate: bool, mean_blend: float):
     batch_n, d_x = x.shape
-    has_op, w_op = (
-        zeros(batch_n, dtype=torch.bool),
-        eye(d_x, dtype=torch.float64)[None].expand(batch_n, d_x, d_x).clone(),
-    )
+    has_op, w_op = zeros(batch_n, dtype=_BOOL), eye(d_x, dtype=_F64)[None].expand(batch_n, d_x, d_x).clone()
     delta_m, m_x, m_pool = x.new_zeros((3, batch_n, d_x)).unbind(0)
     err_cov, row_w, m_gate = x.new_zeros((batch_n, d_x, d_x)), x.new_zeros(batch_n), x.new_zeros((batch_n, 1))
     pending, max_mean_err = [], 0.0
@@ -400,8 +394,7 @@ def _query_and_update_bank(bank, groups, c: Tensor, x: Tensor, y: Tensor, mutate
     return m_hat, w_op, delta_m, m_x, err_pos, err_neg, row_w, any_op, max_mean_err
 
 
-def _compute_imq_graph(c_w: Tensor, y_w: Tensor, same_stratum: Tensor, mask_valid: Tensor, valid_rows: Tensor):
-    """Build adaptive local-bandwidth Gaussian context graph and IMQ kernel scales."""
+def _compute_imq_graph(c_w, y_w, same_stratum, mask_valid, valid_rows):
     dist = safe_cdist(c_w).to(c_w.dtype)
     d_max = dist.amax()
     d_unit = where(d_max > 0, dist / d_max.clamp_min(1e-30), dist)
@@ -420,7 +413,7 @@ def _compute_imq_graph(c_w: Tensor, y_w: Tensor, same_stratum: Tensor, mask_vali
     return 0.5 * (weights + weights.mT), where(valid_rows[:, None], eps_sq.sqrt().clamp_min(eps_floor), 1.0)
 
 
-def _resolve_fiber_bank(record: Any, bank: AxiomCondFiberBank | None) -> AxiomCondFiberBank | None:
+def _resolve_fiber_bank(record, bank):
     if bank is not None or record is None:
         return bank
     cached = getattr(record, "_cond_bank_obj", None)
@@ -433,7 +426,7 @@ def _resolve_fiber_bank(record: Any, bank: AxiomCondFiberBank | None) -> AxiomCo
     return new_bank
 
 
-def _fiber_operator_loss(x_w: Tensor, y_det: Tensor, w_op: Tensor, ops, mean_w: float, cov_w: float, out_dt):
+def _fiber_operator_loss(x_w, y_det, w_op, ops, mean_w: float, cov_w: float, out_dt):
     dev, dt, inv_d = x_w.device, x_w.dtype, 1 / max(1, x_w.shape[-1])
     delta_m, m_x, err_pos, err_neg, row_w = (t.to(dev, dt) for t in ops)
     loss = x_w.new_zeros((), dtype=out_dt)
@@ -450,9 +443,7 @@ def _fiber_operator_loss(x_w: Tensor, y_det: Tensor, w_op: Tensor, ops, mean_w: 
     return loss
 
 
-def _update_cond_ema(
-    record: Any, weights: Tensor, p_xy: Tensor, p_xx: Tensor, p_yy: Tensor, max_mean_err: float
-) -> None:
+def _update_cond_ema(record, weights, p_xy, p_xx, p_yy, max_mean_err: float) -> None:
     num = (weights * (2 * p_xy.detach() - p_xx.detach() - p_yy)).sum()
     rel_imq = max(-0.5, min(0.5, (num / (weights * p_yy).sum().clamp_min(1e-8)).item()))
     rel_cond = rel_imq + min(0.5, 0.11 * max(0.0, max_mean_err - 0.1))
@@ -484,10 +475,10 @@ def conditional_fiber_loss(
         return x_fake[:0].sum()
     x_flat, y_flat = x_fake.reshape(batch_n, -1), y_real.detach().reshape(batch_n, -1)
     dev, d_raw = x_flat.device, x_flat.shape[-1]
-    dim, work_dt = max(1, d_raw), (torch.float64 if x_flat.dtype == torch.float64 else torch.float32)
+    dim, work_dt = max(1, d_raw), (_F64 if x_flat.dtype == _F64 else _F32)
     fmax = torch.finfo(x_flat.dtype).max * (0.25 / math.sqrt(dim + 1))
     mutate, resolved_bank = _can_mutate_state(record, allow_state_update), _resolve_fiber_bank(record, bank)
-    with torch.no_grad():
+    with no_grad():
         groups, same_cpu = _partition_strata(batch_n, cond_disc)
         if not any(idx.numel() >= 2 for _, idx in groups):
             return x_fake[:0].sum()
@@ -496,9 +487,7 @@ def conditional_fiber_loss(
             x_flat.detach().to(work_dt),
             y_flat.to(work_dt),
         )
-        c_cpu, x_cpu, y_cpu = (
-            cat((c_w, x_det, y_det), 1).to("cpu", torch.float64).split((c_w.shape[1], d_raw, d_raw), 1)
-        )
+        c_cpu, x_cpu, y_cpu = cat((c_w, x_det, y_det), 1).to("cpu", _F64).split((c_w.shape[1], d_raw, d_raw), 1)
         m_hat_c, w_op_c, *ops, any_op, max_err = _query_and_update_bank(
             resolved_bank, groups, c_cpu, x_cpu, y_cpu, mutate, float(bank_mean_blend)
         )
@@ -524,7 +513,7 @@ def conditional_fiber_loss(
         else x_flat.new_zeros(())
     )
     if mutate and hasattr(record, "cond_initialized"):
-        with torch.no_grad():
+        with no_grad():
             _update_cond_ema(record, weights, p_xy, p_xx, p_yy, max_err)
     return ((float(imq_active_scale) if has_ops else 1) * loss_imq + loss_op).clamp(-fmax, fmax).to(x_flat.dtype)
 

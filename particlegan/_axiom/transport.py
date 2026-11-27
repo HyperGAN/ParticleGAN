@@ -7,12 +7,29 @@ from typing import Any, Callable
 import weakref
 
 import torch
-from torch import Tensor, arange, bincount, cat, eye, nn, quantile, searchsorted, softmax, stack, where
+from torch import (
+    Tensor,
+    arange,
+    bincount,
+    cat,
+    eye,
+    full,
+    nn,
+    no_grad,
+    ones,
+    quantile,
+    searchsorted,
+    softmax,
+    stack,
+    where,
+    zeros_like,
+)
 import torch.nn.functional as F
 
 from .atlas import (
     MAX_LEDGER_PARTICLES,
     PrototypeAtlas,
+    _group_rank,
     batch_annular_gap_ratio,
     cov_trace_mean,
     manifold_connectivity_stats,
@@ -22,6 +39,7 @@ from .math_ops import (
     PHI1,
     PHI2,
     born_infeld_cost,
+    hamilton_quotas,
     log_sinkhorn,
     power_principal_axis,
     safe_cdist,
@@ -32,6 +50,7 @@ from .math_ops import (
 from .state import recover_active_prior_rows, set_active_prior_rows
 
 _INF = float("inf")
+_F32, _F64, _BOOL, _LONG = torch.float32, torch.float64, torch.bool, torch.long
 _ATLAS_EXPORT_KEYS = (
     "max_prototypes",
     "beta_n",
@@ -66,20 +85,20 @@ _TRANSPORT_DEFAULTS: dict[str, Any] = {
 }
 
 
-def _scale_grad(tensor: Tensor, scale: float) -> Tensor:
+def _scale_grad(tensor, scale: float):
     return (tensor * scale + tensor.detach() * (1 - scale)) if (scale < 1 and tensor.requires_grad) else tensor
 
 
-def _can_mutate_state(record: Any, allow_update: bool = True) -> bool:
+def _can_mutate_state(record, allow_update: bool = True) -> bool:
     in_probe = getattr(record, "_in_probe", False) or getattr(record, "_in_protected_probe", False)
     return allow_update and torch.is_grad_enabled() and not in_probe
 
 
-def _flatten_logits(logits: Tensor) -> Tensor:
+def _flatten_logits(logits):
     return logits.reshape(logits.shape[0], -1).mean(1) if logits.ndim > 1 else logits.reshape(-1)
 
 
-def _compute_log_odds(d_fake: Tensor, d_real: Tensor, cap: float = 20.0):
+def _compute_log_odds(d_fake, d_real, cap: float = 20.0):
     fake_flat, real_flat = _flatten_logits(d_fake), _flatten_logits(d_real.detach())
     mid = 0.5 * (fake_flat.detach().double().mean() + real_flat.double().mean())
     return (
@@ -106,9 +125,14 @@ def _valid_prior_binding(prior_table, batch_rows, batch_n: int) -> bool:
     )
 
 
-def _positive_quantile(dist: Tensor, mask: Tensor, divisor: int) -> Tensor:
+def _positive_quantile(dist, mask, divisor: int):
     vals = where(mask, dist, _INF).reshape(-1).sort().values
     return vals[(mask.sum() // divisor).clamp_max(vals.numel() - 1)]
+
+
+def _ema_blend(prev, cur):
+    ratio = (cur / prev.clamp_min(1e-30)).maximum(prev / cur.clamp_min(1e-30))
+    return prev.lerp(cur, 0.1 + 0.7 * (ratio > 8).to(cur.dtype))
 
 
 def project_features(x: Tensor, max_spatial: int = 8, max_flat_dim: int = 256) -> Tensor:
@@ -137,7 +161,7 @@ def project_features(x: Tensor, max_spatial: int = 8, max_flat_dim: int = 256) -
 project_transport_features = project_features
 
 
-@torch.no_grad()
+@no_grad()
 def compute_contrast_confidence(y_feat: Tensor, *, max_b: int = 64) -> Tensor:
     """Sync-free continuous distance-contrast confidence kappa_struct(Y)."""
     z = y_feat.reshape(y_feat.shape[0], -1).float()
@@ -154,7 +178,7 @@ def compute_contrast_confidence(y_feat: Tensor, *, max_b: int = 64) -> Tensor:
     return where(sorted_all[-1] <= 1e-24, 1.0, smoothstep01((0.65 - med_nn / med_all) / 0.35))
 
 
-@torch.no_grad()
+@no_grad()
 def compute_discrete_atomic_gate(
     y_cf: Tensor, *, charts: Tensor | None = None, radii: Tensor | None = None, record: Any = None
 ) -> float:
@@ -163,7 +187,7 @@ def compute_discrete_atomic_gate(
     if y.shape[0] < 8:
         return 0.0
     if charts is not None and charts.shape[0] >= 4:
-        c = charts.to(y.device, torch.float32)
+        c = charts.to(y.device, _F32)
         sep = quantile(safe_cdist(c, diag_inf=True).amin(1), 0.5)
         q_rad = quantile(radii.float(), 0.75) if radii is not None else y.new_zeros(())
         if ((sep > 1e-12) & (quantile(safe_cdist(y, c).amin(1), 0.75) < 1e-3 * sep) & (q_rad < 1e-3 * sep)).item():
@@ -183,11 +207,11 @@ def compute_discrete_atomic_gate(
     return where((d_max > 1e-24) & (n_atom >= 2) & sep_mask.any(), gate, 0.0).item()
 
 
-@torch.no_grad()
-def _batch_ell(y: Tensor, q: float = 0.25) -> Tensor:
+@no_grad()
+def _batch_ell(y, q: float = 0.25):
     batch_n = y.shape[0]
     if batch_n <= 1:
-        return y.new_tensor(1.0, dtype=torch.float32)
+        return y.new_tensor(1.0, dtype=_F32)
     a_exp = max(0.0, 1 / max(1, y.shape[-1]) - 0.5)
     a_fac = ((2 * math.e * batch_n) / max(1e-6, -math.log(max(1e-6, 1 - q)))) ** a_exp if a_exp > 0 else 1.0
     dist = safe_cdist(y)
@@ -199,8 +223,8 @@ def _batch_ell(y: Tensor, q: float = 0.25) -> Tensor:
     return where(d_max <= 0, 1e-3, val.clamp_min(tol))
 
 
-@torch.no_grad()
-def _valley_radius(y: Tensor, d_yy: Tensor) -> Tensor:
+@no_grad()
+def _valley_radius(y, d_yy):
     far_idx = d_yy.topk(min(y.shape[0] - 1, 2), -1).indices[:, -1]
     mid_dist = safe_cdist(0.5 * (y + y[far_idx]), y)
     rows = arange(y.shape[0], device=y.device)
@@ -208,9 +232,8 @@ def _valley_radius(y: Tensor, d_yy: Tensor) -> Tensor:
     return quantile(mid_dist.amin(-1), 0.85)
 
 
-@torch.no_grad()
-def _conformal_horizon(x: Tensor, y: Tensor, ell: Tensor, g_conn: float, has_cond: bool):
-    """Compute conformal per-point horizon scales when local spacing varies strongly."""
+@no_grad()
+def _conformal_horizon(x, y, ell, g_conn: float, has_cond: bool):
     if g_conn > 0.5 or has_cond or x.shape[0] < 12 or y.shape[0] < 12:
         return ell, ell, None, None, None
     ell_f = ell.float().clamp_min(1e-30)
@@ -236,9 +259,8 @@ def _conformal_horizon(x: Tensor, y: Tensor, ell: Tensor, g_conn: float, has_con
     return ell_xy, ell_xx, ell_x, ell_y, d_yy
 
 
-@torch.no_grad()
-def _hetero_horizon(x, y, ell, ell_x_c, ell_y_c, d_yy_cache, w_cluster, g_conn: float, record: Any):
-    """Adapt local horizons for multi-density / sparse-cluster targets."""
+@no_grad()
+def _hetero_horizon(x, y, ell, ell_x_c, ell_y_c, d_yy_cache, w_cluster, g_conn: float, record):
     d_yy = d_yy_cache.clone() if d_yy_cache is not None else safe_cdist(y)
     d_zero, ell_b = d_yy.clone().fill_diagonal_(0), ell.float().clamp_min(1e-30)
     valley_w = smoothstep01((_valley_radius(y.float(), d_zero) / (2 * ell_b) - 2.55) / 1.5) * (1 - g_conn)
@@ -273,8 +295,8 @@ def _hetero_horizon(x, y, ell, ell_x_c, ell_y_c, d_yy_cache, w_cluster, g_conn: 
     )
 
 
-def _outlier_pull_loss(cost_xy, c_hat_xy, ell_y, nn1, d_fake, slack_frac, g_het, p_align, rho: float) -> Tensor:
-    with torch.no_grad():
+def _outlier_pull_loss(cost_xy, c_hat_xy, ell_y, nn1, d_fake, slack_frac, g_het, p_align, rho: float):
+    with no_grad():
         ey, cf = ell_y.float().clamp_min(1e-30), c_hat_xy.float()
         row_min = cf.amin(1)
         t_gap = (2.1 * quantile(((ey.square() + nn1.square()).sqrt() - ey) / ey, 0.98)).clamp_min(4.2 * rho)
@@ -288,12 +310,11 @@ def _outlier_pull_loss(cost_xy, c_hat_xy, ell_y, nn1, d_fake, slack_frac, g_het,
     return 2.2 * ((out_w.to(cost_xy.dtype) / cost_xy.shape[0])[:, None] * soft_w * cost_xy).sum()
 
 
-def _orphan_macro_loss(x, y, c_hat_xy, p_row_slack, p_col_slack, *, rho: float, g_conn: float) -> Tensor:
-    """Rescue isolated real modes via k=4 + KDE orphan gating and 1D-quantile Sinkhorn matching."""
+def _orphan_macro_loss(x, y, c_hat_xy, p_row_slack, p_col_slack, *, rho: float, g_conn: float):
     n_fake, n_real = x.shape[0], y.shape[0]
     if n_fake < 2 or n_real < 2 or g_conn > 0.05:
         return x[:0].sum()
-    with torch.no_grad():
+    with no_grad():
         orphan_g = smoothstep01((c_hat_xy.float().amin(0) - 2.8 * rho) / max(1.2 * rho, 1e-6))
         d_xy, y_f = safe_cdist(x, y), y.float()
         if n_real >= 8 and n_fake >= 8:
@@ -319,7 +340,7 @@ def _orphan_macro_loss(x, y, c_hat_xy, p_row_slack, p_col_slack, *, rho: float, 
         if k_sel == n_fake:
             sel_idx = arange(n_fake, device=x.device)
         else:
-            tie = 1e-4 * (((arange(n_fake, device=x.device, dtype=torch.float32) + 0.5) * PHI1) % 1)
+            tie = 1e-4 * (((arange(n_fake, device=x.device, dtype=_F32) + 0.5) * PHI1) % 1)
             score = 1.5 * (n_fake * p_row_slack.float()).clamp(0, 1) - 0.65 * (d_orph / med_d).clamp_max(4) + tie
             sel_idx = score.topk(k_sel).indices.sort().values
         q_prob = (q_mass + 1e-7) / (q_mass + 1e-7).sum().clamp_min(1e-12)
@@ -338,9 +359,8 @@ def _orphan_macro_loss(x, y, c_hat_xy, p_row_slack, p_col_slack, *, rho: float, 
     return born_infeld_cost(x[sel_idx], y_match, (0.25 * med_d).clamp_min(1e-30), aligned=True)[0].sum() / n_fake
 
 
-@torch.no_grad()
-def _batch_residuals(x: Tensor, y: Tensor, ell: Tensor, cap_gain: float = 0.58):
-    """Compute energy, mean, spread, and upper-tail quantile residuals for thermal control."""
+@no_grad()
+def _batch_residuals(x, y, ell, cap_gain: float = 0.58):
     x_f, y_f = x.reshape(x.shape[0], -1).float(), y.reshape(y.shape[0], -1).float()
     n_x, n_y = x_f.shape[0], y_f.shape[0]
     d_xy, d_xx, d_yy = safe_cdist(x_f, y_f), safe_cdist(x_f), safe_cdist(y_f)
@@ -370,15 +390,15 @@ def _batch_residuals(x: Tensor, y: Tensor, ell: Tensor, cap_gain: float = 0.58):
     return r_energy, r_mean, r_spread, q_fg, q_cov
 
 
-def _split_joint_prior_batch(x_fake: Tensor, y_real: Tensor, prior_table, batch_rows):
+def _split_joint_prior_batch(x_fake, y_real, prior_table, batch_rows):
     n_fake, n_real = x_fake.shape[0], y_real.shape[0]
     if not _valid_prior_binding(prior_table, batch_rows, n_fake) or n_fake < 4 or n_real < 4:
         return None
     z_dim, xf, yf = prior_table.shape[1], x_fake.reshape(n_fake, -1), y_real.reshape(n_real, -1)
     if xf.shape[1] <= z_dim or yf.shape[1] != xf.shape[1]:
         return None
-    rows_l = batch_rows.to(prior_table.device, torch.long)
-    z_ref = prior_table.detach()[rows_l.clamp(0, prior_table.shape[0] - 1)].to(xf.device, torch.float32)
+    rows_l = batch_rows.to(prior_table.device, _LONG)
+    z_ref = prior_table.detach()[rows_l.clamp(0, prior_table.shape[0] - 1)].to(xf.device, _F32)
     oob = ((rows_l < 0).any() | (rows_l >= prior_table.shape[0]).any()).float().to(xf.device)
     tail_err = (xf[:, -z_dim:].detach().float() - z_ref).abs().amax()
     head_err = (xf[:, :z_dim].detach().float() - z_ref).abs().amax()
@@ -390,16 +410,91 @@ def _split_joint_prior_batch(x_fake: Tensor, y_real: Tensor, prior_table, batch_
     return (xf[:, z_dim:], xf[:, :z_dim], yf[:, z_dim:], yf[:, :z_dim]) if head_v <= 1e-5 else None
 
 
-def _halo_born_infeld(x: Tensor, target: Tensor, r_halo: Tensor, ell: Tensor) -> Tensor:
+def _halo_born_infeld(x, target, r_halo, ell, weights=None):
     ell_c = ell.detach().float().clamp_min(1e-30)
     sq_d = (x.float() - target.detach().float()).square().sum(-1)
     excess = F.relu((sq_d + (1e-12 * ell_c).square().clamp_min(1e-36)).sqrt() - r_halo.detach().float())
-    return (excess.square() / ((ell_c.square() + excess.square()).sqrt() + ell_c).clamp_min(1e-30)).mean().to(x.dtype)
+    per_row = excess.square() / ((ell_c.square() + excess.square()).sqrt() + ell_c).clamp_min(1e-30)
+    if weights is not None:
+        per_row = weights.detach().float() * per_row
+    return per_row.mean().to(x.dtype)
 
 
-@torch.no_grad()
-def _curve_gate(y: Tensor, g_conn: float) -> float:
-    """Measure local 1D-curve anisotropy for manifold interpolation."""
+@no_grad()
+def _gpu_quota_assign(scores, quotas):
+    n_rows, n_cols, dev = scores.shape[0], scores.shape[1], scores.device
+    weyl = ((arange(n_rows, device=dev, dtype=_F32) + 0.5) * PHI1).remainder(1.0)
+    win, rem = full((n_rows,), -1, dtype=_LONG, device=dev), quotas.clone()
+    unassigned = ones(n_rows, dtype=_BOOL, device=dev)
+    for _ in range(4):
+        best_s, best_c = scores.masked_fill((rem <= 0)[None], -_INF).max(1)
+        group_key = where(unassigned & best_s.isfinite(), best_c, n_cols)
+        order, sorted_g, rank = _group_rank(group_key, -best_s.clamp(-1e6, 1e6), weyl, n_cols)
+        keep = (sorted_g < n_cols) & (rank < rem[sorted_g.clamp_max(n_cols - 1)])
+        accept = zeros_like(unassigned).scatter_(0, order, keep)
+        win, unassigned = where(accept, best_c, win), unassigned & (~accept)
+        rem = (rem - bincount(where(accept, best_c, n_cols), minlength=n_cols + 1)[:n_cols]).clamp_min(0)
+    comp_order = (-scores.masked_fill(~unassigned[:, None], -_INF).amax(0)).clamp(-1e6, 1e6).argsort(stable=True)
+    slot_ends, ranks = rem[comp_order].cumsum(0), arange(n_rows, device=dev, dtype=_LONG)
+    slot_comp = comp_order[searchsorted(slot_ends, ranks, right=True).clamp_max(n_cols - 1)]
+    rem_s = scores.masked_fill((rem <= 0)[None], -_INF).amax(1)
+    row_order = where(unassigned, -rem_s.clamp(-1e6, 1e6) + 1e-6 * weyl, 1e12).argsort(stable=True)
+    fb = full((n_rows,), -1, dtype=_LONG, device=dev).scatter_(
+        0, row_order, where(unassigned[row_order] & (ranks < slot_ends[-1]), slot_comp, -1)
+    )
+    return where(unassigned & (fb >= 0), fb.clamp_min(0), win)
+
+
+@no_grad()
+def _continuous_quota_route(
+    x_proj, atlas, coal, r_halo, nn_dist, batch_hits, ell_c, w_cluster, halo_mult, s_th, mutate
+):
+    bf, k_c = x_proj.shape[0], coal.comp_c.shape[0]
+    wr = coal.comp_w.float()
+    rad_k = (coal.comp_c.shape[1] * cov_trace_mean(coal.comp_cov)).clamp_min(0).sqrt()
+    r_c = r_halo.clamp_min(0.02 * halo_mult * nn_dist).minimum(0.35 * nn_dist)
+    r_bas = (1.35 * r_c).maximum(2.5 * rad_k)
+    near_d, near_i = safe_cdist(x_proj.detach(), coal.comp_c).min(1)
+    cur_fm = F.one_hot(coal.proto_comp_id, k_c).float().T @ atlas.w_fake_ema.float()
+    bf_frac = (F.one_hot(near_i, k_c).float() * (near_d <= r_bas[near_i]).float()[:, None]).sum(0) / max(1, bf)
+    al_f = min(0.35, max(0.025, 0.08 * ((bf / max(1, k_c)) ** 0.45)))
+    next_fm = ((1.0 - al_f) * cur_fm + al_f * bf_frac) if mutate else cur_fm
+    if mutate:
+        wf_raw = next_fm[coal.proto_comp_id] * (atlas.proto_w.float() / wr[coal.proto_comp_id].clamp_min(1e-12))
+        wf_sum = wf_raw.sum()
+        atlas.w_fake_ema.copy_(where(wf_sum > 1e-12, wf_raw / wf_sum.clamp_min(1e-12), atlas.proto_w.float()))
+    se_k = ((2.0 * (al_f / max(1e-6, 2.0 - al_f)) / max(1, bf)) * wr).clamp_min(1e-8).sqrt()
+    def_k, sur_k = F.relu(wr - next_fm - 1.60 * se_k), F.relu(next_fm - wr - 1.60 * se_k)
+    ab_sh = (
+        w_cluster
+        * smoothstep01((r_c[near_i] - near_d) / (0.35 * r_c[near_i]).clamp_min(1e-30))
+        * (batch_hits[near_i] <= 0).float()
+        * (sur_k[near_i] <= 1e-6).float()
+        if k_c > 4
+        else x_proj.new_zeros(bf, dtype=_F32)
+    )
+    if k_c < 3:
+        return None, None, None, ab_sh
+    wt = wr + 2.0 * def_k
+    wt = wt / wt.sum().clamp_min(1e-8)
+    bi = born_infeld_cost(x_proj.detach(), coal.comp_c, ell_c)[0].float()
+    logits = -(bi / bi.median().clamp_min(1e-30)).clamp_max(200.0) / 0.08
+    scores = log_sinkhorn(logits, bi.new_full((bf,), -math.log(max(1, bf))), wt.clamp_min(1e-12).log(), iters=8)
+    quotas = hamilton_quotas(bf, wt, min_one_when_feasible=False)
+    win, sth_g = _gpu_quota_assign(scores, quotas), smoothstep01((s_th - 0.02) / 0.18)
+    reb_mask = (win != near_i) & (def_k[win] > 0) & (sur_k[near_i] > 0) & (def_k.sum() > 1e-4) & (w_cluster > 1e-4)
+    g_reb = (
+        where(reb_mask, (w_cluster * sth_g) * (def_k[win] / wr[win].clamp_min(1e-6)).clamp(0, 1), 0.0)
+        if sth_g > 1e-4
+        else x_proj.new_zeros(bf, dtype=_F32)
+    )
+    tgt_i = where((g_reb > 0) | ((sth_g > 0.5) & (quotas[near_i] >= 1)), win, near_i)
+    route_w = where(w_cluster > 1e-4, 2.0 * (w_cluster * (near_d > r_c[near_i]).float()).maximum(g_reb), 0.0)
+    return coal.comp_c[tgt_i], r_c[tgt_i], route_w, ab_sh
+
+
+@no_grad()
+def _curve_gate(y, g_conn: float) -> float:
     if g_conn <= 1e-4 or y.shape[0] < 12:
         return 0.0
     if y.shape[1] < 2:
@@ -414,9 +509,8 @@ def _curve_gate(y: Tensor, g_conn: float) -> float:
     return g_conn * smoothstep01((0.11 - resid) / 0.06).item()
 
 
-@torch.no_grad()
-def _simplicial_gates(y: Tensor, chart_weight: float):
-    """Compute connectivity, manifold, quantile-scale, and curve gates."""
+@no_grad()
+def _simplicial_gates(y, chart_weight: float):
     if chart_weight <= 0 or y.shape[0] < 4:
         return 0.0, 0.0, 0.1, y.float().abs().amax().clamp_min(1e-12), 0.0
     g_raw, m_raw, q90_t, y_scale = manifold_connectivity_stats(y)
@@ -425,13 +519,12 @@ def _simplicial_gates(y: Tensor, chart_weight: float):
     return g_conn, g_man, q90, y_scale, _curve_gate(y, g_conn)
 
 
-@torch.no_grad()
-def _barycentric_samples(z_table: Tensor, phase: float, n_query: int, g_curve: float):
-    """Generate deterministic edge and triangle barycentric samples on the prior kNN graph."""
+@no_grad()
+def _barycentric_samples(z_table, phase: float, n_query: int, g_curve: float):
     n_pts, dev, two_pi = z_table.shape[0], z_table.device, 2 * math.pi
-    d_z = (
-        safe_cdist(z_table.double()).double() + 1e-12 * arange(n_pts, device=dev, dtype=torch.float64)[None]
-    ).fill_diagonal_(_INF)
+    d_z = (safe_cdist(z_table.double()).double() + 1e-12 * arange(n_pts, device=dev, dtype=_F64)[None]).fill_diagonal_(
+        _INF
+    )
     k_nn = min(4, n_pts - 1)
     nb = d_z.topk(k_nn, -1, largest=False).indices
     base_edges = (n_query // 2) if (n_pts >= 3 and k_nn >= 2 and n_query >= 4) else n_query
@@ -459,7 +552,7 @@ def _barycentric_samples(z_table: Tensor, phase: float, n_query: int, g_curve: f
     return cat((z_edge, z_tri)), n_edge, v_a, v_b, t_edge, (v0, v1, v2, z_tri)
 
 
-def _simplicial_isometry_loss(x_samples, x_verts, z_det, ell, g_man: float, samples, use_f64: bool) -> Tensor:
+def _simplicial_isometry_loss(x_samples, x_verts, z_det, ell, g_man: float, samples, use_f64: bool):
     _, n_edge, v_a, v_b, t_edge, tri_info = samples
     d0 = born_infeld_cost(x_samples[:n_edge], x_verts[v_a], ell, aligned=True, fp64=use_f64)[0]
     d1 = born_infeld_cost(x_samples[:n_edge], x_verts[v_b], ell, aligned=True, fp64=use_f64)[0]
@@ -470,7 +563,7 @@ def _simplicial_isometry_loss(x_samples, x_verts, z_det, ell, g_man: float, samp
     v0, v1, v2, z_tri = tri_info
     verts = (v0, v1, v2)
     tri_c = stack([born_infeld_cost(x_samples[n_edge:], x_verts[v], ell, aligned=True, fp64=use_f64)[0] for v in verts])
-    with torch.no_grad():
+    with no_grad():
         p0, p1, p2 = x_verts[v0].double(), x_verts[v1].double(), x_verts[v2].double()
         edges = stack(((p0 - p1).norm(dim=-1), (p1 - p2).norm(dim=-1), (p2 - p0).norm(dim=-1)))
         semi_p = 0.5 * edges.sum(0)
@@ -488,12 +581,11 @@ def _simplicial_isometry_loss(x_samples, x_verts, z_det, ell, g_man: float, samp
 def _simplicial_chart_loss(
     z_table, x_live, x_verts, y_flat, ell, g_conn, g_curve, q90, y_scale, phase, chart_w, use_f64
 ):
-    """Align prior chart coordinates to target manifold geodesics and principal curve axis."""
     n_pts, n_real = z_table.shape[0], y_flat.shape[0]
     y_unit, loss = y_flat.float() / y_scale, ell.new_zeros((), dtype=x_verts.dtype)
     if x_live is not None:
         cost_xy, _ = born_infeld_cost(x_live, y_flat, ell, fp64=use_f64)
-        with torch.no_grad():
+        with no_grad():
             logits = -(cost_xy.float() / cost_xy.float().mean().clamp_min(1e-12)) / 0.08
             log_m, log_n = logits.new_full((n_pts,), -math.log(n_pts)), logits.new_full((n_real,), -math.log(n_real))
             plan = log_sinkhorn(logits, log_m, log_n, iters=10).exp_().to(cost_xy.dtype)
@@ -507,7 +599,7 @@ def _simplicial_chart_loss(
             )
     if not z_table.requires_grad:
         return loss
-    with torch.no_grad():
+    with no_grad():
         if (n_pts + n_real) <= 512:
             y_chart = y_unit
         else:
@@ -518,7 +610,7 @@ def _simplicial_chart_loss(
         geo = d_all * (1 + (d_all / max(1e-4, 1.35 * q90)).square())
         for _ in range(6):
             geo = geo.minimum((geo[:, :, None] + geo[None]).amin(1))
-        geo_p, off = geo[:n_pts, :n_pts], ~eye(n_pts, dtype=torch.bool, device=z_table.device)
+        geo_p, off = geo[:n_pts, :n_pts], ~eye(n_pts, dtype=_BOOL, device=z_table.device)
         geo_hat = geo_p / geo_p[off].square().mean().clamp_min(1e-12).sqrt()
         w_loc = where(off, (0.2 + geo_hat.square()).pow(-2), 0.0)
         w_loc = w_loc / w_loc.sum().clamp_min(1e-12)
@@ -536,22 +628,22 @@ def _simplicial_chart_loss(
     if g_curve > 1e-4 and z_table.shape[1] >= 2:
         z_cent = z_d - z_d.mean(0)
         frob_sq = z_cent.square().sum().clamp_min(1e-12)
-        with torch.no_grad():
+        with no_grad():
             _, axis = power_principal_axis(z_cent.T @ z_cent, iters=6, seed=0)
         orth_frac = ((frob_sq - (z_cent @ axis).square().sum()).clamp_min(0) / frob_sq).to(loss.dtype)
         loss = loss + (3.2 * g_conn * g_curve * chart_w) * ell_det * orth_frac
     return loss
 
 
-def _observe_transport_thermal(x_proj, y_proj, ell, aux, disc: bool, simp: bool, has_cond: bool, record: Any) -> None:
+def _observe_transport_thermal(x_proj, y_proj, ell, aux, disc: bool, simp: bool, has_cond: bool, record) -> None:
     w_sep, het_val, d_yy, r_tail, has_ledger = aux
     sim_on = simp or bool(getattr(record, "_simplicial_step", False))
     min_b, has_het = min(x_proj.shape[0], y_proj.shape[0]), het_val is not None and hasattr(record, "het_initialized")
     if not sim_on and not has_cond and min_b >= 4 and hasattr(record, "observe_thermal"):
-        with torch.no_grad():
+        with no_grad():
             r5 = _batch_residuals(x_proj, y_proj, ell, cap_gain=0.58)
             if not disc and not has_ledger and min_b >= 8 and d_yy is not None:
-                off = ~eye(y_proj.shape[0], dtype=torch.bool, device=y_proj.device)
+                off = ~eye(y_proj.shape[0], dtype=_BOOL, device=y_proj.device)
                 q_x = quantile(safe_cdist(x_proj, y_proj).amin(1), 0.96)
                 q_y = quantile(d_yy.masked_fill(~off, _INF).amin(1), 0.96)
                 r_tail = r_tail.maximum(w_sep * 1.2 * (q_x - q_y) / d_yy[off].mean().clamp_min(1e-30))
@@ -563,10 +655,10 @@ def _observe_transport_thermal(x_proj, y_proj, ell, aux, disc: bool, simp: bool,
         record.het_ema, record.het_initialized = het_val.item(), True
 
 
-def _observe_simplicial_thermal(x_verts, x_samples, y_flat, ell, g_man: float, g_curve: float, record: Any) -> None:
+def _observe_simplicial_thermal(x_verts, x_samples, y_flat, ell, g_man: float, g_curve: float, record) -> None:
     if g_man <= 1e-4 or y_flat.shape[0] < 4 or not _can_mutate_state(record) or not hasattr(record, "observe_thermal"):
         return
-    with torch.no_grad():
+    with no_grad():
         res = stack(_batch_residuals(cat((x_verts, x_samples.detach())), y_flat, ell)).tolist()
         kw = dict(
             tau=0.084 * (1 + 0.6 * g_curve), shock_mu_ratio=0.35 + 0.55 * g_curve, shock_ed_floor=0.3 + 0.5 * g_curve
@@ -600,8 +692,8 @@ class AxiomTransportLoss(nn.Module):
     def _sinkhorn_slack(self, cost: Tensor, df: Tensor, dr: Tensor, mask: Tensor | None) -> Tensor:
         return sinkhorn_with_slack(cost, df, dr, rho=self.rho, tau=self.tau, eps=self.eps, iters=self.iters, mask=mask)
 
-    def _update_ell(self, y_proj: Tensor, record: Any, mutate: bool) -> Tensor:
-        with torch.no_grad():
+    def _update_ell(self, y_proj, record, mutate: bool):
+        with no_grad():
             ell_b = _batch_ell(y_proj, q=0.25)
             if hasattr(record, "ell_initialized"):
                 has_t = hasattr(record, "dev_ema") and hasattr(record, "_ema_t")
@@ -612,8 +704,7 @@ class AxiomTransportLoss(nn.Module):
                 )
                 if not mutate:
                     return (prev if record.ell_initialized else ell_b).to(y_proj.dtype)
-                ratio = (ell_b / prev.clamp_min(1e-30)).maximum(prev / ell_b.clamp_min(1e-30))
-                cur = prev.lerp(ell_b, 0.1 + 0.7 * (ratio > 8).to(ell_b.dtype)) if record.ell_initialized else ell_b
+                cur = _ema_blend(prev, ell_b) if record.ell_initialized else ell_b
                 record.ell_initialized = True
                 if has_t:
                     record._ema_t["ell_ema"] = cur.double()
@@ -621,12 +712,9 @@ class AxiomTransportLoss(nn.Module):
                     record.ell_ema = cur.item()
                 return cur.to(y_proj.dtype)
             if mutate:
-                if self._ell_local is None:
-                    self._ell_local = ell_b.clone()
-                else:
-                    prev = self._ell_local.to(y_proj.device)
-                    ratio = (ell_b / prev.clamp_min(1e-30)).maximum(prev / ell_b.clamp_min(1e-30))
-                    self._ell_local = prev.lerp(ell_b, 0.1 + 0.7 * (ratio > 8).to(ell_b.dtype))
+                self._ell_local = (
+                    ell_b.clone() if self._ell_local is None else _ema_blend(self._ell_local.to(y_proj.device), ell_b)
+                )
             return (self._ell_local.to(y_proj.device) if self._ell_local is not None else ell_b).to(y_proj.dtype)
 
     def _resolve_atlas(self, y_proj: Tensor, record: Any, mutate: bool):
@@ -694,15 +782,15 @@ class AxiomTransportLoss(nn.Module):
             self._rec_atlases[record] = (atlas, state)
         return atlas, coal, assign, r_halo, nn_dist
 
-    def _route_charts(self, x_proj, y_proj, x_fake, ell, g_conn: float, record: Any, mutate: bool):
-        zero = ell.new_zeros((), dtype=torch.float32)
+    def _route_charts(self, x_proj, y_proj, x_fake, ell, g_conn: float, record, mutate: bool):
+        zero = ell.new_zeros((), dtype=_F32)
         prior_table, batch_rows = recover_active_prior_rows(x_fake, record)
         atlas, coal, assign, r_halo, nn_dist = self._commit_atlas(
             x_proj, y_proj, prior_table, batch_rows, 2, record, mutate
         )
         if r_halo is None:
             return None, None, zero, zero, None
-        with torch.no_grad():
+        with no_grad():
             ell_c = ell.float().clamp_min(1e-30)
             q_mid = quantile(safe_cdist(0.5 * (y_proj + y_proj.roll(1, 0)), coal.comp_c).amin(1), 0.75)
             q_real = quantile(safe_cdist(y_proj, coal.comp_c).amin(1), 0.75).maximum(ell_c)
@@ -714,25 +802,29 @@ class AxiomTransportLoss(nn.Module):
             is_atom = smoothstep01((0.005 - rho_t) / 0.004)
             ell_r = where(is_atom > 0.5, (0.15 * nn_dist.median()).clamp_min(1e-30), ell_c)
             route_loss = _halo_born_infeld(x_proj, assign.batch_target, r_halo[comp_i], ell_r)
-            with torch.no_grad():
+            with no_grad():
                 r_eff = r_halo[comp_i].clamp_min(0.05 * nn_dist[comp_i])
                 dist_t = (x_proj.float() - assign.batch_target).norm(dim=-1)
-                absent = (batch_hits[comp_i] <= 0).float() * smoothstep01((r_eff - dist_t) / (0.35 * r_eff))
+                g_rad = smoothstep01((r_eff - dist_t) / (0.35 * r_eff))
+                absent = (batch_hits[comp_i] <= 0).float() * (is_atom + (1.0 - is_atom) * g_rad)
             return route_loss, absent, is_atom * assign.tail_residual, w_cluster, assign
-        if not coal.all_iso.item() or (1 - g_conn) <= 1e-4:
+        if (1 - g_conn) <= 1e-4:
             return None, None, zero, w_cluster, None
-        near_d, near_i = safe_cdist(x_proj, coal.comp_c).min(1)
-        route_loss = w_cluster.to(x_proj.dtype) * _halo_born_infeld(x_proj, coal.comp_c[near_i], r_halo[near_i], ell)
-        g_abs = smoothstep01((r_halo[near_i] - near_d) / (0.35 * r_halo[near_i]).clamp_min(1e-30))
-        return route_loss, w_cluster * (batch_hits[near_i] <= 0).float() * g_abs, zero, w_cluster, None
+        s_th = float(getattr(record, "thermal_scale", 1.0)) if record is not None else 1.0
+        tgt_c, tgt_r, route_w, ab_sh = _continuous_quota_route(
+            x_proj, atlas, coal, r_halo, nn_dist, batch_hits, ell_c, w_cluster, self.halo_mult, s_th, mutate
+        )
+        if tgt_c is None:
+            return None, ab_sh, zero, w_cluster, None
+        return _halo_born_infeld(x_proj, tgt_c, tgt_r, ell, weights=route_w), ab_sh, zero, w_cluster, None
 
-    @torch.no_grad()
+    @no_grad()
     def _solve_plans(self, c_hat_xy, c_hat_xx, df, dr, cond_fake, cond_real, disc: bool, sparse_near, absent):
         n_f, n_r = c_hat_xy.shape
         plan_xy = self._sinkhorn_slack(c_hat_xy, df, dr, _discrete_cond_mask(cond_fake, cond_real, n_f, n_r))
         mask_xx = _discrete_cond_mask(cond_fake, cond_fake, n_f, n_f)
         if disc and n_f > 1:
-            unique_x = (c_hat_xx > 1e-12) | eye(n_f, dtype=torch.bool, device=c_hat_xx.device)
+            unique_x = (c_hat_xx > 1e-12) | eye(n_f, dtype=_BOOL, device=c_hat_xx.device)
             mask_xx = unique_x if mask_xx is None else (mask_xx & unique_x)
         zeros = df.new_zeros(n_f)
         plan_xx = self._sinkhorn_slack(c_hat_xx, zeros, zeros, mask_xx)[:n_f, :n_f].fill_diagonal_(0)
@@ -757,7 +849,7 @@ class AxiomTransportLoss(nn.Module):
         self, x_proj, y_proj, x_fake, df, dr, ell, g_conn, cond_fake, cond_real, disc, mutate, record
     ):
         n_f, n_r, has_cond = x_proj.shape[0], y_proj.shape[0], (cond_fake is not None or cond_real is not None)
-        zero = ell.new_zeros((), dtype=torch.float32)
+        zero = ell.new_zeros((), dtype=_F32)
         ell_xy, ell_xx, ell_x_c, ell_y_c, d_yy = _conformal_horizon(x_proj, y_proj, ell, g_conn, has_cond)
         if not has_cond and self.chart_weight > 0 and n_r >= 4 and n_f >= 2:
             route_loss, absent, r_tail, w_cluster, assign = self._route_charts(
@@ -826,6 +918,8 @@ class AxiomTransportLoss(nn.Module):
         coord, p_align, p_slack_w, aux = self._assemble_transport(
             x_proj, y_proj, x_fake, df, dr, ell, g_conn, cond_fake, cond_real, disc, mutate, record
         )
+        if aux[4]:
+            kappa = 1.0
         x_f, y_f = x_proj.detach().float(), y_proj.float()
         rad_y = (y_f - y_f.mean(0)).square().sum(-1).mean().sqrt()
         rad_x = (x_f - x_f.mean(0)).square().sum(-1).mean().sqrt()
@@ -866,7 +960,7 @@ class AxiomTransportLoss(nn.Module):
                 128,
             )
         y_flat, use_f64 = y_real.detach().reshape(n_real, -1), (n_pts <= 256)
-        with torch.no_grad():
+        with no_grad():
             g_conn, g_man, q90, y_scale, g_curve = _simplicial_gates(y_flat, chart_weight)
             z_det, ell = z_table.detach(), self._update_ell(y_flat, record, False)
             n_query = max(4, n_real if n_real <= 512 else 128)
@@ -887,7 +981,7 @@ class AxiomTransportLoss(nn.Module):
             )
         return self.weight * _scale_grad(total, float(getattr(record, "thermal_scale", 1.0)))
 
-    def _bigan_codebook_loss(self, fake_x, real_x, real_z, prior_table, batch_rows, record: Any, mutate: bool):
+    def _bigan_codebook_loss(self, fake_x, real_x, real_z, prior_table, batch_rows, record, mutate: bool):
         _, coal, assign, r_halo, nn_dist = self._commit_atlas(
             fake_x, real_x.detach(), prior_table, batch_rows, 3, record, mutate
         )
@@ -895,8 +989,8 @@ class AxiomTransportLoss(nn.Module):
             return None
         ell_f = (0.15 * nn_dist.median()).clamp_min(1e-30)
         loss_fwd = _halo_born_infeld(fake_x, assign.batch_target, r_halo[assign.batch_comp], ell_f)
-        with torch.no_grad():
-            table_f = prior_table.to(real_x.device, torch.float32)
+        with no_grad():
+            table_f = prior_table.to(real_x.device, _F32)
             match_m = assign.row_comp[None] == safe_cdist(real_x, coal.comp_c).argmin(1)[:, None]
             has_inv, inv_idx = match_m.any(1), safe_cdist(real_z, table_f).masked_fill(~match_m, _INF).argmin(1)
             nn_z = (
@@ -940,7 +1034,7 @@ class AxiomTransportLoss(nn.Module):
         x_proj = project_features(x_fake.detach(), self.max_spatial, self.max_flat_dim)
         y_proj = project_features(y_real.detach(), self.max_spatial, self.max_flat_dim)
         ell = self._update_ell(y_proj, record, mutate)
-        with torch.no_grad():
+        with no_grad():
             df, dr = _compute_log_odds(d_fake, d_real)
             mask = _discrete_cond_mask(cond_fake, cond_real, n_f, n_r)
             plan = self._sinkhorn_slack(born_infeld_cost(x_proj, y_proj, ell)[1], df, dr, mask)
