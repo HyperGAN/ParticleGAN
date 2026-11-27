@@ -310,7 +310,7 @@ class AxiomPenaltyKernel:
         has_bd = isinstance(mod, nn.Module) and any("BatchDistance" in type(m).__name__ for m in mod.modules())
         use_ror = (x_real.ndim == 2 and dim_x <= 16) or (x_real.ndim >= 4 and dim_x <= 256) or has_gn or _has_quantized_linear(mod) or (cid in self._fwad_unsupported)
         ds, mi = self.record._dev_ema("ema_data_scale", x_real.device), self.record._dev_ema("margin_initialized", x_real.device)
-        sc_t = torch.where(mi > 0.5, (ds / _eff_dim_t(x_real, dim_x).sqrt()).clamp_min(1e-30), ds.new_ones(())).float()
+        sc_t = torch.where(mi > 0.5, (ds / (ds.new_full((), float(dim_x)) if (not use_ror and x_real.ndim >= 4 and dim_x > 256) else _eff_dim_t(x_real, dim_x)).sqrt()).clamp_min(1e-30), ds.new_ones(())).float()
         csig, kr, kf, stp = _cond_sig((x_real, *args), kwargs), _tensor_id(x_real), _tensor_id(x_fake), self.record.observed_steps
         dr_l = next((e[4] for e in reversed(self.record._live_captures) if e[0] == stp and e[1] == kr and e[2] == csig and e[5] and e[4] is not None), None)
         df_l = next((e[4] for e in reversed(self.record._live_captures) if e[0] == stp and e[1] == kf and e[2] == csig and e[5] and e[4] is not None), None)
