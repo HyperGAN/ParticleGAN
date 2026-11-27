@@ -554,9 +554,9 @@ class AxiomOptimizer(Optimizer):
             copy(self.record).load_state_dict(reg["record"])
     def load_state_dict(self, state_dict: Dict[str, Any]) -> None:
         self.validate_state_dict(state_dict); meta = state_dict["axiom"]; Optimizer.load_state_dict(self, {k: v for k, v in state_dict.items() if k not in ("axiom", "regularizer")})
-        for st in self.state.values():
-            for k in ("m_u", "v_u"):
-                if isinstance(st.get(k), torch.Tensor) and st[k].dtype != torch.float32: st[k] = st[k].float()
+        for cg, sg in zip(self.param_groups, state_dict["param_groups"]):
+            for p, sid in zip(cg["params"], sg["params"]):
+                if isinstance(sv := state_dict["state"].get(sid), dict): self.state[p].update({k: sv[k].detach().to(device=p.device, dtype=torch.float32).clone() for k in ("m_u", "v_u") if isinstance(sv.get(k), torch.Tensor)})
         self.clear_sampled_rows(); self._fast_cache = self._ss_coef = None; self._metrics_cache.clear(); self._ema_step_cos_t = self._log2_damp_t = None
         self.last_step_gain, self._ema_func_gain, self._ema_step_cos_val, self._log2_damp_val, self._crit_skew_ema = float(meta["last_step_gain"]), float(meta["ema_func_gain"]), float(meta["ema_step_cos"]), float(meta["log2_damp"]), float(meta["crit_skew_ema"])
         ref_dev = self.param_groups[0]["params"][0].device if (self.param_groups and self.param_groups[0]["params"]) else torch.device("cpu")

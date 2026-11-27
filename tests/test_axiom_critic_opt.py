@@ -1547,6 +1547,40 @@ def test_axiom_me_rms_checkpoint_continuation_and_tamper_rejection() -> None:
         with pytest.raises(ValueError, match="invalid AxiomOptimizer parameter state"):
             tr_a.opt_d.validate_state_dict(bad_sd)
 
+    # Pure bfloat16 model checkpoint round-trip must preserve FP32 m_u/v_u bit-for-bit without downcast truncation
+    def _make_bf16() -> nn.Sequential:
+        torch.manual_seed(314)
+        return nn.Sequential(nn.Conv2d(3, 8, 4, stride=2, padding=1), nn.BatchNorm2d(8), nn.ReLU()).to(torch.bfloat16)
+
+    m_ref, m_res = _make_bf16(), _make_bf16()
+    o_ref, o_res = AxiomOptimizer(m_ref.parameters(), lr=0.014), AxiomOptimizer(m_res.parameters(), lr=0.014)
+    o_ref.bind_module_layouts((m_ref,))
+    o_res.bind_module_layouts((m_res,))
+    bf_rng = torch.Generator().manual_seed(271)
+    bf_batches = [torch.randn((4, 3, 8, 8), generator=bf_rng, dtype=torch.bfloat16) for _ in range(5)]
+    for t in range(3):
+        for m, o in ((m_ref, o_ref), (m_res, o_res)):
+            o.zero_grad(set_to_none=True)
+            m(bf_batches[t]).square().mean().backward()
+            o.step()
+    sd_bf = deepcopy(o_res.state_dict())
+    w_bf = deepcopy(m_res.state_dict())
+    m_fresh = _make_bf16()
+    m_fresh.load_state_dict(w_bf)
+    o_fresh = AxiomOptimizer(m_fresh.parameters(), lr=0.014)
+    o_fresh.bind_module_layouts((m_fresh,))
+    o_fresh.load_state_dict(sd_bf)
+    for t in range(3, 5):
+        for m, o in ((m_ref, o_ref), (m_fresh, o_fresh)):
+            o.zero_grad(set_to_none=True)
+            m(bf_batches[t]).square().mean().backward()
+            o.step()
+    for p1, p2 in zip(m_ref.parameters(), m_fresh.parameters()):
+        assert torch.equal(p1.detach(), p2.detach()), "BF16 parameter continuation mismatch"
+        assert o_fresh.state[p2]["m_u"].dtype == torch.float32 and o_fresh.state[p2]["v_u"].dtype == torch.float32
+        assert torch.equal(o_ref.state[p1]["m_u"], o_fresh.state[p2]["m_u"]), "BF16 m_u continuation mismatch"
+        assert torch.equal(o_ref.state[p1]["v_u"], o_fresh.state[p2]["v_u"]), "BF16 v_u continuation mismatch"
+
 
 
 
