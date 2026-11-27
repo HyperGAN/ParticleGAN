@@ -934,7 +934,9 @@ class _PullbackStep:
         ew = solve_triangular(self.comp_chol[comp_idx], (x_src.float() - y_target).unsqueeze(-1), upper=False).squeeze(
             -1
         )
-        bi_w = (((0.25 * dim + ew.square().sum(-1)).sqrt() - 0.5 * sqrt_d) / sqrt_d) * (sigma_med / so).clamp_max(1.0)
+        bi_w = (
+            ((0.25 * dim + ew.square().sum(-1)).sqrt() - 0.5 * sqrt_d) / sqrt_d * (sigma_med / so).clamp_max(1.0).sqrt()
+        )
         loss_maha = ((inv_w / inv_w.mean().clamp_min(_EPS)) * bi_w).mean().to(dt)
         loss_eucl = born_infeld_cost(x_src, y_target.to(dt), sigma_med.to(dt), aligned=True)[0].mean() / so.to(dt)
         loss_pull = where(all_iso, loss_maha, loss_eucl) + 2.0 * (

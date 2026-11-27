@@ -905,16 +905,18 @@ def test_law1_wishart_shrinkage_fisher_isolation_and_hysteresis() -> None:
 def test_fast_path_exact_parity_group_rank_ledger_and_coalesce() -> None:
     from particlegan._axiom.atlas import _group_rank
 
-    # 1. Single-sort int64 bit-cast _group_rank matches reference two-pass stable sort exactly.
+    # 1. Single-sort int64 bit-cast _group_rank matches reference two-pass stable sort (positive & negative keys).
     gen = torch.Generator().manual_seed(17)
     num_p, num_comp = 128, 16
     gid = torch.randint(0, num_comp + 1, (num_p,), generator=gen)
-    dist = torch.rand(num_p, generator=gen) * 10.0
+    dist = torch.randn(num_p, generator=gen) * 10.0
     dist[::7] = 0.0  # exact ties broken by weyl
-    dist[::11] = 1e30  # huge sentinel values
+    dist[::13] = -0.0  # negative zero canonicalized identically to +0.0
+    dist[::11] = 1e30  # huge positive sentinel values
+    dist[::17] = -1e30  # huge negative scores (e.g. transport.py -best_s)
     weyl = ((torch.arange(num_p, dtype=torch.float32) + 0.5) * 0.6180339887498949).remainder(1.0)
     order, sorted_g, rank = _group_rank(gid, dist, weyl, num_comp)
-    ref_order = (dist.clamp_max(1e6) + 1e-6 * weyl).argsort(stable=True)
+    ref_order = (dist.clamp(-1e6, 1e6) + 1e-6 * weyl).argsort(stable=True)
     ref_order = ref_order[gid[ref_order].argsort(stable=True)]
     assert torch.equal(order, ref_order) and torch.equal(sorted_g, gid[ref_order])
 

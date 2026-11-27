@@ -38,7 +38,7 @@ MAX_LEDGER_PARTICLES = 2048
 _VAR_FLOOR = 1e-24
 _EPS = 1e-12
 _BETA_N = 0.04
-_PROPOSAL_ROUNDS = 4
+_PROPOSAL_ROUNDS = 8
 _INF = float("inf")
 
 _LEDGER_HEADER_KEYS = ("initialized", "num_particles", "dim")
@@ -464,8 +464,10 @@ def validate_atlas_state(state):
 
 
 def _group_rank(group_id, dist, weyl, num_comp):
-    dist_bits = (dist.clamp(0.0, 1e6) + 1e-6 * weyl).float().view(torch.int32).to(torch.int64)
-    order = ((group_id.to(torch.int64) << 32) + dist_bits).argsort(stable=True)
+    key_f = (dist.clamp(-1e6, 1e6) + 1e-6 * weyl).float()
+    bits = where(key_f == 0.0, 0.0, key_f).view(torch.int32).to(torch.int64)
+    dist_key = where(bits < 0, (~bits) & 0xFFFFFFFF, bits | 0x80000000)
+    order = ((group_id.to(torch.int64) << 32) | dist_key).argsort(stable=True)
     sorted_g = group_id[order]
     counts = bincount(sorted_g, minlength=num_comp + 1)
     rank = arange(group_id.numel(), device=group_id.device, dtype=torch.int64) - (counts.cumsum(0) - counts)[sorted_g]
