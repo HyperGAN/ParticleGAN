@@ -736,12 +736,12 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                 d_f_2d = _format_logits_2d(d_f_raw, b_f)
 
                 # Regime dispatch (L2-4 + L2-5):
-                # - Exact RoR (zero Jensen bias, math SDPA) for small-res (dim < 32768) or non-DCGAN
+                # - Exact RoR (zero Jensen bias, math SDPA) for small-res (dim <= 1024) or non-DCGAN
                 #   (GroupNorm / LayerNorm / Attention / Transformer) image critics.
-                # - Debiased 1st-order fwAD for compute-bound >=128^2 pure Conv2d DCGAN critics
-                #   (preserves 3.64x speedup & -66.4% energy win on r256 while cutting Jensen bias).
+                # - Debiased 1st-order fwAD for >=32^2 pure Conv2d / BN-DCGAN critics
+                #   (avoids slow 2B exact RoR on 32x32/64x64 and preserves r128/r256 speed/energy).
                 use_exact_ror = (not quantized_fprop) and (
-                    dim < 32768 or _critic_has_non_dcgan_layers(critic_module)
+                    dim <= 1024 or _critic_has_non_dcgan_layers(critic_module)
                 )
                 if use_exact_ror:
                     self._last_image_grad_mode = "exact_ror"
@@ -835,7 +835,12 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                 # Born-Infeld cap + D-09 dimension-independent normal-axis dissipation floor (never vanishes on r256):
                 norm_r = (sq_r_cap + 1e-12).sqrt()
                 norm_f = (sq_f_cap + 1e-12).sqrt()
-                img_floor = min(self.lambda_floor, 1.0e-4) if self.lambda_floor > 0.0 else 0.0
+                use_dcgan_parity_floor = (dim > 1024) and (not use_exact_ror)
+                img_floor = (
+                    (self.lambda_floor if use_dcgan_parity_floor else min(self.lambda_floor, 1.0e-4))
+                    if self.lambda_floor > 0.0
+                    else 0.0
+                )
                 total = x_real.new_zeros(())
                 if self.real_weight > 0.0:
                     total = total + self.real_weight * F.softplus(norm_r - self.kappa, beta=eff_beta).square().mean()
@@ -846,7 +851,7 @@ class _UnifiedV15PenaltyKernel(_UnifiedPenaltyKernel):
                     if img_floor > 0.0:
                         total = total + self.fake_weight * img_floor * sq_f_raw.mean()
                 if self.gamma_gauge > 0.0:
-                    eff_gauge = min(self.gamma_gauge, 0.005)
+                    eff_gauge = self.gamma_gauge if use_dcgan_parity_floor else min(self.gamma_gauge, 0.005)
                     mean_logit = 0.5 * (d_r_2d.mean() + d_f_2d.mean())
                     gauge_pen = eff_gauge * mean_logit.square()
                 else:

@@ -2,9 +2,9 @@
 
 Current task assignments, grouped by goal view and qualification tier. Required tasks gate progression; ranking and diagnostic tasks retain their declared roles.
 
-Catalog: **226 tasks**; **184 assigned** to at least one view; **42 unassigned**. Showing **43/43 views**.
+Catalog: **227 tasks**; **185 assigned** to at least one view; **42 unassigned**. Showing **44/44 views**.
 
-Declared priors across the catalog: **111 MoGParticlePrior**, **115 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
+Declared priors across the catalog: **112 MoGParticlePrior**, **115 ParticlePrior** (including **12 nonsampled parameter controls**). Every experiment defines `execution.prior` explicitly; candidate and API defaults cannot supply it. `kind: mog` selects `MoGParticlePrior`; `kind: particle_cloud` selects `ParticlePrior`. Sigma alone does not identify the code path. Ordinary Forge MoG tasks require positive sigma; archived zero-sigma MoG evidence keeps its recorded kind. Task sigma is absolute; API demonstrations may instead record the recipe's relative `sigma_rel`.
 
 Reproducible comparisons use the fixed screening seed `0` and candidate-independent named RNG streams. Within each task, candidates share architecture, data law, batch size, prior, initialization, training budget, evaluation cadence and sampling law. Only the declared trainer change varies. The initialization column exposes fixed controls and component policies that take precedence over the deterministic orthogonal fallback; these are separate comparison cohorts. Historical results retain their original bindings.
 
@@ -43,6 +43,7 @@ This report follows changing declarations and published evidence; it selects no 
 | [bispf_fastpath_quality](../../configs/forge/views/bispf_fastpath_quality.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [bispf_throughput_endurance](../../configs/forge/views/bispf_throughput_endurance.json) | 2 | 3 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [bispf_throughput_small](../../configs/forge/views/bispf_throughput_small.json) | 2 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
+| [bn_dcgan_b256_diagnostic](../../configs/forge/views/bn_dcgan_b256_diagnostic.json) | 1 | 1 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
 | [bytegan_stretch](../../configs/forge/views/bytegan_stretch.json) | 1 | 2 diagnostic | 0 tasks | 0 tasks | 0 tasks | provisional |
 | [clockfree_continuous](../../configs/forge/views/clockfree_continuous.json) | 5 | 4 required | 12 required, 7 held | 6 required, 1 diagnostic (1 removed from the count) | 0 tasks | provisional |
 | [dcgan_performance](../../configs/forge/views/dcgan_performance.json) | 1 | 6 diagnostic | 0 tasks | 0 tasks | 0 tasks | undeclared |
@@ -459,6 +460,42 @@ Candidate outcomes, metrics and measured costs: [leaderboard](technique-inventor
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | [img_stripes2](../../configs/forge/tasks/img_stripes2.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-stripes2) | transfer_image / transfer_sustained | 600 | 1800 | — |
 | [img_bars4](../../configs/forge/tasks/img_bars4.json) | diagnostic | ParticlePrior (sigma=0) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-img-bars4) | transfer_image / transfer_sustained | 600 | 1800 | — |
+
+### Tier 2: quality
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 3: endurance
+
+0 tasks.
+
+No tasks assigned.
+
+### Tier 4: stress_and_formulations
+
+0 tasks.
+
+No tasks assigned.
+
+## bn_dcgan_b256_diagnostic
+
+Declaration: [bn_dcgan_b256_diagnostic](../../configs/forge/views/bn_dcgan_b256_diagnostic.json); revision 1; goal: `bn_dcgan_b256_diagnostic`.
+
+Declared calibration status: **undeclared**.
+
+Declared evidence scope: `research_diagnostic`.
+
+No published solution leaderboard for this view yet; task registration and related API media confer no candidate qualification.
+
+### Tier 1: smoke
+
+1 diagnostic.
+
+| Task | Importance | Prior code path | Initialization / protocol | Experiment guide | Adapter / gate | Declared steps | Timeout (s) | Dependencies / shared execution |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| [bn_dcgan_rgb32_b256_diagnostic](../../configs/forge/tasks/bn_dcgan_rgb32_b256_diagnostic.json) | diagnostic | MoGParticlePrior (sigma=0.1) | deterministic_orthogonal; screening | [Question, results, GIFs](#experiment-bn-dcgan-rgb32-b256-diagnostic) | bn_dcgan_guard / bn_dcgan_rgb32_b256_diagnostic | 1200 | 300 | — |
 
 ### Tier 2: quality
 
@@ -3323,6 +3360,40 @@ Related public-API demonstrations, with their own recorded contracts:
 | Variant / actual-training GIF | What this variant tests | Recorded prior code path | Recorded result / failed bounds | Recipe / compute / source | Evidence |
 | --- | --- | --- | --- | --- | --- |
 | [api-model-vae-hard](../toy_audit/api_contract/model_modes/media/api-model-vae-hard.gif) | Can a genuine particle VAE retain the input and posterior noise while independently generating both target modes? Scope: New constrained two-mode seed-0 public-component cohort; does not reproduce or qualify historical 100-mode results. Hard routing has constant log(K) KL and biased straight-through gradients; categorical routing uses the public leave-one-out score estimator and a variable KL. A stochastic no-KL AE is not a VAE. | MoGParticlePrior (sigma_rel=0) | COMPLETE / FAIL; 1200/1200 updates; last 5 post-update metric observations do not all pass | bispf / cpu / 48177d41bb0b | [definition](../toy_audit/api_contract/model_modes/publication.json); [readout](../toy_audit/api_contract/model_modes/publication.json); [recipe and provenance](../toy_audit/api_contract/model_modes/publication.json) |
+
+### Experiment: bn-dcgan-rgb32-b256-diagnostic
+
+Train a standard Radford 32x32 BN-DCGAN (BatchNorm2d in both G and D, z_dim=128, B=256) on a hermetic continuous multi-scale 10-class 32x32 RGB distribution (pooled 8x8 med_nn/med_all > 0.50) without BN critic collapse, mode collapse, spectral degradation, or O(B^2) CUDA step-latency regressions.
+
+Forge declarations: [bn_dcgan_rgb32_b256_diagnostic](../../configs/forge/tasks/bn_dcgan_rgb32_b256_diagnostic.json).
+
+Declared Forge numerical gates and sampling:
+
+[bn_dcgan_rgb32_b256_diagnostic](../../configs/forge/tasks/bn_dcgan_rgb32_b256_diagnostic.json)
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| feature_fid | <= 55 |
+| pixel_diversity_ratio | >= 0.7 |
+| pixel_diversity_ratio | <= 1.3 |
+| class_coverage | >= 0.9 |
+| class_mass_tv | <= 0.25 |
+| spectral_l1 | <= 0.04 |
+
+At least 3 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+| Measurement | Declared condition |
+| --- | --- |
+| Prior | MoGParticlePrior (sigma=0.1) |
+| Sampling law | public_prior_without_output_noise |
+| Scoring weights | live |
+| Evaluation output noise | clean |
+
+No measured Forge outcome for these exact task IDs in the current solution publication. Consult the solution leaderboard for unknown requirements and capability blockers.
+
+No related published API training GIF. This task retains its own declared numerical audit.
 
 ### Experiment: bytegan-bigan-dictionary
 
@@ -8134,6 +8205,6 @@ The wider question review also links standalone experiments outside the Forge ti
 - [Later questions](../toy_audit/api_contract/recent_prs/README.md)
 - [Caption questions](../toy_audit/api_contract/caption_prs/README.md)
 
-Declaration input digest: `6f7dce26425afce1e26fd7ff4d05955d212b6bb029e685492b8e36d7fb3eda36`. The JSON form includes the individual task and view file hashes.
+Declaration input digest: `634f12a16a89ec35faf2069b6d7cfaf3e3d8090895be9b51d8ee1cb9394448ee`. The JSON form includes the individual task and view file hashes.
 
-Published artifact input digest: `b27ebb49f0f5c4dc12365b7ea2d4266b6b07cf2c5eb4c0c22ca7f5714070d387`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.
+Published artifact input digest: `738957157b049ebef17b6e739ee37e661370554f1adc1fc9408ce6786a8caea2`. Artifact hashes and exact recipe/source/runtime bindings are included in the JSON form.

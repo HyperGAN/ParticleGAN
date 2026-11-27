@@ -1007,4 +1007,76 @@ def test_sparse_obs_g_loss_keeps_live_adversarial_critic_gradient() -> None:
     assert radial_dot < 1e-5, f"Voronoi latent alignment leaked radial force ({radial_dot:.2e})"
 
 
+def test_issue1_v15_spatial_cluster_gate_and_32x32_dcgan_penalty_parity() -> None:
+    """Issue #1 parity for unified_v15: 32x32 continuous skips transport & uses fwad_debiased + lambda_floor/gamma_gauge."""
+    from benchmarks.toy_audit.api_four_laws_123 import sample_target_for_kind
+
+    torch.set_num_threads(1)
+    g = torch.Generator().manual_seed(321)
+
+    # 1. Pure Conv2d+BN 32x32 critic routes to fwad_debiased (not slow 2B exact_ror) with full lambda_floor=0.005
+    bn_dcgan32 = nn.Sequential(
+        nn.Conv2d(3, 8, 4, stride=2, padding=1),
+        nn.BatchNorm2d(8),
+        nn.LeakyReLU(0.2),
+        nn.Conv2d(8, 16, 4, stride=2, padding=1),
+        nn.BatchNorm2d(16),
+        nn.LeakyReLU(0.2),
+        nn.AdaptiveAvgPool2d(1),
+        nn.Flatten(),
+        nn.Linear(16, 1),
+    )
+    rec, _, _, opt_d = _make_opt_pair(nn.Linear(4, 4), bn_dcgan32, batch_size=16)
+    pen = rec.make_critic_penalty(opt_d, collect_stats=True)
+    loss_fn = rec.make_loss()
+    loss_fn.record = opt_d.record
+
+    xr_cont = torch.randn((16, 3, 32, 32), generator=g)
+    xf_cont = torch.randn((16, 3, 32, 32), generator=g, requires_grad=True)
+    dr_c = bn_dcgan32(xr_cont).squeeze(-1)
+    df_c = bn_dcgan32(xf_cont).squeeze(-1)
+    ld_c = loss_fn.d_loss(dr_c, df_c)
+    lg_c = loss_fn.g_loss(df_c, dr_c)
+    p_val = pen(bn_dcgan32, xr_cont, xf_cont.detach())
+    assert torch.isfinite(ld_c) and torch.isfinite(lg_c) and torch.isfinite(p_val)
+    assert opt_d.record.t1c_ell_initialized is False, "Continuous 32x32 must skip unified_v15 spatial transport"
+    assert pen.last_stats["grad_mode"] == "fwad_debiased", "Pure Conv2d+BN 32x32 must use fwad_debiased"
+
+    # 2. GroupNorm 32x32 sprites still route to exact_ror AND activate spatial transport
+    gn32 = nn.Sequential(
+        nn.Conv2d(3, 8, 4, stride=2, padding=1),
+        nn.GroupNorm(2, 8),
+        nn.SiLU(),
+        nn.AdaptiveAvgPool2d(1),
+        nn.Flatten(),
+        nn.Linear(8, 1),
+    )
+    rec_sp, _, _, opt_d_sp = _make_opt_pair(nn.Linear(4, 4), gn32, batch_size=16)
+    pen_sp = rec_sp.make_critic_penalty(opt_d_sp, collect_stats=True)
+    loss_sp = rec_sp.make_loss()
+    loss_sp.record = opt_d_sp.record
+    xr_sp = sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites_v2", 16, g)
+    xf_sp = torch.randn((16, 3, 32, 32), generator=g, requires_grad=True)
+    dr_s = gn32(xr_sp).squeeze(-1)
+    df_s = gn32(xf_sp).squeeze(-1)
+    lg_s = loss_sp.g_loss(df_s, dr_s)
+    p_sp = pen_sp(gn32, xr_sp, xf_sp.detach())
+    assert torch.isfinite(lg_s) and torch.isfinite(p_sp)
+    assert opt_d_sp.record.t1c_ell_initialized is True, "Clustered 32x32 sprites must activate unified_v15 transport"
+    assert pen_sp.last_stats["grad_mode"] == "exact_ror", "GroupNorm 32x32 critic must keep exact_ror"
+
+    # 3. Large-B (B=128) active spatial transport in UnifiedV15CouplingLoss bounds Sinkhorn to <=64 & keeps full d_fake grad
+    coup = UnifiedV15CouplingLoss()
+    sp128 = sample_target_for_kind("fl_law2_groupnorm_and_vit_sprites_v2", 128, g)
+    xf128 = torch.randn((128, 3, 32, 32), generator=g, requires_grad=True)
+    df128 = torch.zeros(128, requires_grad=True)
+    dr128 = torch.ones(128)
+    lc, _ = coup(xf128, sp128, df128, dr128, return_metrics=False)
+    assert torch.isfinite(lc)
+    assert coup.last_p_xy_slack is not None and coup.last_p_xy_slack.shape[0] == 64
+    lc.backward()
+    assert df128.grad is not None and bool((df128.grad.abs() > 0).all())
+
+
+
 

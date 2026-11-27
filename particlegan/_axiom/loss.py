@@ -1,13 +1,32 @@
 """Axiom 4-Law GANLoss adapter composing AxiomTransportLoss & AxiomCondFiberBank."""
 from __future__ import annotations
 
-import math
+import math, weakref
 from typing import Any, Optional, Tuple
 import torch
 import torch.nn.functional as F
 
 from ..gan_loss import GANLoss
 from .transport import AxiomTransportLoss, project_transport_features
+
+_SPATIAL_CLUSTER_THRESH = 0.12
+
+
+@torch.no_grad()
+def _spatial_cluster_ratio(x: torch.Tensor, *, max_spatial: int = 8, max_b: int = 64) -> float:
+    b = int(x.shape[0])
+    if b < 4: return 1.0
+    xd = x.detach()
+    z = project_transport_features(xd - xd.mean(dim=0, keepdim=True), max_spatial=max_spatial).float()
+    sc = z.abs().amax(); zu = z / sc.clamp_min(1e-30)
+    if b > max_b:
+        w = torch.remainder((torch.arange(zu.shape[1], device=zu.device, dtype=torch.float32) + 0.5) * 0.6180339887498949, 1.0) - 0.5
+        order = torch.argsort(zu @ (w / w.norm().clamp_min(1e-12)), stable=True)
+        zu = zu.index_select(0, order.index_select(0, (torch.arange(max_b, device=zu.device, dtype=torch.long) * b) // max_b))
+    dmat, off = torch.cdist(zu, zu, p=2.0), ~torch.eye(int(zu.shape[0]), dtype=torch.bool, device=zu.device)
+    med_all = torch.quantile(dmat[off], 0.50).clamp_min(1e-12)
+    med_nn = torch.quantile(dmat.masked_fill(~off, float("inf")).amin(dim=1), 0.50)
+    return float(torch.where(sc > 1e-30, med_nn / med_all, med_nn.new_zeros(())).item())
 
 
 def _lookup_capture(
@@ -101,15 +120,22 @@ class AxiomGANLoss(GANLoss):
             max_spatial=int(max_spatial), mean_op_weight=float(mean_op_weight), cov_op_weight=float(cov_op_weight),
             imq_active_scale=float(imq_active_scale), bank_mean_blend=float(bank_mean_blend),
         )
-        self.t1c, self.last_metrics = self.transport, {}
+        self.t1c, self.last_metrics, self._sc_cache = self.transport, {}, None
+
+    def _skip_spatial_transport(self, x_r: torch.Tensor) -> bool:
+        if x_r.ndim < 2 or x_r.shape[0] <= 0: return False
+        dim = int(x_r[0].numel())
+        if x_r.ndim < 4 or not any(int(s) > 1 for s in x_r.shape[2:]): return dim > 1024
+        if dim <= 1024 or dim > 4096: return dim > 4096
+        key, c = (id(x_r), int(x_r.data_ptr()), int(x_r._version), tuple(x_r.shape), str(x_r.device)), self._sc_cache
+        if c is not None and c[0] == key and c[2]() is x_r: return c[1]
+        skip = _spatial_cluster_ratio(x_r, max_spatial=8) >= _SPATIAL_CLUSTER_THRESH
+        self._sc_cache = (key, skip, weakref.ref(x_r)); return skip
 
     @property
-    def axiom_record(self) -> Any:
-        return self.record
-
+    def axiom_record(self) -> Any: return self.record
     @axiom_record.setter
-    def axiom_record(self, value: Any) -> None:
-        self.record = value
+    def axiom_record(self, value: Any) -> None: self.record = value
 
     def _resolve_pair(self, fake_logits: torch.Tensor, real_logits: torch.Tensor):
         x_f, cond_f, rec_f, cc_f, parts_f = _lookup_capture(fake_logits, self.record)
@@ -137,8 +163,7 @@ class AxiomGANLoss(GANLoss):
                 rec.observe_margin_and_scale(real_logits, fake_logits)
         if self.loss != "non_saturating" or self.transport.weight == 0.0 or self.fibre_rel_blend <= 0.0:
             return base
-        dim_d = int(x_r[0].numel()) if x_r.shape[0] > 0 else 0
-        if (not captured) or has_cc or (x_r.ndim >= 2 and dim_d > (4096 if x_r.ndim >= 4 else 1024)):
+        if (not captured) or has_cc or self._skip_spatial_transport(x_r):
             pair_d = _scalar_pair_rel(real_logits, fake_logits)
             if pair_d is not None:
                 return (1.0 - self.fibre_rel_blend) * base + self.fibre_rel_blend * pair_d
@@ -176,14 +201,11 @@ class AxiomGANLoss(GANLoss):
                             total = total * s_th + total.detach() * (1.0 - s_th)
                     return self.transport.weight * total
             return self.transport.weight * rel_term
-        dim = int(x_r[0].numel()) if x_r.shape[0] > 0 else 0
-        if x_r.ndim >= 2 and dim > (4096 if x_r.ndim >= 4 else 1024):
+        if self._skip_spatial_transport(x_r):
             self.transport.bind_discrete_prior_step(False, simplicial_active=False)
             if rec is not None:
-                if hasattr(rec, "_disc_gate"):
-                    rec._disc_gate = 0.0
-                if hasattr(rec, "_simplicial_step"):
-                    rec._simplicial_step = False
+                if hasattr(rec, "_disc_gate"): rec._disc_gate = 0.0
+                if hasattr(rec, "_simplicial_step"): rec._simplicial_step = False
             return self._blended_g(fake_logits, real_logits)
         allow = bool(torch.is_grad_enabled() and not getattr(rec, "_in_protected_probe", False) and not getattr(rec, "_in_probe", False))
         prev_simp = bool(self.transport._simplicial_step)

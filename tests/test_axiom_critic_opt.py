@@ -1379,6 +1379,251 @@ def test_axiom_v4_cuda_bf16_instancenorm_groupnorm_fwad() -> None:
         assert any(p.grad is not None and torch.isfinite(p.grad).all() for p in mod.parameters())
 
 
+def test_axiom_bn_scale_awareness_period2_stability_and_nonfreezing() -> None:
+    torch.manual_seed(0)
+
+    # (a) Active-BN scoping: _bn_net_ids tags active BN modules, excludes No-BN spatial Convs
+    #     (like img_blobs4) and excludes frozen eval-mode BN backbones (like FrozenResNet18).
+    nobn_net = nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.ReLU(), nn.Conv2d(8, 3, 3, padding=1))
+    opt_nobn = AxiomOptimizer(nobn_net.parameters(), lr=0.014)
+    opt_nobn.bind_module_layouts((nobn_net,))
+    assert len(opt_nobn._bn_net_ids) == 0
+
+    frozen_bn = nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.BatchNorm2d(8), nn.ReLU())
+    frozen_bn.eval()
+    for p in frozen_bn.parameters():
+        p.requires_grad_(False)
+    head = nn.Sequential(nn.GroupNorm(2, 8), nn.Conv2d(8, 1, 3, padding=1))
+    hybrid = nn.Sequential(frozen_bn, head)
+    opt_hyb = AxiomOptimizer(head.parameters(), lr=0.014)
+    opt_hyb.bind_module_layouts((hybrid,))
+    assert len(opt_hyb._bn_net_ids) == 0
+
+    # (b) 1D BN/bias period-2 oscillation must NOT drag down global ema_step_cos / log2_damp
+    #     and unit-renormalized BN momentum (b1=0.50 on 1D) tracks smooth directions cleanly.
+    net = nn.Sequential(
+        nn.Conv2d(4, 8, 4, stride=2, padding=1, bias=True),
+        nn.BatchNorm2d(8),
+        nn.ReLU(),
+        nn.Conv2d(8, 4, 4, stride=2, padding=1, bias=True),
+    )
+    opt = AxiomOptimizer(net.parameters(), lr=0.014)
+    opt.bind_module_layouts((net,))
+    assert len(opt._bn_net_ids) == len(list(net.parameters()))
+
+    g_rng = torch.Generator().manual_seed(123)
+    steady_w = {id(p): torch.randn(p.shape, generator=g_rng) for p in net.parameters() if p.ndim >= 2}
+    osc_1d = {id(p): torch.ones_like(p) for p in net.parameters() if p.ndim == 1}
+    for t in range(30):
+        sgn = 1.0 if t % 2 == 0 else -1.0
+        for p in net.parameters():
+            p.grad = steady_w[id(p)].clone() if p.ndim >= 2 else (osc_1d[id(p)] * sgn)
+        opt.step()
+    assert opt.ema_step_cos > 0.7 and opt.log2_damp == 0.0, (
+        f"1D BN/bias chatter froze global damping: cos={opt.ema_step_cos}, log2_damp={opt.log2_damp}"
+    )
+    for p in net.parameters():
+        assert "m_u" in opt.state[p] and opt.state[p]["m_u"].dtype == torch.float32
+
+    # (c) Odd-stride sketch detects power-of-2 channel oscillation on BN + ConvTranspose2d(128, 64, 4, 4)
+    #     (where n // 128 = 1024 would alias onto a single channel!).
+    #     When ema_func_gain >= 0.60, BN networks do not freeze log2_damp; when secant probe
+    #     confirms overshoot (ema_func_gain < 0.60), log2_damp damps and recovers deadzone-free.
+    bn_ct = nn.Sequential(nn.ConvTranspose2d(128, 64, 4, stride=2, padding=1, bias=False), nn.BatchNorm2d(64))
+    opt_ct = AxiomOptimizer(bn_ct.parameters(), lr=0.014)
+    opt_ct.bind_module_layouts((bn_ct,))
+    g_ch = torch.zeros_like(bn_ct[0].weight)
+    g_ch[:, 1::2, :, :] = 1.0  # odd output channels oscillate; stride 1024 would only hit channel 0!
+    for t in range(40):
+        bn_ct[0].weight.grad = g_ch if t % 2 == 0 else -g_ch
+        opt_ct.step()
+    assert opt_ct.ema_step_cos < -0.5 and opt_ct.log2_damp == 0.0, (
+        f"Healthy BN network should detect cosine without freezing: cos={opt_ct.ema_step_cos}, damp={opt_ct.log2_damp}"
+    )
+    opt_ct._ema_func_gain = 0.50  # secant-confirmed functional overshoot unlocks damping
+    for t in range(30):
+        bn_ct[0].weight.grad = g_ch if t % 2 == 0 else -g_ch
+        opt_ct.step()
+    assert opt_ct.log2_damp < -0.5, f"Secant-confirmed BN oscillation failed to damp: damp={opt_ct.log2_damp}"
+    d_lo = opt_ct.log2_damp
+    for _ in range(35):
+        bn_ct[0].weight.grad = g_ch.clone()
+        opt_ct.step()
+    assert opt_ct.log2_damp > d_lo + 0.5 and opt_ct.log2_damp == 0.0, (
+        f"Deadzone-free recovery failed on BN spatial Conv: {d_lo} -> {opt_ct.log2_damp}"
+    )
+
+    # (d) GANTrainer + Recipe('axiom') automatically binds BN/Conv layouts on both opt_g and opt_d
+    import particlegan as pg
+
+    g_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.ReLU(), nn.Linear(16, 4))
+    d_mod = nn.Sequential(nn.Linear(4, 16, bias=False), nn.BatchNorm1d(16), nn.LeakyReLU(0.2), nn.Linear(16, 1))
+    rec = pg.get_recipe("axiom", z_dim=4, num_particles=64, batch_size=16)
+    tr = pg.GANTrainer(rec, g_mod, d_mod, seed=0)
+    assert len(tr.opt_g._bn_net_ids) > 0 and len(tr.opt_d._bn_net_ids) > 0
+    for _ in range(5):
+        out = tr.step(torch.randn(16, 4))
+        assert math.isfinite(float(out["loss_d"])) and math.isfinite(float(out["loss_g"]))
+    assert tr.opt_g.log2_damp == 0.0 and tr.opt_d.log2_damp == 0.0
+
+
+def test_axiom_bn_momentum_scale_invariance_and_critic_dim_x() -> None:
+    torch.manual_seed(0)
+
+    def _make_bn_conv() -> nn.Sequential:
+        torch.manual_seed(42)
+        return nn.Sequential(
+            nn.ConvTranspose2d(4, 4, 4, stride=2, padding=1, bias=False),
+            nn.BatchNorm2d(4),
+            nn.ReLU(),
+            nn.Conv2d(4, 3, 4, stride=2, padding=1, bias=True),
+        )
+
+    base = _make_bn_conv()
+    g_rng = torch.Generator().manual_seed(777)
+    step_grads = [[torch.randn(p.shape, generator=g_rng) for p in base.parameters()] for _ in range(5)]
+
+    ref_params: list[torch.Tensor] | None = None
+    for scale in (1e-30, 1e-18, 1.0, 1e18, 1e30):
+        mod = _make_bn_conv()
+        opt = AxiomOptimizer(mod.parameters(), lr=0.014)
+        opt.bind_module_layouts((mod,))
+        for grads in step_grads:
+            for p, g in zip(mod.parameters(), grads):
+                p.grad = g * scale
+            opt.step()
+        cur = [p.detach().clone() for p in mod.parameters()]
+        if ref_params is None:
+            ref_params = cur
+        else:
+            for a, b in zip(ref_params, cur):
+                assert torch.allclose(a, b, rtol=1e-5, atol=1e-6), f"BN momentum scale invariance failed at scale={scale}"
+
+    # Nonfinite gradients must leave BN parameters finite and completely untouched
+    mod_nf = _make_bn_conv()
+    opt_nf = AxiomOptimizer(mod_nf.parameters(), lr=0.014)
+    opt_nf.bind_module_layouts((mod_nf,))
+    for bad in (float("inf"), float("nan")):
+        before = [p.detach().clone() for p in mod_nf.parameters()]
+        for p in mod_nf.parameters():
+            p.grad = torch.full_like(p, bad)
+        opt_nf.step()
+        for p, w0 in zip(mod_nf.parameters(), before):
+            assert torch.isfinite(p).all() and torch.equal(p.detach(), w0)
+
+    # High-dim 4D image critic penalty (dim_x = 3072 > 256): exact x -> c*x scale equivariance
+    # AND no low-rank _eff_dim_t inflation on smooth correlated 32x32 RGB batches!
+    torch.manual_seed(7)
+    z = torch.randn(16, 4)
+    w_proj = torch.randn(4, 3 * 32 * 32) / math.sqrt(4.0)
+    xr_base = (z @ w_proj).view(16, 3, 32, 32)  # rank-4 32x32 RGB images (eff_dim << 3072)
+    xf_base = ((z + 0.1 * torch.randn_like(z)) @ w_proj).view(16, 3, 32, 32)
+    w_lin = torch.randn(3 * 32 * 32) / math.sqrt(3 * 32 * 32)
+    pens: list[float] = []
+    for c in (1e-3, 1.0, 1e3):
+        rec = AxiomStepRecord()
+        rec.margin_initialized = True
+        rec.ema_data_scale = float(c * math.sqrt(3 * 32 * 32))
+        kern = AxiomPenaltyKernel(record=rec, coeff=1.0, kappa=1.0)
+        # Scale-equivariant linear critic D_c(x) = <w_lin / c, x> has ||grad D_c||_2 = ||w_lin||_2 / c
+        # Under sc_t = ema_data_scale / sqrt(dim_x) = c, scaled grad norm = ||w_lin||_2 ~ 1.0 regardless of c or rank!
+        crit_fn = lambda x, scale=c: (x.flatten(1) @ (w_lin / scale))
+        pen, st = kern.penalty(crit_fn, xr_base * c, xf_base * c, collect_stats=True)
+        assert torch.isfinite(pen)
+        pens.append(float(pen.item()))
+    assert abs(pens[0] - pens[1]) < 1e-4 and abs(pens[2] - pens[1]) < 1e-4, f"4D dim_x scale equivariance failed: {pens}"
+    assert pens[1] < 0.05, f"Low-rank 32x32 RGB batch inflated critic penalty via eff_dim: pen={pens[1]}"
+
+
+def test_axiom_bn_checkpoint_continuation_and_tamper_rejection() -> None:
+    import particlegan as pg
+
+    torch.manual_seed(0)
+
+    def _make_pair():
+        torch.manual_seed(11)
+        g = nn.Sequential(nn.Linear(4, 4 * 4 * 4, bias=False), nn.Unflatten(1, (4, 4, 4)), nn.BatchNorm2d(4), nn.ReLU(), nn.ConvTranspose2d(4, 3, 4, stride=2, padding=1))
+        d = nn.Sequential(nn.Conv2d(3, 4, 4, stride=2, padding=1), nn.BatchNorm2d(4), nn.LeakyReLU(0.2), nn.Flatten(), nn.Linear(4 * 4 * 4, 1))
+        return g, d
+
+    rec = pg.get_recipe("axiom", z_dim=4, num_particles=64, batch_size=8)
+    g_a, d_a = _make_pair()
+    tr_a = pg.GANTrainer(rec, g_a, d_a, seed=0)
+    g_b, d_b = _make_pair()
+    tr_b = pg.GANTrainer(rec, g_b, d_b, seed=0)
+
+    b_rng = torch.Generator().manual_seed(99)
+    batches = [torch.randn((8, 3, 8, 8), generator=b_rng) for _ in range(6)]
+    for t in range(3):
+        tr_a.step(batches[t])
+        tr_b.step(batches[t])
+
+    # Fresh trainer & models loaded from step-3 checkpoint must match uninterrupted run exactly
+    ckpt = deepcopy(tr_b.state_dict())
+    g_c, d_c = _make_pair()
+    tr_c = pg.GANTrainer(rec, g_c, d_c, seed=12345)
+    tr_c.load_state_dict(ckpt)
+    for t in range(3, 6):
+        tr_a.step(batches[t])
+        tr_c.step(batches[t])
+
+    for pa, pc in zip(tr_a.G.parameters(), tr_c.G.parameters()):
+        assert torch.allclose(pa.detach(), pc.detach(), rtol=0.0, atol=1e-6)
+    for pa, pc in zip(tr_a.D.parameters(), tr_c.D.parameters()):
+        assert torch.allclose(pa.detach(), pc.detach(), rtol=0.0, atol=1e-6)
+    assert math.isclose(tr_a.opt_g.ema_step_cos, tr_c.opt_g.ema_step_cos, rel_tol=0.0, abs_tol=1e-6)
+    assert math.isclose(tr_a.opt_d.log2_damp, tr_c.opt_d.log2_damp, rel_tol=0.0, abs_tol=1e-6)
+
+    # Strict tamper rejection on BN momentum state (m_u)
+    base_sd = deepcopy(tr_a.opt_d.state_dict())
+    pid_mu = next(k for k, v in base_sd["state"].items() if "m_u" in v)
+    for mutate in (
+        lambda s: s["state"][pid_mu]["m_u"].fill_(float("nan")),
+        lambda s: s["state"][pid_mu]["m_u"].fill_(float("inf")),
+        lambda s: s["state"][pid_mu].__setitem__("m_u", torch.ones(1)),
+        lambda s: s["state"][pid_mu].__setitem__("m_u", "corrupt"),
+    ):
+        bad_sd = deepcopy(base_sd)
+        mutate(bad_sd)
+        with pytest.raises(ValueError, match="invalid AxiomOptimizer parameter state"):
+            tr_a.opt_d.validate_state_dict(bad_sd)
+
+    # Pure bfloat16 & float16 model checkpoint round-trip must preserve FP32 m_u bit-for-bit without downcast truncation
+    for dt in (torch.bfloat16, torch.float16):
+        def _make_lowp(dtype=dt) -> nn.Sequential:
+            torch.manual_seed(314)
+            return nn.Sequential(nn.Conv2d(3, 8, 4, stride=2, padding=1), nn.BatchNorm2d(8), nn.ReLU()).to(dtype)
+
+        m_ref, m_res = _make_lowp(), _make_lowp()
+        o_ref, o_res = AxiomOptimizer(m_ref.parameters(), lr=0.014), AxiomOptimizer(m_res.parameters(), lr=0.014)
+        o_ref.bind_module_layouts((m_ref,))
+        o_res.bind_module_layouts((m_res,))
+        lp_rng = torch.Generator().manual_seed(271)
+        lp_batches = [torch.randn((4, 3, 8, 8), generator=lp_rng, dtype=dt) for _ in range(5)]
+        for t in range(3):
+            for m, o in ((m_ref, o_ref), (m_res, o_res)):
+                o.zero_grad(set_to_none=True)
+                m(lp_batches[t]).square().mean().backward()
+                o.step()
+        sd_lp = deepcopy(o_res.state_dict())
+        w_lp = deepcopy(m_res.state_dict())
+        m_fresh = _make_lowp()
+        m_fresh.load_state_dict(w_lp)
+        o_fresh = AxiomOptimizer(m_fresh.parameters(), lr=0.014)
+        o_fresh.bind_module_layouts((m_fresh,))
+        o_fresh.load_state_dict(sd_lp)
+        for t in range(3, 5):
+            for m, o in ((m_ref, o_ref), (m_fresh, o_fresh)):
+                o.zero_grad(set_to_none=True)
+                m(lp_batches[t]).square().mean().backward()
+                o.step()
+        for p1, p2 in zip(m_ref.parameters(), m_fresh.parameters()):
+            assert torch.equal(p1.detach(), p2.detach()), f"{dt} parameter continuation mismatch"
+            assert o_fresh.state[p2]["m_u"].dtype == torch.float32
+            assert torch.equal(o_ref.state[p1]["m_u"], o_fresh.state[p2]["m_u"]), f"{dt} m_u continuation mismatch"
+
+
+
 
 
 

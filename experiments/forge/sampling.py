@@ -58,6 +58,7 @@ ADAPTER_POLICIES = {
     "bytegan": ENUMERATED_PRIOR_CLEAN,
     "bytegan_bigan": JOINT_WORDS_CLEAN,
     "dcgan_performance_v1": TRAINING_UPDATE_MEASUREMENT,
+    "bn_dcgan_guard": PUBLIC_PRIOR_CLEAN,
     "word_joint": JOINT_WORDS_CLEAN,
     "transfer_vector": PUBLIC_PRIOR_CLEAN,
     "transfer_image": ENUMERATED_PRIOR_CLEAN,

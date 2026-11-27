@@ -1,0 +1,21 @@
+{
+  "assignments": [
+    {
+      "importance": "diagnostic",
+      "order": 0,
+      "qualification_tier": 1,
+      "task": "bn_dcgan_rgb32_b256_diagnostic"
+    }
+  ],
+  "eligibility": {},
+  "evidence_scope": "research_diagnostic",
+  "goal": "bn_dcgan_b256_diagnostic",
+  "id": "bn_dcgan_b256_diagnostic",
+  "policy_change_reason": "Explicit bounded Radford 32x32 BN-DCGAN (B=256) continuous RGB convergence and CUDA step-latency diagnostic guard. Surfaces BatchNorm critic collapse, BN-network optimization oscillation, mode/spectral degradation, and O(B^2) spatial-transport latency regressions before promotion without granting ordinary qualification or default-adoption credit.",
+  "ranking": {
+    "cost_separate": true,
+    "policy": "diagnostic_outcomes_only"
+  },
+  "revision": 1,
+  "schema_version": 1
+}

@@ -17,6 +17,7 @@ from particlegan.execution import disable_autograd_multithreading, serial_autogr
 # execution -------------------------------------------------------------------
 
 def test_serial_autograd_disables_and_then_restores_the_caller_state():
+    prev = torch.autograd.is_multithreading_enabled()
     torch.autograd.set_multithreading_enabled(True)
     try:
         with serial_autograd():
@@ -27,10 +28,11 @@ def test_serial_autograd_disables_and_then_restores_the_caller_state():
                 raise RuntimeError("boom")
         assert torch.autograd.is_multithreading_enabled() is True
     finally:
-        torch.autograd.set_multithreading_enabled(True)
+        torch.autograd.set_multithreading_enabled(prev)
 
 
 def test_disable_autograd_multithreading_applies_to_the_calling_thread_only():
+    prev = torch.autograd.is_multithreading_enabled()
     torch.autograd.set_multithreading_enabled(True)
     seen = {}
 
@@ -45,7 +47,7 @@ def test_disable_autograd_multithreading_applies_to_the_calling_thread_only():
         assert seen["worker"] is False
         assert torch.autograd.is_multithreading_enabled() is True
     finally:
-        torch.autograd.set_multithreading_enabled(True)
+        torch.autograd.set_multithreading_enabled(prev)
 
 
 # _qr.r2_points -----------------------------------------------------------------

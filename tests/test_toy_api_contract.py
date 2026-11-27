@@ -142,13 +142,16 @@ def test_executable_inventory_retains_every_historical_question_and_pr231():
         "fl_law42_deep_resbn_and_conv1x1",
         "fl_law44_highd_sparse_prior_and_shock",
     }
+    bn_dcgan_guard = {"bn_dcgan_rgb32_b256_diagnostic"}
     assert gan_stretch <= cases.keys()
     assert four_laws_stretch <= cases.keys()
+    assert bn_dcgan_guard <= cases.keys()
     historical = {name: case for name, case in cases.items()
                   if case["provider"] not in api_contract.MODEL_PROVIDERS
                   and name not in gan_stretch
-                  and name not in four_laws_stretch}
+                  and name not in four_laws_stretch
+                  and name not in bn_dcgan_guard}
     assert len(historical) == 186
-    assert len(cases) == 214  # Eight model cases, scoped MisGAN, ten GAN stretch cases, and nine Four Laws cases.
+    assert len(cases) == 215  # Eight model cases, scoped MisGAN, ten GAN stretch cases, nine Four Laws cases, and BN-DCGAN guard.
     assert all(case["evaluation_observations"] >= case.get("terminal_observations", 5)
                for case in cases.values())

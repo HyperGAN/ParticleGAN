@@ -744,6 +744,47 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic"></a>
+
+## bn_dcgan_b256_diagnostic
+
+**bn_dcgan_b256_diagnostic — revision 1**. [View declaration](../../../configs/forge/views/bn_dcgan_b256_diagnostic.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic-tier-1"></a>
+
+### Tier 1
+
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [bn_dcgan_rgb32_b256_diagnostic](k3p-no-training-noise.md#cohort-cuda-c195899a64af-experiment-bn_dcgan_rgb32_b256_diagnostic) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
+
+<a name="cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-c195899a64af-bytegan_stretch"></a>
 
 ## bytegan_stretch
@@ -2821,6 +2862,42 @@ Current pass criteria:
 Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; weights unbound; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-c195899a64af-experiment-bn_dcgan_rgb32_b256_diagnostic"></a>
+
+### bn_dcgan_rgb32_b256_diagnostic
+
+**bn_dcgan_rgb32_b256_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bn_dcgan_rgb32_b256_diagnostic.json) · [Experiment page](../experiments/bn_dcgan_rgb32_b256_diagnostic.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [bn_dcgan_b256_diagnostic / Tier 1](k3p-no-training-noise.md#cohort-cuda-c195899a64af-bn_dcgan_b256_diagnostic-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| feature_fid | <= 55 |
+| pixel_diversity_ratio | >= 0.7 |
+| pixel_diversity_ratio | <= 1.3 |
+| class_coverage | >= 0.9 |
+| class_mass_tv | <= 0.25 |
+| spectral_l1 | <= 0.04 |
+
+At least 3 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1200 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
 
 </details>
 
@@ -8011,6 +8088,47 @@ No experiments assigned.
 
 No experiments assigned.
 
+<a name="cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic"></a>
+
+## bn_dcgan_b256_diagnostic
+
+**bn_dcgan_b256_diagnostic — revision 1**. [View declaration](../../../configs/forge/views/bn_dcgan_b256_diagnostic.json).
+
+Diagnostic-only view; its outcomes are excluded from the family totals and grant no qualification.
+
+Calibration: **undeclared**. Calibration and robustness are separate from recorded task passes.
+
+<a name="cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic-tier-1"></a>
+
+### Tier 1
+
+<details>
+<summary>Tier 1 assignments (1 test)</summary>
+
+| Experiment | Role | Recorded result | Test definition |
+| --- | --- | --- | --- |
+| [bn_dcgan_rgb32_b256_diagnostic](k3p-no-training-noise.md#cohort-cuda-0d83d78027c5-experiment-bn_dcgan_rgb32_b256_diagnostic) | diagnostic | UNKNOWN | recorded definition unavailable |
+
+</details>
+
+<a name="cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic-tier-2"></a>
+
+### Tier 2
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic-tier-3"></a>
+
+### Tier 3
+
+No experiments assigned.
+
+<a name="cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic-tier-4"></a>
+
+### Tier 4
+
+No experiments assigned.
+
 <a name="cohort-cuda-0d83d78027c5-bytegan_stretch"></a>
 
 ## bytegan_stretch
@@ -10090,6 +10208,42 @@ Current pass criteria:
 Declared budget: 4000 updates; timeout 600 seconds.
 
 Current measurement: mog prior (sigma 0.06); public_prior_without_output_noise; weights unbound; output noise clean.
+
+</details>
+
+<a name="cohort-cuda-0d83d78027c5-experiment-bn_dcgan_rgb32_b256_diagnostic"></a>
+
+### bn_dcgan_rgb32_b256_diagnostic
+
+**bn_dcgan_rgb32_b256_diagnostic: UNKNOWN**. [Current experiment declaration](../../../configs/forge/tasks/bn_dcgan_rgb32_b256_diagnostic.json) · [Experiment page](../experiments/bn_dcgan_rgb32_b256_diagnostic.md).
+
+<details>
+<summary>Metrics, pass criteria &amp; provenance (UNKNOWN)</summary>
+
+Test definition: **recorded definition unavailable**. Recorded test definition unavailable; compatibility with today's declaration cannot be checked. No recorded result for this selected configuration and source.
+
+Execution: **not run**.
+
+Used by: [bn_dcgan_b256_diagnostic / Tier 1](k3p-no-training-noise.md#cohort-cuda-0d83d78027c5-bn_dcgan_b256_diagnostic-tier-1).
+
+Current pass criteria:
+
+| Metric | Required bound |
+| --- | --- |
+| finite_fraction | == 1 |
+| feature_fid | <= 55 |
+| pixel_diversity_ratio | >= 0.7 |
+| pixel_diversity_ratio | <= 1.3 |
+| class_coverage | >= 0.9 |
+| class_mass_tv | <= 0.25 |
+| spectral_l1 | <= 0.04 |
+
+At least 3 consecutive passing terminal observations.
+Execution guards: finite state = True; optimizer roles = generator, discriminator, prior; exact optimizer updates = True; mechanism exercised = True; rng isolation = True.
+
+Declared budget: 1200 updates; timeout 300 seconds.
+
+Current measurement: mog prior (sigma 0.1); public_prior_without_output_noise; weights live; output noise clean.
 
 </details>
 

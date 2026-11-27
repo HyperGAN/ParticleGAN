@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 0.13.1 — 2026-11-26
+
+- **Fix real-image (`32×32`) BatchNorm DCGAN & natural-image regressions in `axiom` and `unified_v15` without regressing Four-Laws or Forge gates:**
+  - **Geometry-gated `4D` spatial transport, bounded `c_rel_w` & `B > 64` pair cap, and `unified_v15` `32×32` DCGAN parity (`particlegan/_axiom/{loss,transport}.py`, `particlegan/_unified_v15/{loss,penalty}.py`):**
+    - Replaced the raw `dim <= 4096` spatial cliff with a scale-/shift-/permutation-invariant pooled `8×8` cluster ratio (`med_nn / med_all < 0.12`, Weyl-strided `<= 64` slice, transiently cached across `d_loss`/`g_loss`). Continuous `32×32` natural images bypass `O(B^2)` pixel transport and keep `0.5 * pair_relativistic` in both `d_loss` and `g_loss` (matching `64×64..256×256` with no resolution cliff), while discrete pixel-template clusters (`fl_law2_groupnorm_and_vit_sprites_v2`) continue activating transport and passing (`4/4` modes, `sprite_hq=1.0`, `template_rmse=0.0927`, `mass_tv=0.0156`).
+    - Removed `2.5 * ell` inflation in downsampled `c_rel_w` (`0.50 * rms_y`, fixing the `75–85×` generator loss blowup on `32×32` images) and bounded `B > 64` spatial transport sub-batches via checkpointed `chord_phase` plus an `O(B)` full-batch relativistic term.
+    - Lowered `UnifiedV15CriticPenalty`'s `exact_ror` dim cutoff to `<= 1024` for pure Conv/BN DCGANs (retaining `exact_ror` on GroupNorm/LayerNorm/Attention/ViT) and restored full `lambda_floor`/`gamma_gauge`, eliminating `32×32` BN-DCGAN critic saturation (`15.6 -> 38.9–39.4 it/s`, `FID4k_ema 220.2` BF16 / `231.0` FP32 @ 2k).
+  - **BatchNorm critic mode consistency in `GANTrainer` (`particlegan/training.py`):**
+    - Active critic `_BatchNorm` submodules now stay in non-tracking batch-stat mode (`training=True, track_running_stats=False`, zero drift to `running_mean`/`running_var`/`num_batches_tracked`) during the generator step, while non-BN layers, Dropout, and frozen eval-only BN backbones (e.g. `ResNet18FeatureCritic32`) remain strictly in `eval()`. Eliminates immediate BN-critic collapse (`D=0.004, margin>12, FID4k=506–560`) in both BF16 and FP32.
+  - **Active-BatchNorm `AxiomOptimizer` stability & high-dim `4D` `fwAD` critic scale fix (`particlegan/_axiom/{optimizer,critic}.py`, `particlegan/recipes.py`, `particlegan/optim/dualnorm.py`):**
+    - Fixed `140–302×` low-rank `_eff_dim_t` penalty inflation on high-dim `4D` `fwAD` critics (`ndim >= 4 and dim_x > 256` now scales by `sqrt(dim_x)`, preserving exact `x -> c*x` scale equivariance and keeping all `2D`/RoR critics unchanged).
+    - Added `bind_module_layouts` / `_collect_bn_ids` scoped strictly to active trainable `_BatchNorm` networks (No-BN networks like `img_blobs4`/`img_bars4` and frozen BN backbones stay unchanged), with vectorized clock-free degree-0 unit-renormalized momentum (`m_u`, bit-exact `float32` restore on FP32/BF16/FP16 checkpoints), odd-stride `ndim >= 2` step-cosine sketching, and non-freezing BN `log2_damp` recovery.
+    - Real CIFAR-10 `32×32` Radford BN-DCGAN (`B=256`, `16,384` particles, zero overrides, RTX A6000): `axiom` improves from `25.8 it/s` / `FID4k=506–560` collapse to **`45.6 it/s (21.9 ms/step)` BF16 (`FID4k_ema=208.8` @ 2.5k)** and **`48.1 it/s (20.8 ms/step)` FP32 (`FID4k_ema=217.1` @ 2k)**; `ResNet18FeatureCritic32 + TinyTransformerGenerator32` improves from `91.69` to **`78.38` @ 1k** (`max |G| = 0.823`, zero backbone BN drift).
+  - **Hermetic Forge Radford `32×32` BN-DCGAN convergence & `B=256` throughput guard (`bn_dcgan_rgb32_b256_diagnostic`):**
+    - Added offline continuous 10-class `32×32` RGB BN-DCGAN diagnostic task, view (`bn_dcgan_b256_diagnostic`), 11 oracle/negative controls, SHA-256-verified CUDA latency gate (`<= 38.0 ms/step`), actual-training `goal.gif`, and fail-closed unit tests (`axiom` passes `3/3` at `FID=43.77 <= 55`, `21.40 ms/step`).
+  - **CI test-isolation fixes:** Restored `torch.autograd.is_multithreading_enabled()` in `tests/test_execution_and_qr_unit.py` and guarded `_T1C_RECENT_CAPTURES` lookup in `particlegan/_t1_coupling/critic.py` against cross-trainer `data_ptr()` reuse.
+
 ## 0.13.0 — 2026-11-26
 
 - **Promote `axiom` (`DEFAULT_RECIPE = "axiom"`, matching `axiom-v5`) as the energy-optimal, clean-slate Four-Laws research default.**

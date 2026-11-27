@@ -175,7 +175,7 @@ def _lookup_t1c_capture_parts(
             if ring is not None and key in ring:
                 item = ring[key]
                 x_c, c_c, r_c, cc_c, p_c = item[0], item[1], item[2], bool(item[3]), item[4]
-                if x_c.shape[0] == b:
+                if x_c.shape[0] == b and (fallback_record is None or r_c is None or r_c is fallback_record):
                     return (
                         _finalize_x(logits, x_c),
                         c_c,
@@ -186,7 +186,7 @@ def _lookup_t1c_capture_parts(
         if key in _T1C_RECENT_CAPTURES:
             item = _T1C_RECENT_CAPTURES[key]
             x_c, c_c, r_c, cc_c, p_c = item[0], item[1], item[2], bool(item[3]), item[4]
-            if x_c.shape[0] == b:
+            if x_c.shape[0] == b and (fallback_record is None or r_c is None or r_c is fallback_record):
                 return (
                     _finalize_x(logits, x_c),
                     c_c,

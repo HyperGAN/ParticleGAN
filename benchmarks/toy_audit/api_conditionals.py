@@ -159,6 +159,7 @@ _STRETCH_PROVIDERS = (
     "benchmarks.toy_audit.api_cyclegan",
     "benchmarks.toy_audit.api_four_laws_123",
     "benchmarks.toy_audit.api_four_laws_4",
+    "benchmarks.toy_audit.api_bn_dcgan_rgb32",
 )
 
 
